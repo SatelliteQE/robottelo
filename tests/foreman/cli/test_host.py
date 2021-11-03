@@ -16,6 +16,7 @@
 
 :Upstream: No
 """
+import os
 from datetime import datetime
 from datetime import timedelta
 from random import choice
@@ -64,6 +65,38 @@ from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
 from robottelo.hosts import ContentHostError
+
+
+@pytest.fixture(scope="function")
+def rhel_version():
+    current_test_name = os.environ.get('PYTEST_CURRENT_TEST')
+    start = current_test_name.find('[') + 1
+    end = current_test_name.find(']')
+    return current_test_name[start:end]
+
+
+@pytest.fixture(scope="function")
+def repo_setup(rhel_version):
+    repository_set = repository = product = None
+    if rhel_version == 'rhel6':
+        product = PRDS['rhel6']
+        repository_set = REPOSET['rhst6']
+        repository = REPOS['rhst6']['name']
+    elif rhel_version == 'rhel7':
+        product = PRDS['rhel']
+        repository_set = REPOSET['rhst7']
+        repository = REPOS['rhst7']['name']
+    elif rhel_version == 'rhel8':
+        product = PRDS['rhel8']
+        repository_set = REPOSET['rhst8']
+        repository = REPOS['rhst8']['name']
+    if not (repository and repository_set and product):
+        raise ValueError('Please specify the repository, repository-set and product')
+    return {
+        'product': product,
+        'repository_set': repository_set,
+        'repository': repository,
+    }
 
 
 @pytest.fixture(scope="module")
@@ -627,7 +660,7 @@ def test_positive_katello_and_openscap_loaded():
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_register_with_no_ak(
-    module_lce, module_org, module_promoted_cv, rhel7_contenthost, default_sat
+    module_lce, module_org, module_promoted_cv, rhel_contenthost, default_sat
 ):
     """Register host to satellite without activation key
 
@@ -637,17 +670,17 @@ def test_positive_register_with_no_ak(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
-    rhel7_contenthost.register_contenthost(
+    rhel_contenthost.install_katello_ca(default_sat)
+    rhel_contenthost.register_contenthost(
         module_org.label,
         lce=f'{module_lce.label}/{module_promoted_cv.label}',
     )
-    assert rhel7_contenthost.subscribed
+    assert rhel_contenthost.subscribed
 
 
 @pytest.mark.host_create
 @pytest.mark.tier3
-def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthost, default_sat):
+def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost, default_sat):
     """Attempt to register a host twice to Satellite
 
     :id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
@@ -656,10 +689,10 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthos
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
-    assert rhel7_contenthost.subscribed
-    result = rhel7_contenthost.register_contenthost(
+    rhel_contenthost.install_katello_ca(default_sat)
+    rhel_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
+    assert rhel_contenthost.subscribed
+    result = rhel_contenthost.register_contenthost(
         module_org.label, module_ak_with_cv.name, force=False
     )
     # Depending on distro version, successful status may be 0 or
@@ -712,7 +745,7 @@ def test_positive_list_scparams(
 
 @pytest.mark.host_create
 @pytest.mark.tier3
-def test_positive_list(module_ak_with_cv, module_lce, module_org, rhel7_contenthost, default_sat):
+def test_positive_list(module_ak_with_cv, module_lce, module_org, rhel_contenthost, default_sat):
     """List hosts for a given org
 
     :id: b9c056cd-11ca-4870-bac4-0ebc4a782cb0
@@ -721,18 +754,18 @@ def test_positive_list(module_ak_with_cv, module_lce, module_org, rhel7_contenth
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
-    assert rhel7_contenthost.subscribed
+    rhel_contenthost.install_katello_ca(default_sat)
+    rhel_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
+    assert rhel_contenthost.subscribed
     hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
     assert len(hosts) >= 1
-    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
+    assert rhel_contenthost.hostname in [host['name'] for host in hosts]
 
 
 @pytest.mark.host_create
 @pytest.mark.tier3
 def test_positive_list_by_last_checkin(
-    module_lce, module_org, module_promoted_cv, rhel7_contenthost, default_sat
+    module_lce, module_org, module_promoted_cv, rhel_contenthost, default_sat
 ):
     """List all content hosts using last checkin criteria
 
@@ -746,22 +779,22 @@ def test_positive_list_by_last_checkin(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
-    rhel7_contenthost.register_contenthost(
+    rhel_contenthost.install_katello_ca(default_sat)
+    rhel_contenthost.register_contenthost(
         module_org.label,
         lce=f'{module_lce.label}/{module_promoted_cv.label}',
     )
-    assert rhel7_contenthost.subscribed
+    assert rhel_contenthost.subscribed
     hosts = Host.list({'search': 'last_checkin = "Today" or last_checkin = "Yesterday"'})
     assert len(hosts) >= 1
-    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
+    assert rhel_contenthost.hostname in [host['name'] for host in hosts]
 
 
 @pytest.mark.host_create
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_unregister(
-    module_ak_with_cv, module_lce, module_org, rhel7_contenthost, default_sat
+    module_ak_with_cv, module_lce, module_org, rhel_contenthost, default_sat
 ):
     """Unregister a host
 
@@ -773,16 +806,16 @@ def test_positive_unregister(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
-    assert rhel7_contenthost.subscribed
+    rhel_contenthost.install_katello_ca(default_sat)
+    rhel_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
+    assert rhel_contenthost.subscribed
     hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
     assert len(hosts) >= 1
-    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
-    result = rhel7_contenthost.run('subscription-manager unregister')
+    assert rhel_contenthost.hostname in [host['name'] for host in hosts]
+    result = rhel_contenthost.run('subscription-manager unregister')
     assert result.status == 0
     hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
-    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
+    assert rhel_contenthost.hostname in [host['name'] for host in hosts]
 
 
 @pytest.mark.skip_if_not_set('libvirt')
@@ -1676,8 +1709,8 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
 
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
-@pytest.fixture(scope="module")
-def katello_host_tools_repos():
+@pytest.fixture(scope="function")
+def katello_host_tools_repos(repo_setup):
     """Create Org, Lifecycle Environment, Content View, Activation key"""
     org = entities.Organization().create()
     cv = entities.ContentView(organization=org).create()
@@ -1688,9 +1721,9 @@ def katello_host_tools_repos():
     ).create()
     setup_org_for_a_rh_repo(
         {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
+            'product': repo_setup['product'],
+            'repository-set': repo_setup['repository_set'],
+            'repository': repo_setup['repository'],
             'organization-id': org.id,
             'content-view-id': cv.id,
             'lifecycle-environment-id': lce.id,
@@ -1717,18 +1750,18 @@ def katello_host_tools_repos():
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.fixture(scope="function")
-def katello_host_tools_client(katello_host_tools_repos, rhel7_contenthost, default_sat):
-    rhel7_contenthost.install_katello_ca(default_sat)
+def katello_host_tools_client(katello_host_tools_repos, rhel_contenthost, default_sat, repo_setup):
+    rhel_contenthost.install_katello_ca(default_sat)
     # Register content host and install katello-host-tools
-    rhel7_contenthost.register_contenthost(
+    rhel_contenthost.register_contenthost(
         katello_host_tools_repos['org'].label,
         katello_host_tools_repos['ak'].name,
     )
-    assert rhel7_contenthost.subscribed
-    host_info = Host.info({'name': rhel7_contenthost.hostname})
-    rhel7_contenthost.enable_repo(REPOS['rhst7']['id'])
-    rhel7_contenthost.install_katello_host_tools()
-    yield {'client': rhel7_contenthost, 'host_info': host_info}
+    assert rhel_contenthost.subscribed
+    host_info = Host.info({'name': rhel_contenthost.hostname})
+    rhel_contenthost.enable_repo(repo_setup['repository'])
+    rhel_contenthost.install_katello_host_tools()
+    yield {'client': rhel_contenthost, 'host_info': host_info}
 
 
 @pytest.mark.katello_host_tools
@@ -1911,16 +1944,16 @@ def test_positive_install_package_via_rex(
 
 # ------------------------ HOST SUBSCRIPTION SUBCOMMAND FIXTURES AND CLASS -----------------------
 @pytest.mark.skip_if_not_set('fake_manifest')
-@pytest.fixture(scope="module")
-def host_subscription(module_ak, module_cv, module_lce, module_org):
+@pytest.fixture(scope="function")
+def host_subscription(module_ak, module_cv, module_lce, module_org, repo_setup):
 
     subscription_name = SATELLITE_SUBSCRIPTION_NAME
     # create a satellite tools repository content
     setup_org_for_a_rh_repo(
         {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
+            'product': repo_setup['product'],
+            'repository-set': repo_setup['repository_set'],
+            'repository': repo_setup['repository'],
             'organization-id': module_org.id,
             'content-view-id': module_cv.id,
             'lifecycle-environment-id': module_lce.id,
@@ -1955,12 +1988,12 @@ def host_subscription(module_ak, module_cv, module_lce, module_org):
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.fixture(scope="function")
-def host_subscription_client(rhel7_contenthost, default_sat):
-    rhel7_contenthost.install_katello_ca(default_sat)
-    yield rhel7_contenthost
+def host_subscription_client(rhel_contenthost, default_sat):
+    rhel_contenthost.install_katello_ca(default_sat)
+    yield rhel_contenthost
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def module_host_subscription(host_subscription):
     yield HostSubscription(host_subscription)
 
@@ -2217,7 +2250,9 @@ def test_negative_without_attach(request, module_host_subscription, host_subscri
 
 @pytest.mark.host_subscription
 @pytest.mark.tier3
-def test_negative_without_attach_with_lce(module_host_subscription, host_subscription_client):
+def test_negative_without_attach_with_lce(
+    module_host_subscription, host_subscription_client, repo_setup
+):
     """Attempt to enable a repository of a subscription that was not
     attached to a host
     This test is not using the host_subscription entities except
@@ -2240,9 +2275,9 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
     ).create()
     setup_org_for_a_rh_repo(
         {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
+            'product': repo_setup['product'],
+            'repository-set': repo_setup['repository_set'],
+            'repository': repo_setup['repository'],
             'organization-id': org.id,
             'content-view-id': content_view.id,
             'lifecycle-environment-id': lce.id,

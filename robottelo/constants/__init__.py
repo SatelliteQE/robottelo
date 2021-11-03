@@ -339,6 +339,7 @@ PRDS = {
     'rhdt': 'Red Hat Developer Tools for RHEL Server',
     'rhscl': 'Red Hat Software Collections (for RHEL Server)',
     'rhae': 'Red Hat Ansible Engine',
+    'rhel6': 'Red Hat Enterprise Linux Server - Extended Life Cycle Support',
     'rhel8': 'Red Hat Enterprise Linux for x86_64',
 }
 
@@ -357,7 +358,7 @@ REPOSET = {
     'rhst7_67': 'Red Hat Satellite Tools 6.7 (for RHEL 7 Server) (RPMs)',
     'rhst7_68': 'Red Hat Satellite Tools 6.8 (for RHEL 7 Server) (RPMs)',
     'rhst7_69': 'Red Hat Satellite Tools 6.9 (for RHEL 7 Server) (RPMs)',
-    'rhst6': 'Red Hat Satellite Tools 6.9 (for RHEL 6 Server) (RPMs)',
+    'rhst6': 'Red Hat Satellite Tools 6.9 (for RHEL 6 Server - ELS) (RPMs)',
     'rhaht': 'Red Hat Enterprise Linux Atomic Host (RPMs)',
     'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7 Server'),
     'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise Linux 7 Server'),
@@ -489,8 +490,8 @@ REPOS = {
         'key': 'rhst',
     },
     'rhst6': {
-        'id': 'rhel-6-server-satellite-tools-6.9-rpms',
-        'name': ('Red Hat Satellite Tools 6.9 for RHEL 6 Server RPMs x86_64'),
+        'id': 'rhel-6-server-els-satellite-tools-6.9-rpms',
+        'name': ('Red Hat Satellite Tools 6.9 for RHEL 6 Server - ELS RPMs x86_64'),
         'version': '6.9',
         'reposet': REPOSET['rhst6'],
         'product': PRDS['rhel'],
