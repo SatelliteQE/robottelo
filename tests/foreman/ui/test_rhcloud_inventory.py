@@ -464,7 +464,7 @@ def test_exclude_packages_setting(
 
 
 @pytest.mark.stubbed
-def test_rhcloud_inventory_bz_1830026():
+def test_failed_inventory_upload():
     """Verify that the failed report upload is indicated 'X' icon on Inventory upload page.
 
     :id: 230d3fc3-2810-4385-b07b-30f9bf632488
@@ -505,12 +505,12 @@ def test_rhcloud_inventory_bz_1842903():
 
     :BZ: 1842903
 
-    :CaseAutomation: ManualOnly
+    :CaseAutomation: NotAutomated
     """
 
 
 @pytest.mark.stubbed
-def test_rhcloud_inventory_bz_1965239():
+def test_automatic_inventory_upload_enabled_setting():
     """Test "Automatic inventory upload" setting.
 
     :id: e84790c6-1700-46c4-9bf8-d8f1e63a7f1f
@@ -525,7 +525,6 @@ def test_rhcloud_inventory_bz_1965239():
         6. Unregister host from insights OR Delete host from cloud.
         7. Wait for "Inventory scheduled sync" task to execute.
 
-
     :expectedresults:
         1. When "Automatic inventory upload" setting is disabled then
             "Inventory scheduled sync" task doesn't sync the inventory status.
@@ -539,7 +538,7 @@ def test_rhcloud_inventory_bz_1965239():
 
 
 @pytest.mark.stubbed
-def test_rhcloud_inventory_bz_1962695():
+def test_automatic_inventory_upload_disabled_setting():
     """Test "Automatic inventory upload" setting.
 
     :id: 2c830833-3f92-497c-bbb9-f485a1d8eb47
@@ -549,11 +548,9 @@ def test_rhcloud_inventory_bz_1962695():
         2. Enable "Automatic inventory upload" setting.
         3. Wait for "Inventory scheduled sync" recurring logic to run.
 
-
     :expectedresults:
         1. Satellite has "Inventory scheduled sync" recurring logic, which syncs
             inventory status automatically if "Automatic inventory upload" setting is enabled.
-
 
     :CaseImportance: Medium
 
