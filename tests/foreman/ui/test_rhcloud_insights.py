@@ -104,7 +104,7 @@ def test_rhcloud_insights_e2e(
 
 
 @pytest.mark.stubbed
-def test_rhcloud_inventory_bz_1976853():
+def test_insights_reporting_status():
     """Verify that the Insights reporting status functionality works as expected.
 
     :id: 75629a08-b585-472b-a295-ce497075e519
@@ -130,7 +130,7 @@ def test_rhcloud_inventory_bz_1976853():
 
 
 @pytest.mark.stubbed
-def test_rhcloud_inventory_bz_1978182():
+def test_recommendation_sync_for_satellite():
     """Verify that Insights recommendations are listed for satellite.
 
     :id: ee3feba3-c255-42f1-8293-b04d540dcca5
@@ -156,7 +156,7 @@ def test_rhcloud_inventory_bz_1978182():
 
 
 @pytest.mark.stubbed
-def test_rhcloud_inventory_bz_1865879():
+def test_allow_auto_insights_sync_setting():
     """Test "allow_auto_insights_sync" setting.
 
     :id: ddc4ed5b-43c0-4121-bf2c-b8e040e45379
@@ -179,7 +179,7 @@ def test_rhcloud_inventory_bz_1865879():
 
 
 @pytest.mark.stubbed
-def test_rhcloud_inventory_bz_1889662():
+def test_host_sorting_based_on_recommendation_count():
     """Verify that hosts can be sorted and filtered based on insights
         recommendation count.
 

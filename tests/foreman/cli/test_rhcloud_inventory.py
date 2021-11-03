@@ -135,7 +135,7 @@ def test_positive_sync_inventory_status():
 
 
 @pytest.mark.stubbed
-def test_rhcloud_inventory_bz_1962694():
+def test_max_org_size_variable():
     """Verify that if organization had more hosts than specified by max_org_size variable
         then report won't be uploaded.
 
@@ -162,7 +162,7 @@ def test_rhcloud_inventory_bz_1962694():
 
 
 @pytest.mark.stubbed
-def test_rhcloud_inventory_bz_1945661():
+def test_satellite_inventory_slice_variable():
     """Test SATELLITE_INVENTORY_SLICE_SIZE dynflow environment variable.
 
     :id: ffbef1c7-08f3-444b-9255-2251d5594fcb
@@ -188,7 +188,7 @@ def test_rhcloud_inventory_bz_1945661():
 
 
 @pytest.mark.stubbed
-def test_rhcloud_inventory_bz_1975093():
+def test_rhcloud_external_links():
     """Verify that all external links on Insights and Inventory page are working.
 
     :id: bc7f6354-ed3e-4ac5-939d-90bfe4177043

@@ -69,7 +69,7 @@ def test_rhcloud_inventory_api_hosts_synchronization():
 
 
 @pytest.mark.stubbed
-def test_rhcloud_inventory_bz_1893439():
+def test_rhcloud_inventory_mtu_field():
     """Verify that the hosts having mtu field value as string in foreman's Nic object
     is present in the inventory report.
 
@@ -97,7 +97,7 @@ def test_rhcloud_inventory_bz_1893439():
 
 
 @pytest.mark.stubbed
-def test_rhcloud_inventory_bz_1845113():
+def test_system_purpose_sla_field():
     """Verify that system_purpose_sla field is present in the inventory report
     for the host subscribed using Activation key with service level set in it.
 
@@ -154,7 +154,7 @@ def test_rhcloud_inventory_auto_upload_setting():
 
 
 @pytest.mark.stubbed
-def test_rhcloud_inventory_bz_1936906():
+def test_inventory_upload_with_http_proxy():
     """Verify that inventory report generate and upload process finish
     successfully when satellite is using http proxy listening on port 80.
 
@@ -196,7 +196,6 @@ def test_include_parameter_tags_setting():
 
     :expectedresults:
         1. Valid json report is created.
-
 
     :BZ: 1981869
 
