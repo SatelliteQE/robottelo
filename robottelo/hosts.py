@@ -437,9 +437,9 @@ class ContentHost(Host):
             with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
                 content_file.write(local_path.content.read())
                 content_file.seek(0)
-                self.session.sftp_write(source=content_file.name, destination=remote_path)
+                self.session.scp_write(source=content_file.name, destination=remote_path)
         else:
-            self.session.sftp_write(source=local_path, destination=remote_path)
+            self.session.scp_write(source=local_path, destination=remote_path)
 
     def put_ssh_key(self, source_key_path, destination_key_name):
         """Copy ssh key to virtual machine ssh path and ensure proper permission is
@@ -961,7 +961,7 @@ class ContentHost(Host):
             'certs.sh',
             'extensions.txt',
         ]:
-            self.session.sftp_write(get_data_file(file), f'/root/{file}')
+            self.session.scp_write(get_data_file(file), f'/root/{file}')
         self.execute('echo 100001 > serial')
         self.execute('bash generate-ca.sh')
         result = self.execute(f'yes | bash generate-crt.sh {self.hostname}')
