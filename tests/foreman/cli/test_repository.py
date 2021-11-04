@@ -414,27 +414,6 @@ class TestRepository:
         assert repo['gpg-key']['name'] == gpg_key['name']
 
     @pytest.mark.tier1
-    def test_positive_create_with_gpg_key_by_name(
-        self, repo_options, module_org, module_product, gpg_key
-    ):
-        """Check if repository can be created with gpg key name
-
-        :id: 95cde404-3449-410d-9a08-d7f8619a2ad5
-
-        :parametrized: yes
-
-        :expectedresults: Repository is created and has gpg key
-
-        :BZ: 1103944
-
-        :CaseImportance: Critical
-        """
-        repo_options['gpg-key'] = gpg_key['name']
-        repo = make_repository(repo_options)
-        assert repo['gpg-key']['id'] == gpg_key['id']
-        assert repo['gpg-key']['name'] == gpg_key['name']
-
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'publish-via-http': use_http} for use_http in ('true', 'yes', '1')]),
