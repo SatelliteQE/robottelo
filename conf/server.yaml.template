@@ -48,7 +48,7 @@ SERVER:
   ADMIN_PASSWORD: changeme
 
   SSH_CLIENT:
-    # Time to wait for the ssh command to finish, in seconds
+    # Time to wait for the ssh command to finish, in miliseconds
     COMMAND_TIMEOUT: 300000
     # Time to wait for establishing the ssh connection, in seconds
     CONNECTION_TIMEOUT: 60
