@@ -850,6 +850,12 @@ CUSTOM_PUPPET_MODULE_REPOS = {
 }
 CUSTOM_PUPPET_MODULE_REPOS_VERSION = '-0.2.0.tar.gz'
 
+KICKSTART_CONTENT = [
+    'treeinfo',
+    'images/pxeboot/initrd.img',
+    'images/pxeboot/vmlinuz',
+]
+
 #: All permissions exposed by the server.
 #: :mod:`tests.foreman.api.test_permission` makes use of this.
 PERMISSIONS = {
