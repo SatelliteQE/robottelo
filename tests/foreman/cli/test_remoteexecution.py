@@ -482,10 +482,7 @@ class TestRemoteExecution:
         :BZ: 1818076
         """
         # Copy foreman-proxy user's key to root@localhost user's authorized_keys
-        default_sat.execute(
-            'cat /usr/share/foreman-proxy/.ssh/id_rsa_foreman_proxy.pub >> '
-            '/root/.ssh/authorized_keys'
-        )
+        default_sat.add_rex_key(satellite=default_sat)
 
         # Set Host parameter source_display_name to something random.
         # To avoid 'name has already been taken' error when run multiple times
