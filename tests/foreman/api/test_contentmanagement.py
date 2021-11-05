@@ -901,3 +901,97 @@ class TestCapsuleContentManagement:
 
             # check that one of the files is in the content
             assert b'katello-server-ca.crt' in response.content
+
+    @pytest.mark.tier4
+    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    def test_positive_sync_kickstart_repo(
+        self, module_manifest_org, default_sat, capsule_configured
+    ):
+        """Sync kickstart repository to the capsule.
+
+        :id: bc97b53f-f79b-42f7-8014-b0641435bcfc
+
+        :steps:
+            1. Sync a kickstart repository to Satellite.
+            2. Publish it in a CV, promote to Capsule's LCE.
+            3. Check it is synced to Capsule without errors.
+            4. Check for kickstart content on Satellite and Capsule.
+
+        :expectedresults:
+            1. The kickstart repo is successfully synced to the Capsule.
+
+        :CaseLevel: Integration
+
+        :BZ: 1992329
+        """
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_manifest_org.id,
+            product=constants.PRDS['rhel8'],
+            repo=constants.REPOS['rhel8_bos_ks']['name'],
+            reposet=constants.REPOSET['rhel8_bos_ks'],
+            releasever='8.4',
+        )
+        repo = entities.Repository(id=repo_id).read()
+
+        lce = entities.LifecycleEnvironment(organization=module_manifest_org).create()
+        # Associate the lifecycle environment with the capsule
+        capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': lce.id}
+        )
+        result = capsule_configured.nailgun_capsule.content_lifecycle_environments()
+
+        assert len(result['results'])
+        assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Create a content view with the repository
+        cv = entities.ContentView(organization=module_manifest_org, repository=[repo]).create()
+        # Sync repository
+        repo.sync()
+        repo = repo.read()
+        # Publish new version of the content view
+        cv.publish()
+        cv = cv.read()
+
+        assert len(cv.version) == 1
+
+        cvv = cv.version[-1].read()
+        # Promote content view to lifecycle environment
+        promote(cvv, lce.id)
+        cvv = cvv.read()
+
+        assert len(cvv.environment) == 2
+
+        # Assert that a task to sync lifecycle environment to the capsule
+        # is started (or finished already)
+        sync_status = capsule_configured.nailgun_capsule.content_get_sync()
+
+        assert len(sync_status['active_sync_tasks']) or sync_status['last_sync_time']
+
+        # Wait till capsule sync finishes
+        for task in sync_status['active_sync_tasks']:
+            entities.ForemanTask(id=task['id']).poll()
+
+        # Assert the sync task succeeded
+        sync_status = capsule_configured.nailgun_capsule.content_get_sync()
+        assert len(sync_status['last_failed_sync_tasks']) == 0
+
+        # Check for kickstart content on SAT and CAPS
+        url_base = (
+            f'pulp/content/{module_manifest_org.label}/{lce.label}/'
+            f'{cv.label}/content/dist/rhel8/8.4/x86_64/baseos/kickstart'
+        )
+
+        # Check kickstart specific files
+        for file in constants.KICKSTART_CONTENT:
+            sat_file = md5_by_url(f'{default_sat.url}/{url_base}/{file}')
+            caps_file = md5_by_url(f'{capsule_configured.url}/{url_base}/{file}')
+            assert sat_file == caps_file
+
+        # Check packages
+        sat_pkg_url = f'{default_sat.url}/{url_base}/Packages/'
+        caps_pkg_url = f'{capsule_configured.url}/{url_base}/Packages/'
+        sat_pkgs = get_repo_files_by_url(sat_pkg_url)
+        caps_pkgs = get_repo_files_by_url(caps_pkg_url)
+        assert len(caps_pkgs)
+        assert sat_pkgs == caps_pkgs
