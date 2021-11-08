@@ -52,8 +52,8 @@ from robottelo.products import VirtualizationAgentsRepository
 from robottelo.products import YumRepository
 
 
-CUSTOM_REPO_URL = settings.repos.yum_6.url
-CUSTOM_REPO_ERRATA_ID = settings.repos.yum_6.errata[2]
+CUSTOM_REPO_URL = settings.repos.yum_9.url
+CUSTOM_REPO_ERRATA_ID = settings.repos.yum_9.errata[0]
 
 RHVA_PACKAGE = REAL_0_RH_PACKAGE
 RHVA_ERRATA_ID = REAL_4_ERRATA_ID
@@ -65,7 +65,7 @@ pytestmark = [pytest.mark.run_in_one_thread]
 def _generate_errata_applicability(hostname):
     """Force host to generate errata applicability"""
     host = entities.Host().search(query={'search': f'name={hostname}'})[0].read()
-    host.errata_applicability()
+    host.errata_applicability(synchronous=False)
 
 
 def _install_client_package(client, package, errata_applicability=False):
@@ -141,20 +141,11 @@ def module_repos_col(module_org, module_lce):
     return repos_collection
 
 
-@pytest.fixture
-def vm(module_repos_col, default_sat):
-    """Virtual machine host using module_repos_col for subscription"""
-    with VMBroker(nick=module_repos_col.distro, host_classes={'host': ContentHost}) as host:
-        module_repos_col.setup_virtual_machine(host, default_sat)
-        yield host
-
-
 @pytest.fixture(scope='module')
 def module_rhva_repos_col(module_org, module_lce):
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL6,
         repositories=[
-            SatelliteToolsRepository(),
             YumRepository(url=CUSTOM_REPO_URL),
             VirtualizationAgentsRepository(cdn=True),
         ],
@@ -201,8 +192,32 @@ def errata_status_installable():
     _set_setting_value(errata_status_installable, original_value)
 
 
+@pytest.fixture(scope='module')
+def repos_collection(module_org):
+    """Adds required repositories, AK, LCE and CV for content host testing"""
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[
+            RHELAnsibleEngineRepository(cdn=True),
+            SatelliteToolsRepository(),
+            YumRepository(url=settings.repos.yum_9.url),
+        ],
+    )
+    repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
+    return repos_collection
+
+
+@pytest.fixture(scope='function')
+def vm(repos_collection, rhel7_contenthost, default_sat):
+    """Virtual machine registered in satellite"""
+    repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
+    rhel7_contenthost.add_rex_key(satellite=default_sat)
+    yield rhel7_contenthost
+
+
 @pytest.mark.tier3
-def test_end_to_end(session, module_repos_col, vm):
+def test_end_to_end(session, module_org, module_repos_col, vm, default_sat):
     """Create all entities required for errata, set up applicable host,
     read errata details and apply it to host
 
@@ -235,8 +250,9 @@ def test_end_to_end(session, module_repos_col, vm):
     value = 'has type = security'
     with session:
         # Check selection box function for BZ#1688636
-        assert session.errata.search(value, installable=True)[0]['Errata ID']
+        session.location.select(loc_name=DEFAULT_LOC)
         assert session.errata.search(value, applicable=True)[0]['Errata ID']
+        assert session.errata.search(value, installable=True)[0]['Errata ID']
         # Check all tabs of Errata Details page
         errata = session.errata.read(CUSTOM_REPO_ERRATA_ID)
         # We ignore issued date and updated date in ERRATA_DETAILS, so we don't perform an
@@ -260,8 +276,14 @@ def test_end_to_end(session, module_repos_col, vm):
         assert (
             errata['repositories']['table'][0]['Product'] == module_repos_col.custom_product['name']
         )
-        result = session.errata.install(CUSTOM_REPO_ERRATA_ID, vm.hostname)
-        assert result['result'] == 'success'
+        status = session.contenthost.install_errata(
+            vm.hostname, CUSTOM_REPO_ERRATA_ID, install_via='rex'
+        )
+        assert status['overview']['job_status'] == 'Success'
+        assert status['overview']['job_status_progress'] == '100%'
+        _generate_errata_applicability(vm.hostname)
+        vm = vm.nailgun_host.read()
+        assert vm.content_facet_attributes['errata_counts']['total'] == 0
 
 
 @pytest.mark.tier2
@@ -315,6 +337,8 @@ def test_content_host_errata_page_pagination(session, org, lce, default_sat):
         with session:
             # Go to content host's Errata tab and read the page's pagination widgets
             session.organization.select(org_name=org.name)
+            session.location.select(loc_name=DEFAULT_LOC)
+
             page_values = session.contenthost.read(
                 client.hostname, widget_names=['errata.pagination']
             )
@@ -362,7 +386,7 @@ def test_positive_list(session, org, lce):
 
     :expectedresults: Check that the errata belonging to one Org is not showing in the other.
 
-    :BZ: 1659941
+    :BZ: 1659941, 1837767
 
     :CaseLevel: Integration
     """
@@ -453,9 +477,14 @@ def test_positive_apply_for_all_hosts(session, module_org, module_repos_col, def
             module_repos_col.setup_virtual_machine(client, default_sat)
             assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE)
         with session:
+            session.location.select(loc_name=DEFAULT_LOC)
             for client in clients:
-                task_values = session.errata.install(CUSTOM_REPO_ERRATA_ID, client.hostname)
-                assert task_values['result'] == 'success'
+                client.add_rex_key(satellite=default_sat)
+                status = session.contenthost.install_errata(
+                    client.hostname, CUSTOM_REPO_ERRATA_ID, install_via='rex'
+                )
+                assert status['overview']['job_status'] == 'Success'
+                assert status['overview']['job_status_progress'] == '100%'
                 packages_rows = session.contenthost.search_package(
                     client.hostname, FAKE_2_CUSTOM_PACKAGE
                 )
@@ -531,6 +560,7 @@ def test_positive_filter_by_environment(session, module_org, module_repos_col, d
         }
         host.update(['content_facet_attributes'])
         with session:
+            session.location.select(loc_name=DEFAULT_LOC)
             # search in new_lce
             values = session.errata.search_content_hosts(
                 CUSTOM_REPO_ERRATA_ID, clients[0].hostname, environment=new_lce.name
@@ -586,6 +616,7 @@ def test_positive_content_host_previous_env(session, module_org, module_repos_co
     }
     host.update(['content_facet_attributes'])
     with session:
+        session.location.select(loc_name=DEFAULT_LOC)
         environment = f'Previous Lifecycle Environment ({lce.name}/{content_view.name})'
         content_host_erratum = session.contenthost.search_errata(
             hostname, CUSTOM_REPO_ERRATA_ID, environment=environment
@@ -614,6 +645,7 @@ def test_positive_content_host_library(session, module_org, vm):
     hostname = vm.hostname
     assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
     with session:
+        session.location.select(loc_name=DEFAULT_LOC)
         content_host_erratum = session.contenthost.search_errata(
             hostname, CUSTOM_REPO_ERRATA_ID, environment='Library Synced Content'
         )
@@ -644,6 +676,7 @@ def test_positive_content_host_search_type(session, erratatype_vm):
     assert _install_client_package(erratatype_vm, pkgs, errata_applicability=True)
 
     with session:
+        session.location.select(loc_name=DEFAULT_LOC)
         # Search for RHSA security errata
         ch_erratum = session.contenthost.search_errata(
             erratatype_vm.hostname, "type = security", environment='Library Synced Content'
@@ -741,13 +774,14 @@ def test_positive_show_count_on_content_host_page(session, module_org, erratatyp
 
     :expectedresults: The available errata count is displayed.
 
-    :BZ: 1484044
+    :BZ: 1484044, 1775427
 
     :CaseLevel: System
     """
     vm = erratatype_vm
     hostname = vm.hostname
     with session:
+        session.location.select(loc_name=DEFAULT_LOC)
         content_host_values = session.contenthost.search(hostname)
         assert content_host_values[0]['Name'] == hostname
         installable_errata = content_host_values[0]['Installable Updates']['errata']
@@ -789,6 +823,7 @@ def test_positive_show_count_on_content_host_details_page(session, module_org, e
     vm = erratatype_vm
     hostname = vm.hostname
     with session:
+        session.location.select(loc_name=DEFAULT_LOC)
         content_host_values = session.contenthost.read(hostname, 'details')
         for errata_type in ('security', 'bug_fix', 'enhancement'):
             assert int(content_host_values['details'][errata_type]) == 0
@@ -807,6 +842,7 @@ def test_positive_show_count_on_content_host_details_page(session, module_org, e
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
+@pytest.mark.skip_if_open('BZ:2013093')
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_filtered_errata_status_installable_param(
     session, errata_status_installable, default_sat
@@ -869,6 +905,7 @@ def test_positive_filtered_errata_status_installable_param(
         promote(content_view_version, lce.id)
         with session:
             session.organization.select(org_name=org.name)
+            session.location.select(loc_name=DEFAULT_LOC)
             _set_setting_value(errata_status_installable, True)
             expected_values = {
                 'Status': 'OK',
@@ -942,6 +979,7 @@ def test_content_host_errata_search_commands(session, module_org, module_repos_c
             clients[1], FAKE_4_CUSTOM_PACKAGE, errata_applicability=False
         )
         with session:
+            session.location.select(loc_name=DEFAULT_LOC)
             # Search for hosts needing RHSA security errata
             result = session.contenthost.search('errata_status = security_needed')
             result = [item['Name'] for item in result]
