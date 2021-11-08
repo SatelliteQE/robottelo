@@ -85,8 +85,8 @@ def test_positive_inventory_generate_upload_cli(
         assert hosts_count == local_file_data['slices_counts'][slice_name]
 
 
-@pytest.mark.stubbed
-def test_positive_inventory_recommendation_sync():
+# @pytest.mark.stubbed
+def test_positive_inventory_recommendation_sync(organization_ak_setup, rhcloud_sat_host):
     """Tests Insights recommendation sync via foreman-rake commands:
     https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
 
@@ -106,6 +106,11 @@ def test_positive_inventory_recommendation_sync():
 
     :CaseLevel: System
     """
+    org, ak = organization_ak_setup
+    cmd = f'organization_id={org.id} foreman-rake rh_cloud_insights:sync'
+
+    result = rhcloud_sat_host.execute(cmd)
+    assert result.status == 0
 
 
 @pytest.mark.stubbed
