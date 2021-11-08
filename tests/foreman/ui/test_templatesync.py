@@ -14,10 +14,14 @@
 
 :Upstream: No
 """
+from urllib.parse import urlparse
+
 import pytest
+import requests
 from fauxfactory import gen_string
 from nailgun import entities
 
+from robottelo.config import settings
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
 from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
 
@@ -135,3 +139,42 @@ def test_positive_export_templates(session, create_import_export_local_dir, defa
     search_string = f'name: {export_template}'
     result = default_sat.execute(f"grep -F '{search_string}' {exported_file}")
     assert result.status == 0
+
+
+@pytest.mark.tier2
+@pytest.mark.skip_if_not_set('git')
+def test_positive_export_filtered_templates_to_git(session, git_repository, git_branch):
+    """Assure only templates with a given filter regex are pushed to
+    git repository.
+
+    :id: e4de338a-9ab9-492e-ac42-6cc2ebcd1792
+
+    :Steps:
+        1. Export only the templates matching with regex e.g: `^atomic.*` to git repo.
+
+    :expectedresults:
+        1. Assert matching templates are exported to git repo.
+
+    :CaseImportance: Critical
+    """
+    dirname = 'export'
+    auth = f"{settings.git.username}:{settings.git.password}"
+    netloc = urlparse(settings.git.url).netloc
+    url = f'http://{auth}@{netloc}/{settings.git.username}/{git_repository}'
+    with session:
+        export_title = session.sync_template.sync(
+            {
+                'sync_type': 'Export',
+                'template.metadata_export_mode': 'Keep',
+                'template.filter': 'atomic',
+                'template.repo': url,
+                'template.branch': git_branch,
+                'template.dirname': dirname,
+            }
+        )
+        assert export_title == f'Export to {url} and branch {git_branch} as user {session._user}'
+        path = f"{dirname}/provisioning_templates/provision"
+        auth = (settings.git.username, settings.git.password)
+        url = f"{settings.git.url}/api/v1/repos/{settings.git.username}/{git_repository}/contents"
+        git_count = len(requests.get(f"{url}/{path}", auth=auth, params={"ref": git_branch}).json())
+        assert git_count == 1

@@ -1,6 +1,10 @@
+from urllib.parse import urlparse
+
 import pytest
+import requests
 from fauxfactory import gen_string
 
+from robottelo.config import settings
 from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
 
 
@@ -27,3 +31,50 @@ def create_import_export_local_dir(default_sat):
     default_sat.execute(f'cp example_template.erb {dir_path}')
     yield dir_name, dir_path
     default_sat.execute(f'rm -rf {dir_path}')
+
+
+@pytest.fixture(scope='session')
+def git_port(default_sat):
+    """Allow port for git service"""
+    port = urlparse(settings.git.url).port
+    if port:
+        default_sat.execute(f'semanage port -a -t http_port_t -p tcp {port}')
+
+
+@pytest.fixture(scope='session')
+def git_repository(git_port):
+    """Creates a new repository on git provider for exporting templates.
+
+    Finally, deletes repository from git provider after tests are completed as a teardown part.
+    """
+    auth = (settings.git.username, settings.git.password)
+    name = gen_string('alpha')
+    res = requests.post(
+        f"{settings.git.url}/api/v1/user/repos",
+        auth=auth,
+        json={"name": name, "auto_init": True, "default_branch": "master"},
+    )
+    res.raise_for_status()
+    yield name
+    res = requests.delete(
+        f"{settings.git.url}/api/v1/repos/{settings.git.username}/{name}", auth=auth
+    )
+    res.raise_for_status()
+
+
+@pytest.fixture()
+def git_branch(git_repository):
+    """Creates a new branch in the git repository for exporting templates.
+
+    Finally, removes branch from the git repository after test is completed as a teardown part.
+    """
+    auth = (settings.git.username, settings.git.password)
+    url = f"{settings.git.url}/api/v1/repos/{settings.git.username}/{git_repository}/branches"
+    new_branch = gen_string('alpha')
+    res = requests.post(
+        url, auth=auth, json={"new_branch_name": new_branch, "old_branch_name": "master"}
+    )
+    res.raise_for_status()
+    yield new_branch
+    res = requests.delete(f'{url}/{new_branch}', auth=auth)
+    res.raise_for_status()

@@ -32,8 +32,13 @@ from robottelo.cli.globalparam import GlobalParameter
 from robottelo.cli.host import Host
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.recurring_logic import RecurringLogic
+from robottelo.cli.repository import Repository
+from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.task import Task
 from robottelo.config import settings
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
 
@@ -53,6 +58,24 @@ def fixture_vmsetup(request, module_org, default_sat):
     else:
         with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
             client.configure_rex(satellite=default_sat, org=module_org)
+            yield client
+
+
+@pytest.fixture()
+def fixture_sca_vmsetup(request, module_gt_manifest_org, default_sat):
+    """Create VM and register content host to Simple Content Access organization"""
+    if '_count' in request.param.keys():
+        with VMBroker(
+            nick=request.param['nick'],
+            host_classes={'host': ContentHost},
+            _count=request.param['_count'],
+        ) as clients:
+            for client in clients:
+                client.configure_rex(satellite=default_sat, org=module_gt_manifest_org)
+            yield clients
+    else:
+        with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
+            client.configure_rex(satellite=default_sat, org=module_gt_manifest_org)
             yield client
 
 
@@ -825,3 +848,58 @@ class TestAnsibleREX:
             raise AssertionError(result)
         result = client.execute(f"systemctl status {service}")
         assert result.status == 0
+
+    @pytest.mark.tier3
+    @pytest.mark.parametrize(
+        'fixture_sca_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True
+    )
+    def test_positive_install_ansible_collection(self, fixture_sca_vmsetup, module_gt_manifest_org):
+        """Test whether Ansible collection can be installed via REX
+
+        :Steps:
+
+            1. Upload a manifest.
+            2. Enable and sync Ansible repository.
+            3. Register content host to Satellite.
+            4. Enable Ansible repo on content host.
+            5. Install ansible package.
+            6. Run REX job to install Ansible collection on content host.
+
+        :id: ad25aee5-4ea3-4743-a301-1c6271856f79
+
+        :CaseComponent: Ansible
+
+        :Assignee: dsynk
+        """
+
+        # Configure repository to prepare for installing ansible on host
+        RepositorySet.enable(
+            {
+                'basearch': 'x86_64',
+                'name': REPOSET['rhae2'],
+                'organization-id': module_gt_manifest_org.id,
+                'product': PRDS['rhae'],
+                'releasever': '7Server',
+            }
+        )
+        Repository.synchronize(
+            {
+                'name': REPOS['rhae2']['name'],
+                'organization-id': module_gt_manifest_org.id,
+                'product': PRDS['rhae'],
+            }
+        )
+        client = fixture_sca_vmsetup
+        client.execute(f'subscription-manager repos --enable {REPOS["rhae2"]["id"]}')
+        client.execute('yum -y install ansible')
+        collection_job = make_job_invocation(
+            {
+                'job-template': 'Ansible Collection - Install from Galaxy',
+                'inputs': 'ansible_collections_list="oasis_roles.system"',
+                'search-query': f'name ~ {client.hostname}',
+            }
+        )
+        result = JobInvocation.info({'id': collection_job['id']})
+        assert result['success'] == '1'
+        collection_path = str(client.execute('ls /etc/ansible/collections/ansible_collections'))
+        assert 'oasis' in collection_path
