@@ -75,7 +75,6 @@ class TestSyncPlan:
         :BZ: 1887511
 
         """
-        count = 0
         org = entities.Organization(name=f'{request.node.name}_org').create()
         sync_plan = entities.SyncPlan(
             organization=org, name=f'{request.node.name}_syncplan', interval="weekly"
@@ -87,17 +86,17 @@ class TestSyncPlan:
         product = product.read()
         assert product.sync_plan.id == sync_plan.id
         # Note the recurring logic ID for later assert a new one was created
-        count = sync_plan.foreman_tasks_recurring_logic.id
+        old_id = sync_plan.foreman_tasks_recurring_logic.id
         # Cancel the recurring logic
-        entities.RecurringLogic(id=count).read()
-        entities.RecurringLogic(id=count).cancel()
+        entities.RecurringLogic(id=old_id).read()
+        entities.RecurringLogic(id=old_id).cancel()
         # Re-enable the sync plan (it will get a new recurring logic)
         sync_plan.enabled = True
         sync_plan.update(['enabled'])
         sync_plan = sync_plan.read()
         assert sync_plan.enabled
         # Assert a new recurring logic was assigned
-        assert sync_plan.foreman_tasks_recurring_logic.id > count
+        assert sync_plan.foreman_tasks_recurring_logic.id != old_id
 
     @post_upgrade(depend_on=test_pre_sync_plan_migration)
     def test_post_sync_plan_migration(self, request, dependent_scenario_name):
