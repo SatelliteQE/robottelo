@@ -147,7 +147,9 @@ VALIDATORS = dict(
         Validator(
             'git.username',
             'git.password',
-            'git.url',
+            'git.ssh_port',
+            'git.http_port',
+            'git.hostname',
             must_exist=True,
         ),
     ],

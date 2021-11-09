@@ -14,12 +14,11 @@
 
 :Upstream: No
 """
-from urllib.parse import urlparse
-
 import pytest
 import requests
 from fauxfactory import gen_string
 from nailgun import entities
+from pytest_lazyfixture import lazy_fixture
 
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
@@ -34,6 +33,9 @@ def templates_org():
 @pytest.fixture(scope='module')
 def templates_loc(templates_org):
     return entities.Location(organization=[templates_org]).create()
+
+
+git = settings.git
 
 
 @pytest.mark.tier2
@@ -143,7 +145,23 @@ def test_positive_export_templates(session, create_import_export_local_dir, defa
 
 @pytest.mark.tier2
 @pytest.mark.skip_if_not_set('git')
-def test_positive_export_filtered_templates_to_git(session, git_repository, git_branch):
+@pytest.mark.parametrize(
+    'url',
+    [
+        f'http://{git.username}:{git.password}@{git.hostname}:{git.http_port}',
+        f'ssh://git@{git.hostname}:{git.ssh_port}',
+    ],
+    ids=['http', 'ssh'],
+)
+@pytest.mark.parametrize(
+    'repo, branch',
+    [
+        (lazy_fixture(('git_repository', 'git_branch'))),
+        (lazy_fixture('git_empty_repository'), 'master'),
+    ],
+    ids=['non_empty_repo', 'empty_repo'],
+)
+def test_positive_export_filtered_templates_to_git(session, repo, branch, url):
     """Assure only templates with a given filter regex are pushed to
     git repository.
 
@@ -155,12 +173,14 @@ def test_positive_export_filtered_templates_to_git(session, git_repository, git_
     :expectedresults:
         1. Assert matching templates are exported to git repo.
 
+    :BZ: 1785613
+
+    :parametrized: yes
+
     :CaseImportance: Critical
     """
+    url = f'{url}/{git.username}/{repo}'
     dirname = 'export'
-    auth = f"{settings.git.username}:{settings.git.password}"
-    netloc = urlparse(settings.git.url).netloc
-    url = f'http://{auth}@{netloc}/{settings.git.username}/{git_repository}'
     with session:
         export_title = session.sync_template.sync(
             {
@@ -168,13 +188,15 @@ def test_positive_export_filtered_templates_to_git(session, git_repository, git_
                 'template.metadata_export_mode': 'Keep',
                 'template.filter': 'atomic',
                 'template.repo': url,
-                'template.branch': git_branch,
+                'template.branch': branch,
                 'template.dirname': dirname,
             }
         )
-        assert export_title == f'Export to {url} and branch {git_branch} as user {session._user}'
+        assert export_title == f'Export to {url} and branch {branch} as user {session._user}'
         path = f"{dirname}/provisioning_templates/provision"
-        auth = (settings.git.username, settings.git.password)
-        url = f"{settings.git.url}/api/v1/repos/{settings.git.username}/{git_repository}/contents"
-        git_count = len(requests.get(f"{url}/{path}", auth=auth, params={"ref": git_branch}).json())
-        assert git_count == 1
+        auth = (git.username, git.password)
+        api_url = f"http://{git.hostname}:{git.http_port}/api/v1/repos/{git.username}"
+        git_count = requests.get(
+            f"{api_url}/{repo}/contents/{path}", auth=auth, params={"ref": branch}
+        ).json()
+        assert len(git_count) == 1
