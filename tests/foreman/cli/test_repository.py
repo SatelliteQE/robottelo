@@ -661,7 +661,7 @@ class TestRepository:
     )
     def test_negative_update_to_invalid_download_policy(self, repo_options, repo):
         """Verify that YUM repository cannot be updated to invalid download
-        policy
+        policy  TODO: Remove ostree from exceptions when ostree is added back in Satellite 7
 
         :id: 5bd6a2e4-7ff0-42ac-825a-6b2a2f687c89
 
@@ -683,6 +683,7 @@ class TestRepository:
                 {'content-type': content_type, 'download-policy': 'on_demand'}
                 for content_type in REPO_TYPE.keys()
                 if content_type != 'yum'
+                if content_type != 'ostree'
             ]
         ),
         indirect=True,

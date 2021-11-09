@@ -312,8 +312,8 @@ SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "
 
 REPO_TYPE = {
     'yum': "yum",
-    'file': "file",
     'docker': "docker",
+    'ostree': "ostree",
     "ansible_collection": "ansible collection",
 }
 
@@ -848,12 +848,6 @@ CUSTOM_PUPPET_MODULE_REPOS = {
     'ui_test_variables': 'robottelo-ui_test_variables',
 }
 CUSTOM_PUPPET_MODULE_REPOS_VERSION = '-0.2.0.tar.gz'
-
-KICKSTART_CONTENT = [
-    'treeinfo',
-    'images/pxeboot/initrd.img',
-    'images/pxeboot/vmlinuz',
-]
 
 #: All permissions exposed by the server.
 #: :mod:`tests.foreman.api.test_permission` makes use of this.
