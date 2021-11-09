@@ -1,5 +1,3 @@
-from urllib.parse import urlparse
-
 import pytest
 import requests
 from fauxfactory import gen_string
@@ -36,30 +34,75 @@ def create_import_export_local_dir(default_sat):
 @pytest.fixture(scope='session')
 def git_port(default_sat):
     """Allow port for git service"""
-    port = urlparse(settings.git.url).port
-    if port:
-        default_sat.execute(f'semanage port -a -t http_port_t -p tcp {port}')
+    default_sat.execute(f'semanage port -a -t http_port_t -p tcp {settings.git.http_port}')
+    default_sat.execute(f'semanage port -a -t ssh_port_t -p tcp {settings.git.ssh_port}')
 
 
 @pytest.fixture(scope='session')
-def git_repository(git_port):
+def git_pub_key(default_sat, git_port):
+    """Copy ssh public key to git service"""
+    git = settings.git
+    key_path = '/usr/share/foreman/.ssh/'
+    default_sat.execute(f'sudo -u foreman ssh-keygen -q -t rsa -f {key_path}id_rsa -N "" <<<y')
+    key = default_sat.execute(f'cat {key_path}id_rsa.pub').stdout.strip()
+    title = gen_string('alpha')
+    auth = (git.username, git.password)
+    url = f'http://{git.hostname}:{git.http_port}'
+    res = requests.post(
+        f'{url}/api/v1/user/keys',
+        auth=auth,
+        json={'key': key, 'title': title},
+    )
+    res.raise_for_status()
+    id = res.json()['id']
+    # add ssh key to known host
+    default_sat.execute(
+        f'ssh-keyscan -t rsa -p {git.ssh_port} {git.hostname} > {key_path}/known_hosts'
+    )
+    yield
+    res = requests.delete(
+        f'{url}/api/v1/user/keys/{id}',
+        auth=auth,
+    )
+    res.raise_for_status()
+
+
+@pytest.fixture(scope='session')
+def git_repository(git_port, git_pub_key):
+    """Encapsulate creating initialized repository"""
+    repo_gen = create_git_repository(True)
+    yield next(repo_gen)
+    next(repo_gen)
+
+
+@pytest.fixture(scope='function')
+def git_empty_repository(git_port, git_pub_key):
+    """Encapsulate creating empty repository"""
+    repo_gen = create_git_repository(False)
+    yield next(repo_gen)
+    next(repo_gen)
+
+
+def create_git_repository(init):
     """Creates a new repository on git provider for exporting templates.
 
     Finally, deletes repository from git provider after tests are completed as a teardown part.
+
+    :returns: dict: repository name, flag if repository is empty
     """
     auth = (settings.git.username, settings.git.password)
+    url = f'http://{settings.git.hostname}:{settings.git.http_port}'
     name = gen_string('alpha')
     res = requests.post(
-        f"{settings.git.url}/api/v1/user/repos",
+        f'{url}/api/v1/user/repos',
         auth=auth,
-        json={"name": name, "auto_init": True, "default_branch": "master"},
+        json={'name': name, 'auto_init': init, 'default_branch': 'master'},
     )
     res.raise_for_status()
     yield name
-    res = requests.delete(
-        f"{settings.git.url}/api/v1/repos/{settings.git.username}/{name}", auth=auth
-    )
+    res = requests.delete(f'{url}/api/v1/repos/{settings.git.username}/{name}', auth=auth)
     res.raise_for_status()
+    yield
 
 
 @pytest.fixture()
@@ -69,10 +112,11 @@ def git_branch(git_repository):
     Finally, removes branch from the git repository after test is completed as a teardown part.
     """
     auth = (settings.git.username, settings.git.password)
-    url = f"{settings.git.url}/api/v1/repos/{settings.git.username}/{git_repository}/branches"
+    path = f'/api/v1/repos/{settings.git.username}/{git_repository}/branches'
+    url = f'http://{settings.git.hostname}:{settings.git.http_port}{path}'
     new_branch = gen_string('alpha')
     res = requests.post(
-        url, auth=auth, json={"new_branch_name": new_branch, "old_branch_name": "master"}
+        url, auth=auth, json={'new_branch_name': new_branch, 'old_branch_name': 'master'}
     )
     res.raise_for_status()
     yield new_branch

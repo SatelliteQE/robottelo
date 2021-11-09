@@ -14,17 +14,24 @@
 
 :Upstream: No
 """
+import base64
+import json
 import time
 
 import pytest
+import requests
 from fauxfactory import gen_string
 from nailgun import entities
-from requests import get
-from requests.exceptions import HTTPError
+from pytest_lazyfixture import lazy_fixture
 
+from robottelo.config import settings
+from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_API_URL
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
 from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
 from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
+
+
+git = settings.git
 
 
 class TestTemplateSyncTestCase:
@@ -50,8 +57,8 @@ class TestTemplateSyncTestCase:
 
         """
         # Check all Downloadable templates exists
-        if get(FOREMAN_TEMPLATE_IMPORT_URL).status_code != 200:
-            raise HTTPError('The foreman templates git url is not accessible')
+        if requests.get(FOREMAN_TEMPLATE_IMPORT_URL).status_code != 200:
+            pytest.fail('The foreman templates git url is not accessible')
 
         # Download the Test Template in test running folder
         default_sat.execute(f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}')
@@ -323,7 +330,7 @@ class TestTemplateSyncTestCase:
         assert len(ptemplate[0].read().organization) == 1
 
     @pytest.mark.tier2
-    def test_positive_import_to_subdirectory(self, module_org):
+    def test_positive_import_from_subdirectory(self, module_org):
         """Assure templates are imported from specific repositories subdirectory
 
         :id: 8ea11a1a-165e-4834-9387-7accb4c94e77
@@ -1056,3 +1063,187 @@ class TestTemplateSyncTestCase:
             ).status
             == 0
         )
+
+    @pytest.mark.tier2
+    @pytest.mark.skip_if_not_set('git')
+    @pytest.mark.parametrize(
+        'url',
+        [
+            f'http://{git.username}:{git.password}@{git.hostname}:{git.http_port}',
+            f'ssh://git@{git.hostname}:{git.ssh_port}',
+        ],
+        ids=['http', 'ssh'],
+    )
+    @pytest.mark.parametrize(
+        'repo, branch',
+        [
+            (lazy_fixture(('git_repository', 'git_branch'))),
+            (lazy_fixture('git_empty_repository'), 'master'),
+        ],
+        ids=['non_empty_repo', 'empty_repo'],
+    )
+    def test_positive_export_all_templates_to_repo(self, module_org, repo, branch, url):
+        """Assure all templates are exported if no filter is specified.
+
+        :id: 0bf6fe77-01a3-4843-86d6-22db5b8adf3b
+
+        :Steps:
+            1. Using nailgun export all templates to repository (ensure filters are empty)
+
+        :expectedresults:
+            1. Assert all existing templates were exported to repository
+
+        :BZ: 1785613
+
+        :parametrized: yes
+
+        :CaseImportance: Low
+        """
+        output = entities.Template().exports(
+            data={
+                'repo': f'{url}/{git.username}/{repo}',
+                'branch': branch,
+                'organization_ids': [module_org.id],
+                'fiter': '',
+            }
+        )
+        auth = (git.username, git.password)
+        api_url = f'http://{git.hostname}:{git.http_port}/api/v1/repos/{git.username}'
+        res = requests.get(
+            url=f'{api_url}/{repo}/git/trees/{branch}',
+            auth=auth,
+            params={'recursive': True},
+        )
+        res.raise_for_status()
+        tree = json.loads(res.text)['tree']
+        git_count = [row['path'].endswith('.erb') for row in tree].count(True)
+        assert len(output['message']['templates']) == git_count
+
+    @pytest.mark.tier2
+    def test_positive_import_all_templates_from_repo(self, default_sat, module_org):
+        """Assure all templates are imported if no filter is specified.
+
+        :id: 95ac9543-d989-44f4-b4d9-18f20a0b58b9
+
+        :Steps:
+            1. Using nailgun import all templates from repository (ensure filters are empty)
+
+        :expectedresults:
+            1. Assert all existing templates are imported.
+
+        :CaseImportance: Low
+        """
+        output = entities.Template().imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'master',
+                'organization_ids': [module_org.id],
+                'filter': '',
+            }
+        )
+        res = requests.get(
+            url=f"{FOREMAN_TEMPLATE_IMPORT_API_URL}/git/trees/master",
+            params={'recursive': True},
+        )
+        res.raise_for_status()
+        tree = json.loads(res.text)['tree']
+        git_count = [row['path'].endswith('.erb') for row in tree].count(True)
+        assert len(output['message']['templates']) == git_count
+
+    @pytest.mark.tier2
+    def test_negative_import_locked_template(self, module_org):
+        """Assure locked templates are not pulled from repository.
+
+        :id: 88e21cad-448e-45e0-add2-94493a1319c5
+
+        :Steps:
+            1. Using nailgun try to import a locked template
+
+        :expectedresults:
+            1. Assert locked template is not updated
+
+        :CaseImportance: Medium
+        """
+        # import template with lock
+        output = entities.Template().imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'locked',
+                'organization_ids': [module_org.id],
+                'dirname': 'locked',
+                'force': True,
+                'lock': True,
+            }
+        )
+        assert output['message']['templates'][0]['imported']
+        # try to import same template with changed content
+        output = entities.Template().imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'locked',
+                'organization_ids': [module_org.id],
+                'dirname': 'after_lock',
+            }
+        )
+        # assert content wasn't changed
+        assert not output['message']['templates'][0]['imported']
+        res = requests.get(
+            url=f"{FOREMAN_TEMPLATE_IMPORT_API_URL}/contents/locked/robottelo_locked.erb",
+            params={'ref': 'locked'},
+        )
+        res.raise_for_status()
+        git_content = base64.b64decode(json.loads(res.text)['content'])
+        sat_content = entities.ProvisioningTemplate(
+            id=output['message']['templates'][0]['id']
+        ).read()
+        assert git_content.decode('utf-8') == sat_content.template
+
+    @pytest.mark.tier2
+    def test_positive_import_locked_template(self, module_org):
+        """Assure locked templates are pulled from repository while using force parameter.
+
+        :id: 936c91cc-1947-45b0-8bf0-79ba4be87b97
+
+        :Steps:
+            1. Using nailgun try to import a locked template with force parameter
+
+        :expectedresults:
+            1. Assert locked template is updated
+
+        :CaseImportance: Medium
+        """
+        # import template with lock
+        output = entities.Template().imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'locked',
+                'organization_ids': [module_org.id],
+                'dirname': 'locked',
+                'force': True,
+                'lock': True,
+            }
+        )
+        assert output['message']['templates'][0]['imported']
+        # force import same template with changed content
+        output = entities.Template().imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'locked',
+                'organization_ids': [module_org.id],
+                'dirname': 'after_lock',
+                'force': True,
+            }
+        )
+        # assert template was changed
+        assert output['message']['templates'][0]['imported']
+        assert output['message']['templates'][0]['changed']
+        res = requests.get(
+            url=f"{FOREMAN_TEMPLATE_IMPORT_API_URL}/contents/after_lock/robottelo_locked.erb",
+            params={'ref': 'locked'},
+        )
+        res.raise_for_status()
+        git_content = base64.b64decode(json.loads(res.text)['content'])
+        sat_content = entities.ProvisioningTemplate(
+            id=output['message']['templates'][0]['id']
+        ).read()
+        assert git_content.decode('utf-8') == sat_content.template
