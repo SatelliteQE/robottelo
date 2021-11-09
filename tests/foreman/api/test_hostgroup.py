@@ -158,6 +158,8 @@ class TestHostGroup:
 
         :expectedresults: rebuild hostgroup orchestration configs successfully.
 
+        :CaseImportance: Medium
+
         :CaseLevel: System
         """
         lce = entities.LifecycleEnvironment(organization=module_org).create()
@@ -371,6 +373,8 @@ class TestHostGroup:
 
         :id: 4f07ff8d-746f-4ab5-ae0b-03d629f6296c
 
+        :CaseImportance: Medium
+
         :expectedresults: A hostgroup is created with expected realm assigned
 
         :CaseLevel: Integration
@@ -393,6 +397,8 @@ class TestHostGroup:
 
         :id: 0c2ee2ff-9e7a-4931-8cea-f4eecbd8c4c0
 
+        :CaseImportance: Medium
+
         :expectedresults: A hostgroup is created with expected multiple
             locations assigned
 
@@ -407,6 +413,8 @@ class TestHostGroup:
         """Create a hostgroup with multiple organizations specified
 
         :id: 09642238-cf0d-469a-a0b5-c167b1b8edf5
+
+        :CaseImportance: Medium
 
         :expectedresults: A hostgroup is created with expected multiple
             organizations assigned
@@ -442,6 +450,8 @@ class TestHostGroup:
 
         :expectedresults: A hostgroup is updated with expected puppet CA proxy
 
+        :CaseImportance: Medium
+
         :CaseLevel: Integration
         """
         new_proxy = entities.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})[
@@ -457,6 +467,8 @@ class TestHostGroup:
         """Update a hostgroup with a new realm
 
         :id: fd9d141f-7a71-4439-92c7-1dbc1eea4772
+
+        :CaseImportance: Medium
 
         :expectedresults: A hostgroup is updated with expected realm
 
@@ -489,6 +501,8 @@ class TestHostGroup:
 
         :id: 86eca603-2cdd-4563-b6f6-aaa5cea1a723
 
+        :CaseImportance: Medium
+
         :expectedresults: A hostgroup is updated with expected puppet proxy
 
         :CaseLevel: Integration
@@ -505,6 +519,8 @@ class TestHostGroup:
         """Update a hostgroup with a new puppet proxy
 
         :id: 02ef1340-a21e-41b7-8aa7-d6fdea196c16
+
+        :CaseImportance: Medium
 
         :expectedresults: A hostgroup is updated with expected puppet proxy
 
@@ -523,6 +539,8 @@ class TestHostGroup:
 
         :id: b045f7e8-d7c0-428b-a29c-8d54e53742e2
 
+        :CaseImportance: Medium
+
         :expectedresults: A hostgroup is updated with expected locations
 
         :CaseLevel: Integration
@@ -539,6 +557,8 @@ class TestHostGroup:
         """Update a hostgroup with new multiple organizations
 
         :id: 5f6bd4f9-4bd6-4d7e-9a91-de824299020e
+
+        :CaseImportance: Medium
 
         :expectedresults: A hostgroup is updated with expected organizations
 
@@ -592,6 +612,8 @@ class TestHostGroup:
 
         :id: 0959e2a2-d635-482b-9b2e-d33990d6f0dc
 
+        :CaseImportance: Medium
+
         :expectedresults: A hostgroup is created with assigned group parameters
 
         :customerscenario: true
@@ -623,6 +645,8 @@ class TestHostGroupMissingAttr:
 
         :id: 9d42f47a-2f08-45ad-97d0-de94f0f1de2f
 
+        :CaseImportance: Medium
+
         :expectedresults: The response contains both values for the
             ``content_source`` field.
 
@@ -640,6 +664,8 @@ class TestHostGroupMissingAttr:
 
         :id: 7d36f33e-f161-4d2a-9ee4-8eb949ed4cbf
 
+        :CaseImportance: Medium
+
         :expectedresults: The response contains both values for the
             ``content_view`` field.
 
@@ -656,6 +682,8 @@ class TestHostGroupMissingAttr:
         """Read a host group. Inspect the server's response.
 
         :id: efa17f59-47f9-40c6-821d-c348c4d852ff
+
+        :CaseImportance: Medium
 
         :expectedresults: The response contains both values for the
             ``lifecycle_environment`` field.
@@ -675,6 +703,8 @@ class TestHostGroupMissingAttr:
 
         :id: f93d0866-0073-4577-8777-6d645b63264f
 
+        :CaseImportance: Medium
+
         :expectedresults: Field 'puppet_proxy_name' is returned
 
         :BZ: 1371900
@@ -692,6 +722,8 @@ class TestHostGroupMissingAttr:
         response
 
         :id: ab151e09-8e64-4377-95e8-584629750659
+
+        :CaseImportance: Medium
 
         :expectedresults: Field 'puppet_ca_proxy_name' is returned
 
