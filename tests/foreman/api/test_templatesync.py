@@ -17,10 +17,9 @@
 import time
 
 import pytest
+import requests
 from fauxfactory import gen_string
 from nailgun import entities
-from requests import get
-from requests.exceptions import HTTPError
 
 from robottelo import ssh
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
@@ -53,10 +52,8 @@ class TestTemplateSyncTestCase:
 
         """
         # Check all Downloadable templates exists
-        if get(FOREMAN_TEMPLATE_IMPORT_URL).status_code != 200:
-            raise HTTPError('The foreman templates git url is not accessible')
-        if get(FOREMAN_TEMPLATES_COMMUNITY_URL).status_code != 200:
-            raise HTTPError('The foreman templates git url is not accessible')
+        if requests.get(FOREMAN_TEMPLATE_IMPORT_URL).status_code != 200:
+            pytest.fail('The foreman templates git url is not accessible')
 
         # Download the Test Template in test running folder
         ssh.command(f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}')
@@ -327,7 +324,7 @@ class TestTemplateSyncTestCase:
         assert len(ptemplate[0].read().organization) == 1
 
     @pytest.mark.tier2
-    def test_positive_import_to_subdirectory(self, module_org):
+    def test_positive_import_from_subdirectory(self, module_org):
         """Assure templates are imported from specific repositories subdirectory
 
         :id: 8ea11a1a-165e-4834-9387-7accb4c94e77

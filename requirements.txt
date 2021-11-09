@@ -16,6 +16,7 @@ productmd==1.32
 pyotp==2.6.0
 pytest==6.2.4
 pytest-services==2.2.1
+pytest_lazy-fixture==0.6.3
 pytest-mock==3.6.1
 pytest-reportportal==5.0.8
 pytest-xdist==2.3.0
