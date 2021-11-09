@@ -55,6 +55,7 @@ logs/**
 
 .pytest_cache/
 tests/foreman/pytest.ini
+venv*/
 
 # For pytest --bz-cache generated file
 **/bz_cache.json

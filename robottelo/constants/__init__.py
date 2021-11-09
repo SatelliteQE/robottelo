@@ -1762,6 +1762,7 @@ VMWARE_CONSTANTS = {
 HAMMER_CONFIG = "~/.hammer/cli.modules.d/foreman.yml"
 
 FOREMAN_TEMPLATE_IMPORT_URL = 'https://github.com/SatelliteQE/foreman_templates.git'
+FOREMAN_TEMPLATE_IMPORT_API_URL = 'http://api.github.com/repos/SatelliteQE/foreman_templates'
 
 FOREMAN_TEMPLATES_COMMUNITY_URL = 'https://github.com/theforeman/community-templates.git'
 
