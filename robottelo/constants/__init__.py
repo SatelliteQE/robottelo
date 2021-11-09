@@ -313,6 +313,7 @@ SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "
 REPO_TYPE = {
     'yum': "yum",
     'ostree': "ostree",
+    'docker': "docker",
     "ansible_collection": "ansible collection",
 }
 
