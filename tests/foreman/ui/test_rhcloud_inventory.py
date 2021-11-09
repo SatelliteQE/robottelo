@@ -21,6 +21,7 @@ from datetime import timedelta
 
 import pytest
 from airgun.session import Session
+from wait_for import wait_for
 
 from robottelo.constants import DEFAULT_LOC
 from robottelo.rh_cloud_utils import get_local_file_data
@@ -87,11 +88,20 @@ def test_rhcloud_inventory_e2e(
         session.location.select(loc_name=DEFAULT_LOC)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
-        rhcloud_sat_host.wait_for_tasks(
-            search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-            f' and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=10,
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
         )
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
@@ -213,11 +223,20 @@ def test_obfuscate_host_names(
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
-        rhcloud_sat_host.wait_for_tasks(
-            search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-            f' and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=10,
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
         )
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
@@ -243,11 +262,20 @@ def test_obfuscate_host_names(
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
-        rhcloud_sat_host.wait_for_tasks(
-            search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-            f' and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=10,
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
         )
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
@@ -302,11 +330,20 @@ def test_obfuscate_host_ipv4_addresses(
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
-        rhcloud_sat_host.wait_for_tasks(
-            search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-            f' and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=10,
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
         )
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
@@ -337,11 +374,20 @@ def test_obfuscate_host_ipv4_addresses(
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
-        rhcloud_sat_host.wait_for_tasks(
-            search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-            f' and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=10,
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
         )
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
@@ -403,11 +449,20 @@ def test_exclude_packages_setting(
         session.cloudinventory.update({'exclude_packages': True})
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
-        rhcloud_sat_host.wait_for_tasks(
-            search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-            f' and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=10,
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
         )
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
@@ -431,11 +486,20 @@ def test_exclude_packages_setting(
         rhcloud_sat_host.update_setting('exclude_installed_packages', True)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
-        rhcloud_sat_host.wait_for_tasks(
-            search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-            f' and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=10,
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
         )
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)

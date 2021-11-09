@@ -20,6 +20,7 @@ from datetime import datetime
 
 import pytest
 from fauxfactory import gen_alphanumeric
+from wait_for import wait_for
 
 from robottelo.config import robottelo_tmp_dir
 from robottelo.rh_cloud_utils import get_local_file_data
@@ -73,13 +74,16 @@ def test_rhcloud_inventory_api_e2e(
     # Generate report
     timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
     rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_generate_report()
-    result = rhcloud_sat_host.wait_for_tasks(
-        search_query=f'{generate_report_task} and started_at >= "{timestamp}"',
-        search_rate=15,
-        max_tries=10,
+    wait_for(
+        lambda: rhcloud_sat_host.api.ForemanTask()
+        .search(query={'search': f'{generate_report_task} and started_at >= "{timestamp}"'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
     )
-    task_output = rhcloud_sat_host.api.ForemanTask().search(query={'search': result[0].id})
-    assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
     # Download report
     rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_download_report(
         destination=local_report_path
@@ -136,24 +140,31 @@ def test_rhcloud_inventory_api_hosts_synchronization(
     # Generate report
     timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
     rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_generate_report()
-    result = rhcloud_sat_host.wait_for_tasks(
-        search_query=f'{generate_report_task} and started_at >= "{timestamp}"',
-        search_rate=15,
-        max_tries=10,
+    wait_for(
+        lambda: rhcloud_sat_host.api.ForemanTask()
+        .search(query={'search': f'{generate_report_task} and started_at >= "{timestamp}"'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
     )
-    task_output = rhcloud_sat_host.api.ForemanTask().search(query={'search': result[0].id})
-    assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
     # Sync inventory status
     inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
-    result = rhcloud_sat_host.wait_for_tasks(
-        search_query=f'id = {inventory_sync["task"]["id"]}',
-        search_rate=15,
-        max_tries=10,
+    wait_for(
+        lambda: rhcloud_sat_host.api.ForemanTask()
+        .search(query={'search': f'id = {inventory_sync["task"]["id"]}'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
     )
     task_output = rhcloud_sat_host.api.ForemanTask().search(
         query={'search': f'id = {inventory_sync["task"]["id"]}'}
     )
-    assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
     assert task_output[0].output['host_statuses']['sync'] == 2
     assert task_output[0].output['host_statuses']['disconnect'] == 0
     # To Do: Add support in Nailgun to get Insights and Inventory host properties.

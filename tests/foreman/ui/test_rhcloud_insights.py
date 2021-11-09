@@ -20,6 +20,7 @@ from datetime import datetime
 
 import pytest
 from airgun.session import Session
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
@@ -68,10 +69,15 @@ def test_rhcloud_insights_e2e(
         session.location.select(loc_name=DEFAULT_LOC)
         session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-        rhcloud_sat_host.wait_for_tasks(
-            search_query=f'Insights full sync and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=10,
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
         )
         # Workaround for alert message causing search to fail. See airgun issue 584.
         session.browser.refresh()
@@ -83,19 +89,27 @@ def test_rhcloud_insights_e2e(
         )
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.remediate(query)
-        result = rhcloud_sat_host.wait_for_tasks(
-            search_query=f'{job_query} and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=10,
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(query={'search': f'{job_query} and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
         )
-        task_output = rhcloud_sat_host.api.ForemanTask().search(query={'search': result[0].id})
-        assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
-        rhcloud_sat_host.wait_for_tasks(
-            search_query=f'Insights full sync and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=10,
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
         )
         # Workaround for alert message causing search to fail. See airgun issue 584.
         session.browser.refresh()
