@@ -171,16 +171,13 @@ def test_positive_product_create_with_create_sync_plan(session, module_org):
         assert session.product.search(product_name)[0]['Name'] != product_name
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier2
-def test_positive_bulk_action_advanced_sync():
+def test_positive_bulk_action_advanced_sync(session, module_org):
     """Advanced sync is available as a bulk action in the product.
 
     :id: 7e9bb306-452d-43b8-8725-604b4aebb222
 
     :customerscenario: true
-
-    :BZ: 1759301
 
     :Steps:
         1. Enable or create a repository and sync it.
@@ -189,4 +186,22 @@ def test_positive_bulk_action_advanced_sync():
 
     :expectedresults: Advanced sync for repositories can be run as a bulk action from the product.
     """
-    pass
+    repo_name = gen_string('alpha')
+    product = entities.Product(organization=module_org).create()
+    with session:
+        session.repository.create(
+            product.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': settings.repos.yum_1.url,
+            },
+        )
+        # Repository sync
+        session.repository.synchronize(product.name, repo_name)
+        # Optimized Sync
+        result = session.product.advanced_sync([product.name], sync_type='optimized')
+        assert result['task']['result'] == 'success'
+        # Complete Sync
+        result = session.product.advanced_sync([product.name], sync_type='complete')
+        assert result['task']['result'] == 'success'
