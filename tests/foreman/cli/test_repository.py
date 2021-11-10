@@ -2573,19 +2573,18 @@ class TestMD5Repository:
         """
         lce = make_lifecycle_environment({'organization-id': module_org.id})
         Repository.synchronize({'id': repo['id']})
+        synced_repo = Repository.info({'id': repo['id']})
+        assert synced_repo['sync']['status'].lower() == 'success'
+        assert synced_repo['content-counts']['packages'] == '35'
         cv = make_content_view({'organization-id': module_org.id})
         ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
         ContentView.publish({'id': cv['id']})
         content_view = ContentView.info({'id': cv['id']})
         cvv = content_view['versions'][0]
         ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']})
-        result = default_sat.execute(
-            f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/{lce['label']}/"
-            f"{cv['label']}/custom/{module_product.label}/{repo['label']}/Packages/b"
-            " | grep bear-4.1-1.noarch.rpm"
-        )
-        assert result.status == 0
-        assert result.stdout
+        cv = ContentView.info({'id': cv['id']})
+        assert synced_repo['id'] in [repo['id'] for repo in cv['yum-repositories']]
+        assert lce['id'] in [lc['id'] for lc in cv['lifecycle-environments']]
 
 
 @pytest.mark.skip_if_open("BZ:1682951")
