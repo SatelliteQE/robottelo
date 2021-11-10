@@ -43,13 +43,13 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
 from robottelo.cli.user import User
 from robottelo.config import settings
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_names_list
-from robottelo.helpers import create_repo
 from robottelo.helpers import get_data_file
-from robottelo.helpers import repo_add_updateinfo
 
 
 @pytest.fixture(scope='module')
@@ -3741,46 +3741,50 @@ class TestContentView:
 
         :CaseLevel: Integration
         """
-        repo_name = gen_string('alphanumeric')
-        repo_url = create_repo(
-            repo_name, settings.repos.inc_upd.url, [constants.FAKE_0_INC_UPD_OLD_PACKAGE]
+        repo = cli_factory.make_repository(
+            {
+                'product-id': module_product.id,
+                'content-type': 'yum',
+                'url': settings.repos.yum_1.url,
+            }
         )
-        result = repo_add_updateinfo(
-            repo_name,
-            f'{settings.repos.inc_upd.url}{constants.FAKE_0_INC_UPD_OLD_UPDATEFILE}',
-        )
-        assert result.status == 0
-        repo = cli_factory.make_repository({'product-id': module_product.id, 'url': repo_url})
         Repository.synchronize({'id': repo['id']})
         content_view = cli_factory.make_content_view(
             {'organization-id': module_org.id, 'repository-ids': repo['id']}
+        )
+        ContentView.add_repository(
+            {
+                'id': content_view['id'],
+                'organization-id': module_org.id,
+                'repository-id': repo['id'],
+            }
+        )
+        cvf = cli_factory.make_content_view_filter(
+            {
+                'content-view-id': content_view['id'],
+                'inclusion': 'true',
+                'name': gen_string('alpha'),
+                'type': 'rpm',
+            },
+        )
+        cli_factory.make_content_view_filter_rule(
+            {
+                'content-view-filter-id': cvf['filter-id'],
+                'name': FAKE_1_CUSTOM_PACKAGE_NAME,
+                'version': 0.71,
+            }
         )
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         assert len(content_view['versions']) == 1
         cvv = content_view['versions'][0]
-        create_repo(
-            repo_name,
-            settings.repos.inc_upd.url,
-            [constants.repos.FAKE_0_INC_UPD_NEW_PACKAGE],
-            wipe_repodata=True,
-        )
-        result = repo_add_updateinfo(
-            repo_name,
-            f'{settings.repos.inc_upd.url}{constants.FAKE_0_INC_UPD_NEW_UPDATEFILE}',
-        )
-        assert result.status == 0
-        Repository.synchronize({'id': repo['id']})
         result = ContentView.version_incremental_update(
-            {'content-view-version-id': cvv['id'], 'errata-ids': constants.FAKE_0_INC_UPD_ERRATA}
+            {'content-view-version-id': cvv['id'], 'errata-ids': settings.repos.yum_1.errata[1]}
         )
         # Inc update output format is pretty weird - list of dicts where each
         # key's value is actual line from stdout
         result = [line.strip() for line_dict in result for line in line_dict.values()]
-        assert constants.FAKE_0_INC_UPD_ERRATA in [line.strip() for line in result]
-        assert constants.FAKE_0_INC_UPD_NEW_PACKAGE.rstrip('.rpm') in [
-            line.strip() for line in result
-        ]
+        assert FAKE_2_CUSTOM_PACKAGE in [line.strip() for line in result]
         content_view = ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 
