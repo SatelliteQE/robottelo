@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xccdf:Tailoring xmlns:xccdf="http://checklists.nist.gov/xccdf/1.2" id="xccdf_scap-workbench_tailoring_default">
+  <xccdf:benchmark href="/usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml"/>
+  <xccdf:version time="2019-08-01T13:46:35">1</xccdf:version>
+  <xccdf:Profile id="xccdf_org.ssgproject.content_profile_standard_customized" extends="xccdf_org.ssgproject.content_profile_standard">
+    <xccdf:title xmlns:xhtml="http://www.w3.org/1999/xhtml" xml:lang="en-US" override="true">Standard System Security Profile for Red Hat Enterprise Linux 7 [CUSTOMIZED]</xccdf:title>
+    <xccdf:description xmlns:xhtml="http://www.w3.org/1999/xhtml" xml:lang="en-US" override="true">This profile contains rules to ensure standard security baseline
+of a Red Hat Enterprise Linux 7 system. Regardless of your system's workload
+all of these checks should pass.</xccdf:description>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_partition_for_var_log" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_partition_for_var_log_audit" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_group_disk_partitioning" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_file_permissions_unauthorized_world_writable" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_dir_perms_world_writable_sticky_bits" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_file_permissions_unauthorized_suid" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_service_autofs_disabled" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_group_mounting" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_group_partitions" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_dev_shm_nodev" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_var_tmp_nosuid" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_var_tmp_noexec" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_home_nodev" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_nodev_removable_partitions" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_noexec_removable_partitions" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_var_tmp_bind" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_nodev_nonroot_local_partitions" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_nosuid_removable_partitions" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_var_tmp_nodev" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_tmp_nosuid" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_home_nosuid" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_tmp_noexec" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_tmp_nodev" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_dev_shm_noexec" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_mount_option_dev_shm_nosuid" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_rule_file_permissions_unauthorized_sgid" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_group_files" selected="false"/>
+    <xccdf:select idref="xccdf_org.ssgproject.content_group_permissions" selected="false"/>
+  </xccdf:Profile>
+</xccdf:Tailoring>
