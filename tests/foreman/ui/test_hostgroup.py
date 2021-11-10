@@ -104,6 +104,8 @@ def test_create_with_config_group(session, module_org, module_location):
 
     :id: 05a64d6b-113b-4652-86bf-19bc65b70131
 
+    :CaseImportance: Medium
+
     :expectedresults: Host group created and contains proper config group
     """
     name = gen_string('alpha')
@@ -133,6 +135,8 @@ def test_create_with_puppet_class(session, module_org, module_location, default_
     """Create new host group with assigned puppet class to it
 
     :id: 166ca6a6-c0f7-4fa0-a3f2-b0d6980cf50d
+
+    :CaseImportance: Medium
 
     :expectedresults: Host group created and contains proper puppet class
     """
@@ -193,6 +197,8 @@ def test_positive_nested_host_groups(
 
         1. Create the parent host-group.
         2. Create, Update and Delete the nested host-group.
+
+    :CaseImportance: High
 
     :expectedresults: Crud operations with nest host-group should work as expected.
 
