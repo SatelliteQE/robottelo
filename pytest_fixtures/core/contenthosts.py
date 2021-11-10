@@ -95,3 +95,19 @@ def registered_hosts(organization_ak_setup, content_hosts, default_sat):
         vm.register_contenthost(org.label, ak.name)
         assert vm.subscribed
     return content_hosts
+
+
+@pytest.fixture()
+def docker_contenthost(rhel7_contenthost, default_sat):
+    """Fixture that installs docker on the content host"""
+    rhel7_contenthost.install_katello_ca(default_sat)
+
+    repos = {
+        'server': settings.repos.rhel7_os,
+        'optional': settings.repos.rhel7_optional,
+        'extras': settings.repos.rhel7_extras,
+    }
+    rhel7_contenthost.create_custom_repos(**repos)
+    rhel7_contenthost.execute('yum -y install docker')
+    rhel7_contenthost.execute('systemctl start docker')
+    return rhel7_contenthost

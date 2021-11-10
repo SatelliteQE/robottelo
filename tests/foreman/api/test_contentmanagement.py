@@ -19,6 +19,7 @@
 import re
 
 import pytest
+from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
 
@@ -193,6 +194,10 @@ class TestSatelliteContentManagement:
 class TestCapsuleContentManagement:
     """Content Management related tests, which exercise katello with pulp
     interactions and use capsule.
+
+    :CaseComponent: Capsule-Content
+
+    :Assignee: vsedmik
     """
 
     def update_capsule_download_policy(self, capsule_configured, download_policy):
@@ -995,3 +1000,106 @@ class TestCapsuleContentManagement:
         caps_pkgs = get_repo_files_by_url(caps_pkg_url)
         assert len(caps_pkgs)
         assert sat_pkgs == caps_pkgs
+
+    @pytest.mark.tier4
+    @pytest.mark.skip_if_not_set('capsule', 'clients')
+    def test_positive_sync_container_repo_end_to_end(
+        self, default_sat, capsule_configured, docker_contenthost, module_org, module_product
+    ):
+        """Sync container repositories with schema1, schema2,
+        and both of them to the capsule and pull them to a
+        content host.
+
+        :id: 8fab295c-a9bf-4c00-b800-f721ae8f29fe
+
+        :steps:
+            1. Sync container repositories to Satellite.
+            2. Publish them in a CV, promote to Capsule's LCE.
+            3. Check the Capsule is synced without errors.
+            4. Pull the image from the Capsule to a host.
+
+        :expectedresults:
+            1. The container repo is successfully synced to the Capsule.
+            2. The image is successfully pulled from Capsule to a host.
+
+        :CaseLevel: Integration
+        """
+        upstream_names = [
+            'quay/busybox',  # v1
+            'foreman/busybox-test',  # v2
+            'foreman/foreman',  # v1+v2
+        ]
+        repos = []
+
+        for ups_name in upstream_names:
+            repo = entities.Repository(
+                content_type='docker',
+                docker_upstream_name=ups_name,
+                name=gen_string('alpha'),
+                product=module_product,
+                url='https://quay.io',
+            ).create()
+            repo.sync(timeout=600)
+            repos.append(repo)
+
+        # Create a LCE and associate it with the capsule
+        lce = entities.LifecycleEnvironment(organization=module_org).create()
+        capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': lce.id}
+        )
+        result = capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert len(result['results'])
+        assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Create and publish a content view with all repositories
+        cv = entities.ContentView(organization=module_org, repository=repos).create()
+        cv.publish()
+        cv = cv.read()
+        assert len(cv.version) == 1
+
+        # Promote the latest CV version into capsule's LCE
+        cvv = cv.version[-1].read()
+        promote(cvv, lce.id)
+        cvv = cvv.read()
+        assert len(cvv.environment) == 2
+
+        # Assert that a task to sync lifecycle environment to the capsule
+        # is started (or finished already)
+        sync_status = capsule_configured.nailgun_capsule.content_get_sync()
+        assert len(sync_status['active_sync_tasks']) or sync_status['last_sync_time']
+
+        # Wait till capsule sync finishes and assert the sync task succeeded
+        for task in sync_status['active_sync_tasks']:
+            entities.ForemanTask(id=task['id']).poll(timeout=600)
+        sync_status = capsule_configured.nailgun_capsule.content_get_sync()
+        assert len(sync_status['last_failed_sync_tasks']) == 0
+
+        # Pull the images from capsule to the content host
+        repo_paths = [
+            (
+                f'{module_org.label.lower()}-{lce.label.lower()}-{cv.label.lower()}-'
+                f'{module_product.label.lower()}-{repo.name.lower()}'
+            )
+            for repo in repos
+        ]
+
+        result = docker_contenthost.execute(
+            f'docker login -u {settings.server.admin_username}'
+            f' -p {settings.server.admin_password} {capsule_configured.hostname}'
+        )
+        assert result.status == 0
+
+        for path in repo_paths:
+            result = docker_contenthost.execute(
+                f'docker search {capsule_configured.hostname}/{path}'
+            )
+            assert result.status == 0
+
+            result = docker_contenthost.execute(f'docker pull {capsule_configured.hostname}/{path}')
+            assert result.status == 0
+
+            result = docker_contenthost.execute(f'docker rmi {capsule_configured.hostname}/{path}')
+            assert result.status == 0
+
+        result = docker_contenthost.execute(f'docker logout {default_sat.hostname}')
+        assert result.status == 0
