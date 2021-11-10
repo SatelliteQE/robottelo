@@ -203,7 +203,6 @@ VALIDATORS = dict(
     oscap=[
         Validator(
             'oscap.content_path',
-            'oscap.tailoring_path',
             must_exist=True,
         )
     ],
