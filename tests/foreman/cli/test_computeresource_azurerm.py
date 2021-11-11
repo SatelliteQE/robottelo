@@ -67,7 +67,7 @@ def azurerm_hostgroup(
 
 
 class TestAzureRMComputeResourceTestCase:
-    """ AzureRm compute resource Tests"""
+    """AzureRm compute resource Tests"""
 
     @pytest.mark.upgrade
     @pytest.mark.tier1

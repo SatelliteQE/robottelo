@@ -108,7 +108,7 @@ class TestSatelliteSync:
         )[0]
         request.addfinalizer(exporting_cv.delete)
 
-        exporting_cvv_id = max([cvv.id for cvv in exporting_cv.version])
+        exporting_cvv_id = max(cvv.id for cvv in exporting_cv.version)
         exporting_cvv_version = entities.ContentViewVersion(id=exporting_cvv_id).read().version
 
         ContentView.version_export({'export-dir': f'{export_base}', 'id': exporting_cvv_id})

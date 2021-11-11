@@ -168,7 +168,7 @@ def test_positive_search_scoped(session):
         session.organization.create({'name': org_name, 'label': label})
         for query in [
             f'label = {label}',
-            'label ~ {}'.format(label[:-5]),
+            f'label ~ {label[:-5]}',
             f'label ^ "{label}"',
         ]:
             assert session.organization.search(query)[0]['Name'] == org_name

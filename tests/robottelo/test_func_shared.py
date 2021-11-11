@@ -128,7 +128,7 @@ def simple_shared_counter_with_exception(index=0):
 
 @shared
 def basic_shared_counter(index=0, increment_by=1):
-    """used with use_shared_data=False """
+    """used with use_shared_data=False"""
     return index + increment_by
 
 
@@ -137,11 +137,11 @@ def basic_shared_counter_string(prefix='', suffix='', counter=0, increment_by=1)
     """basic function that increment a counter and return a string with
     prefix
     """
-    return '{}_{}_{}'.format(prefix, counter + increment_by, suffix)
+    return f'{prefix}_{counter + increment_by}_{suffix}'
 
 
 class NotRestorableException(Exception):
-    """ this exception is not restorable as need mote args"""
+    """this exception is not restorable as need mote args"""
 
     def __init__(self, msg, details):
         self.msg = msg

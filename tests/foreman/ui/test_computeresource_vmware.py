@@ -54,7 +54,7 @@ def _get_normalized_size(size):
         size = round(size, 2)
     if size == int(size):
         size = int(size)
-    return '{} {}'.format(size, suffixes[suffix_index])
+    return f'{size} {suffixes[suffix_index]}'
 
 
 def _get_vmware_datastore_summary_string(data_store_name=VMWARE_CONSTANTS['datastore']):

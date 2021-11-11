@@ -607,7 +607,7 @@ class InstallerCommand:
             if not allow_dupes:
                 self.opts[key] = val
             # if we do want duplicate keys, convert the value to a list
-            elif (curr_val := self.opts.get(key)) :  # noqa: E203
+            elif curr_val := self.opts.get(key):  # noqa: E203
                 val = [val]
                 if not isinstance(curr_val, list):
                     curr_val = [curr_val]
@@ -629,7 +629,7 @@ class InstallerCommand:
         installer_command = installer_command.replace(command, '').strip()
         cmd_args, add_later = {}, []
         for opt in installer_command.split('--'):
-            if (opt := opt.strip().split()) :  # noqa: E203
+            if opt := opt.strip().split():  # noqa: E203
                 if opt[0] in cmd_args:
                     add_later.append(opt)
                 else:

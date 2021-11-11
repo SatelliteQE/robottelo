@@ -36,7 +36,7 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 @pytest.fixture(scope='module')
 def module_lce_library(module_manifest_org):
-    """ Returns the Library lifecycle environment from chosen organization """
+    """Returns the Library lifecycle environment from chosen organization"""
     return (
         entities.LifecycleEnvironment()
         .search(

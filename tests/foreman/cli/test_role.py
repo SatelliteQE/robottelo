@@ -231,7 +231,7 @@ class TestRole:
         :CaseImportance: Critical
 
         """
-        role_list = Role.list({'search': 'name=\\"{}\\"'.format(choice(ROLES))})
+        role_list = Role.list({'search': f'name=\\"{choice(ROLES)}\\"'})
         assert len(role_list) == 1
         cloned_role = Role.clone({'id': role_list[0]['id'], 'new-name': gen_string('alphanumeric')})
         Role.delete({'id': cloned_role['id']})

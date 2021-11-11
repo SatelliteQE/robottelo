@@ -417,7 +417,7 @@ def _get_kwargs_md5(**kwargs):
     """Create an md5 hexdigest from kwargs"""
     hd = None
     if kwargs:
-        text = '{}'.format(tuple(sorted(kwargs.items())))
+        text = f'{tuple(sorted(kwargs.items()))}'
         md = hashlib.md5(text.encode())
         hd = md.hexdigest()
     return hd

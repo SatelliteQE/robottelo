@@ -38,7 +38,7 @@ def module_org():
 
 @pytest.fixture(scope='module')
 def module_azure_cp_attrs(module_azurerm_cr, module_azurerm_finishimg):
-    """ Create compute attributes on COMPUTE_PROFILE_SMALL """
+    """Create compute attributes on COMPUTE_PROFILE_SMALL"""
 
     nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
     return entities.ComputeAttribute(
@@ -72,7 +72,7 @@ def module_azure_hg(
     module_location,
     module_org,
 ):
-    """ Create hostgroup """
+    """Create hostgroup"""
 
     return entities.HostGroup(
         architecture=default_architecture,
