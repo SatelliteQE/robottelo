@@ -180,12 +180,12 @@ def test_positive_host_dmi_uuid_duplicates(session, setting_update):
 
     :CaseImportance: High
     """
-    property_value = f'[ {gen_string("alpha")} ]'
+    property_value = gen_string("alpha")
     property_name = setting_update.name
     with session:
         session.settings.update(f'name = {setting_update.name}', property_value)
         result = session.settings.read(f'name = {property_name}')
-        assert result['table'][0]['Value'] == property_value
+        assert result['table'][0]['Value'] == f'[{property_value}]'
 
 
 @pytest.mark.tier2
