@@ -527,14 +527,14 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
     for product in products:
         Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
     # Wait quarter of expected time
-    logger.info('Waiting {} seconds to check products were not synced'.format(delay / 4))
+    logger.info(f'Waiting {delay / 4} seconds to check products were not synced')
     sleep(delay / 4)
     # Verify products has not been synced yet
     for repo in repos:
         with pytest.raises(AssertionError):
             validate_task_status(repo['id'], module_org.id, max_tries=1)
     # Wait the rest of expected time
-    logger.info('Waiting {} seconds to check products were synced'.format(delay * 3 / 4))
+    logger.info(f'Waiting {delay * 3 / 4} seconds to check products were synced')
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     for repo in repos:

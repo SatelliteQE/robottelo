@@ -31,7 +31,7 @@ class Srpm(Base):
 
     @classmethod
     def list(cls, options=None):
-        """List SRPMs """
+        """List SRPMs"""
         cls.command_sub = 'list'
 
         result = cls.execute(cls._construct_command(options), output_format='csv')

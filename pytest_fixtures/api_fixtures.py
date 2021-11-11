@@ -366,7 +366,7 @@ def azurerm_settings():
 
 @pytest.fixture(scope='module')
 def module_azurerm_cr(azurerm_settings, module_org, module_location):
-    """ Create AzureRM Compute Resource """
+    """Create AzureRM Compute Resource"""
     azure_cr = entities.AzureRMComputeResource(
         name=gen_string('alpha'),
         provider='AzureRm',
@@ -383,7 +383,7 @@ def module_azurerm_cr(azurerm_settings, module_org, module_location):
 
 @pytest.fixture(scope='module')
 def module_azurerm_finishimg(default_architecture, default_os, module_azurerm_cr):
-    """ Creates Finish Template image on AzureRM Compute Resource """
+    """Creates Finish Template image on AzureRM Compute Resource"""
     finish_image = entities.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
@@ -397,7 +397,7 @@ def module_azurerm_finishimg(default_architecture, default_os, module_azurerm_cr
 
 @pytest.fixture(scope='module')
 def module_azurerm_byos_finishimg(default_architecture, default_os, module_azurerm_cr):
-    """ Creates BYOS Finish Template image on AzureRM Compute Resource """
+    """Creates BYOS Finish Template image on AzureRM Compute Resource"""
     finish_image = entities.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
@@ -411,7 +411,7 @@ def module_azurerm_byos_finishimg(default_architecture, default_os, module_azure
 
 @pytest.fixture(scope='module')
 def module_azurerm_cloudimg(default_architecture, default_os, module_azurerm_cr):
-    """ Creates cloudinit image on AzureRM Compute Resource """
+    """Creates cloudinit image on AzureRM Compute Resource"""
     finish_image = entities.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
@@ -426,7 +426,7 @@ def module_azurerm_cloudimg(default_architecture, default_os, module_azurerm_cr)
 
 @pytest.fixture(scope='module')
 def module_azurerm_gallery_finishimg(default_architecture, default_os, module_azurerm_cr):
-    """ Creates Shared Gallery Finish Template image on AzureRM Compute Resource """
+    """Creates Shared Gallery Finish Template image on AzureRM Compute Resource"""
     finish_image = entities.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
@@ -440,7 +440,7 @@ def module_azurerm_gallery_finishimg(default_architecture, default_os, module_az
 
 @pytest.fixture(scope='module')
 def module_azurerm_custom_finishimg(default_architecture, default_os, module_azurerm_cr):
-    """ Creates Custom Finish Template image on AzureRM Compute Resource """
+    """Creates Custom Finish Template image on AzureRM Compute Resource"""
     finish_image = entities.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
@@ -454,7 +454,7 @@ def module_azurerm_custom_finishimg(default_architecture, default_os, module_azu
 
 @pytest.fixture(scope='session')
 def azurermclient(azurerm_settings):
-    """ Connect to AzureRM using wrapanapi AzureSystem"""
+    """Connect to AzureRM using wrapanapi AzureSystem"""
     azurermclient = AzureSystem(
         username=azurerm_settings['app_ident'],
         password=azurerm_settings['secret'],
@@ -497,7 +497,7 @@ def module_published_cv(module_org):
 
 @pytest.fixture(scope="module")
 def module_promoted_cv(module_lce, module_published_cv):
-    """ Promote published content view """
+    """Promote published content view"""
     promote(module_published_cv.version[0], environment_id=module_lce.id)
     return module_published_cv
 
@@ -568,7 +568,7 @@ def module_env_search(module_org, module_location, module_cv_with_puppet_module)
 
 @pytest.fixture(scope='module')
 def module_lce_library(module_org):
-    """ Returns the Library lifecycle environment from chosen organization """
+    """Returns the Library lifecycle environment from chosen organization"""
     return (
         entities.LifecycleEnvironment()
         .search(query={'search': f'name={ENVIRONMENT} and organization_id={module_org.id}'})[0]

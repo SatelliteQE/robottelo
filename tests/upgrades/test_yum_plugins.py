@@ -63,7 +63,7 @@ class TestScenarioYumPluginsCount:
     """
 
     def _check_yum_plugins_count(self, client_container_id):
-        """Check yum loaded plugins counts """
+        """Check yum loaded plugins counts"""
 
         kwargs = {'host': DOCKER_VM}
         execute(docker_execute_command, client_container_id, 'yum clean all', **kwargs)[DOCKER_VM]

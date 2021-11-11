@@ -465,7 +465,7 @@ def is_ssh_pub_key(key):
     """
 
     if not isinstance(key, str):
-        raise ValueError("Key should be a string type, received: {}".format(type(key)))
+        raise ValueError(f"Key should be a string type, received: {type(key)}")
 
     # 1) a valid pub key has 3 parts separated by space
     try:

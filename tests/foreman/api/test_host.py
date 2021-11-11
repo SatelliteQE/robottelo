@@ -1426,7 +1426,7 @@ class TestHostInterface:
 
 
 class TestHostBulkAction:
-    """ Tests for host bulk actions. """
+    """Tests for host bulk actions."""
 
     @pytest.mark.tier2
     def test_positive_bulk_destroy(self, module_org):

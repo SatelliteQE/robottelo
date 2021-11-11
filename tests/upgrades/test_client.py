@@ -55,7 +55,7 @@ def module_product(default_org):
 
 @pytest.fixture(scope='module')
 def module_lce_library(default_org):
-    """ Returns the Library lifecycle environment from chosen organization """
+    """Returns the Library lifecycle environment from chosen organization"""
     return (
         entities.LifecycleEnvironment()
         .search(query={'search': f'name={ENVIRONMENT} and organization_id={default_org.id}'})[0]

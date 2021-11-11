@@ -1732,11 +1732,7 @@ def test_positive_delete_libvirt(
 @pytest.fixture
 def gce_template(googleclient):
     max_rhel7_template = max(
-        [
-            img.name
-            for img in googleclient.list_templates(True)
-            if str(img.name).startswith('rhel-7')
-        ]
+        img.name for img in googleclient.list_templates(True) if str(img.name).startswith('rhel-7')
     )
     return googleclient.get_template(max_rhel7_template, project='rhel-cloud').uuid
 
