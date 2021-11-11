@@ -164,7 +164,6 @@ def test_negative_validate_foreman_url_error_message(session, setting_update):
             assert is_valid_error_message(str(context.value))
 
 
-@pytest.mark.skip_if_open('BZ:1975713')
 @pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['host_dmi_uuid_duplicates'], indirect=True)
 def test_positive_host_dmi_uuid_duplicates(session, setting_update):
@@ -180,12 +179,12 @@ def test_positive_host_dmi_uuid_duplicates(session, setting_update):
 
     :CaseImportance: High
     """
-    property_value = f'[ {gen_string("alpha")} ]'
+    property_value = gen_string("alpha")
     property_name = setting_update.name
     with session:
         session.settings.update(f'name = {setting_update.name}', property_value)
         result = session.settings.read(f'name = {property_name}')
-        assert result['table'][0]['Value'] == property_value
+        assert result['table'][0]['Value'].strip('[]') == property_value
 
 
 @pytest.mark.tier2
