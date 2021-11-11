@@ -809,6 +809,7 @@ def test_negative_delete_primary_interface(session, module_host_template):
 
     :expectedresults: Interface was not deleted
 
+
     :CaseLevel: System
     """
     interface_id = gen_string('alpha')
@@ -1850,7 +1851,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(session, module
         # line break (special chars should be escaped)
         assert param_value.encode('unicode_escape') in bytes(yaml_text, 'utf-8')
         # host parameter value is the same when restored from yaml format
-        yaml_content = yaml.load(yaml_text)
+        yaml_content = yaml.load(yaml_text, yaml.SafeLoader)
         host_parameters = yaml_content.get('parameters')
         assert host_parameters
         assert param_name in host_parameters
