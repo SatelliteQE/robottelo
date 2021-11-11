@@ -1205,3 +1205,103 @@ class TestCapsuleContentManagement:
         assert result.status == 0
         assert 'foreman' in result.stdout
         assert 'operations' in result.stdout
+
+    @pytest.mark.tier4
+    @pytest.mark.skip_if_not_set('capsule')
+    def test_positive_sync_file_repo(
+        self, default_sat, capsule_configured, module_org, module_product
+    ):
+        """Sync file-type repository to the capsule.
+
+        :id: 8835c440-016f-408b-8b08-17da8e25a991
+
+        :steps:
+            1. Sync file-type repository to Satellite.
+            2. Upload one extra file to the repository.
+            3. Publish it in a CV, promote to Capsule's LCE.
+            4. Check it is synced to Capsule without errors.
+            5. Run one more sync, check it succeeds.
+            6. Check for content on Satellite and Capsule.
+
+        :expectedresults:
+            1. Both capsule syncs succeed.
+            2. Content is accessible on both, Satellite and Capsule.
+
+        :CaseLevel: Integration
+
+        :BZ: 1985122
+        """
+        repo = entities.Repository(
+            content_type='file',
+            product=module_product,
+            url=constants.FAKE_FILE_LARGE_URL,
+        ).create()
+        repo.sync()
+
+        # Upload one more iso file
+        with open(get_data_file(constants.FAKE_FILE_NEW_NAME), 'rb') as handle:
+            repo.upload_content(files={'content': handle})
+
+        # Create a LCE and associate it with the capsule
+        lce = entities.LifecycleEnvironment(organization=module_org).create()
+        capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': lce.id}
+        )
+        result = capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert len(result['results'])
+        assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Create and publish a content view with all repositories
+        cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+        cv.publish()
+        cv = cv.read()
+        assert len(cv.version) == 1
+
+        # Promote the latest CV version into capsule's LCE
+        cvv = cv.version[-1].read()
+        promote(cvv, lce.id)
+        cvv = cvv.read()
+        assert len(cvv.environment) == 2
+
+        # Assert that a task to sync lifecycle environment to the capsule
+        # is started (or finished already)
+        sync_status = capsule_configured.nailgun_capsule.content_get_sync()
+        assert len(sync_status['active_sync_tasks']) or sync_status['last_sync_time']
+
+        # Wait till capsule sync finishes and assert the sync task succeeded
+        for task in sync_status['active_sync_tasks']:
+            entities.ForemanTask(id=task['id']).poll(timeout=600)
+        sync_status = capsule_configured.nailgun_capsule.content_get_sync()
+        assert len(sync_status['last_failed_sync_tasks']) == 0
+
+        # Run one more sync, check for status (BZ#1985122)
+        sync_status = capsule_configured.nailgun_capsule.content_sync()
+        assert sync_status['result'] == 'success'
+
+        # Check for content on SAT and CAPS
+        sat_repo_url = form_repo_url(
+            default_sat,
+            org=module_org.label,
+            lce=lce.label,
+            cv=cv.label,
+            prod=module_product.label,
+            repo=repo.label,
+        )
+        caps_repo_url = form_repo_url(
+            capsule_configured,
+            org=module_org.label,
+            lce=lce.label,
+            cv=cv.label,
+            prod=module_product.label,
+            repo=repo.label,
+        )
+        sat_files = get_repo_files_by_url(sat_repo_url, extension='iso')
+        caps_files = get_repo_files_by_url(caps_repo_url, extension='iso')
+        assert len(sat_files) == len(caps_files) == constants.FAKE_FILE_LARGE_COUNT + 1
+        assert constants.FAKE_FILE_NEW_NAME in caps_files
+        assert sat_files == caps_files
+
+        for file in sat_files:
+            sat_file = md5_by_url(f'{sat_repo_url}{file}')
+            caps_file = md5_by_url(f'{caps_repo_url}{file}')
+            assert sat_file == caps_file
