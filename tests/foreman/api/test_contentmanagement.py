@@ -19,7 +19,6 @@
 import re
 
 import pytest
-from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
 
@@ -1004,7 +1003,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients')
     def test_positive_sync_container_repo_end_to_end(
-        self, default_sat, capsule_configured, docker_contenthost, module_org, module_product
+        self, default_sat, capsule_configured, container_contenthost, module_org, module_product
     ):
         """Sync container repositories with schema1, schema2,
         and both of them to the capsule and pull them to a
@@ -1025,9 +1024,9 @@ class TestCapsuleContentManagement:
         :CaseLevel: Integration
         """
         upstream_names = [
-            'quay/busybox',  # v1
-            'foreman/busybox-test',  # v2
-            'foreman/foreman',  # v1+v2
+            'quay/busybox',  # schema 1
+            'foreman/busybox-test',  # schema 2
+            'foreman/foreman',  # schema 1+2
         ]
         repos = []
 
@@ -1035,7 +1034,6 @@ class TestCapsuleContentManagement:
             repo = entities.Repository(
                 content_type='docker',
                 docker_upstream_name=ups_name,
-                name=gen_string('alpha'),
                 product=module_product,
                 url='https://quay.io',
             ).create()
@@ -1078,28 +1076,35 @@ class TestCapsuleContentManagement:
         repo_paths = [
             (
                 f'{module_org.label.lower()}-{lce.label.lower()}-{cv.label.lower()}-'
-                f'{module_product.label.lower()}-{repo.name.lower()}'
+                f'{module_product.label.lower()}-{repo.label.lower()}'
             )
             for repo in repos
         ]
 
-        result = docker_contenthost.execute(
-            f'docker login -u {settings.server.admin_username}'
-            f' -p {settings.server.admin_password} {capsule_configured.hostname}'
-        )
-        assert result.status == 0
-
-        for path in repo_paths:
-            result = docker_contenthost.execute(
-                f'docker search {capsule_configured.hostname}/{path}'
+        for con_client in constants.CONTAINER_CLIENTS:
+            result = container_contenthost.execute(
+                f'{con_client} login -u {settings.server.admin_username}'
+                f' -p {settings.server.admin_password} {capsule_configured.hostname}'
             )
             assert result.status == 0
 
-            result = docker_contenthost.execute(f'docker pull {capsule_configured.hostname}/{path}')
-            assert result.status == 0
+            for path in repo_paths:
+                result = container_contenthost.execute(
+                    f'{con_client} search {capsule_configured.hostname}/{path}'
+                )
+                assert result.status == 0
 
-            result = docker_contenthost.execute(f'docker rmi {capsule_configured.hostname}/{path}')
-            assert result.status == 0
+                result = container_contenthost.execute(
+                    f'{con_client} pull {capsule_configured.hostname}/{path}'
+                )
+                assert result.status == 0
 
-        result = docker_contenthost.execute(f'docker logout {default_sat.hostname}')
-        assert result.status == 0
+                result = container_contenthost.execute(
+                    f'{con_client} rmi {capsule_configured.hostname}/{path}'
+                )
+                assert result.status == 0
+
+            result = container_contenthost.execute(
+                f'{con_client} logout {capsule_configured.hostname}'
+            )
+            assert result.status == 0
