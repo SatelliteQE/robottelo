@@ -6,8 +6,6 @@ ROBOTTELO:
   VERBOSITY: debug
   # Directory for temporary files
   TMP_DIR: /var/tmp
-  # Web Server to provide various test artifacts
-  ARTIFACTS_SERVER: replace-with-artifacts-server
 
   # - The URL of container hosting repos on SatLab
   # Example url - http://<container_hostname_or_ip>:<port>
