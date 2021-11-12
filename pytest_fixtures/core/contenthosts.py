@@ -7,6 +7,7 @@ All functions in this module will be treated as fixtures that apply the contenth
 import pytest
 from broker import VMBroker
 
+from robottelo import constants
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
 
@@ -97,8 +98,8 @@ def registered_hosts(organization_ak_setup, content_hosts, default_sat):
     return content_hosts
 
 
-@pytest.fixture()
-def docker_contenthost(rhel7_contenthost, default_sat):
+@pytest.fixture
+def container_contenthost(rhel7_contenthost, default_sat):
     """Fixture that installs docker on the content host"""
     rhel7_contenthost.install_katello_ca(default_sat)
 
@@ -108,6 +109,7 @@ def docker_contenthost(rhel7_contenthost, default_sat):
         'extras': settings.repos.rhel7_extras,
     }
     rhel7_contenthost.create_custom_repos(**repos)
-    rhel7_contenthost.execute('yum -y install docker')
-    rhel7_contenthost.execute('systemctl start docker')
+    for service in constants.CONTAINER_CLIENTS:
+        rhel7_contenthost.execute(f'yum -y install {service}')
+        rhel7_contenthost.execute(f'systemctl start {service}')
     return rhel7_contenthost
