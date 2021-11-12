@@ -48,11 +48,8 @@ from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants import FAKE_0_INC_UPD_ERRATA
-from robottelo.constants import FAKE_0_INC_UPD_NEW_PACKAGE
-from robottelo.constants import FAKE_0_INC_UPD_NEW_UPDATEFILE
-from robottelo.constants import FAKE_0_INC_UPD_OLD_PACKAGE
-from robottelo.constants import FAKE_0_INC_UPD_OLD_UPDATEFILE
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
 from robottelo.constants import FILTER_CONTENT_TYPE
 from robottelo.constants import FILTER_ERRATA_TYPE
@@ -66,8 +63,6 @@ from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import gen_string
-from robottelo.helpers import create_repo
-from robottelo.helpers import repo_add_updateinfo
 from robottelo.products import DockerRepository
 from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
@@ -2219,7 +2214,7 @@ def test_positive_edit_rh_custom_spin(session):
         distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
+    cv = entities.ContentView(id=repos_collection.setup_content_view['content_view']['id']).read()
     with session:
         session.organization.select(org.name)
         session.contentviewfilter.create(
@@ -2975,7 +2970,7 @@ def test_positive_rh_mixed_content_end_to_end(session, module_prod, module_org):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_errata_inc_update_list_package(session):
+def test_positive_errata_inc_update_list_package(session, default_sat):
     """Publish incremental update with a new errata for a custom repo
 
     :BZ: 1489778
@@ -2991,56 +2986,47 @@ def test_positive_errata_inc_update_list_package(session):
 
     :CaseLevel: Integration
     """
-    # Create and publish a repo with 1 outdated package and some errata
-    repo_name = gen_string('alphanumeric')
-    repo_url = create_repo(repo_name, settings.repos.inc_upd.url, [FAKE_0_INC_UPD_OLD_PACKAGE])
-    result = repo_add_updateinfo(
-        repo_name, f'{settings.repos.inc_upd.url}{FAKE_0_INC_UPD_OLD_UPDATEFILE}'
-    )
-    assert result.status == 0
-    # Create org, product, repo, sync & publish it
     org = entities.Organization().create()
-    custom_repo_id = create_sync_custom_repo(org.id, repo_url=repo_url)
-    cv = entities.ContentView(organization=org, repository=[custom_repo_id]).create()
+    product = entities.Product(organization=org).create()
+    yum_repo_name = gen_string('alpha')
+    # Creates custom yum repository
+    yum_repo = entities.Repository(
+        name=yum_repo_name,
+        url=settings.repos.yum_1.url,
+        content_type=REPO_TYPE['yum'],
+        product=product,
+    ).create()
+    product.sync()
+    # creating cv, cv filter, and publish cv
+    cv = entities.ContentView(organization=org, repository=[yum_repo]).create()
+    cvf = entities.RPMContentViewFilter(
+        content_view=cv, inclusion=True, name=gen_string('alphanumeric')
+    ).create()
+    entities.ContentViewFilterRule(
+        content_view_filter=cvf,
+        name='walrus',
+        version='0.71',
+    ).create()
     cv.publish()
     # Get published content-view version info
     cvvs = entities.ContentView(id=cv.id).read().version
     assert len(cvvs) == 1
     cvv = cvvs[0].read()
-    # Add updated package to the repo and errata for the outdated package
-    create_repo(
-        repo_name, settings.repos.inc_upd.url, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True
-    )
-    result = repo_add_updateinfo(
-        repo_name, f'{settings.repos.inc_upd.url}{FAKE_0_INC_UPD_NEW_UPDATEFILE}'
-    )
-    assert result.status == 0
-    # Sync the repo
-    entities.Repository(id=custom_repo_id).sync()
-    # Publish new CVV with the new errata
     result = ContentView.version_incremental_update(
-        {'content-view-version-id': cvv.id, 'errata-ids': FAKE_0_INC_UPD_ERRATA}
+        {'content-view-version-id': cvv.id, 'errata-ids': settings.repos.yum_1.errata[1]}
     )
-    # Inc update output format is pretty weird - list of dicts where each
-    # key's value is actual line from stdout
     result = [line.strip() for line_dict in result for line in line_dict.values()]
-    # Verify both the package and the errata are present in output (were
-    # added successfully)
-    assert FAKE_0_INC_UPD_ERRATA in [line.strip() for line in result]
-    assert FAKE_0_INC_UPD_NEW_PACKAGE.rstrip('.rpm') in [line.strip() for line in result]
-    cvvs = entities.ContentView(id=cv.id).read().version
-    cvv = cvvs[-1].read()
-    # Verify the package and the errata are shown on UI
     with session:
         session.organization.select(org.name)
+        cvv = entities.ContentView(id=cv.id).read().version[1].read()
         version = session.contentview.read_version(cv.name, f'Version {cvv.version}')
         errata = version['errata']['table']
-        assert len(errata) == 2
-        assert FAKE_0_INC_UPD_ERRATA in {row['Errata ID'] for row in errata}
+        assert len(errata) == 1
+        assert settings.repos.yum_1.errata[1] in {row['Errata ID'] for row in errata}
         packages = version['rpm_packages']['table']
-        assert len(packages) == 2
-        packages = {'{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages}
-        assert packages == {FAKE_0_INC_UPD_OLD_PACKAGE, FAKE_0_INC_UPD_NEW_PACKAGE}
+        assert len(packages) == 4
+        packages = {'{}-{}-{}.{}'.format(*row.values()) for row in packages}
+        assert set(result[4:]).issubset(packages)
 
 
 @pytest.mark.tier3
@@ -3057,9 +3043,8 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, default
 
     :Steps:
 
-        1. Create and publish a repo with 1 outdated package and some
-           errata
-        2. Create org, product, repo, content view, then sync, publish and
+        1. Create a custom repo with filters that excludes the updated package
+        2. Create content view with custom repo publish and
            promote it
         3. Create another content view with Satellite tools in it, publish
            and promote it to the same environment
@@ -3070,13 +3055,10 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, default
            views
         7. Register a content host with activation key, install certs,
            katello agent, enable repositories
-        8. Install outdated package in the content host
-        9. Add updated package to the repo and errata for the outdated
-           package
-        10. Sync the repo in satellite
-        11. On the WebUI, find new errata, make sure it's applicable for
+        8. Install outdated package in the content host (walrus-0.71)
+        9. On the WebUI, find the errata with the updated package, make sure it's applicable for
             the host
-        12. Install the errata to the host, agree with incremental update
+        10. Install the errata to the host, agree with incremental update
 
     :expectedresults:
 
@@ -3089,56 +3071,78 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, default
 
     :CaseLevel: Integration
     """
-    repo_name = gen_string('alphanumeric')
-    repo_url = create_repo(repo_name, settings.repos.inc_upd.url, [FAKE_0_INC_UPD_OLD_PACKAGE])
-    result = repo_add_updateinfo(
-        repo_name, f'{settings.repos.inc_upd.url}{FAKE_0_INC_UPD_OLD_UPDATEFILE}'
-    )
-    assert result.status == 0
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
+    product = entities.Product(organization=org).create()
+    yum_repo_name = gen_string('alpha')
+    # Creates custom yum repository
+    yum_repo = entities.Repository(
+        name=yum_repo_name,
+        url=settings.repos.yum_1.url,
+        content_type=REPO_TYPE['yum'],
+        product=product,
+    ).create()
+    product.sync()
+    # creating cv, cv filter, and publish cv
+    cv = entities.ContentView(organization=org, repository=[yum_repo]).create()
+    cvf = entities.RPMContentViewFilter(
+        content_view=cv, inclusion=False, name=gen_string('alphanumeric')
+    ).create()
+    entities.ContentViewFilterRule(
+        content_view_filter=cvf,
+        name='walrus',
+        version='5.21',
+    ).create()
+    cv.publish()
+    cvv = entities.ContentView(id=cv.id).read().version[0]
+    promote(cvv, lce.id)
+    # Setup tools repo and add it to ak
     repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository(), YumRepository(url=repo_url)]
+        distro=constants.DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
     )
     content_data = repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    # adding custom repo subscription to ak
+    ak_id = content_data['activation_key']['id']
+    command = (
+        f'hammer activation-key add-subscription --id {ak_id} '
+        f'--subscription {product.name} --organization-id {org.id}'
+    )
+    result = default_sat.execute(command)
+    assert result.status == 0
+    # Create composite cv
     composite_cv = entities.ContentView(composite=True, organization=org).create()
+    # Adds all repos to composite cv
     composite_cv.component = [
-        entities.ContentView(id=content_data['content_view']['id']).read().version[0]
+        entities.ContentView(id=content_data['content_view']['id']).read().version[0],
+        cvv,
     ]
     composite_cv = composite_cv.update(['component'])
+    # Publish and promote
     composite_cv.publish()
     promote(composite_cv.read().version[0], lce.id)
+    # Update AK to use composite cv
     entities.ActivationKey(
         id=content_data['activation_key']['id'], content_view=composite_cv
     ).update(['content_view'])
     repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
-    result = rhel7_contenthost.run(
-        'yum -y install {}'.format(FAKE_0_INC_UPD_OLD_PACKAGE.rstrip('.rpm'))
-    )
+    result = rhel7_contenthost.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
-    create_repo(
-        repo_name, settings.repos.inc_upd.url, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True
-    )
-    result = repo_add_updateinfo(
-        repo_name, f'{settings.repos.settings.repos.inc_upd.url.url}{FAKE_0_INC_UPD_NEW_UPDATEFILE}'
-    )
-    assert result.status == 0
-    entities.Repository(id=repos_collection.custom_repos_info[-1]['id']).sync()
     with session:
         session.organization.select(org.name)
-        result = session.errata.install(FAKE_0_INC_UPD_ERRATA, rhel7_contenthost.hostname)
+        session.location.select('Default Location')
+        result = session.errata.install(settings.repos.yum_1.errata[1], rhel7_contenthost.hostname)
         assert result['result'] == 'success'
         expected_version = 'Version 1.1'
         version = session.contentview.read_version(composite_cv.name, expected_version)
         errata = version['errata']['table']
         assert len(errata) > 1
-        assert FAKE_0_INC_UPD_ERRATA in {row['Errata ID'] for row in errata}
-        nvra1 = parse_nvra(FAKE_0_INC_UPD_NEW_PACKAGE)
+        assert settings.repos.yum_1.errata[1] in {row['Errata ID'] for row in errata}
+        nvra1 = parse_nvra(FAKE_2_CUSTOM_PACKAGE)
         packages = session.contentview.search_version_package(
             composite_cv.name, expected_version, nvra1['name']
         )
-        packages_data = {'{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages}
-        assert FAKE_0_INC_UPD_NEW_PACKAGE in packages_data
+        packages_data = {'{}-{}-{}.{}'.format(*row.values()) for row in packages}
+        assert FAKE_2_CUSTOM_PACKAGE in packages_data
 
 
 @pytest.mark.tier3
