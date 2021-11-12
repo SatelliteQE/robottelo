@@ -8,7 +8,7 @@
 
 :CaseComponent: Settings
 
-:Assignee: desingh
+:Assignee: shwsingh
 
 :TestType: Functional
 
