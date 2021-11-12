@@ -65,7 +65,7 @@ def module_repos_col(module_org, module_lce, default_sat, request):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session):
+def test_positive_end_to_end(session, module_org):
     """Perform end to end testing for organization component
 
     :id: 91003f52-63a6-4b0d-9b68-2b5717fd200e
@@ -179,7 +179,7 @@ def test_positive_end_to_end(session):
         assert location.name in org_values['locations']['resources']['unassigned']
 
         # delete org
-        session.organization.select(DEFAULT_ORG)
+        session.organization.select(org_name=DEFAULT_ORG)
         session.organization.delete(new_name)
         assert not session.organization.search(new_name)
 
