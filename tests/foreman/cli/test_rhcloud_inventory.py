@@ -25,7 +25,7 @@ from robottelo.rh_cloud_utils import get_remote_report_checksum
 
 @pytest.mark.tier3
 def test_positive_inventory_generate_upload_cli(
-    organization_ak_setup, registered_hosts, default_sat
+    organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
 ):
     """Tests Insights inventory generation and upload via foreman-rake commands:
     https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
@@ -63,7 +63,7 @@ def test_positive_inventory_generate_upload_cli(
     org, _ = organization_ak_setup
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:report:generate_upload'
     upload_success_msg = f"Generated and uploaded inventory report for organization '{org.name}'"
-    result = default_sat.execute(cmd)
+    result = rhcloud_sat_host.execute(cmd)
     assert result.status == 0
     assert upload_success_msg in result.stdout
 
@@ -71,9 +71,9 @@ def test_positive_inventory_generate_upload_cli(
     remote_report_path = (
         f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     )
-    default_sat.get(remote_path=remote_report_path, local_path=local_report_path)
+    rhcloud_sat_host.get(remote_path=remote_report_path, local_path=local_report_path)
     local_file_data = get_local_file_data(local_report_path)
-    assert local_file_data['checksum'] == get_remote_report_checksum(org.id)
+    assert local_file_data['checksum'] == get_remote_report_checksum(rhcloud_sat_host, org.id)
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']
     assert local_file_data['json_files_parsable']

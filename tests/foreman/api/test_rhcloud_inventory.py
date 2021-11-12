@@ -16,10 +16,39 @@
 
 :Upstream: No
 """
+from datetime import datetime
+
 import pytest
+from fauxfactory import gen_alphanumeric
+from wait_for import wait_for
+
+from robottelo.config import robottelo_tmp_dir
+from robottelo.rh_cloud_utils import get_local_file_data
+from robottelo.rh_cloud_utils import get_report_data
+
+generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
 
 
-def test_rhcloud_inventory_api_e2e():
+def common_assertion(report_path):
+    """Function to perform common assertions"""
+    local_file_data = get_local_file_data(report_path)
+
+    assert local_file_data['size'] > 0
+    assert local_file_data['extractable']
+    assert local_file_data['json_files_parsable']
+
+    slices_in_metadata = set(local_file_data['metadata_counts'].keys())
+    slices_in_tar = set(local_file_data['slices_counts'].keys())
+    assert slices_in_metadata == slices_in_tar
+    for slice_name, hosts_count in local_file_data['metadata_counts'].items():
+        assert hosts_count == local_file_data['slices_counts'][slice_name]
+
+
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier3
+def test_rhcloud_inventory_api_e2e(
+    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
+):
     """Generate report using rh_cloud plugin api's and verify its basic properties.
 
     :id: 8ead1ff6-a8f5-461b-9dd3-f50d96d6ed57
@@ -39,12 +68,55 @@ def test_rhcloud_inventory_api_e2e():
 
     :BZ: 1807829, 1926100, 1965234
     """
+    org, ak = organization_ak_setup
+    virtual_host, baremetal_host = rhcloud_registered_hosts
+    local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
+    # Generate report
+    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_generate_report()
+    wait_for(
+        lambda: rhcloud_sat_host.api.ForemanTask()
+        .search(query={'search': f'{generate_report_task} and started_at >= "{timestamp}"'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
+    # Download report
+    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_download_report(
+        destination=local_report_path
+    )
+    common_assertion(local_report_path)
+    # Assert Hostnames, IP addresses, and installed packages are present in report.
+    json_data = get_report_data(local_report_path)
+    hostnames = [host['fqdn'] for host in json_data['hosts']]
+    assert virtual_host.hostname in hostnames
+    assert baremetal_host.hostname in hostnames
+    ip_addresses = [
+        host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
+        for host in json_data['hosts']
+    ]
+    ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
+    assert virtual_host.ip_addr in ip_addresses
+    assert baremetal_host.ip_addr in ip_addresses
+    assert virtual_host.ip_addr in ipv4_addresses
+    assert baremetal_host.ip_addr in ipv4_addresses
+    all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
+    for host_profiles in all_host_profiles:
+        assert 'installed_packages' in host_profiles
+        assert len(host_profiles['installed_packages']) > 1
 
 
-@pytest.mark.stubbed
-def test_rhcloud_inventory_api_hosts_synchronization():
-    """Test RH Cloud plugin api to synchronize list of available hosts
-    from cloud and mark them in Satellite.
+@pytest.mark.tier3
+def test_rhcloud_inventory_api_hosts_synchronization(
+    set_rh_cloud_token,
+    organization_ak_setup,
+    rhcloud_registered_hosts,
+    rhcloud_sat_host,
+):
+    """Test RH Cloud plugin api to synchronize list of available hosts from cloud.
 
     :id: 7be22e1c-906b-4ae5-93dd-5f79f395601c
 
@@ -53,19 +125,49 @@ def test_rhcloud_inventory_api_hosts_synchronization():
         1. Prepare machine and upload its data to Insights.
         2. Add Cloud API key in Satellite
         3. Sync inventory status using RH Cloud plugin api.
-        4. Assert content of response message once synchronization finishes.
+        4. Assert content of finished tasks.
         5. Get host details.
         6. Assert inventory status for the host.
 
     :expectedresults:
-        1. Response of RH Cloud plugins api for syncing inventory status
-        should contain number of hosts synchronized and missed.
-        2. Presence in cloud is displayed in host properties.
+        1. Task detail should contain should contain number of hosts
+            synchronized and disconnected.
 
-    :CaseImportance: Critical
-
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
     """
+    org, ak = organization_ak_setup
+    virtual_host, baremetal_host = rhcloud_registered_hosts
+    # Generate report
+    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_generate_report()
+    wait_for(
+        lambda: rhcloud_sat_host.api.ForemanTask()
+        .search(query={'search': f'{generate_report_task} and started_at >= "{timestamp}"'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
+    # Sync inventory status
+    inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
+    wait_for(
+        lambda: rhcloud_sat_host.api.ForemanTask()
+        .search(query={'search': f'id = {inventory_sync["task"]["id"]}'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
+    task_output = rhcloud_sat_host.api.ForemanTask().search(
+        query={'search': f'id = {inventory_sync["task"]["id"]}'}
+    )
+    assert task_output[0].output['host_statuses']['sync'] == 2
+    assert task_output[0].output['host_statuses']['disconnect'] == 0
+    # To Do: Add support in Nailgun to get Insights and Inventory host properties.
 
 
 @pytest.mark.stubbed
