@@ -330,5 +330,7 @@ def test_include_parameter_tags_setting(
     json_data = get_report_data(local_report_path)
     common_assertion(local_report_path)
     for host in json_data['hosts']:
-        assert type(host['tags'][0]['value']) is str
-        assert host['tags'][0]['namespace'] == 'satellite_parameter'
+        for tag in host['tags']:
+            if tag['namespace'] == 'satellite_parameter':
+                assert type(tag['value']) is str
+                break
