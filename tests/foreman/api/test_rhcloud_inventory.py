@@ -29,6 +29,22 @@ from robottelo.rh_cloud_utils import get_report_data
 generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
 
 
+def generate_inventory_report(satellite, org):
+    """Function to generate inventory report."""
+    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    satellite.api.Organization(id=org.id).rh_cloud_generate_report()
+    wait_for(
+        lambda: satellite.api.ForemanTask()
+        .search(query={'search': f'{generate_report_task} and started_at >= "{timestamp}"'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
+
+
 def common_assertion(report_path):
     """Function to perform common assertions"""
     local_file_data = get_local_file_data(report_path)
@@ -72,18 +88,7 @@ def test_rhcloud_inventory_api_e2e(
     virtual_host, baremetal_host = rhcloud_registered_hosts
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     # Generate report
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_generate_report()
-    wait_for(
-        lambda: rhcloud_sat_host.api.ForemanTask()
-        .search(query={'search': f'{generate_report_task} and started_at >= "{timestamp}"'})[0]
-        .result
-        == 'success',
-        timeout=400,
-        delay=15,
-        silent_failure=True,
-        handle_exception=True,
-    )
+    generate_inventory_report(rhcloud_sat_host, org)
     # Download report
     rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_download_report(
         destination=local_report_path
@@ -133,23 +138,14 @@ def test_rhcloud_inventory_api_hosts_synchronization(
         1. Task detail should contain should contain number of hosts
             synchronized and disconnected.
 
+    :BZ: 1970223
+
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
     # Generate report
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_generate_report()
-    wait_for(
-        lambda: rhcloud_sat_host.api.ForemanTask()
-        .search(query={'search': f'{generate_report_task} and started_at >= "{timestamp}"'})[0]
-        .result
-        == 'success',
-        timeout=400,
-        delay=15,
-        silent_failure=True,
-        handle_exception=True,
-    )
+    generate_inventory_report(rhcloud_sat_host, org)
     # Sync inventory status
     inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
     wait_for(
@@ -198,8 +194,11 @@ def test_rhcloud_inventory_mtu_field():
     """
 
 
-@pytest.mark.stubbed
-def test_system_purpose_sla_field():
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier2
+def test_system_purpose_sla_field(
+    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
+):
     """Verify that system_purpose_sla field is present in the inventory report
     for the host subscribed using Activation key with service level set in it.
 
@@ -222,8 +221,21 @@ def test_system_purpose_sla_field():
 
     :BZ: 1845113
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
     """
+    org, ak = organization_ak_setup
+    virtual_host, baremetal_host = rhcloud_registered_hosts
+    local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
+    generate_inventory_report(rhcloud_sat_host, org)
+    # Download report
+    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_download_report(
+        destination=local_report_path
+    )
+    json_data = get_report_data(local_report_path)
+    for host in json_data['hosts']:
+        assert host['facts'][0]['facts']['system_purpose_role'] == 'test-role'
+        assert host['facts'][0]['facts']['system_purpose_sla'] == 'Self-Support'
+        assert host['facts'][0]['facts']['system_purpose_usage'] == 'test-usage'
 
 
 @pytest.mark.stubbed
@@ -282,8 +294,11 @@ def test_inventory_upload_with_http_proxy():
     """
 
 
-@pytest.mark.stubbed
-def test_include_parameter_tags_setting():
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier2
+def test_include_parameter_tags_setting(
+    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
+):
     """Verify that include_parameter_tags setting doesn't cause invalid report
     to be generated.
 
@@ -291,15 +306,29 @@ def test_include_parameter_tags_setting():
 
     :Steps:
         1. Enable include_parameter_tags setting.
-        2. Set value for one of satellite_parameter to empty.(e.g. host_packages).
-        3. Register a content host with satellite.
-        4. Generate inventory report.
-        5. Assert that generated report contains valid json file.
+        2. Register a content host with satellite.
+        3. Generate inventory report.
+        4. Assert that generated report contains valid json file.
 
     :expectedresults:
         1. Valid json report is created.
+        2. satellite_parameter values are string.
 
-    :BZ: 1981869
+    :BZ: 1981869, 1967438
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
     """
+    org, ak = organization_ak_setup
+    virtual_host, baremetal_host = rhcloud_registered_hosts
+    local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
+    rhcloud_sat_host.update_setting('include_parameter_tags', True)
+    generate_inventory_report(rhcloud_sat_host, org)
+    # Download report
+    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_download_report(
+        destination=local_report_path
+    )
+    json_data = get_report_data(local_report_path)
+    common_assertion(local_report_path)
+    for host in json_data['hosts']:
+        assert type(host['tags'][0]['value']) is str
+        assert host['tags'][0]['namespace'] == 'satellite_parameter'
