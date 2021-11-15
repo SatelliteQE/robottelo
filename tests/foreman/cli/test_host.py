@@ -373,8 +373,8 @@ def test_positive_create_and_delete(module_lce_library, module_published_cv):
 
 @pytest.mark.host_create
 @pytest.mark.tier1
-def test_positive_add_interface_by_id(default_location, default_org):
-    """New network interface can be added to existing host
+def test_positive_crud_interface_by_id(default_location, default_org):
+    """New network interface can be added to existing host, listed and removed.
 
     :id: e97dba92-61eb-47ad-a7d7-5f989292b12a
 
@@ -387,6 +387,8 @@ def test_positive_add_interface_by_id(default_location, default_org):
 
     mac = gen_mac(multicast=False)
     host = make_fake_host({'domain-id': domain.id})
+    number_of_interfaces = len(HostInterface.list({'host-id': host['id']}))
+
     HostInterface.create(
         {'host-id': host['id'], 'domain-id': domain.id, 'mac': mac, 'type': 'interface'}
     )
@@ -399,6 +401,31 @@ def test_positive_add_interface_by_id(default_location, default_org):
     )
     assert host_interface['domain'] == domain.name
     assert host_interface['mac-address'] == mac
+    assert len(HostInterface.list({'host-id': host['id']})) == number_of_interfaces + 1
+
+    new_domain = entities.Domain(location=[default_location], organization=[default_org]).create()
+    new_mac = gen_mac(multicast=False)
+    HostInterface.update(
+        {
+            'host-id': host['id'],
+            'id': host_interface['id'],
+            'domain-id': new_domain.id,
+            'mac': new_mac,
+        }
+    )
+    host_interface = HostInterface.info(
+        {
+            'host-id': host['id'],
+            'id': [ni for ni in host['network-interfaces'] if ni['mac-address'] == mac][0]['id'],
+        }
+    )
+    assert host_interface['domain'] == new_domain.name
+    assert host_interface['mac-address'] == new_mac
+
+    HostInterface.delete({'host-id': host['id'], 'id': host_interface['id']})
+    assert len(HostInterface.list({'host-id': host['id']})) == number_of_interfaces
+    with pytest.raises(CLIReturnCodeError):
+        HostInterface.info({'host-id': host['id'], 'id': host_interface['id']})
 
 
 @pytest.mark.host_create
