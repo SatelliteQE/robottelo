@@ -100,7 +100,7 @@ def test_negative_create_with_same_name(session, oscap_content_path):
 
     :customerscenario: true
 
-    :CaseImportance: Critical
+    :CaseImportance: Medium
     """
     content_name = gen_string('alpha')
     with session:

@@ -47,8 +47,6 @@ class TestTailoringFiles:
         :expectedresults: Tailoring file will be added to satellite
 
         :parametrized: yes
-
-        :CaseImportance: Critical
         """
         tailoring_file = make_tailoringfile(
             {'name': name, 'scap-file': tailoring_file_path['satellite']}
@@ -67,7 +65,7 @@ class TestTailoringFiles:
 
         :expectedresults: Tailoring file will be added to satellite
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         name = gen_string('alphanumeric') + ' ' + gen_string('alphanumeric')
         tailoring_file = make_tailoringfile(
@@ -91,7 +89,7 @@ class TestTailoringFiles:
 
         :expectedresults: Tailoring file information should be displayed
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         name = gen_string('alphanumeric')
         make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
@@ -113,7 +111,7 @@ class TestTailoringFiles:
 
         :expectedresults: Tailoring files list should be displayed
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         name = gen_string('alphanumeric')
         make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
@@ -132,7 +130,7 @@ class TestTailoringFiles:
 
         :expectedresults: Tailoring file will not be added to satellite
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         default_sat.put(get_data_file(SNIPPET_DATA_FILE), f'/tmp/{SNIPPET_DATA_FILE}')
         name = gen_string('alphanumeric')
@@ -154,7 +152,7 @@ class TestTailoringFiles:
 
         :parametrized: yes
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         with pytest.raises(CLIFactoryError):
             make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
@@ -176,7 +174,7 @@ class TestTailoringFiles:
 
         :expectedresults: Association should give some warning
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
 
     @pytest.mark.skip_if_open("BZ:1857572")
@@ -196,7 +194,7 @@ class TestTailoringFiles:
 
         BZ: 1857572
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         name = gen_string('alphanumeric')
         file_path = f'/var{tailoring_file_path["satellite"]}'
@@ -224,7 +222,7 @@ class TestTailoringFiles:
 
         :expectedresults: Tailoring file should be deleted
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         tailoring_file = make_tailoringfile({'scap-file': tailoring_file_path['satellite']})
         TailoringFiles.delete({'id': tailoring_file['id']})
@@ -256,8 +254,6 @@ class TestTailoringFiles:
 
         :expectedresults: ARF report should be sent to satellite reflecting
                          the changes done via tailoring files
-
-        :CaseImportance: Critical
         """
 
     @pytest.mark.stubbed
@@ -283,8 +279,6 @@ class TestTailoringFiles:
 
         :expectedresults: ARF report should be sent to satellite
                          reflecting the changes done via tailoring files
-
-        :CaseImportance: Critical
         """
 
     @pytest.mark.stubbed
@@ -311,5 +305,5 @@ class TestTailoringFiles:
         :expectedresults: ARF report should have information
                           about the tailoring file used, if any
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """

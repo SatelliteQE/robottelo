@@ -83,7 +83,7 @@ class TestOpenScap:
 
         :customerscenario: true
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         scap_contents = [content['title'] for content in Scapcontent.list()]
         for title in OSCAP_DEFAULT_CONTENT.values():
@@ -112,7 +112,7 @@ class TestOpenScap:
 
         :expectedresults: The scap-content and it's info is not listed.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         result = Scapcontent.with_user(
             default_viewer_role.login, default_viewer_role.password
@@ -143,7 +143,7 @@ class TestOpenScap:
 
         :expectedresults: The info of the scap-content is listed.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         title = gen_string('alpha')
         make_scapcontent({'title': title, 'scap-file': settings.oscap.content_path})
@@ -170,7 +170,7 @@ class TestOpenScap:
 
         :expectedresults: The info of the scap-content is not listed.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         invalid_scap_id = gen_string('alpha')
         with pytest.raises(CLIReturnCodeError):
@@ -201,7 +201,7 @@ class TestOpenScap:
 
         :BZ: 1471801
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         scap_content = make_scapcontent({'title': title, 'scap-file': settings.oscap.content_path})
         assert scap_content['title'] == title
@@ -232,7 +232,7 @@ class TestOpenScap:
 
         :CaseAutomation: Automated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         title = gen_string('alpha')
         scap_content = make_scapcontent({'title': title, 'scap-file': settings.oscap.content_path})
@@ -263,7 +263,7 @@ class TestOpenScap:
 
         :expectedresults: The scap-content is not created.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         with pytest.raises(CLIFactoryError):
             make_scapcontent({'title': title, 'scap-file': settings.oscap.content_path})
@@ -291,7 +291,7 @@ class TestOpenScap:
 
         :expectedresults: The scap-content is created.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         scap_content = make_scapcontent(
             {'original-filename': name, 'scap-file': settings.oscap.content_path}
@@ -321,7 +321,7 @@ class TestOpenScap:
 
         :expectedresults: The scap-content is not created.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
 
         :BZ: 1482395
         """
@@ -350,7 +350,7 @@ class TestOpenScap:
 
         :expectedresults: The scap-content is not created.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         with pytest.raises(CLIFactoryError):
             make_scapcontent({'title': title})
@@ -374,7 +374,7 @@ class TestOpenScap:
 
         :expectedresults: The scap-content is updated successfully.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
 
         :BZ: 1490302
         """
@@ -405,7 +405,7 @@ class TestOpenScap:
 
         :expectedresults: The scap-content is deleted successfully.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         scap_content = make_scapcontent({'scap-file': settings.oscap.content_path})
         Scapcontent.delete({'id': scap_content['id']})
@@ -433,7 +433,7 @@ class TestOpenScap:
 
         :CaseAutomation: Automated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         scap_content = make_scapcontent({'scap-file': settings.oscap.content_path})
         Scapcontent.delete({'title': scap_content['title']})
@@ -461,6 +461,8 @@ class TestOpenScap:
             3. Pass valid parameters and valid name.
 
         :expectedresults: The policy is created successfully.
+
+        :CaseImportance: Medium
         """
         scap_policy = make_scap_policy(
             {
@@ -495,6 +497,8 @@ class TestOpenScap:
             3. Pass valid parameters and invalid name.
 
         :expectedresults: The policy is not created.
+
+        :CaseImportance: Medium
         """
         with pytest.raises(CLIFactoryError):
             make_scap_policy(
@@ -526,6 +530,8 @@ class TestOpenScap:
             3. Pass valid parameters without passing the scap-content-id.
 
         :expectedresults: The policy is not created.
+
+        :CaseImportance: Medium
         """
         with pytest.raises(CLIFactoryError):
             make_scap_policy(
@@ -557,6 +563,8 @@ class TestOpenScap:
             4. Associate multiple hostgroups with policy
 
         :expectedresults: The policy is created and associated successfully.
+
+        :CaseImportance: Medium
         """
         hostgroup = make_hostgroup()
         name = gen_string('alphanumeric')
@@ -723,6 +731,8 @@ class TestOpenScap:
             5. Pass name as the parameter.
 
         :expectedresults: The policies are listed successfully and information is displayed.
+
+        :CaseImportance: Critical
         """
         hostgroup = make_hostgroup()
         name = gen_string('alphanumeric')
@@ -776,6 +786,8 @@ class TestOpenScap:
             3. Pass hostgoups as the parameter.
 
         :expectedresults: The scap policy is updated.
+
+        :CaseImportance: Medium
         """
         hostgroup = make_hostgroup()
         name = gen_string('alphanumeric')
@@ -821,6 +833,8 @@ class TestOpenScap:
             3. Pass period as parameter and weekday as parameter.
 
         :expectedresults: The scap policy is updated.
+
+        :CaseImportance: Medium
         """
         name = gen_string('alphanumeric')
         scap_policy = make_scap_policy(
@@ -866,6 +880,8 @@ class TestOpenScap:
             3. Pass scap-content-id as parameter.
 
         :expectedresults: The scap policy is updated.
+
+        :CaseImportance: Medium
         """
         name = gen_string('alphanumeric')
         scap_policy = make_scap_policy(
@@ -908,6 +924,8 @@ class TestOpenScap:
             3. Pass host name as the parameter.
 
         :expectedresults: The scap policy is updated.
+
+        :CaseImportance: Medium
         """
         host = entities.Host()
         host.create()
