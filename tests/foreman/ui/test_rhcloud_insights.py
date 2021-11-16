@@ -25,6 +25,7 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DISTRO_RHEL8
 
 
 @pytest.mark.run_in_one_thread
@@ -234,11 +235,12 @@ def test_host_details_page(
     :Steps:
         1. Prepare misconfigured machine and upload its data to Insights
         2. Add Cloud API key in Satellite
-        3. In Satellite UI, Configure -> Insights -> Sync now
-        4. Go to Hosts -> All Hosts
-        5. Assert there is "Recommendations" column containing insights recommendation count.
-        6. Assert that host properties shows reporting inventory upload status.
-        7. Click on "Recommendations" tab.
+        3. Sync insights recommendations.
+        4. Sync RH Cloud inventory status.
+        5. Go to Hosts -> All Hosts
+        6. Assert there is "Recommendations" column containing insights recommendation count.
+        7. Assert that host properties shows reporting inventory upload status.
+        8. Click on "Recommendations" tab.
 
     :expectedresults:
         1. There's Insights column with number of recommendations.
@@ -252,7 +254,7 @@ def test_host_details_page(
     """
     org, ak = organization_ak_setup
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
-    # Syn insights recommendations
+    # Sync insights recommendations
     result = rhcloud_sat_host.run(cmd)
     assert result.status == 0
     assert f"Synchronized inventory for organization '{org.name}'" in result.stdout
@@ -272,6 +274,7 @@ def test_host_details_page(
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         result = session.host.search(rhel8_insights_vm.hostname)[0]
+        assert result['Name'] == rhel8_insights_vm.hostname
         assert int(result['Recommendations']) > 0
         values = session.host.get_details(rhel8_insights_vm.hostname)
         # Note: Reading host properties adds 'clear' to original value.
@@ -298,12 +301,10 @@ def test_rh_cloud_insights_clean_statuses(
 
     :Steps:
         1. Prepare misconfigured machine and upload its data to Insights
-        2. Add Cloud API key in Satellite
-        3. In Satellite UI, Configure -> Insights -> Sync now
-        4. Go to Hosts -> All Hosts
-        5. Assert that host properties shows reporting status for insights.
-        6. Run rh_cloud_insights:clean_statuses rake command
-        7. Assert that host properties doesn't contain insights status.
+        2. Go to Hosts -> All Hosts
+        3. Assert that host properties shows reporting status for insights.
+        4. Run rh_cloud_insights:clean_statuses rake command
+        5. Assert that host properties doesn't contain insights status.
 
     :expectedresults:
         1. rake command deletes insights reporting status of host.
@@ -338,3 +339,80 @@ def test_rh_cloud_insights_clean_statuses(
         assert result.status == 0
         values = session.host.get_details(rhel7_contenthost.hostname)
         assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
+
+
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier2
+def test_delete_host_having_insights_recommendation(
+    rhel8_contenthost,
+    organization_ak_setup,
+    set_rh_cloud_token,
+    rhcloud_sat_host,
+):
+    """Verify that host having insights recommendations can be deleted from Satellite.
+
+    :id: 07914ff7-e230-4416-8664-7d357e9966f3
+
+    :customerscenario: true
+
+    :Steps:
+        1. Prepare misconfigured machine and upload its data to Insights
+        2. Add Cloud API key in Satellite
+        3. Sync insights recommendations.
+        4. Sync RH Cloud inventory status.
+        5. Go to Hosts -> All Hosts
+        6. Assert there is "Recommendations" column containing insights recommendation count.
+        7. Try to delete host.
+
+    :expectedresults:
+        1. host having insights recommendations is deleted from Satellite.
+
+    :CaseImportance: Critical
+
+    :BZ: 1860422, 1928652
+
+    :CaseAutomation: Automated
+    """
+    org, ak = organization_ak_setup
+    rhel8_contenthost.configure_rhai_client(
+        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL8
+    )
+    # Sync insights recommendations
+    cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
+    result = rhcloud_sat_host.run(cmd)
+    assert result.status == 0
+    assert f"Synchronized inventory for organization '{org.name}'" in result.stdout
+    # Sync inventory status
+    inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
+    wait_for(
+        lambda: rhcloud_sat_host.api.ForemanTask()
+        .search(query={'search': f'id = {inventory_sync["task"]["id"]}'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
+    with Session(hostname=rhcloud_sat_host.hostname) as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        result = session.host.search(rhel8_contenthost.hostname)[0]
+        assert result['Name'] == rhel8_contenthost.hostname
+        assert int(result['Recommendations']) > 0
+        values = session.host.get_details(rhel8_contenthost.hostname)
+        # Note: Reading host properties adds 'clear' to original value.
+        assert (
+            values['properties']['properties_table']['Inventory']
+            == 'Successfully uploaded to your RH cloud inventory clear'
+        )
+        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
+        # Delete host
+        message = session.host.delete(rhel8_contenthost.hostname)
+        assert (
+            f'Are you sure you want to delete host '
+            f'{rhel8_contenthost.hostname}? This action is irreversible.'
+        ) == message
+        assert not rhcloud_sat_host.api.Host().search(
+            query={'search': f'name="{rhel8_contenthost.hostname}"'}
+        )
