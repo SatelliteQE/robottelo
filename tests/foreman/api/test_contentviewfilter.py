@@ -868,12 +868,12 @@ class TestContentViewFilterRule:
     @pytest.mark.tier2
     def test_positive_dependency_solving_module_stream_filter(self, content_view_module_stream):
         """Verify Module Stream Content View Filter's with Dependency Solve 'Yes'.
-        If dependency solving enabled then dependent module streams will be fetched
+        If dependency solving enabled then module streams with deps will not get fetched
         over even if the exclude filter has been applied.
-        e.g. duck module stream is dependent on kangaroo stream, hence even if add only
-        exclude filter on kangaroo it will get ignored as it is fetched because of duck
-        module stream. but if both duck and kangaroo module streams are in exclude filter
-        both will not get fetched.
+        e.g. duck module stream is dependent on cockateel and lion, hence even if add only
+        exclude filter on duck it will get ignored as it is fetched because of the other two
+        dependencies, but if both cockateel and lion are in exclude filter, then duck will
+        not get fetched
 
         :id: ea8a4d95-dc36-4102-b1a9-d53beaf14352
 
@@ -889,7 +889,7 @@ class TestContentViewFilterRule:
             inclusion=False,
         ).create()
         module_streams = entities.ModuleStream().search(
-            query={'search': 'name="{}" and version="{}'.format('kangaroo', '20180730223407')}
+            query={'search': 'name="{}" and version="{}'.format('duck', '20180704244205')}
         )
         entities.ContentViewFilterRule(
             content_view_filter=cv_filter, module_stream=module_streams
