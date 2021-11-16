@@ -259,3 +259,32 @@ def test_positive_user_access_with_host_filter(
         assert len(errata_values) == 1
         assert errata_values[0]['Type'] == 'security'
         assert settings.repos.yum_6.errata[2] in errata_values[0]['Errata']
+
+
+@pytest.mark.tier2
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+def test_positive_sync_overview_widget(session, module_org, module_product):
+
+    """Check if the Sync Overview widget is working in the Dashboard UI
+
+    :id: 553fbe33-0f6f-46fb-8d80-5d1d9ed483cf
+
+    :Steps:
+        1. Sync some repositories
+        2. Navigate to Monitor -> Dashboard
+        3. Review the Sync Overview widget
+
+    :expectedresults: Correct data should appear in the widget
+
+    :BZ: 1995424
+
+    :CaseLevel: Integration
+    """
+    repo = entities.Repository(url=settings.repos.yum_1.url, product=module_product).create()
+    with session:
+        session.repository.synchronize(module_product.name, repo.name)
+        sync_params = session.dashboard.read('SyncOverview')['syncs']
+        assert len(sync_params) == 1
+        assert sync_params[0]['Product'] == module_product.name
+        assert sync_params[0]['Status'] in ('Syncing Complete.', 'Sync Incomplete')
+        assert 'ago' in sync_params[0]['Finished']
