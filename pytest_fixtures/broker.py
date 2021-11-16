@@ -1,10 +1,16 @@
 import pytest
-from broker.broker import VMBroker
+from broker import VMBroker
 from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.hosts import Capsule
 from robottelo.hosts import Satellite
+
+
+def _resolve_deploy_args(args_dict):
+    for key, val in args_dict.items():
+        if isinstance(val, str) and val.startswith('this.'):
+            args_dict[key] = settings.get(val.replace('this.', ''))
 
 
 @pytest.fixture(scope='session')
@@ -16,6 +22,9 @@ def default_sat(align_to_satellite):
 
 @pytest.fixture(scope='session')
 def satellite_factory():
+    if settings.server.get('deploy_arguments'):
+        _resolve_deploy_args(settings.server.deploy_arguments)
+
     def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
         if settings.server.deploy_arguments:
             broker_args.update(settings.server.deploy_arguments)
@@ -33,6 +42,9 @@ def satellite_factory():
 
 @pytest.fixture(scope='session')
 def capsule_factory():
+    if settings.capsule.get('deploy_arguments'):
+        _resolve_deploy_args(settings.capsule.deploy_arguments)
+
     def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
         if settings.capsule.deploy_arguments:
             broker_args.update(settings.capsule.deploy_arguments)
