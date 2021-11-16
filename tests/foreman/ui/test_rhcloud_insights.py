@@ -24,6 +24,7 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DISTRO_RHEL7
 
 
 @pytest.mark.run_in_one_thread
@@ -223,7 +224,7 @@ def test_host_details_page(
     rhel8_insights_vm,
     fixable_rhel8_vm,
     organization_ak_setup,
-    unset_rh_cloud_token,
+    set_rh_cloud_token,
     rhcloud_sat_host,
 ):
     """Test host details page for host having insights recommendations.
@@ -236,12 +237,12 @@ def test_host_details_page(
         3. In Satellite UI, Configure -> Insights -> Sync now
         4. Go to Hosts -> All Hosts
         5. Assert there is "Recommendations" column containing insights recommendation count.
-        6. Assert that host properties shows reporting status for insights and Inventory upload.
+        6. Assert that host properties shows reporting inventory upload status.
         7. Click on "Recommendations" tab.
 
     :expectedresults:
         1. There's Insights column with number of recommendations.
-        2. Inventory and Insights reporting status is present in host properties table.
+        2. Inventory upload status is present in host properties table.
         3. Clicking on "Recommendations" tab takes user to Insights page with insights
             recommendations selected for that host.
 
@@ -250,28 +251,30 @@ def test_host_details_page(
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
+    cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
+    # Syn insights recommendations
+    result = rhcloud_sat_host.run(cmd)
+    assert result.status == 0
+    assert f"Synchronized inventory for organization '{org.name}'" in result.stdout
+    # Sync inventory status
+    inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
+    wait_for(
+        lambda: rhcloud_sat_host.api.ForemanTask()
+        .search(query={'search': f'id = {inventory_sync["task"]["id"]}'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
     with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-        session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)
-        wait_for(
-            lambda: rhcloud_sat_host.api.ForemanTask()
-            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
-            .result
-            == 'success',
-            timeout=400,
-            delay=15,
-            silent_failure=True,
-            handle_exception=True,
-        )
-        # Workaround for alert message causing search to fail. See airgun issue 584.
-        session.browser.refresh()
         result = session.host.search(rhel8_insights_vm.hostname)[0]
         assert int(result['Recommendations']) > 0
         values = session.host.get_details(rhel8_insights_vm.hostname)
         # Note: Reading host properties adds 'clear' to original value.
-        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
         assert (
             values['properties']['properties_table']['Inventory']
             == 'Successfully uploaded to your RH cloud inventory clear'
@@ -279,3 +282,59 @@ def test_host_details_page(
         recommendations = session.host.read_insights_recommendations(rhel8_insights_vm.hostname)
         assert recommendations[0]['Hostname'] == rhel8_insights_vm.hostname
         assert int(result['Recommendations']) == len(recommendations)
+
+
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier2
+def test_rh_cloud_insights_clean_statuses(
+    rhel7_contenthost,
+    rhel8_insights_vm,
+    organization_ak_setup,
+    rhcloud_sat_host,
+):
+    """Test rh_cloud_insights:clean_statuses rake command.
+
+    :id: 6416ed31-cafb-4278-b205-bf3da9ab2ee4
+
+    :Steps:
+        1. Prepare misconfigured machine and upload its data to Insights
+        2. Add Cloud API key in Satellite
+        3. In Satellite UI, Configure -> Insights -> Sync now
+        4. Go to Hosts -> All Hosts
+        5. Assert that host properties shows reporting status for insights.
+        6. Run rh_cloud_insights:clean_statuses rake command
+        7. Assert that host properties doesn't contain insights status.
+
+    :expectedresults:
+        1. rake command deletes insights reporting status of host.
+
+    :BZ: 1962930
+
+    :CaseAutomation: Automated
+    """
+    org, ak = organization_ak_setup
+    rhel7_contenthost.configure_rhai_client(
+        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL7
+    )
+    with Session(hostname=rhcloud_sat_host.hostname) as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        values = session.host.get_details(rhel7_contenthost.hostname)
+        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
+        values = session.host.get_details(rhel8_insights_vm.hostname)
+        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
+        # Clean insights status
+        result = rhcloud_sat_host.run(
+            f'foreman-rake rh_cloud_insights:clean_statuses SEARCH="{rhel7_contenthost.hostname}"'
+        )
+        assert 'Deleted 1 insights statuses' in result.stdout
+        assert result.status == 0
+        values = session.host.get_details(rhel7_contenthost.hostname)
+        with pytest.raises(KeyError):
+            values['properties']['properties_table']['Insights']
+        values = session.host.get_details(rhel8_insights_vm.hostname)
+        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
+        result = rhel7_contenthost.run('insights-client')
+        assert result.status == 0
+        values = session.host.get_details(rhel7_contenthost.hostname)
+        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
