@@ -215,3 +215,67 @@ def test_host_sorting_based_on_recommendation_count():
 
     :CaseAutomation: ManualOnly
     """
+
+
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier2
+def test_host_details_page(
+    rhel8_insights_vm,
+    fixable_rhel8_vm,
+    organization_ak_setup,
+    unset_rh_cloud_token,
+    rhcloud_sat_host,
+):
+    """Test host details page for host having insights recommendations.
+
+    :id: e079ed10-c9f5-4331-9cb3-70b224b1a584
+
+    :Steps:
+        1. Prepare misconfigured machine and upload its data to Insights
+        2. Add Cloud API key in Satellite
+        3. In Satellite UI, Configure -> Insights -> Sync now
+        4. Go to Hosts -> All Hosts
+        5. Assert there is "Recommendations" column containing insights recommendation count.
+        6. Assert that host properties shows reporting status for insights and Inventory upload.
+        7. Click on "Recommendations" tab.
+
+    :expectedresults:
+        1. There's Insights column with number of recommendations.
+        2. Inventory and Insights reporting status is present in host properties table.
+        3. Clicking on "Recommendations" tab takes user to Insights page with insights
+            recommendations selected for that host.
+
+    :BZ: 1974578
+
+    :CaseAutomation: Automated
+    """
+    org, ak = organization_ak_setup
+    with Session(hostname=rhcloud_sat_host.hostname) as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        # Workaround for alert message causing search to fail. See airgun issue 584.
+        session.browser.refresh()
+        result = session.host.search(rhel8_insights_vm.hostname)[0]
+        assert int(result['Recommendations']) > 0
+        values = session.host.get_details(rhel8_insights_vm.hostname)
+        # Note: Reading host properties adds 'clear' to original value.
+        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
+        assert (
+            values['properties']['properties_table']['Inventory']
+            == 'Successfully uploaded to your RH cloud inventory clear'
+        )
+        recommendations = session.host.read_insights_recommendations(rhel8_insights_vm.hostname)
+        assert recommendations[0]['Hostname'] == rhel8_insights_vm.hostname
+        assert int(result['Recommendations']) == len(recommendations)
