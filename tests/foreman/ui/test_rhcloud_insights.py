@@ -32,7 +32,6 @@ from robottelo.constants import DISTRO_RHEL8
 @pytest.mark.tier3
 def test_rhcloud_insights_e2e(
     rhel8_insights_vm,
-    fixable_rhel8_vm,
     organization_ak_setup,
     unset_rh_cloud_token,
     rhcloud_sat_host,
@@ -65,6 +64,9 @@ def test_rhcloud_insights_e2e(
     query = 'dnf.conf'
     job_query = (
         f'Remote action: Insights remediations for selected issues on {rhel8_insights_vm.hostname}'
+    )
+    rhel8_insights_vm.run(
+        'dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client'
     )
     with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
@@ -223,7 +225,6 @@ def test_host_sorting_based_on_recommendation_count():
 @pytest.mark.tier2
 def test_host_details_page(
     rhel8_insights_vm,
-    fixable_rhel8_vm,
     organization_ak_setup,
     set_rh_cloud_token,
     rhcloud_sat_host,
@@ -254,6 +255,9 @@ def test_host_details_page(
     """
     org, ak = organization_ak_setup
     # Sync inventory status
+    rhel8_insights_vm.run(
+        'dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client'
+    )
     inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
     wait_for(
         lambda: rhcloud_sat_host.api.ForemanTask()
@@ -385,9 +389,9 @@ def test_delete_host_having_insights_recommendation(
     rhel8_contenthost.configure_rhai_client(
         satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL8
     )
-    rhel8_contenthost.run('dnf update -y dnf')
-    rhel8_contenthost.run('sed -i -e "/^best/d" /etc/dnf/dnf.conf')
-    rhel8_contenthost.run('insights-client')
+    rhel8_contenthost.run(
+        'dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client'
+    )
     # Sync inventory status
     inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
     wait_for(
