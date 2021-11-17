@@ -558,25 +558,16 @@ class ContentHost(Host):
                 f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}'
             )
 
-    def configure_rhel_repo(self, rhel_repo):
-        """Configures specified Red Hat repository on the broker virtual machine.
-
-        :param rhel_repo: Red Hat repository link from properties file.
-        :return: None.
-
-        """
-        self.execute(f'curl -o /etc/yum.repos.d/rhel.repo {rhel_repo}')
-
     def configure_puppet(self, rhel_repo=None, proxy_hostname=None):
         """Configures puppet on the virtual machine/Host.
         :param proxy_hostname: external capsule hostname
-        :param rhel_repo: Red Hat repository link from properties file.
+        :param rhel_repo: dictionary mapping repo name to repo baseurl.
         :return: None.
         """
         if proxy_hostname is None:
             proxy_hostname = settings.server.hostname
 
-        self.configure_rhel_repo(rhel_repo)
+        self.create_custom_repos(**rhel_repo)
         puppet_conf = (
             '[main]\n'
             'vardir = /opt/puppetlabs/puppet/cache\n'
@@ -686,16 +677,16 @@ class ContentHost(Host):
         # Red Hat Insights requires RHEL 6/7/8 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
         distro_repo_map = {
-            constants.DISTRO_RHEL6: settings.repos.rhel6_repo,
-            constants.DISTRO_RHEL7: settings.repos.rhel7_repo,
-            constants.DISTRO_RHEL8: settings.repos.rhel8_repo,
+            constants.DISTRO_RHEL6: settings.repos.rhel6_os,
+            constants.DISTRO_RHEL7: settings.repos.rhel7_os,
+            constants.DISTRO_RHEL8: settings.repos.rhel8_os,
         }
         rhel_repo = distro_repo_map.get(rhel_distro)
 
         if rhel_repo is None:
             raise ContentHostError(f'Missing RHEL repository configuration for {rhel_distro}.')
 
-        self.configure_rhel_repo(rhel_repo)
+        self.create_custom_repos(**{rhel_distro: rhel_repo})
 
         # Install insights-client rpm
         if self.execute('yum install -y insights-client').status != 0:
@@ -871,7 +862,7 @@ class ContentHost(Host):
             raise ValueError(
                 f'Settings option "{rhel_repo_option_name}" is whether not set or does not exist'
             )
-        self.configure_rhel_repo(rhel_repo_url)
+        self.create_custom_repos(rhel7=rhel_repo_url)
         if hypervisor_hostname and configure_ssh:
             # configure ssh access of hypervisor from self
             hypervisor_ssh_key_name = f'hypervisor-{gen_alpha().lower()}.key'
@@ -1076,7 +1067,7 @@ class Capsule(ContentHost):
             ansible=settings.repos.ansible_repo,
             maint=settings.repos.satmaintenance_repo,
         )
-        self.configure_rhel_repo(settings.repos.rhel7_repo)
+        self.create_custom_repos(rhel7=settings.repos.rhel7_os)
         # self.execute('yum repolist')
         self.execute('yum -y update', timeout=0)
         self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')

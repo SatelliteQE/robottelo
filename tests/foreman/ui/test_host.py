@@ -1419,7 +1419,7 @@ def test_positive_global_registration_end_to_end(
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as client:
         # rhel repo required for insights client installation,
         # syncing it to the satellite would take too long
-        client.configure_rhel_repo(settings.repos.rhel7_repo)
+        client.create_custom_repos(rhel7=settings.repos.rhel7_os)
         # run curl
         result = client.execute(cmd)
         assert result.status == 0
@@ -1603,7 +1603,7 @@ def test_global_registration_with_capsule_host(
                 'general.insecure': True,
             }
         )
-    client.configure_rhel_repo(settings.repos.rhel7_repo)
+    client.create_custom_repos(rhel7=settings.repos.rhel7_os)
     # run curl
     client.execute(cmd)
     result = client.execute('subscription-manager identity')
@@ -1655,7 +1655,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
     # rhel repo required for insights client installation,
     # syncing it to the satellite would take too long
-    client.configure_rhel_repo(settings.repos.rhel7_repo)
+    client.create_custom_repos(rhel7=settings.repos.rhel7_os)
     # run curl
     result = client.execute(cmd)
     assert result.status == 0
