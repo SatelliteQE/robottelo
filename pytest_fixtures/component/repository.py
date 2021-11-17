@@ -16,6 +16,11 @@ def function_product(function_org):
 
 
 @pytest.fixture(scope='module')
+def module_product(module_org):
+    return entities.Product(organization=module_org).create()
+
+
+@pytest.fixture(scope='module')
 def rh_repo_gt_manifest(module_gt_manifest_org):
     """Use GT manifest org, creates RH tools repo, syncs and returns RH repo."""
     # enable rhel repo and return its ID
