@@ -1,15 +1,13 @@
+import json
+from tempfile import mkstemp
+
 import pytest
+from wrapanapi.systems.google import GoogleCloudSystem
 
 from robottelo.config import settings
+from robottelo.errors import GCECertNotFoundError
 from robottelo.hosts import Satellite
 from robottelo.hosts import SatelliteHostError
-
-
-@pytest.fixture(scope='session')
-def init_settings():
-    """Explicitly init the robottelo conf settings"""
-    if not settings.configured:
-        settings.configure()
 
 
 @pytest.fixture
@@ -76,3 +74,30 @@ def install_cockpit_plugin(default_sat, register_to_dogfood):
     )
     if cmd_result.status != 0:
         raise SatelliteHostError(f'Error during ssh-copy-id, command output: {cmd_result.stdout}')
+
+
+@pytest.fixture(scope='session')
+def gce_cert(default_sat):
+    _, gce_cert_file = mkstemp(suffix='.json')
+    cert = json.loads(settings.gce.cert)
+    cert['local_path'] = gce_cert_file
+    with open(gce_cert_file, 'w') as f:
+        json.dump(cert, f)
+    default_sat.put(gce_cert_file, settings.gce.cert_path)
+    if default_sat.execute(f'[ -f {settings.gce.cert_path} ]').status != 0:
+        raise GCECertNotFoundError(
+            f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
+        )
+    return cert
+
+
+@pytest.fixture(scope='session')
+def googleclient(gce_cert):
+    gceclient = GoogleCloudSystem(
+        project=gce_cert['project_id'],
+        zone=settings.gce.zone,
+        file_path=gce_cert['local_path'],
+        file_type='json',
+    )
+    yield gceclient
+    gceclient.disconnect()
