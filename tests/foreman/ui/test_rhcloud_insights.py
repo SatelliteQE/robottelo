@@ -253,11 +253,6 @@ def test_host_details_page(
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
-    cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
-    # Sync insights recommendations
-    result = rhcloud_sat_host.run(cmd)
-    assert result.status == 0
-    assert f"Synchronized inventory for organization '{org.name}'" in result.stdout
     # Sync inventory status
     inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
     wait_for(
@@ -273,6 +268,19 @@ def test_host_details_page(
     with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
+        # Sync insights recommendations
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        session.cloudinsights.sync_hits()
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
         result = session.host.search(rhel8_insights_vm.hostname)[0]
         assert result['Name'] == rhel8_insights_vm.hostname
         assert int(result['Recommendations']) > 0
@@ -377,11 +385,9 @@ def test_delete_host_having_insights_recommendation(
     rhel8_contenthost.configure_rhai_client(
         satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL8
     )
-    # Sync insights recommendations
-    cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
-    result = rhcloud_sat_host.run(cmd)
-    assert result.status == 0
-    assert f"Synchronized inventory for organization '{org.name}'" in result.stdout
+    rhel8_contenthost.run('dnf update -y dnf')
+    rhel8_contenthost.run('sed -i -e "/^best/d" /etc/dnf/dnf.conf')
+    rhel8_contenthost.run('insights-client')
     # Sync inventory status
     inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
     wait_for(
@@ -397,6 +403,19 @@ def test_delete_host_having_insights_recommendation(
     with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
+        # Sync insights recommendations
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        session.cloudinsights.sync_hits()
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
         result = session.host.search(rhel8_contenthost.hostname)[0]
         assert result['Name'] == rhel8_contenthost.hostname
         assert int(result['Recommendations']) > 0
