@@ -201,6 +201,7 @@ def test_set_default_http_proxy(session, module_org, module_location, setting_up
         4. Update the "Default HTTP Proxy" with created above.
         5. Update "Default HTTP Proxy" to "no global default".
 
+    :BZ: 1918167, 1913290
 
     :parametrized: yes
 
@@ -293,3 +294,34 @@ def test_check_http_proxy_value_repository_details(
         session.repository.search(function_product.name, repo_name)[0]['Name']
         repo_values = session.repository.read(function_product.name, repo_name)
         assert repo_values['repo_content']['http_proxy_policy'] == 'Global Default (None)'
+
+
+@pytest.mark.tier3
+@pytest.mark.run_in_one_thread
+@pytest.mark.stubbed
+def test_http_proxy_containing_special_characters():
+    """Test Manifest refresh and redhat repository sync with http proxy special
+        characters in password.
+
+    :id: 16082c6a-9320-4a9a-bd6c-5687b099c940
+
+    :customerscenario: true
+
+    :Steps:
+        1. Navigate to Infrastructure > Http Proxies
+        2. Create HTTP Proxy with special characters in password.
+        3. Go To to Administer > Settings > content tab
+        4. Fill the details related to HTTP Proxy and click on "Test connection" button.
+        5. Update the "Default HTTP Proxy" with created above.
+        6. Refresh manifest.
+        7. Enable and sync any redhat repositories.
+
+    :BZ: 1844840
+
+    :expectedresults:
+        1. "Test connection" button workes as expected.
+        2. Manifest refresh, repository enable/disable and repository sync operation
+            finished successfully.
+
+    :CaseImportance: High
+    """

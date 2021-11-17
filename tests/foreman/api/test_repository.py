@@ -124,7 +124,7 @@ class TestRepository:
 
         :Assignee: jpathan
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         repo_options = {
             'http_proxy_policy': 'use_selected_http_proxy',

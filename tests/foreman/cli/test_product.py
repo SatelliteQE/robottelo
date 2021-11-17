@@ -239,7 +239,7 @@ def test_positive_assign_http_proxy_to_products(module_org):
 
     :Assignee: jpathan
 
-    :CaseImportance: Critical
+    :CaseImportance: High
     """
     # create HTTP proxies
     http_proxy_a = HttpProxy.create(
