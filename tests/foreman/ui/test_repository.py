@@ -114,7 +114,6 @@ def test_positive_create_as_non_admin_user(module_org, test_name):
             'edit_products',
             'destroy_products',
             'sync_products',
-            'export_products',
         ],
     }
     role = entities.Role().create()
@@ -157,12 +156,12 @@ def test_positive_create_yum_repo_same_url_different_orgs(session, module_prod):
     :CaseLevel: Integration
     """
     # Create first repository
-    repo = entities.Repository(product=module_prod, url=settings.repos.yum_6.errata[2]).create()
+    repo = entities.Repository(product=module_prod, url=settings.repos.yum_0.url).create()
     repo.sync()
     # Create second repository
     org = entities.Organization().create()
     product = entities.Product(organization=org).create()
-    new_repo = entities.Repository(product=product, url=settings.repos.yum_6.errata[2]).create()
+    new_repo = entities.Repository(product=product, url=settings.repos.yum_0.url).create()
     new_repo.sync()
     with session:
         # Check packages number in first repository
@@ -206,7 +205,6 @@ def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_na
             'edit_products',
             'destroy_products',
             'sync_products',
-            'export_products',
         ],
     }
     role = entities.Role().create()
@@ -872,7 +870,6 @@ def test_positive_recommended_repos(session, module_org):
         cap_tools_repos = [repo for repo in cap_tool_repos if repo.split()[4] != sat_version]
         assert not cap_tools_repos, 'Tools/Capsule repos do not match with Satellite version'
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
-        assert REPOSET['fdrh8'] in [repo['name'] for repo in rrepos_off]
         assert len(rrepos_off) > len(rrepos_on)
 
 
