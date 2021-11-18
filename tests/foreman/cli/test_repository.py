@@ -931,6 +931,7 @@ class TestRepository:
                     'content-type': 'docker',
                     'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
                     'url': CONTAINER_REGISTRY_HUB,
+                    'mirror-on-sync': 'no',
                 }
             ]
         ),
