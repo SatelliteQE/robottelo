@@ -45,10 +45,15 @@ def unset_rh_cloud_token(rhcloud_sat_host):
 @pytest.fixture(scope='module')
 def organization_ak_setup(rhcloud_sat_host, rhcloud_manifest_org):
     """A module-level fixture to create an Activation key in module_org"""
+    purpose_addons = "test-addon1, test-addon2"
     ak = rhcloud_sat_host.api.ActivationKey(
         content_view=rhcloud_manifest_org.default_content_view,
         organization=rhcloud_manifest_org,
         environment=rhcloud_sat_host.api.LifecycleEnvironment(id=rhcloud_manifest_org.library.id),
+        purpose_addons=[purpose_addons],
+        service_level='Self-Support',
+        purpose_usage='test-usage',
+        purpose_role='test-role',
         auto_attach=True,
     ).create()
     subscription = rhcloud_sat_host.api.Subscription(organization=rhcloud_manifest_org)
@@ -100,7 +105,9 @@ def inventory_settings(rhcloud_sat_host):
     hostnames_setting = rhcloud_sat_host.update_setting('obfuscate_inventory_hostnames', False)
     ip_setting = rhcloud_sat_host.update_setting('obfuscate_inventory_ips', False)
     packages_setting = rhcloud_sat_host.update_setting('exclude_installed_packages', False)
+    parameter_tags_setting = rhcloud_sat_host.update_setting('include_parameter_tags', False)
     yield
     rhcloud_sat_host.update_setting('obfuscate_inventory_hostnames', hostnames_setting)
     rhcloud_sat_host.update_setting('obfuscate_inventory_ips', ip_setting)
     rhcloud_sat_host.update_setting('exclude_installed_packages', packages_setting)
+    rhcloud_sat_host.update_setting('include_parameter_tags', parameter_tags_setting)
