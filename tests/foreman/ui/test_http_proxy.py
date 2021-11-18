@@ -323,5 +323,7 @@ def test_http_proxy_containing_special_characters():
         2. Manifest refresh, repository enable/disable and repository sync operation
             finished successfully.
 
+    :CaseAutomation: NotAutomated
+
     :CaseImportance: High
     """
