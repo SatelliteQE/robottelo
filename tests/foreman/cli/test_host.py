@@ -55,6 +55,7 @@ from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import NO_REPOS_AVAILABLE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -1905,6 +1906,39 @@ def test_positive_erratum_applicability(katello_host_tools_client):
         errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
     ]
     assert settings.repos.yum_6.errata[2] not in applicable_erratum_ids
+
+
+@pytest.mark.katello_host_tools
+@pytest.mark.tier3
+def test_positive_apply_security_erratum(katello_host_tools_client):
+    """Apply security erratum to a host
+
+    :id: 4d1095c8-d354-42ac-af44-adf6dbb46deb
+
+    :expectedresults: erratum is recognized by the
+        `yum update --security` command on client
+
+    :CaseLevel: System
+
+    :customerscenario: true
+
+    :BZ: 1420671
+    """
+    client = katello_host_tools_client['client']
+    host_info = katello_host_tools_client['host_info']
+    client.download_install_rpm(settings.repos.yum_6.url, FAKE_2_CUSTOM_PACKAGE)
+    # Check the system is up to date
+    result = client.run('yum update --security | grep "No packages needed for security"')
+    assert result.status == 0
+    # Downgrade walrus package
+    client.run(f'yum downgrade -y {FAKE_2_CUSTOM_PACKAGE_NAME}')
+    # Check that host has applicable errata
+    host_errata = Host.errata_list({'host-id': host_info['id']})
+    assert host_errata[0]['erratum-id'] == settings.repos.yum_6.errata[2]
+    assert host_errata[0]['installable'] == 'true'
+    # Check the erratum becomes available
+    result = client.run('yum update --assumeno --security | grep "No packages needed for security"')
+    assert result.status == 1
 
 
 @pytest.mark.katello_host_tools

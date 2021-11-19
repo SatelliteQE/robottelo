@@ -210,3 +210,22 @@ def test_positive_rct_shows_golden_ticket_enabled(module_gt_manifest_org, defaul
     result = default_sat.execute(f'rct cat-manifest {module_gt_manifest_org.manifest_filename}')
     assert result.status == 0
     assert 'Content Access Mode: Simple Content Access' in result.stdout
+
+
+@pytest.mark.tier3
+def test_negative_unregister_and_pull_content(vm):
+    """Attempt to retrieve content after host has been unregistered from Satellite
+
+    :id: de0d0d91-b1e1-4f0e-8a41-c27df4d6b6fd
+
+    :expectedresults: Host can no longer retrieve content from satellite
+
+    :CaseLevel: System
+
+    :CaseImportance: Critical
+    """
+    result = vm.run('subscription-manager unregister')
+    assert result.status == 0
+    # Try installing any package from available repos on vm
+    result = vm.run('yum install -y katello-agent')
+    assert result.status != 0

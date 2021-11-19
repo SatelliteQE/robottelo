@@ -17,14 +17,17 @@
 :Upstream: No
 """
 import pytest
+from broker import VMBroker
 from fauxfactory import gen_string
 
+from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_host_collection
 from robottelo.cli.factory import make_org
+from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.constants import DEFAULT_CV
@@ -32,6 +35,7 @@ from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
+from robottelo.hosts import ContentHost
 
 
 def _make_fake_host_helper(module_org):
@@ -267,3 +271,45 @@ def test_positive_copy_by_id(module_org):
     new_host_collection = HostCollection.copy({'id': host_collection['id'], 'new-name': new_name})
     result = HostCollection.info({'id': new_host_collection[0]['id']})
     assert result['name'] == new_name
+
+
+@pytest.mark.tier3
+@pytest.mark.upgrade
+def test_positive_register_host_ak_with_host_collection(module_org, module_ak_with_cv, default_sat):
+    """Attempt to register a host using activation key with host collection
+
+    :id: 62459e8a-0cfa-44ff-b70c-7f55b4757d66
+
+    :expectedresults: Host successfully registered and listed in host collection
+
+    :BZ: 1385814
+
+    :CaseLevel: System
+    """
+    host_info = _make_fake_host_helper(module_org)
+
+    hc = make_host_collection({'organization-id': module_org.id})
+    ActivationKey.add_host_collection(
+        {
+            'id': module_ak_with_cv.id,
+            'organization-id': module_org.id,
+            'host-collection-id': hc['id'],
+        }
+    )
+    # add the registered instance host to collection
+    HostCollection.add_host(
+        {'id': hc['id'], 'organization-id': module_org.id, 'host-ids': host_info['id']}
+    )
+
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as client:
+        client.install_katello_ca(default_sat)
+        # register the client host with the current activation key
+        client.register_contenthost(module_org.name, activation_key=module_ak_with_cv.name)
+        assert client.subscribed
+        # note: when registering the host, it should be automatically added to the host-collection
+        client_host = Host.info({'name': client.hostname})
+        hosts = HostCollection.hosts({'id': hc['id'], 'organization-id': module_org.id})
+        assert len(hosts) == 2
+        expected_hosts_ids = {host_info['id'], client_host['id']}
+        hosts_ids = {host['id'] for host in hosts}
+        assert hosts_ids == expected_hosts_ids
