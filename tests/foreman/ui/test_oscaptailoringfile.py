@@ -32,8 +32,6 @@ def test_positive_end_to_end(session, tailoring_file_path):
     :expectedresults: All expected CRUD actions finished successfully
 
     :CaseLevel: Integration
-
-    :CaseImportance: High
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -81,7 +79,7 @@ def test_positive_download_tailoring_file():
 
     :expectedresults: The tailoring file should be downloaded
 
-    :CaseImportance: Critical
+    :CaseImportance: Medium
     """
 
 
@@ -138,5 +136,5 @@ def test_positive_fetch_tailoring_file_information_from_arfreports():
     :expectedresults: ARF report should have information
                       about the tailoring file used, if any
 
-    :CaseImportance: Critical
+    :CaseImportance: Medium
     """

@@ -12,7 +12,7 @@
 
 :TestType: Functional
 
-:CaseImportance: Critical
+:CaseImportance: High
 
 :Upstream: No
 """
@@ -178,6 +178,8 @@ def test_positive_upload_to_satellite(
     :CaseLevel: System
 
     :BZ: 1479413, 1722475, 1420439, 1722475
+
+    :CaseImportance: Critical
     """
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
@@ -574,8 +576,6 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
     :expectedresults: REX job should be success and ARF report should be sent to satellite
 
     :BZ: 1814988
-
-    :CaseImportance: Critical
     """
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
