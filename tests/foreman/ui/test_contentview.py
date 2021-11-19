@@ -1155,6 +1155,8 @@ def test_positive_promote_with_custom_content(session, module_org):
         result = session.contentview.promote(cv_name, VERSION, lce.name)
         assert f'Promoted to {lce.name}' in result['Status']
         # dashboard
+        values = session.dashboard.search(f'lifecycle_environment={lce.name}')
+        assert cv_name in values['ContentViews']['content_views'][0]['Content View']
         values = session.dashboard.read('ContentViews')
         assert cv_name in values['content_views'][0]['Content View']
         assert values['content_views'][0]['Task'] == f'Promoted to {lce.name}'
@@ -1162,8 +1164,6 @@ def test_positive_promote_with_custom_content(session, module_org):
         assert cv_name in values['content_views'][1]['Content View']
         assert values['content_views'][1]['Task'] == 'Published new version'
         assert 'Success' in values['content_views'][1]['Status']
-        values = session.dashboard.search(f'lifecycle_environment={lce.name}')
-        assert cv_name in values['ContentViews']['content_views'][0]['Content View']
         entities.LifecycleEnvironment(id=lce.id).delete()
         values = session.dashboard.search(f'lifecycle_environment={lce.name}')
         assert cv_name in values['ContentViews']['content_views'][0]['Content View']
