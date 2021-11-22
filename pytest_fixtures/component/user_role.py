@@ -1,6 +1,23 @@
 import pytest
+from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 from nailgun import entities
+
+
+@pytest.fixture(scope='class')
+def class_user_password():
+    """Generate a random password for a user, and capture it so a test has access to it"""
+    return gen_alphanumeric()
+
+
+@pytest.fixture
+def function_role():
+    return entities.Role().create()
+
+
+@pytest.fixture(scope='module')
+def module_user(module_org, module_location):
+    return entities.User(organization=[module_org], location=[module_location]).create()
 
 
 @pytest.fixture(scope='module')

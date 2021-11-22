@@ -146,9 +146,9 @@ def test_positive_report_help():
                       report-templates create command details are displayed
 
     """
-    command_output = '\n'.join(Base().execute('--help'))
+    command_output = Base().execute('--help')
     assert 'report-template' in command_output
-    command_output = '\n'.join(Base().execute('report-template --help'))
+    command_output = Base().execute('report-template --help')
     assert all(
         [
             phrase in command_output
@@ -161,7 +161,7 @@ def test_positive_report_help():
             ]
         ]
     )
-    command_output = '\n'.join(Base().execute('report-template create --help'))
+    command_output = Base().execute('report-template create --help')
     assert all(
         [
             phrase in command_output

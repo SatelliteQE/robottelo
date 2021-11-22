@@ -226,6 +226,8 @@ def test_positive_create_org_and_loc(session, ldap_auth_source, ldap_tear_down):
     :expectedresults: Whether creating LDAP Auth and associating org
         and loc is successful.
 
+    :CaseImportance: Medium
+
     :parametrized: yes
     """
     ldap_data, auth_source = ldap_auth_source
@@ -361,6 +363,8 @@ def test_positive_add_katello_role(
     :expectedresults: Whether a User belonging to User Group is able to
         access katello entities as per roles.
 
+    :CaseImportance: Medium
+
     :parametrized: yes
     """
     ldap_data, auth_source = ldap_auth_source
@@ -466,6 +470,8 @@ def test_positive_delete_external_roles(
 
     :setup: delete roles from an AD UserGroup
 
+    :CaseImportance: Medium
+
     :steps:
         1. Create an UserGroup.
         2. Assign some roles to UserGroup.
@@ -542,6 +548,8 @@ def test_positive_update_external_user_roles(
         UserGroup but those additional feature areas / roles assigned
         specifically to user
 
+    :CaseImportance: Medium
+
     :parametrized: yes
     """
     ldap_data, auth_source = ldap_auth_source
@@ -608,6 +616,8 @@ def test_positive_add_admin_role_with_org_loc(
         2. Assign admin role to UserGroup.
         3. Create and associate an External UserGroup.
 
+    :CaseImportance: Medium
+
     :expectedresults: Whether a User belonging to User Group is able to
         access some of the pages, with the associated org and loc
         in LDAP Auth source page as the context set.
@@ -665,6 +675,8 @@ def test_positive_add_foreman_role_with_org_loc(
         1. Create an UserGroup.
         2. Assign some foreman roles to UserGroup.
         3. Create and associate an External UserGroup.
+
+    :CaseImportance: Medium
 
     :expectedresults: Whether a User belonging to User Group is able to
         access foreman entities as per roles, with the associated org and
@@ -728,6 +740,8 @@ def test_positive_add_katello_role_with_org(
         2. Assign some katello roles to UserGroup.
         3. Create and associate an External UserGroup.
 
+    :CaseImportance: Medium
+
     :expectedresults: Whether a User belonging to User Group is able to
         access katello entities as per roles, with the associated org
         in LDAP Auth source page as the context set.
@@ -782,6 +796,8 @@ def test_positive_create_user_in_ldap_mode(session, ldap_auth_source, ldap_tear_
 
     :parametrized: yes
 
+    :CaseImportance: Medium
+
     :expectedresults: User is created without specifying the password
     """
     ldap_data, auth_source = ldap_auth_source
@@ -807,6 +823,8 @@ def test_positive_login_user_no_roles(test_name, ldap_tear_down, ldap_auth_sourc
 
     :expectedresults: Log in to foreman UI successfully but cannot access
         functional areas of UI
+
+    :CaseImportance: Medium
 
     :parametrized: yes
     """
@@ -865,6 +883,8 @@ def test_positive_login_user_password_otp(auth_source_ipa, test_name, ldap_tear_
     :steps: Login to server with an IPA user with time_based OTP.
 
     :expectedresults: Log in to foreman UI successfully
+
+    :CaseImportance: Medium
     """
 
     otp_pass = f"{ipa_data['ldap_user_passwd']}{generate_otp(ipa_data['time_based_secret'])}"
@@ -890,6 +910,8 @@ def test_negative_login_user_with_invalid_password_otp(
     :steps: Login to server with an IPA user with invalid OTP.
 
     :expectedresults: Log in to foreman UI should be failed
+
+    :CaseImportance: Medium
     """
 
     password_with_otp = f"{ipa_data['ldap_user_passwd']}{gen_string(str_type='numeric', length=6)}"
@@ -1056,6 +1078,8 @@ def test_session_expire_rhsso_idle_timeout(
         1. Change the idle timeout settings for the External Authentication
         2. Login into Satellite using RHSSO login and wait for the idle timeout
 
+    :CaseImportance: Medium
+
     :expectedresults: After completion of the idle timeout user session
         should get expired
     """
@@ -1085,6 +1109,8 @@ def test_external_new_user_login_and_check_count_rhsso(
     :steps:
         1. Create new user on RHSSO Instance and Update the Settings in Satellite
         2. Verify the login for that user
+
+    :CaseImportance: Medium
 
     :expectedresults: New User created in RHSSO server should able to get log-in
         and correct count shown for external users
@@ -1299,6 +1325,8 @@ def test_totp_user_login(session, ad_data):
         1. Setup the Satellite to integrate with RHSSO
         2. Login into Satellite using LDAP user which is linked to RHSSO
 
+    :CaseImportance: Medium
+
     :expectedresults: After entering the login details in RHSSO page user should
         logged into Satellite
     """
@@ -1327,6 +1355,8 @@ def test_permissions_external_ldap_mapped_rhsso_group(
     :steps:
         1. Setup the Satellite to integrate with RHSSO
         2. Create the user group and mapped with the external ldap rhsso user group
+
+    :CaseImportance: Medium
 
     :expectedresults: The external ldap mapped rhsso user should contain the permissions
         based on the user group level
@@ -1364,6 +1394,8 @@ def test_positive_test_connection_functionality(session, ldap_auth_source):
 
     :expectedresults: Positive test connection of AD and IPA
 
+    :CaseImportance: Medium
+
     :parametrized: yes
     """
     ldap_data, auth_source = ldap_auth_source
@@ -1384,6 +1416,8 @@ def test_negative_login_with_incorrect_password(test_name, ldap_auth_source):
 
     :expectedresults: Login fails
 
+    :CaseImportance: Medium
+
     :parametrized: yes
     """
     ldap_data, auth_source = ldap_auth_source
@@ -1403,6 +1437,8 @@ def test_negative_login_with_disable_user(ipa_data, auth_source_ipa, ldap_tear_d
     :id: 49f28006-aa1f-11ea-90d3-4ceb42ab8dbc
 
     :steps: Try login from the disabled user
+
+    :CaseImportance: Medium
 
     :expectedresults: Login fails
     """
@@ -1426,6 +1462,8 @@ def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, 
         2. Login to the satellite with the user (from IDM) to create the account
         3. Assert the email of the newly created user
 
+    :CaseImportance: Medium
+
     :expectedresults: Email is copied to Satellite:
     """
     run_command(cmd=f'echo {settings.ipa.password} | kinit admin', hostname=settings.ipa.hostname)
@@ -1433,7 +1471,7 @@ def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, 
         cmd=f"ipa user-find --login {ipa_data['ldap_user_name']}",
         hostname=settings.ipa.hostname,
     )
-    for line in result:
+    for line in result.strip().splitlines():
         if 'Email' in line:
             _, result = line.split(': ', 2)
             break
@@ -1494,6 +1532,8 @@ def test_onthefly_functionality(session, ldap_auth_source, ldap_tear_down):
         2. Try login with a user from auth source
 
     :expectedresults: Login fails
+
+    :CaseImportance: Medium
 
     :parametrized: yes
     """
@@ -1581,6 +1621,8 @@ def test_verify_attribute_of_users_are_updated(session, ldap_auth_source, ldap_t
         3. Attributes of the user (like names and email) should be synced.
 
     :BZ: 1670397
+
+    :CaseImportance: Medium
 
     :expectedresults: The attributes should be synced.
 
@@ -1689,6 +1731,8 @@ def test_userlist_with_external_admin(session, auth_source_ipa, ldap_tear_down, 
 
     :BZ: 1812688
 
+    :CaseImportance: Medium
+
     :expectedresults: show all users, remote or local, regardless of you being logged
         into Satellite as a local or remote admin.
     """
@@ -1788,6 +1832,8 @@ def test_verify_group_permissions(
         2. Give those usergroup different permissions
         3. Try login with the user common in both external group
 
+    :CaseImportance: Medium
+
     :expectedresults: Group with higher permission is applied on the user
     """
     sat_users = settings.ipa.groups
@@ -1829,6 +1875,8 @@ def test_verify_ldap_filters_ipa(session, ipa_add_user, auth_source_ipa, ipa_dat
     :Steps:
         1. Create authsource with onthefly enabled and ldap filter
         2. Verify login from users according to the filter
+
+    :CaseImportance: Medium
 
     :expectedresults: Login fails for restricted user
     """

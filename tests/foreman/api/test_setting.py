@@ -8,7 +8,7 @@
 
 :CaseComponent: Settings
 
-:Assignee: desingh
+:Assignee: shwsingh
 
 :TestType: Functional
 
@@ -22,8 +22,17 @@ import pytest
 from nailgun import entities
 from requests.exceptions import HTTPError
 
+from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import generate_strings_list
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
+
+
+@filtered_datapoint
+def valid_timeout_values():
+    """Returns a list of valid values for sync connection timeout
+    (min, max and random from the range)"""
+    return ["0", "99999999", str(random.randint(1, 99999998))]
 
 
 @pytest.mark.run_in_one_thread
@@ -206,3 +215,44 @@ def test_positive_custom_repo_download_policy(setting_update, download_policy):
     assert repo.download_policy == download_policy
     repo.delete()
     prod.delete()
+
+
+@pytest.mark.tier2
+@pytest.mark.parametrize('valid_value', **parametrized(valid_timeout_values()))
+@pytest.mark.parametrize('setting_update', ['sync_connect_timeout'], indirect=True)
+def test_positive_update_sync_timeout(setting_update, valid_value):
+    """Check that values from provided range can be set to
+    sync connection timeout
+
+    :id: e25cd07b-a4a7-4ad3-9053-ad0bbaffbab7
+
+    :CaseImportance: Medium
+
+    :parametrized: yes
+
+    :expectedresults: Default timeout should be updated with new value
+    """
+    setting_update.value = valid_value
+    setting_update.update({'value'})
+    setting_update = setting_update.read()
+    assert str(setting_update.value) == valid_value
+
+
+@pytest.mark.tier2
+@pytest.mark.parametrize('invalid_value', ["-1", "3.1415", "2.71828e+11", "123456789", "0x3f77"])
+@pytest.mark.parametrize('setting_update', ['sync_connect_timeout'], indirect=True)
+def test_negative_update_sync_timeout(setting_update, invalid_value):
+    """Check that non-integer or too long values can't be set to
+    sync connection timeout
+
+    :id: 2c0dbb58-4a0c-4be1-9cd6-0c6cb17cc5c5
+
+    :CaseImportance: Medium
+
+    :parametrized: yes
+
+    :expectedresults: Timeout shouldn't be updated with invalid value
+    """
+    setting_update.value = invalid_value
+    with pytest.raises(HTTPError):
+        setting_update.update({'value'})

@@ -88,3 +88,35 @@ def test_positive_create_update_delete(module_org, module_location):
     HttpProxy.delete({'id': updated_http_proxy['id']})
     with pytest.raises(CLIReturnCodeError):
         HttpProxy.info({'id': updated_http_proxy['id']})
+
+
+@pytest.mark.tier3
+@pytest.mark.run_in_one_thread
+@pytest.mark.stubbed
+def test_insights_client_registration_with_http_proxy():
+    """Verify that insights-client registration work with http proxy.
+
+    :id: 5158d5c1-2b88-4c05-914b-f1c53656ffc2
+
+    :customerscenario: true
+
+    :Steps:
+        1. Create HTTP Proxy.
+        2. Set created proxy as "Default HTTP Proxy" in settings.
+        3. Edit /etc/resolv.conf and comment out all entries so that
+            satellite can not directly communicate outside. Ensure that
+            NetworkManger won't change it.
+        4. Register a host with satellite.
+        5. Register host with insights.
+        6. Try insights-client register/unregister/test-connection/status
+
+    :BZ: 1959932
+
+    :expectedresults:
+        1. insights-client register/unregister/test-connection/status
+            works with http proxy set.
+
+    :CaseAutomation: NotAutomated
+
+    :CaseImportance: High
+    """

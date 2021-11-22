@@ -60,8 +60,6 @@ def test_positive_check_dashboard(
     :BZ: 1424936
 
     :CaseLevel: Integration
-
-    :CaseImportance: Critical
     """
     name = gen_string('alpha')
     oscap_content_title = gen_string('alpha')
@@ -122,7 +120,7 @@ def test_positive_end_to_end(
 
     :CaseLevel: Integration
 
-    :CaseImportance: High
+    :CaseImportance: Critical
     """
     name = '{} {}'.format(gen_string('alpha'), gen_string('alpha'))
     new_name = gen_string('alpha')

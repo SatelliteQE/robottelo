@@ -16,6 +16,7 @@
 
 :Upstream: No
 """
+import re
 from datetime import datetime
 from datetime import timedelta
 from random import choice
@@ -251,10 +252,14 @@ def parse_cli_entity_list_help_message(help_message):
     :param help_message: string
     :return: dictionary with parsed csv
     """
+    # the beginning of the yaml output is removed along
+    # with the double quotes at the beginning and end
     categories = help_message.split('\n\n')
     parsed_dict = {}
     for category in categories:
         name, *content = category.split('\n')
+        # special characters removed
+        name = re.sub('\\[[0-9]m', '', name)[1:-1]
         name = name[:-1]  # remove colon from name
         if 'Usage' in name:
             continue
@@ -293,8 +298,9 @@ def test_positive_search_all_field_sets():
     :customerscenario: true
     """
     new_host = make_fake_host()
-    host_help = Host.list(options={'help': ''})
-    parsed_dict = parse_cli_entity_list_help_message(host_help[0]['message'])
+    host_help_yaml = Host.list(options={'help': ''}, output_format='yaml')
+    host_help = yaml.load(host_help_yaml, yaml.SafeLoader)
+    parsed_dict = parse_cli_entity_list_help_message(host_help[':message'])
     help_field_sets = parsed_dict['Predefined field sets']
     output_field_sets = Host.list(options={'fields': ','.join(help_field_sets)})
 
@@ -367,8 +373,8 @@ def test_positive_create_and_delete(module_lce_library, module_published_cv):
 
 @pytest.mark.host_create
 @pytest.mark.tier1
-def test_positive_add_interface_by_id(default_location, default_org):
-    """New network interface can be added to existing host
+def test_positive_crud_interface_by_id(default_location, default_org):
+    """New network interface can be added to existing host, listed and removed.
 
     :id: e97dba92-61eb-47ad-a7d7-5f989292b12a
 
@@ -381,6 +387,8 @@ def test_positive_add_interface_by_id(default_location, default_org):
 
     mac = gen_mac(multicast=False)
     host = make_fake_host({'domain-id': domain.id})
+    number_of_interfaces = len(HostInterface.list({'host-id': host['id']}))
+
     HostInterface.create(
         {'host-id': host['id'], 'domain-id': domain.id, 'mac': mac, 'type': 'interface'}
     )
@@ -393,6 +401,31 @@ def test_positive_add_interface_by_id(default_location, default_org):
     )
     assert host_interface['domain'] == domain.name
     assert host_interface['mac-address'] == mac
+    assert len(HostInterface.list({'host-id': host['id']})) == number_of_interfaces + 1
+
+    new_domain = entities.Domain(location=[default_location], organization=[default_org]).create()
+    new_mac = gen_mac(multicast=False)
+    HostInterface.update(
+        {
+            'host-id': host['id'],
+            'id': host_interface['id'],
+            'domain-id': new_domain.id,
+            'mac': new_mac,
+        }
+    )
+    host_interface = HostInterface.info(
+        {
+            'host-id': host['id'],
+            'id': [ni for ni in host['network-interfaces'] if ni['mac-address'] == mac][0]['id'],
+        }
+    )
+    assert host_interface['domain'] == new_domain.name
+    assert host_interface['mac-address'] == new_mac
+
+    HostInterface.delete({'host-id': host['id'], 'id': host_interface['id']})
+    assert len(HostInterface.list({'host-id': host['id']})) == number_of_interfaces
+    with pytest.raises(CLIReturnCodeError):
+        HostInterface.info({'host-id': host['id'], 'id': host_interface['id']})
 
 
 @pytest.mark.host_create
@@ -1421,7 +1454,6 @@ def test_negative_edit_parameter_by_non_admin_user(function_host, function_user)
     User.add_role({'id': function_user['user'].id, 'role-id': role.id})
     param_new_value = gen_string('alphanumeric')
     with pytest.raises(CLIReturnCodeError):
-
         Host.with_user(
             username=function_user['user'].login, password=function_user['password']
         ).set_parameter(
@@ -1913,7 +1945,6 @@ def test_positive_install_package_via_rex(
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.fixture(scope="module")
 def host_subscription(module_ak, module_cv, module_lce, module_org):
-
     subscription_name = SATELLITE_SUBSCRIPTION_NAME
     # create a satellite tools repository content
     setup_org_for_a_rh_repo(

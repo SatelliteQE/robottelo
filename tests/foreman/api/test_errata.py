@@ -830,7 +830,7 @@ def _run_remote_command_on_content_host(module_org, command, vm, return_result=F
 
 def _set_prerequisites_for_swid_repos(module_org, vm):
     _run_remote_command_on_content_host(
-        module_org, f'wget --no-check-certificate {settings.repos.swid_tools_repo}', vm
+        module_org, f'curl --insecure --remote-name {settings.repos.swid_tools_repo}', vm
     )
     _run_remote_command_on_content_host(module_org, "mv *swid*.repo /etc/yum.repos.d", vm)
     _run_remote_command_on_content_host(module_org, "yum install -y swid-tools", vm)

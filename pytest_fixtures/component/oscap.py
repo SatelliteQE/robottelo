@@ -8,17 +8,19 @@ from robottelo.cli.factory import make_scapcontent
 from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 from robottelo.constants import OSCAP_PROFILE
-from robottelo.helpers import file_downloader
+from robottelo.constants import OSCAP_TAILORING_FILE
+from robottelo.helpers import get_data_file
 
 
 @pytest.fixture(scope="session")
-def tailoring_file_path():
+def tailoring_file_path(default_sat):
     """Return Tailoring file path."""
-    local = file_downloader(file_url=settings.oscap.tailoring_path)[0]
-    satellite = file_downloader(
-        file_url=settings.oscap.tailoring_path, hostname=settings.server.hostname
-    )[0]
-    return {'local': local, 'satellite': satellite}
+    local = get_data_file(OSCAP_TAILORING_FILE)
+    default_sat.put(
+        local_path=get_data_file(OSCAP_TAILORING_FILE),
+        remote_path=f'/tmp/{OSCAP_TAILORING_FILE}',
+    )
+    return {'local': local, 'satellite': f'/tmp/{OSCAP_TAILORING_FILE}'}
 
 
 @pytest.fixture(scope="session")

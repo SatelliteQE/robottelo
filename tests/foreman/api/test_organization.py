@@ -101,7 +101,7 @@ class TestOrganization:
 
         # Was a label auto-generated?
         assert hasattr(org, 'label')
-        assert isinstance(org.label, type(''))
+        assert isinstance(org.label, str)
         assert len(org.label) > 0
 
     @pytest.mark.tier1

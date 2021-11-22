@@ -25,7 +25,7 @@ from robottelo.rh_cloud_utils import get_remote_report_checksum
 
 @pytest.mark.tier3
 def test_positive_inventory_generate_upload_cli(
-    organization_ak_setup, registered_hosts, default_sat
+    organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
 ):
     """Tests Insights inventory generation and upload via foreman-rake commands:
     https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
@@ -37,19 +37,15 @@ def test_positive_inventory_generate_upload_cli(
     :Steps:
 
         0. Create a VM and register to insights within org having manifest.
-
         1. Generate and upload report for all organizations
             # /usr/sbin/foreman-rake rh_cloud_inventory:report:generate_upload
-
         2. Generate and upload report for specific organization
             # export organization_id=1
             # /usr/sbin/foreman-rake rh_cloud_inventory:report:generate_upload
-
         3. Generate report for specific organization (don't upload)
             # export organization_id=1
             # export target=/var/lib/foreman/red_hat_inventory/generated_reports/
             # /usr/sbin/foreman-rake rh_cloud_inventory:report:generate
-
         4. Upload previously generated report
             (needs to be named 'report_for_#{organization_id}.tar.gz')
             # export organization_id=1
@@ -58,7 +54,7 @@ def test_positive_inventory_generate_upload_cli(
 
     :expectedresults: Inventory is generated and uploaded to cloud.redhat.com.
 
-    :BZ: 1957129
+    :BZ: 1957129, 1895953, 1956190
 
     :CaseAutomation: Automated
 
@@ -67,7 +63,7 @@ def test_positive_inventory_generate_upload_cli(
     org, _ = organization_ak_setup
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:report:generate_upload'
     upload_success_msg = f"Generated and uploaded inventory report for organization '{org.name}'"
-    result = default_sat.execute(cmd)
+    result = rhcloud_sat_host.execute(cmd)
     assert result.status == 0
     assert upload_success_msg in result.stdout
 
@@ -75,9 +71,9 @@ def test_positive_inventory_generate_upload_cli(
     remote_report_path = (
         f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     )
-    default_sat.get(remote_path=remote_report_path, local_path=local_report_path)
+    rhcloud_sat_host.get(remote_path=remote_report_path, local_path=local_report_path)
     local_file_data = get_local_file_data(local_report_path)
-    assert local_file_data['checksum'] == get_remote_report_checksum(org.id)
+    assert local_file_data['checksum'] == get_remote_report_checksum(rhcloud_sat_host, org.id)
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']
     assert local_file_data['json_files_parsable']
@@ -99,7 +95,6 @@ def test_positive_inventory_recommendation_sync():
     :Steps:
 
         0. Create a VM and register to insights within org having manifest.
-
         1. Sync insights recommendation using following foreman-rake command.
             # /usr/sbin/foreman-rake rh_cloud_insights:sync
 
@@ -123,10 +118,8 @@ def test_positive_sync_inventory_status():
     :Steps:
 
         0. Create a VM and register to insights within org having manifest.
-
         1. Sync inventory status for all organizations.
             # /usr/sbin/foreman-rake rh_cloud_inventory:sync
-
         2. Sync inventory status for specific organization.
             # export organization_id=1
             # /usr/sbin/foreman-rake rh_cloud_inventory:sync
@@ -136,6 +129,82 @@ def test_positive_sync_inventory_status():
     :BZ: 1957186
 
     :CaseAutomation: NotAutomated
+
+    :CaseLevel: System
+    """
+
+
+@pytest.mark.stubbed
+def test_max_org_size_variable():
+    """Verify that if organization had more hosts than specified by max_org_size variable
+        then report won't be uploaded.
+
+    :id: 7dd964c3-fde8-4335-ab13-02329119d7f6
+
+    :Steps:
+
+        1. Register few content hosts with satellite.
+        2. Change value of max_org_size for testing purpose(See BZ#1962694#c2).
+        3. Start report generation and upload using
+            ForemanInventoryUpload::Async::GenerateAllReportsJob.perform_now
+
+    :expectedresults: If organization had more hosts than specified by max_org_size variable
+        then report won't be uploaded.
+
+    :CaseImportance: Low
+
+    :BZ: 1962694
+
+    :CaseAutomation: ManualOnly
+
+    :CaseLevel: System
+    """
+
+
+@pytest.mark.stubbed
+def test_satellite_inventory_slice_variable():
+    """Test SATELLITE_INVENTORY_SLICE_SIZE dynflow environment variable.
+
+    :id: ffbef1c7-08f3-444b-9255-2251d5594fcb
+
+    :Steps:
+
+        1. Register few content hosts with satellite.
+        2. Set SATELLITE_INVENTORY_SLICE_SIZE=1 dynflow environment variable.
+            See BZ#1945661#c1
+        3. Run "foreman-maintain service restart --only dynflow-sidekiq@worker-1"
+        4. Generate inventory report.
+
+    :expectedresults: Generated report had slice containing only one host.
+
+    :CaseImportance: Low
+
+    :BZ: 1945661
+
+    :CaseAutomation: ManualOnly
+
+    :CaseLevel: System
+    """
+
+
+@pytest.mark.stubbed
+def test_rhcloud_external_links():
+    """Verify that all external links on Insights and Inventory page are working.
+
+    :id: bc7f6354-ed3e-4ac5-939d-90bfe4177043
+
+    :Steps:
+
+        1. Go to Configure > Inventory upload
+        2. Go to Configure > Insights
+
+    :expectedresults: all external links on Insights and Inventory page are working.
+
+    :CaseImportance: Low
+
+    :BZ: 1975093
+
+    :CaseAutomation: ManualOnly
 
     :CaseLevel: System
     """

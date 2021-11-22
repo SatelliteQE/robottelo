@@ -4,8 +4,6 @@ import json
 import tarfile
 from pathlib import Path
 
-from robottelo import ssh
-
 
 def get_host_counts(tarobj):
     """Returns hosts count from tar file.
@@ -66,10 +64,11 @@ def get_local_file_data(path):
     }
 
 
-def get_remote_report_checksum(org_id):
+def get_remote_report_checksum(satellite, org_id):
     """Returns checksum of red_hat_inventory report present on satellite.
 
     Args:
+        satellite: satellite host
         org_id: organization-id
     """
     remote_paths = [
@@ -78,7 +77,7 @@ def get_remote_report_checksum(org_id):
     ]
 
     for path in remote_paths:
-        result = ssh.command(f'sha256sum {path}', output_format='plain')
+        result = satellite.execute(f'sha256sum {path}')
         if result.status != 0:
             continue
         checksum, _ = result.stdout.split(maxsplit=1)

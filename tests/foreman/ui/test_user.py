@@ -101,8 +101,9 @@ def test_positive_end_to_end(session, default_sat, test_name, module_org, module
         current_user = newsession.activationkey.read(ak_name, 'current_user')['current_user']
         assert current_user == f'{firstname} {lastname}'
         # Delete user
-        session.user.delete(new_name)
-        assert not session.user.search(new_name)
+    with Session('deletehostsession') as deletehostsession:
+        deletehostsession.user.delete(new_name)
+        assert not deletehostsession.user.search(new_name)
 
 
 @pytest.mark.tier2

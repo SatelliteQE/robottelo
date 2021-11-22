@@ -12,7 +12,7 @@
 
 :TestType: Functional
 
-:CaseImportance: Critical
+:CaseImportance: High
 
 :Upstream: No
 """
@@ -45,7 +45,6 @@ from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_TARGET_CORES
 from robottelo.constants import OSCAP_TARGET_MEMORY
 from robottelo.constants import OSCAP_WEEKDAY
-from robottelo.helpers import file_downloader
 from robottelo.helpers import ProxyError
 from robottelo.hosts import ContentHost
 
@@ -179,6 +178,8 @@ def test_positive_upload_to_satellite(
     :CaseLevel: System
 
     :BZ: 1479413, 1722475, 1420439, 1722475
+
+    :CaseImportance: Critical
     """
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
@@ -310,7 +311,13 @@ def test_positive_upload_to_satellite(
 @pytest.mark.upgrade
 @pytest.mark.tier4
 def test_positive_oscap_run_with_tailoring_file_and_capsule(
-    module_org, default_proxy, content_view, lifecycle_env, puppet_env, default_sat
+    module_org,
+    default_proxy,
+    content_view,
+    lifecycle_env,
+    puppet_env,
+    default_sat,
+    tailoring_file_path,
 ):
     """End-to-End Oscap run with tailoring files and default capsule via puppet
 
@@ -339,9 +346,6 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
     tailoring_file_name = gen_string('alpha')
-    tailor_path = file_downloader(
-        file_url=settings.oscap.tailoring_path, hostname=default_sat.hostname
-    )[0]
     # Creates host_group.
     make_hostgroup(
         {
@@ -358,7 +362,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
     tailor_result = make_tailoringfile(
         {
             'name': tailoring_file_name,
-            'scap-file': tailor_path,
+            'scap-file': tailoring_file_path['satellite'],
             'organization': module_org.name,
         }
     )
@@ -572,8 +576,6 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
     :expectedresults: REX job should be success and ARF report should be sent to satellite
 
     :BZ: 1814988
-
-    :CaseImportance: Critical
     """
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')

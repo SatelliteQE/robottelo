@@ -48,7 +48,7 @@ class TestOscapPolicy:
 
         :CaseLevel: Integration
 
-        :CaseImportance: High
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
