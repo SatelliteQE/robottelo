@@ -623,7 +623,7 @@ def test_positive_update(module_org):
 
     :expectedresults: organization name is updated
 
-    :CaseImportance: Critical
+    :CaseImportance: High
     """
 
     new_name = valid_org_names_list()[0]
@@ -668,7 +668,7 @@ def test_positive_create_user_with_timezone(module_org):
 
     :CaseLevel: Integration
 
-    :CaseImportance: High
+    :CaseImportance: Medium
 
     :steps:
         1. Add user from organization with valid timezone

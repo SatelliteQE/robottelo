@@ -252,7 +252,7 @@ class TestLocation:
 
         :CaseLevel: Integration
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         proxy_id_1 = make_proxies['proxy1']['id']
         proxy_id_2 = make_proxies['proxy2']['id']
@@ -315,7 +315,7 @@ class TestLocation:
 
         :expectedresults: Location search by name returns success
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         name = gen_string('alphanumeric')
         entities.Location(name=name).create()
