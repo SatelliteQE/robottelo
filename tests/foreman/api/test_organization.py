@@ -144,7 +144,7 @@ class TestOrganization:
 
         :bz: 1828549
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -161,7 +161,7 @@ class TestOrganization:
 
         :expectedresults: Searching returns at least one result.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         org = entities.Organization().create()
         orgs = entities.Organization().search(query={'search': f'name="{org.name}"'})
@@ -225,7 +225,7 @@ class TestOrganizationUpdate:
 
         :expectedresults: The organization's name is updated.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
 
         :parametrized: yes
         """
@@ -242,7 +242,7 @@ class TestOrganizationUpdate:
 
         :expectedresults: The organization's description is updated.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
 
         :parametrized: yes
         """
@@ -293,6 +293,8 @@ class TestOrganizationUpdate:
         :expectedresults: Hostgroup is added to organization and then removed
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         org = entities.Organization().create()
         hostgroup = entities.HostGroup().create()
@@ -357,6 +359,8 @@ class TestOrganizationUpdate:
         :parametrized: yes
 
         :BZ: 1089996
+
+        :CaseImportance: Medium
         """
         update_dict = {
             update_field: gen_string(str_type='utf8', length=256 if update_field == 'name' else 10)

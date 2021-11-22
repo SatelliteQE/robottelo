@@ -38,7 +38,7 @@ def test_positive_end_to_end(session):
 
     :CaseLevel: Integration
 
-    :CaseImportance: High
+    :CaseImportance: Critical
     """
     loc_parent = entities.Location().create()
     loc_child_name = gen_string('alpha')

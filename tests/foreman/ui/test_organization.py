@@ -161,6 +161,7 @@ def test_positive_search_scoped(session):
 
     :BZ: 1259374
 
+    :CaseImportance: Medium
     """
     org_name = gen_string('alpha')
     label = gen_string('alpha')
@@ -277,7 +278,7 @@ def test_positive_download_debug_cert_after_refresh(session):
 
     :CaseLevel: Integration
 
-    :CaseImportance: Critical
+    :CaseImportance: High
     """
     org = entities.Organization().create()
     try:
