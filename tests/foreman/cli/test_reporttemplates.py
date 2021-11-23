@@ -644,15 +644,16 @@ def test_negative_nonauthor_of_report_cant_download_it():
     schedule = ReportTemplate.with_user(username=user1['login'], password=password).schedule(
         {'name': report_template['name']}
     )
+    job_id = schedule.split('Job ID: ', 1)[1].strip()
 
     report_data = ReportTemplate.with_user(username=user1['login'], password=password).report_data(
-        {'id': report_template['name'], 'job-id': schedule[0].split('Job ID: ', 1)[1]}
+        {'id': report_template['name'], 'job-id': job_id}
     )
 
     assert content in report_data
     with pytest.raises(CLIReturnCodeError):
         ReportTemplate.with_user(username=user2['login'], password=password).report_data(
-            {'id': report_template['name'], 'job-id': schedule[0].split('Job ID: ', 1)[1]}
+            {'id': report_template['name'], 'job-id': job_id}
         )
 
 
