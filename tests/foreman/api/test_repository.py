@@ -2169,10 +2169,14 @@ class TestFileRepository:
         """
         pass
 
-    @pytest.mark.stubbed
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    def test_positive_remove_file(self):
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized([{'content_type': 'file', 'url': repo_constants.CUSTOM_FILE_REPO}]),
+        indirect=True,
+    )
+    def test_positive_remove_file(self, repo):
         """Check arbitrary file can be removed from File Repository
 
         :id: 65068b4c-9018-4baa-b87b-b6e9d7384a5d
@@ -2188,9 +2192,16 @@ class TestFileRepository:
 
         :CaseImportance: Critical
 
-        :CaseAutomation: NotAutomated
+        :CaseAutomation: Automated
         """
-        pass
+        with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
+            repo.upload_content(files={'content': handle})
+        assert repo.read().content_counts['file'] == 1
+
+        file_detail = entities.File().search(query={'repository_id': repo.id})
+
+        repo.remove_content(data={'ids': [file_detail[0].id], 'content_type': 'file'})
+        assert repo.read().content_counts['file'] == 0
 
     @pytest.mark.stubbed
     @pytest.mark.tier2
