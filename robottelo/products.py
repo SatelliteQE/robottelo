@@ -205,7 +205,6 @@ from robottelo.config import settings
 
 REPO_TYPE_YUM = constants.REPO_TYPE['yum']
 REPO_TYPE_DOCKER = constants.REPO_TYPE['docker']
-REPO_TYPE_PUPPET = constants.REPO_TYPE['puppet']
 REPO_TYPE_OSTREE = constants.REPO_TYPE['ostree']
 
 DOWNLOAD_POLICY_ON_DEMAND = 'on_demand'

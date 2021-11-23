@@ -683,13 +683,14 @@ class TestRepository:
                 {'content-type': content_type, 'download-policy': 'on_demand'}
                 for content_type in REPO_TYPE.keys()
                 if content_type != 'yum'
+                if content_type != 'ostree'
             ]
         ),
         indirect=True,
     )
     def test_negative_create_non_yum_with_download_policy(self, repo_options):
         """Verify that non-YUM repositories cannot be created with download
-        policy
+        policy TODO: Remove ostree from exceptions when ostree is added back in Satellite 7
 
         :id: 71388973-50ea-4a20-9406-0aca142014ca
 
