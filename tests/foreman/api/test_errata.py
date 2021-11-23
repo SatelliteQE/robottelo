@@ -18,6 +18,7 @@
 """
 # For ease of use hc refers to host-collection throughout this document
 from time import sleep
+from time import time
 
 import pytest
 from broker import VMBroker
@@ -26,6 +27,7 @@ from nailgun import entities
 from robottelo import constants
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
+from robottelo.api.utils import wait_for_errata_applicability_task
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.config import settings
@@ -911,6 +913,9 @@ def test_errata_installation_with_swidtags(
     )
     assert before_errata_apply_result != ''
     host = rhel8_contenthost.nailgun_host
+    timestamp = int(time())
+    host.errata_applicability()
+    wait_for_errata_applicability_task(host_id=host.id, from_when=timestamp, search_rate=2)
     host = host.read()
     applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
     assert applicable_errata_count == 1
@@ -920,6 +925,9 @@ def test_errata_installation_with_swidtags(
         module_org, f'dnf -y module update {module_name}', rhel8_contenthost
     )
     _run_remote_command_on_content_host(module_org, 'dnf -y upload-profile', rhel8_contenthost)
+    timestamp = int(time())
+    host.errata_applicability()
+    wait_for_errata_applicability_task(host_id=host.id, from_when=timestamp, search_rate=2)
     host = host.read()
     applicable_errata_count -= 1
     assert host.content_facet_attributes['errata_counts']['total'] == applicable_errata_count
