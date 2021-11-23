@@ -3,7 +3,6 @@ from urllib.parse import urlparse
 import pytest
 
 from robottelo.config import settings
-from robottelo.hosts import Satellite
 from robottelo.hosts import SatelliteHostError
 
 
@@ -46,25 +45,8 @@ def proxy_port_range(default_sat):
 
 
 @pytest.fixture
-def register_to_dogfood(default_sat):
-    dogfood_canonical_hostname = settings.repos.dogfood_repo_host.partition('//')[2]
-    # get hostname of dogfood machine
-    dig_result = default_sat.execute(f'dig +short {dogfood_canonical_hostname}')
-    # the host name finishes with a dot, so last character is removed
-    dogfood_hostname = dig_result.stdout.split()[0][:-1]
-    dogfood = Satellite(dogfood_hostname)
-    default_sat.install_katello_ca(satellite=dogfood)
-    # satellite version consist from x.y.z.v.w, we need only x.y
-    sat_release = '.'.join(default_sat.version.split('.')[:2])
-    cmd_result = default_sat.register_contenthost(
-        org='Sat6-CI', activation_key=f'satellite-{sat_release}-qa-rhel7'
-    )
-    if cmd_result.status != 0:
-        raise SatelliteHostError(f'Error during registration, command output: {cmd_result.stdout}')
-
-
-@pytest.fixture
-def install_cockpit_plugin(default_sat, register_to_dogfood):
+def install_cockpit_plugin(default_sat):
+    default_sat.register_to_dogfood()
     cmd_result = default_sat.execute(
         'foreman-installer --enable-foreman-plugin-remote-execution-cockpit', timeout='30m'
     )
