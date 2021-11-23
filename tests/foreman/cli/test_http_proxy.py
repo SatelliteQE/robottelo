@@ -20,9 +20,12 @@ import pytest
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_url
+from nailgun import entities
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.http_proxy import HttpProxy
+from robottelo.cli.settings import Settings
+from robottelo.config import settings
 
 
 @pytest.mark.tier1
@@ -120,3 +123,55 @@ def test_insights_client_registration_with_http_proxy():
 
     :CaseImportance: High
     """
+
+
+@pytest.mark.tier2
+@pytest.mark.run_in_one_thread
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.http_proxy.UN_AUTH_PROXY_URL), reason='Missing un_auth_proxy_url')
+def test_positive_set_content_default_http_proxy(block_fake_repo_access):
+    """An http proxy can be set to be the global default for repositories.
+
+    :id: c12868eb-98f1-4763-a168-281ac44d9ff5
+
+    :Steps:
+            1. Create a product with repo.
+            2. Create an un-authenticated proxy.
+            3. Set the proxy to be the global default proxy.
+            4. Sync a repo.
+
+    :expectedresults:  Repo is synced
+
+    :CaseImportance: High
+
+    """
+    org = entities.Organization().create()
+    proxy_name = gen_string('alpha', 15)
+    proxy_url = settings.http_proxy.un_auth_proxy_url
+    product = entities.Product(organization=org).create()
+    rpm_repo = entities.Repository(
+        product=product, content_type='yum', url=settings.repos.yum_1.url
+    ).create()
+
+    # Create un-auth HTTP proxy
+    http_proxy = HttpProxy.create(
+        {
+            'name': proxy_name,
+            'url': proxy_url,
+            'organization-id': org.id,
+        }
+    )
+    assert http_proxy['name'] == proxy_name
+    assert http_proxy['url'] == proxy_url
+    # Set the proxy to be the global default
+    proxy_settings = Settings.set(
+        {
+            'name': 'content_default_http_proxy',
+            'value': proxy_name,
+        }
+    )
+    assert proxy_settings
+    # Sync to check proxy works
+    assert rpm_repo.read().content_counts['rpm'] == 0
+    product.sync()
+    assert rpm_repo.read().content_counts['rpm'] >= 1

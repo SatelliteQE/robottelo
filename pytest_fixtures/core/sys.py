@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 import pytest
 
 from robottelo.config import settings
@@ -76,3 +78,31 @@ def install_cockpit_plugin(default_sat, register_to_dogfood):
     )
     if cmd_result.status != 0:
         raise SatelliteHostError(f'Error during ssh-copy-id, command output: {cmd_result.stdout}')
+
+
+@pytest.fixture(scope='session')
+def block_fake_repo_access(default_sat):
+    """Block traffic to given port used by fake repo"""
+    repo_server_name = '.'.join(
+        urlparse(settings.robottelo.REPOS_HOSTING_URL).netloc.split(':')[:1]
+    )
+    repo_server_port = '.'.join(
+        urlparse(settings.robottelo.REPOS_HOSTING_URL).netloc.split(':')[1:]
+    )
+    cmd_result = default_sat.execute(f'nc -z {repo_server_name} {repo_server_port}')
+    if cmd_result.status != 0:
+        raise SatelliteHostError(
+            f'Error, port {repo_server_name} {repo_server_port} incorrect or already blocked.'
+        )
+    default_sat.execute(
+        'firewall-cmd --direct --add-rule ipv4 filter OUTPUT 0 -p tcp -m tcp'
+        f' --dport={repo_server_port} -j DROP'
+    )
+    cmd_result = default_sat.execute(f'nc -z {repo_server_name} {repo_server_port}')
+    if cmd_result.status != 1:
+        raise SatelliteHostError(f'Error, port {repo_server_name} {repo_server_port} not blocked.')
+    yield
+    default_sat.execute(
+        'firewall-cmd --direct --remove-rule ipv4 filter OUTPUT 0 -p tcp -m tcp'
+        f' --dport={repo_server_port} -j DROP'
+    )
