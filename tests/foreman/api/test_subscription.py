@@ -260,7 +260,9 @@ def test_positive_subscription_status_disabled(
 @pytest.mark.tier2
 @pytest.mark.pit_client
 @pytest.mark.pit_server
-def test_sca_end_to_end(module_ak, rhel_contenthost, module_org, rh_repo, custom_repo, default_sat):
+def test_sca_end_to_end(
+    module_ak, rhel7_contenthost, module_org, rh_repo, custom_repo, default_sat
+):
     """Perform end to end testing for Simple Content Access Mode
 
     :id: c6c4b68c-a506-46c9-bd1d-22e4c1926ef8
@@ -272,9 +274,9 @@ def test_sca_end_to_end(module_ak, rhel_contenthost, module_org, rh_repo, custom
 
     :CaseImportance: Critical
     """
-    rhel_contenthost.install_katello_ca(default_sat)
-    rhel_contenthost.register_contenthost(module_org.label, module_ak.name)
-    assert rhel_contenthost.subscribed
+    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.register_contenthost(module_org.label, module_ak.name)
+    assert rhel7_contenthost.subscribed
     # Check to see if Organization is in SCA Mode
     assert entities.Organization(id=module_org.id).read().simple_content_access is True
     # Verify that you cannot attach a subscription to an activation key in SCA Mode
@@ -286,7 +288,7 @@ def test_sca_end_to_end(module_ak, rhel_contenthost, module_org, rh_repo, custom
     assert 'Simple Content Access' in ak_context.value.response.text
     # Verify that you cannot attach a subscription to an Host in SCA Mode
     with pytest.raises(HTTPError) as host_context:
-        entities.HostSubscription(host=rhel_contenthost.nailgun_host.id).add_subscriptions(
+        entities.HostSubscription(host=rhel7_contenthost.nailgun_host.id).add_subscriptions(
             data={'subscriptions': [{'id': subscription.id, 'quantity': 1}]}
         )
     assert 'Simple Content Access' in host_context.value.response.text
@@ -296,15 +298,15 @@ def test_sca_end_to_end(module_ak, rhel_contenthost, module_org, rh_repo, custom
     content_view.update(['repository'])
     content_view.publish()
     assert len(content_view.repository) == 2
-    host = rhel_contenthost.nailgun_host
+    host = rhel7_contenthost.nailgun_host
     host.content_facet_attributes = {'content_view_id': content_view.id}
     host.update(['content_facet_attributes'])
-    rhel_contenthost.run('subscription-manager repos --enable *')
-    repos = rhel_contenthost.run('subscription-manager refresh && yum repolist')
+    rhel7_contenthost.run('subscription-manager repos --enable *')
+    repos = rhel7_contenthost.run('subscription-manager refresh && yum repolist')
     assert content_view.repository[1].name in repos.stdout
     assert 'Red Hat Satellite Tools' in repos.stdout
     # install package and verify it succeeds or is already installed
-    package = rhel_contenthost.run('yum install -y python-pulp-manifest')
+    package = rhel7_contenthost.run('yum install -y python-pulp-manifest')
     assert 'Complete!' in package.stdout or 'already installed' in package.stdout
 
 
