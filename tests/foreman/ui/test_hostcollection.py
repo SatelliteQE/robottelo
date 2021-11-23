@@ -233,6 +233,7 @@ def test_positive_end_to_end(session, module_org, smart_proxy_location):
     description = gen_string('alpha')
     host = entities.Host(organization=module_org, location=smart_proxy_location).create()
     with session:
+        session.location.select(smart_proxy_location.name)
         # Create new host collection
         session.hostcollection.create(
             {'name': hc_name, 'unlimited_hosts': False, 'max_hosts': 2, 'description': description}
@@ -281,6 +282,7 @@ def test_negative_install_via_remote_execution(session, module_org, smart_proxy_
         host=[host.id for host in hosts], organization=module_org
     ).create()
     with session:
+        session.location.select(smart_proxy_location.name)
         job_values = session.hostcollection.manage_packages(
             host_collection.name,
             packages=constants.FAKE_0_CUSTOM_PACKAGE_NAME,
@@ -314,6 +316,7 @@ def test_negative_install_via_custom_remote_execution(session, module_org, smart
         host=[host.id for host in hosts], organization=module_org
     ).create()
     with session:
+        session.location.select(smart_proxy_location.name)
         job_values = session.hostcollection.manage_packages(
             host_collection.name,
             packages=constants.FAKE_0_CUSTOM_PACKAGE_NAME,
@@ -361,7 +364,9 @@ def test_positive_add_host(session):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_install_package(session, module_org, vm_content_hosts, vm_host_collection):
+def test_positive_install_package(
+    session, module_org, smart_proxy_location, vm_content_hosts, vm_host_collection
+):
     """Install a package to hosts inside host collection remotely
 
     :id: eead8392-0ffc-4062-b045-5d0252670775
@@ -373,6 +378,7 @@ def test_positive_install_package(session, module_org, vm_content_hosts, vm_host
     """
     with session:
         session.organization.select(org_name=module_org.name)
+        session.location.select(smart_proxy_location.name)
         session.hostcollection.manage_packages(
             vm_host_collection.name,
             packages=constants.FAKE_0_CUSTOM_PACKAGE_NAME,
@@ -384,7 +390,9 @@ def test_positive_install_package(session, module_org, vm_content_hosts, vm_host
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_remove_package(session, module_org, vm_content_hosts, vm_host_collection):
+def test_positive_remove_package(
+    session, module_org, smart_proxy_location, vm_content_hosts, vm_host_collection
+):
     """Remove a package from hosts inside host collection remotely
 
     :id: 488fa88d-d0ef-4108-a050-96fb621383df
@@ -397,6 +405,7 @@ def test_positive_remove_package(session, module_org, vm_content_hosts, vm_host_
     _install_package_with_assertion(vm_content_hosts, constants.FAKE_0_CUSTOM_PACKAGE)
     with session:
         session.organization.select(org_name=module_org.name)
+        session.location.select(smart_proxy_location.name)
         session.hostcollection.manage_packages(
             vm_host_collection.name,
             packages=constants.FAKE_0_CUSTOM_PACKAGE_NAME,
@@ -409,7 +418,9 @@ def test_positive_remove_package(session, module_org, vm_content_hosts, vm_host_
 
 
 @pytest.mark.tier3
-def test_positive_upgrade_package(session, module_org, vm_content_hosts, vm_host_collection):
+def test_positive_upgrade_package(
+    session, module_org, smart_proxy_location, vm_content_hosts, vm_host_collection
+):
     """Upgrade a package on hosts inside host collection remotely
 
     :id: 5a6fff0a-686f-419b-a773-4d03713e47e9
@@ -422,6 +433,7 @@ def test_positive_upgrade_package(session, module_org, vm_content_hosts, vm_host
     _install_package_with_assertion(vm_content_hosts, constants.FAKE_1_CUSTOM_PACKAGE)
     with session:
         session.organization.select(org_name=module_org.name)
+        session.location.select(smart_proxy_location.name)
         session.hostcollection.manage_packages(
             vm_host_collection.name,
             packages=constants.FAKE_1_CUSTOM_PACKAGE_NAME,
@@ -433,7 +445,9 @@ def test_positive_upgrade_package(session, module_org, vm_content_hosts, vm_host
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_install_package_group(session, module_org, vm_content_hosts, vm_host_collection):
+def test_positive_install_package_group(
+    session, module_org, smart_proxy_location, vm_content_hosts, vm_host_collection
+):
     """Install a package group to hosts inside host collection remotely
 
     :id: 2bf47798-d30d-451a-8de5-bc03bd8b9a48
@@ -445,6 +459,7 @@ def test_positive_install_package_group(session, module_org, vm_content_hosts, v
     """
     with session:
         session.organization.select(org_name=module_org.name)
+        session.location.select(smart_proxy_location.name)
         session.hostcollection.manage_packages(
             vm_host_collection.name,
             content_type='Package Group',
@@ -457,7 +472,9 @@ def test_positive_install_package_group(session, module_org, vm_content_hosts, v
 
 
 @pytest.mark.tier3
-def test_positive_remove_package_group(session, module_org, vm_content_hosts, vm_host_collection):
+def test_positive_remove_package_group(
+    session, module_org, smart_proxy_location, vm_content_hosts, vm_host_collection
+):
     """Remove a package group from hosts inside host collection remotely
 
     :id: 458897dc-9836-481a-b777-b147d64836f2
@@ -474,6 +491,7 @@ def test_positive_remove_package_group(session, module_org, vm_content_hosts, vm
         assert _is_package_installed(vm_content_hosts, package)
     with session:
         session.organization.select(org_name=module_org.name)
+        session.location.select(smart_proxy_location.name)
         session.hostcollection.manage_packages(
             vm_host_collection.name,
             content_type='Package Group',
@@ -487,7 +505,9 @@ def test_positive_remove_package_group(session, module_org, vm_content_hosts, vm
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_install_errata(session, module_org, vm_content_hosts, vm_host_collection):
+def test_positive_install_errata(
+    session, module_org, smart_proxy_location, vm_content_hosts, vm_host_collection
+):
     """Install an errata to the hosts inside host collection remotely
 
     :id: 69c83000-0b46-4735-8c03-e9e0b48af0fb
@@ -500,6 +520,7 @@ def test_positive_install_errata(session, module_org, vm_content_hosts, vm_host_
     _install_package_with_assertion(vm_content_hosts, constants.FAKE_1_CUSTOM_PACKAGE)
     with session:
         session.organization.select(org_name=module_org.name)
+        session.location.select(smart_proxy_location.name)
         result = session.hostcollection.install_errata(
             vm_host_collection.name,
             settings.repos.yum_6.errata[2],
@@ -515,6 +536,7 @@ def test_positive_install_errata(session, module_org, vm_content_hosts, vm_host_
 def test_positive_change_assigned_content(
     session,
     module_org,
+    smart_proxy_location,
     module_lce,
     vm_content_hosts,
     vm_host_collection,
@@ -599,6 +621,7 @@ def test_positive_change_assigned_content(
         assert set(expected_repo_urls) == set(client_repo_urls)
     with session:
         session.organization.select(org_name=module_org.name)
+        session.location.select(smart_proxy_location.name)
         task_values = session.hostcollection.change_assigned_content(
             vm_host_collection.name, new_lce.name, new_content_view.name
         )
@@ -660,6 +683,7 @@ def test_negative_hosts_limit(session, module_org, smart_proxy_location):
         )
     assert len(hosts) == 2
     with session:
+        session.location.select(smart_proxy_location.name)
         session.hostcollection.create({'name': hc_name, 'unlimited_hosts': False, 'max_hosts': 1})
         assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
         session.hostcollection.associate_host(hc_name, hosts[0].name)
@@ -673,7 +697,7 @@ def test_negative_hosts_limit(session, module_org, smart_proxy_location):
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_module_stream(
-    session, vm_content_hosts_module_stream, vm_host_collection_module_stream
+    session, smart_proxy_location, vm_content_hosts_module_stream, vm_host_collection_module_stream
 ):
     """Install a module-stream to hosts inside host collection remotely
 
@@ -693,6 +717,7 @@ def test_positive_install_module_stream(
     """
     _run_remote_command_on_content_hosts('dnf -y upload-profile', vm_content_hosts_module_stream)
     with session:
+        session.location.select(smart_proxy_location.name)
         result = session.hostcollection.manage_module_streams(
             vm_host_collection_module_stream.name,
             action_type="Install",
@@ -710,7 +735,7 @@ def test_positive_install_module_stream(
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_modular_errata(
-    session, vm_content_hosts_module_stream, vm_host_collection_module_stream
+    session, smart_proxy_location, vm_content_hosts_module_stream, vm_host_collection_module_stream
 ):
     """Install Modular Errata generated from module streams.
 
@@ -735,6 +760,7 @@ def test_positive_install_modular_errata(
     _run_remote_command_on_content_hosts(_module_install_command, vm_content_hosts_module_stream)
     _run_remote_command_on_content_hosts('dnf -y upload-profile', vm_content_hosts_module_stream)
     with session:
+        session.location.select(smart_proxy_location.name)
         _run_remote_command_on_content_hosts(
             f'dnf -y module install {constants.FAKE_4_CUSTOM_PACKAGE_NAME}:0:20180704111719',
             vm_content_hosts_module_stream,
