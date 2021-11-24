@@ -825,11 +825,31 @@ class TestAnsibleREX:
         result = client.run(f'rpm -q {" ".join(packages)}')
         assert result.status == 0
 
-        # start a service
-        service = "postfix"
-        client.execute(
-            "sed -i 's/^inet_protocols.*/inet_protocols = ipv4/' /etc/postfix/main.cf",
+        # stop a service
+        service = "rsyslog"
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Service Action - Ansible Default',
+                'inputs': f'state=stopped, name={service}',
+                'search-query': f"name ~ {client.hostname}",
+            }
         )
+        result = JobInvocation.info({'id': invocation_command['id']})
+        try:
+            assert result['success'] == '1'
+        except AssertionError:
+            result = 'host output: {}'.format(
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': invocation_command['id'], 'host': client.hostname}
+                    )
+                )
+            )
+            raise AssertionError(result)
+        result = client.execute(f"systemctl status {service}")
+        assert result.status == 3
+
+        # start it again
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Service Action - Ansible Default',
