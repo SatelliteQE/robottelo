@@ -40,6 +40,7 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.hosts import ContentHost
+from robottelo.logging import logger
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -531,18 +532,24 @@ class TestRemoteExecution:
             in ["succeeded", "failed"],
             timeout="1500s",
         )
+
+        result = JobInvocation.get_output({'id': invocation_id, 'host': default_sat.hostname})
+        logger.debug(f"Invocation output>>\n{result}\n<<End of invocation output")
+        # if installation fails, it's often due to missing rhscl repo -> print enabled repos
+        repolist = default_sat.execute('yum repolist')
+        logger.debug(f"Repolist>>\n{repolist}\n<<End of repolist")
+
         assert entities.JobInvocation(id=invocation_id).read().status == 0
-        result = ' '.join(
-            JobInvocation.get_output({'id': invocation_id, 'host': default_sat.hostname})
-        )
         assert 'project-receptor.satellite_receptor_installer' in result
         assert 'Exit status: 0' in result
         # check that there is one receptor conf file and it's only readable
         # by the receptor user and root
         result = default_sat.execute('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
-        assert result.stdout == '400:foreman-proxy'
+        assert all(
+            filestats == '400:foreman-proxy' for filestats in result.stdout.strip().split('\n')
+        )
         result = default_sat.execute('ls -l /etc/receptor/*/receptor.conf | wc -l')
-        assert result.stdout == '1'
+        assert int(result.stdout.strip()) >= 1
 
 
 class TestAnsibleREX:
