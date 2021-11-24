@@ -18,7 +18,6 @@ import pytest
 import requests
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest_lazyfixture import lazy_fixture
 
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
@@ -154,14 +153,12 @@ def test_positive_export_templates(session, create_import_export_local_dir, defa
     ids=['http', 'ssh'],
 )
 @pytest.mark.parametrize(
-    'repo, branch',
-    [
-        (lazy_fixture(('git_repository', 'git_branch'))),
-        (lazy_fixture('git_empty_repository'), 'master'),
-    ],
+    'git_repository',
+    [True, False],
+    indirect=True,
     ids=['non_empty_repo', 'empty_repo'],
 )
-def test_positive_export_filtered_templates_to_git(session, repo, branch, url):
+def test_positive_export_filtered_templates_to_git(session, git_repository, git_branch, url):
     """Assure only templates with a given filter regex are pushed to
     git repository.
 
@@ -179,7 +176,7 @@ def test_positive_export_filtered_templates_to_git(session, repo, branch, url):
 
     :CaseImportance: Critical
     """
-    url = f'{url}/{git.username}/{repo}'
+    url = f'{url}/{git.username}/{git_repository["name"]}'
     dirname = 'export'
     with session:
         export_title = session.sync_template.sync(
@@ -188,15 +185,17 @@ def test_positive_export_filtered_templates_to_git(session, repo, branch, url):
                 'template.metadata_export_mode': 'Keep',
                 'template.filter': 'atomic',
                 'template.repo': url,
-                'template.branch': branch,
+                'template.branch': git_branch,
                 'template.dirname': dirname,
             }
         )
-        assert export_title == f'Export to {url} and branch {branch} as user {session._user}'
+        assert export_title == f'Export to {url} and branch {git_branch} as user {session._user}'
         path = f"{dirname}/provisioning_templates/provision"
         auth = (git.username, git.password)
         api_url = f"http://{git.hostname}:{git.http_port}/api/v1/repos/{git.username}"
         git_count = requests.get(
-            f"{api_url}/{repo}/contents/{path}", auth=auth, params={"ref": branch}
+            f'{api_url}/{git_repository["name"]}/contents/{path}',
+            auth=auth,
+            params={"ref": git_branch},
         ).json()
         assert len(git_count) == 1
