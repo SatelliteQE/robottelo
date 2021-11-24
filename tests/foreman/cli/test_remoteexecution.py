@@ -737,7 +737,6 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.parametrize(
         'fixture_vmsetup',
