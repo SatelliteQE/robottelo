@@ -1615,3 +1615,54 @@ def test_downgrading_package_shows_errata_from_library(errata_host, module_manif
     }
     errata_ids = get_errata_ids(param)
     assert REAL_0_ERRATA_ID in errata_ids
+
+
+@pytest.mark.skip_if_open('BZ:1785146')
+@pytest.mark.tier2
+def test_errata_list_by_contentview_filter(module_org):
+    """Hammer command to list errata should take filter ID into consideration.
+
+    :id: e9355a92-8354-4853-a806-d388ed32d73e
+
+    :setup: Any repo with some errata in it
+
+    :steps:
+        1. Sync a repo, add it to a CV
+        2. Get the count of errata list
+        3. Create a CV filter, add an errata and check the errata list count
+
+    :expectedresults: Errata count using CV filter ID should change
+
+    :CaseImportance: High
+
+    :customerscenario: true
+
+    :BZ: 1785146
+    """
+    product = entities.Product(organization=module_org).create()
+    repo = make_repository(
+        {'content-type': 'yum', 'product-id': product.id, 'url': REPO_WITH_ERRATA['url']}
+    )
+    Repository.synchronize({'id': repo['id']})
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    cv = entities.ContentView(organization=module_org, repository=[repo['id']]).create()
+    cv_publish_promote(cv, module_org, lce)
+    errata_count = len(Erratum.list({'organization-id': module_org.id, 'content-view-id': cv.id}))
+    cvf = entities.ErratumContentViewFilter(content_view=cv, inclusion=True).create()
+    errata_id = entities.Errata().search(
+        query={'search': f'errata_id="{settings.repos.yum_9.errata[0]}"'}
+    )[0]
+    entities.ContentViewFilterRule(content_view_filter=cvf, errata=errata_id).create()
+    cv.publish()
+    cv_version_info = cv.read().version[1].read()
+    errata_count_cvf = len(
+        Erratum.list(
+            {
+                'organization-id': module_org.id,
+                'content-view-id': cv.id,
+                'content-view-version-id': cv_version_info.id,
+                'content-view-filter-id': cvf.id,
+            }
+        )
+    )
+    assert errata_count != errata_count_cvf
