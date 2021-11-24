@@ -869,6 +869,8 @@ def test_positive_filtered_errata_status_installable_param(
 
     :BZ: 1368254
 
+    :CaseImportance: Medium
+
     :CaseLevel: System
     """
     org = entities.Organization().create()
