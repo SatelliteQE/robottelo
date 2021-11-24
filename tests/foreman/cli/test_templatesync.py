@@ -20,7 +20,6 @@ import pytest
 import requests
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest_lazyfixture import lazy_fixture
 
 from robottelo.cli.template import Template
 from robottelo.cli.template_sync import TemplateSync
@@ -117,6 +116,12 @@ class TestTemplateSyncTestCase:
         ],
         ids=['http', 'ssh'],
     )
+    @pytest.mark.parametrize(
+        'git_repository',
+        [True],
+        indirect=True,
+        ids=['non_empty_repo'],
+    )
     def test_positive_update_templates_in_git(self, module_org, git_repository, git_branch, url):
         """Assure only templates with a given filter are pushed to
         git repository and existing template file is updated.
@@ -143,13 +148,13 @@ class TestTemplateSyncTestCase:
         # create template file in repository
         auth = (git.username, git.password)
         api_url = f'http://{git.hostname}:{git.http_port}'
-        api_url = f'{api_url}/api/v1/repos/{git.username}/{git_repository}/contents'
+        api_url = f'{api_url}/api/v1/repos/{git.username}/{git_repository["name"]}/contents'
         res = requests.post(
             f'{api_url}/{path}', auth=auth, json={'branch': git_branch, 'content': content}
         )
         assert res.status_code == 201
         # export template to git
-        url = f'{url}/{git.username}/{git_repository}'
+        url = f'{url}/{git.username}/{git_repository["name"]}'
         output = TemplateSync.exports(
             {
                 'repo': url,
@@ -177,14 +182,14 @@ class TestTemplateSyncTestCase:
         ids=['http', 'ssh'],
     )
     @pytest.mark.parametrize(
-        'repo, branch',
-        [
-            (lazy_fixture(('git_repository', 'git_branch'))),
-            (lazy_fixture('git_empty_repository'), 'master'),
-        ],
+        'git_repository',
+        [True, False],
+        indirect=True,
         ids=['non_empty_repo', 'empty_repo'],
     )
-    def test_positive_export_filtered_templates_to_git(self, module_org, repo, branch, url):
+    def test_positive_export_filtered_templates_to_git(
+        self, module_org, git_repository, git_branch, url
+    ):
         """Assure only templates with a given filter regex are pushed to
         git repository.
 
@@ -203,11 +208,11 @@ class TestTemplateSyncTestCase:
         :BZ: 1785613
         """
         dirname = 'export'
-        url = f'{url}/{git.username}/{repo}'
+        url = f'{url}/{git.username}/{git_repository["name"]}'
         output = TemplateSync.exports(
             {
                 'repo': url,
-                'branch': branch,
+                'branch': git_branch,
                 'organization-id': module_org.id,
                 'filter': 'atomic',
                 'dirname': dirname,
@@ -217,8 +222,10 @@ class TestTemplateSyncTestCase:
         path = f'{dirname}/provisioning_templates/provision'
         auth = (git.username, git.password)
         api_url = f'http://{git.hostname}:{git.http_port}'
-        api_url = f'{api_url}/api/v1/repos/{git.username}/{repo}/contents'
-        git_count = len(requests.get(f'{api_url}/{path}', auth=auth, params={'ref': branch}).json())
+        api_url = f'{api_url}/api/v1/repos/{git.username}/{git_repository["name"]}/contents'
+        git_count = len(
+            requests.get(f'{api_url}/{path}', auth=auth, params={'ref': git_branch}).json()
+        )
         assert exported_count == git_count
 
     @pytest.mark.tier2

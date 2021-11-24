@@ -22,7 +22,6 @@ import pytest
 import requests
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest_lazyfixture import lazy_fixture
 
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_API_URL
@@ -515,15 +514,16 @@ class TestTemplateSyncTestCase:
 
     # Take Templates out of Tech Preview Feature Tests
     @pytest.mark.tier3
-    def test_positive_import_json_output_verbose_true(self, module_org):
+    @pytest.mark.parametrize('verbose', [True, False])
+    def test_positive_import_json_output_verbose(self, module_org, verbose):
         """Assert all the required fields displayed in import output when
-        verbose is True
+        verbose is True and False
 
         :id: 74b0a701-341f-4062-9769-e5cb1a1c4792
 
         :Steps:
             1. Using nailgun or direct API call
-               Impot a template with verbose `True` option
+               Impot a template with verbose `True` and `False` option
 
         :expectedresults:
             1. Assert json output has all the following fields
@@ -532,52 +532,7 @@ class TestTemplateSyncTestCase:
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseImportance: Low
-        """
-        prefix = gen_string('alpha')
-        templates = entities.Template().imports(
-            data={
-                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
-                'branch': 'master',
-                'filter': 'robottelo',
-                'organization_ids': [module_org.id],
-                'prefix': prefix,
-                'verbose': True,
-            }
-        )
-        expected_fields = [
-            'name',
-            'imported',
-            'diff',
-            'additional_errors',
-            'exception',
-            'validation_errors',
-            'file',
-            'type',
-            'id',
-            'changed',
-            'additional_info',
-        ]
-        actual_fields = templates['message']['templates'][0].keys()
-        assert sorted(actual_fields) == sorted(expected_fields)
-
-    @pytest.mark.tier2
-    def test_positive_import_json_output_verbose_false(self, module_org):
-        """Assert all the required fields displayed in import output when
-        verbose is `False`
-
-        :id: 7d7c65f5-1af3-4a9b-ba9e-70130f61d7cb
-
-        :Steps:
-            1. Using nailgun or direct API call
-               Impot a template with verbose `False` option
-
-        :expectedresults:
-            1. Assert json output has all the following fields
-               'name', 'imported', 'changed', 'additional_errors', 'exception',
-               'validation_errors', 'file'
-
-        :Requirement: Take Templates out of tech preview
+        :parametrized: yes
 
         :CaseImportance: Low
         """
@@ -589,21 +544,23 @@ class TestTemplateSyncTestCase:
                 'filter': 'robottelo',
                 'organization_ids': [module_org.id],
                 'prefix': prefix,
-                'verbose': False,
+                'verbose': verbose,
             }
         )
         expected_fields = [
             'name',
             'imported',
-            'changed',
             'additional_errors',
             'exception',
             'validation_errors',
             'file',
             'type',
             'id',
+            'changed',
             'additional_info',
         ]
+        if verbose:
+            expected_fields.append('diff')
         actual_fields = templates['message']['templates'][0].keys()
         assert sorted(actual_fields) == sorted(expected_fields)
 
@@ -1075,14 +1032,14 @@ class TestTemplateSyncTestCase:
         ids=['http', 'ssh'],
     )
     @pytest.mark.parametrize(
-        'repo, branch',
-        [
-            (lazy_fixture(('git_repository', 'git_branch'))),
-            (lazy_fixture('git_empty_repository'), 'master'),
-        ],
+        'git_repository',
+        [True, False],
+        indirect=True,
         ids=['non_empty_repo', 'empty_repo'],
     )
-    def test_positive_export_all_templates_to_repo(self, module_org, repo, branch, url):
+    def test_positive_export_all_templates_to_repo(
+        self, module_org, git_repository, git_branch, url
+    ):
         """Assure all templates are exported if no filter is specified.
 
         :id: 0bf6fe77-01a3-4843-86d6-22db5b8adf3b
@@ -1101,8 +1058,8 @@ class TestTemplateSyncTestCase:
         """
         output = entities.Template().exports(
             data={
-                'repo': f'{url}/{git.username}/{repo}',
-                'branch': branch,
+                'repo': f'{url}/{git.username}/{git_repository["name"]}',
+                'branch': git_branch,
                 'organization_ids': [module_org.id],
                 'fiter': '',
             }
@@ -1110,7 +1067,7 @@ class TestTemplateSyncTestCase:
         auth = (git.username, git.password)
         api_url = f'http://{git.hostname}:{git.http_port}/api/v1/repos/{git.username}'
         res = requests.get(
-            url=f'{api_url}/{repo}/git/trees/{branch}',
+            url=f'{api_url}/{git_repository["name"]}/git/trees/{git_branch}',
             auth=auth,
             params={'recursive': True},
         )
@@ -1120,7 +1077,7 @@ class TestTemplateSyncTestCase:
         assert len(output['message']['templates']) == git_count
 
     @pytest.mark.tier2
-    def test_positive_import_all_templates_from_repo(self, default_sat, module_org):
+    def test_positive_import_all_templates_from_repo(self, module_org):
         """Assure all templates are imported if no filter is specified.
 
         :id: 95ac9543-d989-44f4-b4d9-18f20a0b58b9
