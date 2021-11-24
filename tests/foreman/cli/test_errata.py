@@ -806,6 +806,7 @@ def test_host_errata_search_commands(
         7.  Create filter & rule to hide RPM (applicable vs. installable test)
         8.  Repeat steps 3 and 5, but 5 expects host name not found.
 
+    :CaseImportance: Medium
 
     :expectedresults: The hosts are correctly listed for security and bugfix advisories.
     """
@@ -1524,7 +1525,7 @@ def test_install_applicable_package_to_registerd_host(chost):
 
     :expectedresults: Installed package shows errata as applicable and installable
 
-    :CaseImportance: High
+    :CaseImportance: Medium
     """
     # Assert that the package is not applicable
     applicable_packages = Package.list(
