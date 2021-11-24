@@ -36,17 +36,17 @@ class ContentImport(Base):
         return cls.execute(cls._construct_command(options), output_format='json')
 
     @classmethod
-    def library(cls, options):
+    def library(cls, options, timeout=None):
         """
         Make library import
         """
         cls.command_sub = 'library'
-        return cls.execute(cls._construct_command(options), output_format='json')
+        return cls.execute(cls._construct_command(options), output_format='json', timeout=timeout)
 
     @classmethod
-    def version(cls, options):
+    def version(cls, options, timeout=None):
         """
         Make CV version export
         """
         cls.command_sub = 'version'
-        return cls.execute(cls._construct_command(options), output_format='json')
+        return cls.execute(cls._construct_command(options), output_format='json', timeout=timeout)
