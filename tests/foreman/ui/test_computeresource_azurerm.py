@@ -88,7 +88,6 @@ def module_azure_hg(
     ).create()
 
 
-@pytest.mark.skip_if_open("BZ:1850934")
 @pytest.mark.tier4
 def test_positive_end_to_end_azurerm_ft_host_provision(
     session,
@@ -118,13 +117,12 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
 
     hostname = f'test-{gen_string("alpha")}'
     fqdn = f'{hostname}.{module_domain.name}'.lower()
+    try:
+        with session:
+            session.organization.select(org_name=module_org.name)
+            session.location.select(loc_name=module_location.name)
 
-    with session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_location.name)
-
-        # Provision Host
-        try:
+            # Provision Host
             with default_sat.skip_yum_update_during_provisioning(
                 template='Kickstart default finish'
             ):
@@ -152,24 +150,24 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                 assert azurecloud_vm.ip == host_info['properties']['properties_table']['IP Address']
                 assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
 
-                # Host Delete
-                with satellite_setting('destroy_vm_on_host_delete=True'):
-                    session.host.delete(fqdn)
-                assert not session.host.search(fqdn)
+        with session:
+            # Host Delete
+            with satellite_setting('destroy_vm_on_host_delete=True'):
+                session.host.delete(fqdn)
+            assert not session.host.search(fqdn)
 
-                # AzureRm Cloud assertion
-                assert not azurecloud_vm.exists
+            # AzureRm Cloud assertion
+            assert not azurecloud_vm.exists
 
-        except Exception as error:
-            azure_vm = entities.Host().search(query={'search': f'name={fqdn}'})
-            if azure_vm:
-                azure_vm[0].delete(synchronous=False)
-            if azurecloud_vm.exists:
-                azurecloud_vm.delete()
-            raise error
+    except Exception as error:
+        azure_vm = entities.Host().search(query={'search': f'name={fqdn}'})
+        if azure_vm:
+            azure_vm[0].delete(synchronous=False)
+        if azurecloud_vm.exists:
+            azurecloud_vm.delete()
+        raise error
 
 
-@pytest.mark.skip_if_open("BZ:1850934")
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_azurerm_host_provision_ud(
@@ -201,13 +199,13 @@ def test_positive_azurerm_host_provision_ud(
 
     hostname = f'test-{gen_string("alpha")}'
     fqdn = f'{hostname}.{module_domain.name}'.lower()
+    try:
+        with session:
+            session.organization.select(org_name=module_org.name)
+            session.location.select(loc_name=module_location.name)
 
-    with session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_location.name)
+            # Provision Host
 
-        # Provision Host
-        try:
             with default_sat.skip_yum_update_during_provisioning(
                 template='Kickstart default user data'
             ):
@@ -220,25 +218,21 @@ def test_positive_azurerm_host_provision_ud(
                     }
                 )
 
-                host_info = session.host.get_details(fqdn)
-                assert (
-                    'Pending installation' in host_info['properties']['properties_table']['Build']
-                )
-                assert (
-                    host_info['properties']['properties_table']['Host group']
-                    == module_azure_hg.name
-                )
+        with session:
+            host_info = session.host.get_details(fqdn)
+            assert 'Pending installation' in host_info['properties']['properties_table']['Build']
+            assert host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
 
-                # AzureRm Cloud assertion
-                azurecloud_vm = azurermclient.get_vm(name=hostname.lower())
-                assert azurecloud_vm
-                assert azurecloud_vm.is_running
-                assert azurecloud_vm.name == hostname.lower()
-                assert azurecloud_vm.ip == host_info['properties']['properties_table']['IP Address']
-                assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
+            # AzureRm Cloud assertion
+            azurecloud_vm = azurermclient.get_vm(name=hostname.lower())
+            assert azurecloud_vm
+            assert azurecloud_vm.is_running
+            assert azurecloud_vm.name == hostname.lower()
+            assert azurecloud_vm.ip == host_info['properties']['properties_table']['IP Address']
+            assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
 
-        finally:
-            azure_vm = entities.Host().search(query={'search': f'name={fqdn}'})
-            if azure_vm:
-                with satellite_setting('destroy_vm_on_host_delete=True'):
-                    azure_vm[0].delete(synchronous=False)
+    finally:
+        azure_vm = entities.Host().search(query={'search': f'name={fqdn}'})
+        if azure_vm:
+            with satellite_setting('destroy_vm_on_host_delete=True'):
+                azure_vm[0].delete(synchronous=False)
