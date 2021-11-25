@@ -99,3 +99,18 @@ def get_report_data(report_path):
             if file_name != 'metadata.json':
                 json_data = json.load(tarobj.extractfile(file_))
     return json_data
+
+
+def get_report_metadata(report_path):
+    """Returns metadata.json contents from the report
+
+    Args:
+        report_path: path to tar file
+    """
+    json_meta_data = {}
+    with tarfile.open(report_path, mode='r') as tarobj:
+        for file_ in tarobj.getmembers():
+            file_name = Path(file_.name).name
+            if file_name == 'metadata.json':
+                json_meta_data = json.load(tarobj.extractfile(file_))
+    return json_meta_data

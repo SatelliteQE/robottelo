@@ -20,11 +20,13 @@ from datetime import datetime
 
 import pytest
 from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_string
 from wait_for import wait_for
 
 from robottelo.config import robottelo_tmp_dir
 from robottelo.rh_cloud_utils import get_local_file_data
 from robottelo.rh_cloud_utils import get_report_data
+from robottelo.rh_cloud_utils import get_report_metadata
 
 generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
 
@@ -78,11 +80,13 @@ def test_rhcloud_inventory_api_e2e(
         5. JSON files inside report can be parsed
         6. metadata.json lists all and only slice JSON files in tar
         7. Host counts in metadata matches host counts in slices
-        8. Assert Hostnames, IP addresses, and installed packages are present in report.
+        8. metadata contains source and foreman_rh_cloud_version keys.
+        9. Assert Hostnames, IP addresses, infrastructure type, and installed packages
+            are present in report.
 
     :CaseImportance: Critical
 
-    :BZ: 1807829, 1926100, 1965234
+    :BZ: 1807829, 1926100, 1965234, 1824183, 1879453
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
@@ -96,6 +100,11 @@ def test_rhcloud_inventory_api_e2e(
     common_assertion(local_report_path)
     # Assert Hostnames, IP addresses, and installed packages are present in report.
     json_data = get_report_data(local_report_path)
+    json_meta_data = get_report_metadata(local_report_path)
+    package_version = rhcloud_sat_host.run('rpm -qa --qf "%{VERSION}" tfm-rubygem-foreman_rh_cloud')
+
+    assert json_meta_data['source_metadata']['foreman_rh_cloud_version'] == str(package_version)
+    assert json_meta_data['source'] == 'Satellite'
     hostnames = [host['fqdn'] for host in json_data['hosts']]
     assert virtual_host.hostname in hostnames
     assert baremetal_host.hostname in hostnames
@@ -108,6 +117,12 @@ def test_rhcloud_inventory_api_e2e(
     assert baremetal_host.ip_addr in ip_addresses
     assert virtual_host.ip_addr in ipv4_addresses
     assert baremetal_host.ip_addr in ipv4_addresses
+
+    infrastructure_type = [
+        host['system_profile']['infrastructure_type'] for host in json_data['hosts']
+    ]
+    assert 'physical' and 'virtual' in infrastructure_type
+
     all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
     for host_profiles in all_host_profiles:
         assert 'installed_packages' in host_profiles
@@ -334,3 +349,56 @@ def test_include_parameter_tags_setting(
             if tag['namespace'] == 'satellite_parameter':
                 assert type(tag['value']) is str
                 break
+
+
+@pytest.mark.tier3
+def test_rh_cloud_tag_values(
+    inventory_settings, organization_ak_setup, rhcloud_sat_host, rhcloud_registered_hosts
+):
+    """Verify that tag values are escaped properly when hostgroup name
+        contains " (double quote) in it.
+
+    :id: ea7cd7ca-4157-4aac-ad8e-e66b88740ce3
+
+    :customerscenario: true
+
+    :Steps:
+        1. Create Hostcollection with name containing double quotes.
+        2. Register a content host with satellite.
+        3. Add a content host to hostgroup.
+        4. Generate inventory report.
+        5. Assert that generated report contains valid json file.
+        6. Assert that hostcollection tag value is escaped properly.
+
+    :expectedresults:
+        1. Valid json report is created.
+        2. Tag value is escaped properly.
+
+    :BZ: 1874587, 1874619
+
+    :CaseAutomation: Automated
+    """
+    org, ak = organization_ak_setup
+
+    host_col_name = gen_string('alpha')
+    host_name = rhcloud_registered_hosts[0].hostname
+    host = rhcloud_sat_host.api.Host().search(query={'search': host_name})[0]
+    host_collection = rhcloud_sat_host.api.HostCollection(
+        organization=org, name=f'"{host_col_name}"', host=[host]
+    ).create()
+
+    assert len(host_collection.host) == 1
+    local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
+    # Generate report
+    generate_inventory_report(rhcloud_sat_host, org)
+    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_download_report(
+        destination=local_report_path
+    )
+    common_assertion(local_report_path)
+    json_data = get_report_data(local_report_path)
+    for host in json_data['hosts']:
+        if host['fqdn'] == host_name:
+            for tag in host['tags']:
+                if tag['key'] == 'host_collection':
+                    assert tag['value'] == f'"{host_col_name}"'
+                    break
