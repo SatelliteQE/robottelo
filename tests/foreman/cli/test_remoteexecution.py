@@ -35,6 +35,7 @@ from robottelo.cli.recurring_logic import RecurringLogic
 from robottelo.cli.task import Task
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture()
@@ -629,14 +630,18 @@ class TestAnsibleREX:
         GlobalParameter().delete({'name': param_name})
         assert len(GlobalParameter().list({'search': param_name})) == 0
 
+    nick_params = [{'nick': 'rhel7'}, {'nick': 'rhel7_fips'}, {'nick': 'rhel8'}]
+    if not is_open('BZ:1811166'):
+        nick_params.append({'nick': 'rhel8_fips'})
+
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.parametrize(
         'fixture_vmsetup',
-        [{'nick': 'rhel7'}, {'nick': 'rhel7_fips'}],
-        ids=['rhel7', 'rhel7_fips'],
+        nick_params,
+        ids=[n['nick'] for n in nick_params],
         indirect=True,
     )
     @pytest.mark.skipif(
@@ -665,7 +670,11 @@ class TestAnsibleREX:
 
         :CaseLevel: System
 
+        :bz: 1872688, 1811166
+
         :CaseImportance: Critical
+
+        :customerscenario: true
 
         :parametrized: yes
         """
@@ -680,7 +689,9 @@ class TestAnsibleREX:
         ).create()
         repo.sync()
         prod = repo.product.read()
-        subs = entities.Subscription().search(query={'search': f'name={prod.name}'})
+        subs = entities.Subscription(organization=self.org).search(
+            query={'search': f'name={prod.name}'}
+        )
         assert len(subs), 'No subscriptions matching the product returned'
         ak = entities.ActivationKey(
             organization=self.org,
@@ -698,8 +709,9 @@ class TestAnsibleREX:
                 'search-query': f'name ~ {client.hostname}',
             }
         )
+        result = JobInvocation.info({'id': invocation_command['id']})
         try:
-            assert invocation_command['success'] == '1'
+            assert result['success'] == '1'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
@@ -712,20 +724,18 @@ class TestAnsibleREX:
         result = client.run(f'rpm -q {" ".join(packages)}')
         assert result.status == 0
 
-        # start a service
-        service = "postfix"
-        client.execute(
-            "sed -i 's/^inet_protocols.*/inet_protocols = ipv4/' /etc/postfix/main.cf",
-        )
+        # stop a service
+        service = 'rsyslog'
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Service Action - Ansible Default',
-                'inputs': f'state=started, name={service}',
+                'inputs': f'state=stopped, name={service}',
                 'search-query': f"name ~ {client.hostname}",
             }
         )
+        result = JobInvocation.info({'id': invocation_command['id']})
         try:
-            assert invocation_command['success'] == '1'
+            assert result['success'] == '1'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
@@ -736,4 +746,27 @@ class TestAnsibleREX:
             )
             raise AssertionError(result)
         result = client.execute(f"systemctl status {service}")
+        assert result.status == 3
+
+        # start it again
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Service Action - Ansible Default',
+                'inputs': f'state=started, name={service}',
+                'search-query': f"name ~ {client.hostname}",
+            }
+        )
+        result = JobInvocation.info({'id': invocation_command['id']})
+        try:
+            assert result['success'] == '1'
+        except AssertionError:
+            result = 'host output: {}'.format(
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': invocation_command['id'], 'host': client.hostname}
+                    )
+                )
+            )
+            raise AssertionError(result)
+        result = client.execute(f'systemctl status {service}')
         assert result.status == 0
