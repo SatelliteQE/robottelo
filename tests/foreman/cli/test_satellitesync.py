@@ -1099,8 +1099,7 @@ class TestContentViewSync:
         cvv = cv['versions'][0]
         # Export cv
         path = ContentExport.completeVersion(
-            {'id': cvv['id'], 'organization-id': function_org.id},
-            timeout=7200000
+            {'id': cvv['id'], 'organization-id': function_org.id}, timeout=7200000
         )
         # grab export dir and check all exported files are there
         export_dir = os.path.dirname(path['message'])
@@ -1124,12 +1123,11 @@ class TestContentViewSync:
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
         ContentImport.version(
-            {'organization-id': importing_org['id'], 'path': import_path},
-            timeout=7200000
+            {'organization-id': importing_org['id'], 'path': import_path}, timeout=7200000
         )
-        importing_cvv = ContentView.info(
-            {'name': cv_name, 'organization-id': importing_org['id']}
-        )['versions']
+        importing_cvv = ContentView.info({'name': cv_name, 'organization-id': importing_org['id']})[
+            'versions'
+        ]
         assert len(importing_cvv) >= 1
         imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
         assert len(imported_packages)
