@@ -652,7 +652,7 @@ def test_positive_katello_and_openscap_loaded():
     help_output = Host.execute('host update --help')
     for arg in ['lifecycle-environment[-id]', 'openscap-proxy-id']:
         assert any(
-            f'--{arg}' in line for line in help_output
+            f'--{arg}' in line for line in help_output.split('\n')
         ), f'--{arg} not supported by update subcommand'
 
 
