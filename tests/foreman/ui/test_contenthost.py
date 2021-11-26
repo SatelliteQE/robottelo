@@ -316,7 +316,7 @@ def test_positive_search_by_subscription_status(session, vm):
 
 
 @pytest.mark.tier3
-def test_negative_install_package(session, vm):
+def test_negative_install_package(session, vm, default_location):
     """Attempt to install non-existent package to a host remotely
 
     :id: d60b70f9-c43f-49c0-ae9f-187ffa45ac97
@@ -330,6 +330,7 @@ def test_negative_install_package(session, vm):
     :CaseLevel: System
     """
     with session:
+        session.location.select(loc_name=default_location.name)
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Install', gen_string('alphanumeric')
         )
