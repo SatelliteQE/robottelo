@@ -72,7 +72,7 @@ def test_positive_run_capsule_upgrade_playbook(capsule_configured, default_sat):
         id=default_sat.api.SmartProxy(name=default_sat.hostname).search()[0].id
     ).refresh()
     feature_list = [feat['name'] for feat in result['features']]
-    assert {'Discovery', 'Dynflow', 'Ansible', 'SSH', 'Logs', 'Pulp'}.issubset(feature_list)
+    assert {'Container_Gateway', 'Dynflow', 'SSH', 'Pulpcore', 'Templates'}.issubset(feature_list)
 
 
 @pytest.mark.destructive
