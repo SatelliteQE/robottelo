@@ -98,7 +98,7 @@ def valid_name_interval_update_tests():
     ]
 
 
-def validate_task_status(repo_id, org_id, max_tries=6):
+def validate_task_status(repo_id, org_id, max_tries=10):
     """Wait for foreman_tasks to complete or timeout
 
     :param repo_id: Repository Id to identify the correct task
@@ -452,9 +452,14 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
 
     :BZ: 1655595
     """
-    delay = 2 * 60  # delay for sync date in seconds
+    cron_multiple = 5  # sync event is on every multiple of this value, starting from 00 mins
+    delay = (cron_multiple) * 60  # delay for sync date in seconds
+    guardtime = 180  # do not start test less than 3 mins before the next sync event
     product = make_product({'organization-id': module_org.id})
     repo = make_repository({'product-id': product['id']})
+    # if < 3 mins before the target event rather wait 3 mins for the next test window
+    if int(datetime.utcnow().strftime('%M')) % (cron_multiple) > int(guardtime / 60):
+        sleep(guardtime)
     sync_plan = make_sync_plan(
         {
             'enabled': 'true',
@@ -462,7 +467,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
             'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay)).strftime(
                 SYNC_DATE_FMT
             ),
-            'cron-expression': ["*/4 * * * *"],
+            'cron-expression': [f'*/{cron_multiple} * * * *'],
         }
     )
     # Verify product is not synced and doesn't have any content
@@ -504,11 +509,16 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
 
     :BZ: 1655595
     """
-    delay = 4 * 60  # delay for sync date in seconds
-    products = [make_product({'organization-id': module_org.id}) for _ in range(3)]
+    cron_multiple = 5  # sync event is on every multiple of this value, starting from 00 mins
+    delay = (cron_multiple) * 60  # delay for sync date in seconds
+    guardtime = 210  # do not start test less than 3.5 mins before the next sync event
+    products = [make_product({'organization-id': module_org.id}) for _ in range(2)]
     repos = [
         make_repository({'product-id': product['id']}) for product in products for _ in range(2)
     ]
+    # if < 3 mins before the target event rather wait 3 mins for the next test window
+    if int(datetime.utcnow().strftime('%M')) % (cron_multiple) > int(guardtime / 60):
+        sleep(guardtime)
     sync_plan = make_sync_plan(
         {
             'enabled': 'true',
@@ -516,7 +526,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
             'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay)).strftime(
                 SYNC_DATE_FMT
             ),
-            'cron-expression': ["*/4 * * * *"],
+            'cron-expression': [f'*/{cron_multiple} * * * *'],
         }
     )
     # Verify products have not been synced yet
@@ -530,22 +540,22 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
     # Associate sync plan with products
     for product in products:
         Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
-    # Wait quarter of expected time
+    # Wait fifth of expected time
     logger.info(
-        f"Waiting {(delay / 4)} seconds to check products {products[0]['name']}"
+        f"Waiting {(delay / 5)} seconds to check products {products[0]['name']}"
         f" and {products[1]['name']} were not synced by {sync_plan['name']} "
     )
-    sleep(delay / 4)
+    sleep(delay / 5)
     # Verify products have not been synced yet
     for repo in repos:
         with pytest.raises(AssertionError):
             validate_task_status(repo['id'], module_org.id, max_tries=1)
     # Wait the rest of expected time
     logger.info(
-        f"Waiting {(delay * 3 / 4)} seconds to check product {products[0]['name']}"
+        f"Waiting {(delay * 4 / 5)} seconds to check product {products[0]['name']}"
         f" and {products[1]['name']} were synced by {sync_plan['name']}"
     )
-    sleep(delay * 3 / 4)
+    sleep(delay * 4 / 5)
     # Verify products were synced successfully
     for repo in repos:
         validate_task_status(repo['id'], module_org.id)
@@ -635,7 +645,9 @@ def test_positive_synchronize_rh_product_future_sync_date(default_sat):
 
     :BZ: 1655595
     """
-    delay = 2 * 60  # delay for sync date in seconds
+    cron_multiple = 5  # sync event is on every multiple of this value, starting from 00 mins
+    delay = (cron_multiple) * 60  # delay for sync date in seconds
+    guardtime = 180  # do not start test less than 2 mins before the next sync event
     org = make_org()
     with manifests.clone() as manifest:
         default_sat.put(manifest, manifest.filename)
@@ -653,6 +665,9 @@ def test_positive_synchronize_rh_product_future_sync_date(default_sat):
     repo = Repository.info(
         {'name': REPOS['rhva6']['name'], 'product': product['name'], 'organization-id': org['id']}
     )
+    # if < 3 mins before the target event rather wait 3 mins for the next test window
+    if int(datetime.utcnow().strftime('%M')) % (cron_multiple) > int(guardtime / 60):
+        sleep(guardtime)
     sync_plan = make_sync_plan(
         {
             'enabled': 'true',
@@ -660,7 +675,7 @@ def test_positive_synchronize_rh_product_future_sync_date(default_sat):
             'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay)).strftime(
                 SYNC_DATE_FMT
             ),
-            'cron-expression': ["*/4 * * * *"],
+            'cron-expression': [f'*/{cron_multiple} * * * *'],
         }
     )
     # Verify product is not synced and doesn't have any content
@@ -669,22 +684,22 @@ def test_positive_synchronize_rh_product_future_sync_date(default_sat):
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Associate sync plan with product
     Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
-    # Wait quarter of expected time
+    # Wait fifth of expected time
     logger.info(
-        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
+        f"Waiting {(delay / 5)} seconds to check product {product['name']}"
         f" was not synced by {sync_plan['name']}"
     )
-    sleep(delay / 4)
+    sleep(delay / 5)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
         validate_task_status(repo['id'], org['id'], max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
-        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
+        f"Waiting {(delay * 4 / 5)} seconds to check product {product['name']}"
         f" was synced by {sync_plan['name']}"
     )
-    sleep(delay * 3 / 4)
+    sleep(delay * 4 / 5)
     # Verify product was synced successfully
     validate_task_status(repo['id'], org['id'])
     validate_repo_content(repo, ['errata', 'packages'])

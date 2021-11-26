@@ -285,8 +285,8 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(session,
         # workaround: force session.browser to point to browser object on next line
         session.contenthost.read_all('current_user')
         startdate = session.browser.get_client_datetime() - timedelta(seconds=(interval - delay))
-        # if < 3mins before the target event rather wait 3 mins for the next test window
-        if int(startdate.strftime('%M')) % (cron_multiple) < (guardtime):
+        # if < 3 mins before the target event rather wait 3 mins for the next test window
+        if int(startdate.strftime('%M')) % (cron_multiple) > int(guardtime / 60):
             time.sleep(guardtime)
         session.syncplan.create(
             {
