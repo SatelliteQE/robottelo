@@ -29,6 +29,7 @@ from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
 from nailgun import entities
+from packaging import version
 
 from robottelo.api.utils import promote
 from robottelo.cli.activationkey import ActivationKey
@@ -42,6 +43,7 @@ from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
 from robottelo.cli.host import HostInterface
+from robottelo.cli.host import HostTraces
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.package import Package
 from robottelo.cli.proxy import Proxy
@@ -1708,67 +1710,29 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
     """
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.fixture(scope="module")
-def katello_host_tools_repos():
-    """Create Org, Lifecycle Environment, Content View, Activation key"""
-    org = entities.Organization().create()
-    cv = entities.ContentView(organization=org).create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    ak = entities.ActivationKey(
-        environment=lce,
-        organization=org,
-    ).create()
-    setup_org_for_a_rh_repo(
-        {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
-            'organization-id': org.id,
-            'content-view-id': cv.id,
-            'lifecycle-environment-id': lce.id,
-            'activationkey-id': ak.id,
-        }
-    )
-    # Create custom repository content
+def setup_custom_repo(setup_rhst_repo):
+    """Create custom repository content"""
     setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_6.url,
-            'organization-id': org.id,
-            'content-view-id': cv.id,
-            'lifecycle-environment-id': lce.id,
-            'activationkey-id': ak.id,
+            'organization-id': setup_rhst_repo['org'].id,
+            'content-view-id': setup_rhst_repo['cv'].id,
+            'lifecycle-environment-id': setup_rhst_repo['lce'].id,
+            'activationkey-id': setup_rhst_repo['ak'].id,
         }
     )
     return {
-        'ak': ak,
-        'cv': cv,
-        'lce': lce,
-        'org': org,
+        'ak': setup_rhst_repo['ak'],
+        'cv': setup_rhst_repo['cv'],
+        'lce': setup_rhst_repo['lce'],
+        'org': setup_rhst_repo['org'],
     }
-
-
-@pytest.mark.skip_if_not_set('clients')
-@pytest.fixture(scope="function")
-def katello_host_tools_client(katello_host_tools_repos, rhel7_contenthost, default_sat):
-    rhel7_contenthost.install_katello_ca(default_sat)
-    # Register content host and install katello-host-tools
-    rhel7_contenthost.register_contenthost(
-        katello_host_tools_repos['org'].label,
-        katello_host_tools_repos['ak'].name,
-    )
-    assert rhel7_contenthost.subscribed
-    host_info = Host.info({'name': rhel7_contenthost.hostname})
-    rhel7_contenthost.enable_repo(REPOS['rhst7']['id'])
-    rhel7_contenthost.install_katello_host_tools()
-    yield {'client': rhel7_contenthost, 'host_info': host_info}
 
 
 @pytest.mark.katello_host_tools
 @pytest.mark.tier3
-def test_positive_report_package_installed_removed(
-    katello_host_tools_client,
-):
+def test_positive_report_package_installed_removed(katello_host_tools_host, setup_custom_repo):
     """Ensure installed/removed package is reported to satellite
 
     :id: fa5dc238-74c3-4c8a-aa6f-e0a91ba543e3
@@ -1791,8 +1755,8 @@ def test_positive_report_package_installed_removed(
 
     :CaseLevel: System
     """
-    client = katello_host_tools_client['client']
-    host_info = katello_host_tools_client['host_info']
+    client = katello_host_tools_host
+    host_info = Host.info({'name': client.hostname})
     client.run(f'yum install -y {FAKE_0_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_0_CUSTOM_PACKAGE}')
     assert result.status == 0
@@ -1811,7 +1775,7 @@ def test_positive_report_package_installed_removed(
 
 @pytest.mark.katello_host_tools
 @pytest.mark.tier3
-def test_positive_package_applicability(katello_host_tools_client):
+def test_positive_package_applicability(katello_host_tools_host, setup_custom_repo):
     """Ensure packages applicability is functioning properly
 
     :id: d283b65b-19c1-4eba-87ea-f929b0ee4116
@@ -1835,8 +1799,8 @@ def test_positive_package_applicability(katello_host_tools_client):
 
     :CaseLevel: System
     """
-    client = katello_host_tools_client['client']
-    host_info = katello_host_tools_client['host_info']
+    client = katello_host_tools_host
+    host_info = Host.info({'name': client.hostname})
     client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
@@ -1867,7 +1831,7 @@ def test_positive_package_applicability(katello_host_tools_client):
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.tier3
-def test_positive_erratum_applicability(katello_host_tools_client):
+def test_positive_erratum_applicability(katello_host_tools_host, setup_custom_repo):
     """Ensure erratum applicability is functioning properly
 
     :id: 139de508-916e-4c91-88ad-b4973a6fa104
@@ -1888,8 +1852,8 @@ def test_positive_erratum_applicability(katello_host_tools_client):
 
     :CaseLevel: System
     """
-    client = katello_host_tools_client['client']
-    host_info = katello_host_tools_client['host_info']
+    client = katello_host_tools_host
+    host_info = Host.info({'name': client.hostname})
     client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
@@ -1910,7 +1874,7 @@ def test_positive_erratum_applicability(katello_host_tools_client):
 
 @pytest.mark.katello_host_tools
 @pytest.mark.tier3
-def test_positive_apply_security_erratum(katello_host_tools_client):
+def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_repo):
     """Apply security erratum to a host
 
     :id: 4d1095c8-d354-42ac-af44-adf6dbb46deb
@@ -1924,8 +1888,8 @@ def test_positive_apply_security_erratum(katello_host_tools_client):
 
     :BZ: 1420671
     """
-    client = katello_host_tools_client['client']
-    host_info = katello_host_tools_client['host_info']
+    client = katello_host_tools_host
+    host_info = Host.info({'name': client.hostname})
     client.download_install_rpm(settings.repos.yum_6.url, FAKE_2_CUSTOM_PACKAGE)
     # Check the system is up to date
     result = client.run('yum update --security | grep "No packages needed for security"')
@@ -1943,9 +1907,7 @@ def test_positive_apply_security_erratum(katello_host_tools_client):
 
 @pytest.mark.katello_host_tools
 @pytest.mark.tier3
-def test_positive_install_package_via_rex(
-    katello_host_tools_client, default_sat, katello_host_tools_repos
-):
+def test_positive_install_package_via_rex(katello_host_tools_host, default_sat, setup_custom_repo):
     """Install a package to a host remotely using remote execution,
     install package using Katello SSH job template, host package list is used to verify that
 
@@ -1955,16 +1917,16 @@ def test_positive_install_package_via_rex(
 
     :CaseLevel: System
     """
-    client = katello_host_tools_client['client']
-    host_info = katello_host_tools_client['host_info']
-    client.configure_rex(satellite=default_sat, org=katello_host_tools_repos['org'], register=False)
+    client = katello_host_tools_host
+    host_info = Host.info({'name': client.hostname})
+    client.configure_rex(satellite=default_sat, org=setup_custom_repo['org'], register=False)
     # Apply errata to the host collection using job invocation
     JobInvocation.create(
         {
             'feature': 'katello_package_install',
             'search-query': f'name ~ {client.hostname}',
             'inputs': f'package={FAKE_1_CUSTOM_PACKAGE}',
-            'organization-id': katello_host_tools_repos['org'].id,
+            'organization-id': setup_custom_repo['org'].id,
         }
     )
     result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
@@ -2592,3 +2554,31 @@ def test_positive_dump_enc_yaml(default_sat):
     assert f'fqdn: {default_sat.hostname}' in enc_dump
     assert f'ip: {default_sat.ip_addr}' in enc_dump
     assert 'ssh-rsa' in enc_dump
+
+
+# -------------------------- HOST TRACE SUBCOMMAND SCENARIOS -------------------------
+@pytest.mark.tier3
+def test_positive_tracer_list_and_resolve(katello_host_tools_tracer_host, default_sat):
+    """Install tracer on client, downgrade the service, check from the satellite
+    that tracer shows and resolves the problem
+
+    :id: 81c83a2c-4b9d-11ec-a5b3-98fa9b6ecd5a
+
+    :expectedresults: Tracer resolved the problem, the downgraded service was restarted
+
+    :CaseImportance: Medium
+    """
+    client = katello_host_tools_tracer_host
+    host_info = Host.info({'name': client.hostname})
+    package = 'rsyslog'
+    package_version = client.execute(f'rpm -q {package}')
+    assert package_version.status == 0
+    client.execute(f'yum -y downgrade {package}')
+    traces = HostTraces.list({'host-id': host_info['id']})[0]
+    assert package == traces['application']
+    HostTraces.resolve({'host-id': host_info['id'], 'trace-ids': traces['trace-id']})
+    traces = HostTraces.list({'host-id': host_info['id']})
+    assert not traces
+    new_package_version = client.execute(f'rpm -q {package}')
+    assert new_package_version.status == 0
+    assert version.parse(package_version.stdout) > version.parse(new_package_version.stdout)
