@@ -32,9 +32,9 @@ class ManifestCloner:
         """Download and cache the manifest information."""
         if self.template is None:
             self.template = {}
-        self.template[name] = requests.get(settings.fake_manifest.url[name]).content
+        self.template[name] = requests.get(settings.fake_manifest.url[name], verify=False).content
         if self.signing_key is None:
-            self.signing_key = requests.get(settings.fake_manifest.key_url).content
+            self.signing_key = requests.get(settings.fake_manifest.key_url, verify=False).content
         if self.private_key is None:
             self.private_key = serialization.load_pem_private_key(
                 self.signing_key, password=None, backend=default_backend()
