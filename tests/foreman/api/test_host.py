@@ -30,6 +30,7 @@ from fauxfactory import gen_mac
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
+from packaging import version
 from requests.exceptions import HTTPError
 
 from robottelo import datafactory
@@ -1480,3 +1481,37 @@ class TestHostBulkAction:
         for host_id in host_ids[:-1]:
             with pytest.raises(HTTPError):
                 entities.Host(id=host_id).read()
+
+
+class TestHostTraces:
+    """Tests for host tracer"""
+
+    @pytest.mark.tier4
+    def test_positive_tracer_list_and_resolve(self, katello_host_tools_tracer_host):
+        """Install tracer on client, downgrade the service, check from the satellite
+        that tracer shows and resolves the problem
+
+        :id: 552fc212-536a-11ec-865d-98fa9b6ecd5a
+
+        :expectedresults: Tracer resolved the problem, the downgraded service was restarted
+
+        :CaseImportance: Medium
+        """
+        # setup
+        client = katello_host_tools_tracer_host
+        host = entities.Host().search(query={'search': f'name = {client.hostname}'})[0]
+        package = 'rsyslog'
+        package_version = client.execute(f'rpm -q {package}')
+        assert package_version.status == 0
+        client.execute(f'yum -y downgrade {package}')
+        traces = host.traces(data={'host_id': host.id})
+        assert (
+            len(traces['results']) == 1
+        ), f'only one trace trace should be found, there is: {traces["results"]}'
+        assert package == traces['results'][0]['application']
+        host.resolve_traces(data={'host_id': host.id, 'trace_ids': traces['results'][0]['id']})
+        traces = host.traces(data={'host_id': host.id})
+        assert not traces['results']
+        new_package_version = client.execute(f'rpm -q {package}')
+        assert new_package_version.status == 0
+        assert version.parse(package_version.stdout) > version.parse(new_package_version.stdout)

@@ -9,6 +9,7 @@ from broker import VMBroker
 
 from robottelo import constants
 from robottelo.config import settings
+from robottelo.constants import REPOS
 from robottelo.hosts import ContentHost
 
 
@@ -89,13 +90,38 @@ def content_hosts(request):
 
 @pytest.fixture(scope='module')
 def registered_hosts(organization_ak_setup, content_hosts, default_sat):
-    """Fixture that registers content hosts to Satellite."""
+    """Fixture that registers content hosts to Satellite, based on rh_cloud setup"""
     org, ak = organization_ak_setup
     for vm in content_hosts:
         vm.install_katello_ca(default_sat)
         vm.register_contenthost(org.label, ak.name)
         assert vm.subscribed
     return content_hosts
+
+
+@pytest.fixture(scope="function")
+def katello_host_tools_host(setup_rhst_repo, rhel7_contenthost, default_sat):
+    """Register content host to Satellite and install katello-host-tools on the host,
+    based on hosts setup"""
+    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.register_contenthost(
+        setup_rhst_repo['org'].label,
+        setup_rhst_repo['ak'].name,
+    )
+    assert rhel7_contenthost.subscribed
+    rhel7_contenthost.enable_repo(REPOS[setup_rhst_repo['repo_name']]['id'])
+    rhel7_contenthost.install_katello_host_tools()
+    yield rhel7_contenthost
+
+
+@pytest.fixture(scope="function")
+def katello_host_tools_tracer_host(katello_host_tools_host, default_sat):
+    """Install katello-host-tools-tracer, add REx key and create custom
+    repositories on the host"""
+    katello_host_tools_host.install_tracer()
+    katello_host_tools_host.add_rex_key(satellite=default_sat)
+    katello_host_tools_host.create_custom_rhel_repo_file_to_downgrade_packages()
+    yield katello_host_tools_host
 
 
 @pytest.fixture

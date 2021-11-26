@@ -305,6 +305,24 @@ class ContentHost(Host):
             content = f'[{name}]\n' f'name={name}\n' f'baseurl={url}\n' 'enabled=1\n' 'gpgcheck=0'
             self.execute(f'echo "{content}" > /etc/yum.repos.d/{name}.repo')
 
+    def get_base_url_for_older_rhel_minor(self):
+        domain = settings.repos.rhel_os_repo_host
+        major = self.os_version.major
+        minor = self.os_version.minor - 1
+        if major == 8:
+            baseurl = (
+                f'{domain}/rhel-{major}/rel-eng/RHEL-{major}/'
+                f'latest-RHEL-{major}.{minor}.0/compose/AppStream/x86_64/os/'
+            )
+        elif major == 7:
+            baseurl = (
+                f'{domain}/rhel-{major}/rel-eng/RHEL-{major}/'
+                f'latest-RHEL-{major}.{minor}/compose/Server/x86_64/os/'
+            )
+        else:
+            raise ValueError('not supported major version')
+        return baseurl
+
     def install_katello_agent(self):
         """Install katello-agent on the virtual machine.
 
@@ -1011,6 +1029,22 @@ class ContentHost(Host):
             self.hostname,
         ]
         self.execute(f'cd /root && rm -rf {" ".join(files)}')
+
+    def install_tracer(self):
+        """Install tracer on the host, prerequisites the katello host tools needs to be installed"""
+        cmd_result = self.execute('yum install -y katello-host-tools-tracer')
+        if cmd_result.status != 0:
+            raise ContentHostError('There was an error installing katello-host-tools-tracer')
+        self.execute('katello-tracer-upload')
+
+    def create_custom_rhel_repo_file_to_downgrade_packages(self):
+        """Create custom rhel repo file on client,
+        repo content is for older minor version, (current minor version - 1).
+        Please make sure that package you are looking for is inside minor version.
+        Usage: downgrade of package
+        """
+        baseurl = self.get_base_url_for_older_rhel_minor()
+        self.create_custom_repos(rhel=baseurl)
 
 
 class Capsule(ContentHost):

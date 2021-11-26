@@ -460,3 +460,58 @@ class HostInterface(Base):
         """Create new network interface for host"""
         cls.command_sub = 'create'
         cls.execute(cls._construct_command(options), output_format='csv')
+
+
+class HostTraces(Base):
+    """Manages traces on your hosts
+
+    Usage::
+        hammer host traces [OPTIONS] SUBCOMMAND [ARG] ...
+
+    Subcommands::
+        list                          List services that need restarting on the host
+        resolve                       Resolve Traces
+    """
+
+    command_base = 'host traces'
+
+    @classmethod
+    def list(cls, options=None):
+        """List services that need restarting on the host.
+
+        Usage::
+
+            hammer host traces list [OPTIONS]
+
+        Options::
+
+            --fields FIELDS               Show specified fields or predefined field sets only.
+                                        (See below) Comma separated list of values.
+                                        Values containing comma should be quoted or
+                                        escaped with backslash.
+                                       JSON is acceptable and preferred way for complex parameters
+            --host[-id]                   Name/id of the host
+        """
+        cls.command_sub = 'list'
+        return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def resolve(cls, options=None):
+        """Resolve Traces
+
+        Usage::
+
+            hammer host traces resolve [OPTIONS]
+
+        Options::
+
+            --async                       Do not wait for the task
+            --host[-id]                   Name/id of the host
+            --trace-ids TRACE_IDS         Array of Trace ids
+                                       Comma separated list of values.
+                                       Values containing comma should be quoted or
+                                       escaped with backslash.
+                                       JSON is acceptable and preferred way for complex parameters
+        """
+        cls.command_sub = 'resolve'
+        cls.execute(cls._construct_command(options))
