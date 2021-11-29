@@ -19,6 +19,7 @@
 from datetime import datetime
 
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import robottelo_tmp_dir
 from robottelo.rh_cloud_utils import get_local_file_data
@@ -147,6 +148,16 @@ def test_positive_sync_inventory_status(
     assert result.status == 0
     assert success_msg in result.stdout
     # Check task details
+    wait_for(
+        lambda: rhcloud_sat_host.api.ForemanTask()
+        .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
     task_output = rhcloud_sat_host.api.ForemanTask().search(
         query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'}
     )
