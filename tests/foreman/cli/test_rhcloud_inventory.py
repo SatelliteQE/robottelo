@@ -16,11 +16,15 @@
 
 :Upstream: No
 """
+from datetime import datetime
+
 import pytest
 
 from robottelo.config import robottelo_tmp_dir
 from robottelo.rh_cloud_utils import get_local_file_data
 from robottelo.rh_cloud_utils import get_remote_report_checksum
+
+inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
 
 
 @pytest.mark.tier3
@@ -108,8 +112,13 @@ def test_positive_inventory_recommendation_sync():
     """
 
 
-@pytest.mark.stubbed
-def test_positive_sync_inventory_status():
+@pytest.mark.tier3
+def test_positive_sync_inventory_status(
+    set_rh_cloud_token,
+    organization_ak_setup,
+    rhcloud_registered_hosts,
+    rhcloud_sat_host,
+):
     """Sync inventory status via foreman-rake commands:
     https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
 
@@ -118,9 +127,7 @@ def test_positive_sync_inventory_status():
     :Steps:
 
         0. Create a VM and register to insights within org having manifest.
-        1. Sync inventory status for all organizations.
-            # /usr/sbin/foreman-rake rh_cloud_inventory:sync
-        2. Sync inventory status for specific organization.
+        1. Sync inventory status for specific organization.
             # export organization_id=1
             # /usr/sbin/foreman-rake rh_cloud_inventory:sync
 
@@ -128,10 +135,23 @@ def test_positive_sync_inventory_status():
 
     :BZ: 1957186
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
 
     :CaseLevel: System
     """
+    org, ak = organization_ak_setup
+    cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
+    success_msg = f"Synchronized inventory for organization '{org.name}'"
+    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    result = rhcloud_sat_host.execute(cmd)
+    assert result.status == 0
+    assert success_msg in result.stdout
+    # Check task details
+    task_output = rhcloud_sat_host.api.ForemanTask().search(
+        query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'}
+    )
+    assert task_output[0].output['host_statuses']['sync'] == 2
+    assert task_output[0].output['host_statuses']['disconnect'] == 0
 
 
 @pytest.mark.stubbed
