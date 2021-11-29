@@ -1261,6 +1261,14 @@ class Satellite(Capsule):
         else:
             return 'upstream'
 
+    def is_remote_db(self):
+        return (
+            self.execute(
+                'grep "db_manage: false" /etc/foreman-installer/scenarios.d/satellite-answers.yaml'
+            ).status
+            == 0
+        )
+
     def capsule_certs_generate(self, capsule, cert_path=None, **extra_kwargs):
         """Generate capsule certs, returning the cert path and the installer command args"""
         command = InstallerCommand(
