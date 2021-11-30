@@ -292,6 +292,8 @@ def test_positive_install_multiple_in_host(
         counter decreased by one; it's possible to schedule another errata
         installation
 
+    :CaseImportance: Medium
+
     :CaseLevel: System
     """
     rhel7_contenthost.install_katello_ca(default_sat)
@@ -544,6 +546,8 @@ def test_positive_get_count_for_host(setup_content_rhel6, rhel6_contenthost, def
     :expectedresults: The available errata count is retrieved.
 
     :CaseLevel: System
+
+    :CaseImportance: Medium
     """
     ak_name = setup_content_rhel6[0].name
     org_label = setup_content_rhel6[1].label
@@ -582,6 +586,8 @@ def test_positive_get_applicable_for_host(setup_content_rhel6, rhel6_contenthost
     :expectedresults: The available errata is retrieved.
 
     :CaseLevel: System
+
+    :CaseImportance: Medium
     """
     ak_name = setup_content_rhel6[0].name
     org_label = setup_content_rhel6[1].label
