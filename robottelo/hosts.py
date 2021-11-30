@@ -257,6 +257,30 @@ class ContentHost(Host):
     def subscription_manager_list(self):
         return self.execute('subscription-manager list')
 
+    def subscription_manager_get_pool(self, sub_list=[]):
+        """
+        Return pool ids for the corresponding subscriptions in the list
+        """
+        pool_ids = []
+        for sub in sub_list:
+            result = self.execute(
+                f'subscription-manager list --available --pool-only --matches="{sub}"'
+            )
+            result = result.stdout
+            result = result.split('\n')
+            result = ' '.join(result).split()
+            pool_ids.append(result)
+        return pool_ids
+
+    def subscription_manager_attach_pool(self, pool_list=[]):
+        """
+        Attach pool ids to the host and return the result
+        """
+        result = []
+        for pool in pool_list:
+            result.append(self.execute(f'subscription-manager attach --pool={pool}'))
+        return result
+
     def create_custom_repos(self, **kwargs):
         """Create custom repofiles.
         Each ``kwargs`` item will result in one repository file created. Where
