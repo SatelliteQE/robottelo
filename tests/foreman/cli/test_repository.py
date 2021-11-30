@@ -36,6 +36,7 @@ from robottelo.cli.factory import make_content_credential
 from robottelo.cli.factory import make_content_view
 from robottelo.cli.factory import make_filter
 from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
@@ -44,6 +45,7 @@ from robottelo.cli.factory import make_user
 from robottelo.cli.file import File
 from robottelo.cli.filter import Filter
 from robottelo.cli.module_stream import ModuleStream
+from robottelo.cli.org import Org
 from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
@@ -559,6 +561,34 @@ class TestRepository:
         """
         for key in 'url', 'content-type', 'name':
             assert repo.get(key) == repo_options[key]
+
+    @pytest.mark.tier1
+    def test_positive_create_with_new_organization_and_location(self):
+        """Check if repo can be created with a new Organization and Location.
+
+        :parametrized: no
+
+        :expectedresults: Repository is successrully created.
+
+        :BZ: 1992967
+
+        "CaseImportance: Critical
+        """
+        new_org = make_org()
+        new_location = make_location()
+        new_product = make_product(
+            {'organization-id': new_org['id'], 'description': 'test_product'}
+        )
+        Org.add_location({'location-id': new_location['id'], 'name': new_org['name']})
+        assert Org.info({'id': new_org['id']})['locations'][0] == new_location['name']
+        new_repo = make_repository(
+            {
+                'location-id': new_location['id'],
+                'organization-id': new_org['id'],
+                'product-id': new_product['id'],
+            }
+        )
+        assert new_repo['organization'] == new_org['name']
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
