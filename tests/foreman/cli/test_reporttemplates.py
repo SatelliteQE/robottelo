@@ -783,8 +783,8 @@ def test_positive_generate_entitlements_report_multiple_formats(
             'inputs': 'Days from Now=no limit',
         }
     )
-    assert client.hostname in result_html[2]
-    assert local_subscription['name'] in result_html[2]
+    assert client.hostname in result_html
+    assert local_subscription['name'] in result_html
     result_yaml = ReportTemplate.generate(
         {
             'organization': local_org['name'],
@@ -806,10 +806,10 @@ def test_positive_generate_entitlements_report_multiple_formats(
             'inputs': 'Days from Now=no limit',
         }
     )
-    assert client.hostname in result_csv[1]
-    assert local_subscription['name'] in result_csv[1]
+    assert client.hostname in result_csv
+    assert local_subscription['name'] in result_csv
     # BZ 1830289
-    assert 'Subscription Quantity' in result_csv[0]
+    assert 'Subscription Quantity' in result_csv
 
 
 @pytest.mark.tier3
