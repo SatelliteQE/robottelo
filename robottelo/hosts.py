@@ -258,6 +258,9 @@ class ContentHost(Host):
         return self.execute('subscription-manager list')
 
     def subscription_manager_get_pool(self, sub_list=[]):
+        """
+        Return pool ids for the corresponding subscriptions in the list
+        """
         pool_ids = []
         for sub in sub_list:
             result = self.execute(
@@ -270,6 +273,9 @@ class ContentHost(Host):
         return pool_ids
 
     def subscription_manager_attach_pool(self, pool_list=[]):
+        """
+        Attach pool ids to the host and return the result
+        """
         result = []
         for pool in pool_list:
             result.append(self.execute(f'subscription-manager attach --pool={pool}'))

@@ -478,6 +478,12 @@ def test_positive_filter_by_envs(module_org):
 
 @pytest.fixture(scope='module')
 def setup_content_rhel6():
+    """Setup content fot rhel6 content host
+    Using `Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)`
+    from manifest, SATTOOLS_REPO for host-tools and yum_9 repo as custom repo.
+
+    :return: Activation Key, Organization, subscription list
+    """
     org = entities.Organization().create()
     with manifests.clone() as manifest:
         upload_manifest(org.id, manifest.content)
