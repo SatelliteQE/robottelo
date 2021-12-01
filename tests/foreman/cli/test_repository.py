@@ -563,7 +563,7 @@ class TestRepository:
             assert repo.get(key) == repo_options[key]
 
     @pytest.mark.tier1
-    def test_positive_create_with_new_organization_and_location(self):
+    def test_positive_create_with_new_organization_and_location(self, default_sat):
         """Check if error is thrown when creating a Repo with a new Organization and Location.
 
         :id: 9ea4f2a9-f339-4215-b301-cd39c6b5c474
@@ -583,14 +583,19 @@ class TestRepository:
         )
         Org.add_location({'location-id': new_location['id'], 'name': new_org['name']})
         assert new_location['name'] in Org.info({'id': new_org['id']})['locations']
-        new_repo = make_repository(
+        make_repository(
             {
                 'location-id': new_location['id'],
                 'organization-id': new_org['id'],
                 'product-id': new_product['id'],
             }
         )
-        assert new_repo['organization'] == new_org['name']
+
+        result = default_sat.execute(
+            "cat /var/log/foreman/production.log | "
+            "grep \"NoMethodError: undefined method `id' for nil:NilClass\""
+        )
+        assert result == 0
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
