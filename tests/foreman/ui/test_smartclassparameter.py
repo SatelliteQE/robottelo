@@ -171,6 +171,7 @@ def test_positive_end_to_end(session, module_puppet_classes, sc_params_list):
 
 
 @pytest.mark.tier2
+@pytest.mark.skip_if_open("BZ:2015911")
 def test_positive_create_matcher_attribute_priority(session, sc_params_list, module_host, domain):
     """Matcher Value set on Attribute Priority for Host.
 
@@ -259,6 +260,7 @@ def test_positive_create_matcher_attribute_priority(session, sc_params_list, mod
 
 
 @pytest.mark.tier2
+@pytest.mark.skip_if_open("BZ:2015911")
 def test_positive_create_matcher_avoid_duplicate(session, sc_params_list, module_host, domain):
     """Merge the values of all the associated matchers, remove duplicates.
 
