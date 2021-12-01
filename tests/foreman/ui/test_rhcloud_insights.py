@@ -439,3 +439,70 @@ def test_delete_host_having_insights_recommendation(
         assert not rhcloud_sat_host.api.Host().search(
             query={'search': f'name="{rhel8_contenthost.hostname}"'}
         )
+
+
+@pytest.mark.tier2
+def test_insights_tab_on_host_details_page(
+    rhel8_insights_vm,
+    organization_ak_setup,
+    set_rh_cloud_token,
+    rhcloud_sat_host,
+):
+    """Test recommendations count in hosts index is a link and contents
+        of Insights tab on host details page.
+
+    :id: d969ad38-7ee5-4c57-8538-1cf6c1705707
+
+    :Steps:
+        1. Prepare misconfigured machine and upload its data to Insights.
+        2. Add Cloud API key in Satellite.
+        3. In Satellite UI, Configure -> Insights -> Sync now.
+        4. Go to Hosts -> All Hosts.
+        5. Click on recommendation count.
+        6. Assert the contents of Insights tab.
+
+    :expectedresults:
+        1. There's Insights recommendation column with number of recommendations and
+            link to Insights tab on host details page.
+        2. Insights tab shows recommendations for the host.
+
+    :CaseImportance: High
+
+    :BZ: 1865876, 1879448
+
+    :CaseAutomation: Automated
+    """
+    org, ak = organization_ak_setup
+    # Prepare misconfigured machine and upload its data to Insights.
+    rhel8_insights_vm.run(
+        'dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client'
+    )
+    dnf_issue = (
+        'The dnf installs lower versions of packages when the '
+        '"best" option is not present in the /etc/dnf/dnf.conf'
+    )
+    with Session(hostname=rhcloud_sat_host.hostname) as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        # Sync insights recommendations
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        session.cloudinsights.sync_hits()
+        wait_for(
+            lambda: rhcloud_sat_host.api.ForemanTask()
+            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        result = session.host.search(rhel8_insights_vm.hostname)[0]
+        assert result['Name'] == rhel8_insights_vm.hostname
+        assert int(result['Recommendations']) > 0
+        insights_recommendations = session.host.insights_tab(rhel8_insights_vm.hostname)
+        for recommendation in insights_recommendations:
+            if recommendation['name'] == dnf_issue:
+                assert recommendation['label'] == 'Moderate'
+                assert dnf_issue in recommendation['text']
+                assert len(insights_recommendations) == int(result['Recommendations'])
