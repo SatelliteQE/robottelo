@@ -1558,8 +1558,10 @@ def test_global_registration_with_capsule_host(
     capsule = entities.Capsule(id=capsule_configured.nailgun_capsule.id).search(
         query={'search': f'name={capsule_configured.hostname}'}
     )[0]
-    module_org.smart_proxy = [capsule]
-    module_location.smart_proxy = [capsule]
+    module_org = entities.Organization(id=module_org.id).read()
+    module_org.smart_proxy.append(capsule)
+    module_location = entities.Location(id=module_location.id).read()
+    module_location.smart_proxy.append(capsule)
     module_org.update(['smart_proxy'])
     module_location.update(['smart_proxy'])
 
@@ -1591,6 +1593,8 @@ def test_global_registration_with_capsule_host(
     with session:
         cmd = session.host.get_register_command(
             {
+                'general.orgnization': module_org.name,
+                'general.location': module_location.name,
                 'general.operating_system': module_os.title,
                 'general.capsule': capsule_configured.hostname,
                 'advanced.activation_keys': activation_key.name,
