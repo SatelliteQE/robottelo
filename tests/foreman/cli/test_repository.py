@@ -593,9 +593,10 @@ class TestRepository:
 
         result = default_sat.execute(
             "cat /var/log/foreman/production.log | "
-            "grep \"NoMethodError: undefined method `id' for nil:NilClass\""
+            "grep \"undefined method `id' for nil:NilClass (NoMethodError)\""
         )
-        assert result == 0
+        assert result.status == 1
+        assert result.stdout == ""
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
