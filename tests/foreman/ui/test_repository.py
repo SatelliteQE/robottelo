@@ -25,6 +25,7 @@ import pytest
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
+from widgetastic.exceptions import NoSuchElementException
 
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
@@ -1225,3 +1226,35 @@ def test_positive_sync_repo_and_verify_checksum(session, module_org):
         session.repository.synchronize(product.name, repo_name)
         results = session.product.verify_content_checksum([product.name])
         assert results['task']['result'] == 'success'
+
+@pytest.mark.tier2
+def test_positive_search_product_any_organization(session):
+    """Navigating to products page when Any Organization is selected should
+    ask you to select an Org
+
+    :id: 5b5bc70a-8ee1-415a-b78d-a4242948a1ef
+
+    :customerscenario: true
+
+    :BZ: 1861970
+
+    :Steps:
+        1. Create an Organization and product
+        2. Set Organization to Any Organization
+        3. Navigate to Content -> products page
+        4. Assert that user must select and Organization
+
+    :expectedresults: UI asks to select an Organization on products page
+    when Any Organization is selected
+    """
+    org = entities.Organization().create()
+    entities.Product(organization=org).create()
+    with session:
+        session.organization.select(org_name='Any Organization')
+        try:
+            search_page = session.product.search(gen_string("alpha"))
+        except NoSuchElementException:
+            search_page = None
+        return search_page
+        product_page = session.browser.selenium.page_source
+        assert 'access requires selecting a specific organization' in product_page
