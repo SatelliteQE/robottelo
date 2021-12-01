@@ -1245,7 +1245,7 @@ def test_positive_search_product_any_organization(session):
         4. Assert that user must select and Organization
 
     :expectedresults: UI asks to select an Organization on products page
-    when Any Organization is selected
+        when Any Organization is selected
     """
     org = entities.Organization().create()
     entities.Product(organization=org).create()
