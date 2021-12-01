@@ -748,7 +748,7 @@ def test_positive_generate_ansible_template():
         {'name': template_name, 'job-id': job_id}
     )
 
-    assert host['name'] in [item.split(',')[1] for item in report_data if len(item) > 0]
+    assert host['name'] in [item.split(',')[1] for item in report_data.split('\n') if len(item) > 0]
 
 
 @pytest.mark.tier3
