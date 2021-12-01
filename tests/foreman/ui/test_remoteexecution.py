@@ -37,7 +37,9 @@ def module_vm_client_by_ip(rhel7_contenthost, module_org, smart_proxy_location, 
 
 
 @pytest.mark.tier3
-def test_positive_run_default_job_template_by_ip(session, module_vm_client_by_ip):
+def test_positive_run_default_job_template_by_ip(
+    session, smart_proxy_location, module_vm_client_by_ip
+):
     """Run a job template against a single host by ip
 
     :id: a21eac46-1a22-472d-b4ce-66097159a868
@@ -56,6 +58,7 @@ def test_positive_run_default_job_template_by_ip(session, module_vm_client_by_ip
     """
     hostname = module_vm_client_by_ip.hostname
     with session:
+        session.location.select(smart_proxy_location.name)
         assert session.host.search(hostname)[0]['Name'] == hostname
         job_status = session.host.schedule_remote_job(
             [hostname],
@@ -74,7 +77,9 @@ def test_positive_run_default_job_template_by_ip(session, module_vm_client_by_ip
 
 
 @pytest.mark.tier3
-def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip):
+def test_positive_run_custom_job_template_by_ip(
+    session, smart_proxy_location, module_vm_client_by_ip
+):
     """Run a job template on a host connected by ip
 
     :id: 3a59eb15-67c4-46e1-ba5f-203496ec0b0c
@@ -96,6 +101,7 @@ def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip)
     hostname = module_vm_client_by_ip.hostname
     job_template_name = gen_string('alpha')
     with session:
+        session.location.select(smart_proxy_location.name)
         session.jobtemplate.create(
             {
                 'template.name': job_template_name,
@@ -151,6 +157,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
             host.configure_rex(satellite=default_sat, org=module_org)
             update_vm_host_location(host, location_id=smart_proxy_location.id)
         with session:
+            session.location.select(smart_proxy_location.name)
             hosts = session.host.search(
                 ' or '.join([f'name="{hostname}"' for hostname in host_names])
             )
@@ -175,7 +182,9 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
 
 
 @pytest.mark.tier3
-def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_ip):
+def test_positive_run_scheduled_job_template_by_ip(
+    session, smart_proxy_location, module_vm_client_by_ip
+):
     """Schedule a job to be ran against a host by ip
 
     :id: 4387bed9-969d-45fb-80c2-b0905bb7f1bd
@@ -198,9 +207,10 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_
 
     :CaseLevel: System
     """
-    job_time = 5 * 60
+    job_time = 10 * 60
     hostname = module_vm_client_by_ip.hostname
     with session:
+        session.location.select(smart_proxy_location.name)
         assert session.host.search(hostname)[0]['Name'] == hostname
         plan_time = session.browser.get_client_datetime() + datetime.timedelta(seconds=job_time)
         job_status = session.host.schedule_remote_job(
