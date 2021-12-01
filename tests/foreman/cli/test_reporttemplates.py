@@ -687,7 +687,7 @@ def test_positive_generate_with_name_and_org():
 
     result = ReportTemplate.generate({'name': 'Host - Statuses', 'organization': DEFAULT_ORG})
 
-    assert host['name'] in [item.split(',')[0] for item in result]
+    assert host['name'] in [item.split(',')[0] for item in result.split('\n')]
 
 
 @pytest.mark.tier2
