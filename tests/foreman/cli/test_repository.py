@@ -564,15 +564,17 @@ class TestRepository:
 
     @pytest.mark.tier1
     def test_positive_create_with_new_organization_and_location(self):
-        """Check if repo can be created with a new Organization and Location.
+        """Check if error is thrown when creating a Repo with a new Organization and Location.
+
+        :id: 9ea4f2a9-f339-4215-b301-cd39c6b5c474
 
         :parametrized: no
 
-        :expectedresults: Repository is successrully created.
+        :expectedresults: No error is present when Repository is created
 
         :BZ: 1992967
 
-        "CaseImportance: Critical
+        :CaseImportance: Critical
         """
         new_org = make_org()
         new_location = make_location()
@@ -580,7 +582,7 @@ class TestRepository:
             {'organization-id': new_org['id'], 'description': 'test_product'}
         )
         Org.add_location({'location-id': new_location['id'], 'name': new_org['name']})
-        assert Org.info({'id': new_org['id']})['locations'][0] == new_location['name']
+        assert new_location['name'] in Org.info({'id': new_org['id']})['locations']
         new_repo = make_repository(
             {
                 'location-id': new_location['id'],
