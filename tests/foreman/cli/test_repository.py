@@ -596,7 +596,6 @@ class TestRepository:
             "grep \"undefined method `id' for nil:NilClass (NoMethodError)\""
         )
         assert result.status == 1
-        assert result.stdout == ""
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
