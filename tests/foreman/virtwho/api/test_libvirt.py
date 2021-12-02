@@ -23,7 +23,6 @@ from nailgun import entities
 from robottelo.cli.host import Host
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
@@ -31,13 +30,8 @@ from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_option
 
 
-@pytest.fixture(scope='class')
-def default_org():
-    return entities.Organization().search(query={'search': 'name="Default Organization"'})[0]
-
-
 @pytest.fixture()
-def form_data(default_org, default_sat):
+def form_data(module_manifest_org, default_sat):
     form = {
         'name': gen_string('alpha'),
         'debug': 1,
@@ -45,7 +39,7 @@ def form_data(default_org, default_sat):
         'hypervisor_id': 'hostname',
         'hypervisor_type': settings.virtwho.libvirt.hypervisor_type,
         'hypervisor_server': settings.virtwho.libvirt.hypervisor_server,
-        'organization_id': default_org.id,
+        'organization_id': module_manifest_org.id,
         'filtering_mode': 'none',
         'satellite_url': default_sat.hostname,
         'hypervisor_username': settings.virtwho.libvirt.hypervisor_username,
@@ -60,7 +54,7 @@ def virtwho_config(form_data):
 
 class TestVirtWhoConfigforLibvirt:
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
+    def test_positive_deploy_configure_by_id(self, module_manifest_org, form_data, virtwho_config):
         """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
         :id: 2598cfa8-3bec-4f41-9911-979ae92c89c0
@@ -72,9 +66,9 @@ class TestVirtWhoConfigforLibvirt:
         :CaseImportance: High
         """
         assert virtwho_config.status == 'unknown'
-        command = get_configure_command(virtwho_config.id)
+        command = get_configure_command(virtwho_config.id, module_manifest_org.label)
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data['hypervisor_type'], debug=True
+            command, form_data['hypervisor_type'], debug=True, org=module_manifest_org.label
         )
         virt_who_instance = (
             entities.VirtWhoConfig()
@@ -94,7 +88,9 @@ class TestVirtWhoConfigforLibvirt:
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
-            subscriptions = Subscription.list({'organization': DEFAULT_ORG, 'search': sku})
+            subscriptions = Subscription.list(
+                {'organization': module_manifest_org.label, 'search': sku}
+            )
             vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
@@ -110,7 +106,9 @@ class TestVirtWhoConfigforLibvirt:
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
+    def test_positive_deploy_configure_by_script(
+        self, module_manifest_org, form_data, virtwho_config
+    ):
         """Verify "GET /foreman_virt_who_configure/api/
 
         v2/configs/:id/deploy_script"
@@ -126,7 +124,10 @@ class TestVirtWhoConfigforLibvirt:
         assert virtwho_config.status == 'unknown'
         script = virtwho_config.deploy_script()
         hypervisor_name, guest_name = deploy_configure_by_script(
-            script['virt_who_config_script'], form_data['hypervisor_type'], debug=True
+            script['virt_who_config_script'],
+            form_data['hypervisor_type'],
+            debug=True,
+            org=module_manifest_org.label,
         )
         virt_who_instance = (
             entities.VirtWhoConfig()
@@ -146,7 +147,9 @@ class TestVirtWhoConfigforLibvirt:
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
-            subscriptions = Subscription.list({'organization': DEFAULT_ORG, 'search': sku})
+            subscriptions = Subscription.list(
+                {'organization': module_manifest_org.label, 'search': sku}
+            )
             vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
@@ -162,7 +165,7 @@ class TestVirtWhoConfigforLibvirt:
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
     @pytest.mark.tier2
-    def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
+    def test_positive_hypervisor_id_option(self, module_manifest_org, form_data, virtwho_config):
         """Verify hypervisor_id option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id"
@@ -180,8 +183,10 @@ class TestVirtWhoConfigforLibvirt:
             virtwho_config.hypervisor_id = value
             virtwho_config.update(['hypervisor_id'])
             config_file = get_configure_file(virtwho_config.id)
-            command = get_configure_command(virtwho_config.id)
-            deploy_configure_by_command(command, form_data['hypervisor_type'])
+            command = get_configure_command(virtwho_config.id, module_manifest_org.label)
+            deploy_configure_by_command(
+                command, form_data['hypervisor_type'], org=module_manifest_org.label
+            )
             assert get_configure_option('hypervisor_id', config_file) == value
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})

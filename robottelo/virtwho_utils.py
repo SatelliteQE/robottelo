@@ -274,16 +274,19 @@ def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Defa
         return deploy_validation(hypervisor_type)
 
 
-def deploy_configure_by_script(script_content, hypervisor_type, debug=False):
+def deploy_configure_by_script(
+    script_content, hypervisor_type, debug=False, org='Default_Organization'
+):
     """Deploy and run virt-who service by the shell script.
     :param str script_content: get the script by UI or API.
     :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
+    :param str org: Organization Label
     """
     script_filename = "/tmp/deploy_script.sh"
     script_content = script_content.replace('&amp;', '&').replace('&gt;', '>').replace('&lt;', '<')
     virtwho_cleanup()
-    register_system(get_system(hypervisor_type))
+    register_system(get_system(hypervisor_type), org=org)
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
     ssh.get_client().put(script_filename)
@@ -301,7 +304,7 @@ def restart_virtwho_service():
     2. restart virt-who service via systemctl command
     """
     runcmd("rm -f /var/log/rhsm/rhsm.log")
-    runcmd("systemctl restart virt-who; sleep 5")
+    runcmd("systemctl restart virt-who; sleep 10")
 
 
 def update_configure_option(option, value, config_file):
@@ -407,22 +410,23 @@ def virtwho_package_locked():
     assert "Packages are locked" in result[1]
 
 
-def create_http_proxy(name=None, url=None, type='https'):
+def create_http_proxy(name=None, url=None, http_type='https', org_name=DEFAULT_ORG):
     """
     Creat a new http-proxy with attributes.
     :param name: Name of the proxy
     :param url: URL of the proxy including schema (https://proxy.example.com:8080)
-    :param type: https or http
+    :param http_type: https or http
+    :param org_name: name of the organization
     :return:
     """
-    default_org = entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
+    org = entities.Organization().search(query={'search': f'name="{org_name}"'})[0]
     http_proxy_name = name or gen_string('alpha', 15)
     http_proxy_url = url or '{}:{}'.format(
-        gen_url(scheme=type), gen_integer(min_value=10, max_value=9999)
+        gen_url(scheme=http_type), gen_integer(min_value=10, max_value=9999)
     )
     http_proxy = entities.HTTPProxy(
         name=http_proxy_name,
         url=http_proxy_url,
-        organization=[default_org.id],
+        organization=[org.id],
     ).create()
     return http_proxy.url, http_proxy.name, http_proxy.id
