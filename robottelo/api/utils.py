@@ -42,7 +42,7 @@ def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):
         entity_mixins.TASK_TIMEOUT = original_task_timeout
 
 
-def enable_rhrepo_and_fetchid(basearch, org_id, product, repo, reposet, releasever):
+def enable_rhrepo_and_fetchid(basearch, org_id, product, repo, reposet, releasever=None):
     """Enable a RedHat Repository and fetches it's Id.
 
     :param str org_id: The organization Id.

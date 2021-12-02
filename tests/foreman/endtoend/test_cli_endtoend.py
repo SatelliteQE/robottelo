@@ -20,6 +20,7 @@ import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_ipaddr
 
+from robottelo import constants
 from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.computeresource import ComputeResource
@@ -39,16 +40,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.config import setting_is_set
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DEFAULT_ORG
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-
-
-AK_CONTENT_LABEL = 'rhel-6-server-rhev-agent-rpms'
 
 
 @pytest.fixture(scope='module')
@@ -65,8 +57,8 @@ def test_positive_cli_find_default_org():
 
     :expectedresults: 'Default Organization' is found
     """
-    result = Org.info({'name': DEFAULT_ORG})
-    assert result['name'] == DEFAULT_ORG
+    result = Org.info({'name': constants.DEFAULT_ORG})
+    assert result['name'] == constants.DEFAULT_ORG
 
 
 @pytest.mark.tier1
@@ -78,8 +70,8 @@ def test_positive_cli_find_default_loc():
 
     :expectedresults: 'Default Location' is found
     """
-    result = Location.info({'name': DEFAULT_LOC})
-    assert result['name'] == DEFAULT_LOC
+    result = Location.info({'name': constants.DEFAULT_LOC})
+    assert result['name'] == constants.DEFAULT_LOC
 
 
 @pytest.mark.tier1
@@ -100,7 +92,7 @@ def test_positive_cli_find_admin_user():
 @pytest.mark.tier4
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, default_sat):
+def test_positive_cli_end_to_end(fake_manifest_is_set, default_sat, rhel7_contenthost):
     """Perform end to end smoke tests using RH and custom repos.
 
     1. Create a new user with admin permissions
@@ -111,7 +103,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
         4. Create a custom product
         5. Create a custom YUM repository
         6. Enable a Red Hat repository
-        7. Synchronize the three repositories
+        7. Synchronize these two repositories
         8. Create a new content view
         9. Associate the YUM and Red Hat repositories to new content view
         10. Publish content view
@@ -155,7 +147,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
     repositories = []
 
     # step 2.5: Create custom YUM repository
-    yum_repo = _create(
+    custom_repo = _create(
         user,
         Repository,
         {
@@ -166,29 +158,29 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
             'url': CUSTOM_RPM_REPO,
         },
     )
-    repositories.append(yum_repo)
+    repositories.append(custom_repo)
 
     # step 2.6: Enable a Red Hat repository
     if fake_manifest_is_set:
         RepositorySet.enable(
             {
                 'basearch': 'x86_64',
-                'name': REPOSET['rhva6'],
+                'name': constants.REPOSET['rhst7'],
                 'organization-id': org['id'],
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
+                'product': constants.PRDS['rhel'],
+                'releasever': None,
             }
         )
         rhel_repo = Repository.info(
             {
-                'name': REPOS['rhva6']['name'],
+                'name': constants.REPOS['rhst7']['name'],
                 'organization-id': org['id'],
-                'product': PRDS['rhel'],
+                'product': constants.PRDS['rhel'],
             }
         )
         repositories.append(rhel_repo)
 
-    # step 2.7: Synchronize the three repositories
+    # step 2.7: Synchronize these two repositories
     for repo in repositories:
         Repository.with_user(user['login'], user['password']).synchronize({'id': repo['id']})
 
@@ -250,7 +242,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
         {'organization-id': org['id']}, per_page=False
     )
     for subscription in subscription_list:
-        if subscription['name'] == DEFAULT_SUBSCRIPTION_NAME:
+        if subscription['name'] == constants.DEFAULT_SUBSCRIPTION_NAME:
             ActivationKey.with_user(user['login'], user['password']).add_subscription(
                 {
                     'id': activation_key['id'],
@@ -263,7 +255,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
     if fake_manifest_is_set:
         ActivationKey.with_user(user['login'], user['password']).content_override(
             {
-                'content-label': AK_CONTENT_LABEL,
+                'content-label': constants.REPOS['rhst7']['id'],
                 'id': activation_key['id'],
                 'organization-id': org['id'],
                 'value': '1',
@@ -335,16 +327,16 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
     # step 2.18: Provision a client
     # TODO this isn't provisioning through satellite as intended
     # Note it wasn't well before the change that added this todo
-    rhel6_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(default_sat)
     # Register client with foreman server using act keys
-    rhel6_contenthost.register_contenthost(org['label'], activation_key['name'])
-    assert rhel6_contenthost.subscribed
+    rhel7_contenthost.register_contenthost(org['label'], activation_key['name'])
+    assert rhel7_contenthost.subscribed
     # Install rpm on client
-    package_name = 'python-kitchen'
-    result = rhel6_contenthost.execute(f'yum install -y {package_name}')
+    package_name = 'katello-agent'
+    result = rhel7_contenthost.execute(f'yum install -y {package_name}')
     assert result.status == 0
     # Verify that the package is installed by querying it
-    result = rhel6_contenthost.run(f'rpm -q {package_name}')
+    result = rhel7_contenthost.run(f'rpm -q {package_name}')
     assert result.status == 0
 
 
