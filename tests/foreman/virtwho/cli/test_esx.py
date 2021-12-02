@@ -106,7 +106,7 @@ class TestVirtWhoConfigforEsx:
                         vdc_id = item['id']
                         break
             result = Host.subscription_attach({'host-id': host['id'], 'subscription-id': vdc_id})
-            assert 'attached to the host successfully' in '\n'.join(result)
+            assert 'Subscription attached to the host successfully.' in result
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
@@ -151,7 +151,7 @@ class TestVirtWhoConfigforEsx:
                         vdc_id = item['id']
                         break
             result = Host.subscription_attach({'host-id': host['id'], 'subscription-id': vdc_id})
-            assert 'attached to the host successfully' in '\n'.join(result)
+            assert 'Subscription attached to the host successfully.' in result
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
