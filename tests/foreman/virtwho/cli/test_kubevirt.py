@@ -89,7 +89,7 @@ class TestVirtWhoConfigforKubevirt:
                         vdc_id = item['id']
                         break
             result = Host.subscription_attach({'host-id': host['id'], 'subscription-id': vdc_id})
-            assert 'Subscription attached to the host successfully.' in result
+            assert result.strip() == 'Subscription attached to the host successfully.'
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
@@ -128,7 +128,7 @@ class TestVirtWhoConfigforKubevirt:
                         vdc_id = item['id']
                         break
             result = Host.subscription_attach({'host-id': host['id'], 'subscription-id': vdc_id})
-            assert 'Subscription attached to the host successfully.' in result
+            assert result.strip() == 'Subscription attached to the host successfully.'
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
