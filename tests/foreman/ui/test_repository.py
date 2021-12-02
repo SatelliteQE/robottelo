@@ -1062,3 +1062,27 @@ def test_positive_rpm_metadata_display():
         correctly.
     """
     pass
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_positive_select_org_in_any_context():
+    """When attempting to check Sync Status from 'Any Context' the user
+    should be properly routed away from the 'Select An Organization' page
+
+    :id: 6bd94c3d-1a8b-494b-b1ae-40c17532f8e5
+
+    :customerscenario: true
+
+    :BZ: 1860957
+
+    :Steps:
+        1. Set "Any Organization" and "Any Location" on top
+        2. Click on Content -> "Sync Status"
+        3. "Select an Organization" page will come up.
+        4. Select organization in dropdown and press Select
+
+    :expectedresults: After pressing Select, user is navigated to Sync Status page and
+        the correct organization should be selected.
+    """
+    pass
