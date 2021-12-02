@@ -1589,6 +1589,8 @@ def test_global_registration_with_capsule_host(
     for task in sync_status['active_sync_tasks']:
         entities.ForemanTask(id=task['id']).poll()
     with session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
         cmd = session.host.get_register_command(
             {
                 'general.operating_system': module_os.title,

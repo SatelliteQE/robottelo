@@ -54,8 +54,8 @@ def register_to_dogfood(default_sat):
     dogfood_hostname = dig_result.stdout.split()[0][:-1]
     dogfood = Satellite(dogfood_hostname)
     default_sat.install_katello_ca(satellite=dogfood)
-    # satellite version consist from x.y.z, we need only x.y
-    sat_release = '.'.join(default_sat.version.split('.')[:-1])
+    # satellite version consist from x.y.z.v.w, we need only x.y
+    sat_release = '.'.join(default_sat.version.split('.')[:2])
     cmd_result = default_sat.register_contenthost(
         org='Sat6-CI', activation_key=f'satellite-{sat_release}-qa-rhel7'
     )
