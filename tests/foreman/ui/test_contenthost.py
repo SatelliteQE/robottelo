@@ -62,7 +62,6 @@ def module_org():
     entities.Parameter(
         name='remote_execution_connect_by_ip',
         value='Yes',
-        parameter_type='boolean',
         organization=org.id,
     ).create()
     return org
@@ -145,7 +144,7 @@ def module_host_template(module_org, module_location):
 
 
 @pytest.mark.tier3
-def test_positive_end_to_end(session, repos_collection, vm):
+def test_positive_end_to_end(session, default_location, repos_collection, vm):
     """Create all entities required for content host, set up host, register it
     as a content host, read content host details, install package and errata.
 
@@ -161,6 +160,7 @@ def test_positive_end_to_end(session, repos_collection, vm):
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     with session:
+        session.location.select(default_location.name)
         # Ensure content host is searchable
         assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
         chost = session.contenthost.read(
@@ -207,8 +207,10 @@ def test_positive_end_to_end(session, repos_collection, vm):
         packages = session.contenthost.search_package(vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_0_CUSTOM_PACKAGE
         # Install errata
-        result = session.errata.install(settings.repos.yum_6.errata[2], vm.hostname)
-        assert result['overview']['job_status'] == 'Success'
+        result = session.contenthost.install_errata(
+            vm.hostname, settings.repos.yum_6.errata[2], install_via='rex'
+        )
+        assert result['overview']['hosts_table'][0]['Status'] == 'success'
         # Ensure errata installed
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
@@ -220,7 +222,7 @@ def test_positive_end_to_end(session, repos_collection, vm):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_end_to_end_bulk_update(session, vm):
+def test_positive_end_to_end_bulk_update(session, default_location, vm):
     """Create VM, set up VM as host, register it as a content host,
     read content host details, install a package ( e.g. walrus-0.71) and
     use bulk action (Update All Packages) to update the package by name
@@ -242,6 +244,7 @@ def test_positive_end_to_end_bulk_update(session, vm):
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     with session:
+        session.location.select(default_location.name)
         # Ensure content host is searchable
         assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
         # Update package using bulk action
@@ -283,7 +286,7 @@ def test_positive_end_to_end_bulk_update(session, vm):
 
 
 @pytest.mark.tier3
-def test_positive_search_by_subscription_status(session, vm):
+def test_positive_search_by_subscription_status(session, default_location, vm):
     """Register host into the system and search for it afterwards by
     subscription status
 
@@ -298,6 +301,7 @@ def test_positive_search_by_subscription_status(session, vm):
     :CaseLevel: System
     """
     with session:
+        session.location.select(default_location.name)
         assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
         result = session.contenthost.search('subscription_status = valid')
         assert vm.hostname in {host['Name'] for host in result}
@@ -316,7 +320,7 @@ def test_positive_search_by_subscription_status(session, vm):
 
 
 @pytest.mark.tier3
-def test_negative_install_package(session, vm):
+def test_negative_install_package(session, default_location, vm):
     """Attempt to install non-existent package to a host remotely
 
     :id: d60b70f9-c43f-49c0-ae9f-187ffa45ac97
@@ -330,6 +334,7 @@ def test_negative_install_package(session, vm):
     :CaseLevel: System
     """
     with session:
+        session.location.select(default_location.name)
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Install', gen_string('alphanumeric')
         )
@@ -338,7 +343,7 @@ def test_negative_install_package(session, vm):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_package(session, vm):
+def test_positive_remove_package(session, default_location, vm):
     """Remove a package from a host remotely
 
     :id: 86d8896b-06d9-4c99-937e-f3aa07b4eb69
@@ -349,6 +354,7 @@ def test_positive_remove_package(session, vm):
     """
     vm.download_install_rpm(settings.repos.yum_6.url, FAKE_0_CUSTOM_PACKAGE)
     with session:
+        session.location.select(default_location.name)
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Remove', FAKE_0_CUSTOM_PACKAGE_NAME
         )
@@ -358,7 +364,7 @@ def test_positive_remove_package(session, vm):
 
 
 @pytest.mark.tier3
-def test_positive_upgrade_package(session, vm):
+def test_positive_upgrade_package(session, default_location, vm):
     """Upgrade a host package remotely
 
     :id: 1969db93-e7af-4f5f-973d-23c222224db6
@@ -369,6 +375,7 @@ def test_positive_upgrade_package(session, vm):
     """
     vm.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     with session:
+        session.location.select(default_location.name)
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Update', FAKE_1_CUSTOM_PACKAGE_NAME
         )
@@ -379,7 +386,7 @@ def test_positive_upgrade_package(session, vm):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_install_package_group(session, vm):
+def test_positive_install_package_group(session, default_location, vm):
     """Install a package group to a host remotely
 
     :id: a43fb21b-5f6a-4f14-8cd6-114ec287540c
@@ -389,6 +396,7 @@ def test_positive_install_package_group(session, vm):
     :CaseLevel: System
     """
     with session:
+        session.location.select(default_location.name)
         result = session.contenthost.execute_package_action(
             vm.hostname,
             'Group Install (Deprecated)',
@@ -401,7 +409,7 @@ def test_positive_install_package_group(session, vm):
 
 
 @pytest.mark.tier3
-def test_positive_remove_package_group(session, vm):
+def test_positive_remove_package_group(session, default_location, vm):
     """Remove a package group from a host remotely
 
     :id: dbeea1f2-adf4-4ad8-a989-efad8ce21b98
@@ -411,6 +419,7 @@ def test_positive_remove_package_group(session, vm):
     :CaseLevel: System
     """
     with session:
+        session.location.select(default_location.name)
         for action in ('Group Install (Deprecated)', 'Group Remove (Deprecated)'):
             result = session.contenthost.execute_package_action(
                 vm.hostname, action, FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
@@ -421,7 +430,9 @@ def test_positive_remove_package_group(session, vm):
 
 
 @pytest.mark.tier3
-def test_positive_search_errata_non_admin(session, vm, module_org, test_name, default_viewer_role):
+def test_positive_search_errata_non_admin(
+    session, default_location, vm, test_name, default_viewer_role
+):
     """Search for host's errata by non-admin user with enough permissions
 
     :id: 5b8887d2-987f-4bce-86a1-8f65ca7e1195
@@ -439,6 +450,7 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, de
     with Session(
         test_name, user=default_viewer_role.login, password=default_viewer_role.password
     ) as session:
+        session.location.select(default_location.name)
         chost = session.contenthost.read(vm.hostname, widget_names='errata')
         assert settings.repos.yum_6.errata[2] in {
             errata['Id'] for errata in chost['errata']['table']
@@ -447,7 +459,7 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, de
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm):
+def test_positive_ensure_errata_applicability_with_host_reregistered(session, default_location, vm):
     """Ensure that errata remain available to install when content host is
     re-registered
 
@@ -478,6 +490,7 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm
     result = vm.run('subscription-manager refresh  && yum repolist')
     assert result.status == 0
     with session:
+        session.location.select(default_location.name)
         chost = session.contenthost.read(vm.hostname, widget_names='errata')
         assert settings.repos.yum_6.errata[2] in {
             errata['Id'] for errata in chost['errata']['table']
@@ -491,7 +504,9 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm
 
 
 @pytest.mark.tier3
-def test_positive_host_re_registration_with_host_rename(session, module_org, repos_collection, vm):
+def test_positive_host_re_registration_with_host_rename(
+    session, default_location, module_org, repos_collection, vm
+):
     """Ensure that content host should get re-registered after change in the hostname
 
     :id: c11f4e69-6ef5-45ab-aff5-00cf2d87f209
@@ -525,13 +540,14 @@ def test_positive_host_re_registration_with_host_rename(session, module_org, rep
     )
     assert result.status == 0
     with session:
+        session.location.select(default_location.name)
         assert session.contenthost.search(updated_hostname)[0]['Name'] == updated_hostname
 
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request):
+def test_positive_check_ignore_facts_os_setting(session, default_location, vm, module_org, request):
     """Verify that 'Ignore facts for operating system' setting works
     properly
 
@@ -571,6 +587,7 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
         .read()
     )
     with session:
+        session.location.select(default_location.name)
         # Get host current operating system value
         os = session.contenthost.read(vm.hostname, widget_names='details')['details']['os']
         # Change necessary setting to true
@@ -606,7 +623,9 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
 @pytest.mark.libvirt_discovery
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_contenthost, default_sat):
+def test_positive_virt_who_hypervisor_subscription_status(
+    session, default_location, rhel7_contenthost, default_sat
+):
     """Check that virt-who hypervisor shows the right subscription status
     without and with attached subscription.
 
@@ -652,7 +671,7 @@ def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_content
     )
     virt_who_hypervisor_host = virt_who_data['virt_who_hypervisor_host']
     with session:
-        session.organization.select(org.name)
+        session.location.select(default_location.name)
         assert (
             session.contenthost.search(virt_who_hypervisor_host.name)[0]['Subscription Status']
             == 'yellow'
@@ -683,7 +702,7 @@ def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_content
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_module_stream_actions_on_content_host(session, vm_module_streams):
+def test_module_stream_actions_on_content_host(session, default_location, vm_module_streams):
     """Check remote execution for module streams actions e.g. install, remove, disable
     works on content host. Verify that correct stream module stream
     get installed/removed.
@@ -703,6 +722,7 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
         host=vm_module_streams.hostname,
     )
     with session:
+        session.location.select(default_location.name)
         # install Module Stream
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
@@ -789,7 +809,7 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
 
 
 @pytest.mark.tier3
-def test_module_streams_customize_action(session, vm_module_streams):
+def test_module_streams_customize_action(session, default_location, vm_module_streams):
     """Check remote execution for customized module action is working on content host.
 
     :id: b139ea1f-380b-40a5-bb57-7530a52de18c
@@ -810,6 +830,7 @@ def test_module_streams_customize_action(session, vm_module_streams):
         f'dnf module reset {FAKE_2_CUSTOM_PACKAGE_NAME}', vm_module_streams
     )
     with session:
+        session.location.select(default_location.name)
         # installing walrus:0.71 version
         customize_values = {
             'template_content.module_spec': (
@@ -838,7 +859,7 @@ def test_module_streams_customize_action(session, vm_module_streams):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_install_modular_errata(session, vm_module_streams):
+def test_install_modular_errata(session, default_location, vm_module_streams):
     """Populate, Search and Install Modular Errata generated from module streams.
 
     :id: 3b745562-7f97-4b58-98ec-844685f5c754
@@ -851,6 +872,7 @@ def test_install_modular_errata(session, vm_module_streams):
     module_name = 'kangaroo'
     run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
     with session:
+        session.location.select(default_location.name)
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
             action_type='Install',
@@ -899,7 +921,9 @@ def test_install_modular_errata(session, vm_module_streams):
 
 
 @pytest.mark.tier3
-def test_module_status_update_from_content_host_to_satellite(session, vm_module_streams):
+def test_module_status_update_from_content_host_to_satellite(
+    session, default_location, vm_module_streams, module_org
+):
     """Verify dnf upload-profile updates the module stream status to Satellite.
 
     :id: d05042e3-1996-4293-bb01-a2a0cc5b3b91
@@ -922,6 +946,7 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
         vm_module_streams,
     )
     with session:
+        session.location.select(default_location.name)
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
@@ -946,7 +971,9 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
 
 
 @pytest.mark.tier3
-def test_module_status_update_without_force_upload_package_profile(session, vm_module_streams):
+def test_module_status_update_without_force_upload_package_profile(
+    session, default_location, vm_module_streams
+):
     """Verify you do not have to run dnf upload-profile or restart rhsmcertd
     to update the module stream status to Satellite and that the web UI will also be updated.
 
@@ -981,6 +1008,7 @@ def test_module_status_update_without_force_upload_package_profile(session, vm_m
         max_tries=10,
     )
     with session:
+        session.location.select(default_location.name)
         # Ensure content host is searchable
         assert (
             session.contenthost.search(vm_module_streams.hostname)[0]['Name']
@@ -1013,7 +1041,7 @@ def test_module_status_update_without_force_upload_package_profile(session, vm_m
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_module_stream_update_from_satellite(session, vm_module_streams):
+def test_module_stream_update_from_satellite(session, default_location, vm_module_streams):
     """Verify module stream enable, update actions works and update the module stream
 
     :id: 8c077d7f-744b-4655-9fa2-e64ce1566d9b
@@ -1028,6 +1056,7 @@ def test_module_stream_update_from_satellite(session, vm_module_streams):
     # reset duck module
     run_remote_command_on_content_host(f'dnf module reset {module_name} -y', vm_module_streams)
     with session:
+        session.location.select(default_location.name)
         # enable duck module stream
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
@@ -1072,7 +1101,7 @@ def test_module_stream_update_from_satellite(session, vm_module_streams):
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
-def test_syspurpose_attributes_empty(session, vm_module_streams):
+def test_syspurpose_attributes_empty(session, default_location, vm_module_streams):
     """
     Test if syspurpose attributes are displayed as empty
     on a freshly provisioned and registered host.
@@ -1086,6 +1115,7 @@ def test_syspurpose_attributes_empty(session, vm_module_streams):
     :CaseImportance: High
     """
     with session:
+        session.location.select(default_location.name)
         details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
             'details'
         ]
@@ -1097,7 +1127,7 @@ def test_syspurpose_attributes_empty(session, vm_module_streams):
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
-def test_set_syspurpose_attributes_cli(session, vm_module_streams):
+def test_set_syspurpose_attributes_cli(session, default_location, vm_module_streams):
     """
     Test that UI shows syspurpose attributes set by the syspurpose tool on a registered host.
 
@@ -1110,6 +1140,7 @@ def test_set_syspurpose_attributes_cli(session, vm_module_streams):
     :CaseImportance: High
     """
     with session:
+        session.location.select(default_location.name)
         # Set sypurpose attributes
         for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
             run_remote_command_on_content_host(
@@ -1125,7 +1156,7 @@ def test_set_syspurpose_attributes_cli(session, vm_module_streams):
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
-def test_unset_syspurpose_attributes_cli(session, vm_module_streams):
+def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_streams):
     """
     Test that previously set syspurpose attributes are correctly set
     as empty after using 'syspurpose unset-...' on the content host.
@@ -1148,6 +1179,7 @@ def test_unset_syspurpose_attributes_cli(session, vm_module_streams):
         run_remote_command_on_content_host(f'syspurpose unset-{spdata[0]}', vm_module_streams)
 
     with session:
+        session.location.select(default_location.name)
         details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
             'details'
         ]
@@ -1157,7 +1189,7 @@ def test_unset_syspurpose_attributes_cli(session, vm_module_streams):
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
-def test_syspurpose_matched(session, vm_module_streams):
+def test_syspurpose_matched(session, default_location, vm_module_streams):
     """
     Test that syspurpose status is set as 'Matched' if auto-attach
     is performed on the content host, and correct subscriptions are
@@ -1174,6 +1206,7 @@ def test_syspurpose_matched(session, vm_module_streams):
     run_remote_command_on_content_host('syspurpose set-sla Premium', vm_module_streams)
     run_remote_command_on_content_host('subscription-manager attach --auto', vm_module_streams)
     with session:
+        session.location.select(default_location.name)
         details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
             'details'
         ]
@@ -1182,7 +1215,7 @@ def test_syspurpose_matched(session, vm_module_streams):
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
-def test_syspurpose_bulk_action(session, vm):
+def test_syspurpose_bulk_action(session, default_location, vm):
     """
     Set system purpose parameters via bulk action
 
@@ -1202,6 +1235,7 @@ def test_syspurpose_bulk_action(session, vm):
         'role': 'Red Hat Enterprise Linux Server',
     }
     with session:
+        session.location.select(default_location.name)
         session.contenthost.bulk_set_syspurpose([vm.hostname], syspurpose_attributes)
         details = session.contenthost.read(vm.hostname, widget_names='details')['details']
         for key, val in syspurpose_attributes.items():
@@ -1212,7 +1246,7 @@ def test_syspurpose_bulk_action(session, vm):
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
-def test_syspurpose_mismatched(session, vm_module_streams):
+def test_syspurpose_mismatched(session, default_location, vm_module_streams):
     """
     Test that syspurpose status is 'Mismatched' if a syspurpose attribute
     is changed to a different value than the one contained in the currently
@@ -1230,6 +1264,7 @@ def test_syspurpose_mismatched(session, vm_module_streams):
     run_remote_command_on_content_host('subscription-manager attach --auto', vm_module_streams)
     run_remote_command_on_content_host('syspurpose set-sla Standard', vm_module_streams)
     with session:
+        session.location.select(default_location.name)
         details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
             'details'
         ]
@@ -1293,7 +1328,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
 
 
 @pytest.mark.tier3
-def test_search_for_virt_who_hypervisors(session):
+def test_search_for_virt_who_hypervisors(session, default_location):
     """
     Search the virt_who hypervisors with hypervisor=True or hypervisor=False.
 
@@ -1312,6 +1347,7 @@ def test_search_for_virt_who_hypervisors(session):
     org = entities.Organization().create()
     with session:
         session.organization.select(org.name)
+        session.location.select(default_location.name)
         assert not session.contenthost.search('hypervisor = true')
         # create virt-who hypervisor through the fake json conf
         data = create_fake_hypervisor_content(org.label, hypervisors=1, guests=1)
