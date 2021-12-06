@@ -1084,5 +1084,7 @@ def test_positive_select_org_in_any_context():
 
     :expectedresults: After pressing Select, user is navigated to Sync Status page and
         the correct organization should be selected.
+
+    :CaseImportance: High
     """
     pass
