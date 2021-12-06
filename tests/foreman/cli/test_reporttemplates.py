@@ -15,8 +15,6 @@
 
 :Upstream: No
 """
-from time import sleep
-
 import pytest
 from broker import VMBroker
 from fauxfactory import gen_alpha
