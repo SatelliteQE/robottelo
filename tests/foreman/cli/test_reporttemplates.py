@@ -916,9 +916,6 @@ def test_positive_generate_hostpkgcompare(
         Host.package_install(hosts=f"id={host1['id']}", package=FAKE_0_CUSTOM_PACKAGE_NAME)
         Host.package_install(hosts=f"id={host1['id']}", package=FAKE_1_CUSTOM_PACKAGE)
         Host.package_install(hosts=f"id={host2['id']}", package=FAKE_2_CUSTOM_PACKAGE)
-        # Host.package_install({'host-id': host1['id'], 'packages': FAKE_0_CUSTOM_PACKAGE_NAME})
-        # Host.package_install({'host-id': host1['id'], 'packages': FAKE_1_CUSTOM_PACKAGE})
-        # Host.package_install({'host-id': host2['id'], 'packages': FAKE_2_CUSTOM_PACKAGE})
 
         result = ReportTemplate.generate(
             {
