@@ -15,8 +15,9 @@
 
 :Upstream: No
 """
-import pytest
 from time import sleep
+
+import pytest
 from broker import VMBroker
 from fauxfactory import gen_alpha
 
@@ -851,7 +852,7 @@ def test_positive_schedule_entitlements_report(
             'job-id': scheduled_csv.split('\n', 1)[0].split('Job ID: ', 1)[1],
         }
     )
-    assert client.hostname in  data_csv
+    assert client.hostname in data_csv
     assert local_subscription['name'] in data_csv
 
 
