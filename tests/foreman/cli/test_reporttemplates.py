@@ -908,12 +908,17 @@ def test_positive_generate_hostpkgcompare(
             hosts_info.append(Host.info({'name': client.hostname}))
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
+            # Add ReX key
+            client.add_rex_key(satellite=default_sat)
         hosts_info.sort(key=lambda host: host['name'])
 
         host1, host2 = hosts_info
-        Host.package_install({'host-id': host1['id'], 'packages': FAKE_0_CUSTOM_PACKAGE_NAME})
-        Host.package_install({'host-id': host1['id'], 'packages': FAKE_1_CUSTOM_PACKAGE})
-        Host.package_install({'host-id': host2['id'], 'packages': FAKE_2_CUSTOM_PACKAGE})
+        Host.package_install(hosts=f"id={host1['id']}", package=FAKE_0_CUSTOM_PACKAGE_NAME)
+        Host.package_install(hosts=f"id={host1['id']}", package=FAKE_1_CUSTOM_PACKAGE)
+        Host.package_install(hosts=f"id={host2['id']}", package=FAKE_2_CUSTOM_PACKAGE)
+        # Host.package_install({'host-id': host1['id'], 'packages': FAKE_0_CUSTOM_PACKAGE_NAME})
+        # Host.package_install({'host-id': host1['id'], 'packages': FAKE_1_CUSTOM_PACKAGE})
+        # Host.package_install({'host-id': host2['id'], 'packages': FAKE_2_CUSTOM_PACKAGE})
 
         result = ReportTemplate.generate(
             {

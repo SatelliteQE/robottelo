@@ -126,10 +126,13 @@ class Host(Base):
         return facts
 
     @classmethod
-    def package_install(cls, options):
+    def package_install(cls, hosts='', package=''):
         """Install packages remotely."""
-        cls.command_sub = 'package install'
-        return cls.execute(cls._construct_command(options), output_format='csv')
+
+        return cls.execute(
+            f'job-invocation create --feature katello_package_install'
+            f' --search-query "{hosts}" --inputs "package={package}"'
+        )
 
     @classmethod
     def package_list(cls, options):
