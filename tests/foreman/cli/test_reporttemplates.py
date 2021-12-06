@@ -923,8 +923,9 @@ def test_positive_generate_hostpkgcompare(
                 'inputs': f'Host 1 = {host1["name"]}, ' f'Host 2 = {host2["name"]}',
             }
         )
-        result.remove('')
 
+        result = result.split('\n')
+        result.remove('')
         assert len(result) > 1
         headers = f'Package,{host1["name"]},{host2["name"]},Architecture,Status'
         assert headers == result[0]
