@@ -37,7 +37,7 @@ class TestWebhook:
 
         :CaseImportance: High
         """
-        with pytest.raises(CLIError) as exc_info:
+        with pytest.raises(CLIError):
             Webhook.create(
                 {
                     'name': 'invalid-event-webhook',
@@ -56,7 +56,7 @@ class TestWebhook:
 
         :CaseImportance: High
         """
-        with pytest.raises(CLIError) as exc_info:
+        with pytest.raises(CLIError):
             Webhook.create(
                 {
                     'name': 'invalid-method-webhook',
@@ -86,7 +86,8 @@ class TestWebhook:
         for option in webhook_options.items():
             if option[0] != 'event':
                 assert webhook_item[option[0]] == option[1]
-        # Event is defined in a webhook item as {event_name}.event.foreman so we need to remove that postfix
+        # Event is defined in a webhook item as {event_name}.event.foreman
+        # so we need to remove that postfix
         assert webhook_options['event'] == webhook_item['event'].rsplit('.', 2)[0]
 
         # Find webhook by name
@@ -98,7 +99,8 @@ class TestWebhook:
         for original_option in webhook_options.items():
             if original_option[0] != 'event':
                 assert original_option[1] == webhook_search[original_option[0]]
-            # Event is defined in a webhook item as {event_name}.event.foreman so we need to remove that postfix
+            # Event is defined in a webhook item as {event_name}.event.foreman
+            # so we need to remove that postfix
             assert webhook_options['event'] == webhook_search['event'].rsplit('.', 2)[0]
 
         # Test that webhook gets updated
@@ -127,7 +129,7 @@ class TestWebhook:
             'http-method': 'GET',
             'target-url': 'http://localhost/some-path',
         }
-        webhook_item = Webhook.create(webhook_options)
+        Webhook.create(webhook_options)
 
         # The new webhook is enabled by default on creation
         assert Webhook.info({'name': webhook_options['name']})['enabled'] == 'yes'
@@ -146,7 +148,7 @@ class TestWebhook:
     def test_negative_update(self):
         """Test webhook negative update - invalid target URL fails
 
-        :id: d893d176-cbe9-421b-8631-7c7a1a462ea5
+        :id: 7a6c87f5-0e6c-4a55-b495-b1bfb24607bd
 
         :expectedresults: Webhook is not updated
 
@@ -159,7 +161,7 @@ class TestWebhook:
             'http-method': 'GET',
             'target-url': 'http://localhost/some-path',
         }
-        webhook_item = Webhook.create(webhook_options)
+        Webhook.create(webhook_options)
 
         invalid_url = '$%^##@***'
         with pytest.raises(CLIReturnCodeError):
