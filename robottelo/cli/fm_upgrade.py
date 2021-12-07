@@ -20,28 +20,25 @@ from robottelo.cli.base import Base
 class Upgrade(Base):
     """Manipulates Foreman-maintain's health command"""
 
-    command_base = "upgrade"
+    command_base = 'upgrade'
 
     @classmethod
     def list_versions(cls, options=None):
         """Build foreman-maintain upgrade list-versions"""
-        cls.command_sub = "list-versions"
-        if options is None:
-            options = {}
+        cls.command_sub = 'list-versions'
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options))
 
     @classmethod
     def check(cls, options=None):
         """Build foreman-maintain upgrade check"""
-        cls.command_sub = "check"
-        if options is None:
-            options = {}
+        cls.command_sub = 'check'
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options))
 
     @classmethod
     def run(cls, options=None):
         """Build foreman-maintain upgrade run"""
-        cls.command_sub = "run"
-        if options is None:
-            options = {}
+        cls.command_sub = 'run'
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options))

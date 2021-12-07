@@ -24,60 +24,53 @@ from robottelo.cli.base import Base
 class Service(Base):
     """Manipulates Foreman-maintain's service command"""
 
-    command_base = "service"
+    command_base = 'service'
 
     @classmethod
-    def service_start(cls, options=None):
+    def start(cls, options=None):
         """Build foreman-maintain service start"""
-        cls.command_sub = "start"
-        if options is None:
-            options = {}
+        cls.command_sub = 'start'
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options))
 
     @classmethod
-    def service_stop(cls, options=None):
+    def stop(cls, options=None):
         """Build foreman-maintain service stop"""
-        cls.command_sub = "stop"
-        if options is None:
-            options = {}
+        cls.command_sub = 'stop'
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options))
 
     @classmethod
-    def service_restart(cls, options=None):
+    def restart(cls, options=None):
         """Build foreman-maintain service"""
-        cls.command_sub = "restart"
-        if options is None:
-            options = {}
+        cls.command_sub = 'restart'
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options))
 
     @classmethod
-    def service_status(cls, options=None):
+    def status(cls, options=None):
         """Build foreman-maintain service status"""
-        cls.command_sub = "status"
-        if options is None:
-            options = {}
+        cls.command_sub = 'status'
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options))
 
     @classmethod
-    def service_enable(cls, options=None):
+    def enable(cls, options=None):
         """Build foreman-maintain service enable"""
-        cls.command_sub = "enable"
-        if options is None:
-            options = {}
+        cls.command_sub = 'enable'
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options))
 
     @classmethod
-    def service_disable(cls, options=None):
+    def disable(cls, options=None):
         """Build foreman-maintain service disable"""
-        cls.command_sub = "disable"
-        if options is None:
-            options = {}
+        cls.command_sub = 'disable'
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options))
 
     @classmethod
-    def service_list(cls, options=None):
+    def list(cls, options=None):
         """Build foreman-maintain service list"""
-        cls.command_sub = "list"
-        if options is None:
-            options = {}
+        cls.command_sub = 'list'
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options))

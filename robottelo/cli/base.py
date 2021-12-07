@@ -7,6 +7,7 @@ from robottelo import ssh
 from robottelo.cli import hammer
 from robottelo.config import settings
 from robottelo.logging import logger
+from robottelo.ssh import get_client
 
 
 class CLIError(Exception):
@@ -261,8 +262,6 @@ class Base:
         timeout=None,
     ):
         """Executes the foreman-maintain cli commands on the server via ssh"""
-        from robottelo.ssh import get_client
-
         client = get_client(hostname=hostname or cls.hostname)
         result = client.execute(f'foreman-maintain {command}', timeout=timeout)
         return result

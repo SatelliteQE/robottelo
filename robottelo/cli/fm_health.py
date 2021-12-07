@@ -20,28 +20,25 @@ from robottelo.cli.base import Base
 class Health(Base):
     """Manipulates Foreman-maintain's health command"""
 
-    command_base = "health"
+    command_base = 'health'
 
     @classmethod
     def check(cls, options=None):
         """Build foreman-maintain health check"""
-        cls.command_sub = "check"
-        if options is None:
-            options = {}
+        cls.command_sub = 'check'
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options))
 
     @classmethod
     def list(cls, options=None):
         """Build foreman-maintain health list"""
-        cls.command_sub = "list"
-        if options is None:
-            options = {}
+        cls.command_sub = 'list'
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options))
 
     @classmethod
     def list_tags(cls, options=None):
         """Build foreman-maintain health list-tags"""
-        cls.command_sub = "list-tags"
-        if options is None:
-            options = {}
+        cls.command_sub = 'list-tags'
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options))

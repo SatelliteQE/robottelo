@@ -18,13 +18,12 @@ from robottelo.cli.base import Base
 class Restore(Base):
     """Manipulates Foreman-maintain's restore command"""
 
-    command_base = "restore"
+    command_base = 'restore'
 
     @classmethod
-    def run(cls, options=None, backup_dir='/tmp/', timeout='30m'):
+    def run(cls, backup_dir='/tmp/', timeout='30m', options=None):
         """Build foreman-maintain restore"""
         # cls.command_sub = 'No subcommand for restore'
         cls.command_end = backup_dir
-        if options is None:
-            options = {}
+        options = options or {}
         return cls.fm_execute(cls._construct_command(options), timeout=timeout)
