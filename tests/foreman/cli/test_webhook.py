@@ -6,7 +6,7 @@
 
 :CaseLevel: Component
 
-:CaseComponent: Webhook
+:CaseComponent: Webhooks
 
 :Assignee: rdrazny
 
