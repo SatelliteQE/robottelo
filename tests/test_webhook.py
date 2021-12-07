@@ -17,16 +17,16 @@
 :Upstream: No
 """
 import pytest
+from fauxfactory import gen_alphanumeric
+
+from robottelo.cli.base import CLIError
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.webhook import Webhook
 
 # import robottelo.constants
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.base import CLIError
-from robottelo.cli.webhook import Webhook
-from fauxfactory import gen_alphanumeric
 
 
 class TestWebhook:
-
     @pytest.mark.tier2
     def test_negative_invalid_event(self):
         """Test negative webhook creation with an invalid event
@@ -42,7 +42,7 @@ class TestWebhook:
                 {
                     'name': 'invalid-event-webhook',
                     'event': 'non-existent-even',
-                    'target-url': 'http://localhost/bla'
+                    'target-url': 'http://localhost/bla',
                 }
             )
 
@@ -62,7 +62,7 @@ class TestWebhook:
                     'name': 'invalid-method-webhook',
                     'event': 'host_created',
                     'http-method': 'NONE',
-                    'target-url': 'http://localhost/bla'
+                    'target-url': 'http://localhost/bla',
                 }
             )
 
@@ -79,10 +79,10 @@ class TestWebhook:
             'name': f'test-webhook-crud-{webhook_postfix}',
             'event': 'host_created',
             'http-method': 'GET',
-            'target-url': 'http://localhost/some-path'
+            'target-url': 'http://localhost/some-path',
         }
 
-        webhook_item = Webhook.create( webhook_options )
+        webhook_item = Webhook.create(webhook_options)
         for option in webhook_options.items():
             if option[0] != 'event':
                 assert webhook_item[option[0]] == option[1]
@@ -125,7 +125,7 @@ class TestWebhook:
             'name': f'test-webhook-crud-{webhook_postfix}',
             'event': 'host_created',
             'http-method': 'GET',
-            'target-url': 'http://localhost/some-path'
+            'target-url': 'http://localhost/some-path',
         }
         webhook_item = Webhook.create(webhook_options)
 
@@ -157,7 +157,7 @@ class TestWebhook:
             'name': f'test-webhook-invalid-update-{webhook_postfix}',
             'event': 'host_created',
             'http-method': 'GET',
-            'target-url': 'http://localhost/some-path'
+            'target-url': 'http://localhost/some-path',
         }
         webhook_item = Webhook.create(webhook_options)
 

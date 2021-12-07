@@ -16,7 +16,6 @@ Subcommands:
 Options:
  -h, --help                    Print help
 """
-
 from robottelo.cli.base import Base
 from robottelo.cli.base import CLIError
 from robottelo.constants import WEBHOOK_EVENTS
