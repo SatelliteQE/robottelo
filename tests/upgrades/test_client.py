@@ -3,7 +3,7 @@
 content-host-d containers use SATHOST env var, which is passed through sat6-upgrade functions
 sat6-upgrade requires env.satellite_hostname to be set, this is required for these tests
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -25,8 +25,6 @@ import pytest
 from fabric.api import execute
 from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import dockerize
 from upgrade_tests.helpers.scenarios import get_entity_data
@@ -162,7 +160,7 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
         4. Check if the package is installed on the pre-upgrade client
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_scenario_preclient_package_installation(
         default_org, pre_upgrade_cv, pre_upgrade_repo, module_ak
     ):
@@ -221,7 +219,7 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
         # Save client info to disk for post-upgrade test
         create_dict({__name__: rhel7_client})
 
-    @post_upgrade(depend_on=test_pre_scenario_preclient_package_installation)
+    @pytest.mark.post_upgrade(depend_on=test_pre_scenario_preclient_package_installation)
     def test_post_scenario_preclient_package_installation(default_org):
         """Post-upgrade install of a package on a client created and registered pre-upgrade.
 
@@ -265,7 +263,7 @@ class TestScenarioUpgradeNewClientAndPackageInstallation:
         4. Check if the package is installed on the post-upgrade client
     """
 
-    @post_upgrade
+    @pytest.mark.post_upgrade
     def test_post_scenario_postclient_package_installation(
         default_org, post_upgrade_repo, module_ak, module_lce
     ):

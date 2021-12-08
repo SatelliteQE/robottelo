@@ -1,6 +1,6 @@
 """Test Host/Provisioning related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -23,8 +23,6 @@ import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
@@ -68,9 +66,16 @@ class TestScenarioPositiveGCEHostComputeResource:
             if host:
                 entities.Host(id=host[0].id).delete()
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_create_gce_cr_and_host(self, arch_os_domain, function_org, gce_cert):
-        """"""
+        """Create GCE Compute Resource
+
+        :id: preupgrade-ef82143d-efef-49b2-9702-93d67ef6804c
+
+        :steps: In Preupgrade Satellite, create GCE Compute Resource
+
+        :expectedresults: The GCE CR created successfully
+        """
         arch, os, domain_name = arch_os_domain
         cr_name = gen_string('alpha')
         loc = entities.Location().create()
@@ -109,9 +114,22 @@ class TestScenarioPositiveGCEHostComputeResource:
         assert gce_cr.name == cr_name
         assert gce_img.name == 'autoupgrade_gce_img'
 
-    @post_upgrade(depend_on=test_pre_create_gce_cr_and_host)
+    @pytest.mark.post_upgrade(depend_on=test_pre_create_gce_cr_and_host)
     def test_post_create_gce_cr_and_host(self, default_sat, arch_os_domain, delete_host):
-        """"""
+        """Host provisioned using preupgrade GCE CR
+
+        :id: postupgrade-ef82143d-efef-49b2-9702-93d67ef6804c
+
+        :steps:
+
+            1. Postupgrade, The Compute Resource attributes can be manipulated
+            2. The host can be provisioned on GCE CR created in previous satellite version
+
+        :expectedresults:
+
+            1. The host should be provisioned on GCE CR created in previous version
+            2. The GCE CR attributes should be manipulated
+        """
         arch, os, domain_name = arch_os_domain
         hostname = gen_string('alpha')
         self.__class__.fullhost = f'{hostname}.{domain_name}'.lower()
