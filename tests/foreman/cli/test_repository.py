@@ -563,7 +563,7 @@ class TestRepository:
             assert repo.get(key) == repo_options[key]
 
     @pytest.mark.tier1
-    def test_positive_create_with_new_organization_and_location(self, default_sat):
+    def test_positive_create_repo_with_new_organization_and_location(self, default_sat):
         """Check if error is thrown when creating a Repo with a new Organization and Location.
 
         :id: 9ea4f2a9-f339-4215-b301-cd39c6b5c474
