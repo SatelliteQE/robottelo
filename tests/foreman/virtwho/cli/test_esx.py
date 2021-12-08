@@ -309,7 +309,7 @@ class TestVirtWhoConfigforEsx:
         """
         # Check the https proxy option, update it via http proxy name
         https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy(
-            org_name=module_manifest_org.name
+            org=module_manifest_org
         )
         no_proxy = 'test.satellite.com'
         VirtWhoConfig.update(
@@ -327,7 +327,7 @@ class TestVirtWhoConfigforEsx:
 
         # Check the http proxy option, update it via http proxy id
         http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(
-            http_type='http', org_name=module_manifest_org.name
+            http_type='http', org=module_manifest_org
         )
         VirtWhoConfig.update({'id': virtwho_config['id'], 'http-proxy-id': http_proxy_id})
         deploy_configure_by_command(

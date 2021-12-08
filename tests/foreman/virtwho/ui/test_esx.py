@@ -302,11 +302,9 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        https_proxy, https_proxy_name, https_proxy_id = create_http_proxy(
-            org_name=module_manifest_org.name
-        )
+        https_proxy, https_proxy_name, https_proxy_id = create_http_proxy(org=module_manifest_org)
         http_proxy, http_proxy_name, http_proxy_id = create_http_proxy(
-            http_type='http', org_name=module_manifest_org.name
+            http_type='http', org=module_manifest_org
         )
         name = gen_string('alpha')
         form_data['name'] = name
@@ -652,7 +650,7 @@ class TestVirtwhoConfigforEsx:
         name = gen_string('alpha')
         form_data['name'] = name
         hypervisor_type = form_data['hypervisor_type']
-        http_proxy_url, proxy_name, proxy_id = create_http_proxy(org_name=module_manifest_org)
+        http_proxy_url, proxy_name, proxy_id = create_http_proxy(org=module_manifest_org)
         form_data['proxy'] = http_proxy_url
         form_data['no_proxy'] = 'test.satellite.com'
         regex = '.*redhat.com'

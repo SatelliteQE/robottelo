@@ -332,7 +332,7 @@ class TestVirtWhoConfigforEsx:
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == '*'
         # Check HTTTP Proxy and No_PROXY option
         http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(
-            http_type='http', org_name=module_manifest_org.name
+            http_type='http', org=module_manifest_org
         )
         no_proxy = 'test.satellite.com'
         virtwho_config.http_proxy_id = http_proxy_id
@@ -344,7 +344,7 @@ class TestVirtWhoConfigforEsx:
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
         # Check HTTTPs Proxy option
         https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy(
-            org_name=module_manifest_org.name
+            org=module_manifest_org
         )
         virtwho_config.http_proxy_id = https_proxy_id
         virtwho_config.update(['http_proxy_id'])

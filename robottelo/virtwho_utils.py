@@ -410,19 +410,19 @@ def virtwho_package_locked():
     assert "Packages are locked" in result[1]
 
 
-def create_http_proxy(name=None, url=None, http_type='https', org_name=DEFAULT_ORG):
+def create_http_proxy(org, name=None, url=None, http_type='https'):
     """
     Creat a new http-proxy with attributes.
     :param name: Name of the proxy
     :param url: URL of the proxy including schema (https://proxy.example.com:8080)
     :param http_type: https or http
-    :param org_name: name of the organization
+    :param org: instance of the organization
     :return:
     """
-    org = entities.Organization().search(query={'search': f'name="{org_name}"'})[0]
+    org = entities.Organization().search(query={'search': f'name="{org.name}"'})[0]
     http_proxy_name = name or gen_string('alpha', 15)
-    http_proxy_url = url or '{}:{}'.format(
-        gen_url(scheme=http_type), gen_integer(min_value=10, max_value=9999)
+    http_proxy_url = (
+        url or f'{gen_url(scheme=http_type)}:{gen_integer(min_value=10, max_value=9999)}'
     )
     http_proxy = entities.HTTPProxy(
         name=http_proxy_name,
