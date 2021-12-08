@@ -266,6 +266,14 @@ def enroll_idm_and_configure_external_auth():
     """Enroll the Satellite6 Server to an IDM Server."""
     run_command(cmd='yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools')
 
+
+@pytest.fixture(scope='session')
+def configure_realm():
+    """Configure realm"""
+    realm = settings.upgrade.vm_domain.upper()
+    run_command(cmd=f'curl -o /root/freeipa.keytab {settings.ipa.keytab_url}')
+    run_command(cmd='mv /root/freeipa.keytab /etc/foreman-proxy')
+    run_command(cmd='chown foreman-proxy:foreman-proxy /etc/foreman-proxy/freeipa.keytab')
     run_command(
         cmd=f'echo {settings.ipa.password} | kinit admin',
         hostname=settings.ipa.hostname,
