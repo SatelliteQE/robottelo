@@ -19,9 +19,7 @@ This module is intended to be used for upgrade tests, that have two run stages,
 
         import pytest
 
-        from upgrade_tests import pre_upgrade, post_upgrade
-
-        @pre_upgrade
+        @pytest.mark.pre_upgrade
         def test_capsule_pre_upgrade(save_test_data):
             '''A pre upgrade test that should pass and save data'''
             assert 1 == 1
@@ -29,7 +27,7 @@ This module is intended to be used for upgrade tests, that have two run stages,
             save_test_data(data_value)
 
 
-        @pre_upgrade
+        @pytest.mark.pre_upgrade
         def test_capsule_pre_upgrade_2(save_test_data):
             '''A pre upgrade test that should pass and save data'''
             assert 1 == 1
@@ -37,19 +35,19 @@ This module is intended to be used for upgrade tests, that have two run stages,
             save_test_data(data_value)
 
 
-        @pre_upgrade
+        @pytest.mark.pre_upgrade
         def test_capsule_pre_upgrade_fail():
             '''A pre upgrade test that should fail'''
             assert 1 == 0
 
         @pytest.mark.skip(reason="The post upgrade dependent tests should skip too")
-        @pre_upgrade
+        @pytest.mark.pre_upgrade
         def test_capsule_pre_upgrade_skipped():
             '''A pre upgrade test that should be skipped'''
             assert 1 == 0
 
 
-        @post_upgrade(depend_on=test_capsule_pre_upgrade)
+        @pytest.mark.post_upgrade(depend_on=test_capsule_pre_upgrade)
         def test_capsule_post_upgrade(pre_upgrade_data):
             '''Test with one dependent pre_upgrade test'''
             assert pre_upgrade_data == {'id': 100, 'env_id': 500}
@@ -57,7 +55,7 @@ This module is intended to be used for upgrade tests, that have two run stages,
 
         # The post_upgrade test can depend from many pre_upgrade tests
 
-        @post_upgrade(depend_on=[test_capsule_pre_upgrade, test_capsule_pre_upgrade_2])
+        @pytest.mark.post_upgrade(depend_on=[test_capsule_pre_upgrade, test_capsule_pre_upgrade_2])
         def test_capsule_post_upgrade_2(pre_upgrade_data):
             '''Test with multiple dependent pre_upgrade tests'''
             # The saved data is restored in the same order as in the list in depend_on
@@ -66,13 +64,13 @@ This module is intended to be used for upgrade tests, that have two run stages,
             assert test_data_2 == {'id': 1, 'cv_id': 3}
 
 
-        @post_upgrade(depend_on=test_capsule_pre_upgrade_fail)
+        @pytest.mark.post_upgrade(depend_on=test_capsule_pre_upgrade_fail)
         def test_capsule_post_upgrade_fail(pre_upgrade_data):
             '''Test must be skipped as test_capsule_pre_upgrade_fail should fail'''
             assert 1 == 0
 
 
-        @post_upgrade(depend_on=test_capsule_pre_upgrade_skipped)
+        @pytest.mark.post_upgrade(depend_on=test_capsule_pre_upgrade_skipped)
         def test_capsule_post_upgrade_skipped(pre_upgrade_data):
             '''Test must be skipped as test_capsule_pre_upgrade_skipped should be skipped'''
             assert 1 == 0
@@ -196,7 +194,7 @@ def save_test_data(request):
 
     Usage::
 
-        @pre_upgrade
+        @pytest.mark.pre_upgrade
         def test_something_pre_upgrade(save_test_data):
             ...
 
@@ -212,7 +210,7 @@ def pre_upgrade_data(request):
 
     Usage::
 
-       @post_upgrade(depend_on=test_something_pre_upgrade)
+       @pytest.mark.post_upgrade(depend_on=test_something_pre_upgrade)
        def test_something_post_upgrade(pre_upgrade_data):
            # restoring
            pre_upgrade_key_value = pre_upgrade_data['key']

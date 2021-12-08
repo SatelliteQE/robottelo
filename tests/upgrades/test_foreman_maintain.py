@@ -1,6 +1,6 @@
 """Test for Foreman-maintain related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,8 +16,7 @@
 
 :Upstream: No
 """
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
+import pytest
 
 
 class TestForemanMaintain:
@@ -97,7 +96,7 @@ class TestForemanMaintain:
         next_version = ".".join(major_version)
         return zstream_version, next_version
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_foreman_maintain_upgrade_list_versions(self, default_sat):
         """Pre-upgrade sceanrio that tests list of satellite version
         which satellite can be upgraded.
@@ -127,7 +126,7 @@ class TestForemanMaintain:
             zstream_version = -1
         assert zstream_version in upgradable_version
 
-    @post_upgrade
+    @pytest.mark.post_upgrade
     def test_post_foreman_maintain_upgrade_list_versions(self, default_sat):
         """Post-upgrade sceanrio that tests list of satellite version
         which satellite can be upgraded.

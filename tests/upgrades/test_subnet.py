@@ -1,6 +1,6 @@
 """Test for Subnet related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: NotAutomated
 
@@ -17,15 +17,11 @@
 :Upstream: No
 """
 import pytest
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 
 @pytest.mark.stubbed
 class TestPositiveCreateParamInExistingSubnet:
     """Parameters can be created in existing subnet post upgrade
-
-    :id: 319317d5-70f0-40f3-bc33-d8846432dea2
 
     :steps:
 
@@ -43,9 +39,11 @@ class TestPositiveCreateParamInExistingSubnet:
         2. Host ENC should return parameter with its value
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_create_parameter_in_existing_subnet(self):
         """Create parameter in preupgrade version
+
+        :id: preupgrade-319317d5-70f0-40f3-bc33-d8846432dea2
 
         :steps:
 
@@ -56,9 +54,11 @@ class TestPositiveCreateParamInExistingSubnet:
         :expectedresults: The subnet should be created successfully
         """
 
-    @post_upgrade
+    @pytest.mark.post_upgrade
     def test_post_create_parameter_in_existing_subnet(self):
         """Parameter can be added to existing subnet post upgrade
+
+        :id: postupgrade-319317d5-70f0-40f3-bc33-d8846432dea2
 
         :steps:
 

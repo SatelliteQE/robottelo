@@ -1,6 +1,6 @@
 """Test for Inter Satellite Sync related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -18,8 +18,6 @@
 """
 import pytest
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.package import Package
@@ -30,7 +28,7 @@ class TestSatelliteSync:
     Test Content-view created before upgrade can be exported and imported after upgrade
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_version_cv_export_import(self, request):
         """Before Upgrade, Create the content view and publish, and promote it.
 
@@ -62,7 +60,7 @@ class TestSatelliteSync:
         cv = cv.read()
         assert cv.version[0].read().package_count > 0
 
-    @post_upgrade(depend_on=test_pre_version_cv_export_import)
+    @pytest.mark.post_upgrade(depend_on=test_pre_version_cv_export_import)
     @pytest.mark.parametrize(
         'set_importing_org',
         [
