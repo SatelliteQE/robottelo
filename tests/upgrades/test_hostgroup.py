@@ -1,6 +1,6 @@
 """Test Hostgroup related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,9 +16,8 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 
 class TestHostgroup:
@@ -26,7 +25,7 @@ class TestHostgroup:
     Hostgroup with different data type are created
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_create_hostgroup(self, request, default_sat):
         """Hostgroup with different data type are created
 
@@ -80,7 +79,7 @@ class TestHostgroup:
         ).create()
         assert host_group.name == f"{test_name}_host_grp"
 
-    @post_upgrade(depend_on=test_pre_create_hostgroup)
+    @pytest.mark.post_upgrade(depend_on=test_pre_create_hostgroup)
     def test_post_crud_hostgroup(self, request, dependent_scenario_name, default_sat):
         """After upgrade, Update, delete and clone should work on existing hostgroup(created before
         upgrade)

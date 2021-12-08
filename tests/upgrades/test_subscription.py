@@ -1,6 +1,6 @@
 """Test for subscription related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,11 +16,10 @@
 
 :Upstream: No
 """
+import pytest
 from fabric.api import execute
 from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import delete_manifest
 from upgrade_tests.helpers.scenarios import dockerize
 from upgrade_tests.helpers.scenarios import upload_manifest
@@ -37,7 +36,7 @@ class TestManifestScenarioRefresh:
     The scenario to test the refresh of a manifest created before upgrade.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_manifest_scenario_refresh(self, request):
         """Before upgrade, upload & refresh the manifest.
 
@@ -58,7 +57,7 @@ class TestManifestScenarioRefresh:
         sub.refresh_manifest(data={'organization_id': org.id})
         assert len(sub.search()) > 0
 
-    @post_upgrade(depend_on=test_pre_manifest_scenario_refresh)
+    @pytest.mark.post_upgrade(depend_on=test_pre_manifest_scenario_refresh)
     def test_post_manifest_scenario_refresh(self, request, dependent_scenario_name):
         """After upgrade, Check the manifest refresh and delete functionality.
 
@@ -90,7 +89,7 @@ class TestSubscriptionAutoAttach:
     upgrade.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_subscription_scenario_autoattach(self, request, default_sat):
         """Create content host and register with Satellite
 
@@ -145,7 +144,7 @@ class TestSubscriptionAutoAttach:
         )[docker_vm]
         assert org.name in status
 
-    @post_upgrade(depend_on=test_pre_subscription_scenario_autoattach)
+    @pytest.mark.post_upgrade(depend_on=test_pre_subscription_scenario_autoattach)
     def test_post_subscription_scenario_autoattach(
         self, request, dependent_scenario_name, default_sat
     ):

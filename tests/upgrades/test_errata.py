@@ -1,6 +1,6 @@
 """Test for Errata related Upgrade Scenarios
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,11 +16,10 @@
 
 :Upstream: No
 """
+import pytest
 from fabric.api import execute
 from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import dockerize
 from upgrade_tests.helpers.scenarios import get_entity_data
@@ -106,12 +105,12 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         5. Check if the Errata Count in Satellite after the upgrade.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_scenario_generate_errata_for_client(self):
         """Create product and repo from which the errata will be generated for the
         Satellite client or content host.
 
-        :id: 88fd28e6-b4df-46c0-91d6-784859fd1c21
+        :id: preupgrade-88fd28e6-b4df-46c0-91d6-784859fd1c21
 
         :steps:
 
@@ -199,12 +198,12 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         }
         create_dict(scenario_dict)
 
-    @post_upgrade(depend_on=test_pre_scenario_generate_errata_for_client)
+    @pytest.mark.post_upgrade(depend_on=test_pre_scenario_generate_errata_for_client)
     def test_post_scenario_errata_count_installation(self):
         """Post-upgrade scenario that installs the package on pre-upgrade
         client remotely and then verifies if the package installed.
 
-        :id: 88fd28e6-b4df-46c0-91d6-784859fd1c21
+        :id: postupgrade-88fd28e6-b4df-46c0-91d6-784859fd1c21
 
         :steps:
 
@@ -286,7 +285,7 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
     BZ: 1529682
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_scenario_generate_errata_with_previous_version_katello_agent_client(
         self, default_org
     ):
@@ -395,7 +394,7 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
         }
         create_dict(scenario_dict)
 
-    @post_upgrade(
+    @pytest.mark.post_upgrade(
         depend_on=test_pre_scenario_generate_errata_with_previous_version_katello_agent_client
     )
     def test_post_scenario_generate_errata_with_previous_version_katello_agent_client(self):
