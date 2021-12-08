@@ -298,7 +298,7 @@ def enroll_idm_and_configure_external_auth(default_sat):
 def configure_realm():
     """Configure realm"""
     realm = settings.upgrade.vm_domain.upper()
-    run_command(cmd=f'curl {settings.ipa.keytab_url} > /root/freeipa.keytab')
+    run_command(cmd=f'curl -o /root/freeipa.keytab {settings.ipa.keytab_url}')
     run_command(cmd='mv /root/freeipa.keytab /etc/foreman-proxy')
     run_command(cmd='chown foreman-proxy:foreman-proxy /etc/foreman-proxy/freeipa.keytab')
     run_command(
