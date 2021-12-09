@@ -686,7 +686,7 @@ def test_positive_generate_with_name_and_org():
 
     result = ReportTemplate.generate({'name': 'Host - Statuses', 'organization': DEFAULT_ORG})
 
-    assert host['name'] in [item.split(',')[0] for item in result]
+    assert host['name'] in [item.split(',')[0] for item in result.split('\n')]
 
 
 @pytest.mark.tier2
@@ -742,11 +742,12 @@ def test_positive_generate_ansible_template():
         {'name': template_name}
     )
 
+    job_id = schedule.split('Job ID: ', 1)[1].strip()
     report_data = ReportTemplate.with_user(username=user['login'], password=password).report_data(
-        {'name': template_name, 'job-id': schedule[0].split('Job ID: ', 1)[1]}
+        {'name': template_name, 'job-id': job_id}
     )
 
-    assert host['name'] in [item.split(',')[1] for item in report_data if len(item) > 0]
+    assert host['name'] in [item.split(',')[1] for item in report_data.split('\n') if len(item) > 0]
 
 
 @pytest.mark.tier3
@@ -783,8 +784,8 @@ def test_positive_generate_entitlements_report_multiple_formats(
             'inputs': 'Days from Now=no limit',
         }
     )
-    assert client.hostname in result_html[2]
-    assert local_subscription['name'] in result_html[2]
+    assert client.hostname in result_html
+    assert local_subscription['name'] in result_html
     result_yaml = ReportTemplate.generate(
         {
             'organization': local_org['name'],
@@ -806,10 +807,10 @@ def test_positive_generate_entitlements_report_multiple_formats(
             'inputs': 'Days from Now=no limit',
         }
     )
-    assert client.hostname in result_csv[1]
-    assert local_subscription['name'] in result_csv[1]
+    assert client.hostname in result_csv
+    assert local_subscription['name'] in result_csv
     # BZ 1830289
-    assert 'Subscription Quantity' in result_csv[0]
+    assert 'Subscription Quantity' in result_csv
 
 
 @pytest.mark.tier3
@@ -846,11 +847,11 @@ def test_positive_schedule_entitlements_report(
     data_csv = ReportTemplate.report_data(
         {
             'name': 'Subscription - Entitlement Report',
-            'job-id': scheduled_csv[0].split('Job ID: ', 1)[1],
+            'job-id': scheduled_csv.split('\n', 1)[0].split('Job ID: ', 1)[1],
         }
     )
-    assert any(client.hostname in line for line in data_csv)
-    assert any(local_subscription['name'] in line for line in data_csv)
+    assert client.hostname in data_csv
+    assert local_subscription['name'] in data_csv
 
 
 @pytest.mark.tier3
@@ -921,8 +922,9 @@ def test_positive_generate_hostpkgcompare(
                 'inputs': f'Host 1 = {host1["name"]}, ' f'Host 2 = {host2["name"]}',
             }
         )
-        result.remove('')
 
+        result = result.split('\n')
+        result.remove('')
         assert len(result) > 1
         headers = f'Package,{host1["name"]},{host2["name"]},Architecture,Status'
         assert headers == result[0]
