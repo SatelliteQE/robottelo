@@ -1088,3 +1088,39 @@ def test_positive_select_org_in_any_context():
     :CaseImportance: High
     """
     pass
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_negative_duplicate_metadata_when_publishing_content_view():
+    """When publishing a Content View synced to a remote upstream source that has a new Repo created
+    since the last sync, there should not be muliple copies of metadata (primary.xml.gz) in the view
+
+    :id: 9cee2706-fa51-47a3-ba1d-a35ca66e7cb6
+
+    :customerscenario: true
+
+    :BZ:1903367
+
+    :Steps:
+        1. On a separate Satellite server from the Satellite instance being tested, create
+            a directory in /var/www/html/pub.
+        2. Change into the directory, download an RPM to the directory, and create
+            a repository in the directory.
+        3. On the Content > Products page of the Satellite webUI, create a new custom product.
+        4. Create a custom repository in the product with the repository created in the previous
+            step as the upstream URL.
+        5. Synchronize the repository.
+        6. On the Satellite hosting the upstream repository, download a second RPM to the
+            repositorydirectory and run `createrepo` again.
+        7. On the Satellite instance being tested, synchronize the custom repository a second time.
+        8. Create a new content view containing the custom repository.
+        9. Publish three versions of the content view.
+        10. Check each published content view version for duplicate repodata.
+
+    :expectedresults:  No duplicate repodata files are present in any of the content
+        view versions.
+
+    :CaseImportance: High
+    """
+    pass
