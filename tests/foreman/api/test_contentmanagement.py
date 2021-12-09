@@ -27,6 +27,7 @@ from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.config import settings
+from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.content_info import get_repomd
 from robottelo.content_info import get_repomd_revision
@@ -1108,3 +1109,99 @@ class TestCapsuleContentManagement:
                 f'{con_client} logout {capsule_configured.hostname}'
             )
             assert result.status == 0
+
+    @pytest.mark.tier4
+    @pytest.mark.skip_if_not_set('capsule')
+    def test_positive_sync_collection_repo(
+        self, default_sat, module_lce_library, module_product, capsule_configured, rhel7_contenthost
+    ):
+        """Sync ansible-collection repo to the Capsule, consume it on a host.
+
+        :id: cfca7b28-fb70-429a-9aa2-db0d8aaf99bc
+
+        :steps:
+            1. Create an ansible-collection type repository.
+            2. Sync the repository to the Capsule through the Library LCE.
+               (CVs are unsupported yet)
+            3. Check the Capsule is synced without errors.
+            4. Try to install the collections from the Capsule on a Content Host.
+
+        :expectedresults:
+            1. The ansible-collection repo is successfully synced to the Capsule.
+            2. The collection is successfully installed on the Content Host.
+
+        :CaseLevel: Integration
+        """
+        requirements = '''
+        ---
+        collections:
+        - name: theforeman.foreman
+          version: "2.1.0"
+        - name: theforeman.operations
+          version: "0.1.0"
+        '''
+        repo = entities.Repository(
+            content_type='ansible_collection',
+            ansible_collection_requirements=requirements,
+            product=module_product,
+            url=ANSIBLE_GALAXY,
+        ).create()
+
+        # Associate the Library LCE with the capsule
+        capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': module_lce_library.id}
+        )
+        result = capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert len(result['results'])
+        assert module_lce_library.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Sync the repo
+        repo.sync(timeout=600)
+        repo = repo.read()
+        assert repo.content_counts['ansible_collection'] == 2
+
+        # Assert that a task to sync lifecycle environment to the capsule
+        # is started (or finished already)
+        sync_status = capsule_configured.nailgun_capsule.content_get_sync()
+        assert len(sync_status['active_sync_tasks']) or sync_status['last_sync_time']
+
+        # Wait till capsule sync finishes and assert the sync task succeeded
+        for task in sync_status['active_sync_tasks']:
+            entities.ForemanTask(id=task['id']).poll(timeout=600)
+        sync_status = capsule_configured.nailgun_capsule.content_get_sync()
+        assert len(sync_status['last_failed_sync_tasks']) == 0
+
+        # Configure the content host to fetch collections from capsule
+        rhel7_contenthost.install_katello_ca(capsule_configured)
+        rhel7_contenthost.create_custom_repos(
+            **{
+                'server': settings.repos.rhel7_os,
+                'ansible': settings.repos.ansible_repo,
+            }
+        )
+        result = rhel7_contenthost.execute('yum -y install ansible')
+        assert result.status == 0
+
+        repo_path = repo.full_path.replace(default_sat.hostname, capsule_configured.hostname)
+        coll_path = './collections'
+        cfg = (
+            '[defaults]\n'
+            f'collections_paths = {coll_path}\n\n'
+            '[galaxy]\n'
+            'server_list = capsule_galaxy\n\n'
+            '[galaxy_server.capsule_galaxy]\n'
+            f'url={repo_path}\n'
+        )
+        rhel7_contenthost.execute(f'echo "{cfg}" > ./ansible.cfg')
+
+        # Try to install collections from the Capsule
+        result = rhel7_contenthost.execute(
+            'ansible-galaxy collection install theforeman.foreman theforeman.operations'
+        )
+        assert result.status == 0
+        assert 'error' not in result.stdout.lower()
+
+        result = rhel7_contenthost.execute(f'ls {coll_path}/ansible_collections/theforeman/')
+        assert result.status == 0
+        assert 'foreman' in result.stdout
+        assert 'operations' in result.stdout

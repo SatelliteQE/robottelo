@@ -1035,6 +1035,12 @@ class Capsule(ContentHost):
     def url(self):
         return f'https://{self.hostname}'
 
+    @cached_property
+    def url_katello_ca_rpm(self):
+        """Return the Katello cert RPM URL"""
+        pub_url = urlunsplit(('http', self.hostname, 'pub/', '', ''))  # use url with https?
+        return urljoin(pub_url, 'katello-ca-consumer-latest.noarch.rpm')
+
     @property
     def rex_pub_key(self):
         return self.execute(f'cat {self.rex_key_path}').stdout.strip()
@@ -1208,12 +1214,6 @@ class Satellite(Capsule):
             return self.execute('rpm -q satellite').stdout.split('-')[1]
         else:
             return 'upstream'
-
-    @cached_property
-    def url_katello_ca_rpm(self):
-        """Return the Katello cert RPM URL"""
-        pub_url = urlunsplit(('http', self.hostname, 'pub/', '', ''))  # use url with https?
-        return urljoin(pub_url, 'katello-ca-consumer-latest.noarch.rpm')
 
     def capsule_certs_generate(self, capsule, cert_path=None, **extra_kwargs):
         """Generate capsule certs, returning the cert path and the installer command args"""
