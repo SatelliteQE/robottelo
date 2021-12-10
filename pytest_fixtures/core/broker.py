@@ -10,7 +10,8 @@ from robottelo.hosts import Satellite
 def _resolve_deploy_args(args_dict):
     for key, val in args_dict.items():
         if isinstance(val, str) and val.startswith('this.'):
-            args_dict[key] = settings.get(val.replace('this.', ''))
+            # Args transformed into small letters and existing capital args removed
+            args_dict[key.lower()] = settings.get(args_dict.pop(key).replace('this.', ''))
 
 
 @pytest.fixture(scope='session')
