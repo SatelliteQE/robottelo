@@ -36,6 +36,7 @@ from robottelo.cli.factory import make_content_credential
 from robottelo.cli.factory import make_content_view
 from robottelo.cli.factory import make_filter
 from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
@@ -44,6 +45,7 @@ from robottelo.cli.factory import make_user
 from robottelo.cli.file import File
 from robottelo.cli.filter import Filter
 from robottelo.cli.module_stream import ModuleStream
+from robottelo.cli.org import Org
 from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
@@ -559,6 +561,41 @@ class TestRepository:
         """
         for key in 'url', 'content-type', 'name':
             assert repo.get(key) == repo_options[key]
+
+    @pytest.mark.tier1
+    def test_positive_create_repo_with_new_organization_and_location(self, default_sat):
+        """Check if error is thrown when creating a Repo with a new Organization and Location.
+
+        :id: 9ea4f2a9-f339-4215-b301-cd39c6b5c474
+
+        :parametrized: no
+
+        :expectedresults: No error is present when Repository is created
+
+        :BZ: 1992967
+
+        :CaseImportance: High
+        """
+        new_org = make_org()
+        new_location = make_location()
+        new_product = make_product(
+            {'organization-id': new_org['id'], 'description': 'test_product'}
+        )
+        Org.add_location({'location-id': new_location['id'], 'name': new_org['name']})
+        assert new_location['name'] in Org.info({'id': new_org['id']})['locations']
+        make_repository(
+            {
+                'location-id': new_location['id'],
+                'organization-id': new_org['id'],
+                'product-id': new_product['id'],
+            }
+        )
+
+        result = default_sat.execute(
+            "cat /var/log/foreman/production.log | "
+            "grep \"undefined method `id' for nil:NilClass (NoMethodError)\""
+        )
+        assert result.status == 1
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
