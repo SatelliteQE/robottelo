@@ -574,7 +574,7 @@ class TestRepository:
 
         :BZ: 1992967
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         new_org = make_org()
         new_location = make_location()
