@@ -43,7 +43,7 @@ def form_data():
 
 class TestVirtwhoConfigforLibvirt:
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_id(self, session, form_data):
+    def test_positive_deploy_configure_by_id(self, module_manifest_org, session, form_data):
         """Verify configure created and deployed with id.
 
         :id: ae37ea79-f99c-4511-ace9-a7de26d6db40
@@ -66,7 +66,7 @@ class TestVirtwhoConfigforLibvirt:
             values = session.virtwho_configure.read(name)
             command = values['deploy']['command']
             hypervisor_name, guest_name = deploy_configure_by_command(
-                command, form_data['hypervisor_type'], debug=True
+                command, form_data['hypervisor_type'], debug=True, org=module_manifest_org.label
             )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
@@ -80,7 +80,7 @@ class TestVirtwhoConfigforLibvirt:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_script(self, session, form_data):
+    def test_positive_deploy_configure_by_script(self, module_manifest_org, session, form_data):
         """Verify configure created and deployed with script.
 
         :id: 3655a501-ab05-4724-945a-7f6e6878091d
@@ -103,7 +103,7 @@ class TestVirtwhoConfigforLibvirt:
             values = session.virtwho_configure.read(name)
             script = values['deploy']['script']
             hypervisor_name, guest_name = deploy_configure_by_script(
-                script, form_data['hypervisor_type'], debug=True
+                script, form_data['hypervisor_type'], debug=True, org=module_manifest_org.label
             )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
@@ -117,7 +117,7 @@ class TestVirtwhoConfigforLibvirt:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_hypervisor_id_option(self, session, form_data):
+    def test_positive_hypervisor_id_option(self, module_manifest_org, session, form_data):
         """Verify Hypervisor ID dropdown options.
 
         :id: b8b2b272-89f2-45d0-b922-6e988b20808b
@@ -135,14 +135,16 @@ class TestVirtwhoConfigforLibvirt:
         with session:
             session.virtwho_configure.create(form_data)
             config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id)
+            config_command = get_configure_command(config_id, module_manifest_org.label)
             config_file = get_configure_file(config_id)
             values = ['uuid', 'hostname']
             for value in values:
                 session.virtwho_configure.edit(name, {'hypervisor_id': value})
                 results = session.virtwho_configure.read(name)
                 assert results['overview']['hypervisor_id'] == value
-                deploy_configure_by_command(config_command, form_data['hypervisor_type'])
+                deploy_configure_by_command(
+                    config_command, form_data['hypervisor_type'], org=module_manifest_org.label
+                )
                 assert get_configure_option('hypervisor_id', config_file) == value
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)

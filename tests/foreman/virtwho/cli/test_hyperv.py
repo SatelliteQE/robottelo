@@ -23,7 +23,6 @@ from robottelo.cli.host import Host
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
@@ -32,7 +31,7 @@ from robottelo.virtwho_utils import get_configure_option
 
 
 @pytest.fixture()
-def form_data(default_sat):
+def form_data(default_sat, module_manifest_org):
     form = {
         'name': gen_string('alpha'),
         'debug': 1,
@@ -40,7 +39,7 @@ def form_data(default_sat):
         'hypervisor-id': 'hostname',
         'hypervisor-type': settings.virtwho.hyperv.hypervisor_type,
         'hypervisor-server': settings.virtwho.hyperv.hypervisor_server,
-        'organization-id': 1,
+        'organization-id': module_manifest_org.id,
         'filtering-mode': 'none',
         'satellite-url': default_sat.hostname,
         'hypervisor-username': settings.virtwho.hyperv.hypervisor_username,
@@ -56,7 +55,7 @@ def virtwho_config(form_data):
 
 class TestVirtWhoConfigforHyperv:
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
+    def test_positive_deploy_configure_by_id(self, module_manifest_org, form_data, virtwho_config):
         """Verify " hammer virt-who-config deploy"
 
         :id: 7cc0ad4f-e185-4d63-a2f5-1cb0245faa6c
@@ -68,9 +67,9 @@ class TestVirtWhoConfigforHyperv:
         :CaseImportance: High
         """
         assert virtwho_config['status'] == 'No Report Yet'
-        command = get_configure_command(virtwho_config['id'])
+        command = get_configure_command(virtwho_config['id'], module_manifest_org.label)
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data['hypervisor-type'], debug=True
+            command, form_data['hypervisor-type'], debug=True, org=module_manifest_org.label
         )
         virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})['general-information'][
             'status'
@@ -82,7 +81,9 @@ class TestVirtWhoConfigforHyperv:
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
-            subscriptions = Subscription.list({'organization': DEFAULT_ORG, 'search': sku})
+            subscriptions = Subscription.list(
+                {'organization': module_manifest_org.label, 'search': sku}
+            )
             vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
@@ -95,7 +96,9 @@ class TestVirtWhoConfigforHyperv:
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
+    def test_positive_deploy_configure_by_script(
+        self, module_manifest_org, form_data, virtwho_config
+    ):
         """Verify " hammer virt-who-config fetch"
 
         :id: 22dc8068-c843-4ca0-acbe-0b2aef8ece31
@@ -109,7 +112,7 @@ class TestVirtWhoConfigforHyperv:
         assert virtwho_config['status'] == 'No Report Yet'
         script = VirtWhoConfig.fetch({'id': virtwho_config['id']}, output_format='base')
         hypervisor_name, guest_name = deploy_configure_by_script(
-            script, form_data['hypervisor-type'], debug=True
+            script, form_data['hypervisor-type'], debug=True, org=module_manifest_org.label
         )
         virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})['general-information'][
             'status'
@@ -121,7 +124,9 @@ class TestVirtWhoConfigforHyperv:
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
-            subscriptions = Subscription.list({'organization': DEFAULT_ORG, 'search': sku})
+            subscriptions = Subscription.list(
+                {'organization': module_manifest_org.label, 'search': sku}
+            )
             vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
@@ -134,7 +139,7 @@ class TestVirtWhoConfigforHyperv:
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
-    def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
+    def test_positive_hypervisor_id_option(self, module_manifest_org, form_data, virtwho_config):
         """Verify hypervisor_id option by hammer virt-who-config update"
 
         :id: 8e234492-33cb-4523-abb3-582626ad704c
@@ -151,8 +156,10 @@ class TestVirtWhoConfigforHyperv:
             result = VirtWhoConfig.info({'id': virtwho_config['id']})
             assert result['connection']['hypervisor-id'] == value
             config_file = get_configure_file(virtwho_config['id'])
-            command = get_configure_command(virtwho_config['id'])
-            deploy_configure_by_command(command, form_data['hypervisor-type'])
+            command = get_configure_command(virtwho_config['id'], module_manifest_org.label)
+            deploy_configure_by_command(
+                command, form_data['hypervisor-type'], org=module_manifest_org.label
+            )
             assert get_configure_option('hypervisor_id', config_file) == value
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
