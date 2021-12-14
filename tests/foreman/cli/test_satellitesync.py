@@ -1485,8 +1485,8 @@ class TestContentViewSync:
 
             1. Create custom product and custom repo with ansible collection
             2. Sync repo
-            4. Export library and import into another satellite
-            5. Check imported library has ansible collection in it
+            3. Export library and import into another satellite
+            4. Check imported library has ansible collection in it
 
         :expectedresults:  Imported library should have the ansible collection present in the
             imported product
