@@ -34,6 +34,7 @@ from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
 from robottelo.cli.file import File
 from robottelo.cli.package import Package
+from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.settings import Settings
@@ -44,7 +45,7 @@ from robottelo.constants import DEFAULT_CV
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-
+from robottelo.constants.repos import ANSIBLE_GALAXY
 
 EXPORT_DIR = '/var/lib/pulp/exports/'
 IMPORT_DIR = '/var/lib/pulp/imports/'
@@ -1471,6 +1472,156 @@ class TestContentViewSync:
         imported_files = File.list({'content-view-version-id': importing_cvv[0]['id']})
         assert len(imported_files)
         assert len(exported_files) == len(imported_files)
+
+    @pytest.mark.tier3
+    def test_postive_import_export_ansible_collection_repo(
+        self, default_sat, config_export_import_settings, export_cleanup, function_org
+    ):
+        """Exporting and Importing library with ansible collection
+
+        :id: 71dd1e1a-caad-48be-a180-206c8aa78639
+
+        :steps:
+
+            1. Create custom product and custom repo with ansible collection
+            2. Sync repo
+            4. Export library and import into another satellite
+            5. Check imported library has ansible collection in it
+
+        :expectedresults:  Imported library should have the ansible collection present in the
+            imported product
+        """
+        # setup ansible_collection product and repo
+        export_product = make_product({'organization-id': function_org.id})
+        ansible_repo = make_repository(
+            {
+                'organization-id': function_org.id,
+                'product-id': export_product['id'],
+                'content-type': 'ansible_collection',
+                'url': ANSIBLE_GALAXY,
+                'ansible-collection-requirements': '{collections: [ \
+                        { name: theforeman.foreman, version: "2.1.0" }, \
+                        { name: theforeman.operations, version: "0.1.0"} ]}',
+            }
+        )
+        Repository.synchronize({'id': ansible_repo['id']})
+        # Export library
+        path = ContentExport.completeLibrary({'organization-id': function_org.id})
+        # grab export dir and check all exported files are there
+        export_dir = os.path.dirname(path['message'])
+        export_folder = os.path.split(export_dir)
+        result = default_sat.execute(f'ls {export_dir}')
+        assert result.stdout != ''
+        # importing portion
+        importing_org = make_org()
+        # set disconnected mode on
+        Settings.set({'name': 'content_disconnected', 'value': "Yes"})
+        # Move export files to import location and set permission
+        default_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
+        import_path = f'{IMPORT_DIR}{export_folder[1]}'
+        default_sat.execute(f'chown -R pulp:pulp {import_path}')
+        # check that files are present in import_path
+        result = default_sat.execute(f'ls {import_path}')
+        assert result.stdout != ''
+        # Import files and verify content
+        ContentImport.library({'organization-id': importing_org['id'], 'path': import_path})
+        assert Product.list({'organization-id': importing_org['id']})
+        import_product = Product.info(
+            {
+                'organization-id': importing_org['id'],
+                'id': Product.list({'organization-id': importing_org['id']})[0]['id'],
+            }
+        )
+        assert import_product['name'] == export_product['name']
+        assert len(import_product['content']) == 1
+        assert import_product['content'][0]['content-type'] == "ansible_collection"
+
+    @pytest.mark.skip_if_not_set('fake_manifest')
+    @pytest.mark.tier3
+    def test_negative_import_redhat_cv_without_manifest(
+        self, export_cleanup, config_export_import_settings, function_org, default_sat
+    ):
+        """Redhat content can't be imported into satellite/organization without manifest
+
+        :id: b0f5f95b-3f9f-4827-84f1-b66517dc34f1
+
+        :steps:
+
+            1. Enable product and repository with redhat contents.
+            2. Sync the repository.
+            3. Create CV with above product and publish.
+            4. Export CV version contents to a directory
+            5. Import those contents to other org without manifest.
+
+        :expectedresults:
+
+            1. Import fails with message "Could not import the archive.:
+               No manifest found. Import a manifest with the appropriate subscriptions before
+               importing content."
+
+        """
+        # Setup rhel repo
+        cv_name = gen_string('alpha')
+        with manifests.clone() as manifest:
+            default_sat.put(manifest, manifest.filename)
+        Subscription.upload({'file': manifest.filename, 'organization-id': function_org.id})
+        RepositorySet.enable(
+            {
+                'basearch': 'x86_64',
+                'name': REPOSET['rhva6'],
+                'organization-id': function_org.id,
+                'product': PRDS['rhel'],
+                'releasever': '6Server',
+            }
+        )
+        repo = Repository.info(
+            {
+                'name': REPOS['rhva6']['name'],
+                'organization-id': function_org.id,
+                'product': PRDS['rhel'],
+            }
+        )
+        # Update the download policy to 'immediate' and sync
+        Repository.update({'download-policy': 'immediate', 'id': repo['id']})
+        Repository.synchronize({'id': repo['id']}, timeout=7200000)
+        # Create cv and publish
+        cv = make_content_view({'name': cv_name, 'organization-id': function_org.id})
+        ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': function_org.id,
+                'repository-id': repo['id'],
+            }
+        )
+        ContentView.publish({'id': cv['id']})
+        cv = ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 1
+        cvv = cv['versions'][0]
+        # Verify export directory is empty
+        assert validate_filepath(default_sat) == ''
+        # Export cv
+        path = ContentExport.completeVersion({'id': cvv['id'], 'organization-id': function_org.id})
+        # grab export dir and check all exported files are there
+        export_dir = os.path.dirname(path['message'])
+        export_folder = os.path.split(export_dir)
+        result = default_sat.execute(f'ls {export_dir}')
+        assert len(result.stdout) > 1
+        # importing portion
+        importing_org = make_org()
+        default_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
+        import_path = f'/{IMPORT_DIR}{export_folder[1]}'
+        default_sat.execute(f'chown -R pulp:pulp {import_path}')
+        # check that files are present in import_path
+        result = default_sat.execute(f'ls {import_path}')
+        assert result.stdout != ''
+        # set disconnected mode on
+        Settings.set({'name': 'content_disconnected', 'value': "Yes"})
+        with pytest.raises(CLIReturnCodeError) as error:
+            ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
+        assert (
+            'Could not import the archive.:\n  No manifest found. Import a manifest with the '
+            'appropriate subscriptions before importing content.'
+        ) in error.value.message
 
 
 class TestInterSatelliteSync:
