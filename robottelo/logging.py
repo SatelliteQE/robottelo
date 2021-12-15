@@ -4,7 +4,7 @@ from pathlib import Path
 
 import logzero
 import yaml
-from attrdict import AttrDict
+from box import Box
 
 
 robottelo_root_dir = Path(os.environ.get('ROBOTTELO_DIR', Path(__file__).resolve().parent.parent))
@@ -13,7 +13,7 @@ robottelo_log_file = robottelo_log_dir.joinpath('robottelo.log')
 robottelo_log_file.parent.mkdir(parents=True, exist_ok=True)
 
 with robottelo_root_dir.joinpath('logging.yaml').open() as f:
-    logging_yaml = AttrDict(yaml.load(f, yaml.FullLoader))
+    logging_yaml = Box(yaml.load(f, yaml.FullLoader))
 
 DEFAULT_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 

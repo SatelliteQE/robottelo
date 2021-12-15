@@ -2,7 +2,7 @@ import copy
 import socket
 
 import pytest
-from attrdict import AttrDict
+from box import Box
 from nailgun import entities
 
 from robottelo.api.utils import update_rhsso_settings_in_satellite
@@ -43,7 +43,7 @@ def ad_data():
                 f'Does not match with provided {version}'
             )
 
-        return AttrDict(ad_server_details)
+        return Box(ad_server_details)
 
     return _ad_data
 

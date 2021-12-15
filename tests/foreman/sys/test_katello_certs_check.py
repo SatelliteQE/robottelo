@@ -21,7 +21,7 @@ import re
 from pathlib import Path
 
 import pytest
-from attrdict import AttrDict
+from box import Box
 from broker.broker import VMBroker
 from fauxfactory import gen_string
 
@@ -520,7 +520,7 @@ class TestCapsuleCertsCheckTestCase:
     @pytest.fixture
     def capsule_certs_teardown(self, default_sat):
         """Create working directory and file."""
-        capsule = AttrDict({'hostname': 'capsule.example.com'})
+        capsule = Box({'hostname': 'capsule.example.com'})
         tmp_dir = '/var/tmp/{}'.format(gen_string('alpha', 6))
         caps_cert_file = f'{tmp_dir}/ssl-build/capsule.example.com/cert-data'
         # Use same path locally as on remote for storing files
