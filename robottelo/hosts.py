@@ -1365,3 +1365,13 @@ class Satellite(Capsule):
             raise SatelliteHostError(
                 f'Error during registration, command output: {cmd_result.stdout}'
             )
+
+    def install_cockpit(self):
+        cmd_result = self.execute(
+            'satellite-installer --enable-foreman-plugin-remote-execution-cockpit', timeout='30m'
+        )
+        if cmd_result.status != 0:
+            raise SatelliteHostError(
+                f'Error during cockpit installation, installation output: {cmd_result.stdout}'
+            )
+        self.add_rex_key(self)
