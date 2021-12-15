@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import tempfile
+import time
 from urllib.parse import urljoin
 from urllib.parse import urlparse
 from urllib.parse import urlunparse
@@ -1311,6 +1312,49 @@ class TestRepository:
         repo.delete()
         with pytest.raises(HTTPError):
             repo.read()
+
+    def test_positive_recreate_pulp_repositories(self, module_org, default_sat):
+        """Verify that deleted Pulp Repositories can be recreated using the
+        command 'foreman-rake katello:correct_repositories COMMIT=true'
+
+        :id: 2167d548-5af1-43e7-9f05-cc340d722aa8
+
+        :CaseImportance: High
+
+        :customerscenario: True
+
+        :BZ: 1908101
+
+        :expectedresults: foreman-rake katello:correct_repositories COMMIT=true recreates deleted
+        repos with no TaskErrors
+        """
+        with manifests.clone() as manifest:
+            upload_manifest(module_org.id, manifest.content)
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhst7']['name'],
+            reposet=constants.REPOSET['rhst7'],
+            releasever=None,
+        )
+        entities.Repository(id=repo_id).sync()
+        with default_sat.session.shell() as sh:
+            sh.send('foreman-rake console')
+            time.sleep(30)  # sleep to allow time for console to open
+            sh.send(f'::Katello::Repository.find({repo_id}).version_href')
+            time.sleep(3)  # give enough time for the command to complete
+        results = sh.result
+        identifier = results.stdout.split('version_href\n"', 1)[1].split('version')[0]
+        default_sat.execute(
+            f'curl -X DELETE {default_sat.url}{identifier}'
+            f' --cert /etc/pki/katello/certs/pulp-client.crt'
+            f' --key /etc/pki/katello/private/pulp-client.key'
+        )
+        command_output = default_sat.execute(
+            'foreman-rake katello:correct_repositories COMMIT=true'
+        )
+        assert 'Recreating' in command_output.stdout and 'TaskError' not in command_output.stdout
 
 
 @pytest.mark.run_in_one_thread
