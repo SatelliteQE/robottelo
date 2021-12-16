@@ -1796,7 +1796,7 @@ def test_installer_inventory_plugin_update(destructive_sat):
     :customerscenario: true
 
     """
-    destructive_sat.create_custom_repos(rhel7=settings.repos.rhel7_repo)
+    destructive_sat.create_custom_repos(rhel7=settings.repos.rhel7_os)
     installer_obj = InstallerCommand(
         'enable-foreman-plugin-rh-cloud',
         foreman_proxy_plugin_remote_execution_ssh_install_key=['true'],

@@ -234,13 +234,6 @@ VALIDATORS = dict(
     ],
     repos=[
         Validator(
-            'repos.rhel6_repo',
-            'repos.rhel7_repo',
-            'repos.rhel8_repo',
-            must_exist=True,
-            is_type_of=str,
-        ),
-        Validator(
             'repos.rhel6_os',
             'repos.rhel7_os',
             'repos.rhel8_os.baseos',

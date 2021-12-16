@@ -944,10 +944,10 @@ class RepositoryCollection:
             install_katello_agent=install_katello_agent,
         )
         if configure_rhel_repo:
-            rhel_repo_option_name = f'rhel{constants.DISTROS_MAJOR_VERSION[self.distro]}_repo'
+            rhel_repo_option_name = f'rhel{constants.DISTROS_MAJOR_VERSION[self.distro]}_os'
             rhel_repo_url = getattr(settings, rhel_repo_option_name, None)
             if not rhel_repo_url:
                 raise ValueError(
                     f'Settings option "{rhel_repo_option_name}" is not set or does not exist'
                 )
-            vm.configure_rhel_repo(rhel_repo_url)
+            vm.create_custom_repos(**{rhel_repo_option_name: rhel_repo_url})
