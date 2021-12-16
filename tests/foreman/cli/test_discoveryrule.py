@@ -20,7 +20,7 @@ import random
 from functools import partial
 
 import pytest
-from attrdict import AttrDict
+from box import Box
 from fauxfactory import gen_choice
 from fauxfactory import gen_string
 from nailgun.entities import Role as RoleEntity
@@ -89,7 +89,7 @@ class TestDiscoveryRule:
 
             # create a simple object from the dictionary that the CLI factory provides
             # This allows for consistent attributized access of all fixture entities in the tests
-            return AttrDict(make_discoveryrule(options))
+            return Box(make_discoveryrule(options))
 
         return partial(
             _create_discoveryrule, org=class_org, loc=class_location, hostgroup=class_hostgroup
@@ -231,7 +231,7 @@ class TestDiscoveryRule:
 
         :CaseImportance: Critical
         """
-        available = set(range(1, 1000)) - {AttrDict(r).priority for r in DiscoveryRule.list()}
+        available = set(range(1, 1000)) - {Box(r).priority for r in DiscoveryRule.list()}
         rule_priority = random.sample(available, 1)
         rule = discoveryrule_factory(options={'priority': rule_priority[0]})
         assert rule.priority == str(rule_priority[0])
@@ -346,7 +346,7 @@ class TestDiscoveryRule:
         rule = discoveryrule_factory()
         new_name = gen_string('numeric')
         DiscoveryRule.update({'id': rule.id, 'name': new_name})
-        rule = AttrDict(DiscoveryRule.info({'id': rule.id}))
+        rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert rule.name == new_name
 
     @pytest.mark.tier2
@@ -361,9 +361,9 @@ class TestDiscoveryRule:
 
         :CaseLevel: Component
         """
-        new_org = AttrDict(make_org())
-        new_loc = AttrDict(make_location())
-        new_hostgroup = AttrDict(
+        new_org = Box(make_org())
+        new_loc = Box(make_location())
+        new_hostgroup = Box(
             make_hostgroup({'organization-ids': new_org.id, 'location-ids': new_loc.id})
         )
         rule = discoveryrule_factory()
@@ -375,7 +375,7 @@ class TestDiscoveryRule:
                 'hostgroup-id': new_hostgroup.id,
             }
         )
-        rule = AttrDict(DiscoveryRule.info({'id': rule.id}))
+        rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert new_org.name in rule.organizations
         assert new_loc.name in rule.locations
 
@@ -394,9 +394,9 @@ class TestDiscoveryRule:
 
         :CaseImportance: Medium
         """
-        new_org = AttrDict(make_org())
-        new_loc = AttrDict(make_location())
-        new_hostgroup = AttrDict(
+        new_org = Box(make_org())
+        new_loc = Box(make_location())
+        new_hostgroup = Box(
             make_hostgroup({'organization-ids': new_org.id, 'location-ids': new_loc.id})
         )
         rule = discoveryrule_factory()
@@ -408,7 +408,7 @@ class TestDiscoveryRule:
                 'hostgroup-id': new_hostgroup.id,
             }
         )
-        rule = AttrDict(DiscoveryRule.info({'id': rule.id}))
+        rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert new_org.name in rule.organizations
         assert new_loc.name in rule.locations
 
@@ -425,7 +425,7 @@ class TestDiscoveryRule:
         rule = discoveryrule_factory()
         new_query = 'model = KVM'
         DiscoveryRule.update({'id': rule.id, 'search': new_query})
-        rule = AttrDict(DiscoveryRule.info({'id': rule.id}))
+        rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert rule.search == new_query
 
     @pytest.mark.tier2
@@ -438,11 +438,10 @@ class TestDiscoveryRule:
 
         :CaseLevel: Component
         """
-        new_hostgroup = AttrDict(make_hostgroup({'organization-ids': class_org.id}))
+        new_hostgroup = Box(make_hostgroup({'organization-ids': class_org.id}))
         rule = discoveryrule_factory()
         DiscoveryRule.update({'id': rule.id, 'hostgroup': new_hostgroup.name})
         rule = DiscoveryRule.info({'id': rule.id})
-        # AttrDict doesn't support attributized access on key with a hyphen
         assert rule['host-group'] == new_hostgroup.name
 
     @pytest.mark.tier2
@@ -458,7 +457,7 @@ class TestDiscoveryRule:
         new_hostname = gen_string('alpha')
         rule = discoveryrule_factory()
         DiscoveryRule.update({'id': rule.id, 'hostname': new_hostname})
-        rule = AttrDict(DiscoveryRule.info({'id': rule.id}))
+        rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert rule['hostname-template'] == new_hostname
 
     @pytest.mark.tier2
@@ -474,7 +473,7 @@ class TestDiscoveryRule:
         rule = discoveryrule_factory(options={'hosts-limit': '5'})
         new_limit = '10'
         DiscoveryRule.update({'id': rule.id, 'hosts-limit': new_limit})
-        rule = AttrDict(DiscoveryRule.info({'id': rule.id}))
+        rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert rule['hosts-limit'] == new_limit
 
     @pytest.mark.tier1
@@ -487,14 +486,14 @@ class TestDiscoveryRule:
 
         :CaseImportance: Critical
         """
-        available = set(range(1, 1000)) - {AttrDict(r).priority for r in DiscoveryRule.list()}
+        available = set(range(1, 1000)) - {Box(r).priority for r in DiscoveryRule.list()}
         rule_priority = random.sample(available, 1)
         rule = discoveryrule_factory(options={'priority': rule_priority[0]})
         assert rule.priority == str(rule_priority[0])
-        available = set(range(1, 1000)) - {AttrDict(r).priority for r in DiscoveryRule.list()}
+        available = set(range(1, 1000)) - {Box(r).priority for r in DiscoveryRule.list()}
         rule_priority = random.sample(available, 1)
         DiscoveryRule.update({'id': rule.id, 'priority': rule_priority[0]})
-        rule = AttrDict(DiscoveryRule.info({'id': rule.id}))
+        rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert rule.priority == str(rule_priority[0])
 
     @pytest.mark.tier1
@@ -510,7 +509,7 @@ class TestDiscoveryRule:
         rule = discoveryrule_factory(options={'enabled': 'false'})
         assert rule.enabled == 'false'
         DiscoveryRule.update({'id': rule.id, 'enabled': 'true'})
-        rule = AttrDict(DiscoveryRule.info({'id': rule.id}))
+        rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert rule.enabled == 'true'
 
     @pytest.mark.tier3
@@ -635,7 +634,7 @@ class TestDiscoveryRuleRole:
         :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
-        rule = AttrDict(
+        rule = Box(
             DiscoveryRule.with_user(class_user_manager.login, class_user_password).create(
                 {
                     'name': rule_name,
@@ -646,7 +645,7 @@ class TestDiscoveryRuleRole:
                 }
             )
         )
-        rule = AttrDict(
+        rule = Box(
             DiscoveryRule.with_user(class_user_manager.login, class_user_password).info(
                 {'id': rule.id}
             )
@@ -666,7 +665,7 @@ class TestDiscoveryRuleRole:
         :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
-        rule = AttrDict(
+        rule = Box(
             DiscoveryRule.with_user(class_user_manager.login, class_user_password).create(
                 {
                     'name': rule_name,
@@ -677,7 +676,7 @@ class TestDiscoveryRuleRole:
                 }
             )
         )
-        rule = AttrDict(
+        rule = Box(
             DiscoveryRule.with_user(class_user_manager.login, class_user_password).info(
                 {'id': rule.id}
             )
@@ -709,7 +708,7 @@ class TestDiscoveryRuleRole:
         :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
-        rule = AttrDict(
+        rule = Box(
             make_discoveryrule(
                 {
                     'name': rule_name,
@@ -721,7 +720,7 @@ class TestDiscoveryRuleRole:
                 }
             )
         )
-        rule = AttrDict(
+        rule = Box(
             DiscoveryRule.with_user(class_user_reader.login, class_user_password).info(
                 {'id': rule.id}
             )
@@ -741,7 +740,7 @@ class TestDiscoveryRuleRole:
 
         :CaseLevel: Integration
         """
-        rule = AttrDict(
+        rule = Box(
             make_discoveryrule(
                 {
                     'enabled': 'false',
@@ -752,7 +751,7 @@ class TestDiscoveryRuleRole:
                 }
             )
         )
-        rule = AttrDict(
+        rule = Box(
             DiscoveryRule.with_user(class_user_reader.login, class_user_password).info(
                 {'id': rule.id}
             )
