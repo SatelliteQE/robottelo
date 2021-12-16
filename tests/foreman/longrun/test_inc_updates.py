@@ -121,7 +121,9 @@ def module_ak(module_manifest_org, module_cv, custom_repo, module_lce_library):
     )
     # Add custom subscription to activation key
     prod = custom_repo.product.read()
-    custom_sub = entities.Subscription().search(query={'search': f'name={prod.name}'})
+    custom_sub = entities.Subscription(organization=module_manifest_org).search(
+        query={'search': f'name={prod.name}'}
+    )
     ak.add_subscriptions(data={'subscription_id': custom_sub[0].id})
     return ak
 
