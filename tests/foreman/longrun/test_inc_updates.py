@@ -30,6 +30,7 @@ from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
@@ -149,8 +150,13 @@ def host(
     rhel7_contenthost_module.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE}')
     rhel7_contenthost_module.execute('katello-package-upload')
     host = entities.Host().search(query={'search': f'name={rhel7_contenthost_module.hostname}'})
-    # Force host to generate or refresh errata applicability
-    call_entity_method_with_timeout(host[0].errata_applicability, timeout=600)
+    # Disabling call to timout due to BZ#2017533, but if we get no failures, we can remove it.
+    if not is_open('BZ:2017533'):
+        # Force host to generate or refresh errata applicability
+        call_entity_method_with_timeout(host[0].errata_applicability, timeout=120)
+    else:
+        host[0].errata_applicability(synchronous=False)
+
     # Add filter of type include but do not include anything.
     # this will hide all RPMs from selected erratum before publishing.
     entities.RPMContentViewFilter(
