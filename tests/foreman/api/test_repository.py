@@ -1387,6 +1387,46 @@ class TestRepositorySync:
         """
         pass
 
+    @pytest.mark.stubbed
+    @pytest.mark.tier1
+    def test_positive_bulk_cancel_sync(self):
+        """Bulk cancel 10+ repository syncs
+
+        :id: f9bb1c95-d60f-4c93-b32e-09d58ebce80e
+
+        :steps:
+            1. Add 10+ repos and sync all of them
+            2. Cancel all of the syncs
+            3. Check /var/log/foreman/production.log and /var/log/messages
+
+        :expectedresults: All the syncs stop successfully.
+
+        :CaseImportance: High
+
+        :CaseAutomation: NotAutomated
+        """
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier4
+    @pytest.mark.destructive
+    @pytest.mark.run_in_one_thread
+    def test_positive_reboot_recover_sync(self):
+        """Reboot during repo sync and resume the sync when the Satellite is online
+
+        :id: 4f746e28-444c-4688-b92b-778a6e58d614
+
+        :steps:
+            1. Add a repo and start sync
+            2. Reboot the Satellite while sync is running
+            3. Check Foreman Tasks
+
+        :expectedresults: Repo sync resumes / can resume and finishes successfully
+
+        :CaseImportance: High
+
+        :CaseAutomation: NotAutomated
+        """
+
 
 class TestDockerRepository:
     """Tests specific to using ``Docker`` repositories."""
@@ -1451,6 +1491,29 @@ class TestDockerRepository:
         # TODO: add timeout support to sync(). This repo needs more than the default 300 seconds.
         repo.sync()
         assert repo.read().content_counts['docker_manifest'] >= 1
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier3
+    def test_positive_cancel_docker_repo_sync(self):
+        """Cancel a large, syncing Docker-type repository
+
+        :id: 86534979-be49-40ad-8290-05ac71c801b2
+
+        :steps:
+            1. Create new product
+            2. Create docker repo with:
+                a. URL - https://registry.redhat.io
+                b. Repo - openshift3/logging-elasticsearch
+            3. Sync repo
+            4. Cancel sync
+            5. Assert sync has stopped
+
+        :expectedresults: The docker-type repo is not synced, and the sync cancels successfully.
+
+        :CaseImportance: High
+
+        :CaseAutomation: NotAutomated
+        """
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
