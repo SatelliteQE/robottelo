@@ -23,6 +23,9 @@ import pytest
 from broker.broker import VMBroker
 from fauxfactory import gen_string
 
+from robottelo import constants
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+
 
 @pytest.mark.stubbed
 @pytest.mark.on_premises_provisioning
@@ -46,7 +49,14 @@ def test_rhel_pxe_provisioning_on_libvirt():
 
 # @pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
-def test_rhel_pxe_provisioning_on_rhv(default_sat, module_org, module_location, rhel7_contenthost):
+def test_rhel_pxe_provisioning_on_rhv(
+    default_sat,
+    module_manifest_org,
+    module_location,
+    default_architecture,
+    default_partitiontable,
+    rhel7_contenthost,
+):
     """Provision RHEL system via PXE on RHV and make sure it behaves
 
     :id: 798b8d0e-e2c8-4860-a3f0-4f99ea0529bf
@@ -118,14 +128,14 @@ def test_rhel_pxe_provisioning_on_rhv(default_sat, module_org, module_location, 
     )[0]
     domain = default_sat.api.Domain(
         location=[module_location],
-        organization=[module_org],
+        organization=[module_manifest_org],
         dns=provisioning_capsule.id,
         name=provisioning_domain_name,
     ).create()
 
     subnet = default_sat.api.Subnet(
         location=[module_location],
-        organization=[module_org],
+        organization=[module_manifest_org],
         network=provisioning_network_addr,
         mask=provisioning_network_netmask,
         gateway=provisioning_gw_ipv4,
@@ -144,7 +154,58 @@ def test_rhel_pxe_provisioning_on_rhv(default_sat, module_org, module_location, 
         domain=[domain.id],
     ).create()
 
-    subnet.id  # satisfy CI
+    repo_id = enable_rhrepo_and_fetchid(
+        basearch='x86_64',
+        org_id=module_manifest_org.id,
+        product=constants.PRDS['rhel8'],
+        repo=constants.REPOS['rhel8_bos_ks']['name'],
+        reposet=constants.REPOSET['rhel8_bos_ks'],
+        releasever='8.4',  # should this value come from settings?
+    )
+
+    repo = default_sat.api.Repository(id=repo_id).read()
+    repo.sync()
+    repo = repo.read()
+
+    os = (
+        default_sat.api.OperatingSystem()
+        .search(query={'search': 'family=Redhat and major=8 and minor=4'})[0]
+        .read()
+    )
+    lce = (
+        default_sat.api.LifecycleEnvironment(organization=module_manifest_org)
+        .search(query={'search': f'name={constants.ENVIRONMENT}'})[0]
+        .read()
+    )
+    cv = (
+        default_sat.api.ContentView(
+            organization=module_manifest_org,
+            name=constants.DEFAULT_CV,
+        )
+        .search()[0]
+        .read()
+    )
+    # TODO: publish/promote CV?
+
+    hostgroup = default_sat.api.HostGroup(
+        organization=[module_manifest_org],
+        location=[module_location],
+        architecture=default_architecture,
+        domain=domain,
+        content_source=provisioning_capsule.id,
+        content_view=cv,
+        kickstart_repository=repo,
+        lifecycle_environment=lce,
+        root_pass="changeme",
+        operatingsystem=os,
+        ptable=default_partitiontable,
+        subnet=subnet,
+        pxe_loader="PXELinux BIOS",
+    ).create()
+    # TODO: inspect HostGroup().read() method - nailgun.entity_mixins.NoSuchPathError
+
+    hostgroup  # satisfy CI
+    # ----- END OF SAT FIXTURE -----
 
     # run add-configure-vlan-interface on the host-to-be-provisioned
     VMBroker.execute(
