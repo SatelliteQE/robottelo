@@ -78,9 +78,10 @@ def test_rhel_pxe_provisioning_on_rhv(
     provisioning_gw_ipv4 = "10.1.5.94"
     provisioning_network_vlan_id = "1026"
     provisioning_interface = "eth1"
-    provisioning_pxeloader = "pxe"
-    provisioning_activation_key = "satellite-6.10-qa-rhel7"
+    provisioning_pxeloader = "pxe"  # rename to firmware
+    provisioning_activation_key = "satellite-6.10-qa-rhel7" # add host_rhel_major, host_rhel_minor, architecture?, boot_mode="DHCP", root_pass, pxe_loader="PXELinux BIOS"
     # end of settings
+
     provisioning_network = ipaddress.IPv4Network(provisioning_network)
     provisioning_network_addr = str(provisioning_network.network_address)
     # let Satellite be the first one in the host range
@@ -91,15 +92,15 @@ def test_rhel_pxe_provisioning_on_rhv(
     provisioning_dhcp_host_range = list(provisioning_network.hosts())[1:-1]
     provisioning_network_netmask = str(provisioning_network.netmask)
     provisioning_upstream_dns = []
-    resolv_conf = default_sat.execute("cat /etc/resolv.conf").stdout.splitlines()
+    resolv_conf = default_sat.execute("grep nameserver /etc/resolv.conf").stdout.splitlines()
     for line in resolv_conf:
         match = re.search(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b", line)
         if match:
-            provisioning_upstream_dns.append(match.group())
+            provisioning_upstream_dns.append(match.group())  # make a nice log message if no nameserver was found
     provisioning_upstream_dns.reverse()
     provisioning_upstream_dns_primary = (
         provisioning_upstream_dns.pop()
-    )  # There should be always at leas one upstream DNS
+    )  # There should be always at least one upstream DNS
     provisioning_upstream_dns_secondary = (
         provisioning_upstream_dns.pop() if len(provisioning_upstream_dns) else None
     )
@@ -123,9 +124,10 @@ def test_rhel_pxe_provisioning_on_rhv(
         target_host=default_sat.name,
     )
 
-    provisioning_capsule = default_sat.api.Capsule().search(
+    provisioning_capsule = default_sat.api.SmartProxy().search(
         query={'search': f'name={default_sat.hostname}'}
-    )[0]
+    )[0].read()
+    
     domain = default_sat.api.Domain(
         location=[module_location],
         organization=[module_manifest_org],
@@ -151,7 +153,7 @@ def test_rhel_pxe_provisioning_on_rhv(
         httpboot=provisioning_capsule.id,  # not in nailgun master yet
         discovery=provisioning_capsule.id,
         remote_execution_proxy=[provisioning_capsule.id],
-        domain=[domain.id],
+        domain=[domain.id],  # TODO: add IPAM param
     ).create()
 
     repo_id = enable_rhrepo_and_fetchid(
@@ -160,8 +162,8 @@ def test_rhel_pxe_provisioning_on_rhv(
         product=constants.PRDS['rhel8'],
         repo=constants.REPOS['rhel8_bos_ks']['name'],
         reposet=constants.REPOSET['rhel8_bos_ks'],
-        releasever='8.4',  # should this value come from settings?
-    )
+        releasever='8.4',  # should this value come from settings? yes
+    ) # TODO: add appstream repo
 
     repo = default_sat.api.Repository(id=repo_id).read()
     repo.sync()
@@ -169,7 +171,7 @@ def test_rhel_pxe_provisioning_on_rhv(
 
     os = (
         default_sat.api.OperatingSystem()
-        .search(query={'search': 'family=Redhat and major=8 and minor=4'})[0]
+        .search(query={'search': 'family=Redhat and major=8 and minor=4'})[0]  # parametrize
         .read()
     )
     lce = (
@@ -205,6 +207,8 @@ def test_rhel_pxe_provisioning_on_rhv(
     # TODO: inspect HostGroup().read() method - nailgun.entity_mixins.NoSuchPathError
 
     hostgroup  # satisfy CI
+
+    # TODO: add fdi to base template
     # ----- END OF SAT FIXTURE -----
 
     # run add-configure-vlan-interface on the host-to-be-provisioned
