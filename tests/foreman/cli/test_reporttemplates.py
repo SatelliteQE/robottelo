@@ -898,7 +898,7 @@ def test_positive_generate_hostpkgcompare(
         }
     )
 
-    hosts_info = []
+    clients = []
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
         for client in hosts:
             # Create RHEL hosts via broker and register content host
@@ -906,15 +906,19 @@ def test_positive_generate_hostpkgcompare(
             # Register content host, install katello-agent
             client.register_contenthost(local_org['label'], local_ak['name'])
             assert client.subscribed
-            hosts_info.append(Host.info({'name': client.hostname}))
+            clients.append(client)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
-        hosts_info.sort(key=lambda host: host['name'])
+        clients.sort(key=lambda client: client.hostname)
+        hosts_info = [Host.info({'name': client.hostname}) for client in clients]
 
         host1, host2 = hosts_info
-        Host.package_install({'host-id': host1['id'], 'packages': FAKE_0_CUSTOM_PACKAGE_NAME})
-        Host.package_install({'host-id': host1['id'], 'packages': FAKE_1_CUSTOM_PACKAGE})
-        Host.package_install({'host-id': host2['id'], 'packages': FAKE_2_CUSTOM_PACKAGE})
+        res = clients[0].execute(
+            f'yum -y install {FAKE_0_CUSTOM_PACKAGE_NAME} {FAKE_1_CUSTOM_PACKAGE}'
+        )
+        assert not res.status
+        res = clients[1].execute(f'yum -y install {FAKE_2_CUSTOM_PACKAGE}')
+        assert not res.status
 
         result = ReportTemplate.generate(
             {
