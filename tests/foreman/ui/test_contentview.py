@@ -23,11 +23,11 @@ import datetime
 from random import randint
 
 import pytest
+from airgun.exceptions import InvalidElementStateException
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
 from productmd.common import parse_nvra
-from selenium.common.exceptions import InvalidElementStateException
 from widgetastic.exceptions import NoSuchElementException
 
 from robottelo import constants
