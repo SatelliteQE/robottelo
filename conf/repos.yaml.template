@@ -1,5 +1,8 @@
 REPOS:
   SATELLITE_VERSION_UNDR: "@jinja {{this.robottelo.satellite_version | replace('.', '_')}}"
+  # Rhel major version would be used by some repositories to frame their repository URL for
+  # extended Rhel versions.
+  RHEL_MAJOR_VERSION: "@jinja {{this.server.version.rhel_release[0]}}"
   # Provide link to rhel6/7/8 repo here, as puppet rpm would require packages from
   # RHEL 6/7/8 repo and syncing the entire repo on the fly would take longer for
   # tests to run Specify the *.repo link to an internal repo for tests to execute properly
@@ -7,7 +10,7 @@ REPOS:
   RHEL6_REPO: '@format {this[repos].rhel_repo_host}/pub/rhel6.repo'
   RHEL7_REPO: '@format {this[repos].rhel_repo_host}/pub/rhel7.repo'
   RHEL8_REPO: '@format {this[repos].rhel_repo_host}/pub/rhel8.repo'
-  SATELLITE6_REPO: replace-with-repo-link
+  SATELLITE_REPO: replace-with-repo-link
   # Provide link to rhel6/7/8 repositories URL as we need all OS packages in order
   # to have real installation media for provisioning procedure
   RHEL6_OS: replace-with-rhel6-os-http-link
