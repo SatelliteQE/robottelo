@@ -54,9 +54,6 @@ jobs:
           pytest --collect-only --disable-pytest-warnings -n 2 -m pre_upgrade tests/upgrades/
           pytest --collect-only --disable-pytest-warnings -n 2 -m post_upgrade tests/upgrades/
 
-      - name: Test Robottelo Coverage
-        run: pytest --cov --cov-config=.coveragerc --cov-report=xml tests/robottelo
-
       - name: Make Docs
         run: |
           make test-docstrings
@@ -65,9 +62,3 @@ jobs:
       - name: Analysis (git diff)
         if: failure()
         run: git diff
-
-      - name: Upload Codecov Coverage
-        uses: codecov/codecov-action@v1.0.13
-        with:
-          file: coverage.xml
-          name: ${{ github.run_id }}-py-${{ matrix.python-version }}
