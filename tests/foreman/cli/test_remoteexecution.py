@@ -26,6 +26,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from wait_for import wait_for
 
+from robottelo import constants
 from robottelo.cli.factory import make_job_invocation
 from robottelo.cli.factory import make_job_template
 from robottelo.cli.globalparam import GlobalParameter
@@ -78,6 +79,14 @@ def fixture_sca_vmsetup(request, module_gt_manifest_org, default_sat):
         with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
             client.configure_rex(satellite=default_sat, org=module_gt_manifest_org)
             yield client
+
+
+@pytest.fixture()
+def fixture_enable_receptor_repos(request, default_sat):
+    """Enable RHSCL repo required by receptor installer"""
+    default_sat.enable_repo(constants.REPOS['rhscl7']['id'])
+    default_sat.enable_repo(constants.REPOS['rhae2']['id'])
+    default_sat.enable_repo(constants.REPOS['rhs7']['id'])
 
 
 class TestRemoteExecution:
@@ -492,7 +501,9 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    def test_positive_run_receptor_installer(self, default_sat):
+    def test_positive_run_receptor_installer(
+        self, default_sat, subscribe_satellite, fixture_enable_receptor_repos
+    ):
         """Run Receptor installer ("Configure Cloud Connector")
 
         :CaseComponent: RHCloud-CloudConnector
