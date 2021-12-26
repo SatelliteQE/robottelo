@@ -2,7 +2,7 @@
 codecov==2.1.12
 flake8==4.0.1
 pytest-cov==3.0.0
-redis==4.0.2
+redis==4.1.0
 pre-commit==2.15.0
 
 
