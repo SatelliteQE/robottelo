@@ -1,7 +1,7 @@
 OSP:
   # Openstack to be added as a compute resource
   # Openstack api url For eg: https://hostname:port/v3/auth/tokens
-  HOSTNAME: https://rhos-d.infra.prod.upshift.rdu2.redhat.com:13000/v3/auth/tokens
+  HOSTNAME: https://hostname:port/v3/auth/tokens
   # Login for Openstack
   USERNAME: psi-satellite-jenkins
   # Password for Openstack
