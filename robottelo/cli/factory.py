@@ -1391,6 +1391,7 @@ def make_hostgroup(options=None):
         'organization-ids': None,
         'parent': None,
         'parent-id': None,
+        'parent-title': None,
         'partition-table': None,
         'partition-table-id': None,
         'puppet-ca-proxy': None,
