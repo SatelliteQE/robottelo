@@ -87,6 +87,8 @@ def test_rhcloud_inventory_api_e2e(
     :CaseImportance: Critical
 
     :BZ: 1807829, 1926100, 1965234, 1824183, 1879453
+
+    :customerscenario: true
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
@@ -330,6 +332,8 @@ def test_include_parameter_tags_setting(
         2. satellite_parameter values are string.
 
     :BZ: 1981869, 1967438
+
+    :customerscenario: true
 
     :CaseAutomation: Automated
     """

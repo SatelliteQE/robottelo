@@ -642,6 +642,8 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
                provisioning.
 
         :BZ: 1850934, 1937960
+
+        :customerscenario: true
         """
 
         assert class_byos_ft_host['name'] == self.fullhostname

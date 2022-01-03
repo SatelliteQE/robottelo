@@ -47,6 +47,8 @@ class TestPublicDisableBookmark:
 
         :BZ: 1833264, 1826734, 1862119
 
+        :customerscenario: true
+
         :CaseImportance: Critical
         """
 
@@ -117,6 +119,8 @@ class TestPublicEnableBookmark:
         :BZ: 1833264, 1826734, 1862119
 
         :CaseImportance: Critical
+
+        :customerscenario: true
         """
 
         for entity in BOOKMARK_ENTITIES:
