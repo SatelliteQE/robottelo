@@ -388,6 +388,8 @@ def test_positive_list(session, org, lce):
 
     :BZ: 1659941, 1837767
 
+    :customerscenario: true
+
     :CaseLevel: Integration
     """
     rc = RepositoryCollection(repositories=[YumRepository(settings.repos.yum_3.url)])
@@ -775,6 +777,8 @@ def test_positive_show_count_on_content_host_page(session, module_org, erratatyp
     :expectedresults: The available errata count is displayed.
 
     :BZ: 1484044, 1775427
+
+    :customerscenario: true
 
     :CaseLevel: System
     """

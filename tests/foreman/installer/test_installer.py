@@ -1340,6 +1340,8 @@ def test_positive_check_installer_services(default_sat):
 
     :BZ: 1964394
 
+    :customerscenario: true
+
     :expectedresults: All services are started
 
     :CaseLevel: System

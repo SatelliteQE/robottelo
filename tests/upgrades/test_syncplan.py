@@ -74,6 +74,7 @@ class TestSyncPlan:
 
         :BZ: 1887511
 
+        :customerscenario: true
         """
         org = entities.Organization(name=f'{request.node.name}_org').create()
         sync_plan = entities.SyncPlan(
@@ -153,6 +154,8 @@ class TestSyncPlan:
         should remain the same with all entities.
 
         :BZ: 1887511
+
+        :customerscenario: true
 
         """
         pre_test_name = dependent_scenario_name

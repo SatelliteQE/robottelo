@@ -2813,6 +2813,8 @@ def test_positive_rh_ostree_end_to_end(session):
     :CaseImportance: Low
 
     :BZ: 1625783
+
+    :customerscenario: true
     """
     cv_name = gen_string('alpha')
     rh_repo = {

@@ -72,6 +72,8 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
             1. Upstream username should be set on repository.
 
         :BZ: 1641785
+
+        :customerscenario: true
         """
 
         org = default_sat.api.Organization().create()
@@ -99,6 +101,8 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
             1. upstream username should not exists on same repository.
 
         :BZ: 1641785
+
+        :customerscenario: true
         """
 
         repo_id = get_entity_data(self.__class__.__name__)['repo_id']

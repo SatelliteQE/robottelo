@@ -1250,6 +1250,8 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
     :CaseImportance: Medium
 
     :BZ: 1851149, 1809952
+
+    :customerscenario: true
     """
     update_smart_proxy(module_location, default_smart_proxy)
     host = make_fake_host(
