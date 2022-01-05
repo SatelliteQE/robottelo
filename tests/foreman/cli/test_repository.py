@@ -265,8 +265,14 @@ class TestRepository:
         'repo_options',
         **parametrized(
             [
-                {'content-type': 'yum', 'url': FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])}
-                for cred in valid_http_credentials(url_encoded=True)
+                {
+                    'content-type': 'yum',
+                    'url': FAKE_5_YUM_REPO,
+                    'upstream-username': cred['login'],
+                    'upstream-password': cred['pass'],
+                }
+                for cred in valid_http_credentials()
+                if cred['http_valid']
             ]
         ),
         indirect=True,
@@ -284,6 +290,8 @@ class TestRepository:
         """
         for key in 'url', 'content-type':
             assert repo.get(key) == repo_options[key]
+        repo = entities.Repository(id=repo['id']).read()
+        assert getattr(repo, 'upstream_username') == repo_options['upstream-username']
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
@@ -816,8 +824,13 @@ class TestRepository:
         'repo_options',
         **parametrized(
             [
-                {'content-type': 'yum', 'url': FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])}
-                for cred in valid_http_credentials(url_encoded=True)
+                {
+                    'content-type': 'yum',
+                    'url': FAKE_5_YUM_REPO,
+                    'upstream-username': cred['login'],
+                    'upstream-password': cred['pass'],
+                }
+                for cred in valid_http_credentials()
                 if cred['http_valid']
             ]
         ),
@@ -846,23 +859,22 @@ class TestRepository:
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
-        'repo_options, creds',
+        'repo_options',
         **parametrized(
             [
                 (
                     {
                         'content-type': 'yum',
-                        'url': FAKE_5_YUM_REPO.format(cred['login'], cred['pass']),
-                    },
-                    cred,
+                        'url': FAKE_5_YUM_REPO,
+                        'upstream-username': gen_string('alphanumeric'),
+                        'upstream-password': gen_string('alphanumeric'),
+                    }
                 )
-                for cred in valid_http_credentials(url_encoded=True)
-                if not cred['http_valid']
             ]
         ),
         indirect=['repo_options'],
     )
-    def test_negative_synchronize_auth_yum_repo(self, creds, repo):
+    def test_negative_synchronize_auth_yum_repo(self, repo):
         """Check if secured repo fails to synchronize with invalid credentials
 
         :id: 809905ae-fb76-465d-9468-1f99c4274aeb
@@ -878,12 +890,7 @@ class TestRepository:
         # Try to synchronize it
         repo_sync = Repository.synchronize({'id': repo['id'], 'async': True})
         response = Task.progress({'id': repo_sync[0]['id']}, return_raw_response=True)
-        if creds['original_encoding'] == 'utf8':
-            assert "Error retrieving metadata: 'latin-1' codec can't encode characters" in ''.join(
-                response.stderr
-            )
-        else:
-            assert 'Error retrieving metadata: Unauthorized' in response.stderr[1]
+        assert "Error: 401, message='Unauthorized'" in response.stderr[1].decode('utf-8')
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
@@ -1253,27 +1260,10 @@ class TestRepository:
             assert len(result.stdout.splitlines()) >= 4, 'content not synced correctly'
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'new_repo_options',
-        **parametrized(
-            [
-                {'url': url}
-                for url in [
-                    repo.format(creds['login'], creds['pass'])
-                    for creds in valid_http_credentials(url_encoded=True)
-                    for repo in (FAKE_5_YUM_REPO, FAKE_7_PUPPET_REPO)
-                ]
-                + [
-                    settings.repos.yum_4.url,
-                    settings.repos.puppet_1.url,
-                    settings.repos.puppet_2.url,
-                    settings.repos.puppet_3.url,
-                    settings.repos.yum_2.url,
-                ]
-            ]
-        ),
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_positive_update_url(self, new_repo_options, repo):
+    def test_positive_update_url(self, repo):
         """Update the original url for a repository
 
         :id: 1a2cf29b-5c30-4d4c-b6d1-2f227b0a0a57
@@ -1285,10 +1275,10 @@ class TestRepository:
         :CaseImportance: Critical
         """
         # Update the url
-        Repository.update({'id': repo['id'], 'url': new_repo_options['url']})
+        Repository.update({'id': repo['id'], 'url': settings.repos.yum_2.url})
         # Fetch it again
         result = Repository.info({'id': repo['id']})
-        assert result['url'] == new_repo_options['url']
+        assert result['url'] == settings.repos.yum_2.url
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -1322,7 +1312,7 @@ class TestRepository:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'new_repo_options',
+        'repo_options',
         **parametrized(
             [
                 {'url': repo.format(cred['login'], cred['pass'])}
@@ -1331,7 +1321,7 @@ class TestRepository:
             ]
         ),
     )
-    def test_negative_update_auth_url_too_long(self, new_repo_options, repo):
+    def test_negative_update_auth_url_too_long(self, repo_options, repo):
         """Update the original url for a repository to value which is too long
 
         :id: a703de60-8631-4e31-a9d9-e51804f27f03
@@ -1343,7 +1333,7 @@ class TestRepository:
         :CaseImportance: Critical
         """
         with pytest.raises(CLIReturnCodeError):
-            Repository.update({'id': repo['id'], 'url': new_repo_options['url']})
+            Repository.update({'id': repo['id'], 'url': repo_options['url']})
         # Fetch it again, ensure url is unchanged.
         result = Repository.info({'id': repo['id']})
         assert result['url'] == repo['url']

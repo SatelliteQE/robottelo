@@ -586,6 +586,8 @@ def make_repository_with_credentials(options=None, credentials=None):
         'ansible-collection-auth-token': None,
         'ansible-collection-auth-url': None,
         'url': settings.repos.yum_1.url,
+        'upstream-username': None,
+        'upstream-password': None,
     }
     repo_cls = _entity_with_credentials(credentials, Repository)
     return create_object(repo_cls, args, options)
