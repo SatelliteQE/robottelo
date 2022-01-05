@@ -245,9 +245,12 @@ class TestRepository:
             [
                 {
                     'content_type': 'yum',
-                    'url': repo_constants.FAKE_5_YUM_REPO.format(creds['login'], creds['pass']),
+                    'url': repo_constants.FAKE_5_YUM_REPO,
+                    'upstream_username': creds['login'],
+                    'upstream_password': creds['pass'],
                 }
-                for creds in datafactory.valid_http_credentials(url_encoded=True)
+                for creds in datafactory.valid_http_credentials()
+                if creds['http_valid']
             ]
         ),
         indirect=True,
@@ -523,7 +526,11 @@ class TestRepository:
         'repo_options',
         **datafactory.parametrized(
             [
-                {'url': repo_constants.FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])}
+                {
+                    'url': f'{repo_constants.FAKE_5_YUM_REPO}',
+                    'upstream_username': cred['login'],
+                    'upstream_password': cred['pass'],
+                }
                 for cred in datafactory.valid_http_credentials()
                 if cred['quote']
             ]
@@ -552,8 +559,9 @@ class TestRepository:
         'repo_options',
         **datafactory.parametrized(
             [
-                {'url': repo_constants.FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])}
-                for cred in datafactory.invalid_http_credentials()
+                {
+                    'url': f'http://{gen_string("alphanumeric", 1000)}.com',
+                }
             ]
         ),
         indirect=True,
@@ -1034,7 +1042,6 @@ class TestRepository:
         repo.sync()
         assert repo.read().content_counts['rpm'] >= 1
 
-    @pytest.mark.skip_if_open("BZ:2007655")
     @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -1045,9 +1052,11 @@ class TestRepository:
             [
                 {
                     'content_type': 'yum',
-                    'url': repo_constants.FAKE_5_YUM_REPO.format(creds['login'], creds['pass']),
+                    'url': repo_constants.FAKE_5_YUM_REPO,
+                    'upstream_username': creds['login'],
+                    'upstream_password': creds['pass'],
                 }
-                for creds in datafactory.valid_http_credentials(url_encoded=True)
+                for creds in datafactory.valid_http_credentials(url_encoded=False)
                 if creds['http_valid']
             ]
         ),
@@ -1071,6 +1080,7 @@ class TestRepository:
         # Verify it has finished
         assert repo.read().content_counts['rpm'] >= 1
 
+    @pytest.mark.skip_if_open("BZ:2035025")
     @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -1081,9 +1091,11 @@ class TestRepository:
             [
                 {
                     'content_type': 'yum',
-                    'url': repo_constants.FAKE_5_YUM_REPO.format(creds['login'], creds['pass']),
+                    'url': repo_constants.FAKE_5_YUM_REPO,
+                    'upstream_username': creds['login'],
+                    'upstream_password': creds['pass'],
                 }
-                for creds in datafactory.valid_http_credentials(url_encoded=True)
+                for creds in datafactory.valid_http_credentials()
                 if not creds['http_valid']
             ]
         ),
