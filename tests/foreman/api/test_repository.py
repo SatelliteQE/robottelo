@@ -18,6 +18,7 @@
 """
 import tempfile
 import time
+from string import punctuation
 from urllib.parse import urljoin
 from urllib.parse import urlparse
 from urllib.parse import urlunparse
@@ -527,52 +528,13 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **datafactory.parametrized(
-            [
-                {
-                    'url': f'{repo_constants.FAKE_5_YUM_REPO}',
-                    'upstream_username': cred['login'],
-                    'upstream_password': cred['pass'],
-                }
-                for cred in datafactory.valid_http_credentials()
-                if cred['quote']
-            ]
-        ),
+        **datafactory.parametrized([{'url': f'http://{gen_string("alpha")}{punctuation}.com'}]),
         indirect=True,
     )
-    def test_negative_create_with_auth_url_with_special_characters(self, repo_options):
+    def test_negative_create_with_url_with_special_characters(self, repo_options):
         """Verify that repository URL cannot contain unquoted special characters
 
         :id: 2ffaa412-e5e5-4bec-afaa-9ea54315df49
-
-        :parametrized: yes
-
-        :expectedresults: A repository is not created and error is raised.
-
-        :CaseImportance: Critical
-        """
-        with pytest.raises(HTTPError):
-            entities.Repository(**repo_options).create()
-
-    @pytest.mark.tier1
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'repo_options',
-        **datafactory.parametrized(
-            [
-                {
-                    'url': f'http://{gen_string("alphanumeric", 1000)}.com',
-                }
-            ]
-        ),
-        indirect=True,
-    )
-    def test_negative_create_with_auth_url_too_long(self, repo_options):
-        """Verify that repository URL length is limited
-
-        :id: 5aad4e9f-f7e1-497c-8e1f-55e07e38ee80
 
         :parametrized: yes
 
@@ -978,49 +940,13 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'url',
-        **datafactory.parametrized(
-            [
-                repo.format(cred['login'], cred['pass'])
-                for cred in datafactory.valid_http_credentials()
-                if cred['quote']
-                for repo in (repo_constants.FAKE_5_YUM_REPO, repo_constants.FAKE_7_PUPPET_REPO)
-            ]
-        ),
+        **datafactory.parametrized([f'http://{gen_string("alpha")}{punctuation}.com']),
     )
-    def test_negative_update_auth_url_with_special_characters(self, repo, url):
-        """Verify that repository URL credentials cannot be updated to contain
+    def test_negative_update_url_with_special_characters(self, repo, url):
+        """Verify that repository URL cannot be updated to contain
         the forbidden characters
 
         :id: 47530b1c-e964-402a-a633-c81583fb5b98
-
-        :parametrized: yes
-
-        :expectedresults: Repository url not updated
-
-        :CaseImportance: Critical
-        """
-        repo.url = url
-        with pytest.raises(HTTPError):
-            repo.update(['url'])
-
-    @pytest.mark.tier1
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'url',
-        **datafactory.parametrized(
-            [
-                repo.format(cred['login'], cred['pass'])
-                for cred in datafactory.invalid_http_credentials()
-                for repo in (repo_constants.FAKE_5_YUM_REPO, repo_constants.FAKE_7_PUPPET_REPO)
-            ]
-        ),
-    )
-    def test_negative_update_auth_url_too_long(self, repo, url):
-        """Update the original url for a repository to value which is too long
-
-        :id: cc00fbf4-d284-4404-88d9-ea0c0f03abe1
 
         :parametrized: yes
 
@@ -1059,7 +985,7 @@ class TestRepository:
                     'upstream_username': creds['login'],
                     'upstream_password': creds['pass'],
                 }
-                for creds in datafactory.valid_http_credentials(url_encoded=False)
+                for creds in datafactory.valid_http_credentials()
                 if creds['http_valid']
             ]
         ),
