@@ -3,6 +3,35 @@ import pytest
 from nailgun import entities
 
 from robottelo.config import settings
+from robottelo.helpers import InstallerCommand
+
+enable_satellite_cmd = InstallerCommand(
+    installer_args=[
+        'enable-foreman-plugin-puppet',
+        'enable-foreman-cli-puppet',
+        'enable-puppet',
+    ],
+    installer_opts={
+        'foreman-proxy-puppet': 'true',
+        'puppet-server': 'true',
+        'puppet-server-foreman-ssl-ca': '/etc/pki/katello/puppet/puppet_client_ca.crt',
+        'puppet-server-foreman-ssl-cert': '/etc/pki/katello/puppet/puppet_client.crt',
+        'puppet-server-foreman-ssl-key': '/etc/pki/katello/puppet/puppet_client.key',
+    },
+)
+
+enable_capsule_cmd = InstallerCommand(
+    installer_args=[
+        'enable-puppet',
+    ],
+    installer_opts={
+        'foreman-proxy-puppet': 'true',
+        'puppet-server': 'true',
+        'puppet-server-foreman-ssl-ca': '/etc/pki/katello/puppet/puppet_client_ca.crt',
+        'puppet-server-foreman-ssl-cert': '/etc/pki/katello/puppet/puppet_client.crt',
+        'puppet-server-foreman-ssl-key': '/etc/pki/katello/puppet/puppet_client.key',
+    },
+)
 
 
 @pytest.fixture(scope='session')
@@ -62,3 +91,12 @@ def module_puppet_classes(module_env_search, module_import_puppet_module):
             f'and environment = {module_env_search.name}'
         }
     )
+
+
+@pytest.fixture(scope='module')
+def module_puppet_enabled_sat(module_destructive_sat):
+    """Satellite with enabled puppet plugin"""
+    module_destructive_sat.register_to_dogfood()
+    result = module_destructive_sat.execute(enable_satellite_cmd.get_command(), timeout=900000)
+    assert result.status == 0
+    yield module_destructive_sat
