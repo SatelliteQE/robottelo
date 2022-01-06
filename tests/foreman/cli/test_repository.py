@@ -17,6 +17,7 @@
 :Upstream: No
 """
 from random import choice
+from string import punctuation
 
 import pytest
 import requests
@@ -68,11 +69,9 @@ from robottelo.constants import SRPM_TO_UPLOAD
 from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.constants.repos import FAKE_5_YUM_REPO
-from robottelo.constants.repos import FAKE_7_PUPPET_REPO
 from robottelo.constants.repos import FAKE_YUM_DRPM_REPO
 from robottelo.constants.repos import FAKE_YUM_MD5_REPO
 from robottelo.constants.repos import FAKE_YUM_SRPM_REPO
-from robottelo.datafactory import invalid_http_credentials
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
@@ -628,46 +627,13 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {'url': repo.format(cred['login'], cred['pass'])}
-                for cred in valid_http_credentials()
-                if cred['quote']
-                for repo in (FAKE_5_YUM_REPO, FAKE_7_PUPPET_REPO)
-            ]
-        ),
+        **parametrized([{'url': f'http://{gen_string("alpha")}{punctuation}.com'}]),
         indirect=True,
     )
-    def test_negative_create_with_auth_url_with_special_characters(self, repo_options):
+    def test_negative_create_with_url_with_special_characters(self, repo_options):
         """Verify that repository URL cannot contain unquoted special characters
 
         :id: 2bd5ee17-0fe5-43cb-9cdc-dc2178c5374c
-
-        :parametrized: yes
-
-        :expectedresults: Repository cannot be created
-
-        :CaseImportance: Critical
-        """
-        with pytest.raises(CLIFactoryError):
-            make_repository(repo_options)
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {'url': repo.format(cred['login'], cred['pass'])}
-                for cred in invalid_http_credentials()
-                for repo in (FAKE_5_YUM_REPO, FAKE_7_PUPPET_REPO)
-            ]
-        ),
-        indirect=True,
-    )
-    def test_negative_create_with_auth_url_too_long(self, repo_options):
-        """Verify that repository URL length is limited
-
-        :id: de356c66-4237-4421-89e3-f4f8bbe6f526
 
         :parametrized: yes
 
@@ -857,6 +823,7 @@ class TestRepository:
         new_repo = Repository.info({'id': repo['id']})
         assert new_repo['sync']['status'] == 'Success'
 
+    @pytest.mark.skip_if_open("BZ:2035025")
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
@@ -866,9 +833,11 @@ class TestRepository:
                     {
                         'content-type': 'yum',
                         'url': FAKE_5_YUM_REPO,
-                        'upstream-username': gen_string('alphanumeric'),
-                        'upstream-password': gen_string('alphanumeric'),
+                        'upstream-username': creds['login'],
+                        'upstream-password': creds['pass'],
                     }
+                    for creds in valid_http_credentials()
+                    if not creds['http_valid']
                 )
             ]
         ),
@@ -1283,17 +1252,10 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'new_repo_options',
-        **parametrized(
-            [
-                {'url': repo.format(cred['login'], cred['pass'])}
-                for cred in valid_http_credentials()
-                if cred['quote']
-                for repo in (FAKE_5_YUM_REPO, FAKE_7_PUPPET_REPO)
-            ]
-        ),
+        **parametrized([{'url': f'http://{gen_string("alpha")}{punctuation}'}]),
     )
-    def test_negative_update_auth_url_with_special_characters(self, new_repo_options, repo):
-        """Verify that repository URL credentials cannot be updated to contain
+    def test_negative_update_url_with_special_characters(self, new_repo_options, repo):
+        """Verify that repository URL cannot be updated to contain
         the forbidden characters
 
         :id: 566553b2-d077-4fd8-8ed5-00ba75355386
@@ -1307,34 +1269,6 @@ class TestRepository:
         with pytest.raises(CLIReturnCodeError):
             Repository.update({'id': repo['id'], 'url': new_repo_options['url']})
         # Fetch it again, ensure url hasn't changed.
-        result = Repository.info({'id': repo['id']})
-        assert result['url'] == repo['url']
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {'url': repo.format(cred['login'], cred['pass'])}
-                for cred in invalid_http_credentials()
-                for repo in (FAKE_5_YUM_REPO, FAKE_7_PUPPET_REPO)
-            ]
-        ),
-    )
-    def test_negative_update_auth_url_too_long(self, repo_options, repo):
-        """Update the original url for a repository to value which is too long
-
-        :id: a703de60-8631-4e31-a9d9-e51804f27f03
-
-        :parametrized: yes
-
-        :expectedresults: Repository url not updated
-
-        :CaseImportance: Critical
-        """
-        with pytest.raises(CLIReturnCodeError):
-            Repository.update({'id': repo['id'], 'url': repo_options['url']})
-        # Fetch it again, ensure url is unchanged.
         result = Repository.info({'id': repo['id']})
         assert result['url'] == repo['url']
 
