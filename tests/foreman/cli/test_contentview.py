@@ -43,8 +43,8 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
@@ -3770,8 +3770,8 @@ class TestContentView:
         cli_factory.make_content_view_filter_rule(
             {
                 'content-view-filter-id': cvf['filter-id'],
-                'name': FAKE_1_CUSTOM_PACKAGE_NAME,
-                'version': 0.71,
+                'name': FAKE_2_CUSTOM_PACKAGE_NAME,
+                'version': 5.21,
             }
         )
         ContentView.publish({'id': content_view['id']})
@@ -3784,7 +3784,7 @@ class TestContentView:
         # Inc update output format is pretty weird - list of dicts where each
         # key's value is actual line from stdout
         result = [line.strip() for line_dict in result for line in line_dict.values()]
-        assert FAKE_2_CUSTOM_PACKAGE in [line.strip() for line in result]
+        assert FAKE_2_CUSTOM_PACKAGE not in [line.strip() for line in result]
         content_view = ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 
