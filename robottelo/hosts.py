@@ -35,6 +35,7 @@ from robottelo.constants import SATELLITE_VERSION
 from robottelo.helpers import get_data_file
 from robottelo.helpers import InstallerCommand
 from robottelo.helpers import validate_ssh_pub_key
+from robottelo.logging import logger
 
 
 POWER_OPERATIONS = {
@@ -779,8 +780,9 @@ class ContentHost(Host):
         rh_repo_ids = rh_repo_ids or []
         repo_labels = repo_labels or []
         self.install_katello_ca(satellite)
-        self.register_contenthost(org_label, activation_key=activation_key, lce=lce)
+        result = self.register_contenthost(org_label, activation_key=activation_key, lce=lce)
         if not self.subscribed:
+            logger.info(result.stdout)
             raise CLIFactoryError('Virtual machine failed subscription')
         if patch_os_release_distro:
             self.patch_os_release_version(distro=patch_os_release_distro)
