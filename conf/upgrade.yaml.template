@@ -10,17 +10,20 @@ UPGRADE:
     RHEL6:
     RHEL7:
     RHEL8:
+    RHEL9:
   # RHEL6 & RHEL7's client will only be available when we spawn the VM using upgrade template,
   # it is used in content host upgrade.
   CLIENT_AK:
     RHEL6: "clientak_rhel6"
     RHEL7: "clientak_rhel7"
     RHEL8: "clientak_rhel8"
+    RHEL9: "clientak_rhel9"
   # Custom capsule activation key
   CUSTOM_CAPSULE_AK:
     RHEL6:
     RHEL7:
     RHEL8:
+    RHEL9:
   # Upgrade codebase supports these types of upgrade only.
   PRODUCTS:
     - "satellite"
@@ -49,6 +52,7 @@ UPGRADE:
     RHEL6:
     RHEL7:
     RHEL8:
+    RHEL9:
   # System Reboot after upgrade
   SATELLITE_CAPSULE_SETUP_REBOOT: true
   # Upgrade with http-proxy
