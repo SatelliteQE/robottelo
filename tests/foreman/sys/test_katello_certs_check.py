@@ -339,6 +339,40 @@ class TestKatelloCertsCheck:
         assert result.status == 0, 'Not all services are running'
 
     @pytest.mark.destructive
+    def test_regeneration_ssl_build_certs(self, destructive_sat):
+        """delete the ssl-build folder and cross check that ssl-build folder is
+        recovered/regenerated after running the installer
+
+        :id: becdc758-44ed-4d6d-ac60-2f5c5b14278f
+
+        :steps:
+
+            1. remove the ssl-build folder which holds all certificates
+            2. run the installer to regenerate / recover the ssl-build with certs
+            3. Assert certs are generated in the ssl-build
+
+        :expectedresults: ssl-build folder is regenerated with certs.
+
+        :CaseAutomation: Automated
+        """
+        result = destructive_sat.execute('hammer ping')
+        assert result.status == 0, f'Hammer Ping failed:\n{result.stderr}'
+        destructive_sat.execute('rm -rf /root/ssl-build')
+        result = destructive_sat.execute(
+            'satellite-installer --scenario satellite', timeout=2200000
+        )
+        assert result.status == 0
+        destructive_sat.execute("ls -ltr /root | grep 'ssl-build'")
+        assert result.status == 0, f'ssl-build certs generation failed:\n{result.stderr}'
+        # assert no hammer ping SSL cert error
+        result = destructive_sat.execute('hammer ping')
+        assert 'SSL certificate verification failed' not in result.stdout
+        assert result.stdout.count('ok') == 8
+        # assert all services are running
+        result = destructive_sat.execute('foreman-maintain health check --label services-up -y')
+        assert result.status == 0, 'Not all services are running'
+
+    @pytest.mark.destructive
     def test_positive_generate_capsule_certs_using_absolute_path(
         self, cert_setup_destructive_teardown
     ):
