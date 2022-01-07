@@ -364,7 +364,6 @@ REPOSET = {
     'rhst8': 'Red Hat Satellite Tools 6.9 for RHEL 8 x86_64 (RPMs)',
     'fdrh8': 'Fast Datapath for RHEL 8 x86_64 (RPMs)',
     'rhel8_bos_ks': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
-    'rhel8_aps_ks': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
 }
 
 NO_REPOS_AVAILABLE = "This system has no repositories available through subscriptions."
@@ -571,15 +570,6 @@ REPOS = {
         'product': PRDS['rhel8'],
         'distro': DISTRO_RHEL8,
         'key': 'rhel8_bos_ks',
-    },
-    'rhel8_aps_ks': {
-        'id': 'rhel-8-for-x86_64-appstream-kickstart',
-        'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.5',
-        'version': '8.5',
-        'reposet': REPOSET['rhel8_bos_ks'],
-        'product': PRDS['rhel8'],
-        'distro': DISTRO_RHEL8,
-        'key': 'rhel8_aps_ks',
     },
 }
 

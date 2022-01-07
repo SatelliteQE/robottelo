@@ -1051,9 +1051,9 @@ class TestCapsuleContentManagement:
             basearch='x86_64',
             org_id=module_manifest_org.id,
             product=constants.PRDS['rhel8'],
-            reposet=constants.REPOSET['rhel8_aps_ks'],
-            repo=constants.REPOS['rhel8_aps_ks']['name'],
-            releasever=constants.REPOS['rhel8_aps_ks']['version'],
+            repo=constants.REPOS['rhel8_bos_ks']['name'],
+            reposet=constants.REPOSET['rhel8_bos_ks'],
+            releasever='8.4',
         )
         repo = entities.Repository(id=repo_id).read()
 
@@ -1102,7 +1102,7 @@ class TestCapsuleContentManagement:
         # Check for kickstart content on SAT and CAPS
         url_base = (
             f'pulp/content/{module_manifest_org.label}/{lce.label}/'
-            f'{cv.label}/content/dist/rhel8/8.5/x86_64/appstream/kickstart'
+            f'{cv.label}/content/dist/rhel8/8.4/x86_64/baseos/kickstart'
         )
 
         # Check kickstart specific files
