@@ -1,6 +1,6 @@
 """Test Activation Key related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -19,8 +19,6 @@
 import pytest
 from nailgun import entities
 from requests.exceptions import HTTPError
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 
 class TestActivationKey:
@@ -50,7 +48,7 @@ class TestActivationKey:
         ak_details = {'org': org, "cv": cv, 'ak': ak, 'custom_repo': custom_repo}
         yield ak_details
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     @pytest.mark.parametrize(
         'activation_key_setup', ['test_pre_create_activation_key'], indirect=True
     )
@@ -83,7 +81,7 @@ class TestActivationKey:
         ak.update(['host_collection'])
         assert len(ak.host_collection) == 1
 
-    @post_upgrade(depend_on=test_pre_create_activation_key)
+    @pytest.mark.post_upgrade(depend_on=test_pre_create_activation_key)
     def test_post_crud_activation_key(self, dependent_scenario_name):
         """After Upgrade, Activation keys entities remain the same and all their functionality works.
 
