@@ -1,6 +1,6 @@
 """Test for Loaded yum plugins count related Upgrade Scenarios
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,11 +16,10 @@
 
 :Upstream: No
 """
+import pytest
 from fabric.api import execute
 from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import dockerize
 from upgrade_tests.helpers.scenarios import get_entity_data
@@ -111,7 +110,7 @@ class TestScenarioYumPluginsCount:
 
         return [entities.Repository(id=repo_id) for repo_id in [repo1_id, repo2_id]]
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_scenario_yum_plugins_count(self, default_org):
         """Create content host and register with Satellite.
 
@@ -170,7 +169,7 @@ class TestScenarioYumPluginsCount:
         }
         create_dict(scenario_dict)
 
-    @post_upgrade(depend_on=test_pre_scenario_yum_plugins_count)
+    @pytest.mark.post_upgrade(depend_on=test_pre_scenario_yum_plugins_count)
     def test_post_scenario_yum_plugins_count(self, default_org):
         """Upgrade katello agent on pre-upgrade content host registered
         with Satellite.

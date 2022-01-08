@@ -1,6 +1,6 @@
 """Test for Capsule related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite & Capsule
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,11 +16,10 @@
 
 :Upstream: No
 """
+import pytest
 from fabric.api import execute
 from fabric.api import run
 from upgrade.helpers.tasks import wait_untill_capsule_sync
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import rpm1
 from upgrade_tests.helpers.scenarios import rpm2
 
@@ -52,7 +51,7 @@ class TestCapsuleSync:
     in the post-upgrade of pre-upgraded repo.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_user_scenario_capsule_sync(self, request, default_sat, default_org):
         """Pre-upgrade scenario that creates and sync repository with
         rpm in satellite which will be synced in post upgrade scenario.
@@ -97,7 +96,7 @@ class TestCapsuleSync:
         content_view_env_id = [env.id for env in content_view.read().environment]
         assert ak_env.id in content_view_env_id
 
-    @post_upgrade(depend_on=test_pre_user_scenario_capsule_sync)
+    @pytest.mark.post_upgrade(depend_on=test_pre_user_scenario_capsule_sync)
     def test_post_user_scenario_capsule_sync(
         self, request, dependent_scenario_name, default_sat, default_org
     ):
@@ -160,7 +159,7 @@ class TestCapsuleSyncNewRepo:
     and puppet repo.
     """
 
-    @post_upgrade
+    @pytest.mark.post_upgrade
     def test_post_user_scenario_capsule_sync_yum_repo(self, request, default_sat, default_org):
         """Post-upgrade scenario that creates and sync repository with
         rpm, sync capsule with satellite and verifies if the repo/rpm in
@@ -219,7 +218,7 @@ class TestCapsuleSyncNewRepo:
         )[cap_host]
         assert '0' == result
 
-    @post_upgrade
+    @pytest.mark.post_upgrade
     def test_post_user_scenario_capsule_sync_puppet_repo(self, request, default_sat, default_org):
         """Post-upgrade scenario that creates and sync repository with
         puppet modules, sync capsule with satellite and verifies it's status.

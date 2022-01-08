@@ -1,6 +1,6 @@
 """Test for Repository related Upgrade Scenarios
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -18,11 +18,10 @@
 """
 import os
 
+import pytest
 from fabric.api import execute
 from fabric.api import run
 from upgrade.helpers.docker import docker_execute_command
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import dockerize
 from upgrade_tests.helpers.scenarios import get_entity_data
@@ -58,7 +57,7 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
         4. Check if the upstream username value is removed for same repository.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_repository_scenario_upstream_authorization(self, default_sat):
         """Create a custom repository and set the upstream username on it.
 
@@ -85,7 +84,7 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
         global_dict = {self.__class__.__name__: {'repo_id': custom_repo}}
         create_dict(global_dict)
 
-    @post_upgrade(depend_on=test_pre_repository_scenario_upstream_authorization)
+    @pytest.mark.post_upgrade(depend_on=test_pre_repository_scenario_upstream_authorization)
     def test_post_repository_scenario_upstream_authorization(self):
         """Verify upstream username for pre-upgrade created repository.
 
@@ -128,7 +127,7 @@ class TestScenarioCustomRepoCheck:
     BZ: 1429201,1698549
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_scenario_custom_repo_check(self, default_sat):
         """This is pre-upgrade scenario test to verify if we can create a
          custom repository and consume it via content host.
@@ -208,7 +207,7 @@ class TestScenarioCustomRepoCheck:
         }
         create_dict(scenario_dict)
 
-    @post_upgrade(depend_on=test_pre_scenario_custom_repo_check)
+    @pytest.mark.post_upgrade(depend_on=test_pre_scenario_custom_repo_check)
     def test_post_scenario_custom_repo_check(self, default_sat):
         """This is post-upgrade scenario test to verify if we can alter the
         created custom repository and satellite will be able to sync back
