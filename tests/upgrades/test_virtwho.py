@@ -1,6 +1,6 @@
 """Test for Virt-who related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -19,8 +19,6 @@
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
@@ -68,7 +66,7 @@ class TestScenarioPositiveVirtWho:
     :expectedresults: Virtwho config should be created, updated and deleted successfully.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_create_virt_who_configuration(self, form_data):
         """Create and deploy virt-who configuration.
 
@@ -140,7 +138,7 @@ class TestScenarioPositiveVirtWho:
         }
         create_dict(scenario_dict)
 
-    @post_upgrade(depend_on=test_pre_create_virt_who_configuration)
+    @pytest.mark.post_upgrade(depend_on=test_pre_create_virt_who_configuration)
     def test_post_crud_virt_who_configuration(self, form_data):
         """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
 

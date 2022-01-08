@@ -1,6 +1,6 @@
 """Test for Sync-Plan related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,10 +16,9 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_choice
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.datafactory import valid_cron_expressions
@@ -31,11 +30,11 @@ class TestSyncPlan:
     sync_plan migration from pulp to katello
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_sync_plan_migration(self, request):
         """Pre-upgrade scenario that creates sync plan and assigns repo to sync plan
 
-        :id: badaeec2-d42f-41d5-bd85-4b23d6d5a724
+        :id: preupgrade-badaeec2-d42f-41d5-bd85-4b23d6d5a724
 
         :steps:
             1. Create Product and Repository
@@ -56,12 +55,12 @@ class TestSyncPlan:
         product = product.read()
         assert product.sync_plan.id == sync_plan.id
 
-    @post_upgrade(depend_on=test_pre_sync_plan_migration)
+    @pytest.mark.post_upgrade(depend_on=test_pre_sync_plan_migration)
     def test_post_sync_plan_migration(self, request, dependent_scenario_name):
         """After upgrade, Sync interval update should work on existing sync plan(created before
         upgrade)
 
-        :id: badaeec2-d42f-41d5-bd85-4b23d6d5a724
+        :id: postupgrade-badaeec2-d42f-41d5-bd85-4b23d6d5a724
 
         :steps:
             1. Verify sync plan exists and works as earlier

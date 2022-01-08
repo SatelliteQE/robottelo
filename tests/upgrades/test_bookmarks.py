@@ -1,6 +1,6 @@
 """Test for bookmark related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,9 +16,8 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 from robottelo.constants import BOOKMARK_ENTITIES
 
@@ -29,12 +28,12 @@ class TestPublicDisableBookmark:
 
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_create_public_disable_bookmark(self, request):
         """Create public disabled bookmarks for system entities using available bookmark
         data.
 
-        :id: preupgrade-c4f90034-ea57-4a4d-9b73-0f57f824d89e
+        :id: preupgrade-13904b14-6340-4b85-a56f-98080cf50a92
 
         :Steps:
 
@@ -64,12 +63,12 @@ class TestPublicDisableBookmark:
             assert bm.query == f"name={book_mark_name}"
             assert not bm.public
 
-    @post_upgrade(depend_on=test_pre_create_public_disable_bookmark)
+    @pytest.mark.post_upgrade(depend_on=test_pre_create_public_disable_bookmark)
     def test_post_create_public_disable_bookmark(self, dependent_scenario_name):
         """Check the status of public disabled bookmark for all the
         system entities(activation keys, tasks, compute profile, content hosts etc) after upgrade.
 
-        :id: postupgrade-3b3abb85-cad2-4cbb-ad21-2780523351fd
+        :id: postupgrade-13904b14-6340-4b85-a56f-98080cf50a92
 
         :Steps:
 
@@ -98,12 +97,12 @@ class TestPublicEnableBookmark:
     Public enabled Bookmarks created before upgrade should be unchanged after upgrade.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_create_public_enable_bookmark(self, request):
         """Create public enable bookmark for system entities using available bookmark
         data.
 
-        :id: preupgrade-c4f90034-ea57-4a4d-9b73-0f57f824d89e
+        :id: preupgrade-93c419db-66b4-4c9a-a82a-a6a68703881f
 
         :Steps:
 
@@ -132,12 +131,12 @@ class TestPublicEnableBookmark:
             assert bm.query == f"name={book_mark_name}"
             assert bm.public
 
-    @post_upgrade(depend_on=test_pre_create_public_enable_bookmark)
+    @pytest.mark.post_upgrade(depend_on=test_pre_create_public_enable_bookmark)
     def test_post_create_public_enable_bookmark(self, dependent_scenario_name):
         """Check the status of public enabled bookmark for all the
         system entities(activation keys, tasks, compute profile, content hosts etc) after upgrade.
 
-        :id: postupgrade-3b3abb85-cad2-4cbb-ad21-2780523351fd
+        :id: postupgrade-93c419db-66b4-4c9a-a82a-a6a68703881f
 
         :Steps:
 
