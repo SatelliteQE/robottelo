@@ -245,7 +245,7 @@ class Base:
         )
         response = ssh.command(
             cmd.encode('utf-8'),
-            hostname=hostname or settings.server.hostname or cls.hostname,
+            hostname=hostname or cls.hostname or settings.server.hostname,
             output_format=output_format,
             timeout=timeout,
         )
