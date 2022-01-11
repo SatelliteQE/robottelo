@@ -1333,7 +1333,7 @@ def test_positive_copy_subscription(module_manifest_org):
         {'name': new_name, 'organization-id': module_manifest_org.id}
     )
     # Verify that the subscription copied over
-    assert subscription_result[0]['name'] in result[3]  # subscription name  # subscription list
+    assert subscription_result[0]['name'] in result  # subscription name  # subscription list
 
 
 @pytest.mark.tier1
