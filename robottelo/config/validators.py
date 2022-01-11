@@ -279,6 +279,22 @@ VALIDATORS = dict(
             must_exist=True,
         )
     ],
+    remotedb=[
+        Validator(
+            'remotedb.server',
+            'remotedb.db_server',
+            'remotedb.common_db_password',
+            must_exist=False,
+        ),
+        Validator('remotedb.foreman.username', default='foreman'),
+        Validator('remotedb.foreman.db_name', default='foreman'),
+        Validator('remotedb.candlepin.username', default='candlepin'),
+        Validator('remotedb.candlepin.db_name', default='candlepin'),
+        Validator('remotedb.pulp.username', default='pulp'),
+        Validator('remotedb.pulp.db_name', default='pulpcore'),
+        Validator('remotedb.ssl', default=True),
+        Validator('remotedb.port', default=5432),
+    ],
     shared_function=[
         Validator('shared_function.storage', is_in=('file', 'redis'), default='file'),
         Validator('shared_function.share_timeout', lte=86400, default=86400),

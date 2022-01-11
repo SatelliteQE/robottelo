@@ -30,6 +30,7 @@ pytest_plugins = [
     'pytest_fixtures.component.host',
     'pytest_fixtures.component.hostgroup',
     'pytest_fixtures.component.lce',
+    'pytest_fixtures.component.maintain',
     'pytest_fixtures.component.os',
     'pytest_fixtures.component.oscap',
     'pytest_fixtures.component.provision_azure',

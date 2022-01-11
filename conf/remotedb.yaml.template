@@ -1,0 +1,21 @@
+REMOTEDB:
+  # Unconfigured Satellite hostname
+  SERVER: <server>
+  # PostgreSQL DB Server
+  DB_SERVER: <db_server>
+  # Databases
+  foreman:
+    username: foreman
+    db_name: foreman
+  candlepin:
+    username: candlepin
+    db_name: candlepin
+  pulp:
+    username: pulp
+    db_name: pulpcore
+  # Common databases passwords
+  db_password:
+  # SSL connection for Satellite and database server
+  SSL: ON
+  # DB port
+  PORT: 5432
