@@ -731,6 +731,27 @@ class TestContentViewPublishPromote:
         comp_content_view_info = comp_content_view.version[0].read()
         assert comp_content_view_info.package_count == 36
 
+    @pytest.mark.stubbed
+    @pytest.mark.tier3
+    @pytest.mark.destructive
+    @pytest.mark.run_in_one_thread
+    def test_positive_reboot_recover_cv_publish(self):
+        """Reboot the Satellite during publish and resume publishing
+
+        :id: cceae727-81db-40a4-9c26-05ca6e93464e
+
+        :steps:
+            1. Create and publish a Content View
+            2. Reboot the Satellite while publish is running
+            3. Check Foreman Tasks
+
+        :expectedresults: Publish continues after reboot and finishes successfully
+
+        :CaseImportance: High
+
+        :CaseAutomation: NotAutomated
+        """
+
 
 class TestContentViewUpdate:
     """Tests for updating content views."""
