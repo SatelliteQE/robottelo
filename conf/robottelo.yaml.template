@@ -17,4 +17,6 @@ ROBOTTELO:
   RUN_ONE_DATAPOINT: false
   # Satellite version supported by this branch
   # UNDR version is used for some URL composition
-  SATELLITE_VERSION: "6.9"
+  SATELLITE_VERSION: "7.0"
+  # The Base OS RHEL Version(x.y) where the satellite would be installed
+  RHEL_VERSION: "7.9"
