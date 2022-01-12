@@ -467,7 +467,7 @@ class TestOpenScap:
         scap_policy = make_scap_policy(
             {
                 'name': name,
-                'deploy-by': 'puppet',
+                'deploy-by': 'ansible',
                 'scap-content-id': scap_content["scap_id"],
                 'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
@@ -504,7 +504,7 @@ class TestOpenScap:
             make_scap_policy(
                 {
                     'name': name,
-                    'deploy-by': 'puppet',
+                    'deploy-by': 'ansible',
                     'scap-content-id': scap_content["scap_id"],
                     'scap-content-profile-id': scap_content["scap_profile_id"],
                     'period': OSCAP_PERIOD['weekly'].lower(),
@@ -536,7 +536,7 @@ class TestOpenScap:
         with pytest.raises(CLIFactoryError):
             make_scap_policy(
                 {
-                    'deploy-by': 'puppet',
+                    'deploy-by': 'ansible',
                     'scap-content-profile-id': scap_content["scap_profile_id"],
                     'period': OSCAP_PERIOD['weekly'].lower(),
                     'weekday': OSCAP_WEEKDAY['friday'].lower(),
@@ -571,7 +571,7 @@ class TestOpenScap:
         scap_policy = make_scap_policy(
             {
                 'name': name,
-                'deploy-by': 'puppet',
+                'deploy-by': 'ansible',
                 'scap-content-id': scap_content["scap_id"],
                 'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
@@ -620,7 +620,7 @@ class TestOpenScap:
         assert scap_policy['deployment-option'] == 'ansible'
         assert scap_policy['hostgroups'][0] == hostgroup['name']
 
-    @pytest.mark.parametrize('deploy', **parametrized(['manual', 'puppet', 'ansible']))
+    @pytest.mark.parametrize('deploy', **parametrized(['manual', 'ansible']))
     @pytest.mark.upgrade
     @pytest.mark.tier2
     def test_positive_associate_scap_policy_with_tailoringfiles(
@@ -706,7 +706,7 @@ class TestOpenScap:
         with pytest.raises(CLIReturnCodeError):
             Scapcontent.info({'name': scap_policy['name']})
 
-    @pytest.mark.parametrize('deploy', **parametrized(['manual', 'puppet', 'ansible']))
+    @pytest.mark.parametrize('deploy', **parametrized(['manual', 'ansible']))
     @pytest.mark.upgrade
     @pytest.mark.tier2
     def test_positive_scap_policy_end_to_end(self, deploy, scap_content):
@@ -794,7 +794,7 @@ class TestOpenScap:
         scap_policy = make_scap_policy(
             {
                 'name': name,
-                'deploy-by': 'puppet',
+                'deploy-by': 'ansible',
                 'scap-content-id': scap_content["scap_id"],
                 'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
@@ -803,7 +803,7 @@ class TestOpenScap:
             }
         )
         assert scap_policy['hostgroups'][0] == hostgroup['name']
-        assert scap_policy['deployment-option'] == 'puppet'
+        assert scap_policy['deployment-option'] == 'ansible'
         new_hostgroup = make_hostgroup()
         Scappolicy.update(
             {'id': scap_policy['id'], 'deploy-by': 'ansible', 'hostgroups': new_hostgroup['name']}
@@ -840,7 +840,7 @@ class TestOpenScap:
         scap_policy = make_scap_policy(
             {
                 'name': name,
-                'deploy-by': 'puppet',
+                'deploy-by': 'ansible',
                 'scap-content-id': scap_content["scap_id"],
                 'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
@@ -887,7 +887,7 @@ class TestOpenScap:
         scap_policy = make_scap_policy(
             {
                 'name': name,
-                'deploy-by': 'puppet',
+                'deploy-by': 'ansible',
                 'scap-content-id': scap_content["scap_id"],
                 'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
@@ -933,7 +933,7 @@ class TestOpenScap:
         scap_policy = make_scap_policy(
             {
                 'name': name,
-                'deploy-by': 'puppet',
+                'deploy-by': 'ansible',
                 'scap-content-id': scap_content["scap_id"],
                 'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
