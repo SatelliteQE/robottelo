@@ -2311,28 +2311,50 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             googleclient.disconnect()
 
 
-@pytest.mark.destructive
 @pytest.mark.upgrade
-@pytest.mark.usefixtures('install_cockpit_plugin')
 @pytest.mark.tier2
-def test_positive_cockpit(session, default_sat):
-    """Install cockpit plugin and test whether webconsole button and cockpit integration works
+def test_positive_cockpit(cockpit_sat):
+    """Install cockpit plugin and test whether webconsole button and cockpit integration works.
+    also verify if cockpit service is restarted after the service restart.
 
     :id: 5a9be063-cdc4-43ce-91b9-7608fbebf8bb
 
-    :expectedresults: Cockpit page is loaded and displays sat host info
+    :BZ: 1876220
 
     :CaseLevel: System
 
+    :steps:
+        1. kill the cockpit service.
+        2. go to web console and verify if getting 503 error.
+        3. check if service "cockpit.service" exists using service list.
+        4. restart the satellite services.
+        5. check cockpit page is loaded and displays sat host info.
+
+    expectedresults: 1.cockpit service is restarted after the services restart.
+                     2.Cockpit page is loaded and displays sat host info
     """
-    with session:
-        session.organization.select(org_name='Default Organization')
-        session.location.select(loc_name='Any Location')
-        hostname_inside_cockpit = session.host.get_webconsole_content(
-            entity_name=default_sat.hostname
-        )
-        assert (
-            hostname_inside_cockpit == default_sat.hostname
-        ), 'cockpit page shows hostname {} instead of {}'.format(
-            hostname_inside_cockpit, default_sat.hostname
-        )
+    kill_process = cockpit_sat.execute('pkill -f cockpit-ws')
+    assert kill_process.status == 0
+    # Verify if getting 503 error
+    with pytest.raises(NoSuchElementException):
+        cockpit_sat.ui_session.host.get_webconsole_content(entity_name=cockpit_sat.hostname)
+        title = cockpit_sat.ui_session.browser.title
+        assert "503 Service Unavailable" in title
+
+    service_list = cockpit_sat.cli.Service.list()
+    assert service_list.status == 0
+    assert "foreman-cockpit.service" in service_list.stdout
+
+    service_restart = cockpit_sat.cli.Service.restart()
+    assert service_restart.status == 0
+    cockpit_sat.ui_session.browser.switch_to_window(
+        cockpit_sat.ui_session.browser.window_handles[0]
+    )
+    cockpit_sat.ui_session.browser.close_window(cockpit_sat.ui_session.browser.window_handles[-1])
+    hostname_inside_cockpit = cockpit_sat.ui_session.host.get_webconsole_content(
+        entity_name=cockpit_sat.hostname,
+    )
+    assert hostname_inside_cockpit == cockpit_sat.hostname, (
+        f'cockpit page shows hostname {hostname_inside_cockpit} '
+        f'instead of {cockpit_sat.hostname}'
+    )
