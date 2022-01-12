@@ -4,6 +4,7 @@ import re
 
 import pytest
 
+from robottelo.hosts import get_sat_rhel_version
 from robottelo.logging import collection_logger as logger
 
 FMT_XUNIT_TIME = '%Y-%m-%dT%H:%M:%S'
@@ -69,6 +70,9 @@ def pytest_collection_modifyitems(session, items, config):
     Control test collection for custom options related to testimony metadata
 
     """
+    # get RHEL version of the satellite
+    rhel_version = get_sat_rhel_version().base_version
+
     # split the option string and handle no option, single option, multiple
     # config.getoption(default) doesn't work like you think it does, hence or ''
     importance = [i for i in (config.getoption('importance') or '').split(',') if i != '']
@@ -107,6 +111,7 @@ def pytest_collection_modifyitems(session, items, config):
         # add markers as user_properties so they are recorded in XML properties of the report
         for marker in item.iter_markers():
             item.user_properties.append((marker.name, next(iter(marker.args), None)))
+        item.user_properties.append(("BaseOS", rhel_version, None))
         item.user_properties.append(
             ("start_time", datetime.datetime.utcnow().strftime(FMT_XUNIT_TIME))
         )
@@ -154,6 +159,7 @@ def pytest_collection_modifyitems(session, items, config):
                 )
                 deselected.append(item)
                 continue
+
             selected.append(item)
 
     # selected will be empty if no filter option was passed, defaulting to full items list
