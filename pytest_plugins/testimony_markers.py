@@ -156,6 +156,7 @@ def pytest_collection_modifyitems(session, items, config):
                 )
                 deselected.append(item)
                 continue
+
             selected.append(item)
 
     # selected will be empty if no filter option was passed, defaulting to full items list

@@ -23,9 +23,10 @@ from robottelo.constants import SATELLITE_VERSION
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.helpers import InstallerCommand
 
-POWER_WORKFLOW_KEYS = {
-    VmState.RUNNING: 'power_on',
-    VmState.STOPPED: 'power_off',
+POWER_OPERATIONS = {
+    VmState.RUNNING: 'running',
+    VmState.STOPPED: 'stopped',
+    'reboot': 'reboot'
     # TODO paused, suspended, shelved?
 }
 
@@ -182,7 +183,7 @@ class ContentHost(Host):
             AssertionError: if the workflow status isn't successful and broker didn't raise
         """
         try:
-            workflow_key = POWER_WORKFLOW_KEYS.get(state, state)
+            workflow_key = POWER_OPERATIONS.get(state)
             workflow_name = getattr(settings.broker.host_workflows, workflow_key)
         except (AttributeError, KeyError):
             raise NotImplementedError(f'No workflow specified in broker.host_workflows for {state}')
