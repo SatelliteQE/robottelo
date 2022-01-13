@@ -58,6 +58,8 @@ def test_rhcloud_insights_e2e(
 
     :BZ: 1965901, 1962048
 
+    :customerscenario: true
+
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
