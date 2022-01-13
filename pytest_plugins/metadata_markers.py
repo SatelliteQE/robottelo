@@ -111,7 +111,7 @@ def pytest_collection_modifyitems(session, items, config):
         # add markers as user_properties so they are recorded in XML properties of the report
         for marker in item.iter_markers():
             item.user_properties.append((marker.name, next(iter(marker.args), None)))
-        item.user_properties.append(("BaseOS", rhel_version, None))
+        item.user_properties.append(("BaseOS", rhel_version))
         item.user_properties.append(
             ("start_time", datetime.datetime.utcnow().strftime(FMT_XUNIT_TIME))
         )
