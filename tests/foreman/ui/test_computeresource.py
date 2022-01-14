@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import pytest
-import requests
 from nailgun import entities
 from wait_for import wait_for
 
