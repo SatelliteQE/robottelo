@@ -26,5 +26,9 @@ RHEV:
   IMAGE_NAME:
   # Image UUID
   IMAGE_UUID:
-  # RHV CA cert url for adding RHV as compute resource, e.g. http://example.com/pub/rhev-ca.pem
-  CA_CERT:
+  # RHV CA cert url for adding RHV as compute resource
+  CA_CERT: |
+    ---BEGIN CERT---
+    line1
+    line2
+    ---END CERT
