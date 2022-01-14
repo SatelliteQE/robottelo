@@ -991,6 +991,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenth
     cv_publish_promote(cv_2_name, env_2_name, repo_2_id, module_org.id)
     with session:
         # Create 2 activation keys
+        session.location.select(constants.DEFAULT_LOC)
         for key_name, env_name, cv_name, product_name in (
             (key_1_name, env_1_name, cv_1_name, product_1_name),
             (key_2_name, env_2_name, cv_2_name, product_2_name),
@@ -1008,7 +1009,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenth
             assert product_name in subscriptions
         # Create VM
         rhel6_contenthost.install_katello_ca(default_sat)
-        rhel6_contenthost.register_contenthost(module_org.label, ','.join(key_1_name, key_2_name))
+        rhel6_contenthost.register_contenthost(module_org.label, ','.join([key_1_name, key_2_name]))
         assert rhel6_contenthost.subscribed
         # Assert the content-host association with activation keys
         for key_name in [key_1_name, key_2_name]:
