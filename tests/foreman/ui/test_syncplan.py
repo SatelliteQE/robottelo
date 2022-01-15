@@ -52,7 +52,7 @@ def validate_repo_content(repo, content_types, after_sync=True):
 
     :param repo: Repository entity instance to be validated
     :param content_types: List of repository content entities that
-        should be validated (e.g. package, erratum)
+        should be validated (e.g. rpm, erratum)
     :param bool after_sync: Specify whether you perform validation before
         synchronization procedure is happened or after
     """
@@ -249,11 +249,11 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
         with pytest.raises(AssertionError) as context:
             validate_task_status(repo.id, module_org.id, max_tries=1)
         assert 'No task was found using query' in str(context.value)
-        validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
+        validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
         # Waiting part of delay that is left and check that product was synced
         time.sleep(next_sync)
         validate_task_status(repo.id, module_org.id)
-        validate_repo_content(repo, ['erratum', 'package', 'package_group'])
+        validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
         repo_values = session.repository.read(product.name, repo.name)
         for repo_type in ['Packages', 'Errata', 'Package Groups']:
             assert int(repo_values['content_counts'][repo_type]) > 0
@@ -306,11 +306,11 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(session,
         with pytest.raises(AssertionError) as context:
             validate_task_status(repo.id, module_org.id, max_tries=1)
         assert 'No task was found using query' in str(context.value)
-        validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
+        validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
         # Waiting part of delay that is left and check that product was synced
         time.sleep(delay * (cron_multiple - 1) / cron_multiple)
         validate_task_status(repo.id, module_org.id)
-        validate_repo_content(repo, ['erratum', 'package', 'package_group'])
+        validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
         repo_values = session.repository.read(product.name, repo.name)
         for repo_type in ['Packages', 'Errata', 'Package Groups']:
             assert int(repo_values['content_counts'][repo_type]) > 0
