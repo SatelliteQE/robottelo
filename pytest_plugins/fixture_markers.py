@@ -27,8 +27,19 @@ def pytest_configure(config):
 def pytest_collection_modifyitems(session, items, config):
     from pytest_fixtures.core import contenthosts
 
+    def chost_rhelver(params):
+        """Helper to retrive the rhel_version of a client from test params"""
+        for param in params:
+            if 'contenthost' in param:
+                return params[param].get('rhel_version')
+
     content_host_fixture_names = [m[0] for m in getmembers(contenthosts, isfunction)]
     for item in items:
         if set(item.fixturenames).intersection(set(content_host_fixture_names)):
             # TODO check param for indirect version parametrization
+            if hasattr(item, 'callspec'):
+                client_property = ('ClientOS', str(chost_rhelver(item.callspec.params)))
+            else:
+                client_property = ('ClientOS', str(settings.content_host.default_rhel_version))
+            item.user_properties.append(client_property)
             item.add_marker('content_host')
