@@ -67,8 +67,8 @@ def get_sat_rhel_version():
     try:
         rhel_version = Satellite().os_version
     except (AuthenticationError, ContentHostError, BoxKeyError):
-        if hasattr(settings.server.version, 'rhel_release'):
-            rhel_version = str(settings.server.version.rhel_release)
+        if hasattr(settings.server.version, 'rhel_version'):
+            rhel_version = str(settings.server.version.rhel_version)
         elif hasattr(settings.robottelo, 'rhel_version'):
             rhel_version = settings.robottelo.rhel_version
     return Version(rhel_version)
