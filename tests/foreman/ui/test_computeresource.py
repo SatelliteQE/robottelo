@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import pytest
-import requests
 from nailgun import entities
 from wait_for import wait_for
 
@@ -37,15 +36,6 @@ if not setting_is_set('rhev'):
 
 
 @pytest.fixture(scope='module')
-def module_ca_cert():
-    return (
-        None
-        if settings.rhev.ca_cert is None
-        else requests.get(settings.rhev.ca_cert).content.decode()
-    )
-
-
-@pytest.fixture(scope='module')
 def rhev_data():
     return {
         'rhev_url': settings.rhev.hostname,
@@ -59,15 +49,12 @@ def rhev_data():
         'image_username': settings.rhev.image_username,
         'image_password': settings.rhev.image_password,
         'storage_domain': settings.rhev.storage_domain,
+        'cert': settings.rhev.ca_cert,
     }
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
-@pytest.mark.parametrize('version', [True, False])
-def test_positive_end_to_end(
-    session, rhev_data, module_org, module_location, module_ca_cert, version
-):
+def test_positive_end_to_end(session, rhev_data, module_org, module_location):
     """Perform end to end testing for compute resource RHEV.
 
     :id: 3c079675-e5d3-490e-9b7e-1c2950f9965d
@@ -92,9 +79,8 @@ def test_positive_end_to_end(
                 'provider_content.url': rhev_data['rhev_url'],
                 'provider_content.user': rhev_data['username'],
                 'provider_content.password': rhev_data['password'],
-                'provider_content.api4': version,
                 'provider_content.datacenter.value': rhev_data['datacenter'],
-                'provider_content.certification_authorities': module_ca_cert,
+                'provider_content.certification_authorities': rhev_data['cert'],
             }
         )
         resource_values = session.computeresource.read(name)
@@ -103,7 +89,6 @@ def test_positive_end_to_end(
         assert resource_values['provider'] == FOREMAN_PROVIDERS['rhev']
         assert resource_values['provider_content']['user'] == rhev_data['username']
         assert resource_values['provider_content']['datacenter']['value'] == rhev_data['datacenter']
-        assert resource_values['provider_content']['api4'] == version
         session.computeresource.edit(name, {'name': new_name})
         assert not session.computeresource.search(name)
         assert session.computeresource.search(new_name)[0]['Name'] == new_name
@@ -111,18 +96,15 @@ def test_positive_end_to_end(
         assert not entities.AbstractComputeResource().search(query={'search': f'name={new_name}'})
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
-@pytest.mark.parametrize('version', [True, False])
-def test_positive_add_resource(session, module_ca_cert, rhev_data, version):
-    """Create new RHEV Compute Resource using APIv3/APIv4 and autoloaded cert
+def test_positive_add_resource(session, rhev_data):
+    """Create new RHEV Compute Resource using APIv4
 
     :id: f75e994a-6da1-40a3-9685-42387388b300
 
     :parametrized: yes
 
-    :expectedresults: resource created successfully and has expected protocol
-        version
+    :expectedresults: resource created successfully
 
     :CaseLevel: Integration
 
@@ -140,20 +122,16 @@ def test_positive_add_resource(session, module_ca_cert, rhev_data, version):
                 'provider_content.url': rhev_data['rhev_url'],
                 'provider_content.user': rhev_data['username'],
                 'provider_content.password': rhev_data['password'],
-                'provider_content.api4': version,
                 'provider_content.datacenter.value': rhev_data['datacenter'],
-                'provider_content.certification_authorities': module_ca_cert,
+                'provider_content.certification_authorities': rhev_data['cert'],
             }
         )
         resource_values = session.computeresource.read(name)
         assert resource_values['name'] == name
-        assert resource_values['provider_content']['api4'] == version
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
-@pytest.mark.parametrize('version', [True, False])
-def test_positive_edit_resource_description(session, module_ca_cert, rhev_data, version):
+def test_positive_edit_resource_description(session, rhev_data):
     """Edit RHEV Compute Resource with another description
 
     :id: f75544b1-3943-4cc6-98d1-f2d0fbe7244c
@@ -176,9 +154,8 @@ def test_positive_edit_resource_description(session, module_ca_cert, rhev_data, 
                 'provider_content.url': rhev_data['rhev_url'],
                 'provider_content.user': rhev_data['username'],
                 'provider_content.password': rhev_data['password'],
-                'provider_content.api4': version,
                 'provider_content.datacenter.value': rhev_data['datacenter'],
-                'provider_content.certification_authorities': module_ca_cert,
+                'provider_content.certification_authorities': rhev_data['cert'],
             }
         )
         resource_values = session.computeresource.read(name)
@@ -188,10 +165,8 @@ def test_positive_edit_resource_description(session, module_ca_cert, rhev_data, 
         assert resource_values['description'] == new_description
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
-@pytest.mark.parametrize('version', [True, False])
-def test_positive_list_resource_vms(session, module_ca_cert, rhev_data, version):
+def test_positive_list_resource_vms(session, rhev_data):
     """List VMs for RHEV Compute Resource
 
     :id: eea2f2b1-e9f4-448d-8c54-51fb25af3d5f
@@ -211,53 +186,17 @@ def test_positive_list_resource_vms(session, module_ca_cert, rhev_data, version)
                 'provider_content.url': rhev_data['rhev_url'],
                 'provider_content.user': rhev_data['username'],
                 'provider_content.password': rhev_data['password'],
-                'provider_content.api4': version,
                 'provider_content.datacenter.value': rhev_data['datacenter'],
-                'provider_content.certification_authorities': module_ca_cert,
+                'provider_content.certification_authorities': rhev_data['cert'],
             }
         )
         vm = session.computeresource.list_vms(name, rhev_data['vm_name'])
         assert vm['Name'].read() == rhev_data['vm_name']
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
-def test_positive_edit_resource_version(session, module_ca_cert, rhev_data):
-    """Edit RHEV Compute Resource with another protocol version
-
-    :id: 6e7985b6-a605-4fb8-8710-17a046bdac53
-
-    :expectedresults: resource updated successfully and switched to another
-        protocol version
-
-    :CaseLevel: Integration
-    """
-    name = gen_string('alpha')
-    with session:
-        session.computeresource.create(
-            {
-                'name': name,
-                'provider': FOREMAN_PROVIDERS['rhev'],
-                'provider_content.url': rhev_data['rhev_url'],
-                'provider_content.user': rhev_data['username'],
-                'provider_content.password': rhev_data['password'],
-                'provider_content.api4': False,
-                'provider_content.datacenter.value': rhev_data['datacenter'],
-                'provider_content.certification_authorities': module_ca_cert,
-            }
-        )
-        resource_values = session.computeresource.read(name)
-        assert not resource_values['provider_content']['api4']
-        session.computeresource.edit(name, {'provider_content.api4': True})
-        resource_values = session.computeresource.read(name)
-        assert resource_values['provider_content']['api4']
-
-
-@pytest.mark.on_premises_provisioning
-@pytest.mark.tier2
-@pytest.mark.parametrize('version', [True, False])
 @pytest.mark.run_in_one_thread
-def test_positive_resource_vm_power_management(session, module_ca_cert, rhev_data, version):
+def test_positive_resource_vm_power_management(session, rhev_data):
     """Read current RHEV Compute Resource virtual machine power status and
     change it to opposite one
 
@@ -279,9 +218,8 @@ def test_positive_resource_vm_power_management(session, module_ca_cert, rhev_dat
                 'provider_content.url': rhev_data['rhev_url'],
                 'provider_content.user': rhev_data['username'],
                 'provider_content.password': rhev_data['password'],
-                'provider_content.api4': version,
                 'provider_content.datacenter.value': rhev_data['datacenter'],
-                'provider_content.certification_authorities': module_ca_cert,
+                'provider_content.certification_authorities': rhev_data['cert'],
             }
         )
         status = session.computeresource.vm_status(name, rhev_data['vm_name'])
@@ -302,12 +240,8 @@ def test_positive_resource_vm_power_management(session, module_ca_cert, rhev_dat
         assert session.computeresource.vm_status(name, rhev_data['vm_name']) is not status
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
-@pytest.mark.parametrize('version', [True, False])
-def test_positive_VM_import(
-    session, module_ca_cert, module_org, module_location, rhev_data, version
-):
+def test_positive_VM_import(session, module_org, module_location, rhev_data):
     """Import an existing VM as a Host
 
     :id: 47aea4b7-9258-4863-8966-9a0bc9e94116
@@ -375,9 +309,8 @@ def test_positive_VM_import(
                 'provider_content.url': rhev_data['rhev_url'],
                 'provider_content.user': rhev_data['username'],
                 'provider_content.password': rhev_data['password'],
-                'provider_content.api4': version,
                 'provider_content.datacenter.value': rhev_data['datacenter'],
-                'provider_content.certification_authorities': module_ca_cert,
+                'provider_content.certification_authorities': rhev_data['cert'],
                 'locations.resources.assigned': [module_location.name],
             }
         )
@@ -393,10 +326,8 @@ def test_positive_VM_import(
     entities.Host(name=rhev_data['vm_name']).search()[0].delete()
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
-@pytest.mark.parametrize('version', [True, False])
-def test_positive_update_organization(session, rhev_data, module_location, module_ca_cert, version):
+def test_positive_update_organization(session, rhev_data, module_location):
     """Update a rhev Compute Resource organization
 
     :id: f6656c8e-70a3-40e5-8dda-2154f2eeb042
@@ -430,9 +361,8 @@ def test_positive_update_organization(session, rhev_data, module_location, modul
                 'provider_content.url': rhev_data['rhev_url'],
                 'provider_content.user': rhev_data['username'],
                 'provider_content.password': rhev_data['password'],
-                'provider_content.api4': version,
                 'provider_content.datacenter.value': rhev_data['datacenter'],
-                'provider_content.certification_authorities': module_ca_cert,
+                'provider_content.certification_authorities': rhev_data['cert'],
             }
         )
         assert session.computeresource.search(name)[0]['Name'] == name
@@ -444,9 +374,8 @@ def test_positive_update_organization(session, rhev_data, module_location, modul
         assert new_organization.name in resource_values['organizations']['resources']['assigned']
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
-def test_positive_image_end_to_end(session, rhev_data, module_location, module_ca_cert):
+def test_positive_image_end_to_end(session, rhev_data, module_location):
     """Perform end to end testing for compute resource RHV component image.
 
     :id: 62a5c52f-dd15-45e7-8200-c64bb335474f
@@ -470,7 +399,7 @@ def test_positive_image_end_to_end(session, rhev_data, module_location, module_c
                 'provider_content.user': rhev_data['username'],
                 'provider_content.password': rhev_data['password'],
                 'provider_content.datacenter.value': rhev_data['datacenter'],
-                'provider_content.certification_authorities': module_ca_cert,
+                'provider_content.certification_authorities': rhev_data['cert'],
             }
         )
         assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
@@ -506,10 +435,9 @@ def test_positive_image_end_to_end(session, rhev_data, module_location, module_c
         )
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.skip_if_not_set('vlan_networking')
 @pytest.mark.tier2
-def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_cert):
+def test_positive_associate_with_custom_profile(session, rhev_data):
     """ "Associate custom default (3-Large) compute profile to RHV compute resource.
 
     :id: e7698154-62ff-492b-8e56-c5dc70f0c9df
@@ -559,7 +487,7 @@ def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_ce
                 'provider_content.user': rhev_data['username'],
                 'provider_content.password': rhev_data['password'],
                 'provider_content.datacenter.value': rhev_data['datacenter'],
-                'provider_content.certification_authorities': module_ca_cert,
+                'provider_content.certification_authorities': rhev_data['cert'],
             }
         )
         assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
@@ -593,9 +521,8 @@ def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_ce
                 assert provided_value == expected_value
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
-def test_positive_associate_with_custom_profile_with_template(session, rhev_data, module_ca_cert):
+def test_positive_associate_with_custom_profile_with_template(session, rhev_data):
     """Associate custom default (3-Large) compute profile to rhev compute
      resource, with template
 
@@ -635,7 +562,7 @@ def test_positive_associate_with_custom_profile_with_template(session, rhev_data
                 'provider_content.user': rhev_data['username'],
                 'provider_content.password': rhev_data['password'],
                 'provider_content.datacenter.value': rhev_data['datacenter'],
-                'provider_content.certification_authorities': module_ca_cert,
+                'provider_content.certification_authorities': rhev_data['cert'],
             }
         )
         assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
