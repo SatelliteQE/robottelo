@@ -887,7 +887,6 @@ PERMISSIONS = {
         'view_config_reports',
         'view_plugins',
         'view_recurring_logics',
-        'view_tasks',
         'view_statuses',
         'generate_foreman_rh_cloud',
         'forget_status_hosts',
@@ -917,13 +916,7 @@ PERMISSIONS = {
         'edit_authenticators',
         'destroy_authenticators',
     ],
-    'Bookmark': ['view_bookmarks', 'create_bookmarks', 'edit_bookmarks', 'destroy_bookmarks'],
-    'ConfigGroup': [
-        'view_config_groups',
-        'create_config_groups',
-        'edit_config_groups',
-        'destroy_config_groups',
-    ],
+    'Bookmark': ['create_bookmarks', 'edit_bookmarks', 'destroy_bookmarks'],
     'ComputeProfile': [
         'view_compute_profiles',
         'create_compute_profiles',
@@ -952,13 +945,6 @@ PERMISSIONS = {
         'view_discovery_rules',
     ],
     'Domain': ['view_domains', 'create_domains', 'edit_domains', 'destroy_domains'],
-    'Environment': [
-        'view_environments',
-        'create_environments',
-        'edit_environments',
-        'destroy_environments',
-        'import_environments',
-    ],
     'ExternalUsergroup': [
         'view_external_usergroups',
         'create_external_usergroups',
@@ -1003,7 +989,12 @@ PERMISSIONS = {
         'view_scap_contents',
     ],
     'ForemanTasks::Task': ['edit_foreman_tasks', 'view_foreman_tasks'],
-    'JobInvocation': ['view_job_invocations', 'create_job_invocations', 'cancel_job_invocations'],
+    'JobInvocation': [
+        'view_job_invocations',
+        'create_job_invocations',
+        'cancel_job_invocations',
+        'execute_jobs_on_infrastructure_hosts',
+    ],
     'JobTemplate': [
         'view_job_templates',
         'edit_job_templates',
@@ -1024,7 +1015,6 @@ PERMISSIONS = {
         "edit_tailoring_files",
         "destroy_tailoring_files",
     ],
-    'HostClass': ['edit_classes'],
     'Hostgroup': [
         'view_hostgroups',
         'create_hostgroups',
@@ -1077,19 +1067,6 @@ PERMISSIONS = {
         'edit_ptables',
         'destroy_ptables',
         'lock_ptables',
-    ],
-    'Puppetclass': [
-        'view_puppetclasses',
-        'create_puppetclasses',
-        'edit_puppetclasses',
-        'destroy_puppetclasses',
-        'import_puppetclasses',
-    ],
-    'PuppetclassLookupKey': [
-        'view_external_parameters',
-        'create_external_parameters',
-        'edit_external_parameters',
-        'destroy_external_parameters',
     ],
     'Realm': ['view_realms', 'create_realms', 'edit_realms', 'destroy_realms'],
     'RemoteExecutionFeature': ['edit_remote_execution_features'],
@@ -1181,11 +1158,11 @@ PERMISSIONS = {
         'publish_content_views',
         'promote_or_remove_content_views',
     ],
-    'Katello::GpgKey': [
-        'view_content_credentials',
+    'Katello::ContentCredential': [
         'create_content_credentials',
-        'edit_content_credentials',
         'destroy_content_credentials',
+        'edit_content_credentials',
+        'view_content_credentials',
     ],
     'Katello::HostCollection': [
         'view_host_collections',
