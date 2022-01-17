@@ -17,9 +17,8 @@ def subscribe_satellite(clean_rhsm, default_sat):
         password=settings.subscription.rhn_password,
         releasever=f'{default_sat.os_version.major}Server',
     )
-    has_success_msg = 'Successfully attached a subscription'
     result = default_sat.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
-    if has_success_msg in result:
+    if 'Successfully attached a subscription' in result.stdout:
         default_sat.enable_repo(
             f'rhel-{default_sat.os_version.major}-server-extras-rpms', force=True
         )
