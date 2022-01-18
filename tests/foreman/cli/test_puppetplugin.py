@@ -20,7 +20,7 @@ import pytest
 
 from pytest_fixtures.component.puppet import enable_capsule_cmd
 from pytest_fixtures.component.puppet import enable_satellite_cmd
-
+from robottelo.hosts import Satellite
 
 puppet_cli_commands = [
     'puppet-environment',
@@ -33,6 +33,24 @@ puppet_cli_commands = [
 ]
 
 err_msg = 'Error: No such sub-command'
+
+
+def assert_puppet_status(server, expected):
+    result = server.get_features()
+    assert ('puppet' in result) is expected
+
+    result = server.execute('rpm -q puppetserver')
+    assert (result.status == 0) is expected
+    assert ('package puppetserver is not installed' in result.stdout) is not expected
+
+    result = server.execute('systemctl status puppetserver')
+    assert ('active (running)' in result.stdout) is expected
+
+    if type(server) is Satellite:
+        for cmd in puppet_cli_commands:
+            result = server.execute(f'hammer {cmd} --help')
+            assert (result.status == 0) is expected
+            assert (f"{err_msg} '{cmd.split()[-1]}'." in str(result.stderr)) is not expected
 
 
 @pytest.mark.skip_if_open("BZ:2034552")
@@ -51,7 +69,7 @@ def test_positive_enable_disable_logic(destructive_sat, destructive_caps):
         4. Enable puppet on Capsule and check it succeeded.
         5. Try to disable puppet on Satellite and check it failed.
         6. Disable puppet on Capsule and check it succeeded.
-        7. Disable puppet on Sastellite and check it succeeded.
+        7. Disable puppet on Satellite and check it succeeded.
 
     :expectedresults:
         1. Puppet is missing on disabled setup.
@@ -61,73 +79,48 @@ def test_positive_enable_disable_logic(destructive_sat, destructive_caps):
         5. Puppet can't be disabled on Satellite when enabled on Capsule.
         6. Puppet can be disabled on Capsule
         7. Puppet can be disabled on Satellite when disabled on Capsule.
+
+    :BZ: 2032928, 2034552, 2033336, 2039696
     """
     # Check that puppet is disabled by default on both.
-    result = destructive_sat.execute('rpm -q puppetserver')
-    assert result.status == 1
-    assert 'package puppetserver is not installed' in result.stdout
-
-    for cmd in puppet_cli_commands:
-        result = destructive_sat.execute(f'hammer {cmd} --help')
-        assert result.status == 64
-        assert f"{err_msg} '{cmd.split()[-1]}'." in str(result.stderr)
-
-    result = destructive_caps.execute('rpm -q puppetserver')
-    assert result.status == 1
-    assert 'package puppetserver is not installed' in result.stdout
+    assert_puppet_status(destructive_sat, expected=False)
+    assert_puppet_status(destructive_caps, expected=False)
 
     # Try to enable puppet on Capsule and check it failed.
-    result = destructive_caps.execute(enable_capsule_cmd.get_command(), timeout=900000)
-    assert result.status == 6  # == 6
+    result = destructive_caps.execute(enable_capsule_cmd.get_command(), timeout='15m')
+    assert result.status == 6
     assert 'failed to load one or more features (Puppet)' in result.stdout
 
     # Enable puppet on Satellite and check it succeeded.
     destructive_sat.register_to_dogfood()
-    result = destructive_sat.execute(enable_satellite_cmd.get_command(), timeout=900000)
+    result = destructive_sat.execute(enable_satellite_cmd.get_command(), timeout='15m')
     assert result.status == 0
     assert 'Success!' in result.stdout
 
-    result = destructive_sat.execute('rpm -q puppetserver')
-    assert result.status == 0
-    result = destructive_sat.execute('systemctl status puppetserver')
-    assert 'active (running)' in result.stdout
+    # workaround for BZ#2039696
+    destructive_sat.execute('hammer -r')
 
-    # TODO: an issue identified, DEVs investigating
-    # for cmd in puppet_commands:
-    #     result = destructive_sat.execute(f'hammer {cmd} --help')
-    #     assert result.status == 0
+    assert_puppet_status(destructive_sat, expected=True)
 
     # Enable puppet on Capsule and check it succeeded.
-    result = destructive_caps.execute(enable_capsule_cmd.get_command(), timeout=900000)
+    result = destructive_caps.execute(enable_capsule_cmd.get_command(), timeout='15m')
     assert result.status == 0
     assert 'Success!' in result.stdout
-
-    result = destructive_caps.execute('rpm -q puppetserver')
-    assert result.status == 0
-    result = destructive_caps.execute('systemctl status puppetserver')
-    assert 'active (running)' in result.stdout
+    assert_puppet_status(destructive_caps, expected=True)
 
     # Try to disable puppet on Satellite and check it failed.
     result = destructive_sat.execute('foreman-maintain plugin purge-puppet')
     assert result.status == 1
-    assert f'The following proxies have Puppet feature: {destructive_caps.hostname}.'
+    assert (
+        f'The following proxies have Puppet feature: {destructive_caps.hostname}.' in result.stdout
+    )
 
     # Disable puppet on Capsule and check it succeeded.
     result = destructive_caps.execute('foreman-maintain plugin purge-puppet')
     assert result.status == 0
-
-    result = destructive_caps.execute('rpm -q puppetserver')
-    assert result.status == 1
-    assert 'package puppetserver is not installed' in result.stdout
+    assert_puppet_status(destructive_caps, expected=False)
 
     # Disable puppet on Satellite and check it succeeded.
-    result = destructive_caps.execute('foreman-maintain plugin purge-puppet')
+    result = destructive_sat.execute('foreman-maintain plugin purge-puppet')
     assert result.status == 0
-    result = destructive_sat.execute('rpm -q puppetserver')
-    assert result.status == 1
-    assert 'package puppetserver is not installed' in result.stdout
-
-    for cmd in puppet_cli_commands:
-        result = destructive_sat.execute(f'hammer {cmd} --help')
-        assert result.status == 64
-        assert f"{err_msg} '{cmd.split()[-1]}'." in str(result.stderr)
+    assert_puppet_status(destructive_sat, expected=False)
