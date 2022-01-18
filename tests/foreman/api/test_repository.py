@@ -33,6 +33,7 @@ from requests.exceptions import SSLError
 from robottelo import constants
 from robottelo import datafactory
 from robottelo import manifests
+from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
@@ -1338,7 +1339,7 @@ class TestRepository:
             reposet=constants.REPOSET['rhst7'],
             releasever=None,
         )
-        entities.Repository(id=repo_id).sync()
+        call_entity_method_with_timeout(entities.Repository(id=repo_id).sync, timeout=1500)
         with default_sat.session.shell() as sh:
             sh.send('foreman-rake console')
             time.sleep(30)  # sleep to allow time for console to open
@@ -1347,7 +1348,7 @@ class TestRepository:
         results = sh.result
         identifier = results.stdout.split('version_href\n"', 1)[1].split('version')[0]
         default_sat.execute(
-            f'curl -X DELETE {default_sat.url}{identifier}'
+            f'curl -X DELETE {default_sat.url}/{identifier}'
             f' --cert /etc/pki/katello/certs/pulp-client.crt'
             f' --key /etc/pki/katello/private/pulp-client.key'
         )
