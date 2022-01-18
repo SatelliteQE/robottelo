@@ -1544,6 +1544,8 @@ def test_global_registration_with_capsule_host(
         4. open the global registration form and select the same capsule
         5. check host is registered successfully with selected capsule
 
+    :parametrized: yes
+
     :CaseAutomation: ManualOnly
     """
     client = rhel7_contenthost
@@ -1634,6 +1636,8 @@ def test_global_registration_with_gpg_repo_and_default_package(
         4. open the global registration form and update the gpg repo and key
         5. check host is registered successfully with installed same package
         6. check gpg repo is exist in registered host
+
+    :parametrized: yes
     """
     client = rhel7_contenthost
     repo_name = 'foreman_register'
@@ -1686,6 +1690,8 @@ def test_global_re_registration_host_with_force_ignore_error_options(
         3. open the global registration form and select --force and --Ignore Errors option
         4. registered the host with generated curl command
         5. re-register the same host again and check it is getting registered
+
+    :parametrized: yes
     """
     client = rhel7_contenthost
     with session:
@@ -1728,6 +1734,7 @@ def test_global_registration_token_restriction(
         1. open the global registration form and generate the curl token
         2. use that curl token to execute other api calls e.g. GET /hosts, /users
 
+    :parametrized: yes
     """
     client = rhel7_contenthost
     with session:

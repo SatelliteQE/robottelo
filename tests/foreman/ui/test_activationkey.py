@@ -91,6 +91,8 @@ def test_positive_end_to_end_register(session, rhel7_contenthost, default_sat):
 
     :CaseLevel: System
 
+    :parametrized: yes
+
     :CaseImportance: High
     """
     org = entities.Organization().create()
@@ -867,6 +869,8 @@ def test_positive_add_host(session, module_org, rhel6_contenthost, default_sat):
 
     :expectedresults: Hosts are successfully associated to Activation key
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     ak = entities.ActivationKey(
@@ -901,6 +905,8 @@ def test_positive_delete_with_system(session, rhel6_contenthost, default_sat):
 
     :expectedresults: Activation key is deleted
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     name = gen_string('alpha')
@@ -927,7 +933,7 @@ def test_positive_delete_with_system(session, rhel6_contenthost, default_sat):
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
-def test_negative_usage_limit(session, module_org, rhel6_contenthost, default_sat):
+def test_negative_usage_limit(session, module_org, default_sat):
     """Test that Usage limit actually limits usage
 
     :id: 9fe2d661-66f8-46a4-ae3f-0a9329494bdd
@@ -973,6 +979,8 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenth
     :id: 4d6b6b69-9d63-4180-af2e-a5d908f8adb7
 
     :expectedresults: Multiple Activation keys are attached to a system
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -1096,6 +1104,8 @@ def test_positive_service_level_subscription_with_custom_product(
            UI
 
     :BZ: 1394357
+
+    :parametrized: yes
 
     :CaseLevel: System
     """

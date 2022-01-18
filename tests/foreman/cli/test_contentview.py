@@ -2259,6 +2259,8 @@ class TestContentView:
         :expectedresults: host subscribed to content view with user that has
             restricted permissions.
 
+        :parametrized: yes
+
         :CaseLevel: System
         """
         # Note: this test has been stubbed waitin for bug 1511481 resolution
@@ -2415,6 +2417,8 @@ class TestContentView:
 
         :expectedresults: host subscribed to content view with user that has
             restricted permissions.
+
+        :parametrized: yes
 
         :CaseLevel: System
         """

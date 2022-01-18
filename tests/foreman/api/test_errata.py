@@ -240,6 +240,8 @@ def test_positive_install_in_host(
 
     :expectedresults: errata is installed in the host.
 
+    :parametrized: yes
+
     :CaseLevel: System
 
     :BZ: 1983043
@@ -293,6 +295,8 @@ def test_positive_install_multiple_in_host(
         installation
 
     :CaseImportance: Medium
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -553,6 +557,8 @@ def test_positive_get_count_for_host(setup_content_rhel6, rhel6_contenthost, def
 
     :CaseLevel: System
 
+    :parametrized: yes
+
     :CaseImportance: Medium
     """
     ak_name = setup_content_rhel6[0].name
@@ -592,6 +598,8 @@ def test_positive_get_applicable_for_host(setup_content_rhel6, rhel6_contenthost
     :expectedresults: The available errata is retrieved.
 
     :CaseLevel: System
+
+    :parametrized: yes
 
     :CaseImportance: Medium
     """
@@ -708,6 +716,8 @@ def test_positive_incremental_update_required(
 
     :expectedresults: Incremental update requirement is detected.
 
+    :parametrized: yes
+
     :CaseLevel: System
 
     :BZ: 2013093
@@ -818,6 +828,8 @@ def test_errata_installation_with_swidtags(
         module stream update
 
     :CaseAutomation: Automated
+
+    :parametrized: yes
 
     :CaseImportance: Critical
 
@@ -972,6 +984,8 @@ def test_apply_modular_errata_using_default_content_view(
     :expectedresults:  Errata enumeration works with module streams when using default Content View
 
     :CaseAutomation: Automated
+
+    :parametrized: yes
 
     :CaseLevel: System
     """

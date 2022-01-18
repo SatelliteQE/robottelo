@@ -1374,6 +1374,8 @@ def test_apply_errata_using_default_content_view(errata_host):
 
     :expectedresults: errata listed successfully and is installable
 
+    :parametrized: yes
+
     :CaseImportance: High
     """
     # check that package errata is applicable
@@ -1414,6 +1416,8 @@ def test_update_applicable_package_using_default_content_view(errata_host):
         3. Ensure the package is no longer applicable
 
     :expectedresults: after updating the package it is no longer shown as applicable
+
+    :parametrized: yes
 
     :CaseImportance: High
     """
@@ -1468,6 +1472,8 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host):
         4. Ensure the package is now applicable
 
     :expectedresults: downgraded package shows as applicable
+
+    :parametrized: yes
 
     :CaseImportance: High
     """
@@ -1525,6 +1531,8 @@ def test_install_applicable_package_to_registerd_host(chost):
 
     :expectedresults: Installed package shows errata as applicable and installable
 
+    :parametrized: yes
+
     :CaseImportance: Medium
     """
     # Assert that the package is not applicable
@@ -1579,6 +1587,8 @@ def test_downgrading_package_shows_errata_from_library(errata_host, module_manif
         4. Ensure the errata is now applicable
 
     :expectedresults: errata shows as applicable
+
+    :parametrized: yes
 
     :CaseImportance: High
     """

@@ -48,6 +48,8 @@ def test_positive_run_default_job_template_by_ip(session, module_org, module_rhe
 
     :expectedresults: Verify the job was successfully ran against the host
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     hostname = module_rhel_client_by_ip.hostname
@@ -83,6 +85,8 @@ def test_positive_run_custom_job_template_by_ip(session, module_org, module_rhel
         4. Run the job
 
     :expectedresults: Verify the job was successfully ran against the host
+
+    :parametrized: yes
 
     :CaseLevel: System
     """

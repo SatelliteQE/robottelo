@@ -226,6 +226,8 @@ def test_end_to_end(session, module_org, module_repos_col, vm, default_sat):
     :expectedresults: Errata details are the same as expected, errata
         installation is successful
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     ERRATA_DETAILS = {
@@ -599,6 +601,8 @@ def test_positive_content_host_previous_env(session, module_org, module_repos_co
 
     :expectedresults: The errata from previous environments are displayed.
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     hostname = vm.hostname
@@ -641,6 +645,8 @@ def test_positive_content_host_library(session, module_org, vm):
     :Steps: Go to Content Hosts -> Select content host -> Errata Tab -> Select 'Library'.
 
     :expectedresults: The errata from Library are displayed.
+
+    :parametrized: yes
 
     :CaseLevel: System
     """

@@ -54,6 +54,8 @@ def test_positive_run_default_job_template_by_ip(
 
     :expectedresults: Verify the job was successfully ran against the host
 
+    :parametrized: yes
+
     :CaseLevel: Integration
     """
     hostname = module_vm_client_by_ip.hostname
@@ -94,6 +96,8 @@ def test_positive_run_custom_job_template_by_ip(
         4. Run the job
 
     :expectedresults: Verify the job was successfully ran against the host
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -204,6 +208,8 @@ def test_positive_run_scheduled_job_template_by_ip(
 
         1. Verify the job was not immediately ran
         2. Verify the job was successfully ran after the designated time
+
+    :parametrized: yes
 
     :CaseLevel: System
     """

@@ -2632,6 +2632,8 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
 
     :CaseLevel: Integration
 
+    :parametrized: yes
+
     :CaseImportance: High
     """
     org = entities.Organization().create()
@@ -3073,6 +3075,8 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, default
            updated package
 
     :CaseImportance: Medium
+
+    :parametrized: yes
 
     :CaseLevel: Integration
     """
