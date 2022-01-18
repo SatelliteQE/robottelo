@@ -120,6 +120,8 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, default_sat, rhel7_conten
 
     :expectedresults: All tests should succeed and Content should be
         successfully fetched by client.
+
+    :parametrized: yes
     """
     # step 1: Create a new user with admin permissions
     password = gen_alphanumeric()

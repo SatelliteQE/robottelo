@@ -178,6 +178,8 @@ def test_positive_noapply_api(module_manifest_org, module_cv, custom_repo, host,
     :expectedresults: Incremental update completed with no errors and
         Content view has a newer version
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     # Promote CV to new LCE

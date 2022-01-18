@@ -512,6 +512,8 @@ def test_positive_gen_entitlements_reports_multiple_formats(
     :expectedresults: reports are generated containing all the expected information
                       regarding Entitlements for each output format.
 
+    :parametrized: yes
+
     :CaseImportance: High
     """
     client = rhel7_contenthost

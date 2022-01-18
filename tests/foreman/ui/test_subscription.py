@@ -273,6 +273,8 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, def
 
     :BZ: 1366327
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     org = entities.Organization().create()
@@ -330,6 +332,8 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
            not empty and one of the consumed products exist
 
     :BZ: 1395788, 1506636, 1487317
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -452,6 +456,8 @@ def test_positive_subscription_status_disabled_golden_ticket(
 
     :BZ: 1789924
 
+    :parametrized: yes
+
     :CaseImportance: Medium
     """
     rhel7_contenthost.install_katello_ca(default_sat)
@@ -487,6 +493,8 @@ def test_positive_candlepin_events_processed_by_STOMP(session, rhel7_contenthost
                       correctly without any failures
 
     :BZ: 1826515
+
+    :parametrized: yes
 
     :CaseImportance: High
     """

@@ -1495,6 +1495,8 @@ class TestHostTraces:
 
         :expectedresults: Tracer resolved the problem, the downgraded service was restarted
 
+        :parametrized: yes
+
         :CaseImportance: Medium
         """
         # setup
