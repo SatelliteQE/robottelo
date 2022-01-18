@@ -13,6 +13,8 @@ def subscribe_satellite(clean_rhsm, default_sat):
     from robottelo.config import settings
 
     default_sat.register_contenthost(
+        org=None,
+        lce=None,
         username=settings.subscription.rhn_username,
         password=settings.subscription.rhn_password,
         releasever=f'{default_sat.os_version.major}Server',
@@ -25,5 +27,5 @@ def subscribe_satellite(clean_rhsm, default_sat):
         yield
     else:
         pytest.fail('Failed to attach system to pool. Aborting Test!.')
-    default_sat.unsubscribe()
+    default_sat.unregister()
     default_sat.remove_katello_ca()
