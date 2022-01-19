@@ -880,6 +880,7 @@ def test_positive_add_host(session, module_org, rhel6_contenthost, default_sat):
     rhel6_contenthost.register_contenthost(module_org.label, ak.name)
     assert rhel6_contenthost.subscribed
     with session:
+        session.location.select(constants.DEFAULT_LOC)
         session.organization.select(module_org.name)
         ak = session.activationkey.read(ak.name, widget_names='content_hosts')
         assert len(ak['content_hosts']['table']) == 1
