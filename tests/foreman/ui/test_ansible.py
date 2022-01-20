@@ -23,11 +23,11 @@ from airgun.session import Session
 
 from robottelo.datafactory import gen_string
 
-# from fauxfactory import gen_string
-# from fauxfactory.factories.strings import gen_alpha
-
 # from broker import VMBroker
 # from nailgun import entities
+
+# from fauxfactory import gen_string
+# from fauxfactory.factories.strings import gen_alpha
 # from wait_for import wait_for
 # from robottelo.hosts import ContentHost
 
