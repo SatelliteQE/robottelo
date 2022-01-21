@@ -262,9 +262,8 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm):
             }
         )
         session.hostcollection.associate_host(hc_name, vm.hostname)
-        # make a note of time for later CLI wait_for_tasks, and include
-        # 8 mins margin of safety.
-        timestamp = (datetime.utcnow() - timedelta(minutes=8)).strftime('%Y-%m-%d %H:%M')
+        # make a note of time for later wait_for_tasks, and include 4 mins margin of safety.
+        timestamp = (datetime.utcnow() - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
         # Update the package by name
         session.hostcollection.manage_packages(
             hc_name,
@@ -273,12 +272,12 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm):
             action='update_all',
             action_via='via remote execution',
         )
-        # Wait for upload profile event (in case Satellite system slow)
-        host = entities.Host().search(query={'search': f'name={vm.hostname}'})
+        # Wait for applicability update event (in case Satellite system slow)
         wait_for_tasks(
-            search_query='label = Actions::Katello::Host::UploadProfiles'
-            f' and resource_id = {host[0].id}'
-            f' and started_at >= "{timestamp}"',
+            search_query='label = Actions::Katello::Applicability::Hosts::BulkGenerate'
+            f' and started_at >= "{timestamp}"'
+            f' and state = stopped'
+            f' and result = success',
             search_rate=15,
             max_tries=10,
         )
@@ -1068,20 +1067,19 @@ def test_module_status_update_without_force_upload_package_profile(
     profile = 'flipper'
     # reset walrus module streams
     run_remote_command_on_content_host(f'dnf module reset {module_name} -y', vm_module_streams)
-    # make a note of time for later CLI wait_for_tasks, and include
-    # 8 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=8)).strftime('%Y-%m-%d %H:%M')
+    # make a note of time for later wait_for_tasks, and include 4 mins margin of safety.
+    timestamp = (datetime.utcnow() - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
     # install walrus module stream with flipper profile
     run_remote_command_on_content_host(
         f'dnf module install {module_name}:{stream_version}/{profile} -y',
         vm_module_streams,
     )
-    # Wait for upload profile event (in case Satellite system slow)
-    host = entities.Host().search(query={'search': f'name={vm_module_streams.hostname}'})
+    # Wait for applicability update event (in case Satellite system slow)
     wait_for_tasks(
-        search_query='label = Actions::Katello::Host::UploadProfiles'
-        f' and resource_id = {host[0].id}'
-        f' and started_at >= "{timestamp}"',
+        search_query='label = Actions::Katello::Applicability::Hosts::BulkGenerate'
+        f' and started_at >= "{timestamp}"'
+        f' and state = stopped'
+        f' and result = success',
         search_rate=15,
         max_tries=10,
     )

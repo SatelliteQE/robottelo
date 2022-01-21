@@ -16,12 +16,15 @@
 
 :Upstream: No
 """
+from datetime import datetime
+from datetime import timedelta
+
 import pytest
 from nailgun import entities
 
-from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
+from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -121,7 +124,9 @@ def module_ak(module_manifest_org, module_cv, custom_repo, module_lce_library):
     )
     # Add custom subscription to activation key
     prod = custom_repo.product.read()
-    custom_sub = entities.Subscription().search(query={'search': f'name={prod.name}'})
+    custom_sub = entities.Subscription(organization=module_manifest_org).search(
+        query={'search': f'name={prod.name}'}
+    )
     ak.add_subscriptions(data={'subscription_id': custom_sub[0].id})
     return ak
 
@@ -143,12 +148,20 @@ def host(
     rhel7_contenthost_module.register_contenthost(module_manifest_org.label, module_ak.name)
     rhel7_contenthost_module.enable_repo(REPOS['rhst7']['id'])
     rhel7_contenthost_module.install_katello_host_tools()
+    # make a note of time for later wait_for_tasks, and include 4 mins margin of safety.
+    timestamp = (datetime.utcnow() - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
     # AK added custom repo for errata package, just install it.
     rhel7_contenthost_module.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE}')
     rhel7_contenthost_module.execute('katello-package-upload')
-    host = entities.Host().search(query={'search': f'name={rhel7_contenthost_module.hostname}'})
-    # Force host to generate or refresh errata applicability
-    call_entity_method_with_timeout(host[0].errata_applicability, timeout=600)
+    # Wait for applicability update event (in case Satellite system slow)
+    wait_for_tasks(
+        search_query='label = Actions::Katello::Applicability::Hosts::BulkGenerate'
+        f' and started_at >= "{timestamp}"'
+        f' and state = stopped'
+        f' and result = success',
+        search_rate=15,
+        max_tries=10,
+    )
     # Add filter of type include but do not include anything.
     # this will hide all RPMs from selected erratum before publishing.
     entities.RPMContentViewFilter(
