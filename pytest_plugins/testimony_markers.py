@@ -4,6 +4,9 @@ import re
 
 import pytest
 
+from robottelo.config import settings
+from robottelo.hosts import get_sat_rhel_version
+from robottelo.hosts import get_sat_version
 from robottelo.logging import collection_logger as logger
 
 FMT_XUNIT_TIME = '%Y-%m-%dT%H:%M:%S'
@@ -58,6 +61,23 @@ assignee_regex = re.compile(
 @pytest.hookimpl(tryfirst=True)
 def pytest_collection_modifyitems(session, items, config):
     """Add markers for testimony tokens"""
+    """Add markers and user_properties for testimony token metadata
+
+    user_properties is used by the junit plugin, and thus by many test report systems
+    Handle test function/class/module/session scope metadata coming from test docblocks
+    Apply user_properties, ibutsu metadata, and pytest markers
+
+    Markers for metadata use the testimony token name as the mark name
+    The value of the token for the mark is the first mark arg
+
+    Control test collection for custom options related to testimony metadata
+
+    """
+    # get RHEL version of the satellite
+    rhel_version = get_sat_rhel_version().base_version
+    sat_version = get_sat_version().base_version
+    snap_version = settings.server.version.get('snap', '')
+
     # split the option string and handle no option, single option, multiple
     # config.getoption(default) doesn't work like you think it does, hence or ''
     importance = [i for i in (config.getoption('importance') or '').split(',') if i != '']
@@ -96,6 +116,9 @@ def pytest_collection_modifyitems(session, items, config):
         # add markers as user_properties so they are recorded in XML properties of the report
         for marker in item.iter_markers():
             item.user_properties.append((marker.name, next(iter(marker.args), None)))
+        item.user_properties.append(("BaseOS", rhel_version))
+        item.user_properties.append(("SatelliteVersion", sat_version))
+        item.user_properties.append(("SnapVersion", snap_version))
         item.user_properties.append(
             ("start_time", datetime.datetime.utcnow().strftime(FMT_XUNIT_TIME))
         )

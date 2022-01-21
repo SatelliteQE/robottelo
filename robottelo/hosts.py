@@ -7,9 +7,11 @@ from urllib.parse import urlunsplit
 
 from broker import VMBroker
 from broker.hosts import Host
+from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha
 from nailgun import entities
 from packaging.version import Version
+from ssh2.exceptions import AuthenticationError
 from wait_for import TimedOutError
 from wait_for import wait_for
 from wrapanapi.entities.vm import VmState
@@ -17,15 +19,45 @@ from wrapanapi.entities.vm import VmState
 from robottelo import constants
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import settings
+from robottelo.constants import SATELLITE_VERSION
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.helpers import InstallerCommand
-
 
 POWER_WORKFLOW_KEYS = {
     VmState.RUNNING: 'power_on',
     VmState.STOPPED: 'power_off',
     # TODO paused, suspended, shelved?
 }
+
+
+def get_sat_version():
+    """Try to read sat_version from envvar SATELLITE_VERSION
+    if not available fallback to ssh connection to get it."""
+
+    try:
+        sat_version = Satellite().version
+    except (AuthenticationError, ContentHostError, BoxKeyError):
+        if hasattr(settings.server.version, 'release'):
+            sat_version = str(settings.server.version.release)
+        elif hasattr(settings.robottelo, 'satellite_version'):
+            sat_version = settings.robottelo.satellite_version
+        else:
+            sat_version = SATELLITE_VERSION
+    return Version('9999' if 'nightly' in sat_version else sat_version)
+
+
+def get_sat_rhel_version():
+    """Try to read rhel_version from Satellite host
+    if not available fallback to robottelo configuration."""
+
+    try:
+        rhel_version = Satellite().os_version
+    except (AuthenticationError, ContentHostError, BoxKeyError):
+        if hasattr(settings.server.version, 'rhel_version'):
+            rhel_version = str(settings.server.version.rhel_version)
+        elif hasattr(settings.robottelo, 'rhel_version'):
+            rhel_version = settings.robottelo.rhel_version
+    return Version(rhel_version)
 
 
 def setup_capsule(satellite, capsule, registration_args=None, installation_args=None):
