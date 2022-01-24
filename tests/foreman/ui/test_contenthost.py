@@ -41,6 +41,7 @@ from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_1_ERRATA_ID
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
@@ -224,7 +225,7 @@ def test_positive_end_to_end(session, default_location, repos_collection, vm):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_end_to_end_bulk_update(session, default_location, vm):
+def test_positive_end_to_end_bulk_update(session, default_location, vm, default_sat):
     """Create VM, set up VM as host, register it as a content host,
     read content host details, install a package ( e.g. walrus-0.71) and
     use bulk action (Update All Packages) to update the package by name
@@ -237,7 +238,7 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm):
     :expectedresults: package installation and update to a later version
         are successful.
 
-    :BZ: 1712069
+    :BZ: 1712069, 1838800
 
     :parametrized: yes
 
@@ -246,6 +247,9 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm):
     hc_name = gen_string('alpha')
     description = gen_string('alpha')
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
+    search_uri = (
+        f'{default_sat.hostname}/content_hosts?search=installable_errata={FAKE_1_ERRATA_ID}'
+    )
     assert result.status == 0
     with session:
         session.location.select(default_location.name)
@@ -262,12 +266,15 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm):
             }
         )
         session.hostcollection.associate_host(hc_name, vm.hostname)
-        # make a note of time for later wait_for_tasks, and include 4 mins margin of safety.
+        # For BZ#1838800, assert the Host Collection Errata Install table has the search URI
+        uri = session.hostcollection.search_applicable_hosts(hc_name, FAKE_1_ERRATA_ID)
+        assert search_uri in uri
+        # Note time for later wait_for_tasks, and include 4 mins margin of safety.
         timestamp = (datetime.utcnow() - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
         # Update the package by name
         session.hostcollection.manage_packages(
             hc_name,
-            content_type='Package',
+            content_type='rpm',
             packages=FAKE_1_CUSTOM_PACKAGE_NAME,
             action='update_all',
             action_via='via remote execution',
