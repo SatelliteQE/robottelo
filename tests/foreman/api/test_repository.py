@@ -1320,14 +1320,12 @@ class TestRepository:
 
         :id: 2167d548-5af1-43e7-9f05-cc340d722aa8
 
-        :CaseImportance: High
-
         :customerscenario: True
 
         :BZ: 1908101
 
         :expectedresults: foreman-rake katello:correct_repositories COMMIT=true recreates deleted
-        repos with no TaskErrors
+         repos with no TaskErrors
         """
         with manifests.clone() as manifest:
             upload_manifest(module_org.id, manifest.content)
