@@ -147,7 +147,7 @@ class TestRepository:
         repo_2.update(['http_proxy_policy'])
         assert repo_2.http_proxy_policy == 'none'
 
-    @pytest.mark.skip_if_open("BZ:2011303")
+    @pytest.mark.skip_if_open("BZ:2042473")
     @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_sync_redhat_repo_using_http_proxy(self, module_manifest_org):
@@ -160,7 +160,7 @@ class TestRepository:
 
         :Assignee: jpathan
 
-        :BZ: 2011303
+        :BZ: 2011303, 2042473
 
         :CaseImportance: Critical
         """
@@ -314,6 +314,7 @@ class TestRepository:
         assert default_dl_policy
         assert repo.download_policy == default_dl_policy[0].value
 
+    @pytest.mark.skip_if_open("BZ:2042473")
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
@@ -330,7 +331,7 @@ class TestRepository:
 
         :CaseImportance: Critical
 
-        :BZ: 1732056
+        :BZ: 1732056, 2042473
         """
         assert repo.download_policy == 'immediate'
 
