@@ -2,9 +2,12 @@ content_host:
     deploy_workflow: workflow-name
     default_rhel_version: 7
     rhel_versions:
-        - 6
-        - 7
-        - 8
+      6: {}
+      7: {}
+      8: {}
+      9_compose:
+        deploy_workflow: deploy-rhel-cmp-template
+
     hardware:
         RHEL6:
             RELEASE: 6.10
@@ -16,5 +19,10 @@ content_host:
             CORES: 1
         RHEL8:
             RELEASE: 8.3
+            MEMORY: 1536 MiB
+            CORES: 1
+        RHEL9_compose:
+            RELEASE: 9.0
+            compose: RHEL-9.0.0-20220118.1
             MEMORY: 1536 MiB
             CORES: 1
