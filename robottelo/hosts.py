@@ -8,6 +8,7 @@ from tempfile import NamedTemporaryFile
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
+import requests
 from broker import VMBroker
 from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
@@ -1104,6 +1105,10 @@ class Capsule(ContentHost):
             command_opts.update(cmd_kwargs)
             installer_obj = InstallerCommand(*cmd_args, **command_opts)
         return self.execute(installer_obj.get_command(), timeout=0)
+
+    def get_features(self):
+        """Get capsule features"""
+        return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
     def capsule_setup(self, sat_host=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
