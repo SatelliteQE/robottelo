@@ -4,32 +4,30 @@ import pytest
 from robottelo.config import settings
 from robottelo.helpers import InstallerCommand
 
+common_opts = {
+    'foreman-proxy-puppetca': 'true',
+    'foreman-proxy-content-puppet': 'true',
+    'foreman-proxy-puppet': 'true',
+    'puppet-server': 'true',
+    'puppet-server-foreman-ssl-ca': '/etc/pki/katello/puppet/puppet_client_ca.crt',
+    'puppet-server-foreman-ssl-cert': '/etc/pki/katello/puppet/puppet_client.crt',
+    'puppet-server-foreman-ssl-key': '/etc/pki/katello/puppet/puppet_client.key',
+}
+
 enable_satellite_cmd = InstallerCommand(
     installer_args=[
         'enable-foreman-plugin-puppet',
         'enable-foreman-cli-puppet',
         'enable-puppet',
     ],
-    installer_opts={
-        'foreman-proxy-puppet': 'true',
-        'puppet-server': 'true',
-        'puppet-server-foreman-ssl-ca': '/etc/pki/katello/puppet/puppet_client_ca.crt',
-        'puppet-server-foreman-ssl-cert': '/etc/pki/katello/puppet/puppet_client.crt',
-        'puppet-server-foreman-ssl-key': '/etc/pki/katello/puppet/puppet_client.key',
-    },
+    installer_opts=common_opts,
 )
 
 enable_capsule_cmd = InstallerCommand(
     installer_args=[
         'enable-puppet',
     ],
-    installer_opts={
-        'foreman-proxy-puppet': 'true',
-        'puppet-server': 'true',
-        'puppet-server-foreman-ssl-ca': '/etc/pki/katello/puppet/puppet_client_ca.crt',
-        'puppet-server-foreman-ssl-cert': '/etc/pki/katello/puppet/puppet_client.crt',
-        'puppet-server-foreman-ssl-key': '/etc/pki/katello/puppet/puppet_client.key',
-    },
+    installer_opts=common_opts,
 )
 
 

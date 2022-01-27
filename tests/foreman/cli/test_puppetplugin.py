@@ -38,6 +38,7 @@ err_msg = 'Error: No such sub-command'
 def assert_puppet_status(server, expected):
     result = server.get_features()
     assert ('puppet' in result) is expected
+    assert ('puppetca' in result) is expected
 
     result = server.execute('rpm -q puppetserver')
     assert (result.status == 0) is expected
