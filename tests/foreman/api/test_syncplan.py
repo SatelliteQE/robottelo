@@ -621,7 +621,7 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org):
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, module_org.id, max_tries=2)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
     # Create and Associate sync plan with product
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, sync_date=datetime.utcnow().replace(second=0)
@@ -630,7 +630,7 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org):
     # Verify product was not synced right after it was added to sync plan
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, module_org.id, max_tries=2)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
 
 
 @pytest.mark.tier4
@@ -668,7 +668,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, module_org.id, max_tries=1)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
     # Wait until the next recurrence
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product.name}"
@@ -677,7 +677,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo.id, module_org.id)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'])
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
 
 
 @pytest.mark.tier4
@@ -699,7 +699,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, module_org.id, max_tries=1)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
     # Create and Associate sync plan with product
     # BZ:1695733 is closed WONTFIX so apply this workaround
     logger.info('Need to set seconds to zero because BZ#1695733')
@@ -717,7 +717,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, module_org.id, max_tries=1)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product.name}"
@@ -726,7 +726,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo.id, module_org.id)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'])
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
 
 
 @pytest.mark.tier4
@@ -783,7 +783,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
     # Verify product was synced successfully
     for repo in repos:
         validate_task_status(repo.id, module_org.id)
-        validate_repo_content(repo, ['erratum', 'package', 'package_group'])
+        validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
 
 
 @pytest.mark.run_in_one_thread
@@ -837,7 +837,7 @@ def test_positive_synchronize_rh_product_past_sync_date():
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, org.id, max_tries=1)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
     # Wait until the next recurrence
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product.name}"
@@ -846,7 +846,7 @@ def test_positive_synchronize_rh_product_past_sync_date():
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo.id, org.id)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'])
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
     # Add disassociate RH product from sync plan check for BZ#1879537
     assert len(sync_plan.read().product) == 1
     # Disable the reposet
@@ -896,7 +896,7 @@ def test_positive_synchronize_rh_product_future_sync_date():
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, org.id, max_tries=1)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
     # Wait quarter of expected time
     logger.info(
         f"Waiting {(delay / 4)} seconds to check product {product.name}"
@@ -906,7 +906,7 @@ def test_positive_synchronize_rh_product_future_sync_date():
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, org.id, max_tries=1)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product.name}"
@@ -915,7 +915,7 @@ def test_positive_synchronize_rh_product_future_sync_date():
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo.id, org.id)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'])
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
 
 
 @pytest.mark.tier3
@@ -948,7 +948,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, module_org.id, max_tries=1)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product.name}"
@@ -957,7 +957,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo.id, module_org.id)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'])
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
 
 
 @pytest.mark.tier3
@@ -992,7 +992,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, module_org.id, max_tries=1)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product.name}"
@@ -1001,7 +1001,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo.id, module_org.id)
-    validate_repo_content(repo, ['erratum', 'package', 'package_group'])
+    validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
 
 
 @pytest.mark.tier2

@@ -2214,7 +2214,7 @@ def test_positive_edit_rh_custom_spin(session):
         distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    cv = entities.ContentView(id=repos_collection.setup_content_view['content_view']['id']).read()
+    cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
     with session:
         session.organization.select(org.name)
         session.contentviewfilter.create(
@@ -2632,6 +2632,8 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
 
     :CaseLevel: Integration
 
+    :parametrized: yes
+
     :CaseImportance: High
     """
     org = entities.Organization().create()
@@ -2654,7 +2656,9 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
 
 
 @pytest.mark.tier3
-def test_positive_delete_with_kickstart_repo_and_host_group(session, default_sat):
+def test_positive_delete_with_kickstart_repo_and_host_group(
+    session, default_sat, smart_proxy_location
+):
     """Check that Content View associated with kickstart repository and
     which is used by a host group can be removed from the system
 
@@ -2708,6 +2712,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session, default_sat
     os = os.update(['architecture', 'ptable'])
     with session:
         session.organization.select(org.name)
+        session.location.select(smart_proxy_location.name)
         session.hostgroup.create(
             {
                 'host_group.name': hg_name,
@@ -3070,6 +3075,8 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, default
            updated package
 
     :CaseImportance: Medium
+
+    :parametrized: yes
 
     :CaseLevel: Integration
     """

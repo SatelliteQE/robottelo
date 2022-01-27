@@ -114,6 +114,8 @@ def test_positive_list_installable_updates(vm):
 
     :BZ: 1344049, 1498158
 
+    :parametrized: yes
+
     :CaseImportance: Critical
     """
     for _ in range(30):
@@ -152,6 +154,8 @@ def test_positive_erratum_installable(vm):
     :expectedresults: errata listed successfuly and is installable
 
     :BZ: 1344049, 1498158
+
+    :parametrized: yes
 
     :CaseImportance: Critical
     """
@@ -221,6 +225,8 @@ def test_negative_unregister_and_pull_content(vm):
     :expectedresults: Host can no longer retrieve content from satellite
 
     :CaseLevel: System
+
+    :parametrized: yes
 
     :CaseImportance: Critical
     """

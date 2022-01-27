@@ -13,7 +13,8 @@ SERVER:
     # The source of Satellite packages. Can be one of:
     # internal, ga, beta
     SOURCE: "internal"
-    RHEL_RELEASE: '7'
+    # The RHEL Base OS Version(x.y) where the Satellite is installed
+    RHEL_VERSION: '7'
   # run-on-one - All xdist runners default to the first satellite
   # balance - xdist runners will be split between available satellites
   # on-demand - any xdist runner without a satellite will have a new one provisioned.

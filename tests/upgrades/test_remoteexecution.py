@@ -82,6 +82,8 @@ class TestScenarioREXCapsule:
         :expectedresults:
             1. Content host should create with pre-required details.
             2. REX job should run on it.
+
+        :parametrized: yes
         """
         sn = entities.Subnet(
             domain=self.vm_domain,
@@ -180,6 +182,8 @@ class TestScenarioREXSatellite:
         :expectedresults:
             1. It should create with pre-required details.
             2. REX job should run on it.
+
+        :parametrized: yes
         """
         sn = entities.Subnet(
             domain=self.vm_domain,

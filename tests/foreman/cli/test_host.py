@@ -671,6 +671,8 @@ def test_positive_register_with_no_ak(
 
     :expectedresults: Host successfully registered to appropriate org
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     rhel7_contenthost.install_katello_ca(default_sat)
@@ -689,6 +691,8 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthos
     :id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
 
     :expectedresults: host cannot be registered twice
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -755,6 +759,8 @@ def test_positive_list(module_ak_with_cv, module_lce, module_org, rhel7_contenth
 
     :expectedresults: Hosts are listed for the given org
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     rhel7_contenthost.install_katello_ca(default_sat)
@@ -779,6 +785,8 @@ def test_positive_list_by_last_checkin(
     :expectedresults: Hosts are listed for the given time period
 
     :BZ: 1285992
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -806,6 +814,8 @@ def test_positive_unregister(
     :expectedresults: Host is successfully unregistered. Unlike content
         host, host has not disappeared from list of hosts after
         unregistering.
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -1755,6 +1765,8 @@ def test_positive_report_package_installed_removed(katello_host_tools_host, setu
 
     :BZ: 1463809
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     client = katello_host_tools_host
@@ -1798,6 +1810,8 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
         2. after step 5: applicable packages list is empty
 
     :BZ: 1463809
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -1852,6 +1866,8 @@ def test_positive_erratum_applicability(katello_host_tools_host, setup_custom_re
 
     :BZ: 1463809,1740790
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     client = katello_host_tools_host
@@ -1889,6 +1905,8 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
     :customerscenario: true
 
     :BZ: 1420671
+
+    :parametrized: yes
     """
     client = katello_host_tools_host
     host_info = Host.info({'name': client.hostname})
@@ -1918,6 +1936,8 @@ def test_positive_install_package_via_rex(katello_host_tools_host, default_sat, 
     :expectedresults: Package was installed
 
     :CaseLevel: System
+
+    :parametrized: yes
     """
     client = katello_host_tools_host
     host_info = Host.info({'name': client.hostname})
@@ -2107,6 +2127,8 @@ def test_positive_register(request, module_host_subscription, host_subscription_
 
     :expectedresults: host successfully registered
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     module_host_subscription.client = host_subscription_client
@@ -2155,6 +2177,8 @@ def test_positive_attach(request, module_host_subscription, host_subscription_cl
     :expectedresults: host successfully subscribed, subscription repository
         enabled, and repository package installed
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     module_host_subscription.client = host_subscription_client
@@ -2195,6 +2219,8 @@ def test_positive_attach_with_lce(module_host_subscription, host_subscription_cl
     :expectedresults: host successfully subscribed, subscription
         repository enabled, and repository package installed
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     module_host_subscription.client = host_subscription_client
@@ -2227,6 +2253,8 @@ def test_negative_without_attach(request, module_host_subscription, host_subscri
 
     :expectedresults: repository list is empty
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     module_host_subscription.client = host_subscription_client
@@ -2255,6 +2283,8 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
     :id: fc469e70-a7cb-4fca-b0ea-3c9e3dfff849
 
     :expectedresults: repository not enabled on host
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -2313,6 +2343,8 @@ def test_positive_remove(request, module_host_subscription, host_subscription_cl
     :id: 3833c349-1f5b-41ac-bbac-2c1f33232d76
 
     :expectedresults: subscription successfully removed from host
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -2376,6 +2408,8 @@ def test_positive_auto_attach(request, module_host_subscription, host_subscripti
     :expectedresults: host successfully subscribed, subscription
         repository enabled, and repository package installed
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     module_host_subscription.client = host_subscription_client
@@ -2401,6 +2435,8 @@ def test_positive_unregister_host_subscription(module_host_subscription, host_su
     :id: 608f5b6d-4688-478e-8be8-e946771d5247
 
     :expectedresults: host subscription is unregistered
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -2446,6 +2482,8 @@ def test_syspurpose_end_to_end(module_host_subscription, host_subscription_clien
     :expectedresults: host is registered and system purpose values are correct.
 
     :CaseImportance: Critical
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -2567,6 +2605,8 @@ def test_positive_tracer_list_and_resolve(katello_host_tools_tracer_host, defaul
     :id: 81c83a2c-4b9d-11ec-a5b3-98fa9b6ecd5a
 
     :expectedresults: Tracer resolved the problem, the downgraded service was restarted
+
+    :parametrized: yes
 
     :CaseImportance: Medium
     """

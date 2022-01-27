@@ -882,6 +882,8 @@ def test_positive_update_aks_to_chost(module_org, rhel7_contenthost, default_sat
     :expectedresults: Multiple Activation keys are attached to a Content
         host
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     env = make_lifecycle_environment({'organization-id': module_org.id})
@@ -1592,8 +1594,9 @@ def test_positive_subscription_quantity_attached(module_org, rhel7_contenthost, 
         3. Attach a content host to the activation key.
         4. Verify 'ATTACHED' & 'QUANTITY' columns of 'hammer activation-key subscriptions'
 
-    :BZ: 1633094
+    :parametrized: yes
 
+    :BZ: 1633094
     """
     org = make_org()
     result = setup_org_for_a_rh_repo(

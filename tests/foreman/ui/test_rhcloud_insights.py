@@ -58,6 +58,10 @@ def test_rhcloud_insights_e2e(
 
     :BZ: 1965901, 1962048
 
+    :customerscenario: true
+
+    :parametrized: yes
+
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
@@ -251,6 +255,8 @@ def test_host_details_page(
 
     :BZ: 1974578
 
+    :parametrized: yes
+
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
@@ -323,6 +329,8 @@ def test_rh_cloud_insights_clean_statuses(
 
     :BZ: 1962930
 
+    :parametrized: yes
+
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
@@ -382,6 +390,8 @@ def test_delete_host_having_insights_recommendation(
     :CaseImportance: Critical
 
     :BZ: 1860422, 1928652
+
+    :parametrized: yes
 
     :CaseAutomation: Automated
     """
@@ -469,6 +479,8 @@ def test_insights_tab_on_host_details_page(
     :CaseImportance: High
 
     :BZ: 1865876, 1879448
+
+    :parametrized: yes
 
     :CaseAutomation: Automated
     """

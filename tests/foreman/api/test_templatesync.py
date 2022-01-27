@@ -171,7 +171,7 @@ class TestTemplateSyncTestCase:
         not_imported_count = [
             template['imported'] for template in filtered_imported_templates['message']['templates']
         ].count(False)
-        assert not_imported_count == 8
+        assert not_imported_count == 9
         ptemplates = entities.ProvisioningTemplate().search(
             query={'per_page': '100', 'search': 'name~jenkins', 'organization_id': module_org.id}
         )
@@ -180,10 +180,6 @@ class TestTemplateSyncTestCase:
             query={'per_page': '100', 'search': 'name~jenkins', 'organization_id': module_org.id}
         )
         assert len(ptables) == 1
-        jtemplates = entities.JobTemplate().search(
-            query={'per_page': '100', 'search': 'name~jenkins', 'organization_id': module_org.id}
-        )
-        assert len(jtemplates) == 1
         rtemplates = entities.ReportTemplate().search(
             query={'per_page': '100', 'search': 'name~jenkins', 'organization_id': module_org.id}
         )
@@ -922,7 +918,7 @@ class TestTemplateSyncTestCase:
         imported_count = [
             template['imported'] for template in imported_templates['message']['templates']
         ].count(True)
-        assert imported_count == 18  # Total Count
+        assert imported_count == 17  # Total Count
         # Export some filtered templates to local dir
         _, dir_path = create_import_export_local_dir
         exported_templates = entities.Template().exports(
@@ -931,7 +927,7 @@ class TestTemplateSyncTestCase:
         exported_count = [
             template['exported'] for template in exported_templates['message']['templates']
         ].count(True)
-        assert exported_count == 18
+        assert exported_count == 17
         assert 'name' in exported_templates['message']['templates'][0].keys()
         assert (
             default_sat.execute(
@@ -1100,6 +1096,7 @@ class TestTemplateSyncTestCase:
         )
         res = requests.get(
             url=f"{FOREMAN_TEMPLATE_IMPORT_API_URL}/git/trees/master",
+            headers={'Authorization': f'token {settings.git.github_token}'},
             params={'recursive': True},
         )
         res.raise_for_status()
@@ -1146,6 +1143,7 @@ class TestTemplateSyncTestCase:
         assert not output['message']['templates'][0]['imported']
         res = requests.get(
             url=f"{FOREMAN_TEMPLATE_IMPORT_API_URL}/contents/locked/robottelo_locked.erb",
+            headers={'Authorization': f'token {settings.git.github_token}'},
             params={'ref': 'locked'},
         )
         res.raise_for_status()
@@ -1196,6 +1194,7 @@ class TestTemplateSyncTestCase:
         assert output['message']['templates'][0]['changed']
         res = requests.get(
             url=f"{FOREMAN_TEMPLATE_IMPORT_API_URL}/contents/after_lock/robottelo_locked.erb",
+            headers={'Authorization': f'token {settings.git.github_token}'},
             params={'ref': 'locked'},
         )
         res.raise_for_status()

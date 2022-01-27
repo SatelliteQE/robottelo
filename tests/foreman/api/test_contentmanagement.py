@@ -1140,6 +1140,8 @@ class TestCapsuleContentManagement:
             1. The container repo is successfully synced to the Capsule.
             2. The image is successfully pulled from Capsule to a host.
 
+        :parametrized: yes
+
         :CaseLevel: Integration
         """
         upstream_names = [
@@ -1247,6 +1249,8 @@ class TestCapsuleContentManagement:
         :expectedresults:
             1. The ansible-collection repo is successfully synced to the Capsule.
             2. The collection is successfully installed on the Content Host.
+
+        :parametrized: yes
 
         :CaseLevel: Integration
         """

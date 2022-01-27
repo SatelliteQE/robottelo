@@ -214,6 +214,8 @@ def test_positive_user_access_with_host_filter(
 
     :BZ: 1417114
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     user_login = gen_string('alpha')
