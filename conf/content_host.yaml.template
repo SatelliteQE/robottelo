@@ -23,6 +23,6 @@ content_host:
             CORES: 1
         RHEL9_compose:
             RELEASE: 9.0
-            compose: RHEL-9.0.0-20220118.1
+            COMPOSE: RHEL-9.0.0-20220118.1
             MEMORY: 1536 MiB
             CORES: 1
