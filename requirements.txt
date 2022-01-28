@@ -15,7 +15,7 @@ pyotp==2.6.0
 python-box==5.4.1
 pytest==6.2.5
 pytest-services==2.2.1
-pytest-mock==3.6.1
+pytest-mock==3.7.0
 pytest-reportportal==5.0.11
 pytest-xdist==2.5.0
 pytest-ibutsu==2.0.2
