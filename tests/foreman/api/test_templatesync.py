@@ -186,6 +186,44 @@ class TestTemplateSyncTestCase:
         assert len(rtemplates) == 1
 
     @pytest.mark.tier2
+    def test_import_template_with_puppet(self, parametrized_puppet_sat):
+        """Importing puppet templates with enabled/disabled puppet module
+
+        :Steps:
+            1. Have enabled(disabled) puppet module
+            2. Import template containing puppet
+            3. Check if template was imported
+
+        :expectedresults:
+            Template was (not) imported
+
+        :id: 9ab46883-a3a7-4d2c-9a79-3d574bfd2ad8
+
+        :parametrized: yes
+
+        :CaseImportance: Medium
+        """
+        prefix = gen_string('alpha')
+        api_template = parametrized_puppet_sat['sat'].api.Template()
+        filtered_imported_templates = api_template.imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'automation',
+                'dirname': 'import/job_templates/',
+                'filter': 'jenkins Start OpenSCAP scans',
+                'force': True,
+                'prefix': prefix,
+            }
+        )
+        not_imported_count = [
+            template['imported'] for template in filtered_imported_templates['message']['templates']
+        ].count(False)
+        if parametrized_puppet_sat['enabled']:
+            assert not_imported_count == 1
+        else:
+            assert not_imported_count == 2
+
+    @pytest.mark.tier2
     def test_positive_import_and_associate(
         self,
         create_import_export_local_dir,

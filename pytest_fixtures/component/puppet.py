@@ -112,3 +112,12 @@ def module_puppet_classes(
             f'and environment = {module_env_search.name}'
         }
     )
+
+
+@pytest.fixture(scope='module', params=[True, False], ids=["puppet_enabled", "puppet_disabled"])
+def parametrized_puppet_sat(request, default_sat, module_puppet_enabled_sat):
+    if request.param:
+        sat = module_puppet_enabled_sat
+    else:
+        sat = default_sat
+    return {'sat': sat, 'enabled': request.param}
