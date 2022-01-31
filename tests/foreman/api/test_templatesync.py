@@ -1100,6 +1100,7 @@ class TestTemplateSyncTestCase:
         )
         res = requests.get(
             url=f"{FOREMAN_TEMPLATE_IMPORT_API_URL}/git/trees/master",
+            headers={'Authorization': f'token {settings.git.github_token}'},
             params={'recursive': True},
         )
         res.raise_for_status()
@@ -1146,6 +1147,7 @@ class TestTemplateSyncTestCase:
         assert not output['message']['templates'][0]['imported']
         res = requests.get(
             url=f"{FOREMAN_TEMPLATE_IMPORT_API_URL}/contents/locked/robottelo_locked.erb",
+            headers={'Authorization': f'token {settings.git.github_token}'},
             params={'ref': 'locked'},
         )
         res.raise_for_status()
@@ -1196,6 +1198,7 @@ class TestTemplateSyncTestCase:
         assert output['message']['templates'][0]['changed']
         res = requests.get(
             url=f"{FOREMAN_TEMPLATE_IMPORT_API_URL}/contents/after_lock/robottelo_locked.erb",
+            headers={'Authorization': f'token {settings.git.github_token}'},
             params={'ref': 'locked'},
         )
         res.raise_for_status()
