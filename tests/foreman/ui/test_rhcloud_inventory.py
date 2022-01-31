@@ -126,32 +126,6 @@ def test_rhcloud_inventory_e2e(
         assert len(host_profiles['installed_packages']) > 1
 
 
-@pytest.mark.stubbed
-def test_hosts_synchronization():
-    """Synchronize list of available hosts from cloud and mark them in Satellite
-
-    :id: 2f1bdd42-140d-46f8-bad5-299c54620ee8
-
-    :Steps:
-
-        1. Prepare machine and upload its data to Insights
-        2. Add Cloud API key in Satellite
-        3. In Satellite UI, Configure -> Inventory upload -> Sync inventory status
-        4. Assert content of toast message once synchronization finishes
-        5. Go to Hosts -> All Hosts and assert content of status popover
-        6. Open host page and assert status on "Properties" tab
-
-    :expectedresults:
-        1. Toast message contains number of hosts synchronized and missed
-        2. Presence in cloud is displayed in popover status of host
-        3. Presence in cloud is displayed in "Properties" tab on single host page
-
-    :BZ: 1865874
-
-    :CaseAutomation: NotAutomated
-    """
-
-
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_obfuscate_host_names(
