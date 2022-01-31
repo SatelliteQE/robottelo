@@ -280,7 +280,7 @@ def test_rhcloud_inventory_auto_upload_setting():
 
     :BZ: 1793017
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: ManualOnly
     """
 
 
