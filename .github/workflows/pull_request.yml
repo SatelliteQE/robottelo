@@ -32,7 +32,7 @@ jobs:
           # link vs compile time ssl implementations can break the environment when installing requirements
           # Uninstall pycurl - its likely not installed, but in case the ubuntu-latest packages change
           # Then compile and install it with PYCURL_SSL_LIBRARY set to openssl
-          pip install -U pip
+          # pip install -U pip
           pip uninstall -y pycurl
           pip install --compile --no-cache-dir pycurl
           pip install -U -r requirements.txt -r requirements-optional.txt
