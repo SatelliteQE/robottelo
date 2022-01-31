@@ -27,8 +27,13 @@ from nailgun import entities
 from wait_for import wait_for
 
 from robottelo import constants
+from robottelo.cli.factory import make_filter
 from robottelo.cli.factory import make_job_invocation
+from robottelo.cli.factory import make_job_invocation_with_credentials
 from robottelo.cli.factory import make_job_template
+from robottelo.cli.factory import make_role
+from robottelo.cli.factory import make_user
+from robottelo.cli.filter import Filter
 from robottelo.cli.globalparam import GlobalParameter
 from robottelo.cli.host import Host
 from robottelo.cli.job_invocation import JobInvocation
@@ -36,6 +41,7 @@ from robottelo.cli.recurring_logic import RecurringLogic
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.task import Task
+from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -943,3 +949,123 @@ class TestAnsibleREX:
         assert result['success'] == '1'
         collection_path = str(client.execute('ls /etc/ansible/collections/ansible_collections'))
         assert 'oasis' in collection_path
+
+
+class TestRexUsers:
+    """Tests related to remote execution users"""
+
+    @pytest.fixture(scope='module')
+    def module_rexmanager_user(self, module_org):
+        """Creates a user with Remote Execution Manager role"""
+        password = gen_string('alpha')
+        rexmanager = gen_string('alpha')
+        make_user({'login': rexmanager, 'password': password, 'organization-ids': module_org.id})
+        User.add_role({'login': rexmanager, 'role': 'Remote Execution Manager'})
+        yield (rexmanager, password)
+
+    @pytest.fixture(scope='module')
+    def module_rexinfra_user(self, module_org):
+        """Creates a user with all Remote Execution related permissions"""
+        password = gen_string('alpha')
+        rexinfra = gen_string('alpha')
+        make_user({'login': rexinfra, 'password': password, 'organization-ids': module_org.id})
+        role = make_role({'organization-ids': module_org.id})
+        invocation_permissions = [
+            permission['name']
+            for permission in Filter.available_permissions(
+                {'search': 'resource_type=JobInvocation'}
+            )
+        ]
+        template_permissions = [
+            permission['name']
+            for permission in Filter.available_permissions({'search': 'resource_type=JobTemplate'})
+        ]
+        permissions = ','.join(invocation_permissions)
+        make_filter({'role-id': role['id'], 'permissions': permissions})
+        permissions = ','.join(template_permissions)
+        # needs execute_jobs_on_infrastructure_host permission
+        make_filter({'role-id': role['id'], 'permissions': permissions})
+        User.add_role({'login': rexinfra, 'role': role['name']})
+        User.add_role({'login': rexinfra, 'role': 'Remote Execution Manager'})
+        yield (rexinfra, password)
+
+    @pytest.mark.tier3
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
+    def test_positive_rex_against_satellite(
+        self, fixture_vmsetup, module_rexmanager_user, module_rexinfra_user, default_sat, module_org
+    ):
+        """
+        Tests related to remote execution against Satellite host
+
+        :id: 36942e30-b885-4ba3-933b-7f59888935c9
+
+        :steps:
+            1. Run rex job against Satellite as admin
+            2. Run rex job against Satellite as a REX admin
+            3. Run rex job against Satellite a custom user with
+
+        :expectedresults: Only users with execute_jobs_on_infrastructure_host perm
+            can run rex against Satellite
+
+        :caseautomation: Automated
+
+        """
+        client = fixture_vmsetup
+        default_sat.add_rex_key(satellite=default_sat)
+        Host.update({'name': default_sat.hostname, 'new-organization-id': module_org.id})
+
+        # run job as admin
+        command = f"echo {gen_string('alpha')}"
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - SSH Default',
+                'inputs': f'command={command}',
+                'search-query': f"name ^ ({client.hostname}, {default_sat.hostname})",
+            }
+        )
+        output_msgs = []
+        hostnames = [client.hostname, default_sat.hostname]
+        for hostname in hostnames:
+            inv_output = ' '.join(
+                JobInvocation.get_output({'id': invocation_command['id'], 'host': hostname})
+            )
+            output_msgs.append(f"host output from {hostname}: { inv_output }")
+        result = JobInvocation.info({'id': invocation_command['id']})
+        assert result['success'] == '2', output_msgs
+
+        # run job as regular rex user on all hosts
+        invocation_command = make_job_invocation_with_credentials(
+            {
+                'job-template': 'Run Command - SSH Default',
+                'inputs': f'command={command}',
+                'search-query': f"name ^ ({client.hostname}, {default_sat.hostname})",
+            },
+            module_rexmanager_user,
+        )
+
+        result = JobInvocation.info({'id': invocation_command['id']})
+        assert result['success'] == '1'
+
+        # run job as regular rex user just on infra hosts
+        invocation_command = make_job_invocation_with_credentials(
+            {
+                'job-template': 'Run Command - SSH Default',
+                'inputs': f'command={command}',
+                'search-query': f"name ^ ({default_sat.hostname})",
+            },
+            module_rexmanager_user,
+        )
+        result = JobInvocation.info({'id': invocation_command['id']})
+        assert result['success'] == '0'
+
+        # run job as rex user on Satellite
+        invocation_command = make_job_invocation_with_credentials(
+            {
+                'job-template': 'Run Command - SSH Default',
+                'inputs': f'command={command}',
+                'search-query': f"name ^ ({default_sat.hostname})",
+            },
+            module_rexinfra_user,
+        )
+        result = JobInvocation.info({'id': invocation_command['id']})
+        assert result['success'] == '1'

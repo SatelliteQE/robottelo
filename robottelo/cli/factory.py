@@ -953,6 +953,11 @@ def make_job_invocation(options=None):
 
     :returns JobInvocation object
     """
+    return make_job_invocation_with_credentials(options)
+
+
+def make_job_invocation_with_credentials(options=None, credentials=None):
+    """Helper function to create Job Invocation with credentials"""
 
     args = {
         'async': None,
@@ -975,7 +980,8 @@ def make_job_invocation(options=None):
         'time-span': None,
     }
 
-    return create_object(JobInvocation, args, options)
+    jinv_cls = _entity_with_credentials(credentials, JobInvocation)
+    return create_object(jinv_cls, args, options)
 
 
 @cacheable
