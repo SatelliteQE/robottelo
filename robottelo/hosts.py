@@ -1317,7 +1317,7 @@ class Satellite(Capsule):
             f'--target-dir /etc/puppetlabs/code/environments/{env_name}/modules/'
         )
         smart_proxy = (
-            entities.SmartProxy().search(query={'search': f'name={self.hostname}'})[0].read()
+            self.api.SmartProxy().search(query={'search': f'name={self.hostname}'})[0].read()
         )
         smart_proxy.import_puppetclasses()
         return env_name
