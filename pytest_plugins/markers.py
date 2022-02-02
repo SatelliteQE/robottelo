@@ -16,6 +16,8 @@ def pytest_configure(config):
         "pit_client: PIT client scenario tests",
         "run_in_one_thread: Sequential tests",
         "build_sanity: Fast, basic tests that confirm build is ready for full test suite",
+        "rhel_ver_list: Filter rhel_contenthost versions by list",
+        "rhel_ver_match: Filter rhel_contenthost versions by regexp",
     ]
     markers.extend(module_markers())
     for marker in markers:
