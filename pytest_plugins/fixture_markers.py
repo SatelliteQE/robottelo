@@ -6,10 +6,13 @@ from robottelo.config import settings
 
 def pytest_generate_tests(metafunc):
     if 'rhel_contenthost' in metafunc.fixturenames:
-        rhel_parameters = [
-            dict(workflow=settings.content_host.deploy_workflow, rhel_version=ver)
-            for ver in settings.content_host.rhel_versions
-        ]
+        rhel_parameters = []
+        for ver in settings.content_host.rhel_versions.keys():
+            # prefer nick-specific deploy workflow before using the default one
+            workflow = settings.content_host.rhel_versions[ver].get(
+                'deploy_workflow', settings.content_host.deploy_workflow
+            )
+            rhel_parameters.append(dict(workflow=workflow, rhel_version=ver))
         metafunc.parametrize(
             'rhel_contenthost',
             rhel_parameters,
