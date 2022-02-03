@@ -17,7 +17,7 @@ def init_settings():
 def foreman_service_teardown(satellite_host):
     """stop and restart of foreman service"""
     yield satellite_host
-    satellite_host.execute('foreman-maintain service start --only=foreman')
+    satellite_host.execute('satellite-maintain service start --only=foreman')
 
 
 @pytest.fixture

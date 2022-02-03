@@ -940,7 +940,7 @@ def test_single_sign_on_ldap_ipa_server(
     try:
         run_command(cmd='subscription-manager repos --enable rhel-7-server-optional-rpms')
         run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800000)
-        run_command('foreman-maintain service restart', timeout=300000)
+        run_command('satellite-maintain service restart', timeout=300000)
         if is_open('BZ:1941997'):
             curl_command = f'curl -k -u : --negotiate {default_sat.url}/users/extlogin'
         else:
@@ -952,7 +952,7 @@ def test_single_sign_on_ldap_ipa_server(
     finally:
         # resetting the settings to default for external auth
         run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800000)
-        run_command('foreman-maintain service restart', timeout=300000)
+        run_command('satellite-maintain service restart', timeout=300000)
         run_command(
             cmd=f'ipa service-del HTTP/{default_sat.hostname}',
             hostname=settings.ipa.hostname,
@@ -1008,7 +1008,7 @@ def test_single_sign_on_ldap_ad_server(
     finally:
         # resetting the settings to default for external auth
         run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800000)
-        run_command('foreman-maintain service restart', timeout=300000)
+        run_command('satellite-maintain service restart', timeout=300000)
 
 
 @pytest.mark.destructive
