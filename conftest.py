@@ -13,6 +13,7 @@ pytest_plugins = [
     'pytest_plugins.metadata_markers',
     'pytest_plugins.settings_skip',
     'pytest_plugins.rerun_rp.rerun_rp',
+    'pytest_plugins.fspath_plugins',
     # Fixtures
     'pytest_fixtures.core.broker',
     'pytest_fixtures.core.contenthosts',
