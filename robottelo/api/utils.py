@@ -9,6 +9,7 @@ from inflector import Inflector
 from nailgun import entities
 from nailgun import entity_mixins
 from nailgun.client import request
+from requests import HTTPError
 
 from robottelo import ssh
 from robottelo.config import get_url
@@ -42,7 +43,9 @@ def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):
         entity_mixins.TASK_TIMEOUT = original_task_timeout
 
 
-def enable_rhrepo_and_fetchid(basearch, org_id, product, repo, reposet, releasever=None):
+def enable_rhrepo_and_fetchid(
+    basearch, org_id, product, repo, reposet, releasever=None, strict=False
+):
     """Enable a RedHat Repository and fetches it's Id.
 
     :param str org_id: The organization Id.
@@ -51,6 +54,7 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo, reposet, releasev
     :param str repo: The repository name who's Id is to be fetched.
     :param str basearch: The architecture of the repository.
     :param str optional releasever: The releasever of the repository.
+    :param bool optional strict: Raise exception if the reposet was already enabled.
     :return: Returns the repository Id.
     :rtype: str
 
@@ -63,7 +67,17 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo, reposet, releasev
     if releasever is not None:
         payload['releasever'] = releasever
     payload['product_id'] = product.id
-    r_set.enable(data=payload)
+    try:
+        r_set.enable(data=payload)
+    except HTTPError as e:
+        if (
+            not strict
+            and e.response.status_code == 409
+            and 'repository is already enabled' in e.response.json()['displayMessage']
+        ):
+            pass
+        else:
+            raise
     result = entities.Repository(name=repo).search(query={'organization_id': org_id})
     return result[0].id
 
