@@ -272,7 +272,7 @@ class TestKatelloCertsCheck:
             assert 'SSL certificate verification failed' not in result.stdout
             assert result.stdout.count('ok') == 7
             # assert all services are running
-            result = satellite.execute('foreman-maintain health check --label services-up -y')
+            result = satellite.execute('satellite-maintain health check --label services-up -y')
             assert result.status == 0, 'Not all services are running'
         finally:
             # revert to original certs
@@ -283,7 +283,7 @@ class TestKatelloCertsCheck:
             result = satellite.execute('hammer ping')
             assert result.status == 0, f'Hammer Ping failed:\n{result.stderr}'
             # assert all services are running
-            result = satellite.execute('foreman-maintain health check --label services-up -y')
+            result = satellite.execute('satellite-maintain health check --label services-up -y')
             assert result.status == 0, 'Not all services are running'
 
     @pytest.mark.destructive
@@ -335,7 +335,7 @@ class TestKatelloCertsCheck:
         assert 'SSL certificate verification failed' not in result.stdout
         assert result.stdout.count('ok') == 7
         # assert all services are running
-        result = rhel_vm.execute('foreman-maintain health check --label services-up -y')
+        result = rhel_vm.execute('satellite-maintain health check --label services-up -y')
         assert result.status == 0, 'Not all services are running'
 
     @pytest.mark.destructive
@@ -369,7 +369,7 @@ class TestKatelloCertsCheck:
         assert 'SSL certificate verification failed' not in result.stdout
         assert result.stdout.count('ok') == 8
         # assert all services are running
-        result = destructive_sat.execute('foreman-maintain health check --label services-up -y')
+        result = destructive_sat.execute('satellite-maintain health check --label services-up -y')
         assert result.status == 0, 'Not all services are running'
 
     @pytest.mark.destructive

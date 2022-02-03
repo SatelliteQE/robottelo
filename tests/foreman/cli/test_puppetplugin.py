@@ -110,7 +110,7 @@ def test_positive_enable_disable_logic(destructive_sat, destructive_caps):
     assert_puppet_status(destructive_caps, expected=True)
 
     # Try to disable puppet on Satellite and check it failed.
-    result = destructive_sat.execute('foreman-maintain plugin purge-puppet')
+    result = destructive_sat.execute('satellite-maintain plugin purge-puppet')
     assert result.status == 1
     assert (
         f'The following proxies have Puppet feature: {destructive_caps.hostname}.' in result.stdout
@@ -118,14 +118,14 @@ def test_positive_enable_disable_logic(destructive_sat, destructive_caps):
 
     # Disable puppet on Capsule and check it succeeded.
     result = destructive_caps.execute(
-        'foreman-maintain plugin purge-puppet --remove-all-data', timeout='20m'
+        'satellite-maintain plugin purge-puppet --remove-all-data', timeout='20m'
     )
     assert result.status == 0
     assert_puppet_status(destructive_caps, expected=False)
 
     # Disable puppet on Satellite and check it succeeded.
     result = destructive_sat.execute(
-        'foreman-maintain plugin purge-puppet --remove-all-data', timeout='20m'
+        'satellite-maintain plugin purge-puppet --remove-all-data', timeout='20m'
     )
     assert result.status == 0
     assert_puppet_status(destructive_sat, expected=False)

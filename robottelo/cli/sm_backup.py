@@ -1,6 +1,6 @@
 """
 Usage:
-    foreman-maintain backup [OPTIONS] SUBCOMMAND [ARG] ...
+    satellite-maintain backup [OPTIONS] SUBCOMMAND [ARG] ...
 
 Parameters:
     SUBCOMMAND                    subcommand
@@ -18,14 +18,14 @@ from robottelo.cli.base import Base
 
 
 class Backup(Base):
-    """Manipulates Foreman-maintain's backup command"""
+    """Manipulates Satellite-maintain's backup command"""
 
     command_base = 'backup'
 
     @classmethod
     def run_backup(cls, backup_dir='/tmp/', backup_type='online', options=None, timeout=None):
-        """Build foreman-maintain backup online/offline/snapshot"""
+        """Build satellite-maintain backup online/offline/snapshot"""
         cls.command_sub = backup_type
         cls.command_end = backup_dir
         options = options or {}
-        return cls.fm_execute(cls._construct_command(options), timeout=timeout)
+        return cls.sm_execute(cls._construct_command(options), timeout=timeout)

@@ -1,6 +1,6 @@
 """
 Usage:
-    foreman-maintain restore [OPTIONS] BACKUP_DIR
+    satellite-maintain restore [OPTIONS] BACKUP_DIR
 
 Parameters:
     BACKUP_DIR                    Path to backup directory to restore
@@ -16,14 +16,14 @@ from robottelo.cli.base import Base
 
 
 class Restore(Base):
-    """Manipulates Foreman-maintain's restore command"""
+    """Manipulates Satellite-maintain's restore command"""
 
     command_base = 'restore'
 
     @classmethod
     def run(cls, backup_dir='/tmp/', timeout='30m', options=None):
-        """Build foreman-maintain restore"""
+        """Build satellite-maintain restore"""
         # cls.command_sub = 'No subcommand for restore'
         cls.command_end = backup_dir
         options = options or {}
-        return cls.fm_execute(cls._construct_command(options), timeout=timeout)
+        return cls.sm_execute(cls._construct_command(options), timeout=timeout)

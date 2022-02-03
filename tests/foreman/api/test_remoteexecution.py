@@ -63,7 +63,7 @@ def test_positive_run_capsule_upgrade_playbook(capsule_configured, default_sat):
     result = default_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
 
-    result = default_sat.execute('foreman-maintain health check')
+    result = default_sat.execute('satellite-maintain health check')
     assert result.status == 0
     for line in result.stdout:
         assert 'FAIL' not in line

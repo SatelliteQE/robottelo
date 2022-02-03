@@ -255,15 +255,15 @@ class Base:
             return cls._handle_response(response, ignore_stderr=ignore_stderr)
 
     @classmethod
-    def fm_execute(
+    def sm_execute(
         cls,
         command,
         hostname=None,
         timeout=None,
     ):
-        """Executes the foreman-maintain cli commands on the server via ssh"""
+        """Executes the satellite-maintain cli commands on the server via ssh"""
         client = get_client(hostname=hostname or cls.hostname)
-        result = client.execute(f'foreman-maintain {command}', timeout=timeout)
+        result = client.execute(f'satellite-maintain {command}', timeout=timeout)
         return result
 
     @classmethod

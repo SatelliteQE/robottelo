@@ -1334,7 +1334,7 @@ def test_positive_check_installer_services(default_sat):
 
     :steps:
         1. Run 'systemctl status <tomcat>' command to check tomcat service status on satellite.
-        2. Run 'foreman-maintain service status' command on satellite to check the satellite
+        2. Run 'satellite-maintain service status' command on satellite to check the satellite
             services.
         3. Run the 'hammer ping' command on satellite.
 

@@ -1,6 +1,6 @@
 """
 Usage:
-    foreman-maintain service [OPTIONS] SUBCOMMAND [ARG] ...
+    satellite-maintain service [OPTIONS] SUBCOMMAND [ARG] ...
 
 Parameters:
     SUBCOMMAND                    subcommand
@@ -22,55 +22,55 @@ from robottelo.cli.base import Base
 
 
 class Service(Base):
-    """Manipulates Foreman-maintain's service command"""
+    """Manipulates Satellite-maintain's service command"""
 
     command_base = 'service'
 
     @classmethod
     def start(cls, options=None):
-        """Build foreman-maintain service start"""
+        """Build satellite-maintain service start"""
         cls.command_sub = 'start'
         options = options or {}
-        return cls.fm_execute(cls._construct_command(options))
+        return cls.sm_execute(cls._construct_command(options))
 
     @classmethod
     def stop(cls, options=None):
-        """Build foreman-maintain service stop"""
+        """Build satellite-maintain service stop"""
         cls.command_sub = 'stop'
         options = options or {}
-        return cls.fm_execute(cls._construct_command(options))
+        return cls.sm_execute(cls._construct_command(options))
 
     @classmethod
     def restart(cls, options=None):
-        """Build foreman-maintain service"""
+        """Build satellite-maintain service"""
         cls.command_sub = 'restart'
         options = options or {}
-        return cls.fm_execute(cls._construct_command(options))
+        return cls.sm_execute(cls._construct_command(options))
 
     @classmethod
     def status(cls, options=None):
-        """Build foreman-maintain service status"""
+        """Build satellite-maintain service status"""
         cls.command_sub = 'status'
         options = options or {}
-        return cls.fm_execute(cls._construct_command(options))
+        return cls.sm_execute(cls._construct_command(options))
 
     @classmethod
     def enable(cls, options=None):
-        """Build foreman-maintain service enable"""
+        """Build satellite-maintain service enable"""
         cls.command_sub = 'enable'
         options = options or {}
-        return cls.fm_execute(cls._construct_command(options))
+        return cls.sm_execute(cls._construct_command(options))
 
     @classmethod
     def disable(cls, options=None):
-        """Build foreman-maintain service disable"""
+        """Build satellite-maintain service disable"""
         cls.command_sub = 'disable'
         options = options or {}
-        return cls.fm_execute(cls._construct_command(options))
+        return cls.sm_execute(cls._construct_command(options))
 
     @classmethod
     def list(cls, options=None):
-        """Build foreman-maintain service list"""
+        """Build satellite-maintain service list"""
         cls.command_sub = 'list'
         options = options or {}
-        return cls.fm_execute(cls._construct_command(options))
+        return cls.sm_execute(cls._construct_command(options))

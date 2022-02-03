@@ -224,7 +224,7 @@ def test_satellite_inventory_slice_variable():
         1. Register few content hosts with satellite.
         2. Set SATELLITE_INVENTORY_SLICE_SIZE=1 dynflow environment variable.
             See BZ#1945661#c1
-        3. Run "foreman-maintain service restart --only dynflow-sidekiq@worker-1"
+        3. Run "satellite-maintain service restart --only dynflow-sidekiq@worker-1"
         4. Generate inventory report.
 
     :expectedresults: Generated report had slice containing only one host.
