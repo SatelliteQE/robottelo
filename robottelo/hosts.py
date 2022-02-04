@@ -716,7 +716,10 @@ class ContentHost(Host):
         if rhel_repo is None:
             raise ContentHostError(f'Missing RHEL repository configuration for {rhel_distro}.')
 
-        self.create_custom_repos(**{rhel_distro: rhel_repo})
+        if rhel_distro == constants.DISTRO_RHEL8:
+            self.create_custom_repos(**rhel_repo)
+        else:
+            self.create_custom_repos(**{rhel_distro: rhel_repo})
 
         # Install insights-client rpm
         if self.execute('yum install -y insights-client').status != 0:
