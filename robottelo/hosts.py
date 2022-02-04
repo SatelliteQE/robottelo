@@ -710,13 +710,14 @@ class ContentHost(Host):
             constants.DISTRO_RHEL6: settings.repos.rhel6_os,
             constants.DISTRO_RHEL7: settings.repos.rhel7_os,
             constants.DISTRO_RHEL8: settings.repos.rhel8_os,
+            constants.DISTRO_RHEL9: settings.repos.rhel9_os,
         }
         rhel_repo = distro_repo_map.get(rhel_distro)
 
         if rhel_repo is None:
             raise ContentHostError(f'Missing RHEL repository configuration for {rhel_distro}.')
 
-        if rhel_distro == constants.DISTRO_RHEL8:
+        if rhel_distro not in (constants.DISTRO_RHEL6, constants.DISTRO_RHEL7):
             self.create_custom_repos(**rhel_repo)
         else:
             self.create_custom_repos(**{rhel_distro: rhel_repo})
