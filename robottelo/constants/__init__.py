@@ -26,6 +26,7 @@ LOCALES = (
 DISTRO_RHEL6 = "rhel6"
 DISTRO_RHEL7 = "rhel7"
 DISTRO_RHEL8 = "rhel8"
+DISTRO_RHEL9 = "rhel9"
 DISTRO_SLES11 = "sles11"
 DISTRO_SLES12 = "sles12"
 
