@@ -26,6 +26,7 @@ LOCALES = (
 DISTRO_RHEL6 = "rhel6"
 DISTRO_RHEL7 = "rhel7"
 DISTRO_RHEL8 = "rhel8"
+DISTRO_RHEL9 = "rhel9"
 DISTRO_SLES11 = "sles11"
 DISTRO_SLES12 = "sles12"
 
@@ -340,6 +341,7 @@ PRDS = {
     'rhscl': 'Red Hat Software Collections (for RHEL Server)',
     'rhae': 'Red Hat Ansible Engine',
     'rhel8': 'Red Hat Enterprise Linux for x86_64',
+    'rhel9': 'Red Hat Enterprise Linux for x86_64 Beta',
 }
 
 REPOSET = {
@@ -365,8 +367,13 @@ REPOSET = {
     'rhae2': 'Red Hat Ansible Engine 2.9 RPMs for Red Hat Enterprise Linux 7 Server',
     'rhst8': 'Red Hat Satellite Tools 6.9 for RHEL 8 x86_64 (RPMs)',
     'fdrh8': 'Fast Datapath for RHEL 8 x86_64 (RPMs)',
-    'rhel8_bos_ks': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
-    'rhel8_aps_ks': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
+    'kickstart': {
+        'rhel6': 'Red Hat Enterprise Linux 6 Server (Kickstart)',
+        'rhel7': 'Red Hat Enterprise Linux 7 Server (Kickstart)',
+        'rhel8': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
+        'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
+        'rhel9': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Beta (Kickstart)',
+    },
 }
 
 NO_REPOS_AVAILABLE = "This system has no repositories available through subscriptions."
@@ -574,23 +581,47 @@ REPOS = {
         'distro': DISTRO_RHEL8,
         'key': 'rhst',
     },
-    'rhel8_bos_ks': {
-        'id': 'rhel-8-for-x86_64-baseos-kickstart',
-        'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.4',
-        'version': '8.4',
-        'reposet': REPOSET['rhel8_bos_ks'],
-        'product': PRDS['rhel8'],
-        'distro': DISTRO_RHEL8,
-        'key': 'rhel8_bos_ks',
-    },
-    'rhel8_aps_ks': {
-        'id': 'rhel-8-for-x86_64-appstream-kickstart',
-        'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.5',
-        'version': '8.5',
-        'reposet': REPOSET['rhel8_bos_ks'],
-        'product': PRDS['rhel8'],
-        'distro': DISTRO_RHEL8,
-        'key': 'rhel8_aps_ks',
+    'kickstart': {
+        'rhel6': {
+            'id': 'rhel-6-server-kickstart',
+            'name': 'Red Hat Enterprise Linux 6 Server Kickstart x86_64 6.10',
+            'version': '6.10',
+            'reposet': REPOSET['kickstart']['rhel6'],
+            'product': PRDS['rhel'],
+            'distro': DISTRO_RHEL6,
+        },
+        'rhel7': {
+            'id': 'rhel-7-server-kickstart',
+            'name': 'Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.9',
+            'version': '7.9',
+            'reposet': REPOSET['kickstart']['rhel7'],
+            'product': PRDS['rhel'],
+            'distro': DISTRO_RHEL7,
+        },
+        'rhel8': {
+            'id': 'rhel-8-for-x86_64-baseos-kickstart',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.4',
+            'version': '8.4',
+            'reposet': REPOSET['kickstart']['rhel8'],
+            'product': PRDS['rhel8'],
+            'distro': DISTRO_RHEL8,
+        },
+        'rhel8_aps': {
+            'id': 'rhel-8-for-x86_64-appstream-kickstart',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.5',
+            'version': '8.5',
+            'reposet': REPOSET['kickstart']['rhel8_aps'],
+            'product': PRDS['rhel8'],
+            'distro': DISTRO_RHEL8,
+        },
+        'rhel9': {
+            'id': 'rhel-9-for-x86_64-baseos-beta-kickstart',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Beta Kickstart',
+            'version': '9.0',
+            'reposet': REPOSET['kickstart']['rhel9'],
+            'product': PRDS['rhel9'],
+            'distro': DISTRO_RHEL9,
+        },
     },
 }
 
