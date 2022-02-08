@@ -16,12 +16,16 @@ def host_conf(request):
     conf = params = {}
     if hasattr(request, 'param'):
         params = request.param
-    conf['workflow'] = params.get('workflow', settings.content_host.deploy_workflow)
     _rhelver = f"rhel{params.get('rhel_version', settings.content_host.default_rhel_version)}"
     rhel_compose_id = settings.get(f"content_host.hardware.{_rhelver}.compose")
     if rhel_compose_id:
-        conf['rhel_compose_id'] = rhel_compose_id
-    conf['rhel_version'] = settings.content_host.hardware.get(_rhelver).release
+        conf['deploy_rhel_compose_id'] = rhel_compose_id
+    default_workflow = (
+        settings.content_host.deploy_workflow.get(_rhelver)
+        or settings.content_host.deploy_workflow.default
+    )
+    conf['workflow'] = params.get('workflow', default_workflow)
+    conf['deploy_rhel_version'] = settings.content_host.hardware.get(_rhelver).release
     conf['memory'] = params.get('memory', settings.content_host.hardware.get(_rhelver).memory)
     conf['cores'] = params.get('cores', settings.content_host.hardware.get(_rhelver).cores)
     return conf

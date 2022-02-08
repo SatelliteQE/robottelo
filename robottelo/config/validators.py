@@ -5,6 +5,9 @@ from robottelo.constants import VALID_GCE_ZONES
 
 
 VALIDATORS = dict(
+    supportability=[
+        Validator('supportability.content_hosts.rhel.versions', must_exist=True, is_type_of=list)
+    ],
     server=[
         Validator('server.hostname', default=''),
         Validator('server.hostnames', must_exist=True, is_type_of=list),
@@ -27,6 +30,10 @@ VALIDATORS = dict(
         Validator('server.port', default=443),
         Validator('server.ssh_username', default='root'),
         Validator('server.ssh_password', default=None),
+    ],
+    content_host=[
+        Validator('content_host.default_rhel_version', must_exist=True),
+        Validator('content_host.deploy_workflow.default', must_exist=True),
     ],
     subscription=[
         Validator('subscription.rhn_username', must_exist=True),
