@@ -29,6 +29,7 @@ from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
 from nailgun import entities
+from wait_for import wait_for
 
 from robottelo import ssh
 from robottelo.api.utils import promote
@@ -1606,12 +1607,17 @@ def test_positive_package_applicability(katello_host_tools_client):
     client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
-    applicable_packages = Package.list(
-        {
-            'host-id': host_info['id'],
-            'packages-restrict-applicable': 'true',
-            'search': f'name={FAKE_1_CUSTOM_PACKAGE_NAME}',
-        }
+    applicable_packages, _ = wait_for(
+        lambda: Package.list(
+            {
+                'host-id': host_info['id'],
+                'packages-restrict-applicable': 'true',
+                'search': f'name={FAKE_1_CUSTOM_PACKAGE_NAME}',
+            }
+        ),
+        fail_condition=[],
+        timeout=120,
+        delay=5,
     )
     assert len(applicable_packages) == 1
     assert FAKE_2_CUSTOM_PACKAGE in applicable_packages[0]['filename']
