@@ -51,6 +51,12 @@ REPOS:
   # which are essentially required for generating swid tags in RHEL8 content host.
   SWID_TOOLS_REPO: replace-with-swid-tools-repo
   FAKE_REPO_ZOO3: replace-with-zoo-fedorapeople-repo
+  MOCK_SERVICE_REPO_BASE: replace-with-repo-providing-robttelo-mock-service
+  MOCK_SERVICE_REPO:
+    RHEL7: "@format {this[repos].MOCK_SERVICE_REPO_BASE}/epel-7-x86_64/"
+    RHEL8: "@format {this[repos].MOCK_SERVICE_REPO_BASE}/epel-8-x86_64/"
+    RHEL9: "@format {this[repos].MOCK_SERVICE_REPO_BASE}/epel-9-x86_64/"
+  MOCK_SERVICE_RPM: "robottelo-mock-service"
 
 # Robottelo fixtures repos
   MODULE_STREAM_0:
