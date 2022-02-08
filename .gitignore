@@ -68,6 +68,7 @@ tests/foreman/pytest.ini
 /settings.local.yaml
 /settings*.local.yaml
 /conf/*.yaml
+!/conf/supportability.yaml
 
 # I don't know where those 2 files come from
 # but they are always there.
