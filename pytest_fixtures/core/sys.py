@@ -45,9 +45,10 @@ def proxy_port_range(default_sat):
 
 
 @pytest.fixture
-def install_cockpit_plugin(default_sat):
-    default_sat.register_to_dogfood()
-    default_sat.install_cockpit()
+def cockpit_sat(destructive_sat):
+    destructive_sat.register_to_dogfood()
+    destructive_sat.install_cockpit()
+    yield destructive_sat
 
 
 @pytest.fixture(scope='session')
