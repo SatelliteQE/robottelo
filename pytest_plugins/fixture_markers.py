@@ -15,7 +15,7 @@ def pytest_generate_tests(metafunc):
             list_params.extend(
                 [
                     setting_rhel_ver
-                    for setting_rhel_ver in settings.content_host.rhel_versions
+                    for setting_rhel_ver in settings.supportability.content_hosts.rhel.versions
                     if str(setting_rhel_ver) in str(matcher)
                 ]
             )
@@ -26,17 +26,15 @@ def pytest_generate_tests(metafunc):
             match_params.extend(
                 [
                     setting_rhel_ver
-                    for setting_rhel_ver in settings.content_host.rhel_versions
+                    for setting_rhel_ver in settings.supportability.content_hosts.rhel.versions
                     if re.fullmatch(str(matcher[0]), str(setting_rhel_ver))
                 ]
             )
         rhel_params = []
         filtered_versions = set(list_params + match_params)
-        for ver, data in settings.content_host.rhel_versions.items():
-            if ver in (filtered_versions or settings.content_host.rhel_versions):
-                # prefer version-specific deploy workflow before using the default one
-                workflow = data.get('deploy_workflow', settings.content_host.deploy_workflow)
-                rhel_params.append(dict(workflow=workflow, rhel_version=ver))
+        # default to all supported versions if no filters were found
+        for ver in filtered_versions or settings.supportability.content_hosts.rhel.versions:
+            rhel_params.append(dict(rhel_version=ver))
         if rhel_params:
             metafunc.parametrize(
                 'rhel_contenthost',
