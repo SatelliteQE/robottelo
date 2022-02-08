@@ -183,6 +183,8 @@ class ContentHost(Host):
         self.execute('subscription-manager clean')
 
     def teardown(self):
+        if self.nailgun_host:
+            self.nailgun_host.delete()
         self.unregister()
 
     def power_control(self, state=VmState.RUNNING, ensure=True):
@@ -417,6 +419,7 @@ class ContentHost(Host):
         consumerid=None,
         force=True,
         releasever=None,
+        name=None,
         username=settings.server.admin_username,
         password=settings.server.admin_password,
         auto_attach=False,
@@ -439,6 +442,7 @@ class ContentHost(Host):
         :param password: the user password
         :param auto_attach: automatically attach compatible subscriptions to
             this system.
+        :param name: name of the system to register, defaults to the hostname
         :return: SSHCommandResult instance filled with the result of the
             registration.
         """
@@ -467,6 +471,8 @@ class ContentHost(Host):
             cmd += f' --release {releasever}'
         if force:
             cmd += ' --force'
+        if name:
+            cmd += f' --name {name}'
         return self.execute(cmd)
 
     def unregister(self):
@@ -1044,15 +1050,6 @@ class ContentHost(Host):
         if cmd_result.status != 0:
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
-
-    def create_custom_rhel_repo_file_to_downgrade_packages(self):
-        """Create custom rhel repo file on client,
-        repo content is for older minor version, (current minor version - 1).
-        Please make sure that package you are looking for is inside minor version.
-        Usage: downgrade of package
-        """
-        baseurl = self.get_base_url_for_older_rhel_minor()
-        self.create_custom_repos(rhel=baseurl)
 
 
 class Capsule(ContentHost):
