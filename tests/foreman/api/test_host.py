@@ -35,6 +35,26 @@ from requests.exceptions import HTTPError
 from robottelo import datafactory
 from robottelo.api.utils import promote
 from robottelo.config import get_credentials
+from robottelo.config import settings
+
+
+@pytest.fixture(scope='function')
+def tracer_host(katello_host_tools_tracer_host):
+    # create a custom, rhel version-specific mock-service repo
+    rhelver = katello_host_tools_tracer_host.os_version.major
+    katello_host_tools_tracer_host.create_custom_repos(
+        **{f'mock_service_rhel{rhelver}': settings.repos['MOCK_SERVICE_REPO'][f'rhel{rhelver}']}
+    )
+    katello_host_tools_tracer_host.execute(f'yum -y install {settings.repos["MOCK_SERVICE_RPM"]}')
+    assert (
+        katello_host_tools_tracer_host.execute(
+            f'rpm -q {settings.repos["MOCK_SERVICE_RPM"]}'
+        ).status
+        == 0
+    )
+    katello_host_tools_tracer_host.execute(f'systemctl start {settings.repos["MOCK_SERVICE_RPM"]}')
+
+    yield katello_host_tools_tracer_host
 
 
 @pytest.mark.tier1

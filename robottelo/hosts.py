@@ -21,6 +21,7 @@ from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_VERSION
 from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.helpers import get_data_file
 from robottelo.helpers import InstallerCommand
 
 POWER_OPERATIONS = {
@@ -168,6 +169,8 @@ class ContentHost(Host):
         self.execute('subscription-manager clean')
 
     def teardown(self):
+        if self.nailgun_host:
+            self.nailgun_host.delete()
         self.unregister()
 
     def power_control(self, state=VmState.RUNNING, ensure=True):
@@ -354,8 +357,9 @@ class ContentHost(Host):
         consumerid=None,
         force=True,
         releasever=None,
-        username=None,
-        password=None,
+        name=None,
+        username=settings.server.admin_username,
+        password=settings.server.admin_password,
         auto_attach=False,
     ):
         """Registers content host on foreman server either by specifying
@@ -376,6 +380,7 @@ class ContentHost(Host):
         :param password: the user password
         :param auto_attach: automatically attach compatible subscriptions to
             this system.
+        :param name: name of the system to register, defaults to the hostname
         :return: SSHCommandResult instance filled with the result of the
             registration.
         """
@@ -407,6 +412,8 @@ class ContentHost(Host):
             cmd += f' --release {releasever}'
         if force:
             cmd += ' --force'
+        if name:
+            cmd += f' --name {name}'
         return self.execute(cmd)
 
     def unregister(self):
@@ -874,6 +881,50 @@ class ContentHost(Host):
             'lifecycle_environment_id': lce['id'],
             'virt_who_hypervisor_host': virt_who_hypervisor_host,
         }
+
+    def custom_cert_generate(self, capsule_hostname):
+        """copy all configuration files to satellite host for generating custom certs"""
+        self.execute(f'mkdir ssl-build/{capsule_hostname}')
+        for file in [
+            'generate-ca.sh',
+            'generate-crt.sh',
+            'openssl.cnf',
+            'certs.sh',
+            'extensions.txt',
+        ]:
+            self.session.sftp_write(get_data_file(file), f'/root/{file}')
+        self.execute('echo 100001 > serial')
+        self.execute('bash generate-ca.sh')
+        result = self.execute(f'yes | bash generate-crt.sh {self.hostname}')
+        assert result.status == 0
+        result = self.execute('bash certs.sh')
+        assert result.status == 0
+
+    def custom_certs_cleanup(self):
+        """cleanup all cert configuration files"""
+        files = [
+            'cacert.crt',
+            'cacert.crt',
+            'certindex*',
+            'generate-*.sh',
+            'capsule_cert',
+            'openssl.cnf',
+            'private',
+            'serial*',
+            'certs/*',
+            'extensions.txt',
+            'certs',
+            'certs.sh',
+            self.hostname,
+        ]
+        self.execute(f'cd /root && rm -rf {" ".join(files)}')
+
+    def install_tracer(self):
+        """Install tracer on the host, prerequisites the katello host tools needs to be installed"""
+        cmd_result = self.execute('yum install -y katello-host-tools-tracer')
+        if cmd_result.status != 0:
+            raise ContentHostError('There was an error installing katello-host-tools-tracer')
+        self.execute('katello-tracer-upload')
 
 
 class Capsule(ContentHost):
