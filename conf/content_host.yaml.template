@@ -1,13 +1,8 @@
 content_host:
-    deploy_workflow: workflow-name
+    deploy_workflow:
+        default:
+        rhel9: # example of workflow override for version
     default_rhel_version: 7
-    rhel_versions:
-      6: {}
-      7: {}
-      8: {}
-      9_compose:
-        deploy_workflow: deploy-rhel-cmp-template
-
     hardware:
         RHEL6:
             RELEASE: 6.10
@@ -21,7 +16,7 @@ content_host:
             RELEASE: 8.3
             MEMORY: 1536 MiB
             CORES: 1
-        RHEL9_compose:
+        RHEL9:
             RELEASE: 9.0
             COMPOSE: RHEL-9.0.0-20220118.1
             MEMORY: 1536 MiB
