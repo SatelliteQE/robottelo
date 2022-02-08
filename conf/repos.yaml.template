@@ -33,6 +33,14 @@ REPOS:
     RHEL7: replace-with-rhel7-http-link
     RHEL8: replace-with-rhel8-http-link
     RHEL9: replace-with-rhel9-http-link
+  # Satellite's utils repos, and it works for 7.0 and onwards
+  SATUTILS_REPO:
+  # Satellite's client repos, and it works for 7.0 and onwards
+  SATCLIENT_REPO:
+    RHEL6:
+    RHEL7:
+    RHEL8:
+    RHEL9:
   # Downstream Satellite-maintain repo
   SATMAINTENANCE_REPO: replace-with-sat-maintain-repo
   # Software Collection Repo
