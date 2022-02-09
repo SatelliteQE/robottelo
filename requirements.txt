@@ -30,9 +30,9 @@ widgetastic.patternfly==1.3.4
 widgetastic.patternfly4==0.22.3
 wrapanapi==3.5.11
 
-# Get airgun, nailgun and upgrade from master
-git+https://github.com/SatelliteQE/airgun.git@master#egg=airgun
-git+https://github.com/SatelliteQE/nailgun.git@master#egg=nailgun
-git+https://github.com/SatelliteQE/satellite6-upgrade.git@master#egg=satellite6-upgrade
+# Get airgun, nailgun and upgrade from 6.10.z branch
+git+https://github.com/SatelliteQE/airgun.git@6.10.z#egg=airgun
+git+https://github.com/SatelliteQE/nailgun.git@6.10.z#egg=nailgun
+git+https://github.com/SatelliteQE/satellite6-upgrade.git@6.10.z#egg=satellite6-upgrade
 git+https://github.com/SatelliteQE/automation-tools@master#egg=automation-tools
 --editable .
