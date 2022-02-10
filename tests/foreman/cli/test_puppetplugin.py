@@ -88,13 +88,13 @@ def test_positive_enable_disable_logic(destructive_sat, destructive_caps):
     assert_puppet_status(destructive_caps, expected=False)
 
     # Try to enable puppet on Capsule and check it failed.
-    result = destructive_caps.execute(enable_capsule_cmd.get_command(), timeout='15m')
+    result = destructive_caps.execute(enable_capsule_cmd.get_command(), timeout='20m')
     assert result.status == 6
     assert 'failed to load one or more features (Puppet)' in result.stdout
 
     # Enable puppet on Satellite and check it succeeded.
     destructive_sat.register_to_dogfood()
-    result = destructive_sat.execute(enable_satellite_cmd.get_command(), timeout='15m')
+    result = destructive_sat.execute(enable_satellite_cmd.get_command(), timeout='20m')
     assert result.status == 0
     assert 'Success!' in result.stdout
 
@@ -104,7 +104,7 @@ def test_positive_enable_disable_logic(destructive_sat, destructive_caps):
     assert_puppet_status(destructive_sat, expected=True)
 
     # Enable puppet on Capsule and check it succeeded.
-    result = destructive_caps.execute(enable_capsule_cmd.get_command(), timeout='15m')
+    result = destructive_caps.execute(enable_capsule_cmd.get_command(), timeout='20m')
     assert result.status == 0
     assert 'Success!' in result.stdout
     assert_puppet_status(destructive_caps, expected=True)
@@ -117,11 +117,15 @@ def test_positive_enable_disable_logic(destructive_sat, destructive_caps):
     )
 
     # Disable puppet on Capsule and check it succeeded.
-    result = destructive_caps.execute('foreman-maintain plugin purge-puppet')
+    result = destructive_caps.execute(
+        'foreman-maintain plugin purge-puppet --remove-all-data', timeout='20m'
+    )
     assert result.status == 0
     assert_puppet_status(destructive_caps, expected=False)
 
     # Disable puppet on Satellite and check it succeeded.
-    result = destructive_sat.execute('foreman-maintain plugin purge-puppet')
+    result = destructive_sat.execute(
+        'foreman-maintain plugin purge-puppet --remove-all-data', timeout='20m'
+    )
     assert result.status == 0
     assert_puppet_status(destructive_sat, expected=False)
