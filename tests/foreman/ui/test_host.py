@@ -2320,9 +2320,9 @@ def test_positive_gce_cloudinit_provision_end_to_end(
 
 @pytest.mark.destructive
 @pytest.mark.upgrade
-@pytest.mark.usefixtures('install_cockpit_plugin')
+# @pytest.mark.usefixtures('install_cockpit_plugin')
 @pytest.mark.tier2
-def test_positive_cockpit(session, default_sat):
+def test_positive_cockpit(session, default_org):
     """Install cockpit plugin and test whether webconsole button and cockpit integration works
 
     :id: 5a9be063-cdc4-43ce-91b9-7608fbebf8bb
@@ -2332,14 +2332,48 @@ def test_positive_cockpit(session, default_sat):
     :CaseLevel: System
 
     """
+    # TODO
+    # - new cockpit look, means new airgun view required
+    # //span[@id="system_information_hostname_text"], iframe and first locator before iframe todo
+    # - for the host you need extras repository, to yum install cockpit
+    # - parametrize the host
+    # - verify that it works for all hosts
+
+    from robottelo.hosts import Satellite, ContentHost
+
+    default_sat = Satellite(hostname='hostname')
+    rhel7_contenthost = ContentHost(hostname='hostname')
+
+    default_sat.add_rex_key(satellite=default_sat)
+    rhel7_contenthost.add_rex_key(satellite=default_sat)
+
+    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.register_contenthost(default_org.label, lce=ENVIRONMENT)
+    assert rhel7_contenthost.subscribed
+
+    # workaround for BZ 2042480
+    setting_name = 'foreman_url'
+    settings_sat_url = entities.Setting().search(query={'search': f'name={setting_name}'})[0]
+    if settings_sat_url.value != f'https://{default_sat.hostname}':
+        Settings.set({'name': setting_name, 'value': f'https://{default_sat.hostname}'})
+
     with session:
         session.organization.select(org_name='Default Organization')
         session.location.select(loc_name='Any Location')
-        hostname_inside_cockpit = session.host.get_webconsole_content(
+        sat_hostname_inside_cockpit = session.host.get_webconsole_content(
             entity_name=default_sat.hostname
         )
         assert (
-            hostname_inside_cockpit == default_sat.hostname
+            sat_hostname_inside_cockpit == default_sat.hostname
         ), 'cockpit page shows hostname {} instead of {}'.format(
-            hostname_inside_cockpit, default_sat.hostname
+            sat_hostname_inside_cockpit, default_sat.hostname
+        )
+
+        host_hostname_inside_cockpit = session.host.get_webconsole_content(
+            entity_name=rhel7_contenthost.hostname
+        )
+        assert (
+            host_hostname_inside_cockpit == rhel7_contenthost.hostname
+        ), 'cockpit page shows hostname {} instead of {}'.format(
+            host_hostname_inside_cockpit, rhel7_contenthost.hostname
         )
