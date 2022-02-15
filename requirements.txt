@@ -25,7 +25,7 @@ tenacity==8.0.1
 testimony==2.2.0
 unittest2==1.1.0
 wait-for==1.2.0
-wrapanapi==3.5.11
+wrapanapi==3.5.12
 
 # Get airgun, nailgun and upgrade from 6.10.z branch
 git+https://github.com/SatelliteQE/airgun.git@6.10.z#egg=airgun
