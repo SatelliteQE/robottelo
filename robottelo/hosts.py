@@ -1071,7 +1071,14 @@ class Capsule(ContentHost):
         :return: True if no downstream satellite RPMS are installed
         :rtype: bool
         """
-        return self.execute('rpm -q satellite &>/dev/null').status != 0
+        return self.execute('rpm -q satellite-capsule &>/dev/null').status != 0
+
+    @cached_property
+    def version(self):
+        if not self.is_upstream:
+            return self.execute('rpm -q satellite-capsule').stdout.split('-')[2]
+        else:
+            return 'upstream'
 
     @cached_property
     def url(self):
@@ -1113,18 +1120,41 @@ class Capsule(ContentHost):
         """Get capsule features"""
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
+    def register_to_dogfood(self, ak_type='satellite'):
+        dogfood_canonical_hostname = settings.repos.dogfood_repo_host.partition('//')[2]
+        # get hostname of dogfood machine
+        dig_result = self.execute(f'dig +short {dogfood_canonical_hostname}')
+        # the host name finishes with a dot, so last character is removed
+        dogfood_hostname = dig_result.stdout.split()[0][:-1]
+        dogfood = Satellite(dogfood_hostname)
+        self.install_katello_ca(satellite=dogfood)
+        # satellite version consist from x.y.z, we need only x.y
+        sat_release = '.'.join(self.version.split('.')[:2])
+        rhel_release = settings.server.version.rhel_release
+        cmd_result = self.register_contenthost(
+            org=f'{settings.subscription.dogfood_org}',
+            activation_key=f'{ak_type}-{sat_release}-qa-rhel{rhel_release}',
+        )
+        if cmd_result.status != 0:
+            raise CapsuleHostError(
+                f'Error during registration, command output: {cmd_result.stdout}'
+            )
+
     def capsule_setup(self, sat_host=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
         self.satellite = sat_host or Satellite()
-        self.create_custom_repos(
-            capsule=settings.repos.capsule_repo,
-            rhscl=settings.repos.rhscl_repo,
-            ansible=settings.repos.ansible_repo,
-            maint=settings.repos.satmaintenance_repo,
-        )
-        self.create_custom_repos(rhel7=settings.repos.rhel7_os)
+        self.register_to_dogfood(ak_type='capsule')
         # self.execute('yum repolist')
         self.execute('yum -y update', timeout=0)
+
+        # workaround from DF for RHEL8
+        if settings.server.version.rhel_release == 8:
+            self.execute(
+                'subscription-manager repo-override --repo=Sat6-CI_Satellite_Capsule_7_0_Composes_Satellite_Capsule_7_0_RHEL8 --add=module_hotfixes:1'  # noqa
+            )
+            self.execute('dnf -y module enable ruby:2.7')
+            self.execute('dnf -y module enable pki-core')
+
         self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
         self.execute('firewall-cmd --runtime-to-permanent')
         # self.execute('yum -y install satellite-capsule', timeout=1200000)
@@ -1255,6 +1285,15 @@ class Satellite(Capsule):
         return self._ui_session
 
     @cached_property
+    def is_upstream(self):
+        """Figure out which product distribution is installed on the server.
+
+        :return: True if no downstream satellite RPMS are installed
+        :rtype: bool
+        """
+        return self.execute('rpm -q satellite &>/dev/null').status != 0
+
+    @cached_property
     def version(self):
         if not self.is_upstream:
             return self.execute('rpm -q satellite').stdout.split('-')[1]
@@ -1367,25 +1406,6 @@ class Satellite(Capsule):
         setting.value = value
         setting.update({'value'})
         return default_setting_value
-
-    def register_to_dogfood(self):
-        dogfood_canonical_hostname = settings.repos.dogfood_repo_host.partition('//')[2]
-        # get hostname of dogfood machine
-        dig_result = self.execute(f'dig +short {dogfood_canonical_hostname}')
-        # the host name finishes with a dot, so last character is removed
-        dogfood_hostname = dig_result.stdout.split()[0][:-1]
-        dogfood = Satellite(dogfood_hostname)
-        self.install_katello_ca(satellite=dogfood)
-        # satellite version consist from x.y.z, we need only x.y
-        sat_release = '.'.join(self.version.split('.')[:2])
-        cmd_result = self.register_contenthost(
-            org=f'{settings.subscription.dogfood_org}',
-            activation_key=f'satellite-{sat_release}-qa-rhel7',
-        )
-        if cmd_result.status != 0:
-            raise SatelliteHostError(
-                f'Error during registration, command output: {cmd_result.stdout}'
-            )
 
     def install_cockpit(self):
         cmd_result = self.execute(

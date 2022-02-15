@@ -88,8 +88,6 @@ def capsule_host(capsule_factory):
 @pytest.fixture
 def capsule_configured(capsule_host, default_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    capsule_host.install_katello_ca(default_sat)
-    capsule_host.register_contenthost()
     capsule_host.capsule_setup(sat_host=default_sat)
     yield capsule_host
 
@@ -111,7 +109,5 @@ def module_destructive_sat(module_satellite_host):
 @pytest.fixture
 def destructive_caps(capsule_host, destructive_sat):
     """Configure the capsule instance with the destructive satellite"""
-    capsule_host.install_katello_ca(destructive_sat)
-    capsule_host.register_contenthost()
     capsule_host.capsule_setup(sat_host=destructive_sat)
     yield capsule_host
