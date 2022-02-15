@@ -90,8 +90,13 @@ def test_positive_inventory_generate_upload_cli(
         assert hosts_count == local_file_data['slices_counts'][slice_name]
 
 
-@pytest.mark.stubbed
-def test_positive_inventory_recommendation_sync():
+@pytest.mark.tier3
+def test_positive_inventory_recommendation_sync(
+    set_rh_cloud_token,
+    organization_ak_setup,
+    rhcloud_registered_hosts,
+    rhcloud_sat_host,
+):
     """Tests Insights recommendation sync via foreman-rake commands:
     https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
 
@@ -107,10 +112,26 @@ def test_positive_inventory_recommendation_sync():
 
     :BZ: 1957186
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
 
     :CaseLevel: System
     """
+    org, ak = organization_ak_setup
+    cmd = f'organization_id={org.id} foreman-rake rh_cloud_insights:sync'
+    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    result = rhcloud_sat_host.execute(cmd)
+    wait_for(
+        lambda: rhcloud_sat_host.api.ForemanTask()
+        .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
+    assert result.status == 0
+    assert result.stdout == 'Synchronized Insights hosts hits data\n'
 
 
 @pytest.mark.tier3
