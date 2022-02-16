@@ -2127,3 +2127,24 @@ FOREMAN_ANSIBLE_MODULES = [
 FAM_MODULE_PATH = (
     '/usr/share/ansible/collections/ansible_collections/redhat/satellite/plugins/modules'
 )
+
+RH_SAT_ROLES = [
+    'compute_profiles',
+    'compute_resources',
+    'content_credentials',
+    'content_rhel',
+    'content_view_publish',
+    'content_view_version_cleanup',
+    'content_views',
+    'convert2rhel',
+    'domains',
+    'hostgroups',
+    'lifecycle_environments',
+    'manifest',
+    'operatingsystems',
+    'organizations',
+    'provisioning_templates',
+    'repositories',
+    'settings',
+    'sync_plans',
+]

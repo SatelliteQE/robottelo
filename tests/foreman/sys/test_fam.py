@@ -12,7 +12,7 @@
 
 :CaseComponent: AnsibleCollection
 
-:Assignee: vsedmik
+:Assignee: gsulliva
 
 :Upstream: No
 """
@@ -20,9 +20,25 @@ import pytest
 
 from robottelo.constants import FAM_MODULE_PATH
 from robottelo.constants import FOREMAN_ANSIBLE_MODULES
+from robottelo.constants import RH_SAT_ROLES
 
 
-@pytest.mark.destructive
+@pytest.fixture
+def sync_roles(default_sat):
+    """Sync all redhat.satellite roles and delete when finished
+    Returns: A dict of the sync response and role names
+    """
+    roles = [f'redhat.satellite.{role}' for role in RH_SAT_ROLES]
+    proxy_list = default_sat.cli.Proxy.list({'search': f'name={default_sat.hostname}'})
+    proxy_id = proxy_list[0].get('id')
+    sync = default_sat.cli.Ansible.roles_sync({'role-names': roles, 'proxy-id': proxy_id})
+    yield {'task': sync, 'roles': roles}
+    roles_list = default_sat.cli.Ansible.roles_list()
+    for role in roles_list:
+        role_id = role.get('id')
+        default_sat.cli.Ansible.roles_delete({'id': role_id})
+
+
 @pytest.mark.run_in_one_thread
 def test_positive_ansible_modules_installation(default_sat):
     """Foreman ansible modules installation test
@@ -33,10 +49,6 @@ def test_positive_ansible_modules_installation(default_sat):
         available and supported modules are contained
 
     """
-    result = default_sat.execute(
-        'yum install -y ansible-collection-redhat-satellite --disableplugin=foreman-protector'
-    )
-    assert result.status == 0
     # list installed modules
     result = default_sat.execute(f'ls {FAM_MODULE_PATH} | grep .py$ | sed "s/.[^.]*$//"')
     assert result.status == 0
@@ -50,3 +62,20 @@ def test_positive_ansible_modules_installation(default_sat):
         assert doc_name == module_name
     # check installed modules against the expected list
     assert FOREMAN_ANSIBLE_MODULES.sort() == installed_modules.sort()
+
+
+@pytest.mark.tier1
+def test_positive_import_run_roles(sync_roles, default_sat):
+    """Import a FAM role and run the role on the Satellite
+
+    :id: d3379fd3-b847-43ce-a51f-c02170e7b267
+
+    :expectedresults: fam roles import and run successfully
+
+    """
+    roles = sync_roles.get('roles')
+    default_sat.cli.Host.ansible_roles_assign(
+        {'ansible-roles': roles, 'name': default_sat.hostname}
+    )
+    play = default_sat.cli.Host.ansible_roles_play({'name': default_sat.hostname})
+    assert 'Ansible roles are being played' in play[0]['message']
