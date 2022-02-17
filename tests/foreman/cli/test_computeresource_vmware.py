@@ -22,8 +22,6 @@ from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import VMWARE_CONSTANTS
 
-pytestmark = pytest.mark.on_premises_provisioning
-
 
 @pytest.fixture(scope='module')
 def vmware(module_org, module_location):
