@@ -1335,7 +1335,7 @@ def test_positive_global_registration_form(
 
     :CaseLevel: Integration
     """
-    # rex and insigths parameters are only specified in curl when differing from
+    # rex and insights parameters are only specified in curl when differing from
     # inerited parameters
     result = GlobalParameter().list({'search': 'host_registration_remote_execution'})
     rex_value = not result[0]['value']
@@ -1354,6 +1354,7 @@ def test_positive_global_registration_form(
                 'general.host_group': hostgroup.name,
                 'general.operating_system': module_os.title,
                 'advanced.activation_keys': module_activation_key.name,
+                'advanced.update_packages': True,
                 'advanced.rex_interface': iface,
             }
         )
@@ -1368,6 +1369,7 @@ def test_positive_global_registration_form(
         f'setup_remote_execution={"true" if rex_value else "false"}',
         f'{default_sat.hostname}',
         'insecure',
+        'update_packages=true',
     ]
     for pair in expected_pairs:
         assert pair in cmd
