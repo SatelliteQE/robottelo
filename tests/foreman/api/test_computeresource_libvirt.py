@@ -34,7 +34,6 @@ from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 
 pytestmark = [
-    pytest.mark.on_premises_provisioning,
     pytest.mark.skip_if_not_set('libvirt'),
 ]
 
