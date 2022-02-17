@@ -33,8 +33,6 @@ from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.helpers import host_provisioning_check
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = pytest.mark.on_premises_provisioning
-
 
 @pytest.fixture(scope='module')
 def rhev():
