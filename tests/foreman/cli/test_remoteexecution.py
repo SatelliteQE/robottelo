@@ -117,7 +117,7 @@ class TestRemoteExecution:
         :parametrized: yes
         """
         client = fixture_vmsetup
-        command = "echo {}".format(gen_string('alpha'))
+        command = f'echo {gen_string("alpha")}'
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - SSH Default',
@@ -138,9 +138,9 @@ class TestRemoteExecution:
             )
             raise AssertionError(result)
 
-        task = Task.list_tasks({"search": command})[0]
-        search = Task.list_tasks({"search": 'id={}'.format(task["id"])})
-        assert search[0]["action"] == task["action"]
+        task = Task.list_tasks({'search': command})[0]
+        search = Task.list_tasks({'search': f'id={task["id"]}'})
+        assert search[0]['action'] == task['action']
 
     @pytest.mark.skip_if_open('BZ:1804685')
     @pytest.mark.tier3
@@ -243,7 +243,7 @@ class TestRemoteExecution:
             {'organizations': self.org.name, 'name': template_name, 'file': template_file}
         )
         invocation_command = make_job_invocation(
-            {'job-template': template_name, 'search-query': f"name ~ {client.hostname}"}
+            {'job-template': template_name, 'search-query': f'name ~ {client.hostname}'}
         )
         result = JobInvocation.info({'id': invocation_command['id']})
         try:
@@ -308,9 +308,9 @@ class TestRemoteExecution:
             result = f'host output: {output}'
             raise AssertionError(result)
 
-        task = Task.list_tasks({"search": command})[0]
-        search = Task.list_tasks({"search": f'id={task["id"]}'})
-        assert search[0]["action"] == task["action"]
+        task = Task.list_tasks({'search': command})[0]
+        search = Task.list_tasks({'search': f'id={task["id"]}'})
+        assert search[0]['action'] == task['action']
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -369,7 +369,7 @@ class TestRemoteExecution:
         """
         self.org = module_org
         client = fixture_vmsetup
-        packages = ["cow", "dog", "lion"]
+        packages = ['cow', 'dog', 'lion']
         # Create a custom repo
         repo = entities.Repository(
             content_type='yum',
@@ -553,15 +553,15 @@ class TestRemoteExecution:
         invocation_id = invocation['id']
         wait_for(
             lambda: entities.JobInvocation(id=invocation_id).read().status_label
-            in ["succeeded", "failed"],
-            timeout="1500s",
+            in ['succeeded', 'failed'],
+            timeout='1500s',
         )
 
         result = JobInvocation.get_output({'id': invocation_id, 'host': default_sat.hostname})
-        logger.debug(f"Invocation output>>\n{result}\n<<End of invocation output")
+        logger.debug(f'Invocation output>>\n{result}\n<<End of invocation output')
         # if installation fails, it's often due to missing rhscl repo -> print enabled repos
         repolist = default_sat.execute('yum repolist')
-        logger.debug(f"Repolist>>\n{repolist}\n<<End of repolist")
+        logger.debug(f'Repolist>>\n{repolist}\n<<End of repolist')
 
         assert entities.JobInvocation(id=invocation_id).read().status == 0
         assert 'project-receptor.satellite_receptor_installer' in result
@@ -811,7 +811,7 @@ class TestAnsibleREX:
         """
         self.org = module_org
         client = fixture_vmsetup
-        packages = ["cow"]
+        packages = ['cow']
         # Create a custom repo
         repo = entities.Repository(
             content_type='yum',
@@ -876,7 +876,7 @@ class TestAnsibleREX:
                 )
             )
             raise AssertionError(result)
-        result = client.execute(f"systemctl status {service}")
+        result = client.execute(f'systemctl status {service}')
         assert result.status == 3
 
         # start it again
@@ -884,7 +884,7 @@ class TestAnsibleREX:
             {
                 'job-template': 'Service Action - Ansible Default',
                 'inputs': f'state=started, name={service}',
-                'search-query': f"name ~ {client.hostname}",
+                'search-query': f'name ~ {client.hostname}',
             }
         )
         result = JobInvocation.info({'id': invocation_command['id']})
@@ -899,7 +899,7 @@ class TestAnsibleREX:
                 )
             )
             raise AssertionError(result)
-        result = client.execute(f"systemctl status {service}")
+        result = client.execute(f'systemctl status {service}')
         assert result.status == 0
 
     @pytest.mark.tier3
