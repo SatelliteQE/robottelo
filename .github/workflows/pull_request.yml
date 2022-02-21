@@ -35,7 +35,7 @@ jobs:
           pip install -U pip
           pip uninstall -y pycurl
           pip install --compile --no-cache-dir pycurl
-          pip install -U -r requirements.txt -r requirements-optional.txt
+          pip install -U -r requirements.txt -r requirements-optional.txt --use-deprecated=legacy-resolver
           for conffile in conf/*.yaml.template; do mv -- "$conffile" "${conffile%.yaml.template}.yaml"; done
           cp broker_settings.yaml.example broker_settings.yaml
 
