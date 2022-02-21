@@ -22,10 +22,15 @@ import time
 import pytest
 from broker import VMBroker
 from wait_for import wait_for
+from nailgun import entities
 
+from robottelo import constants
 from robottelo.api.utils import update_vm_host_location
+from robottelo.cli.host import Host
+from robottelo.cli.job_invocation import JobInvocation
 from robottelo.datafactory import gen_string
 from robottelo.hosts import ContentHost
+from robottelo.logging import logger
 
 
 @pytest.fixture
@@ -34,6 +39,14 @@ def module_vm_client_by_ip(rhel7_contenthost, module_org, smart_proxy_location, 
     rhel7_contenthost.configure_rex(satellite=default_sat, org=module_org)
     update_vm_host_location(rhel7_contenthost, location_id=smart_proxy_location.id)
     yield rhel7_contenthost
+
+
+@pytest.fixture()
+def fixture_enable_receptor_repos(request, default_sat):
+    """Enable RHSCL repo required by receptor installer"""
+    default_sat.enable_repo(constants.REPOS['rhscl7']['id'])
+    default_sat.enable_repo(constants.REPOS['rhae2']['id'])
+    default_sat.enable_repo(constants.REPOS['rhs7']['id'])
 
 
 @pytest.mark.tier3
@@ -553,3 +566,68 @@ def test_positive_matcher_field_highlight(session):
 
     :assignee: dsynk
     """
+
+
+@pytest.mark.tier3
+def test_positive_configure_cloud_connector(
+    session, default_sat, subscribe_satellite, fixture_enable_receptor_repos
+):
+    """Install Cloud Connector through WebUI button
+
+    :id: 67e45cfe-31bb-51a8-b88f-27918c68f32e
+
+    :Steps:
+
+        1. Navigate to Configure > Inventory Upload
+        2. Click Configure Cloud Connector
+        3. Open the started job and wait until it is finished
+
+    :expectedresults: The Cloud Connector has been installed and the service is running
+
+    :CaseLevel: Integration
+
+    :CaseComponent: RHCloud-CloudConnector
+
+    :assignee: lhellebr
+
+    :BZ: 1818076
+    """
+    # Copy foreman-proxy user's key to root@localhost user's authorized_keys
+    default_sat.add_rex_key(satellite=default_sat)
+
+    # Set Host parameter source_display_name to something random.
+    # To avoid 'name has already been taken' error when run multiple times
+    # on a machine with the same hostname.
+    host_id = Host.info({'name': default_sat.hostname})['id']
+    Host.set_parameter(
+        {'host-id': host_id, 'name': 'source_display_name', 'value': gen_string('alpha')}
+    )
+
+    with session:
+        res = session.cloudinventory.configure_cloud_connector()
+
+    template_name = 'Configure Cloud Connector'
+    invocation_id = entities.JobInvocation().search(query={'search': f'description="{template_name}"'})[0].id
+    wait_for(
+        lambda: entities.JobInvocation(id=invocation_id).read().status_label
+        in ["succeeded", "failed"],
+        timeout="1500s",
+    )
+
+    result = JobInvocation.get_output({'id': invocation_id, 'host': default_sat.hostname})
+    logger.debug(f"Invocation output>>\n{result}\n<<End of invocation output")
+    # if installation fails, it's often due to missing rhscl repo -> print enabled repos
+    repolist = default_sat.execute('yum repolist')
+    logger.debug(f"Repolist>>\n{repolist}\n<<End of repolist")
+
+    assert entities.JobInvocation(id=invocation_id).read().status == 0
+    assert 'project-receptor.satellite_receptor_installer' in result
+    assert 'Exit status: 0' in result
+    # check that there is one receptor conf file and it's only readable
+    # by the receptor user and root
+    result = default_sat.execute('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
+    assert all(
+        filestats == '400:foreman-proxy' for filestats in result.stdout.strip().split('\n')
+    )
+    result = default_sat.execute('ls -l /etc/receptor/*/receptor.conf | wc -l')
+    assert int(result.stdout.strip()) >= 1
