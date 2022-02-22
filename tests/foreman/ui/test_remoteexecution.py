@@ -21,8 +21,8 @@ import time
 
 import pytest
 from broker import VMBroker
-from wait_for import wait_for
 from nailgun import entities
+from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.api.utils import update_vm_host_location
@@ -605,11 +605,17 @@ def test_positive_configure_cloud_connector(
 
     with session:
         if session.cloudinventory.is_cloud_connector_configured():
-            pytest.skip('Cloud Connector has already been configured on this system. It is possible to reconfigure it but then the test would not really check if everything is correctly configured from scratch. Skipping.')
-        res = session.cloudinventory.configure_cloud_connector()
+            pytest.skip(
+                'Cloud Connector has already been configured on this system. '
+                'It is possible to reconfigure it but then the test would not really '
+                'check if everything is correctly configured from scratch. Skipping.'
+            )
+        session.cloudinventory.configure_cloud_connector()
 
     template_name = 'Configure Cloud Connector'
-    invocation_id = entities.JobInvocation().search(query={'search': f'description="{template_name}"'})[0].id
+    invocation_id = (
+        entities.JobInvocation().search(query={'search': f'description="{template_name}"'})[0].id
+    )
     wait_for(
         lambda: entities.JobInvocation(id=invocation_id).read().status_label
         in ["succeeded", "failed"],
@@ -628,8 +634,6 @@ def test_positive_configure_cloud_connector(
     # check that there is one receptor conf file and it's only readable
     # by the receptor user and root
     result = default_sat.execute('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
-    assert all(
-        filestats == '400:foreman-proxy' for filestats in result.stdout.strip().split('\n')
-    )
+    assert all(filestats == '400:foreman-proxy' for filestats in result.stdout.strip().split('\n'))
     result = default_sat.execute('ls -l /etc/receptor/*/receptor.conf | wc -l')
     assert int(result.stdout.strip()) >= 1
