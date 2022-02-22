@@ -1398,7 +1398,6 @@ def test_positive_global_registration_end_to_end(
     with session:
         cmd = session.host.get_register_command(
             {
-                'general.capsule': module_proxy.name,
                 'general.operating_system': module_os.title,
                 'advanced.activation_keys': module_activation_key.name,
                 'advanced.rex_interface': iface,
@@ -1410,7 +1409,6 @@ def test_positive_global_registration_end_to_end(
         f'activation_keys={module_activation_key.name}',
         f'location_id={smart_proxy_location.id}',
         f'operatingsystem_id={module_os.id}',
-        f'{module_proxy.name}:9090',
         'insecure',
     ]
     for pair in expected_pairs:
