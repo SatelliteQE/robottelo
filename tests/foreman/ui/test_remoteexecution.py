@@ -588,6 +588,8 @@ def test_positive_configure_cloud_connector(
 
     :CaseComponent: RHCloud-CloudConnector
 
+    :CaseImportance: Medium
+
     :assignee: lhellebr
 
     :BZ: 1818076
