@@ -48,7 +48,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.hosts import ContentHost
 from robottelo.logging import logger
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture()
@@ -101,8 +100,8 @@ class TestRemoteExecution:
     @pytest.mark.tier3
     @pytest.mark.pit_client
     @pytest.mark.pit_server
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
-    def test_positive_run_default_job_template_by_ip(self, fixture_vmsetup):
+    @pytest.mark.rhel_ver_list([7])
+    def test_positive_run_default_job_template_by_ip(self, rex_contenthost):
         """Run default template on host connected by ip and list task
 
         :id: 811c7747-bec6-4a2d-8e5c-b5045d3fbc0d
@@ -116,7 +115,7 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        client = fixture_vmsetup
+        client = rex_contenthost
         command = f'echo {gen_string("alpha")}'
         invocation_command = make_job_invocation(
             {
@@ -146,8 +145,8 @@ class TestRemoteExecution:
     @pytest.mark.tier3
     @pytest.mark.pit_client
     @pytest.mark.pit_server
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
-    def test_positive_run_job_effective_user_by_ip(self, fixture_vmsetup):
+    @pytest.mark.rhel_ver_list([7, 8, 9])
+    def test_positive_run_job_effective_user_by_ip(self, rex_contenthost):
         """Run default job template as effective user on a host by ip
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
@@ -159,7 +158,7 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        client = fixture_vmsetup
+        client = rex_contenthost
         # create a user on client via remote job
         username = gen_string('alpha')
         filename = gen_string('alpha')
@@ -208,18 +207,9 @@ class TestRemoteExecution:
         # assert the file is owned by the effective user
         assert username == result.stdout.strip('\n')
 
-    nick_params = [{'nick': 'rhel7'}, {'nick': 'rhel7_fips'}, {'nick': 'rhel8'}]
-    if not is_open('BZ:1811166'):
-        nick_params.append({'nick': 'rhel8_fips'})
-
     @pytest.mark.tier3
-    @pytest.mark.parametrize(
-        'fixture_vmsetup',
-        nick_params,
-        ids=[n['nick'] for n in nick_params],
-        indirect=True,
-    )
-    def test_positive_run_custom_job_template_by_ip(self, fixture_vmsetup, module_org, default_sat):
+    @pytest.mark.rhel_ver_list([7, '7_fips', 8, '8_fips', 9])
+    def test_positive_run_custom_job_template_by_ip(self, rex_contenthost, module_org, default_sat):
         """Run custom template on host connected by ip
 
         :id: 9740eb1d-59f5-42b2-b3ab-659ca0202c74
@@ -234,8 +224,9 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
+        pass
         self.org = module_org
-        client = fixture_vmsetup
+        client = rex_contenthost
         template_file = 'template_file.txt'
         default_sat.execute(f'echo "echo Enforcing" > {template_file}')
         template_name = gen_string('alpha', 7)
@@ -259,13 +250,8 @@ class TestRemoteExecution:
             raise AssertionError(result)
 
     @pytest.mark.destructive
-    @pytest.mark.parametrize(
-        'fixture_vmsetup',
-        [{'nick': 'rhel7'}],
-        ids=['rhel7'],
-        indirect=True,
-    )
-    def test_positive_use_alternate_directory(self, fixture_vmsetup, module_org, default_sat):
+    @pytest.mark.rhel_ver_list([7])
+    def test_positive_use_alternate_directory(self, rex_contenthost, module_org, default_sat):
         """Use alternate working directory on client to execute rex jobs
 
         :id: a0181f18-d3dc-4bd9-a2a6-430c2a49809e
@@ -276,7 +262,7 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        client = fixture_vmsetup
+        client = rex_contenthost
         testdir = gen_string('alpha')
         result = client.run(f'mkdir /{testdir}')
         assert result.status == 0
@@ -314,11 +300,8 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'fixture_vmsetup', [{'nick': 'rhel7', '_count': 2}], ids=['rhel7'], indirect=True
-    )
     def test_positive_run_default_job_template_multiple_hosts_by_ip(
-        self, fixture_vmsetup, module_org
+        self, registered_hosts, module_org
     ):
         """Run default job template against multiple hosts by ip
 
@@ -328,7 +311,7 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        clients = fixture_vmsetup
+        clients = registered_hosts
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - SSH Default',
@@ -353,11 +336,11 @@ class TestRemoteExecution:
         assert result['success'] == '2', output_msgs
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
+    @pytest.mark.rhel_ver_list([7])
     @pytest.mark.skipif(
         (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
     )
-    def test_positive_install_multiple_packages_with_a_job_by_ip(self, fixture_vmsetup, module_org):
+    def test_positive_install_multiple_packages_with_a_job_by_ip(self, rex_contenthost, module_org):
         """Run job to install several packages on host by ip
 
         :id: 8b73033f-83c9-4024-83c3-5e442a79d320
@@ -368,7 +351,7 @@ class TestRemoteExecution:
         :parametrized: yes
         """
         self.org = module_org
-        client = fixture_vmsetup
+        client = rex_contenthost
         packages = ['cow', 'dog', 'lion']
         # Create a custom repo
         repo = entities.Repository(
@@ -414,8 +397,8 @@ class TestRemoteExecution:
         assert result.status == 0
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
-    def test_positive_run_recurring_job_with_max_iterations_by_ip(self, fixture_vmsetup):
+    @pytest.mark.rhel_ver_list([7])
+    def test_positive_run_recurring_job_with_max_iterations_by_ip(self, rex_contenthost):
         """Run default job template multiple times with max iteration by ip
 
         :id: 0a3d1627-95d9-42ab-9478-a908f2a7c509
@@ -425,7 +408,7 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        client = fixture_vmsetup
+        client = rex_contenthost
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - SSH Default',
@@ -455,8 +438,8 @@ class TestRemoteExecution:
         assert rec_logic['iteration'] == '2'
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
-    def test_positive_run_scheduled_job_template_by_ip(self, fixture_vmsetup, default_sat):
+    @pytest.mark.rhel_ver_list([7])
+    def test_positive_run_scheduled_job_template_by_ip(self, rex_contenthost, default_sat):
         """Schedule a job to be ran against a host
 
         :id: 0407e3de-ef59-4706-ae0d-b81172b81e5c
@@ -466,7 +449,7 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        client = fixture_vmsetup
+        client = rex_contenthost
         system_current_time = default_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout
         current_time_object = datetime.strptime(system_current_time.strip('\n'), '%b %d %Y %I:%M%p')
         plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M")
@@ -576,8 +559,8 @@ class TestAnsibleREX:
     @pytest.mark.upgrade
     @pytest.mark.pit_client
     @pytest.mark.pit_server
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
-    def test_positive_run_effective_user_job(self, fixture_vmsetup):
+    @pytest.mark.rhel_ver_list([7, 8, 9])
+    def test_positive_run_effective_user_job(self, rex_contenthost):
         """Tests Ansible REX job having effective user runs successfully
 
         :id: a5fa20d8-c2bd-4bbf-a6dc-bf307b59dd8c
@@ -600,7 +583,7 @@ class TestAnsibleREX:
 
         :parametrized: yes
         """
-        client = fixture_vmsetup
+        client = rex_contenthost
         # create a user on client via remote job
         username = gen_string('alpha')
         filename = gen_string('alpha')
@@ -651,8 +634,8 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
-    def test_positive_run_reccuring_job(self, fixture_vmsetup):
+    @pytest.mark.rhel_ver_list([7])
+    def test_positive_run_reccuring_job(self, rex_contenthost):
         """Tests Ansible REX reccuring job runs successfully multiple times
 
         :id: 49b0d31d-58f9-47f1-aa5d-561a1dcb0d66
@@ -673,7 +656,7 @@ class TestAnsibleREX:
 
         :parametrized: yes
         """
-        client = fixture_vmsetup
+        client = rex_contenthost
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
@@ -701,10 +684,7 @@ class TestAnsibleREX:
         assert rec_logic['iteration'] == '2'
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize(
-        'fixture_vmsetup', [{'nick': 'rhel7', '_count': 2}], ids=['rhel7'], indirect=True
-    )
-    def test_positive_run_concurrent_jobs(self, fixture_vmsetup, module_org):
+    def test_positive_run_concurrent_jobs(self, registered_hosts, module_org):
         """Tests Ansible REX concurent jobs without batch trigger
 
         :id: ad0f108c-03f2-49c7-8732-b1056570567b
@@ -729,7 +709,7 @@ class TestAnsibleREX:
         """
         param_name = 'foreman_tasks_proxy_batch_trigger'
         GlobalParameter().set({'name': param_name, 'value': 'false'})
-        clients = fixture_vmsetup
+        clients = registered_hosts
         output_msgs = []
         invocation_command = make_job_invocation(
             {
@@ -755,23 +735,14 @@ class TestAnsibleREX:
         GlobalParameter().delete({'name': param_name})
         assert len(GlobalParameter().list({'search': param_name})) == 0
 
-    nick_params = [{'nick': 'rhel7'}, {'nick': 'rhel7_fips'}, {'nick': 'rhel8'}]
-    if not is_open('BZ:1811166'):
-        nick_params.append({'nick': 'rhel8_fips'})
-
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.pit_server
-    @pytest.mark.parametrize(
-        'fixture_vmsetup',
-        nick_params,
-        ids=[n['nick'] for n in nick_params],
-        indirect=True,
-    )
+    @pytest.mark.rhel_ver_list([7, '7_fips', 8, '8_fips', 9])
     @pytest.mark.skipif(
         (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
     )
-    def test_positive_run_packages_and_services_job(self, fixture_vmsetup, module_org):
+    def test_positive_run_packages_and_services_job(self, rex_contenthost, module_org):
         """Tests Ansible REX job can install packages and start services
 
         :id: 47ed82fb-77ca-43d6-a52e-f62bae5d3a42
@@ -803,7 +774,7 @@ class TestAnsibleREX:
         :parametrized: yes
         """
         self.org = module_org
-        client = fixture_vmsetup
+        client = rex_contenthost
         packages = ['cow']
         # Create a custom repo
         repo = entities.Repository(
@@ -990,9 +961,9 @@ class TestRexUsers:
         yield (rexinfra, password)
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
+    @pytest.mark.rhel_ver_list([7])
     def test_positive_rex_against_satellite(
-        self, fixture_vmsetup, module_rexmanager_user, module_rexinfra_user, default_sat, module_org
+        self, rex_contenthost, module_rexmanager_user, module_rexinfra_user, default_sat, module_org
     ):
         """
         Tests related to remote execution against Satellite host
@@ -1010,7 +981,7 @@ class TestRexUsers:
         :caseautomation: Automated
 
         """
-        client = fixture_vmsetup
+        client = rex_contenthost
         default_sat.add_rex_key(satellite=default_sat)
         Host.update({'name': default_sat.hostname, 'new-organization-id': module_org.id})
 
