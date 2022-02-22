@@ -22,7 +22,6 @@ http://theforeman.org/api/apidoc/v2/environments.html
 """
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.api.utils import one_to_many_names
@@ -34,7 +33,7 @@ from robottelo.datafactory import valid_environments_list
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_environments_list()))
-def test_positive_create_with_name(name, module_puppet_enabled_sat):
+def test_positive_create_with_name(name, session_puppet_enabled_sat):
     """Create an environment and provide a valid name.
 
     :id: 8869ccf8-a511-4fa7-ac36-11494e85f532
@@ -46,13 +45,13 @@ def test_positive_create_with_name(name, module_puppet_enabled_sat):
 
     :CaseImportance: Critical
     """
-    env = module_puppet_enabled_sat.api.Environment(name=name).create()
+    env = session_puppet_enabled_sat.api.Environment(name=name).create()
     assert env.name == name
 
 
 @pytest.mark.tier1
 def test_positive_create_with_org_and_loc(
-    module_puppet_org, module_puppet_loc, module_puppet_enabled_sat
+    module_puppet_org, module_puppet_loc, session_puppet_enabled_sat
 ):
     """Create an environment and assign it to new organization.
 
@@ -63,7 +62,7 @@ def test_positive_create_with_org_and_loc(
 
     :CaseImportance: Critical
     """
-    env = module_puppet_enabled_sat.api.Environment(
+    env = session_puppet_enabled_sat.api.Environment(
         name=gen_string('alphanumeric'),
         organization=[module_puppet_org],
         location=[module_puppet_loc],
@@ -76,7 +75,7 @@ def test_positive_create_with_org_and_loc(
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-def test_negative_create_with_too_long_name(name, module_puppet_enabled_sat):
+def test_negative_create_with_too_long_name(name, session_puppet_enabled_sat):
     """Create an environment and provide an invalid name.
 
     :id: e2654954-b3a1-4594-a487-bcd0cc8195ad
@@ -87,12 +86,12 @@ def test_negative_create_with_too_long_name(name, module_puppet_enabled_sat):
 
     """
     with pytest.raises(HTTPError):
-        module_puppet_enabled_sat.api.Environment(name=name).create()
+        session_puppet_enabled_sat.api.Environment(name=name).create()
 
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_environments_list()))
-def test_negative_create_with_invalid_characters(name, module_puppet_enabled_sat):
+def test_negative_create_with_invalid_characters(name, session_puppet_enabled_sat):
     """Create an environment and provide an illegal name.
 
     :id: 8ec57d04-4ce6-48b4-b7f9-79025019ad0f
@@ -103,12 +102,12 @@ def test_negative_create_with_invalid_characters(name, module_puppet_enabled_sat
 
     """
     with pytest.raises(HTTPError):
-        module_puppet_enabled_sat.api.Environment(name=name).create()
+        session_puppet_enabled_sat.api.Environment(name=name).create()
 
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('new_name', **parametrized(valid_environments_list()))
-def test_positive_update_name(module_puppet_environment, new_name, module_puppet_enabled_sat):
+def test_positive_update_name(module_puppet_environment, new_name, session_puppet_enabled_sat):
     """Create environment entity providing the initial name, then
     update its name to another valid name.
 
@@ -119,7 +118,7 @@ def test_positive_update_name(module_puppet_environment, new_name, module_puppet
     :expectedresults: Environment entity is created and updated properly
 
     """
-    env = module_puppet_enabled_sat.api.Environment(
+    env = session_puppet_enabled_sat.api.Environment(
         id=module_puppet_environment.id, name=new_name
     ).update(['name'])
     assert env.name == new_name
@@ -127,7 +126,7 @@ def test_positive_update_name(module_puppet_environment, new_name, module_puppet
 
 @pytest.mark.tier2
 def test_positive_update_and_remove(
-    module_puppet_org, module_puppet_loc, module_puppet_enabled_sat
+    module_puppet_org, module_puppet_loc, session_puppet_enabled_sat
 ):
     """Update environment and assign it to a new organization
     and location. Delete environment afterwards.
@@ -141,14 +140,18 @@ def test_positive_update_and_remove(
 
     :CaseLevel: Integration
     """
-    env = module_puppet_enabled_sat.api.Environment().create()
+    env = session_puppet_enabled_sat.api.Environment().create()
     assert len(env.organization) == 0
     assert len(env.location) == 0
-    env = entities.Environment(id=env.id, organization=[module_puppet_org]).update(['organization'])
+    env = session_puppet_enabled_sat.api.Environment(
+        id=env.id, organization=[module_puppet_org]
+    ).update(['organization'])
     assert len(env.organization) == 1
     assert env.organization[0].id, module_puppet_org.id
 
-    env = entities.Environment(id=env.id, location=[module_puppet_loc]).update(['location'])
+    env = session_puppet_enabled_sat.api.Environment(
+        id=env.id, location=[module_puppet_loc]
+    ).update(['location'])
     assert len(env.location) == 1
     assert env.location[0].id == module_puppet_loc.id
 
@@ -159,7 +162,7 @@ def test_positive_update_and_remove(
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('new_name', **parametrized(invalid_names_list()))
-def test_negative_update_name(module_puppet_environment, new_name, module_puppet_enabled_sat):
+def test_negative_update_name(module_puppet_environment, new_name, session_puppet_enabled_sat):
     """Create environment entity providing the initial name, then
     try to update its name to invalid one.
 
@@ -171,7 +174,7 @@ def test_negative_update_name(module_puppet_environment, new_name, module_puppet
 
     """
     with pytest.raises(HTTPError):
-        module_puppet_enabled_sat.api.Environment(
+        session_puppet_enabled_sat.api.Environment(
             id=module_puppet_environment.id, name=new_name
         ).update(['name'])
 

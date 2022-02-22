@@ -77,6 +77,14 @@ def module_satellite_host(satellite_factory):
     VMBroker(hosts=[new_sat]).checkin()
 
 
+@pytest.fixture(scope='session')
+def session_satellite_host(satellite_factory):
+    """A fixture that provides a Satellite based on config settings"""
+    new_sat = satellite_factory()
+    yield new_sat
+    VMBroker(hosts=[new_sat]).checkin()
+
+
 @pytest.fixture
 def capsule_host(capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
