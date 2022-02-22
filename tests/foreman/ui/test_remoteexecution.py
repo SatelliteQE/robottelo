@@ -604,6 +604,8 @@ def test_positive_configure_cloud_connector(
     )
 
     with session:
+        if session.cloudinventory.is_cloud_connector_configured():
+            pytest.skip('Cloud Connector has already been configured on this system. It is possible to reconfigure it but then the test would not really check if everything is correctly configured from scratch. Skipping.')
         res = session.cloudinventory.configure_cloud_connector()
 
     template_name = 'Configure Cloud Connector'
