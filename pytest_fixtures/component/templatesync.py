@@ -4,6 +4,7 @@ from fauxfactory import gen_string
 
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
+from robottelo.logging import logger
 
 
 @pytest.fixture()
@@ -19,12 +20,18 @@ def create_import_export_local_dir(default_sat):
     root_dir = FOREMAN_TEMPLATE_ROOT_DIR
     dir_path = f'{root_dir}/{dir_name}'
     # Creating the directory and set the write context
-    default_sat.execute(
+    result = default_sat.execute(
         f'mkdir -p {dir_path} && '
         f'chown foreman -R {root_dir} && '
         f'restorecon -R -v {root_dir} && '
         f'chcon -t httpd_sys_rw_content_t {dir_path} -R'
     )
+    if result.status != 0:
+        logger.debug(result.stdout)
+        logger.debug(result.stderr)
+        pytest.fail(
+            f"Failed to create local dir or set SELinux context. Error output: {result.stderr}"
+        )
     # Copying the file to new directory to be modified by tests
     default_sat.execute(f'cp example_template.erb {dir_path}')
     yield dir_name, dir_path
