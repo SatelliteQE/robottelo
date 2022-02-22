@@ -100,6 +100,7 @@ def registered_hosts(organization_ak_setup, content_hosts, default_sat):
     for vm in content_hosts:
         vm.install_katello_ca(default_sat)
         vm.register_contenthost(org.label, ak.name)
+        vm.add_rex_key(default_sat)
         assert vm.subscribed
     return content_hosts
 
@@ -149,23 +150,27 @@ def katello_host_tools_host(default_sat, module_org, rhel_contenthost):
     yield rhel_contenthost
 
 
+@pytest.fixture
+def rex_contenthost(katello_host_tools_host, default_sat):
+    """Fixture that enables remote execution on the host"""
+    katello_host_tools_host.add_rex_key(satellite=default_sat)
+    yield katello_host_tools_host
+
+
 @pytest.fixture(scope="function")
-def katello_host_tools_tracer_host(katello_host_tools_host, default_sat):
-    """Install katello-host-tools-tracer, add REx key and create custom
+def katello_host_tools_tracer_host(rex_contenthost, default_sat):
+    """Install katello-host-tools-tracer, create custom
     repositories on the host"""
     # create a custom, rhel version-specific OS repo
-    rhelver = katello_host_tools_host.os_version.major
+    rhelver = rex_contenthost.os_version.major
     if rhelver > 7:
-        katello_host_tools_host.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
+        rex_contenthost.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
     else:
-        katello_host_tools_host.create_custom_repos(
+        rex_contenthost.create_custom_repos(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
-    katello_host_tools_host.install_tracer()
-    # enable REX
-    katello_host_tools_host.add_rex_key(satellite=default_sat)
-
-    yield katello_host_tools_host
+    rex_contenthost.install_tracer()
+    yield rex_contenthost
 
 
 @pytest.fixture
