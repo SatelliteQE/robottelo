@@ -522,6 +522,9 @@ class TestRemoteExecution:
 
         :BZ: 1818076
         """
+        result = default_sat.execute('stat /etc/receptor/*/receptor.conf')
+        if result.status == 0:
+            pytest.skip('Cloud Connector has already been configured on this system. It is possible to reconfigure it but then the test would not really check if everything is correctly configured from scratch. Skipping.')
         # Copy foreman-proxy user's key to root@localhost user's authorized_keys
         default_sat.add_rex_key(satellite=default_sat)
 
