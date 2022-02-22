@@ -1,8 +1,8 @@
+import unittest
 from functools import partial
 from unittest import mock
 
 import pytest
-import unittest2
 
 from robottelo.cli.base import Base
 from robottelo.cli.base import CLIBaseError
@@ -18,7 +18,7 @@ class CLIClass(Base):
     foreman_admin_password = 'adminpassword'
 
 
-class BaseCliTestCase(unittest2.TestCase):
+class BaseCliTestCase(unittest.TestCase):
     """Tests for the Base cli class"""
 
     def test_construct_command(self):
@@ -93,13 +93,13 @@ class BaseCliTestCase(unittest2.TestCase):
 
     def test_handle_response_error(self):
         """Check handle_response raise ``CLIReturnCodeError`` when
-        return_code is not 0
+        status is not 0
         """
         self.assert_response_error(CLIReturnCodeError)
 
     def test_handle_data_base_response_error(self):
         """Check handle_response raise ``CLIDataBaseError`` when
-        return_code is not 0 and error is related to DB error.
+        status is not 0 and error is related to DB error.
         See https://github.com/SatelliteQE/robottelo/issues/3790.
         """
         msgs = (
@@ -248,14 +248,14 @@ class BaseCliTestCase(unittest2.TestCase):
     def test_execute_with_raw_response(self, settings, command):
         """Check executed build ssh method and returns raw response"""
         settings.robottelo.locale = 'en_US'
-        settings.performance = False
+        settings.performance.time_hammer = False
         settings.server.admin_username = 'admin'
         settings.server.admin_password = 'password'
         response = Base.execute('some_cmd', return_raw_response=True)
         ssh_cmd = 'LANG=en_US  hammer -v -u admin -p password  some_cmd'
         command.assert_called_once_with(
             ssh_cmd.encode('utf-8'),
-            hostname=mock.ANY,
+            hostname=None,
             output_format=None,
             timeout=None,
             connection_timeout=None,
@@ -275,7 +275,7 @@ class BaseCliTestCase(unittest2.TestCase):
         ssh_cmd = 'LANG=en_US time -p hammer -v -u admin -p password --output=json some_cmd'
         command.assert_called_once_with(
             ssh_cmd.encode('utf-8'),
-            hostname=mock.ANY,
+            hostname=None,
             output_format='json',
             timeout=None,
             connection_timeout=None,
@@ -334,13 +334,13 @@ class BaseCliTestCase(unittest2.TestCase):
         )
         parse.called_once_with('some_response')
 
-    @mock.patch('robottelo.cli.base.Base.command_requires_org')
-    def test_list_requires_organization_id(self, _):
-        """Check list raises CLIError with organization-id is not present in
-        options
-        """
-        with pytest.raises(CLIError):
-            Base.list()
+    # @mock.patch('robottelo.cli.base.Base.command_requires_org')
+    # def test_list_requires_organization_id(self, _):
+    #     """Check list raises CLIError with organization-id is not present in
+    #     options
+    #     """
+    #     with pytest.raises(CLIError):
+    #         Base.list()
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
@@ -393,7 +393,7 @@ class BaseCliTestCase(unittest2.TestCase):
         self.assert_cmd_execution(construct, execute, Base.update, 'update')
 
 
-class CLIErrorTests(unittest2.TestCase):
+class CLIErrorTests(unittest.TestCase):
     """Tests for the CLIError cli class"""
 
     def test_error_msg_is_exposed(self):
@@ -403,7 +403,7 @@ class CLIErrorTests(unittest2.TestCase):
             raise CLIError(msg)
 
 
-class CLIBaseErrorTestCase(unittest2.TestCase):
+class CLIBaseErrorTestCase(unittest.TestCase):
     """Tests for the CLIReturnCodeError cli class"""
 
     def test_init(self):
@@ -414,8 +414,8 @@ class CLIBaseErrorTestCase(unittest2.TestCase):
         assert error.msg == 'msg'
         assert error.message == error.msg
 
-    def test_return_code_is_exposed(self):
-        """Check if return_code is exposed to assertRaisesRegex"""
+    def test_status_is_exposed(self):
+        """Check if status is exposed to assertRaisesRegex"""
         with pytest.raises(CLIBaseError, match='1'):
             raise CLIBaseError(1, 'stderr', 'msg')
 

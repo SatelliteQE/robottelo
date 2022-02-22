@@ -81,4 +81,3 @@ UPGRADE:
   DOCKER_VM:
   # The upgrade VLAN vm_domain
   VM_DOMAIN:
-  DISTRIBUTION:
