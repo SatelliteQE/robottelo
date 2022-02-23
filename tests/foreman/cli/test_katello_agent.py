@@ -56,28 +56,27 @@ def katello_agent_repos(sat_with_katello_agent):
     lce = sat.api.LifecycleEnvironment(organization=org).create()
     cv = sat.api.ContentView(organization=org).create()
     ak = sat.api.ActivationKey(environment=lce, organization=org).create()
-    with sat:
-        setup_org_for_a_rh_repo(
-            {
-                'product': constants.PRDS['rhel'],
-                'repository-set': constants.REPOSET['rhst7'],
-                'repository': constants.REPOS['rhst7']['name'],
-                'organization-id': org.id,
-                'content-view-id': cv.id,
-                'lifecycle-environment-id': lce.id,
-                'activationkey-id': ak.id,
-            }
-        )
-        # Create custom repository content
-        setup_org_for_a_custom_repo(
-            {
-                'url': settings.repos.yum_1.url,
-                'organization-id': org.id,
-                'content-view-id': cv.id,
-                'lifecycle-environment-id': lce.id,
-                'activationkey-id': ak.id,
-            }
-        )
+    setup_org_for_a_rh_repo(
+        {
+            'product': constants.PRDS['rhel'],
+            'repository-set': constants.REPOSET['rhst7'],
+            'repository': constants.REPOS['rhst7']['name'],
+            'organization-id': org.id,
+            'content-view-id': cv.id,
+            'lifecycle-environment-id': lce.id,
+            'activationkey-id': ak.id,
+        }
+    )
+    # Create custom repository content
+    setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_1.url,
+            'organization-id': org.id,
+            'content-view-id': cv.id,
+            'lifecycle-environment-id': lce.id,
+            'activationkey-id': ak.id,
+        }
+    )
     return {
         'ak': ak,
         'cv': cv,
@@ -111,6 +110,8 @@ def test_positive_apply_errata(katello_agent_client):
 
     :expectedresults: Errata is scheduled for installation
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     sat = katello_agent_client['sat']
@@ -139,6 +140,8 @@ def test_positive_install_package(katello_agent_client):
 
     :expectedresults: Package was successfully installed
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     sat = katello_agent_client['sat']
@@ -158,6 +161,8 @@ def test_positive_remove_package(katello_agent_client):
     :id: 573dec11-8f14-411f-9e41-84426b0f23b5
 
     :expectedresults: Package was successfully removed
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -179,6 +184,8 @@ def test_positive_upgrade_package(katello_agent_client):
     :id: ad751c63-7175-40ae-8bc4-800462cd9c29
 
     :expectedresults: Package was successfully upgraded
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -202,6 +209,8 @@ def test_positive_upgrade_packages_all(katello_agent_client):
     :expectedresults: Packages (at least 1 with newer version available)
         were successfully upgraded
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     sat = katello_agent_client['sat']
@@ -222,6 +231,8 @@ def test_positive_install_and_remove_package_group(katello_agent_client):
 
     :expectedresults: Package group was successfully installed
         and removed
+
+    :parametrized: yes
 
     :CaseLevel: System
     """

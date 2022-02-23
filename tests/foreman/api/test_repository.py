@@ -16,7 +16,10 @@
 
 :Upstream: No
 """
+import re
 import tempfile
+import time
+from string import punctuation
 from urllib.parse import urljoin
 from urllib.parse import urlparse
 from urllib.parse import urlunparse
@@ -32,9 +35,11 @@ from requests.exceptions import SSLError
 from robottelo import constants
 from robottelo import datafactory
 from robottelo import manifests
+from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
+from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import repos as repo_constants
 from robottelo.datafactory import parametrized
@@ -147,7 +152,7 @@ class TestRepository:
         repo_2.update(['http_proxy_policy'])
         assert repo_2.http_proxy_policy == 'none'
 
-    @pytest.mark.skip_if_open("BZ:2011303")
+    @pytest.mark.skip_if_open("BZ:2042473")
     @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_sync_redhat_repo_using_http_proxy(self, module_manifest_org):
@@ -160,7 +165,7 @@ class TestRepository:
 
         :Assignee: jpathan
 
-        :BZ: 2011303
+        :BZ: 2011303, 2042473
 
         :CaseImportance: Critical
         """
@@ -245,9 +250,12 @@ class TestRepository:
             [
                 {
                     'content_type': 'yum',
-                    'url': repo_constants.FAKE_5_YUM_REPO.format(creds['login'], creds['pass']),
+                    'url': repo_constants.FAKE_5_YUM_REPO,
+                    'upstream_username': creds['login'],
+                    'upstream_password': creds['pass'],
                 }
-                for creds in datafactory.valid_http_credentials(url_encoded=True)
+                for creds in datafactory.valid_http_credentials()
+                if creds['http_valid']
             ]
         ),
         indirect=True,
@@ -314,6 +322,7 @@ class TestRepository:
         assert default_dl_policy
         assert repo.download_policy == default_dl_policy[0].value
 
+    @pytest.mark.skip_if_open("BZ:2042473")
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
@@ -330,7 +339,7 @@ class TestRepository:
 
         :CaseImportance: Critical
 
-        :BZ: 1732056
+        :BZ: 1732056, 2042473
         """
         assert repo.download_policy == 'immediate'
 
@@ -521,47 +530,13 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **datafactory.parametrized(
-            [
-                {'url': repo_constants.FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])}
-                for cred in datafactory.valid_http_credentials()
-                if cred['quote']
-            ]
-        ),
+        **datafactory.parametrized([{'url': f'http://{gen_string("alpha")}{punctuation}.com'}]),
         indirect=True,
     )
-    def test_negative_create_with_auth_url_with_special_characters(self, repo_options):
+    def test_negative_create_with_url_with_special_characters(self, repo_options):
         """Verify that repository URL cannot contain unquoted special characters
 
         :id: 2ffaa412-e5e5-4bec-afaa-9ea54315df49
-
-        :parametrized: yes
-
-        :expectedresults: A repository is not created and error is raised.
-
-        :CaseImportance: Critical
-        """
-        with pytest.raises(HTTPError):
-            entities.Repository(**repo_options).create()
-
-    @pytest.mark.tier1
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'repo_options',
-        **datafactory.parametrized(
-            [
-                {'url': repo_constants.FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])}
-                for cred in datafactory.invalid_http_credentials()
-            ]
-        ),
-        indirect=True,
-    )
-    def test_negative_create_with_auth_url_too_long(self, repo_options):
-        """Verify that repository URL length is limited
-
-        :id: 5aad4e9f-f7e1-497c-8e1f-55e07e38ee80
 
         :parametrized: yes
 
@@ -967,49 +942,13 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'url',
-        **datafactory.parametrized(
-            [
-                repo.format(cred['login'], cred['pass'])
-                for cred in datafactory.valid_http_credentials()
-                if cred['quote']
-                for repo in (repo_constants.FAKE_5_YUM_REPO, repo_constants.FAKE_7_PUPPET_REPO)
-            ]
-        ),
+        **datafactory.parametrized([f'http://{gen_string("alpha")}{punctuation}.com']),
     )
-    def test_negative_update_auth_url_with_special_characters(self, repo, url):
-        """Verify that repository URL credentials cannot be updated to contain
+    def test_negative_update_url_with_special_characters(self, repo, url):
+        """Verify that repository URL cannot be updated to contain
         the forbidden characters
 
         :id: 47530b1c-e964-402a-a633-c81583fb5b98
-
-        :parametrized: yes
-
-        :expectedresults: Repository url not updated
-
-        :CaseImportance: Critical
-        """
-        repo.url = url
-        with pytest.raises(HTTPError):
-            repo.update(['url'])
-
-    @pytest.mark.tier1
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'url',
-        **datafactory.parametrized(
-            [
-                repo.format(cred['login'], cred['pass'])
-                for cred in datafactory.invalid_http_credentials()
-                for repo in (repo_constants.FAKE_5_YUM_REPO, repo_constants.FAKE_7_PUPPET_REPO)
-            ]
-        ),
-    )
-    def test_negative_update_auth_url_too_long(self, repo, url):
-        """Update the original url for a repository to value which is too long
-
-        :id: cc00fbf4-d284-4404-88d9-ea0c0f03abe1
 
         :parametrized: yes
 
@@ -1034,7 +973,6 @@ class TestRepository:
         repo.sync()
         assert repo.read().content_counts['rpm'] >= 1
 
-    @pytest.mark.skip_if_open("BZ:2007655")
     @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -1045,9 +983,11 @@ class TestRepository:
             [
                 {
                     'content_type': 'yum',
-                    'url': repo_constants.FAKE_5_YUM_REPO.format(creds['login'], creds['pass']),
+                    'url': repo_constants.FAKE_5_YUM_REPO,
+                    'upstream_username': creds['login'],
+                    'upstream_password': creds['pass'],
                 }
-                for creds in datafactory.valid_http_credentials(url_encoded=True)
+                for creds in datafactory.valid_http_credentials()
                 if creds['http_valid']
             ]
         ),
@@ -1071,6 +1011,7 @@ class TestRepository:
         # Verify it has finished
         assert repo.read().content_counts['rpm'] >= 1
 
+    @pytest.mark.skip_if_open("BZ:2035025")
     @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -1081,9 +1022,11 @@ class TestRepository:
             [
                 {
                     'content_type': 'yum',
-                    'url': repo_constants.FAKE_5_YUM_REPO.format(creds['login'], creds['pass']),
+                    'url': repo_constants.FAKE_5_YUM_REPO,
+                    'upstream_username': creds['login'],
+                    'upstream_password': creds['pass'],
                 }
-                for creds in datafactory.valid_http_credentials(url_encoded=True)
+                for creds in datafactory.valid_http_credentials()
                 if not creds['http_valid']
             ]
         ),
@@ -1312,6 +1255,47 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.read()
 
+    def test_positive_recreate_pulp_repositories(self, module_org, default_sat):
+        """Verify that deleted Pulp Repositories can be recreated using the
+        command 'foreman-rake katello:correct_repositories COMMIT=true'
+
+        :id: 2167d548-5af1-43e7-9f05-cc340d722aa8
+
+        :customerscenario: True
+
+        :BZ: 1908101
+
+        :expectedresults: foreman-rake katello:correct_repositories COMMIT=true recreates deleted
+         repos with no TaskErrors
+        """
+        with manifests.clone() as manifest:
+            upload_manifest(module_org.id, manifest.content)
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhst7']['name'],
+            reposet=constants.REPOSET['rhst7'],
+            releasever=None,
+        )
+        call_entity_method_with_timeout(entities.Repository(id=repo_id).sync, timeout=1500)
+        with default_sat.session.shell() as sh:
+            sh.send('foreman-rake console')
+            time.sleep(30)  # sleep to allow time for console to open
+            sh.send(f'::Katello::Repository.find({repo_id}).version_href')
+            time.sleep(3)  # give enough time for the command to complete
+        results = sh.result
+        identifier = results.stdout.split('version_href\n"', 1)[1].split('version')[0]
+        default_sat.execute(
+            f'curl -X DELETE {default_sat.url}/{identifier}'
+            f' --cert /etc/pki/katello/certs/pulp-client.crt'
+            f' --key /etc/pki/katello/private/pulp-client.key'
+        )
+        command_output = default_sat.execute(
+            'foreman-rake katello:correct_repositories COMMIT=true'
+        )
+        assert 'Recreating' in command_output.stdout and 'TaskError' not in command_output.stdout
+
 
 @pytest.mark.run_in_one_thread
 class TestRepositorySync:
@@ -1387,6 +1371,111 @@ class TestRepositorySync:
         """
         pass
 
+    @pytest.mark.tier3
+    def test_positive_bulk_cancel_sync(self, default_sat, module_manifest_org):
+        """Bulk cancel 10+ repository syncs
+
+        :id: f9bb1c95-d60f-4c93-b32e-09d58ebce80e
+
+        :steps:
+            1. Add 10+ repos and sync all of them
+            2. Cancel all of the syncs
+            3. Check Foreman Tasks and /var/log/messages
+
+        :expectedresults: All the syncs stop successfully.
+
+        :CaseImportance: High
+
+        :CaseAutomation: Automated
+        """
+        repo_ids = []
+        for repo in constants.BULK_REPO_LIST:
+            repo_id = enable_rhrepo_and_fetchid(
+                basearch='x86_64',
+                org_id=module_manifest_org.id,
+                product=repo['product'],
+                repo=repo['name'],
+                reposet=repo['reposet'],
+                releasever=repo['releasever'],
+            )
+            repo_ids.append(repo_id)
+            rh_repo = entities.Repository(id=repo_id).read()
+            rh_repo.download_policy = 'immediate'
+            rh_repo = rh_repo.update()
+        sync_ids = []
+        for repo_id in repo_ids:
+            sync_task = entities.Repository(id=repo_id).sync(synchronous=False)
+            sync_ids.append(sync_task['id'])
+        entities.ForemanTask().bulk_cancel(data={"task_ids": sync_ids[0:5]})
+        # Give some time for sync cancels to calm down
+        time.sleep(30)
+        entities.ForemanTask().bulk_cancel(data={"task_ids": sync_ids[5:]})
+        for sync_id in sync_ids:
+            sync_result = entities.ForemanTask(id=sync_id).poll(canceled=True)
+            assert (
+                'Task canceled' in sync_result['humanized']['errors']
+                or 'No content added' in sync_result['humanized']['output']
+            )
+            # Find correlating pulp task using Foreman Task id
+            prod_log_out = default_sat.execute(
+                f'grep {sync_id} /var/log/foreman/production.log'
+            ).stdout.splitlines()[0]
+            correlation_id = re.search(r'\[I\|bac\|\w{8}\]', prod_log_out).group()[7:15]
+            # Assert the cancelation was executed in Pulp
+            result = default_sat.execute(
+                f'grep "{correlation_id}" /var/log/messages | grep "Canceling task"'
+            )
+            assert result.status == 0
+
+    @pytest.mark.tier3
+    @pytest.mark.destructive
+    @pytest.mark.run_in_one_thread
+    def test_positive_reboot_recover_sync(self, destructive_sat):
+        """Reboot during repo sync and resume the sync when the Satellite is online
+
+        :id: 4f746e28-444c-4688-b92b-778a6e58d614
+
+        :steps:
+            1. Add a repo and start sync
+            2. Reboot the Satellite while sync is running
+            3. Check Foreman Tasks
+
+        :expectedresults: Repo sync resumes / can resume and finishes successfully
+
+        :CaseImportance: High
+
+        :CaseAutomation: Automated
+        """
+        org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        rhel7_extra = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhel7_extra']['name'],
+            reposet=constants.REPOSET['rhel7_extra'],
+            releasever=None,
+        )
+        rhel7_extra = entities.Repository(id=rhel7_extra).read()
+        sync_task = rhel7_extra.sync(synchronous=False)
+        destructive_sat.power_control(state='reboot', ensure=True)
+        try:
+            wait_for_tasks(
+                search_query=(f'id = {sync_task["id"]}'),
+                search_rate=15,
+                max_tries=10,
+            )
+        except TaskFailedError:
+            sync_task = rhel7_extra.sync(synchronous=False)
+            wait_for_tasks(
+                search_query=(f'id = {sync_task["id"]}'),
+                search_rate=15,
+                max_tries=10,
+            )
+        task_status = entities.ForemanTask(id=sync_task['id']).poll()
+        assert task_status['result'] == 'success'
+
 
 class TestDockerRepository:
     """Tests specific to using ``Docker`` repositories."""
@@ -1451,6 +1540,51 @@ class TestDockerRepository:
         # TODO: add timeout support to sync(). This repo needs more than the default 300 seconds.
         repo.sync()
         assert repo.read().content_counts['docker_manifest'] >= 1
+
+    @pytest.mark.tier3
+    @pytest.mark.parametrize(
+        'repo_options',
+        **datafactory.parametrized(
+            {
+                'large_repo': {
+                    'content_type': 'docker',
+                    'docker_upstream_name': constants.DOCKER_REPO_UPSTREAM_NAME,
+                    'name': gen_string('alphanumeric', 10),
+                    'url': constants.RH_CONTAINER_REGISTRY_HUB,
+                    'upstream_username': settings.subscription.rhn_username,
+                    'upstream_password': settings.subscription.rhn_password,
+                }
+            }
+        ),
+        indirect=True,
+    )
+    def test_positive_cancel_docker_repo_sync(self, repo):
+        """Cancel a large, syncing Docker-type repository
+
+        :id: 86534979-be49-40ad-8290-05ac71c801b2
+
+        :steps:
+            1. Create new product
+            2. Create docker repo with:
+                a. URL - https://registry.redhat.io
+                b. Repo - openshift3/logging-elasticsearch
+            3. Sync repo
+            4. Cancel sync
+            5. Assert sync has stopped
+
+        :expectedresults: The docker-type repo is not synced, and the sync cancels successfully.
+
+        :CaseImportance: High
+
+        :CaseAutomation: Automated
+        """
+        sync_task = repo.sync(synchronous=False)
+        # Need to wait for sync to actually start up
+        time.sleep(2)
+        entities.ForemanTask().bulk_cancel(data={"task_ids": [sync_task['id']]})
+        sync_task = entities.ForemanTask(id=sync_task['id']).poll(canceled=True)
+        assert 'Task canceled' in sync_task['humanized']['errors']
+        assert 'No content added' in sync_task['humanized']['output']
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(

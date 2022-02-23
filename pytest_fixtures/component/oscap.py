@@ -32,7 +32,7 @@ def oscap_content_path(default_sat):
 
 
 @pytest.fixture(scope="module")
-def scap_content(import_ansible_roles, import_puppet_classes):
+def scap_content(import_ansible_roles):
     title = f"rhel-content-{gen_string('alpha')}"
     scap_info = make_scapcontent({'title': title, 'scap-file': f'{settings.oscap.content_path}'})
     scap_id = scap_info['id']

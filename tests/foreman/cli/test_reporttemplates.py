@@ -770,6 +770,8 @@ def test_positive_generate_entitlements_report_multiple_formats(
 
     :BZ: 1830289
 
+    :parametrized: yes
+
     :customerscenario: true
     """
     client = rhel7_contenthost
@@ -831,6 +833,8 @@ def test_positive_schedule_entitlements_report(
 
     :expectedresults: report is scheduled and generated containing all the expected information
                       regarding entitlements.
+
+    :parametrized: yes
     """
     client = rhel7_contenthost
     client.install_katello_ca(default_sat)

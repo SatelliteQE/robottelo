@@ -23,12 +23,16 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_utf8
 from nailgun import entities
+from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 
+from robottelo import constants
 from robottelo import manifests
 from robottelo.api.utils import apply_package_filter
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
+from robottelo.api.utils import upload_manifest
+from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CUSTOM_RPM_SHA_512_FEED_COUNT
@@ -730,6 +734,80 @@ class TestContentViewPublishPromote:
         comp_content_view = comp_content_view.read()
         comp_content_view_info = comp_content_view.version[0].read()
         assert comp_content_view_info.package_count == 36
+
+    @pytest.mark.tier4
+    @pytest.mark.destructive
+    @pytest.mark.run_in_one_thread
+    def test_positive_reboot_recover_cv_publish(self, destructive_sat):
+        """Reboot the Satellite during publish and resume publishing
+
+        :id: cceae727-81db-40a4-9c26-05ca6e93464e
+
+        :steps:
+            1. Create and publish a Content View
+            2. Reboot the Satellite while publish is running
+            3. Check Foreman Tasks
+
+        :expectedresults: Publish continues after reboot and finishes successfully
+
+        :CaseImportance: High
+
+        :CaseAutomation: Automated
+        """
+        org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        rhel7_extra = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhel7_extra']['name'],
+            reposet=constants.REPOSET['rhel7_extra'],
+            releasever=None,
+        )
+        rhel7_optional = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhel7_optional']['name'],
+            reposet=constants.REPOSET['rhel7_optional'],
+            releasever=constants.REPOS['rhel7_optional']['releasever'],
+        )
+        rhel7_sup = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhel7_sup']['name'],
+            reposet=constants.REPOSET['rhel7_sup'],
+            releasever=constants.REPOS['rhel7_sup']['releasever'],
+        )
+        rhel7_extra = entities.Repository(id=rhel7_extra).read()
+        rhel7_optional = entities.Repository(id=rhel7_optional).read()
+        rhel7_sup = entities.Repository(id=rhel7_sup).read()
+        for repo in [rhel7_extra, rhel7_optional, rhel7_sup]:
+            repo.sync(timeout=1200)
+        cv = entities.ContentView(
+            organization=org,
+            solve_dependencies=True,
+            repository=[rhel7_extra, rhel7_sup, rhel7_optional],
+        ).create()
+        try:
+            publish_task = cv.publish(synchronous=False)
+            destructive_sat.power_control(state='reboot', ensure=True)
+            wait_for_tasks(
+                search_query=(f'id = {publish_task["id"]}'),
+                search_rate=30,
+                max_tries=60,
+            )
+        except TaskFailedError:
+            entities.ForemanTask().bulk_resume(data={"task_ids": [publish_task['id']]})
+            wait_for_tasks(
+                search_query=(f'id = {publish_task["id"]}'),
+                search_rate=30,
+                max_tries=60,
+            )
+        task_status = entities.ForemanTask(id=publish_task['id']).poll()
+        assert task_status['result'] == 'success'
 
 
 class TestContentViewUpdate:

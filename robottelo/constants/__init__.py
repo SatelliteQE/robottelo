@@ -2,7 +2,7 @@
 from nailgun import entities
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.10"
+SATELLITE_VERSION = "7.0"
 SATELLITE_OS_VERSION = "7"
 
 LOCALES = (
@@ -23,9 +23,11 @@ LOCALES = (
     'zh_TW',
 )
 
+DISTRO_RHEL5 = "rhel5"
 DISTRO_RHEL6 = "rhel6"
 DISTRO_RHEL7 = "rhel7"
 DISTRO_RHEL8 = "rhel8"
+DISTRO_RHEL9 = "rhel9"
 DISTRO_SLES11 = "sles11"
 DISTRO_SLES12 = "sles12"
 
@@ -334,11 +336,13 @@ PRDS = {
     'rhcf': 'Red Hat CloudForms',
     'rhel': 'Red Hat Enterprise Linux Server',
     'rhah': 'Red Hat Enterprise Linux Atomic Host',
+    'rhs': 'Red Hat Satellite',
     'rhsc': 'Red Hat Satellite Capsule',
     'rhdt': 'Red Hat Developer Tools for RHEL Server',
     'rhscl': 'Red Hat Software Collections (for RHEL Server)',
     'rhae': 'Red Hat Ansible Engine',
     'rhel8': 'Red Hat Enterprise Linux for x86_64',
+    'rhel9': 'Red Hat Enterprise Linux for x86_64 Beta',
 }
 
 REPOSET = {
@@ -346,6 +350,7 @@ REPOSET = {
     'rhel6': 'Red Hat Enterprise Linux 6 Server (RPMs)',
     'rhel7': 'Red Hat Enterprise Linux 7 Server (RPMs)',
     'rhva6': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'),
+    'rhs7': 'Red Hat Satellite 6.10 (for RHEL 7 Server) (RPMs)',
     'rhsc7': 'Red Hat Satellite Capsule 6.9 (for RHEL 7 Server) (RPMs)',
     'rhsc7_iso': 'Red Hat Satellite Capsule 6.4 (for RHEL 7 Server) (ISOs)',
     'rhsc6': 'Red Hat Satellite Capsule 6.9 (for RHEL 6 Server) (RPMs)',
@@ -363,8 +368,23 @@ REPOSET = {
     'rhae2': 'Red Hat Ansible Engine 2.9 RPMs for Red Hat Enterprise Linux 7 Server',
     'rhst8': 'Red Hat Satellite Tools 6.9 for RHEL 8 x86_64 (RPMs)',
     'fdrh8': 'Fast Datapath for RHEL 8 x86_64 (RPMs)',
-    'rhel8_bos_ks': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
-    'rhel8_aps_ks': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
+    'kickstart': {
+        'rhel6': 'Red Hat Enterprise Linux 6 Server (Kickstart)',
+        'rhel7': 'Red Hat Enterprise Linux 7 Server (Kickstart)',
+        'rhel8': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
+        'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
+        'rhel9': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Beta (Kickstart)',
+    },
+    'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8',
+    'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)',
+    'rhel7_extra': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
+    'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
+    'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
+    'rhst7_610': 'Red Hat Satellite Tools 6.10 (for RHEL 7 Server) (RPMs)',
+    'rhel6_optional': 'Red Hat Enterprise Linux 6 Server - Optional (RPMs)',
+    'rhel6_sup': 'Red Hat Enterprise Linux 6 Server - Supplementary (RPMs)',
+    'rhel5': 'Red Hat Enterprise Linux 5 Server (RPMs)',
+    'rhel5_sup': 'Red Hat Enterprise Linux 5 Server - Supplementary (RPMs)',
 }
 
 NO_REPOS_AVAILABLE = "This system has no repositories available through subscriptions."
@@ -403,6 +423,15 @@ REPOS = {
         'key': 'rhel',
         'version': '6.8',
     },
+    'rhs7': {
+        'id': 'rhel-7-server-satellite-6.10-rpms',
+        'name': ('Red Hat Satellite 6.10 for RHEL 7 Server RPMs x86_64'),
+        'version': '6.10',
+        'reposet': REPOSET['rhs7'],
+        'product': PRDS['rhs'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhs',
+    },
     'rhsc7': {
         'id': 'rhel-7-server-satellite-capsule-6.9-rpms',
         'name': ('Red Hat Satellite Capsule 6.9 for RHEL 7 Server RPMs x86_64'),
@@ -438,6 +467,7 @@ REPOS = {
         'id': 'rhel-7-server-satellite-tools-6.4-rpms',
         'name': ('Red Hat Satellite Tools 6.4 for RHEL 7 Server RPMs x86_64'),
         'version': '6.4',
+        'releasever': None,
         'reposet': REPOSET['rhst7_64'],
         'product': PRDS['rhel'],
         'distro': DISTRO_RHEL7,
@@ -447,6 +477,7 @@ REPOS = {
         'id': 'rhel-7-server-satellite-tools-6.5-rpms',
         'name': ('Red Hat Satellite Tools 6.5 for RHEL 7 Server RPMs x86_64'),
         'version': '6.5',
+        'releasever': None,
         'reposet': REPOSET['rhst7_65'],
         'product': PRDS['rhel'],
         'distro': DISTRO_RHEL7,
@@ -456,6 +487,7 @@ REPOS = {
         'id': 'rhel-7-server-satellite-tools-6.6-rpms',
         'name': ('Red Hat Satellite Tools 6.6 for RHEL 7 Server RPMs x86_64'),
         'version': '6.6',
+        'releasever': None,
         'reposet': REPOSET['rhst7_66'],
         'product': PRDS['rhel'],
         'distro': DISTRO_RHEL7,
@@ -465,6 +497,7 @@ REPOS = {
         'id': 'rhel-7-server-satellite-tools-6.7-rpms',
         'name': ('Red Hat Satellite Tools 6.7 for RHEL 7 Server RPMs x86_64'),
         'version': '6.7',
+        'releasever': None,
         'reposet': REPOSET['rhst7_67'],
         'product': PRDS['rhel'],
         'distro': DISTRO_RHEL7,
@@ -537,17 +570,11 @@ REPOS = {
     'rhdt7': {
         'name': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7 Server x86_64')
     },
-    'rhscl7': {
-        'id': 'rhel-server-rhscl-7-rpms',
-        'name': (
-            'Red Hat Software Collections RPMs for Red Hat Enterprise'
-            ' Linux 7 Server x86_64 7Server'
-        ),
-    },
     'rhae2': {
         'id': 'rhel-7-server-ansible-2.9-rpms',
         'name': 'Red Hat Ansible Engine 2.9 RPMs for Red Hat Enterprise Linux 7 Server x86_64',
         'version': '2.9',
+        'releasever': None,
         'arch': 'x86_64',
         'reposet': REPOSET['rhae2'],
         'product': PRDS['rhae'],
@@ -563,25 +590,164 @@ REPOS = {
         'distro': DISTRO_RHEL8,
         'key': 'rhst',
     },
-    'rhel8_bos_ks': {
-        'id': 'rhel-8-for-x86_64-baseos-kickstart',
-        'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.4',
-        'version': '8.4',
-        'reposet': REPOSET['rhel8_bos_ks'],
-        'product': PRDS['rhel8'],
-        'distro': DISTRO_RHEL8,
-        'key': 'rhel8_bos_ks',
+    'kickstart': {
+        'rhel6': {
+            'id': 'rhel-6-server-kickstart',
+            'name': 'Red Hat Enterprise Linux 6 Server Kickstart x86_64 6.10',
+            'version': '6.10',
+            'reposet': REPOSET['kickstart']['rhel6'],
+            'product': PRDS['rhel'],
+            'distro': DISTRO_RHEL6,
+        },
+        'rhel7': {
+            'id': 'rhel-7-server-kickstart',
+            'name': 'Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.9',
+            'version': '7.9',
+            'reposet': REPOSET['kickstart']['rhel7'],
+            'product': PRDS['rhel'],
+            'distro': DISTRO_RHEL7,
+        },
+        'rhel8': {
+            'id': 'rhel-8-for-x86_64-baseos-kickstart',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.4',
+            'version': '8.4',
+            'reposet': REPOSET['kickstart']['rhel8'],
+            'product': PRDS['rhel8'],
+            'distro': DISTRO_RHEL8,
+        },
+        'rhel8_aps': {
+            'id': 'rhel-8-for-x86_64-appstream-kickstart',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.5',
+            'version': '8.5',
+            'reposet': REPOSET['kickstart']['rhel8_aps'],
+            'product': PRDS['rhel8'],
+            'distro': DISTRO_RHEL8,
+        },
+        'rhel9': {
+            'id': 'rhel-9-for-x86_64-baseos-beta-kickstart',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Beta Kickstart',
+            'version': '9.0',
+            'reposet': REPOSET['kickstart']['rhel9'],
+            'product': PRDS['rhel9'],
+            'distro': DISTRO_RHEL9,
+        },
     },
-    'rhel8_aps_ks': {
-        'id': 'rhel-8-for-x86_64-appstream-kickstart',
-        'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.5',
-        'version': '8.5',
-        'reposet': REPOSET['rhel8_bos_ks'],
+    'rhel8_bos': {
+        'id': 'rhel-8-for-x86_64-baseos-rpms',
+        'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8',
+        'version': '8',
+        'reposet': REPOSET['rhel8_bos'],
         'product': PRDS['rhel8'],
         'distro': DISTRO_RHEL8,
-        'key': 'rhel8_aps_ks',
+        'key': 'rhel8_bos',
+    },
+    'rhel8_aps': {
+        'id': 'rhel-8-for-x86_64-appstream-rpms',
+        'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream RPMs 8',
+        'releasever': '8',
+        'version': '8',
+        'reposet': REPOSET['rhel8_aps'],
+        'product': PRDS['rhel8'],
+        'distro': DISTRO_RHEL8,
+        'key': 'rhel8_aps',
+    },
+    'rhel7_optional': {
+        'id': 'rhel-7-server-optional-rpms',
+        'name': 'Red Hat Enterprise Linux 7 Server - Optional RPMs x86_64 7Server',
+        'releasever': '7Server',
+        'version': '7',
+        'reposet': REPOSET['rhel7_optional'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhel7_optional',
+    },
+    'rhel7_extra': {
+        'id': 'rhel-7-server-extras-rpms',
+        'name': 'Red Hat Enterprise Linux 7 Server - Extras RPMs x86_64',
+        'releasever': '7',
+        'version': '7',
+        'reposet': REPOSET['rhel7_extra'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhel7_extra',
+    },
+    'rhel7_sup': {
+        'id': 'rhel-7-server-supplementary-rpms',
+        'name': 'Red Hat Enterprise Linux 7 Server - Supplementary RPMs x86_64 7Server',
+        'releasever': '7Server',
+        'version': '7',
+        'reposet': REPOSET['rhel7_sup'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhel7_sup',
+    },
+    'rhel6_optional': {
+        'id': 'rhel-6-server-optional-rpms',
+        'name': 'Red Hat Enterprise Linux 6 Server - Optional RPMs x86_64 6Server',
+        'releasever': '6Server',
+        'version': '6',
+        'reposet': REPOSET['rhel6_optional'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhel6_optional',
+    },
+    'rhel6_sup': {
+        'id': 'rhel-6-server-supplementary-rpms',
+        'name': 'Red Hat Enterprise Linux 6 Server - Supplementary RPMs x86_64 6Server',
+        'releasever': '6Server',
+        'version': '6',
+        'reposet': REPOSET['rhel6_sup'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhel6_sup',
+    },
+    'rhel5': {
+        'id': 'rhel-5-server-rpms',
+        'name': 'Red Hat Enterprise Linux 5 Server RPMs x86_64 5Server',
+        'releasever': '5Server',
+        'version': '5',
+        'reposet': REPOSET['rhel5'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL5,
+        'key': 'rhel5',
+    },
+    'rhel5_sup': {
+        'id': 'rhel-5-server-supplementary-rpms',
+        'name': 'Red Hat Enterprise Linux 5 Server - Supplementary RPMs x86_64 5Server',
+        'releasever': '5Server',
+        'version': '5',
+        'reposet': REPOSET['rhel5_sup'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL5,
+        'key': 'rhel5_sup',
+    },
+    'rhscl7': {
+        'id': 'rhel-server-rhscl-7-rpms',
+        'name': (
+            'Red Hat Software Collections RPMs for Red Hat Enterprise'
+            ' Linux 7 Server x86_64 7Server'
+        ),
+        'releasever': '7Server',
+        'version': '7',
+        'reposet': REPOSET['rhscl7'],
+        'product': PRDS['rhscl'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhscl7',
     },
 }
+
+BULK_REPO_LIST = [
+    REPOS['rhel6_optional'],
+    REPOS['rhel6_sup'],
+    REPOS['rhel5_sup'],
+    REPOS['rhel7_optional'],
+    REPOS['rhel7_sup'],
+    REPOS['rhel7'],
+    REPOS['rhel6'],
+    REPOS['rhel5'],
+    REPOS['rhscl7'],
+    REPOS['rhel8_aps'],
+]
 
 DISTRO_REPOS = {
     # DISTRO_RHEL6: REPOS['rhel6'],
@@ -722,7 +888,9 @@ REP_TEM_APPLIED_ERRATA_INPUT = {
     'Include Last Reboot': {'yes': 'yes', 'no': 'no'},
 }
 CONTAINER_REGISTRY_HUB = 'https://mirror.gcr.io'
+RH_CONTAINER_REGISTRY_HUB = 'https://registry.redhat.io/'
 CONTAINER_UPSTREAM_NAME = 'library/busybox'
+DOCKER_REPO_UPSTREAM_NAME = 'openshift3/logging-elasticsearch'
 CONTAINER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
 CONTAINER_CLIENTS = ['docker', 'podman']
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
@@ -740,7 +908,7 @@ FAKE_0_INC_UPD_NEW_UPDATEFILE = 'updateinfo_v2.xml'
 INVALID_URL = 'http://username:password@@example.com/repo'
 FAKE_0_CUSTOM_PACKAGE = 'bear-4.1-1.noarch'
 FAKE_0_CUSTOM_PACKAGE_NAME = 'bear'
-FAKE_1_CUSTOM_PACKAGE = 'walrus-0.71-1.noarch'
+FAKE_1_CUSTOM_PACKAGE = 'walrus-0.71-1.noarch'  # for RHSA-2012:0055 & RHEA-2012:0002
 FAKE_1_CUSTOM_PACKAGE_NAME = 'walrus'
 FAKE_2_CUSTOM_PACKAGE = 'walrus-5.21-1.noarch'
 FAKE_2_CUSTOM_PACKAGE_NAME = 'walrus'
@@ -807,6 +975,8 @@ REAL_1_ERRATA_ID = 'RHBA-2012:1076'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHBA-2012:0707'  # for REAL_0_RH_PACKAGE
 REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhva6 with type=security and cves
 REAL_4_ERRATA_CVES = ['CVE-2014-3633', 'CVE-2014-3657', 'CVE-2014-7823']
+FAKE_1_ERRATA_ID = 'RHEA-2012:0002'  # for FAKE_1_CUSTOM_PACKAGE
+FAKE_2_ERRATA_ID = 'RHSA-2012:0055'  # for FAKE_1_CUSTOM_PACKAGE
 REAL_RHEL7_0_ERRATA_ID = 'RHBA-2020:3615'  # for REAL_RHEL7_0_0_PACKAGE
 REAL_RHEL7_1_ERRATA_ID = 'RHBA-2017:0395'  # tcsh bug fix update
 FAKE_1_YUM_REPOS_COUNT = 32
@@ -887,7 +1057,6 @@ PERMISSIONS = {
         'view_config_reports',
         'view_plugins',
         'view_recurring_logics',
-        'view_tasks',
         'view_statuses',
         'generate_foreman_rh_cloud',
         'forget_status_hosts',
@@ -917,13 +1086,7 @@ PERMISSIONS = {
         'edit_authenticators',
         'destroy_authenticators',
     ],
-    'Bookmark': ['view_bookmarks', 'create_bookmarks', 'edit_bookmarks', 'destroy_bookmarks'],
-    'ConfigGroup': [
-        'view_config_groups',
-        'create_config_groups',
-        'edit_config_groups',
-        'destroy_config_groups',
-    ],
+    'Bookmark': ['create_bookmarks', 'edit_bookmarks', 'destroy_bookmarks'],
     'ComputeProfile': [
         'view_compute_profiles',
         'create_compute_profiles',
@@ -952,13 +1115,13 @@ PERMISSIONS = {
         'view_discovery_rules',
     ],
     'Domain': ['view_domains', 'create_domains', 'edit_domains', 'destroy_domains'],
-    'Environment': [
-        'view_environments',
-        'create_environments',
-        'edit_environments',
-        'destroy_environments',
-        'import_environments',
-    ],
+    #    'Environment': [
+    #        'view_environments',
+    #        'create_environments',
+    #        'edit_environments',
+    #        'destroy_environments',
+    #        'import_environments',
+    #    ],
     'ExternalUsergroup': [
         'view_external_usergroups',
         'create_external_usergroups',
@@ -1003,7 +1166,12 @@ PERMISSIONS = {
         'view_scap_contents',
     ],
     'ForemanTasks::Task': ['edit_foreman_tasks', 'view_foreman_tasks'],
-    'JobInvocation': ['view_job_invocations', 'create_job_invocations', 'cancel_job_invocations'],
+    'JobInvocation': [
+        'view_job_invocations',
+        'create_job_invocations',
+        'cancel_job_invocations',
+        'execute_jobs_on_infrastructure_hosts',
+    ],
     'JobTemplate': [
         'view_job_templates',
         'edit_job_templates',
@@ -1024,7 +1192,6 @@ PERMISSIONS = {
         "edit_tailoring_files",
         "destroy_tailoring_files",
     ],
-    'HostClass': ['edit_classes'],
     'Hostgroup': [
         'view_hostgroups',
         'create_hostgroups',
@@ -1032,6 +1199,19 @@ PERMISSIONS = {
         'destroy_hostgroups',
         'play_roles_on_hostgroup',
     ],
+    #    'Puppetclass': [
+    #        'view_puppetclasses',
+    #        'create_puppetclasses',
+    #        'edit_puppetclasses',
+    #        'destroy_puppetclasses',
+    #        'import_puppetclasses',
+    #    ],
+    #    'PuppetclassLookupKey': [
+    #        'view_external_parameters',
+    #        'create_external_parameters',
+    #        'edit_external_parameters',
+    #        'destroy_external_parameters',
+    #    ],
     'HttpProxy': [
         'view_http_proxies',
         'create_http_proxies',
@@ -1077,19 +1257,6 @@ PERMISSIONS = {
         'edit_ptables',
         'destroy_ptables',
         'lock_ptables',
-    ],
-    'Puppetclass': [
-        'view_puppetclasses',
-        'create_puppetclasses',
-        'edit_puppetclasses',
-        'destroy_puppetclasses',
-        'import_puppetclasses',
-    ],
-    'PuppetclassLookupKey': [
-        'view_external_parameters',
-        'create_external_parameters',
-        'edit_external_parameters',
-        'destroy_external_parameters',
     ],
     'Realm': ['view_realms', 'create_realms', 'edit_realms', 'destroy_realms'],
     'RemoteExecutionFeature': ['edit_remote_execution_features'],
@@ -1181,11 +1348,11 @@ PERMISSIONS = {
         'publish_content_views',
         'promote_or_remove_content_views',
     ],
-    'Katello::GpgKey': [
-        'view_content_credentials',
+    'Katello::ContentCredential': [
         'create_content_credentials',
-        'edit_content_credentials',
         'destroy_content_credentials',
+        'edit_content_credentials',
+        'view_content_credentials',
     ],
     'Katello::HostCollection': [
         'view_host_collections',
@@ -1593,21 +1760,22 @@ OSCAP_PROFILE = {
 }
 
 ROLES = [
-    'Access Insights Admin',
-    'Access Insights Viewer',
     'Ansible Roles Manager',
+    'Ansible Tower Inventory Reader',
     'Auditor',
     'Boot disk access',
     'Bookmarks manager',
     'Compliance manager',
     'Compliance viewer',
+    'Content Exporter',
+    'Content Importer',
     'Create ARF report',
     'Discovery Manager',
     'Discovery Reader',
     'Edit hosts',
     'Edit partition tables',
+    'ForemanRhCloud',
     'Organization admin',
-    'Red Hat Access Logs',
     'Register hosts',
     'Remote Execution Manager',
     'Remote Execution User',
@@ -1618,6 +1786,8 @@ ROLES = [
     'Virt-who Manager',
     'Virt-who Reporter',
     'Virt-who Viewer',
+    'Webhooks Manager',
+    'Webhooks Reader',
     'Manager',
     'Viewer',
     'System admin',

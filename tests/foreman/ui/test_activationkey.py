@@ -91,6 +91,8 @@ def test_positive_end_to_end_register(session, rhel7_contenthost, default_sat):
 
     :CaseLevel: System
 
+    :parametrized: yes
+
     :CaseImportance: High
     """
     org = entities.Organization().create()
@@ -867,6 +869,8 @@ def test_positive_add_host(session, module_org, rhel6_contenthost, default_sat):
 
     :expectedresults: Hosts are successfully associated to Activation key
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     ak = entities.ActivationKey(
@@ -880,6 +884,7 @@ def test_positive_add_host(session, module_org, rhel6_contenthost, default_sat):
     rhel6_contenthost.register_contenthost(module_org.label, ak.name)
     assert rhel6_contenthost.subscribed
     with session:
+        session.location.select(constants.DEFAULT_LOC)
         session.organization.select(module_org.name)
         ak = session.activationkey.read(ak.name, widget_names='content_hosts')
         assert len(ak['content_hosts']['table']) == 1
@@ -899,6 +904,8 @@ def test_positive_delete_with_system(session, rhel6_contenthost, default_sat):
         3. Delete the Activation key
 
     :expectedresults: Activation key is deleted
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -926,7 +933,7 @@ def test_positive_delete_with_system(session, rhel6_contenthost, default_sat):
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
-def test_negative_usage_limit(session, module_org, rhel6_contenthost, default_sat):
+def test_negative_usage_limit(session, module_org, default_sat):
     """Test that Usage limit actually limits usage
 
     :id: 9fe2d661-66f8-46a4-ae3f-0a9329494bdd
@@ -973,6 +980,8 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenth
 
     :expectedresults: Multiple Activation keys are attached to a system
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     key_1_name = gen_string('alpha')
@@ -991,6 +1000,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenth
     cv_publish_promote(cv_2_name, env_2_name, repo_2_id, module_org.id)
     with session:
         # Create 2 activation keys
+        session.location.select(constants.DEFAULT_LOC)
         for key_name, env_name, cv_name, product_name in (
             (key_1_name, env_1_name, cv_1_name, product_1_name),
             (key_2_name, env_2_name, cv_2_name, product_2_name),
@@ -1008,7 +1018,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenth
             assert product_name in subscriptions
         # Create VM
         rhel6_contenthost.install_katello_ca(default_sat)
-        rhel6_contenthost.register_contenthost(module_org.label, ','.join(key_1_name, key_2_name))
+        rhel6_contenthost.register_contenthost(module_org.label, ','.join([key_1_name, key_2_name]))
         assert rhel6_contenthost.subscribed
         # Assert the content-host association with activation keys
         for key_name in [key_1_name, key_2_name]:
@@ -1094,6 +1104,8 @@ def test_positive_service_level_subscription_with_custom_product(
            UI
 
     :BZ: 1394357
+
+    :parametrized: yes
 
     :CaseLevel: System
     """

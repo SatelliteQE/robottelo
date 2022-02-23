@@ -105,7 +105,6 @@ def module_vmware_settings():
     )
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier1
 def test_positive_end_to_end(session, module_org, module_location, module_vmware_settings):
     """Perform end to end testing for compute resource VMware component.
@@ -182,7 +181,6 @@ def test_positive_end_to_end(session, module_org, module_location, module_vmware
         assert not session.computeresource.search(new_cr_name)
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 def test_positive_retrieve_virtual_machine_list(session, module_vmware_settings):
     """List the virtual machine list from vmware compute resource
@@ -219,7 +217,6 @@ def test_positive_retrieve_virtual_machine_list(session, module_vmware_settings)
         )
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 def test_positive_image_end_to_end(session, module_vmware_settings):
     """Perform end to end testing for compute resource VMware component image.
@@ -279,7 +276,6 @@ def test_positive_image_end_to_end(session, module_vmware_settings):
         )
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 @pytest.mark.run_in_one_thread
 def test_positive_resource_vm_power_management(session, module_vmware_settings):
@@ -325,7 +321,6 @@ def test_positive_resource_vm_power_management(session, module_vmware_settings):
             raise AssertionError('Timed out waiting for VM to toggle power state')
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 def test_positive_select_vmware_custom_profile_guest_os_rhel7(session, module_vmware_settings):
     """Select custom default (3-Large) compute profile guest OS RHEL7.
@@ -372,7 +367,6 @@ def test_positive_select_vmware_custom_profile_guest_os_rhel7(session, module_vm
         assert values['provider_content']['guest_os'] == guest_os_name
 
 
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 def test_positive_access_vmware_with_custom_profile(session, module_vmware_settings):
     """Associate custom default (3-Large) compute profile

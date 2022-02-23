@@ -274,6 +274,8 @@ def test_positive_auto_attach_disabled_golden_ticket(
 
     :BZ: 1718954
 
+    :parametrized: yes
+
     :CaseImportance: Medium
     """
     rhel7_contenthost_class.install_katello_ca(default_sat)

@@ -1,23 +1,27 @@
 REPOS:
   SATELLITE_VERSION_UNDR: "@jinja {{this.robottelo.satellite_version | replace('.', '_')}}"
-  # Rhel major version would be used by some repositories to frame their repository URL for
-  # extended Rhel versions.
-  RHEL_MAJOR_VERSION: "@jinja {{this.server.version.rhel_release[0]}}"
-  # Provide link to rhel6/7/8 repo here, as puppet rpm would require packages from
-  # RHEL 6/7/8 repo and syncing the entire repo on the fly would take longer for
-  # tests to run Specify the *.repo link to an internal repo for tests to execute properly
+  # RHEL major version can be used by some repositories to frame their repository URL for
+  # extended RHEL versions.
+  RHEL_MAJOR_VERSION: "@jinja {{this.server.version.rhel_version | int}}"
+  # Provide link to RHEL6,7,8 & 9 repo here, as puppet rpm requires packages from
+  # those repos and syncing the entire repo on the fly would take longer for
+  # tests to run. Specify the *.repo link to an internal repo for tests to execute properly.
   RHEL_REPO_HOST: http://rhel_repo.example.com
   RHEL6_REPO: '@format {this[repos].rhel_repo_host}/pub/rhel6.repo'
   RHEL7_REPO: '@format {this[repos].rhel_repo_host}/pub/rhel7.repo'
   RHEL8_REPO: '@format {this[repos].rhel_repo_host}/pub/rhel8.repo'
+  RHEL9_REPO: '@format {this[repos].rhel_repo_host}/pub/rhel9.repo'
   SATELLITE_REPO: replace-with-repo-link
-  # Provide link to rhel6/7/8 repositories URL as we need all OS packages in order
+  # Provide link to RHEL6,7,8 & 9 repositories URL as we need all OS packages in order
   # to have real installation media for provisioning procedure
   RHEL6_OS: replace-with-rhel6-os-http-link
   RHEL7_OS: replace-with-rhel7-os-http-link
   RHEL8_OS:
     BASEOS: replace-with-rhel8-os-baseos-http-link
     APPSTREAM: replace-with-rhel8-os-appstream-http-link
+  RHEL9_OS:
+    BASEOS: replace-with-rhel9-os-baseos-http-link
+    APPSTREAM: replace-with-rhel9-os-appstream-http-link
   RHEL7_OPTIONAL: replace-with-rhel7-optional-url
   RHEL7_EXTRAS: replace-with-rhel7-extras-url
   # If capsule and satellite tools repositories available related packages will
@@ -28,6 +32,15 @@ REPOS:
     RHEL6: replace-with-rhel6-http-link
     RHEL7: replace-with-rhel7-http-link
     RHEL8: replace-with-rhel8-http-link
+    RHEL9: replace-with-rhel9-http-link
+  # Satellite's utils repos, and it works for 7.0 and onwards
+  SATUTILS_REPO: replace-with-utils-repository-url
+  # Satellite's client repos, and it works for 7.0 and onwards
+  SATCLIENT_REPO:
+    RHEL6: replace-with-rhel6-http-link
+    RHEL7: replace-with-rhel7-http-link
+    RHEL8: replace-with-rhel8-http-link
+    RHEL9: replace-with-rhel9-http-link
   # Downstream Satellite-maintain repo
   SATMAINTENANCE_REPO: replace-with-sat-maintain-repo
   # Software Collection Repo
@@ -38,6 +51,12 @@ REPOS:
   # which are essentially required for generating swid tags in RHEL8 content host.
   SWID_TOOLS_REPO: replace-with-swid-tools-repo
   FAKE_REPO_ZOO3: replace-with-zoo-fedorapeople-repo
+  MOCK_SERVICE_REPO_BASE: replace-with-repo-providing-robttelo-mock-service
+  MOCK_SERVICE_REPO:
+    RHEL7: "@format {this[repos].MOCK_SERVICE_REPO_BASE}/epel-7-x86_64/"
+    RHEL8: "@format {this[repos].MOCK_SERVICE_REPO_BASE}/epel-8-x86_64/"
+    RHEL9: "@format {this[repos].MOCK_SERVICE_REPO_BASE}/epel-9-x86_64/"
+  MOCK_SERVICE_RPM: "robottelo-mock-service"
 
 # Robottelo fixtures repos
   MODULE_STREAM_0:

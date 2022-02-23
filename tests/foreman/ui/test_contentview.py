@@ -2214,7 +2214,7 @@ def test_positive_edit_rh_custom_spin(session):
         distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    cv = entities.ContentView(id=repos_collection.setup_content_view['content_view']['id']).read()
+    cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
     with session:
         session.organization.select(org.name)
         session.contentviewfilter.create(
@@ -2541,40 +2541,6 @@ def test_positive_search_composite(session):
 
 
 @pytest.mark.tier3
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_publish_with_force_puppet_env(session, module_import_puppet_module):
-    """Check that puppet environment will be created automatically once
-    content view that contains puppet module is published, no matter
-    whether 'Force Puppet' option is enabled or disabled for that content
-    view
-    Check that puppet environment will be created automatically once content
-    view without puppet module is published, only if 'Force Puppet' option is
-    enabled
-
-    :id: af553367-e621-41e8-86cb-091ba7ba6c0a
-
-    :customerscenario: true
-
-    :expectedresults: puppet environment is created only in expected cases
-
-    :BZ: 1437110
-
-    :CaseLevel: Integration
-
-    :CaseImportance: High
-    """
-    puppet_env_name = module_import_puppet_module['env']
-    with session:
-        for force_value in [True, False]:
-            cv_name = gen_string('alpha')
-            session.contentview.create({'name': cv_name})
-            session.contentview.update(cv_name, {'details.force_puppet': force_value})
-            result = session.contentview.publish(cv_name)
-            assert result['Version'] == VERSION
-            assert session.puppetenvironment.search(puppet_env_name) == puppet_env_name
-
-
-@pytest.mark.tier3
 def test_positive_publish_with_repo_with_disabled_http(session, module_org):
     """Attempt to publish content view with repository that set
     'publish via http' to False
@@ -2632,6 +2598,8 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
 
     :CaseLevel: Integration
 
+    :parametrized: yes
+
     :CaseImportance: High
     """
     org = entities.Organization().create()
@@ -2654,7 +2622,9 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
 
 
 @pytest.mark.tier3
-def test_positive_delete_with_kickstart_repo_and_host_group(session, default_sat):
+def test_positive_delete_with_kickstart_repo_and_host_group(
+    session, default_sat, smart_proxy_location
+):
     """Check that Content View associated with kickstart repository and
     which is used by a host group can be removed from the system
 
@@ -2708,6 +2678,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session, default_sat
     os = os.update(['architecture', 'ptable'])
     with session:
         session.organization.select(org.name)
+        session.location.select(smart_proxy_location.name)
         session.hostgroup.create(
             {
                 'host_group.name': hg_name,
@@ -3070,6 +3041,8 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, default
            updated package
 
     :CaseImportance: Medium
+
+    :parametrized: yes
 
     :CaseLevel: Integration
     """

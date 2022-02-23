@@ -175,3 +175,29 @@ def test_positive_set_content_default_http_proxy(block_fake_repo_access):
     assert rpm_repo.read().content_counts['rpm'] == 0
     product.sync()
     assert rpm_repo.read().content_counts['rpm'] >= 1
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_environment_variable_unset_set():
+    """Verify that satellite installer unsets and then sets back the environment variables
+
+    :id: 596d753b-660b-49cb-b663-ff3cec439564
+
+    :BZ: 1886040
+
+    :customerscenario: true
+
+    :Steps:
+        1. Export any environment variable from
+           [http_proxy, https_proxy, ssl_cert_file, HTTP_PROXY, HTTPS_PROXY, SSL_CERT_FILE]
+        2. satellite-installer
+
+    :expectedresults: satellite-installer unsets system proxy and SSL environment variables
+                      only for the duration of install and sets back those in the end.
+
+    :CaseImportance: High
+
+    :CaseAutomation: NotAutomated
+
+    """

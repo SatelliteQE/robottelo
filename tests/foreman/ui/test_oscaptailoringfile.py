@@ -24,7 +24,7 @@ from robottelo.datafactory import gen_string
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, tailoring_file_path):
+def test_positive_end_to_end(session, tailoring_file_path, default_org, default_location):
     """Perform end to end testing for tailoring file component
 
     :id: 9aebccb8-6837-4583-8a8a-8883480ab688
@@ -35,15 +35,15 @@ def test_positive_end_to_end(session, tailoring_file_path):
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    org = entities.Organization().create()
-    loc = entities.Location().create()
     with session:
+        session.organization.select(org_name=default_org.name)
+        session.location.select(loc_name=default_location.name)
         session.oscaptailoringfile.create(
             {
                 'file_upload.name': name,
                 'file_upload.scap_file': tailoring_file_path['local'],
-                'organizations.resources.assigned': [org.name],
-                'locations.resources.assigned': [loc.name],
+                'organizations.resources.assigned': [default_org.name],
+                'locations.resources.assigned': [default_location.name],
             }
         )
         assert session.oscaptailoringfile.search(name)[0]['Name'] == name
@@ -53,14 +53,13 @@ def test_positive_end_to_end(session, tailoring_file_path):
             tailroingfile_values['file_upload']['uploaded_scap_file']
             == tailoring_file_path['local'].rsplit('/', 1)[-1]
         )
-        assert org.name in tailroingfile_values['organizations']['resources']['assigned']
-        assert loc.name in tailroingfile_values['locations']['resources']['assigned']
+        assert default_org.name in tailroingfile_values['organizations']['resources']['assigned']
+        assert default_location.name in tailroingfile_values['locations']['resources']['assigned']
         session.oscaptailoringfile.update(name, {'file_upload.name': new_name})
         assert session.oscaptailoringfile.search(new_name)[0]['Name'] == new_name
         assert not session.oscaptailoringfile.search(name)
-        # Skip delete operation till https://github.com/SatelliteQE/airgun/issues/473 is fixed.
-        # session.oscaptailoringfile.delete(new_name)
-        # assert not session.oscaptailoringfile.search(new_name)
+        session.oscaptailoringfile.delete(new_name)
+        assert not entities.TailoringFile().search(query={'search': f'name={new_name}'})
 
 
 @pytest.mark.tier2

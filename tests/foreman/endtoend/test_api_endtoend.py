@@ -1110,6 +1110,8 @@ class TestEndToEnd:
 
         :expectedresults: All tests should succeed and Content should be
             successfully fetched by client.
+
+        :parametrized: yes
         """
         # step 1: Create a new user with admin permissions
         login = gen_string('alphanumeric')

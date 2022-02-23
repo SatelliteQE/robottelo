@@ -58,6 +58,10 @@ def test_rhcloud_insights_e2e(
 
     :BZ: 1965901, 1962048
 
+    :customerscenario: true
+
+    :parametrized: yes
+
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
@@ -240,16 +244,21 @@ def test_host_details_page(
         4. Sync RH Cloud inventory status.
         5. Go to Hosts -> All Hosts
         6. Assert there is "Recommendations" column containing insights recommendation count.
-        7. Assert that host properties shows reporting inventory upload status.
-        8. Click on "Recommendations" tab.
+        7. Check popover status of host.
+        8. Assert that host properties shows reporting inventory upload status.
+        9. Click on "Recommendations" tab.
 
     :expectedresults:
         1. There's Insights column with number of recommendations.
-        2. Inventory upload status is present in host properties table.
-        3. Clicking on "Recommendations" tab takes user to Insights page with insights
+        2. Inventory upload status is displayed in popover status of host.
+        3. Insights registration status is displayed in popover status of host.
+        4. Inventory upload status is present in host properties table.
+        5. Clicking on "Recommendations" tab takes user to Insights page with insights
             recommendations selected for that host.
 
     :BZ: 1974578
+
+    :parametrized: yes
 
     :CaseAutomation: Automated
     """
@@ -285,6 +294,9 @@ def test_host_details_page(
             silent_failure=True,
             handle_exception=True,
         )
+        result = session.host.host_status(rhel8_insights_vm.hostname)
+        assert 'Insights: Reporting' in result
+        assert 'Inventory: Successfully uploaded to your RH cloud inventory' in result
         result = session.host.search(rhel8_insights_vm.hostname)[0]
         assert result['Name'] == rhel8_insights_vm.hostname
         assert int(result['Recommendations']) > 0
@@ -322,6 +334,8 @@ def test_rh_cloud_insights_clean_statuses(
         1. rake command deletes insights reporting status of host.
 
     :BZ: 1962930
+
+    :parametrized: yes
 
     :CaseAutomation: Automated
     """
@@ -382,6 +396,8 @@ def test_delete_host_having_insights_recommendation(
     :CaseImportance: Critical
 
     :BZ: 1860422, 1928652
+
+    :parametrized: yes
 
     :CaseAutomation: Automated
     """
@@ -469,6 +485,8 @@ def test_insights_tab_on_host_details_page(
     :CaseImportance: High
 
     :BZ: 1865876, 1879448
+
+    :parametrized: yes
 
     :CaseAutomation: Automated
     """
