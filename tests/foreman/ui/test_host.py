@@ -25,11 +25,11 @@ import re
 import pytest
 import yaml
 from airgun.exceptions import DisabledWidgetError
+from airgun.exceptions import NoSuchElementException
 from airgun.session import Session
 from broker.broker import VMBroker
 from nailgun import entities
 from wait_for import wait_for
-from widgetastic.exceptions import NoSuchElementException
 
 from robottelo import constants
 from robottelo import manifests
