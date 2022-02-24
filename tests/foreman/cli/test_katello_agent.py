@@ -28,6 +28,7 @@ from robottelo.helpers import InstallerCommand
 pytestmark = [
     pytest.mark.run_in_one_thread,
     pytest.mark.skip_if_not_set('clients', 'fake_manifest'),
+    pytest.mark.destructive,
 ]
 
 
