@@ -64,7 +64,7 @@ def test_positive_default_end_to_end_with_custom_profile(
 
     :CaseLevel: Integration
 
-    :BZ: 1451626
+    :BZ: 1451626, 2032530
 
     :CaseImportance: High
     """

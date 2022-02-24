@@ -47,19 +47,7 @@ def proxy_port_range(default_sat):
 @pytest.fixture
 def install_cockpit_plugin(default_sat):
     default_sat.register_to_dogfood()
-    cmd_result = default_sat.execute(
-        'foreman-installer --enable-foreman-plugin-remote-execution-cockpit', timeout='30m'
-    )
-    if cmd_result.status != 0:
-        raise SatelliteHostError(
-            f'Error during cockpit installation, installation output: {cmd_result.stdout}'
-        )
-    cmd_result = default_sat.execute(
-        f'sshpass -p "{settings.server.ssh_password}" ssh-copy-id \
-        -i ~foreman-proxy/.ssh/id_rsa_foreman_proxy -o StrictHostKeyChecking=no localhost'
-    )
-    if cmd_result.status != 0:
-        raise SatelliteHostError(f'Error during ssh-copy-id, command output: {cmd_result.stdout}')
+    default_sat.install_cockpit()
 
 
 @pytest.fixture(scope='session')

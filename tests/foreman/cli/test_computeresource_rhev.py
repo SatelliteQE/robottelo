@@ -27,14 +27,11 @@ from robottelo.cli.factory import CLIReturnCodeError
 from robottelo.cli.factory import make_compute_resource
 from robottelo.cli.factory import make_host
 from robottelo.cli.host import Host
-from robottelo.cli.settings import Settings
 from robottelo.config import settings
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.helpers import host_provisioning_check
 from robottelo.utils.issue_handlers import is_open
-
-pytestmark = pytest.mark.on_premises_provisioning
 
 
 @pytest.fixture(scope='module')
@@ -531,7 +528,9 @@ def test_positive_provision_rhev_without_host_group(rhev):
 @pytest.mark.tier3
 @pytest.mark.skip_if_not_set('vlan_networking')
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete'], indirect=True)
-def test_positive_provision_rhev_image_based(provisioning, rhev, tear_down, setting_update):
+def test_positive_provision_rhev_image_based_and_disassociate(
+    provisioning, rhev, tear_down, setting_update
+):
     """Provision a host on RHEV compute resource using image-based provisioning
 
     :Requirement: Computeresource RHV
@@ -542,6 +541,12 @@ def test_positive_provision_rhev_image_based(provisioning, rhev, tear_down, sett
 
     :id: ba78858f-5cff-462e-a35d-f5aa4d11db52
 
+    :parametrized: yes
+
+    :customerscenario: true
+
+    :BZ: 1356126
+
     :setup: RHEV with a template on it
 
     :steps:
@@ -549,8 +554,9 @@ def test_positive_provision_rhev_image_based(provisioning, rhev, tear_down, sett
         1. Create a RHEV CR
         1. Create an image on that CR
         2. Create a new host using that CR and image
+        3. Disassociate the host from the CR
 
-    :expectedresults: The host should be provisioned with that image
+    :expectedresults: Host should be provisioned with image, associated to CR, then disassociated
 
     :CaseAutomation: Automated
     """
@@ -624,12 +630,21 @@ def test_positive_provision_rhev_image_based(provisioning, rhev, tear_down, sett
         rhv_vm = rhev.rhv_api.get_vm(hostname)
         # Assert of Satellite mac address for VM and Mac of VM created is same
         assert host_info.get('network').get('mac') == rhv_vm.get_nics()[0].mac.address
+        # Check the host is associated to the CR
+        assert 'compute-resource' in host_info
+        assert host_info['compute-resource'] == name
         # Done. Do not try to SSH, this image-based test should work even without
         # being in the same network as RHEV. We checked the VM exists and
         # that's enough.
+
+        # Disassociate the host from the CR, check it's disassociated
+        Host.disassociate({'name': hostname})
+        host_info = Host.info({'name': hostname})
+        assert 'compute-resource' not in host_info
+
     finally:
-        # Now, let's just remove the VM.
-        Settings.set(
-            {'name': "destroy_vm_on_host_delete", 'value': "Yes"}
-        )  # will be reset by fixture
+
+        # Now, let's just remove the host
         Host.delete({'id': host['id']})
+        # Delete the VM since the disassociated VM won't get deleted
+        rhv_vm.delete()

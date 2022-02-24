@@ -1,4 +1,7 @@
 GIT:
   USERNAME: admin
   PASSWORD: chageme
-  URL: http://localhost:port
+  SSH_PORT: 22
+  HTTP_PORT: 80
+  HOSTNAME: localhost
+  GITHUB_TOKEN:

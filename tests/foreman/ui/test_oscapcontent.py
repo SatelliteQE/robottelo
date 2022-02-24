@@ -22,7 +22,6 @@ import pytest
 
 from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
-from robottelo.constants import ANY_CONTEXT
 from robottelo.datafactory import gen_string
 
 
@@ -37,7 +36,9 @@ def oscap_content_path(default_sat):
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, oscap_content_path, default_sat):
+def test_positive_end_to_end(
+    session, oscap_content_path, default_sat, default_org, default_location
+):
     """Perform end to end testing for openscap content component
 
     :id: 9870555d-0b60-41ab-a481-81d4d3f78fec
@@ -55,22 +56,22 @@ def test_positive_end_to_end(session, oscap_content_path, default_sat):
     """
     title = gen_string('alpha')
     new_title = gen_string('alpha')
-    org = default_sat.api.Organization().create()
-    loc = default_sat.api.Location().create()
     with session:
+        session.organization.select(org_name=default_org.name)
+        session.location.select(loc_name=default_location.name)
         session.oscapcontent.create(
             {
                 'file_upload.title': title,
                 'file_upload.scap_file': oscap_content_path,
-                'organizations.resources.assigned': [org.name],
-                'locations.resources.assigned': [loc.name],
+                'organizations.resources.assigned': [default_org.name],
+                'locations.resources.assigned': [default_location.name],
             }
         )
         oscap_values = session.oscapcontent.read(title)
         assert oscap_values['file_upload']['title'] == title
         assert oscap_values['file_upload']['uploaded_scap_file'] == oscap_content_path.name
-        assert org.name in oscap_values['organizations']['resources']['assigned']
-        assert loc.name in oscap_values['locations']['resources']['assigned']
+        assert default_org.name in oscap_values['organizations']['resources']['assigned']
+        assert default_location.name in oscap_values['locations']['resources']['assigned']
         session.oscapcontent.update(title, {'file_upload.title': new_title})
         session.location.search('abc')  # workaround for issue SatelliteQE/airgun#382.
         assert session.oscapcontent.search(new_title)[0]['Title'] == new_title
@@ -83,7 +84,7 @@ def test_positive_end_to_end(session, oscap_content_path, default_sat):
 
 
 @pytest.mark.tier1
-def test_negative_create_with_same_name(session, oscap_content_path):
+def test_negative_create_with_same_name(session, oscap_content_path, default_org, default_location):
     """Create OpenScap content with same name
 
     :id: f5c6491d-b83c-4ca2-afdf-4bb93e6dd92b
@@ -104,8 +105,8 @@ def test_negative_create_with_same_name(session, oscap_content_path):
     """
     content_name = gen_string('alpha')
     with session:
-        session.organization.select(org_name=ANY_CONTEXT['org'])
-        session.location.select(loc_name=ANY_CONTEXT['location'])
+        session.organization.select(org_name=default_org.name)
+        session.location.select(loc_name=default_location.name)
         session.oscapcontent.create(
             {'file_upload.title': content_name, 'file_upload.scap_file': oscap_content_path}
         )

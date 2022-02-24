@@ -1,6 +1,6 @@
 """Test for Performance Tuning related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -18,8 +18,7 @@
 """
 import filecmp
 
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
+import pytest
 
 from robottelo.helpers import InstallerCommand
 from robottelo.logging import logger
@@ -48,7 +47,7 @@ class TestScenarioPerformanceTuning:
     upgrade.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_performance_tuning_apply(self, default_sat):
         """In preupgrade scenario we apply the medium tuning size.
 
@@ -83,7 +82,7 @@ class TestScenarioPerformanceTuning:
             assert 'default: "default"' in command_output.stdout
             raise
 
-    @post_upgrade(depend_on=test_pre_performance_tuning_apply)
+    @pytest.mark.post_upgrade(depend_on=test_pre_performance_tuning_apply)
     def test_post_performance_tuning_apply(self, default_sat):
         """In postupgrade scenario, we verify the set tuning parameters and custom-hiera.yaml
         file's content.

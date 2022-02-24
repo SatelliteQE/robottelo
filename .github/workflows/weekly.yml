@@ -1,0 +1,69 @@
+# Weekly metadata check
+name: weekly_checks
+
+on:
+  schedule:
+    - cron: 0 0 * * 0
+
+env:
+    PYCURL_SSL_LIBRARY: openssl
+
+jobs:
+  customerscenario_tags:
+    name: Add customerscenario tags where due
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+    steps:
+      - name: Checkout Robottelo
+        uses: actions/checkout@v2
+
+      - name: Set Up Python-${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libgnutls28-dev libcurl4-openssl-dev libssl-dev
+          wget https://raw.githubusercontent.com/SatelliteQE/broker/master/broker_settings.yaml.example
+          # link vs compile time ssl implementations can break the environment when installing requirements
+          # Uninstall pycurl - its likely not installed, but in case the ubuntu-latest packages change
+          # Then compile and install it with PYCURL_SSL_LIBRARY set to openssl
+          pip install -U pip
+          pip uninstall -y pycurl
+          pip install --compile --no-cache-dir pycurl
+          pip install -U -r requirements.txt -r requirements-optional.txt
+          for conffile in conf/*.yaml.template; do mv -- "$conffile" "${conffile%.yaml.template}.yaml"; done
+          cp broker_settings.yaml.example broker_settings.yaml
+
+      - name: Customer scenario check
+        run: |
+          touch .env.md
+          echo "---" >> .env.md
+          echo "title: Add missing customerscenario tags" >> .env.md
+          echo "assignees: pondrejk " >> .env.md
+          echo "labels: Documentation" >> .env.md
+          echo "---" >> .env.md
+          echo CS_TAGS="$(make customer-scenario-check)" >> .env.md
+          if grep 'The following tests need customerscenario tags' .env.md; then
+            echo "::set-output name=result::0"
+          fi
+        id: cscheck
+        env:
+          ROBOTTELO_BUGZILLA__API_KEY: ${{ secrets.BUGZILLA_KEY }}
+
+      - name: Customer scenario status
+        run: |
+          cat .env.md
+
+      - name: Create an issue for customerscenatio tag addition
+        uses: JasonEtco/create-an-issue@v2
+        if: ${{ env.CS_CHECK_RESULT }}
+        with:
+          filename: .env.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CS_CHECK_RESULT: ${{ steps.cscheck.outputs.result}}

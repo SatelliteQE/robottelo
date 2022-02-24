@@ -54,6 +54,12 @@ class Host(Base):
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
+    def disassociate(cls, options):
+        """Disassociate the host from a CR."""
+        cls.command_sub = 'disassociate'
+        return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
     def enc_dump(cls, options):
         """
         Dump host's ENC YAML.

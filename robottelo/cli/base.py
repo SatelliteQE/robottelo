@@ -7,6 +7,7 @@ from robottelo import ssh
 from robottelo.cli import hammer
 from robottelo.config import settings
 from robottelo.logging import logger
+from robottelo.ssh import get_client
 
 
 class CLIError(Exception):
@@ -66,6 +67,7 @@ class Base:
 
     command_base = None  # each inherited instance should define this
     command_sub = None  # specific to instance, like: create, update, etc.
+    command_end = None  # extending commands like for directory to pass
     command_requires_org = False  # True when command requires organization-id
     hostname = None  # Now used for Satellite class hammer execution
     logger = logger
@@ -243,7 +245,7 @@ class Base:
         )
         response = ssh.command(
             cmd.encode('utf-8'),
-            hostname=hostname or settings.server.hostname or cls.hostname,
+            hostname=hostname or cls.hostname or settings.server.hostname,
             output_format=output_format,
             timeout=timeout,
         )
@@ -251,6 +253,18 @@ class Base:
             return response
         else:
             return cls._handle_response(response, ignore_stderr=ignore_stderr)
+
+    @classmethod
+    def fm_execute(
+        cls,
+        command,
+        hostname=None,
+        timeout=None,
+    ):
+        """Executes the foreman-maintain cli commands on the server via ssh"""
+        client = get_client(hostname=hostname or cls.hostname)
+        result = client.execute(f'foreman-maintain {command}', timeout=timeout)
+        return result
 
     @classmethod
     def exists(cls, options=None, search=None):
@@ -405,6 +419,6 @@ class Base:
                 if isinstance(val, list):
                     val = ','.join(str(el) for el in val)
                 tail += f' --{key}="{val}"'
-        cmd = f"{cls.command_base} {cls.command_sub or ''} {tail.strip()}"
+        cmd = f"{cls.command_base} {cls.command_sub or ''} {tail.strip()} {cls.command_end or ''}"
 
         return cmd

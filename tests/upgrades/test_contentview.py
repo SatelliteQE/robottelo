@@ -1,6 +1,6 @@
 """Test for Content View related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,9 +16,8 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 from robottelo.config import settings
 from robottelo.constants import RPM_TO_UPLOAD
@@ -30,11 +29,11 @@ class TestContentView:
     content view before and after the upgrade.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_cv_preupgrade_scenario(self, request, default_sat):
         """Pre-upgrade scenario that creates content-view with various repositories.
 
-        :id: a4ebbfa1-106a-4962-9c7c-082833879ae8
+        :id: preupgrade-a4ebbfa1-106a-4962-9c7c-082833879ae8
 
         :steps:
           1. Create custom repositories of yum and file type.
@@ -67,11 +66,11 @@ class TestContentView:
         cv.publish()
         assert len(cv.read_json()['versions']) == 1
 
-    @post_upgrade(depend_on=test_cv_preupgrade_scenario)
+    @pytest.mark.post_upgrade(depend_on=test_cv_preupgrade_scenario)
     def test_cv_postupgrade_scenario(self, request, dependent_scenario_name):
         """After upgrade, the existing content-view(created before upgrade) should be updated.
 
-        :id: a4ebbfa1-106a-4962-9c7c-082833879ae8
+        :id: postupgrade-a4ebbfa1-106a-4962-9c7c-082833879ae8
 
         :steps:
           1. Check yum and file repository which was added in CV before upgrade.

@@ -407,3 +407,27 @@ class TestLocation:
             Location.update({'id': location['id'], 'parent-id': location['id']})
         location = Location.info({'id': location['id']})
         assert location['parent'] == parent_location['name']
+
+    @pytest.mark.skip_if_open("BZ:1937009")
+    @pytest.mark.tier1
+    def test_positive_nested_location(self, request, module_org):
+        """View nested location in an organization
+
+        :id: cce4a33d-7743-47ef-b437-2539fdc73c44
+
+        :customerscenario: true
+
+        :BZ: 1937009
+
+        :expectedresults: Nested location can be viewed
+
+        :CaseImportance: Medium
+        """
+        parent_location = _location(request, {'organization-id': module_org.id})
+        location = _location(
+            request, {'parent-id': parent_location['id'], 'organization-id': module_org.id}
+        )
+        loc_list = Location.list(
+            {'search': f'title={location["title"]}', 'organization-id': module_org.id}
+        )
+        assert loc_list[0]['title'] == location['title']

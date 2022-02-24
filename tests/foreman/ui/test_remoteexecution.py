@@ -54,6 +54,8 @@ def test_positive_run_default_job_template_by_ip(
 
     :expectedresults: Verify the job was successfully ran against the host
 
+    :parametrized: yes
+
     :CaseLevel: Integration
     """
     hostname = module_vm_client_by_ip.hostname
@@ -94,6 +96,8 @@ def test_positive_run_custom_job_template_by_ip(
         4. Run the job
 
     :expectedresults: Verify the job was successfully ran against the host
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -205,6 +209,8 @@ def test_positive_run_scheduled_job_template_by_ip(
         1. Verify the job was not immediately ran
         2. Verify the job was successfully ran after the designated time
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     job_time = 10 * 60
@@ -284,6 +290,8 @@ def test_positive_ansible_job_check_mode(session):
 
     :CaseAutomation: NotAutomated
 
+    :CaseComponent: Ansible
+
     :assignee: dsynk
     """
 
@@ -306,6 +314,8 @@ def test_positive_ansible_config_report_failed_tasks_errors(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :CaseComponent: Ansible
 
     :assignee: dsynk
     """
@@ -331,6 +341,8 @@ def test_positive_ansible_config_report_changes_notice(session):
 
     :CaseAutomation: NotAutomated
 
+    :CaseComponent: Ansible
+
     :assignee: dsynk
     """
 
@@ -351,6 +363,8 @@ def test_positive_ansible_variables_imported_with_roles(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :CaseComponent: Ansible
 
     :assignee: dsynk
     """
@@ -373,6 +387,8 @@ def test_positive_roles_import_in_background(session):
 
     :CaseAutomation: NotAutomated
 
+    :CaseComponent: Ansible
+
     :assignee: dsynk
     """
 
@@ -394,6 +410,8 @@ def test_positive_ansible_roles_ignore_list(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :CaseComponent: Ansible
 
     :assignee: dsynk
     """
@@ -418,6 +436,8 @@ def test_positive_ansible_variables_installed_with_collection(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :CaseComponent: Ansible
 
     :assignee: dsynk
     """
@@ -445,6 +465,8 @@ def test_positive_install_ansible_collection_via_job_invocation(session):
 
     :CaseAutomation: NotAutomated
 
+    :CaseComponent: Ansible
+
     :assignee: dsynk
     """
 
@@ -469,6 +491,8 @@ def test_positive_set_ansible_role_order_per_host(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :CaseComponent: Ansible
 
     :assignee: dsynk
     """
@@ -497,6 +521,8 @@ def test_positive_set_ansible_role_order_per_hostgroup(session):
 
     :CaseAutomation: NotAutomated
 
+    :CaseComponent: Ansible
+
     :assignee: dsynk
     """
 
@@ -522,6 +548,8 @@ def test_positive_matcher_field_highlight(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :CaseComponent: Ansible
 
     :assignee: dsynk
     """

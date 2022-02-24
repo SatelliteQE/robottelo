@@ -23,15 +23,17 @@ OPTIONS:
          You can pass POLARION_PASSWORD env variable instead of this option
   -P, --project <projectname>
          Specifiy the polarion project to use
+  -d, --directory <directory_path>
+         Specify the directory path of tests
 
 
 EXAMPLE:
-  $0 -s http://polarion.example.com/polarion/ -u Polar -p *** -P PolarStuff
+  $0 -s http://polarion.example.com/polarion/ -u Polar -p *** -P PolarStuff -d tests/foreman
 
 EOM
 }
 
-if ! options=$(getopt -o hs:u:p:P: -l help,server:,user:,password:,project: -- "$@"); then
+if ! options=$(getopt -o hs:u:p:P:d: -l help,server:,user:,password:,project:,directory: -- "$@"); then
   exit 1
 fi
 
@@ -43,6 +45,7 @@ while [ $# -gt 0 ]; do
     -u|--user) POLARION_USERNAME="$2" ; shift ;;
     -p|--password) POLARION_PASSWORD="$2" ; shift ;;
     -P|--project) POLARION_PROJECT="$2" ; shift ;;
+    -d|--directory) TESTS_DIRECTORY="$2" ; shift ;;
     -h|--help) usage ;  exit ;;
     (--) shift; break;;
     (-*) echo "$0: error: unrecognized option $1" 1>&2; usage ; exit 1;;
@@ -51,7 +54,7 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-if [[ -z $POLARION_URL || -z $POLARION_USERNAME || -z $POLARION_PASSWORD || -z $POLARION_PROJECT ]] ; then
+if [[ -z $POLARION_URL || -z $POLARION_USERNAME || -z $POLARION_PASSWORD || -z $POLARION_PROJECT || -z $TESTS_DIRECTORY ]] ; then
   echo "$0: error: one or more mandatory options are missing"
   usage
   exit 1
@@ -71,11 +74,11 @@ DEFAULT_CUSTOMERSCENARIO_VALUE = 'false'
 EOF
 
 set -x
-betelgeuse requirement tests/foreman/ "${POLARION_PROJECT}" "requirement.xml"
+betelgeuse requirement "${TESTS_DIRECTORY}" "${POLARION_PROJECT}" "requirement.xml"
 curl -f -k -u "${POLARION_USERNAME}:${POLARION_PASSWORD}" -F file=@requirement.xml "${POLARION_URL}import/requirement"
 
 betelgeuse --config-module "betelgeuse_config" test-case \
     --response-property "satellite6=testcases" \
     --automation-script-format "https://github.com/SatelliteQE/robottelo/blob/master/{path}#L{line_number}" \
-    tests/foreman/ "${POLARION_PROJECT}" test-cases.xml
+    "${TESTS_DIRECTORY}" "${POLARION_PROJECT}" test-cases.xml
 curl -f -k -u "${POLARION_USERNAME}:${POLARION_PASSWORD}" -F file=@test-cases.xml "${POLARION_URL}import/testcase"

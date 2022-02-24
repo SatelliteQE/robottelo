@@ -882,6 +882,8 @@ def test_positive_update_aks_to_chost(module_org, rhel7_contenthost, default_sat
     :expectedresults: Multiple Activation keys are attached to a Content
         host
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     env = make_lifecycle_environment({'organization-id': module_org.id})
@@ -1333,7 +1335,7 @@ def test_positive_copy_subscription(module_manifest_org):
         {'name': new_name, 'organization-id': module_manifest_org.id}
     )
     # Verify that the subscription copied over
-    assert subscription_result[0]['name'] in result[3]  # subscription name  # subscription list
+    assert subscription_result[0]['name'] in result  # subscription name  # subscription list
 
 
 @pytest.mark.tier1
@@ -1592,8 +1594,9 @@ def test_positive_subscription_quantity_attached(module_org, rhel7_contenthost, 
         3. Attach a content host to the activation key.
         4. Verify 'ATTACHED' & 'QUANTITY' columns of 'hammer activation-key subscriptions'
 
-    :BZ: 1633094
+    :parametrized: yes
 
+    :BZ: 1633094
     """
     org = make_org()
     result = setup_org_for_a_rh_repo(

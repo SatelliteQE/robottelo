@@ -114,13 +114,14 @@ class TestSatelliteContentManagement:
 
         :BZ: 1687801
         """
+        distro = 'rhel8'
         rh_repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_manifest_org.id,
-            product=constants.PRDS['rhel8'],
-            repo=constants.REPOS['rhel8_bos_ks']['name'],
-            reposet=constants.REPOSET['rhel8_bos_ks'],
-            releasever='8.4',
+            product=constants.REPOS['kickstart'][distro]['product'],
+            reposet=constants.REPOSET['kickstart'][distro],
+            repo=constants.REPOS['kickstart'][distro]['name'],
+            releasever=constants.REPOS['kickstart'][distro]['version'],
         )
         rh_repo = entities.Repository(id=rh_repo_id).read()
         rh_repo.sync()
@@ -136,6 +137,41 @@ class TestSatelliteContentManagement:
         assert rh_repo.content_counts['package'] > 0
         assert rh_repo.content_counts['package_group'] > 0
         assert rh_repo.content_counts['rpm'] > 0
+
+    @pytest.mark.parametrize(
+        'distro', [f'rhel{ver}' for ver in settings.supportability.content_hosts.rhel.versions]
+    )
+    def test_positive_sync_kickstart_check_os(self, module_manifest_org, distro):
+        """Sync rhel KS repo and assert that OS was created
+
+        :id: f84bcf1b-717e-40e7-82ee-000eead45249
+
+        :Parametrized: Yes
+
+        :steps:
+            1. Enable and sync a kickstart repo.
+            2. Check that OS with corresponding version.
+
+        :expectedresults:
+            1. OS with corresponding version was created.
+
+        """
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_manifest_org.id,
+            product=constants.REPOS['kickstart'][distro]['product'],
+            reposet=constants.REPOSET['kickstart'][distro],
+            repo=constants.REPOS['kickstart'][distro]['name'],
+            releasever=constants.REPOS['kickstart'][distro]['version'],
+        )
+        rh_repo = entities.Repository(id=repo_id).read()
+        rh_repo.sync()
+
+        major, minor = constants.REPOS['kickstart'][distro]['version'].split('.')
+        os = entities.OperatingSystem().search(
+            query={'search': f'name="RedHat" AND major="{major}" AND minor="{minor}"'}
+        )
+        assert len(os)
 
     @pytest.mark.tier2
     def test_positive_mirror_on_sync(self, default_sat):
@@ -1047,13 +1083,14 @@ class TestCapsuleContentManagement:
 
         :BZ: 1992329
         """
+        distro = 'rhel8_aps'
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_manifest_org.id,
-            product=constants.PRDS['rhel8'],
-            repo=constants.REPOS['rhel8_bos_ks']['name'],
-            reposet=constants.REPOSET['rhel8_bos_ks'],
-            releasever='8.4',
+            product=constants.REPOS['kickstart'][distro]['product'],
+            reposet=constants.REPOSET['kickstart'][distro],
+            repo=constants.REPOS['kickstart'][distro]['name'],
+            releasever=constants.REPOS['kickstart'][distro]['version'],
         )
         repo = entities.Repository(id=repo_id).read()
 
@@ -1102,7 +1139,7 @@ class TestCapsuleContentManagement:
         # Check for kickstart content on SAT and CAPS
         url_base = (
             f'pulp/content/{module_manifest_org.label}/{lce.label}/'
-            f'{cv.label}/content/dist/rhel8/8.4/x86_64/baseos/kickstart'
+            f'{cv.label}/content/dist/rhel8/8.5/x86_64/appstream/kickstart'
         )
 
         # Check kickstart specific files
@@ -1139,6 +1176,8 @@ class TestCapsuleContentManagement:
         :expectedresults:
             1. The container repo is successfully synced to the Capsule.
             2. The image is successfully pulled from Capsule to a host.
+
+        :parametrized: yes
 
         :CaseLevel: Integration
         """
@@ -1247,6 +1286,8 @@ class TestCapsuleContentManagement:
         :expectedresults:
             1. The ansible-collection repo is successfully synced to the Capsule.
             2. The collection is successfully installed on the Content Host.
+
+        :parametrized: yes
 
         :CaseLevel: Integration
         """

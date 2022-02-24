@@ -4,6 +4,7 @@ from nailgun import entities
 
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.constants import RHEL_8_MAJOR_VERSION
 
 
 @pytest.fixture(scope='session')
@@ -22,7 +23,7 @@ def default_os(
     if os is None:
         search_string = (
             f'name="RedHat" AND (major="{RHEL_6_MAJOR_VERSION}" '
-            f'OR major="{RHEL_7_MAJOR_VERSION}")'
+            f'OR major="{RHEL_7_MAJOR_VERSION}" OR major="{RHEL_8_MAJOR_VERSION}")'
         )
     else:
         version = os.split(' ')[1].split('.')

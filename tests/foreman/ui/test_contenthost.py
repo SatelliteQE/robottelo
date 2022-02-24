@@ -41,6 +41,7 @@ from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_1_ERRATA_ID
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
@@ -155,6 +156,8 @@ def test_positive_end_to_end(session, default_location, repos_collection, vm):
 
     :CaseLevel: System
 
+    :parametrized: yes
+
     :CaseImportance: Critical
     """
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
@@ -222,7 +225,7 @@ def test_positive_end_to_end(session, default_location, repos_collection, vm):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_end_to_end_bulk_update(session, default_location, vm):
+def test_positive_end_to_end_bulk_update(session, default_location, vm, default_sat):
     """Create VM, set up VM as host, register it as a content host,
     read content host details, install a package ( e.g. walrus-0.71) and
     use bulk action (Update All Packages) to update the package by name
@@ -235,13 +238,18 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm):
     :expectedresults: package installation and update to a later version
         are successful.
 
-    :BZ: 1712069
+    :BZ: 1712069, 1838800
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
     hc_name = gen_string('alpha')
     description = gen_string('alpha')
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
+    search_uri = (
+        f'{default_sat.hostname}/content_hosts?search=installable_errata={FAKE_1_ERRATA_ID}'
+    )
     assert result.status == 0
     with session:
         session.location.select(default_location.name)
@@ -258,23 +266,25 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm):
             }
         )
         session.hostcollection.associate_host(hc_name, vm.hostname)
-        # make a note of time for later CLI wait_for_tasks, and include
-        # 8 mins margin of safety.
-        timestamp = (datetime.utcnow() - timedelta(minutes=8)).strftime('%Y-%m-%d %H:%M')
+        # For BZ#1838800, assert the Host Collection Errata Install table has the search URI
+        uri = session.hostcollection.search_applicable_hosts(hc_name, FAKE_1_ERRATA_ID)
+        assert search_uri in uri
+        # Note time for later wait_for_tasks, and include 4 mins margin of safety.
+        timestamp = (datetime.utcnow() - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
         # Update the package by name
         session.hostcollection.manage_packages(
             hc_name,
-            content_type='Package',
+            content_type='rpm',
             packages=FAKE_1_CUSTOM_PACKAGE_NAME,
             action='update_all',
             action_via='via remote execution',
         )
-        # Wait for upload profile event (in case Satellite system slow)
-        host = entities.Host().search(query={'search': f'name={vm.hostname}'})
+        # Wait for applicability update event (in case Satellite system slow)
         wait_for_tasks(
-            search_query='label = Actions::Katello::Host::UploadProfiles'
-            f' and resource_id = {host[0].id}'
-            f' and started_at >= "{timestamp}"',
+            search_query='label = Actions::Katello::Applicability::Hosts::BulkGenerate'
+            f' and started_at >= "{timestamp}"'
+            f' and state = stopped'
+            f' and result = success',
             search_rate=15,
             max_tries=10,
         )
@@ -297,6 +307,8 @@ def test_positive_search_by_subscription_status(session, default_location, vm):
         invalid status
 
     :BZ: 1406855, 1498827, 1495271
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -333,6 +345,8 @@ def test_positive_toggle_subscription_status(session, default_location, vm):
     :BZ: 1836868
 
     :CaseLevel: System
+
+    :parametrized: yes
 
     :CaseImportance: Medium
     """
@@ -371,6 +385,8 @@ def test_negative_install_package(session, default_location, vm):
 
     :expectedresults: Task finished with warning
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     with session:
@@ -389,6 +405,8 @@ def test_positive_remove_package(session, default_location, vm):
     :id: 86d8896b-06d9-4c99-937e-f3aa07b4eb69
 
     :expectedresults: Package was successfully removed
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -410,6 +428,8 @@ def test_positive_upgrade_package(session, default_location, vm):
     :id: 1969db93-e7af-4f5f-973d-23c222224db6
 
     :expectedresults: Package was successfully upgraded
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -433,6 +453,8 @@ def test_positive_install_package_group(session, default_location, vm):
 
     :expectedresults: Package group was successfully installed
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     with session:
@@ -455,6 +477,8 @@ def test_positive_remove_package_group(session, default_location, vm):
     :id: dbeea1f2-adf4-4ad8-a989-efad8ce21b98
 
     :expectedresults: Package group was successfully removed
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -483,6 +507,8 @@ def test_positive_search_errata_non_admin(
 
     :expectedresults: User can access errata page and proper errata is
         listed
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -521,6 +547,8 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, de
     :expectedresults: errata is available in installable errata list
 
     :BZ: 1463818
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -564,6 +592,8 @@ def test_positive_host_re_registration_with_host_rename(
     :expectedresults: Re-registration should work as expected even after change in hostname
 
     :BZ: 1762793
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -614,6 +644,8 @@ def test_positive_check_ignore_facts_os_setting(session, default_location, vm, m
         to the setting values
 
     :BZ: 1155704
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -683,6 +715,8 @@ def test_positive_virt_who_hypervisor_subscription_status(
 
     :BZ: 1336924, 1860928
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     org = entities.Organization().create()
@@ -750,6 +784,8 @@ def test_module_stream_actions_on_content_host(session, default_location, vm_mod
     :id: 684e467e-b41c-4b95-8450-001abe85abe0
 
     :expectedresults: Remote execution for module actions should succeed.
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -858,6 +894,8 @@ def test_module_streams_customize_action(session, default_location, vm_module_st
 
     :CaseLevel: System
 
+    :parametrized: yes
+
     :CaseImportance: Medium
     """
     search_stream_version = '5.21'
@@ -905,6 +943,8 @@ def test_install_modular_errata(session, default_location, vm_module_streams):
     :id: 3b745562-7f97-4b58-98ec-844685f5c754
 
     :expectedresults: Modular Errata should get installed on content host.
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -970,6 +1010,8 @@ def test_module_status_update_from_content_host_to_satellite(
 
     :expectedresults: module stream status should get updated in Satellite
 
+    :parametrized: yes
+
     :CaseLevel: System
     """
     module_name = 'walrus'
@@ -1023,6 +1065,8 @@ def test_module_status_update_without_force_upload_package_profile(
 
     :CaseLevel: System
 
+    :parametrized: yes
+
     :CaseImportance: Medium
     """
     module_name = 'walrus'
@@ -1030,20 +1074,19 @@ def test_module_status_update_without_force_upload_package_profile(
     profile = 'flipper'
     # reset walrus module streams
     run_remote_command_on_content_host(f'dnf module reset {module_name} -y', vm_module_streams)
-    # make a note of time for later CLI wait_for_tasks, and include
-    # 8 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=8)).strftime('%Y-%m-%d %H:%M')
+    # make a note of time for later wait_for_tasks, and include 4 mins margin of safety.
+    timestamp = (datetime.utcnow() - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
     # install walrus module stream with flipper profile
     run_remote_command_on_content_host(
         f'dnf module install {module_name}:{stream_version}/{profile} -y',
         vm_module_streams,
     )
-    # Wait for upload profile event (in case Satellite system slow)
-    host = entities.Host().search(query={'search': f'name={vm_module_streams.hostname}'})
+    # Wait for applicability update event (in case Satellite system slow)
     wait_for_tasks(
-        search_query='label = Actions::Katello::Host::UploadProfiles'
-        f' and resource_id = {host[0].id}'
-        f' and started_at >= "{timestamp}"',
+        search_query='label = Actions::Katello::Applicability::Hosts::BulkGenerate'
+        f' and started_at >= "{timestamp}"'
+        f' and state = stopped'
+        f' and result = success',
         search_rate=15,
         max_tries=10,
     )
@@ -1087,6 +1130,8 @@ def test_module_stream_update_from_satellite(session, default_location, vm_modul
     :id: 8c077d7f-744b-4655-9fa2-e64ce1566d9b
 
     :expectedresults: module stream should get updated.
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -1152,6 +1197,8 @@ def test_syspurpose_attributes_empty(session, default_location, vm_module_stream
 
     :CaseLevel: System
 
+    :parametrized: yes
+
     :CaseImportance: High
     """
     with session:
@@ -1176,6 +1223,8 @@ def test_set_syspurpose_attributes_cli(session, default_location, vm_module_stre
     :expectedresults: Syspurpose attributes set for the content host
 
     :CaseLevel: System
+
+    :parametrized: yes
 
     :CaseImportance: High
     """
@@ -1206,6 +1255,8 @@ def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_st
     :expectedresults: Syspurpose attributes are empty
 
     :CaseLevel: System
+
+    :parametrized: yes
 
     :CaseImportance: High
     """
@@ -1240,6 +1291,8 @@ def test_syspurpose_matched(session, default_location, vm_module_streams):
     :expectedresults: Syspurpose status is Matched
 
     :CaseLevel: System
+
+    :parametrized: yes
 
     :CaseImportance: High
     """
@@ -1297,6 +1350,8 @@ def test_syspurpose_mismatched(session, default_location, vm_module_streams):
     :expectedresults: Syspurpose status is 'Mismatched'
 
     :CaseLevel: System
+
+    :parametrized: yes
 
     :CaseImportance: High
     """
@@ -1421,6 +1476,8 @@ def test_content_access_after_stopped_foreman(
     :CaseComponent: Infrastructure
 
     :Assignee: lpramuk
+
+    :parametrized: yes
     """
     sat = foreman_service_teardown
     org = sat.api.Organization().create()

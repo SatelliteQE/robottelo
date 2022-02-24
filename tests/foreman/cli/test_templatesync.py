@@ -15,7 +15,6 @@
 :Upstream: No
 """
 import base64
-from urllib.parse import urlparse
 
 import pytest
 import requests
@@ -27,6 +26,9 @@ from robottelo.cli.template_sync import TemplateSync
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
 from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
+
+
+git = settings.git
 
 
 class TestTemplateSyncTestCase:
@@ -106,7 +108,21 @@ class TestTemplateSyncTestCase:
 
     @pytest.mark.tier2
     @pytest.mark.skip_if_not_set('git')
-    def test_positive_update_templates_in_git(self, module_org, git_repository, git_branch):
+    @pytest.mark.parametrize(
+        'url',
+        [
+            f'http://{git.username}:{git.password}@{git.hostname}:{git.http_port}',
+            f'ssh://git@{git.hostname}:{git.ssh_port}',
+        ],
+        ids=['http', 'ssh'],
+    )
+    @pytest.mark.parametrize(
+        'git_repository',
+        [True],
+        indirect=True,
+        ids=['non_empty_repo'],
+    )
+    def test_positive_update_templates_in_git(self, module_org, git_repository, git_branch, url):
         """Assure only templates with a given filter are pushed to
         git repository and existing template file is updated.
 
@@ -121,43 +137,58 @@ class TestTemplateSyncTestCase:
             2. Assert file is updated
 
         :CaseImportance: High
+
+        :parametrized: yes
+
+        :BZ: 1785613
         """
         dirname = 'export'
-        path = f"{dirname}/provisioning_templates/provision/atomic_kickstart_default.erb"
+        path = f'{dirname}/provisioning_templates/provision/atomic_kickstart_default.erb'
         content = base64.b64encode(gen_string('alpha').encode('ascii'))
         # create template file in repository
-        auth = (settings.git.username, settings.git.password)
-        api_url = (
-            f"{settings.git.url}/api/v1/repos/{settings.git.username}/{git_repository}/contents"
-        )
+        auth = (git.username, git.password)
+        api_url = f'http://{git.hostname}:{git.http_port}'
+        api_url = f'{api_url}/api/v1/repos/{git.username}/{git_repository["name"]}/contents'
         res = requests.post(
-            f"{api_url}/{path}", auth=auth, json={"branch": git_branch, "content": content}
+            f'{api_url}/{path}', auth=auth, json={'branch': git_branch, 'content': content}
         )
         assert res.status_code == 201
         # export template to git
-        netloc = urlparse(settings.git.url).netloc
-        auth = f"{settings.git.username}:{settings.git.password}"
-        url = f'http://{auth}@{netloc}/{settings.git.username}/{git_repository}'
+        url = f'{url}/{git.username}/{git_repository["name"]}'
         output = TemplateSync.exports(
             {
                 'repo': url,
                 'branch': git_branch,
                 'organization-id': module_org.id,
-                'filter': "Atomic Kickstart default",
+                'filter': 'Atomic Kickstart default',
                 'dirname': dirname,
             }
         ).split('\n')
         exported_count = ['Exported: true' in row.strip() for row in output].count(True)
         assert exported_count == 1
-        auth = (settings.git.username, settings.git.password)
-        git_file = requests.get(f"{api_url}/{path}", auth=auth, params={"ref": git_branch}).json()
+        auth = (git.username, git.password)
+        git_file = requests.get(f'{api_url}/{path}', auth=auth, params={'ref': git_branch}).json()
         decoded = base64.b64decode(git_file['content'])
         assert content != decoded
 
     @pytest.mark.tier2
     @pytest.mark.skip_if_not_set('git')
+    @pytest.mark.parametrize(
+        'url',
+        [
+            f'http://{git.username}:{git.password}@{git.hostname}:{git.http_port}',
+            f'ssh://git@{git.hostname}:{git.ssh_port}',
+        ],
+        ids=['http', 'ssh'],
+    )
+    @pytest.mark.parametrize(
+        'git_repository',
+        [True, False],
+        indirect=True,
+        ids=['non_empty_repo', 'empty_repo'],
+    )
     def test_positive_export_filtered_templates_to_git(
-        self, module_org, git_repository, git_branch
+        self, module_org, git_repository, git_branch, url
     ):
         """Assure only templates with a given filter regex are pushed to
         git repository.
@@ -171,11 +202,13 @@ class TestTemplateSyncTestCase:
             1. Assert matching templates are exported to git repo.
 
         :CaseImportance: Critical
+
+        :parametrized: yes
+
+        :BZ: 1785613
         """
         dirname = 'export'
-        auth = f"{settings.git.username}:{settings.git.password}"
-        netloc = urlparse(settings.git.url).netloc
-        url = f'http://{auth}@{netloc}/{settings.git.username}/{git_repository}'
+        url = f'{url}/{git.username}/{git_repository["name"]}'
         output = TemplateSync.exports(
             {
                 'repo': url,
@@ -186,10 +219,13 @@ class TestTemplateSyncTestCase:
             }
         ).split('\n')
         exported_count = ['Exported: true' in row.strip() for row in output].count(True)
-        path = f"{dirname}/provisioning_templates/provision"
-        auth = (settings.git.username, settings.git.password)
-        url = f"{settings.git.url}/api/v1/repos/{settings.git.username}/{git_repository}/contents"
-        git_count = len(requests.get(f"{url}/{path}", auth=auth, params={"ref": git_branch}).json())
+        path = f'{dirname}/provisioning_templates/provision'
+        auth = (git.username, git.password)
+        api_url = f'http://{git.hostname}:{git.http_port}'
+        api_url = f'{api_url}/api/v1/repos/{git.username}/{git_repository["name"]}/contents'
+        git_count = len(
+            requests.get(f'{api_url}/{path}', auth=auth, params={'ref': git_branch}).json()
+        )
         assert exported_count == git_count
 
     @pytest.mark.tier2

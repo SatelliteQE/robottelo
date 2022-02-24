@@ -1,6 +1,6 @@
 """Test for Role related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: NotAutomated
 
@@ -18,15 +18,11 @@
 """
 import pytest
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 
 @pytest.mark.stubbed
 class TestOverriddenFilter:
     """Filter associated with taxonomies becomes overridden filter post upgrade
-
-    :id: e8ecf446-375e-45fa-8e2c-558a40a7d8d0
 
     :steps:
 
@@ -43,9 +39,11 @@ class TestOverriddenFilter:
             postupgrade
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_existing_overriden_filter(self):
         """Role with taxonomies associated filter can be created
+
+        :id: preupgrade-e8ecf446-375e-45fa-8e2c-558a40a7d8d0
 
         :steps:
 
@@ -57,10 +55,12 @@ class TestOverriddenFilter:
             be created
         """
 
-    @post_upgrade
+    @pytest.mark.post_upgrade
     def test_post_existing_overriden_filter(self):
         """Filter associated with taxonomies becomes overridden filter post
         upgrade
+
+        :id: postupgrade-e8ecf446-375e-45fa-8e2c-558a40a7d8d0
 
         :steps:
 
@@ -79,8 +79,6 @@ class TestOverriddenFilter:
 class TestBuiltInRolesLocked:
     """Builtin roles in satellite gets locked post upgrade
 
-    :id: a856ca29-cb0d-4707-9b3b-90be822dd386
-
     :steps:
 
         1. Upgrade the satellite to next/latest version
@@ -92,9 +90,11 @@ class TestBuiltInRolesLocked:
         2. Built in roles of satellite should be allowed to clone
     """
 
-    @post_upgrade
+    @pytest.mark.post_upgrade
     def test_post_builtin_roles_are_cloned(self):
         """Builtin roles in satellite gets locked post upgrade
+
+        :id: postupgrade-a856ca29-cb0d-4707-9b3b-90be822dd386
 
         :steps: Attempt to clone the built in roles post upgrade
 
@@ -108,8 +108,6 @@ class TestBuiltInRolesLocked:
 @pytest.mark.stubbed
 class TestNewOrganizationAdminRole:
     """New Organization Admin role creates post upgrade
-
-    :id: 5765b8e2-5810-4cb7-86ac-a93f36de1dd9
 
     :steps:
 
@@ -127,9 +125,11 @@ class TestNewOrganizationAdminRole:
         5. Taxonomies should be assigned to cloned org admin role
     """
 
-    @post_upgrade
+    @pytest.mark.post_upgrade
     def test_post_builtin_roles_are_cloned(self):
         """New Organization Admin role creates post upgrade
+
+        :id: postupgrade-5765b8e2-5810-4cb7-86ac-a93f36de1dd9
 
         :steps:
 
@@ -150,8 +150,6 @@ class TestNewOrganizationAdminRole:
 class TestRoleAddPermission:
     """Default role extra added permission should be intact post upgrade
 
-    :id: 3a350e4a-96b3-4033-b562-3130fc43a4bc
-
     :steps:
 
         1. In Preupgrade Satellite, Update existing 'Default role' by adding
@@ -163,9 +161,11 @@ class TestRoleAddPermission:
         post upgrade
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_default_role_added_permission(self):
         """New permission is added to Default Role
+
+        :id: preupgrade-3a350e4a-96b3-4033-b562-3130fc43a4bc
 
         :steps: New permission is added to existing 'Default role'
 
@@ -181,9 +181,11 @@ class TestRoleAddPermission:
         ).create()
         assert subnetfilter.id in [filt.id for filt in defaultrole.read().filters]
 
-    @post_upgrade(depend_on=test_pre_default_role_added_permission)
+    @pytest.mark.post_upgrade(depend_on=test_pre_default_role_added_permission)
     def test_post_default_role_added_permission(self):
         """The new permission in 'Default role' is intact post upgrade
+
+        :id: postupgrade-3a350e4a-96b3-4033-b562-3130fc43a4bc
 
         :expectedresults: The added permission in existing 'Default role' is
             intact post upgrade
@@ -201,8 +203,6 @@ class TestRoleAddPermissionWithFilter:
     """Default role extra added permission with filter should be intact post
         upgrade
 
-    :id: b287b71c-42fd-4612-a67a-b93d47dbbb33
-
     :steps:
 
         1. In Preupgrade Satellite, Update existing 'Default role' by adding
@@ -215,9 +215,11 @@ class TestRoleAddPermissionWithFilter:
         'Default role' is intact post upgrade
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_default_role_added_permission_with_filter(self):
         """New permission with filter is added to Default Role
+
+        :id: preupgrade-b287b71c-42fd-4612-a67a-b93d47dbbb33
 
         :steps: New permission is added to existing 'Default role' with filter
 
@@ -236,10 +238,12 @@ class TestRoleAddPermissionWithFilter:
         ).create()
         assert domainfilter.id in [filt.id for filt in defaultrole.read().filters]
 
-    @post_upgrade(depend_on=test_pre_default_role_added_permission_with_filter)
+    @pytest.mark.post_upgrade(depend_on=test_pre_default_role_added_permission_with_filter)
     def test_post_default_role_added_permission_with_filter(self):
         """The new permission with filter in 'Default role' is intact post
             upgrade
+
+        :id: postupgrade-b287b71c-42fd-4612-a67a-b93d47dbbb33
 
         :expectedresults: The added permission with filter in existing
             'Default role' is intact post upgrade

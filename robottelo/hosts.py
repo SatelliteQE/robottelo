@@ -8,6 +8,7 @@ from tempfile import NamedTemporaryFile
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
+import requests
 from broker import VMBroker
 from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
@@ -35,7 +36,7 @@ from robottelo.constants import SATELLITE_VERSION
 from robottelo.helpers import get_data_file
 from robottelo.helpers import InstallerCommand
 from robottelo.helpers import validate_ssh_pub_key
-
+from robottelo.logging import logger
 
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
@@ -59,6 +60,20 @@ def get_sat_version():
         else:
             sat_version = SATELLITE_VERSION
     return Version('9999' if 'nightly' in sat_version else sat_version)
+
+
+def get_sat_rhel_version():
+    """Try to read rhel_version from Satellite host
+    if not available fallback to robottelo configuration."""
+
+    try:
+        rhel_version = Satellite().os_version
+    except (AuthenticationError, ContentHostError, BoxKeyError):
+        if hasattr(settings.server.version, 'rhel_version'):
+            rhel_version = str(settings.server.version.rhel_version)
+        elif hasattr(settings.robottelo, 'rhel_version'):
+            rhel_version = settings.robottelo.rhel_version
+    return Version(rhel_version)
 
 
 def setup_capsule(satellite, capsule, registration_args=None, installation_args=None):
@@ -168,6 +183,8 @@ class ContentHost(Host):
         self.execute('subscription-manager clean')
 
     def teardown(self):
+        if self.nailgun_host:
+            self.nailgun_host.delete()
         self.unregister()
 
     def power_control(self, state=VmState.RUNNING, ensure=True):
@@ -402,8 +419,9 @@ class ContentHost(Host):
         consumerid=None,
         force=True,
         releasever=None,
-        username=None,
-        password=None,
+        name=None,
+        username=settings.server.admin_username,
+        password=settings.server.admin_password,
         auto_attach=False,
     ):
         """Registers content host on foreman server either by specifying
@@ -424,37 +442,37 @@ class ContentHost(Host):
         :param password: the user password
         :param auto_attach: automatically attach compatible subscriptions to
             this system.
+        :param name: name of the system to register, defaults to the hostname
         :return: SSHCommandResult instance filled with the result of the
             registration.
         """
-        cmd = f'subscription-manager register --org {org}'
-        if activation_key is not None:
+        if username and password:
+            userpass = f' --username {username} --password {password}'
+        else:
+            userpass = ''
+        # Setup the base command
+        cmd = 'subscription-manager register'
+        if org:
+            cmd += f' --org {org}'
+        # Determine our registration path
+        if activation_key:
             cmd += f' --activationkey {activation_key}'
         elif lce:
-            if username is None and password is None:
-                username = settings.server.admin_username
-                password = settings.server.admin_password
-
-            cmd += f' --environment {lce} --username {username} --password {password}'
-            if auto_attach:
-                cmd += ' --auto-attach'
+            cmd += f' --environment {lce}{userpass}'
         elif consumerid:
-            if username is None and password is None:
-                username = settings.server.admin_username
-                password = settings.server.admin_password
-
-            cmd += f' --consumerid {consumerid} --username {username} --password {password}'
-            if auto_attach:
-                cmd += ' --auto-attach'
+            cmd += f' --consumerid {consumerid}{userpass}'
         else:
-            raise ContentHostError(
-                'Please provide either activation key or lifecycle '
-                'environment name to successfully register a host'
-            )
-        if releasever is not None:
+            # if no other methods are provided, we can still try user/pass
+            cmd += userpass
+        # Additional registration modifiers
+        if auto_attach:
+            cmd += ' --auto-attach'
+        if releasever:
             cmd += f' --release {releasever}'
         if force:
             cmd += ' --force'
+        if name:
+            cmd += f' --name {name}'
         return self.execute(cmd)
 
     def unregister(self):
@@ -698,13 +716,17 @@ class ContentHost(Host):
             constants.DISTRO_RHEL6: settings.repos.rhel6_os,
             constants.DISTRO_RHEL7: settings.repos.rhel7_os,
             constants.DISTRO_RHEL8: settings.repos.rhel8_os,
+            constants.DISTRO_RHEL9: settings.repos.rhel9_os,
         }
         rhel_repo = distro_repo_map.get(rhel_distro)
 
         if rhel_repo is None:
             raise ContentHostError(f'Missing RHEL repository configuration for {rhel_distro}.')
 
-        self.create_custom_repos(**{rhel_distro: rhel_repo})
+        if rhel_distro not in (constants.DISTRO_RHEL6, constants.DISTRO_RHEL7):
+            self.create_custom_repos(**rhel_repo)
+        else:
+            self.create_custom_repos(**{rhel_distro: rhel_repo})
 
         # Install insights-client rpm
         if self.execute('yum install -y insights-client').status != 0:
@@ -779,8 +801,9 @@ class ContentHost(Host):
         rh_repo_ids = rh_repo_ids or []
         repo_labels = repo_labels or []
         self.install_katello_ca(satellite)
-        self.register_contenthost(org_label, activation_key=activation_key, lce=lce)
+        result = self.register_contenthost(org_label, activation_key=activation_key, lce=lce)
         if not self.subscribed:
+            logger.info(result.stdout)
             raise CLIFactoryError('Virtual machine failed subscription')
         if patch_os_release_distro:
             self.patch_os_release_version(distro=patch_os_release_distro)
@@ -1028,15 +1051,6 @@ class ContentHost(Host):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def create_custom_rhel_repo_file_to_downgrade_packages(self):
-        """Create custom rhel repo file on client,
-        repo content is for older minor version, (current minor version - 1).
-        Please make sure that package you are looking for is inside minor version.
-        Usage: downgrade of package
-        """
-        baseurl = self.get_base_url_for_older_rhel_minor()
-        self.create_custom_repos(rhel=baseurl)
-
 
 class Capsule(ContentHost):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
@@ -1091,6 +1105,10 @@ class Capsule(ContentHost):
             command_opts.update(cmd_kwargs)
             installer_obj = InstallerCommand(*cmd_args, **command_opts)
         return self.execute(installer_obj.get_command(), timeout=0)
+
+    def get_features(self):
+        """Get capsule features"""
+        return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
     def capsule_setup(self, sat_host=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
@@ -1300,7 +1318,7 @@ class Satellite(Capsule):
             f'--target-dir /etc/puppetlabs/code/environments/{env_name}/modules/'
         )
         smart_proxy = (
-            entities.SmartProxy().search(query={'search': f'name={self.hostname}'})[0].read()
+            self.api.SmartProxy().search(query={'search': f'name={self.hostname}'})[0].read()
         )
         smart_proxy.import_puppetclasses()
         return env_name
@@ -1365,3 +1383,13 @@ class Satellite(Capsule):
             raise SatelliteHostError(
                 f'Error during registration, command output: {cmd_result.stdout}'
             )
+
+    def install_cockpit(self):
+        cmd_result = self.execute(
+            'satellite-installer --enable-foreman-plugin-remote-execution-cockpit', timeout='30m'
+        )
+        if cmd_result.status != 0:
+            raise SatelliteHostError(
+                f'Error during cockpit installation, installation output: {cmd_result.stdout}'
+            )
+        self.add_rex_key(self)

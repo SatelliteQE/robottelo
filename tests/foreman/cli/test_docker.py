@@ -1210,6 +1210,8 @@ class TestDockerClient:
             2. Register Docker-enabled client against Satellite 6.
 
         :expectedresults: Client can pull Docker images from server and run it.
+
+        :parametrized: yes
         """
         product = make_product_wait({'organization-id': module_org.id})
         repo = _repo(product['id'])
@@ -1272,6 +1274,8 @@ class TestDockerClient:
 
         :expectedresults: Client can search for docker images stored
             on Satellite instance
+
+        :parametrized: yes
         """
         pattern_prefix = gen_string('alpha', 5)
         registry_name_pattern = (
@@ -1372,6 +1376,8 @@ class TestDockerClient:
 
         :expectedresults: Client can pull in docker images stored
             on Satellite instance
+
+        :parametrized: yes
         """
         pattern_prefix = gen_string('alpha', 5)
         docker_upstream_name = CONTAINER_UPSTREAM_NAME
@@ -1472,8 +1478,10 @@ class TestDockerClient:
             7. upload the image to the new repo
 
         :expectedresults: Client can create a new image based off an existing
-            Docker image from a Satellite 6 instance, add a new package and
-            upload the modified image (plus layer) back to the Satellite 6.
+            Docker image from a Satellite instance, add a new package and
+            upload the modified image (plus layer) back to the Satellite.
+
+        :parametrized: yes
         """
         try:
             """

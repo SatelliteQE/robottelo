@@ -311,6 +311,28 @@ def test_negative_delete_by_id():
         HostGroup.delete({'id': entity_id})
 
 
+@pytest.mark.tier2
+def test_positive_created_nested_hostgroup(module_org):
+    """Create a nested host group using multiple parent hostgroup paths.
+    e.g. ` hostgroup create --organization 'org_name' --name new3 --parent-title new_1/new_2`
+
+    :id: 02123cec-cb64-43dd-aafc-19332e2f5de7
+
+    :BZ: 1807536
+
+    :customerscenario: true
+
+    :CaseImportance: Low
+
+    """
+    parent_hg = make_hostgroup({'organization-ids': module_org.id})
+    nested = make_hostgroup({'organization-ids': module_org.id, 'parent': parent_hg['name']})
+    sub_nested = make_hostgroup(
+        {'organization-ids': module_org.id, 'parent-title': f'{parent_hg["name"]}/{nested["name"]}'}
+    )
+    assert sub_nested['title'] == f"{parent_hg['name']}/{nested['name']}/{sub_nested['name']}"
+
+
 @pytest.mark.stubbed
 def test_positive_nested_hostgroup_info():
     """`hammer hostgroup info` for a nested host group shows the assigned puppet classes.

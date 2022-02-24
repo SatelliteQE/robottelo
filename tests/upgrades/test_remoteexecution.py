@@ -1,6 +1,6 @@
 """Test for Remote Execution related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -18,8 +18,6 @@
 """
 import pytest
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 
@@ -66,7 +64,7 @@ class TestScenarioREXCapsule:
         4. Check if REX job still getting success.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_scenario_remoteexecution_external_capsule(
         self, request, default_location, rhel7_contenthost
     ):
@@ -84,6 +82,8 @@ class TestScenarioREXCapsule:
         :expectedresults:
             1. Content host should create with pre-required details.
             2. REX job should run on it.
+
+        :parametrized: yes
         """
         sn = entities.Subnet(
             domain=self.vm_domain,
@@ -114,7 +114,7 @@ class TestScenarioREXCapsule:
         global_dict = {self.__class__.__name__: {'client_name': rhel7_contenthost.hostname}}
         create_dict(global_dict)
 
-    @post_upgrade(depend_on=test_pre_scenario_remoteexecution_external_capsule)
+    @pytest.mark.post_upgrade(depend_on=test_pre_scenario_remoteexecution_external_capsule)
     def test_post_scenario_remoteexecution_external_capsule(self):
         """Run a REX job on pre-upgrade created client registered
         with external capsule.
@@ -164,7 +164,7 @@ class TestScenarioREXSatellite:
         10. Check if REX job still getting success.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_scenario_remoteexecution_satellite(
         self, request, compute_resource_setup, default_location, rhel7_contenthost, default_sat
     ):
@@ -182,6 +182,8 @@ class TestScenarioREXSatellite:
         :expectedresults:
             1. It should create with pre-required details.
             2. REX job should run on it.
+
+        :parametrized: yes
         """
         sn = entities.Subnet(
             domain=self.vm_domain,
@@ -209,7 +211,7 @@ class TestScenarioREXSatellite:
         global_dict = {self.__class__.__name__: {'client_name': rhel7_contenthost.hostname}}
         create_dict(global_dict)
 
-    @post_upgrade(depend_on=test_pre_scenario_remoteexecution_satellite)
+    @pytest.mark.post_upgrade(depend_on=test_pre_scenario_remoteexecution_satellite)
     def test_post_scenario_remoteexecution_satellite(self):
         """Run a REX job on pre-upgrade created client registered
         with Satellite.

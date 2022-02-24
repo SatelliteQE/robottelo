@@ -272,6 +272,8 @@ def test_sca_end_to_end(
     :expectedresults: All tests pass and clients have access
         to repos without needing to add subscriptions
 
+    :parametrized: yes
+
     :CaseImportance: Critical
     """
     rhel7_contenthost.install_katello_ca(default_sat)
@@ -333,6 +335,8 @@ def test_positive_candlepin_events_processed_by_stomp(rhel7_contenthost, functio
                         correctly without any failures
     :BZ: 1826515
 
+    :parametrized: yes
+
     :CaseImportance: High
     """
     repo = entities.Repository(
@@ -389,6 +393,8 @@ def test_positive_expired_SCA_cert_handling(module_org, rhel7_contenthost, defau
     :Assignee: dsynk
 
     :BZ: 1949353
+
+    :parametrized: yes
 
     :CaseImportance: High
     """

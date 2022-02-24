@@ -13,6 +13,7 @@ pytest_plugins = [
     'pytest_plugins.metadata_markers',
     'pytest_plugins.settings_skip',
     'pytest_plugins.rerun_rp.rerun_rp',
+    'pytest_plugins.fspath_plugins',
     # Fixtures
     'pytest_fixtures.core.broker',
     'pytest_fixtures.core.contenthosts',
@@ -30,6 +31,7 @@ pytest_plugins = [
     'pytest_fixtures.component.host',
     'pytest_fixtures.component.hostgroup',
     'pytest_fixtures.component.lce',
+    'pytest_fixtures.component.maintain',
     'pytest_fixtures.component.os',
     'pytest_fixtures.component.oscap',
     'pytest_fixtures.component.provision_azure',

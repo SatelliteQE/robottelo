@@ -23,7 +23,7 @@ from robottelo.cli.base import Base
 class Environment(Base):
     """Manipulates Foreman's environments."""
 
-    command_base = 'environment'
+    command_base = 'puppet-environment'
 
     @classmethod
     def sc_params(cls, options=None):

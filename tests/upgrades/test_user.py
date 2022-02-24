@@ -1,6 +1,6 @@
 """Test for User related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: NotAutomated
 
@@ -16,14 +16,11 @@
 
 :Upstream: No
 """
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
+import pytest
 
 
 class TestScenarioPositiveCreateSSHKeyInExistingUsers:
     """SSH Key can be created in existing user post upgrade
-
-    :id: e4338daa-272a-42e3-be45-77e1caea607f
 
     :steps:
 
@@ -37,9 +34,11 @@ class TestScenarioPositiveCreateSSHKeyInExistingUsers:
         existing user post upgrade
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_create_sshkey_in_existing_user(self):
         """Create User in preupgrade version
+
+        :id: preupgrade-e4338daa-272a-42e3-be45-77e1caea607f
 
         :steps: From SuperAdmin create user with all the details preupgrade
             satellite version
@@ -47,9 +46,11 @@ class TestScenarioPositiveCreateSSHKeyInExistingUsers:
         :expectedresults: The user should be created successfully
         """
 
-    @post_upgrade
+    @pytest.mark.post_upgrade
     def test_post_create_sshkey_in_existing_user(self):
         """SSH key can be added to existing user post upgrade
+
+        :id: postupgrade-e4338daa-272a-42e3-be45-77e1caea607f
 
         :steps: Postupgrade, Add SSH key to the existing user
 
@@ -59,8 +60,6 @@ class TestScenarioPositiveCreateSSHKeyInExistingUsers:
 
 class TestScenarioPositiveExistingUserPasswordlessAccessToHost:
     """Existing user can password-less access to provisioned host
-
-    :id: d2d94447-5fc7-49cc-840e-06568d8a5141
 
     :steps:
 
@@ -78,9 +77,11 @@ class TestScenarioPositiveExistingUserPasswordlessAccessToHost:
         provisioned host
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_existing_user_passwordless_access_to_host(self):
         """Create User in preupgrade version
+
+        :id: preupgrade-d2d94447-5fc7-49cc-840e-06568d8a5141
 
         :steps: In preupgrade satellite, From SuperAdmin create user with all
             the required details
@@ -88,9 +89,11 @@ class TestScenarioPositiveExistingUserPasswordlessAccessToHost:
         :expectedresults: The user should be created successfully
         """
 
-    @post_upgrade
+    @pytest.mark.post_upgrade
     def test_post_existing_user_passwordless_access_to_host(self):
         """Existing user can passwordless access to provisioned host
+
+        :id: postupgrade-d2d94447-5fc7-49cc-840e-06568d8a5141
 
         :steps:
 

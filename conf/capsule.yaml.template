@@ -10,6 +10,8 @@ CAPSULE:
     # The source of Capsule packages. Can be one of:
     # internal, ga, beta
     SOURCE: "internal"
+    # The base os rhel version where the capsule installed
+    # RHEL_VERSION:
   # The Ansible Tower workflow used to deploy a capsule
   DEPLOY_WORKFLOW: deploy-sat-capsule
   # Dictionary of arguments which should be passed along to the deploy workflow

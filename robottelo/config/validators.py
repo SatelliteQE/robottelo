@@ -5,6 +5,9 @@ from robottelo.constants import VALID_GCE_ZONES
 
 
 VALIDATORS = dict(
+    supportability=[
+        Validator('supportability.content_hosts.rhel.versions', must_exist=True, is_type_of=list)
+    ],
     server=[
         Validator('server.hostname', default=''),
         Validator('server.hostnames', must_exist=True, is_type_of=list),
@@ -29,9 +32,8 @@ VALIDATORS = dict(
         Validator('server.ssh_password', default=None),
     ],
     content_host=[
-        Validator('content_host.rhel_versions', must_exist=True),
         Validator('content_host.default_rhel_version', must_exist=True),
-        Validator('content_host.deploy_workflow', must_exist=True),
+        Validator('content_host.deploy_workflow.default', must_exist=True),
     ],
     subscription=[
         Validator('subscription.rhn_username', must_exist=True),
@@ -147,7 +149,9 @@ VALIDATORS = dict(
         Validator(
             'git.username',
             'git.password',
-            'git.url',
+            'git.ssh_port',
+            'git.http_port',
+            'git.hostname',
             must_exist=True,
         ),
     ],
@@ -276,6 +280,22 @@ VALIDATORS = dict(
             'rhsso.realm',
             must_exist=True,
         )
+    ],
+    remotedb=[
+        Validator(
+            'remotedb.server',
+            'remotedb.db_server',
+            'remotedb.common_db_password',
+            must_exist=False,
+        ),
+        Validator('remotedb.foreman.username', default='foreman'),
+        Validator('remotedb.foreman.db_name', default='foreman'),
+        Validator('remotedb.candlepin.username', default='candlepin'),
+        Validator('remotedb.candlepin.db_name', default='candlepin'),
+        Validator('remotedb.pulp.username', default='pulp'),
+        Validator('remotedb.pulp.db_name', default='pulpcore'),
+        Validator('remotedb.ssl', default=True),
+        Validator('remotedb.port', default=5432),
     ],
     shared_function=[
         Validator('shared_function.storage', is_in=('file', 'redis'), default='file'),

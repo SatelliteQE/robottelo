@@ -586,6 +586,8 @@ def make_repository_with_credentials(options=None, credentials=None):
         'ansible-collection-auth-token': None,
         'ansible-collection-auth-url': None,
         'url': settings.repos.yum_1.url,
+        'upstream-username': None,
+        'upstream-password': None,
     }
     repo_cls = _entity_with_credentials(credentials, Repository)
     return create_object(repo_cls, args, options)
@@ -951,6 +953,11 @@ def make_job_invocation(options=None):
 
     :returns JobInvocation object
     """
+    return make_job_invocation_with_credentials(options)
+
+
+def make_job_invocation_with_credentials(options=None, credentials=None):
+    """Helper function to create Job Invocation with credentials"""
 
     args = {
         'async': None,
@@ -973,7 +980,8 @@ def make_job_invocation(options=None):
         'time-span': None,
     }
 
-    return create_object(JobInvocation, args, options)
+    jinv_cls = _entity_with_credentials(credentials, JobInvocation)
+    return create_object(jinv_cls, args, options)
 
 
 @cacheable
@@ -1391,6 +1399,7 @@ def make_hostgroup(options=None):
         'organization-ids': None,
         'parent': None,
         'parent-id': None,
+        'parent-title': None,
         'partition-table': None,
         'partition-table-id': None,
         'puppet-ca-proxy': None,

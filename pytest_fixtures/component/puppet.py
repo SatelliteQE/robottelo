@@ -1,64 +1,123 @@
 # Puppet Environment fixtures
 import pytest
-from nailgun import entities
 
 from robottelo.config import settings
+from robottelo.helpers import InstallerCommand
+
+common_opts = {
+    'foreman-proxy-puppetca': 'true',
+    'foreman-proxy-content-puppet': 'true',
+    'foreman-proxy-puppet': 'true',
+    'puppet-server': 'true',
+    'puppet-server-foreman-ssl-ca': '/etc/pki/katello/puppet/puppet_client_ca.crt',
+    'puppet-server-foreman-ssl-cert': '/etc/pki/katello/puppet/puppet_client.crt',
+    'puppet-server-foreman-ssl-key': '/etc/pki/katello/puppet/puppet_client.key',
+}
+
+enable_satellite_cmd = InstallerCommand(
+    installer_args=[
+        'enable-foreman-plugin-puppet',
+        'enable-foreman-cli-puppet',
+        'enable-puppet',
+    ],
+    installer_opts=common_opts,
+)
+
+enable_capsule_cmd = InstallerCommand(
+    installer_args=[
+        'enable-puppet',
+    ],
+    installer_opts=common_opts,
+)
 
 
 @pytest.fixture(scope='session')
-def default_puppet_environment(module_org):
-    environments = entities.Environment().search(
-        query=dict(search=f'organization_id={module_org.id}')
+def session_puppet_enabled_sat(session_satellite_host):
+    """Satellite with enabled puppet plugin"""
+    session_satellite_host.register_to_dogfood()
+    result = session_satellite_host.execute(enable_satellite_cmd.get_command(), timeout='20m')
+    assert result.status == 0
+    session_satellite_host.execute('hammer -r')  # workaround for BZ#2039696
+    yield session_satellite_host
+
+
+@pytest.fixture(scope='module')
+def module_puppet_org(session_puppet_enabled_sat):
+    yield session_puppet_enabled_sat.api.Organization().create()
+
+
+@pytest.fixture(scope='module')
+def module_puppet_loc(session_puppet_enabled_sat):
+    yield session_puppet_enabled_sat.api.Location().create()
+
+
+@pytest.fixture(scope='session')
+def default_puppet_environment(module_puppet_org, session_puppet_enabled_sat):
+    environments = session_puppet_enabled_sat.api.Environment().search(
+        query=dict(search=f'organization_id={module_puppet_org.id}')
     )
     if environments:
         return environments[0].read()
 
 
 @pytest.fixture(scope='module')
-def module_puppet_environment(module_org, module_location):
-    environment = entities.Environment(
-        organization=[module_org], location=[module_location]
+def module_puppet_environment(module_puppet_org, module_puppet_loc, session_puppet_enabled_sat):
+    environment = session_puppet_enabled_sat.api.Environment(
+        organization=[module_puppet_org], location=[module_puppet_loc]
     ).create()
-    return entities.Environment(id=environment.id).read()
+    return session_puppet_enabled_sat.api.Environment(id=environment.id).read()
 
 
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 @pytest.fixture(scope='module')
-def module_import_puppet_module(default_sat):
+def module_import_puppet_module(session_puppet_enabled_sat):
     """Returns custom puppet environment name that contains imported puppet module
     and puppet class name."""
     puppet_class = 'generic_1'
     return {
         'puppet_class': puppet_class,
-        'env': default_sat.create_custom_environment(repo=puppet_class),
+        'env': session_puppet_enabled_sat.create_custom_environment(repo=puppet_class),
     }
 
 
 @pytest.fixture(scope='module')
-def module_env_search(module_org, module_location, module_import_puppet_module):
+def module_env_search(
+    module_puppet_org, module_puppet_loc, module_import_puppet_module, session_puppet_enabled_sat
+):
     """Search for puppet environment created from module_import_puppet_module fixture.
 
     Returns the puppet environment with updated organization and location.
     """
     env = (
-        entities.Environment()
+        session_puppet_enabled_sat.api.Environment()
         .search(query={'search': f'name={module_import_puppet_module["env"]}'})[0]
         .read()
     )
-    env.location = [module_location]
-    env.organization = [module_org]
+    env.location = [module_puppet_loc]
+    env.organization = [module_puppet_org]
     env.update(['location', 'organization'])
     return env
 
 
 @pytest.fixture(scope='module')
-def module_puppet_classes(module_env_search, module_import_puppet_module):
+def module_puppet_classes(
+    module_env_search, module_import_puppet_module, session_puppet_enabled_sat
+):
     """Returns puppet class based on following criteria:
     Puppet environment from module_env_search and puppet class name.
     """
-    return entities.PuppetClass().search(
+    return session_puppet_enabled_sat.api.PuppetClass().search(
         query={
             'search': f'name ~ {module_import_puppet_module["puppet_class"]} '
             f'and environment = {module_env_search.name}'
         }
     )
+
+
+@pytest.fixture(scope='session', params=[True, False], ids=["puppet_enabled", "puppet_disabled"])
+def parametrized_puppet_sat(request, default_sat, session_puppet_enabled_sat):
+    if request.param:
+        sat = session_puppet_enabled_sat
+    else:
+        sat = default_sat
+    return {'sat': sat, 'enabled': request.param}
