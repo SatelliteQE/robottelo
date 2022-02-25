@@ -37,6 +37,9 @@ from robottelo.api.utils import promote
 from robottelo.config import get_credentials
 from robottelo.config import settings
 
+from robottelo.constants import DEFAULT_CV
+from robottelo.constants import ENVIRONMENT
+
 
 @pytest.fixture(scope='function')
 def tracer_host(katello_host_tools_tracer_host):
@@ -333,7 +336,7 @@ def test_positive_create_with_inherited_params(module_org, module_location):
 
 
 @pytest.mark.tier1
-def test_positive_create_and_update_with_puppet_proxy(default_sat):
+def test_positive_create_and_update_with_puppet_proxy(module_puppet_enabled_sat):
     """Create a host with puppet proxy specified and then create new host without specified
     puppet proxy and update the new host with the same puppet proxy
 
@@ -344,19 +347,19 @@ def test_positive_create_and_update_with_puppet_proxy(default_sat):
     :CaseImportance: Critical
     """
     # TODO Define the default capsule/SP port + URL on hosts.Capsule
-    proxy = default_sat.api.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})[
-        0
-    ]
-    host = default_sat.api.Host(puppet_proxy=proxy).create()
+    proxy = module_puppet_enabled_sat.api.SmartProxy().search(
+        query={'search': f'url = {module_puppet_enabled_sat.url}:9090'}
+    )[0]
+    host = module_puppet_enabled_sat.api.Host(puppet_proxy=proxy).create()
     assert host.puppet_proxy.read().name == proxy.name
-    new_host = default_sat.api.Host().create()
+    new_host = module_puppet_enabled_sat.api.Host().create()
     new_host.puppet_proxy = proxy
     new_host = new_host.update(['puppet_proxy'])
     assert new_host.puppet_proxy.read().name == proxy.name
 
 
 @pytest.mark.tier1
-def test_positive_create_with_puppet_ca_proxy(default_sat):
+def test_positive_create_with_puppet_ca_proxy(module_puppet_enabled_sat):
     """Create a host with puppet CA proxy specified and then create new host without specified
      puppet CA proxy and update the new host with the same puppet CA proxy
 
@@ -366,18 +369,26 @@ def test_positive_create_with_puppet_ca_proxy(default_sat):
 
     :CaseImportance: Critical
     """
-    proxy = entities.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})[0]
-    host = entities.Host(puppet_ca_proxy=proxy).create()
+    proxy = module_puppet_enabled_sat.api.SmartProxy().search(
+        query={'search': f'url = {module_puppet_enabled_sat.url}:9090'}
+    )[0]
+    host = module_puppet_enabled_sat.api.Host(puppet_ca_proxy=proxy).create()
     assert host.puppet_ca_proxy.read().name == proxy.name
-    new_host = entities.Host().create()
+    new_host = module_puppet_enabled_sat.api.Host().create()
     new_host.puppet_ca_proxy = proxy
     new_host = new_host.update(['puppet_ca_proxy'])
     assert new_host.puppet_ca_proxy.read().name == proxy.name
 
 
 @pytest.mark.tier2
+@pytest.mark.skip_if_open("BZ:2046573")
 def test_positive_end_to_end_with_puppet_class(
-    module_org, module_location, module_env_search, module_puppet_classes, default_smart_proxy
+    module_puppet_org,
+    module_puppet_loc,
+    module_env_search,
+    module_puppet_classes,
+    module_default_puppet_proxy,
+    module_puppet_enabled_sat,
 ):
     """Create a host with associated puppet classes then remove it and update the host
     with same associated puppet classes
@@ -387,14 +398,14 @@ def test_positive_end_to_end_with_puppet_class(
     :expectedresults: A host is created with expected puppet classes then puppet classes
         are removed and the host is updated with same puppet classes
     """
-    update_smart_proxy(module_location, default_smart_proxy)
-    host = entities.Host(
-        organization=module_org,
-        location=module_location,
+    update_smart_proxy(module_puppet_loc, module_default_puppet_proxy)
+    host = module_puppet_enabled_sat.api.Host(
+        organization=module_puppet_org,
+        location=module_puppet_loc,
         environment=module_env_search,
         puppetclass=module_puppet_classes,
-        puppet_proxy=default_smart_proxy,
-        puppet_ca_proxy=default_smart_proxy,
+        puppet_proxy=module_default_puppet_proxy,
+        puppet_ca_proxy=module_default_puppet_proxy,
     ).create()
     assert {puppet_class.id for puppet_class in host.puppetclass} == {
         puppet_class.id for puppet_class in module_puppet_classes
@@ -404,8 +415,8 @@ def test_positive_end_to_end_with_puppet_class(
     assert len(host.puppetclass) == 0
     host.environment = module_env_search
     host.puppetclass = module_puppet_classes
-    host.puppet_ca_proxy = default_smart_proxy
-    host.puppet_proxy = default_smart_proxy
+    host.puppet_ca_proxy = module_default_puppet_proxy
+    host.puppet_proxy = module_default_puppet_proxy
     host = host.update(['environment', 'puppetclass', 'puppet_ca_proxy', 'puppet_proxy'])
     assert {puppet_class.id for puppet_class in host.puppetclass} == {
         puppet_class.id for puppet_class in module_puppet_classes
@@ -792,7 +803,9 @@ def test_positive_create_and_update_domain(module_org, module_location, module_d
 
 
 @pytest.mark.tier2
-def test_positive_create_and_update_env(module_org, module_location, module_puppet_environment):
+def test_positive_create_and_update_env(
+    module_puppet_org, module_puppet_loc, module_puppet_environment, module_puppet_enabled_sat
+):
     """Create and update a host with an environment
 
     :id: 87a08dbf-fd4c-4b6c-bf73-98ab70756fc6
@@ -801,14 +814,14 @@ def test_positive_create_and_update_env(module_org, module_location, module_pupp
 
     :CaseLevel: Integration
     """
-    host = entities.Host(
-        organization=module_org,
-        location=module_location,
+    host = module_puppet_enabled_sat.api.Host(
+        organization=module_puppet_org,
+        location=module_puppet_loc,
         environment=module_puppet_environment,
     ).create()
     assert host.environment.read().name == module_puppet_environment.name
 
-    new_env = entities.Environment(
+    new_env = module_puppet_enabled_sat.api.Environment(
         organization=[host.organization], location=[host.location]
     ).create()
     host.environment = new_env
@@ -1039,13 +1052,13 @@ def test_positive_update_content_source_id(
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_read_enc_information(
-    module_org,
-    module_location,
+    module_puppet_org,
+    module_puppet_loc,
     module_env_search,
     module_puppet_classes,
     module_lce_library,
-    default_smart_proxy,
-    module_default_org_view,
+    module_default_puppet_proxy,
+    module_puppet_enabled_sat,
 ):
     """Attempt to read host ENC information
 
@@ -1059,25 +1072,35 @@ def test_positive_read_enc_information(
 
     :CaseLevel: Integration
     """
-    update_smart_proxy(module_location, default_smart_proxy)
+    lce = (
+        module_puppet_enabled_sat.api.LifecycleEnvironment()
+        .search(query={'search': f'name={ENVIRONMENT} and organization_id={module_puppet_org.id}'})[
+            0
+        ]
+        .read()
+    )
+    cv = module_puppet_enabled_sat.api.ContentView(
+        organization=module_puppet_org, name=DEFAULT_CV
+    ).search()[0]
+    update_smart_proxy(module_puppet_loc, module_default_puppet_proxy)
     # create 2 parameters
     host_parameters_attributes = []
     for _ in range(2):
         host_parameters_attributes.append(
             dict(name=gen_string('alpha'), value=gen_string('alphanumeric'))
         )
-    host = entities.Host(
-        organization=module_org,
-        location=module_location,
+    host = module_puppet_enabled_sat.api.Host(
+        organization=module_puppet_org,
+        location=module_puppet_loc,
         environment=module_env_search,
         puppetclass=module_puppet_classes,
         content_facet_attributes={
-            'content_view_id': module_default_org_view.id,
-            'lifecycle_environment_id': module_lce_library.id,
+            'content_view_id': cv.id,
+            'lifecycle_environment_id': lce.id,
         },
         host_parameters_attributes=host_parameters_attributes,
-        puppet_proxy=default_smart_proxy,
-        puppet_ca_proxy=default_smart_proxy,
+        puppet_proxy=module_default_puppet_proxy,
+        puppet_ca_proxy=module_default_puppet_proxy,
     ).create()
     host_enc_info = host.enc()
     assert {puppet_class.name for puppet_class in module_puppet_classes} == set(
@@ -1086,9 +1109,9 @@ def test_positive_read_enc_information(
     assert host_enc_info['data']['environment'] == module_env_search.name
     assert 'parameters' in host_enc_info['data']
     host_enc_parameters = host_enc_info['data']['parameters']
-    assert host_enc_parameters['organization'] == module_org.name
-    assert host_enc_parameters['location'] == module_location.name
-    assert host_enc_parameters['content_view'] == module_default_org_view.label
+    assert host_enc_parameters['organization'] == module_puppet_org.name
+    assert host_enc_parameters['location'] == module_puppet_loc.name
+    assert host_enc_parameters['content_view'] == cv.label
     assert host_enc_parameters['lifecycle_environment'] == module_lce_library.name
     for param in host_parameters_attributes:
         assert param['name'] in host_enc_parameters
@@ -1337,7 +1360,7 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
 
 
 @pytest.mark.tier1
-def test_positive_read_puppet_proxy_name(default_sat):
+def test_positive_read_puppet_proxy_name(module_puppet_enabled_sat):
     """Read a hostgroup created with puppet proxy and inspect server's
     response
 
@@ -1349,14 +1372,16 @@ def test_positive_read_puppet_proxy_name(default_sat):
 
     :CaseImportance: Critical
     """
-    proxy = entities.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})[0]
-    host = entities.Host(puppet_proxy=proxy).create().read_json()
+    proxy = module_puppet_enabled_sat.api.SmartProxy().search(
+        query={'search': f'url = {module_puppet_enabled_sat.url}:9090'}
+    )[0]
+    host = module_puppet_enabled_sat.api.Host(puppet_proxy=proxy).create().read_json()
     assert 'puppet_proxy_name' in host
     assert proxy.name == host['puppet_proxy_name']
 
 
 @pytest.mark.tier1
-def test_positive_read_puppet_ca_proxy_name(default_sat):
+def test_positive_read_puppet_ca_proxy_name(module_puppet_enabled_sat):
     """Read a hostgroup created with puppet ca proxy and inspect server's
     response
 
@@ -1368,8 +1393,10 @@ def test_positive_read_puppet_ca_proxy_name(default_sat):
 
     :CaseImportance: Critical
     """
-    proxy = entities.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})[0]
-    host = entities.Host(puppet_ca_proxy=proxy).create().read_json()
+    proxy = module_puppet_enabled_sat.api.SmartProxy().search(
+        query={'search': f'url = {module_puppet_enabled_sat.url}:9090'}
+    )[0]
+    host = module_puppet_enabled_sat.api.Host(puppet_ca_proxy=proxy).create().read_json()
     assert 'puppet_ca_proxy_name' in host
     assert proxy.name == host['puppet_ca_proxy_name']
 
