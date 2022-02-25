@@ -5,9 +5,11 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.hosts import Capsule
 from robottelo.hosts import Satellite
+from robottelo.logging import logger
 
 
 def _resolve_deploy_args(args_dict):
+    # TODO: https://github.com/rochacbruno/dynaconf/issues/690
     for key, val in args_dict.items():
         if isinstance(val, str) and val.startswith('this.'):
             # Args transformed into small letters and existing capital args removed
@@ -24,11 +26,15 @@ def default_sat(align_to_satellite):
 @pytest.fixture(scope='session')
 def satellite_factory():
     if settings.server.get('deploy_arguments'):
+        logger.debug(f'Original deploy arguments for sat: {settings.server.deploy_arguments}')
         _resolve_deploy_args(settings.server.deploy_arguments)
+        logger.debug(f'Resolved deploy arguments for sat: {settings.server.deploy_arguments}')
 
     def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
         if settings.server.deploy_arguments:
             broker_args.update(settings.server.deploy_arguments)
+            logger.debug(f'Updated broker args for sat: {broker_args}')
+
         vmb = VMBroker(
             host_classes={'host': Satellite},
             workflow=workflow or settings.server.deploy_workflow,
