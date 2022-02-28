@@ -91,7 +91,7 @@ def scap_policy(scap_content):
     scap_policy = make_scap_policy(
         {
             'name': gen_string('alpha'),
-            'deploy-by': 'puppet',
+            'deploy-by': 'ansible',
             'scap-content-id': scap_content["scap_id"],
             'scap-content-profile-id': scap_content["scap_profile_id"],
             'period': OSCAP_PERIOD['weekly'].lower(),
@@ -413,7 +413,6 @@ def test_positive_end_to_end(session, module_host_template, module_org, module_g
         else:
             global_param['overridden'] = False
 
-    config_group = entities.ConfigGroup().create()
     new_name = 'new{}'.format(gen_string("alpha").lower())
     new_host_name = f'{new_name}.{module_host_template.domain.name}'
     with session:
@@ -422,10 +421,9 @@ def test_positive_end_to_end(session, module_host_template, module_org, module_g
             module_host_template,
             host_parameters=host_parameters,
             global_parameters=[overridden_global_parameter],
-            extra_values={'puppet_classes.config_groups.assigned': [config_group.name]},
         )
         assert session.host.search(host_name)[0]['Name'] == host_name
-        values = session.host.read(host_name, widget_names=['parameters', 'puppet_classes'])
+        values = session.host.read(host_name, widget_names=['parameters'])
         assert _get_set_from_list_of_dict(
             values['parameters']['host_params']
         ) == _get_set_from_list_of_dict(expected_host_parameters)
@@ -433,8 +431,6 @@ def test_positive_end_to_end(session, module_host_template, module_org, module_g
             _get_set_from_list_of_dict(values['parameters']['global_params'])
         )
 
-        assert len(values['puppet_classes']['config_groups']['assigned']) == 1
-        assert values['puppet_classes']['config_groups']['assigned'][0] == config_group.name
         # check host presence on the dashboard
         dashboard_values = session.dashboard.read('NewHosts')['hosts']
         displayed_host = [row for row in dashboard_values if row['Host'] == host_name][0]
@@ -477,10 +473,6 @@ def test_positive_read_from_details_page(session, module_host_template):
         )
         assert values['properties']['properties_table']['MAC Address'] == module_host_template.mac
         assert (
-            values['properties']['properties_table']['Puppet Environment']
-            == module_host_template.environment.name
-        )
-        assert (
             values['properties']['properties_table']['Architecture']
             == module_host_template.architecture.name
         )
@@ -519,7 +511,6 @@ def test_positive_read_from_edit_page(session, module_host_template):
         assert values['host']['location'] == module_host_template.location.name
         assert values['host']['lce'] == ENVIRONMENT
         assert values['host']['content_view'] == DEFAULT_CV
-        assert values['host']['puppet_environment'] == module_host_template.environment.name
         assert values['operating_system']['architecture'] == module_host_template.architecture.name
         assert values['operating_system']['operating_system'] == os_name
         assert values['operating_system']['media_type'] == 'All Media'
@@ -907,6 +898,7 @@ def test_positive_remove_parameter_non_admin_user(test_name, module_org, smart_p
 
 
 @pytest.mark.tier3
+@pytest.mark.skip_if_open("BZ:2059576")
 def test_negative_remove_parameter_non_admin_user(test_name, module_org, smart_proxy_location):
     """Attempt to remove host parameter as a non-admin user with
     insufficient permissions
@@ -1305,7 +1297,6 @@ def test_positive_validate_inherited_cv_lce(session, module_host_template, defau
         {
             'architecture-id': module_host_template.architecture.id,
             'domain-id': module_host_template.domain.id,
-            'environment-id': module_host_template.environment.id,
             'hostgroup-id': hostgroup['id'],
             'location-id': module_host_template.location.id,
             'medium-id': module_host_template.medium.id,
@@ -1806,6 +1797,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(
 
 
 @pytest.mark.tier3
+@pytest.mark.skip_if_open("BZ:2059597")
 def test_positive_set_multi_line_and_with_spaces_parameter_value(session, module_host_template):
     """Check that host parameter value with multi-line and spaces is
     correctly represented in yaml format
@@ -1835,7 +1827,6 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(session, module
         organization=module_host_template.organization,
         architecture=module_host_template.architecture,
         domain=module_host_template.domain,
-        environment=module_host_template.environment,
         location=module_host_template.location,
         mac=module_host_template.mac,
         medium=module_host_template.medium,
@@ -1894,7 +1885,6 @@ def test_positive_bulk_delete_host(session, smart_proxy_location):
             root_pass=host_template.root_pass,
             architecture=host_template.architecture,
             domain=host_template.domain,
-            environment=host_template.environment,
             medium=host_template.medium,
             operatingsystem=host_template.operatingsystem,
             ptable=host_template.ptable,
@@ -2021,12 +2011,7 @@ def test_positive_delete_libvirt(
         )
         name = f'{hostname}.{module_libvirt_domain.name}'
         assert session.host.search(name)[0]['Name'] == name
-        message = session.host.delete(name)
-        assert (
-            'Are you sure you want to delete host {}? This will delete the VM and '
-            'its disks, and is irreversible. This behavior can be changed via global '
-            'setting "Destroy associated VM on host delete".'.format(name)
-        ) == message
+        session.host.delete(name)
         assert not entities.Host().search(query={'search': f'name="{hostname}"'})
 
 
@@ -2213,13 +2198,7 @@ def test_positive_gce_provision_end_to_end(
                 assert 'g1-small' in gceapi_vm.raw['machineType'].split('/')[-1]
                 assert 'default' in gceapi_vm.raw['networkInterfaces'][0]['network'].split('/')[-1]
                 # 2. Host Deletion Assertions
-                message = session.host.delete(hostname)
-                # 2.1 UI based Assertions
-                assert (
-                    'Are you sure you want to delete host {}? This will delete the VM and '
-                    'its disks, and is irreversible. This behavior can be changed via '
-                    'global setting "Destroy associated VM on host delete".'.format(hostname)
-                ) == message
+                session.host.delete(hostname)
                 assert not entities.Host().search(query={'search': f'name="{hostname}"'})
                 # 2.2 GCE Backend Assertions
                 assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
@@ -2299,13 +2278,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
                 assert 'g1-small' in gceapi_vm.raw['machineType'].split('/')[-1]
                 assert 'default' in gceapi_vm.raw['networkInterfaces'][0]['network'].split('/')[-1]
                 # 2. Host Deletion Assertions
-                message = session.host.delete(hostname)
-                # 2.1 UI based Assertions
-                assert (
-                    'Are you sure you want to delete host {}? This will delete the VM and '
-                    'its disks, and is irreversible. This behavior can be changed via '
-                    'global setting "Destroy associated VM on host delete".'.format(hostname)
-                ) == message
+                session.host.delete(hostname)
                 assert not entities.Host().search(query={'search': f'name="{hostname}"'})
                 # 2.2 GCE Backend Assertions
                 assert gceapi_vm.is_stopping or gceapi_vm.is_stopped

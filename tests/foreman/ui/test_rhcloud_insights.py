@@ -447,11 +447,7 @@ def test_delete_host_having_insights_recommendation(
         )
         assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
         # Delete host
-        message = session.host.delete(rhel8_contenthost.hostname)
-        assert (
-            f'Are you sure you want to delete host '
-            f'{rhel8_contenthost.hostname}? This action is irreversible.'
-        ) == message
+        session.host.delete(rhel8_contenthost.hostname)
         assert not rhcloud_sat_host.api.Host().search(
             query={'search': f'name="{rhel8_contenthost.hostname}"'}
         )
