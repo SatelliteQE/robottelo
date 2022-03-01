@@ -1128,10 +1128,9 @@ class Capsule(ContentHost):
         self.install_katello_ca(satellite=dogfood)
         # satellite version consist from x.y.z, we need only x.y
         sat_release = '.'.join(self.version.split('.')[:2])
-        rhel_release = settings.server.version.rhel_release
         cmd_result = self.register_contenthost(
             org=f'{settings.subscription.dogfood_org}',
-            activation_key=f'{ak_type}-{sat_release}-qa-rhel{rhel_release}',
+            activation_key=f'{ak_type}-{sat_release}-qa-rhel{self.os_version.major}',
         )
         if cmd_result.status != 0:
             raise CapsuleHostError(
