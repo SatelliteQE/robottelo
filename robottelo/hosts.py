@@ -36,6 +36,8 @@ from robottelo.constants import SATELLITE_VERSION
 from robottelo.helpers import get_data_file
 from robottelo.helpers import InstallerCommand
 from robottelo.helpers import validate_ssh_pub_key
+from robottelo.host_helpers import ContentHostMixins
+from robottelo.host_helpers import SatelliteMixins
 from robottelo.logging import logger
 
 POWER_OPERATIONS = {
@@ -114,7 +116,7 @@ class SatelliteHostError(Exception):
     pass
 
 
-class ContentHost(Host):
+class ContentHost(Host, ContentHostMixins):
     run = Host.execute
     default_timeout = settings.server.ssh_client.command_timeout
 
@@ -496,14 +498,13 @@ class ContentHost(Host):
         if 'manifests.Manifest' in str(local_path):
             with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
                 content_file.write(local_path.content.read())
-                content_file.seek(0)
+                content_file.flush()
                 self.session.sftp_write(source=content_file.name, destination=remote_path)
         else:
             self.session.sftp_write(source=local_path, destination=remote_path)
 
     def put_ssh_key(self, source_key_path, destination_key_name):
-        """Copy ssh key to virtual machine ssh path and ensure proper permission is
-        set
+        """Copy ssh key to virtual machine ssh path and ensure proper permission is set
 
         Args:
             source_key_path: The ssh key file path to copy to vm
@@ -1185,7 +1186,7 @@ class Capsule(ContentHost):
             raise CapsuleHostError('a core service is not running at capsule host')
 
 
-class Satellite(Capsule):
+class Satellite(Capsule, SatelliteMixins):
     def __init__(self, hostname=None, **kwargs):
         from robottelo.config import settings
 
