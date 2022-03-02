@@ -12,12 +12,16 @@ def subscribe_satellite(clean_rhsm, default_sat):
     """subscribe satellite to cdn"""
     from robottelo.config import settings
 
+    if default_sat.os_version.major < 8:
+        release_version = f'{default_sat.os_version.major}Server'
+    else:
+        release_version = f'{default_sat.os_version.major}'
     default_sat.register_contenthost(
         org=None,
         lce=None,
         username=settings.subscription.rhn_username,
         password=settings.subscription.rhn_password,
-        releasever=f'{default_sat.os_version.major}Server',
+        releasever=release_version,
     )
     result = default_sat.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
     if 'Successfully attached a subscription' in result.stdout:
