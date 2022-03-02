@@ -23,7 +23,6 @@ PyYAML==6.0
 requests==2.27.1
 tenacity==8.0.1
 testimony==2.2.0
-unittest2==1.1.0
 wait-for==1.2.0
 wrapanapi==3.5.12
 
