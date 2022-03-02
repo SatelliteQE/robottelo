@@ -19,8 +19,8 @@
 import csv
 import json
 import os
-from pathlib import PurePath
 from pathlib import Path
+from pathlib import PurePath
 
 import pytest
 import yaml
