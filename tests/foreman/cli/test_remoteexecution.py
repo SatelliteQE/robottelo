@@ -94,6 +94,12 @@ def fixture_enable_receptor_repos(request, default_sat):
     default_sat.enable_repo(constants.REPOS['rhs7']['id'])
 
 
+@pytest.fixture()
+def infra_host(request, default_sat, capsule_configured):
+    infra_hosts = {'default_sat': default_sat, 'capsule_configured': capsule_configured}
+    yield infra_hosts[request.param]
+
+
 class TestRemoteExecution:
     """Implements job execution tests in CLI."""
 
@@ -967,9 +973,21 @@ class TestRexUsers:
         yield (rexinfra, password)
 
     @pytest.mark.tier3
+    @pytest.mark.parametrize(
+        'infra_host',
+        ['default_sat', 'capsule_configured'],
+        ids=['satellite', 'capsule'],
+        indirect=True,
+    )
     @pytest.mark.rhel_ver_list([7])
-    def test_positive_rex_against_satellite(
-        self, rex_contenthost, module_rexmanager_user, module_rexinfra_user, default_sat, module_org
+    def test_positive_rex_against_infra_hosts(
+        self,
+        rex_contenthost,
+        module_rexmanager_user,
+        module_rexinfra_user,
+        default_sat,
+        infra_host,
+        module_org,
     ):
         """
         Tests related to remote execution against Satellite host
@@ -977,19 +995,22 @@ class TestRexUsers:
         :id: 36942e30-b885-4ba3-933b-7f59888935c9
 
         :steps:
-            1. Run rex job against Satellite as admin
-            2. Run rex job against Satellite as a REX admin
-            3. Run rex job against Satellite a custom user with
+            1. Run rex job against Satellite and Capsule as admin
+            2. Run rex job against Satellite and Capsule as a REX admin
+            3. Run rex job against Satellite and Capsule as a custom user with
+               required permission
 
         :expectedresults: Only users with execute_jobs_on_infrastructure_host perm
             can run rex against Satellite
 
         :caseautomation: Automated
 
+        :parametrized: yes
+
         """
         client = rex_contenthost
-        default_sat.add_rex_key(satellite=default_sat)
-        Host.update({'name': default_sat.hostname, 'new-organization-id': module_org.id})
+        infra_host.add_rex_key(satellite=default_sat)
+        Host.update({'name': infra_host.hostname, 'new-organization-id': module_org.id})
 
         # run job as admin
         command = f"echo {gen_string('alpha')}"
@@ -997,11 +1018,11 @@ class TestRexUsers:
             {
                 'job-template': 'Run Command - SSH Default',
                 'inputs': f'command={command}',
-                'search-query': f"name ^ ({client.hostname}, {default_sat.hostname})",
+                'search-query': f"name ^ ({client.hostname}, {infra_host.hostname})",
             }
         )
         output_msgs = []
-        hostnames = [client.hostname, default_sat.hostname]
+        hostnames = [client.hostname, infra_host.hostname]
         for hostname in hostnames:
             inv_output = ' '.join(
                 JobInvocation.get_output({'id': invocation_command['id'], 'host': hostname})
@@ -1015,7 +1036,7 @@ class TestRexUsers:
             {
                 'job-template': 'Run Command - SSH Default',
                 'inputs': f'command={command}',
-                'search-query': f"name ^ ({client.hostname}, {default_sat.hostname})",
+                'search-query': f"name ^ ({client.hostname}, {infra_host.hostname})",
             },
             module_rexmanager_user,
         )
@@ -1028,7 +1049,7 @@ class TestRexUsers:
             {
                 'job-template': 'Run Command - SSH Default',
                 'inputs': f'command={command}',
-                'search-query': f"name ^ ({default_sat.hostname})",
+                'search-query': f"name ^ ({infra_host.hostname})",
             },
             module_rexmanager_user,
         )
@@ -1040,7 +1061,7 @@ class TestRexUsers:
             {
                 'job-template': 'Run Command - SSH Default',
                 'inputs': f'command={command}',
-                'search-query': f"name ^ ({default_sat.hostname})",
+                'search-query': f"name ^ ({infra_host.hostname})",
             },
             module_rexinfra_user,
         )
