@@ -141,7 +141,6 @@ class TestRemoteExecution:
         search = Task.list_tasks({'search': f'id={task["id"]}'})
         assert search[0]['action'] == task['action']
 
-    @pytest.mark.skip_if_open('BZ:1804685')
     @pytest.mark.tier3
     @pytest.mark.pit_client
     @pytest.mark.pit_server
@@ -151,7 +150,7 @@ class TestRemoteExecution:
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
 
-        :BZ: 1451675
+        :BZ: 1451675, 1804685
 
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host
