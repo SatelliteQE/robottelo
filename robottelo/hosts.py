@@ -413,6 +413,16 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise ContentHostError('Failed to install the katello-ca rpm')
 
+    def install_cockpit(self):
+        """Installs cockpit on the broker virtual machine.
+
+        :raises robottelo.hosts.ContentHostError: If cockpit wasn't
+            installed.
+        """
+        result = self.execute('yum install cockpit -y')
+        if result.status != 0:
+            raise ContentHostError('Failed to install the cockpit')
+
     def register_contenthost(
         self,
         org='Default_Organization',

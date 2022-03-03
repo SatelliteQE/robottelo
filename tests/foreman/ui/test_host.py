@@ -2320,9 +2320,10 @@ def test_positive_gce_cloudinit_provision_end_to_end(
 
 @pytest.mark.destructive
 @pytest.mark.upgrade
+@pytest.mark.rhel_ver_match('[^6].*')
 @pytest.mark.usefixtures('install_cockpit_plugin')
 @pytest.mark.tier2
-def test_positive_cockpit(session, default_sat):
+def test_positive_cockpit(session, cockpit_host, module_org):
     """Install cockpit plugin and test whether webconsole button and cockpit integration works
 
     :id: 5a9be063-cdc4-43ce-91b9-7608fbebf8bb
@@ -2331,15 +2332,16 @@ def test_positive_cockpit(session, default_sat):
 
     :CaseLevel: System
 
+    :parametrized: yes
     """
     with session:
-        session.organization.select(org_name='Default Organization')
+        session.organization.select(org_name=module_org.name)
         session.location.select(loc_name='Any Location')
         hostname_inside_cockpit = session.host.get_webconsole_content(
-            entity_name=default_sat.hostname
+            entity_name=cockpit_host.hostname, rhel_version=cockpit_host.os_version.major
         )
         assert (
-            hostname_inside_cockpit == default_sat.hostname
+            hostname_inside_cockpit == cockpit_host.hostname
         ), 'cockpit page shows hostname {} instead of {}'.format(
-            hostname_inside_cockpit, default_sat.hostname
+            hostname_inside_cockpit, cockpit_host.hostname
         )

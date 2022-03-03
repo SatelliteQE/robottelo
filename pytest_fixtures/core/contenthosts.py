@@ -108,21 +108,45 @@ def registered_hosts(organization_ak_setup, content_hosts, default_sat):
 @pytest.fixture(scope="function")
 def katello_host_tools_host(default_sat, module_org, rhel_contenthost):
     """Register content host to Satellite and install katello-host-tools on the host."""
+    repo = settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
+    register_host_custom_repo(default_sat, module_org, rhel_contenthost, [repo])
+    rhel_contenthost.install_katello_host_tools()
+    yield rhel_contenthost
+
+
+@pytest.fixture(scope="function")
+def cockpit_host(default_sat, module_org, rhel_contenthost):
+    """Register content host to Satellite and install cockpit on the host."""
+    rhelver = rhel_contenthost.os_version.major
+    if rhelver > 7:
+        repo = [settings.repos[f'rhel{rhelver}_os']['baseos']]
+    else:
+        repo = [settings.repos['rhel7_os'], settings.repos['rhel7_extras']]
+    register_host_custom_repo(default_sat, module_org, rhel_contenthost, repo)
+    rhel_contenthost.execute(f"hostnamectl set-hostname {rhel_contenthost.hostname} --static")
+    rhel_contenthost.install_cockpit()
+    rhel_contenthost.add_rex_key(satellite=default_sat)
+    yield rhel_contenthost
+
+
+def register_host_custom_repo(default_sat, module_org, rhel_contenthost, repo_urls):
+    """Register content host to Satellite and sync repos"""
     # prepare Product and appropriate Satellite Client repo on satellite
     rhelver = rhel_contenthost.os_version.major
     prod = entities.Product(
         organization=module_org, name=f'rhel{rhelver}_{gen_string("alpha")}'
     ).create()
-    sattools_repo = entities.Repository(
-        organization=module_org,
-        product=prod,
-        content_type='yum',
-        url=settings.repos['SATCLIENT_REPO'][f'RHEL{rhelver}'],
-    ).create()
-    sattools_repo.sync()
+    for url in repo_urls:
+        repo = entities.Repository(
+            organization=module_org,
+            product=prod,
+            content_type='yum',
+            url=url,
+        ).create()
+        repo.sync(timeout=1200)
     subs = entities.Subscription(organization=module_org, name=prod.name).search()
     assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
-    sattools_sub = subs[0]
+    subscription = subs[0]
 
     # finally, prepare the host end
     rhel_contenthost.install_katello_ca(default_sat)
@@ -141,13 +165,11 @@ def katello_host_tools_host(default_sat, module_org, rhel_contenthost):
         data={
             "organization_id": module_org.id,
             "included": {"ids": [rhel_contenthost.nailgun_host.id]},
-            "subscriptions": [{"id": sattools_sub.id, "quantity": 1}],
+            "subscriptions": [{"id": subscription.id, "quantity": 1}],
         }
     )
     # refresh repository metadata
     rhel_contenthost.execute('subscription-manager repos --list')
-    rhel_contenthost.install_katello_host_tools()
-    yield rhel_contenthost
 
 
 @pytest.fixture
