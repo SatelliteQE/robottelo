@@ -375,7 +375,7 @@ REPOSET = {
         'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
         'rhel9': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Beta (Kickstart)',
     },
-    'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8',
+    'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)',
     'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)',
     'rhel7_extra': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
@@ -634,7 +634,8 @@ REPOS = {
     },
     'rhel8_bos': {
         'id': 'rhel-8-for-x86_64-baseos-rpms',
-        'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8',
+        'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8.5',
+        'releasever': '8.5',
         'version': '8',
         'reposet': REPOSET['rhel8_bos'],
         'product': PRDS['rhel8'],
@@ -643,8 +644,8 @@ REPOS = {
     },
     'rhel8_aps': {
         'id': 'rhel-8-for-x86_64-appstream-rpms',
-        'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream RPMs 8',
-        'releasever': '8',
+        'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream RPMs 8.5',
+        'releasever': '8.5',
         'version': '8',
         'reposet': REPOSET['rhel8_aps'],
         'product': PRDS['rhel8'],
@@ -2148,3 +2149,9 @@ RH_SAT_ROLES = [
     'settings',
     'sync_plans',
 ]
+
+CONVERT_TO_RHEL_REPO = ""
+SSL_CERT_ORACLE = ""
+
+UBI_ORACLE7 = ""
+UBI_ORACLE8 = ""
