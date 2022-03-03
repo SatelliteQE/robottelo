@@ -8,7 +8,7 @@
 
 :CaseComponent: ContainerManagement-Content
 
-:Assignee: spusater
+:Assignee: addubey
 
 :TestType: Functional
 
