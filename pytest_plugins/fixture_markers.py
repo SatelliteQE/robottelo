@@ -36,6 +36,7 @@ def pytest_generate_tests(metafunc):
         for ver in filtered_versions or settings.supportability.content_hosts.rhel.versions:
             rhel_params.append(dict(rhel_version=ver))
         if rhel_params:
+            rhel_params.sort(key=lambda r: str(r['rhel_version']))
             metafunc.parametrize(
                 'rhel_contenthost',
                 rhel_params,
