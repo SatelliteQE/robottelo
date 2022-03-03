@@ -2422,7 +2422,7 @@ class TestTokenAuthContainerRepository:
 
     :CaseComponent: ContainerManagement-Content
 
-    :Assignee: spusater
+    :Assignee: addubey
     """
 
     @pytest.mark.tier2
