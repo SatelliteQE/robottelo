@@ -78,7 +78,7 @@ def test_positive_create_and_delete_variable(default_sat):
 def test_positive_create_with_overrides(default_sat):
     key = gen_string('alpha')
     role = 'redhat.satellite.activation_keys'
-    param = {'Attribute type': 'fqdn', 'Value': 'example.com', 'Actions': 'test value'}
+    param = {'attribute_type': 'fqdn', 'attribute_value': 'example.com', 'value': 'test value'}
     with Session(hostname=default_sat.hostname) as session:
         session.ansiblevariables.create(
             {
