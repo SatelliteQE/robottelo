@@ -1145,7 +1145,7 @@ class Capsule(ContentHost):
         self.execute('yum -y update', timeout=0)
 
         # workaround from DF for RHEL8
-        if settings.server.version.rhel_release == 8:
+        if settings.server.version.rhel_version == 8:
             self.execute(
                 'subscription-manager repo-override --repo=Sat6-CI_Satellite_Capsule_7_0_Composes_Satellite_Capsule_7_0_RHEL8 --add=module_hotfixes:1'  # noqa
             )
