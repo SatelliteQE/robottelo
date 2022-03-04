@@ -2,7 +2,11 @@
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import RHEL_6_MAJOR_VERSION
+from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.constants import RHEL_8_MAJOR_VERSION
 from robottelo.helpers import InstallerCommand
+
 
 common_opts = {
     'foreman-proxy-puppetca': 'true',
@@ -12,6 +16,9 @@ common_opts = {
     'puppet-server-foreman-ssl-ca': '/etc/pki/katello/puppet/puppet_client_ca.crt',
     'puppet-server-foreman-ssl-cert': '/etc/pki/katello/puppet/puppet_client.crt',
     'puppet-server-foreman-ssl-key': '/etc/pki/katello/puppet/puppet_client.key',
+    # Options for puppetbootstrap test
+    'foreman-proxy-templates': 'true',
+    'foreman-proxy-http': 'true',
 }
 
 enable_satellite_cmd = InstallerCommand(
@@ -121,3 +128,27 @@ def parametrized_puppet_sat(request, default_sat, session_puppet_enabled_sat):
     else:
         sat = default_sat
     return {'sat': sat, 'enabled': request.param}
+
+
+@pytest.fixture(scope="session")
+def session_puppet_enabled_proxy(session_puppet_enabled_sat):
+    """Use the default installation puppet smart proxy"""
+    return (
+        session_puppet_enabled_sat.api.SmartProxy()
+        .search(query={'search': f'url = {session_puppet_enabled_sat.url}:9090'})[0]
+        .read()
+    )
+
+
+@pytest.fixture(scope='session')
+def session_puppet_default_os(session_puppet_enabled_sat):
+    """Default OS on the puppet-enabled Satellite"""
+    search_string = (
+        f'name="RedHat" AND (major="{RHEL_6_MAJOR_VERSION}" '
+        f'OR major="{RHEL_7_MAJOR_VERSION}" OR major="{RHEL_8_MAJOR_VERSION}")'
+    )
+    return (
+        session_puppet_enabled_sat.api.OperatingSystem()
+        .search(query={'search': search_string})[0]
+        .read()
+    )
