@@ -2214,7 +2214,8 @@ def test_positive_edit_rh_custom_spin(session):
         distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    cv = entities.ContentView(id=repos_collection.setup_content_view['content_view']['id']).read()
+    cv = repos_collection.setup_content_view(org.id)
+    cv = entities.ContentView(id=cv[0]['id']).read()
     with session:
         session.organization.select(org.name)
         session.contentviewfilter.create(
@@ -2671,7 +2672,6 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session, default_sat
     :CaseImportance: High
     """
     hg_name = gen_string('alpha')
-    sat_hostname = default_sat.hostname
     org = entities.Organization().create()
     # Create a new Lifecycle environment
     lc_env = entities.LifecycleEnvironment(organization=org).create()
@@ -2713,7 +2713,6 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session, default_sat
                 'host_group.name': hg_name,
                 'host_group.lce': lc_env.name,
                 'host_group.content_view': content_view.name,
-                'host_group.content_source': sat_hostname,
                 'operating_system.architecture': arch.name,
                 'operating_system.operating_system': f'{os.name} {os.major}.{os.minor}',
                 'operating_system.ptable': ptable.name,
