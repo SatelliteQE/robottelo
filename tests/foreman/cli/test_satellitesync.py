@@ -896,7 +896,7 @@ class TestContentViewSync:
             {'name': import_cv_name, 'organization-id': importing_org['id']}
         )['versions']
         assert len(importing_cvv_id) >= 1
-        imported_packages = Package.list({'content-view-version-id': importing_cv_id['id']})
+        imported_packages = Package.list({'content-view-version-id': importing_cvv_id[0]['id']})
         assert len(imported_packages)
         assert len(exported_packages) == len(imported_packages)
         # Verify the LCE is in Library
