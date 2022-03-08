@@ -20,7 +20,7 @@ pytest_lazy-fixture==0.6.3
 pytest-mock==3.6.1
 pytest-reportportal==5.0.8
 pytest-xdist==2.3.0
-pytest-ibutsu==1.16
+pytest-ibutsu==2.0.2
 PyYAML==5.4.1
 requests==2.26.0
 tenacity==8.0.1
