@@ -6,14 +6,14 @@ import json
 
 from robottelo import ssh
 from robottelo.cli import hammer
+from robottelo.config import settings
 
 
 def generate_command_tree(command):
     """Recursively walk trhough the hammer commands and subcommands and fetch
     their help. Return a dictionary with the contents.
-
     """
-    output = ssh.command(f'{command} --help').stdout
+    output = ssh.command(f'{command} --help', hostname=settings.server.hostnames[0]).stdout
     contents = hammer.parse_help(output)
     if len(contents['subcommands']) > 0:
         for subcommand in contents['subcommands']:
