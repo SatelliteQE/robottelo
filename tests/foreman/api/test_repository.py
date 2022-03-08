@@ -1716,10 +1716,7 @@ class TestDockerRepository:
 
         :CaseLevel: Integration
         """
-        msg = (
-            rf'DKR1007: Could not fetch repository {repo_options["docker_upstream_name"]} from'
-            rf' registry {repo_options["url"]}.*Unauthorized or Not Found'
-        )
+        msg = "401, message=\'Unauthorized\'"
         with pytest.raises(TaskFailedError, match=msg):
             repo.sync()
 
@@ -1758,7 +1755,7 @@ class TestDockerRepository:
 
         :CaseLevel: Integration
         """
-        msg = f'DKR1008: Could not find registry API at {repo_options["url"]}'
+        msg = "404, message=\'Not Found\'"
         with pytest.raises(TaskFailedError, match=msg):
             repo.sync()
 
@@ -1801,7 +1798,7 @@ class TestDockerRepository:
         with pytest.raises(
             HTTPError,
             match='422 Client Error: Unprocessable Entity for url: '
-            f'{default_sat.url}/katello/api/v2/repositories',
+            f'{default_sat.url}:443/katello/api/v2/repositories',
         ):
             entities.Repository(**repo_options).create()
 
