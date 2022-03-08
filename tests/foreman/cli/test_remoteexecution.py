@@ -207,7 +207,7 @@ class TestRemoteExecution:
         assert username == result.stdout.strip('\n')
 
     @pytest.mark.tier3
-    @pytest.mark.rhel_ver_list([7, '7_fips', 8, '8_fips', 9])
+    @pytest.mark.rhel_ver_list([7, '7_fips', 8, '8_fips', 9, '9_fips'])
     def test_positive_run_custom_job_template_by_ip(self, rex_contenthost, module_org, default_sat):
         """Run custom template on host connected by ip
 
@@ -744,7 +744,7 @@ class TestAnsibleREX:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.pit_server
-    @pytest.mark.rhel_ver_list([7, '7_fips', 8, '8_fips', 9])
+    @pytest.mark.rhel_ver_list([7, '7_fips', 8, '8_fips', 9, '9_fips'])
     @pytest.mark.skipif(
         (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
     )
