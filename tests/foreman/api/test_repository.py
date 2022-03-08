@@ -28,7 +28,6 @@ from nailgun import client
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
-from requests.exceptions import SSLError
 
 from robottelo import constants
 from robottelo import datafactory
@@ -1163,8 +1162,8 @@ class TestRepository:
         # ensure the url is based on the protected base server URL
         assert repo_data_file_url.startswith(default_sat.url)
         # try to access repository data without organization debug certificate
-        with pytest.raises(SSLError):
-            client.get(repo_data_file_url, verify=False)
+        response = client.get(repo_data_file_url, verify=False)
+        assert response.status_code == 403
         # get the organization debug certificate
         cert_content = module_org.download_debug_certificate()
         # save the organization debug certificate to file
