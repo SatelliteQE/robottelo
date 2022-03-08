@@ -78,3 +78,6 @@ upgrade_highlights
 #Robottelo artifact
 screenshots/
 tmp/
+
+# Virtual Environments
+ven*/

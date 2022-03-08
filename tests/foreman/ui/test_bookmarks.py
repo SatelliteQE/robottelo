@@ -20,10 +20,10 @@ import random
 
 import pytest
 from airgun.exceptions import DisabledWidgetError
+from airgun.exceptions import NoSuchElementException
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
-from widgetastic.exceptions import NoSuchElementException
 
 from robottelo.constants import BOOKMARK_ENTITIES
 from robottelo.helpers import get_nailgun_config

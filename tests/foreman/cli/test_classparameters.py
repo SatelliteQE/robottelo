@@ -27,21 +27,21 @@ from robottelo.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def module_puppet(module_puppet_enabled_sat, module_puppet_org, module_puppet_loc):
+def module_puppet(session_puppet_enabled_sat, module_puppet_org, module_puppet_loc):
     puppet_class = 'cli_test_classparameters'
-    env_name = module_puppet_enabled_sat.create_custom_environment(repo=puppet_class)
-    module_puppet_enabled_sat.cli.Environment.update(
+    env_name = session_puppet_enabled_sat.create_custom_environment(repo=puppet_class)
+    session_puppet_enabled_sat.cli.Environment.update(
         {
             'name': env_name,
             'organization-ids': module_puppet_org.id,
             'location-ids': module_puppet_loc.id,
         }
     )
-    puppet_class = module_puppet_enabled_sat.cli.Puppet.info(
+    puppet_class = session_puppet_enabled_sat.cli.Puppet.info(
         {'name': puppet_class, 'puppet-environment': env_name}
     )
     env = (
-        module_puppet_enabled_sat.api.Environment()
+        session_puppet_enabled_sat.api.Environment()
         .search(query={'search': f'name="{env_name}"'})[0]
         .read()
     )
@@ -50,8 +50,8 @@ def module_puppet(module_puppet_enabled_sat, module_puppet_org, module_puppet_lo
 
 
 @pytest.fixture(scope='module')
-def module_sc_params(module_puppet_enabled_sat, module_puppet):
-    sc_params_list = module_puppet_enabled_sat.cli.SmartClassParameter.list(
+def module_sc_params(session_puppet_enabled_sat, module_puppet):
+    sc_params_list = session_puppet_enabled_sat.cli.SmartClassParameter.list(
         {
             'puppet-environment': module_puppet['env'].name,
             'search': f'puppetclass="{module_puppet["class"]["name"]}"',
@@ -71,7 +71,7 @@ class TestSmartClassParameters:
     @pytest.mark.tier1
     def test_positive_list(
         self,
-        module_puppet_enabled_sat,
+        session_puppet_enabled_sat,
         module_puppet_org,
         module_puppet_loc,
         module_puppet,
@@ -87,7 +87,7 @@ class TestSmartClassParameters:
 
         :CaseImportance: Medium
         """
-        host = module_puppet_enabled_sat.api.Host(
+        host = session_puppet_enabled_sat.api.Host(
             organization=module_puppet_org.id,
             location=module_puppet_loc.id,
             environment=module_puppet['env'].name,
@@ -112,15 +112,17 @@ class TestSmartClassParameters:
 
         # override an example parameter
         sc_param_id = module_sc_params['ids'].pop()
-        module_puppet_enabled_sat.cli.SmartClassParameter.update({'id': sc_param_id, 'override': 1})
-        sc_param = module_puppet_enabled_sat.cli.SmartClassParameter.info(
+        session_puppet_enabled_sat.cli.SmartClassParameter.update(
+            {'id': sc_param_id, 'override': 1}
+        )
+        sc_param = session_puppet_enabled_sat.cli.SmartClassParameter.info(
             {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
         assert sc_param['override'] is True
 
         # check listing parameters for selected queries
         for query in list_queries:
-            sc_params = module_puppet_enabled_sat.cli.SmartClassParameter.list(query)
+            sc_params = session_puppet_enabled_sat.cli.SmartClassParameter.list(query)
             assert len(sc_params) > 0, f"Failed to list parameters for query: {query}"
             assert sc_param_id in [scp['id'] for scp in sc_params]
             # Check that only unique results are returned
@@ -129,7 +131,7 @@ class TestSmartClassParameters:
             ), f'Not only unique results returned for query: {query}'
 
     @pytest.mark.tier1
-    def test_positive_list_with_non_admin_user(self, module_puppet_enabled_sat, module_puppet):
+    def test_positive_list_with_non_admin_user(self, session_puppet_enabled_sat, module_puppet):
         """List all the parameters for specific puppet class by id.
 
         :id: 00fbf150-34fb-45d0-80e9-d5798d24a24f
@@ -156,8 +158,8 @@ class TestSmartClassParameters:
         role = make_role()
         add_role_permissions(role['id'], required_user_permissions)
         # Add the created and initiated role with permissions to user
-        module_puppet_enabled_sat.cli.User.add_role({'id': user['id'], 'role-id': role['id']})
-        sc_params = module_puppet_enabled_sat.cli.SmartClassParameter.with_user(
+        session_puppet_enabled_sat.cli.User.add_role({'id': user['id'], 'role-id': role['id']})
+        sc_params = session_puppet_enabled_sat.cli.SmartClassParameter.with_user(
             user['login'], password
         ).list({'puppet-class-id': module_puppet['class']['id']})
         assert len(sc_params) > 0
@@ -166,7 +168,7 @@ class TestSmartClassParameters:
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    def test_positive_override(self, module_puppet_enabled_sat, module_puppet, module_sc_params):
+    def test_positive_override(self, session_puppet_enabled_sat, module_puppet, module_sc_params):
         """Override the Default Parameter value.
 
         :id: 25e34bac-084c-4b68-a082-822633e19f7e
@@ -188,17 +190,17 @@ class TestSmartClassParameters:
         """
         sc_param_id = module_sc_params['ids'].pop()
         value = gen_string('alpha')
-        module_puppet_enabled_sat.cli.SmartClassParameter.update(
+        session_puppet_enabled_sat.cli.SmartClassParameter.update(
             {'default-value': value, 'omit': 1, 'id': sc_param_id, 'override': 1}
         )
-        sc_param = module_puppet_enabled_sat.cli.SmartClassParameter.info(
+        sc_param = session_puppet_enabled_sat.cli.SmartClassParameter.info(
             {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
         assert sc_param['default-value'] == value
         assert sc_param['omit'] is True
 
     @pytest.mark.tier1
-    def test_negative_override(self, module_puppet_enabled_sat, module_sc_params):
+    def test_negative_override(self, session_puppet_enabled_sat, module_sc_params):
         """Override the Default Parameter value - override Unchecked.
 
         :id: eb24c44d-0e34-40a3-aa3e-05a3cd4ed1ea
@@ -219,13 +221,13 @@ class TestSmartClassParameters:
         """
         sc_param_id = module_sc_params['ids'].pop()
         with pytest.raises(CLIReturnCodeError):
-            module_puppet_enabled_sat.cli.SmartClassParameter.update(
+            session_puppet_enabled_sat.cli.SmartClassParameter.update(
                 {'default-value': gen_string('alpha'), 'id': sc_param_id}
             )
 
     @pytest.mark.tier1
     def test_negative_validate_default_value_with_list(
-        self, module_puppet_enabled_sat, module_puppet, module_sc_params
+        self, session_puppet_enabled_sat, module_puppet, module_sc_params
     ):
         """Error raised for default value not in list.
 
@@ -247,7 +249,7 @@ class TestSmartClassParameters:
         value = gen_string('alphanumeric')
         sc_param_id = module_sc_params['ids'].pop()
         with pytest.raises(CLIReturnCodeError):
-            module_puppet_enabled_sat.cli.SmartClassParameter.update(
+            session_puppet_enabled_sat.cli.SmartClassParameter.update(
                 {
                     'id': sc_param_id,
                     'default-value': value,
@@ -256,14 +258,14 @@ class TestSmartClassParameters:
                     'validator-rule': '5, test',
                 }
             )
-        sc_param = module_puppet_enabled_sat.cli.SmartClassParameter.info(
+        sc_param = session_puppet_enabled_sat.cli.SmartClassParameter.info(
             {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
         assert sc_param['default-value'] != value
 
     @pytest.mark.tier1
     def test_positive_validate_default_value_with_list(
-        self, module_puppet_enabled_sat, module_puppet, module_sc_params
+        self, session_puppet_enabled_sat, module_puppet, module_sc_params
     ):
         """Error not raised for default value in list and required
 
@@ -285,7 +287,7 @@ class TestSmartClassParameters:
         :CaseImportance: Medium
         """
         sc_param_id = module_sc_params['ids'].pop()
-        module_puppet_enabled_sat.cli.SmartClassParameter.update(
+        session_puppet_enabled_sat.cli.SmartClassParameter.update(
             {
                 'id': sc_param_id,
                 'default-value': 'test',
@@ -295,7 +297,7 @@ class TestSmartClassParameters:
                 'required': 1,
             }
         )
-        sc_param = module_puppet_enabled_sat.cli.SmartClassParameter.info(
+        sc_param = session_puppet_enabled_sat.cli.SmartClassParameter.info(
             {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
         assert sc_param['default-value'] == 'test'
@@ -304,7 +306,7 @@ class TestSmartClassParameters:
 
     @pytest.mark.tier1
     def test_negative_validate_matcher_non_existing_attribute(
-        self, module_puppet_enabled_sat, module_sc_params
+        self, session_puppet_enabled_sat, module_sc_params
     ):
         """Error while creating matcher for Non Existing Attribute.
 
@@ -322,7 +324,7 @@ class TestSmartClassParameters:
         """
         sc_param_id = module_sc_params['ids'].pop()
         with pytest.raises(CLIReturnCodeError):
-            module_puppet_enabled_sat.cli.SmartClassParameter.add_matcher(
+            session_puppet_enabled_sat.cli.SmartClassParameter.add_matcher(
                 {
                     'smart-class-parameter-id': sc_param_id,
                     'match': 'hostgroup=nonexistingHG',
@@ -333,7 +335,7 @@ class TestSmartClassParameters:
     @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_create_and_remove_matcher(
-        self, module_puppet_enabled_sat, module_puppet, module_sc_params
+        self, session_puppet_enabled_sat, module_puppet, module_sc_params
     ):
         """Create and remove matcher for attribute in parameter.
 
@@ -355,32 +357,32 @@ class TestSmartClassParameters:
         """
         sc_param_id = module_sc_params['ids'].pop()
         value = gen_string('alpha')
-        module_puppet_enabled_sat.cli.SmartClassParameter.update(
+        session_puppet_enabled_sat.cli.SmartClassParameter.update(
             {'id': sc_param_id, 'override': 1, 'override-value-order': 'is_virtual'}
         )
-        module_puppet_enabled_sat.cli.SmartClassParameter.add_matcher(
+        session_puppet_enabled_sat.cli.SmartClassParameter.add_matcher(
             {'smart-class-parameter-id': sc_param_id, 'match': 'is_virtual=true', 'value': value}
         )
-        sc_param = module_puppet_enabled_sat.cli.SmartClassParameter.info(
+        sc_param = session_puppet_enabled_sat.cli.SmartClassParameter.info(
             {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
         assert sc_param['override-values']['values']['1']['match'] == 'is_virtual=true'
         assert sc_param['override-values']['values']['1']['value'] == value
 
-        module_puppet_enabled_sat.cli.SmartClassParameter.remove_matcher(
+        session_puppet_enabled_sat.cli.SmartClassParameter.remove_matcher(
             {
                 'smart-class-parameter-id': sc_param_id,
                 'id': sc_param['override-values']['values']['1']['id'],
             }
         )
-        sc_param = module_puppet_enabled_sat.cli.SmartClassParameter.info(
+        sc_param = session_puppet_enabled_sat.cli.SmartClassParameter.info(
             {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
         assert len(sc_param['override-values']['values']) == 0
 
     @pytest.mark.tier1
     def test_positive_create_matcher_puppet_default_value(
-        self, module_puppet_enabled_sat, module_puppet, module_sc_params
+        self, session_puppet_enabled_sat, module_puppet, module_sc_params
     ):
         """Create matcher for attribute in parameter,
         Where Value is puppet default value.
@@ -400,13 +402,13 @@ class TestSmartClassParameters:
         :CaseImportance: Medium
         """
         sc_param_id = module_sc_params['ids'].pop()
-        module_puppet_enabled_sat.cli.SmartClassParameter.update(
+        session_puppet_enabled_sat.cli.SmartClassParameter.update(
             {'id': sc_param_id, 'override': 1, 'default-value': gen_string('alpha')}
         )
-        module_puppet_enabled_sat.cli.SmartClassParameter.add_matcher(
+        session_puppet_enabled_sat.cli.SmartClassParameter.add_matcher(
             {'smart-class-parameter-id': sc_param_id, 'match': 'domain=test.com', 'omit': 1}
         )
-        sc_param = module_puppet_enabled_sat.cli.SmartClassParameter.info(
+        sc_param = session_puppet_enabled_sat.cli.SmartClassParameter.info(
             {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
         assert sc_param['override-values']['values']['1']['match'] == 'domain=test.com'
@@ -414,7 +416,7 @@ class TestSmartClassParameters:
     @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_test_hidden_parameter_value(
-        self, module_puppet_enabled_sat, module_puppet, module_sc_params
+        self, session_puppet_enabled_sat, module_puppet, module_sc_params
     ):
         """Unhide the default value of parameter.
 
@@ -439,7 +441,7 @@ class TestSmartClassParameters:
         """
         # Create with hidden value
         sc_param_id = module_sc_params['ids'].pop()
-        module_puppet_enabled_sat.cli.SmartClassParameter.update(
+        session_puppet_enabled_sat.cli.SmartClassParameter.update(
             {
                 'id': sc_param_id,
                 'override': 1,
@@ -447,26 +449,26 @@ class TestSmartClassParameters:
                 'hidden-value': 1,
             }
         )
-        sc_param = module_puppet_enabled_sat.cli.SmartClassParameter.info(
+        sc_param = session_puppet_enabled_sat.cli.SmartClassParameter.info(
             {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
         assert sc_param['hidden-value?'] is True
 
         # Update to empty value
-        module_puppet_enabled_sat.cli.SmartClassParameter.update(
+        session_puppet_enabled_sat.cli.SmartClassParameter.update(
             {'id': sc_param_id, 'override': 1, 'hidden-value': 1, 'default-value': ''}
         )
-        sc_param = module_puppet_enabled_sat.cli.SmartClassParameter.info(
+        sc_param = session_puppet_enabled_sat.cli.SmartClassParameter.info(
             {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id, 'show-hidden': 1}
         )
         assert sc_param['default-value'] == ''
         assert sc_param['hidden-value?'] is True
 
         # Unhide
-        module_puppet_enabled_sat.cli.SmartClassParameter.update(
+        session_puppet_enabled_sat.cli.SmartClassParameter.update(
             {'id': sc_param_id, 'hidden-value': 0}
         )
-        sc_param = module_puppet_enabled_sat.cli.SmartClassParameter.info(
+        sc_param = session_puppet_enabled_sat.cli.SmartClassParameter.info(
             {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
         assert sc_param['default-value'] == ''

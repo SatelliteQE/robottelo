@@ -16,6 +16,7 @@
 
 :Upstream: No
 """
+import re
 import tempfile
 import time
 from string import punctuation
@@ -38,6 +39,7 @@ from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
+from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import repos as repo_constants
 from robottelo.datafactory import parametrized
@@ -1369,9 +1371,8 @@ class TestRepositorySync:
         """
         pass
 
-    @pytest.mark.stubbed
-    @pytest.mark.tier1
-    def test_positive_bulk_cancel_sync(self):
+    @pytest.mark.tier3
+    def test_positive_bulk_cancel_sync(self, default_sat, module_manifest_org):
         """Bulk cancel 10+ repository syncs
 
         :id: f9bb1c95-d60f-4c93-b32e-09d58ebce80e
@@ -1379,20 +1380,57 @@ class TestRepositorySync:
         :steps:
             1. Add 10+ repos and sync all of them
             2. Cancel all of the syncs
-            3. Check /var/log/foreman/production.log and /var/log/messages
+            3. Check Foreman Tasks and /var/log/messages
 
         :expectedresults: All the syncs stop successfully.
 
         :CaseImportance: High
 
-        :CaseAutomation: NotAutomated
+        :CaseAutomation: Automated
         """
+        repo_ids = []
+        for repo in constants.BULK_REPO_LIST:
+            repo_id = enable_rhrepo_and_fetchid(
+                basearch='x86_64',
+                org_id=module_manifest_org.id,
+                product=repo['product'],
+                repo=repo['name'],
+                reposet=repo['reposet'],
+                releasever=repo['releasever'],
+            )
+            repo_ids.append(repo_id)
+            rh_repo = entities.Repository(id=repo_id).read()
+            rh_repo.download_policy = 'immediate'
+            rh_repo = rh_repo.update()
+        sync_ids = []
+        for repo_id in repo_ids:
+            sync_task = entities.Repository(id=repo_id).sync(synchronous=False)
+            sync_ids.append(sync_task['id'])
+        entities.ForemanTask().bulk_cancel(data={"task_ids": sync_ids[0:5]})
+        # Give some time for sync cancels to calm down
+        time.sleep(30)
+        entities.ForemanTask().bulk_cancel(data={"task_ids": sync_ids[5:]})
+        for sync_id in sync_ids:
+            sync_result = entities.ForemanTask(id=sync_id).poll(canceled=True)
+            assert (
+                'Task canceled' in sync_result['humanized']['errors']
+                or 'No content added' in sync_result['humanized']['output']
+            )
+            # Find correlating pulp task using Foreman Task id
+            prod_log_out = default_sat.execute(
+                f'grep {sync_id} /var/log/foreman/production.log'
+            ).stdout.splitlines()[0]
+            correlation_id = re.search(r'\[I\|bac\|\w{8}\]', prod_log_out).group()[7:15]
+            # Assert the cancelation was executed in Pulp
+            result = default_sat.execute(
+                f'grep "{correlation_id}" /var/log/messages | grep "Canceling task"'
+            )
+            assert result.status == 0
 
-    @pytest.mark.stubbed
-    @pytest.mark.tier4
+    @pytest.mark.tier3
     @pytest.mark.destructive
     @pytest.mark.run_in_one_thread
-    def test_positive_reboot_recover_sync(self):
+    def test_positive_reboot_recover_sync(self, destructive_sat):
         """Reboot during repo sync and resume the sync when the Satellite is online
 
         :id: 4f746e28-444c-4688-b92b-778a6e58d614
@@ -1406,8 +1444,37 @@ class TestRepositorySync:
 
         :CaseImportance: High
 
-        :CaseAutomation: NotAutomated
+        :CaseAutomation: Automated
         """
+        org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        rhel7_extra = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhel7_extra']['name'],
+            reposet=constants.REPOSET['rhel7_extra'],
+            releasever=None,
+        )
+        rhel7_extra = entities.Repository(id=rhel7_extra).read()
+        sync_task = rhel7_extra.sync(synchronous=False)
+        destructive_sat.power_control(state='reboot', ensure=True)
+        try:
+            wait_for_tasks(
+                search_query=(f'id = {sync_task["id"]}'),
+                search_rate=15,
+                max_tries=10,
+            )
+        except TaskFailedError:
+            sync_task = rhel7_extra.sync(synchronous=False)
+            wait_for_tasks(
+                search_query=(f'id = {sync_task["id"]}'),
+                search_rate=15,
+                max_tries=10,
+            )
+        task_status = entities.ForemanTask(id=sync_task['id']).poll()
+        assert task_status['result'] == 'success'
 
 
 class TestDockerRepository:
@@ -1474,9 +1541,24 @@ class TestDockerRepository:
         repo.sync()
         assert repo.read().content_counts['docker_manifest'] >= 1
 
-    @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_positive_cancel_docker_repo_sync(self):
+    @pytest.mark.parametrize(
+        'repo_options',
+        **datafactory.parametrized(
+            {
+                'large_repo': {
+                    'content_type': 'docker',
+                    'docker_upstream_name': constants.DOCKER_REPO_UPSTREAM_NAME,
+                    'name': gen_string('alphanumeric', 10),
+                    'url': constants.RH_CONTAINER_REGISTRY_HUB,
+                    'upstream_username': settings.subscription.rhn_username,
+                    'upstream_password': settings.subscription.rhn_password,
+                }
+            }
+        ),
+        indirect=True,
+    )
+    def test_positive_cancel_docker_repo_sync(self, repo):
         """Cancel a large, syncing Docker-type repository
 
         :id: 86534979-be49-40ad-8290-05ac71c801b2
@@ -1494,8 +1576,15 @@ class TestDockerRepository:
 
         :CaseImportance: High
 
-        :CaseAutomation: NotAutomated
+        :CaseAutomation: Automated
         """
+        sync_task = repo.sync(synchronous=False)
+        # Need to wait for sync to actually start up
+        time.sleep(2)
+        entities.ForemanTask().bulk_cancel(data={"task_ids": [sync_task['id']]})
+        sync_task = entities.ForemanTask(id=sync_task['id']).poll(canceled=True)
+        assert 'Task canceled' in sync_task['humanized']['errors']
+        assert 'No content added' in sync_task['humanized']['output']
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
@@ -2333,7 +2422,7 @@ class TestTokenAuthContainerRepository:
 
     :CaseComponent: ContainerManagement-Content
 
-    :Assignee: spusater
+    :Assignee: addubey
     """
 
     @pytest.mark.tier2

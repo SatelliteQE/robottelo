@@ -25,11 +25,11 @@ import re
 import pytest
 import yaml
 from airgun.exceptions import DisabledWidgetError
+from airgun.exceptions import NoSuchElementException
 from airgun.session import Session
 from broker.broker import VMBroker
 from nailgun import entities
 from wait_for import wait_for
-from widgetastic.exceptions import NoSuchElementException
 
 from robottelo import constants
 from robottelo import manifests
@@ -1335,7 +1335,7 @@ def test_positive_global_registration_form(
 
     :CaseLevel: Integration
     """
-    # rex and insigths parameters are only specified in curl when differing from
+    # rex and insights parameters are only specified in curl when differing from
     # inerited parameters
     result = GlobalParameter().list({'search': 'host_registration_remote_execution'})
     rex_value = not result[0]['value']
@@ -1354,6 +1354,7 @@ def test_positive_global_registration_form(
                 'general.host_group': hostgroup.name,
                 'general.operating_system': module_os.title,
                 'advanced.activation_keys': module_activation_key.name,
+                'advanced.update_packages': True,
                 'advanced.rex_interface': iface,
             }
         )
@@ -1368,6 +1369,7 @@ def test_positive_global_registration_form(
         f'setup_remote_execution={"true" if rex_value else "false"}',
         f'{default_sat.hostname}',
         'insecure',
+        'update_packages=true',
     ]
     for pair in expected_pairs:
         assert pair in cmd
@@ -1398,7 +1400,6 @@ def test_positive_global_registration_end_to_end(
     with session:
         cmd = session.host.get_register_command(
             {
-                'general.capsule': module_proxy.name,
                 'general.operating_system': module_os.title,
                 'advanced.activation_keys': module_activation_key.name,
                 'advanced.rex_interface': iface,
@@ -1410,7 +1411,6 @@ def test_positive_global_registration_end_to_end(
         f'activation_keys={module_activation_key.name}',
         f'location_id={smart_proxy_location.id}',
         f'operatingsystem_id={module_os.id}',
-        f'{module_proxy.name}:9090',
         'insecure',
     ]
     for pair in expected_pairs:
@@ -2320,9 +2320,10 @@ def test_positive_gce_cloudinit_provision_end_to_end(
 
 @pytest.mark.destructive
 @pytest.mark.upgrade
+@pytest.mark.rhel_ver_match('[^6].*')
 @pytest.mark.usefixtures('install_cockpit_plugin')
 @pytest.mark.tier2
-def test_positive_cockpit(session, default_sat):
+def test_positive_cockpit(session, cockpit_host, module_org):
     """Install cockpit plugin and test whether webconsole button and cockpit integration works
 
     :id: 5a9be063-cdc4-43ce-91b9-7608fbebf8bb
@@ -2331,15 +2332,16 @@ def test_positive_cockpit(session, default_sat):
 
     :CaseLevel: System
 
+    :parametrized: yes
     """
     with session:
-        session.organization.select(org_name='Default Organization')
+        session.organization.select(org_name=module_org.name)
         session.location.select(loc_name='Any Location')
         hostname_inside_cockpit = session.host.get_webconsole_content(
-            entity_name=default_sat.hostname
+            entity_name=cockpit_host.hostname, rhel_version=cockpit_host.os_version.major
         )
         assert (
-            hostname_inside_cockpit == default_sat.hostname
+            hostname_inside_cockpit == cockpit_host.hostname
         ), 'cockpit page shows hostname {} instead of {}'.format(
-            hostname_inside_cockpit, default_sat.hostname
+            hostname_inside_cockpit, cockpit_host.hostname
         )

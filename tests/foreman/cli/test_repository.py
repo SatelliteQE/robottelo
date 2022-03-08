@@ -79,7 +79,6 @@ from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_http_credentials
 from robottelo.helpers import get_data_file
 from robottelo.logging import logger
-from robottelo.utils.issue_handlers import is_open
 
 # from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 
@@ -1159,23 +1158,22 @@ class TestRepository:
                 {
                     'content-type': 'yum',
                     'url': settings.repos.yum_mixed.url,
-                    'ignorable-content': ['erratum', 'srpm', 'drpm'],
+                    'ignorable-content': ['srpm'],
                 }
             ]
         ),
         indirect=True,
     )
-    def test_positive_synchronize_rpm_repo_ignore_content(
+    def test_positive_synchronize_rpm_repo_ignore_SRPM(
         self, module_org, module_product, repo, default_sat
     ):
-        """Synchronize yum repository with ignore content setting
+        """Synchronize yum repository with ignore SRPM
 
         :id: fa32ff10-e2e2-4ee0-b444-82f66f4a0e96
 
         :parametrized: yes
 
-        :expectedresults: Selected content types are ignored during
-            synchronization
+        :expectedresults: No SRPM Content is Synced
 
         :BZ: 1591358
 
@@ -1184,49 +1182,8 @@ class TestRepository:
         """
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
-        # Check synced content types
         assert repo['sync']['status'] == 'Success'
-        assert repo['content-counts']['packages'] == '5', 'content not synced correctly'
-        assert repo['content-counts']['errata'] == '0', 'content not ignored correctly'
         assert repo['content-counts']['source-rpms'] == '0', 'content not ignored correctly'
-        # drpm check requires a different method
-        result = default_sat.execute(
-            f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/Library"
-            f"/custom/{module_product.label}/{repo['label']}/drpms/ | grep .drpm"
-        )
-        # expecting No such file or directory for drpms
-        assert result.status == 1
-        assert 'No such file or directory' in result.stderr[1]
-
-        # Find repo packages and remove them
-        packages = Package.list({'repository-id': repo['id']})
-        Repository.remove_content(
-            {'id': repo['id'], 'ids': [package['id'] for package in packages]}
-        )
-        repo = Repository.info({'id': repo['id']})
-        assert repo['content-counts']['packages'] == '0'
-
-        # Update the ignorable-content setting
-        Repository.update({'id': repo['id'], 'ignorable-content': ['rpm']})
-
-        # Re-synchronize repository
-        Repository.synchronize({'id': repo['id']})
-        repo = Repository.info({'id': repo['id']})
-        # Re-check synced content types
-        assert repo['sync']['status'] == 'Success'
-        assert repo['content-counts']['packages'] == '0', 'content not ignored correctly'
-        assert repo['content-counts']['errata'] == '2', 'content not synced correctly'
-        if not is_open('BZ:1664549'):
-            assert repo['content-counts']['source-rpms'] == '3', 'content not synced correctly'
-
-        if not is_open('BZ:1682951'):
-            result = default_sat.execute(
-                f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/Library"
-                f"/custom/{module_product.label}/{repo['label']}/drpms/ | grep .drpm"
-            )
-            assert result.status == 0
-            # this isn't a good pattern, a better assertion would be on stdout contents
-            assert len(result.stdout.splitlines()) >= 4, 'content not synced correctly'
 
     @pytest.mark.tier1
     @pytest.mark.skipif(

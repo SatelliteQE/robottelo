@@ -44,10 +44,18 @@ def proxy_port_range(default_sat):
             default_sat.execute(f'semanage port -a -t websm_port_t -p tcp {port_pool_range}')
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def install_cockpit_plugin(default_sat):
     default_sat.register_to_dogfood()
     default_sat.install_cockpit()
+    # TODO remove this change when we start using new host detail view
+    setting_object = default_sat.api.Setting().search(query={'search': 'name=host_details_ui'})[0]
+    old_value = setting_object.value
+    setting_object.value = False
+    setting_object.update({'value'})
+    yield
+    setting_object.value = old_value
+    setting_object.update({'value'})
 
 
 @pytest.fixture(scope='session')

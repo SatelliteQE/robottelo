@@ -36,6 +36,8 @@ from robottelo.constants import SATELLITE_VERSION
 from robottelo.helpers import get_data_file
 from robottelo.helpers import InstallerCommand
 from robottelo.helpers import validate_ssh_pub_key
+from robottelo.host_helpers import ContentHostMixins
+from robottelo.host_helpers import SatelliteMixins
 from robottelo.logging import logger
 
 POWER_OPERATIONS = {
@@ -114,7 +116,7 @@ class SatelliteHostError(Exception):
     pass
 
 
-class ContentHost(Host):
+class ContentHost(Host, ContentHostMixins):
     run = Host.execute
     default_timeout = settings.server.ssh_client.command_timeout
 
@@ -183,6 +185,8 @@ class ContentHost(Host):
         self.execute('subscription-manager clean')
 
     def teardown(self):
+        if self.nailgun_host:
+            self.nailgun_host.delete()
         self.unregister()
 
     def power_control(self, state=VmState.RUNNING, ensure=True):
@@ -409,6 +413,16 @@ class ContentHost(Host):
         if result.status != 0:
             raise ContentHostError('Failed to install the katello-ca rpm')
 
+    def install_cockpit(self):
+        """Installs cockpit on the broker virtual machine.
+
+        :raises robottelo.hosts.ContentHostError: If cockpit wasn't
+            installed.
+        """
+        result = self.execute('yum install cockpit -y')
+        if result.status != 0:
+            raise ContentHostError('Failed to install the cockpit')
+
     def register_contenthost(
         self,
         org='Default_Organization',
@@ -417,6 +431,7 @@ class ContentHost(Host):
         consumerid=None,
         force=True,
         releasever=None,
+        name=None,
         username=settings.server.admin_username,
         password=settings.server.admin_password,
         auto_attach=False,
@@ -439,6 +454,7 @@ class ContentHost(Host):
         :param password: the user password
         :param auto_attach: automatically attach compatible subscriptions to
             this system.
+        :param name: name of the system to register, defaults to the hostname
         :return: SSHCommandResult instance filled with the result of the
             registration.
         """
@@ -467,6 +483,8 @@ class ContentHost(Host):
             cmd += f' --release {releasever}'
         if force:
             cmd += ' --force'
+        if name:
+            cmd += f' --name {name}'
         return self.execute(cmd)
 
     def unregister(self):
@@ -490,14 +508,13 @@ class ContentHost(Host):
         if 'manifests.Manifest' in str(local_path):
             with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
                 content_file.write(local_path.content.read())
-                content_file.seek(0)
+                content_file.flush()
                 self.session.sftp_write(source=content_file.name, destination=remote_path)
         else:
             self.session.sftp_write(source=local_path, destination=remote_path)
 
     def put_ssh_key(self, source_key_path, destination_key_name):
-        """Copy ssh key to virtual machine ssh path and ensure proper permission is
-        set
+        """Copy ssh key to virtual machine ssh path and ensure proper permission is set
 
         Args:
             source_key_path: The ssh key file path to copy to vm
@@ -1045,15 +1062,6 @@ class ContentHost(Host):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def create_custom_rhel_repo_file_to_downgrade_packages(self):
-        """Create custom rhel repo file on client,
-        repo content is for older minor version, (current minor version - 1).
-        Please make sure that package you are looking for is inside minor version.
-        Usage: downgrade of package
-        """
-        baseurl = self.get_base_url_for_older_rhel_minor()
-        self.create_custom_repos(rhel=baseurl)
-
 
 class Capsule(ContentHost):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
@@ -1071,7 +1079,14 @@ class Capsule(ContentHost):
         :return: True if no downstream satellite RPMS are installed
         :rtype: bool
         """
-        return self.execute('rpm -q satellite &>/dev/null').status != 0
+        return self.execute('rpm -q satellite-capsule &>/dev/null').status != 0
+
+    @cached_property
+    def version(self):
+        if not self.is_upstream:
+            return self.execute('rpm -q satellite-capsule').stdout.split('-')[2]
+        else:
+            return 'upstream'
 
     @cached_property
     def url(self):
@@ -1113,18 +1128,40 @@ class Capsule(ContentHost):
         """Get capsule features"""
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
+    def register_to_dogfood(self, ak_type='satellite'):
+        dogfood_canonical_hostname = settings.repos.dogfood_repo_host.partition('//')[2]
+        # get hostname of dogfood machine
+        dig_result = self.execute(f'dig +short {dogfood_canonical_hostname}')
+        # the host name finishes with a dot, so last character is removed
+        dogfood_hostname = dig_result.stdout.split()[0][:-1]
+        dogfood = Satellite(dogfood_hostname)
+        self.install_katello_ca(satellite=dogfood)
+        # satellite version consist from x.y.z, we need only x.y
+        sat_release = '.'.join(self.version.split('.')[:2])
+        cmd_result = self.register_contenthost(
+            org=f'{settings.subscription.dogfood_org}',
+            activation_key=f'{ak_type}-{sat_release}-qa-rhel{self.os_version.major}',
+        )
+        if cmd_result.status != 0:
+            raise CapsuleHostError(
+                f'Error during registration, command output: {cmd_result.stdout}'
+            )
+
     def capsule_setup(self, sat_host=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
         self.satellite = sat_host or Satellite()
-        self.create_custom_repos(
-            capsule=settings.repos.capsule_repo,
-            rhscl=settings.repos.rhscl_repo,
-            ansible=settings.repos.ansible_repo,
-            maint=settings.repos.satmaintenance_repo,
-        )
-        self.create_custom_repos(rhel7=settings.repos.rhel7_os)
+        self.register_to_dogfood(ak_type='capsule')
         # self.execute('yum repolist')
         self.execute('yum -y update', timeout=0)
+
+        # workaround from DF for RHEL8
+        if settings.server.version.rhel_version == 8:
+            self.execute(
+                'subscription-manager repo-override --repo=Sat6-CI_Satellite_Capsule_7_0_Composes_Satellite_Capsule_7_0_RHEL8 --add=module_hotfixes:1'  # noqa
+            )
+            self.execute('dnf -y module enable ruby:2.7')
+            self.execute('dnf -y module enable pki-core')
+
         self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
         self.execute('firewall-cmd --runtime-to-permanent')
         # self.execute('yum -y install satellite-capsule', timeout=1200000)
@@ -1158,7 +1195,7 @@ class Capsule(ContentHost):
             raise CapsuleHostError('a core service is not running at capsule host')
 
 
-class Satellite(Capsule):
+class Satellite(Capsule, SatelliteMixins):
     def __init__(self, hostname=None, **kwargs):
         from robottelo.config import settings
 
@@ -1255,11 +1292,28 @@ class Satellite(Capsule):
         return self._ui_session
 
     @cached_property
+    def is_upstream(self):
+        """Figure out which product distribution is installed on the server.
+
+        :return: True if no downstream satellite RPMS are installed
+        :rtype: bool
+        """
+        return self.execute('rpm -q satellite &>/dev/null').status != 0
+
+    @cached_property
     def version(self):
         if not self.is_upstream:
             return self.execute('rpm -q satellite').stdout.split('-')[1]
         else:
             return 'upstream'
+
+    def is_remote_db(self):
+        return (
+            self.execute(
+                'grep "db_manage: false" /etc/foreman-installer/scenarios.d/satellite-answers.yaml'
+            ).status
+            == 0
+        )
 
     def capsule_certs_generate(self, capsule, cert_path=None, **extra_kwargs):
         """Generate capsule certs, returning the cert path and the installer command args"""
@@ -1367,25 +1421,6 @@ class Satellite(Capsule):
         setting.value = value
         setting.update({'value'})
         return default_setting_value
-
-    def register_to_dogfood(self):
-        dogfood_canonical_hostname = settings.repos.dogfood_repo_host.partition('//')[2]
-        # get hostname of dogfood machine
-        dig_result = self.execute(f'dig +short {dogfood_canonical_hostname}')
-        # the host name finishes with a dot, so last character is removed
-        dogfood_hostname = dig_result.stdout.split()[0][:-1]
-        dogfood = Satellite(dogfood_hostname)
-        self.install_katello_ca(satellite=dogfood)
-        # satellite version consist from x.y.z, we need only x.y
-        sat_release = '.'.join(self.version.split('.')[:2])
-        cmd_result = self.register_contenthost(
-            org=f'{settings.subscription.dogfood_org}',
-            activation_key=f'satellite-{sat_release}-qa-rhel7',
-        )
-        if cmd_result.status != 0:
-            raise SatelliteHostError(
-                f'Error during registration, command output: {cmd_result.stdout}'
-            )
 
     def install_cockpit(self):
         cmd_result = self.execute(

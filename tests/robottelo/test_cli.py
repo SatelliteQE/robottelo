@@ -1,8 +1,8 @@
+import unittest
 from functools import partial
 from unittest import mock
 
 import pytest
-import unittest2
 
 from robottelo.cli.base import Base
 from robottelo.cli.base import CLIBaseError
@@ -18,7 +18,7 @@ class CLIClass(Base):
     foreman_admin_password = 'adminpassword'
 
 
-class BaseCliTestCase(unittest2.TestCase):
+class BaseCliTestCase(unittest.TestCase):
     """Tests for the Base cli class"""
 
     def test_construct_command(self):
@@ -391,7 +391,7 @@ class BaseCliTestCase(unittest2.TestCase):
         self.assert_cmd_execution(construct, execute, Base.update, 'update')
 
 
-class CLIErrorTests(unittest2.TestCase):
+class CLIErrorTests(unittest.TestCase):
     """Tests for the CLIError cli class"""
 
     def test_error_msg_is_exposed(self):
@@ -401,7 +401,7 @@ class CLIErrorTests(unittest2.TestCase):
             raise CLIError(msg)
 
 
-class CLIBaseErrorTestCase(unittest2.TestCase):
+class CLIBaseErrorTestCase(unittest.TestCase):
     """Tests for the CLIReturnCodeError cli class"""
 
     def test_init(self):

@@ -134,7 +134,6 @@ class TestSatelliteContentManagement:
         assert result.status == 1
         assert not result.stdout
         rh_repo = rh_repo.read()
-        assert rh_repo.content_counts['package'] > 0
         assert rh_repo.content_counts['package_group'] > 0
         assert rh_repo.content_counts['rpm'] > 0
 
@@ -201,7 +200,7 @@ class TestSatelliteContentManagement:
         ).create()
         repo.sync()
         repo = repo.read()
-        assert repo.content_counts['package'] == packages_count
+        assert repo.content_counts['rpm'] == packages_count
 
         # remove all packages from the repo and upload another one
         packages = entities.Package(repository=repo).search(query={'per_page': '1000'})
@@ -211,7 +210,7 @@ class TestSatelliteContentManagement:
             repo.upload_content(files={'content': handle})
 
         repo = repo.read()
-        assert repo.content_counts['package'] == 1
+        assert repo.content_counts['rpm'] == 1
         files = get_repo_files_by_url(repo.full_path)
         assert len(files) == 1
         assert constants.RPM_TO_UPLOAD in files
@@ -220,7 +219,7 @@ class TestSatelliteContentManagement:
         repo.sync()
 
         repo = repo.read()
-        assert repo.content_counts['package'] == packages_count
+        assert repo.content_counts['rpm'] == packages_count
         files = get_repo_files_by_url(repo.full_path)
         assert len(files) == packages_count
         assert constants.RPM_TO_UPLOAD not in files
@@ -311,7 +310,7 @@ class TestCapsuleContentManagement:
         with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
             repo.upload_content(files={'content': handle})
 
-        assert repo.read().content_counts['package'] == 1
+        assert repo.read().content_counts['rpm'] == 1
 
         # Publish new version of the content view
         cv.publish()
@@ -507,7 +506,7 @@ class TestCapsuleContentManagement:
         with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
             repo.upload_content(files={'content': handle})
 
-        assert repo.read().content_counts['package'] == 1
+        assert repo.read().content_counts['rpm'] == 1
 
         # Create, publish and promote CV with the repository to the Capsule's LCE
         cv = entities.ContentView(organization=function_org, repository=[repo]).create()
@@ -532,7 +531,7 @@ class TestCapsuleContentManagement:
         with open(get_data_file(constants.SRPM_TO_UPLOAD), 'rb') as handle:
             repo.upload_content(files={'content': handle})
 
-        assert repo.read().content_counts['package'] == 2
+        assert repo.read().content_counts['rpm'] == 2
 
         # Publish new version and promote it to the Capsule's LCE.
         cv.publish()
@@ -645,7 +644,7 @@ class TestCapsuleContentManagement:
         # Content of the published content view in
         # lifecycle environment should equal content of the
         # repository
-        assert repo.content_counts['package'] == cvv.package_count
+        assert repo.content_counts['rpm'] == cvv.package_count
 
         # Wait till capsule sync finishes
         for task in sync_status['active_sync_tasks']:
@@ -735,12 +734,12 @@ class TestCapsuleContentManagement:
         )
 
         # Assert that packages count in the repository is updated
-        assert repo.content_counts['package'] == (constants.FAKE_1_YUM_REPOS_COUNT + 1)
+        assert repo.content_counts['rpm'] == (constants.FAKE_1_YUM_REPOS_COUNT + 1)
 
         # Assert that the content of the published content view in
         # lifecycle environment is exactly the same as content of the
         # repository
-        assert repo.content_counts['package'] == cvv.package_count
+        assert repo.content_counts['rpm'] == cvv.package_count
 
         # Wait till capsule sync finishes
         for task in sync_status['active_sync_tasks']:

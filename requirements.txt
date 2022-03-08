@@ -2,7 +2,7 @@
 # Version updates managed by pyup.io
 
 broker==0.1.35
-cryptography==36.0.0
+cryptography==36.0.1
 deepdiff==5.7.0
 dynaconf==3.1.7
 fauxfactory==3.1.0
@@ -15,7 +15,7 @@ pyotp==2.6.0
 python-box==5.4.1
 pytest==6.2.5
 pytest-services==2.2.1
-pytest-mock==3.6.1
+pytest-mock==3.7.0
 pytest-reportportal==5.0.12
 pytest-xdist==2.5.0
 pytest-ibutsu==2.0.2
@@ -23,9 +23,8 @@ PyYAML==6.0
 requests==2.27.1
 tenacity==8.0.1
 testimony==2.2.0
-unittest2==1.1.0
 wait-for==1.2.0
-wrapanapi==3.5.11
+wrapanapi==3.5.12
 
 # Get airgun, nailgun and upgrade from master
 git+https://github.com/SatelliteQE/airgun.git@master#egg=airgun

@@ -5,6 +5,7 @@ from pathlib import Path
 import logzero
 import yaml
 from box import Box
+from broker.logger import setup_logzero as broker_log_setup
 
 
 robottelo_root_dir = Path(os.environ.get('ROBOTTELO_DIR', Path(__file__).resolve().parent.parent))
@@ -55,6 +56,7 @@ def configure_third_party_logging():
 
 
 configure_third_party_logging()
+broker_log_setup(logging_yaml.robottelo.fileLevel, str(robottelo_log_file))
 
 
 collection_logger = logzero.setup_logger(

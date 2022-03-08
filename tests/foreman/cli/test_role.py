@@ -8,7 +8,7 @@
 
 :CaseComponent: UsersRoles
 
-:Assignee: dsynk
+:Assignee: sganar
 
 :TestType: Functional
 

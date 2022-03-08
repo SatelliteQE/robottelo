@@ -28,6 +28,7 @@ from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_API_URL
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
 from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
 from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
+from robottelo.logging import logger
 
 
 git = settings.git
@@ -1095,7 +1096,6 @@ class TestTemplateSyncTestCase:
                 'repo': f'{url}/{git.username}/{git_repository["name"]}',
                 'branch': git_branch,
                 'organization_ids': [module_org.id],
-                'fiter': '',
             }
         )
         auth = (git.username, git.password)
@@ -1106,7 +1106,11 @@ class TestTemplateSyncTestCase:
             params={'recursive': True},
         )
         res.raise_for_status()
-        tree = json.loads(res.text)['tree']
+        try:
+            tree = json.loads(res.text)['tree']
+        except json.decoder.JSONDecodeError:
+            logger.debug(res.json())
+            pytest.fail(f"Failed to parse output from git. Response: '{res.text}'")
         git_count = [row['path'].endswith('.erb') for row in tree].count(True)
         assert len(output['message']['templates']) == git_count
 
