@@ -30,7 +30,6 @@ from nailgun import client
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
-from requests.exceptions import SSLError
 
 from robottelo import constants
 from robottelo import datafactory
@@ -1168,8 +1167,8 @@ class TestRepository:
         # ensure the url is based on the protected base server URL
         assert repo_data_file_url.startswith(default_sat.url)
         # try to access repository data without organization debug certificate
-        with pytest.raises(SSLError):
-            client.get(repo_data_file_url, verify=False)
+        response = client.get(repo_data_file_url, verify=False)
+        assert response.status_code == 403
         # get the organization debug certificate
         cert_content = module_org.download_debug_certificate()
         # save the organization debug certificate to file
@@ -1717,10 +1716,7 @@ class TestDockerRepository:
 
         :CaseLevel: Integration
         """
-        msg = (
-            rf'DKR1007: Could not fetch repository {repo_options["docker_upstream_name"]} from'
-            rf' registry {repo_options["url"]}.*Unauthorized or Not Found'
-        )
+        msg = "401, message=\'Unauthorized\'"
         with pytest.raises(TaskFailedError, match=msg):
             repo.sync()
 
@@ -1759,7 +1755,7 @@ class TestDockerRepository:
 
         :CaseLevel: Integration
         """
-        msg = f'DKR1008: Could not find registry API at {repo_options["url"]}'
+        msg = "404, message=\'Not Found\'"
         with pytest.raises(TaskFailedError, match=msg):
             repo.sync()
 
@@ -1802,7 +1798,7 @@ class TestDockerRepository:
         with pytest.raises(
             HTTPError,
             match='422 Client Error: Unprocessable Entity for url: '
-            f'{default_sat.url}/katello/api/v2/repositories',
+            f'{default_sat.url}:443/katello/api/v2/repositories',
         ):
             entities.Repository(**repo_options).create()
 
