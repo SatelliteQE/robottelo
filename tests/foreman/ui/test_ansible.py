@@ -16,20 +16,9 @@
 
 :Upstream: No
 """
-# import datetime
-# import time
-# import pytest
 from airgun.session import Session
 
 from robottelo.datafactory import gen_string
-
-# from broker import VMBroker
-# from nailgun import entities
-
-# from fauxfactory import gen_string
-# from fauxfactory.factories.strings import gen_alpha
-# from wait_for import wait_for
-# from robottelo.hosts import ContentHost
 
 
 def test_positive_import_all_roles(default_sat):
@@ -64,6 +53,9 @@ def test_positive_create_and_delete_variable(default_sat):
     key = gen_string('alpha')
     role = 'redhat.satellite.activation_keys'
     with Session(hostname=default_sat.hostname) as session:
+        preimport_check = session.ansibleroles.preimport_check()
+        if preimport_check is False:
+            session.ansibleroles.import_all_roles()
         session.ansiblevariables.create(
             {
                 'key': key,
@@ -75,12 +67,14 @@ def test_positive_create_and_delete_variable(default_sat):
         assert not session.ansiblevariables.search(key)
 
 
-def test_positive_create_with_overrides(default_sat):
+def test_positive_create_variable_with_overrides(default_sat):
     key = gen_string('alpha')
     role = 'redhat.satellite.activation_keys'
-    param = {'attribute_type': 'fqdn', 'attribute_value': 'example.com', 'value': 'test value'}
     with Session(hostname=default_sat.hostname) as session:
-        session.ansiblevariables.create(
+        preimport_check = session.ansibleroles.preimport_check()
+        if preimport_check is False:
+            session.ansibleroles.import_all_roles()
+        session.ansiblevariables.create_with_overrides(
             {
                 'key': key,
                 'description': 'this is a description',
@@ -88,9 +82,14 @@ def test_positive_create_with_overrides(default_sat):
                 'parameter_type': 'integer',
                 'default_value': '11',
                 'validator_type': 'list',
-                'validator_rule': 'not sure what this means',
-                # 'attribute_order': 'domain \n fqdn \n hostgroup \n os',
-                'matcher_section.params': [param],
+                'validator_rule': '11, 12, 13',
+                'attribute_order': 'domain \n fqdn \n hostgroup \n os',
+                'matcher_section.params': [
+                    {
+                        'attribute_type': {'matcher_key': 'os', 'matcher_value': 'fedora'},
+                        'value': '13',
+                    }
+                ],
             }
         )
-        session.ansiblevariables.donk()
+        assert session.ansiblevariables.search(key)[0]['Name'] == key
