@@ -380,13 +380,12 @@ def test_positive_create_with_puppet_ca_proxy(session_puppet_enabled_sat):
 
 
 @pytest.mark.tier2
-@pytest.mark.skip_if_open("BZ:2046573")
 def test_positive_end_to_end_with_puppet_class(
     module_puppet_org,
     module_puppet_loc,
     module_env_search,
     module_puppet_classes,
-    module_default_puppet_proxy,
+    session_puppet_enabled_proxy,
     session_puppet_enabled_sat,
 ):
     """Create a host with associated puppet classes then remove it and update the host
@@ -394,17 +393,19 @@ def test_positive_end_to_end_with_puppet_class(
 
     :id: 2690d6b0-441b-44c5-b7d2-4093616e037e
 
+    :BZ: 2046573
+
     :expectedresults: A host is created with expected puppet classes then puppet classes
         are removed and the host is updated with same puppet classes
     """
-    update_smart_proxy(module_puppet_loc, module_default_puppet_proxy)
+    update_smart_proxy(module_puppet_loc, session_puppet_enabled_proxy)
     host = session_puppet_enabled_sat.api.Host(
         organization=module_puppet_org,
         location=module_puppet_loc,
         environment=module_env_search,
         puppetclass=module_puppet_classes,
-        puppet_proxy=module_default_puppet_proxy,
-        puppet_ca_proxy=module_default_puppet_proxy,
+        puppet_proxy=session_puppet_enabled_proxy,
+        puppet_ca_proxy=session_puppet_enabled_proxy,
     ).create()
     assert {puppet_class.id for puppet_class in host.puppetclass} == {
         puppet_class.id for puppet_class in module_puppet_classes
@@ -414,8 +415,8 @@ def test_positive_end_to_end_with_puppet_class(
     assert len(host.puppetclass) == 0
     host.environment = module_env_search
     host.puppetclass = module_puppet_classes
-    host.puppet_ca_proxy = module_default_puppet_proxy
-    host.puppet_proxy = module_default_puppet_proxy
+    host.puppet_ca_proxy = session_puppet_enabled_proxy
+    host.puppet_proxy = session_puppet_enabled_proxy
     host = host.update(['environment', 'puppetclass', 'puppet_ca_proxy', 'puppet_proxy'])
     assert {puppet_class.id for puppet_class in host.puppetclass} == {
         puppet_class.id for puppet_class in module_puppet_classes
@@ -1056,7 +1057,7 @@ def test_positive_read_enc_information(
     module_env_search,
     module_puppet_classes,
     module_lce_library,
-    module_default_puppet_proxy,
+    session_puppet_enabled_proxy,
     session_puppet_enabled_sat,
 ):
     """Attempt to read host ENC information
@@ -1081,7 +1082,7 @@ def test_positive_read_enc_information(
     cv = session_puppet_enabled_sat.api.ContentView(
         organization=module_puppet_org, name=DEFAULT_CV
     ).search()[0]
-    update_smart_proxy(module_puppet_loc, module_default_puppet_proxy)
+    update_smart_proxy(module_puppet_loc, session_puppet_enabled_proxy)
     # create 2 parameters
     host_parameters_attributes = []
     for _ in range(2):
@@ -1098,8 +1099,8 @@ def test_positive_read_enc_information(
             'lifecycle_environment_id': lce.id,
         },
         host_parameters_attributes=host_parameters_attributes,
-        puppet_proxy=module_default_puppet_proxy,
-        puppet_ca_proxy=module_default_puppet_proxy,
+        puppet_proxy=session_puppet_enabled_proxy,
+        puppet_ca_proxy=session_puppet_enabled_proxy,
     ).create()
     host_enc_info = host.enc()
     assert {puppet_class.name for puppet_class in module_puppet_classes} == set(
