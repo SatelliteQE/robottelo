@@ -335,7 +335,9 @@ def test_positive_create_with_inherited_params(module_org, module_location):
 
 
 @pytest.mark.tier1
-def test_positive_create_and_update_with_puppet_proxy(session_puppet_enabled_sat):
+def test_positive_create_and_update_with_puppet_proxy(
+    session_puppet_enabled_sat, session_puppet_enabled_proxy
+):
     """Create a host with puppet proxy specified and then create new host without specified
     puppet proxy and update the new host with the same puppet proxy
 
@@ -346,19 +348,18 @@ def test_positive_create_and_update_with_puppet_proxy(session_puppet_enabled_sat
     :CaseImportance: Critical
     """
     # TODO Define the default capsule/SP port + URL on hosts.Capsule
-    proxy = session_puppet_enabled_sat.api.SmartProxy().search(
-        query={'search': f'url = {session_puppet_enabled_sat.url}:9090'}
-    )[0]
-    host = session_puppet_enabled_sat.api.Host(puppet_proxy=proxy).create()
-    assert host.puppet_proxy.read().name == proxy.name
+    host = session_puppet_enabled_sat.api.Host(puppet_proxy=session_puppet_enabled_proxy).create()
+    assert host.puppet_proxy.read().name == session_puppet_enabled_proxy.name
     new_host = session_puppet_enabled_sat.api.Host().create()
-    new_host.puppet_proxy = proxy
+    new_host.puppet_proxy = session_puppet_enabled_proxy
     new_host = new_host.update(['puppet_proxy'])
-    assert new_host.puppet_proxy.read().name == proxy.name
+    assert new_host.puppet_proxy.read().name == session_puppet_enabled_proxy.name
 
 
 @pytest.mark.tier1
-def test_positive_create_with_puppet_ca_proxy(session_puppet_enabled_sat):
+def test_positive_create_with_puppet_ca_proxy(
+    session_puppet_enabled_sat, session_puppet_enabled_proxy
+):
     """Create a host with puppet CA proxy specified and then create new host without specified
      puppet CA proxy and update the new host with the same puppet CA proxy
 
@@ -368,15 +369,14 @@ def test_positive_create_with_puppet_ca_proxy(session_puppet_enabled_sat):
 
     :CaseImportance: Critical
     """
-    proxy = session_puppet_enabled_sat.api.SmartProxy().search(
-        query={'search': f'url = {session_puppet_enabled_sat.url}:9090'}
-    )[0]
-    host = session_puppet_enabled_sat.api.Host(puppet_ca_proxy=proxy).create()
-    assert host.puppet_ca_proxy.read().name == proxy.name
+    host = session_puppet_enabled_sat.api.Host(
+        puppet_ca_proxy=session_puppet_enabled_proxy
+    ).create()
+    assert host.puppet_ca_proxy.read().name == session_puppet_enabled_proxy.name
     new_host = session_puppet_enabled_sat.api.Host().create()
-    new_host.puppet_ca_proxy = proxy
+    new_host.puppet_ca_proxy = session_puppet_enabled_proxy
     new_host = new_host.update(['puppet_ca_proxy'])
-    assert new_host.puppet_ca_proxy.read().name == proxy.name
+    assert new_host.puppet_ca_proxy.read().name == session_puppet_enabled_proxy.name
 
 
 @pytest.mark.tier2
@@ -1360,7 +1360,7 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
 
 
 @pytest.mark.tier1
-def test_positive_read_puppet_proxy_name(session_puppet_enabled_sat):
+def test_positive_read_puppet_proxy_name(session_puppet_enabled_sat, session_puppet_enabled_proxy):
     """Read a hostgroup created with puppet proxy and inspect server's
     response
 
@@ -1372,16 +1372,19 @@ def test_positive_read_puppet_proxy_name(session_puppet_enabled_sat):
 
     :CaseImportance: Critical
     """
-    proxy = session_puppet_enabled_sat.api.SmartProxy().search(
-        query={'search': f'url = {session_puppet_enabled_sat.url}:9090'}
-    )[0]
-    host = session_puppet_enabled_sat.api.Host(puppet_proxy=proxy).create().read_json()
+    host = (
+        session_puppet_enabled_sat.api.Host(puppet_proxy=session_puppet_enabled_proxy)
+        .create()
+        .read_json()
+    )
     assert 'puppet_proxy_name' in host
-    assert proxy.name == host['puppet_proxy_name']
+    assert session_puppet_enabled_proxy.name == host['puppet_proxy_name']
 
 
 @pytest.mark.tier1
-def test_positive_read_puppet_ca_proxy_name(session_puppet_enabled_sat):
+def test_positive_read_puppet_ca_proxy_name(
+    session_puppet_enabled_sat, session_puppet_enabled_proxy
+):
     """Read a hostgroup created with puppet ca proxy and inspect server's
     response
 
@@ -1393,12 +1396,13 @@ def test_positive_read_puppet_ca_proxy_name(session_puppet_enabled_sat):
 
     :CaseImportance: Critical
     """
-    proxy = session_puppet_enabled_sat.api.SmartProxy().search(
-        query={'search': f'url = {session_puppet_enabled_sat.url}:9090'}
-    )[0]
-    host = session_puppet_enabled_sat.api.Host(puppet_ca_proxy=proxy).create().read_json()
+    host = (
+        session_puppet_enabled_sat.api.Host(puppet_ca_proxy=session_puppet_enabled_proxy)
+        .create()
+        .read_json()
+    )
     assert 'puppet_ca_proxy_name' in host
-    assert proxy.name == host['puppet_ca_proxy_name']
+    assert session_puppet_enabled_proxy.name == host['puppet_ca_proxy_name']
 
 
 class TestHostInterface:
