@@ -38,15 +38,12 @@ from robottelo.cli.factory import add_role_permissions
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_host
-from robottelo.cli.factory import make_proxy
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
 from robottelo.cli.host import HostInterface
 from robottelo.cli.host import HostTraces
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.package import Package
-from robottelo.cli.proxy import Proxy
-from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.config import settings
@@ -72,7 +69,7 @@ from robottelo.hosts import ContentHostError
 @pytest.fixture(scope="module")
 def module_default_proxy(default_sat):
     """Use the default installation smart proxy"""
-    return Proxy.list({'search': f'url = {default_sat.url}:9090'})[0]
+    return default_sat.cli.Proxy.list({'search': f'url = {default_sat.url}:9090'})[0]
 
 
 @pytest.fixture(scope="function")
@@ -2528,80 +2525,96 @@ def test_positive_tracer_list_and_resolve(tracer_host):
 
 
 # ---------------------------- PUPPET ENABLED IN INSTALLER TESTS -----------------------
-# @pytest.mark.puppet_enabled
-# @pytest.mark.tier1
-# def test_positive_host_with_puppet(
-#         module_puppet_org, module_puppet_loc, module_puppet_enabled_sat
-# ):
-#     """Create update read and delete host with puppet environment
-#
-#     :id: 8ae79fbe-79f4-11ec-80f5-98fa9b6ecd5a
-#
-#     :expectedresults: puppet environment
-#
-#     :CaseImportance: Critical
-#     """
-#     host_template = module_puppet_enabled_sat.api.entities.Host()
-#     host_template.create_missing()
-#     new_env = module_puppet_enabled_sat.api.entities.Environment(
-#         name=gen_string('alphanumeric'),
-#         organization=[module_puppet_org],
-#         location=[module_puppet_loc],
-#     ).create()
-#     host = make_host(
-#         {
-#             'architecture-id': host_template.architecture.id,
-#             'domain-id': host_template.domain.id,
-#             'environment-id': host_template.environment.id,
-#             'location-id': host_template.location.id,
-#             'mac': host_template.mac,
-#             'medium-id': host_template.medium.id,
-#             'name': host_template.name,
-#             'operatingsystem-id': host_template.operatingsystem.id,
-#             'organization-id': host_template.organization.id,
-#             'partition-table-id': host_template.ptable.id,
-#             'puppet-proxy-id': module_default_proxy['id'],
-#             'root-password': host_template.root_pass,
-#         }
-#     )
-#     module_puppet_enabled_sat.cli.Host.update(
-#         {
-#             'name': host.name,
-#             'environment': new_env.name,
-#         }
-#     )
-#     host = module_puppet_enabled_sat.cli.Host.info({'id': function_host['id']})
-#     assert host['puppet-environment'] == new_env.name
-#     module_puppet_enabled_sat.cli.Host.delete({'id': host['id']})
+@pytest.mark.puppet_enabled
+@pytest.mark.tier1
+def test_positive_host_with_puppet(
+    session_puppet_enabled_sat,
+    session_puppet_enabled_proxy,
+    module_puppet_org,
+    module_puppet_loc,
+    module_puppet_environment,
+):
+    """Create update read and delete host with puppet environment
+
+    :id: 8ae79fbe-79f4-11ec-80f5-98fa9b6ecd5a
+
+    :expectedresults: puppet environment
+
+    :CaseImportance: Critical
+    """
+
+    host_template = session_puppet_enabled_sat.api.Host()
+    host_template.create_missing()
+    host = session_puppet_enabled_sat.cli_factory.make_host(
+        {
+            'architecture-id': host_template.architecture.id,
+            'domain-id': host_template.domain.id,
+            'puppet-environment-id': host_template.environment.id,
+            'location-id': host_template.location.id,
+            'mac': host_template.mac,
+            'medium-id': host_template.medium.id,
+            'name': host_template.name,
+            'operatingsystem-id': host_template.operatingsystem.id,
+            'organization-id': host_template.organization.id,
+            'partition-table-id': host_template.ptable.id,
+            'puppet-proxy-id': session_puppet_enabled_proxy.id,
+            'root-password': host_template.root_pass,
+        }
+    )
+    session_puppet_enabled_sat.api.Environment(
+        id=module_puppet_environment.id,
+        organization=[host_template.organization],
+        location=[host_template.location],
+    ).update(['location', 'organization'])
+
+    session_puppet_enabled_sat.cli.Host.update(
+        {
+            'name': host.name,
+            'puppet-environment': module_puppet_environment.name,
+        }
+    )
+    host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
+    assert host['puppet-environment'] == module_puppet_environment.name
+    session_puppet_enabled_sat.cli.Host.delete({'id': host['id']})
 
 
 @pytest.fixture(scope="function")
-def function_proxy():
-    proxy = make_proxy()
+def function_proxy(session_puppet_enabled_sat):
+    proxy = session_puppet_enabled_sat.cli_factory.make_proxy()
     yield proxy
-    Proxy.delete({'id': proxy['id']})
+    session_puppet_enabled_sat.cli.Proxy.delete({'id': proxy['id']})
 
 
 @pytest.fixture(scope="function")
 def function_host_content_source(
-    module_default_proxy, module_lce_library, module_org, module_published_cv
+    session_puppet_enabled_sat,
+    session_puppet_enabled_proxy,
+    module_puppet_lce_library,
+    module_puppet_org,
+    module_puppet_published_cv,
 ):
-    host = make_fake_host(
+    host = session_puppet_enabled_sat.cli_factory.make_fake_host(
         {
-            'content-source-id': module_default_proxy['id'],
-            'content-view-id': module_published_cv.id,
-            'lifecycle-environment-id': module_lce_library.id,
-            'organization': module_org.name,
+            'content-source-id': session_puppet_enabled_proxy.id,
+            'content-view-id': module_puppet_published_cv.id,
+            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'organization': module_puppet_org.name,
         }
     )
     yield host
-    Host.delete({'id': host['id']})
+    session_puppet_enabled_sat.cli.Host.delete({'id': host['id']})
 
 
 @pytest.mark.tier2
 @pytest.mark.puppet_enabled
 def test_positive_list_scparams(
-    module_env_search, module_location, module_org, module_puppet_classes, default_smart_proxy
+    session_puppet_enabled_sat,
+    session_puppet_enabled_proxy,
+    module_env_search,
+    module_puppet_loc,
+    module_puppet_lce_library,
+    module_puppet_org,
+    module_puppet_classes,
 ):
     """List all smart class parameters using host id
 
@@ -2612,37 +2625,44 @@ def test_positive_list_scparams(
 
     :CaseLevel: Integration
     """
-    update_smart_proxy(module_location, default_smart_proxy)
+    update_smart_proxy(module_puppet_loc, session_puppet_enabled_proxy)
     # Create hostgroup with associated puppet class
-    host = make_fake_host(
+    host = session_puppet_enabled_sat.cli_factory.make_fake_host(
         {
             'puppet-class-ids': [module_puppet_classes[0].id],
-            'environment': module_env_search.name,
-            'organization-id': module_org.id,
-            'location-id': module_location.id,
-            'puppet-ca-proxy-id': default_smart_proxy.id,
-            'puppet-proxy-id': default_smart_proxy.id,
+            'puppet-environment': module_env_search.name,
+            'organization-id': module_puppet_org.id,
+            'location-id': module_puppet_loc.id,
+            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'puppet-ca-proxy-id': session_puppet_enabled_proxy.id,
+            'puppet-proxy-id': session_puppet_enabled_proxy.id,
         }
     )
 
     # Override one of the sc-params from puppet class
-    sc_params_list = SmartClassParameter.list(
+    sc_params_list = session_puppet_enabled_sat.cli.SmartClassParameter.list(
         {
-            'environment': module_env_search.name,
+            'puppet-environment': module_env_search.name,
             'search': f'puppetclass="{module_puppet_classes[0].name}"',
         }
     )
     scp_id = choice(sc_params_list)['id']
-    SmartClassParameter.update({'id': scp_id, 'override': 1})
+    session_puppet_enabled_sat.cli.SmartClassParameter.update({'id': scp_id, 'override': 1})
     # Verify that affected sc-param is listed
-    host_scparams = Host.sc_params({'host': host['name']})
+    host_scparams = session_puppet_enabled_sat.cli.Host.sc_params({'host': host['name']})
     assert scp_id in [scp['id'] for scp in host_scparams]
 
 
 @pytest.mark.puppet_enabled
 @pytest.mark.tier1
 def test_positive_create_with_puppet_class_name(
-    module_env_search, module_location, module_org, module_puppet_classes, default_smart_proxy
+    session_puppet_enabled_sat,
+    session_puppet_enabled_proxy,
+    module_env_search,
+    module_puppet_loc,
+    module_puppet_org,
+    module_puppet_lce_library,
+    module_puppet_classes,
 ):
     """Check if host can be created with puppet class name
 
@@ -2652,30 +2672,33 @@ def test_positive_create_with_puppet_class_name(
 
     :CaseImportance: Critical
     """
-    update_smart_proxy(module_location, default_smart_proxy)
-    host = make_fake_host(
+    update_smart_proxy(module_puppet_loc, session_puppet_enabled_proxy)
+    host = session_puppet_enabled_sat.cli_factory.make_fake_host(
         {
             'puppet-class-ids': [module_puppet_classes[0].id],
-            'environment': module_env_search.name,
-            'organization-id': module_org.id,
-            'location-id': module_location.id,
-            'puppet-ca-proxy-id': default_smart_proxy.id,
-            'puppet-proxy-id': default_smart_proxy.id,
+            'puppet-environment': module_env_search.name,
+            'organization-id': module_puppet_org.id,
+            'location-id': module_puppet_loc.id,
+            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'puppet-ca-proxy-id': session_puppet_enabled_proxy.id,
+            'puppet-proxy-id': session_puppet_enabled_proxy.id,
         }
     )
-    host_classes = Host.puppetclasses({'host': host['name']})
+    host_classes = session_puppet_enabled_sat.cli.Host.puppetclasses({'host': host['name']})
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
 
 @pytest.mark.puppet_enabled
 @pytest.mark.tier2
 def test_positive_update_host_owner_and_verify_puppet_class_name(
+    session_puppet_enabled_sat,
+    session_puppet_enabled_proxy,
     module_env_search,
-    module_org,
-    module_location,
+    module_puppet_org,
+    module_puppet_loc,
+    module_puppet_lce_library,
     module_puppet_classes,
-    module_user,
-    default_smart_proxy,
+    module_puppet_user,
 ):
     """Update host owner and check puppet clases associated to the host
 
@@ -2690,26 +2713,29 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
 
     :customerscenario: true
     """
-    update_smart_proxy(module_location, default_smart_proxy)
-    host = make_fake_host(
+    update_smart_proxy(module_puppet_loc, session_puppet_enabled_proxy)
+    host = session_puppet_enabled_sat.cli_factory.make_fake_host(
         {
             'puppet-class-ids': [module_puppet_classes[0].id],
-            'environment': module_env_search.name,
-            'organization-id': module_org.id,
-            'location-id': module_location.id,
-            'puppet-ca-proxy-id': default_smart_proxy.id,
-            'puppet-proxy-id': default_smart_proxy.id,
+            'puppet-environment': module_env_search.name,
+            'organization-id': module_puppet_org.id,
+            'location-id': module_puppet_loc.id,
+            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'puppet-ca-proxy-id': session_puppet_enabled_proxy.id,
+            'puppet-proxy-id': session_puppet_enabled_proxy.id,
         }
     )
-    host_classes = Host.puppetclasses({'host': host['name']})
+    host_classes = session_puppet_enabled_sat.cli.Host.puppetclasses({'host': host['name']})
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
-    Host.update({'id': host['id'], 'owner': module_user.login, 'owner-type': 'User'})
-    host = Host.info({'id': host['id']})
-    assert int(host['additional-info']['owner-id']) == module_user.id
+    session_puppet_enabled_sat.cli.Host.update(
+        {'id': host['id'], 'owner': module_puppet_user.login, 'owner-type': 'User'}
+    )
+    host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
+    assert int(host['additional-info']['owner-id']) == module_puppet_user.id
     assert host['additional-info']['owner-type'] == 'User'
 
-    host_classes = Host.puppetclasses({'host': host['name']})
+    host_classes = session_puppet_enabled_sat.cli.Host.puppetclasses({'host': host['name']})
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
 
@@ -2717,7 +2743,10 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 def test_positive_create_and_update_with_content_source(
-    function_host_content_source, function_proxy, module_default_proxy
+    session_puppet_enabled_sat,
+    session_puppet_enabled_proxy,
+    function_host_content_source,
+    function_proxy,
 ):
     """Create a host with content source specified and update content
         source
@@ -2734,8 +2763,13 @@ def test_positive_create_and_update_with_content_source(
     :CaseImportance: High
     """
     host = function_host_content_source
-    assert host['content-information']['content-source']['name'] == module_default_proxy['name']
+    assert (
+        host['content-information']['content-source']['name']
+        == session_puppet_enabled_proxy['name']
+    )
     new_content_source = function_proxy
-    Host.update({'id': host['id'], 'content-source-id': new_content_source['id']})
-    host = Host.info({'id': host['id']})
+    session_puppet_enabled_sat.cli.Host.update(
+        {'id': host['id'], 'content-source-id': new_content_source['id']}
+    )
+    host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
     assert host['content-information']['content-source']['name'] == new_content_source['name']

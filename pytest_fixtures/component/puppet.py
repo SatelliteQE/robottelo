@@ -2,6 +2,7 @@
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import ENVIRONMENT
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants import RHEL_8_MAJOR_VERSION
@@ -152,3 +153,31 @@ def session_puppet_default_os(session_puppet_enabled_sat):
         .search(query={'search': search_string})[0]
         .read()
     )
+
+
+@pytest.fixture(scope='module')
+def module_puppet_published_cv(session_puppet_enabled_sat, module_puppet_org):
+    content_view = session_puppet_enabled_sat.api.ContentView(
+        organization=module_puppet_org
+    ).create()
+    content_view.publish()
+    return content_view.read()
+
+
+@pytest.fixture(scope='module')
+def module_puppet_lce_library(session_puppet_enabled_sat, module_puppet_org):
+    """Returns the Library lifecycle environment from chosen organization"""
+    return (
+        session_puppet_enabled_sat.api.LifecycleEnvironment()
+        .search(query={'search': f'name={ENVIRONMENT} and organization_id={module_puppet_org.id}'})[
+            0
+        ]
+        .read()
+    )
+
+
+@pytest.fixture(scope='module')
+def module_puppet_user(session_puppet_enabled_sat, module_puppet_org, module_puppet_loc):
+    return session_puppet_enabled_sat.api.User(
+        organization=[module_puppet_org], location=[module_puppet_loc]
+    ).create()
