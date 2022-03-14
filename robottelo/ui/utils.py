@@ -22,7 +22,6 @@ def create_fake_host(
         'host.location': host.location.name,
         'host.lce': ENVIRONMENT,
         'host.content_view': DEFAULT_CV,
-        'host.puppet_environment': host.environment.name,
         'operating_system.architecture': host.architecture.name,
         'operating_system.operating_system': os_name,
         'operating_system.media_type': 'All Media',

@@ -2345,3 +2345,26 @@ def test_positive_cockpit(session, cockpit_host, module_org):
         ), 'cockpit page shows hostname {} instead of {}'.format(
             hostname_inside_cockpit, cockpit_host.hostname
         )
+
+
+@pytest.mark.tier4
+def test_positive_read_details_page_from_new_ui(session, module_host_template):
+    """Create new Host and read all its content through details page
+
+    :id: ef0c5942-9049-11ec-8029-98fa9b6ecd5a
+
+    :expectedresults: Host is created and has expected content
+
+    :CaseLevel: System
+    """
+    interface_id = gen_string('alpha')
+    with session:
+        host_name = create_fake_host(session, module_host_template, interface_id)
+        assert session.host_new.search(host_name)[0]['Name'] == host_name
+        values = session.host_new.get_details(host_name)
+        assert values['Overview']['HostStatusCard']['status'] == 'All Statuses are OK'
+        assert (
+            values['Overview']['DetailsCard']['details']['mac_address'] == module_host_template.mac
+        )
+        assert values['Overview']['DetailsCard']['details']['host_owner'] == values['current_user']
+        assert values['Overview']['DetailsCard']['details']['comment'] == 'Host with fake data'
