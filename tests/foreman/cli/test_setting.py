@@ -451,17 +451,14 @@ def test_positive_failed_login_attempts_limit(setting_update, default_sat):
 
     :BZ: 1778599
     """
-
     username = settings.server.admin_username
     password = settings.server.admin_password
-    result = default_sat.execute(f'hammer -u {username} -p {password} user list')
-    assert result.status == 0
+    assert default_sat.execute(f'hammer -u {username} -p {password} user list').status == 0
     Settings.set({'name': 'failed_login_attempts_limit', 'value': '5'})
     for i in range(5):
-        output = default_sat.execute(f'hammer -u {username} -p BAD_PASS user list')
-        assert output.status == 129
-    result = default_sat.execute(f'hammer -u {username} -p {password} user list')
-    assert result.status == 129
+        assert default_sat.execute(f'hammer -u {username} -p BAD_PASS user list').status == 129
+    assert default_sat.execute(f'hammer -u {username} -p {password} user list').status == 129
     sleep(301)
-    result = default_sat.execute(f'hammer -u {username} -p {password} user list')
-    assert result.status == 0
+    assert default_sat.execute(f'hammer -u {username} -p {password} user list').status == 0
+    Settings.set({'name': 'failed_login_attempts_limit', 'value': '0'})
+    assert Settings.info({'name': 'failed_login_attempts_limit'})['value'] == '0'
