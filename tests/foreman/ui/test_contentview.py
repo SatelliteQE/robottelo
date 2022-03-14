@@ -2214,8 +2214,7 @@ def test_positive_edit_rh_custom_spin(session):
         distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    cv = repos_collection.setup_content_view(org.id)
-    cv = entities.ContentView(id=cv[0]['id']).read()
+    cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
     with session:
         session.organization.select(org.name)
         session.contentviewfilter.create(
