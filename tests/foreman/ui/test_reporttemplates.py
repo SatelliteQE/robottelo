@@ -391,7 +391,7 @@ def test_positive_schedule_generation_and_get_mail(
     """Schedule generating a report. Request the result be sent via e-mail.
 
     :id: cd19b90d-836f-4efd-c3bc-d5e09a909a67
-    :setup: User with reporting access rights, some Host, org with imported manifest
+    :setup: User with reporting access rights, some Host, Org with imported manifest
     :steps:
         1. Monitor -> Report Templates
         2. Host - Registered Content Hosts -> Generate
