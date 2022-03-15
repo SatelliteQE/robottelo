@@ -455,7 +455,7 @@ def test_positive_failed_login_attempts_limit(setting_update, default_sat):
     password = settings.server.admin_password
     assert default_sat.execute(f'hammer -u {username} -p {password} user list').status == 0
     Settings.set({'name': 'failed_login_attempts_limit', 'value': '5'})
-    for i in range(5):
+    for _ in range(5):
         assert default_sat.execute(f'hammer -u {username} -p BAD_PASS user list').status == 129
     assert default_sat.execute(f'hammer -u {username} -p {password} user list').status == 129
     sleep(301)
