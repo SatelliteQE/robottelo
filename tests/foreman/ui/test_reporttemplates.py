@@ -435,13 +435,10 @@ def test_positive_schedule_generation_and_get_mail(
         f'send "q\\r"\n'
     )
 
-    result = default_sat.execute(f"expect -c '{expect_script}'")
-    assert result.status == 0
+    assert default_sat.execute(f"expect -c '{expect_script}'").status == 0
     default_sat.get(remote_path=str(gzip_path), local_path=str(local_gzip_file))
-    result = os.system(f'gunzip {local_gzip_file}')
-    assert result == 0
-    text = local_file.read_text()
-    data = json.loads(text)
+    assert os.system(f'gunzip {local_gzip_file}') == 0
+    data = json.loads(local_file.read_text())
     subscription_search = default_sat.api.Subscription(organization=module_manifest_org).search()
     assert len(data) >= len(subscription_search) > 0
     keys_expected = [
