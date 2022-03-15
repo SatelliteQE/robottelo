@@ -179,9 +179,7 @@ class TestLocation:
         """
         # Create
         description = gen_string('utf8')
-
         subnet = _subnet(request)
-        environments = [_environment(request) for _ in range(0, 2)]
         domains = [_domain(request) for _ in range(0, 2)]
         host_groups = [_host_group(request) for _ in range(0, 3)]
         medium = _medium(request)
@@ -194,7 +192,6 @@ class TestLocation:
             {
                 'description': description,
                 'subnet-ids': subnet['id'],
-                'puppet-environment-ids': environments[0]['id'],
                 'domain-ids': [domains[0]['id'], domains[1]['id']],
                 'hostgroup-ids': [host_groups[0]['id'], host_groups[1]['id']],
                 'medium-ids': medium['id'],
@@ -208,7 +205,6 @@ class TestLocation:
         assert location['subnets'][0] == (
             f"{subnet['name']} ({subnet['network-addr']}/{subnet['network-prefix']})"
         )
-        assert location['environments'][0] == environments[0]['name']
         assert domains[0]['name'] in location['domains']
         assert domains[1]['name'] in location['domains']
         assert host_groups[0]['name'] in location['hostgroups']
@@ -231,7 +227,6 @@ class TestLocation:
         Location.update(
             {
                 'id': location['id'],
-                'puppet-environment-ids': [environments[0]['id'], environments[1]['id']],
                 'domain-ids': domains[1]['id'],
                 'hostgroup-ids': [host_groups[1]['id'], host_groups[2]['id']],
             }
@@ -240,8 +235,6 @@ class TestLocation:
         assert host_groups[1]['name'] in location['hostgroups']
         assert host_groups[2]['name'] in location['hostgroups']
         assert location['domains'][0] == domains[1]['name']
-        assert environments[0]['name'] in location['environments']
-        assert environments[1]['name'] in location['environments']
 
         # Delete
         Location.delete({'id': location['id']})
