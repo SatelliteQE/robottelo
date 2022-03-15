@@ -415,7 +415,7 @@ def test_positive_schedule_generation_and_get_mail(
                 'email_to': 'root@localhost',
             },
         )
-    randstring = f'{gen_string("alpha")}'
+    randstring = gen_string('alpha')
     file_path = PurePath('/tmp/').joinpath(f'{randstring}.json')
     gzip_path = PurePath(f'{file_path}.gz')
     local_file = robottelo_tmp_dir.joinpath(f'{randstring}.json')
