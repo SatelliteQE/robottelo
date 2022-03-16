@@ -17,7 +17,6 @@
 :Upstream: No
 """
 # For ease of use hc refers to host-collection throughout this document
-from datetime import datetime
 from time import sleep
 
 import pytest
@@ -32,7 +31,6 @@ from robottelo.api.utils import upload_manifest
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
-from robottelo.cli.job_invocation import JobInvocation
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.hosts import ContentHost
@@ -204,24 +202,21 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, default
         host_ids = [client.nailgun_host.id for client in clients]
         host_collection.host_ids = host_ids
         host_collection = host_collection.update(['host_ids'])
-        host_collection_query = f'host_collection_id = {host_collection.id}'
-        JobInvocation.create(
-            {
+        task_id = default_sat.api.JobInvocation().run(
+            data={
                 'feature': 'katello_errata_install',
-                'inputs': f'errata=\'{CUSTOM_REPO_ERRATA_ID}\'',
-                'search-query': host_collection_query,
-                'organization-id': f'{module_org.id}',
-            }
+                'inputs': {'errata': str(CUSTOM_REPO_ERRATA_ID)},
+                'targeting_type': 'static_query',
+                'search_query': f'host_collection_id = {host_collection.id}',
+                'organization_id': module_org.id,
+            },
+        )['id']
+        wait_for_tasks(
+            search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+            search_rate=15,
+            max_tries=10,
         )
         for client in clients:
-            wait_for_tasks(
-                search_query=(
-                    'label = Actions::Katello::Host::UploadProfiles'
-                    f' and resource_id = {client.nailgun_host.id}'
-                ),
-                search_rate=15,
-                max_tries=10,
-            )
             result = client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}')
             assert result.status == 0
 
@@ -257,20 +252,17 @@ def test_positive_install_in_host(
         package_name=constants.FAKE_1_CUSTOM_PACKAGE,
     )
     rhel7_contenthost.add_rex_key(satellite=default_sat)
-    default_sat.api.JobInvocation().run(
+    task_id = default_sat.api.JobInvocation().run(
         data={
             'feature': 'katello_errata_install',
-            'inputs': {'errata': f'{CUSTOM_REPO_ERRATA_ID}'},
+            'inputs': {'errata': str(CUSTOM_REPO_ERRATA_ID)},
             'targeting_type': 'static_query',
             'search_query': f'name = {rhel7_contenthost.hostname}',
             'organization_id': module_org.id,
         },
-    )
+    )['id']
     wait_for_tasks(
-        search_query=(
-            'label = Actions::Katello::Host::UploadProfiles'
-            f' and resource_id = {rhel7_contenthost.nailgun_host.id}'
-        ),
+        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
         search_rate=15,
         max_tries=10,
     )
@@ -313,23 +305,19 @@ def test_positive_install_multiple_in_host(
     assert applicable_errata_count > 1
     rhel7_contenthost.add_rex_key(satellite=default_sat)
     for errata in settings.repos.yum_9.errata[1:4]:
-        timestamp = (datetime.utcnow()).strftime('%Y-%m-%d %H:%M')
-        JobInvocation.create(
-            {
+        task_id = default_sat.api.JobInvocation().run(
+            data={
                 'feature': 'katello_errata_install',
-                'inputs': f'errata=\'{errata}\'',
-                'search-query': f'name = {rhel7_contenthost.hostname}',
-                'organization-id': f'{module_org.id}',
-            }
-        )
+                'inputs': {'errata': str(errata)},
+                'targeting_type': 'static_query',
+                'search_query': f'name = {rhel7_contenthost.hostname}',
+                'organization_id': module_org.id,
+            },
+        )['id']
         wait_for_tasks(
-            search_query=(
-                'label = Actions::Katello::Host::UploadProfiles'
-                f' and resource_id = {rhel7_contenthost.nailgun_host.id}'
-                f' and started_at >= "{timestamp}"'
-            ),
-            search_rate=15,
-            max_tries=10,
+            search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+            search_rate=20,
+            max_tries=15,
         )
         host = host.read()
         applicable_errata_count -= 1
@@ -425,59 +413,6 @@ def test_positive_sorted_issue_date_and_filter_by_cve(module_org, custom_repo, d
     for errata_cves in erratum_cves:
         cve_ids = [cve['cve_id'] for cve in errata_cves]
         assert cve_ids == sorted(cve_ids, reverse=True)
-
-
-@pytest.mark.tier3
-@pytest.mark.skip_if_open("BZ:1682940")
-def test_positive_filter_by_envs(module_org):
-    """Filter applicable errata for a content host by current and
-    Library environments
-
-    :id: f41bfcc2-39ee-4ae1-a71f-d2c9288875be
-
-    :Setup:
-
-        1. Make sure multiple environments are present.
-        2. One of Content host's previous environment has additional
-            errata.
-
-    :Steps: GET /katello/api/errata
-
-    :expectedresults: The errata for the content host is filtered by
-        current and Library environments.
-
-    :CaseLevel: System
-
-    :BZ: 1682940
-    """
-    org = entities.Organization().create()
-    env = entities.LifecycleEnvironment(organization=org).create()
-    content_view = entities.ContentView(organization=org).create()
-    activation_key = entities.ActivationKey(environment=env, organization=org).create()
-    setup_org_for_a_rh_repo(
-        {
-            'product': constants.PRDS['rhel'],
-            'repository-set': constants.REPOSET['rhst7'],
-            'repository': constants.REPOS['rhst7']['name'],
-            'organization-id': org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': env.id,
-            'activationkey-id': activation_key.id,
-        }
-    )
-    new_cv = entities.ContentView(organization=org).create()
-    new_repo = entities.Repository(
-        product=entities.Product(organization=org).create(), url=CUSTOM_REPO_URL
-    ).create()
-    assert new_repo.sync()['result'] == 'success'
-    new_cv = new_cv.read()
-    new_cv.repository.append(new_repo)
-    new_cv = new_cv.update(['repository'])
-    new_cv.publish()
-    library_env = entities.LifecycleEnvironment(name='Library', organization=org).search()[0]
-    errata_library = entities.Errata(environment=library_env).search(query={'per_page': '1000'})
-    errata_env = entities.Errata(environment=env).search(query={'per_page': '1000'})
-    assert len(errata_library) > len(errata_env)
 
 
 @pytest.fixture(scope='module')

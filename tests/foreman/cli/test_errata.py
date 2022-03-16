@@ -430,7 +430,7 @@ def test_positive_install_by_host_collection_and_org(
         {
             'feature': 'katello_errata_install',
             'search-query': host_collection_query,
-            'inputs': f'errata=\'{errata_id}\'',
+            'inputs': f"errata='{errata_id}'",
             f'{organization_key}': f'{organization_value}',
         }
     )
@@ -628,13 +628,23 @@ def test_install_errata_to_one_host(module_org, errata_hosts, host_collection, d
     for host in errata_hosts:
         host.add_rex_key(satellite=default_sat)
     # Apply errata to the host collection using job invocation
-    JobInvocation.create(
+    result = JobInvocation.create(
         {
             'feature': 'katello_errata_install',
             'search-query': f'host_collection_id = {host_collection["id"]}',
-            'inputs': f'errata=\"{errata["id"]}\"',
+            'inputs': f"errata='{REAL_0_ERRATA_ID}'",
             'organization-id': module_org.id,
         }
+    )[1]['id']
+    assert 'success' in result
+    timestamp = (datetime.utcnow() - timedelta(minutes=1)).strftime(TIMESTAMP_FMT)
+    wait_for_tasks(
+        search_query=(
+            'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
+            f' and started_at >= "{timestamp}"'
+        ),
+        search_rate=15,
+        max_tries=10,
     )
     assert not is_rpm_installed(
         errata_hosts[0], rpm=errata['package_name']
@@ -823,17 +833,18 @@ def test_host_errata_search_commands(
     result = errata_hosts[1].execute(f'yum update -y {errata[1]["new_package"]}')
     assert result.status == 0, 'Failed to install rpm'
 
-    # Wait for upload profile event (in case Satellite system slow)
-    host = entities.Host().search(query={'search': f'name={errata_hosts[0].hostname}'})
-    wait_for_tasks(
-        search_query=(
-            'label = Actions::Katello::Host::UploadProfiles'
-            f' and resource_id = {host[0].id}'
-            f' and started_at >= "{timestamp}"'
-        ),
-        search_rate=15,
-        max_tries=10,
-    )
+    for host in errata_hosts:
+        timestamp = (datetime.utcnow() - timedelta(minutes=1)).strftime(TIMESTAMP_FMT)
+        Host.errata_recalculate({'host-id': host.nailgun_host.id})
+        # Wait for upload profile event (in case Satellite system slow)
+        wait_for_tasks(
+            search_query=(
+                'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
+                f' and started_at >= "{timestamp}"'
+            ),
+            search_rate=20,
+            max_tries=10,
+        )
 
     # Step 1: Search for hosts that require bugfix advisories
     result = Host.list(
@@ -1346,6 +1357,7 @@ def errata_host(module_manifest_org, rhel7_contenthost_module, new_module_ak, de
     rhel7_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
     assert rhel7_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
     rhel7_contenthost_module.install_katello_host_tools()
+    rhel7_contenthost_module.add_rex_key(satellite=default_sat)
     return rhel7_contenthost_module
 
 
@@ -1360,7 +1372,7 @@ def chost(module_manifest_org, rhel7_contenthost_module, new_module_ak, default_
 
 
 @pytest.mark.tier2
-def test_apply_errata_using_default_content_view(errata_host):
+def test_apply_errata_using_default_content_view(errata_host, default_sat):
     """Updating an applicable errata on a host attached to the default content view
      causes the errata to not be applicable.
 
@@ -1382,20 +1394,27 @@ def test_apply_errata_using_default_content_view(errata_host):
     erratum = Host.errata_list({'host': errata_host.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'})
     assert len(erratum) == 1
     assert erratum[0]['installable'] == 'true'
-    # note time for later wait_for_tasks include 2 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     # Update errata from Library, i.e. Default CV
-    errata_host.run(f'yum -y update --advisory {REAL_0_ERRATA_ID}')
-    # Wait for upload profile event (in case Satellite system slow)
+    result = JobInvocation.create(
+        {
+            'feature': 'katello_errata_install',
+            'search-query': f'name = {errata_host.hostname}',
+            'inputs': f"errata='{REAL_0_ERRATA_ID}'",
+            'organization-id': f'{errata_host.nailgun_host.organization.id}',
+        }
+    )[1]['id']
+    assert 'success' in result
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
+    Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
     wait_for_tasks(
         search_query=(
-            'label = Actions::Katello::Host::UploadProfiles'
-            f' and resource_id = {errata_host.nailgun_host.id}'
+            'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
             f' and started_at >= "{timestamp}"'
         ),
         search_rate=15,
         max_tries=10,
     )
+
     # Assert that the erratum is no longer applicable
     erratum = Host.errata_list({'host': errata_host.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'})
     assert len(erratum) == 0
@@ -1429,22 +1448,42 @@ def test_update_applicable_package_using_default_content_view(errata_host):
             'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
         }
     )
+    timestamp = (datetime.utcnow()).strftime(TIMESTAMP_FMT)
+    Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
+    wait_for_tasks(
+        search_query=(
+            'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
+            f' and started_at >= "{timestamp}"'
+        ),
+        search_rate=20,
+        max_tries=15,
+    )
     assert len(applicable_packages) == 1
     assert REAL_RHEL7_0_2_PACKAGE_NAME in applicable_packages[0]['filename']
+    # Update package from Library, i.e. Default CV
+    result = JobInvocation.create(
+        {
+            'feature': 'katello_errata_install',
+            'search-query': f'name = {errata_host.hostname}',
+            'inputs': f"errata='{REAL_0_ERRATA_ID}'",
+            'organization-id': f'{errata_host.nailgun_host.organization.id}',
+        }
+    )[1]['id']
+    assert 'success' in result
     # note time for later wait_for_tasks include 2 mins margin of safety.
     timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
-    # Update package from Library, i.e. Default CV
-    errata_host.run(f'yum -y update {REAL_RHEL7_0_2_PACKAGE_NAME}')
+    Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
+
     # Wait for upload profile event (in case Satellite system slow)
     wait_for_tasks(
         search_query=(
-            'label = Actions::Katello::Host::UploadProfiles'
-            f' and resource_id = {errata_host.nailgun_host.id}'
+            'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
             f' and started_at >= "{timestamp}"'
         ),
-        search_rate=15,
+        search_rate=30,
         max_tries=10,
     )
+
     # Assert that the package is no longer applicable
     applicable_packages = Package.list(
         {
@@ -1457,7 +1496,7 @@ def test_update_applicable_package_using_default_content_view(errata_host):
 
 
 @pytest.mark.tier2
-def test_downgrade_applicable_package_using_default_content_view(errata_host):
+def test_downgrade_applicable_package_using_default_content_view(errata_host, default_sat):
     """Downgrading a package on a host attached to the default content view
     causes the package to become applicable and installable.
 
@@ -1489,15 +1528,15 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host):
     )
     assert len(applicable_packages) == 0
     # note time for later wait_for_tasks include 2 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     # Downgrade package (we can't get it from Library, so get older one from EPEL)
     errata_host.run(f'curl -O {settings.repos.epel_repo.url}/{PSUTIL_RPM}')
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     errata_host.run(f'yum -y downgrade {PSUTIL_RPM}')
+    Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
     # Wait for upload profile event (in case Satellite system slow)
     wait_for_tasks(
         search_query=(
-            'label = Actions::Katello::Host::UploadProfiles'
-            f' and resource_id = {errata_host.nailgun_host.id}'
+            'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
             f' and started_at >= "{timestamp}"'
         ),
         search_rate=15,
@@ -1536,6 +1575,7 @@ def test_install_applicable_package_to_registerd_host(chost):
     :CaseImportance: Medium
     """
     # Assert that the package is not applicable
+    Host.errata_recalculate({'host-id': chost.nailgun_host.id})
     applicable_packages = Package.list(
         {
             'host-id': chost.nailgun_host.id,
@@ -1544,21 +1584,22 @@ def test_install_applicable_package_to_registerd_host(chost):
         }
     )
     assert len(applicable_packages) == 0
-    # note time for later wait_for_tasks include 2 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     # python-psutil is obsoleted by python2-psutil, so download older python2-psutil for this test
     chost.run(f'curl -O {settings.repos.epel_repo.url}/{PSUTIL_RPM}')
+    # note time for later wait_for_tasks include 2 mins margin of safety.
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     chost.run(f'yum -y install {PSUTIL_RPM}')
+    Host.errata_recalculate({'host-id': chost.nailgun_host.id})
     # Wait for upload profile event (in case Satellite system slow)
     wait_for_tasks(
         search_query=(
-            'label = Actions::Katello::Host::UploadProfiles'
-            f' and resource_id = {chost.nailgun_host.id}'
+            'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
             f' and started_at >= "{timestamp}"'
         ),
         search_rate=15,
         max_tries=10,
     )
+
     # check that package is applicable
     applicable_packages = Package.list(
         {
@@ -1609,10 +1650,11 @@ def test_downgrading_package_shows_errata_from_library(errata_host, module_manif
     errata_host.run(f'curl -O {settings.repos.epel_repo.url}/{PSUTIL_RPM}')
     errata_host.run(f'yum -y downgrade {PSUTIL_RPM}')
     # Wait for upload profile event (in case Satellite system slow)
+    Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
+    # Wait for upload profile event (in case Satellite system slow)
     wait_for_tasks(
         search_query=(
-            'label = Actions::Katello::Host::UploadProfiles'
-            f' and resource_id = {errata_host.nailgun_host.id}'
+            'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
             f' and started_at >= "{timestamp}"'
         ),
         search_rate=15,
