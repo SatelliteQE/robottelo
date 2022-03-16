@@ -108,6 +108,12 @@ class Host(Base):
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
+    def errata_recalculate(cls, options):
+        """Recalculate errata on a content host"""
+        cls.command_sub = 'errata recalculate'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
     def facts(cls, options=None):
         """
         List all fact values.
