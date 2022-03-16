@@ -7,6 +7,9 @@
 #     echo *.swp >> ~/.gitignore_global
 #
 
+# Ignore dynaconfs .env file
+/.env
+
 # Compiled python code.
 *.pyc
 
