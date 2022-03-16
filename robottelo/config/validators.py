@@ -88,12 +88,20 @@ VALIDATORS = dict(
     ],
     container_repo=[
         Validator(
-            'container_repo.registry_url',
-            'container_repo.registry_username',
-            'container_repo.registry_password',
-            'container_repo.repos_to_sync',
+            'container_repo.registries.redhat.url',
+            'container_repo.registries.redhat.username',
+            'container_repo.registries.redhat.password',
+            'container_repo.registries.redhat.repos_to_sync',
+            'container_repo.registries.redhat.long_pass',
             must_exist=True,
-        )
+        ),
+        Validator(
+            'container_repo.registries.quay.url',
+            'container_repo.registries.quay.username',
+            'container_repo.registries.quay.password',
+            'container_repo.registries.quay.repos_to_sync',
+            must_exist=True,
+        ),
     ],
     discovery=[Validator('discovery.discovery_iso', must_exist=True)],
     distro=[
@@ -114,15 +122,10 @@ VALIDATORS = dict(
             'docker.private_registry_username',
             'docker.private_registry_password',
             must_exist=True,
-        )
+        ),
     ],
     ec2=[
-        Validator(
-            'ec2.access_key',
-            'ec2.secret_key',
-            'ec2.region',
-            must_exist=True,
-        ),
+        Validator('ec2.access_key', 'ec2.secret_key', 'ec2.region', must_exist=True),
         Validator('ec2.managed_ip', is_in=('Private', 'Public'), default='Private'),
         Validator('ec2.region', default='us-west-2'),
         Validator('ec2.security_group', default=['default']),
@@ -149,6 +152,7 @@ VALIDATORS = dict(
         Validator(
             'git.username',
             'git.password',
+            'git.github_token',
             'git.ssh_port',
             'git.http_port',
             'git.hostname',
@@ -162,23 +166,26 @@ VALIDATORS = dict(
             'http_proxy.username',
             'http_proxy.password',
             must_exist=True,
-        )
+        ),
     ],
     ipa=[
         Validator(
-            'ipa.basedn_ipa',
-            'ipa.grpbasedn_ipa',
-            'ipa.hostname_ipa',
-            'ipa.password_ipa',
-            'ipa.username_ipa',
-            'ipa.user_ipa',
+            'ipa.hostname',
+            'ipa.username',
+            'ipa.password',
+            'ipa.idm_password',
+            'ipa.basedn',
+            'ipa.grpbasedn',
+            'ipa.user',
             'ipa.otp_user',
-            'ipa.time_based_secret',
             'ipa.disabled_ipa_user',
             'ipa.group_users',
             'ipa.groups',
+            'ipa.idm_server_ip',
+            'ipa.keytab_url',
+            'ipa.time_based_secret',
             must_exist=True,
-        )
+        ),
     ],
     ldap=[
         Validator(
@@ -186,23 +193,23 @@ VALIDATORS = dict(
             'ldap.grpbasedn',
             'ldap.hostname',
             'ldap.nameserver',
-            'ldap.password',
             'ldap.realm',
             'ldap.username',
+            'ldap.password',
             'ldap.workgroup',
             must_exist=True,
-        )
+        ),
     ],
     open_ldap=[
         Validator(
             'open_ldap.base_dn',
             'open_ldap.group_base_dn',
             'open_ldap.hostname',
-            'open_ldap.password',
             'open_ldap.username',
+            'open_ldap.password',
             'open_ldap.open_ldap_user',
             must_exist=True,
-        )
+        ),
     ],
     oscap=[
         Validator(
@@ -216,15 +223,11 @@ VALIDATORS = dict(
             'osp.username',
             'osp.password',
             'osp.tenant',
-            'osp.project_domain_id',
             'osp.security_group',
             'osp.vm_name',
-            'osp.image_os',
-            'osp.image_arch',
-            'osp.image_username',
-            'osp.image_name',
+            'osp.project_domain_id',
             must_exist=True,
-        )
+        ),
     ],
     performance=[Validator('performance.time_hammer', default=False)],
     report_portal=[
@@ -236,6 +239,7 @@ VALIDATORS = dict(
         ),
         Validator('report_portal.fail_threshold', default=20),
     ],
+    rh_cloud=[Validator('rh_cloud.token', required=True)],
     repos=[
         Validator(
             'repos.rhel6_os',
@@ -251,7 +255,7 @@ VALIDATORS = dict(
             'repos.rhscl_repo',
             'repos.ansible_repo',
             'repos.swid_tools_repo',
-            must_exist=False,
+            must_exist=True,
             is_type_of=str,
         ),
     ],
@@ -267,26 +271,28 @@ VALIDATORS = dict(
             'rhev.image_arch',
             'rhev.image_username',
             'rhev.image_password',
+            'rhev.ca_cert',
             'rhev.image_name',
             must_exist=True,
-        )
+        ),
     ],
     rhsso=[
         Validator(
             'rhsso.host_name',
             'rhsso.host_url',
             'rhsso.rhsso_user',
-            'rhsso.user_password',
+            'rhsso.rhsso_password',
             'rhsso.realm',
+            'rhsso.totp_secret',
             must_exist=True,
-        )
+        ),
     ],
     remotedb=[
         Validator(
             'remotedb.server',
             'remotedb.db_server',
-            'remotedb.common_db_password',
-            must_exist=False,
+            'remotedb.db_password',
+            must_exist=True,
         ),
         Validator('remotedb.foreman.username', default='foreman'),
         Validator('remotedb.foreman.db_name', default='foreman'),
@@ -357,6 +363,6 @@ VALIDATORS = dict(
             'vmware.image_password',
             'vmware.image_name',
             must_exist=True,
-        )
+        ),
     ],
 )

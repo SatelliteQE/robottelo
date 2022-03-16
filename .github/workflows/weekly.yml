@@ -38,6 +38,7 @@ jobs:
           pip install -U -r requirements.txt -r requirements-optional.txt
           for conffile in conf/*.yaml.template; do mv -- "$conffile" "${conffile%.yaml.template}.yaml"; done
           cp broker_settings.yaml.example broker_settings.yaml
+          cp .env.example .env
 
       - name: Customer scenario check
         run: |
