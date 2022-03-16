@@ -73,7 +73,7 @@ class TestSatelliteMaintain:
         """
         This function is used to update the details of zstream upgrade and
         next version upgrade
-        :param str satellite_version: satellite version would be like 6.5.0, 6.6.0, 6,7.0
+        :param str satellite_version: satellite version would be like 6.5.0, 6.6.0, 6.7.0
         :param bool major_version_change: For major version upgrade like 6.8 to 7.0, 7.0
         to 8.0 etc, then major_version_change would be True.
         :param str y_version: y_version change depends on major_version_change

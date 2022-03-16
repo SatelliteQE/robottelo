@@ -2042,7 +2042,7 @@ class TestRepository:
         assert repo_info['url'] in [repo.get('url') for repo in repo_list]
 
 
-# TODO: un-comment when OSTREE functionality is restored in Satellite 7.0
+# TODO: un-comment when OSTREE functionality is restored in Satellite 6.11
 # class TestOstreeRepository:
 #     """Ostree Repository CLI tests."""
 #

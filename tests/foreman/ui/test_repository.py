@@ -634,7 +634,7 @@ def test_positive_upstream_with_credentials(session, module_prod):
         assert not repo_values['repo_content']['upstream_authorization']
 
 
-# TODO: un-comment when OSTREE functionality is restored in Satellite 7.0
+# TODO: un-comment when OSTREE functionality is restored in Satellite 6.11
 # @pytest.mark.tier2
 # @pytest.mark.upgrade
 # @pytest.mark.skipif(
