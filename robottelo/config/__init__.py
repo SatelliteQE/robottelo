@@ -23,6 +23,7 @@ settings = LazySettings(
     includes=["settings.local.yaml", ".secrets.yaml", ".secrets_*.yaml"],
     envless_mode=True,
     lowercase_read=True,
+    load_dotenv=True,
 )
 settings.validators.register(**VALIDATORS)
 
