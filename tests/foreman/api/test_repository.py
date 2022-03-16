@@ -1937,7 +1937,7 @@ class TestDockerRepository:
         assert repo.content_counts['docker_tag'] == 0
 
 
-# TODO: un-comment when OSTREE functionality is restored in Satellite 7.0
+# TODO: un-comment when OSTREE functionality is restored in Satellite 6.11
 # class TestOstreeRepository:
 #     """Tests specific to using ``OSTree`` repositories."""
 #

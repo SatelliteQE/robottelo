@@ -33,9 +33,9 @@ REPOS:
     RHEL7: replace-with-rhel7-http-link
     RHEL8: replace-with-rhel8-http-link
     RHEL9: replace-with-rhel9-http-link
-  # Satellite's utils repos, and it works for 7.0 and onwards
+  # Satellite's utils repos, and it works for 6.11 and onwards
   SATUTILS_REPO: replace-with-utils-repository-url
-  # Satellite's client repos, and it works for 7.0 and onwards
+  # Satellite's client repos, and it works for 6.11 and onwards
   SATCLIENT_REPO:
     RHEL6: replace-with-rhel6-http-link
     RHEL7: replace-with-rhel7-http-link
