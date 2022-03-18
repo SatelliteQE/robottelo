@@ -21,7 +21,6 @@ import pytest
 from fauxfactory import gen_boolean
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
-from nailgun import entities
 from requests import HTTPError
 
 from robottelo.api.utils import delete_puppet_class
@@ -60,16 +59,20 @@ def invalid_sc_parameters_data():
 
 
 @pytest.fixture(scope='module')
-def module_puppet(default_sat):
+def module_puppet(session_puppet_enabled_sat):
     puppet_class = 'api_test_classparameters'
-    env_name = default_sat.create_custom_environment(repo=puppet_class)
-    puppet_class = entities.PuppetClass().search(
+    env_name = session_puppet_enabled_sat.create_custom_environment(repo=puppet_class)
+    puppet_class = session_puppet_enabled_sat.api.PuppetClass().search(
         query={'search': f'name = "{puppet_class}" and environment = "{env_name}"'}
     )[0]
-    sc_params_list = entities.SmartClassParameters().search(
+    sc_params_list = session_puppet_enabled_sat.api.SmartClassParameters().search(
         query={'search': f'puppetclass="{puppet_class.name}"', 'per_page': '1000'}
     )
-    env = entities.Environment().search(query={'search': f'name="{env_name}"'})[0].read()
+    env = (
+        session_puppet_enabled_sat.api.Environment()
+        .search(query={'search': f'name="{env_name}"'})[0]
+        .read()
+    )
     yield {'env': env, 'class': puppet_class, 'sc_params': sc_params_list}
     delete_puppet_class(puppet_class.name)
 
@@ -152,7 +155,9 @@ class TestSmartClassParameters:
         assert 'Validation failed: Default value is invalid' in context.value.response.text
 
     @pytest.mark.tier1
-    def test_positive_validate_default_value_required_check(self, module_puppet):
+    def test_positive_validate_default_value_required_check(
+        self, session_puppet_enabled_sat, module_puppet
+    ):
         """No error raised for non-empty default Value - Required check.
 
         :id: 92977eb0-92c2-4734-84d9-6fda8ff9d2d8
@@ -178,7 +183,7 @@ class TestSmartClassParameters:
         sc_param = sc_param.read()
         assert sc_param.required is True
         assert sc_param.default_value is True
-        entities.OverrideValue(
+        session_puppet_enabled_sat.api.OverrideValue(
             smart_class_parameter=sc_param, match='domain=example.com', value=False
         ).create()
         sc_param.update(['override', 'required'])
@@ -187,7 +192,9 @@ class TestSmartClassParameters:
         assert sc_param.override_values[0]['value'] is False
 
     @pytest.mark.tier1
-    def test_negative_validate_matcher_value_required_check(self, module_puppet):
+    def test_negative_validate_matcher_value_required_check(
+        self, session_puppet_enabled_sat, module_puppet
+    ):
         """Error is raised for blank matcher Value - Required check.
 
         :id: 49de2c9b-40f1-4837-8ebb-dfa40d8fcb89
@@ -207,7 +214,7 @@ class TestSmartClassParameters:
         sc_param.required = True
         sc_param.update(['override', 'required'])
         with pytest.raises(HTTPError) as context:
-            entities.OverrideValue(
+            session_puppet_enabled_sat.api.OverrideValue(
                 smart_class_parameter=sc_param, match='domain=example.com', value=''
             ).create()
         assert "Validation failed: Value can't be blank" in context.value.response.text
@@ -241,7 +248,9 @@ class TestSmartClassParameters:
         assert sc_param.read().default_value != value
 
     @pytest.mark.tier1
-    def test_positive_validate_default_value_with_regex(self, module_puppet):
+    def test_positive_validate_default_value_with_regex(
+        self, session_puppet_enabled_sat, module_puppet
+    ):
         """Error is not raised for default value matching with regex.
 
         :id: d5df7804-9633-4ef8-a065-10807351d230
@@ -273,14 +282,16 @@ class TestSmartClassParameters:
         assert sc_param.validator_rule == '[0-9]'
 
         # validate matcher value
-        entities.OverrideValue(
+        session_puppet_enabled_sat.api.OverrideValue(
             smart_class_parameter=sc_param, match='domain=test.com', value=gen_string('numeric')
         ).create()
         sc_param.update(['override', 'default_value', 'validator_type', 'validator_rule'])
         assert sc_param.read().default_value == value
 
     @pytest.mark.tier1
-    def test_negative_validate_matcher_value_with_list(self, module_puppet):
+    def test_negative_validate_matcher_value_with_list(
+        self, session_puppet_enabled_sat, module_puppet
+    ):
         """Error is raised for matcher value not in list.
 
         :id: a5e89e86-253f-4254-9ebb-eefb3dc2c2ab
@@ -296,7 +307,7 @@ class TestSmartClassParameters:
         :CaseImportance: Medium
         """
         sc_param = module_puppet['sc_params'].pop()
-        entities.OverrideValue(
+        session_puppet_enabled_sat.api.OverrideValue(
             smart_class_parameter=sc_param, match='domain=example.com', value='myexample'
         ).create()
         sc_param.override = True
@@ -309,7 +320,9 @@ class TestSmartClassParameters:
         assert sc_param.read().default_value != 50
 
     @pytest.mark.tier1
-    def test_positive_validate_matcher_value_with_list(self, module_puppet):
+    def test_positive_validate_matcher_value_with_list(
+        self, session_puppet_enabled_sat, module_puppet
+    ):
         """Error is not raised for matcher value in list.
 
         :id: 05c1a0bb-ba27-4842-bb6a-8420114cffe7
@@ -325,7 +338,7 @@ class TestSmartClassParameters:
         :CaseImportance: Medium
         """
         sc_param = module_puppet['sc_params'].pop()
-        entities.OverrideValue(
+        session_puppet_enabled_sat.api.OverrideValue(
             smart_class_parameter=sc_param, match='domain=example.com', value=30
         ).create()
         sc_param.override = True
@@ -336,7 +349,9 @@ class TestSmartClassParameters:
         assert sc_param.read().default_value == 'example'
 
     @pytest.mark.tier1
-    def test_positive_validate_matcher_value_with_default_type(self, module_puppet):
+    def test_positive_validate_matcher_value_with_default_type(
+        self, session_puppet_enabled_sat, module_puppet
+    ):
         """No error for matcher value of default type.
 
         :id: 77b6e90d-e38a-4973-98e3-c698eae5c534
@@ -356,7 +371,7 @@ class TestSmartClassParameters:
         sc_param.parameter_type = 'boolean'
         sc_param.default_value = True
         sc_param.update(['override', 'parameter_type', 'default_value'])
-        entities.OverrideValue(
+        session_puppet_enabled_sat.api.OverrideValue(
             smart_class_parameter=sc_param, match='domain=example.com', value=False
         ).create()
         sc_param = sc_param.read()
@@ -364,7 +379,9 @@ class TestSmartClassParameters:
         assert sc_param.override_values[0]['match'] == 'domain=example.com'
 
     @pytest.mark.tier1
-    def test_negative_validate_matcher_and_default_value(self, module_puppet):
+    def test_negative_validate_matcher_and_default_value(
+        self, session_puppet_enabled_sat, module_puppet
+    ):
         """Error for invalid default and matcher value is raised both at a time.
 
         :id: e46a12cb-b3ea-42eb-b1bb-b750655b6a4a
@@ -382,7 +399,7 @@ class TestSmartClassParameters:
         :CaseImportance: Medium
         """
         sc_param = module_puppet['sc_params'].pop()
-        entities.OverrideValue(
+        session_puppet_enabled_sat.api.OverrideValue(
             smart_class_parameter=sc_param, match='domain=example.com', value=gen_string('alpha')
         ).create()
         with pytest.raises(HTTPError) as context:
@@ -395,7 +412,9 @@ class TestSmartClassParameters:
         )
 
     @pytest.mark.tier1
-    def test_positive_create_and_remove_matcher_puppet_default_value(self, module_puppet):
+    def test_positive_create_and_remove_matcher_puppet_default_value(
+        self, session_puppet_enabled_sat, module_puppet
+    ):
         """Create matcher for attribute in parameter where
         value is puppet default value.
 
@@ -417,7 +436,7 @@ class TestSmartClassParameters:
         value = gen_string('alpha')
         sc_param.override = True
         sc_param.default_value = gen_string('alpha')
-        override = entities.OverrideValue(
+        override = session_puppet_enabled_sat.api.OverrideValue(
             smart_class_parameter=sc_param, match='domain=example.com', value=value, omit=True
         ).create()
         sc_param = sc_param.read()
@@ -454,7 +473,9 @@ class TestSmartClassParameters:
         assert sc_param.merge_default is True
 
     @pytest.mark.tier1
-    def test_negative_enable_merge_overrides_default_checkboxes(self, module_puppet):
+    def test_negative_enable_merge_overrides_default_checkboxes(
+        self, session_puppet_enabled_sat, module_puppet
+    ):
         """Disable Merge Overrides, Merge Default checkboxes for non supported types.
 
         :id: d7b1c336-bd9f-40a3-a573-939f2a021cdc
@@ -475,7 +496,7 @@ class TestSmartClassParameters:
         with pytest.raises(HTTPError) as context:
             sc_param.update(['override', 'parameter_type', 'default_value', 'merge_overrides'])
         assert (
-            'Validation failed: Merge overrides can only be set for array or hash'
+            'Validation failed: Merge overrides can only be set for array, hash, json or yaml'
             in context.value.response.text
         )
         with pytest.raises(HTTPError) as context:
@@ -545,7 +566,9 @@ class TestSmartClassParameters:
         assert sc_param.read().avoid_duplicates is False
 
     @pytest.mark.tier2
-    def test_positive_impact_parameter_delete_attribute(self, module_puppet):
+    def test_positive_impact_parameter_delete_attribute(
+        self, session_puppet_enabled_sat, module_puppet
+    ):
         """Impact on parameter after deleting associated attribute.
 
         :id: 3ffbf403-dac9-4172-a586-82267765abd8
@@ -572,11 +595,11 @@ class TestSmartClassParameters:
         hostgroup_name = gen_string('alpha')
         match = f'hostgroup={hostgroup_name}'
         match_value = gen_string('alpha')
-        hostgroup = entities.HostGroup(
+        hostgroup = session_puppet_enabled_sat.api.HostGroup(
             name=hostgroup_name, environment=module_puppet['env']
         ).create()
         hostgroup.add_puppetclass(data={'puppetclass_id': module_puppet['class'].id})
-        entities.OverrideValue(
+        session_puppet_enabled_sat.api.OverrideValue(
             smart_class_parameter=sc_param, match=match, value=match_value
         ).create()
         sc_param = sc_param.read()
@@ -584,7 +607,7 @@ class TestSmartClassParameters:
         assert sc_param.override_values[0]['value'] == match_value
         hostgroup.delete()
         assert len(sc_param.read().override_values) == 0
-        hostgroup = entities.HostGroup(
+        hostgroup = session_puppet_enabled_sat.api.HostGroup(
             name=hostgroup_name, environment=module_puppet['env']
         ).create()
         hostgroup.add_puppetclass(data={'puppetclass_id': module_puppet['class'].id})
