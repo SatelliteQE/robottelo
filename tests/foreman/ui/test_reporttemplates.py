@@ -19,6 +19,7 @@
 import csv
 import json
 import os
+from pathlib import Path
 from pathlib import PurePath
 
 import pytest
@@ -385,12 +386,12 @@ def test_positive_autocomplete(session):
 
 @pytest.mark.tier2
 def test_positive_schedule_generation_and_get_mail(
-    session, module_org, module_location, default_sat
+    session, module_manifest_org, module_location, default_sat
 ):
     """Schedule generating a report. Request the result be sent via e-mail.
 
     :id: cd19b90d-836f-4efd-c3bc-d5e09a909a67
-    :setup: User with reporting access rights, some Host
+    :setup: User with reporting access rights, some Host, Org with imported manifest
     :steps:
         1. Monitor -> Report Templates
         2. Host - Registered Content Hosts -> Generate
@@ -414,9 +415,11 @@ def test_positive_schedule_generation_and_get_mail(
                 'email_to': 'root@localhost',
             },
         )
-    file_path = PurePath('/tmp/').joinpath(f'{gen_string("alpha")}.json')
+    randstring = gen_string('alpha')
+    file_path = PurePath('/tmp/').joinpath(f'{randstring}.json')
     gzip_path = PurePath(f'{file_path}.gz')
-    local_gzip_file = robottelo_tmp_dir.joinpath(gzip_path.name)
+    local_file = robottelo_tmp_dir.joinpath(f'{randstring}.json')
+    local_gzip_file = Path(f'{local_file}.gz')
     expect_script = (
         f'#!/usr/bin/env expect\n'
         f'spawn mail\n'
@@ -432,11 +435,11 @@ def test_positive_schedule_generation_and_get_mail(
         f'send "q\\r"\n'
     )
 
-    default_sat.execute(f"expect -c '{expect_script}'")
+    assert default_sat.execute(f"expect -c '{expect_script}'").status == 0
     default_sat.get(remote_path=str(gzip_path), local_path=str(local_gzip_file))
-    os.system(f'gunzip {local_gzip_file}')
-    data = json.load(local_gzip_file.read_text())
-    subscription_search = default_sat.api.Subscription(organization=module_org).search()
+    assert os.system(f'gunzip {local_gzip_file}') == 0
+    data = json.loads(local_file.read_text())
+    subscription_search = default_sat.api.Subscription(organization=module_manifest_org).search()
     assert len(data) >= len(subscription_search) > 0
     keys_expected = [
         'Account number',

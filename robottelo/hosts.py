@@ -1104,12 +1104,12 @@ class Capsule(ContentHost):
 
     def restart_services(self):
         """Restart services, returning True if passed and stdout if not"""
-        result = self.execute('foreman-maintain service restart')
+        result = self.execute('satellite-maintain service restart')
         return True if result.status == 0 else result.stdout
 
     def check_services(self):
         error_msg = 'Some services are not running'
-        result = self.execute('foreman-maintain service status')
+        result = self.execute('satellite-maintain service status')
         if result.status == 0:
             return True
         for line in result.stdout.splitlines():

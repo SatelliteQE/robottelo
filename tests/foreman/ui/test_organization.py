@@ -54,7 +54,6 @@ def test_positive_end_to_end(session):
     template = entities.ProvisioningTemplate().create()
     ptable = entities.PartitionTable().create()
     domain = entities.Domain().create()
-    env = entities.Environment().create()
     hostgroup = entities.HostGroup().create()
     location = entities.Location().create()
 
@@ -65,7 +64,6 @@ def test_positive_end_to_end(session):
         'provisioning_templates',
         'partition_tables',
         'domains',
-        'environments',
         'host_groups',
         'locations',
     ]
@@ -88,21 +86,18 @@ def test_positive_end_to_end(session):
                 'provisioning_templates.resources.assigned': [template.name],
                 'partition_tables.resources.assigned': [ptable.name],
                 'domains.resources.assigned': [domain.name],
-                'environments.resources.assigned': [env.name],
                 'host_groups.resources.assigned': [hostgroup.name],
                 'locations.resources.assigned': [location.name],
             },
         )
-
+        assert session.organization.search(new_name)
         org_values = session.organization.read(new_name, widget_names=widget_list)
-        with pytest.raises(AssertionError):
-            session.organization.delete(new_name)
+        assert not session.organization.delete(new_name)
         assert user.login in org_values['users']['resources']['assigned']
         assert media.name in org_values['media']['resources']['assigned']
         assert template.name in org_values['provisioning_templates']['resources']['assigned']
         assert ptable.name in org_values['partition_tables']['resources']['assigned']
         assert domain.name in org_values['domains']['resources']['assigned']
-        assert env.name in org_values['environments']['resources']['assigned']
         assert hostgroup.name in org_values['host_groups']['resources']['assigned']
         assert location.name in org_values['locations']['resources']['assigned']
 
@@ -118,7 +113,6 @@ def test_positive_end_to_end(session):
                 'provisioning_templates.resources.unassigned': [template.name],
                 'partition_tables.resources.unassigned': [ptable.name],
                 'domains.resources.unassigned': [domain.name],
-                'environments.resources.unassigned': [env.name],
                 'host_groups.resources.unassigned': [hostgroup.name],
                 'locations.resources.unassigned': [location.name],
             },
@@ -136,8 +130,6 @@ def test_positive_end_to_end(session):
         )
         assert len(org_values['domains']['resources']['assigned']) == 0
         assert domain.name in org_values['domains']['resources']['unassigned']
-        assert len(org_values['environments']['resources']['assigned']) == 0
-        assert env.name in org_values['environments']['resources']['unassigned']
         assert len(org_values['host_groups']['resources']['assigned']) == 0
         assert hostgroup.name in org_values['host_groups']['resources']['unassigned']
         assert len(org_values['locations']['resources']['assigned']) == 0

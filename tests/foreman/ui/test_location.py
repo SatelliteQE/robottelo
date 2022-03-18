@@ -51,7 +51,6 @@ def test_positive_end_to_end(session):
     subnet_name = f'{subnet.name} ({subnet.network}/{subnet.cidr})'
     domain = entities.Domain().create()
     user = entities.User().create()
-    env = entities.Environment().create()
     media = entities.Media(
         path_=INSTALL_MEDIUM_URL % gen_string('alpha', 6), os_family='Redhat'
     ).create()
@@ -78,7 +77,6 @@ def test_positive_end_to_end(session):
                 'subnets.resources.assigned': [subnet_name],
                 'domains.resources.assigned': [domain.name],
                 'users.resources.assigned': [user.login],
-                'environments.resources.assigned': [env.name],
                 'media.resources.assigned': [media.name],
             },
         )
@@ -87,7 +85,6 @@ def test_positive_end_to_end(session):
         assert loc_values['subnets']['resources']['assigned'][0] == subnet_name
         assert loc_values['domains']['resources']['assigned'][0] == domain.name
         assert loc_values['users']['resources']['assigned'][0] == user.login
-        assert loc_values['environments']['resources']['assigned'][0] == env.name
         assert loc_values['media']['resources']['assigned'][0] == media.name
 
         # unassign entities
@@ -97,7 +94,6 @@ def test_positive_end_to_end(session):
                 'subnets.resources.unassigned': [subnet_name],
                 'domains.resources.unassigned': [domain.name],
                 'users.resources.unassigned': [user.login],
-                'environments.resources.unassigned': [env.name],
                 'media.resources.unassigned': [media.name],
             },
         )
@@ -108,8 +104,6 @@ def test_positive_end_to_end(session):
         assert domain.name in loc_values['domains']['resources']['unassigned']
         assert len(loc_values['users']['resources']['assigned']) == 0
         assert user.login in loc_values['users']['resources']['unassigned']
-        assert len(loc_values['environments']['resources']['assigned']) == 0
-        assert env.name in loc_values['environments']['resources']['unassigned']
         assert len(loc_values['media']['resources']['assigned']) == 0
         assert media.name in loc_values['media']['resources']['unassigned']
 

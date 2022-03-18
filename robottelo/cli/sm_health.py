@@ -1,6 +1,6 @@
 """
 Usage:
-    foreman-maintain health [OPTIONS] SUBCOMMAND [ARG] ...
+    satellite-maintain health [OPTIONS] SUBCOMMAND [ARG] ...
 
 Parameters:
     SUBCOMMAND                    subcommand
@@ -18,27 +18,27 @@ from robottelo.cli.base import Base
 
 
 class Health(Base):
-    """Manipulates Foreman-maintain's health command"""
+    """Manipulates Satellite-maintain's health command"""
 
     command_base = 'health'
 
     @classmethod
     def check(cls, options=None):
-        """Build foreman-maintain health check"""
+        """Build satellite-maintain health check"""
         cls.command_sub = 'check'
         options = options or {}
-        return cls.fm_execute(cls._construct_command(options))
+        return cls.sm_execute(cls._construct_command(options))
 
     @classmethod
     def list(cls, options=None):
-        """Build foreman-maintain health list"""
+        """Build satellite-maintain health list"""
         cls.command_sub = 'list'
         options = options or {}
-        return cls.fm_execute(cls._construct_command(options))
+        return cls.sm_execute(cls._construct_command(options))
 
     @classmethod
     def list_tags(cls, options=None):
-        """Build foreman-maintain health list-tags"""
+        """Build satellite-maintain health list-tags"""
         cls.command_sub = 'list-tags'
         options = options or {}
-        return cls.fm_execute(cls._construct_command(options))
+        return cls.sm_execute(cls._construct_command(options))

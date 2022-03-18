@@ -2,7 +2,7 @@
 # Version updates managed by pyup.io
 
 broker==0.1.35
-cryptography==36.0.1
+cryptography==36.0.2
 deepdiff==5.7.0
 dynaconf==3.1.7
 fauxfactory==3.1.0
@@ -12,7 +12,7 @@ navmazing==1.1.6
 pexpect==4.8.0
 productmd==1.33
 pyotp==2.6.0
-python-box==5.4.1
+python-box==6.0.1
 pytest==7.1.0
 pytest-services==2.2.1
 pytest-mock==3.7.0

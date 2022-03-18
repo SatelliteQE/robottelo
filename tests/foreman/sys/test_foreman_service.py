@@ -37,8 +37,8 @@ def test_positive_foreman_service_auto_restart(foreman_service_teardown):
     """
     sat = foreman_service_teardown
     sat.execute('systemctl stop foreman')
-    result = sat.execute('foreman-maintain service status --only=foreman')
+    result = sat.execute('satellite-maintain service status --only=foreman')
     assert result.status == 1
     assert 'not running (foreman)' in result.stdout
     assert sat.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
-    sat.execute('foreman-maintain service status --only=foreman')
+    sat.execute('satellite-maintain service status --only=foreman')

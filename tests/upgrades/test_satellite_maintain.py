@@ -1,4 +1,4 @@
-"""Test for Foreman-maintain related Upgrade Scenario's
+"""Test for Satellite-maintain related Upgrade Scenario's
 
 :Requirement: UpgradedSatellite
 
@@ -19,14 +19,14 @@
 import pytest
 
 
-class TestForemanMaintain:
+class TestSatelliteMaintain:
     """The test class contains pre-upgrade and post-upgrade scenarios to test
-    foreman-maintain utility
+    satellite-maintain utility
 
     Test Steps:
-        1. Before Satellite upgrade, Perform test for "foreman-maintain upgrade list-versions"
+        1. Before Satellite upgrade, Perform test for "satellite-maintain upgrade list-versions"
         2. Upgrade satellite/capsule.
-        3. Perform tests for foreman-maintain upgrade list-versions, after upgrade.
+        3. Perform tests for satellite-maintain upgrade list-versions, after upgrade.
         4. Check if tests passed.
     """
 
@@ -46,11 +46,11 @@ class TestForemanMaintain:
             satellite_version = satellite_version.stdout
         else:
             return [], [], None, None
-        forman_maintain_version = sat_obj.execute(
-            "foreman-maintain upgrade list-versions --disable-self-upgrade"
+        satellite_maintain_version = sat_obj.execute(
+            "satellite-maintain upgrade list-versions --disable-self-upgrade"
         )
         upgradeable_version = [
-            version for version in forman_maintain_version.stdout if version != ''
+            version for version in satellite_maintain_version.stdout if version != ''
         ]
         version_change = 0
         for version in upgradeable_version:
@@ -60,9 +60,9 @@ class TestForemanMaintain:
             y_version = ''
         else:
             major_version_change = True
-            y_version = list(set(forman_maintain_version) - set(satellite_version))[0].split('.')[
-                -1
-            ]
+            y_version = list(set(satellite_maintain_version) - set(satellite_version))[0].split(
+                '.'
+            )[-1]
 
         return satellite_version, upgradeable_version, major_version_change, y_version
 
@@ -97,14 +97,14 @@ class TestForemanMaintain:
         return zstream_version, next_version
 
     @pytest.mark.pre_upgrade
-    def test_pre_foreman_maintain_upgrade_list_versions(self, default_sat):
+    def test_pre_satellite_maintain_upgrade_list_versions(self, default_sat):
         """Pre-upgrade sceanrio that tests list of satellite version
         which satellite can be upgraded.
 
         :id: preupgrade-fc2c54b2-2663-11ea-b47c-48f17f1fc2e1
 
         :steps:
-            1. Run foreman-maintain upgrade list-versions
+            1. Run satellite-maintain upgrade list-versions
 
         :expectedresults: Versions should be current z-stream.
 
@@ -116,7 +116,7 @@ class TestForemanMaintain:
             y_version,
         ) = self.satellite_upgradable_version_list(default_sat)
         if satellite_version:
-            # In future If foreman-maintain packages update add before
+            # In future If satellite-maintain packages update add before
             # pre-upgrade test case execution then next version kind of
             # stuff check we can add it here.
             zstream_version, next_version = self.version_details(
@@ -127,14 +127,14 @@ class TestForemanMaintain:
         assert zstream_version in upgradable_version
 
     @pytest.mark.post_upgrade
-    def test_post_foreman_maintain_upgrade_list_versions(self, default_sat):
+    def test_post_satellite_maintain_upgrade_list_versions(self, default_sat):
         """Post-upgrade sceanrio that tests list of satellite version
         which satellite can be upgraded.
 
         :id: postupgrade-0bce689c-2664-11ea-b47c-48f17f1fc2e1
 
         :steps:
-            1. Run foreman-maintain upgrade list-versions.
+            1. Run satellite-maintain upgrade list-versions.
 
         :expectedresults: Versions should be next z-stream.
 

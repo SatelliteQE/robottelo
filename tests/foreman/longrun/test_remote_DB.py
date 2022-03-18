@@ -117,7 +117,7 @@ def test_offline_backup_external_all_with_SSL():
 
     :id: dc452b72-66b8-4a69-adb1-da089a0d4942
 
-    :Steps: Run foreman-maintain backup offline
+    :Steps: Run satellite-maintain backup offline
 
     :expectedresults: Database backup created
 
@@ -132,7 +132,7 @@ def test_online_backup_external_all_with_SSL():
 
     :id: 2781aeb7-742e-4c95-ad57-c2d1c025bf90
 
-    :Steps: Run foreman-maintain backup online
+    :Steps: Run satellite-maintain backup online
 
     :expectedresults: Database backup created
 
@@ -147,7 +147,7 @@ def test_snapshot_backup_external_all_with_SSL():
 
     :id: e2d35b31-15ce-40da-bbbf-d302838d41b6
 
-    :Steps: Run foreman-maintain backup snapshot
+    :Steps: Run satellite-maintain backup snapshot
 
     :expectedresults: Database backup created
 
@@ -162,7 +162,7 @@ def test_restore_offline_backup_external_all_with_SSL():
 
     :id: c3e38e31-0058-48e9-b0f2-59788df64c38
 
-    :Steps: Run foreman-maintain restore - and provide it offline backup
+    :Steps: Run satellite-maintain restore - and provide it offline backup
 
     :expectedresults: Database backup restored
 
@@ -177,7 +177,7 @@ def test_restore_online_backup_external_all_with_SSL():
 
     :id: 5c724e98-af13-4d5f-ba2e-84c8767c0222
 
-    :Steps: Run foreman-maintain restore
+    :Steps: Run satellite-maintain restore
 
     :expectedresults: Database backup restored
 
@@ -192,7 +192,7 @@ def test_restore_snapshot_backup_external_all_with_SSL():
 
     :id: e6439ddf-4f5a-450d-8911-73082589105d
 
-    :Steps: Run foreman-maintain restore
+    :Steps: Run satellite-maintain restore
 
     :expectedresults: Database backup restored
 
@@ -228,7 +228,7 @@ def test_upgrade_satellite_eith_all_external_db_SSL():
     :Steps:
 
         1. Run satellite-installer with pulp, foreman and candlepin db options set
-        2. Upgrade with foreman-maintain
+        2. Upgrade with satellite-maintain
 
     :expectedresults:
 
