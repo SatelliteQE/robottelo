@@ -372,7 +372,7 @@ def test_negative_update_empty_query(controller):
 @pytest.mark.tier1
 @pytest.mark.parametrize('public', (True, False))
 @pytest.mark.parametrize('controller', CONTROLLERS)
-def test_positive_update_public(controller, public):
+def test_positive_update_public(session_puppet_enabled_sat, controller, public):
     """Update a bookmark public state to private and vice versa
 
     :id: 2717360d-37c4-4bb9-bce1-b1edabdf11b3
@@ -391,7 +391,8 @@ def test_positive_update_public(controller, public):
 
     :CaseImportance: Critical
     """
-    bm = entities.Bookmark(controller=controller, public=not public).create()
+    bm = session_puppet_enabled_sat.api.Bookmark(
+        controller=controller, public=not public).create()
     assert bm.public != public
     bm.public = public
     bm = bm.update(['public'])
