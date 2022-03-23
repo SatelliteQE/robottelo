@@ -34,7 +34,7 @@ CONTROLLERS = list(dict.fromkeys(entity['controller'] for entity in BOOKMARK_ENT
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
-def test_positive_create_with_name(controller):
+def test_positive_create_with_name(session_puppet_enabled_sat, controller):
     """Create a bookmark
 
     :id: aeef0944-379a-4a27-902d-aa5969dbd441
@@ -53,14 +53,14 @@ def test_positive_create_with_name(controller):
     :CaseImportance: Critical
     """
     name = random.choice(list(valid_data_list().values()))
-    bm = entities.Bookmark(controller=controller, name=name, public=False).create()
+    bm = session_puppet_enabled_sat.api.Bookmark(controller=controller, name=name, public=False).create()
     assert bm.controller == controller
     assert bm.name == name
 
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
-def test_positive_create_with_query(controller):
+def test_positive_create_with_query(session_puppet_enabled_sat, controller):
     """Create a bookmark
 
     :id: 9fb6d485-92b5-43ea-b776-012c13734100
@@ -79,7 +79,7 @@ def test_positive_create_with_query(controller):
     :CaseImportance: Critical
     """
     query = random.choice(list(valid_data_list().values()))
-    bm = entities.Bookmark(controller=controller, query=query).create()
+    bm = session_puppet_enabled_sat.api.Bookmark(controller=controller, query=query).create()
     assert bm.controller == controller
     assert bm.query == query
 
@@ -87,7 +87,7 @@ def test_positive_create_with_query(controller):
 @pytest.mark.tier1
 @pytest.mark.parametrize('public', (True, False))
 @pytest.mark.parametrize('controller', CONTROLLERS)
-def test_positive_create_public(controller, public):
+def test_positive_create_public(session_puppet_enabled_sat, controller, public):
     """Create a public bookmark
 
     :id: 511b9bcf-0661-4e44-b1bc-475a1c207aa9
@@ -105,7 +105,7 @@ def test_positive_create_public(controller, public):
 
     :CaseImportance: Critical
     """
-    bm = entities.Bookmark(controller=controller, public=public).create()
+    bm = session_puppet_enabled_sat.api.Bookmark(controller=controller, public=public).create()
     assert bm.controller == controller
     assert bm.public == public
 
@@ -168,7 +168,7 @@ def test_negative_create_empty_query(controller):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
-def test_negative_create_same_name(controller):
+def test_negative_create_same_name(session_puppet_enabled_sat, controller):
     """Create bookmarks with the same names
 
     :id: f78f6e97-da77-4a61-95c2-622c439d325d
@@ -189,16 +189,16 @@ def test_negative_create_same_name(controller):
     :CaseImportance: Critical
     """
     name = gen_string('alphanumeric')
-    entities.Bookmark(controller=controller, name=name).create()
+    session_puppet_enabled_sat.api.Bookmark(controller=controller, name=name).create()
     with pytest.raises(HTTPError):
-        entities.Bookmark(controller=controller, name=name).create()
-    result = entities.Bookmark().search(query={'search': f'name="{name}"'})
+        session_puppet_enabled_sat.api.Bookmark(controller=controller, name=name).create()
+    result = session_puppet_enabled_sat.Bookmark().search(query={'search': f'name="{name}"'})
     assert len(result) == 1
 
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
-def test_negative_create_null_public(controller):
+def test_negative_create_null_public(session_puppet_enabled_sat, controller):
     """Create a bookmark omitting the public parameter
 
     :id: 0a4cb5ea-912b-445e-a874-b345e43d3eac
@@ -222,14 +222,16 @@ def test_negative_create_null_public(controller):
     """
     name = gen_string('alphanumeric')
     with pytest.raises(HTTPError):
-        entities.Bookmark(controller=controller, name=name, public=None).create()
-    result = entities.Bookmark().search(query={'search': f'name="{name}"'})
+        session_puppet_enabled_sat.api.Bookmark(controller=controller, name=name, public=None).create()
+    result = session_puppet_enabled_sat.Bookmark().search(query={'search': f'name="{name}"'})
     assert len(result) == 0
+
+
 
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
-def test_positive_update_name(controller):
+def test_positive_update_name(session_puppet_enabled_sat, controller):
     """Update a bookmark
 
     :id: 1cde270a-26fb-4cff-bdff-89fef17a7624
@@ -248,7 +250,7 @@ def test_positive_update_name(controller):
     :CaseImportance: Critical
     """
     new_name = random.choice(list(valid_data_list().values()))
-    bm = entities.Bookmark(controller=controller, public=False).create()
+    bm = session_puppet_enabled_sat.api.Bookmark(controller=controller, public=False).create()
     bm.name = new_name
     bm = bm.update(['name'])
     assert bm.name == new_name
@@ -256,7 +258,7 @@ def test_positive_update_name(controller):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
-def test_negative_update_same_name(controller):
+def test_negative_update_same_name(session_puppet_enabled_sat, controller):
     """Update a bookmark with name already taken
 
     :id: 6becf121-2bea-4f7e-98f4-338bd88b8f4b
@@ -276,8 +278,8 @@ def test_negative_update_same_name(controller):
     :CaseImportance: Critical
     """
     name = gen_string('alphanumeric')
-    entities.Bookmark(controller=controller, name=name).create()
-    bm = entities.Bookmark(controller=controller).create()
+    session_puppet_enabled_sat.api.Bookmark(controller=controller, name=name).create()
+    bm = session_puppet_enabled_sat.api.Bookmark(controller=controller).create()
     bm.name = name
     with pytest.raises(HTTPError):
         bm.update(['name'])
@@ -287,7 +289,7 @@ def test_negative_update_same_name(controller):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
-def test_negative_update_invalid_name(controller):
+def test_negative_update_invalid_name(session_puppet_enabled_sat, controller):
     """Update a bookmark with an invalid name
 
     :id: 479795bb-aeed-45b3-a7e3-d3449c808087
@@ -306,7 +308,7 @@ def test_negative_update_invalid_name(controller):
     :CaseImportance: Critical
     """
     new_name = random.choice(invalid_values_list())
-    bm = entities.Bookmark(controller=controller, public=False).create()
+    bm = session_puppet_enabled_sat.api.Bookmark(controller=controller, public=False).create()
     bm.name = new_name
     with pytest.raises(HTTPError):
         bm.update(['name'])
@@ -316,7 +318,7 @@ def test_negative_update_invalid_name(controller):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
-def test_positive_update_query(controller):
+def test_positive_update_query(session_puppet_enabled_sat, controller):
     """Update a bookmark query
 
     :id: 92a31de2-bebf-4396-94f5-adf59f8d66a5
@@ -335,7 +337,7 @@ def test_positive_update_query(controller):
     :CaseImportance: Critical
     """
     new_query = random.choice(list(valid_data_list().values()))
-    bm = entities.Bookmark(controller=controller).create()
+    bm = session_puppet_enabled_sat.api.Bookmark(controller=controller).create()
     bm.query = new_query
     bm = bm.update(['query'])
     assert bm.query == new_query
@@ -343,7 +345,7 @@ def test_positive_update_query(controller):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
-def test_negative_update_empty_query(controller):
+def test_negative_update_empty_query(session_puppet_enabled_sat, controller):
     """Update a bookmark with an empty query
 
     :id: 948602d3-532a-47fe-b313-91e3fab809bf
@@ -361,7 +363,7 @@ def test_negative_update_empty_query(controller):
 
     :CaseImportance: Critical
     """
-    bm = entities.Bookmark(controller=controller).create()
+    bm = session_puppet_enabled_sat.api.Bookmark(controller=controller).create()
     bm.query = ''
     with pytest.raises(HTTPError):
         bm.update(['query'])
