@@ -34,7 +34,6 @@ from robottelo.constants import OPERATING_SYSTEMS
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.utils.issue_handlers import is_open
 
 
 class TestOperatingSystemParameter:
@@ -105,8 +104,7 @@ class TestOperatingSystem:
 
         :CaseImportance: Critical
         """
-        if is_open('BZ:1709683') and os_family == 'Debian':
-            pytest.skip("BZ 1709683")
+        # note: 'Debian does not work.  Taking it out of list due to bz: 1709683
         os = entities.OperatingSystem(family=os_family).create()
         assert os.family == os_family
 
