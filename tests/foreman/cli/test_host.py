@@ -661,7 +661,7 @@ def test_positive_list_and_unregister(
     assert rhel7_contenthost.subscribed
     hosts = Host.list({'organization-id': module_org.id})
     assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
-    result = rhel7_contenthost.run('subscription-manager unregister')
+    result = rhel7_contenthost.unregister()
     assert result.status == 0
     hosts = Host.list({'organization-id': module_org.id})
     assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
@@ -1591,7 +1591,7 @@ def setup_custom_repo(module_org, katello_host_tools_host):
         }
     )
     # refresh repository metadata
-    katello_host_tools_host.execute('subscription-manager repos --list')
+    katello_host_tools_host.subscription_manager_list_repos()
 
 
 @pytest.fixture(scope="function")
@@ -2080,7 +2080,7 @@ def test_positive_attach(request, module_host_subscription, host_subscription_cl
             'subscription-id': module_host_subscription.default_subscription_id,
         }
     )
-    result = module_host_subscription._client_enable_repo()
+    result = module_host_subscription.enable_repo(module_host_subscription.client.repository_id)
     assert result.status == 0
     # ensure that katello agent can be installed
     try:
@@ -2117,7 +2117,7 @@ def test_positive_attach_with_lce(module_host_subscription, host_subscription_cl
             'subscription-id': module_host_subscription.default_subscription_id,
         }
     )
-    result = module_host_subscription._client_enable_repo()
+    result = module_host_subscription.enable_repo(module_host_subscription.client.repository_id)
     assert result.status == 0
     # ensure that katello agent can be installed
     try:
@@ -2212,9 +2212,9 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
     )
     pool_id = subscriptions.stdout.strip()
     # attach to plain RHEL subsctiption
-    module_host_subscription.client.run('subscription-manager attach --pool "%s"' % pool_id)
+    module_host_subscription.client.subscription_manager_attach_pool([pool_id])
     assert module_host_subscription.client.subscribed
-    result = module_host_subscription._client_enable_repo()
+    result = module_host_subscription.enable_repo(module_host_subscription.client.repository_id)
     assert result.status != 0
 
 
@@ -2302,7 +2302,7 @@ def test_positive_auto_attach(request, module_host_subscription, host_subscripti
     host = Host.info({'name': module_host_subscription.client.hostname})
     module_host_subscription._register_client(activation_key=activation_key)
     Host.subscription_auto_attach({'host-id': host['id']})
-    result = module_host_subscription._client_enable_repo()
+    result = module_host_subscription.enable_repo(module_host_subscription.client.repository_id)
     assert result.status == 0
     # ensure that katello agent can be installed
     try:
@@ -2764,12 +2764,11 @@ def test_positive_create_and_update_with_content_source(
     """
     host = function_host_content_source
     assert (
-        host['content-information']['content-source']['name']
-        == session_puppet_enabled_proxy['name']
+        host['content-information']['content-source']['name'] == session_puppet_enabled_proxy.name
     )
     new_content_source = function_proxy
     session_puppet_enabled_sat.cli.Host.update(
-        {'id': host['id'], 'content-source-id': new_content_source['id']}
+        {'id': host['id'], 'content-source-id': new_content_source.id}
     )
     host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
-    assert host['content-information']['content-source']['name'] == new_content_source['name']
+    assert host['content-information']['content-source']['name'] == new_content_source.name
