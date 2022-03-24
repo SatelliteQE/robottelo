@@ -1,7 +1,6 @@
 # Azure CR Fixtures
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 from wrapanapi import AzureSystem
 
 from robottelo.config import settings
@@ -26,9 +25,11 @@ def azurerm_settings():
 
 
 @pytest.fixture(scope='module')
-def module_azurerm_cr(azurerm_settings, module_org, module_location):
+def module_azurerm_cr(
+    azurerm_settings, module_puppet_org, module_puppet_loc, session_puppet_enabled_sat
+):
     """Create AzureRM Compute Resource"""
-    azure_cr = entities.AzureRMComputeResource(
+    azure_cr = session_puppet_enabled_sat.api.AzureRMComputeResource(
         name=gen_string('alpha'),
         provider='AzureRm',
         tenant=azurerm_settings['tenant'],
@@ -36,20 +37,22 @@ def module_azurerm_cr(azurerm_settings, module_org, module_location):
         sub_id=azurerm_settings['sub_id'],
         secret_key=azurerm_settings['secret'],
         region=azurerm_settings['region'],
-        organization=[module_org],
-        location=[module_location],
+        organization=[module_puppet_org],
+        location=[module_puppet_loc],
     ).create()
     return azure_cr
 
 
 @pytest.fixture(scope='module')
-def module_azurerm_finishimg(default_architecture, default_os, module_azurerm_cr):
+def module_azurerm_finishimg(
+    default_architecture, session_puppet_default_os, session_puppet_enabled_sat, module_azurerm_cr
+):
     """Creates Finish Template image on AzureRM Compute Resource"""
-    finish_image = entities.Image(
+    finish_image = session_puppet_enabled_sat.api.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
-        operatingsystem=default_os,
+        operatingsystem=session_puppet_default_os,
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_FT_IMG_URN,
     ).create()
@@ -57,13 +60,15 @@ def module_azurerm_finishimg(default_architecture, default_os, module_azurerm_cr
 
 
 @pytest.fixture(scope='module')
-def module_azurerm_byos_finishimg(default_architecture, default_os, module_azurerm_cr):
+def module_azurerm_byos_finishimg(
+    default_architecture, session_puppet_default_os, module_azurerm_cr, session_puppet_enabled_sat
+):
     """Creates BYOS Finish Template image on AzureRM Compute Resource"""
-    finish_image = entities.Image(
+    finish_image = session_puppet_enabled_sat.api.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
-        operatingsystem=default_os,
+        operatingsystem=session_puppet_default_os,
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_FT_BYOS_IMG_URN,
     ).create()
@@ -71,13 +76,15 @@ def module_azurerm_byos_finishimg(default_architecture, default_os, module_azure
 
 
 @pytest.fixture(scope='module')
-def module_azurerm_cloudimg(default_architecture, default_os, module_azurerm_cr):
+def module_azurerm_cloudimg(
+    default_architecture, session_puppet_default_os, session_puppet_enabled_sat, module_azurerm_cr
+):
     """Creates cloudinit image on AzureRM Compute Resource"""
-    finish_image = entities.Image(
+    finish_image = session_puppet_enabled_sat.api.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
-        operatingsystem=default_os,
+        operatingsystem=session_puppet_default_os,
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_UD_IMG_URN,
         user_data=True,
@@ -86,13 +93,15 @@ def module_azurerm_cloudimg(default_architecture, default_os, module_azurerm_cr)
 
 
 @pytest.fixture(scope='module')
-def module_azurerm_gallery_finishimg(default_architecture, default_os, module_azurerm_cr):
+def module_azurerm_gallery_finishimg(
+    default_architecture, session_puppet_default_os, session_puppet_enabled_sat, module_azurerm_cr
+):
     """Creates Shared Gallery Finish Template image on AzureRM Compute Resource"""
-    finish_image = entities.Image(
+    finish_image = session_puppet_enabled_sat.api.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
-        operatingsystem=default_os,
+        operatingsystem=session_puppet_default_os,
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_FT_GALLERY_IMG_URN,
     ).create()
@@ -100,13 +109,15 @@ def module_azurerm_gallery_finishimg(default_architecture, default_os, module_az
 
 
 @pytest.fixture(scope='module')
-def module_azurerm_custom_finishimg(default_architecture, default_os, module_azurerm_cr):
+def module_azurerm_custom_finishimg(
+    default_architecture, session_puppet_default_os, session_puppet_enabled_sat, module_azurerm_cr
+):
     """Creates Custom Finish Template image on AzureRM Compute Resource"""
-    finish_image = entities.Image(
+    finish_image = session_puppet_enabled_sat.api.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
-        operatingsystem=default_os,
+        operatingsystem=session_puppet_default_os,
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
     ).create()
