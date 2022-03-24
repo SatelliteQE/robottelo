@@ -183,7 +183,9 @@ class TestAzureRMHostProvisioningTestCase:
     """AzureRM Host Provisioning Tests"""
 
     @pytest.fixture(scope='class', autouse=True)
-    def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_finishimg):
+    def class_setup(
+        self, request, module_puppet_domain, module_azurerm_cr, module_azurerm_finishimg
+    ):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
@@ -194,7 +196,7 @@ class TestAzureRMHostProvisioningTestCase:
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
         request.cls.hostname = f'test-{gen_string("alpha")}'
-        request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
+        request.cls.fullhostname = f'{self.hostname}.{module_puppet_domain.name}'.lower()
 
         request.cls.compute_attrs = {
             "resource_group": self.rg_default,
@@ -221,16 +223,16 @@ class TestAzureRMHostProvisioningTestCase:
     @pytest.fixture(scope='class')
     def class_host_ft(
         self,
-        default_sat,
+        session_puppet_enabled_sat,
         azurermclient,
         module_azurerm_finishimg,
         module_azurerm_cr,
         default_architecture,
-        module_domain,
-        module_location,
-        module_org,
-        default_os,
-        default_smart_proxy,
+        module_puppet_domain,
+        module_puppet_loc,
+        module_puppet_org,
+        session_puppet_default_os,
+        session_puppet_enabled_proxy,
         module_puppet_environment,
     ):
         """
@@ -238,24 +240,26 @@ class TestAzureRMHostProvisioningTestCase:
         Later in tests this host will be used to perform assertions
         """
 
-        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
-            host = entities.Host(
+        with session_puppet_enabled_sat.skip_yum_update_during_provisioning(
+            template='Kickstart default finish'
+        ):
+            host = session_puppet_enabled_sat.api.Host(
                 architecture=default_architecture,
                 build=True,
                 compute_resource=module_azurerm_cr,
                 compute_attributes=self.compute_attrs,
                 interfaces_attributes=self.interfaces_attributes,
-                domain=module_domain,
-                organization=module_org,
-                operatingsystem=default_os,
-                location=module_location,
+                domain=module_puppet_domain,
+                organization=module_puppet_org,
+                operatingsystem=session_puppet_default_os,
+                location=module_puppet_loc,
                 name=self.hostname,
                 provision_method='image',
                 image=module_azurerm_finishimg,
                 root_pass=gen_string('alphanumeric'),
                 environment=module_puppet_environment,
-                puppet_proxy=default_smart_proxy,
-                puppet_ca_proxy=default_smart_proxy,
+                puppet_proxy=session_puppet_enabled_proxy,
+                puppet_ca_proxy=session_puppet_enabled_proxy,
             ).create()
             yield host
             with satellite_setting('destroy_vm_on_host_delete=True'):
@@ -333,7 +337,9 @@ class TestAzureRMUserDataProvisioning:
     """AzureRM UserData Host Provisioning Tests"""
 
     @pytest.fixture(scope='class', autouse=True)
-    def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_finishimg):
+    def class_setup(
+        self, request, module_puppet_domain, module_azurerm_cr, module_azurerm_finishimg
+    ):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
@@ -345,7 +351,7 @@ class TestAzureRMUserDataProvisioning:
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
         request.cls.hostname = f'test-{gen_string("alpha")}'
-        request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
+        request.cls.fullhostname = f'{self.hostname}.{module_puppet_domain.name}'.lower()
 
         request.cls.compute_attrs = {
             "resource_group": self.rg_default,
@@ -372,16 +378,16 @@ class TestAzureRMUserDataProvisioning:
     @pytest.fixture(scope='class')
     def class_host_ud(
         self,
-        default_sat,
+        session_puppet_enabled_sat,
         azurermclient,
         module_azurerm_cloudimg,
         module_azurerm_cr,
         default_architecture,
-        module_domain,
-        module_location,
-        module_org,
-        default_os,
-        default_smart_proxy,
+        module_puppet_domain,
+        module_puppet_loc,
+        module_puppet_org,
+        session_puppet_default_os,
+        session_puppet_enabled_proxy,
         module_puppet_environment,
     ):
         """
@@ -389,24 +395,26 @@ class TestAzureRMUserDataProvisioning:
         Later in tests this host will be used to perform assertions
         """
 
-        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
-            host = entities.Host(
+        with session_puppet_enabled_sat.skip_yum_update_during_provisioning(
+            template='Kickstart default finish'
+        ):
+            host = session_puppet_enabled_sat.api.Host(
                 architecture=default_architecture,
                 build=True,
                 compute_resource=module_azurerm_cr,
                 compute_attributes=self.compute_attrs,
                 interfaces_attributes=self.interfaces_attributes,
-                domain=module_domain,
-                organization=module_org,
-                operatingsystem=default_os,
-                location=module_location,
+                domain=module_puppet_domain,
+                organization=module_puppet_org,
+                operatingsystem=session_puppet_default_os,
+                location=module_puppet_loc,
                 name=self.hostname,
                 provision_method='image',
                 image=module_azurerm_cloudimg,
                 root_pass=gen_string('alphanumeric'),
                 environment=module_puppet_environment,
-                puppet_proxy=default_smart_proxy,
-                puppet_ca_proxy=default_smart_proxy,
+                puppet_proxy=session_puppet_enabled_proxy,
+                puppet_ca_proxy=session_puppet_enabled_proxy,
             ).create()
             yield host
             with satellite_setting('destroy_vm_on_host_delete=True'):
@@ -491,7 +499,7 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
     def class_setup(
         self,
         request,
-        module_domain,
+        module_puppet_domain,
         module_azurerm_cr,
         module_azurerm_gallery_finishimg,
     ):
@@ -500,7 +508,7 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
         """
         request.cls.region = settings.azurerm.azure_region
         request.cls.hostname = f'test-{gen_string("alpha")}'
-        request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
+        request.cls.fullhostname = f'{self.hostname}.{module_puppet_domain.name}'.lower()
 
         request.cls.compute_attrs = {
             "resource_group": settings.azurerm.resource_group,
@@ -527,16 +535,16 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
     @pytest.fixture(scope='class')
     def class_host_gallery_ft(
         self,
-        default_sat,
+        session_puppet_enabled_sat,
         azurermclient,
         module_azurerm_gallery_finishimg,
         module_azurerm_cr,
         default_architecture,
-        module_domain,
-        module_location,
-        module_org,
-        default_os,
-        default_smart_proxy,
+        module_puppet_domain,
+        module_puppet_loc,
+        module_puppet_org,
+        session_puppet_default_os,
+        session_puppet_enabled_proxy,
         module_puppet_environment,
     ):
         """
@@ -544,24 +552,26 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
         Later in tests this host will be used to perform assertions
         """
 
-        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
-            host = entities.Host(
+        with session_puppet_enabled_sat.skip_yum_update_during_provisioning(
+            template='Kickstart default finish'
+        ):
+            host = session_puppet_enabled_sat.api.Host(
                 architecture=default_architecture,
                 build=True,
                 compute_resource=module_azurerm_cr,
                 compute_attributes=self.compute_attrs,
                 interfaces_attributes=self.interfaces_attributes,
-                domain=module_domain,
-                organization=module_org,
-                operatingsystem=default_os,
-                location=module_location,
+                domain=module_puppet_domain,
+                organization=module_puppet_org,
+                operatingsystem=session_puppet_default_os,
+                location=module_puppet_loc,
                 name=self.hostname,
                 provision_method='image',
                 image=module_azurerm_gallery_finishimg,
                 root_pass=gen_string('alphanumeric'),
                 environment=module_puppet_environment,
-                puppet_proxy=default_smart_proxy,
-                puppet_ca_proxy=default_smart_proxy,
+                puppet_proxy=session_puppet_enabled_proxy,
+                puppet_ca_proxy=session_puppet_enabled_proxy,
             ).create()
             yield host
             with satellite_setting('destroy_vm_on_host_delete=True'):
@@ -618,7 +628,7 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
     def class_setup(
         self,
         request,
-        module_domain,
+        module_puppet_domain,
         module_azurerm_cr,
         module_azurerm_custom_finishimg,
     ):
@@ -627,7 +637,7 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         """
         request.cls.region = settings.azurerm.azure_region
         request.cls.hostname = f'test-{gen_string("alpha")}'
-        request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
+        request.cls.fullhostname = f'{self.hostname}.{module_puppet_domain.name}'.lower()
 
         request.cls.compute_attrs = {
             "resource_group": settings.azurerm.resource_group,
@@ -654,16 +664,16 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
     @pytest.fixture(scope='class')
     def class_host_custom_ft(
         self,
-        default_sat,
+        session_puppet_enabled_sat,
         azurermclient,
         module_azurerm_custom_finishimg,
         module_azurerm_cr,
         default_architecture,
-        module_domain,
-        module_location,
-        module_org,
-        default_os,
-        default_smart_proxy,
+        module_puppet_domain,
+        module_puppet_loc,
+        module_puppet_org,
+        session_puppet_default_os,
+        session_puppet_enabled_proxy,
         module_puppet_environment,
     ):
         """
@@ -671,24 +681,26 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         Later in tests this host will be used to perform assertions
         """
 
-        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
-            host = entities.Host(
+        with session_puppet_enabled_sat.skip_yum_update_during_provisioning(
+            template='Kickstart default finish'
+        ):
+            host = session_puppet_enabled_sat.api.Host(
                 architecture=default_architecture,
                 build=True,
                 compute_resource=module_azurerm_cr,
                 compute_attributes=self.compute_attrs,
                 interfaces_attributes=self.interfaces_attributes,
-                domain=module_domain,
-                organization=module_org,
-                operatingsystem=default_os,
-                location=module_location,
+                domain=module_puppet_domain,
+                organization=module_puppet_org,
+                operatingsystem=session_puppet_default_os,
+                location=module_puppet_loc,
                 name=self.hostname,
                 provision_method='image',
                 image=module_azurerm_custom_finishimg,
                 root_pass=gen_string('alphanumeric'),
                 environment=module_puppet_environment,
-                puppet_proxy=default_smart_proxy,
-                puppet_ca_proxy=default_smart_proxy,
+                puppet_proxy=session_puppet_enabled_proxy,
+                puppet_ca_proxy=session_puppet_enabled_proxy,
             ).create()
             yield host
             with satellite_setting('destroy_vm_on_host_delete=True'):

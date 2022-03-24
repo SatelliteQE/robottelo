@@ -58,6 +58,11 @@ def module_puppet_loc(session_puppet_enabled_sat):
     yield session_puppet_enabled_sat.api.Location().create()
 
 
+@pytest.fixture(scope='module')
+def module_puppet_domain(session_puppet_enabled_sat):
+    yield session_puppet_enabled_sat.api.Domain().create()
+
+
 @pytest.fixture(scope='session')
 def default_puppet_environment(module_puppet_org, session_puppet_enabled_sat):
     environments = session_puppet_enabled_sat.api.Environment().search(
