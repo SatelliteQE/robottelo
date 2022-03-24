@@ -40,7 +40,7 @@ from robottelo.virtwho_utils import virtwho_package_locked
 
 
 @pytest.fixture()
-def form_data(default_sat, module_manifest_org):
+def form_data(default_sat, default_org):
     form = {
         'name': gen_string('alpha'),
         'debug': 1,
@@ -48,7 +48,7 @@ def form_data(default_sat, module_manifest_org):
         'hypervisor-id': 'hostname',
         'hypervisor-type': settings.virtwho.esx.hypervisor_type,
         'hypervisor-server': settings.virtwho.esx.hypervisor_server,
-        'organization-id': module_manifest_org.id,
+        'organization-id': default_org.id,
         'filtering-mode': 'none',
         'satellite-url': default_sat.hostname,
         'hypervisor-username': settings.virtwho.esx.hypervisor_username,
@@ -64,7 +64,7 @@ def virtwho_config(form_data):
 
 class TestVirtWhoConfigforEsx:
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_id(self, module_manifest_org, form_data, virtwho_config):
+    def test_positive_deploy_configure_by_id(self, default_org, form_data, virtwho_config):
         """Verify " hammer virt-who-config deploy"
 
         :id: 1885dd56-e3f9-43a7-af27-e496967b6256
@@ -76,9 +76,9 @@ class TestVirtWhoConfigforEsx:
         :CaseImportance: High
         """
         assert virtwho_config['status'] == 'No Report Yet'
-        command = get_configure_command(virtwho_config['id'], module_manifest_org.label)
+        command = get_configure_command(virtwho_config['id'], default_org.name)
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data['hypervisor-type'], debug=True, org=module_manifest_org.label
+            command, form_data['hypervisor-type'], debug=True, org=default_org.label
         )
         virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})['general-information'][
             'status'
@@ -96,9 +96,7 @@ class TestVirtWhoConfigforEsx:
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
-            subscriptions = Subscription.list(
-                {'organization': module_manifest_org.label, 'search': sku}
-            )
+            subscriptions = Subscription.list({'organization': default_org.name, 'search': sku})
             vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
@@ -111,9 +109,7 @@ class TestVirtWhoConfigforEsx:
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_script(
-        self, module_manifest_org, form_data, virtwho_config
-    ):
+    def test_positive_deploy_configure_by_script(self, default_org, form_data, virtwho_config):
         """Verify " hammer virt-who-config fetch"
 
         :id: 6aaffaeb-aaf2-42cf-b0dc-ca41a53d42a6
@@ -127,7 +123,7 @@ class TestVirtWhoConfigforEsx:
         assert virtwho_config['status'] == 'No Report Yet'
         script = VirtWhoConfig.fetch({'id': virtwho_config['id']}, output_format='base')
         hypervisor_name, guest_name = deploy_configure_by_script(
-            script, form_data['hypervisor-type'], debug=True, org=module_manifest_org.label
+            script, form_data['hypervisor-type'], debug=True, org=default_org.label
         )
         virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})['general-information'][
             'status'
@@ -145,9 +141,7 @@ class TestVirtWhoConfigforEsx:
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
-            subscriptions = Subscription.list(
-                {'organization': module_manifest_org.label, 'search': sku}
-            )
+            subscriptions = Subscription.list({'organization': default_org.name, 'search': sku})
             vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
@@ -160,7 +154,7 @@ class TestVirtWhoConfigforEsx:
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
-    def test_positive_debug_option(self, module_manifest_org, form_data, virtwho_config):
+    def test_positive_debug_option(self, default_org, form_data, virtwho_config):
         """Verify debug option by hammer virt-who-config update"
 
         :id: c98bc518-828c-49ba-a644-542db3190263
@@ -181,16 +175,16 @@ class TestVirtWhoConfigforEsx:
         options = {'true': '1', 'false': '0', 'yes': '1', 'no': '0'}
         for key, value in sorted(options.items(), key=lambda item: item[0]):
             VirtWhoConfig.update({'id': virtwho_config['id'], 'debug': key})
-            command = get_configure_command(virtwho_config['id'], module_manifest_org.label)
+            command = get_configure_command(virtwho_config['id'], default_org.name)
             deploy_configure_by_command(
-                command, form_data['hypervisor-type'], org=module_manifest_org.label
+                command, form_data['hypervisor-type'], org=default_org.label
             )
             assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == value
         VirtWhoConfig.delete({'name': new_name})
         assert not VirtWhoConfig.exists(search=('name', new_name))
 
     @pytest.mark.tier2
-    def test_positive_interval_option(self, module_manifest_org, form_data, virtwho_config):
+    def test_positive_interval_option(self, default_org, form_data, virtwho_config):
         """Verify interval option by hammer virt-who-config update"
 
         :id: 5d558bca-534c-4bd4-b401-a0c362033c57
@@ -213,16 +207,16 @@ class TestVirtWhoConfigforEsx:
         }
         for key, value in sorted(options.items(), key=lambda item: int(item[0])):
             VirtWhoConfig.update({'id': virtwho_config['id'], 'interval': key})
-            command = get_configure_command(virtwho_config['id'], module_manifest_org.label)
+            command = get_configure_command(virtwho_config['id'], default_org.name)
             deploy_configure_by_command(
-                command, form_data['hypervisor-type'], org=module_manifest_org.label
+                command, form_data['hypervisor-type'], org=default_org.label
             )
             assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
-    def test_positive_hypervisor_id_option(self, module_manifest_org, form_data, virtwho_config):
+    def test_positive_hypervisor_id_option(self, default_org, form_data, virtwho_config):
         """Verify hypervisor_id option by hammer virt-who-config update"
 
         :id: 4e6bad11-2019-458b-a368-26ea95afc7f5
@@ -240,16 +234,16 @@ class TestVirtWhoConfigforEsx:
             result = VirtWhoConfig.info({'id': virtwho_config['id']})
             assert result['connection']['hypervisor-id'] == value
             config_file = get_configure_file(virtwho_config['id'])
-            command = get_configure_command(virtwho_config['id'], module_manifest_org.label)
+            command = get_configure_command(virtwho_config['id'], default_org.name)
             deploy_configure_by_command(
-                command, form_data['hypervisor-type'], org=module_manifest_org.label
+                command, form_data['hypervisor-type'], org=default_org.label
             )
             assert get_configure_option('hypervisor_id', config_file) == value
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
-    def test_positive_filter_option(self, module_manifest_org, form_data, virtwho_config):
+    def test_positive_filter_option(self, default_org, form_data, virtwho_config):
         """Verify filter option by hammer virt-who-config update"
 
         :id: aaf45c5e-9504-47ce-8f25-b8073c2de036
@@ -267,16 +261,14 @@ class TestVirtWhoConfigforEsx:
         whitelist['filter-host-parents'] = regex
         blacklist['exclude-host-parents'] = regex
         config_file = get_configure_file(virtwho_config['id'])
-        command = get_configure_command(virtwho_config['id'], module_manifest_org.label)
+        command = get_configure_command(virtwho_config['id'], default_org.name)
         # Update Whitelist and check the result
         VirtWhoConfig.update(whitelist)
         result = VirtWhoConfig.info({'id': virtwho_config['id']})
         assert result['connection']['filtering'] == 'Whitelist'
         assert result['connection']['filtered-hosts'] == regex
         assert result['connection']['filter-host-parents'] == regex
-        deploy_configure_by_command(
-            command, form_data['hypervisor-type'], org=module_manifest_org.label
-        )
+        deploy_configure_by_command(command, form_data['hypervisor-type'], org=default_org.label)
         assert get_configure_option('filter_hosts', config_file) == regex
         assert get_configure_option('filter_host_parents', config_file) == regex
         # Update Blacklist and check the result
@@ -285,16 +277,14 @@ class TestVirtWhoConfigforEsx:
         assert result['connection']['filtering'] == 'Blacklist'
         assert result['connection']['excluded-hosts'] == regex
         assert result['connection']['exclude-host-parents'] == regex
-        deploy_configure_by_command(
-            command, form_data['hypervisor-type'], org=module_manifest_org.label
-        )
+        deploy_configure_by_command(command, form_data['hypervisor-type'], org=default_org.label)
         assert get_configure_option('exclude_hosts', config_file) == regex
         assert get_configure_option('exclude_host_parents', config_file) == regex
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
-    def test_positive_proxy_option(self, module_manifest_org, form_data, virtwho_config):
+    def test_positive_proxy_option(self, default_org, form_data, virtwho_config):
         """Verify http_proxy option by hammer virt-who-config update"
 
         :id: 409d108e-e814-482b-93ed-09db89d21dda
@@ -308,9 +298,7 @@ class TestVirtWhoConfigforEsx:
         :BZ: 1902199
         """
         # Check the https proxy option, update it via http proxy name
-        https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy(
-            org=module_manifest_org
-        )
+        https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy(org=default_org)
         no_proxy = 'test.satellite.com'
         VirtWhoConfig.update(
             {'id': virtwho_config['id'], 'http-proxy': https_proxy_name, 'no-proxy': no_proxy}
@@ -318,30 +306,24 @@ class TestVirtWhoConfigforEsx:
         result = VirtWhoConfig.info({'id': virtwho_config['id']})
         assert result['http-proxy']['http-proxy-name'] == https_proxy_name
         assert result['connection']['ignore-proxy'] == no_proxy
-        command = get_configure_command(virtwho_config['id'], module_manifest_org.label)
-        deploy_configure_by_command(
-            command, form_data['hypervisor-type'], org=module_manifest_org.label
-        )
+        command = get_configure_command(virtwho_config['id'], default_org.name)
+        deploy_configure_by_command(command, form_data['hypervisor-type'], org=default_org.label)
         assert get_configure_option('https_proxy', ETC_VIRTWHO_CONFIG) == https_proxy_url
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
 
         # Check the http proxy option, update it via http proxy id
         http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(
-            http_type='http', org=module_manifest_org
+            http_type='http', org=default_org
         )
         VirtWhoConfig.update({'id': virtwho_config['id'], 'http-proxy-id': http_proxy_id})
-        deploy_configure_by_command(
-            command, form_data['hypervisor-type'], org=module_manifest_org.label
-        )
+        deploy_configure_by_command(command, form_data['hypervisor-type'], org=default_org.label)
         assert get_configure_option('http_proxy', ETC_VIRTWHO_CONFIG) == http_proxy_url
 
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
-    def test_positive_rhsm_option(
-        self, module_manifest_org, form_data, virtwho_config, default_sat
-    ):
+    def test_positive_rhsm_option(self, default_org, form_data, virtwho_config, default_sat):
         """Verify rhsm options in the configure file"
 
         :id: b5b93d4d-e780-41c0-9eaa-2407cc1dcc9b
@@ -355,10 +337,8 @@ class TestVirtWhoConfigforEsx:
         :CaseImportance: Medium
         """
         config_file = get_configure_file(virtwho_config['id'])
-        command = get_configure_command(virtwho_config['id'], module_manifest_org.label)
-        deploy_configure_by_command(
-            command, form_data['hypervisor-type'], org=module_manifest_org.label
-        )
+        command = get_configure_command(virtwho_config['id'], default_org.name)
+        deploy_configure_by_command(command, form_data['hypervisor-type'], org=default_org.label)
         rhsm_username = get_configure_option('rhsm_username', config_file)
         assert not User.exists(search=('login', rhsm_username))
         assert get_configure_option('rhsm_hostname', config_file) == default_sat.hostname
@@ -395,9 +375,7 @@ class TestVirtWhoConfigforEsx:
                 assert result.status_code == 200
 
     @pytest.mark.tier2
-    def test_positive_foreman_packages_protection(
-        self, module_manifest_org, form_data, virtwho_config
-    ):
+    def test_positive_foreman_packages_protection(self, default_org, form_data, virtwho_config):
         """foreman-protector should allow virt-who to be installed
 
         :id: 635ef99b-c5a3-4ac4-a0f1-09f7036d116e
@@ -415,10 +393,8 @@ class TestVirtWhoConfigforEsx:
         :BZ: 1783987
         """
         virtwho_package_locked()
-        command = get_configure_command(virtwho_config['id'], module_manifest_org.label)
-        deploy_configure_by_command(
-            command, form_data['hypervisor-type'], org=module_manifest_org.label
-        )
+        command = get_configure_command(virtwho_config['id'], default_org.name)
+        deploy_configure_by_command(command, form_data['hypervisor-type'], org=default_org.label)
         virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})['general-information'][
             'status'
         ]

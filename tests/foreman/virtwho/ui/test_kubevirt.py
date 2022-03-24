@@ -42,7 +42,7 @@ def form_data():
 
 class TestVirtwhoConfigforKubevirt:
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_id(self, module_manifest_org, session, form_data):
+    def test_positive_deploy_configure_by_id(self, default_org, session, form_data):
         """Verify configure created and deployed with id.
 
         :id: 7b2a1b08-f33c-44f4-ad2e-317b6c44b938
@@ -65,7 +65,7 @@ class TestVirtwhoConfigforKubevirt:
             values = session.virtwho_configure.read(name)
             command = values['deploy']['command']
             hypervisor_name, guest_name = deploy_configure_by_command(
-                command, form_data['hypervisor_type'], debug=True, org=module_manifest_org.label
+                command, form_data['hypervisor_type'], debug=True, org=default_org.label
             )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
@@ -79,7 +79,7 @@ class TestVirtwhoConfigforKubevirt:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_script(self, module_manifest_org, session, form_data):
+    def test_positive_deploy_configure_by_script(self, default_org, session, form_data):
         """Verify configure created and deployed with script.
 
         :id: b3903ccb-04cc-4867-b7ed-d5053d2bfe03
@@ -102,7 +102,7 @@ class TestVirtwhoConfigforKubevirt:
             values = session.virtwho_configure.read(name)
             script = values['deploy']['script']
             hypervisor_name, guest_name = deploy_configure_by_script(
-                script, form_data['hypervisor_type'], debug=True, org=module_manifest_org.label
+                script, form_data['hypervisor_type'], debug=True, org=default_org.label
             )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
@@ -116,7 +116,7 @@ class TestVirtwhoConfigforKubevirt:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_hypervisor_id_option(self, module_manifest_org, session, form_data):
+    def test_positive_hypervisor_id_option(self, default_org, session, form_data):
         """Verify Hypervisor ID dropdown options.
 
         :id: 09826cc0-aa49-4355-8980-8097511eb7d7
@@ -134,7 +134,7 @@ class TestVirtwhoConfigforKubevirt:
         with session:
             session.virtwho_configure.create(form_data)
             config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, module_manifest_org.label)
+            config_command = get_configure_command(config_id, default_org.label)
             config_file = get_configure_file(config_id)
             values = ['uuid', 'hostname']
             for value in values:
@@ -142,7 +142,7 @@ class TestVirtwhoConfigforKubevirt:
                 results = session.virtwho_configure.read(name)
                 assert results['overview']['hypervisor_id'] == value
                 deploy_configure_by_command(
-                    config_command, form_data['hypervisor_type'], org=module_manifest_org.label
+                    config_command, form_data['hypervisor_type'], org=default_org.label
                 )
                 assert get_configure_option('hypervisor_id', config_file) == value
             session.virtwho_configure.delete(name)
