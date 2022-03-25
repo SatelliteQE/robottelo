@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import re
+import uuid
 
 import pytest
 from nailgun import client
@@ -1463,3 +1464,36 @@ class TestCapsuleContentManagement:
             sat_file = md5_by_url(f'{sat_repo_url}{file}')
             caps_file = md5_by_url(f'{caps_repo_url}{file}')
             assert sat_file == caps_file
+
+    @pytest.mark.tier3
+    def test_positive_allow_reregistration_when_dmi_uuid_changed(
+        self, module_org, rhel_contenthost, default_sat
+    ):
+        """Register a content host with a custom DMI UUID, unregistering it, change
+        the DMI UUID, and re-registering it again
+
+        :id: 7f431cb2-5a63-41f7-a27f-62b86328b50d
+
+        :expectedresults: The content host registers successfully
+
+        :customerscenario: true
+
+        :BZ: 1747177
+
+        :CaseLevel: Integration
+        """
+        uuid_1 = str(uuid.uuid1())
+        uuid_2 = str(uuid.uuid4())
+        rhel_contenthost.install_katello_ca(default_sat)
+        default_sat.execute(
+            f'echo \'{{"dmi.system.uuid": "{uuid_1}"}}\' > /etc/rhsm/facts/uuid.facts'
+        )
+        result = rhel_contenthost.register_contenthost(module_org.label, lce=constants.ENVIRONMENT)
+        assert result.status == 0
+        result = rhel_contenthost.execute('subscription-manager clean')
+        assert result.status == 0
+        default_sat.execute(
+            f'echo \'{{"dmi.system.uuid": "{uuid_2}"}}\' > /etc/rhsm/facts/uuid.facts'
+        )
+        result = rhel_contenthost.register_contenthost(module_org.label, lce=constants.ENVIRONMENT)
+        assert result.status == 0
