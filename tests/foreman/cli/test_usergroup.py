@@ -25,6 +25,7 @@ from robottelo.cli.factory import make_role
 from robottelo.cli.factory import make_user
 from robottelo.cli.factory import make_usergroup
 from robottelo.cli.factory import make_usergroup_external
+from robottelo.cli.ldapauthsource import LDAPAuthSource
 from robottelo.cli.task import Task
 from robottelo.cli.user import User
 from robottelo.cli.usergroup import UserGroup
@@ -196,20 +197,24 @@ def test_positive_automate_bz1426957(ldap_auth_source, function_user_group):
     """
     ext_user_group = make_usergroup_external(
         {
-            'auth-source-id': ldap_auth_source['id'],
+            'auth-source-id': ldap_auth_source[1].id,
             'user-group-id': function_user_group['id'],
             'name': 'foobargroup',
         }
     )
-    assert ext_user_group['auth-source'] == ldap_auth_source['ldap_hostname']
+    assert ext_user_group['auth-source'] == ldap_auth_source[1].name
     role = make_role()
     UserGroup.add_role({'id': function_user_group['id'], 'role-id': role['id']})
     Task.with_user(
-        username=ldap_auth_source['user_name'], password=ldap_auth_source['user_password']
+        username=ldap_auth_source[0]['ldap_user_name'],
+        password=ldap_auth_source[0]['ldap_user_passwd'],
     ).list()
     UserGroupExternal.refresh({'user-group-id': function_user_group['id'], 'name': 'foobargroup'})
-    assert role['name'] in User.info({'login': ldap_auth_source['user_name']})['user-groups']
-    User.delete({'login': ldap_auth_source['user_name']})
+    assert (
+        role['name'] in User.info({'login': ldap_auth_source[0]['ldap_user_name']})['user-groups']
+    )
+    User.delete({'login': ldap_auth_source[0]['ldap_user_name']})
+    LDAPAuthSource.delete({'id': ldap_auth_source[1].id})
 
 
 @pytest.mark.tier2
@@ -230,7 +235,7 @@ def test_negative_automate_bz1437578(ldap_auth_source, function_user_group):
     with pytest.raises(CLIReturnCodeError):
         result = UserGroupExternal.create(
             {
-                'auth-source-id': ldap_auth_source['id'],
+                'auth-source-id': ldap_auth_source[1].id,
                 'user-group-id': function_user_group['id'],
                 'name': 'Domain Users',
             }
