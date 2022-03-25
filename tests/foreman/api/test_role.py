@@ -1402,14 +1402,14 @@ class TestCannedRole:
         except HTTPError as err:
             pytest.fail(str(err))
 
-    @pytest.mark.skip_if_open('BZ:1694199')
+    @pytest.mark.skip_if_open('BZ:1825698')
     @pytest.mark.tier2
     def test_positive_create_nested_location(self, role_taxonomies, default_sat):
         """Org Admin can create nested locations
 
         :id: 971bc909-96a5-4614-b254-04a51c708432
 
-        :bz: 1694199
+        :bz: 1694199, 1825698
 
         :customerscenario: true
 
@@ -1503,12 +1503,13 @@ class TestCannedRole:
         sc = ServerConfig(auth=(user_login, user_pass), url=default_sat.url, verify=False)
         with pytest.raises(HTTPError):
             entities.Organization(sc, name=gen_string('alpha')).create()
-        try:
-            loc_name = gen_string('alpha')
-            loc = entities.Location(sc, name=loc_name).create()
-        except HTTPError as err:
-            pytest.fail(str(err))
-        assert loc_name == loc.name
+        if not is_open("BZ:1825698"):
+            try:
+                loc_name = gen_string('alpha')
+                loc = entities.Location(sc, name=loc_name).create()
+            except HTTPError as err:
+                pytest.fail(str(err))
+            assert loc_name == loc.name
 
     @pytest.mark.upgrade
     @pytest.mark.tier1
