@@ -247,7 +247,7 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
             "id": ",".join(set(bz_numbers)),
             "include_fields": ",".join(bz_fields),
         },
-        headers={"Authorization": f"api_key:{settings.bugzilla.api_key}"},
+        headers={"Authorization": f"Bearer {settings.bugzilla.api_key}"},
     )
     response.raise_for_status()
     data = response.json().get('bugs')
