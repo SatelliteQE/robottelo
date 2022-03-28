@@ -144,7 +144,9 @@ def module_host_template(module_org, module_location):
 
 
 @pytest.mark.tier3
-def test_positive_end_to_end(session, default_location, repos_collection, vm):
+def test_positive_end_to_end(
+    session, default_location, repos_collection, vm, set_remote_execution_by_default
+):
     """Create all entities required for content host, set up host, register it
     as a content host, read content host details, install package and errata.
 
@@ -360,7 +362,7 @@ def test_positive_toggle_subscription_status(session, default_location, vm):
 
 
 @pytest.mark.tier3
-def test_negative_install_package(session, default_location, vm):
+def test_negative_install_package(session, default_location, vm, set_remote_execution_by_default):
     """Attempt to install non-existent package to a host remotely
 
     :id: d60b70f9-c43f-49c0-ae9f-187ffa45ac97
@@ -383,7 +385,7 @@ def test_negative_install_package(session, default_location, vm):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_package(session, default_location, vm):
+def test_positive_remove_package(session, default_location, vm, set_remote_execution_by_default):
     """Remove a package from a host remotely
 
     :id: 86d8896b-06d9-4c99-937e-f3aa07b4eb69
@@ -404,7 +406,7 @@ def test_positive_remove_package(session, default_location, vm):
 
 
 @pytest.mark.tier3
-def test_positive_upgrade_package(session, default_location, vm):
+def test_positive_upgrade_package(session, default_location, vm, set_remote_execution_by_default):
     """Upgrade a host package remotely
 
     :id: 1969db93-e7af-4f5f-973d-23c222224db6
@@ -426,7 +428,9 @@ def test_positive_upgrade_package(session, default_location, vm):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_install_package_group(session, default_location, vm):
+def test_positive_install_package_group(
+    session, default_location, vm, set_remote_execution_by_default
+):
     """Install a package group to a host remotely
 
     :id: a43fb21b-5f6a-4f14-8cd6-114ec287540c
@@ -449,7 +453,9 @@ def test_positive_install_package_group(session, default_location, vm):
 
 
 @pytest.mark.tier3
-def test_positive_remove_package_group(session, default_location, vm):
+def test_positive_remove_package_group(
+    session, default_location, vm, set_remote_execution_by_default
+):
     """Remove a package group from a host remotely
 
     :id: dbeea1f2-adf4-4ad8-a989-efad8ce21b98

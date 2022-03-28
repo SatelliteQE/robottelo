@@ -207,3 +207,17 @@ def container_contenthost(rhel7_contenthost, target_sat):
         rhel7_contenthost.execute(f'yum -y install {service}')
         rhel7_contenthost.execute(f'systemctl start {service}')
     return rhel7_contenthost
+
+
+@pytest.fixture(scope='module')
+def set_remote_execution_by_default(request):
+    """Fixture to set the 'remote_execution_by_default' setting"""
+    if getattr(request, 'param', None) is not None:
+        value = request.param  # indirect parametrization value
+    else:
+        value = True  # default value
+    remote_execution_setting = entities.Setting().search(
+        query={'search': 'name="remote_execution_by_default"'}
+    )[0]
+    remote_execution_setting.value = str(value)
+    remote_execution_setting.update({'value'})
