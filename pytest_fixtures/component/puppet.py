@@ -38,14 +38,19 @@ enable_capsule_cmd = InstallerCommand(
 )
 
 
+# @pytest.fixture(scope='session')
+# def session_puppet_enabled_sat(session_satellite_host):
+#     """Satellite with enabled puppet plugin"""
+#     session_satellite_host.register_to_dogfood()
+#     result = session_satellite_host.execute(enable_satellite_cmd.get_command(), timeout='20m')
+#     assert result.status == 0
+#     session_satellite_host.execute('hammer -r')  # workaround for BZ#2039696
+#     yield session_satellite_host
+
 @pytest.fixture(scope='session')
-def session_puppet_enabled_sat(session_satellite_host):
-    """Satellite with enabled puppet plugin"""
-    session_satellite_host.register_to_dogfood()
-    result = session_satellite_host.execute(enable_satellite_cmd.get_command(), timeout='20m')
-    assert result.status == 0
-    session_satellite_host.execute('hammer -r')  # workaround for BZ#2039696
-    yield session_satellite_host
+def session_puppet_enabled_sat():
+    from robottelo.hosts import Satellite
+    return Satellite("dhcp-3-72.vms.sat.rdu2.redhat.com")
 
 
 @pytest.fixture(scope='module')

@@ -37,7 +37,7 @@ class TestAzureRMComputeResourceTestCase:
 
     @pytest.mark.upgrade
     @pytest.mark.tier1
-    def test_positive_crud_azurerm_cr(self, module_org, module_location, azurerm_settings):
+    def test_positive_crud_azurerm_cr(self, module_org, module_location, azurerm_settings,default_sat):
         """Create, Read, Update and Delete AzureRM compute resources
 
         :id: da081a1f-9614-4918-91cb-c900c40ac121
@@ -50,7 +50,7 @@ class TestAzureRMComputeResourceTestCase:
         """
         # Create CR
         cr_name = gen_string('alpha')
-        compresource = entities.AzureRMComputeResource(
+        compresource = default_sat.api.AzureRMComputeResource(
             name=cr_name,
             provider='AzureRm',
             tenant=azurerm_settings['tenant'],
@@ -79,7 +79,7 @@ class TestAzureRMComputeResourceTestCase:
 
         # Delete CR
         compresource.delete()
-        assert not entities.AzureRMComputeResource().search(query={'search': f'name={new_cr_name}'})
+        assert not default_sat.api.AzureRMComputeResource().search(query={'search': f'name={new_cr_name}'})
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
@@ -184,7 +184,7 @@ class TestAzureRMHostProvisioningTestCase:
 
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(
-        self, request, module_puppet_domain, module_azurerm_cr, module_azurerm_finishimg
+        self, request, module_puppet_domain, module_azurerm_cr_puppet, module_azurerm_finishimg_puppet
     ):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
@@ -201,15 +201,14 @@ class TestAzureRMHostProvisioningTestCase:
         request.cls.compute_attrs = {
             "resource_group": self.rg_default,
             "vm_size": self.vm_size,
-            "username": module_azurerm_finishimg.username,
+            "username": module_azurerm_finishimg_puppet.username,
             "password": settings.azurerm.password,
             "platform": self.platform,
             "script_command": 'touch /var/tmp/text.txt',
             "script_uris": AZURERM_FILE_URI,
             "image_id": self.rhel7_ft_img,
         }
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
-
+        nw_id = module_azurerm_cr_puppet.available_networks()['results'][-1]['id']
         request.cls.interfaces_attributes = {
             "0": {
                 "compute_attributes": {
@@ -225,9 +224,9 @@ class TestAzureRMHostProvisioningTestCase:
         self,
         session_puppet_enabled_sat,
         azurermclient,
-        module_azurerm_finishimg,
-        module_azurerm_cr,
-        default_architecture,
+        module_azurerm_finishimg_puppet,
+        module_azurerm_cr_puppet,
+        session_puppet_default_architecture,
         module_puppet_domain,
         module_puppet_loc,
         module_puppet_org,
@@ -244,9 +243,9 @@ class TestAzureRMHostProvisioningTestCase:
             template='Kickstart default finish'
         ):
             host = session_puppet_enabled_sat.api.Host(
-                architecture=default_architecture,
+                architecture=session_puppet_default_architecture,
                 build=True,
-                compute_resource=module_azurerm_cr,
+                compute_resource=module_azurerm_cr_puppet,
                 compute_attributes=self.compute_attrs,
                 interfaces_attributes=self.interfaces_attributes,
                 domain=module_puppet_domain,
@@ -255,7 +254,7 @@ class TestAzureRMHostProvisioningTestCase:
                 location=module_puppet_loc,
                 name=self.hostname,
                 provision_method='image',
-                image=module_azurerm_finishimg,
+                image=module_azurerm_finishimg_puppet,
                 root_pass=gen_string('alphanumeric'),
                 environment=module_puppet_environment,
                 puppet_proxy=session_puppet_enabled_proxy,
@@ -338,7 +337,7 @@ class TestAzureRMUserDataProvisioning:
 
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(
-        self, request, module_puppet_domain, module_azurerm_cr, module_azurerm_finishimg
+        self, request, module_puppet_domain, module_azurerm_cr_puppet, module_azurerm_finishimg_puppet
     ):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
@@ -356,7 +355,7 @@ class TestAzureRMUserDataProvisioning:
         request.cls.compute_attrs = {
             "resource_group": self.rg_default,
             "vm_size": self.vm_size,
-            "username": module_azurerm_finishimg.username,
+            "username": module_azurerm_finishimg_puppet.username,
             "ssh_key_data": settings.azurerm.ssh_pub_key,
             "platform": self.platform,
             "script_command": 'touch /var/tmp/text.txt',
@@ -364,7 +363,7 @@ class TestAzureRMUserDataProvisioning:
             "image_id": self.rhel7_ud_img,
         }
 
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        nw_id = module_azurerm_cr_puppet.available_networks()['results'][-1]['id']
         request.cls.interfaces_attributes = {
             "0": {
                 "compute_attributes": {
@@ -380,9 +379,9 @@ class TestAzureRMUserDataProvisioning:
         self,
         session_puppet_enabled_sat,
         azurermclient,
-        module_azurerm_cloudimg,
-        module_azurerm_cr,
-        default_architecture,
+        module_azurerm_cloudimg_puppet,
+        module_azurerm_cr_puppet,
+        session_puppet_default_architecture,
         module_puppet_domain,
         module_puppet_loc,
         module_puppet_org,
@@ -399,9 +398,9 @@ class TestAzureRMUserDataProvisioning:
             template='Kickstart default finish'
         ):
             host = session_puppet_enabled_sat.api.Host(
-                architecture=default_architecture,
+                architecture=session_puppet_default_architecture,
                 build=True,
-                compute_resource=module_azurerm_cr,
+                compute_resource=module_azurerm_cr_puppet,
                 compute_attributes=self.compute_attrs,
                 interfaces_attributes=self.interfaces_attributes,
                 domain=module_puppet_domain,
@@ -410,7 +409,7 @@ class TestAzureRMUserDataProvisioning:
                 location=module_puppet_loc,
                 name=self.hostname,
                 provision_method='image',
-                image=module_azurerm_cloudimg,
+                image=module_azurerm_cloudimg_puppet,
                 root_pass=gen_string('alphanumeric'),
                 environment=module_puppet_environment,
                 puppet_proxy=session_puppet_enabled_proxy,
@@ -465,7 +464,7 @@ class TestAzureRMUserDataProvisioning:
     @pytest.mark.skip_if_open("BZ:1850934")
     @pytest.mark.upgrade
     @pytest.mark.tier3
-    def test_positive_host_disassociate_associate(self, class_host_ud, module_azurerm_cr):
+    def test_positive_host_disassociate_associate(self, class_host_ud, module_azurerm_cr_puppet):
         """Host can be Disassociate and Associate
 
         :id: 9514f15c-64b4-48ef-9707-fd4d39adc57d
@@ -485,10 +484,10 @@ class TestAzureRMUserDataProvisioning:
         assert not disasso['compute_resource_name']
 
         # Associate
-        asso = module_azurerm_cr.associate()
+        asso = module_azurerm_cr_puppet.associate()
         assert len(asso['results']) > 0
         host = class_host_ud.read()
-        assert host.compute_resource.id == module_azurerm_cr.id
+        assert host.compute_resource.id == module_azurerm_cr_puppet.id
 
 
 @pytest.mark.run_in_one_thread
@@ -500,8 +499,8 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
         self,
         request,
         module_puppet_domain,
-        module_azurerm_cr,
-        module_azurerm_gallery_finishimg,
+        module_azurerm_cr_puppet,
+        module_azurerm_gallery_finishimg_puppet,
     ):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
@@ -521,7 +520,7 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
             "image_id": AZURERM_RHEL7_FT_GALLERY_IMG_URN,
         }
 
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        nw_id = module_azurerm_cr_puppet.available_networks()['results'][-1]['id']
         request.cls.interfaces_attributes = {
             "0": {
                 "compute_attributes": {
@@ -537,9 +536,9 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
         self,
         session_puppet_enabled_sat,
         azurermclient,
-        module_azurerm_gallery_finishimg,
-        module_azurerm_cr,
-        default_architecture,
+        module_azurerm_gallery_finishimg_puppet,
+        module_azurerm_cr_puppet,
+        session_puppet_default_architecture,
         module_puppet_domain,
         module_puppet_loc,
         module_puppet_org,
@@ -556,9 +555,9 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
             template='Kickstart default finish'
         ):
             host = session_puppet_enabled_sat.api.Host(
-                architecture=default_architecture,
+                architecture=session_puppet_default_architecture,
                 build=True,
-                compute_resource=module_azurerm_cr,
+                compute_resource=module_azurerm_cr_puppet,
                 compute_attributes=self.compute_attrs,
                 interfaces_attributes=self.interfaces_attributes,
                 domain=module_puppet_domain,
@@ -567,7 +566,7 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
                 location=module_puppet_loc,
                 name=self.hostname,
                 provision_method='image',
-                image=module_azurerm_gallery_finishimg,
+                image=module_azurerm_gallery_finishimg_puppet,
                 root_pass=gen_string('alphanumeric'),
                 environment=module_puppet_environment,
                 puppet_proxy=session_puppet_enabled_proxy,
@@ -629,8 +628,8 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         self,
         request,
         module_puppet_domain,
-        module_azurerm_cr,
-        module_azurerm_custom_finishimg,
+        module_azurerm_cr_puppet,
+        module_azurerm_custom_finishimg_puppet,
     ):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
@@ -642,7 +641,7 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         request.cls.compute_attrs = {
             "resource_group": settings.azurerm.resource_group,
             "vm_size": AZURERM_VM_SIZE_DEFAULT,
-            "username": module_azurerm_custom_finishimg.username,
+            "username": module_azurerm_custom_finishimg_puppet.username,
             "password": settings.azurerm.password,
             "platform": AZURERM_PLATFORM_DEFAULT,
             "script_command": 'touch /var/tmp/text.txt',
@@ -650,7 +649,7 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
             "image_id": AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
         }
 
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        nw_id = module_azurerm_cr_puppet.available_networks()['results'][-1]['id']
         request.cls.interfaces_attributes = {
             "0": {
                 "compute_attributes": {
@@ -666,9 +665,9 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         self,
         session_puppet_enabled_sat,
         azurermclient,
-        module_azurerm_custom_finishimg,
-        module_azurerm_cr,
-        default_architecture,
+        module_azurerm_custom_finishimg_puppet,
+        module_azurerm_cr_puppet,
+        session_puppet_default_architecture,
         module_puppet_domain,
         module_puppet_loc,
         module_puppet_org,
@@ -685,9 +684,9 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
             template='Kickstart default finish'
         ):
             host = session_puppet_enabled_sat.api.Host(
-                architecture=default_architecture,
+                architecture=session_puppet_default_architecture,
                 build=True,
-                compute_resource=module_azurerm_cr,
+                compute_resource=module_azurerm_cr_puppet,
                 compute_attributes=self.compute_attrs,
                 interfaces_attributes=self.interfaces_attributes,
                 domain=module_puppet_domain,
@@ -696,7 +695,7 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
                 location=module_puppet_loc,
                 name=self.hostname,
                 provision_method='image',
-                image=module_azurerm_custom_finishimg,
+                image=module_azurerm_custom_finishimg_puppet,
                 root_pass=gen_string('alphanumeric'),
                 environment=module_puppet_environment,
                 puppet_proxy=session_puppet_enabled_proxy,
