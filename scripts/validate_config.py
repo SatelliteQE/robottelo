@@ -1,5 +1,4 @@
 """Usage: python scripts/validate_config.py"""
-from distutils.log import error
 from dynaconf.validator import ValidationError
 
 try:
@@ -9,6 +8,7 @@ except Exception as err:
 
     from dynaconf import LazySettings
     from robottelo.config.validators import VALIDATORS
+
     settings = LazySettings(
         envvar_prefix="ROBOTTELO",
         core_loaders=["YAML"],
@@ -21,6 +21,7 @@ except Exception as err:
 
     settings.validators.register(**VALIDATORS)
 
+
 def binary_validation(validators):
     settings.validators.clear()
     settings.validators.extend(validators)
@@ -30,7 +31,6 @@ def binary_validation(validators):
         if len(validators) == 1:
             if isinstance(err, AttributeError):
                 print(f"validator={validators[0].names}:\n    {err}")
-                #breakpoint();
             else:
                 print(err)
         else:
