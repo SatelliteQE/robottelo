@@ -129,16 +129,6 @@ def set_ignore_facts_for_os(value=False):
     ignore_setting.update({'value'})
 
 
-@pytest.fixture(scope='module')
-def set_remote_execution_by_default(value=True):
-    """Fixture to set 'remote_execution_by_default' setting"""
-    remote_execution_setting = entities.Setting().search(
-        query={'search': 'name="remote_execution_by_default"'}
-    )[0]
-    remote_execution_setting.value = str(value)
-    remote_execution_setting.update({'value'})
-
-
 def run_remote_command_on_content_host(command, vm_module_streams):
     result = vm_module_streams.run(command)
     assert result.status == 0
@@ -154,9 +144,8 @@ def module_host_template(module_org, module_location):
 
 
 @pytest.mark.tier3
-def test_positive_end_to_end(
-    session, default_location, repos_collection, vm, set_remote_execution_by_default
-):
+@pytest.mark.parametrize('setting_update', ['remote_execution_by_default'], indirect=True)
+def test_positive_end_to_end(session, default_location, repos_collection, vm, setting_update):
     """Create all entities required for content host, set up host, register it
     as a content host, read content host details, install package and errata.
 
@@ -169,10 +158,12 @@ def test_positive_end_to_end(
 
     :CaseImportance: Critical
     """
+    property_name = setting_update.name
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     with session:
         session.location.select(default_location.name)
+        session.settings.update(f'name = {property_name}', 'Yes')
         # Ensure content host is searchable
         assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
         chost = session.contenthost.read(
@@ -372,7 +363,8 @@ def test_positive_toggle_subscription_status(session, default_location, vm):
 
 
 @pytest.mark.tier3
-def test_negative_install_package(session, default_location, vm, set_remote_execution_by_default):
+@pytest.mark.parametrize('setting_update', ['remote_execution_by_default'], indirect=True)
+def test_negative_install_package(session, default_location, vm, setting_update):
     """Attempt to install non-existent package to a host remotely
 
     :id: d60b70f9-c43f-49c0-ae9f-187ffa45ac97
@@ -385,8 +377,10 @@ def test_negative_install_package(session, default_location, vm, set_remote_exec
 
     :CaseLevel: System
     """
+    property_name = setting_update.name
     with session:
         session.location.select(default_location.name)
+        session.settings.update(f'name = {property_name}', 'Yes')
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Install', gen_string('alphanumeric')
         )
@@ -394,8 +388,9 @@ def test_negative_install_package(session, default_location, vm, set_remote_exec
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize('setting_update', ['remote_execution_by_default'], indirect=True)
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_package(session, default_location, vm, set_remote_execution_by_default):
+def test_positive_remove_package(session, default_location, vm, setting_update):
     """Remove a package from a host remotely
 
     :id: 86d8896b-06d9-4c99-937e-f3aa07b4eb69
@@ -404,9 +399,11 @@ def test_positive_remove_package(session, default_location, vm, set_remote_execu
 
     :CaseLevel: System
     """
+    property_name = setting_update.name
     vm.download_install_rpm(settings.repos.yum_6.url, FAKE_0_CUSTOM_PACKAGE)
     with session:
         session.location.select(default_location.name)
+        session.settings.update(f'name = {property_name}', 'Yes')
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Remove', FAKE_0_CUSTOM_PACKAGE_NAME
         )
@@ -416,7 +413,8 @@ def test_positive_remove_package(session, default_location, vm, set_remote_execu
 
 
 @pytest.mark.tier3
-def test_positive_upgrade_package(session, default_location, vm, set_remote_execution_by_default):
+@pytest.mark.parametrize('setting_update', ['remote_execution_by_default'], indirect=True)
+def test_positive_upgrade_package(session, default_location, vm, setting_update):
     """Upgrade a host package remotely
 
     :id: 1969db93-e7af-4f5f-973d-23c222224db6
@@ -425,9 +423,11 @@ def test_positive_upgrade_package(session, default_location, vm, set_remote_exec
 
     :CaseLevel: System
     """
+    property_name = setting_update.name
     vm.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     with session:
         session.location.select(default_location.name)
+        session.settings.update(f'name = {property_name}', 'Yes')
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Update', FAKE_1_CUSTOM_PACKAGE_NAME
         )
@@ -438,9 +438,8 @@ def test_positive_upgrade_package(session, default_location, vm, set_remote_exec
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_install_package_group(
-    session, default_location, vm, set_remote_execution_by_default
-):
+@pytest.mark.parametrize('setting_update', ['remote_execution_by_default'], indirect=True)
+def test_positive_install_package_group(session, default_location, vm, setting_update):
     """Install a package group to a host remotely
 
     :id: a43fb21b-5f6a-4f14-8cd6-114ec287540c
@@ -449,8 +448,10 @@ def test_positive_install_package_group(
 
     :CaseLevel: System
     """
+    property_name = setting_update.name
     with session:
         session.location.select(default_location.name)
+        session.settings.update(f'name = {property_name}', 'Yes')
         result = session.contenthost.execute_package_action(
             vm.hostname,
             'Group Install (Deprecated)',
@@ -463,9 +464,8 @@ def test_positive_install_package_group(
 
 
 @pytest.mark.tier3
-def test_positive_remove_package_group(
-    session, default_location, vm, set_remote_execution_by_default
-):
+@pytest.mark.parametrize('setting_update', ['remote_execution_by_default'], indirect=True)
+def test_positive_remove_package_group(session, default_location, vm, setting_update):
     """Remove a package group from a host remotely
 
     :id: dbeea1f2-adf4-4ad8-a989-efad8ce21b98
@@ -474,8 +474,10 @@ def test_positive_remove_package_group(
 
     :CaseLevel: System
     """
+    property_name = setting_update.name
     with session:
         session.location.select(default_location.name)
+        session.settings.update(f'name = {property_name}', 'Yes')
         for action in ('Group Install (Deprecated)', 'Group Remove (Deprecated)'):
             result = session.contenthost.execute_package_action(
                 vm.hostname, action, FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
