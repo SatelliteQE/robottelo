@@ -821,6 +821,42 @@ def test_positive_list_by_last_checkin(
 
 @pytest.mark.host_create
 @pytest.mark.tier3
+def test_positive_list_infrastructure_hosts(
+    module_lce, module_org, module_promoted_cv, rhel7_contenthost, default_sat
+):
+    """List infrasturcture hosts (Satellite and Capsule)
+
+    :id: 9e4c873e-0954-4096-b337-bcd679181025
+
+    :expectedresults: Infrastructure hosts are listed
+
+    :parametrized: yes
+
+    :CaseLevel: System
+    """
+    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.register_contenthost(
+        module_org.label,
+        lce=f'{module_lce.label}/{module_promoted_cv.label}',
+    )
+    assert rhel7_contenthost.subscribed
+    Host.update({'name': default_sat.hostname, 'new-organization-id': module_org.id})
+    # list satellite hosts
+    hosts = Host.list({'search': 'infrastructure_facet.foreman=true'})
+    assert len(hosts) == 1
+    hostnames = [host['name'] for host in hosts]
+    assert rhel7_contenthost.hostname not in hostnames
+    assert default_sat.hostname in hostnames
+    # list capsule hosts
+    hosts = Host.list({'search': 'infrastructure_facet.smart_proxy_id=1'})
+    hostnames = [host['name'] for host in hosts]
+    assert len(hosts) == 1
+    assert rhel7_contenthost.hostname not in hostnames
+    assert default_sat.hostname in hostnames
+
+
+@pytest.mark.host_create
+@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_unregister(
     module_ak_with_cv, module_lce, module_org, rhel7_contenthost, default_sat
