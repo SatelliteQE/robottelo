@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import pytest
-from airgun.session import Session
 
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
@@ -39,7 +38,7 @@ def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_org, modu
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    with Session(hostname=session_puppet_enabled_sat.hostname) as session:
+    with session_puppet_enabled_sat.ui_session as session:
         session.puppetenvironment.create(
             {
                 'environment.name': name,
@@ -82,7 +81,7 @@ def test_positive_availability_for_host_and_hostgroup_in_multiple_orgs(
     """
     env_name = gen_string('alpha')
     orgs = [session_puppet_enabled_sat.api.Organization().create() for _ in range(2)]
-    with Session(hostname=session_puppet_enabled_sat.hostname) as session:
+    with session_puppet_enabled_sat.ui_session as session:
         session.puppetenvironment.create(
             {
                 'environment.name': env_name,
