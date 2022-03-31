@@ -1205,7 +1205,6 @@ class Satellite(Capsule, SatelliteMixins):
         # create dummy classes for later population
         self._api = type('api', (), {'_configured': False})
         self._cli = type('cli', (), {'_configured': False})
-        self._ui_session = None
 
     @property
     def api(self):
@@ -1271,8 +1270,6 @@ class Satellite(Capsule, SatelliteMixins):
     @property
     def ui_session(self):
         """Initialize an airgun Session object and store it as self.ui_session"""
-        if self._ui_session:
-            return self._ui_session
 
         from airgun.session import Session
 
@@ -1283,13 +1280,12 @@ class Satellite(Capsule, SatelliteMixins):
                 if frame.function.startswith('test_'):
                     return frame.function
 
-        self._ui_session = Session(
+        return Session(
             session_name=get_caller(),
             user=settings.server.admin_username,
             password=settings.server.admin_password,
             hostname=self.hostname,
         )
-        return self._ui_session
 
     @cached_property
     def is_upstream(self):
