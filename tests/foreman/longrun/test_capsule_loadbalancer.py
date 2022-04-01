@@ -26,218 +26,72 @@ from nailgun import entities
 
 from robottelo.api.utils import promote
 from robottelo.config import settings
+from robottelo.hosts import Capsule
 from robottelo.hosts import ContentHost
 
 
 @pytest.fixture(scope='session')
 def get_hosts_from_broker():
-    def local_get_hosts(vm_nick, vm_count):
-        host = VMBroker(
-            nick=vm_nick, host_classes={'host': ContentHost}, _count=vm_count
-        ).checkout()
+    def _get_hosts(vm_nick, vm_count):
+        if 'cap' in vm_nick:
+            host_class = Capsule
+        if 'rhel' in vm_nick:
+            host_class = ContentHost
+
+        host = VMBroker(nick=vm_nick, host_classes={'host': host_class}, _count=vm_count).checkout()
         q.put({vm_nick: host})
 
     threads = list()
     q = queue.Queue()
     results = dict()
-    host_count = [['rhel7', 2], ['rhel8', 1], ['cap70', 2]]
+    host_count = [['rhel7', 1], ['cap611_7', 1], ['cap611_8', 1]]
     for host in host_count:
-        threads.append(threading.Thread(target=local_get_hosts, args=(host[0], host[1])))
-        sleep(2)
+        threads.append(threading.Thread(target=_get_hosts, args=(host[0], host[1])))
+        sleep(1)
         threads[-1].start()
     _ = [t.join() for t in threads]
 
     while not q.empty():
         results.update(q.get())
 
-    assert len(results['rhel7']) == 2, 'host not provisioned'
-    assert len([results['rhel8']]) == 1, 'host not provisioned'
-    assert len(results['cap70']) == 2, 'host not provisioned'
-
     yield results
 
-    all_hosts = results['rhel7'] + results['cap70'] + [results['rhel8']]
+    all_hosts = [results['rhel7'], results['cap611_7'], results['cap611_8']]
 
     VMBroker(hosts=all_hosts).checkin()
 
 
 @pytest.fixture(scope='module')
-def setup_lb_content(module_org, get_hosts_from_broker):
-
-    # ####################################For Capsule on rhel7################
-    # Red Hat Enterprise Linux 7 Server (RPMs)
+def content_for_haproxy(module_org):
     rhel7_product = entities.Product(organization=module_org).create()
     rhel7_repo = entities.Repository(
         product=rhel7_product,
     ).create()
     rhel7_repo.url = settings.repos.RHEL7_OS
     rhel7_repo = rhel7_repo.update(['url'])
-
-    # Red Hat Software Collections RPMs for Red Hat Enterprise Linux 7 Server
-    rhscl_product = entities.Product(organization=module_org).create()
-    rhscl_repo = entities.Repository(
-        product=rhscl_product,
-    ).create()
-    rhscl_repo.url = settings.repos.RHSCL_REPO
-    rhscl_repo = rhscl_repo.update(['url'])
-
-    # Red Hat Ansible Engine 2.9 RPMs for Red Hat Enterprise Linux 7 Server
-    ansible_product = entities.Product(organization=module_org).create()
-    ansible_repo = entities.Repository(
-        product=ansible_product,
-    ).create()
-    ansible_repo.url = settings.repos.ANSIBLE_REPO
-    ansible_repo = ansible_repo.update(['url'])
-
-    # Satellite Maintenance 7
-    sat_maintenance_product = entities.Product(organization=module_org).create()
-    sat_maintenance_repo = entities.Repository(
-        product=sat_maintenance_product,
-    ).create()
-    sat_maintenance_repo.url = settings.repos.SATMAINTENANCE_REPO
-    sat_maintenance_repo = sat_maintenance_repo.update(['url'])
-
-    # Satellite Capsule 7 on RHEL7
-    satellite_capsule_product = entities.Product(organization=module_org).create()
-    satellite_capsule_repo = entities.Repository(
-        product=satellite_capsule_product,
-    ).create()
-    satellite_capsule_repo.url = settings.repos.CAPSULE_REPO
-    satellite_capsule_repo = satellite_capsule_repo.update(['url'])
-
-    # Satellite Utils
-    satellite_utils_product = entities.Product(organization=module_org).create()
-    satellite_utils_repo = entities.Repository(
-        product=satellite_utils_product,
-    ).create()
-    satellite_utils_repo.url = settings.repos.SATUTILS_REPO
-    satellite_utils_rhel7_repo = satellite_utils_repo.update(['url'])
-
-    # #####################################For Capsule on rhel8###############
-    #
-    # # Red Hat Enterprise Linux 8 for x86_64 - BaseOS
-    # rhel8_product = entities.Product(organization=module_org).create()
-    # rhel8_repo = entities.Repository(
-    #     product=rhel8_product,
-    # ).create()
-    # rhel8_repo.url = settings.repos.RHEL8_OS.BASEOS
-    # rhel8_repo = rhel8_repo.update(['url'])
-    #
-    # # Satellite Maintenance 6
-    # sat_maintenance_product = entities.Product(organization=module_org).create()
-    # sat_maintenance_repo = entities.Repository(
-    #     product=sat_maintenance_product,
-    # ).create()
-    # sat_maintenance_repo.url = settings.repos.SATMAINTENANCE_REPO
-    # sat_maintenance_repo = sat_maintenance_repo.update(['url'])
-    #
-    #
-    #
-    # Satellite Tools RHEL 8
-    # satellite_tools_rhel8_product = entities.Product(organization=module_org).create()
-    # satellite_tools_rhel8_repo = entities.Repository(
-    #     product=satellite_tools_rhel8_product,
-    # ).create()
-    # satellite_tools_rhel8_repo.url = settings.repos.SATTOOLS_REPO.RHEL8
-    # satellite_tools_rhel8_repo = satellite_tools_rhel8_repo.update(['url'])
-
-    repo_list = [
-        rhel7_repo,
-        rhscl_repo,
-        ansible_repo,
-        sat_maintenance_repo,
-        satellite_capsule_repo,
-        satellite_utils_rhel7_repo,
-    ]
-
-    product_ids = [repo.product.id for repo in repo_list]
-
-    entities.ProductBulkAction().sync(data={'ids': product_ids}, timeout=900)
-
-    # Create LCEs
-    capsule_lce = entities.LifecycleEnvironment(organization=module_org).create()
+    rhel7_repo.sync(timeout=900)
     client7_lce = entities.LifecycleEnvironment(organization=module_org).create()
-    # client8_lce = entities.LifecycleEnvironment(organization=module_org).create()
-
-    # Create Content Views
-    capsule_cv = entities.ContentView(
-        organization=module_org,
-        repository=[
-            rhel7_repo,
-            satellite_capsule_repo,
-            satellite_utils_rhel7_repo,
-            sat_maintenance_repo,
-            ansible_repo,
-            rhscl_repo,
-        ],
-    ).create()
-    capsule_cv.publish()
-    capsule_cv = capsule_cv.read().version[0].read()
-    promote(capsule_cv, capsule_lce.id)
-
-    client7_cv = entities.ContentView(
-        organization=module_org, repository=[rhel7_repo, satellite_utils_rhel7_repo]
-    ).create()
+    client7_cv = entities.ContentView(organization=module_org, repository=[rhel7_repo]).create()
     client7_cv.publish()
     client7_cv = client7_cv.read().version[0].read()
     promote(client7_cv, client7_lce.id)
-
-    # client8_cv = entities.ContentView(
-    #     organization=module_org, repository=[rhel8_repo, satellite_tools_rhel8_repo]
-    # ).create()
-    # client8_cv.publish()
-    # client8_cv = client8_cv.read().version[0].read()
-    # promote(client8_cv, client8_lce.id)
-
-    # Create Activation Keys
-    capsule_ak = entities.ActivationKey(
-        content_view=capsule_cv.id, organization=module_org, environment=capsule_lce
-    ).create()
     client7_ak = entities.ActivationKey(
         content_view=client7_cv.id, organization=module_org, environment=client7_lce
     ).create()
-    # client8_ak = entities.ActivationKey(
-    #     content_view=client8_cv.id, organization=module_org, environment=client8_lce
-    # ).create()
-
-    # Add the subscriptions
     org_subscriptions = entities.Subscription(organization=module_org).search()
-
     for subscription in org_subscriptions:
-        capsule_ak.add_subscriptions(data={'subscription_id': subscription.id})
         client7_ak.add_subscriptions(data={'subscription_id': subscription.id})
-        # client8_ak.add_subscriptions(data={'subscription_id': subscription.id})
-
-    return {
-        'capsule_ak': capsule_ak,
-        'client7_ak': client7_ak,
-        'rhel7_contenthost': get_hosts_from_broker['rhel7'][0],
-        'haproxy': get_hosts_from_broker['rhel7'][0],
-        'rhel8_contenthost': get_hosts_from_broker['rhel8'],
-        'capsule_1': get_hosts_from_broker['cap70'][0],
-        'capsule_2': get_hosts_from_broker['cap70'][1],
-    }
+    return {'client7_ak': client7_ak}
 
 
 @pytest.fixture(scope='module')
-def setup_haproxy(setup_lb_content, module_org, default_sat, get_hosts_from_broker):
-    haproxy = setup_lb_content['haproxy']
-    cmd = (
-        'firewall-cmd --add-port="53/udp" --add-port="53/tcp" '
-        '--add-port="67/udp" --add-port="69/udp" --add-port="80/tcp" '
-        '--add-port="443/tcp" --add-port="5000/tcp" --add-port="5647/tcp" '
-        '--add-port="8000/tcp" --add-port="8140/tcp" --add-port="8443/tcp" '
-        '--add-port="9090/tcp" --add-port="8141/tcp" --permanent '
-    )
-    haproxy.execute(cmd)
-    haproxy.execute('firewall-cmd --reload')
-    result = haproxy.execute(f'yum localinstall -y' f'{default_sat.url_katello_ca_rpm}')
-    assert result.status == 0
-    haproxy.execute(
-        f'subscription-manager register --org={module_org.label} '
-        f'--activationkey={setup_lb_content["client7_ak"].name}'
-    )
-    assert haproxy.execute('yum repolist').status == 0
+def setup_haproxy(module_org, get_hosts_from_broker, content_for_haproxy, module_target_sat):
+    haproxy = get_hosts_from_broker['rhel7']
+    client_ak = content_for_haproxy['client7_ak']
+    haproxy.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
+    haproxy.execute('firewall-cmd --runtime-to-permanent')
+    haproxy.install_katello_ca(module_target_sat)
+    haproxy.register_contenthost(module_org.label, client_ak.name)
     result = haproxy.execute('yum install haproxy policycoreutils-python -y')
     assert result.status == 0
     haproxy.execute(
@@ -246,9 +100,15 @@ def setup_haproxy(setup_lb_content, module_org, default_sat, get_hosts_from_brok
         '/8aaa5752c1f5621af8f5b367d50b1c75/raw'
         '/2f46a881380d2b69ce058dedf50c0f62a3f6e237/haproxy.cfg '
     )
-    haproxy.execute(f'sed -i s/CAPSULE_1/{get_hosts_from_broker["cap70"][0]}')
-    haproxy.execute(f'sed -i s/CAPSULE_2/{get_hosts_from_broker["cap70"][1]}')
-    haproxy.host_services(action='restart', services=['haproxy.service'])
+    haproxy.execute(
+        f'sed --in-place --expression'
+        f'"s/CAPSULE_1/{get_hosts_from_broker["cap611_7"].hostname}/g "'
+        f'--expression '
+        f'"s/CAPSULE_2/{get_hosts_from_broker["cap611_8"].hostname}/g "'
+        f'/etc/haproxy/haproxy.cfg'
+    )
+    result = haproxy.host_services(action='restart', services=['haproxy.service'])
+    assert result.status == 0
     haproxy.execute('mkdir /var/lib/haproxy/dev')
     haproxy.execute(
         'curl --output /etc/rsyslog.d/99-haproxy.conf '
@@ -256,21 +116,32 @@ def setup_haproxy(setup_lb_content, module_org, default_sat, get_hosts_from_brok
         '/8aaa5752c1f5621af8f5b367d50b1c75/raw'
         '/2f46a881380d2b69ce058dedf50c0f62a3f6e237/99-haproxy.conf '
     )
-    haproxy.host_services(action='restart', services=['rsyslog'])
+    haproxy.execute('setenforce Permissive')
+    result = haproxy.host_services(
+        action='restart', services=['rsyslog.service', 'haproxy.service']
+    )
+    assert result.status == 0
 
 
 @pytest.fixture(scope='module')
-def setup_capsules(module_org, setup_lb_content, setup_haproxy, default_sat):
-    capsules = get_hosts_from_broker['cap70']
-    for capsule in capsules:
-        capsule.install_katello_ca(default_sat)
-        capsule.register_contenthost(module_org.label, setup_lb_content['capsule_ak'].name)
-        assert capsule.subscribed
+def setup_capsules(module_org, get_hosts_from_broker):
+    capsule_7 = get_hosts_from_broker['cap611_7']
+    capsule_8 = get_hosts_from_broker['cap611_8']
+
+    # TODO: Satellite capsule integrate
+    # capsule-certs-generate \
+    # --foreman-proxy-fqdn capsule.example.com \
+    # --certs-tar "/root/capsule.example.com-certs.tar" \
+    # --foreman-proxy-cname loadbalancer.example.com
+
+    # And during the capsule installation
+    # satellite-installer --scenario capsule .......--certs-cname "loadbalancer.example.com"
 
 
 # @pytest.mark.stubbed
 @pytest.mark.tier1
-def test_random(module_org, setup_lb_content, setup_capsules, default_sat):
+def test_random(module_org, content_for_haproxy, setup_capsules, target_sat):
+
     """Download katello-ca-consumer-latest.noarch.rpm through LB
 
     :id: 9398d59e-e141-11ea-83a6-4ceb42ab8dbc
