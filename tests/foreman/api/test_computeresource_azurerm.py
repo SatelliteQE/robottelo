@@ -18,7 +18,6 @@
 """
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 
 from robottelo.api.utils import satellite_setting
 from robottelo.config import settings
@@ -37,7 +36,9 @@ class TestAzureRMComputeResourceTestCase:
 
     @pytest.mark.upgrade
     @pytest.mark.tier1
-    def test_positive_crud_azurerm_cr(self, module_org, module_location, azurerm_settings,default_sat):
+    def test_positive_crud_azurerm_cr(
+        self, module_org, module_location, azurerm_settings, default_sat
+    ):
         """Create, Read, Update and Delete AzureRM compute resources
 
         :id: da081a1f-9614-4918-91cb-c900c40ac121
@@ -79,7 +80,9 @@ class TestAzureRMComputeResourceTestCase:
 
         # Delete CR
         compresource.delete()
-        assert not default_sat.api.AzureRMComputeResource().search(query={'search': f'name={new_cr_name}'})
+        assert not default_sat.api.AzureRMComputeResource().search(
+            query={'search': f'name={new_cr_name}'}
+        )
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
@@ -184,7 +187,11 @@ class TestAzureRMHostProvisioningTestCase:
 
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(
-        self, request, module_puppet_domain, module_azurerm_cr_puppet, module_azurerm_finishimg_puppet
+        self,
+        request,
+        module_puppet_domain,
+        module_azurerm_cr_puppet,
+        module_azurerm_finishimg_puppet,
     ):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
@@ -208,6 +215,7 @@ class TestAzureRMHostProvisioningTestCase:
             "script_uris": AZURERM_FILE_URI,
             "image_id": self.rhel7_ft_img,
         }
+
         nw_id = module_azurerm_cr_puppet.available_networks()['results'][-1]['id']
         request.cls.interfaces_attributes = {
             "0": {
@@ -337,7 +345,11 @@ class TestAzureRMUserDataProvisioning:
 
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(
-        self, request, module_puppet_domain, module_azurerm_cr_puppet, module_azurerm_finishimg_puppet
+        self,
+        request,
+        module_puppet_domain,
+        module_azurerm_cr_puppet,
+        module_azurerm_finishimg_puppet,
     ):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
@@ -512,7 +524,7 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
         request.cls.compute_attrs = {
             "resource_group": settings.azurerm.resource_group,
             "vm_size": AZURERM_VM_SIZE_DEFAULT,
-            "username": module_azurerm_gallery_finishimg.username,
+            "username": module_azurerm_gallery_finishimg_puppet.username,
             "password": settings.azurerm.password,
             "platform": AZURERM_PLATFORM_DEFAULT,
             "script_command": 'touch /var/tmp/text.txt',
@@ -664,7 +676,6 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
     def class_host_custom_ft(
         self,
         session_puppet_enabled_sat,
-        azurermclient,
         module_azurerm_custom_finishimg_puppet,
         module_azurerm_cr_puppet,
         session_puppet_default_architecture,
