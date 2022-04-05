@@ -2,7 +2,7 @@
 import pytest
 from fauxfactory import gen_string
 from wrapanapi import AzureSystem
-from nailgun import entities
+
 from robottelo.config import settings
 from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
@@ -23,10 +23,9 @@ def azurerm_settings():
     }
     return deps
 
+
 @pytest.fixture(scope='module')
-def module_azurerm_cr(
-    azurerm_settings, module_org, module_location, default_sat
-):
+def module_azurerm_cr(azurerm_settings, module_org, module_location, default_sat):
     """Create AzureRM Compute Resource"""
     azure_cr = default_sat.api.AzureRMComputeResource(
         name=gen_string('alpha'),
@@ -40,6 +39,7 @@ def module_azurerm_cr(
         location=[module_location],
     ).create()
     return azure_cr
+
 
 @pytest.fixture(scope='module')
 def module_azurerm_cr_puppet(
@@ -155,6 +155,7 @@ def module_azurerm_cloudimg(
     ).create()
     return finish_image
 
+
 @pytest.fixture(scope='module')
 def module_azurerm_cloudimg_puppet(
     session_puppet_default_architecture,
@@ -193,6 +194,7 @@ def module_azurerm_gallery_finishimg(
     ).create()
     return finish_image
 
+
 @pytest.fixture(scope='module')
 def module_azurerm_gallery_finishimg_puppet(
     session_puppet_default_architecture,
@@ -229,6 +231,7 @@ def module_azurerm_custom_finishimg(
         uuid=AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
     ).create()
     return finish_image
+
 
 @pytest.fixture(scope='module')
 def module_azurerm_custom_finishimg_puppet(
