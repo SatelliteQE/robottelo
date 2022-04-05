@@ -69,6 +69,10 @@ def test_positive_run_default_job_template_by_ip(
 
     :parametrized: yes
 
+    :bz: 1898656
+
+    :customerscenario: true
+
     :CaseLevel: Integration
     """
     hostname = module_vm_client_by_ip.hostname
@@ -89,6 +93,10 @@ def test_positive_run_default_job_template_by_ip(
         assert job_status['overview']['execution_order'] == 'Execution order: randomized'
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
+        # check status also on the job dashboard
+        jobs = session.dashboard.read('LatestJobs')['jobs']
+        assert len(jobs) == 1
+        assert jobs[0]['State'] == 'success'
 
 
 @pytest.mark.tier3
