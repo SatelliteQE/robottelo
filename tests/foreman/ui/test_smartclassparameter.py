@@ -21,7 +21,6 @@ from random import uniform
 
 import pytest
 import yaml
-from nailgun import entities
 
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import gen_string
@@ -32,44 +31,48 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def sc_params_list(module_puppet_classes):
-    return entities.SmartClassParameters().search(
+def sc_params_list(session_puppet_enabled_sat, module_puppet_classes):
+    return session_puppet_enabled_sat.api.SmartClassParameters().search(
         query={'search': f'puppetclass="{module_puppet_classes[0].name}"', 'per_page': '1000'}
     )
 
 
 @pytest.fixture(scope='module')
 def module_host(
-    module_org,
-    module_location,
+    session_puppet_enabled_sat,
+    session_puppet_enabled_proxy,
+    module_puppet_org,
+    module_puppet_loc,
     module_env_search,
     module_puppet_classes,
-    default_smart_proxy,
 ):
-    lce = entities.LifecycleEnvironment().search(
-        query={'search': f'organization_id="{module_org.id}" and name="{ENVIRONMENT}"'}
+    lce = session_puppet_enabled_sat.api.LifecycleEnvironment().search(
+        query={'search': f'organization_id="{module_puppet_org.id}" and name="{ENVIRONMENT}"'}
     )[0]
-    host = entities.Host(
-        organization=module_org,
-        location=module_location,
+    host = session_puppet_enabled_sat.api.Host(
+        organization=module_puppet_org,
+        location=module_puppet_loc,
         content_facet_attributes={
             'lifecycle_environment_id': lce.id,
         },
         environment=module_env_search,
         puppetclass=module_puppet_classes,
-        puppet_proxy=default_smart_proxy,
-        puppet_ca_proxy=default_smart_proxy,
+        puppet_proxy=session_puppet_enabled_proxy,
+        puppet_ca_proxy=session_puppet_enabled_proxy,
     ).create()
+    # update the proxy location so it can be assigned to the host
+    session_puppet_enabled_proxy.location.append(module_puppet_loc)
+    session_puppet_enabled_proxy.update(['location'])
     return host
 
 
 @pytest.fixture(scope='module')
-def domain(module_host):
-    return entities.Domain(id=module_host.domain.id).read()
+def module_domain(session_puppet_enabled_sat, module_host):
+    return session_puppet_enabled_sat.api.Domain(id=module_host.domain.id).read()
 
 
 @pytest.mark.tier2
-def test_positive_end_to_end(session, module_puppet_classes, sc_params_list):
+def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_classes, sc_params_list):
     """Perform end to end testing for smart class parameter component
 
     :BZ: 1996035
@@ -110,7 +113,7 @@ def test_positive_end_to_end(session, module_puppet_classes, sc_params_list):
             ),
         },
     ]
-    with session:
+    with session_puppet_enabled_sat.ui_session as session:
         assert session.sc_parameter.search(sc_param.parameter)[0]['Parameter'] == sc_param.parameter
         for data in data_list:
             session.sc_parameter.update(
@@ -172,7 +175,14 @@ def test_positive_end_to_end(session, module_puppet_classes, sc_params_list):
 
 @pytest.mark.tier2
 @pytest.mark.skip_if_open("BZ:2015911")
-def test_positive_create_matcher_attribute_priority(session, sc_params_list, module_host, domain):
+def test_positive_create_matcher_attribute_priority(
+    session_puppet_enabled_sat,
+    module_puppet_org,
+    module_puppet_loc,
+    sc_params_list,
+    module_host,
+    module_domain,
+):
     """Matcher Value set on Attribute Priority for Host.
 
     :BZ: 1996035
@@ -201,7 +211,9 @@ def test_positive_create_matcher_attribute_priority(session, sc_params_list, mod
     sc_param = sc_params_list.pop()
     override_value = gen_string('alphanumeric')
     override_value2 = "['<%= @host.domain %>', '<%= @host.mac %>']"
-    with session:
+    with session_puppet_enabled_sat.ui_session as session:
+        session.organization.select(org_name=module_puppet_org.name)
+        session.location.select(loc_name=module_puppet_loc.name)
         session.sc_parameter.update(
             sc_param.parameter,
             {
@@ -221,7 +233,7 @@ def test_positive_create_matcher_attribute_priority(session, sc_params_list, mod
                     {
                         'Attribute type': {
                             'matcher_attribute_type': 'domain',
-                            'matcher_attribute_value': domain.name,
+                            'matcher_attribute_value': module_domain.name,
                         },
                         'Value': override_value2,
                     },
@@ -237,7 +249,7 @@ def test_positive_create_matcher_attribute_priority(session, sc_params_list, mod
             sc_parameter_values['parameter']['matchers']['table'][1]['Value']['value']
             == override_value2
         )
-        output = yaml.load(session.host.read_yaml_output(module_host.name))
+        output = yaml.load(session.host.read_yaml_output(module_host.name), yaml.Loader)
         output_scp = output['classes'][PM_NAME][sc_param.parameter]
         assert output_scp == override_value
         session.sc_parameter.update(
@@ -248,20 +260,27 @@ def test_positive_create_matcher_attribute_priority(session, sc_params_list, mod
                 )
             },
         )
-        output = yaml.load(session.host.read_yaml_output(module_host.name))
+        output = yaml.load(session.host.read_yaml_output(module_host.name), yaml.Loader)
         output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == str([domain.name, module_host.mac])
+        assert output_scp == str([module_domain.name, module_host.mac])
 
         # That update operation will change nothing, but submit the same form
         session.sc_parameter.update(sc_param.parameter, {'parameter.override': True})
-        output = yaml.load(session.host.read_yaml_output(module_host.name))
+        output = yaml.load(session.host.read_yaml_output(module_host.name), yaml.Loader)
         output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == str([domain.name, module_host.mac])
+        assert output_scp == str([module_domain.name, module_host.mac])
 
 
 @pytest.mark.tier2
 @pytest.mark.skip_if_open("BZ:2015911")
-def test_positive_create_matcher_avoid_duplicate(session, sc_params_list, module_host, domain):
+def test_positive_create_matcher_avoid_duplicate(
+    session_puppet_enabled_sat,
+    module_puppet_org,
+    module_puppet_loc,
+    sc_params_list,
+    module_host,
+    module_domain,
+):
     """Merge the values of all the associated matchers, remove duplicates.
 
     :BZ: 1996035
@@ -295,7 +314,9 @@ def test_positive_create_matcher_avoid_duplicate(session, sc_params_list, module
     sc_param = sc_params_list.pop()
     override_value = '[80,90]'
     override_value2 = '[90,100]'
-    with session:
+    with session_puppet_enabled_sat.ui_session as session:
+        session.organization.select(org_name=module_puppet_org.name)
+        session.location.select(loc_name=module_puppet_loc.name)
         session.sc_parameter.update(
             sc_param.parameter,
             {
@@ -316,7 +337,7 @@ def test_positive_create_matcher_avoid_duplicate(session, sc_params_list, module
                     {
                         'Attribute type': {
                             'matcher_attribute_type': 'domain',
-                            'matcher_attribute_value': domain.name,
+                            'matcher_attribute_value': module_domain.name,
                         },
                         'Value': override_value2,
                     },
@@ -332,13 +353,15 @@ def test_positive_create_matcher_avoid_duplicate(session, sc_params_list, module
             sc_parameter_values['parameter']['matchers']['table'][1]['Value']['value']
             == override_value2
         )
-        output = yaml.load(session.host.read_yaml_output(module_host.name))
+        output = yaml.load(session.host.read_yaml_output(module_host.name), yaml.Loader)
         output_scp = output['classes'][PM_NAME][sc_param.parameter]
         assert output_scp == [20, 80, 90, 100]
 
 
 @pytest.mark.tier2
-def test_positive_update_matcher_from_attribute(session, sc_params_list, module_host):
+def test_positive_update_matcher_from_attribute(
+    session_puppet_enabled_sat, module_puppet_org, module_puppet_loc, sc_params_list, module_host
+):
     """Impact on parameter on editing the parameter value from attribute.
 
     :BZ: 1996035
@@ -366,7 +389,9 @@ def test_positive_update_matcher_from_attribute(session, sc_params_list, module_
     param_default_value = gen_string('numeric').lstrip('0')
     override_value = gen_string('numeric').lstrip('0')
     new_override_value = gen_string('numeric').lstrip('0')
-    with session:
+    with session_puppet_enabled_sat.ui_session as session:
+        session.organization.select(org_name=module_puppet_org.name)
+        session.location.select(loc_name=module_puppet_loc.name)
         session.sc_parameter.update(
             sc_param.parameter,
             {
@@ -407,7 +432,7 @@ def test_positive_update_matcher_from_attribute(session, sc_params_list, module_
 
 @pytest.mark.tier2
 def test_positive_impact_parameter_delete_attribute(
-    session, sc_params_list, module_env_search, module_puppet_classes
+    session_puppet_enabled_sat, sc_params_list, module_env_search, module_puppet_classes
 ):
     """Impact on parameter after deleting associated attribute.
 
@@ -430,9 +455,11 @@ def test_positive_impact_parameter_delete_attribute(
     sc_param = sc_params_list.pop()
     matcher_value = gen_string('alpha')
     hg_name = gen_string('alpha')
-    hostgroup = entities.HostGroup(name=hg_name, environment=module_env_search).create()
+    hostgroup = session_puppet_enabled_sat.api.HostGroup(
+        name=hg_name, environment=module_env_search
+    ).create()
     hostgroup.add_puppetclass(data={'puppetclass_id': module_puppet_classes[0].id})
-    with session:
+    with session_puppet_enabled_sat.ui_session as session:
         session.sc_parameter.update(
             sc_param.parameter,
             {
@@ -461,13 +488,17 @@ def test_positive_impact_parameter_delete_attribute(
         sc_parameter_values = session.sc_parameter.read(sc_param.parameter)
         assert len(sc_parameter_values['parameter']['matchers']['table']) == 0
         assert session.sc_parameter.search(sc_param.parameter)[0]['Number of Overrides'] == '0'
-        hostgroup = entities.HostGroup(name=hg_name, environment=module_env_search).create()
+        hostgroup = session_puppet_enabled_sat.api.HostGroup(
+            name=hg_name, environment=module_env_search
+        ).create()
         hostgroup.add_puppetclass(data={'puppetclass_id': module_puppet_classes[0].id})
         assert session.sc_parameter.search(sc_param.parameter)[0]['Number of Overrides'] == '0'
 
 
 @pytest.mark.tier2
-def test_positive_hidden_value_in_attribute(session, sc_params_list, module_host):
+def test_positive_hidden_value_in_attribute(
+    session_puppet_enabled_sat, module_puppet_org, module_puppet_loc, sc_params_list, module_host
+):
     """Update the hidden default value of parameter in attribute. Then unhide.
 
     :BZ: 1996035
@@ -499,7 +530,9 @@ def test_positive_hidden_value_in_attribute(session, sc_params_list, module_host
     sc_param = sc_params_list.pop()
     param_default_value = gen_string('alpha')
     host_override_value = gen_string('alpha')
-    with session:
+    with session_puppet_enabled_sat.ui_session as session:
+        session.organization.select(org_name=module_puppet_org.name)
+        session.location.select(loc_name=module_puppet_loc.name)
         session.sc_parameter.update(
             sc_param.parameter,
             {

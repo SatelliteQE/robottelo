@@ -173,14 +173,14 @@ class TestSatelliteContentManagement:
         assert len(os)
 
     @pytest.mark.tier2
-    def test_positive_mirror_on_sync(self, default_sat):
-        """Assert that the content of a repository with 'Mirror on Sync' enabled
+    def test_positive_mirroring_policy(self, default_sat):
+        """Assert that the content of a repository with 'Mirror Policy' enabled
         is restored properly after resync.
 
         :id: cbf1c781-cb96-4b4a-bae2-15c9f5be5e50
 
         :steps:
-            1. Create and sync a repo with 'Mirror on Sync' enabled.
+            1. Create and sync a repo with 'Mirror Policy - mirror complete' enabled.
             2. Remove all packages from the repo and upload another one.
             3. Resync the repo again.
             4. Check the content was restored properly.
@@ -196,7 +196,10 @@ class TestSatelliteContentManagement:
         org = entities.Organization().create()
         prod = entities.Product(organization=org).create()
         repo = entities.Repository(
-            download_policy='immediate', mirror_on_sync=True, product=prod, url=repo_url
+            download_policy='immediate',
+            mirroring_policy='mirror_complete',
+            product=prod,
+            url=repo_url,
         ).create()
         repo.sync()
         repo = repo.read()
@@ -371,7 +374,7 @@ class TestCapsuleContentManagement:
         repo = entities.Repository(
             product=product,
             checksum_type='sha256',
-            mirror_on_sync=False,
+            mirroring_policy='additive',
             download_policy='immediate',
         ).create()
         lce = entities.LifecycleEnvironment(organization=org).create()
@@ -851,7 +854,10 @@ class TestCapsuleContentManagement:
         org = entities.Organization().create()
         prod = entities.Product(organization=org).create()
         repo = entities.Repository(
-            download_policy='on_demand', mirror_on_sync=True, product=prod, url=repo_url
+            download_policy='on_demand',
+            mirroring_policy='mirror_complete',
+            product=prod,
+            url=repo_url,
         ).create()
         lce = entities.LifecycleEnvironment(organization=org).create()
         # Associate the lifecycle environment with the capsule
@@ -941,7 +947,10 @@ class TestCapsuleContentManagement:
         org = entities.Organization().create()
         prod = entities.Product(organization=org).create()
         repo = entities.Repository(
-            download_policy='on_demand', mirror_on_sync=True, product=prod, url=repo_url
+            download_policy='on_demand',
+            mirroring_policy='mirror_complete',
+            product=prod,
+            url=repo_url,
         ).create()
         lce = entities.LifecycleEnvironment(organization=org).create()
         # Update capsule's download policy to on_demand to match repository's

@@ -8,7 +8,7 @@
 
 :CaseComponent: RHCloud-Inventory
 
-:Assignee: jpathan
+:Assignee: addubey
 
 :TestType: Functional
 

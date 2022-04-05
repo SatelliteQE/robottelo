@@ -58,9 +58,9 @@ def get_response(bzs):
         f'{bz_url}/rest/bug',
         params={
             'id': bzs,
-            'api_key': bz_key,
             'include_fields': ','.join(bz_fields),
         },
+        headers={"Authorization": f"Bearer {bz_key}"},
     )
     assert response.status_code == 200, 'BZ query unsuccessful'
     assert response.json().get('error') is not True, response.json().get('message')

@@ -18,17 +18,16 @@
 """
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 
 
 @pytest.fixture(scope='module')
-def module_puppet_class():
-    return entities.PuppetClass().create()
+def module_puppet_class(session_puppet_enabled_sat):
+    return session_puppet_enabled_sat.api.PuppetClass().create()
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_puppet_class):
+def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_class):
     """Perform end to end testing for config group component
 
     :id: 3ac47175-1239-4481-9ae2-e31980fb6607
@@ -41,7 +40,7 @@ def test_positive_end_to_end(session, module_puppet_class):
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    with session:
+    with session_puppet_enabled_sat.ui_session as session:
         # Create new config group
         session.configgroup.create({'name': name, 'classes.assigned': [module_puppet_class.name]})
         assert session.configgroup.search(name)[0]['Name'] == name
