@@ -85,7 +85,7 @@ def export_cleanup_module(default_sat, module_org):
 def validate_filepath(sat_obj, org):
     """Checks the existence of certain files in a dir"""
     result = sat_obj.execute(
-        fr'find {EXPORT_DIR}{org.name} -type f \( -name "*.json" -o -name "*.txt" \)'
+        fr'find {EXPORT_DIR}{org.name} -type f \( -name "*.json" -o -name "*.tar.gz" \)'
     )
     return result.stdout
 
@@ -1361,14 +1361,11 @@ class TestContentViewSync:
         # Verify export directory is empty
         assert validate_filepath(default_sat, module_org) == ''
         # Export cv
-        export = ContentExport.completeVersion(
+        ContentExport.completeVersion(
             {'id': exporting_cvv_id['id'], 'organization-id': module_org.id}
         )
-        import_path = move_pulp_archive(default_sat, module_org, export['message'])
-
-        # check that files are present in import_path
-        result = default_sat.execute(f'ls {import_path}')
-        assert result.stdout != ''
+        # Verify export directory is not empty
+        assert validate_filepath(default_sat, module_org) != ''
 
     @pytest.mark.tier3
     def test_postive_import_export_cv_with_file_content(
