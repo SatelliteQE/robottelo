@@ -229,7 +229,6 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        pass
         self.org = module_org
         client = rex_contenthost
         template_file = 'template_file.txt'
