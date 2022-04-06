@@ -21,6 +21,7 @@ import csv
 import os
 import random
 import re
+from datetime import datetime
 
 import pytest
 import yaml
@@ -1393,6 +1394,7 @@ def test_positive_global_registration_end_to_end(
             {
                 'general.operating_system': module_os.title,
                 'advanced.activation_keys': module_activation_key.name,
+                'advanced.update_packages': True,
                 'advanced.rex_interface': iface,
                 'general.insecure': True,
             }
@@ -1402,7 +1404,9 @@ def test_positive_global_registration_end_to_end(
         f'activation_keys={module_activation_key.name}',
         f'location_id={smart_proxy_location.id}',
         f'operatingsystem_id={module_os.id}',
+        f'{module_proxy.name}',
         'insecure',
+        'update_packages=true',
     ]
     for pair in expected_pairs:
         assert pair in cmd
@@ -1416,7 +1420,11 @@ def test_positive_global_registration_end_to_end(
         assert result.status == 0
         result = client.execute('subscription-manager identity')
         assert result.status == 0
-        # Connect to host via ip
+        # Assert that a yum update was made this day ("Update" or "I, U" in history)
+        result = client.execute('yum history | grep U')
+        assert result.status == 0
+        assert datetime.utcnow().strftime('%Y-%m-%d') in result.stdout
+        # Set "Connect to host using IP address"
         Host.set_parameter(
             {
                 'host': client.hostname,
