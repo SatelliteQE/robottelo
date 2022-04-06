@@ -217,7 +217,8 @@ def vm(repos_collection, rhel7_contenthost, default_sat):
 
 
 @pytest.mark.tier3
-def test_end_to_end(session, module_org, module_repos_col, vm, default_sat):
+@pytest.mark.parametrize('setting_update', ['remote_execution_by_default'], indirect=True)
+def test_end_to_end(session, module_org, module_repos_col, vm, default_sat, setting_update):
     """Create all entities required for errata, set up applicable host,
     read errata details and apply it to host
 
@@ -227,6 +228,10 @@ def test_end_to_end(session, module_org, module_repos_col, vm, default_sat):
         installation is successful
 
     :parametrized: yes
+
+    :BZ: 2029192
+
+    :customerscenario: true
 
     :CaseLevel: System
     """
@@ -251,6 +256,8 @@ def test_end_to_end(session, module_org, module_repos_col, vm, default_sat):
     assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE)
     value = 'has type = security'
     with session:
+        property_value = 'Yes'
+        session.settings.update(f'name = {setting_update.name}', property_value)  # BZ 2029192
         # Check selection box function for BZ#1688636
         session.location.select(loc_name=DEFAULT_LOC)
         assert session.errata.search(value, applicable=True)[0]['Errata ID']
@@ -272,11 +279,12 @@ def test_end_to_end(session, module_org, module_repos_col, vm, default_sat):
             == ERRATA_PACKAGES['module_stream_packages']
         )
         assert (
-            errata['repositories']['table'][0]['Name']
+            errata['repositories']['table'][-1]['Name']
             == module_repos_col.custom_repos_info[-1]['name']
         )
         assert (
-            errata['repositories']['table'][0]['Product'] == module_repos_col.custom_product['name']
+            errata['repositories']['table'][-1]['Product']
+            == module_repos_col.custom_product['name']
         )
         status = session.contenthost.install_errata(
             vm.hostname, CUSTOM_REPO_ERRATA_ID, install_via='rex'
@@ -478,7 +486,8 @@ def test_positive_apply_for_all_hosts(session, module_org, module_repos_col, def
         nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:
-            module_repos_col.setup_virtual_machine(client, default_sat)
+            module_repos_col.setup_virtual_machine(client, default_sat, install_katello_agent=False)
+            client.add_rex_key(satellite=default_sat)
             assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE)
         with session:
             session.location.select(loc_name=DEFAULT_LOC)
@@ -547,7 +556,7 @@ def test_positive_filter_by_environment(session, module_org, module_repos_col, d
         nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:
-            module_repos_col.setup_virtual_machine(client, default_sat)
+            module_repos_col.setup_virtual_machine(client, default_sat, install_katello_agent=False)
             assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
         # Promote the latest content view version to a new lifecycle environment
         content_view = entities.ContentView(
@@ -720,53 +729,6 @@ def test_positive_content_host_search_type(session, erratatype_vm):
         assert errata_ids == sorted(FAKE_11_YUM_ENHANCEMENT_ERRATUM)
 
 
-@pytest.mark.skip_if_open("BZ:1655130")
-@pytest.mark.tier3
-def test_positive_content_host_errata_details(session, erratatype_vm, module_org, test_name):
-    """Read for errata details on a content_host by user with only viewer permission
-
-    :id: 236de56f-8035-4072-b0fa-03abbf3fc692
-
-    :customerscenario: true
-
-    :Steps:
-
-        1. Content Host with applicable security errata.
-        2. Create a User with 'Viewer' Permission.
-        3. Go to Content Hosts -> Select content host -> Errata Tab -> Select Errata_Id.
-
-    :expectedresults: The errata details page should be displayed for User.
-
-    :BZ: 1655130
-
-    :CaseLevel: Integration
-    """
-    login = gen_string('alpha')
-    password = gen_string('alpha')
-    viewer_role = entities.Role().search(query={'search': 'name="Viewer"'})
-    default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
-    default_loc = entities.Location(id=default_loc_id).read()
-
-    entities.User(
-        role=viewer_role,
-        login=login,
-        password=password,
-        default_location=default_loc,
-        organization=[module_org],
-    ).create()
-
-    pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-    assert _install_client_package(erratatype_vm, pkgs, errata_applicability=True)
-
-    with Session(test_name, login, password) as session:
-        session.organization.select(org_name=module_org.name)
-        erratum_details = session.contenthost.read_errata_details(
-            erratatype_vm.hostname, errata_id=CUSTOM_REPO_ERRATA_ID
-        )
-        assert erratum_details['advisory'] == CUSTOM_REPO_ERRATA_ID
-        assert erratum_details['type'] == 'security'
-
-
 @pytest.mark.tier3
 def test_positive_show_count_on_content_host_page(session, module_org, erratatype_vm):
     """Available errata count displayed in Content hosts page
@@ -852,10 +814,10 @@ def test_positive_show_count_on_content_host_details_page(session, module_org, e
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.skip_if_open('BZ:2013093')
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+@pytest.mark.parametrize('setting_update', ['errata_status_installable'], indirect=True)
 def test_positive_filtered_errata_status_installable_param(
-    session, errata_status_installable, default_sat
+    session, errata_status_installable, default_sat, setting_update
 ):
     """Filter errata for specific content view and verify that host that
     was registered using that content view has different states in
@@ -877,7 +839,7 @@ def test_positive_filtered_errata_status_installable_param(
 
     :expectedresults: Check that 'errata status installable' flag works as intended
 
-    :BZ: 1368254
+    :BZ: 1368254, 2013093
 
     :CaseImportance: Medium
 
@@ -918,7 +880,8 @@ def test_positive_filtered_errata_status_installable_param(
         with session:
             session.organization.select(org_name=org.name)
             session.location.select(loc_name=DEFAULT_LOC)
-            _set_setting_value(errata_status_installable, True)
+            property_value = 'Yes'
+            session.settings.update(f'name = {setting_update.name}', property_value)
             expected_values = {
                 'Status': 'OK',
                 'Errata': 'All errata applied',
@@ -932,14 +895,18 @@ def test_positive_filtered_errata_status_installable_param(
             }
             for key in actual_values:
                 assert expected_values[key] in actual_values[key], 'Expected text not found'
-            _set_setting_value(errata_status_installable, False)
+            property_value = 'Yes'
+            session.settings.update(f'name = {setting_update.name}', property_value)
+            assert _install_client_package(
+                client, FAKE_9_YUM_OUTDATED_PACKAGES[1], errata_applicability=True
+            )
             expected_values = {
                 'Status': 'Error',
-                'Errata': 'Security errata applicable',
+                'Errata': 'Security errata installable',
                 'Subscription': 'Fully entitled',
             }
-            # navigate to host main page by making a search, to refresh the host details page
-            session.host.search(client.hostname)
+            # Refresh the host page to get the new details
+            session.browser.refresh()
             host_details_values = session.host.get_details(client.hostname)
             actual_values = {
                 key: value
