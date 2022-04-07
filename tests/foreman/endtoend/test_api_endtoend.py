@@ -58,6 +58,7 @@ API_PATHS = {
         '/katello/api/activation_keys/:id/remove_subscriptions',
     ),
     'ansible_collections': (
+        '/katello/api/ansible_collections',
         '/katello/api/ansible_collections/compare',
         '/katello/api/ansible_collections/:id',
     ),
@@ -146,6 +147,7 @@ API_PATHS = {
         '/katello/api/capsules/:id/content/sync',
         '/katello/api/capsules/:id/content/sync',
         '/katello/api/capsules/:id/content/sync',
+        '/katello/api/capsules/:id/reclaim_space',
     ),
     'capsules': ('/katello/api/capsules', '/katello/api/capsules/:id'),
     'common_parameters': (
@@ -174,7 +176,7 @@ API_PATHS = {
         '/api/compute_resources/:id',
         '/api/compute_resources/:id',
         '/api/compute_resources/:id',
-        '/api/compute_resources/:id/associate',
+        '/api/compute_resources/:id/associate/:vm_id',
         '/api/compute_resources/:id/available_clusters',
         '/api/compute_resources/:id/available_clusters/:cluster_id/available_resource_pools',
         '/api/compute_resources/:id/available_flavors',
@@ -201,13 +203,6 @@ API_PATHS = {
         '/foreman_virt_who_configure/api/v2/configs/:id',
         '/foreman_virt_who_configure/api/v2/configs/:id',
         '/foreman_virt_who_configure/api/v2/configs/:id/deploy_script',
-    ),
-    'config_groups': (
-        '/api/config_groups',
-        '/api/config_groups',
-        '/api/config_groups/:id',
-        '/api/config_groups/:id',
-        '/api/config_groups/:id',
     ),
     'config_reports': (
         '/api/config_reports',
@@ -264,6 +259,8 @@ API_PATHS = {
         '/katello/api/content_views/:content_view_id/filters/:id',
         '/katello/api/content_views/:content_view_id/filters/:id',
         '/katello/api/content_views/:content_view_id/filters/:id',
+        '/katello/api/content_views/:content_view_id/filters/:id/remove_filter_rules',
+        '/katello/api/content_views/:content_view_id/filters/:id/add_filter_rules',
     ),
     'content_views': (
         '/katello/api/content_views/:id',
@@ -273,6 +270,7 @@ API_PATHS = {
         '/katello/api/content_views/:id/environments/:environment_id',
         '/katello/api/content_views/:id/publish',
         '/katello/api/content_views/:id/remove',
+        '/katello/api/content_views/:id/remove_filters',
         '/katello/api/organizations/:organization_id/content_views',
         '/katello/api/organizations/:organization_id/content_views',
     ),
@@ -329,14 +327,6 @@ API_PATHS = {
         '/api/domains/:id',
         '/api/domains/:id',
     ),
-    'environments': (
-        '/api/environments',
-        '/api/environments',
-        '/api/environments/:id',
-        '/api/environments/:id',
-        '/api/environments/:id',
-        '/api/smart_proxies/:id/import_puppetclasses',
-    ),
     'errata': (
         '/katello/api/errata/compare',
         '/katello/api/errata/:id',
@@ -350,7 +340,7 @@ API_PATHS = {
         '/api/usergroups/:usergroup_id/external_usergroups/:id/refresh',
     ),
     'fact_values': ('/api/fact_values',),
-    'file_units': ('/katello/api/files/compare', '/katello/api/files/:id'),
+    'file_units': ('/katello/api/files', '/katello/api/files/compare', '/katello/api/files/:id'),
     'filters': (
         '/api/filters',
         '/api/filters',
@@ -376,13 +366,14 @@ API_PATHS = {
         '/foreman_tasks/api/tasks/callback',
         '/foreman_tasks/api/tasks/summary',
     ),
+    'generic_content_units': (
+        '/katello/api/content_units',
+        '/katello/api/content_units/:id',
+        '/katello/api/content_units/compare',
+        '/katello/api/ostree_refs',
+    ),
     'home': ('/api', '/api/status'),
     'host_autocomplete': (),
-    'host_classes': (
-        '/api/hosts/:host_id/puppetclass_ids',
-        '/api/hosts/:host_id/puppetclass_ids',
-        '/api/hosts/:host_id/puppetclass_ids/:id',
-    ),
     'host_collections': (
         '/katello/api/host_collections',
         '/katello/api/host_collections',
@@ -395,6 +386,7 @@ API_PATHS = {
     ),
     'host_debs': ('/api/hosts/:host_id/debs',),
     'host_module_streams': ('/api/hosts/:host_id/module_streams',),
+    'host_statuses': ('/api/host_statuses',),
     'host_subscriptions': (
         '/api/hosts/:host_id/subscriptions',
         '/api/hosts/:host_id/subscriptions',
@@ -408,11 +400,6 @@ API_PATHS = {
     'host_tracer': (
         '/api/hosts/:host_id/traces',
         '/api/hosts/:host_id/traces/resolve',
-    ),
-    'hostgroup_classes': (
-        '/api/hostgroups/:hostgroup_id/puppetclass_ids',
-        '/api/hostgroups/:hostgroup_id/puppetclass_ids',
-        '/api/hostgroups/:hostgroup_id/puppetclass_ids/:id',
     ),
     'hostgroups': (
         '/api/hostgroups',
@@ -497,6 +484,11 @@ API_PATHS = {
         '/api/compute_resources/:compute_resource_id/images/:id',
         '/api/compute_resources/:compute_resource_id/images/:id',
         '/api/compute_resources/:compute_resource_id/images/:id',
+    ),
+    'instance_hosts': (
+        '/api/instance_hosts',
+        '/api/instance_hosts/:host_id',
+        '/api/instance_hosts/:host_id',
     ),
     'inventory': (
         '/api/organizations/:organization_id/rh_cloud/report',
@@ -591,6 +583,7 @@ API_PATHS = {
         '/katello/api/organizations/:id/repo_discover',
         '/katello/api/organizations/:label/cancel_repo_discover',
         '/katello/api/organizations/:label/download_debug_certificate',
+        '/katello/api/organizations/:id/cdn_configuration',
     ),
     'os_default_templates': (
         '/api/operatingsystems/:operatingsystem_id/os_default_templates',
@@ -598,10 +591,6 @@ API_PATHS = {
         '/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
         '/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
         '/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
-    ),
-    'ostree_branches': (
-        '/katello/api/ostree_branches/:id',
-        '/katello/api/ostree_branches/compare',
     ),
     'oval_contents': (
         '/api/compliance/oval_contents',
@@ -659,6 +648,11 @@ API_PATHS = {
         '/api/compliance/policies/:id/content',
         '/api/compliance/policies/:id/tailoring',
     ),
+    'preupgrade_reports': (
+        '/api/preupgrade_reports',
+        '/api/preupgrade_reports/:id',
+        '/api/job_invocations/:id/preupgrade_reports',
+    ),
     'products_bulk_actions': (
         '/katello/api/products/bulk/destroy',
         '/katello/api/products/bulk/http_proxy',
@@ -684,7 +678,6 @@ API_PATHS = {
         '/api/provisioning_templates/build_pxe_default',
         '/api/provisioning_templates/import',
     ),
-    'puppet_hosts': ('/api/hosts/:id/puppetrun',),
     'ptables': (
         '/api/ptables',
         '/api/ptables',
@@ -694,13 +687,6 @@ API_PATHS = {
         '/api/ptables/:id/clone',
         '/api/ptables/:id/export',
         '/api/ptables/import',
-    ),
-    'puppetclasses': (
-        '/api/puppetclasses',
-        '/api/puppetclasses',
-        '/api/puppetclasses/:id',
-        '/api/puppetclasses/:id',
-        '/api/puppetclasses/:id',
     ),
     'realms': (
         '/api/realms',
@@ -720,13 +706,6 @@ API_PATHS = {
         '/api/remote_execution_features',
         '/api/remote_execution_features/:id',
         '/api/remote_execution_features/:id',
-    ),
-    'override_values': (
-        '/api/smart_class_parameters/:smart_class_parameter_id/override_values',
-        '/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
-        '/api/smart_class_parameters/:smart_class_parameter_id/override_values',
-        '/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
-        '/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
     ),
     'scap_content_profiles': ('/api/compliance/scap_content_profiles',),
     'simple_content_access': (
@@ -752,6 +731,7 @@ API_PATHS = {
     'repositories_bulk_actions': (
         '/katello/api/repositories/bulk/destroy',
         '/katello/api/repositories/bulk/sync',
+        '/katello/api/repositories/bulk/reclaim_space',
     ),
     'repositories': (
         '/katello/api/repositories',
@@ -759,7 +739,6 @@ API_PATHS = {
         '/katello/api/repositories/:id',
         '/katello/api/repositories/:id',
         '/katello/api/repositories/:id',
-        '/katello/api/repositories/:id/export',
         '/katello/api/repositories/:id/gpg_key_content',
         '/katello/api/repositories/:id/import_uploads',
         '/katello/api/repositories/:id/republish',
@@ -767,6 +746,8 @@ API_PATHS = {
         '/katello/api/repositories/:id/upload_content',
         '/katello/api/repositories/repository_types',
         '/katello/api/repositories/:id/verify_checksum',
+        '/katello/api/content_types',
+        '/katello/api/repositories/:id/reclaim_space',
     ),
     'repository_sets': (
         '/katello/api/repository_sets',
@@ -794,19 +775,18 @@ API_PATHS = {
         '/api/compliance/scap_contents/bulk_upload',
     ),
     'settings': ('/api/settings', '/api/settings/:id', '/api/settings/:id'),
-    'smart_class_parameters': (
-        '/api/smart_class_parameters',
-        '/api/smart_class_parameters/:id',
-        '/api/smart_class_parameters/:id',
-    ),
     'smart_proxies': (
         '/api/smart_proxies',
         '/api/smart_proxies',
         '/api/smart_proxies/:id',
         '/api/smart_proxies/:id',
         '/api/smart_proxies/:id',
-        '/api/smart_proxies/:id/import_puppetclasses',
         '/api/smart_proxies/:id/refresh',
+    ),
+    'smart_proxy_hosts': (
+        '/api/smart_proxies/:smart_proxy_id/hosts',
+        '/api/smart_proxies/:smart_proxy_id/hosts/:host_id',
+        '/api/smart_proxies/:smart_proxy_id/hosts/:host_id',
     ),
     'srpms': ('/katello/api/srpms/:id', '/katello/api/srpms/compare'),
     'ssh_keys': (
@@ -882,12 +862,6 @@ API_PATHS = {
         '/katello/api/organizations/:organization_id/upstream_subscriptions',
         '/katello/api/organizations/:organization_id/upstream_subscriptions',
         '/katello/api/organizations/:organization_id/upstream_subscriptions/ping',
-        '/katello/api/organizations/:organization_id/upstream_subscriptions/'
-        'simple_content_access/eligible',
-        '/katello/api/organizations/:organization_id/upstream_subscriptions/'
-        'simple_content_access/enable',
-        '/katello/api/organizations/:organization_id/upstream_subscriptions/'
-        'simple_content_access/disable',
     ),
     'usergroups': (
         '/api/usergroups',
