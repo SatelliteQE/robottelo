@@ -14,7 +14,7 @@ When testing email validation [1] and [2] should be taken into consideration.
 
 :CaseComponent: UsersRoles
 
-:Assignee: dsynk
+:Assignee: sganar
 
 :TestType: Functional
 
