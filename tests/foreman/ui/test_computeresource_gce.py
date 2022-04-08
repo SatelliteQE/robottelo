@@ -8,7 +8,7 @@
 
 :CaseComponent: ComputeResources-GCE
 
-:Assignee: lvrtelov
+:Assignee: addubey
 
 :TestType: Functional
 
