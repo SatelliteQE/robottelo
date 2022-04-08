@@ -127,7 +127,7 @@ def test_positive_all_options(default_sat):
             differences[command] = diff
 
     if differences:
-        pytest.fail(format_commands_diff(diff))
+        pytest.fail(format_commands_diff(differences))
 
 
 @pytest.mark.upgrade
