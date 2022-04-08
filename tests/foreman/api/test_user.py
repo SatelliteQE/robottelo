@@ -12,7 +12,7 @@ http://<satellite-host>/apidoc/v2/users.html
 
 :CaseComponent: UsersRoles
 
-:Assignee: dsynk
+:Assignee: sganar
 
 :TestType: Functional
 
