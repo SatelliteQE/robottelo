@@ -7,7 +7,7 @@
 
 :CaseComponent: ComputeResources-OpenStack
 
-:Assignee: lvrtelov
+:Assignee: sganar
 
 :TestType: Functional
 
