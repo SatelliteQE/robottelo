@@ -936,8 +936,8 @@ class TestAnsibleREX:
 class TestRexUsers:
     """Tests related to remote execution users"""
 
-    @pytest.fixture(scope='module')
-    def module_rexmanager_user(self, module_org):
+    @pytest.fixture(scope='class')
+    def class_rexmanager_user(self, module_org):
         """Creates a user with Remote Execution Manager role"""
         password = gen_string('alpha')
         rexmanager = gen_string('alpha')
@@ -945,8 +945,8 @@ class TestRexUsers:
         User.add_role({'login': rexmanager, 'role': 'Remote Execution Manager'})
         yield (rexmanager, password)
 
-    @pytest.fixture(scope='module')
-    def module_rexinfra_user(self, module_org):
+    @pytest.fixture(scope='class')
+    def class_rexinfra_user(self, module_org):
         """Creates a user with all Remote Execution related permissions"""
         password = gen_string('alpha')
         rexinfra = gen_string('alpha')
