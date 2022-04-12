@@ -47,10 +47,6 @@ from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
-from robottelo.products import RepositoryCollection
-from robottelo.products import RHELAnsibleEngineRepository
-from robottelo.products import SatelliteToolsRepository
-from robottelo.products import YumRepository
 from robottelo.virtwho_utils import create_fake_hypervisor_content
 
 if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
@@ -69,53 +65,18 @@ def module_org():
     return org
 
 
-@pytest.fixture(scope='module')
-def repos_collection(module_org):
-    """Adds required repositories, AK, LCE and CV for content host testing"""
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7,
-        repositories=[
-            RHELAnsibleEngineRepository(cdn=True),
-            SatelliteToolsRepository(),
-            YumRepository(url=settings.repos.yum_1.url),
-            YumRepository(url=settings.repos.yum_6.url),
-        ],
-    )
-    repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
-    return repos_collection
-
-
-@pytest.fixture(scope='module')
-def repos_collection_for_module_streams(module_org):
-    """Adds required repositories, AK, LCE and CV for content host testing for
-    module streams"""
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL8,
-        repositories=[
-            YumRepository(url=settings.repos.rhel8_os.baseos),
-            YumRepository(url=settings.repos.rhel8_os.appstream),
-            YumRepository(url=settings.repos.satutils_repo),
-            YumRepository(url=settings.repos.module_stream_1.url),
-        ],
-    )
-    repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
-    return repos_collection
-
-
 @pytest.fixture
-def vm(repos_collection, rhel7_contenthost, target_sat):
+def vm(module_repos_collection_with_manifest, rhel7_contenthost, target_sat):
     """Virtual machine registered in satellite"""
-    repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
+    module_repos_collection_with_manifest.setup_virtual_machine(rhel7_contenthost, target_sat)
     rhel7_contenthost.add_rex_key(target_sat)
     yield rhel7_contenthost
 
 
 @pytest.fixture
-def vm_module_streams(repos_collection_for_module_streams, rhel8_contenthost, target_sat):
+def vm_module_streams(module_repos_collection_with_manifest, rhel8_contenthost, target_sat):
     """Virtual machine registered in satellite without katello-agent installed"""
-    repos_collection_for_module_streams.setup_virtual_machine(
+    module_repos_collection_with_manifest.setup_virtual_machine(
         rhel8_contenthost, target_sat, install_katello_agent=False
     )
     rhel8_contenthost.add_rex_key(satellite=target_sat)
@@ -146,7 +107,22 @@ def module_host_template(module_org, module_location):
 
 
 @pytest.mark.tier3
-def test_positive_end_to_end(session, default_location, repos_collection, vm):
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
+def test_positive_end_to_end(session, default_location, module_repos_collection_with_manifest, vm):
     """Create all entities required for content host, set up host, register it
     as a content host, read content host details, install package and errata.
 
@@ -177,24 +153,23 @@ def test_positive_end_to_end(session, default_location, repos_collection, vm):
         assert chost['details']['name'] == vm.hostname
         assert (
             chost['details']['content_view']
-            == repos_collection.setup_content_data['content_view']['name']
+            == module_repos_collection_with_manifest.setup_content_data['content_view']['name']
         )
-        lce_name = repos_collection.setup_content_data['lce']['name']
+        lce_name = module_repos_collection_with_manifest.setup_content_data['lce']['name']
         assert chost['details']['lce'][lce_name][lce_name]
-        assert (
-            chost['details']['registered_by']
-            == f'Activation Key {repos_collection.setup_content_data["activation_key"]["name"]}'
-        )
+        ak_name = module_repos_collection_with_manifest.setup_content_data["activation_key"]["name"]
+        assert chost['details']['registered_by'] == f'Activation Key {ak_name}'
         assert chost['provisioning_details']['name'] == vm.hostname
-        assert repos_collection.custom_product['name'] in {
+        assert module_repos_collection_with_manifest.custom_product['name'] in {
             repo['Repository Name'] for repo in chost['subscriptions']['resources']['assigned']
         }
         actual_repos = {repo['Repository Name'] for repo in chost['repository_sets']['table']}
         expected_repos = {
-            repos_collection.repos_data[repo_index].get(
-                'repository-set', repos_collection.repos_info[repo_index]['name']
+            module_repos_collection_with_manifest.repos_data[repo_index].get(
+                'repository-set',
+                module_repos_collection_with_manifest.repos_info[repo_index]['name'],
             )
-            for repo_index in range(len(repos_collection.repos_info))
+            for repo_index in range(len(module_repos_collection_with_manifest.repos_info))
         }
         assert actual_repos == expected_repos
         # Update description
@@ -226,6 +201,21 @@ def test_positive_end_to_end(session, default_location, repos_collection, vm):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_positive_end_to_end_bulk_update(session, default_location, vm, target_sat):
     """Create VM, set up VM as host, register it as a content host,
     read content host details, install a package ( e.g. walrus-0.71) and
@@ -297,6 +287,21 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm, target_s
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_positive_search_by_subscription_status(session, default_location, vm):
     """Register host into the system and search for it afterwards by
     subscription status
@@ -333,6 +338,21 @@ def test_positive_search_by_subscription_status(session, default_location, vm):
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_positive_toggle_subscription_status(session, default_location, vm):
     """Register host into the system, assert subscription status valid,
     toggle status off and on again using CLI and assert status is updated in web UI.
@@ -375,6 +395,21 @@ def test_positive_toggle_subscription_status(session, default_location, vm):
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_negative_install_package(session, default_location, vm):
     """Attempt to install non-existent package to a host remotely
 
@@ -400,6 +435,21 @@ def test_negative_install_package(session, default_location, vm):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_positive_remove_package(session, default_location, vm):
     """Remove a package from a host remotely
 
@@ -423,6 +473,21 @@ def test_positive_remove_package(session, default_location, vm):
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_positive_upgrade_package(session, default_location, vm):
     """Upgrade a host package remotely
 
@@ -447,6 +512,21 @@ def test_positive_upgrade_package(session, default_location, vm):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_positive_install_package_group(session, default_location, vm):
     """Install a package group to a host remotely
 
@@ -472,6 +552,21 @@ def test_positive_install_package_group(session, default_location, vm):
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_positive_remove_package_group(session, default_location, vm):
     """Remove a package group from a host remotely
 
@@ -495,6 +590,21 @@ def test_positive_remove_package_group(session, default_location, vm):
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_positive_search_errata_non_admin(
     session, default_location, vm, test_name, default_viewer_role
 ):
@@ -526,6 +636,21 @@ def test_positive_search_errata_non_admin(
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_positive_ensure_errata_applicability_with_host_reregistered(session, default_location, vm):
     """Ensure that errata remain available to install when content host is
     re-registered
@@ -573,8 +698,23 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, de
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_positive_host_re_registration_with_host_rename(
-    session, default_location, module_org, repos_collection, vm
+    session, default_location, module_org, module_repos_collection_with_manifest, vm
 ):
     """Ensure that content host should get re-registered after change in the hostname
 
@@ -607,7 +747,9 @@ def test_positive_host_re_registration_with_host_rename(
     assert result.status == 0
     vm.register_contenthost(
         module_org.name,
-        activation_key=repos_collection.setup_content_data['activation_key']['name'],
+        activation_key=module_repos_collection_with_manifest.setup_content_data['activation_key'][
+            'name'
+        ],
     )
     assert result.status == 0
     with session:
@@ -618,6 +760,21 @@ def test_positive_host_re_registration_with_host_rename(
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 @pytest.mark.upgrade
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_positive_check_ignore_facts_os_setting(session, default_location, vm, module_org, request):
     """Verify that 'Ignore facts for operating system' setting works
     properly
@@ -777,6 +934,21 @@ def test_positive_virt_who_hypervisor_subscription_status(
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL8,
+            'YumRepository': [
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
+                {'url': settings.repos.module_stream_1.url},
+            ],
+        }
+    ],
+    indirect=True,
+)
 def test_module_stream_actions_on_content_host(session, default_location, vm_module_streams):
     """Check remote execution for module streams actions e.g. install, remove, disable
     works on content host. Verify that correct stream module stream
@@ -886,6 +1058,21 @@ def test_module_stream_actions_on_content_host(session, default_location, vm_mod
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL8,
+            'YumRepository': [
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
+                {'url': settings.repos.module_stream_1.url},
+            ],
+        }
+    ],
+    indirect=True,
+)
 def test_module_streams_customize_action(session, default_location, vm_module_streams):
     """Check remote execution for customized module action is working on content host.
 
@@ -938,6 +1125,21 @@ def test_module_streams_customize_action(session, default_location, vm_module_st
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL8,
+            'YumRepository': [
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
+                {'url': settings.repos.module_stream_1.url},
+            ],
+        }
+    ],
+    indirect=True,
+)
 def test_install_modular_errata(session, default_location, vm_module_streams):
     """Populate, Search and Install Modular Errata generated from module streams.
 
@@ -1002,6 +1204,21 @@ def test_install_modular_errata(session, default_location, vm_module_streams):
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL8,
+            'YumRepository': [
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
+                {'url': settings.repos.module_stream_1.url},
+            ],
+        }
+    ],
+    indirect=True,
+)
 def test_module_status_update_from_content_host_to_satellite(
     session, default_location, vm_module_streams, module_org
 ):
@@ -1054,6 +1271,21 @@ def test_module_status_update_from_content_host_to_satellite(
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL8,
+            'YumRepository': [
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
+                {'url': settings.repos.module_stream_1.url},
+            ],
+        }
+    ],
+    indirect=True,
+)
 def test_module_status_update_without_force_upload_package_profile(
     session, default_location, vm_module_streams
 ):
@@ -1125,6 +1357,21 @@ def test_module_status_update_without_force_upload_package_profile(
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL8,
+            'YumRepository': [
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
+                {'url': settings.repos.module_stream_1.url},
+            ],
+        }
+    ],
+    indirect=True,
+)
 def test_module_stream_update_from_satellite(session, default_location, vm_module_streams):
     """Verify module stream enable, update actions works and update the module stream
 
@@ -1187,6 +1434,21 @@ def test_module_stream_update_from_satellite(session, default_location, vm_modul
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL8,
+            'YumRepository': [
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
+                {'url': settings.repos.module_stream_1.url},
+            ],
+        }
+    ],
+    indirect=True,
+)
 def test_syspurpose_attributes_empty(session, default_location, vm_module_streams):
     """
     Test if syspurpose attributes are displayed as empty
@@ -1215,6 +1477,21 @@ def test_syspurpose_attributes_empty(session, default_location, vm_module_stream
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL8,
+            'YumRepository': [
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
+                {'url': settings.repos.module_stream_1.url},
+            ],
+        }
+    ],
+    indirect=True,
+)
 def test_set_syspurpose_attributes_cli(session, default_location, vm_module_streams):
     """
     Test that UI shows syspurpose attributes set by the syspurpose tool on a registered host.
@@ -1246,6 +1523,21 @@ def test_set_syspurpose_attributes_cli(session, default_location, vm_module_stre
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL8,
+            'YumRepository': [
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
+                {'url': settings.repos.module_stream_1.url},
+            ],
+        }
+    ],
+    indirect=True,
+)
 def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_streams):
     """
     Test that previously set syspurpose attributes are correctly set
@@ -1281,6 +1573,21 @@ def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_st
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL8,
+            'YumRepository': [
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
+                {'url': settings.repos.module_stream_1.url},
+            ],
+        }
+    ],
+    indirect=True,
+)
 def test_syspurpose_matched(session, default_location, vm_module_streams):
     """
     Test that syspurpose status is set as 'Matched' if auto-attach
@@ -1309,6 +1616,21 @@ def test_syspurpose_matched(session, default_location, vm_module_streams):
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_syspurpose_bulk_action(session, default_location, vm):
     """
     Set system purpose parameters via bulk action
@@ -1340,6 +1662,21 @@ def test_syspurpose_bulk_action(session, default_location, vm):
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': DISTRO_RHEL8,
+            'YumRepository': [
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
+                {'url': settings.repos.module_stream_1.url},
+            ],
+        }
+    ],
+    indirect=True,
+)
 def test_syspurpose_mismatched(session, default_location, vm_module_streams):
     """
     Test that syspurpose status is 'Mismatched' if a syspurpose attribute
@@ -1461,9 +1798,7 @@ def test_search_for_virt_who_hypervisors(session, default_location):
 @pytest.mark.destructive
 @pytest.mark.run_in_one_thread
 @pytest.mark.upgrade
-def test_content_access_after_stopped_foreman(
-    foreman_service_teardown, rhel7_contenthost, target_sat
-):
+def test_content_access_after_stopped_foreman(foreman_service_teardown, rhel7_contenthost):
     """Install a package even after foreman service is stopped
 
     :id: 71ae6a56-30bb-11eb-8489-d46d6dd3b5b2
@@ -1490,22 +1825,20 @@ def test_content_access_after_stopped_foreman(
         organization=org.id,
     ).create()
     lce = sat.api.LifecycleEnvironment(organization=org).create()
-    with sat:  # ensure the context section only uses this satellite
-        repos_collection = RepositoryCollection(
-            distro=DISTRO_RHEL7,
-            repositories=[
-                RHELAnsibleEngineRepository(cdn=True),
-                SatelliteToolsRepository(),
-                YumRepository(url=settings.repos.yum_1.url),
-                YumRepository(url=settings.repos.yum_6.url),
-            ],
-        )
-        repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-        repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
+    repos_collection = foreman_service_teardown.cli_factory.RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[
+            foreman_service_teardown.cli_factory.SatelliteToolsRepository(),
+            foreman_service_teardown.cli_factory.YumRepository(url=settings.repos.yum_1.url),
+            foreman_service_teardown.cli_factory.YumRepository(url=settings.repos.yum_6.url),
+        ],
+    )
+    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
     result = rhel7_contenthost.execute(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
-    assert target_sat.execute('systemctl stop foreman').status == 0
-    result = target_sat.execute('satellite-maintain service status --only=foreman')
+    assert foreman_service_teardown.execute('systemctl stop foreman').status == 0
+    result = foreman_service_teardown.execute('satellite-maintain service status --only=foreman')
     assert result.status == 1
     result = rhel7_contenthost.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')
     assert result.status == 0

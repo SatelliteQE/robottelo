@@ -23,7 +23,6 @@ from robottelo import ssh
 from robottelo.api.utils import configure_provisioning
 from robottelo.api.utils import create_discovered_host
 from robottelo.libvirt_discovery import LibvirtGuest
-from robottelo.products import RHELRepository
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
@@ -53,13 +52,13 @@ def discovery_location(module_location):
 
 
 @pytest.fixture(scope='module')
-def provisioning_env(discovery_org, discovery_location):
+def provisioning_env(module_target_sat, discovery_org, discovery_location):
     # Build PXE default template to get default PXE file
-    entities.ProvisioningTemplate().build_pxe_default()
+    module_target_sat.cli.ProvisioningTemplate().build_pxe_default()
     return configure_provisioning(
         org=discovery_org,
         loc=discovery_location,
-        os='Redhat {}'.format(RHELRepository().repo_data['version']),
+        os='Redhat {}'.format(module_target_sat.cli_factory.RHELRepository().repo_data['version']),
     )
 
 

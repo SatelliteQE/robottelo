@@ -26,9 +26,6 @@ from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.datafactory import gen_string
-from robottelo.products import RepositoryCollection
-from robottelo.products import SatelliteToolsRepository
-from robottelo.products import YumRepository
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -193,8 +190,19 @@ def test_positive_task_status(session):
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.parametrize(
+    'repos_collection',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'SatelliteToolsRepository': {},
+            'YumRepository': {'url': settings.repos.yum_6.url},
+        },
+    ],
+    indirect=True,
+)
 def test_positive_user_access_with_host_filter(
-    test_name, module_location, rhel7_contenthost, target_sat
+    test_name, module_location, rhel7_contenthost, target_sat, repos_collection
 ):
     """Check if user with necessary host permissions can access dashboard
     and required widgets are rendered with proper values
@@ -244,10 +252,6 @@ def test_positive_user_access_with_host_filter(
     with Session(test_name, user=user_login, password=user_password) as session:
         assert session.dashboard.read('HostConfigurationStatus')['total_count'] == 0
         assert len(session.dashboard.read('LatestErrata')['erratas']) == 0
-        repos_collection = RepositoryCollection(
-            distro=DISTRO_RHEL7,
-            repositories=[SatelliteToolsRepository(), YumRepository(url=settings.repos.yum_6.url)],
-        )
         repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
         repos_collection.setup_virtual_machine(
             rhel7_contenthost, target_sat, location_title=module_location.name

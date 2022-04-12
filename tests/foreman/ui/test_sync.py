@@ -32,9 +32,6 @@ from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
-from robottelo.products import RepositoryCollection
-from robottelo.products import RHELCloudFormsTools
-from robottelo.products import SatelliteCapsuleRepository
 
 
 @pytest.fixture(scope='module')
@@ -76,7 +73,7 @@ def test_positive_sync_custom_repo(session, module_custom_product):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_sync_rh_repos(session, module_org_with_manifest):
+def test_positive_sync_rh_repos(session, target_sat, module_org_with_manifest):
     """Create Content RedHat Sync with two repos.
 
     :id: e30f6509-0b65-4bcc-a522-b4f3089d3911
@@ -85,10 +82,13 @@ def test_positive_sync_rh_repos(session, module_org_with_manifest):
 
     :CaseLevel: Integration
     """
-    repos = (SatelliteCapsuleRepository(cdn=True), RHELCloudFormsTools(cdn=True))
+    repos = (
+        target_sat.cli_factory.SatelliteCapsuleRepository(cdn=True),
+        target_sat.cli_factory.RHELCloudFormsTools(cdn=True),
+    )
     distros = [DISTRO_RHEL7, DISTRO_RHEL6]
     repo_collections = [
-        RepositoryCollection(distro=distro, repositories=[repo])
+        target_sat.cli_factory.RepositoryCollection(distro=distro, repositories=[repo])
         for distro, repo in zip(distros, repos)
     ]
     for repo_collection in repo_collections:

@@ -63,11 +63,6 @@ from robottelo.constants import REPOSET
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.datafactory import gen_string
-from robottelo.products import DockerRepository
-from robottelo.products import RepositoryCollection
-from robottelo.products import SatelliteToolsRepository
-from robottelo.products import VirtualizationAgentsRepository
-from robottelo.products import YumRepository
 
 VERSION = 'Version 1.0'
 
@@ -1302,7 +1297,7 @@ def test_positive_promote_composite_with_custom_content(session):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-def test_positive_publish_rh_content_with_errata_by_date_filter(session):
+def test_positive_publish_rh_content_with_errata_by_date_filter(session, target_sat):
     """Publish a CV, containing only RH repo, having errata excluding by
     date filter
 
@@ -1321,8 +1316,8 @@ def test_positive_publish_rh_content_with_errata_by_date_filter(session):
     version = 'Version 2.0'
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL6, repositories=[VirtualizationAgentsRepository()]
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
+        distro=DISTRO_RHEL6, repositories=[target_sat.cli_factory.VirtualizationAgentsRepository()]
     )
     repos_collection.setup_content(
         org.id, lce.id, download_policy='immediate', upload_manifest=True
@@ -1423,7 +1418,7 @@ def test_positive_remove_cv_version_from_default_env(session, module_org):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_promoted_cv_version_from_default_env(session, module_org):
+def test_positive_remove_promoted_cv_version_from_default_env(session, module_org, target_sat):
     """Remove promoted content view version from Library environment
 
     :id: a8649444-b063-4fb4-b932-a3fae7d4021d
@@ -1445,9 +1440,9 @@ def test_positive_remove_promoted_cv_version_from_default_env(session, module_or
 
     :CaseImportance: High
     """
-    repo = RepositoryCollection(
+    repo = target_sat.cli_factory.RepositoryCollection(
         repositories=[
-            YumRepository(url=settings.repos.yum_0.url),
+            target_sat.cli_factory.YumRepository(url=settings.repos.yum_0.url),
         ]
     )
     repo.setup(module_org.id)
@@ -1469,7 +1464,7 @@ def test_positive_remove_promoted_cv_version_from_default_env(session, module_or
 
 
 @pytest.mark.tier2
-def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module_org):
+def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module_org, target_sat):
     """Remove QE promoted content view version from Library environment
 
     :id: 71ad8b72-68c4-4c98-9387-077f54ef0184
@@ -1492,9 +1487,11 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
     """
     dev_lce = entities.LifecycleEnvironment(organization=module_org).create()
     qe_lce = entities.LifecycleEnvironment(organization=module_org, prior=dev_lce).create()
-    repo = RepositoryCollection(
+    repo = target_sat.cli_factory.RepositoryCollection(
         repositories=[
-            DockerRepository(url=CONTAINER_REGISTRY_HUB, upstream_name=CONTAINER_UPSTREAM_NAME)
+            target_sat.cli_factory.DockerRepository(
+                url=CONTAINER_REGISTRY_HUB, upstream_name=CONTAINER_UPSTREAM_NAME
+            )
         ]
     )
     repo.setup(module_org.id)
@@ -1522,7 +1519,21 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_cv_version_from_env(session, module_org):
+@pytest.mark.parametrize(
+    'repos_collection',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'YumRepository': {'url': settings.repos.yum_0.url},
+            'DockerRepository': {
+                'url': CONTAINER_REGISTRY_HUB,
+                'upstream_name': CONTAINER_UPSTREAM_NAME,
+            },
+        }
+    ],
+    indirect=True,
+)
+def test_positive_remove_cv_version_from_env(session, module_org, repos_collection):
     """Remove promoted content view version from environment
 
     :id: d1da23ee-a5db-4990-9572-1a0919a9fe1c
@@ -1546,18 +1557,14 @@ def test_positive_remove_cv_version_from_env(session, module_org):
     """
     dev_lce = entities.LifecycleEnvironment(organization=module_org).create()
     qe_lce = entities.LifecycleEnvironment(organization=module_org, prior=dev_lce).create()
-    repos = RepositoryCollection(
-        repositories=[
-            YumRepository(url=settings.repos.yum_0.url),
-            DockerRepository(url=CONTAINER_REGISTRY_HUB, upstream_name=CONTAINER_UPSTREAM_NAME),
-        ]
-    )
-    repos.setup(module_org.id)
-    yum_repo_name = [repo['name'] for repo in repos.repos_info if repo['content-type'] == 'yum'][0]
-    docker_repo_name = [
-        repo['name'] for repo in repos.repos_info if repo['content-type'] == 'docker'
+    repos_collection.setup(module_org.id)
+    yum_repo_name = [
+        repo['name'] for repo in repos_collection.repos_info if repo['content-type'] == 'yum'
     ][0]
-    cv, lce = repos.setup_content_view(module_org.id, dev_lce.id)
+    docker_repo_name = [
+        repo['name'] for repo in repos_collection.repos_info if repo['content-type'] == 'docker'
+    ][0]
+    cv, lce = repos_collection.setup_content_view(module_org.id, dev_lce.id)
     cvv = entities.ContentView(id=cv['id']).read().version[0]
     promote(cvv, qe_lce.id)
     with session:
@@ -1584,7 +1591,7 @@ def test_positive_remove_cv_version_from_env(session, module_org):
 @pytest.mark.upgrade
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
+def test_positive_delete_cv_promoted_to_multi_env(session, module_org, target_sat):
     """Delete published content view with version promoted to multiple
      environments
 
@@ -1605,7 +1612,9 @@ def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
 
     :CaseImportance:High
     """
-    repo = RepositoryCollection(repositories=[YumRepository(url=settings.repos.yum_0.url)])
+    repo = target_sat.cli_factory.RepositoryCollection(
+        repositories=[target_sat.cli_factory.YumRepository(url=settings.repos.yum_0.url)]
+    )
     repo.setup(module_org.id)
     cv, lce = repo.setup_content_view(module_org.id)
     repo_name = repo.repos_info[0]['name']
@@ -1975,7 +1984,7 @@ def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_package_from_exclusion_filter(session, module_org):
+def test_positive_remove_package_from_exclusion_filter(session, module_org, target_sat):
     """Remove package from content view exclusion filter
 
     :id: 2f0adc16-2305-4adf-8582-82e6110fa385
@@ -1989,7 +1998,9 @@ def test_positive_remove_package_from_exclusion_filter(session, module_org):
     """
     filter_name = gen_string('alpha')
     package_name = 'cow'
-    repo = RepositoryCollection(repositories=[YumRepository(url=settings.repos.yum_1.url)])
+    repo = target_sat.cli_factory.RepositoryCollection(
+        repositories=[target_sat.cli_factory.YumRepository(url=settings.repos.yum_1.url)]
+    )
     repo.setup(module_org.id)
     cv, lce = repo.setup_content_view(module_org.id)
     with session:
@@ -2144,7 +2155,7 @@ def test_positive_update_exclusive_filter_package_version(session, module_org):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_all_security_errata_by_date_range_filter(session, module_org):
+def test_positive_add_all_security_errata_by_date_range_filter(session, module_org, target_sat):
     """Create erratum date range filter to include only security errata and
     publish new content view version
 
@@ -2158,7 +2169,9 @@ def test_positive_add_all_security_errata_by_date_range_filter(session, module_o
     filter_name = gen_string('alphanumeric')
     start_date = datetime.date(2010, 1, 1)
     end_date = datetime.date.today()
-    repo = RepositoryCollection(repositories=[YumRepository(url=settings.repos.yum_9.url)])
+    repo = target_sat.cli_factory.RepositoryCollection(
+        repositories=[target_sat.cli_factory.YumRepository(url=settings.repos.yum_9.url)]
+    )
     repo.setup(module_org.id)
     cv, lce = repo.setup_content_view(module_org.id)
     with session:
@@ -2193,7 +2206,7 @@ def test_positive_add_all_security_errata_by_date_range_filter(session, module_o
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
-def test_positive_edit_rh_custom_spin(session):
+def test_positive_edit_rh_custom_spin(session, target_sat):
     """Edit content views for a custom rh spin.  For example, modify a filter.
 
     :id: 05639074-ef6d-4c6b-8ff6-53033821e686
@@ -2210,8 +2223,8 @@ def test_positive_edit_rh_custom_spin(session):
     end_date = datetime.date(2016, 6, 1)
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
+        distro=DISTRO_RHEL7, repositories=[target_sat.cli_factory.SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
@@ -2254,7 +2267,7 @@ def test_positive_edit_rh_custom_spin(session):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_promote_with_rh_custom_spin(session):
+def test_positive_promote_with_rh_custom_spin(session, target_sat):
     """attempt to promote a content view containing a custom RH
     spin - i.e., contains filters.
 
@@ -2269,8 +2282,8 @@ def test_positive_promote_with_rh_custom_spin(session):
     filter_name = gen_string('alpha')
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
+        distro=DISTRO_RHEL7, repositories=[target_sat.cli_factory.SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
@@ -2587,7 +2600,20 @@ def test_positive_publish_with_repo_with_disabled_http(session, module_org):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthost, target_sat):
+@pytest.mark.parametrize(
+    'repos_collection',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'SatelliteToolsRepository': {},
+            'YumRepository': {'url': settings.repos.yum_0.url},
+        }
+    ],
+    indirect=True,
+)
+def test_positive_subscribe_system_with_custom_content(
+    session, rhel7_contenthost, target_sat, repos_collection
+):
     """Attempt to subscribe a host to content view with custom repository
 
     :id: 715db997-707b-4868-b7cc-b6977fd6ac04
@@ -2604,10 +2630,6 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
     """
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7,
-        repositories=[SatelliteToolsRepository(), YumRepository(url=settings.repos.yum_0.url)],
-    )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
     assert rhel7_contenthost.subscribed
@@ -2886,8 +2908,9 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
     cvv = entities.ContentView(id=cv.id).read().version[0]
     promote(cvv, lce.id)
     # Setup tools repo and add it to ak
-    repos_collection = RepositoryCollection(
-        distro=constants.DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
+        distro=constants.DISTRO_RHEL7,
+        repositories=[target_sat.cli_factory.SatelliteToolsRepository()],
     )
     content_data = repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     # adding custom repo subscription to ak

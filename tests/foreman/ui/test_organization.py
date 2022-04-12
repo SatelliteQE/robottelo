@@ -27,20 +27,18 @@ from robottelo.constants import LIBVIRT_RESOURCE_URL
 from robottelo.logging import logger
 from robottelo.manifests import original_manifest
 from robottelo.manifests import upload_manifest_locked
-from robottelo.products import RepositoryCollection
-from robottelo.products import YumRepository
 
 CUSTOM_REPO_ERRATA_ID = settings.repos.yum_0.errata[0]
 
 
 @pytest.fixture(scope='module')
-def module_repos_col(module_org, module_lce, module_target_sat, request):
+def module_repos_col(module_org, module_lce, module_target_sat, request, target_sat):
     upload_manifest_locked(org_id=module_org.id)
-    repos_collection = RepositoryCollection(
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
         repositories=[
             # As Satellite Tools may be added as custom repo and to have a "Fully entitled" host,
             # force the host to consume an RH product with adding a cdn repo.
-            YumRepository(url=settings.repos.yum_0.url),
+            target_sat.cli_factory.YumRepository(url=settings.repos.yum_0.url),
         ],
     )
     repos_collection.setup_content(module_org.id, module_lce.id)
@@ -330,7 +328,9 @@ def test_positive_errata_view_organization_switch(
 
     :CaseLevel: Integration
     """
-    rc = RepositoryCollection(repositories=[YumRepository(settings.repos.yum_3.url)])
+    rc = target_sat.cli_factory.RepositoryCollection(
+        repositories=[target_sat.cli_factory.YumRepository(settings.repos.yum_3.url)]
+    )
     rc.setup_content(module_org.id, module_lce.id)
     with session:
         assert (

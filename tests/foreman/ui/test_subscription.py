@@ -37,8 +37,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
-from robottelo.products import RepositoryCollection
-from robottelo.products import RHELAnsibleEngineRepository
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_manifest')]
 
@@ -298,8 +296,9 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, tar
     """
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7, repositories=[RHELAnsibleEngineRepository(cdn=True)]
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)],
     )
     product_name = repos_collection.rh_repos[0].data['product']
     repos_collection.setup_content(
@@ -359,7 +358,7 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     provisioning_server = settings.libvirt.libvirt_hostname
-    rh_product_repository = RHELAnsibleEngineRepository(cdn=True)
+    rh_product_repository = target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)
     product_name = rh_product_repository.data['product']
     # Create a new virt-who config
     virt_who_config = make_virt_who_config(

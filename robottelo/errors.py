@@ -19,3 +19,29 @@ class ImproperlyConfigured(Exception):
 
 class InvalidVaultURLForOIDC(Exception):
     """Raised if the vault doesnt allows OIDC login"""
+
+
+class RepositoryAlreadyDefinedError(Exception):
+    """Raised when a repository has already a predefined key"""
+
+
+class DistroNotSupportedError(Exception):
+    """Raised when using a non supported distro"""
+
+
+class RepositoryDataNotFound(Exception):
+    """Raised when repository data cannot be found for a predefined distro"""
+
+
+class OnlyOneOSRepositoryAllowed(Exception):
+    """Raised when trying to more than one OS repository to a collection"""
+
+
+class RepositoryAlreadyCreated(Exception):
+    """Raised when a repository content is already created and trying to launch
+    the create an other time"""
+
+
+class ReposContentSetupWasNotPerformed(Exception):
+    """Raised when trying to setup a VM but the repositories content was not
+    setup"""
