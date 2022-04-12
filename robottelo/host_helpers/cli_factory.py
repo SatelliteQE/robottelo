@@ -29,6 +29,7 @@ from robottelo import manifests
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
+from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
 
 
 class CLIFactoryError(Exception):
@@ -246,6 +247,7 @@ class CLIFactory:
 
     def __init__(self, satellite):
         self._satellite = satellite
+        self.__dict__.update(initiate_repo_helpers(self._satellite))
 
     def __getattr__(self, name):
         """We intercept the usual attribute behavior on this class to emulate make_entity methods

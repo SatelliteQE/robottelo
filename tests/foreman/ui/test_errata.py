@@ -45,11 +45,6 @@ from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
 from robottelo.hosts import ContentHost
 from robottelo.manifests import upload_manifest_locked
-from robottelo.products import RepositoryCollection
-from robottelo.products import RHELAnsibleEngineRepository
-from robottelo.products import SatelliteToolsRepository
-from robottelo.products import VirtualizationAgentsRepository
-from robottelo.products import YumRepository
 
 
 CUSTOM_REPO_URL = settings.repos.yum_9.url
@@ -125,59 +120,13 @@ def lce(org):
     return entities.LifecycleEnvironment(organization=org).create()
 
 
-@pytest.fixture(scope='module')
-def module_repos_col(module_org, module_lce):
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7,
-        repositories=[
-            SatelliteToolsRepository(),
-            # As Satellite Tools may be added as custom repo and to have a "Fully entitled" host,
-            # force the host to consume an RH product with adding a cdn repo.
-            RHELAnsibleEngineRepository(cdn=True),
-            YumRepository(url=CUSTOM_REPO_URL),
-        ],
-    )
-    repos_collection.setup_content(module_org.id, module_lce.id)
-    return repos_collection
-
-
-@pytest.fixture(scope='module')
-def module_rhva_repos_col(module_org, module_lce):
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL6,
-        repositories=[
-            YumRepository(url=CUSTOM_REPO_URL),
-            VirtualizationAgentsRepository(cdn=True),
-        ],
-    )
-    repos_collection.setup_content(module_org.id, module_lce.id)
-    return repos_collection
-
-
-@pytest.fixture(scope='module')
-def module_erratatype_repos_col(module_org, module_lce):
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7,
-        repositories=[
-            SatelliteToolsRepository(),
-            # As Satellite Tools may be added as custom repo and to have a "Fully entitled" host,
-            # force the host to consume an RH product with adding a cdn repo.
-            RHELAnsibleEngineRepository(cdn=True),
-            # add a repo with errata of different types (security, advisory, etc)
-            YumRepository(url=settings.repos.yum_9.url),
-        ],
-    )
-    repos_collection.setup_content(module_org.id, module_lce.id)
-    return repos_collection
-
-
 @pytest.fixture
-def erratatype_vm(module_erratatype_repos_col, target_sat):
-    """Virtual machine client using module_erratatype_repos_col for subscription"""
+def erratatype_vm(module_repos_collection_with_setup, target_sat):
+    """Virtual machine client using module_repos_collection_with_setup for subscription"""
     with Broker(
-        nick=module_erratatype_repos_col.distro, host_classes={'host': ContentHost}
+        nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}
     ) as client:
-        module_erratatype_repos_col.setup_virtual_machine(client, target_sat)
+        module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
         yield client
 
 
@@ -192,33 +141,31 @@ def errata_status_installable():
     _set_setting_value(errata_status_installable, original_value)
 
 
-@pytest.fixture(scope='module')
-def repos_collection(module_org):
-    """Adds required repositories, AK, LCE and CV for content host testing"""
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7,
-        repositories=[
-            RHELAnsibleEngineRepository(cdn=True),
-            SatelliteToolsRepository(),
-            YumRepository(url=settings.repos.yum_9.url),
-        ],
-    )
-    repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
-    return repos_collection
-
-
 @pytest.fixture(scope='function')
-def vm(repos_collection, rhel7_contenthost, target_sat):
+def vm(module_repos_collection_with_setup, rhel7_contenthost, target_sat):
     """Virtual machine registered in satellite"""
-    repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(rhel7_contenthost, target_sat)
     rhel7_contenthost.add_rex_key(satellite=target_sat)
     yield rhel7_contenthost
 
 
 @pytest.mark.tier3
 @pytest.mark.parametrize('setting_update', ['remote_execution_by_default'], indirect=True)
-def test_end_to_end(session, module_org, module_repos_col, vm, target_sat, setting_update):
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'SatelliteToolsRepository': {},
+            'RHELAnsibleEngineRepository': {},
+            'YumRepository': {'url': CUSTOM_REPO_URL},
+        }
+    ],
+    indirect=True,
+)
+def test_end_to_end(
+    session, module_org, module_repos_collection_with_setup, vm, target_sat, setting_update
+):
     """Create all entities required for errata, set up applicable host,
     read errata details and apply it to host
 
@@ -280,11 +227,11 @@ def test_end_to_end(session, module_org, module_repos_col, vm, target_sat, setti
         )
         assert (
             errata['repositories']['table'][-1]['Name']
-            == module_repos_col.custom_repos_info[-1]['name']
+            == module_repos_collection_with_setup.custom_repos_info[-1]['name']
         )
         assert (
             errata['repositories']['table'][-1]['Product']
-            == module_repos_col.custom_product['name']
+            == module_repos_collection_with_setup.custom_product['name']
         )
         status = session.contenthost.install_errata(
             vm.hostname, CUSTOM_REPO_ERRATA_ID, install_via='rex'
@@ -331,11 +278,11 @@ def test_content_host_errata_page_pagination(session, org, lce, target_sat):
     :CaseLevel: System
     """
     pkgs = ' '.join(FAKE_3_YUM_OUTDATED_PACKAGES)
-    repos_collection = RepositoryCollection(
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro=DISTRO_RHEL7,
         repositories=[
-            SatelliteToolsRepository(),
-            YumRepository(url=settings.repos.yum_3.url),
+            target_sat.cli_factory.SatelliteToolsRepository(),
+            target_sat.cli_factory.YumRepository(url=settings.repos.yum_3.url),
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
@@ -384,8 +331,7 @@ def test_content_host_errata_page_pagination(session, org, lce, target_sat):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-@pytest.mark.usefixtures('module_repos_col')
-def test_positive_list(session, org, lce):
+def test_positive_list(session, org, lce, target_sat):
     """View all errata in an Org
 
     :id: 71c7a054-a644-4c1e-b304-6bc34ea143f4
@@ -402,7 +348,9 @@ def test_positive_list(session, org, lce):
 
     :CaseLevel: Integration
     """
-    rc = RepositoryCollection(repositories=[YumRepository(settings.repos.yum_3.url)])
+    rc = target_sat.cli_factory.RepositoryCollection(
+        repositories=[target_sat.cli_factory.YumRepository(settings.repos.yum_3.url)]
+    )
     rc.setup_content(org.id, lce.id)
     with session:
         assert (
@@ -419,7 +367,18 @@ def test_positive_list(session, org, lce):
 
 
 @pytest.mark.tier2
-def test_positive_list_permission(test_name, module_org, module_repos_col, module_rhva_repos_col):
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': DISTRO_RHEL6,
+            'VirtualizationAgentsRepository': {'cdn': True},
+            'YumRepository': {'url': CUSTOM_REPO_URL},
+        }
+    ],
+    indirect=True,
+)
+def test_positive_list_permission(test_name, module_org, module_repos_collection_with_setup):
     """Show errata only if the User has permissions to view them
 
     :id: cdb28f6a-23df-47a2-88ab-cd3b492126b2
@@ -463,7 +422,21 @@ def test_positive_list_permission(test_name, module_org, module_repos_col, modul
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_apply_for_all_hosts(session, module_org, module_repos_col, target_sat):
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'SatelliteToolsRepository': {},
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'YumRepository': {'url': CUSTOM_REPO_URL},
+        }
+    ],
+    indirect=True,
+)
+def test_positive_apply_for_all_hosts(
+    session, module_org, module_repos_collection_with_setup, target_sat
+):
     """Apply an erratum for all content hosts
 
     :id: d70a1bee-67f4-4883-a0b9-2ccc08a91738
@@ -483,10 +456,12 @@ def test_positive_apply_for_all_hosts(session, module_org, module_repos_col, tar
     :CaseLevel: System
     """
     with Broker(
-        nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
+        nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:
-            module_repos_col.setup_virtual_machine(client, target_sat, install_katello_agent=False)
+            module_repos_collection_with_setup.setup_virtual_machine(
+                client, target_sat, install_katello_agent=False
+            )
             client.add_rex_key(satellite=target_sat)
             assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE)
         with session:
@@ -506,7 +481,20 @@ def test_positive_apply_for_all_hosts(session, module_org, module_repos_col, tar
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_view_cve(session, module_repos_col, module_rhva_repos_col):
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'VirtualizationAgentsRepository': {'cdn': True, 'distro': DISTRO_RHEL6},
+            'YumRepository': {'url': CUSTOM_REPO_URL},
+            'SatelliteToolsRepository': {},
+            'RHELAnsibleEngineRepository': {'cdn': True},
+        }
+    ],
+    indirect=True,
+)
+def test_positive_view_cve(session, module_repos_collection_with_setup):
     """View CVE number(s) in Errata Details page
 
     :id: e1c2de13-fed8-448e-b618-c2adb6e82a35
@@ -534,7 +522,21 @@ def test_positive_view_cve(session, module_repos_col, module_rhva_repos_col):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_filter_by_environment(session, module_org, module_repos_col, target_sat):
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'SatelliteToolsRepository': {},
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'YumRepository': {'url': CUSTOM_REPO_URL},
+        }
+    ],
+    indirect=True,
+)
+def test_positive_filter_by_environment(
+    session, module_org, module_repos_collection_with_setup, target_sat
+):
     """Filter Content hosts by environment
 
     :id: 578c3a92-c4d8-4933-b122-7ff511c276ec
@@ -553,14 +555,16 @@ def test_positive_filter_by_environment(session, module_org, module_repos_col, t
     :CaseLevel: System
     """
     with Broker(
-        nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
+        nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:
-            module_repos_col.setup_virtual_machine(client, target_sat, install_katello_agent=False)
+            module_repos_collection_with_setup.setup_virtual_machine(
+                client, target_sat, install_katello_agent=False
+            )
             assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
         # Promote the latest content view version to a new lifecycle environment
         content_view = entities.ContentView(
-            id=module_repos_col.setup_content_data['content_view']['id']
+            id=module_repos_collection_with_setup.setup_content_data['content_view']['id']
         ).read()
         content_view_version = content_view.version[-1].read()
         lce = content_view_version.environment[-1].read()
@@ -594,7 +598,21 @@ def test_positive_filter_by_environment(session, module_org, module_repos_col, t
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_content_host_previous_env(session, module_org, module_repos_col, vm):
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'SatelliteToolsRepository': {},
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'YumRepository': {'url': CUSTOM_REPO_URL},
+        }
+    ],
+    indirect=True,
+)
+def test_positive_content_host_previous_env(
+    session, module_org, module_repos_collection_with_setup, vm
+):
     """Check if the applicable errata are available from the content
     host's previous environment
 
@@ -618,7 +636,7 @@ def test_positive_content_host_previous_env(session, module_org, module_repos_co
     assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
     # Promote the latest content view version to a new lifecycle environment
     content_view = entities.ContentView(
-        id=module_repos_col.setup_content_data['content_view']['id']
+        id=module_repos_collection_with_setup.setup_content_data['content_view']['id']
     ).read()
     content_view_version = content_view.version[-1].read()
     lce = content_view_version.environment[-1].read()
@@ -640,6 +658,18 @@ def test_positive_content_host_previous_env(session, module_org, module_repos_co
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'SatelliteToolsRepository': {},
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'YumRepository': {'url': CUSTOM_REPO_URL},
+        }
+    ],
+    indirect=True,
+)
 def test_positive_content_host_library(session, module_org, vm):
     """Check if the applicable errata are available from the content
     host's Library
@@ -670,6 +700,18 @@ def test_positive_content_host_library(session, module_org, vm):
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'SatelliteToolsRepository': {},
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'YumRepository': {'url': settings.repos.yum_9.url},
+        }
+    ],
+    indirect=True,
+)
 def test_positive_content_host_search_type(session, erratatype_vm):
     """Search for errata on a content host's errata tab by type.
 
@@ -730,6 +772,18 @@ def test_positive_content_host_search_type(session, erratatype_vm):
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'SatelliteToolsRepository': {},
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'YumRepository': {'url': settings.repos.yum_9.url},
+        }
+    ],
+    indirect=True,
+)
 def test_positive_show_count_on_content_host_page(session, module_org, erratatype_vm):
     """Available errata count displayed in Content hosts page
 
@@ -774,6 +828,18 @@ def test_positive_show_count_on_content_host_page(session, module_org, erratatyp
 
 
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'SatelliteToolsRepository': {},
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'YumRepository': {'url': settings.repos.yum_9.url},
+        }
+    ],
+    indirect=True,
+)
 def test_positive_show_count_on_content_host_details_page(session, module_org, erratatype_vm):
     """Errata count on Content host Details page
 
@@ -847,14 +913,14 @@ def test_positive_filtered_errata_status_installable_param(
     """
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    repos_collection = RepositoryCollection(
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro=DISTRO_RHEL7,
         repositories=[
-            SatelliteToolsRepository(),
+            target_sat.cli_factory.SatelliteToolsRepository(),
             # As Satellite Tools may be added as custom repo and to have a "Fully entitled" host,
             # force the host to consume an RH product with adding a cdn repo.
-            RHELAnsibleEngineRepository(cdn=True),
-            YumRepository(url=CUSTOM_REPO_URL),
+            target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True),
+            target_sat.cli_factory.YumRepository(url=CUSTOM_REPO_URL),
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
@@ -918,7 +984,21 @@ def test_positive_filtered_errata_status_installable_param(
 
 
 @pytest.mark.tier3
-def test_content_host_errata_search_commands(session, module_org, module_repos_col, target_sat):
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'SatelliteToolsRepository': {},
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'YumRepository': {'url': CUSTOM_REPO_URL},
+        }
+    ],
+    indirect=True,
+)
+def test_content_host_errata_search_commands(
+    session, module_org, module_repos_collection_with_setup, target_sat
+):
     """View a list of affected content hosts for security (RHSA) and bugfix (RHBA) errata,
     filtered with errata status and applicable flags. Applicability is calculated using the
     Library, but Installability is calculated using the attached CV, and is subject to the
@@ -945,10 +1025,10 @@ def test_content_host_errata_search_commands(session, module_org, module_repos_c
     :BZ: 1707335
     """
     with Broker(
-        nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
+        nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:
-            module_repos_col.setup_virtual_machine(client, target_sat)
+            module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
         # Install pkg walrus-0.71-1.noarch to create need for RHSA on client 1
         assert _install_client_package(
             clients[0], FAKE_1_CUSTOM_PACKAGE, errata_applicability=False

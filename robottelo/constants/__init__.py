@@ -330,6 +330,14 @@ MIRRORING_POLICIES = {
     'mirror_complete': "Complete Mirroring",
     'mirror_content_only': "Content Only",
 }
+
+PRODUCT_KEY_RHEL = 'rhel'
+PRODUCT_KEY_SAT_TOOLS = 'rhst'
+PRODUCT_KEY_SAT_CAPSULE = 'rhsc'
+PRODUCT_KEY_VIRT_AGENTS = 'rhva6'
+PRODUCT_KEY_CLOUD_FORMS_TOOLS = 'rhct6'
+PRODUCT_KEY_ANSIBLE_ENGINE = 'rhae2'
+
 HASH_TYPE = {'sha256': "SHA256", 'sha512': "SHA512", 'base64': "Base64", 'md5': "MD5"}
 
 REPO_TAB = {'rpms': "RPMs", 'kickstarts': "Kickstarts", 'isos': "ISOs", 'ostree': "OSTree"}

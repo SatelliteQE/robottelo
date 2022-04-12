@@ -33,8 +33,6 @@ from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.products import RepositoryCollection
-from robottelo.products import YumRepository
 
 pytestmark = [
     pytest.mark.run_in_one_thread,
@@ -703,15 +701,6 @@ def test_positive_incremental_update_required(
     'at this point'
 
 
-@pytest.fixture(scope='module')
-def repos_collection(module_org, module_lce):
-    repos_collection = RepositoryCollection(
-        distro=constants.DISTRO_RHEL8, repositories=[YumRepository(url=settings.repos.swid_tag.url)]
-    )
-    repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
-    return repos_collection
-
-
 def _run_remote_command_on_content_host(module_org, command, vm, return_result=False):
     result = vm.run(command)
     assert result.status == 0
@@ -738,8 +727,13 @@ def _validate_swid_tags_installed(module_org, vm, module_name):
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.pit_client
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [{'YumRepository': {'url': settings.repos.swid_tag.url, 'distro': constants.DISTRO_RHEL8}}],
+    indirect=True,
+)
 def test_errata_installation_with_swidtags(
-    module_org, module_lce, repos_collection, rhel8_contenthost, target_sat
+    module_org, module_lce, module_repos_collection_with_manifest, rhel8_contenthost, target_sat
 ):
     """Verify errata installation with swid_tags and swid tags get updated after
     module stream update.
@@ -778,7 +772,7 @@ def test_errata_installation_with_swidtags(
             'appstream': settings.repos.rhel8_os.appstream,
         }
     )
-    repos_collection.setup_virtual_machine(
+    module_repos_collection_with_manifest.setup_virtual_machine(
         rhel8_contenthost, target_sat, install_katello_agent=False
     )
 

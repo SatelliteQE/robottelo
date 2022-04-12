@@ -28,9 +28,6 @@ from robottelo.api.utils import update_vm_host_location
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
 from robottelo.hosts import ContentHost
-from robottelo.products import RepositoryCollection
-from robottelo.products import SatelliteToolsRepository
-from robottelo.products import YumRepository
 
 
 @pytest.fixture(scope='module')
@@ -52,24 +49,14 @@ def module_lce(module_org):
 
 
 @pytest.fixture(scope='module')
-def module_repos_collection(module_org, module_lce):
-    repos_collection = RepositoryCollection(
+def module_repos_collection(module_org, module_lce, target_sat):
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro=constants.DISTRO_DEFAULT,
         repositories=[
-            SatelliteToolsRepository(),
-            YumRepository(url=settings.repos.yum_1.url),
-            YumRepository(url=settings.repos.yum_6.url),
+            target_sat.cli_factory.SatelliteToolsRepository(),
+            target_sat.cli_factory.YumRepository(url=settings.repos.yum_1.url),
+            target_sat.cli_factory.YumRepository(url=settings.repos.yum_6.url),
         ],
-    )
-    repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
-    return repos_collection
-
-
-@pytest.fixture(scope='module')
-def module_repos_collection_module_stream(module_org, module_lce):
-    repos_collection = RepositoryCollection(
-        distro=constants.DISTRO_RHEL8,
-        repositories=[YumRepository(url=settings.repos.module_stream_1.url)],
     )
     repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
     return repos_collection
@@ -90,12 +77,12 @@ def vm_content_hosts(smart_proxy_location, module_repos_collection, target_sat):
 
 @pytest.fixture
 def vm_content_hosts_module_stream(
-    smart_proxy_location, module_repos_collection_module_stream, target_sat
+    smart_proxy_location, module_repos_collection_with_manifest, target_sat
 ):
-    distro = module_repos_collection_module_stream.distro
+    distro = constants.DISTRO_RHEL8
     with Broker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
-            module_repos_collection_module_stream.setup_virtual_machine(
+            module_repos_collection_with_manifest.setup_virtual_machine(
                 client, target_sat, install_katello_agent=False
             )
             client.add_rex_key(satellite=target_sat)
@@ -189,7 +176,7 @@ def _get_content_repository_urls(repos_collection, lce, content_view, target_sat
     # add sat-tool rh repo
     # Note: if sat-tools is not cdn it must be already in repos_urls
     for repo in repos_collection:
-        if isinstance(repo, SatelliteToolsRepository) and repo.cdn:
+        if isinstance(repo, target_sat.cli_factory.SatelliteToolsRepository) and repo.cdn:
             repos_urls.append(
                 '/'.join(
                     [
@@ -696,6 +683,18 @@ def test_negative_hosts_limit(session, module_org, smart_proxy_location):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'YumRepository': {
+                'url': settings.repos.module_stream_1.url,
+                'distro': constants.DISTRO_RHEL8,
+            }
+        }
+    ],
+    indirect=True,
+)
 def test_positive_install_module_stream(
     session, smart_proxy_location, vm_content_hosts_module_stream, vm_host_collection_module_stream
 ):
@@ -734,6 +733,18 @@ def test_positive_install_module_stream(
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'YumRepository': {
+                'url': settings.repos.module_stream_1.url,
+                'distro': constants.DISTRO_RHEL8,
+            }
+        }
+    ],
+    indirect=True,
+)
 def test_positive_install_modular_errata(
     session, smart_proxy_location, vm_content_hosts_module_stream, vm_host_collection_module_stream
 ):
