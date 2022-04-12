@@ -1,25 +1,14 @@
 """Usage: python scripts/validate_config.py"""
 from dynaconf.validator import ValidationError
 
+from robottelo.config import get_settings
+
 try:
     from robottelo.config import settings
 except Exception as err:
     print(f"Encountered the following exception, continuing for the sake of validation\n {err}")
 
-    from dynaconf import LazySettings
-    from robottelo.config.validators import VALIDATORS
-
-    settings = LazySettings(
-        envvar_prefix="ROBOTTELO",
-        core_loaders=["YAML"],
-        settings_file="settings.yaml",
-        preload=["conf/*.yaml"],
-        includes=["settings.local.yaml", ".secrets.yaml", ".secrets_*.yaml"],
-        envless_mode=True,
-        lowercase_read=True,
-    )
-
-    settings.validators.register(**VALIDATORS)
+    settings = get_settings()
 
 
 def binary_validation(validators):

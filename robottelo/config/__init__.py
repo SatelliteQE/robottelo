@@ -26,6 +26,7 @@ settings = LazySettings(
 )
 settings.validators.register(**VALIDATORS)
 
+
 try:
     settings.validators.validate()
 except ValidationError as err:
@@ -39,6 +40,14 @@ if not os.getenv('BROKER_DIRECTORY'):
 
 robottelo_tmp_dir = Path(settings.robottelo.tmp_dir)
 robottelo_tmp_dir.mkdir(parents=True, exist_ok=True)
+
+
+def get_settings():
+    """Return Lazy settings object before validation
+
+    :return: A raw Lazy settings object
+    """
+    return settings
 
 
 def get_credentials():
