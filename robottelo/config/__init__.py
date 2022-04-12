@@ -41,11 +41,6 @@ def get_settings():
 
 settings = get_settings()
 
-# try:
-#     settings.validators.validate()
-# except ValidationError as err:
-#     logger.warning(f'Dynaconf validation failed, continuing for the sake of unit tests\n{err}')
-
 
 if not os.getenv('BROKER_DIRECTORY'):
     # set the BROKER_DIRECTORY envar so broker knows where to operate from
