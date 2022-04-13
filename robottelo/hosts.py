@@ -1420,7 +1420,8 @@ class Satellite(Capsule, SatelliteMixins):
 
     def install_cockpit(self):
         cmd_result = self.execute(
-            'satellite-installer --enable-foreman-plugin-remote-execution-cockpit', timeout='30m'
+            'satellite-installer --no-colors --enable-foreman-plugin-remote-execution-cockpit',
+            timeout='30m',
         )
         if cmd_result.status != 0:
             raise SatelliteHostError(
