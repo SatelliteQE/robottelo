@@ -39,7 +39,7 @@ from robottelo.datafactory import xdist_adapter
 def test_negative_update_hostname_with_empty_fact():
     """Update the Hostname_facts settings without any string(empty values)
 
-    :id: 6694b064-f878-4770-8b93-79114ffbe8c2
+    :id: daca0746-75ad-42fb-97ed-6db0224eeeac
 
     :expectedresults: Error should be raised on setting empty value for hostname_facts setting
 
@@ -52,7 +52,7 @@ def test_negative_update_hostname_with_empty_fact():
 def test_positive_update_hostname_prefix_without_value(setting_update):
     """Update the Hostname_prefix settings without any string(empty values)
 
-    :id: 9898ab89-0b0c-4bc2-9e5a-d3b786e2812b
+    :id: a84c28ea-6821-4c31-b4ab-8662c22c9135
 
     :parametrized: yes
 
@@ -70,7 +70,7 @@ def test_positive_update_hostname_prefix_without_value(setting_update):
 def test_positive_update_hostname_default_prefix(setting_update):
     """Update the default set prefix of hostname_prefix setting
 
-    :id: 4a510053-f70d-4738-9f0c-38f6e0b81a4b
+    :id: a6e46e53-6273-406a-8009-f184d9551d66
 
     :parametrized: yes
 
@@ -89,7 +89,7 @@ def test_positive_update_hostname_default_facts():
     """Update the default set fact of hostname_facts setting with list of
     facts like: bios_vendor,uuid
 
-    :id: af0a7c98-5d6c-45c9-bf9f-886eaa3e8134
+    :id: 1042c5e2-ee4d-4eaf-a0b2-86c000a79dfb
 
     :expectedresults: Default set fact should be updated with facts list.
 
@@ -103,7 +103,7 @@ def test_negative_discover_host_with_invalid_prefix():
     """Update the hostname_prefix with invalid string like
     -mac, 1mac or ^%$
 
-    :id: 29519a3c-a03b-414a-8a7c-b6f1e5729f58
+    :id: 73c5da42-28c8-4be7-8fb1-f505fefd6665
 
     :expectedresults: Validation error should be raised on updating
         hostname_prefix with invalid string, should start with letter
@@ -117,7 +117,7 @@ def test_negative_discover_host_with_invalid_prefix():
 def test_positive_update_login_page_footer_text(setting_update):
     """Updates parameter "login_text" in settings
 
-    :id: f6548e06-51fa-4c36-b2a2-7ec14f25d548
+    :id: 4d4e1151-5bd6-4fa2-8dbb-e182b43ad7ec
 
     :steps:
 
@@ -140,7 +140,7 @@ def test_positive_update_login_page_footer_text(setting_update):
 def test_positive_update_login_page_footer_text_without_value(setting_update):
     """Updates parameter "login_text" without any string (empty value)
 
-    :id: 2e86892f-1864-4c01-99c7-dbfd34b1f079
+    :id: 01ce95de-2994-42b6-b9f8-f7882981fb69
 
     :steps:
 
@@ -163,7 +163,7 @@ def test_positive_update_login_page_footer_text_with_long_string(setting_update)
     """Attempt to update parameter "Login_page_footer_text"
         with long length string under General tab
 
-    :id: 6c10dcfa-5f96-4bb0-ba22-1994f8e92621
+    :id: 87ef6b19-fdc5-4541-aba8-e730f1a3caa7
 
     :steps:
         1. Execute "settings" command with "set" as sub-command
@@ -186,7 +186,7 @@ def test_positive_update_login_page_footer_text_with_long_string(setting_update)
 def test_positive_update_email_delivery_method_smtp():
     """Check Updating SMTP params through settings subcommand
 
-    :id: 4a21001e-5346-4fed-b8c6-8ba7428f72ca
+    :id: b26798e9-528c-4ed6-a09b-dc8e4668a8d7
 
     :steps:
         1. set "delivery_method" to smtp
@@ -213,7 +213,7 @@ def test_positive_update_email_delivery_method_smtp():
 def test_positive_update_email_delivery_method_sendmail(setting_update):
     """Check Updating Sendmail params through settings subcommand
 
-    :id: 63766859-20d5-4850-99c1-a94e47a8a32f
+    :id: 578de898-fde2-4957-b39a-9dd059f490bf
 
     :steps:
         1. set "delivery_method" to sendmail
@@ -243,7 +243,7 @@ def test_positive_update_email_delivery_method_sendmail(setting_update):
 def test_positive_update_email_reply_address(setting_update):
     """Check email reply address is updated
 
-    :id: 78ef106f-cdf1-4100-8e43-e0be227293d3
+    :id: cb0907d1-9cb6-45c4-b2bb-e2790ea55f16
 
     :parametrized: yes
 
@@ -267,7 +267,7 @@ def test_positive_update_email_reply_address(setting_update):
 def test_negative_update_email_reply_address(setting_update):
     """Check email reply address is not updated
 
-    :id: 3aebdf0a-7629-4a0a-af2e-58ad2cfcf83c
+    :id: 2a2220c2-badf-47d5-ba3f-e6329930ab39
 
     :steps: provide invalid email addresses
 
@@ -289,7 +289,7 @@ def test_negative_update_email_reply_address(setting_update):
 def test_positive_update_email_subject_prefix(setting_update):
     """Check email subject prefix is updated
 
-    :id: 8a79653e-31c4-4393-89f7-e63443261dbe
+    :id: c8e6b323-7b39-43d6-a9f1-5474f920bba2
 
     :parametrized: yes
 
@@ -310,7 +310,7 @@ def test_positive_update_email_subject_prefix(setting_update):
 def test_negative_update_email_subject_prefix(setting_update):
     """Check email subject prefix is not updated
 
-    :id: 4e5673f0-08f7-40bd-b3d2-dfe4d207c25e
+    :id: 8a638596-248f-4196-af36-ad2982196382
 
     :parametrized: yes
 
@@ -336,7 +336,7 @@ def test_negative_update_email_subject_prefix(setting_update):
 def test_positive_update_send_welcome_email(setting_update, send_welcome_email_value):
     """Check email send welcome email is updated
 
-    :id: 246fbfa9-3927-48bd-8028-36fb4c6d6587
+    :id: cdaf6cd0-5eea-4252-87c5-f9ec3ba79ac1
 
     :steps: valid values: boolean true or false
 
@@ -359,7 +359,7 @@ def test_positive_update_send_welcome_email(setting_update, send_welcome_email_v
 def test_positive_enable_disable_rssfeed(setting_update, rss_enable_value):
     """Check if the RSS feed can be enabled or disabled
 
-    :id: 764b872c-68aa-4d40-8fa9-9fb1430fb391
+    :id: 021cefab-2629-44e2-a30d-49c944d0a234
 
     :steps: Set rss_enable true or false
 
@@ -379,7 +379,7 @@ def test_positive_enable_disable_rssfeed(setting_update, rss_enable_value):
 def test_positive_update_rssfeed_url(setting_update):
     """Check if the RSS feed URL is updated
 
-    :id: bf9b2841-e86f-4419-94e5-c7dd699bcbe5
+    :id: 166ff6f2-e36e-4934-951f-b947139d0d73
 
     :steps:
         1. Save the original RSS URL
@@ -404,7 +404,7 @@ def test_positive_update_rssfeed_url(setting_update):
 def test_negative_update_send_welcome_email(value):
     """Check email send welcome email is updated
 
-    :id: 37963020-ff9a-404e-82ea-19199db890c7
+    :id: 2f75775d-72a1-4b2f-86c2-98c36e446099
 
     :parametrized: yes
 
@@ -428,7 +428,7 @@ def test_negative_update_send_welcome_email(value):
 def test_positive_failed_login_attempts_limit(setting_update, default_sat):
     """automate brute force protection limit configurable function
 
-    :id: 4b95d33c-0163-4c4e-8490-6135922155d8
+    :id: f95407ed-451b-4387-ac9b-2959ae2f51ae
 
     :steps:
        1. Make sure login works.
@@ -458,7 +458,7 @@ def test_positive_failed_login_attempts_limit(setting_update, default_sat):
     for _ in range(5):
         assert default_sat.execute(f'hammer -u {username} -p BAD_PASS user list').status == 129
     assert default_sat.execute(f'hammer -u {username} -p {password} user list').status == 129
-    sleep(301)
+    sleep(180)
     assert default_sat.execute(f'hammer -u {username} -p {password} user list').status == 0
     Settings.set({'name': 'failed_login_attempts_limit', 'value': '0'})
     assert Settings.info({'name': 'failed_login_attempts_limit'})['value'] == '0'

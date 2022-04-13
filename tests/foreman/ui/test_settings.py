@@ -377,7 +377,6 @@ def test_positive_update_email_delivery_method_sendmail(session, default_sat):
 
     :CaseLevel: Acceptance
     """
-    property_name = "Email"
     mail_config_default_param = {
         "delivery_method": "",
         "email_reply_address": "",
@@ -403,8 +402,7 @@ def test_positive_update_email_delivery_method_sendmail(session, default_sat):
         try:
             for mail_content, mail_content_value in mail_config_new_params.items():
                 session.settings.update(mail_content, mail_content_value)
-            test_mail_response = session.settings.send_test_mail(property_name)[0]
-            assert test_mail_response == "Email was sent successfully"
+            session.settings.send_test_mail(property_name)
             assert default_sat.execute(command).status == 0
         finally:
             for key, value in mail_config_default_param.items():
