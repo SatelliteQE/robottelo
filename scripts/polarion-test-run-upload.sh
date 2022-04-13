@@ -71,6 +71,7 @@ POLARION_SELECTOR="name=Satellite 6"
 TEST_RUN_GROUP_ID="$(echo ${TEST_RUN_ID} | cut -d' ' -f2 | cut -d'-' -f1)"
 
 set -x
+sed -i 's/\x1b/ESC/g' "${JUNIT_FILE}"
 betelgeuse ${TOKEN_PREFIX} test-run \
     --custom-fields "isautomated=true" \
     --custom-fields "arch=x8664" \
