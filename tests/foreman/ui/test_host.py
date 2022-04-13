@@ -1623,8 +1623,8 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
     :id: b5738b20-e281-4d0b-ac78-dcdc177b8c9f
 
-    :expectedresults: Host is successfully registered, gpg repo in enabled
-        and default package should get install.
+    :expectedresults: Host is successfully registered, gpg repo is enabled
+        and default package is installed.
 
     :CaseLevel: Integration
 
@@ -1668,6 +1668,55 @@ def test_global_registration_with_gpg_repo_and_default_package(
     result = client.execute(f'yum -v repolist {repo_name}')
     assert result.status == 0
     assert repo_url in result.stdout
+
+
+@pytest.mark.tier2
+def test_global_registration_upgrade_subscription_manager(
+    session, module_activation_key, module_os, module_proxy, rhel7_contenthost
+):
+    """Host registration form produces a correct registration command and
+    subscription-manager can be updated from ABI or custom repository before
+    registration is completed.
+
+    :id: b7a44f32-90b2-4fd6-b65b-5a3d2a5c5deb
+
+    :expectedresults: Host is successfully registered, repo is enabled
+        on advanced tab and subscription-manager is updated.
+
+    :CaseLevel: Integration
+
+    :steps:
+        1. Create activation-key
+        2. Open the global registration form, add repo and activation key
+        3. Add 'subscription-manager' to install packages field
+        4. Check subscription-manager was installed from repo_name
+
+    :parametrized: yes
+    """
+    client = rhel7_contenthost
+    repo_name = 'foreman_register'
+    repo_url = settings.repos.rhel7_os
+    # Ensure subs-man is installed from repo_name by removing existing package.
+    result = client.execute('rpm --erase subscription-manager')
+    assert result.status == 0
+    with session:
+        cmd = session.host.get_register_command(
+            {
+                'general.operating_system': module_os.title,
+                'advanced.activation_keys': module_activation_key.name,
+                'general.insecure': True,
+                'advanced.force': True,
+                'advanced.install_packages': 'subscription-manager',
+                'advanced.repository': repo_url,
+            }
+        )
+
+    # run curl
+    result = client.execute(cmd)
+    assert result.status == 0
+    result = client.execute('yum info subscription-manager | grep "From repo"')
+    assert repo_name in result.stdout
+    assert result.status == 0
 
 
 @pytest.mark.tier3
