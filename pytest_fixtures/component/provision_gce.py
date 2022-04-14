@@ -36,7 +36,7 @@ def gce_cert_puppet(session_puppet_enabled_sat):
         json.dump(cert, f)
     session_puppet_enabled_sat.put(gce_cert_file, settings.gce.cert_path)
     if session_puppet_enabled_sat.execute(f'[ -f {settings.gce.cert_path} ]').status != 0:
-        raise GCECertNotFoundError(
+        pytest.fail(
             f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
         )
     return cert

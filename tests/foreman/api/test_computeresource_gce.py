@@ -337,7 +337,6 @@ class TestGCEHostProvisioningTestCase:
 
         Later in tests this host will be used to perform assertions
         """
-        import ipdb;ipdb.set_trace()
         host = session_puppet_enabled_sat.api.Host(
             architecture=session_puppet_default_architecture,
             compute_attributes=self.compute_attrs,
