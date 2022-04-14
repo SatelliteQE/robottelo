@@ -65,6 +65,26 @@ def module_gce_finishimg(
     return finish_image
 
 
+@pytest.fixture(scope='module')
+def module_gce_finishimg_puppet(
+    session_puppet_enabled_sat,
+    session_puppet_default_architecture,
+    module_gce_compute_puppet,
+    session_puppet_default_os,
+    gce_latest_rhel_uuid,
+):
+    """Creates finish image on GCE Compute Resource"""
+    finish_image = session_puppet_enabled_sat.api.Image(
+        architecture=session_puppet_default_architecture,
+        compute_resource=module_gce_compute_puppet,
+        name=gen_string('alpha'),
+        operatingsystem=session_puppet_default_os,
+        username=finishuser,
+        uuid=gce_latest_rhel_uuid,
+    ).create()
+    return finish_image
+
+
 @pytest.fixture(scope='class')
 def gce_domain(module_org, module_location, default_smart_proxy, default_sat):
     """Sets Domain for GCE Host Provisioning"""
@@ -104,6 +124,37 @@ def gce_hostgroup(
         operatingsystem=default_os,
         organization=[module_org],
         ptable=default_partitiontable,
+    ).create()
+    return hgroup
+
+
+@pytest.fixture(scope='class')
+def gce_hostgroup_puppet(
+    session_puppet_enabled_sat,
+    session_puppet_default_architecture,
+    module_gce_compute_puppet,
+    module_puppet_domain,
+    module_puppet_loc,
+    module_puppet_environment,
+    session_puppet_enabled_proxy,
+    session_puppet_default_os,
+    module_puppet_org,
+    session_puppet_default_partition_table,
+    googleclient,
+):
+    """Sets Hostgroup for GCE Host Provisioning"""
+    hgroup = session_puppet_enabled_sat.api.HostGroup(
+        architecture=session_puppet_default_architecture,
+        compute_resource=module_gce_compute_puppet,
+        domain=module_puppet_domain,
+        location=[module_puppet_loc],
+        environment=module_puppet_environment,
+        puppet_proxy=session_puppet_enabled_proxy,
+        puppet_ca_proxy=session_puppet_enabled_proxy,
+        root_pass=gen_string('alphanumeric'),
+        operatingsystem=session_puppet_default_os,
+        organization=[module_puppet_org],
+        ptable=session_puppet_default_partition_table,
     ).create()
     return hgroup
 
@@ -249,16 +300,16 @@ class TestGCEHostProvisioningTestCase:
     """
 
     @pytest.fixture(scope='class', autouse=True)
-    def class_setup(self, request, gce_latest_rhel_uuid, gce_domain):
+    def class_setup(self, request, gce_latest_rhel_uuid, module_puppet_domain):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
         request.cls.mtype = 'g1-small'
         request.cls.network = 'default'
-        request.cls.volsize = '13'
+        request.cls.volsize = '20'
         request.cls.hostname = f'test{gen_string("alpha")}'
 
-        request.cls.fullhostname = f'{self.hostname}.{gce_domain.name}'.lower()
+        request.cls.fullhostname = f'{self.hostname}.{module_puppet_domain.name}'.lower()
 
         request.cls.compute_attrs = {
             'image_id': gce_latest_rhel_uuid,
@@ -271,31 +322,33 @@ class TestGCEHostProvisioningTestCase:
     @pytest.fixture(scope='class')
     def class_host(
         self,
+        session_puppet_enabled_sat,
         googleclient,
-        default_architecture,
-        gce_domain,
-        gce_hostgroup,
-        module_org,
-        default_os,
-        module_location,
+        session_puppet_default_architecture,
+        module_puppet_domain,
+        gce_hostgroup_puppet,
+        module_puppet_org,
+        session_puppet_default_os,
+        module_puppet_loc,
         gce_latest_rhel_uuid,
-        module_gce_finishimg,
+        module_gce_finishimg_puppet,
     ):
         """Provisions the host on GCE
 
         Later in tests this host will be used to perform assertions
         """
-        host = entities.Host(
-            architecture=default_architecture,
+        import ipdb;ipdb.set_trace()
+        host = session_puppet_enabled_sat.api.Host(
+            architecture=session_puppet_default_architecture,
             compute_attributes=self.compute_attrs,
-            domain=gce_domain,
-            hostgroup=gce_hostgroup,
-            organization=module_org,
-            operatingsystem=default_os,
-            location=module_location,
+            domain=module_puppet_domain,
+            hostgroup=gce_hostgroup_puppet,
+            organization=module_puppet_org,
+            operatingsystem=session_puppet_default_os,
+            location=module_puppet_loc,
             name=self.hostname,
             provision_method='image',
-            image=module_gce_finishimg,
+            image=module_gce_finishimg_puppet,
             root_pass=gen_string('alphanumeric'),
         ).create()
         yield host
@@ -328,7 +381,7 @@ class TestGCEHostProvisioningTestCase:
             3. The host should show Installed status for provisioned host
         """
         assert class_host.name == self.fullhostname
-        assert class_host.build_status_label == 'Installed clear'
+        assert class_host.build_status_label == 'Installed'
 
     @pytest.mark.tier3
     def test_positive_gce_host_ip(self, class_host, google_host):
