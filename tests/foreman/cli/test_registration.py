@@ -67,12 +67,11 @@ def test_upgrade_katello_ca_consumer_rpm(
     assert vm.execute('yum -y install rpm-build')
     # Install src to create the SPEC
     assert vm.execute(f'rpm -i {consumer_cert_src}')
-    # Edit version in spec file
-    assert vm.execute(f'sed -i "s/%{{release}}/2/" rpmbuild/SPECS/{spec_file}')
-    # Change name macro to real name as workaround to recursive macros issue
-    assert vm.execute(f'sed -i "s/%{{name}}/{consumer_cert_name}/" rpmbuild/SPECS/{spec_file}')
     # rpmbuild spec file
-    assert vm.execute(f'rpmbuild -ba rpmbuild/SPECS/{spec_file}')
+    assert vm.execute(
+        f'rpmbuild --define "name {consumer_cert_name}" --define "release 2" \
+        -ba rpmbuild/SPECS/{spec_file}'
+    )
     # Install new rpmbuild/RPMS/noarch/katello-ca-consumer-*-2.noarch.rpm
     assert vm.execute(f'yum install -y rpmbuild/RPMS/noarch/{new_consumer_cert_rpm}')
     # Check server URL is not Red Hat CDN's "subscription.rhsm.redhat.com"
