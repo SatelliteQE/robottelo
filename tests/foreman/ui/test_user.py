@@ -51,7 +51,7 @@ def test_positive_end_to_end(session, default_sat, test_name, module_org, module
     password = gen_string('alpha')
     email = gen_email()
     description = gen_string('alphanumeric')
-    language = 'English (United States)'
+    language = 'en'
     timezone = '(GMT+00:00) UTC'
     role = default_sat.api.Role().create().name
     with session:
