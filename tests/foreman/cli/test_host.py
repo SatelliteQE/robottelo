@@ -38,15 +38,12 @@ from robottelo.cli.factory import add_role_permissions
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_host
-from robottelo.cli.factory import make_proxy
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
 from robottelo.cli.host import HostInterface
 from robottelo.cli.host import HostTraces
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.package import Package
-from robottelo.cli.proxy import Proxy
-from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.config import settings
@@ -73,52 +70,25 @@ from robottelo.utils.issue_handlers import is_open
 @pytest.fixture(scope="module")
 def module_default_proxy(default_sat):
     """Use the default installation smart proxy"""
-    return Proxy.list({'search': f'url = {default_sat.url}:9090'})[0]
+    return default_sat.cli.Proxy.list({'search': f'url = {default_sat.url}:9090'})[0]
 
 
 @pytest.fixture(scope="function")
-def function_proxy():
-    proxy = make_proxy()
-    yield proxy
-    Proxy.delete({'id': proxy['id']})
-
-
-@pytest.fixture(scope="function")
-def function_host_content_source(
-    module_default_proxy, module_lce_library, module_org, module_published_cv
-):
-    host = make_fake_host(
-        {
-            'content-source-id': module_default_proxy['id'],
-            'content-view-id': module_published_cv.id,
-            'lifecycle-environment-id': module_lce_library.id,
-            'organization': module_org.name,
-        }
-    )
-    yield host
-    Host.delete({'id': host['id']})
-
-
-@pytest.fixture(scope="function")
-def function_host(module_default_proxy):
+def function_host():
     host_template = entities.Host()
     host_template.create_missing()
-    org_id = host_template.organization.id
-    loc_id = host_template.location.id
     # using CLI to create host
     host = make_host(
         {
             'architecture-id': host_template.architecture.id,
             'domain-id': host_template.domain.id,
-            'environment-id': host_template.environment.id,
-            'location-id': loc_id,
+            'location-id': host_template.location.id,
             'mac': host_template.mac,
             'medium-id': host_template.medium.id,
             'name': host_template.name,
             'operatingsystem-id': host_template.operatingsystem.id,
-            'organization-id': org_id,
+            'organization-id': host_template.organization.id,
             'partition-table-id': host_template.ptable.id,
-            'puppet-proxy-id': module_default_proxy['id'],
             'root-password': host_template.root_pass,
         }
     )
@@ -364,7 +334,6 @@ def test_positive_create_and_delete(module_lce_library, module_published_cv):
             'architecture-id': host.architecture.id,
             'content-view-id': module_published_cv.id,
             'domain-id': host.domain.id,
-            'environment-id': host.environment.id,
             'interface': interface,
             'lifecycle-environment-id': module_lce_library.id,
             'location-id': host.location.id,
@@ -451,34 +420,6 @@ def test_positive_crud_interface_by_id(default_location, default_org):
 
 
 @pytest.mark.host_create
-@pytest.mark.run_in_one_thread
-@pytest.mark.tier2
-def test_positive_create_and_update_with_content_source(
-    function_host_content_source, function_proxy, module_default_proxy
-):
-    """Create a host with content source specified and update content
-        source
-
-    :id: 5712f4db-3610-447d-b1da-0fe461577d59
-
-    :customerscenario: true
-
-    :BZ: 1260697, 1483252, 1313056, 1488465
-
-    :expectedresults: A host is created with expected content source
-        assigned and then content source is successfully updated
-
-    :CaseImportance: High
-    """
-    host = function_host_content_source
-    assert host['content-information']['content-source']['name'] == module_default_proxy['name']
-    new_content_source = function_proxy
-    Host.update({'id': host['id'], 'content-source-id': new_content_source['id']})
-    host = Host.info({'id': host['id']})
-    assert host['content-information']['content-source']['name'] == new_content_source['name']
-
-
-@pytest.mark.host_create
 @pytest.mark.tier2
 def test_negative_create_with_content_source(module_lce_library, module_org, module_published_cv):
     """Attempt to create a host with invalid content source specified
@@ -558,34 +499,6 @@ def test_positive_create_with_lce_and_cv(module_lce, module_org, module_promoted
     )
     assert new_host['content-information']['lifecycle-environment']['name'] == module_lce.name
     assert new_host['content-information']['content-view']['name'] == module_promoted_cv.name
-
-
-@pytest.mark.host_create
-@pytest.mark.tier1
-def test_positive_create_with_puppet_class_name(
-    module_env_search, module_location, module_org, module_puppet_classes, default_smart_proxy
-):
-    """Check if host can be created with puppet class name
-
-    :id: a65df36e-db4b-48d2-b0e1-5ccfbefd1e7a
-
-    :expectedresults: Host is created and has puppet class assigned
-
-    :CaseImportance: Critical
-    """
-    update_smart_proxy(module_location, default_smart_proxy)
-    host = make_fake_host(
-        {
-            'puppet-class-ids': [module_puppet_classes[0].id],
-            'environment': module_env_search.name,
-            'organization-id': module_org.id,
-            'location-id': module_location.id,
-            'puppet-ca-proxy-id': default_smart_proxy.id,
-            'puppet-proxy-id': default_smart_proxy.id,
-        }
-    )
-    host_classes = Host.puppetclasses({'host': host['name']})
-    assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
 
 @pytest.mark.host_create
@@ -729,54 +642,16 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthos
 
 
 @pytest.mark.host_create
-@pytest.mark.tier2
-def test_positive_list_scparams(
-    module_env_search, module_location, module_org, module_puppet_classes, default_smart_proxy
-):
-    """List all smart class parameters using host id
-
-    :id: 61814875-5ccd-4c04-a638-d36fe089d514
-
-    :expectedresults: Overridden sc-param from puppet
-        class are listed
-
-    :CaseLevel: Integration
-    """
-    update_smart_proxy(module_location, default_smart_proxy)
-    # Create hostgroup with associated puppet class
-    host = make_fake_host(
-        {
-            'puppet-class-ids': [module_puppet_classes[0].id],
-            'environment': module_env_search.name,
-            'organization-id': module_org.id,
-            'location-id': module_location.id,
-            'puppet-ca-proxy-id': default_smart_proxy.id,
-            'puppet-proxy-id': default_smart_proxy.id,
-        }
-    )
-
-    # Override one of the sc-params from puppet class
-    sc_params_list = SmartClassParameter.list(
-        {
-            'environment': module_env_search.name,
-            'search': f'puppetclass="{module_puppet_classes[0].name}"',
-        }
-    )
-    scp_id = choice(sc_params_list)['id']
-    SmartClassParameter.update({'id': scp_id, 'override': 1})
-    # Verify that affected sc-param is listed
-    host_scparams = Host.sc_params({'host': host['name']})
-    assert scp_id in [scp['id'] for scp in host_scparams]
-
-
-@pytest.mark.host_create
 @pytest.mark.tier3
-def test_positive_list(module_ak_with_cv, module_lce, module_org, rhel7_contenthost, default_sat):
-    """List hosts for a given org
+def test_positive_list_and_unregister(
+    module_ak_with_cv, module_lce, module_org, rhel7_contenthost, default_sat
+):
+    """List registered host for a given org and unregister the host
 
     :id: b9c056cd-11ca-4870-bac4-0ebc4a782cb0
 
-    :expectedresults: Hosts are listed for the given org
+    :expectedresults: Host is listed for the given org and host is successfully unregistered.
+        Unlike content host, host has not disappeared from list of hosts after unregistering.
 
     :parametrized: yes
 
@@ -785,8 +660,11 @@ def test_positive_list(module_ak_with_cv, module_lce, module_org, rhel7_contenth
     rhel7_contenthost.install_katello_ca(default_sat)
     rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
     assert rhel7_contenthost.subscribed
-    hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
-    assert len(hosts) >= 1
+    hosts = Host.list({'organization-id': module_org.id})
+    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
+    result = rhel7_contenthost.unregister()
+    assert result.status == 0
+    hosts = Host.list({'organization-id': module_org.id})
     assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
 
 
@@ -862,44 +740,12 @@ def test_positive_list_infrastructure_hosts(
     assert default_sat.hostname in hostnames
 
 
-@pytest.mark.host_create
-@pytest.mark.tier3
-@pytest.mark.upgrade
-def test_positive_unregister(
-    module_ak_with_cv, module_lce, module_org, rhel7_contenthost, default_sat
-):
-    """Unregister a host
-
-    :id: c5ce988d-d0ea-4958-9956-5a4b039b285c
-
-    :expectedresults: Host is successfully unregistered. Unlike content
-        host, host has not disappeared from list of hosts after
-        unregistering.
-
-    :parametrized: yes
-
-    :CaseLevel: System
-    """
-    rhel7_contenthost.install_katello_ca(default_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
-    assert rhel7_contenthost.subscribed
-    hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
-    assert len(hosts) >= 1
-    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
-    result = rhel7_contenthost.run('subscription-manager unregister')
-    assert result.status == 0
-    hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
-    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
-
-
 @pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.host_create
 @pytest.mark.libvirt_discovery
 @pytest.mark.onprem_provisioning
 @pytest.mark.tier1
-def test_positive_create_using_libvirt_without_mac(
-    module_location, module_org, module_default_proxy
-):
+def test_positive_create_using_libvirt_without_mac(module_location, module_org):
     """Create a libvirt host and not specify a MAC address.
 
     :id: b003faa9-2810-4176-94d2-ea84bed248eb
@@ -920,14 +766,12 @@ def test_positive_create_using_libvirt_without_mac(
             'architecture-id': host.architecture.id,
             'compute-resource-id': compute_resource.id,
             'domain-id': host.domain.id,
-            'environment-id': host.environment.id,
             'location-id': host.location.id,
             'medium-id': host.medium.id,
             'name': host.name,
             'operatingsystem-id': host.operatingsystem.id,
             'organization-id': host.organization.id,
             'partition-table-id': host.ptable.id,
-            'puppet-proxy-id': module_default_proxy['id'],
             'root-password': host.root_pass,
         }
     )
@@ -1134,11 +978,6 @@ def test_positive_update_parameters_by_name(function_host, module_architecture, 
         query={'search': f'name="{function_host["organization"]}"'}
     )[0]
     new_domain = entities.Domain(location=[new_loc], organization=[organization]).create()
-    new_env = entities.Environment(
-        name=gen_string('alphanumeric'),
-        organization=[organization],
-        location=[new_loc],
-    ).create()
     p_table_name = function_host['operating-system']['partition-table']
     p_table = entities.PartitionTable().search(query={'search': f'name="{p_table_name}"'})
     new_os = entities.OperatingSystem(
@@ -1157,7 +996,6 @@ def test_positive_update_parameters_by_name(function_host, module_architecture, 
         {
             'architecture': module_architecture.name,
             'domain': new_domain.name,
-            'environment': new_env.name,
             'name': function_host['name'],
             'mac': new_mac,
             'medium-id': new_medium.id,
@@ -1171,7 +1009,6 @@ def test_positive_update_parameters_by_name(function_host, module_architecture, 
     assert host['location'] == new_loc.name
     assert host['network']['mac'] == new_mac
     assert host['network']['domain'] == new_domain.name
-    assert host['puppet-environment'] == new_env.name
     assert host['operating-system']['architecture'] == module_architecture.name
     assert host['operating-system']['operating-system'] == new_os.title
     assert host['operating-system']['medium'] == new_medium.name
@@ -1299,52 +1136,6 @@ def test_hammer_host_info_output(module_user):
     Host.update({'owner-id': module_user.id, 'id': '1'})
     result_info = Host.info(options={'id': '1', 'fields': 'Additional info'})
     assert int(result_info['additional-info']['owner-id']) == module_user.id
-
-
-@pytest.mark.host_update
-@pytest.mark.tier2
-def test_positive_update_host_owner_and_verify_puppet_class_name(
-    module_env_search,
-    module_org,
-    module_location,
-    module_puppet_classes,
-    module_user,
-    default_smart_proxy,
-):
-    """Update host owner and check puppet clases associated to the host
-
-    :id: 2b7dd148-914b-11eb-8a3a-98fa9b6ecd5a
-
-    :expectedresults: Host is updated with new owner
-        and puppet class is still assigned and shown
-
-    :CaseImportance: Medium
-
-    :BZ: 1851149, 1809952
-
-    :customerscenario: true
-    """
-    update_smart_proxy(module_location, default_smart_proxy)
-    host = make_fake_host(
-        {
-            'puppet-class-ids': [module_puppet_classes[0].id],
-            'environment': module_env_search.name,
-            'organization-id': module_org.id,
-            'location-id': module_location.id,
-            'puppet-ca-proxy-id': default_smart_proxy.id,
-            'puppet-proxy-id': default_smart_proxy.id,
-        }
-    )
-    host_classes = Host.puppetclasses({'host': host['name']})
-    assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
-
-    Host.update({'id': host['id'], 'owner': module_user.login, 'owner-type': 'User'})
-    host = Host.info({'id': host['id']})
-    assert int(host['additional-info']['owner-id']) == module_user.id
-    assert host['additional-info']['owner-type'] == 'User'
-
-    host_classes = Host.puppetclasses({'host': host['name']})
-    assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
 
 @pytest.mark.host_parameter
@@ -1807,7 +1598,7 @@ def setup_custom_repo(module_org, katello_host_tools_host):
         }
     )
     # refresh repository metadata
-    katello_host_tools_host.execute('subscription-manager repos --list')
+    katello_host_tools_host.subscription_manager_list_repos()
 
 
 @pytest.fixture(scope="function")
@@ -2296,7 +2087,7 @@ def test_positive_attach(request, module_host_subscription, host_subscription_cl
             'subscription-id': module_host_subscription.default_subscription_id,
         }
     )
-    result = module_host_subscription._client_enable_repo()
+    result = module_host_subscription.enable_repo(module_host_subscription.client.repository_id)
     assert result.status == 0
     # ensure that katello agent can be installed
     try:
@@ -2333,7 +2124,7 @@ def test_positive_attach_with_lce(module_host_subscription, host_subscription_cl
             'subscription-id': module_host_subscription.default_subscription_id,
         }
     )
-    result = module_host_subscription._client_enable_repo()
+    result = module_host_subscription.enable_repo(module_host_subscription.client.repository_id)
     assert result.status == 0
     # ensure that katello agent can be installed
     try:
@@ -2428,9 +2219,9 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
     )
     pool_id = subscriptions.stdout.strip()
     # attach to plain RHEL subsctiption
-    module_host_subscription.client.run('subscription-manager attach --pool "%s"' % pool_id)
+    module_host_subscription.client.subscription_manager_attach_pool([pool_id])
     assert module_host_subscription.client.subscribed
-    result = module_host_subscription._client_enable_repo()
+    result = module_host_subscription.enable_repo(module_host_subscription.client.repository_id)
     assert result.status != 0
 
 
@@ -2518,7 +2309,7 @@ def test_positive_auto_attach(request, module_host_subscription, host_subscripti
     host = Host.info({'name': module_host_subscription.client.hostname})
     module_host_subscription._register_client(activation_key=activation_key)
     Host.subscription_auto_attach({'host-id': host['id']})
-    result = module_host_subscription._client_enable_repo()
+    result = module_host_subscription.enable_repo(module_host_subscription.client.repository_id)
     assert result.status == 0
     # ensure that katello agent can be installed
     try:
@@ -2738,3 +2529,253 @@ def test_positive_tracer_list_and_resolve(tracer_host):
     assert (
         service_ver_log_new != service_ver_log_old
     ), f'The service {package} did not seem to be restarted'
+
+
+# ---------------------------- PUPPET ENABLED IN INSTALLER TESTS -----------------------
+@pytest.mark.puppet_enabled
+@pytest.mark.tier1
+def test_positive_host_with_puppet(
+    session_puppet_enabled_sat,
+    session_puppet_enabled_proxy,
+    module_puppet_org,
+    module_puppet_loc,
+    module_puppet_environment,
+):
+    """Create update read and delete host with puppet environment
+
+    :id: 8ae79fbe-79f4-11ec-80f5-98fa9b6ecd5a
+
+    :expectedresults: puppet environment
+
+    :CaseImportance: Critical
+    """
+
+    host_template = session_puppet_enabled_sat.api.Host()
+    host_template.create_missing()
+    host = session_puppet_enabled_sat.cli_factory.make_host(
+        {
+            'architecture-id': host_template.architecture.id,
+            'domain-id': host_template.domain.id,
+            'puppet-environment-id': host_template.environment.id,
+            'location-id': host_template.location.id,
+            'mac': host_template.mac,
+            'medium-id': host_template.medium.id,
+            'name': host_template.name,
+            'operatingsystem-id': host_template.operatingsystem.id,
+            'organization-id': host_template.organization.id,
+            'partition-table-id': host_template.ptable.id,
+            'puppet-proxy-id': session_puppet_enabled_proxy.id,
+            'root-password': host_template.root_pass,
+        }
+    )
+    session_puppet_enabled_sat.api.Environment(
+        id=module_puppet_environment.id,
+        organization=[host_template.organization],
+        location=[host_template.location],
+    ).update(['location', 'organization'])
+
+    session_puppet_enabled_sat.cli.Host.update(
+        {
+            'name': host.name,
+            'puppet-environment': module_puppet_environment.name,
+        }
+    )
+    host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
+    assert host['puppet-environment'] == module_puppet_environment.name
+    session_puppet_enabled_sat.cli.Host.delete({'id': host['id']})
+
+
+@pytest.fixture(scope="function")
+def function_proxy(session_puppet_enabled_sat):
+    proxy = session_puppet_enabled_sat.cli_factory.make_proxy()
+    yield proxy
+    session_puppet_enabled_sat.cli.Proxy.delete({'id': proxy['id']})
+
+
+@pytest.fixture(scope="function")
+def function_host_content_source(
+    session_puppet_enabled_sat,
+    session_puppet_enabled_proxy,
+    module_puppet_lce_library,
+    module_puppet_org,
+    module_puppet_published_cv,
+):
+    host = session_puppet_enabled_sat.cli_factory.make_fake_host(
+        {
+            'content-source-id': session_puppet_enabled_proxy.id,
+            'content-view-id': module_puppet_published_cv.id,
+            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'organization': module_puppet_org.name,
+        }
+    )
+    yield host
+    session_puppet_enabled_sat.cli.Host.delete({'id': host['id']})
+
+
+@pytest.mark.tier2
+@pytest.mark.puppet_enabled
+def test_positive_list_scparams(
+    session_puppet_enabled_sat,
+    session_puppet_enabled_proxy,
+    module_env_search,
+    module_puppet_loc,
+    module_puppet_lce_library,
+    module_puppet_org,
+    module_puppet_classes,
+):
+    """List all smart class parameters using host id
+
+    :id: 61814875-5ccd-4c04-a638-d36fe089d514
+
+    :expectedresults: Overridden sc-param from puppet
+        class are listed
+
+    :CaseLevel: Integration
+    """
+    update_smart_proxy(module_puppet_loc, session_puppet_enabled_proxy)
+    # Create hostgroup with associated puppet class
+    host = session_puppet_enabled_sat.cli_factory.make_fake_host(
+        {
+            'puppet-class-ids': [module_puppet_classes[0].id],
+            'puppet-environment': module_env_search.name,
+            'organization-id': module_puppet_org.id,
+            'location-id': module_puppet_loc.id,
+            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'puppet-ca-proxy-id': session_puppet_enabled_proxy.id,
+            'puppet-proxy-id': session_puppet_enabled_proxy.id,
+        }
+    )
+
+    # Override one of the sc-params from puppet class
+    sc_params_list = session_puppet_enabled_sat.cli.SmartClassParameter.list(
+        {
+            'puppet-environment': module_env_search.name,
+            'search': f'puppetclass="{module_puppet_classes[0].name}"',
+        }
+    )
+    scp_id = choice(sc_params_list)['id']
+    session_puppet_enabled_sat.cli.SmartClassParameter.update({'id': scp_id, 'override': 1})
+    # Verify that affected sc-param is listed
+    host_scparams = session_puppet_enabled_sat.cli.Host.sc_params({'host': host['name']})
+    assert scp_id in [scp['id'] for scp in host_scparams]
+
+
+@pytest.mark.puppet_enabled
+@pytest.mark.tier1
+def test_positive_create_with_puppet_class_name(
+    session_puppet_enabled_sat,
+    session_puppet_enabled_proxy,
+    module_env_search,
+    module_puppet_loc,
+    module_puppet_org,
+    module_puppet_lce_library,
+    module_puppet_classes,
+):
+    """Check if host can be created with puppet class name
+
+    :id: a65df36e-db4b-48d2-b0e1-5ccfbefd1e7a
+
+    :expectedresults: Host is created and has puppet class assigned
+
+    :CaseImportance: Critical
+    """
+    update_smart_proxy(module_puppet_loc, session_puppet_enabled_proxy)
+    host = session_puppet_enabled_sat.cli_factory.make_fake_host(
+        {
+            'puppet-class-ids': [module_puppet_classes[0].id],
+            'puppet-environment': module_env_search.name,
+            'organization-id': module_puppet_org.id,
+            'location-id': module_puppet_loc.id,
+            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'puppet-ca-proxy-id': session_puppet_enabled_proxy.id,
+            'puppet-proxy-id': session_puppet_enabled_proxy.id,
+        }
+    )
+    host_classes = session_puppet_enabled_sat.cli.Host.puppetclasses({'host': host['name']})
+    assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
+
+
+@pytest.mark.puppet_enabled
+@pytest.mark.tier2
+def test_positive_update_host_owner_and_verify_puppet_class_name(
+    session_puppet_enabled_sat,
+    session_puppet_enabled_proxy,
+    module_env_search,
+    module_puppet_org,
+    module_puppet_loc,
+    module_puppet_lce_library,
+    module_puppet_classes,
+    module_puppet_user,
+):
+    """Update host owner and check puppet clases associated to the host
+
+    :id: 2b7dd148-914b-11eb-8a3a-98fa9b6ecd5a
+
+    :expectedresults: Host is updated with new owner
+        and puppet class is still assigned and shown
+
+    :CaseImportance: Medium
+
+    :BZ: 1851149, 1809952
+
+    :customerscenario: true
+    """
+    update_smart_proxy(module_puppet_loc, session_puppet_enabled_proxy)
+    host = session_puppet_enabled_sat.cli_factory.make_fake_host(
+        {
+            'puppet-class-ids': [module_puppet_classes[0].id],
+            'puppet-environment': module_env_search.name,
+            'organization-id': module_puppet_org.id,
+            'location-id': module_puppet_loc.id,
+            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'puppet-ca-proxy-id': session_puppet_enabled_proxy.id,
+            'puppet-proxy-id': session_puppet_enabled_proxy.id,
+        }
+    )
+    host_classes = session_puppet_enabled_sat.cli.Host.puppetclasses({'host': host['name']})
+    assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
+
+    session_puppet_enabled_sat.cli.Host.update(
+        {'id': host['id'], 'owner': module_puppet_user.login, 'owner-type': 'User'}
+    )
+    host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
+    assert int(host['additional-info']['owner-id']) == module_puppet_user.id
+    assert host['additional-info']['owner-type'] == 'User'
+
+    host_classes = session_puppet_enabled_sat.cli.Host.puppetclasses({'host': host['name']})
+    assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
+
+
+@pytest.mark.puppet_enabled
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier2
+def test_positive_create_and_update_with_content_source(
+    session_puppet_enabled_sat,
+    session_puppet_enabled_proxy,
+    function_host_content_source,
+    function_proxy,
+):
+    """Create a host with content source specified and update content
+        source
+
+    :id: 5712f4db-3610-447d-b1da-0fe461577d59
+
+    :customerscenario: true
+
+    :BZ: 1260697, 1483252, 1313056, 1488465
+
+    :expectedresults: A host is created with expected content source
+        assigned and then content source is successfully updated
+
+    :CaseImportance: High
+    """
+    host = function_host_content_source
+    assert (
+        host['content-information']['content-source']['name'] == session_puppet_enabled_proxy.name
+    )
+    new_content_source = function_proxy
+    session_puppet_enabled_sat.cli.Host.update(
+        {'id': host['id'], 'content-source-id': new_content_source.id}
+    )
+    host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
+    assert host['content-information']['content-source']['name'] == new_content_source.name

@@ -27,6 +27,7 @@ from fauxfactory import gen_url
 from robottelo import constants
 from robottelo import manifests
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
 
 
@@ -495,12 +496,12 @@ class CLIFactory:
         args = {'name': gen_alphanumeric()}
 
         if options is None or 'url' not in options:
-            newport = self.get_available_capsule_port()
+            newport = self._satellite.get_available_capsule_port()
             try:
-                with self.default_url_on_new_port(9090, newport) as url:
+                with self._satellite.default_url_on_new_port(9090, newport) as url:
                     args['url'] = url
                     return create_object(self._satellite.cli.Proxy, args, options)
-            except self._satellite.cli.CapsuleTunnelError as err:
+            except CapsuleTunnelError as err:
                 raise CLIFactoryError(f'Failed to create ssh tunnel: {err}')
         args['url'] = options['url']
         return create_object(self._satellite.cli.Proxy, args, options)
