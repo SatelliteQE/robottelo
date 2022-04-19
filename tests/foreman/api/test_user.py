@@ -750,7 +750,6 @@ class TestActiveDirectoryUser:
             entities.LibvirtComputeResource,
             entities.OVirtComputeResource,
             entities.VMWareComputeResource,
-            entities.ConfigGroup,
             entities.Errata,
             entities.OperatingSystem,
         ]:
@@ -872,7 +871,6 @@ class TestFreeIPAUser:
             entities.LibvirtComputeResource,
             entities.OVirtComputeResource,
             entities.VMWareComputeResource,
-            entities.ConfigGroup,
             entities.Errata,
             entities.OperatingSystem,
         ]:
