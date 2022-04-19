@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import pytest
+from fabric.api import run
 from nailgun import entities
 
 
@@ -50,11 +51,12 @@ class TestScenarioDBseedHostMismatch:
         loc2 = default_sat.api.Location(organization=[org2]).create()
 
         # chost = default_sat.api.
+
         # assert chost in loc1, not in loc2
         # assert chost in org1, not in loc2
 
     @pytest.mark.post_upgrade()
-    def test_db_seed_host_mismatch(self):
+    def test_db_seed_host_mismatch(self, default_sat):
         """
 
         :id:
@@ -71,3 +73,13 @@ class TestScenarioDBseedHostMismatch:
 
         :customerscenario: true
         """
+
+        # HOST_ID =
+        # LOCATION_ID =
+
+        rake_host = f'host = ::Host.find(${HOST_ID})'
+        rake_location = f'; host.location_id=${LOCATION_ID}'
+        rake_host_save = '; host.save!'
+        result = run(f"echo '{rake_host}{rake_location}{rake_host_save}' | foreman-rake console")
+
+        assert 'true' in result
