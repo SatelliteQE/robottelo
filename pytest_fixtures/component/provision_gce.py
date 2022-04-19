@@ -8,6 +8,7 @@ from nailgun import entities
 from wrapanapi.systems.google import GoogleCloudSystem
 
 from robottelo.config import settings
+from robottelo.constants import DEFAULT_PTABLE
 from robottelo.errors import GCECertNotFoundError
 
 
@@ -21,6 +22,21 @@ def gce_cert(default_sat):
     default_sat.put(gce_cert_file, settings.gce.cert_path)
     if default_sat.execute(f'[ -f {settings.gce.cert_path} ]').status != 0:
         raise GCECertNotFoundError(
+            f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
+        )
+    return cert
+
+
+@pytest.fixture(scope='session')
+def gce_cert_puppet(session_puppet_enabled_sat):
+    _, gce_cert_file = mkstemp(suffix='.json')
+    cert = json.loads(settings.gce.cert)
+    cert['local_path'] = gce_cert_file
+    with open(gce_cert_file, 'w') as f:
+        json.dump(cert, f)
+    session_puppet_enabled_sat.put(gce_cert_file, settings.gce.cert_path)
+    if session_puppet_enabled_sat.execute(f'[ -f {settings.gce.cert_path} ]').status != 0:
+        pytest.fail(
             f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
         )
     return cert
@@ -65,3 +81,30 @@ def module_gce_compute(module_org, module_location, gce_cert):
         location=[module_location],
     ).create()
     return gce_cr
+
+
+@pytest.fixture(scope='module')
+def module_gce_compute_puppet(
+    session_puppet_enabled_sat, module_puppet_org, module_puppet_loc, gce_cert_puppet
+):
+    gce_cr = session_puppet_enabled_sat.api.GCEComputeResource(
+        name=gen_string('alphanumeric'),
+        provider='GCE',
+        email=gce_cert_puppet['client_email'],
+        key_path=settings.gce.cert_path,
+        project=gce_cert_puppet['project_id'],
+        zone=settings.gce.zone,
+        organization=[module_puppet_org],
+        location=[module_puppet_loc],
+    ).create()
+    return gce_cr
+
+
+@pytest.fixture(scope='session')
+def session_puppet_default_partition_table(session_puppet_enabled_sat):
+    ptable = (
+        session_puppet_enabled_sat.api.PartitionTable()
+        .search(query={'search': f'name="{DEFAULT_PTABLE}"'})[0]
+        .read()
+    )
+    return ptable
