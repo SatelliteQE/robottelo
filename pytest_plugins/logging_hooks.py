@@ -4,6 +4,7 @@ import logzero
 import pytest
 from xdist import is_xdist_worker
 
+from robottelo.logging import broker_log_setup
 from robottelo.logging import DEFAULT_DATE_FORMAT
 from robottelo.logging import logger
 from robottelo.logging import robottelo_log_dir
@@ -54,6 +55,8 @@ def configure_logging(request, worker_id):
             worker_handler.setFormatter(worker_formatter)
             worker_handler.setLevel(worker_log_level)
             logger.addHandler(worker_handler)
+
+            broker_log_setup('debug', robottelo_log_dir.joinpath(f'robottelo_{worker_id}.log'))
 
             if use_rp_logger:
                 rp_handler = RPLogHandler(request.node.config.py_test_service)
