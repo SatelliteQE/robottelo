@@ -21,7 +21,7 @@ import random
 import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.report import Report
+from robottelo.cli.report import ConfigReport
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -43,11 +43,11 @@ def test_positive_info():
 
     :CaseImportance: Critical
     """
-    result = Report.list()
+    result = ConfigReport.list()
     assert len(result) > 0
     # Grab a random report
     report = random.choice(result)
-    result = Report.info({'id': report['id']})
+    result = ConfigReport.info({'id': report['id']})
     assert report['id'] == result['id']
 
 
@@ -62,10 +62,10 @@ def test_positive_delete_by_id():
 
     :CaseImportance: Critical
     """
-    result = Report.list()
+    result = ConfigReport.list()
     assert len(result) > 0
     # Grab a random report
     report = random.choice(result)
-    Report.delete({'id': report['id']})
+    ConfigReport.delete({'id': report['id']})
     with pytest.raises(CLIReturnCodeError):
-        Report.info({'id': report['id']})
+        ConfigReport.info({'id': report['id']})
