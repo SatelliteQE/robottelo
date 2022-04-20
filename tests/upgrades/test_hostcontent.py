@@ -1,4 +1,4 @@
-"""Test db:seed related Upgrade Scenario's
+"""Test Hosts Content related Upgrade Scenario's
 
 :Requirement: UpgradedSatellite
 
@@ -55,8 +55,8 @@ class TestScenarioDBseedHostMismatch:
         # assert chost in loc1, not in loc2
         # assert chost in org1, not in loc2
 
-    @pytest.mark.post_upgrade()
-    def test_db_seed_host_mismatch(self, default_sat):
+    @pytest.mark.pre_upgrade
+    def test_pre_db_seed_host_mismatch(self, default_sat):
         """
 
         :id:
@@ -83,3 +83,7 @@ class TestScenarioDBseedHostMismatch:
         result = run(f"echo '{rake_host}{rake_location}{rake_host_save}' | foreman-rake console")
 
         assert 'true' in result
+
+    @pytest.mark.post_upgrade(depend_on=test_pre_db_seed_host_mismatch)
+    def test_post_db_seed_host_mismatch(self, default_sat):
+        """"""
