@@ -1,7 +1,7 @@
 """
 Usage::
 
-    hammer report [OPTIONS] SUBCOMMAND [ARG] ...
+    hammer config-report [OPTIONS] SUBCOMMAND [ARG] ...
 
 Parameters::
 
@@ -18,9 +18,9 @@ Subcommands::
 from robottelo.cli.base import Base
 
 
-class Report(Base):
+class ConfigReport(Base):
     """
-    Manipulates Foreman's reports.
+    Manipulates Foreman's config reports.
     """
 
-    command_base = 'report'
+    command_base = 'config-report'
