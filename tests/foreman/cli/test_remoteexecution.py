@@ -982,8 +982,8 @@ class TestRexUsers:
     def test_positive_rex_against_infra_hosts(
         self,
         rex_contenthost,
-        module_rexmanager_user,
-        module_rexinfra_user,
+        class_rexmanager_user,
+        class_rexinfra_user,
         default_sat,
         infra_host,
         module_org,
@@ -1037,7 +1037,7 @@ class TestRexUsers:
                 'inputs': f'command={command}',
                 'search-query': f"name ^ ({client.hostname}, {infra_host.hostname})",
             },
-            module_rexmanager_user,
+            class_rexmanager_user,
         )
 
         result = JobInvocation.info({'id': invocation_command['id']})
@@ -1050,7 +1050,7 @@ class TestRexUsers:
                 'inputs': f'command={command}',
                 'search-query': f"name ^ ({infra_host.hostname})",
             },
-            module_rexmanager_user,
+            class_rexmanager_user,
         )
         result = JobInvocation.info({'id': invocation_command['id']})
         assert result['success'] == '0'
@@ -1062,7 +1062,7 @@ class TestRexUsers:
                 'inputs': f'command={command}',
                 'search-query': f"name ^ ({infra_host.hostname})",
             },
-            module_rexinfra_user,
+            class_rexinfra_user,
         )
         result = JobInvocation.info({'id': invocation_command['id']})
         assert result['success'] == '1'
