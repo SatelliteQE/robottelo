@@ -1046,7 +1046,9 @@ class Satellite(Capsule):
         for name, obj in entities.__dict__.items():
             try:
                 if Entity in obj.mro():
-                    setattr(self.api, name, inject_config(obj, self.nailgun_cfg))
+                    #  create a copy of the class and inject our server config into the __init__
+                    new_cls = type(name, (obj,), {})
+                    setattr(self._api, name, inject_config(new_cls, self.nailgun_cfg))
             except AttributeError:
                 # not everything has an mro method, we don't care about them
                 pass
@@ -1063,9 +1065,9 @@ class Satellite(Capsule):
                 for name, obj in cli_module.__dict__.items():
                     try:
                         if Base in obj.mro():
-                            # set our hostname as a class attribute
-                            obj.hostname = self.hostname
-                            setattr(self.cli, name, obj)
+                            # create a copy of the class and set our hostname as a class attribute
+                            new_cls = type(name, (obj,), {'hostname': self.hostname})
+                            setattr(self._cli, name, new_cls)
                     except AttributeError:
                         # not everything has an mro method, we don't care about them
                         pass
