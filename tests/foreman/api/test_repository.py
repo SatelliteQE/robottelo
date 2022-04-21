@@ -2492,7 +2492,6 @@ class TestTokenAuthContainerRepository:
         """
         container_repo = getattr(settings.container_repo.registries, repo_key)
         for docker_repo_name in container_repo.repos_to_sync:
-
             repo_options = dict(
                 content_type='docker',
                 docker_upstream_name=docker_repo_name,
@@ -2500,7 +2499,7 @@ class TestTokenAuthContainerRepository:
                 upstream_username=container_repo.username,
                 upstream_password=container_repo.password,
                 url=container_repo.url,
-                docker_tags_whitelist=['latest'],
+                include_tags=['latest'],
             )
             repo_options['organization'] = module_org
             repo_options['product'] = module_product
