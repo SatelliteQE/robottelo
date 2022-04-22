@@ -2149,9 +2149,3 @@ RH_SAT_ROLES = [
     'settings',
     'sync_plans',
 ]
-
-CONVERT_TO_RHEL_REPO = ""
-SSL_CERT_ORACLE = ""
-
-UBI_ORACLE7 = ""
-UBI_ORACLE8 = ""
