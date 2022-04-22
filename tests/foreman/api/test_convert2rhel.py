@@ -25,13 +25,10 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.api.utils import wait_for_tasks
-from robottelo.constants import CONVERT_TO_RHEL_REPO
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import REPOS
-from robottelo.constants import SSL_CERT_ORACLE
-from robottelo.constants import UBI_ORACLE7
-from robottelo.constants import UBI_ORACLE8
 from robottelo.hosts import ContentHost
 
 
@@ -90,7 +87,7 @@ def register_host(act_key, module_org, module_loc, hostname, ubi=None):
 @pytest.fixture(scope="module")
 def ssl_cert(module_org):
     """Create credetial with SSL cert for Oracle Linux"""
-    res = requests.get(SSL_CERT_ORACLE)
+    res = requests.get(settings.repos.convert2rhel.ssl_cert_oracle)
     res.raise_for_status()
     return entities.ContentCredential(
         content=res.text, organization=module_org, content_type='cert'
@@ -133,7 +130,7 @@ def enable_rhel_repos(org, repos):
 
 @pytest.fixture(scope='module')
 def enable_rhel7_subscriptions(module_org, manifest):
-    """Enable and sync RHEL7 server rmps repo"""
+    """Enable and sync RHEL7 server rpms repo"""
     return enable_rhel_repos(module_org, ['rhel7'])
 
 
@@ -159,7 +156,9 @@ def centos_host(
         # updating centos packages on CentOS 8 is necessary for conversion
         if version == '8':
             host.execute("yum update -y centos-*")
-        repo = create_repo(module_org, CONVERT_TO_RHEL_REPO.format(version))
+        repo = create_repo(
+            module_org, settings.repos.convert2rhel.convert_to_rhel_repo.format(version)
+        )
         cv = update_cv(module_promoted_cv, module_lce, rh_repos + [repo])
         c2r_sub = entities.Subscription(organization=module_org, name=repo.product.name).search()[0]
         act_key = create_activation_key(module_org, module_lce, cv, c2r_sub.id)
@@ -188,7 +187,7 @@ def oracle_host(
         "deploy_rhel_version": version,
     }
     with VMBroker(**conf, host_classes={'host': ContentHost}) as host:
-        # disable rhn-client-tools because it obsoletes the subscribtion manager package
+        # disable rhn-client-tools because it obsoletes the subscription manager package
         host.execute('echo "exclude=rhn-client-tools" >> /etc/yum.conf')
         # install and set correct kernel, based on convert2rhel docs
         result = host.execute(
@@ -199,11 +198,15 @@ def oracle_host(
         assert result.status == 0
         host.install_katello_ca(default_sat)
         host.power_control(state='reboot')
-        repo = create_repo(module_org, CONVERT_TO_RHEL_REPO.format(version), ssl_cert)
+        repo = create_repo(
+            module_org, settings.repos.convert2rhel.convert_to_rhel_repo.format(version), ssl_cert
+        )
         cv = update_cv(module_promoted_cv, module_lce, rh_repos + [repo])
         c2r_sub = entities.Subscription(organization=module_org, name=repo.product.name).search()[0]
         act_key = create_activation_key(module_org, module_lce, cv, c2r_sub.id)
-        ubi_url = UBI_ORACLE7 if version == '7' else UBI_ORACLE8
+        ubi_url = (
+            settings.repos.convert2rhel.ubi7 if version == '7' else settings.repos.convert2rhel.ubi8
+        )
         ubi = create_repo(module_org, ubi_url)
         ubi_repo = ubi.full_path.replace('https', 'http')
         register_host(act_key, module_org, smart_proxy_location, host.hostname, ubi_repo)
