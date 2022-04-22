@@ -2039,6 +2039,35 @@ class TestRepository:
         repo_info = Repository.info({'organization-id': module_manifest_org.id, 'id': rh_repo_id})
         assert repo_info['url'] in [repo.get('url') for repo in repo_list]
 
+        @pytest.mark.tier1
+        def test_positive_accessible_content_status(
+            module_org, golden_ticket_host_setup, rhel7_contenthost_class, default_sat
+        ):
+            """Verify that the Candlepin respose accesible_content returns a 304 when no
+            certificate has been updated
+
+            :id: 9f8f443d-63fc-41ba-8962-b0ceb6763da1
+
+            :expectedresults: accessible_content should return 304 not Modified status when
+            yum repolist is run
+
+            :customerscenario: true
+
+            :BZ: 2010138
+
+            :CaseImportance: Critical
+            """
+            rhel7_contenthost_class.install_katello_ca(default_sat)
+            rhel7_contenthost_class.register_contenthost(
+                module_org.label, golden_ticket_host_setup['name']
+            )
+            assert rhel7_contenthost_class.subscribed
+            rhel7_contenthost_class.run('yum repolist')
+            access_log = default_sat.execute(
+                'tail -n 10 /var/log/httpd/foreman-ssl_access_ssl.log | grep "/rhsm"'
+            )
+            assert 'accessible_content HTTP/1.1" 304' in access_log.stdout
+
 
 # TODO: un-comment when OSTREE functionality is restored in Satellite 6.11
 # class TestOstreeRepository:
