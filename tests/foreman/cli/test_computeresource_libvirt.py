@@ -48,8 +48,6 @@ from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import LIBVIRT_RESOURCE_URL
 from robottelo.datafactory import parametrized
 
-pytestmark = pytest.mark.libvirt_discovery
-
 
 def valid_name_desc_data():
     """Random data for valid name and description"""
