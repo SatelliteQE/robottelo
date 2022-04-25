@@ -86,15 +86,15 @@ def test_verify_bugzilla_1078866():
     # org list --help:
     result = Org.list({'help': True}, output_format=None)
     # get list of lines and check they all are unique
-    lines = [line for line in result if line != '' and '----' not in line]
+    lines = [line.strip() for line in result.splitlines() if line and '----' not in line]
     assert len(set(lines)) == len(lines)
 
     # org info --help:info returns more lines (obviously), ignore exception
     result = Org.info({'help': True}, output_format=None)
 
     # get list of lines and check they all are unique
-    lines = [line for line in result['options']]
-    assert len(set(lines)) == len(lines)
+    lines = [line for line in result['options'] if '----' not in line]
+    assert len(set(lines)) == len(lines) - 1
 
 
 @pytest.mark.tier1
