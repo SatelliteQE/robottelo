@@ -15,21 +15,31 @@ if not os.getenv('ROBOTTELO_DIR'):
     os.environ['ROBOTTELO_DIR'] = str(robottelo_root_dir)
 
 
-settings = LazySettings(
-    envvar_prefix="ROBOTTELO",
-    core_loaders=["YAML"],
-    settings_file="settings.yaml",
-    preload=["conf/*.yaml"],
-    includes=["settings.local.yaml", ".secrets.yaml", ".secrets_*.yaml"],
-    envless_mode=True,
-    lowercase_read=True,
-)
-settings.validators.register(**VALIDATORS)
+def get_settings():
+    """Return Lazy settings object after validating
 
-try:
-    settings.validators.validate()
-except ValidationError as err:
-    logger.warning(f'Dynaconf validation failed, continuing for the sake of unit tests\n{err}')
+    :return: A validated Lazy settings object
+    """
+    settings = LazySettings(
+        envvar_prefix="ROBOTTELO",
+        core_loaders=["YAML"],
+        settings_file="settings.yaml",
+        preload=["conf/*.yaml"],
+        includes=["settings.local.yaml", ".secrets.yaml", ".secrets_*.yaml"],
+        envless_mode=True,
+        lowercase_read=True,
+    )
+    settings.validators.register(**VALIDATORS)
+
+    try:
+        settings.validators.validate()
+    except ValidationError as err:
+        logger.warning(f'Dynaconf validation failed, continuing for the sake of unit tests\n{err}')
+
+    return settings
+
+
+settings = get_settings()
 
 
 if not os.getenv('BROKER_DIRECTORY'):
