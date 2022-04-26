@@ -1378,6 +1378,8 @@ def test_positive_global_registration_end_to_end(
 
     :customerscenario: true
 
+    :BZ: 1993874
+
     :expectedresults: Host is successfully registered, remote execution and insights
          client work out of the box
 
