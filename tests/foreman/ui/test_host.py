@@ -1671,11 +1671,12 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
 
 @pytest.mark.tier2
+@pytest.mark.rhel_ver_match('[^6].*')
 def test_global_registration_upgrade_subscription_manager(
-    session, module_activation_key, module_os, module_proxy, rhel7_contenthost
+    session, module_activation_key, module_os, module_proxy, rhel_contenthost
 ):
     """Host registration form produces a correct registration command and
-    subscription-manager can be updated from ABI or custom repository before
+    subscription-manager can be updated from a custom repository before
     registration is completed.
 
     :id: b7a44f32-90b2-4fd6-b65b-5a3d2a5c5deb
@@ -1693,11 +1694,12 @@ def test_global_registration_upgrade_subscription_manager(
 
     :parametrized: yes
     """
-    client = rhel7_contenthost
+    client = rhel_contenthost
     repo_name = 'foreman_register'
-    repo_url = settings.repos.rhel7_os
+    rhel_ver = rhel_contenthost.os_version.major
+    repo_url = settings.repos.get(f'rhel{rhel_ver}_os').baseos
     # Ensure subs-man is installed from repo_name by removing existing package.
-    result = client.execute('rpm --erase subscription-manager')
+    result = client.execute('rpm --erase --nodeps subscription-manager')
     assert result.status == 0
     with session:
         cmd = session.host.get_register_command(
