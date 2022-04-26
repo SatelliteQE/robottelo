@@ -308,7 +308,7 @@ def test_positive_search_all_field_sets():
 
 
 # -------------------------- CREATE SCENARIOS -------------------------
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_create_and_delete(module_lce_library, module_published_cv):
@@ -362,7 +362,7 @@ def test_positive_create_and_delete(module_lce_library, module_published_cv):
         Host.info({'id': new_host['id']})
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier1
 def test_positive_crud_interface_by_id(default_location, default_org):
     """New network interface can be added to existing host, listed and removed.
@@ -419,7 +419,7 @@ def test_positive_crud_interface_by_id(default_location, default_org):
         HostInterface.info({'host-id': host['id'], 'id': host_interface['id']})
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier2
 def test_negative_create_with_content_source(module_lce_library, module_org, module_published_cv):
     """Attempt to create a host with invalid content source specified
@@ -443,7 +443,7 @@ def test_negative_create_with_content_source(module_lce_library, module_org, mod
         )
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier2
 def test_negative_update_content_source(
     module_default_proxy, module_lce_library, module_org, module_published_cv
@@ -475,7 +475,7 @@ def test_negative_update_content_source(
     assert host['content-information']['content-source']['name'] == module_default_proxy['name']
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier1
 def test_positive_create_with_lce_and_cv(module_lce, module_org, module_promoted_cv):
     """Check if host can be created with new lifecycle and
@@ -501,7 +501,7 @@ def test_positive_create_with_lce_and_cv(module_lce, module_org, module_promoted
     assert new_host['content-information']['content-view']['name'] == module_promoted_cv.name
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier2
 def test_positive_create_with_openscap_proxy_id(module_default_proxy, module_org):
     """Check if host can be created with OpenSCAP Proxy id
@@ -518,7 +518,7 @@ def test_positive_create_with_openscap_proxy_id(module_default_proxy, module_org
     assert host['openscap-proxy'] == module_default_proxy['id']
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier1
 def test_negative_create_with_name(module_lce_library, module_org, module_published_cv):
     """Check if host can be created with random long names
@@ -541,7 +541,7 @@ def test_negative_create_with_name(module_lce_library, module_org, module_publis
         )
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier1
 def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv):
     """Check if host can be created using unpublished cv
@@ -562,7 +562,7 @@ def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv):
         )
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_katello_and_openscap_loaded():
@@ -591,7 +591,7 @@ def test_positive_katello_and_openscap_loaded():
         ), f'--{arg} not supported by update subcommand'
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_register_with_no_ak(
@@ -615,7 +615,7 @@ def test_positive_register_with_no_ak(
     assert rhel7_contenthost.subscribed
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier3
 def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthost, default_sat):
     """Attempt to register a host twice to Satellite
@@ -641,7 +641,7 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthos
     assert result.status == 64
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier3
 def test_positive_list_and_unregister(
     module_ak_with_cv, module_lce, module_org, rhel7_contenthost, default_sat
@@ -668,7 +668,7 @@ def test_positive_list_and_unregister(
     assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier3
 def test_positive_list_by_last_checkin(
     module_lce, module_org, module_promoted_cv, rhel7_contenthost, default_sat
@@ -698,7 +698,7 @@ def test_positive_list_by_last_checkin(
     assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier3
 def test_positive_list_infrastructure_hosts(
     module_lce, module_org, module_promoted_cv, rhel7_contenthost, default_sat
@@ -741,7 +741,7 @@ def test_positive_list_infrastructure_hosts(
 
 
 @pytest.mark.skip_if_not_set('libvirt')
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.libvirt_discovery
 @pytest.mark.onprem_provisioning
 @pytest.mark.tier1
@@ -779,7 +779,7 @@ def test_positive_create_using_libvirt_without_mac(module_location, module_org):
     Host.delete({'id': result['id']})
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier2
 def test_positive_create_inherit_lce_cv(module_published_cv, module_lce_library, module_org):
     """Create a host with hostgroup specified. Make sure host inherited
@@ -807,7 +807,7 @@ def test_positive_create_inherit_lce_cv(module_published_cv, module_lce_library,
     assert int(host['content-information']['content-view']['id']) == hostgroup.content_view.id
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier3
 def test_positive_create_inherit_nested_hostgroup():
     """Create two nested host groups with the same name, but different
@@ -865,7 +865,7 @@ def test_positive_create_inherit_nested_hostgroup():
     assert f'{host_name}.{options.domain.read().name}' == host['name']
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.tier3
 def test_positive_list_with_nested_hostgroup():
     """Create parent and nested host groups. Then create host using nested
@@ -919,7 +919,7 @@ def test_positive_list_with_nested_hostgroup():
     assert f'{parent_hg_name}/{nested_hg_name}' == hosts[0]['host-group']
 
 
-@pytest.mark.host_create
+@pytest.mark.cli_host_create
 @pytest.mark.stubbed
 @pytest.mark.tier3
 def test_negative_create_with_incompatible_pxe_loader():
@@ -952,7 +952,7 @@ def test_negative_create_with_incompatible_pxe_loader():
 
 
 # -------------------------- UPDATE SCENARIOS -------------------------
-@pytest.mark.host_update
+@pytest.mark.cli_host_update
 @pytest.mark.tier1
 def test_positive_update_parameters_by_name(function_host, module_architecture, module_location):
     """A host can be updated with a new name, mac address, domain,
@@ -1015,7 +1015,7 @@ def test_positive_update_parameters_by_name(function_host, module_architecture, 
 
 
 @pytest.mark.tier1
-@pytest.mark.host_update
+@pytest.mark.cli_host_update
 def test_negative_update_name(function_host):
     """A host can not be updated with invalid or empty name
 
@@ -1033,7 +1033,7 @@ def test_negative_update_name(function_host):
 
 
 @pytest.mark.tier1
-@pytest.mark.host_update
+@pytest.mark.cli_host_update
 def test_negative_update_mac(function_host):
     """A host can not be updated with invalid or empty MAC address
 
@@ -1051,7 +1051,7 @@ def test_negative_update_mac(function_host):
 
 
 @pytest.mark.tier2
-@pytest.mark.host_update
+@pytest.mark.cli_host_update
 def test_negative_update_arch(function_host, module_architecture):
     """A host can not be updated with a architecture, which does not
     belong to host's operating system
@@ -1069,7 +1069,7 @@ def test_negative_update_arch(function_host, module_architecture):
 
 
 @pytest.mark.tier2
-@pytest.mark.host_update
+@pytest.mark.cli_host_update
 def test_negative_update_os(function_host, module_architecture):
     """A host can not be updated with a operating system, which is
     not associated with host's medium
@@ -1102,7 +1102,7 @@ def test_negative_update_os(function_host, module_architecture):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-@pytest.mark.host_update
+@pytest.mark.cli_host_update
 def test_hammer_host_info_output(module_user):
     """Verify re-add of 'owner-id' in `hammer host info` output
 
@@ -1138,7 +1138,7 @@ def test_hammer_host_info_output(module_user):
     assert int(result_info['additional-info']['owner-id']) == module_user.id
 
 
-@pytest.mark.host_parameter
+@pytest.mark.cli_host_parameter
 @pytest.mark.tier1
 def test_positive_parameter_crud(function_host):
     """Add, update and remove host parameter with valid name.
@@ -1169,7 +1169,7 @@ def test_positive_parameter_crud(function_host):
 
 
 # -------------------------- HOST PARAMETER SCENARIOS -------------------------
-@pytest.mark.host_parameter
+@pytest.mark.cli_host_parameter
 @pytest.mark.tier1
 def test_negative_add_parameter(function_host):
     """Try to add host parameter with different invalid names.
@@ -1194,7 +1194,7 @@ def test_negative_add_parameter(function_host):
     assert name not in host['parameters'].keys()
 
 
-@pytest.mark.host_parameter
+@pytest.mark.cli_host_parameter
 @pytest.mark.tier2
 def test_negative_view_parameter_by_non_admin_user(function_host, function_user):
     """Attempt to view parameters with non admin user without Parameter
@@ -1236,7 +1236,7 @@ def test_negative_view_parameter_by_non_admin_user(function_host, function_user)
     assert not host.get('parameters')
 
 
-@pytest.mark.host_parameter
+@pytest.mark.cli_host_parameter
 @pytest.mark.tier2
 def test_positive_view_parameter_by_non_admin_user(function_host, function_user):
     """Attempt to view parameters with non admin user that has
@@ -1281,7 +1281,7 @@ def test_positive_view_parameter_by_non_admin_user(function_host, function_user)
     assert host['parameters'][param_name] == param_value
 
 
-@pytest.mark.host_parameter
+@pytest.mark.cli_host_parameter
 @pytest.mark.tier2
 def test_negative_edit_parameter_by_non_admin_user(function_host, function_user):
     """Attempt to edit parameter with non admin user that has
@@ -1330,7 +1330,7 @@ def test_negative_edit_parameter_by_non_admin_user(function_host, function_user)
     assert host['parameters'][param_name] == param_value
 
 
-@pytest.mark.host_parameter
+@pytest.mark.cli_host_parameter
 @pytest.mark.tier2
 def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host):
     """Check that host parameter value with multi-line and spaces is
@@ -1616,7 +1616,7 @@ def yum_security_plugin(katello_host_tools_host):
         assert yum_plugin_install.status == 0, "Failed to install yum-plugin-security plugin"
 
 
-@pytest.mark.katello_host_tools
+@pytest.mark.cli_katello_host_tools
 @pytest.mark.tier3
 def test_positive_report_package_installed_removed(katello_host_tools_host, setup_custom_repo):
     """Ensure installed/removed package is reported to satellite
@@ -1661,7 +1661,7 @@ def test_positive_report_package_installed_removed(katello_host_tools_host, setu
     assert len(installed_packages) == 0
 
 
-@pytest.mark.katello_host_tools
+@pytest.mark.cli_katello_host_tools
 @pytest.mark.tier3
 def test_positive_package_applicability(katello_host_tools_host, setup_custom_repo):
     """Ensure packages applicability is functioning properly
@@ -1722,7 +1722,7 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
     assert len(applicable_packages) == 0
 
 
-@pytest.mark.katello_host_tools
+@pytest.mark.cli_katello_host_tools
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.tier3
@@ -1778,7 +1778,7 @@ def test_positive_erratum_applicability(
     assert settings.repos.yum_6.errata[2] not in applicable_erratum_ids
 
 
-@pytest.mark.katello_host_tools
+@pytest.mark.cli_katello_host_tools
 @pytest.mark.tier3
 def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_repo):
     """Apply security erratum to a host
@@ -1814,7 +1814,7 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
     assert result.status == 1
 
 
-@pytest.mark.katello_host_tools
+@pytest.mark.cli_katello_host_tools
 @pytest.mark.tier3
 def test_positive_install_package_via_rex(
     module_org, katello_host_tools_host, default_sat, setup_custom_repo
@@ -1958,11 +1958,6 @@ class HostSubscription:
 
         return result
 
-    def _client_enable_repo(self):
-        """Enable the client default repository"""
-        result = self.client.run(f'subscription-manager repos --enable {self.repository_id}')
-        return result
-
     def _make_activation_key(self, add_subscription=False):
         """Create a new activation key
 
@@ -2009,7 +2004,7 @@ class HostSubscription:
 
 
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND SCENARIOS -------------------------
-@pytest.mark.host_subscription
+@pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_positive_register(request, module_host_subscription, host_subscription_client):
     """Attempt to register a host
@@ -2054,7 +2049,7 @@ def test_positive_register(request, module_host_subscription, host_subscription_
     assert len(host_subscriptions) == 0
 
 
-@pytest.mark.host_subscription
+@pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_positive_attach(request, module_host_subscription, host_subscription_client):
     """Attempt to attach a subscription to host
@@ -2087,8 +2082,7 @@ def test_positive_attach(request, module_host_subscription, host_subscription_cl
             'subscription-id': module_host_subscription.default_subscription_id,
         }
     )
-    result = module_host_subscription.enable_repo(module_host_subscription.client.repository_id)
-    assert result.status == 0
+    module_host_subscription.client.enable_repo(module_host_subscription.repository_id)
     # ensure that katello agent can be installed
     try:
         module_host_subscription.client.install_katello_agent()
@@ -2096,7 +2090,7 @@ def test_positive_attach(request, module_host_subscription, host_subscription_cl
         pytest.fail('ContentHostError raised unexpectedly!')
 
 
-@pytest.mark.host_subscription
+@pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_positive_attach_with_lce(module_host_subscription, host_subscription_client):
     """Attempt to attach a subscription to host, registered by lce
@@ -2124,8 +2118,7 @@ def test_positive_attach_with_lce(module_host_subscription, host_subscription_cl
             'subscription-id': module_host_subscription.default_subscription_id,
         }
     )
-    result = module_host_subscription.enable_repo(module_host_subscription.client.repository_id)
-    assert result.status == 0
+    module_host_subscription.client.enable_repo(module_host_subscription.repository_id)
     # ensure that katello agent can be installed
     try:
         module_host_subscription.client.install_katello_agent()
@@ -2133,7 +2126,7 @@ def test_positive_attach_with_lce(module_host_subscription, host_subscription_cl
         pytest.fail('ContentHostError raised unexpectedly!')
 
 
-@pytest.mark.host_subscription
+@pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_negative_without_attach(request, module_host_subscription, host_subscription_client):
     """Register content host from satellite, register client to uuid
@@ -2163,7 +2156,7 @@ def test_negative_without_attach(request, module_host_subscription, host_subscri
     assert NO_REPOS_AVAILABLE in repo_list.stdout
 
 
-@pytest.mark.host_subscription
+@pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_negative_without_attach_with_lce(module_host_subscription, host_subscription_client):
     """Attempt to enable a repository of a subscription that was not
@@ -2221,11 +2214,10 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
     # attach to plain RHEL subsctiption
     module_host_subscription.client.subscription_manager_attach_pool([pool_id])
     assert module_host_subscription.client.subscribed
-    result = module_host_subscription.enable_repo(module_host_subscription.client.repository_id)
-    assert result.status != 0
+    module_host_subscription.client.enable_repo(module_host_subscription.repository_id)
 
 
-@pytest.mark.host_subscription
+@pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_remove(request, module_host_subscription, host_subscription_client):
@@ -2289,7 +2281,7 @@ def test_positive_remove(request, module_host_subscription, host_subscription_cl
     ]
 
 
-@pytest.mark.host_subscription
+@pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_positive_auto_attach(request, module_host_subscription, host_subscription_client):
     """Attempt to auto attach a subscription to content host
@@ -2309,8 +2301,7 @@ def test_positive_auto_attach(request, module_host_subscription, host_subscripti
     host = Host.info({'name': module_host_subscription.client.hostname})
     module_host_subscription._register_client(activation_key=activation_key)
     Host.subscription_auto_attach({'host-id': host['id']})
-    result = module_host_subscription.enable_repo(module_host_subscription.client.repository_id)
-    assert result.status == 0
+    module_host_subscription.client.enable_repo(module_host_subscription.repository_id)
     # ensure that katello agent can be installed
     try:
         module_host_subscription.client.install_katello_agent()
@@ -2318,7 +2309,7 @@ def test_positive_auto_attach(request, module_host_subscription, host_subscripti
         pytest.fail('ContentHostError raised unexpectedly!')
 
 
-@pytest.mark.host_subscription
+@pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_positive_unregister_host_subscription(module_host_subscription, host_subscription_client):
     """Attempt to unregister host subscription
@@ -2363,7 +2354,7 @@ def test_positive_unregister_host_subscription(module_host_subscription, host_su
 
 @pytest.mark.pit_client
 @pytest.mark.pit_server
-@pytest.mark.host_subscription
+@pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_syspurpose_end_to_end(module_host_subscription, host_subscription_client):
     """Create a host with system purpose values set by activation key.
@@ -2532,7 +2523,7 @@ def test_positive_tracer_list_and_resolve(tracer_host):
 
 
 # ---------------------------- PUPPET ENABLED IN INSTALLER TESTS -----------------------
-@pytest.mark.puppet_enabled
+@pytest.mark.cli_puppet_enabled
 @pytest.mark.tier1
 def test_positive_host_with_puppet(
     session_puppet_enabled_sat,
@@ -2613,7 +2604,7 @@ def function_host_content_source(
 
 
 @pytest.mark.tier2
-@pytest.mark.puppet_enabled
+@pytest.mark.cli_puppet_enabled
 def test_positive_list_scparams(
     session_puppet_enabled_sat,
     session_puppet_enabled_proxy,
@@ -2660,7 +2651,7 @@ def test_positive_list_scparams(
     assert scp_id in [scp['id'] for scp in host_scparams]
 
 
-@pytest.mark.puppet_enabled
+@pytest.mark.cli_puppet_enabled
 @pytest.mark.tier1
 def test_positive_create_with_puppet_class_name(
     session_puppet_enabled_sat,
@@ -2695,7 +2686,7 @@ def test_positive_create_with_puppet_class_name(
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
 
-@pytest.mark.puppet_enabled
+@pytest.mark.cli_puppet_enabled
 @pytest.mark.tier2
 def test_positive_update_host_owner_and_verify_puppet_class_name(
     session_puppet_enabled_sat,
@@ -2746,7 +2737,7 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
 
-@pytest.mark.puppet_enabled
+@pytest.mark.cli_puppet_enabled
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 def test_positive_create_and_update_with_content_source(

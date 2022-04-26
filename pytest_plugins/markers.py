@@ -27,10 +27,10 @@ def pytest_configure(config):
 def module_markers():
     """Register custom markers for each module"""
     return [
-        "host_create: Marks host creation CLI tests",
-        "host_update: Marks host update CLI tests",
-        "host_parameter: Marks host parameter CLI tests",
-        "katello_host_tools: Marks host CLI tests where katello host tools is installed on client",
-        "host_subscription: Marks host subscription CLI tests",
-        "puppet_enabled: Marks CLI host tests with enabled puppet",
+        "cli_host_create: Marks host creation CLI tests",
+        "cli_host_update: Marks host update CLI tests",
+        "cli_host_parameter: Marks host parameter CLI tests",
+        "cli_katello_host_tools: Marks host CLI tests with katello host tools installed on client",
+        "cli_host_subscription: Marks host subscription CLI tests",
+        "cli_puppet_enabled: Marks CLI host tests with enabled puppet",
     ]
