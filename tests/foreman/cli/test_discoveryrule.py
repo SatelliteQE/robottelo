@@ -8,7 +8,7 @@
 
 :CaseComponent: DiscoveryPlugin
 
-:Assignee: rplevka
+:Assignee: gsulliva
 
 :TestType: Functional
 
