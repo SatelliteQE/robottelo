@@ -45,6 +45,7 @@ def module_ec2_settings():
 
 @pytest.mark.tier2
 @pytest.mark.skip_if_not_set('http_proxy')
+@pytest.mark.skip_if_open("BZ:2032530")
 def test_positive_default_end_to_end_with_custom_profile(
     session, module_org, module_location, module_ec2_settings
 ):
