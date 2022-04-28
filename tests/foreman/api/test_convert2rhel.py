@@ -147,9 +147,11 @@ def centos_host(
     """Deploy and register Centos host"""
     rh_repos = request.getfixturevalue(f"enable_rhel{version}_subscriptions")
     conf = {
-        "workflow": "deploy-centos",
-        "deploy_scenario": "centos",
+        "workflow": settings.content_host.deploy_workflow.centos,
+        "deploy_scenario": settings.content_host.deploy_scenario.oracle_linux,
         "deploy_rhel_version": version,
+        'memory': settings.content_host.hardware.oracle_linux.memory,
+        'cores': settings.content_host.hardware.oracle_linux.cores,
     }
     with VMBroker(**conf, host_classes={'host': ContentHost}) as host:
         host.install_katello_ca(default_sat)
@@ -182,9 +184,11 @@ def oracle_host(
     """Deploy and register Oracle host"""
     rh_repos = request.getfixturevalue(f"enable_rhel{version}_subscriptions")
     conf = {
-        "workflow": "deploy-oracle-linux",
-        "deploy_scenario": "oracle",
+        "workflow": settings.content_host.deploy_workflow.oracle_linux,
+        "deploy_scenario": settings.content_host.deploy_scenario.oracle_linux,
         "deploy_rhel_version": version,
+        'memory': settings.content_host.hardware.centos.memory,
+        'cores': settings.content_host.hardware.centos.cores,
     }
     with VMBroker(**conf, host_classes={'host': ContentHost}) as host:
         # disable rhn-client-tools because it obsoletes the subscription manager package
