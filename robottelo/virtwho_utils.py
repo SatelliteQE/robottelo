@@ -132,6 +132,7 @@ def virtwho_cleanup():
     runcmd("rm -f /var/run/virt-who.pid")
     runcmd("rm -f /var/log/rhsm/rhsm.log")
     runcmd("rm -rf /etc/virt-who.d/*")
+    runcmd("rm -rf /tmp/deploy_script.sh")
 
 
 def get_virtwho_status():
