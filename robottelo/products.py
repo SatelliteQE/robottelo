@@ -899,6 +899,7 @@ class RepositoryCollection:
         self,
         vm,
         satellite,
+        location=None,
         patch_os_release=False,
         install_katello_agent=True,
         enable_rh_repos=True,
@@ -932,6 +933,12 @@ class RepositoryCollection:
             repo_labels = [
                 repo['label'] for repo in self.custom_repos_info if repo['content-type'] == 'yum'
             ]
+
+        if location:
+            vm.execute(
+                f'echo {{\\"foreman_location\\":\\"{location.name}\\"}} '
+                '> /etc/rhsm/facts/location.facts'
+            )
 
         vm.contenthost_setup(
             satellite,
