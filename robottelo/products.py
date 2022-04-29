@@ -935,10 +935,7 @@ class RepositoryCollection:
             ]
 
         if location:
-            vm.execute(
-                f'echo {{\\"foreman_location\\":\\"{location.name}\\"}} '
-                '> /etc/rhsm/facts/location.facts'
-            )
+            vm.set_facts({'locations.facts': {'foreman_location': str(location.name)}})
 
         vm.contenthost_setup(
             satellite,
