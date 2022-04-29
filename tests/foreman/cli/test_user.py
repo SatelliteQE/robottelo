@@ -58,7 +58,6 @@ class TestUser:
         saved on sat. roles is a dict so keys are role's id respective value is
         the role itself
         """
-        settings.configure()
         include_list = [gen_string("alphanumeric", 100)]
 
         def roles_helper():
