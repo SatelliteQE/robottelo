@@ -3,7 +3,6 @@ from tenacity import retry
 from tenacity import stop_after_attempt
 from tenacity import wait_fixed
 
-from robottelo.config import settings
 from robottelo.logging import logger
 
 
@@ -30,9 +29,7 @@ class ReportPortal:
     importance_levels = ['Low', 'Medium', 'High', 'Critical', 'Fips']
 
     def __init__(self, rp_url, rp_api_key, rp_project):
-        """Configure the settings and initiate report portal properties"""
-        if not settings.configured:
-            settings.configure()
+        """initiate report portal properties"""
         self.rp_url = rp_url
         self.rp_project = rp_project
         self.rp_api_key = rp_api_key

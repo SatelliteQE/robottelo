@@ -28,8 +28,6 @@ def filtered_datapoint(func):
     If run_one_datapoint=true, return a random data.
 
     """
-    if not settings.configured:
-        settings.configure()
 
     @wraps(func)
     def func_wrapper(*args, **kwargs):
