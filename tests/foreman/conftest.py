@@ -1,15 +1,7 @@
 """Configurations for py.test runner"""
 import pytest
 
-from robottelo.config import settings
 from robottelo.logging import collection_logger
-
-
-@pytest.fixture(scope='session')
-def configured_settings():
-    if not settings.configured:
-        settings.configure()
-    return settings
 
 
 @pytest.fixture

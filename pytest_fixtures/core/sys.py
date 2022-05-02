@@ -6,13 +6,6 @@ from robottelo.config import settings
 from robottelo.hosts import SatelliteHostError
 
 
-@pytest.fixture(scope='session')
-def init_settings():
-    """Explicitly init the robottelo conf settings"""
-    if not settings.configured:
-        settings.configure()
-
-
 @pytest.fixture
 def foreman_service_teardown(satellite_host):
     """stop and restart of foreman service"""
