@@ -250,7 +250,7 @@ def test_positive_user_access_with_host_filter(
         )
         repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
         repos_collection.setup_virtual_machine(
-            rhel7_contenthost, default_sat, location=module_location
+            rhel7_contenthost, default_sat, location_title=module_location.name
         )
         result = rhel7_contenthost.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
         assert result.status == 0
