@@ -790,6 +790,7 @@ class ContentHost(Host, ContentHostMixins):
         self,
         satellite,
         org_label,
+        location_title=None,
         rh_repo_ids=None,
         repo_labels=None,
         product_label=None,
@@ -812,6 +813,8 @@ class ContentHost(Host, ContentHostMixins):
         """
         rh_repo_ids = rh_repo_ids or []
         repo_labels = repo_labels or []
+        if location_title:
+            self.set_facts({'locations.facts': {'foreman_location': str(location_title)}})
         self.install_katello_ca(satellite)
         result = self.register_contenthost(org_label, activation_key=activation_key, lce=lce)
         if not self.subscribed:

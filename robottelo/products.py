@@ -899,6 +899,7 @@ class RepositoryCollection:
         self,
         vm,
         satellite,
+        location_title=None,
         patch_os_release=False,
         install_katello_agent=True,
         enable_rh_repos=True,
@@ -936,6 +937,7 @@ class RepositoryCollection:
         vm.contenthost_setup(
             satellite,
             self.organization['label'],
+            location_title=location_title,
             rh_repo_ids=rh_repo_ids,
             repo_labels=repo_labels,
             product_label=self.custom_product['label'] if self.custom_product else None,
