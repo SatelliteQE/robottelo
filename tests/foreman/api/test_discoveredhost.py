@@ -4,7 +4,7 @@
 
 :CaseComponent: DiscoveryPlugin
 
-:Assignee: rplevka
+:Assignee: gsulliva
 
 :CaseAutomation: Automated
 
