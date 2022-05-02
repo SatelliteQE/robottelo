@@ -634,8 +634,8 @@ REPOS = {
     },
     'rhel8_bos': {
         'id': 'rhel-8-for-x86_64-baseos-rpms',
-        'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8.5',
-        'releasever': '8.5',
+        'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8',
+        'releasever': '8',
         'version': '8',
         'reposet': REPOSET['rhel8_bos'],
         'product': PRDS['rhel8'],
@@ -644,8 +644,8 @@ REPOS = {
     },
     'rhel8_aps': {
         'id': 'rhel-8-for-x86_64-appstream-rpms',
-        'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream RPMs 8.5',
-        'releasever': '8.5',
+        'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream RPMs 8',
+        'releasever': '8',
         'version': '8',
         'reposet': REPOSET['rhel8_aps'],
         'product': PRDS['rhel8'],

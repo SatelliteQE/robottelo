@@ -1,12 +1,7 @@
 content_host:
-    deploy_workflow:
-        default:
-        rhel9: # example of workflow override for version
-    DEPLOY_SCENARIO:
-        default:
-        centos:
     default_rhel_version: 7
-    hardware:
+    default_workflow: deploy-base-rhel
+    deploy_kwargs:
         RHEL6:
             RELEASE: 6.10
             MEMORY: 1GiB
@@ -25,8 +20,12 @@ content_host:
             MEMORY: 1536 MiB
             CORES: 1
         CENTOS:
+            SCENARIO: centos
+            DEPLOY_WORKFLOW: deploy-centos
             MEMORY: 1536 MiB
             CORES: 1
         ORACLE_LINUX:
+            SCENARIO: oracle
+            DEPLOY_WORKFLOW: deploy-oracle-linux
             MEMORY: 1536 MiB
             CORES: 1

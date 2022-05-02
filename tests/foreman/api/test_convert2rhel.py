@@ -16,7 +16,6 @@
 """
 import pytest
 import requests
-from broker import VMBroker
 from nailgun import entities
 
 from robottelo import manifests
@@ -29,7 +28,6 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import REPOS
-from robottelo.hosts import ContentHost
 
 
 def create_repo(org, repo_url, ssl_cert=None):
@@ -110,16 +108,26 @@ def activation_key_rhel(module_org, module_lce, module_promoted_cv, version):
     return create_activation_key(module_org, module_lce, module_promoted_cv, subs[0].id)
 
 
-def enable_rhel_repos(org, repos):
+@pytest.fixture(scope='module')
+def enable_rhel_subscriptions(module_org, manifest, version):
+    """Enable and sync RHEL rpms repos"""
+    major = version.split('.')[0]
+    minor = ""
+    if major == '8':
+        repo_names = ['rhel8_bos', 'rhel8_aps']
+        minor = version[1:]
+    else:
+        repo_names = ['rhel7']
+
     rh_repos = []
-    for repo in repos:
+    for name in repo_names:
         rh_repo_id = enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
-            org_id=org.id,
-            product=REPOS[repo]['product'],
-            repo=REPOS[repo]['name'],
-            reposet=REPOS[repo]['reposet'],
-            releasever=REPOS[repo]['releasever'],
+            org_id=module_org.id,
+            product=REPOS[name]['product'],
+            repo=REPOS[name]['name'] + minor,
+            reposet=REPOS[name]['reposet'],
+            releasever=REPOS[name]['releasever'] + minor,
         )
         # Sync step because repo is not synced by default
         rh_repo = entities.Repository(id=rh_repo_id).read()
@@ -128,109 +136,81 @@ def enable_rhel_repos(org, repos):
     return rh_repos
 
 
-@pytest.fixture(scope='module')
-def enable_rhel7_subscriptions(module_org, manifest):
-    """Enable and sync RHEL7 server rpms repo"""
-    return enable_rhel_repos(module_org, ['rhel7'])
-
-
-@pytest.fixture(scope='module')
-def enable_rhel8_subscriptions(module_org, manifest):
-    """Enable and sync RHEL8 baseos and appstream repos"""
-    return enable_rhel_repos(module_org, ['rhel8_bos', 'rhel8_aps'])
-
-
 @pytest.fixture
-def centos_host(
-    request, default_sat, module_org, smart_proxy_location, module_promoted_cv, module_lce, version
+def centos(
+    centos_host,
+    module_org,
+    smart_proxy_location,
+    module_promoted_cv,
+    module_lce,
+    version,
+    enable_rhel_subscriptions,
 ):
     """Deploy and register Centos host"""
-    rh_repos = request.getfixturevalue(f"enable_rhel{version}_subscriptions")
-    conf = {
-        "workflow": settings.content_host.deploy_workflow.centos,
-        "deploy_scenario": settings.content_host.deploy_scenario.oracle_linux,
-        "deploy_rhel_version": version,
-        'memory': settings.content_host.hardware.oracle_linux.memory,
-        'cores': settings.content_host.hardware.oracle_linux.cores,
-    }
-    with VMBroker(**conf, host_classes={'host': ContentHost}) as host:
-        host.install_katello_ca(default_sat)
-        # updating centos packages on CentOS 8 is necessary for conversion
-        if version == '8':
-            host.execute("yum update -y centos-*")
-        repo = create_repo(
-            module_org, settings.repos.convert2rhel.convert_to_rhel_repo.format(version)
-        )
-        cv = update_cv(module_promoted_cv, module_lce, rh_repos + [repo])
-        c2r_sub = entities.Subscription(organization=module_org, name=repo.product.name).search()[0]
-        act_key = create_activation_key(module_org, module_lce, cv, c2r_sub.id)
-        register_host(act_key, module_org, smart_proxy_location, host.hostname)
-        yield host
-        # close ssh session before teardown, because of reboot in conversion it may cause problems
-        host.close()
+    # updating centos packages on CentOS 8 is necessary for conversion
+    major = version.split('.')[0]
+    if major == '8':
+        centos_host.execute("yum update -y centos-*")
+    repo = create_repo(module_org, settings.repos.convert2rhel.convert_to_rhel_repo.format(major))
+    cv = update_cv(module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo])
+    c2r_sub = entities.Subscription(organization=module_org, name=repo.product.name).search()[0]
+    act_key = create_activation_key(module_org, module_lce, cv, c2r_sub.id)
+    register_host(act_key, module_org, smart_proxy_location, centos_host.hostname)
+    yield centos_host
+    # close ssh session before teardown, because of reboot in conversion it may cause problems
+    centos_host.close()
 
 
 @pytest.fixture
-def oracle_host(
-    request,
-    default_sat,
+def oracle(
+    oracle_host,
     module_org,
     smart_proxy_location,
     module_promoted_cv,
     module_lce,
     ssl_cert,
     version,
+    enable_rhel_subscriptions,
 ):
     """Deploy and register Oracle host"""
-    rh_repos = request.getfixturevalue(f"enable_rhel{version}_subscriptions")
-    conf = {
-        "workflow": settings.content_host.deploy_workflow.oracle_linux,
-        "deploy_scenario": settings.content_host.deploy_scenario.oracle_linux,
-        "deploy_rhel_version": version,
-        'memory': settings.content_host.hardware.centos.memory,
-        'cores': settings.content_host.hardware.centos.cores,
-    }
-    with VMBroker(**conf, host_classes={'host': ContentHost}) as host:
-        # disable rhn-client-tools because it obsoletes the subscription manager package
-        host.execute('echo "exclude=rhn-client-tools" >> /etc/yum.conf')
-        # install and set correct kernel, based on convert2rhel docs
-        result = host.execute(
-            'yum install -y kernel && '
-            'grubby --set-default /boot/vmlinuz-'
-            '`rpm -q --qf "%{BUILDTIME}\t%{EVR}.%{ARCH}\n" kernel | sort -nr | head -1 | cut -f2`'
-        )
-        assert result.status == 0
-        host.install_katello_ca(default_sat)
-        host.power_control(state='reboot')
-        repo = create_repo(
-            module_org, settings.repos.convert2rhel.convert_to_rhel_repo.format(version), ssl_cert
-        )
-        cv = update_cv(module_promoted_cv, module_lce, rh_repos + [repo])
-        c2r_sub = entities.Subscription(organization=module_org, name=repo.product.name).search()[0]
-        act_key = create_activation_key(module_org, module_lce, cv, c2r_sub.id)
-        ubi_url = (
-            settings.repos.convert2rhel.ubi7 if version == '7' else settings.repos.convert2rhel.ubi8
-        )
-        ubi = create_repo(module_org, ubi_url)
-        ubi_repo = ubi.full_path.replace('https', 'http')
-        register_host(act_key, module_org, smart_proxy_location, host.hostname, ubi_repo)
-        yield host
-        # close ssh session before teardown, because of reboot in conversion it may cause problems
-        host.close()
+    # disable rhn-client-tools because it obsoletes the subscription manager package
+    oracle_host.execute('echo "exclude=rhn-client-tools" >> /etc/yum.conf')
+    # install and set correct kernel, based on convert2rhel docs
+    result = oracle_host.execute(
+        'yum install -y kernel && '
+        'grubby --set-default /boot/vmlinuz-'
+        '`rpm -q --qf "%{BUILDTIME}\t%{EVR}.%{ARCH}\n" kernel | sort -nr | head -1 | cut -f2`'
+    )
+    assert result.status == 0
+    oracle_host.power_control(state='reboot')
+    major = version.split('.')[0]
+    repo = create_repo(
+        module_org, settings.repos.convert2rhel.convert_to_rhel_repo.format(major), ssl_cert
+    )
+    cv = update_cv(module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo])
+    c2r_sub = entities.Subscription(organization=module_org, name=repo.product.name).search()[0]
+    act_key = create_activation_key(module_org, module_lce, cv, c2r_sub.id)
+    ubi_url = settings.repos.convert2rhel.ubi7 if major == '7' else settings.repos.convert2rhel.ubi8
+    ubi = create_repo(module_org, ubi_url)
+    ubi_repo = ubi.full_path.replace('https', 'http')
+    register_host(act_key, module_org, smart_proxy_location, oracle_host.hostname, ubi_repo)
+    yield oracle_host
+    # close ssh session before teardown, because of reboot in conversion it may cause problems
+    oracle_host.close()
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def version(request):
-    """Major version of converted OS"""
-    return request.param
+    """Version of converted OS"""
+    return settings.content_host.deploy_kwargs.get(request.param).release
 
 
 @pytest.mark.parametrize(
     "version",
-    ['7', '8'],
+    ['oracle7', 'oracle8'],
     indirect=True,
 )
-def test_convert2rhel_oracle(oracle_host, activation_key_rhel, version):
+def test_convert2rhel_oracle(oracle, activation_key_rhel, version):
     """Convert Oracle linux to RHEL
 
     :id: 7fd393f0-551a-4de0-acdd-7f026b485f79
@@ -247,8 +227,8 @@ def test_convert2rhel_oracle(oracle_host, activation_key_rhel, version):
 
     :CaseImportance: Medium
     """
-    host_content = entities.Host(id=oracle_host.hostname).read_json()
-    assert host_content['operatingsystem_name'].startswith(f"OracleLinux {version}")
+    host_content = entities.Host(id=oracle.hostname).read_json()
+    assert host_content['operatingsystem_name'] == f"OracleLinux {version}"
 
     # execute job 'Convert 2 RHEL' on host
     template_id = entities.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
@@ -261,7 +241,7 @@ def test_convert2rhel_oracle(oracle_host, activation_key_rhel, version):
                 'Restart': 'yes',
             },
             'targeting_type': 'static_query',
-            'search_query': f'name = {oracle_host.hostname}',
+            'search_query': f'name = {oracle.hostname}',
         },
     )
     # wait for job to complete
@@ -272,14 +252,17 @@ def test_convert2rhel_oracle(oracle_host, activation_key_rhel, version):
     assert result.succeeded == 1
 
     # check facts: correct os and valid subscription status
-    host_content = entities.Host(id=oracle_host.hostname).read_json()
-    os_name = 'RHEL Server' if version == '7' else 'RedHat'
-    assert host_content['operatingsystem_name'].startswith(f"{os_name} {version}")
+    host_content = entities.Host(id=oracle.hostname).read_json()
+    assert (
+        host_content['operatingsystem_name'].startswith(f"RHEL Server {version}")
+        or host_content['operatingsystem_name'].startswith(f"RedHat {version}")
+        or host_content['operatingsystem_name'].startswith(f"RHEL {version}")
+    )
     assert host_content['subscription_status'] == 0
 
 
-@pytest.mark.parametrize("version", ['7', '8'], indirect=True)
-def test_convert2rhel_centos(centos_host, activation_key_rhel, version):
+@pytest.mark.parametrize("version", ['centos7', 'centos8'], indirect=True)
+def test_convert2rhel_centos(centos, activation_key_rhel, version):
     """Convert Centos linux to RHEL
 
     :id: 6f698440-7d85-4deb-8dd9-363ea9003b92
@@ -296,8 +279,9 @@ def test_convert2rhel_centos(centos_host, activation_key_rhel, version):
 
     :CaseImportance: Medium
     """
-    host_content = entities.Host(id=centos_host.hostname).read_json()
-    assert host_content['operatingsystem_name'].startswith(f"CentOS {version}")
+    host_content = entities.Host(id=centos.hostname).read_json()
+    major = version.split('.')[0]
+    assert host_content['operatingsystem_name'] == f"CentOS {major}"
 
     # execute job 'Convert 2 RHEL' on host
     template_id = entities.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
@@ -310,7 +294,7 @@ def test_convert2rhel_centos(centos_host, activation_key_rhel, version):
                 'Restart': 'yes',
             },
             'targeting_type': 'static_query',
-            'search_query': f'name = {centos_host.hostname}',
+            'search_query': f'name = {centos.hostname}',
         },
     )
     # wait for job to complete
@@ -321,7 +305,10 @@ def test_convert2rhel_centos(centos_host, activation_key_rhel, version):
     assert result.succeeded == 1
 
     # check facts: correct os and valid subscription status
-    host_content = entities.Host(id=centos_host.hostname).read_json()
-    os_name = 'RHEL Server' if version == '7' else 'RedHat'
-    assert host_content['operatingsystem_name'].startswith(f"{os_name} {version}")
+    host_content = entities.Host(id=centos.hostname).read_json()
+    assert (
+        host_content['operatingsystem_name'].startswith(f"RHEL Server {version}")
+        or host_content['operatingsystem_name'].startswith(f"RedHat {version}")
+        or host_content['operatingsystem_name'].startswith(f"RHEL {version}")
+    )
     assert host_content['subscription_status'] == 0
