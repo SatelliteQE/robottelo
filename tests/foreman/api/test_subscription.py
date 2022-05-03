@@ -96,6 +96,7 @@ def test_positive_create():
         upload_manifest(org.id, manifest.content)
 
 
+@pytest.mark.skip('Skipping due to manifest refresh issues')
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier1
 def test_positive_refresh(request):
@@ -116,6 +117,7 @@ def test_positive_refresh(request):
     assert sub.search()
 
 
+@pytest.mark.skip('Skipping due to manifest refresh issues')
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier1
 def test_positive_create_after_refresh(function_org):

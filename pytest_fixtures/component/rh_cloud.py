@@ -57,7 +57,8 @@ def organization_ak_setup(rhcloud_sat_host, rhcloud_manifest_org):
         auto_attach=True,
     ).create()
     subscription = rhcloud_sat_host.api.Subscription(organization=rhcloud_manifest_org)
-    subscription.refresh_manifest(data={'organization_id': rhcloud_manifest_org.id})
+    # Disabling due to an issue with manifest refreshes. Is this refresh actually needed?
+    # subscription.refresh_manifest(data={'organization_id': rhcloud_manifest_org.id})
     default_subscription = subscription.search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]

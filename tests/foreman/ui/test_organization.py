@@ -284,6 +284,7 @@ def test_positive_delete_with_manifest_lces(session):
         assert not session.organization.search(org.name)
 
 
+@pytest.mark.skip('Skipping due to manifest refresh issues')
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
