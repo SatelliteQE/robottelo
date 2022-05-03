@@ -142,6 +142,7 @@ def test_positive_manifest_history(function_org, manifest_clone_upload):
     assert f'{function_org.name} file imported successfully.' in ''.join(history)
 
 
+@pytest.mark.skip('Skipping due to manifest refresh issues')
 @pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_manifest_refresh(function_org):
