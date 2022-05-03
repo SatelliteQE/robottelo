@@ -1017,12 +1017,18 @@ class Satellite(Capsule):
         hostname = hostname or settings.server.hostname  # instance attr set by broker.Host
         self.port = kwargs.get('port', settings.server.port)
         super().__init__(hostname=hostname, **kwargs)
-        self._init_nailgun()
-        self._init_cli()
-        self._init_airgun()
+        # create dummy classes for later population
+        self._api = type('api', (), {'_configured': False})
+        self._cli = type('cli', (), {'_configured': False})
 
-    def _init_nailgun(self):
+    @property
+    def api(self):
         """Import all nailgun entities and wrap them under self.api"""
+        if not self._api:
+            self._api = type('api', (), {'_configured': False})
+        if self._api._configured:
+            return self._api
+
         from nailgun.config import ServerConfig
         from nailgun.entity_mixins import Entity
 
@@ -1042,7 +1048,6 @@ class Satellite(Capsule):
             verify=False,
         )
         # add each nailgun entity to self.api, injecting our server config
-        self.api = lambda: None
         for name, obj in entities.__dict__.items():
             try:
                 if Entity in obj.mro():
@@ -1052,13 +1057,19 @@ class Satellite(Capsule):
             except AttributeError:
                 # not everything has an mro method, we don't care about them
                 pass
+        return self._api
 
-    def _init_cli(self):
+    @property
+    def cli(self):
         """Import all robottelo cli entities and wrap them under self.cli"""
+        if not self._cli:
+            self._cli = type('cli', (), {'_configured': False})
+        if self._cli._configured:
+            return self._cli
+
         import importlib
         from robottelo.cli.base import Base
 
-        self.cli = lambda: None
         for file in Path('robottelo/cli/').iterdir():
             if file.suffix == '.py' and not file.name.startswith('_'):
                 cli_module = importlib.import_module(f'robottelo.cli.{file.stem}')
@@ -1071,9 +1082,12 @@ class Satellite(Capsule):
                     except AttributeError:
                         # not everything has an mro method, we don't care about them
                         pass
+        return self._cli
 
-    def _init_airgun(self):
+    @property
+    def ui_session(self):
         """Initialize an airgun Session object and store it as self.ui_session"""
+
         from airgun.session import Session
 
         def get_caller():
@@ -1083,7 +1097,7 @@ class Satellite(Capsule):
                 if frame.function.startswith('test_'):
                     return frame.function
 
-        self.ui_session = Session(
+        return Session(
             session_name=get_caller(),
             user=settings.server.admin_username,
             password=settings.server.admin_password,
