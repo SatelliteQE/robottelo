@@ -36,6 +36,7 @@ class TestManifestScenarioRefresh:
     The scenario to test the refresh of a manifest created before upgrade.
     """
 
+    @pytest.mark.skip('Skipping due to manifest refresh issues')
     @pytest.mark.pre_upgrade
     def test_pre_manifest_scenario_refresh(self, request):
         """Before upgrade, upload & refresh the manifest.
@@ -57,6 +58,7 @@ class TestManifestScenarioRefresh:
         sub.refresh_manifest(data={'organization_id': org.id})
         assert len(sub.search()) > 0
 
+    @pytest.mark.skip('Skipping due to manifest refresh issues')
     @pytest.mark.post_upgrade(depend_on=test_pre_manifest_scenario_refresh)
     def test_post_manifest_scenario_refresh(self, request, dependent_scenario_name):
         """After upgrade, Check the manifest refresh and delete functionality.
