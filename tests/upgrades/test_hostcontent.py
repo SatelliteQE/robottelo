@@ -19,6 +19,8 @@
 import pytest
 from fabric.api import run
 from nailgun import entities
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import get_entity_data
 
 
 class TestScenarioDBseedHostMismatch:
@@ -36,40 +38,43 @@ class TestScenarioDBseedHostMismatch:
         8. Upgrade Satellite
         9. Ensure upgrade succeeds
 
-    BZ: 2043705
+    BZ: 2043705, 2028786, 2019467
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_db_seed_host_mismatch(self, rhel7_contenthost):
+    def test_pre_db_seed_host_mismatch(self, default_sat, rhel7_contenthost):
         """
 
         :id:
 
         :steps:
-            1. Create an Organizaiton1 and Location1
-            2. Create another Organization2 in another Location2
-            3. Create a content host on Organization1 but not in Location2
+            1. Create an Organizaiton1 and Location
+            2. Create another Organization2
+            3. Create a content host on Organization1
+            4. Use rake console to edit the content host to Org2
+            5. Ensure the taxonomy between the content host and Location is broken
 
         :expectedresults:
-            1. The Content Host exists on Organization but not Location
+            1. The content host should be in Organization2 but not Location
 
-        :BZ: 2043705
+        :BZ: 2043705, 2028786, 2019467
+
+
 
         :customerscenario: true
         """
-        org = entities.Organization.create()
-        loc = entities.Location.create(organization=org)
-
-        org2 = entities.Organization.create()
+        org = default_sat.Organization.create()
+        loc = default_sat.Location.create(organization=org)
+        org2 = default_sat.Organization.create()
 
         rhel7_contenthost.install_capsule_katello_ca(capsule=self.proxy_name)
         rhel7_contenthost.register_contenthost(org=org, lce='Library')
 
-        chost = entities.Host().search(query={'search': f'name="{rhel7_contenthost.hostname}"'})
+        chost = default_sat.Host().search(query={'search': f'name="{rhel7_contenthost.hostname}"'})
 
-        assert chost['organization'] == org.name
-        assert chost['organization'] != org2.name
-        assert chost['location'] == loc.name
+        assert chost[0]['organization'] == org.name
+        assert chost[0]['organization'] != org2.name
+        assert chost[0]['location'] == loc.name
 
         rake_host = f"host = Host.where(:name => '{chost.name}')"
         rake_organization = f'; host.organization_id=${org2.id}'
@@ -81,8 +86,13 @@ class TestScenarioDBseedHostMismatch:
         assert 'true' in result
         assert chost['organization'] == org2.name
 
+        global_dict = {self.__class__.__name__: {'client_name': rhel7_contenthost.hostname}}
+        create_dict(global_dict)
+
         # do the upgrade
 
     @pytest.mark.post_upgrade(depend_on=test_pre_db_seed_host_mismatch)
     def test_post_db_seed_host_mismatch(self, default_sat):
         """"""
+
+        # ensure the upgrade succeeds and is in org 1
