@@ -327,14 +327,14 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.no_proxy = no_proxy
         virtwho_config.update(['http_proxy_id', 'no_proxy'])
         command = get_configure_command(virtwho_config.id, default_org.name)
-        deploy_configure_by_command(command, form_data['hypervisor_type'], org=virtwho_config.label)
+        deploy_configure_by_command(command, form_data['hypervisor_type'], org=default_org.label)
         assert get_configure_option('http_proxy', ETC_VIRTWHO_CONFIG) == http_proxy_url
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
         # Check HTTTPs Proxy option
         https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy(org=default_org)
         virtwho_config.http_proxy_id = https_proxy_id
         virtwho_config.update(['http_proxy_id'])
-        deploy_configure_by_command(command, form_data['hypervisor_type'], org=virtwho_config.label)
+        deploy_configure_by_command(command, form_data['hypervisor_type'], org=default_org.label)
         assert get_configure_option('https_proxy', ETC_VIRTWHO_CONFIG) == https_proxy_url
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
