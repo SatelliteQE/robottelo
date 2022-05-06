@@ -134,7 +134,7 @@ class TestVirtwhoConfigforKubevirt:
         with session:
             session.virtwho_configure.create(form_data)
             config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.label)
+            config_command = get_configure_command(config_id, default_org.name)
             config_file = get_configure_file(config_id)
             values = ['uuid', 'hostname']
             for value in values:
