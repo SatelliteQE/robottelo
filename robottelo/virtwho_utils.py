@@ -140,7 +140,7 @@ def get_virtwho_status():
     """
     _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
     error = len(re.findall(r'\[.*ERROR.*\]', logs))
-    ret, stdout = runcmd('systemctl status virt-who')
+    ret, stdout = runcmd('systemctl status virt-who; sleep 10')
     running_stauts = ['is running', 'Active: active (running)']
     stopped_status = ['is stopped', 'Active: inactive (dead)']
     if ret != 0:
