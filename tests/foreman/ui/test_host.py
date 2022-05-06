@@ -1683,6 +1683,8 @@ def test_global_registration_upgrade_subscription_manager(
 
     :id: b7a44f32-90b2-4fd6-b65b-5a3d2a5c5deb
 
+    :customerscenario: true
+
     :expectedresults: Host is successfully registered, repo is enabled
         on advanced tab and subscription-manager is updated.
 
