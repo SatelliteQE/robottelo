@@ -147,7 +147,7 @@ class TestVirtwhoConfigforEsx:
         with session:
             session.virtwho_configure.create(form_data)
             config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.label)
+            config_command = get_configure_command(config_id, default_org.name)
             deploy_configure_by_command(
                 config_command, form_data['hypervisor_type'], org=default_org.label
             )
@@ -181,7 +181,7 @@ class TestVirtwhoConfigforEsx:
         with session:
             session.virtwho_configure.create(form_data)
             config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.label)
+            config_command = get_configure_command(config_id, default_org.name)
             intervals = {
                 'Every hour': '3600',
                 'Every 2 hours': '7200',
@@ -222,7 +222,7 @@ class TestVirtwhoConfigforEsx:
         with session:
             session.virtwho_configure.create(form_data)
             config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.label)
+            config_command = get_configure_command(config_id, default_org.name)
             config_file = get_configure_file(config_id)
             # esx and rhevm support hwuuid option
             values = ['uuid', 'hostname', 'hwuuid']
@@ -258,7 +258,7 @@ class TestVirtwhoConfigforEsx:
         with session:
             session.virtwho_configure.create(form_data)
             config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.label)
+            config_command = get_configure_command(config_id, default_org.name)
             config_file = get_configure_file(config_id)
             regex = '.*redhat.com'
             whitelist = {'filtering': 'Whitelist', 'filtering_content.filter_hosts': regex}
@@ -311,7 +311,7 @@ class TestVirtwhoConfigforEsx:
         with session:
             session.virtwho_configure.create(form_data)
             config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.label)
+            config_command = get_configure_command(config_id, default_org.name)
             no_proxy = 'test.satellite.com'
             # Check the https proxy and No_PROXY settings
             session.virtwho_configure.edit(name, {'proxy': https_proxy, 'no_proxy': no_proxy})
@@ -405,7 +405,7 @@ class TestVirtwhoConfigforEsx:
             assert values['latest_config'] == 'No configuration found'
             # Check the 'Status' changed after deployed the virt-who config
             config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.label)
+            config_command = get_configure_command(config_id, default_org.name)
             deploy_configure_by_command(
                 config_command, form_data['hypervisor_type'], org=default_org.label
             )
@@ -445,7 +445,7 @@ class TestVirtwhoConfigforEsx:
         with session:
             session.virtwho_configure.create(form_data)
             config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.label)
+            config_command = get_configure_command(config_id, default_org.name)
             deploy_configure_by_command(
                 config_command, form_data['hypervisor_type'], org=default_org.label
             )
