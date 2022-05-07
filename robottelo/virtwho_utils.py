@@ -8,6 +8,7 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_url
 from nailgun import entities
+from wait_for import wait_for
 
 from robottelo import ssh
 from robottelo.cli.base import Base
@@ -140,7 +141,7 @@ def get_virtwho_status():
     """
     _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
     error = len(re.findall(r'\[.*ERROR.*\]', logs))
-    ret, stdout = runcmd('systemctl status virt-who; sleep 10')
+    ret, stdout = runcmd('systemctl status virt-who')
     running_stauts = ['is running', 'Active: active (running)']
     stopped_status = ['is stopped', 'Active: inactive (dead)']
     if ret != 0:
@@ -203,7 +204,15 @@ def get_configure_option(option, filename):
         raise VirtWhoError(f"option {option} is not exist or not be enabled in {filename}")
 
 
-def _get_hypervisor_mapping(logs, hypervisor_type):
+def get_rhsm_log():
+    """
+    Return the content of log file /var/log/rhsm/rhsm.log
+    """
+    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
+    return logs
+
+
+def _get_hypervisor_mapping(hypervisor_type):
     """Analysing rhsm.log and get to know: what is the hypervisor_name
     for the specific guest.
     :param str logs: the output of rhsm.log.
@@ -211,6 +220,12 @@ def _get_hypervisor_mapping(logs, hypervisor_type):
     :raises: VirtWhoError: If hypervisor_name is None.
     :return: hypervisor_name and guest_name
     """
+    logs, _ = wait_for(
+        get_rhsm_log,
+        fail_condition=lambda logs: "Host-to-guest mapping being sent to" not in logs,
+        timeout=10,
+        delay=2,
+    )
     mapping = list()
     entry = None
     guest_name, guest_uuid = get_guest_info(hypervisor_type)
@@ -248,8 +263,7 @@ def deploy_validation(hypervisor_type):
     status = get_virtwho_status()
     if status != 'running':
         raise VirtWhoError("Failed to start virt-who service")
-    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
-    hypervisor_name, guest_name = _get_hypervisor_mapping(logs, hypervisor_type)
+    hypervisor_name, guest_name = _get_hypervisor_mapping(hypervisor_type)
     for host in Host.list({'search': hypervisor_name}):
         Host.delete({'id': host['id']})
     restart_virtwho_service()
@@ -396,8 +410,7 @@ def get_hypervisor_info(hypervisor_type):
     """
     Get the hypervisor_name and guest_name from rhsm.log.
     """
-    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
-    hypervisor_name, guest_name = _get_hypervisor_mapping(logs, hypervisor_type)
+    hypervisor_name, guest_name = _get_hypervisor_mapping(hypervisor_type)
     return hypervisor_name, guest_name
 
 
