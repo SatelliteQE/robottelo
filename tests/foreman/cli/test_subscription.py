@@ -179,7 +179,7 @@ def test_positive_subscription_list(function_org, manifest_clone_upload):
 
 
 @pytest.mark.tier2
-def test_positive_delete_manifest_as_another_user(default_sat):
+def test_positive_delete_manifest_as_another_user(target_sat):
     """Verify that uploaded manifest if visible and deletable
         by a different user than the one who uploaded it
 
@@ -204,7 +204,7 @@ def test_positive_delete_manifest_as_another_user(default_sat):
     ).create()
     # use the first admin to upload a manifest
     with manifests.clone() as manifest:
-        default_sat.put(manifest, manifest.filename)
+        target_sat.put(manifest, manifest.filename)
     Subscription.with_user(username=user1.login, password=user1_password).upload(
         {'file': manifest.filename, 'organization-id': org.id}
     )
@@ -261,7 +261,7 @@ def test_positive_candlepin_events_processed_by_STOMP():
 
 @pytest.mark.tier2
 def test_positive_auto_attach_disabled_golden_ticket(
-    module_org, golden_ticket_host_setup, rhel7_contenthost_class, default_sat
+    module_org, golden_ticket_host_setup, rhel7_contenthost_class, target_sat
 ):
     """Verify that Auto-Attach is disabled or "Not Applicable"
     when a host organization is in Simple Content Access mode (Golden Ticket)
@@ -277,7 +277,7 @@ def test_positive_auto_attach_disabled_golden_ticket(
 
     :CaseImportance: Medium
     """
-    rhel7_contenthost_class.install_katello_ca(default_sat)
+    rhel7_contenthost_class.install_katello_ca(target_sat)
     rhel7_contenthost_class.register_contenthost(module_org.label, golden_ticket_host_setup['name'])
     assert rhel7_contenthost_class.subscribed
     host = Host.list({'search': rhel7_contenthost_class.hostname})

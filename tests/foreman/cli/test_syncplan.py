@@ -565,7 +565,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_rh_product_past_sync_date(default_sat):
+def test_positive_synchronize_rh_product_past_sync_date(target_sat):
     """Create a sync plan with past datetime as a sync date, add a
     RH product and verify the product gets synchronized on the next sync
     occurrence
@@ -582,7 +582,7 @@ def test_positive_synchronize_rh_product_past_sync_date(default_sat):
     delay = 2 * 60
     org = make_org()
     with manifests.clone() as manifest:
-        default_sat.put(manifest, manifest.filename)
+        target_sat.put(manifest, manifest.filename)
     Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
     RepositorySet.enable(
         {
@@ -633,7 +633,7 @@ def test_positive_synchronize_rh_product_past_sync_date(default_sat):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_rh_product_future_sync_date(default_sat):
+def test_positive_synchronize_rh_product_future_sync_date(target_sat):
     """Create a sync plan with sync date in a future and sync one RH
     product with it automatically.
 
@@ -650,7 +650,7 @@ def test_positive_synchronize_rh_product_future_sync_date(default_sat):
     guardtime = 180  # do not start test less than 2 mins before the next sync event
     org = make_org()
     with manifests.clone() as manifest:
-        default_sat.put(manifest, manifest.filename)
+        target_sat.put(manifest, manifest.filename)
     Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
     RepositorySet.enable(
         {

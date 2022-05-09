@@ -131,7 +131,7 @@ def test_create_with_config_group(session, module_org, module_location):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_create_with_puppet_class(session, module_org, module_location, default_sat):
+def test_create_with_puppet_class(session, module_org, module_location, target_sat):
     """Create new host group with assigned puppet class to it
 
     :id: 166ca6a6-c0f7-4fa0-a3f2-b0d6980cf50d
@@ -142,8 +142,8 @@ def test_create_with_puppet_class(session, module_org, module_location, default_
     """
     name = gen_string('alpha')
     pc_name = 'generic_1'
-    env_name = default_sat.create_custom_environment(repo=pc_name)
-    env = default_sat.api.Environment().search(query={'search': f'name={env_name}'})[0].read()
+    env_name = target_sat.create_custom_environment(repo=pc_name)
+    env = target_sat.api.Environment().search(query={'search': f'name={env_name}'})[0].read()
     env = entities.Environment(
         id=env.id,
         location=[module_location],
@@ -187,7 +187,7 @@ def test_positive_create_new_host():
 
 
 def test_positive_nested_host_groups(
-    session, module_org, module_lce, module_published_cv, module_ak_cv_lce, default_sat
+    session, module_org, module_lce, module_published_cv, module_ak_cv_lce, target_sat
 ):
     """Verify create, update and delete operation for nested host-groups
 
@@ -209,8 +209,8 @@ def test_positive_nested_host_groups(
     parent_hg_name = gen_string('alpha')
     child_hg_name = gen_string('alpha')
     description = gen_string('alpha')
-    architecture = default_sat.api.Architecture().create()
-    os = default_sat.api.OperatingSystem(architecture=[architecture]).create()
+    architecture = target_sat.api.Architecture().create()
+    os = target_sat.api.OperatingSystem(architecture=[architecture]).create()
     os_name = f'{os.name} {os.major}'
     with session:
         # Create parent host-group with default lce and content view
@@ -224,7 +224,7 @@ def test_positive_nested_host_groups(
                 'operating_system.operating_system': os_name,
             }
         )
-        assert default_sat.api.HostGroup().search(query={'search': f'name={parent_hg_name}'})
+        assert target_sat.api.HostGroup().search(query={'search': f'name={parent_hg_name}'})
 
         # Create nested host group
         session.hostgroup.create(
@@ -233,7 +233,7 @@ def test_positive_nested_host_groups(
                 'host_group.name': child_hg_name,
             }
         )
-        assert default_sat.api.HostGroup().search(query={'search': f'name={child_hg_name}'})
+        assert target_sat.api.HostGroup().search(query={'search': f'name={child_hg_name}'})
         child_hostgroup_values = session.hostgroup.read(f'{parent_hg_name}/{child_hg_name}')
         assert parent_hg_name in child_hostgroup_values['host_group']['parent_name']
         assert ENVIRONMENT in child_hostgroup_values['host_group']['lce']
@@ -255,4 +255,4 @@ def test_positive_nested_host_groups(
 
         # Delete nested host group
         session.hostgroup.delete(f'{parent_hg_name}/{child_hg_name}')
-        assert not default_sat.api.HostGroup().search(query={'search': f'name={child_hg_name}'})
+        assert not target_sat.api.HostGroup().search(query={'search': f'name={child_hg_name}'})

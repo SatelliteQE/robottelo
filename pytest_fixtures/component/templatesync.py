@@ -7,7 +7,7 @@ from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
 
 
 @pytest.fixture()
-def create_import_export_local_dir(default_sat):
+def create_import_export_local_dir(target_sat):
     """Creates a local directory inside root_dir on satellite from where the templates will
         be imported from or exported to.
 
@@ -19,32 +19,34 @@ def create_import_export_local_dir(default_sat):
     root_dir = FOREMAN_TEMPLATE_ROOT_DIR
     dir_path = f'{root_dir}/{dir_name}'
     # Creating the directory and set the write context
-    default_sat.execute(
+    target_sat.execute(
         f'mkdir -p {dir_path} && '
         f'chown foreman -R {root_dir} && '
         f'restorecon -R -v {root_dir} && '
         f'chcon -t httpd_sys_rw_content_t {dir_path} -R'
     )
     # Copying the file to new directory to be modified by tests
-    default_sat.execute(f'cp example_template.erb {dir_path}')
+    target_sat.execute(f'cp example_template.erb {dir_path}')
     yield dir_name, dir_path
-    default_sat.execute(f'rm -rf {dir_path}')
+    target_sat.execute(f'rm -rf {dir_path}')
 
 
 @pytest.fixture(scope='session')
-def git_port(default_sat):
+def git_port(session_target_sat):
     """Allow port for git service"""
-    default_sat.execute(f'semanage port -a -t http_port_t -p tcp {settings.git.http_port}')
-    default_sat.execute(f'semanage port -a -t ssh_port_t -p tcp {settings.git.ssh_port}')
+    session_target_sat.execute(f'semanage port -a -t http_port_t -p tcp {settings.git.http_port}')
+    session_target_sat.execute(f'semanage port -a -t ssh_port_t -p tcp {settings.git.ssh_port}')
 
 
 @pytest.fixture(scope='session')
-def git_pub_key(default_sat, git_port):
+def git_pub_key(session_target_sat, git_port):
     """Copy ssh public key to git service"""
     git = settings.git
     key_path = '/usr/share/foreman/.ssh'
-    default_sat.execute(f'sudo -u foreman ssh-keygen -q -t rsa -f {key_path}/id_rsa -N "" <<<y')
-    key = default_sat.execute(f'cat {key_path}/id_rsa.pub').stdout.strip()
+    session_target_sat.execute(
+        f'sudo -u foreman ssh-keygen -q -t rsa -f {key_path}/id_rsa -N "" <<<y'
+    )
+    key = session_target_sat.execute(f'cat {key_path}/id_rsa.pub').stdout.strip()
     title = gen_string('alpha')
     auth = (git.username, git.password)
     url = f'http://{git.hostname}:{git.http_port}'
@@ -56,7 +58,7 @@ def git_pub_key(default_sat, git_port):
     res.raise_for_status()
     id = res.json()['id']
     # add ssh key to known host
-    default_sat.execute(
+    session_target_sat.execute(
         f'ssh-keyscan -t rsa -p {git.ssh_port} {git.hostname} > {key_path}/known_hosts'
     )
     yield

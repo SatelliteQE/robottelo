@@ -425,7 +425,7 @@ def test_negative_update_send_welcome_email(value):
 @pytest.mark.tier3
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('setting_update', ['failed_login_attempts_limit'], indirect=True)
-def test_positive_failed_login_attempts_limit(setting_update, default_sat):
+def test_positive_failed_login_attempts_limit(setting_update, target_sat):
     """automate brute force protection limit configurable function
 
     :id: f95407ed-451b-4387-ac9b-2959ae2f51ae
@@ -454,14 +454,12 @@ def test_positive_failed_login_attempts_limit(setting_update, default_sat):
 
     username = settings.server.admin_username
     password = settings.server.admin_password
-    result = default_sat.execute(f'hammer -u {username} -p {password} user list')
-    assert result.status == 0
+    assert target_sat.execute(f'hammer -u {username} -p {password} user list').status == 0
     Settings.set({'name': 'failed_login_attempts_limit', 'value': '5'})
-    for i in range(5):
-        output = default_sat.execute(f'hammer -u {username} -p BAD_PASS user list')
-        assert output.status == 129
-    result = default_sat.execute(f'hammer -u {username} -p {password} user list')
-    assert result.status == 129
+    for _ in range(5):
+        assert target_sat.execute(f'hammer -u {username} -p BAD_PASS user list').status == 129
+    assert target_sat.execute(f'hammer -u {username} -p {password} user list').status == 129
     sleep(301)
-    result = default_sat.execute(f'hammer -u {username} -p {password} user list')
-    assert result.status == 0
+    assert target_sat.execute(f'hammer -u {username} -p {password} user list').status == 0
+    Settings.set({'name': 'failed_login_attempts_limit', 'value': '0'})
+    assert Settings.info({'name': 'failed_login_attempts_limit'})['value'] == '0'

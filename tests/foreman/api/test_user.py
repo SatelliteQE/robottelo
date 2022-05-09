@@ -589,7 +589,7 @@ class TestSshKeyInUser:
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_ssh_key_in_host_enc(self, default_sat):
+    def test_positive_ssh_key_in_host_enc(self, target_sat):
         """SSH key appears in host ENC output
 
         :id: 4b70a950-e777-4b2d-a83d-29279715fe6d
@@ -611,7 +611,7 @@ class TestSshKeyInUser:
         ssh_key = gen_ssh_keypairs()[1]
         entities.SSHKey(user=user, name=gen_string('alpha'), key=ssh_key).create()
         host = entities.Host(owner=user, owner_type='User', organization=org, location=loc).create()
-        sshkey_updated_for_host = f'{ssh_key} {user.login}@{default_sat.hostname}'
+        sshkey_updated_for_host = f'{ssh_key} {user.login}@{target_sat.hostname}'
         host_enc_key = host.enc()['data']['parameters']['ssh_authorized_keys']
         assert sshkey_updated_for_host == host_enc_key[0]
 
@@ -621,18 +621,18 @@ class TestActiveDirectoryUser:
     """Implements the LDAP auth User Tests with Active Directory"""
 
     @pytest.fixture(scope='module')
-    def create_ldap(self, ad_data, default_sat):
+    def create_ldap(self, ad_data, module_target_sat):
         """Fetch necessary properties from settings and Create ldap auth source"""
-        org = default_sat.api.Organization().create()
-        loc = default_sat.api.Location(organization=[org]).create()
+        org = module_target_sat.api.Organization().create()
+        loc = module_target_sat.api.Location(organization=[org]).create()
         ad_data = ad_data()
         yield dict(
             org=org,
             loc=loc,
-            sat_url=default_sat.url,
+            sat_url=module_target_sat.url,
             ldap_user_name=ad_data['ldap_user_name'],
             ldap_user_passwd=ad_data['ldap_user_passwd'],
-            authsource=default_sat.api.AuthSourceLDAP(
+            authsource=module_target_sat.api.AuthSourceLDAP(
                 onthefly_register=True,
                 account=ad_data['ldap_user_name'],
                 account_password=ad_data['ldap_user_passwd'],
@@ -651,7 +651,7 @@ class TestActiveDirectoryUser:
                 organization=[org],
             ).create(),
         )
-        for user in default_sat.api.User().search(
+        for user in module_target_sat.api.User().search(
             query={'search': f'login={ad_data["ldap_user_name"]}'}
         ):
             user.delete()
@@ -763,10 +763,10 @@ class TestFreeIPAUser:
     """Implements the LDAP auth User Tests with FreeIPA"""
 
     @pytest.fixture(scope='class')
-    def create_ldap(self, default_sat):
+    def create_ldap(self, class_target_sat):
         """Fetch necessary properties from settings and Create ldap auth source"""
-        org = default_sat.api.Organization().create()
-        loc = default_sat.api.Location(organization=[org]).create()
+        org = class_target_sat.api.Organization().create()
+        loc = class_target_sat.api.Location(organization=[org]).create()
         ldap_user_name = settings.ipa.username
         ldap_user_passwd = settings.ipa.password
         username = settings.ipa.user
@@ -775,9 +775,9 @@ class TestFreeIPAUser:
             loc=loc,
             ldap_user_name=ldap_user_name,
             ldap_user_passwd=ldap_user_passwd,
-            sat_url=default_sat.url,
+            sat_url=class_target_sat.url,
             username=username,
-            authsource=default_sat.api.AuthSourceLDAP(
+            authsource=class_target_sat.api.AuthSourceLDAP(
                 onthefly_register=True,
                 account=ldap_user_name,
                 account_password=ldap_user_passwd,
@@ -796,7 +796,7 @@ class TestFreeIPAUser:
                 organization=[org],
             ).create(),
         )
-        for user in default_sat.api.User().search(query={'search': f'login={username}'}):
+        for user in class_target_sat.api.User().search(query={'search': f'login={username}'}):
             user.delete()
 
     @pytest.mark.tier3

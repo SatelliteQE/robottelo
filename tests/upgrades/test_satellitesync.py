@@ -74,7 +74,7 @@ class TestSatelliteSync:
         indirect=True,
     )
     def test_post_version_cv_export_import(
-        self, request, set_importing_org, dependent_scenario_name, default_sat
+        self, request, set_importing_org, dependent_scenario_name, target_sat
     ):
         """After upgrade, content view version import and export works on the existing content
          view(that we created before the upgrade).
@@ -111,7 +111,7 @@ class TestSatelliteSync:
         ContentView.version_export({'export-dir': f'{export_base}', 'id': exporting_cvv_id})
         exported_tar = f'{export_base}/export-{exporting_cv.name}-{exporting_cvv_version}.tar'
 
-        result = default_sat.execute(f'[ -f {exported_tar} ]')
+        result = target_sat.execute(f'[ -f {exported_tar} ]')
         assert result.status == 0
 
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
@@ -125,7 +125,7 @@ class TestSatelliteSync:
         imported_packages = Package.list({'content-view-version-id': importing_cvv[0].id})
         assert len(imported_packages) > 0
         assert len(exported_packages) == len(imported_packages)
-        default_sat.execute(f'rm -rf {export_base}/*')
+        target_sat.execute(f'rm -rf {export_base}/*')
         exporting_cv_json = exporting_cv.read_json()
         importing_cv_json = importing_cv.read_json()
         exporting_cv_env_id = exporting_cv_json['environments'][0]['id']

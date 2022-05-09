@@ -164,7 +164,7 @@ class TestScenarioREXSatellite:
 
     @pytest.mark.pre_upgrade
     def test_pre_scenario_remoteexecution_satellite(
-        self, request, compute_resource_setup, default_location, rhel7_contenthost, default_sat
+        self, request, compute_resource_setup, default_location, rhel7_contenthost, target_sat
     ):
         """Run REX job on client registered with Satellite
 
@@ -191,7 +191,7 @@ class TestScenarioREXSatellite:
             organization=[self.org.id],
             remote_execution_proxy=[entities.SmartProxy(id=1)],
         ).create()
-        rhel7_contenthost.configure_rex(satellite=default_sat, org=self.org, by_ip=False)
+        rhel7_contenthost.configure_rex(satellite=target_sat, org=self.org, by_ip=False)
         host = rhel7_contenthost.nailgun_host
         host[0].subnet = sn
         host[0].update(['subnet'])

@@ -587,7 +587,7 @@ def test_negative_update_usage_limit(module_org):
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_usage_limit(module_org, default_sat):
+def test_positive_usage_limit(module_org, target_sat):
     """Test that Usage limit actually limits usage
 
     :id: 00ded856-e939-4140-ac84-91b6a8643623
@@ -622,10 +622,10 @@ def test_positive_usage_limit(module_org, default_sat):
     )
     with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=2) as clients:
         vm1, vm2 = clients
-        vm1.install_katello_ca(default_sat)
+        vm1.install_katello_ca(target_sat)
         vm1.register_contenthost(module_org.label, new_ak['name'])
         assert vm1.subscribed
-        vm2.install_katello_ca(default_sat)
+        vm2.install_katello_ca(target_sat)
         result = vm2.register_contenthost(module_org.label, new_ak['name'])
         assert not vm2.subscribed
         assert result.status == 70
@@ -873,7 +873,7 @@ def test_positive_delete_subscription(module_manifest_org):
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_update_aks_to_chost(module_org, rhel7_contenthost, default_sat):
+def test_positive_update_aks_to_chost(module_org, rhel7_contenthost, target_sat):
     """Check if multiple Activation keys can be attached to a
     Content host
 
@@ -899,7 +899,7 @@ def test_positive_update_aks_to_chost(module_org, rhel7_contenthost, default_sat
         )
         for _ in range(2)
     ]
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     for i in range(2):
         rhel7_contenthost.register_contenthost(module_org.label, new_aks[i]['name'])
         assert rhel7_contenthost.subscribed
@@ -1203,7 +1203,7 @@ def test_update_ak_with_syspurpose_values(module_org, module_manifest_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_add_subscription_by_id(module_org, default_sat):
+def test_positive_add_subscription_by_id(module_org, target_sat):
     """Test that subscription can be added to activation key
 
     :id: b884be1c-b35d-440a-9a9d-c854c83e10a7
@@ -1223,7 +1223,7 @@ def test_positive_add_subscription_by_id(module_org, default_sat):
     :BZ: 1463685
     """
     with manifests.clone() as manifest:
-        default_sat.put(manifest, manifest.filename)
+        target_sat.put(manifest, manifest.filename)
     org_id = make_org()['id']
     ackey_id = make_activation_key({'organization-id': org_id})['id']
     Subscription.upload({'file': manifest.filename, 'organization-id': org_id})
@@ -1576,8 +1576,7 @@ def test_positive_view_subscriptions_by_non_admin_user(module_manifest_org):
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
-@pytest.mark.skip_if_not_set('repos_hosting_url')
-def test_positive_subscription_quantity_attached(module_org, rhel7_contenthost, default_sat):
+def test_positive_subscription_quantity_attached(module_org, rhel7_contenthost, target_sat):
     """Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
 
     see https://bugzilla.redhat.com/show_bug.cgi?id=1633094
@@ -1617,7 +1616,7 @@ def test_positive_subscription_quantity_attached(module_org, rhel7_contenthost, 
     )
     subs = Subscription.list({'organization-id': org['id']}, per_page=False)
     subs_lookup = {s['id']: s for s in subs}
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(org['label'], activation_key=ak['name'])
     assert rhel7_contenthost.subscribed
 

@@ -30,7 +30,7 @@ class TestContentView:
     """
 
     @pytest.mark.pre_upgrade
-    def test_cv_preupgrade_scenario(self, request, default_sat):
+    def test_cv_preupgrade_scenario(self, request, target_sat):
         """Pre-upgrade scenario that creates content-view with various repositories.
 
         :id: preupgrade-a4ebbfa1-106a-4962-9c7c-082833879ae8
@@ -56,7 +56,7 @@ class TestContentView:
 
         remote_file_path = f"/tmp/{RPM_TO_UPLOAD}"
 
-        default_sat.put(get_data_file(RPM_TO_UPLOAD), remote_file_path)
+        target_sat.put(get_data_file(RPM_TO_UPLOAD), remote_file_path)
         with open(f'{get_data_file(RPM_TO_UPLOAD)}', "rb") as content:
             file_repository.upload_content(files={'content': content})
         assert RPM_TO_UPLOAD in file_repository.files()["results"][0]['name']

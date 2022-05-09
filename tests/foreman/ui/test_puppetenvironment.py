@@ -61,7 +61,7 @@ def test_positive_end_to_end(session, module_org, module_location):
 
 @pytest.mark.tier2
 def test_positive_availability_for_host_and_hostgroup_in_multiple_orgs(
-    session, default_sat, module_location
+    session, target_sat, module_location
 ):
     """An environment that is present in different organizations should be
     visible for any created host and hostgroup in those organizations
@@ -80,7 +80,7 @@ def test_positive_availability_for_host_and_hostgroup_in_multiple_orgs(
     :CaseImportance: High
     """
     env_name = gen_string('alpha')
-    orgs = [default_sat.api.Organization().create() for _ in range(2)]
+    orgs = [target_sat.api.Organization().create() for _ in range(2)]
     with session:
         session.puppetenvironment.create(
             {
@@ -92,7 +92,7 @@ def test_positive_availability_for_host_and_hostgroup_in_multiple_orgs(
         for org in orgs:
             session.organization.select(org_name=org.name)
             assert session.puppetenvironment.search(env_name)[0]['Name'] == env_name
-            host = default_sat.api.Host(location=module_location, organization=org)
+            host = target_sat.api.Host(location=module_location, organization=org)
             host.create_missing()
             os_name = f'{host.operatingsystem.name} {host.operatingsystem.major}'
             session.host.create(

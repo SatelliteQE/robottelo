@@ -24,13 +24,13 @@ def module_puppet_environment(module_org, module_location):
 
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 @pytest.fixture(scope='module')
-def module_import_puppet_module(default_sat):
+def module_import_puppet_module(module_target_sat):
     """Returns custom puppet environment name that contains imported puppet module
     and puppet class name."""
     puppet_class = 'generic_1'
     return {
         'puppet_class': puppet_class,
-        'env': default_sat.create_custom_environment(repo=puppet_class),
+        'env': module_target_sat.create_custom_environment(repo=puppet_class),
     }
 
 

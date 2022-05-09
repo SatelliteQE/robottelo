@@ -1085,7 +1085,7 @@ class TestEndToEnd:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_positive_end_to_end(self, fake_manifest_is_set, default_sat, rhel7_contenthost):
+    def test_positive_end_to_end(self, fake_manifest_is_set, target_sat, rhel7_contenthost):
         """Perform end to end smoke tests using RH and custom repos.
 
         1. Create a new user with admin permissions
@@ -1233,7 +1233,7 @@ class TestEndToEnd:
         # step 2.18: Provision a client
         # TODO this isn't provisioning through satellite as intended
         # Note it wasn't well before the change that added this todo
-        rhel7_contenthost.install_katello_ca(default_sat)
+        rhel7_contenthost.install_katello_ca(target_sat)
         # Register client with foreman server using act keys
         rhel7_contenthost.register_contenthost(org.label, activation_key_name)
         assert rhel7_contenthost.subscribed

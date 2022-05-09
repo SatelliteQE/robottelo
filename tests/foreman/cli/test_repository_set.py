@@ -118,10 +118,10 @@ def org():
 
 
 @pytest.fixture
-def manifest_org(org, default_sat):
+def manifest_org(org, target_sat):
     """Upload a manifest to the organization."""
     with manifests.clone() as manifest:
-        default_sat.put(manifest, manifest.filename)
+        target_sat.put(manifest, manifest.filename)
     Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
     return org
 

@@ -135,10 +135,10 @@ def host(
     custom_repo,
     module_ak,
     module_cv,
-    default_sat,
+    module_target_sat,
 ):
     # Create client machine and register it to satellite with rhel_7_partial_ak
-    rhel7_contenthost_module.install_katello_ca(default_sat)
+    rhel7_contenthost_module.install_katello_ca(module_target_sat)
     # Register, enable tools repo and install katello-host-tools.
     rhel7_contenthost_module.register_contenthost(module_manifest_org.label, module_ak.name)
     rhel7_contenthost_module.enable_repo(REPOS['rhst7']['id'])

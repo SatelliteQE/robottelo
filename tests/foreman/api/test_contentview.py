@@ -685,7 +685,7 @@ class TestContentViewPublishPromote:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_composite_content_view_with_same_repos(self, module_org, default_sat):
+    def test_composite_content_view_with_same_repos(self, module_org, target_sat):
         """Create a Composite Content View with content views having same yum repo.
         Add filter on the content views and check the package count for composite content view
         should not be changed.

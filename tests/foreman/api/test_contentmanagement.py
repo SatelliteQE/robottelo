@@ -87,7 +87,7 @@ class TestSatelliteContentManagement:
         assert response, f"Repository {repo} failed to sync."
 
     @pytest.mark.tier4
-    def test_positive_sync_kickstart_repo(self, module_manifest_org, default_sat):
+    def test_positive_sync_kickstart_repo(self, module_manifest_org, target_sat):
         """No encoding gzip errors on kickstart repositories
         sync.
 
@@ -128,7 +128,7 @@ class TestSatelliteContentManagement:
         rh_repo.download_policy = 'immediate'
         rh_repo = rh_repo.update(['download_policy'])
         call_entity_method_with_timeout(rh_repo.sync, timeout=600)
-        result = default_sat.execute(
+        result = target_sat.execute(
             'grep pulp /var/log/messages | grep failed | grep encoding | grep gzip'
         )
         assert result.status == 1
@@ -139,8 +139,8 @@ class TestSatelliteContentManagement:
         assert rh_repo.content_counts['rpm'] > 0
 
     @pytest.mark.tier2
-    def test_positive_mirroring_policy(self, default_sat):
-        """Assert that the content of a repository with 'Mirroring Policy' enabled
+    def test_positive_mirroring_policy(self, target_sat):
+        """Assert that the content of a repository with 'Mirror Policy' enabled
         is restored properly after resync.
 
         :id: cbf1c781-cb96-4b4a-bae2-15c9f5be5e50
@@ -430,7 +430,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_updated_repo(
-        self, default_sat, capsule_configured, function_org, function_product
+        self, target_sat, capsule_configured, function_org, function_product
     ):
         """Sync a custom repo with no upstream url but uploaded content to the Capsule via promoted CV,
         update content of the repo, publish and promote the CV again, resync the Capsule.
@@ -524,7 +524,7 @@ class TestCapsuleContentManagement:
 
         # Check the content is synced on the Capsule side properly
         sat_repo_url = form_repo_url(
-            default_sat,
+            target_sat,
             org=function_org.label,
             lce=lce.label,
             cv=cv.label,
@@ -546,7 +546,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_capsule_sync(self, capsule_configured, default_sat):
+    def test_positive_capsule_sync(self, capsule_configured, target_sat):
         """Create repository, add it to lifecycle environment, assign lifecycle
         environment with a capsule, sync repository, sync it once again, update
         repository (add 1 new package), sync repository once again.
@@ -624,7 +624,7 @@ class TestCapsuleContentManagement:
         # Assert that the content published on the capsule is exactly the
         # same as in repository on satellite
         sat_repo_url = form_repo_url(
-            default_sat,
+            target_sat,
             org=org.label,
             lce=lce.label,
             cv=cv.label,
@@ -794,7 +794,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_on_demand_sync(self, capsule_configured, default_sat):
+    def test_positive_on_demand_sync(self, capsule_configured, target_sat):
         """Create a repository with 'on_demand' policy, add it to a CV,
         promote to an 'on_demand' Capsule's LCE, check artifacts were created,
         download a published package, assert it matches the source.
@@ -890,7 +890,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_update_with_immediate_sync(self, capsule_configured, default_sat):
+    def test_positive_update_with_immediate_sync(self, capsule_configured, target_sat):
         """Create a repository with on_demand download policy, associate it
         with capsule, sync repo, update download policy to immediate, sync once
         more.
@@ -1038,7 +1038,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_sync_kickstart_repo(
-        self, module_manifest_org, default_sat, capsule_configured
+        self, module_manifest_org, target_sat, capsule_configured
     ):
         """Sync kickstart repository to the capsule.
 
@@ -1117,12 +1117,12 @@ class TestCapsuleContentManagement:
 
         # Check kickstart specific files
         for file in constants.KICKSTART_CONTENT:
-            sat_file = md5_by_url(f'{default_sat.url}/{url_base}/{file}')
+            sat_file = md5_by_url(f'{target_sat.url}/{url_base}/{file}')
             caps_file = md5_by_url(f'{capsule_configured.url}/{url_base}/{file}')
             assert sat_file == caps_file
 
         # Check packages
-        sat_pkg_url = f'{default_sat.url}/{url_base}/Packages/'
+        sat_pkg_url = f'{target_sat.url}/{url_base}/Packages/'
         caps_pkg_url = f'{capsule_configured.url}/{url_base}/Packages/'
         sat_pkgs = get_repo_files_by_url(sat_pkg_url)
         caps_pkgs = get_repo_files_by_url(caps_pkg_url)
@@ -1132,7 +1132,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients')
     def test_positive_sync_container_repo_end_to_end(
-        self, default_sat, capsule_configured, container_contenthost, module_org, module_product
+        self, target_sat, capsule_configured, container_contenthost, module_org, module_product
     ):
         """Sync container repositories with schema1, schema2,
         and both of them to the capsule and pull them to a
@@ -1241,7 +1241,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_collection_repo(
-        self, default_sat, module_lce_library, module_product, capsule_configured, rhel7_contenthost
+        self, target_sat, module_lce_library, module_product, capsule_configured, rhel7_contenthost
     ):
         """Sync ansible-collection repo to the Capsule, consume it on a host.
 
@@ -1310,7 +1310,7 @@ class TestCapsuleContentManagement:
         result = rhel7_contenthost.execute('yum -y install ansible')
         assert result.status == 0
 
-        repo_path = repo.full_path.replace(default_sat.hostname, capsule_configured.hostname)
+        repo_path = repo.full_path.replace(target_sat.hostname, capsule_configured.hostname)
         coll_path = './collections'
         cfg = (
             '[defaults]\n'
@@ -1337,7 +1337,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_file_repo(
-        self, default_sat, capsule_configured, module_org, module_product
+        self, target_sat, capsule_configured, module_org, module_product
     ):
         """Sync file-type repository to the capsule.
 
@@ -1408,7 +1408,7 @@ class TestCapsuleContentManagement:
 
         # Check for content on SAT and CAPS
         sat_repo_url = form_repo_url(
-            default_sat,
+            target_sat,
             org=module_org.label,
             lce=lce.label,
             cv=cv.label,
@@ -1436,7 +1436,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier3
     def test_positive_allow_reregistration_when_dmi_uuid_changed(
-        self, module_org, rhel_contenthost, default_sat
+        self, module_org, rhel_contenthost, target_sat
     ):
         """Register a content host with a custom DMI UUID, unregistering it, change
         the DMI UUID, and re-registering it again
@@ -1453,15 +1453,15 @@ class TestCapsuleContentManagement:
         """
         uuid_1 = str(uuid.uuid1())
         uuid_2 = str(uuid.uuid4())
-        rhel_contenthost.install_katello_ca(default_sat)
-        default_sat.execute(
+        rhel_contenthost.install_katello_ca(target_sat)
+        target_sat.execute(
             f'echo \'{{"dmi.system.uuid": "{uuid_1}"}}\' > /etc/rhsm/facts/uuid.facts'
         )
         result = rhel_contenthost.register_contenthost(module_org.label, lce=constants.ENVIRONMENT)
         assert result.status == 0
         result = rhel_contenthost.execute('subscription-manager clean')
         assert result.status == 0
-        default_sat.execute(
+        target_sat.execute(
             f'echo \'{{"dmi.system.uuid": "{uuid_2}"}}\' > /etc/rhsm/facts/uuid.facts'
         )
         result = rhel_contenthost.register_contenthost(module_org.label, lce=constants.ENVIRONMENT)

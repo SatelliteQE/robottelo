@@ -91,7 +91,7 @@ def module_azure_hg(
 @pytest.mark.tier4
 def test_positive_end_to_end_azurerm_ft_host_provision(
     session,
-    default_sat,
+    target_sat,
     azurermclient,
     module_azurerm_finishimg,
     module_azurerm_cr,
@@ -124,7 +124,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
 
         # Provision Host
         try:
-            with default_sat.skip_yum_update_during_provisioning(
+            with target_sat.skip_yum_update_during_provisioning(
                 template='Kickstart default finish'
             ):
                 session.host.create(
@@ -173,7 +173,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
 @pytest.mark.upgrade
 def test_positive_azurerm_host_provision_ud(
     session,
-    default_sat,
+    target_sat,
     azurermclient,
     module_azurerm_cloudimg,
     module_azurerm_cr,
@@ -207,7 +207,7 @@ def test_positive_azurerm_host_provision_ud(
 
         # Provision Host
         try:
-            with default_sat.skip_yum_update_during_provisioning(
+            with target_sat.skip_yum_update_during_provisioning(
                 template='Kickstart default user data'
             ):
                 session.host.create(

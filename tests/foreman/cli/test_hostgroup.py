@@ -55,11 +55,11 @@ pc_name = 'generic_1'
 
 
 @pytest.fixture(scope='module')
-def env(module_org, module_location, default_sat):
+def env(module_org, module_location, module_target_sat):
     """Return the puppet environment."""
 
-    env_name = default_sat.create_custom_environment(repo=pc_name)
-    env = default_sat.api.Environment().search(query={'search': f'name={env_name}'})[0].read()
+    env_name = module_target_sat.create_custom_environment(repo=pc_name)
+    env = module_target_sat.api.Environment().search(query={'search': f'name={env_name}'})[0].read()
     env.location = [module_location]
     env.organization = [module_org]
     env.update(['location', 'organization'])
@@ -73,9 +73,9 @@ def puppet_classes(env):
 
 
 @pytest.fixture(scope='module')
-def content_source(default_sat):
+def content_source(module_target_sat):
     """Return the proxy."""
-    return Proxy.list({'search': f'url = {default_sat.url}:9090'})[0]
+    return Proxy.list({'search': f'url = {module_target_sat.url}:9090'})[0]
 
 
 @pytest.fixture(scope='module')

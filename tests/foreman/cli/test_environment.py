@@ -32,8 +32,8 @@ from robottelo.datafactory import parametrized
 
 
 @pytest.fixture(scope='module')
-def module_locations(default_sat):
-    return (default_sat.api.Location().create(), default_sat.api.Location().create())
+def module_locations(module_target_sat):
+    return (module_target_sat.api.Location().create(), module_target_sat.api.Location().create())
 
 
 @pytest.mark.tier2
@@ -84,7 +84,7 @@ def test_negative_create_with_name(name):
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_CRUD_with_attributes(default_sat, module_org, module_locations):
+def test_positive_CRUD_with_attributes(target_sat, module_org, module_locations):
     """Check if Environment with attributes can be created, updated and removed
 
     :id: d2187971-86b2-40c9-a93c-66f37691ae2b
@@ -128,7 +128,7 @@ def test_positive_CRUD_with_attributes(default_sat, module_org, module_locations
     assert env_name in [res['name'] for res in results]
 
     # Update org and loc
-    new_org = default_sat.api.Organization().create()
+    new_org = target_sat.api.Organization().create()
     Environment.update(
         {
             'location-ids': module_locations[1].id,

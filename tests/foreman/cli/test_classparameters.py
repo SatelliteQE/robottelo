@@ -32,9 +32,9 @@ from robottelo.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def module_puppet(default_sat, module_org, module_location):
+def module_puppet(module_target_sat, module_org, module_location):
     puppet_class = 'cli_test_classparameters'
-    env_name = default_sat.create_custom_environment(repo=puppet_class)
+    env_name = module_target_sat.create_custom_environment(repo=puppet_class)
     Environment.update(
         {
             'name': env_name,

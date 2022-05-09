@@ -39,7 +39,7 @@ class TestRenameHost:
 
     @pytest.mark.skip_if_open("BZ:1925616")
     @pytest.mark.destructive
-    def test_positive_rename_satellite(self, module_org, module_product, destructive_sat):
+    def test_positive_rename_satellite(self, module_org, module_product, target_sat):
         """run katello-change-hostname on Satellite server
 
         :id: 9944bfb1-1440-4820-ada8-2e219f09c0be
@@ -72,50 +72,50 @@ class TestRenameHost:
         """
         username = settings.server.admin_username
         password = settings.server.admin_password
-        old_hostname = destructive_sat.execute('hostname').stdout.strip()
+        old_hostname = target_sat.execute('hostname').stdout.strip()
         new_hostname = f'new-{old_hostname}'
         # create installation medium with hostname in path
         medium_path = f'http://{old_hostname}/testpath-{gen_string("alpha")}/os/'
         medium = entities.Media(organization=[module_org], path_=medium_path).create()
         repo = entities.Repository(product=module_product, name='testrepo').create()
-        result = destructive_sat.execute(
+        result = target_sat.execute(
             f'satellite-change-hostname {new_hostname} -y -u {username} -p {password}',
             timeout=1200000,
         )
         assert result.status == 0, 'unsuccessful rename'
         assert BCK_MSG in result.stdout
         # services running after rename?
-        result = destructive_sat.execute('hammer ping')
+        result = target_sat.execute('hammer ping')
         assert result.status == 0, 'services did not start properly'
         # basic hostname check
-        result = destructive_sat.execute('hostname')
+        result = target_sat.execute('hostname')
         assert result.status == 0
         assert new_hostname in result.stdout, 'hostname left unchanged'
         # check default capsule
-        result = destructive_sat.execute(
+        result = target_sat.execute(
             f'hammer -u {username} -p {password} --output json capsule info --name {new_hostname}'
         )
         assert result.status == 0, 'internal capsule not renamed correctly'
         assert hammer.parse_json(result.stdout)['url'] == f"https://{new_hostname}:9090"
         # check old consumer certs were deleted
-        result = destructive_sat.execute(f'rpm -qa | grep ^{old_hostname}')
+        result = target_sat.execute(f'rpm -qa | grep ^{old_hostname}')
         assert result.status == 1, 'old consumer certificates not removed'
         # check new consumer certs were created
-        result = destructive_sat.execute(f'rpm -qa | grep ^{new_hostname}')
+        result = target_sat.execute(f'rpm -qa | grep ^{new_hostname}')
         assert result.status == 0, 'new consumer certificates not created'
         # check if installation media paths were updated
-        result = destructive_sat.execute(
+        result = target_sat.execute(
             f'hammer -u {username} -p {password} --output json medium info --id {medium.id}'
         )
         assert result.status == 0
         assert new_hostname in hammer.parse_json(result.stdout)['path']
         # check answer file for instances of old hostname
         ans_f = '/etc/foreman-installer/scenarios.d/satellite-answers.yaml'
-        result = destructive_sat.execute(f'grep " {old_hostname}" {ans_f}')
+        result = target_sat.execute(f'grep " {old_hostname}" {ans_f}')
         assert result.status == 1, 'old hostname was not correctly replaced in answers.yml'
 
         # check repository published at path
-        result = destructive_sat.execute(
+        result = target_sat.execute(
             f'hammer -u {username} -p {password} --output json repository info --id {repo.id}'
         )
         assert result.status == 0
@@ -124,7 +124,7 @@ class TestRenameHost:
         ), 'repository published path not updated correctly'
 
         # check for any other occurences of old hostname
-        result = destructive_sat.execute(f'grep " {old_hostname}" /etc/* -r')
+        result = target_sat.execute(f'grep " {old_hostname}" /etc/* -r')
         assert result.status == 1, 'there are remaining instances of the old hostname'
 
         repo.sync()
@@ -134,7 +134,7 @@ class TestRenameHost:
         cv.publish()
 
     @pytest.mark.destructive
-    def test_negative_rename_sat_to_invalid_hostname(self, destructive_sat):
+    def test_negative_rename_sat_to_invalid_hostname(self, target_sat):
         """change to invalid hostname on Satellite server
 
         :id: 385fad60-3990-42e0-9436-4ebb71918125
@@ -148,19 +148,19 @@ class TestRenameHost:
         """
         username = settings.server.admin_username
         password = settings.server.admin_password
-        original_name = destructive_sat.hostname
+        original_name = target_sat.hostname
         hostname = gen_string('alpha')
-        result = destructive_sat.execute(
+        result = target_sat.execute(
             f'satellite-change-hostname -y {hostname} -u {username} -p {password}'
         )
         assert result.status == 1
         assert BAD_HN_MSG.format(hostname) in result.stdout
         # assert no changes were made
-        result = destructive_sat.execute('hostname')
+        result = target_sat.execute('hostname')
         assert original_name == result.stdout.strip(), "Invalid hostame assigned"
 
     @pytest.mark.destructive
-    def test_negative_rename_sat_no_credentials(self, destructive_sat):
+    def test_negative_rename_sat_no_credentials(self, target_sat):
         """change hostname without credentials on Satellite server
 
         :id: ed4f7611-33c9-455f-8557-507cc59ede92
@@ -172,18 +172,18 @@ class TestRenameHost:
 
         :CaseAutomation: Automated
         """
-        original_name = destructive_sat.hostname
+        original_name = target_sat.hostname
         hostname = gen_string('alpha')
-        result = destructive_sat.execute(f'satellite-change-hostname -y {hostname}')
+        result = target_sat.execute(f'satellite-change-hostname -y {hostname}')
         assert result.status == 1
         assert NO_CREDS_MSG in result.stdout
         # assert no changes were made
-        result = destructive_sat.execute('hostname')
+        result = target_sat.execute('hostname')
         assert original_name == result.stdout.strip(), "Invalid hostame assigned"
 
     @pytest.mark.skip_if_open("BZ:1925616")
     @pytest.mark.destructive
-    def test_negative_rename_sat_wrong_passwd(self, destructive_sat):
+    def test_negative_rename_sat_wrong_passwd(self, target_sat):
         """change hostname with wrong password on Satellite server
 
         :id: e6d84c5b-4bb1-4400-8022-d01cc9216936
@@ -196,10 +196,10 @@ class TestRenameHost:
         :CaseAutomation: Automated
         """
         username = settings.server.admin_username
-        original_name = destructive_sat.hostname
+        original_name = target_sat.hostname
         new_hostname = f'new-{original_name}'
         password = gen_string('alpha')
-        result = destructive_sat.execute(
+        result = target_sat.execute(
             f'satellite-change-hostname -y {new_hostname} -u {username} -p {password}'
         )
         assert result.status == 1
@@ -207,7 +207,7 @@ class TestRenameHost:
 
     @pytest.mark.stubbed
     @pytest.mark.destructive
-    def test_positive_rename_capsule(self, destructive_sat):
+    def test_positive_rename_capsule(self, target_sat):
         """run katello-change-hostname on Capsule
 
         :id: 4aa9fd86-bba9-49e4-a67a-8685e1ab5a74
@@ -239,7 +239,7 @@ class TestRenameHost:
         password = settings.server.admin_password
         # the rename part of the test, not necessary to run from robottelo
         hostname = gen_string('alpha')
-        result = destructive_sat.execute(
+        result = target_sat.execute(
             'satellite-change-hostname '
             f'-y -u {username} -p {password} '
             '--disable-system-checks '

@@ -6,10 +6,10 @@ All functions in this module will be treated as fixtures that apply the contenth
 """
 import pytest
 from broker import VMBroker
+from fauxfactory import gen_string
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import REPOS
 from robottelo.hosts import ContentHost
 
 
@@ -97,45 +97,105 @@ def content_hosts(request):
 
 
 @pytest.fixture(scope='module')
-def registered_hosts(organization_ak_setup, content_hosts, default_sat):
+def registered_hosts(organization_ak_setup, content_hosts, module_target_sat):
     """Fixture that registers content hosts to Satellite, based on rh_cloud setup"""
     org, ak = organization_ak_setup
     for vm in content_hosts:
-        vm.install_katello_ca(default_sat)
+        vm.install_katello_ca(module_target_sat)
         vm.register_contenthost(org.label, ak.name)
+        vm.add_rex_key(module_target_sat)
         assert vm.subscribed
     return content_hosts
 
 
-@pytest.fixture(scope="function")
-def katello_host_tools_host(setup_rhst_repo, rhel7_contenthost, default_sat):
-    """Register content host to Satellite and install katello-host-tools on the host,
-    based on hosts setup"""
-    rhel7_contenthost.install_katello_ca(default_sat)
-    rhel7_contenthost.register_contenthost(
-        setup_rhst_repo['org'].label,
-        setup_rhst_repo['ak'].name,
+@pytest.fixture
+def katello_host_tools_host(target_sat, module_org, rhel_contenthost):
+    """Register content host to Satellite and install katello-host-tools on the host."""
+    repo = settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
+    register_host_custom_repo(target_sat, module_org, rhel_contenthost, [repo])
+    rhel_contenthost.install_katello_host_tools()
+    yield rhel_contenthost
+
+
+@pytest.fixture
+def cockpit_host(target_sat, module_org, rhel_contenthost):
+    """Register content host to Satellite and install cockpit on the host."""
+    rhelver = rhel_contenthost.os_version.major
+    if rhelver > 7:
+        repo = [settings.repos[f'rhel{rhelver}_os']['baseos']]
+    else:
+        repo = [settings.repos['rhel7_os'], settings.repos['rhel7_extras']]
+    register_host_custom_repo(target_sat, module_org, rhel_contenthost, repo)
+    rhel_contenthost.execute(f"hostnamectl set-hostname {rhel_contenthost.hostname} --static")
+    rhel_contenthost.install_cockpit()
+    rhel_contenthost.add_rex_key(satellite=target_sat)
+    yield rhel_contenthost
+
+
+def register_host_custom_repo(target_sat, module_org, rhel_contenthost, repo_urls):
+    """Register content host to Satellite and sync repos"""
+    # prepare Product and appropriate Satellite Client repo on satellite
+    rhelver = rhel_contenthost.os_version.major
+    prod = target_sat.api.Product(
+        organization=module_org, name=f'rhel{rhelver}_{gen_string("alpha")}'
+    ).create()
+    for url in repo_urls:
+        repo = target_sat.api.Repository(
+            organization=module_org,
+            product=prod,
+            content_type='yum',
+            url=url,
+        ).create()
+        repo.sync(timeout=1200)
+    subs = target_sat.api.Subscription(organization=module_org, name=prod.name).search()
+    assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
+    subscription = subs[0]
+
+    # finally, prepare the host end
+    rhel_contenthost.install_katello_ca(target_sat)
+    register = rhel_contenthost.register_contenthost(
+        org=module_org.label,
+        lce='Library',
+        name=f'{gen_string("alpha")}-{rhel_contenthost.hostname}',
+        force=True,
     )
-    assert rhel7_contenthost.subscribed
-    rhel7_contenthost.enable_repo(REPOS[setup_rhst_repo['repo_name']]['id'])
-    rhel7_contenthost.install_katello_host_tools()
-    yield rhel7_contenthost
+    assert register.status == 0, (
+        f'Failed to register the host: {rhel_contenthost.hostname}:'
+        'rc: {register.status}: {register.stderr}'
+    )
+    # attach product subscription to the host
+    rhel_contenthost.nailgun_host.bulk_add_subscriptions(
+        data={
+            "organization_id": module_org.id,
+            "included": {"ids": [rhel_contenthost.nailgun_host.id]},
+            "subscriptions": [{"id": subscription.id, "quantity": 1}],
+        }
+    )
+    # refresh repository metadata
+    rhel_contenthost.execute('subscription-manager repos --list')
 
 
-@pytest.fixture(scope="function")
-def katello_host_tools_tracer_host(katello_host_tools_host, default_sat):
-    """Install katello-host-tools-tracer, add REx key and create custom
+@pytest.fixture
+def rex_contenthost(katello_host_tools_host, target_sat):
+    """Fixture that enables remote execution on the host"""
+    katello_host_tools_host.add_rex_key(satellite=target_sat)
+    yield katello_host_tools_host
+
+
+@pytest.fixture
+def katello_host_tools_tracer_host(rex_contenthost, target_sat):
+    """Install katello-host-tools-tracer, create custom
     repositories on the host"""
     katello_host_tools_host.install_tracer()
-    katello_host_tools_host.add_rex_key(satellite=default_sat)
+    katello_host_tools_host.add_rex_key(satellite=target_sat)
     katello_host_tools_host.create_custom_rhel_repo_file_to_downgrade_packages()
     yield katello_host_tools_host
 
 
 @pytest.fixture
-def container_contenthost(rhel7_contenthost, default_sat):
+def container_contenthost(rhel7_contenthost, target_sat):
     """Fixture that installs docker on the content host"""
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
 
     repos = {
         'server': settings.repos.rhel7_os,

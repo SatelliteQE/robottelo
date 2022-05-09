@@ -4,8 +4,8 @@ from nailgun import entities
 
 
 @pytest.fixture(scope='session')
-def default_domain(default_sat, default_smart_proxy):
-    domain_name = default_sat.hostname.partition('.')[-1]
+def default_domain(session_target_sat, default_smart_proxy):
+    domain_name = session_target_sat.hostname.partition('.')[-1]
     dom = entities.Domain().search(query={'search': f'name={domain_name}'})[0]
     dom.dns = default_smart_proxy
     dom.update(['dns'])
