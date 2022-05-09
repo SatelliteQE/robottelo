@@ -1144,7 +1144,7 @@ class TestRepository:
         ),
         indirect=True,
     )
-    def test_positive_access_protected_repository(self, module_org, repo, default_sat):
+    def test_positive_access_protected_repository(self, module_org, repo, target_sat):
         """Access protected/https repository data file URL using organization
         debug certificate
 
@@ -1165,7 +1165,7 @@ class TestRepository:
         repo.sync()
         repo_data_file_url = urljoin(repo.full_path, 'repodata/repomd.xml')
         # ensure the url is based on the protected base server URL
-        assert repo_data_file_url.startswith(default_sat.url)
+        assert repo_data_file_url.startswith(target_sat.url)
         # try to access repository data without organization debug certificate
         response = client.get(repo_data_file_url, verify=False)
         assert response.status_code == 403
@@ -1191,7 +1191,7 @@ class TestRepository:
         ),
         indirect=True,
     )
-    def test_positive_access_unprotected_repository(self, module_org, repo, default_sat):
+    def test_positive_access_unprotected_repository(self, module_org, repo, target_sat):
         """Access files in unprotected repository over HTTP and HTTPS
 
         :id: 43fe24c8-7a50-4d38-8259-b23e5ed5800a
@@ -1207,7 +1207,7 @@ class TestRepository:
         repo.sync()
         repo_data_file_url = urljoin(repo.full_path, 'repodata/repomd.xml')
         # ensure the repo url is based on the base server URL
-        assert repo_data_file_url.startswith(default_sat.url)
+        assert repo_data_file_url.startswith(target_sat.url)
         # try to access repository data without organization debug certificate
         response = client.get(repo_data_file_url, verify=False)
         assert response.status_code == 200
@@ -1254,7 +1254,7 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.read()
 
-    def test_positive_recreate_pulp_repositories(self, module_org, default_sat):
+    def test_positive_recreate_pulp_repositories(self, module_org, target_sat):
         """Verify that deleted Pulp Repositories can be recreated using the
         command 'foreman-rake katello:correct_repositories COMMIT=true'
 
@@ -1278,21 +1278,19 @@ class TestRepository:
             releasever=None,
         )
         call_entity_method_with_timeout(entities.Repository(id=repo_id).sync, timeout=1500)
-        with default_sat.session.shell() as sh:
+        with target_sat.session.shell() as sh:
             sh.send('foreman-rake console')
             time.sleep(30)  # sleep to allow time for console to open
             sh.send(f'::Katello::Repository.find({repo_id}).version_href')
             time.sleep(3)  # give enough time for the command to complete
         results = sh.result
         identifier = results.stdout.split('version_href\n"', 1)[1].split('version')[0]
-        default_sat.execute(
-            f'curl -X DELETE {default_sat.url}/{identifier}'
+        target_sat.execute(
+            f'curl -X DELETE {target_sat.url}/{identifier}'
             f' --cert /etc/pki/katello/certs/pulp-client.crt'
             f' --key /etc/pki/katello/private/pulp-client.key'
         )
-        command_output = default_sat.execute(
-            'foreman-rake katello:correct_repositories COMMIT=true'
-        )
+        command_output = target_sat.execute('foreman-rake katello:correct_repositories COMMIT=true')
         assert 'Recreating' in command_output.stdout and 'TaskError' not in command_output.stdout
 
 
@@ -1371,7 +1369,7 @@ class TestRepositorySync:
         pass
 
     @pytest.mark.tier3
-    def test_positive_bulk_cancel_sync(self, default_sat, module_manifest_org):
+    def test_positive_bulk_cancel_sync(self, target_sat, module_manifest_org):
         """Bulk cancel 10+ repository syncs
 
         :id: f9bb1c95-d60f-4c93-b32e-09d58ebce80e
@@ -1416,12 +1414,12 @@ class TestRepositorySync:
                 or 'No content added' in sync_result['humanized']['output']
             )
             # Find correlating pulp task using Foreman Task id
-            prod_log_out = default_sat.execute(
+            prod_log_out = target_sat.execute(
                 f'grep {sync_id} /var/log/foreman/production.log'
             ).stdout.splitlines()[0]
             correlation_id = re.search(r'\[I\|bac\|\w{8}\]', prod_log_out).group()[7:15]
             # Assert the cancelation was executed in Pulp
-            result = default_sat.execute(
+            result = target_sat.execute(
                 f'grep "{correlation_id}" /var/log/messages | grep "Canceling task"'
             )
             assert result.status == 0
@@ -1429,7 +1427,7 @@ class TestRepositorySync:
     @pytest.mark.tier3
     @pytest.mark.destructive
     @pytest.mark.run_in_one_thread
-    def test_positive_reboot_recover_sync(self, destructive_sat):
+    def test_positive_reboot_recover_sync(self, target_sat):
         """Reboot during repo sync and resume the sync when the Satellite is online
 
         :id: 4f746e28-444c-4688-b92b-778a6e58d614
@@ -1458,7 +1456,7 @@ class TestRepositorySync:
         )
         rhel7_extra = entities.Repository(id=rhel7_extra).read()
         sync_task = rhel7_extra.sync(synchronous=False)
-        destructive_sat.power_control(state='reboot', ensure=True)
+        target_sat.power_control(state='reboot', ensure=True)
         try:
             wait_for_tasks(
                 search_query=(f'id = {sync_task["id"]}'),
@@ -1776,7 +1774,7 @@ class TestDockerRepository:
         indirect=True,
     )
     def test_negative_synchronize_private_registry_no_passwd(
-        self, repo_options, module_product, default_sat
+        self, repo_options, module_product, target_sat
     ):
         """Create and try to sync a Docker-type repository from a private
         registry providing empty password and the sync must fail with
@@ -1798,7 +1796,7 @@ class TestDockerRepository:
         with pytest.raises(
             HTTPError,
             match='422 Client Error: Unprocessable Entity for url: '
-            f'{default_sat.url}:443/katello/api/v2/repositories',
+            f'{target_sat.url}:443/katello/api/v2/repositories',
         ):
             entities.Repository(**repo_options).create()
 

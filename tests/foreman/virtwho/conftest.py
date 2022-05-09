@@ -7,7 +7,7 @@ from robottelo.logging import logger
 
 
 @pytest.fixture(scope='module')
-def module_user(request, default_sat, default_org, default_location):
+def module_user(request, target_sat, default_org, default_location):
     """Creates admin user with default org set to module org and shares that
     user for all tests in the same test module. User's login contains test
     module name as a prefix.
@@ -19,7 +19,7 @@ def module_user(request, default_sat, default_org, default_location):
     login = f'{test_module_name}_{gen_string("alphanumeric")}'
     password = gen_string('alphanumeric')
     logger.debug('Creating session user %r', login)
-    user = default_sat.api.User(
+    user = target_sat.api.User(
         admin=True,
         default_organization=default_org,
         default_location=default_location,

@@ -32,7 +32,7 @@ from robottelo.constants import ROLES
 @pytest.mark.tier2
 @pytest.mark.pit_server
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, default_sat, test_name, module_org, module_location):
+def test_positive_end_to_end(session, target_sat, test_name, module_org, module_location):
     """Perform end to end testing for user component
 
     :id: 2794fdd0-cfe3-4f1a-aa5f-25b2d211ae12
@@ -53,7 +53,7 @@ def test_positive_end_to_end(session, default_sat, test_name, module_org, module
     description = gen_string('alphanumeric')
     language = 'en'
     timezone = '(GMT+00:00) UTC'
-    role = default_sat.api.Role().create().name
+    role = target_sat.api.Role().create().name
     with session:
         # Create new user and validate its values
         session.user.create(
@@ -107,7 +107,7 @@ def test_positive_end_to_end(session, default_sat, test_name, module_org, module
 
 
 @pytest.mark.tier2
-def test_positive_create_with_multiple_roles(session, default_sat):
+def test_positive_create_with_multiple_roles(session, target_sat):
     """Create User with multiple roles
 
     :id: d3cc4434-25ca-4465-8878-42495390c17b
@@ -122,7 +122,7 @@ def test_positive_create_with_multiple_roles(session, default_sat):
     role2 = gen_string('alpha')
     password = gen_string('alpha')
     for role in [role1, role2]:
-        default_sat.api.Role(name=role).create()
+        target_sat.api.Role(name=role).create()
     with session:
         session.user.create(
             {
@@ -166,7 +166,7 @@ def test_positive_create_with_all_roles(session):
 
 
 @pytest.mark.tier2
-def test_positive_create_with_multiple_orgs(session, default_sat):
+def test_positive_create_with_multiple_orgs(session, target_sat):
     """Create User associated to multiple Orgs
 
     :id: d74c0284-3995-4a4a-8746-00858282bf5d
@@ -180,7 +180,7 @@ def test_positive_create_with_multiple_orgs(session, default_sat):
     org_name2 = gen_string('alpha')
     password = gen_string('alpha')
     for org_name in [org_name1, org_name2]:
-        default_sat.api.Organization(name=org_name).create()
+        target_sat.api.Organization(name=org_name).create()
     with session:
         session.organization.select(org_name=DEFAULT_ORG)
         session.user.create(
@@ -202,7 +202,7 @@ def test_positive_create_with_multiple_orgs(session, default_sat):
 
 
 @pytest.mark.tier2
-def test_positive_update_with_multiple_roles(session, default_sat):
+def test_positive_update_with_multiple_roles(session, target_sat):
     """Update User with multiple roles
 
     :id: 127fb368-09fd-4f10-8319-566a1bcb5cd2
@@ -212,7 +212,7 @@ def test_positive_update_with_multiple_roles(session, default_sat):
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    role_names = [default_sat.api.Role().create().name for _ in range(3)]
+    role_names = [target_sat.api.Role().create().name for _ in range(3)]
     password = gen_string('alpha')
     with session:
         session.user.create(
@@ -257,7 +257,7 @@ def test_positive_update_with_all_roles(session):
 
 
 @pytest.mark.tier2
-def test_positive_update_orgs(session, default_sat):
+def test_positive_update_orgs(session, target_sat):
     """Assign a User to multiple Orgs
 
     :id: a207188d-1ad1-4ff1-9906-bae1d91104fd
@@ -268,7 +268,7 @@ def test_positive_update_orgs(session, default_sat):
     """
     name = gen_string('alpha')
     password = gen_string('alpha')
-    org_names = [default_sat.api.Organization().create().name for _ in range(3)]
+    org_names = [target_sat.api.Organization().create().name for _ in range(3)]
     with session:
         session.organization.select(org_name=random.choice(org_names))
         session.user.create(
@@ -287,7 +287,7 @@ def test_positive_update_orgs(session, default_sat):
 
 @pytest.mark.tier2
 def test_positive_create_product_with_limited_user_permission(
-    session, default_sat, test_name, module_org, module_location
+    session, target_sat, test_name, module_org, module_location
 ):
     """A user with all permissions in Product and Repositories should be able to
     create a new product
@@ -309,10 +309,10 @@ def test_positive_create_product_with_limited_user_permission(
     product_name = gen_string('alpha')
     product_label = gen_string('alpha')
     product_description = gen_string('alpha')
-    role = default_sat.api.Role().create()
+    role = target_sat.api.Role().create()
     # Calling Products and Repositoy to get all the permissions in it
     create_role_permissions(role, {'Katello::Product': PERMISSIONS['Katello::Product']})
-    default_sat.api.User(
+    target_sat.api.User(
         default_organization=module_org,
         organization=[module_org],
         firstname='sample',

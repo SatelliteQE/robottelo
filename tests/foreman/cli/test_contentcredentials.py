@@ -271,7 +271,7 @@ def test_positive_update_name(new_name, module_org):
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_update_key(name, module_org, default_sat):
+def test_positive_update_key(name, module_org, target_sat):
     """Create gpg key with valid name and valid gpg key via file
     import then update its gpg key file
 
@@ -289,7 +289,7 @@ def test_positive_update_key(name, module_org, default_sat):
     local_key = create_gpg_key_file(content)
     assert gpg_key, 'GPG Key file must be created'
     key = f'/tmp/{gen_alphanumeric()}'
-    default_sat.put(local_key, key)
+    target_sat.put(local_key, key)
     ContentCredential.update(
         {'path': key, 'name': gpg_key['name'], 'organization-id': module_org.id}
     )

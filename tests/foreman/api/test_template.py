@@ -78,7 +78,7 @@ def module_user(module_org, module_location):
 
 
 @pytest.fixture(scope="function")
-def tftpboot(module_org, default_sat):
+def tftpboot(module_org, target_sat):
     """This fixture removes the current deployed templates from TFTP, and sets up new ones.
     It manipulates the global defaults, so it shouldn't be used in concurrent environment
 
@@ -105,7 +105,7 @@ def tftpboot(module_org, default_sat):
         },
         'ipxe': {
             'setting': 'global_iPXE',
-            'path': f'{default_sat.url}/unattended/iPXE?bootstrap=1',
+            'path': f'{target_sat.url}/unattended/iPXE?bootstrap=1',
             'kind': 'iPXE',
         },
     }
@@ -114,7 +114,7 @@ def tftpboot(module_org, default_sat):
     kinds = entities.TemplateKind().search(query={"search": "name ~ PXE"})
 
     # clean the already-deployed default pxe configs
-    default_sat.execute('rm {}'.format(' '.join([i['path'] for i in default_templates.values()])))
+    target_sat.execute('rm {}'.format(' '.join([i['path'] for i in default_templates.values()])))
 
     # create custom Templates per kind
     for template in default_templates.values():
@@ -135,7 +135,7 @@ def tftpboot(module_org, default_sat):
     yield default_templates
 
     # delete the deployed tftp files
-    default_sat.execute('rm {}'.format(' '.join([i['path'] for i in default_templates.values()])))
+    target_sat.execute('rm {}'.format(' '.join([i['path'] for i in default_templates.values()])))
     # set the settings back to defaults
     for setting in default_settings:
         if setting.value is None:
@@ -227,7 +227,7 @@ class TestProvisioningTemplate:
     @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.run_in_one_thread
-    def test_positive_build_pxe_default(self, tftpboot, default_sat):
+    def test_positive_build_pxe_default(self, tftpboot, target_sat):
         """Call the "build_pxe_default" path.
 
         :id: ca19d9da-1049-4b39-823b-933fc1a0cebd
@@ -254,8 +254,8 @@ class TestProvisioningTemplate:
                 r.raise_for_status()
                 rendered = r.text
             else:
-                rendered = default_sat.execute(f'cat {template["path"]}').stdout.splitlines()[0]
+                rendered = target_sat.execute(f'cat {template["path"]}').stdout.splitlines()[0]
             assert (
                 rendered == f"{settings.server.scheme}://"
-                f"{default_sat.hostname} {template['kind']}"
+                f"{target_sat.hostname} {template['kind']}"
             )

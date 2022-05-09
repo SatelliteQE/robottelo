@@ -23,14 +23,14 @@ def import_puppet_classes(default_smart_proxy):
 
 
 @pytest.fixture(scope='module')
-def module_fake_proxy(request, default_sat):
+def module_fake_proxy(request, module_target_sat):
     """Create a Proxy and register the cleanup function"""
     args = {'name': gen_string(str_type='alpha')}
     newport = get_available_capsule_port()
     try:
         with default_url_on_new_port(9090, newport) as url:
             args['url'] = url
-            proxy = default_sat.api.SmartProxy(**args).create()
+            proxy = module_target_sat.api.SmartProxy(**args).create()
             yield proxy
             capsule_cleanup(proxy.id)
     except CapsuleTunnelError as err:

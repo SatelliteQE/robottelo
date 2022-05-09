@@ -275,7 +275,7 @@ def test_positive_copy_by_id(module_org):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_register_host_ak_with_host_collection(module_org, module_ak_with_cv, default_sat):
+def test_positive_register_host_ak_with_host_collection(module_org, module_ak_with_cv, target_sat):
     """Attempt to register a host using activation key with host collection
 
     :id: 62459e8a-0cfa-44ff-b70c-7f55b4757d66
@@ -302,7 +302,7 @@ def test_positive_register_host_ak_with_host_collection(module_org, module_ak_wi
     )
 
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as client:
-        client.install_katello_ca(default_sat)
+        client.install_katello_ca(target_sat)
         # register the client host with the current activation key
         client.register_contenthost(module_org.name, activation_key=module_ak_with_cv.name)
         assert client.subscribed

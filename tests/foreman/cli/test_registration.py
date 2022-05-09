@@ -19,7 +19,7 @@ from robottelo.config import settings
 
 @pytest.mark.tier1
 def test_upgrade_katello_ca_consumer_rpm(
-    module_org, module_location, default_sat, rhel7_contenthost
+    module_org, module_location, target_sat, rhel7_contenthost
 ):
     """After updating the consumer cert the rhsm.conf file still points to Satellite host name
     and not Red Hat CDN for subscription.
@@ -44,21 +44,21 @@ def test_upgrade_katello_ca_consumer_rpm(
 
     :BZ: 1791503
     """
-    consumer_cert_name = f'katello-ca-consumer-{default_sat.hostname}'
+    consumer_cert_name = f'katello-ca-consumer-{target_sat.hostname}'
     consumer_cert_src = f'{consumer_cert_name}-1.0-1.src.rpm'
     new_consumer_cert_rpm = f'{consumer_cert_name}-1.0-2.noarch.rpm'
     spec_file = f'{consumer_cert_name}.spec'
     vm = rhel7_contenthost
     # Install consumer cert and check server URL in /etc/rhsm/rhsm.conf
     assert vm.execute(
-        f'rpm -Uvh "http://{default_sat.hostname}/pub/{consumer_cert_name}-1.0-1.noarch.rpm"'
+        f'rpm -Uvh "http://{target_sat.hostname}/pub/{consumer_cert_name}-1.0-1.noarch.rpm"'
     )
     # Check server URL is not Red Hat CDN's "subscription.rhsm.redhat.com"
     result = vm.execute('grep ^hostname /etc/rhsm/rhsm.conf')
     assert 'subscription.rhsm.redhat.com' not in result.stdout
-    assert default_sat.hostname in result.stdout
+    assert target_sat.hostname in result.stdout
     # Get consumer cert source file
-    assert vm.execute(f'curl -O "http://{default_sat.hostname}/pub/{consumer_cert_src}"')
+    assert vm.execute(f'curl -O "http://{target_sat.hostname}/pub/{consumer_cert_src}"')
     # Install repo for build tools
     vm.create_custom_repos(rhel7=settings.repos.rhel7_os)
     result = vm.execute('[ -s "/etc/yum.repos.d/rhel7.repo" ]')
@@ -77,7 +77,7 @@ def test_upgrade_katello_ca_consumer_rpm(
     # Check server URL is not Red Hat CDN's "subscription.rhsm.redhat.com"
     result = vm.execute('grep ^hostname /etc/rhsm/rhsm.conf')
     assert 'subscription.rhsm.redhat.com' not in result.stdout
-    assert default_sat.hostname in result.stdout
+    assert target_sat.hostname in result.stdout
     # Register as final check
     vm.register_contenthost(module_org.label)
     result = vm.execute('subscription-manager identity')

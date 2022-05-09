@@ -569,7 +569,7 @@ class TestRepository:
             assert repo.get(key) == repo_options[key]
 
     @pytest.mark.tier1
-    def test_positive_create_repo_with_new_organization_and_location(self, default_sat):
+    def test_positive_create_repo_with_new_organization_and_location(self, target_sat):
         """Check if error is thrown when creating a Repo with a new Organization and Location.
 
         :id: 9ea4f2a9-f339-4215-b301-cd39c6b5c474
@@ -597,7 +597,7 @@ class TestRepository:
             }
         )
 
-        result = default_sat.execute(
+        result = target_sat.execute(
             "cat /var/log/foreman/production.log | "
             "grep \"undefined method `id' for nil:NilClass (NoMethodError)\""
         )
@@ -1165,7 +1165,7 @@ class TestRepository:
         indirect=True,
     )
     def test_positive_synchronize_rpm_repo_ignore_SRPM(
-        self, module_org, module_product, repo, default_sat
+        self, module_org, module_product, repo, target_sat
     ):
         """Synchronize yum repository with ignore SRPM
 
@@ -1498,7 +1498,7 @@ class TestRepository:
         assert repo['content-counts']['packages'] == '0'
 
     @pytest.mark.tier1
-    def test_positive_upload_content(self, repo, default_sat):
+    def test_positive_upload_content(self, repo, target_sat):
         """Create repository and upload content
 
         :id: eb0ec599-2bf1-483a-8215-66652f948d67
@@ -1513,9 +1513,7 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        default_sat.put(
-            local_path=get_data_file(RPM_TO_UPLOAD), remote_path=f"/tmp/{RPM_TO_UPLOAD}"
-        )
+        target_sat.put(local_path=get_data_file(RPM_TO_UPLOAD), remote_path=f"/tmp/{RPM_TO_UPLOAD}")
         result = Repository.upload_content(
             {
                 'name': repo['name'],
@@ -1533,7 +1531,7 @@ class TestRepository:
         **parametrized([{'content-type': 'file', 'url': CUSTOM_FILE_REPO}]),
         indirect=True,
     )
-    def test_positive_upload_content_to_file_repo(self, repo, default_sat):
+    def test_positive_upload_content_to_file_repo(self, repo, target_sat):
         """Create file repository and upload content to it
 
         :id: 5e24b416-2928-4533-96cf-6bffbea97a95
@@ -1552,7 +1550,7 @@ class TestRepository:
         # Verify it has finished
         new_repo = Repository.info({'id': repo['id']})
         assert int(new_repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT
-        default_sat.put(
+        target_sat.put(
             local_path=get_data_file(OS_TEMPLATE_DATA_FILE),
             remote_path=f"/tmp/{OS_TEMPLATE_DATA_FILE}",
         )
@@ -1727,7 +1725,7 @@ class TestRepository:
         assert len(repos) == 0
 
     @pytest.mark.tier2
-    def test_positive_upload_remove_srpm_content(self, repo, default_sat):
+    def test_positive_upload_remove_srpm_content(self, repo, target_sat):
         """Create repository, upload and remove an SRPM content
 
         :id: 706dc3e2-dacb-4fdd-8eef-5715ce498888
@@ -1742,7 +1740,7 @@ class TestRepository:
 
         :BZ: 1378442
         """
-        default_sat.put(
+        target_sat.put(
             local_path=get_data_file(SRPM_TO_UPLOAD), remote_path=f"/tmp/{SRPM_TO_UPLOAD}"
         )
         # Upload SRPM
@@ -1770,7 +1768,7 @@ class TestRepository:
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
-    def test_positive_srpm_list_end_to_end(self, repo, default_sat):
+    def test_positive_srpm_list_end_to_end(self, repo, target_sat):
         """Create repository,  upload, list and remove an SRPM content
 
         :id: 98ad4228-f2e5-438a-9210-5ce6561769f2
@@ -1786,7 +1784,7 @@ class TestRepository:
 
         :CaseImportance: High
         """
-        default_sat.put(
+        target_sat.put(
             local_path=get_data_file(SRPM_TO_UPLOAD), remote_path=f"/tmp/{SRPM_TO_UPLOAD}"
         )
         # Upload SRPM
@@ -2237,7 +2235,7 @@ class TestSRPMRepository:
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
     )
-    def test_positive_sync(self, repo, module_org, module_product, default_sat):
+    def test_positive_sync(self, repo, module_org, module_product, target_sat):
         """Synchronize repository with SRPMs
 
         :id: eb69f840-122d-4180-b869-1bd37518480c
@@ -2247,7 +2245,7 @@ class TestSRPMRepository:
         :expectedresults: srpms can be listed in repository
         """
         Repository.synchronize({'id': repo['id']})
-        result = default_sat.execute(
+        result = target_sat.execute(
             f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/Library"
             f"/custom/{module_product.label}/{repo['label']}/Packages/t/ | grep .src.rpm"
         )
@@ -2259,7 +2257,7 @@ class TestSRPMRepository:
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
     )
-    def test_positive_sync_publish_cv(self, module_org, module_product, repo, default_sat):
+    def test_positive_sync_publish_cv(self, module_org, module_product, repo, target_sat):
         """Synchronize repository with SRPMs, add repository to content view
         and publish content view
 
@@ -2273,7 +2271,7 @@ class TestSRPMRepository:
         cv = make_content_view({'organization-id': module_org.id})
         ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
         ContentView.publish({'id': cv['id']})
-        result = default_sat.execute(
+        result = target_sat.execute(
             f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/content_views/"
             f"{cv['label']}/1.0/custom/{module_product.label}/{repo['label']}/Packages/t/"
             " | grep .src.rpm"
@@ -2287,7 +2285,7 @@ class TestSRPMRepository:
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
     )
-    def test_positive_sync_publish_promote_cv(self, repo, module_org, module_product, default_sat):
+    def test_positive_sync_publish_promote_cv(self, repo, module_org, module_product, target_sat):
         """Synchronize repository with SRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
 
@@ -2306,7 +2304,7 @@ class TestSRPMRepository:
         content_view = ContentView.info({'id': cv['id']})
         cvv = content_view['versions'][0]
         ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']})
-        result = default_sat.execute(
+        result = target_sat.execute(
             f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/{lce['label']}/"
             f"{cv['label']}/custom/{module_product.label}/{repo['label']}/Packages/t"
             " | grep .src.rpm"
@@ -2376,9 +2374,7 @@ class TestAnsibleCollectionRepository:
         ids=['ansible_galaxy'],
         indirect=True,
     )
-    def test_positive_export_ansible_collection(
-        self, repo, module_org, module_product, default_sat
-    ):
+    def test_positive_export_ansible_collection(self, repo, module_org, module_product, target_sat):
         """Export ansible collection between organizations
 
         :id: 4858227e-1669-476d-8da3-4e6bfb6b7e2a
@@ -2396,10 +2392,8 @@ class TestAnsibleCollectionRepository:
         assert repo['sync']['status'] == 'Success'
         # export
         result = ContentExport.completeLibrary({'organization-id': module_org.id})
-        default_sat.execute(
-            f'cp -r /var/lib/pulp/exports/{module_org.name} /var/lib/pulp/imports/.'
-        )
-        default_sat.execute('chown -R pulp:pulp /var/lib/pulp/imports')
+        target_sat.execute(f'cp -r /var/lib/pulp/exports/{module_org.name} /var/lib/pulp/imports/.')
+        target_sat.execute('chown -R pulp:pulp /var/lib/pulp/imports')
         export_metadata = result['message'].split()[1]
         # import
         import_path = export_metadata.replace('/metadata.json', '').replace('exports', 'imports')
@@ -2413,7 +2407,7 @@ class TestAnsibleCollectionRepository:
         ]
         assert len(ac_content) > 0
         repo = Repository.info({'name': ac_content[0]['repo-name'], 'product-id': prod['id']})
-        result = default_sat.execute(f'curl {repo["published-at"]}')
+        result = target_sat.execute(f'curl {repo["published-at"]}')
         assert "available_versions" in result.stdout
 
     @pytest.mark.tier2
@@ -2433,7 +2427,7 @@ class TestAnsibleCollectionRepository:
         indirect=True,
     )
     def test_positive_sync_ansible_collection_from_satellite(
-        self, repo, module_org, module_product, default_sat
+        self, repo, module_org, module_product, target_sat
     ):
         """Sync ansible collection from another organization
 
@@ -2478,7 +2472,7 @@ class TestMD5Repository:
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'url': FAKE_YUM_MD5_REPO}]), indirect=True
     )
-    def test_positive_sync_publish_promote_cv(self, repo, module_org, module_product, default_sat):
+    def test_positive_sync_publish_promote_cv(self, repo, module_org, module_product, target_sat):
         """Synchronize MD5 signed repository with add repository to content view,
         publish and promote content view to lifecycle environment
 
@@ -2514,7 +2508,7 @@ class TestDRPMRepository:
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'url': FAKE_YUM_DRPM_REPO}]), indirect=True
     )
-    def test_positive_sync(self, repo, module_org, module_product, default_sat):
+    def test_positive_sync(self, repo, module_org, module_product, target_sat):
         """Synchronize repository with DRPMs
 
         :id: a645966c-750b-40ef-a264-dc3bb632b9fd
@@ -2524,7 +2518,7 @@ class TestDRPMRepository:
         :expectedresults: drpms can be listed in repository
         """
         Repository.synchronize({'id': repo['id']})
-        result = default_sat.execute(
+        result = target_sat.execute(
             f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/Library"
             f"/custom/{module_product.label}/{repo['label']}/drpms/ | grep .drpm"
         )
@@ -2536,7 +2530,7 @@ class TestDRPMRepository:
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'url': FAKE_YUM_DRPM_REPO}]), indirect=True
     )
-    def test_positive_sync_publish_cv(self, repo, module_org, module_product, default_sat):
+    def test_positive_sync_publish_cv(self, repo, module_org, module_product, target_sat):
         """Synchronize repository with DRPMs, add repository to content view
         and publish content view
 
@@ -2550,7 +2544,7 @@ class TestDRPMRepository:
         cv = make_content_view({'organization-id': module_org.id})
         ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
         ContentView.publish({'id': cv['id']})
-        result = default_sat.execute(
+        result = target_sat.execute(
             f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/content_views/"
             f"{cv['label']}/1.0/custom/{module_product.label}/{repo['label']}/drpms/ | grep .drpm"
         )
@@ -2563,7 +2557,7 @@ class TestDRPMRepository:
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'url': FAKE_YUM_DRPM_REPO}]), indirect=True
     )
-    def test_positive_sync_publish_promote_cv(self, repo, module_org, module_product, default_sat):
+    def test_positive_sync_publish_promote_cv(self, repo, module_org, module_product, target_sat):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
 
@@ -2582,7 +2576,7 @@ class TestDRPMRepository:
         content_view = ContentView.info({'id': cv['id']})
         cvv = content_view['versions'][0]
         ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']})
-        result = default_sat.execute(
+        result = target_sat.execute(
             f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/{lce['label']}"
             f"/{cv['label']}/custom/{module_product.label}/{repo['label']}/drpms/ | grep .drpm"
         )
@@ -2788,7 +2782,7 @@ class TestFileRepository:
         **parametrized([{'content-type': 'file', 'url': CUSTOM_FILE_REPO}]),
         indirect=True,
     )
-    def test_positive_upload_file_to_file_repo(self, repo_options, repo, default_sat):
+    def test_positive_upload_file_to_file_repo(self, repo_options, repo, target_sat):
         """Check arbitrary file can be uploaded to File Repository
 
         :id: 134d668d-bd63-4475-bf7b-b899bb9fb7bb
@@ -2805,9 +2799,7 @@ class TestFileRepository:
 
         :CaseImportance: Critical
         """
-        default_sat.put(
-            local_path=get_data_file(RPM_TO_UPLOAD), remote_path=f"/tmp/{RPM_TO_UPLOAD}"
-        )
+        target_sat.put(local_path=get_data_file(RPM_TO_UPLOAD), remote_path=f"/tmp/{RPM_TO_UPLOAD}")
         result = Repository.upload_content(
             {
                 'name': repo['name'],
@@ -2851,7 +2843,7 @@ class TestFileRepository:
         **parametrized([{'content-type': 'file', 'url': CUSTOM_FILE_REPO}]),
         indirect=True,
     )
-    def test_positive_remove_file(self, repo, default_sat):
+    def test_positive_remove_file(self, repo, target_sat):
         """Check arbitrary file can be removed from File Repository
 
         :id: 07ca9c8d-e764-404e-866d-30d8cd2ca2b6
@@ -2869,9 +2861,7 @@ class TestFileRepository:
 
         :CaseImportance: Critical
         """
-        default_sat.put(
-            local_path=get_data_file(RPM_TO_UPLOAD), remote_path=f"/tmp/{RPM_TO_UPLOAD}"
-        )
+        target_sat.put(local_path=get_data_file(RPM_TO_UPLOAD), remote_path=f"/tmp/{RPM_TO_UPLOAD}")
         result = Repository.upload_content(
             {
                 'name': repo['name'],
@@ -2934,7 +2924,7 @@ class TestFileRepository:
         **parametrized([{'content-type': 'file', 'url': f'file://{CUSTOM_LOCAL_FOLDER}'}]),
         indirect=True,
     )
-    def test_positive_file_repo_local_directory_sync(self, repo, default_sat):
+    def test_positive_file_repo_local_directory_sync(self, repo, target_sat):
         """Check an entire local directory can be synced to File Repository
 
         :id: ee91ecd2-2f07-4678-b782-95a7e7e57159
@@ -2956,8 +2946,8 @@ class TestFileRepository:
         :CaseImportance: Critical
         """
         # Making Setup For Creating Local Directory using Pulp Manifest
-        default_sat.execute(f'mkdir -p {CUSTOM_LOCAL_FOLDER}')
-        default_sat.execute(
+        target_sat.execute(f'mkdir -p {CUSTOM_LOCAL_FOLDER}')
+        target_sat.execute(
             f'wget -P {CUSTOM_LOCAL_FOLDER} -r -np -nH --cut-dirs=5 -R "index.html*" '
             f'{CUSTOM_FILE_REPO}'
         )
@@ -2971,7 +2961,7 @@ class TestFileRepository:
         **parametrized([{'content-type': 'file', 'url': f'file://{CUSTOM_LOCAL_FOLDER}'}]),
         indirect=True,
     )
-    def test_positive_symlinks_sync(self, repo, default_sat):
+    def test_positive_symlinks_sync(self, repo, target_sat):
         """Check symlinks can be synced to File Repository
 
         :id: b0b0a725-b754-450b-bc0d-572d0294307a
@@ -2994,12 +2984,12 @@ class TestFileRepository:
         :CaseAutomation: Automated
         """
         # Downloading the pulp repository into Satellite Host
-        default_sat.execute(f'mkdir -p {CUSTOM_LOCAL_FOLDER}')
-        default_sat.execute(
+        target_sat.execute(f'mkdir -p {CUSTOM_LOCAL_FOLDER}')
+        target_sat.execute(
             f'wget -P {CUSTOM_LOCAL_FOLDER} -r -np -nH --cut-dirs=5 -R "index.html*" '
             f'{CUSTOM_FILE_REPO}'
         )
-        default_sat.execute(f'ln -s {CUSTOM_LOCAL_FOLDER} /{gen_string("alpha")}')
+        target_sat.execute(f'ln -s {CUSTOM_LOCAL_FOLDER} /{gen_string("alpha")}')
 
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
@@ -3011,7 +3001,7 @@ class TestFileRepository:
         **parametrized([{'content-type': 'file', 'url': CUSTOM_FILE_REPO}]),
         indirect=True,
     )
-    def test_file_repo_contains_only_newer_file(self, repo_options, repo, default_sat):
+    def test_file_repo_contains_only_newer_file(self, repo_options, repo, target_sat):
         """
             Check that a file-type repo contains only the newer of
             two versions of a file with the same name.
@@ -3034,7 +3024,7 @@ class TestFileRepository:
         :parametrized: yes
         """
         text_file_name = f'test-{gen_string("alpha", 5)}.txt'.lower()
-        default_sat.execute(f'echo "First File" > /tmp/{text_file_name}')
+        target_sat.execute(f'echo "First File" > /tmp/{text_file_name}')
         result = Repository.upload_content(
             {
                 'name': repo['name'],
@@ -3052,7 +3042,7 @@ class TestFileRepository:
         )
         assert text_file_name == filesearch[0].name
         # Create new version of the file by changing the text
-        default_sat.execute(f'echo "Second File" > /tmp/{text_file_name}')
+        target_sat.execute(f'echo "Second File" > /tmp/{text_file_name}')
         result = Repository.upload_content(
             {
                 'name': repo['name'],

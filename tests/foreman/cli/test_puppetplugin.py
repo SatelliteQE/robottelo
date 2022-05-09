@@ -55,7 +55,8 @@ def assert_puppet_status(server, expected):
 
 
 @pytest.mark.skip_if_open("BZ:2034552")
-def test_positive_enable_disable_logic(destructive_sat, destructive_caps):
+@pytest.mark.destructive
+def test_positive_enable_disable_logic(target_sat, capsule_configured):
     """Test puppet enable/disable logic on Satellite and Capsule
 
     :id: a1909c3e-6d41-4235-97b1-4e8b64ee1a9e
@@ -84,48 +85,49 @@ def test_positive_enable_disable_logic(destructive_sat, destructive_caps):
     :BZ: 2032928, 2034552, 2033336, 2039696
     """
     # Check that puppet is disabled by default on both.
-    assert_puppet_status(destructive_sat, expected=False)
-    assert_puppet_status(destructive_caps, expected=False)
+    assert_puppet_status(target_sat, expected=False)
+    assert_puppet_status(capsule_configured, expected=False)
 
     # Try to enable puppet on Capsule and check it failed.
-    result = destructive_caps.execute(enable_capsule_cmd.get_command(), timeout='20m')
+    result = capsule_configured.execute(enable_capsule_cmd.get_command(), timeout='20m')
     assert result.status == 6
     assert 'failed to load one or more features (Puppet)' in result.stdout
 
     # Enable puppet on Satellite and check it succeeded.
-    destructive_sat.register_to_dogfood()
-    result = destructive_sat.execute(enable_satellite_cmd.get_command(), timeout='20m')
+    target_sat.register_to_dogfood()
+    result = target_sat.execute(enable_satellite_cmd.get_command(), timeout='20m')
     assert result.status == 0
     assert 'Success!' in result.stdout
 
     # workaround for BZ#2039696
-    destructive_sat.execute('hammer -r')
+    target_sat.execute('hammer -r')
 
-    assert_puppet_status(destructive_sat, expected=True)
+    assert_puppet_status(target_sat, expected=True)
 
     # Enable puppet on Capsule and check it succeeded.
-    result = destructive_caps.execute(enable_capsule_cmd.get_command(), timeout='20m')
+    result = capsule_configured.execute(enable_capsule_cmd.get_command(), timeout='20m')
     assert result.status == 0
     assert 'Success!' in result.stdout
-    assert_puppet_status(destructive_caps, expected=True)
+    assert_puppet_status(capsule_configured, expected=True)
 
     # Try to disable puppet on Satellite and check it failed.
-    result = destructive_sat.execute('satellite-maintain plugin purge-puppet')
+    result = target_sat.execute('satellite-maintain plugin purge-puppet')
     assert result.status == 1
     assert (
-        f'The following proxies have Puppet feature: {destructive_caps.hostname}.' in result.stdout
+        f'The following proxies have Puppet feature: {capsule_configured.hostname}.'
+        in result.stdout
     )
 
     # Disable puppet on Capsule and check it succeeded.
-    result = destructive_caps.execute(
+    result = capsule_configured.execute(
         'satellite-maintain plugin purge-puppet --remove-all-data', timeout='20m'
     )
     assert result.status == 0
-    assert_puppet_status(destructive_caps, expected=False)
+    assert_puppet_status(capsule_configured, expected=False)
 
     # Disable puppet on Satellite and check it succeeded.
-    result = destructive_sat.execute(
+    result = target_sat.execute(
         'satellite-maintain plugin purge-puppet --remove-all-data', timeout='20m'
     )
     assert result.status == 0
-    assert_puppet_status(destructive_sat, expected=False)
+    assert_puppet_status(target_sat, expected=False)

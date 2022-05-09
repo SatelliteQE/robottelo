@@ -975,7 +975,7 @@ def test_negative_update_os():
 
 @pytest.mark.tier3
 def test_positive_read_content_source_id(
-    module_org, module_location, module_lce, module_published_cv, default_sat
+    module_org, module_location, module_lce, module_published_cv, target_sat
 ):
     """Read the host content_source_id attribute from the read request
     response
@@ -991,7 +991,7 @@ def test_positive_read_content_source_id(
 
     :CaseLevel: System
     """
-    proxy = entities.SmartProxy().search(query={'url': f'{default_sat.url}:9090'})[0].read()
+    proxy = entities.SmartProxy().search(query={'url': f'{target_sat.url}:9090'})[0].read()
     promote(module_published_cv.version[0], environment_id=module_lce.id)
     host = entities.Host(
         organization=module_org,
@@ -1011,7 +1011,7 @@ def test_positive_read_content_source_id(
 
 @pytest.mark.tier3
 def test_positive_update_content_source_id(
-    module_org, module_location, module_lce, module_published_cv, default_sat
+    module_org, module_location, module_lce, module_published_cv, target_sat
 ):
     """Read the host content_source_id attribute from the update request
     response
@@ -1027,9 +1027,9 @@ def test_positive_update_content_source_id(
 
     :CaseLevel: System
     """
-    proxy = default_sat.api.SmartProxy().search(query={'url': f'{default_sat.url}:9090'})[0]
+    proxy = target_sat.api.SmartProxy().search(query={'url': f'{target_sat.url}:9090'})[0]
     promote(module_published_cv.version[0], environment_id=module_lce.id)
-    host = default_sat.api.Host(
+    host = target_sat.api.Host(
         organization=module_org,
         location=module_location,
         content_facet_attributes={

@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import pytest
 from broker import VMBroker
 from wait_for import wait_for
@@ -17,10 +19,45 @@ def _resolve_deploy_args(args_dict):
 
 
 @pytest.fixture(scope='session')
-def default_sat(align_to_satellite):
+def _default_sat(align_to_satellite):
     """Returns a Satellite object for settings.server.hostname"""
     if settings.server.hostname:
         return Satellite()
+
+
+@contextmanager
+def _target_sat_imp(request, _default_sat, satellite_factory):
+    """This is the actual working part of the following target_sat fixtures"""
+    if request.node.get_closest_marker(name='destructive'):
+        new_sat = satellite_factory()
+        yield new_sat
+        VMBroker(hosts=[new_sat]).checkin()
+    else:
+        yield _default_sat
+
+
+@pytest.fixture
+def target_sat(request, _default_sat, satellite_factory):
+    with _target_sat_imp(request, _default_sat, satellite_factory) as sat:
+        yield sat
+
+
+@pytest.fixture(scope='module')
+def module_target_sat(request, _default_sat, satellite_factory):
+    with _target_sat_imp(request, _default_sat, satellite_factory) as sat:
+        yield sat
+
+
+@pytest.fixture(scope='session')
+def session_target_sat(request, _default_sat, satellite_factory):
+    with _target_sat_imp(request, _default_sat, satellite_factory) as sat:
+        yield sat
+
+
+@pytest.fixture(scope='class')
+def class_target_sat(request, _default_sat, satellite_factory):
+    with _target_sat_imp(request, _default_sat, satellite_factory) as sat:
+        yield sat
 
 
 @pytest.fixture(scope='session')
@@ -100,28 +137,7 @@ def capsule_host(capsule_factory):
 
 
 @pytest.fixture
-def capsule_configured(capsule_host, default_sat):
+def capsule_configured(capsule_host, target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    capsule_host.capsule_setup(sat_host=default_sat)
-    yield capsule_host
-
-
-@pytest.fixture
-def destructive_sat(satellite_host):
-    """Destructive tests require changing settings.server.hostname for now"""
-    with satellite_host as sat:
-        yield sat
-
-
-@pytest.fixture(scope='module')
-def module_destructive_sat(module_satellite_host):
-    """Destructive tests require changing settings.server.hostname for now"""
-    with module_satellite_host as sat:
-        yield sat
-
-
-@pytest.fixture
-def destructive_caps(capsule_host, destructive_sat):
-    """Configure the capsule instance with the destructive satellite"""
-    capsule_host.capsule_setup(sat_host=destructive_sat)
+    capsule_host.capsule_setup(sat_host=target_sat)
     yield capsule_host

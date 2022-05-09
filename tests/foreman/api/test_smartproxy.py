@@ -33,13 +33,15 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def module_proxy_attrs(default_sat):
+def module_proxy_attrs(module_target_sat):
     """Find a ``SmartProxy``.
 
     Every Satellite has a built-in smart proxy, so searching for an
     existing smart proxy should always succeed.
     """
-    smart_proxy = entities.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})
+    smart_proxy = entities.SmartProxy().search(
+        query={'search': f'url = {module_target_sat.url}:9090'}
+    )
     # Check that proxy is found and unpack it from the list
     assert len(smart_proxy) > 0, "No smart proxy is found"
     smart_proxy = smart_proxy[0]

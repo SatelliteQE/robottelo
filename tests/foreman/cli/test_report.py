@@ -25,12 +25,12 @@ from robottelo.cli.report import ConfigReport
 
 
 @pytest.fixture(scope='module', autouse=True)
-def run_puppet_agent(default_sat):
+def run_puppet_agent(module_target_sat):
     """Retrieves the client configuration from the puppet master and
     applies it to the local host. This is required to make sure
     that we have reports available.
     """
-    default_sat.execute('puppet agent -t')
+    module_target_sat.execute('puppet agent -t')
 
 
 @pytest.mark.tier1

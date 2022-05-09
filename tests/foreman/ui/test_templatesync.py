@@ -96,7 +96,7 @@ def test_positive_import_templates(session, templates_org, templates_loc):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_export_templates(session, create_import_export_local_dir, default_sat):
+def test_positive_export_templates(session, create_import_export_local_dir, target_sat):
     """Export the satellite templates to local directory
 
     :id: 1c24cf51-7198-48aa-a70a-8c0441333374
@@ -135,10 +135,10 @@ def test_positive_export_templates(session, create_import_export_local_dir, defa
         )
         assert export_title == f'Export to {FOREMAN_TEMPLATE_ROOT_DIR} as user {session._user}'
     exported_file = f'{dir_path}/provisioning_templates/PXELinux/kickstart_default_pxelinux.erb'
-    result = default_sat.execute(f'find {exported_file} -type f')
+    result = target_sat.execute(f'find {exported_file} -type f')
     assert result.status == 0
     search_string = f'name: {export_template}'
-    result = default_sat.execute(f"grep -F '{search_string}' {exported_file}")
+    result = target_sat.execute(f"grep -F '{search_string}' {exported_file}")
     assert result.status == 0
 
 

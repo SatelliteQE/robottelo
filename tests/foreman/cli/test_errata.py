@@ -202,10 +202,10 @@ def hosts(request):
 
 
 @pytest.fixture(scope='module')
-def register_hosts(hosts, module_org, module_ak_cv_lce, rh_repo, custom_repo, default_sat):
+def register_hosts(hosts, module_org, module_ak_cv_lce, rh_repo, custom_repo, module_target_sat):
     """Register hosts to Satellite and install katello-agent rpm."""
     for host in hosts:
-        host.install_katello_ca(default_sat)
+        host.install_katello_ca(module_target_sat)
         host.register_contenthost(module_org.name, module_ak_cv_lce.name)
         host.enable_repo(REPOS['rhst7']['id'])
         host.install_katello_agent()
@@ -382,7 +382,7 @@ def cv_filter_cleanup(filter_id, cv, org, lce):
     'filter_by_org', ('id', 'name', 'title'), ids=('org_id', 'org_name', 'org_title')
 )
 def test_positive_install_by_host_collection_and_org(
-    module_org, host_collection, errata_hosts, filter_by_hc, filter_by_org, default_sat
+    module_org, host_collection, errata_hosts, filter_by_hc, filter_by_org, target_sat
 ):
     """Use host collection id or name and org id, name, or label to install an update on the host
     collection.
@@ -409,7 +409,7 @@ def test_positive_install_by_host_collection_and_org(
     errata_id = REPO_WITH_ERRATA['errata'][0]['id']
 
     for host in errata_hosts:
-        host.add_rex_key(satellite=default_sat)
+        host.add_rex_key(satellite=target_sat)
 
     if filter_by_hc == 'id':
         host_collection_query = f'host_collection_id = {host_collection["id"]}'
@@ -593,7 +593,7 @@ def test_positive_list_affected_chosts(module_org, errata_hosts):
 
 
 @pytest.mark.tier3
-def test_install_errata_to_one_host(module_org, errata_hosts, host_collection, default_sat):
+def test_install_errata_to_one_host(module_org, errata_hosts, host_collection, target_sat):
     """Install an erratum to one of the hosts in a host collection.
 
     :id: bfcee2de-3448-497e-a696-fcd30cea9d33
@@ -626,7 +626,7 @@ def test_install_errata_to_one_host(module_org, errata_hosts, host_collection, d
     assert result.status == 0, f'Failed to erase the rpm: {result.stdout}'
     # Add ssh keys
     for host in errata_hosts:
-        host.add_rex_key(satellite=default_sat)
+        host.add_rex_key(satellite=target_sat)
     # Apply errata to the host collection using job invocation
     result = JobInvocation.create(
         {
@@ -1349,22 +1349,22 @@ def new_module_ak(module_manifest_org, rh_repo_module_manifest, default_lce):
 
 
 @pytest.fixture
-def errata_host(module_manifest_org, rhel7_contenthost_module, new_module_ak, default_sat):
+def errata_host(module_manifest_org, rhel7_contenthost_module, new_module_ak, target_sat):
     """A RHEL77 Content Host that has applicable errata and registered to Library"""
     # python-psutil is obsoleted by python2-psutil, so get older python2-psutil for errata test
     rhel7_contenthost_module.run(f'rpm -Uvh {settings.repos.epel_repo.url}/{PSUTIL_RPM}')
-    rhel7_contenthost_module.install_katello_ca(default_sat)
+    rhel7_contenthost_module.install_katello_ca(target_sat)
     rhel7_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
     assert rhel7_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
     rhel7_contenthost_module.install_katello_host_tools()
-    rhel7_contenthost_module.add_rex_key(satellite=default_sat)
+    rhel7_contenthost_module.add_rex_key(satellite=target_sat)
     return rhel7_contenthost_module
 
 
 @pytest.fixture
-def chost(module_manifest_org, rhel7_contenthost_module, new_module_ak, default_sat):
+def chost(module_manifest_org, rhel7_contenthost_module, new_module_ak, target_sat):
     """A RHEL77 Content Host registered to Library that does not have applicable errata"""
-    rhel7_contenthost_module.install_katello_ca(default_sat)
+    rhel7_contenthost_module.install_katello_ca(target_sat)
     rhel7_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
     assert rhel7_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
     rhel7_contenthost_module.install_katello_host_tools()
@@ -1372,7 +1372,7 @@ def chost(module_manifest_org, rhel7_contenthost_module, new_module_ak, default_
 
 
 @pytest.mark.tier2
-def test_apply_errata_using_default_content_view(errata_host, default_sat):
+def test_apply_errata_using_default_content_view(errata_host, target_sat):
     """Updating an applicable errata on a host attached to the default content view
      causes the errata to not be applicable.
 
@@ -1496,7 +1496,7 @@ def test_update_applicable_package_using_default_content_view(errata_host):
 
 
 @pytest.mark.tier2
-def test_downgrade_applicable_package_using_default_content_view(errata_host, default_sat):
+def test_downgrade_applicable_package_using_default_content_view(errata_host, target_sat):
     """Downgrading a package on a host attached to the default content view
     causes the package to become applicable and installable.
 
