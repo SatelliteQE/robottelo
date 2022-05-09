@@ -689,7 +689,7 @@ class TestContentViewPublishPromote:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_composite_content_view_with_same_repos(self, module_org, default_sat):
+    def test_composite_content_view_with_same_repos(self, module_org, target_sat):
         """Create a Composite Content View with content views having same yum repo.
         Add filter on the content views and check the package count for composite content view
         should not be changed.
@@ -738,7 +738,7 @@ class TestContentViewPublishPromote:
     @pytest.mark.tier4
     @pytest.mark.destructive
     @pytest.mark.run_in_one_thread
-    def test_positive_reboot_recover_cv_publish(self, destructive_sat):
+    def test_positive_reboot_recover_cv_publish(self, target_sat):
         """Reboot the Satellite during publish and resume publishing
 
         :id: cceae727-81db-40a4-9c26-05ca6e93464e
@@ -793,7 +793,7 @@ class TestContentViewPublishPromote:
         ).create()
         try:
             publish_task = cv.publish(synchronous=False)
-            destructive_sat.power_control(state='reboot', ensure=True)
+            target_sat.power_control(state='reboot', ensure=True)
             wait_for_tasks(
                 search_query=(f'id = {publish_task["id"]}'),
                 search_rate=30,

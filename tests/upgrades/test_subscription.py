@@ -92,7 +92,7 @@ class TestSubscriptionAutoAttach:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_subscription_scenario_autoattach(self, request, default_sat):
+    def test_pre_subscription_scenario_autoattach(self, request, target_sat):
         """Create content host and register with Satellite
 
         :id: preupgrade-940fc78c-ffa6-4d9a-9c4b-efa1b9480a22
@@ -148,7 +148,7 @@ class TestSubscriptionAutoAttach:
 
     @pytest.mark.post_upgrade(depend_on=test_pre_subscription_scenario_autoattach)
     def test_post_subscription_scenario_autoattach(
-        self, request, dependent_scenario_name, default_sat
+        self, request, dependent_scenario_name, target_sat
     ):
         """Run subscription auto-attach on pre-upgrade content host registered
         with Satellite.

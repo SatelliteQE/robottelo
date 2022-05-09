@@ -475,7 +475,7 @@ def test_negative_nonauthor_of_report_cant_download_it():
 
 
 @pytest.mark.tier3
-def test_positive_generate_entitlements_report(setup_content, default_sat):
+def test_positive_generate_entitlements_report(setup_content, target_sat):
     """Generate a report using the Subscription - Entitlement Report template.
 
     :id: 722e8802-367b-4399-bcaa-949daab26632
@@ -494,7 +494,7 @@ def test_positive_generate_entitlements_report(setup_content, default_sat):
     """
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
         ak, org = setup_content
-        vm.install_katello_ca(default_sat)
+        vm.install_katello_ca(target_sat)
         vm.register_contenthost(org.label, ak.name)
         assert vm.subscribed
         rt = (
@@ -514,7 +514,7 @@ def test_positive_generate_entitlements_report(setup_content, default_sat):
 
 
 @pytest.mark.tier3
-def test_positive_schedule_entitlements_report(setup_content, default_sat):
+def test_positive_schedule_entitlements_report(setup_content, target_sat):
     """Schedule a report using the Subscription - Entitlement Report template.
 
     :id: 5152c518-b0da-4c27-8268-2be78289249f
@@ -533,7 +533,7 @@ def test_positive_schedule_entitlements_report(setup_content, default_sat):
     """
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
         ak, org = setup_content
-        vm.install_katello_ca(default_sat)
+        vm.install_katello_ca(target_sat)
         vm.register_contenthost(org.label, ak.name)
         assert vm.subscribed
         rt = (

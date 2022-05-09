@@ -40,7 +40,7 @@ from robottelo.virtwho_utils import virtwho_package_locked
 
 
 @pytest.fixture()
-def form_data(default_sat, default_org):
+def form_data(target_sat, default_org):
     form = {
         'name': gen_string('alpha'),
         'debug': 1,
@@ -50,7 +50,7 @@ def form_data(default_sat, default_org):
         'hypervisor-server': settings.virtwho.esx.hypervisor_server,
         'organization-id': default_org.id,
         'filtering-mode': 'none',
-        'satellite-url': default_sat.hostname,
+        'satellite-url': target_sat.hostname,
         'hypervisor-username': settings.virtwho.esx.hypervisor_username,
         'hypervisor-password': settings.virtwho.esx.hypervisor_password,
     }
@@ -323,7 +323,7 @@ class TestVirtWhoConfigforEsx:
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
-    def test_positive_rhsm_option(self, default_org, form_data, virtwho_config, default_sat):
+    def test_positive_rhsm_option(self, default_org, form_data, virtwho_config, target_sat):
         """Verify rhsm options in the configure file"
 
         :id: b5b93d4d-e780-41c0-9eaa-2407cc1dcc9b
@@ -341,13 +341,13 @@ class TestVirtWhoConfigforEsx:
         deploy_configure_by_command(command, form_data['hypervisor-type'], org=default_org.label)
         rhsm_username = get_configure_option('rhsm_username', config_file)
         assert not User.exists(search=('login', rhsm_username))
-        assert get_configure_option('rhsm_hostname', config_file) == default_sat.hostname
+        assert get_configure_option('rhsm_hostname', config_file) == target_sat.hostname
         assert get_configure_option('rhsm_prefix', config_file) == '/rhsm'
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
-    def test_positive_post_hypervisors(self, function_org, default_sat):
+    def test_positive_post_hypervisors(self, function_org, target_sat):
         """Post large json file to /rhsm/hypervisors"
 
         :id: e344c9d2-3538-4432-9a74-b025e9ef852d
@@ -364,7 +364,7 @@ class TestVirtWhoConfigforEsx:
         :BZ: 1637042, 1769680
         """
         data = hypervisor_json_create(hypervisors=100, guests=10)
-        url = f"{default_sat.url}/rhsm/hypervisors/{function_org.label}"
+        url = f"{target_sat.url}/rhsm/hypervisors/{function_org.label}"
         auth = (settings.server.admin_username, settings.server.admin_password)
         result = requests.post(url, auth=auth, verify=False, json=data)
         if result.status_code != 200:

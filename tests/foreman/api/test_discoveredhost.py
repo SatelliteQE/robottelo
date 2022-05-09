@@ -183,7 +183,7 @@ def _module_user(request, module_org, module_location):
 
 
 @pytest.fixture(scope="module")
-def discovery_settings(module_org, module_location, default_sat):
+def discovery_settings(module_org, module_location, target_sat):
     """Steps to Configure foreman discovery
 
     1. Build PXE default template
@@ -196,10 +196,10 @@ def discovery_settings(module_org, module_location, default_sat):
     # Build PXE default template to get default PXE file
     entities.ProvisioningTemplate().build_pxe_default()
     # let's just modify the timeouts to speed things up
-    default_sat.execute(
+    target_sat.execute(
         "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' " "/var/lib/tftpboot/pxelinux.cfg/default"
     )
-    default_sat.execute(
+    target_sat.execute(
         "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1 fdi.ssh=1 fdi.rootpw=changeme/' "
         "/var/lib/tftpboot/pxelinux.cfg/default"
     )
@@ -360,7 +360,7 @@ class TestLibvirtHostDiscovery:
     @pytest.mark.skip_if_not_set('vlan_networking')
     @pytest.mark.tier3
     def test_positive_provision_pxe_host(
-        self, _module_user, discovery_settings, provisioning_env, default_sat
+        self, _module_user, discovery_settings, provisioning_env, target_sat
     ):
         """Provision a pxe-based discovered hosts
 
@@ -382,7 +382,7 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open a ssh channel and attach it to foreman-tail output
-        with default_sat.session.shell() as shell:
+        with target_sat.session.shell() as shell:
             shell.send('foreman-tail')
 
             with LibvirtGuest() as pxe_host:
@@ -423,7 +423,7 @@ class TestLibvirtHostDiscovery:
         module_location,
         discovery_settings,
         provisioning_env,
-        default_sat,
+        target_sat,
     ):
         """Auto provision a pxe-based host by executing discovery rules
 
@@ -447,7 +447,7 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open a ssh channel and attach it to foreman-tail output
-        with default_sat.session.shell() as shell:
+        with target_sat.session.shell() as shell:
             shell.send('foreman-tail')
 
             with LibvirtGuest() as pxe_host:
@@ -536,7 +536,7 @@ class TestLibvirtHostDiscovery:
     @pytest.mark.skip_if_not_set('vlan_networking')
     @pytest.mark.tier3
     def test_positive_reboot_pxe_host(
-        self, _module_user, discovery_settings, provisioning_env, default_sat
+        self, _module_user, discovery_settings, provisioning_env, target_sat
     ):
         """Rebooting a pxe based discovered host
 
@@ -559,7 +559,7 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open a ssh channel and attach it to foreman-tail output
-        with default_sat.session.shell() as shell:
+        with target_sat.session.shell() as shell:
             shell.send('foreman-tail')
 
             with LibvirtGuest() as pxe_host:
@@ -590,7 +590,7 @@ class TestLibvirtHostDiscovery:
         discovered_host_cleanup,
         discovery_settings,
         provisioning_env,
-        default_sat,
+        target_sat,
     ):
         """Rebooting all pxe-based discovered hosts
 
@@ -613,7 +613,7 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open ssh channels and attach them to foreman-tail output
-        shell_1, shell_2 = default_sat.session.shell(), default_sat.session.shell()
+        shell_1, shell_2 = target_sat.session.shell(), target_sat.session.shell()
         shell_1.send('foreman-tail')
         shell_2.send('foreman-tail')
 
@@ -651,7 +651,7 @@ class TestLibvirtHostDiscovery:
     @pytest.mark.destructive
     @pytest.mark.skip_if_not_set('vlan_networking')
     def test_positive_provision_pxe_host_dhcp_change(
-        self, discovery_settings, provisioning_env, default_sat
+        self, discovery_settings, provisioning_env, target_sat
     ):
         """Discovered host is provisioned in dhcp range defined in subnet entity
 
@@ -691,13 +691,13 @@ class TestLibvirtHostDiscovery:
         new_dhcp_conf_to = subnet.to[: subnet.to.rfind('.') + 1] + str(int(old_sub_to_4o) - 10)
 
         cfg = get_nailgun_config()
-        with default_sat.session.shell() as shell:
+        with target_sat.session.shell() as shell:
             shell.send('foreman-tail')
             try:
                 # updating the ranges in component and in dhcp.conf
                 subnet.from_ = new_subnet_from
                 subnet.update(['from_'])
-                default_sat.execute(
+                target_sat.execute(
                     f'cp /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd_backup.conf && '
                     f'sed -ie \'s/{subnet.to}/{new_dhcp_conf_to}/\' /etc/dhcp/dhcpd.conf && '
                     f'systemctl restart dhcpd'
@@ -732,6 +732,6 @@ class TestLibvirtHostDiscovery:
             finally:
                 subnet.from_ = old_sub_from
                 subnet.update(['from_'])
-                default_sat.execute(
+                target_sat.execute(
                     'mv /etc/dhcp/dhcpd_backup.conf /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf'
                 )

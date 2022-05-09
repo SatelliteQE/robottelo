@@ -71,7 +71,7 @@ def non_admin_user():
 
 
 @pytest.mark.tier1
-def test_positive_create_session(admin_user, default_sat):
+def test_positive_create_session(admin_user, target_sat):
     """Check if user stays authenticated with session enabled
 
     :id: fcee7f5f-1040-41a9-bf17-6d0c24a93e22
@@ -90,7 +90,7 @@ def test_positive_create_session(admin_user, default_sat):
     try:
         idle_timeout = Settings.list({'search': 'name=idle_timeout'})[0]['value']
         Settings.set({'name': 'idle_timeout', 'value': 1})
-        result = configure_sessions(default_sat)
+        result = configure_sessions(target_sat)
         assert result == 0, 'Failed to configure hammer sessions'
         AuthLogin.basic({'username': admin_user['login'], 'password': password})
         result = Auth.with_user().status()
@@ -110,7 +110,7 @@ def test_positive_create_session(admin_user, default_sat):
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_disable_session(admin_user, default_sat):
+def test_positive_disable_session(admin_user, target_sat):
     """Check if user logs out when session is disabled
 
     :id: 38ee0d85-c2fe-4cac-a992-c5dbcec11031
@@ -125,7 +125,7 @@ def test_positive_disable_session(admin_user, default_sat):
     :expectedresults: The session is terminated
 
     """
-    result = configure_sessions(default_sat)
+    result = configure_sessions(target_sat)
     assert result == 0, 'Failed to configure hammer sessions'
     AuthLogin.basic({'username': admin_user['login'], 'password': password})
     result = Auth.with_user().status()
@@ -133,7 +133,7 @@ def test_positive_disable_session(admin_user, default_sat):
     # list organizations without supplying credentials
     assert Org.with_user().list()
     # disabling sessions
-    result = configure_sessions(satellite=default_sat, enable=False)
+    result = configure_sessions(satellite=target_sat, enable=False)
     assert result == 0, 'Failed to configure hammer sessions'
     result = Auth.with_user().status()
     assert NOTCONF_MSG.format(admin_user['login']) in result[0]['message']
@@ -142,7 +142,7 @@ def test_positive_disable_session(admin_user, default_sat):
 
 
 @pytest.mark.tier1
-def test_positive_log_out_from_session(admin_user, default_sat):
+def test_positive_log_out_from_session(admin_user, target_sat):
     """Check if session is terminated when user logs out
 
     :id: 0ba05f2d-7b83-4b0c-a04c-80e62b7c4cf2
@@ -157,7 +157,7 @@ def test_positive_log_out_from_session(admin_user, default_sat):
     :expectedresults: The session is terminated
 
     """
-    result = configure_sessions(default_sat)
+    result = configure_sessions(target_sat)
     assert result == 0, 'Failed to configure hammer sessions'
     AuthLogin.basic({'username': admin_user['login'], 'password': password})
     result = Auth.with_user().status()
@@ -172,7 +172,7 @@ def test_positive_log_out_from_session(admin_user, default_sat):
 
 
 @pytest.mark.tier1
-def test_positive_change_session(admin_user, non_admin_user, default_sat):
+def test_positive_change_session(admin_user, non_admin_user, target_sat):
     """Change from existing session to a different session
 
     :id: b6ea6f3c-fcbd-4e7b-97bd-f3e0e6b9da8f
@@ -189,7 +189,7 @@ def test_positive_change_session(admin_user, non_admin_user, default_sat):
     :expectedresults: The session is altered
 
     """
-    result = configure_sessions(default_sat)
+    result = configure_sessions(target_sat)
     assert result == 0, 'Failed to configure hammer sessions'
     AuthLogin.basic({'username': admin_user['login'], 'password': password})
     result = Auth.with_user().status()
@@ -203,7 +203,7 @@ def test_positive_change_session(admin_user, non_admin_user, default_sat):
 
 
 @pytest.mark.tier1
-def test_positive_session_survives_unauthenticated_call(admin_user, default_sat):
+def test_positive_session_survives_unauthenticated_call(admin_user, target_sat):
     """Check if session stays up after unauthenticated call
 
     :id: 8bc304a0-70ea-489c-9c3f-ea8343c5284c
@@ -220,14 +220,14 @@ def test_positive_session_survives_unauthenticated_call(admin_user, default_sat)
     :expectedresults: The session is unchanged
 
     """
-    result = configure_sessions(default_sat)
+    result = configure_sessions(target_sat)
     assert result == 0, 'Failed to configure hammer sessions'
     AuthLogin.basic({'username': admin_user['login'], 'password': password})
     result = Auth.with_user().status()
     assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
     # list organizations without supplying credentials
     Org.with_user().list()
-    result = default_sat.execute('hammer ping')
+    result = target_sat.execute('hammer ping')
     assert result.status == 0, 'Failed to run hammer ping'
     result = Auth.with_user().status()
     assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
@@ -235,7 +235,7 @@ def test_positive_session_survives_unauthenticated_call(admin_user, default_sat)
 
 
 @pytest.mark.tier1
-def test_positive_session_survives_failed_login(admin_user, non_admin_user, default_sat):
+def test_positive_session_survives_failed_login(admin_user, non_admin_user, target_sat):
     """Check if session stays up after failed login attempt
 
     :id: 6c4d5c4c-eff0-411b-829f-0c2f2ec26132
@@ -252,7 +252,7 @@ def test_positive_session_survives_failed_login(admin_user, non_admin_user, defa
     :expectedresults: The session is unchanged
 
     """
-    result = configure_sessions(default_sat)
+    result = configure_sessions(target_sat)
     assert result == 0, 'Failed to configure hammer sessions'
     AuthLogin.basic({'username': admin_user['login'], 'password': password})
     result = Auth.with_user().status()
@@ -268,7 +268,7 @@ def test_positive_session_survives_failed_login(admin_user, non_admin_user, defa
 
 
 @pytest.mark.tier1
-def test_positive_session_preceeds_saved_credentials(admin_user, default_sat):
+def test_positive_session_preceeds_saved_credentials(admin_user, target_sat):
     """Check if enabled session is mutually exclusive with
     saved credentials in hammer config
 
@@ -293,7 +293,7 @@ def test_positive_session_preceeds_saved_credentials(admin_user, default_sat):
     try:
         idle_timeout = Settings.list({'search': 'name=idle_timeout'})[0]['value']
         Settings.set({'name': 'idle_timeout', 'value': 1})
-        result = configure_sessions(satellite=default_sat, add_default_creds=True)
+        result = configure_sessions(satellite=target_sat, add_default_creds=True)
         assert result == 0, 'Failed to configure hammer sessions'
         AuthLogin.basic({'username': admin_user['login'], 'password': password})
         result = Auth.with_user().status()
@@ -311,7 +311,7 @@ def test_positive_session_preceeds_saved_credentials(admin_user, default_sat):
 
 
 @pytest.mark.tier1
-def test_negative_no_credentials(default_sat):
+def test_negative_no_credentials(target_sat):
     """Attempt to execute command without authentication
 
     :id: 8a3b5c68-1027-450f-997c-c5630218f49f
@@ -320,7 +320,7 @@ def test_negative_no_credentials(default_sat):
 
     :CaseImportance: High
     """
-    result = configure_sessions(satellite=default_sat, enable=False)
+    result = configure_sessions(satellite=target_sat, enable=False)
     assert result == 0, 'Failed to configure hammer sessions'
     result = Auth.with_user().status()
     assert NOTCONF_MSG in result[0]['message']
@@ -329,7 +329,7 @@ def test_negative_no_credentials(default_sat):
 
 
 @pytest.mark.tier1
-def test_negative_no_permissions(admin_user, non_admin_user, default_sat):
+def test_negative_no_permissions(admin_user, non_admin_user, target_sat):
     """Attempt to execute command out of user's permissions
 
     :id: 756f666f-270a-4b02-b587-a2ab09b7d46c
@@ -339,7 +339,7 @@ def test_negative_no_permissions(admin_user, non_admin_user, default_sat):
     :CaseImportance: High
 
     """
-    result = configure_sessions(default_sat)
+    result = configure_sessions(target_sat)
     assert result == 0, 'Failed to configure hammer sessions'
     AuthLogin.basic({'username': non_admin_user['login'], 'password': password})
     result = Auth.with_user().status()
@@ -351,7 +351,7 @@ def test_negative_no_permissions(admin_user, non_admin_user, default_sat):
 
 @pytest.mark.destructive
 @pytest.mark.tier1
-def test_positive_password_reset(destructive_sat):
+def test_positive_password_reset(target_sat):
     """Reset admin password using foreman rake and update the hammer config.
     verify the reset password is working.
 
@@ -362,17 +362,17 @@ def test_positive_password_reset(destructive_sat):
     :CaseImportance: High
 
     """
-    result = destructive_sat.execute('foreman-rake permissions:reset')
+    result = target_sat.execute('foreman-rake permissions:reset')
     assert result.status == 0
     reset_password = result.stdout.strip().split('password: ')[1]
-    result = destructive_sat.execute(
+    result = target_sat.execute(
         f'''sed -i -e '/username/d;/password/d;/use_sessions/d' {HAMMER_CONFIG};\
         echo '  :use_sessions: true' >> {HAMMER_CONFIG}'''
     )
     assert result.status == 0
-    destructive_sat.cli.AuthLogin.basic(
+    target_sat.cli.AuthLogin.basic(
         {'username': settings.server.admin_username, 'password': reset_password}
     )
-    result = destructive_sat.cli.Auth.with_user().status()
+    result = target_sat.cli.Auth.with_user().status()
     assert LOGEDIN_MSG.format(settings.server.admin_username) in result[0]['message']
-    assert destructive_sat.cli.Org.with_user().list()
+    assert target_sat.cli.Org.with_user().list()

@@ -33,20 +33,20 @@ pytestmark = [
 
 
 @pytest.fixture(scope='module')
-def sat_with_katello_agent(module_destructive_sat):
-    """Enable katello-agent on destructive_sat"""
-    module_destructive_sat.register_to_dogfood()
+def sat_with_katello_agent(module_target_sat):
+    """Enable katello-agent on target_sat"""
+    module_target_sat.register_to_dogfood()
     # Enable katello-agent from satellite-installer
-    result = module_destructive_sat.install(
+    result = module_target_sat.install(
         InstallerCommand('foreman-proxy-content-enable-katello-agent true')
     )
     assert result.status == 0
     # Verify katello-agent is enabled
-    result = module_destructive_sat.install(
+    result = module_target_sat.install(
         InstallerCommand(help='| grep foreman-proxy-content-enable-katello-agent')
     )
     assert 'true' in result.stdout
-    yield module_destructive_sat
+    yield module_target_sat
 
 
 @pytest.fixture(scope='module')

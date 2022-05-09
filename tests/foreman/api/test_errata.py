@@ -168,7 +168,7 @@ def _fetch_available_errata(module_org, host, expected_amount, timeout=120):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_install_in_hc(module_org, activation_key, custom_repo, default_sat):
+def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_sat):
     """Install errata in a host-collection
 
     :id: 6f0242df-6511-4c0f-95fc-3fa32c63a064
@@ -187,10 +187,10 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, default
         nick=constants.DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:
-            client.install_katello_ca(default_sat)
+            client.install_katello_ca(target_sat)
             client.register_contenthost(module_org.label, activation_key.name)
             assert client.subscribed
-            client.add_rex_key(satellite=default_sat)
+            client.add_rex_key(satellite=target_sat)
         host_ids = [client.nailgun_host.id for client in clients]
         _install_package(
             module_org,
@@ -198,11 +198,11 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, default
             host_ids=host_ids,
             package_name=constants.FAKE_1_CUSTOM_PACKAGE,
         )
-        host_collection = default_sat.api.HostCollection(organization=module_org).create()
+        host_collection = target_sat.api.HostCollection(organization=module_org).create()
         host_ids = [client.nailgun_host.id for client in clients]
         host_collection.host_ids = host_ids
         host_collection = host_collection.update(['host_ids'])
-        task_id = default_sat.api.JobInvocation().run(
+        task_id = target_sat.api.JobInvocation().run(
             data={
                 'feature': 'katello_errata_install',
                 'inputs': {'errata': str(CUSTOM_REPO_ERRATA_ID)},
@@ -223,7 +223,7 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, default
 
 @pytest.mark.tier3
 def test_positive_install_in_host(
-    module_org, activation_key, custom_repo, rhel7_contenthost, default_sat
+    module_org, activation_key, custom_repo, rhel7_contenthost, target_sat
 ):
     """Install errata in a host
 
@@ -241,7 +241,7 @@ def test_positive_install_in_host(
 
     :BZ: 1983043
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
     assert rhel7_contenthost.subscribed
     host_id = rhel7_contenthost.nailgun_host.id
@@ -251,8 +251,8 @@ def test_positive_install_in_host(
         host_ids=[host_id],
         package_name=constants.FAKE_1_CUSTOM_PACKAGE,
     )
-    rhel7_contenthost.add_rex_key(satellite=default_sat)
-    task_id = default_sat.api.JobInvocation().run(
+    rhel7_contenthost.add_rex_key(satellite=target_sat)
+    task_id = target_sat.api.JobInvocation().run(
         data={
             'feature': 'katello_errata_install',
             'inputs': {'errata': str(CUSTOM_REPO_ERRATA_ID)},
@@ -271,7 +271,7 @@ def test_positive_install_in_host(
 
 @pytest.mark.tier3
 def test_positive_install_multiple_in_host(
-    module_org, activation_key, custom_repo, rhel7_contenthost, default_sat
+    module_org, activation_key, custom_repo, rhel7_contenthost, target_sat
 ):
     """For a host with multiple applicable errata install one and ensure
     the rest of errata is still available
@@ -292,7 +292,7 @@ def test_positive_install_multiple_in_host(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
     assert rhel7_contenthost.subscribed
     host = rhel7_contenthost.nailgun_host
@@ -303,9 +303,9 @@ def test_positive_install_multiple_in_host(
     host = host.read()
     applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
     assert applicable_errata_count > 1
-    rhel7_contenthost.add_rex_key(satellite=default_sat)
+    rhel7_contenthost.add_rex_key(satellite=target_sat)
     for errata in settings.repos.yum_9.errata[1:4]:
-        task_id = default_sat.api.JobInvocation().run(
+        task_id = target_sat.api.JobInvocation().run(
             data={
                 'feature': 'katello_errata_install',
                 'inputs': {'errata': str(errata)},
@@ -326,7 +326,7 @@ def test_positive_install_multiple_in_host(
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_list(module_org, custom_repo, default_sat):
+def test_positive_list(module_org, custom_repo, target_sat):
     """View all errata specific to repository
 
     :id: 1efceabf-9821-4804-bacf-2213ac0c7550
@@ -340,9 +340,9 @@ def test_positive_list(module_org, custom_repo, default_sat):
 
     :CaseLevel: System
     """
-    repo1 = default_sat.api.Repository(id=custom_repo['repository-id']).read()
-    repo2 = default_sat.api.Repository(
-        product=default_sat.api.Product().create(), url=settings.repos.yum_3.url
+    repo1 = target_sat.api.Repository(id=custom_repo['repository-id']).read()
+    repo2 = target_sat.api.Repository(
+        product=target_sat.api.Product().create(), url=settings.repos.yum_3.url
     ).create()
     repo2.sync()
     repo1_errata_ids = [
@@ -360,7 +360,7 @@ def test_positive_list(module_org, custom_repo, default_sat):
 
 
 @pytest.mark.tier3
-def test_positive_list_updated(module_org, custom_repo, default_sat):
+def test_positive_list_updated(module_org, custom_repo, target_sat):
     """View all errata in an Org sorted by Updated
 
     :id: 560d6584-70bd-4d1b-993a-cc7665a9e600
@@ -373,9 +373,9 @@ def test_positive_list_updated(module_org, custom_repo, default_sat):
 
     :CaseLevel: System
     """
-    repo = default_sat.api.Repository(id=custom_repo['repository-id']).read()
+    repo = target_sat.api.Repository(id=custom_repo['repository-id']).read()
     assert repo.sync()['result'] == 'success'
-    erratum_list = default_sat.api.Errata(repository=repo).search(
+    erratum_list = target_sat.api.Errata(repository=repo).search(
         query={'order': 'updated ASC', 'per_page': '1000'}
     )
     updated = [errata.updated for errata in erratum_list]
@@ -383,7 +383,7 @@ def test_positive_list_updated(module_org, custom_repo, default_sat):
 
 
 @pytest.mark.tier3
-def test_positive_sorted_issue_date_and_filter_by_cve(module_org, custom_repo, default_sat):
+def test_positive_sorted_issue_date_and_filter_by_cve(module_org, custom_repo, target_sat):
     """Sort by issued date and filter errata by CVE
 
     :id: a921d4c2-8d3d-4462-ba6c-fbd4b898a3f2
@@ -404,7 +404,7 @@ def test_positive_sorted_issue_date_and_filter_by_cve(module_org, custom_repo, d
     assert issued == sorted(issued)
 
     # Errata is filtered by CVE
-    erratum_list = default_sat.api.Errata(repository=custom_repo['repository-id']).search(
+    erratum_list = target_sat.api.Errata(repository=custom_repo['repository-id']).search(
         query={'order': 'cve DESC', 'per_page': '1000'}
     )
     # Most of Errata don't have any CVEs. Removing empty CVEs from results
@@ -476,7 +476,7 @@ def setup_content_rhel6():
 
 
 @pytest.mark.tier3
-def test_positive_get_count_for_host(setup_content_rhel6, rhel6_contenthost, default_sat):
+def test_positive_get_count_for_host(setup_content_rhel6, rhel6_contenthost, target_sat):
     """Available errata count when retrieving Host
 
     :id: 2f35933f-8026-414e-8f75-7f4ec048faae
@@ -500,7 +500,7 @@ def test_positive_get_count_for_host(setup_content_rhel6, rhel6_contenthost, def
     org_label = setup_content_rhel6[1].label
     org_id = setup_content_rhel6[1].id
     sub_list = setup_content_rhel6[2]
-    rhel6_contenthost.install_katello_ca(default_sat)
+    rhel6_contenthost.install_katello_ca(target_sat)
     rhel6_contenthost.register_contenthost(org_label, ak_name)
     assert rhel6_contenthost.subscribed
     pool_id = rhel6_contenthost.subscription_manager_get_pool(sub_list=sub_list)
@@ -519,7 +519,7 @@ def test_positive_get_count_for_host(setup_content_rhel6, rhel6_contenthost, def
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_get_applicable_for_host(setup_content_rhel6, rhel6_contenthost, default_sat):
+def test_positive_get_applicable_for_host(setup_content_rhel6, rhel6_contenthost, target_sat):
     """Get applicable errata ids for a host
 
     :id: 51d44d51-eb3f-4ee4-a1df-869629d427ac
@@ -541,7 +541,7 @@ def test_positive_get_applicable_for_host(setup_content_rhel6, rhel6_contenthost
     ak_name = setup_content_rhel6[0].name
     org_label = setup_content_rhel6[1].label
     org_id = setup_content_rhel6[1].id
-    rhel6_contenthost.install_katello_ca(default_sat)
+    rhel6_contenthost.install_katello_ca(target_sat)
     rhel6_contenthost.register_contenthost(org_label, ak_name)
     assert rhel6_contenthost.subscribed
     pool_id = rhel6_contenthost.subscription_manager_get_pool(sub_list=setup_content_rhel6[2])
@@ -625,7 +625,7 @@ def test_positive_incremental_update_required(
     custom_repo,
     rh_repo,
     rhel7_contenthost,
-    default_sat,
+    target_sat,
 ):
     """Given a set of hosts and errata, check for content view version
     and environments that need updating."
@@ -657,7 +657,7 @@ def test_positive_incremental_update_required(
 
     :BZ: 2013093
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
     assert rhel7_contenthost.subscribed
     rhel7_contenthost.enable_repo(constants.REPOS['rhst7']['id'])
@@ -740,7 +740,7 @@ def _validate_swid_tags_installed(module_org, vm, module_name):
 @pytest.mark.upgrade
 @pytest.mark.pit_client
 def test_errata_installation_with_swidtags(
-    module_org, module_lce, repos_collection, rhel8_contenthost, default_sat
+    module_org, module_lce, repos_collection, rhel8_contenthost, target_sat
 ):
     """Verify errata installation with swid_tags and swid tags get updated after
     module stream update.
@@ -780,11 +780,11 @@ def test_errata_installation_with_swidtags(
         }
     )
     repos_collection.setup_virtual_machine(
-        rhel8_contenthost, default_sat, install_katello_agent=False
+        rhel8_contenthost, target_sat, install_katello_agent=False
     )
 
     # install older module stream
-    rhel8_contenthost.add_rex_key(satellite=default_sat)
+    rhel8_contenthost.add_rex_key(satellite=target_sat)
     _set_prerequisites_for_swid_repos(module_org, vm=rhel8_contenthost)
     _run_remote_command_on_content_host(
         module_org, f'dnf -y module install {module_name}:0:{version}', rhel8_contenthost
@@ -896,7 +896,7 @@ def test_apply_modular_errata_using_default_content_view(
     rhel8_contenthost,
     rhel8_module_ak,
     rhel8_custom_repo_cv,
-    default_sat,
+    target_sat,
 ):
     """
     Registering a RHEL8 system to the default content view with no modules enabled results in
@@ -928,7 +928,7 @@ def test_apply_modular_errata_using_default_content_view(
     stream = '0'
     version = '20180704244205'
 
-    rhel8_contenthost.install_katello_ca(default_sat)
+    rhel8_contenthost.install_katello_ca(target_sat)
     rhel8_contenthost.register_contenthost(module_manifest_org.label, rhel8_module_ak.name)
     assert rhel8_contenthost.subscribed
     host = rhel8_contenthost.nailgun_host

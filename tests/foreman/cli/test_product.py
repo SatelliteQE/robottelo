@@ -174,7 +174,7 @@ def test_negative_create_with_label(label, module_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_product_list_with_default_settings(module_org, default_sat):
+def test_product_list_with_default_settings(module_org, target_sat):
     """Listing product of an organization apart from default organization using hammer
      does not return output if a defaults settings are applied on org.
 
@@ -205,14 +205,14 @@ def test_product_list_with_default_settings(module_org, default_sat):
         )
 
     Defaults.add({'param-name': 'organization_id', 'param-value': org_id})
-    result = default_sat.cli.Defaults.list(per_page=False)
+    result = target_sat.cli.Defaults.list(per_page=False)
     assert any([res['value'] == org_id for res in result if res['parameter'] == 'organization_id'])
 
     try:
         # Verify --organization-id is not required to pass if defaults are set
-        result = default_sat.cli.Product.list()
+        result = target_sat.cli.Product.list()
         assert any([res['name'] == default_product_name for res in result])
-        result = default_sat.cli.Repository.list()
+        result = target_sat.cli.Repository.list()
         assert any([res['product'] == default_product_name for res in result])
 
         # verify that defaults setting should not affect other entities
@@ -223,7 +223,7 @@ def test_product_list_with_default_settings(module_org, default_sat):
 
     finally:
         Defaults.delete({'param-name': 'organization_id'})
-        result = default_sat.cli.Defaults.list(per_page=False)
+        result = target_sat.cli.Defaults.list(per_page=False)
         assert not [res for res in result if res['parameter'] == 'organization_id']
 
 

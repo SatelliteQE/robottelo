@@ -70,7 +70,7 @@ class TestRepositoryExport:
 
     @pytest.mark.tier3
     def test_positive_export_complete_version_custom_repo(
-        self, default_sat, export_cleanup, module_org
+        self, target_sat, export_cleanup, module_org
     ):
         """Export a custom repository via complete version
 
@@ -106,15 +106,15 @@ class TestRepositoryExport:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export content view
         ContentExport.completeVersion({'id': cvv['id'], 'organization-id': module_org.id})
         # Verify export directory is not empty
-        assert validate_filepath(default_sat) != ''
+        assert validate_filepath(target_sat) != ''
 
     @pytest.mark.tier3
     def test_positive_export_incremental_version_custom_repo(
-        self, default_sat, export_cleanup, module_org
+        self, target_sat, export_cleanup, module_org
     ):
         """Export custom repo via incremental export
 
@@ -150,16 +150,16 @@ class TestRepositoryExport:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export complete first, then incremental
         ContentExport.completeVersion({'id': cvv['id'], 'organization-id': module_org.id})
         ContentExport.incrementalVersion({'id': cvv['id'], 'organization-id': module_org.id})
         # Verify export directory is not empty
-        assert validate_filepath(default_sat) != ''
+        assert validate_filepath(target_sat) != ''
 
     @pytest.mark.tier3
     def test_positive_export_complete_library_custom_repo(
-        self, function_org, export_cleanup_library, default_sat
+        self, function_org, export_cleanup_library, target_sat
     ):
         """Export custom repo via complete library export
 
@@ -190,15 +190,15 @@ class TestRepositoryExport:
         )
         ContentView.publish({'id': cv['id']})
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export content view
         ContentExport.completeLibrary({'organization-id': function_org.id})
         # Verify export directory is not empty
-        assert validate_filepath(default_sat) != ''
+        assert validate_filepath(target_sat) != ''
 
     @pytest.mark.tier3
     def test_positive_export_incremental_library_custom_repo(
-        self, export_cleanup_library, function_org, default_sat
+        self, export_cleanup_library, function_org, target_sat
     ):
         """Export custom repo via incremental library export
 
@@ -230,19 +230,17 @@ class TestRepositoryExport:
         )
         ContentView.publish({'id': cv['id']})
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export complete library, then export incremental
         ContentExport.completeLibrary({'organization-id': function_org.id})
         ContentExport.incrementalLibrary({'organization-id': function_org.id})
         # Verify export directory is not empty
-        assert validate_filepath(default_sat) != ''
+        assert validate_filepath(target_sat) != ''
 
     @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    def test_positive_export_complete_version_rh_repo(
-        self, default_sat, export_cleanup, module_org
-    ):
+    def test_positive_export_complete_version_rh_repo(self, target_sat, export_cleanup, module_org):
         """Export RedHat repo via complete version
 
         :id: e17898db-ca92-4121-a723-0d4b3cf120eb
@@ -255,7 +253,7 @@ class TestRepositoryExport:
         # Enable RH repository
         cv_name = gen_string('alpha')
         with manifests.clone() as manifest:
-            default_sat.put(manifest, manifest.filename)
+            target_sat.put(manifest, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': module_org.id})
         RepositorySet.enable(
             {
@@ -290,17 +288,17 @@ class TestRepositoryExport:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export content view
         ContentExport.completeVersion({'id': cvv['id'], 'organization-id': module_org.id})
         # Verify export directory is not empty
-        assert validate_filepath(default_sat) != ''
+        assert validate_filepath(target_sat) != ''
 
     @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_complete_library_rh_repo(
-        self, export_cleanup_library, function_org, default_sat
+        self, export_cleanup_library, function_org, target_sat
     ):
         """Export RedHat repo via complete library
 
@@ -314,7 +312,7 @@ class TestRepositoryExport:
         # Enable RH repository
         cv_name = gen_string('alpha')
         with manifests.clone() as manifest:
-            default_sat.put(manifest, manifest.filename)
+            target_sat.put(manifest, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': function_org.id})
         RepositorySet.enable(
             {
@@ -346,11 +344,11 @@ class TestRepositoryExport:
         )
         ContentView.publish({'id': cv['id']})
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export content view
         ContentExport.completeLibrary({'organization-id': function_org.id})
         # Verify export directory is not empty
-        assert validate_filepath(default_sat) != ''
+        assert validate_filepath(target_sat) != ''
 
 
 @pytest.fixture(scope='class')
@@ -382,19 +380,19 @@ def class_export_entities(module_org):
 
 
 @pytest.fixture(scope='function')
-def export_cleanup_library(default_sat, function_org):
+def export_cleanup_library(target_sat, function_org):
     """Deletes dir for library export"""
     yield
     # Deletes directory created for library export test
-    assert default_sat.execute(f'rm -rf {EXPORT_DIR}/{function_org.name}').stdout == ''
+    assert target_sat.execute(f'rm -rf {EXPORT_DIR}/{function_org.name}').stdout == ''
 
 
 @pytest.fixture(scope='function')
-def export_cleanup(default_sat, module_org):
+def export_cleanup(target_sat, module_org):
     """Deletes dir for version export"""
     yield
     # Deletes directory created for CV export Test
-    assert default_sat.execute(f'rm -rf {EXPORT_DIR}/{module_org.name}').stdout == ''
+    assert target_sat.execute(f'rm -rf {EXPORT_DIR}/{module_org.name}').stdout == ''
 
 
 def validate_filepath(sat_obj):
@@ -520,7 +518,7 @@ class TestContentViewSync:
         class_export_entities,
         config_export_import_settings,
         export_cleanup,
-        default_sat,
+        target_sat,
         module_org,
     ):
         """Export the CV and import it.  Ensure that all content is same from
@@ -560,7 +558,7 @@ class TestContentViewSync:
         exported_packages = Package.list({'content-view-version-id': export_cvv_id})
         assert len(exported_packages)
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export cv
         path = ContentExport.completeVersion(
             {'id': export_cvv_id, 'organization-id': module_org.id}
@@ -568,18 +566,18 @@ class TestContentViewSync:
         # grab export dir and check all exported files are there
         export_dir = os.path.dirname(path['message'])
         export_folder = os.path.split(export_dir)
-        result = default_sat.execute(f'ls {export_dir}')
+        result = target_sat.execute(f'ls {export_dir}')
         assert result.stdout != ''
         # importing portion
         importing_org = make_org()
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
         # Move export files to import location and set permission
-        default_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
+        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
         import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        default_sat.execute(f'chown -R pulp:pulp {import_path}')
+        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
-        result = default_sat.execute(f'ls {import_path}')
+        result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import files and verify content
         ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
@@ -610,7 +608,7 @@ class TestContentViewSync:
     @pytest.mark.upgrade
     @pytest.mark.tier3
     def test_positive_export_import_default_org_view(
-        self, export_cleanup_library, function_org, config_export_import_settings, default_sat
+        self, export_cleanup_library, function_org, config_export_import_settings, target_sat
     ):
         """Export Default Organization View version contents in directory and Import them.
 
@@ -678,13 +676,13 @@ class TestContentViewSync:
         cv_packages = Package.list({'content-view-version-id': default_cvv_id})
         assert len(cv_packages)
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export complete library
         path = ContentExport.completeLibrary({'organization-id': function_org.id})
         # grab export dir and check all exported files are there
         export_dir = os.path.dirname(path['message'])
         export_folder = os.path.split(export_dir)
-        result = default_sat.execute(f'ls {export_dir}')
+        result = target_sat.execute(f'ls {export_dir}')
         assert result.stdout != ''
         # Verify 'export-library' is created and packages are there
         export_lib_cv = ContentView.info(
@@ -698,17 +696,17 @@ class TestContentViewSync:
         assert len(cv_packages)
         assert exported_lib_packages == cv_packages
         # Verify export directory is not empty
-        assert validate_filepath(default_sat) != ''
+        assert validate_filepath(target_sat) != ''
         # importing portion
         importing_org = make_org()
         # set disconnected mode on and set download policy to immediate
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
         # Move export files to import location and set permission
-        default_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
+        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
         import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        default_sat.execute(f'chown -R pulp:pulp {import_path}')
+        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
-        result = default_sat.execute(f'ls {import_path}')
+        result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import and verify content of library
         ContentImport.library({'organization-id': importing_org['id'], 'path': import_path})
@@ -726,7 +724,7 @@ class TestContentViewSync:
         class_export_entities,
         export_cleanup,
         config_export_import_settings,
-        default_sat,
+        target_sat,
         module_org,
     ):
         """CV Version with filtered contents is the only one that gets exported and imported
@@ -789,7 +787,7 @@ class TestContentViewSync:
         export_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         assert len(export_packages) == 1
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export cv
         path = ContentExport.completeVersion(
             {'id': exporting_cvv_id, 'organization-id': module_org.id}
@@ -797,18 +795,18 @@ class TestContentViewSync:
         # grab export dir and check all exported files are there
         export_dir = os.path.dirname(path['message'])
         export_folder = os.path.split(export_dir)
-        result = default_sat.execute(f'ls {export_dir}')
+        result = target_sat.execute(f'ls {export_dir}')
         assert result.stdout != ''
         # Import section
         importing_org = make_org()
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
         # Move export files to import location and set permission
-        default_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
+        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
         import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        default_sat.execute(f'chown -R pulp:pulp {import_path}')
+        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
-        result = default_sat.execute(f'ls {import_path}')
+        result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import file and verify content
         ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
@@ -827,7 +825,7 @@ class TestContentViewSync:
         class_export_entities,
         export_cleanup,
         config_export_import_settings,
-        default_sat,
+        target_sat,
         module_org,
     ):
         """Export promoted CV version contents in directory and Import them.
@@ -866,7 +864,7 @@ class TestContentViewSync:
         exported_packages = Package.list({'content-view-version-id': promoted_cvv_id})
         assert len(exported_packages)
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export cv
         path = ContentExport.completeVersion(
             {'id': export_cvv_id, 'organization-id': module_org.id}
@@ -874,18 +872,18 @@ class TestContentViewSync:
         # Grab export dir and check all exported files are there
         export_dir = os.path.dirname(path['message'])
         export_folder = os.path.split(export_dir)
-        result = default_sat.execute(f'ls {export_dir}')
+        result = target_sat.execute(f'ls {export_dir}')
         assert result.stdout != ''
         # importing portion
         importing_org = make_org()
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
         # Move export files to import location and set permission
-        default_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
+        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
         import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        default_sat.execute(f'chown -R pulp:pulp {import_path}')
+        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
-        result = default_sat.execute(f'ls {import_path}')
+        result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import and verify content
         ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
@@ -906,7 +904,7 @@ class TestContentViewSync:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_import_redhat_cv(
-        self, export_cleanup, config_export_import_settings, function_org, default_sat
+        self, export_cleanup, config_export_import_settings, function_org, target_sat
     ):
         """Export CV version redhat contents in directory and Import them
 
@@ -940,7 +938,7 @@ class TestContentViewSync:
         # Setup rhel repo
         cv_name = gen_string('alpha')
         with manifests.clone() as manifest:
-            default_sat.put(manifest, manifest.filename)
+            target_sat.put(manifest, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': function_org.id})
         RepositorySet.enable(
             {
@@ -975,23 +973,23 @@ class TestContentViewSync:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export cv
         path = ContentExport.completeVersion({'id': cvv['id'], 'organization-id': function_org.id})
         # grab export dir and check all exported files are there
         export_dir = os.path.dirname(path['message'])
         export_folder = os.path.split(export_dir)
-        result = default_sat.execute(f'ls {export_dir}')
+        result = target_sat.execute(f'ls {export_dir}')
         assert len(result.stdout) > 1
         exported_packages = Package.list({'content-view-version-id': cvv['id']})
         assert len(exported_packages)
         # importing portion
         importing_org = make_org()
-        default_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
+        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
         import_path = f'/{IMPORT_DIR}{export_folder[1]}'
-        default_sat.execute(f'chown -R pulp:pulp {import_path}')
+        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
-        result = default_sat.execute(f'ls {import_path}')
+        result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         manifests.upload_manifest_locked(
             importing_org['id'], interface=manifests.INTERFACE_CLI, timeout=7200000
@@ -1029,7 +1027,7 @@ class TestContentViewSync:
         self,
         export_cleanup,
         config_export_import_settings,
-        default_sat,
+        target_sat,
         function_org,
     ):
         """Export CV version redhat contents in directory and Import them
@@ -1064,7 +1062,7 @@ class TestContentViewSync:
         cv_name = gen_string('alpha')
 
         with manifests.clone() as manifest:
-            default_sat.put(manifest, manifest.filename)
+            target_sat.put(manifest, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': function_org.id})
         RepositorySet.enable(
             {
@@ -1105,17 +1103,17 @@ class TestContentViewSync:
         # grab export dir and check all exported files are there
         export_dir = os.path.dirname(path['message'])
         export_folder = os.path.split(export_dir)
-        result = default_sat.execute(f'ls {export_dir}')
+        result = target_sat.execute(f'ls {export_dir}')
         assert len(result.stdout) > 1
         exported_packages = Package.list({'content-view-version-id': cvv['id']})
         assert len(exported_packages)
         # importing portion
         importing_org = make_org()
-        default_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
+        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
         import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        default_sat.execute(f'chown -R pulp:pulp {import_path}')
+        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
-        result = default_sat.execute(f'ls {import_path}')
+        result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import and verify content
         manifests.upload_manifest_locked(
@@ -1156,7 +1154,7 @@ class TestContentViewSync:
         class_export_entities,
         export_cleanup,
         config_export_import_settings,
-        default_sat,
+        target_sat,
         module_org,
     ):
         """Import the same cv twice
@@ -1180,7 +1178,7 @@ class TestContentViewSync:
         export_cvv_id = class_export_entities['exporting_cvv_id']
         export_cv_name = class_export_entities['exporting_cv_name']
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export cv
         path = ContentExport.completeVersion(
             {'id': export_cvv_id, 'organization-id': module_org.id}
@@ -1188,17 +1186,17 @@ class TestContentViewSync:
         # grab export dir and check all exported files are there
         export_dir = os.path.dirname(path['message'])
         export_folder = os.path.split(export_dir)
-        result = default_sat.execute(f'ls {export_dir}')
+        result = target_sat.execute(f'ls {export_dir}')
         assert result.stdout != ''
         # importing portion
         importing_org = make_org()
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
-        default_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
+        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
         import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        default_sat.execute(f'chown -R pulp:pulp {import_path}')
+        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
-        result = default_sat.execute(f'ls {import_path}')
+        result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import section
         ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
@@ -1313,7 +1311,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier3
     def test_postive_export_cv_with_mixed_content_repos(
-        self, class_export_entities, export_cleanup, default_sat, module_org
+        self, class_export_entities, export_cleanup, target_sat, module_org
     ):
         """Exporting CV version having yum and non-yum(docker) is successful
 
@@ -1384,19 +1382,19 @@ class TestContentViewSync:
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id['id']})
         assert len(exported_packages)
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export cv
         path = ContentExport.completeVersion(
             {'id': exporting_cvv_id['id'], 'organization-id': module_org.id}
         )
         # grab export dir and check all exported files are there
         export_dir = os.path.dirname(path['message'])
-        result = default_sat.execute(f'ls {export_dir}')
+        result = target_sat.execute(f'ls {export_dir}')
         assert result.stdout != ''
 
     @pytest.mark.tier3
     def test_postive_import_export_cv_with_file_content(
-        self, default_sat, config_export_import_settings, export_cleanup, module_org
+        self, target_sat, config_export_import_settings, export_cleanup, module_org
     ):
         """Exporting and Importing cv with file content
 
@@ -1442,7 +1440,7 @@ class TestContentViewSync:
         exported_files = File.list({'content-view-version-id': exporting_cvv_id})
         assert len(exported_files)
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export cv
         path = ContentExport.completeVersion(
             {'id': exporting_cvv_id, 'organization-id': module_org.id}
@@ -1450,18 +1448,18 @@ class TestContentViewSync:
         # grab export dir and check all exported files are there
         export_dir = os.path.dirname(path['message'])
         export_folder = os.path.split(export_dir)
-        result = default_sat.execute(f'ls {export_dir}')
+        result = target_sat.execute(f'ls {export_dir}')
         assert result.stdout != ''
         # importing portion
         importing_org = make_org()
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
         # Move export files to import location and set permission
-        default_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
+        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
         import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        default_sat.execute(f'chown -R pulp:pulp {import_path}')
+        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
-        result = default_sat.execute(f'ls {import_path}')
+        result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import files and verify content
         ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
@@ -1475,7 +1473,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier3
     def test_postive_import_export_ansible_collection_repo(
-        self, default_sat, config_export_import_settings, export_cleanup, function_org
+        self, target_sat, config_export_import_settings, export_cleanup, function_org
     ):
         """Exporting and Importing library with ansible collection
 
@@ -1510,18 +1508,18 @@ class TestContentViewSync:
         # grab export dir and check all exported files are there
         export_dir = os.path.dirname(path['message'])
         export_folder = os.path.split(export_dir)
-        result = default_sat.execute(f'ls {export_dir}')
+        result = target_sat.execute(f'ls {export_dir}')
         assert result.stdout != ''
         # importing portion
         importing_org = make_org()
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
         # Move export files to import location and set permission
-        default_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
+        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
         import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        default_sat.execute(f'chown -R pulp:pulp {import_path}')
+        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
-        result = default_sat.execute(f'ls {import_path}')
+        result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import files and verify content
         ContentImport.library({'organization-id': importing_org['id'], 'path': import_path})
@@ -1539,7 +1537,7 @@ class TestContentViewSync:
     @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier3
     def test_negative_import_redhat_cv_without_manifest(
-        self, export_cleanup, config_export_import_settings, function_org, default_sat
+        self, export_cleanup, config_export_import_settings, function_org, target_sat
     ):
         """Redhat content can't be imported into satellite/organization without manifest
 
@@ -1563,7 +1561,7 @@ class TestContentViewSync:
         # Setup rhel repo
         cv_name = gen_string('alpha')
         with manifests.clone() as manifest:
-            default_sat.put(manifest, manifest.filename)
+            target_sat.put(manifest, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': function_org.id})
         RepositorySet.enable(
             {
@@ -1598,21 +1596,21 @@ class TestContentViewSync:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert validate_filepath(default_sat) == ''
+        assert validate_filepath(target_sat) == ''
         # Export cv
         path = ContentExport.completeVersion({'id': cvv['id'], 'organization-id': function_org.id})
         # grab export dir and check all exported files are there
         export_dir = os.path.dirname(path['message'])
         export_folder = os.path.split(export_dir)
-        result = default_sat.execute(f'ls {export_dir}')
+        result = target_sat.execute(f'ls {export_dir}')
         assert len(result.stdout) > 1
         # importing portion
         importing_org = make_org()
-        default_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
+        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
         import_path = f'/{IMPORT_DIR}{export_folder[1]}'
-        default_sat.execute(f'chown -R pulp:pulp {import_path}')
+        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
-        result = default_sat.execute(f'ls {import_path}')
+        result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})

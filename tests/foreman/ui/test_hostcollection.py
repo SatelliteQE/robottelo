@@ -76,29 +76,29 @@ def module_repos_collection_module_stream(module_org, module_lce):
 
 
 @pytest.fixture
-def vm_content_hosts(smart_proxy_location, module_repos_collection, default_sat):
+def vm_content_hosts(smart_proxy_location, module_repos_collection, target_sat):
     distro = module_repos_collection.distro
     with VMBroker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
             module_repos_collection.setup_virtual_machine(
-                client, default_sat, install_katello_agent=False
+                client, target_sat, install_katello_agent=False
             )
-            client.add_rex_key(satellite=default_sat)
+            client.add_rex_key(satellite=target_sat)
             update_vm_host_location(client, smart_proxy_location.id)
         yield clients
 
 
 @pytest.fixture
 def vm_content_hosts_module_stream(
-    smart_proxy_location, module_repos_collection_module_stream, default_sat
+    smart_proxy_location, module_repos_collection_module_stream, target_sat
 ):
     distro = module_repos_collection_module_stream.distro
     with VMBroker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
             module_repos_collection_module_stream.setup_virtual_machine(
-                client, default_sat, install_katello_agent=False
+                client, target_sat, install_katello_agent=False
             )
-            client.add_rex_key(satellite=default_sat)
+            client.add_rex_key(satellite=target_sat)
             update_vm_host_location(client, smart_proxy_location.id)
         yield clients
 
@@ -168,12 +168,12 @@ def _install_package_with_assertion(vm_clients, package_name):
     assert _is_package_installed(vm_clients, package_name)
 
 
-def _get_content_repository_urls(repos_collection, lce, content_view, default_sat):
+def _get_content_repository_urls(repos_collection, lce, content_view, target_sat):
     """Returns a list of the content repository urls"""
     repos_urls = [
         '/'.join(
             [
-                default_sat.url,
+                target_sat.url,
                 'pulp',
                 'content',
                 repos_collection.organization["label"],
@@ -193,7 +193,7 @@ def _get_content_repository_urls(repos_collection, lce, content_view, default_sa
             repos_urls.append(
                 '/'.join(
                     [
-                        default_sat.url,
+                        target_sat.url,
                         'pulp',
                         'content',
                         repos_collection.organization["label"],
@@ -541,7 +541,7 @@ def test_positive_change_assigned_content(
     vm_content_hosts,
     vm_host_collection,
     module_repos_collection,
-    default_sat,
+    target_sat,
 ):
     """Change Assigned Life cycle environment and content view of host
     collection
@@ -588,13 +588,13 @@ def test_positive_change_assigned_content(
     """
     new_lce_name = gen_string('alpha')
     new_cv_name = gen_string('alpha')
-    new_lce = default_sat.api.LifecycleEnvironment(
+    new_lce = target_sat.api.LifecycleEnvironment(
         name=new_lce_name, organization=module_org
     ).create()
-    content_view = default_sat.api.ContentView(
+    content_view = target_sat.api.ContentView(
         id=module_repos_collection.setup_content_data['content_view']['id']
     ).read()
-    new_content_view = default_sat.api.ContentView(
+    new_content_view = target_sat.api.ContentView(
         id=content_view.copy(data={'name': new_cv_name})['id']
     )
     new_content_view.publish()
@@ -607,7 +607,7 @@ def test_positive_change_assigned_content(
     # /{product_name}/{repo_name}
     repo_line_start_with = 'Repo URL:  '
     expected_repo_urls = _get_content_repository_urls(
-        module_repos_collection, module_lce, content_view, default_sat
+        module_repos_collection, module_lce, content_view, target_sat
     )
     for client in vm_content_hosts:
         result = client.run("subscription-manager repos")
@@ -627,7 +627,7 @@ def test_positive_change_assigned_content(
         )
         assert task_values['result'] == 'success'
         expected_repo_urls = _get_content_repository_urls(
-            module_repos_collection, new_lce, new_content_view, default_sat
+            module_repos_collection, new_lce, new_content_view, target_sat
         )
         for client in vm_content_hosts:
             result = client.run("subscription-manager refresh")

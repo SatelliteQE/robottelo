@@ -97,7 +97,7 @@ class TestSatelliteMaintain:
         return zstream_version, next_version
 
     @pytest.mark.pre_upgrade
-    def test_pre_satellite_maintain_upgrade_list_versions(self, default_sat):
+    def test_pre_satellite_maintain_upgrade_list_versions(self, target_sat):
         """Pre-upgrade sceanrio that tests list of satellite version
         which satellite can be upgraded.
 
@@ -114,7 +114,7 @@ class TestSatelliteMaintain:
             upgradable_version,
             major_version_change,
             y_version,
-        ) = self.satellite_upgradable_version_list(default_sat)
+        ) = self.satellite_upgradable_version_list(target_sat)
         if satellite_version:
             # In future If satellite-maintain packages update add before
             # pre-upgrade test case execution then next version kind of
@@ -127,7 +127,7 @@ class TestSatelliteMaintain:
         assert zstream_version in upgradable_version
 
     @pytest.mark.post_upgrade
-    def test_post_satellite_maintain_upgrade_list_versions(self, default_sat):
+    def test_post_satellite_maintain_upgrade_list_versions(self, target_sat):
         """Post-upgrade sceanrio that tests list of satellite version
         which satellite can be upgraded.
 
@@ -144,7 +144,7 @@ class TestSatelliteMaintain:
             upgradable_version,
             major_version_change,
             y_version,
-        ) = self.satellite_upgradable_version_list(default_sat)
+        ) = self.satellite_upgradable_version_list(target_sat)
         if satellite_version:
             zstream_version, next_version = self.version_details(
                 satellite_version[0], major_version_change, y_version, upgrade_stage="post-upgrade"

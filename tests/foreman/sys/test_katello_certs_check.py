@@ -92,22 +92,26 @@ class TestKatelloCertsCheck:
             yield cert_data, host
 
     @pytest.fixture
-    def cert_setup_destructive_teardown(self, destructive_sat, cert_data):
+    def cert_setup_destructive_teardown(self, target_sat, cert_data):
         """Get host name, scripts, and create working directory."""
-        cert_data['key_file_name'] = f'{destructive_sat.hostname}/{destructive_sat.hostname}.key'
-        cert_data['cert_file_name'] = f'{destructive_sat.hostname}/{destructive_sat.hostname}.crt'
-        destructive_sat.custom_cert_generate(cert_data['capsule_hostname'])
-        yield cert_data, destructive_sat
-        destructive_sat.custom_certs_cleanup()
+        cert_data['key_file_name'] = f'{target_sat.hostname}/{target_sat.hostname}.key'
+        cert_data['cert_file_name'] = f'{target_sat.hostname}/{target_sat.hostname}.crt'
+        target_sat.custom_cert_generate(cert_data['capsule_hostname'])
+        yield cert_data, target_sat
+        target_sat.custom_certs_cleanup()
 
     @pytest.fixture(scope='module')
-    def cert_setup_teardown(self, default_sat, cert_data):
+    def cert_setup_teardown(self, module_target_sat, cert_data):
         """Get host name, scripts, and create working directory."""
-        cert_data['key_file_name'] = f'{default_sat.hostname}/{default_sat.hostname}.key'
-        cert_data['cert_file_name'] = f'{default_sat.hostname}/{default_sat.hostname}.crt'
-        default_sat.custom_cert_generate(cert_data['capsule_hostname'])
-        yield cert_data, default_sat
-        default_sat.custom_certs_cleanup()
+        cert_data[
+            'key_file_name'
+        ] = f'{module_target_sat.hostname}/{module_target_sat.hostname}.key'
+        cert_data[
+            'cert_file_name'
+        ] = f'{module_target_sat.hostname}/{module_target_sat.hostname}.crt'
+        module_target_sat.custom_cert_generate(cert_data['capsule_hostname'])
+        yield cert_data, module_target_sat
+        module_target_sat.custom_certs_cleanup()
 
     def validate_output(self, result, cert_data):
         """Validate katello-certs-check output against a set.
@@ -147,7 +151,7 @@ class TestKatelloCertsCheck:
         assert set(options) == expected_result
 
     @pytest.mark.tier1
-    def test_positive_validate_katello_certs_check_output(self, cert_setup_teardown, default_sat):
+    def test_positive_validate_katello_certs_check_output(self, cert_setup_teardown, target_sat):
         """Validate that katello-certs-check generates correct output.
 
         :id: 4c9e4c6e-8d8e-4953-87a1-09cb55df3adf
@@ -163,13 +167,13 @@ class TestKatelloCertsCheck:
         :expectedresults: Katello-certs-check should generate correct commands
          with options.
         """
-        cert_data, default_sat = cert_setup_teardown
-        hostname = default_sat.hostname
+        cert_data, target_sat = cert_setup_teardown
+        hostname = target_sat.hostname
         command = (
             f'katello-certs-check -c {hostname}/{hostname}.crt '
             f'-k {hostname}/{hostname}.key -b cacert.crt'
         )
-        result = default_sat.execute(command)
+        result = target_sat.execute(command)
         self.validate_output(result, cert_data)
 
     @pytest.mark.tier1
@@ -189,9 +193,9 @@ class TestKatelloCertsCheck:
         :expectedresults: katello-certs-check should generate correct commands
          with options.
         """
-        cert_data, default_sat = cert_setup_teardown
+        cert_data, target_sat = cert_setup_teardown
         command = 'katello-certs-check -c certs/wildcard.crt -k certs/wildcard.key -b certs/ca.crt'
-        result = default_sat.execute(command)
+        result = target_sat.execute(command)
         self.validate_output(result, cert_data)
 
     @pytest.mark.parametrize('error, cert_file, key_file, ca_file', invalid_inputs)
@@ -222,9 +226,9 @@ class TestKatelloCertsCheck:
         :expectedresults: Katello-certs-check should raise error when it receives the invalid
          inputs.
         """
-        cert_data, default_sat = cert_setup_teardown
+        cert_data, target_sat = cert_setup_teardown
         command = f'katello-certs-check -c {cert_file} -k {key_file} -b {ca_file}'
-        certs_check_result = default_sat.execute(command)
+        certs_check_result = target_sat.execute(command)
         for result in certs_check_result.stdout.split('\n\n'):
             if error['check'] in result:
                 assert '[FAIL]' in result
@@ -339,7 +343,7 @@ class TestKatelloCertsCheck:
         assert result.status == 0, 'Not all services are running'
 
     @pytest.mark.destructive
-    def test_regeneration_ssl_build_certs(self, destructive_sat):
+    def test_regeneration_ssl_build_certs(self, target_sat):
         """delete the ssl-build folder and cross check that ssl-build folder is
         recovered/regenerated after running the installer
 
@@ -355,21 +359,19 @@ class TestKatelloCertsCheck:
 
         :CaseAutomation: Automated
         """
-        result = destructive_sat.execute('hammer ping')
+        result = target_sat.execute('hammer ping')
         assert result.status == 0, f'Hammer Ping failed:\n{result.stderr}'
-        destructive_sat.execute('rm -rf /root/ssl-build')
-        result = destructive_sat.execute(
-            'satellite-installer --scenario satellite', timeout=2200000
-        )
+        target_sat.execute('rm -rf /root/ssl-build')
+        result = target_sat.execute('satellite-installer --scenario satellite', timeout=2200000)
         assert result.status == 0
-        destructive_sat.execute("ls -ltr /root | grep 'ssl-build'")
+        target_sat.execute("ls -ltr /root | grep 'ssl-build'")
         assert result.status == 0, f'ssl-build certs generation failed:\n{result.stderr}'
         # assert no hammer ping SSL cert error
-        result = destructive_sat.execute('hammer ping')
+        result = target_sat.execute('hammer ping')
         assert 'SSL certificate verification failed' not in result.stdout
         assert result.stdout.count('ok') == 8
         # assert all services are running
-        result = destructive_sat.execute('satellite-maintain health check --label services-up -y')
+        result = target_sat.execute('satellite-maintain health check --label services-up -y')
         assert result.status == 0, 'Not all services are running'
 
     @pytest.mark.destructive
@@ -486,14 +488,14 @@ class TestKatelloCertsCheck:
 
         :CaseAutomation: NotAutomated
         """
-        cert_data, default_sat = cert_setup_teardown
-        hostname = default_sat.hostname
-        default_sat.execute("date -s 'next year'")
+        cert_data, target_sat = cert_setup_teardown
+        hostname = target_sat.hostname
+        target_sat.execute("date -s 'next year'")
         command = (
             f'katello-certs-check -c {hostname}/{hostname}.key '
             f'-k {hostname}/{hostname}.crt -b cacert.crt'
         )
-        result = default_sat.execute(command)
+        result = target_sat.execute(command)
         messages = [
             'Checking expiration of certificate: \n[FAIL]',
             'Checking CA bundle against the certificate file: \n[FAIL]',
@@ -506,7 +508,7 @@ class TestKatelloCertsCheck:
                     break
             else:
                 assert False, f'Failed, Unable to find message "{message}" in result'
-        default_sat.execute("date -s 'last year'")
+        target_sat.execute("date -s 'last year'")
 
     @pytest.mark.stubbed
     @pytest.mark.tier1
@@ -552,22 +554,22 @@ class TestCapsuleCertsCheckTestCase:
     """
 
     @pytest.fixture
-    def capsule_certs_teardown(self, default_sat):
+    def capsule_certs_teardown(self, target_sat):
         """Create working directory and file."""
         capsule = Box({'hostname': 'capsule.example.com'})
         tmp_dir = '/var/tmp/{}'.format(gen_string('alpha', 6))
         caps_cert_file = f'{tmp_dir}/ssl-build/capsule.example.com/cert-data'
         # Use same path locally as on remote for storing files
         Path(f'{tmp_dir}/ssl-build/capsule.example.com/').mkdir(parents=True, exist_ok=True)
-        result = default_sat.execute(f'mkdir {tmp_dir}')
+        result = target_sat.execute(f'mkdir {tmp_dir}')
         assert result.status == 0, 'Create working directory failed.'
         # Generate a Capsule cert for capsule.example.com
-        default_sat.capsule_certs_generate(capsule, f'{tmp_dir}/capsule_certs.tar')
+        target_sat.capsule_certs_generate(capsule, f'{tmp_dir}/capsule_certs.tar')
         return {
             'tmp_dir': tmp_dir,
             'caps_cert_file': caps_cert_file,
             'capsule_hostname': capsule.hostname,
-        }, default_sat
+        }, target_sat
 
     @pytest.mark.destructive
     @pytest.mark.tier1
@@ -590,16 +592,16 @@ class TestCapsuleCertsCheckTestCase:
 
         :CaseAutomation: Automated
         """
-        file_setup, default_sat = capsule_certs_teardown
+        file_setup, target_sat = capsule_certs_teardown
         DNS_Check = False
         # extract the cert from the tar file
-        result = default_sat.execute(
+        result = target_sat.execute(
             f'tar -xf {file_setup["tmp_dir"]}/capsule_certs.tar '
             f'--directory {file_setup["tmp_dir"]}/ '
         )
         assert result.status == 0, 'Extraction to working directory failed.'
         # Extract raw data from RPM to a file
-        default_sat.execute(
+        target_sat.execute(
             'rpm2cpio {0}/ssl-build/{1}/'
             '{1}-qpid-router-server*.rpm'
             '>> {0}/ssl-build/{1}/cert-raw-data'.format(
@@ -607,14 +609,14 @@ class TestCapsuleCertsCheckTestCase:
             )
         )
         # Extract the cert data from file cert-raw-data and write to cert-data
-        default_sat.execute(
+        target_sat.execute(
             'openssl x509 -noout -text -in {0}/ssl-build/{1}/cert-raw-data'
             '>> {0}/ssl-build/{1}/cert-data'.format(
                 file_setup['tmp_dir'], file_setup['capsule_hostname']
             )
         )
         # use same location on remote and local for cert_file
-        default_sat.get(file_setup['caps_cert_file'])
+        target_sat.get(file_setup['caps_cert_file'])
         # search the file for the line with DNS
         with open(file_setup['caps_cert_file']) as file:
             for line in file:

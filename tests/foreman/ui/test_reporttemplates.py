@@ -386,7 +386,7 @@ def test_positive_autocomplete(session):
 
 @pytest.mark.tier2
 def test_positive_schedule_generation_and_get_mail(
-    session, module_manifest_org, module_location, default_sat
+    session, module_manifest_org, module_location, target_sat
 ):
     """Schedule generating a report. Request the result be sent via e-mail.
 
@@ -435,11 +435,11 @@ def test_positive_schedule_generation_and_get_mail(
         f'send "q\\r"\n'
     )
 
-    assert default_sat.execute(f"expect -c '{expect_script}'").status == 0
-    default_sat.get(remote_path=str(gzip_path), local_path=str(local_gzip_file))
+    assert target_sat.execute(f"expect -c '{expect_script}'").status == 0
+    target_sat.get(remote_path=str(gzip_path), local_path=str(local_gzip_file))
     assert os.system(f'gunzip {local_gzip_file}') == 0
     data = json.loads(local_file.read_text())
-    subscription_search = default_sat.api.Subscription(organization=module_manifest_org).search()
+    subscription_search = target_sat.api.Subscription(organization=module_manifest_org).search()
     assert len(data) >= len(subscription_search) > 0
     keys_expected = [
         'Account number',
@@ -496,7 +496,7 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
 
 @pytest.mark.tier3
 def test_positive_gen_entitlements_reports_multiple_formats(
-    session, setup_content, rhel7_contenthost, default_sat
+    session, setup_content, rhel7_contenthost, target_sat
 ):
     """Generate reports using the Entitlements template in html, yaml, json, and csv format.
 
@@ -520,7 +520,7 @@ def test_positive_gen_entitlements_reports_multiple_formats(
     :CaseImportance: High
     """
     client = rhel7_contenthost
-    client.install_katello_ca(default_sat)
+    client.install_katello_ca(target_sat)
     module_org, ak = setup_content
     client.register_contenthost(module_org.label, ak.name)
     assert client.subscribed

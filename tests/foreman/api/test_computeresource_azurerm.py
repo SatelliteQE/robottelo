@@ -37,7 +37,7 @@ class TestAzureRMComputeResourceTestCase:
     @pytest.mark.upgrade
     @pytest.mark.tier1
     def test_positive_crud_azurerm_cr(
-        self, module_org, module_location, azurerm_settings, default_sat
+        self, module_org, module_location, azurerm_settings, target_sat
     ):
         """Create, Read, Update and Delete AzureRM compute resources
 
@@ -51,7 +51,7 @@ class TestAzureRMComputeResourceTestCase:
         """
         # Create CR
         cr_name = gen_string('alpha')
-        compresource = default_sat.api.AzureRMComputeResource(
+        compresource = target_sat.api.AzureRMComputeResource(
             name=cr_name,
             provider='AzureRm',
             tenant=azurerm_settings['tenant'],
@@ -80,7 +80,7 @@ class TestAzureRMComputeResourceTestCase:
 
         # Delete CR
         compresource.delete()
-        assert not default_sat.api.AzureRMComputeResource().search(
+        assert not target_sat.api.AzureRMComputeResource().search(
             query={'search': f'name={new_cr_name}'}
         )
 

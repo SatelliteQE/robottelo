@@ -21,7 +21,7 @@ from fauxfactory import gen_string
 
 
 @pytest.mark.tier2
-def test_positive_end_to_end(session, module_org, module_location, default_sat):
+def test_positive_end_to_end(session, module_org, module_location, target_sat):
     """Perform end to end testing for Job Template component.
 
     :id: 2e0e31c5-e557-4151-83f9-21820c9cb1be
@@ -207,7 +207,7 @@ def test_positive_end_to_end(session, module_org, module_location, default_sat):
             editor_view_option='Preview',
             widget_names='template.template_editor.editor',
         )
-        assert default_sat.hostname in template_values['template']['template_editor']['editor']
+        assert target_sat.hostname in template_values['template']['template_editor']['editor']
         session.jobtemplate.clone(template_new_name, {'template.name': template_clone_name})
         assert session.jobtemplate.search(template_clone_name)[0]['Name'] == template_clone_name
         for name in (template_new_name, template_clone_name):

@@ -23,9 +23,9 @@ from robottelo.hosts import Capsule
 
 
 @pytest.fixture(scope='module', params=[True, False], ids=["satellite", "capsule"])
-def upgrade_server(request, default_sat):
+def upgrade_server(request, module_target_sat):
     if request.param:
-        return default_sat
+        return module_target_sat
     else:
         return Capsule(settings.upgrade.capsule_hostname)
 
@@ -64,7 +64,7 @@ class TestPuppet:
         assert 'active (running)' in result.stdout
 
     @pytest.mark.post_upgrade
-    def test_post_puppet_reporting(self, default_sat):
+    def test_post_puppet_reporting(self, target_sat):
         """Test that puppet is reporting to Satellite after the upgrade.
 
         :id:   postupgrade-cdc4f6cc-23d8-4b4a-bd94-5c86b3072828
@@ -83,7 +83,7 @@ class TestPuppet:
         result = default_caps.execute('puppet agent -t')
         assert result.status == 0
 
-        result = default_sat.cli.ConfigReport.list(
+        result = target_sat.cli.ConfigReport.list(
             {'search': f'host={default_caps.hostname},origin=Puppet'}
         )
         assert len(result)

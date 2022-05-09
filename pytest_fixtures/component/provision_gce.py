@@ -13,14 +13,14 @@ from robottelo.errors import GCECertNotFoundError
 
 
 @pytest.fixture(scope='session')
-def gce_cert(default_sat):
+def gce_cert(session_target_sat):
     _, gce_cert_file = mkstemp(suffix='.json')
     cert = json.loads(settings.gce.cert)
     cert['local_path'] = gce_cert_file
     with open(gce_cert_file, 'w') as f:
         json.dump(cert, f)
-    default_sat.put(gce_cert_file, settings.gce.cert_path)
-    if default_sat.execute(f'[ -f {settings.gce.cert_path} ]').status != 0:
+    session_target_sat.put(gce_cert_file, settings.gce.cert_path)
+    if session_target_sat.execute(f'[ -f {settings.gce.cert_path} ]').status != 0:
         raise GCECertNotFoundError(
             f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
         )

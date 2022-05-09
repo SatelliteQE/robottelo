@@ -1296,7 +1296,7 @@ def extract_help(filter='params'):
 
 @pytest.mark.upgrade
 @pytest.mark.tier1
-def test_positive_foreman_module(default_sat):
+def test_positive_foreman_module(target_sat):
     """Check if SELinux foreman module has the right version
 
     :id: a0736b3a-3d42-4a09-a11a-28c1d58214a5
@@ -1309,10 +1309,10 @@ def test_positive_foreman_module(default_sat):
 
     :expectedresults: Foreman RPM and SELinux module versions match
     """
-    rpm_result = default_sat.execute('rpm -q foreman-selinux')
+    rpm_result = target_sat.execute('rpm -q foreman-selinux')
     assert rpm_result.status == 0
 
-    semodule_result = default_sat.execute('semodule -l | grep foreman')
+    semodule_result = target_sat.execute('semodule -l | grep foreman')
     assert semodule_result.status == 0
 
     # Sample rpm output: foreman-selinux-1.7.2.8-1.el7sat.noarch
@@ -1327,7 +1327,7 @@ def test_positive_foreman_module(default_sat):
 @pytest.mark.skip_if_open('BZ:1964394')
 @pytest.mark.upgrade
 @pytest.mark.tier1
-def test_positive_check_installer_services(default_sat):
+def test_positive_check_installer_services(target_sat):
     """Check if services start correctly
 
     :id: 85fd4388-6d94-42f5-bed2-24be38e9f104
@@ -1346,7 +1346,7 @@ def test_positive_check_installer_services(default_sat):
 
     :CaseLevel: System
     """
-    if default_sat.os_version.major >= RHEL_7_MAJOR_VERSION:
+    if target_sat.os_version.major >= RHEL_7_MAJOR_VERSION:
         service_name = 'tomcat'
         status_format = "systemctl status {0}"
     else:
@@ -1355,14 +1355,14 @@ def test_positive_check_installer_services(default_sat):
     SATELLITE_SERVICES.add(service_name)
 
     for service in SATELLITE_SERVICES:
-        result = default_sat.execute(status_format.format(service))
+        result = target_sat.execute(status_format.format(service))
         assert result.status == 0
         assert len(result.stderr) == 0
 
     # check status reported by hammer ping command
     username = settings.server.admin_username
     password = settings.server.admin_password
-    result = default_sat.execute(f'hammer -u {username} -p {password} ping')
+    result = target_sat.execute(f'hammer -u {username} -p {password} ping')
 
     result_output = [
         service.strip() for service in result.stdout if not re.search(r'message:', service)
@@ -1671,7 +1671,7 @@ def test_positive_capsule_installer_logfile_check():
 
 
 @pytest.mark.destructive
-def test_installer_sat_pub_directory_accessibility(destructive_sat):
+def test_installer_sat_pub_directory_accessibility(target_sat):
     """Verify the public directory accessibility from satellite url after disabling it from
     the custom-hiera
 
@@ -1700,26 +1700,26 @@ def test_installer_sat_pub_directory_accessibility(destructive_sat):
     custom_hiera_settings = (
         'foreman_proxy_content::pub_dir::pub_dir_options: "+FollowSymLinks -Indexes"'
     )
-    http_curl_command = f'curl -i {destructive_sat.url.replace("https", "http")}/pub/ -k'
-    https_curl_command = f'curl -i {destructive_sat.url}/pub/ -k'
+    http_curl_command = f'curl -i {target_sat.url.replace("https", "http")}/pub/ -k'
+    https_curl_command = f'curl -i {target_sat.url}/pub/ -k'
     for command in [http_curl_command, https_curl_command]:
-        accessibility_check = destructive_sat.execute(command)
+        accessibility_check = target_sat.execute(command)
         assert 'HTTP/1.1 200 OK' in accessibility_check.stdout.split('\r\n')
-    destructive_sat.get(
+    target_sat.get(
         local_path='custom-hiera-satellite.yaml',
         remote_path=f'{custom_hiera_location}',
     )
-    _ = destructive_sat.execute(f'echo {custom_hiera_settings} >> {custom_hiera_location}')
-    command_output = destructive_sat.execute('satellite-installer')
+    _ = target_sat.execute(f'echo {custom_hiera_settings} >> {custom_hiera_location}')
+    command_output = target_sat.execute('satellite-installer')
     assert 'Success!' in command_output.stdout
     for command in [http_curl_command, https_curl_command]:
-        accessibility_check = destructive_sat.execute(command)
+        accessibility_check = target_sat.execute(command)
         assert 'HTTP/1.1 200 OK' not in accessibility_check.stdout.split('\r\n')
-    destructive_sat.put(
+    target_sat.put(
         local_path='custom-hiera-satellite.yaml',
         remote_path=f'{custom_hiera_location}',
     )
-    command_output = destructive_sat.execute('satellite-installer')
+    command_output = target_sat.execute('satellite-installer')
     assert 'Success!' in command_output.stdout
 
 
@@ -1778,7 +1778,7 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
 
 
 @pytest.mark.destructive
-def test_installer_inventory_plugin_update(destructive_sat):
+def test_installer_inventory_plugin_update(target_sat):
     """DB consistency should not break after enabling the inventory plugin flags
 
     :id: a2b66d38-e819-428f-9529-23bed398c916
@@ -1798,27 +1798,27 @@ def test_installer_inventory_plugin_update(destructive_sat):
     :customerscenario: true
 
     """
-    destructive_sat.create_custom_repos(rhel7=settings.repos.rhel7_os)
+    target_sat.create_custom_repos(rhel7=settings.repos.rhel7_os)
     installer_obj = InstallerCommand(
         'enable-foreman-plugin-rh-cloud',
         foreman_proxy_plugin_remote_execution_ssh_install_key=['true'],
     )
-    command_output = destructive_sat.execute(installer_obj.get_command())
+    command_output = target_sat.execute(installer_obj.get_command())
     assert 'Success!' in command_output.stdout
     installer_obj = InstallerCommand(
         help='|grep "\'foreman_plugin_rh_cloud\' puppet module (default: true)"'
     )
-    updated_cloud_flags = destructive_sat.execute(installer_obj.get_command())
+    updated_cloud_flags = target_sat.execute(installer_obj.get_command())
     assert 'true' in updated_cloud_flags.stdout
     installer_obj = InstallerCommand(
         help='|grep -A1 "foreman-proxy-plugin-remote-execution-ssh-install-key"'
     )
-    update_proxy_plugin_output = destructive_sat.execute(installer_obj.get_command())
+    update_proxy_plugin_output = target_sat.execute(installer_obj.get_command())
     assert 'true' in update_proxy_plugin_output.stdout
 
 
 @pytest.mark.destructive
-def test_installer_puppet_overload(destructive_sat):
+def test_installer_puppet_overload(target_sat):
     """Check the puppet server tuning parameter update
 
     :id: 70458b3a-1215-49ad-9c94-a115888c8dbd
@@ -1841,9 +1841,9 @@ def test_installer_puppet_overload(destructive_sat):
     puppet_server_jvm_param_1 = '-Djruby.logger.class=com.puppetlabs.jruby_utils.jruby.Slf4jLogger'
     puppet_server_jvm_param_2 = '-XX:ReservedCodeCacheSize=1024m'
     installer_obj = InstallerCommand(puppet_server_jvm_extra_args=f'{puppet_server_jvm_param_1}')
-    command_output = destructive_sat.execute(installer_obj.get_command())
+    command_output = target_sat.execute(installer_obj.get_command())
     assert 'Success!' in command_output.stdout
-    puppet_service_output = destructive_sat.execute('systemctl status puppetserver')
+    puppet_service_output = target_sat.execute('systemctl status puppetserver')
     assert puppet_server_jvm_param_1 in puppet_service_output.stdout
     installer_obj = InstallerCommand(
         puppet_server_jvm_extra_args=[
@@ -1851,8 +1851,8 @@ def test_installer_puppet_overload(destructive_sat):
             f'{puppet_server_jvm_param_2}',
         ]
     )
-    command_output = destructive_sat.execute(installer_obj.get_command())
+    command_output = target_sat.execute(installer_obj.get_command())
     assert 'Success!' in command_output.stdout
-    puppet_service_output = destructive_sat.execute('systemctl status puppetserver')
+    puppet_service_output = target_sat.execute('systemctl status puppetserver')
     assert puppet_server_jvm_param_1 in puppet_service_output.stdout
     assert puppet_server_jvm_param_2 in puppet_service_output.stdout

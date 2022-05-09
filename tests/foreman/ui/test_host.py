@@ -166,9 +166,13 @@ def os_path(module_os):
 
 
 @pytest.fixture(scope='module')
-def module_proxy(module_org, smart_proxy_location, default_sat):
+def module_proxy(module_org, smart_proxy_location, module_target_sat):
     # Search for SmartProxy, and associate organization/location
-    proxy = entities.SmartProxy().search(query={'search': f'name={default_sat.hostname}'})[0].read()
+    proxy = (
+        entities.SmartProxy()
+        .search(query={'search': f'name={module_target_sat.hostname}'})[0]
+        .read()
+    )
     return proxy
 
 
@@ -202,10 +206,10 @@ def module_libvirt_resource(module_org, smart_proxy_location):
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_domain(module_org, smart_proxy_location, module_proxy, default_sat):
+def module_libvirt_domain(module_org, smart_proxy_location, module_proxy, module_target_sat):
     # Search for existing domain or create new otherwise. Associate org,
     # location and dns to it
-    _, _, domain = default_sat.hostname.partition('.')
+    _, _, domain = module_target_sat.hostname.partition('.')
     domain = entities.Domain().search(query={'search': f'name="{domain}"'})
     if len(domain) > 0:
         domain = domain[0].read()
@@ -571,7 +575,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_with_puppet_class(
-    session, module_host_template, module_org, smart_proxy_location, default_sat
+    session, module_host_template, module_org, smart_proxy_location, target_sat
 ):
     """Create new Host with puppet class assigned to it
 
@@ -582,8 +586,8 @@ def test_positive_create_with_puppet_class(
     :CaseLevel: System
     """
     pc_name = 'generic_1'
-    env_name = default_sat.create_custom_environment(repo=pc_name)
-    env = default_sat.api.Environment().search(query={'search': f'name={env_name}'})[0].read()
+    env_name = target_sat.create_custom_environment(repo=pc_name)
+    env = target_sat.api.Environment().search(query={'search': f'name={env_name}'})[0].read()
     env = entities.Environment(
         id=env.id,
         location=[smart_proxy_location],
@@ -1261,7 +1265,7 @@ def test_positive_search_by_org(session, smart_proxy_location):
 
 
 @pytest.mark.tier2
-def test_positive_validate_inherited_cv_lce(session, module_host_template, default_sat):
+def test_positive_validate_inherited_cv_lce(session, module_host_template, target_sat):
     """Create a host with hostgroup specified via CLI. Make sure host
     inherited hostgroup's lifecycle environment, content view and both
     fields are properly reflected via WebUI.
@@ -1293,7 +1297,7 @@ def test_positive_validate_inherited_cv_lce(session, module_host_template, defau
             'organization-ids': module_host_template.organization.id,
         }
     )
-    puppet_proxy = Proxy.list({'search': f'name = {default_sat.hostname}'})[0]
+    puppet_proxy = Proxy.list({'search': f'name = {target_sat.hostname}'})[0]
     host = make_host(
         {
             'architecture-id': module_host_template.architecture.id,
@@ -1315,7 +1319,7 @@ def test_positive_validate_inherited_cv_lce(session, module_host_template, defau
 
 @pytest.mark.tier2
 def test_positive_global_registration_form(
-    session, module_activation_key, module_org, smart_proxy_location, module_os, default_sat
+    session, module_activation_key, module_org, smart_proxy_location, module_os, target_sat
 ):
     """Host registration form produces a correct curl command for various inputs
 
@@ -1359,7 +1363,7 @@ def test_positive_global_registration_form(
         f'remote_execution_interface={iface}',
         f'setup_insights={"true" if insights_value else "false"}',
         f'setup_remote_execution={"true" if rex_value else "false"}',
-        f'{default_sat.hostname}',
+        f'{target_sat.hostname}',
         'insecure',
         'update_packages=true',
     ]
@@ -1776,7 +1780,7 @@ def test_global_re_registration_host_with_force_ignore_error_options(
 
 @pytest.mark.tier2
 def test_global_registration_token_restriction(
-    session, module_activation_key, rhel7_contenthost, module_os, module_proxy, default_sat
+    session, module_activation_key, rhel7_contenthost, module_os, module_proxy, target_sat
 ):
     """Global registration token should be only used for registration call, it
     should be restricted for any other api calls.
@@ -1809,8 +1813,8 @@ def test_global_registration_token_restriction(
     auth_header = re.search(pattern, cmd).group()
 
     # build curl
-    curl_users = f'curl -X GET -k -H {auth_header} -i {default_sat.url}/api/users/'
-    curl_hosts = f'curl -X GET -k -H {auth_header} -i {default_sat.url}/api/hosts/'
+    curl_users = f'curl -X GET -k -H {auth_header} -i {target_sat.url}/api/users/'
+    curl_hosts = f'curl -X GET -k -H {auth_header} -i {target_sat.url}/api/hosts/'
     for curl_cmd in (curl_users, curl_hosts):
         result = client.execute(curl_cmd)
         assert result.status == 0
@@ -2197,7 +2201,7 @@ def gce_hostgroup(
 @pytest.mark.skip_if_not_set('gce')
 def test_positive_gce_provision_end_to_end(
     session,
-    default_sat,
+    target_sat,
     module_org,
     smart_proxy_location,
     module_os,
@@ -2224,7 +2228,7 @@ def test_positive_gce_provision_end_to_end(
         session.location.select(loc_name=smart_proxy_location.name)
         # Provision GCE Host
         try:
-            with default_sat.skip_yum_update_during_provisioning(
+            with target_sat.skip_yum_update_during_provisioning(
                 template='Kickstart default finish'
             ):
                 session.host.create(
@@ -2284,7 +2288,7 @@ def test_positive_gce_provision_end_to_end(
 @pytest.mark.skip_if_not_set('gce')
 def test_positive_gce_cloudinit_provision_end_to_end(
     session,
-    default_sat,
+    target_sat,
     module_org,
     smart_proxy_location,
     module_os,
@@ -2311,7 +2315,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
         session.location.select(loc_name=smart_proxy_location.name)
         # Provision GCE Host
         try:
-            with default_sat.skip_yum_update_during_provisioning(
+            with target_sat.skip_yum_update_during_provisioning(
                 template='Kickstart default user data'
             ):
                 session.host.create(
@@ -2363,7 +2367,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
 @pytest.mark.rhel_ver_match('[^6].*')
 @pytest.mark.usefixtures('install_cockpit_plugin')
 @pytest.mark.tier2
-def test_positive_cockpit(session, cockpit_host, default_sat, module_org):
+def test_positive_cockpit(session, cockpit_host, target_sat, module_org):
     """Install cockpit plugin and test whether webconsole button and cockpit integration works.
     also verify if cockpit service is restarted after the service restart.
 
@@ -2391,7 +2395,7 @@ def test_positive_cockpit(session, cockpit_host, default_sat, module_org):
     with session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name='Any Location')
-        kill_process = default_sat.execute('pkill -f cockpit-ws')
+        kill_process = target_sat.execute('pkill -f cockpit-ws')
         assert kill_process.status == 0
         # Verify if getting 503 error
         with pytest.raises(NoSuchElementException):
@@ -2399,11 +2403,11 @@ def test_positive_cockpit(session, cockpit_host, default_sat, module_org):
         title = session.browser.title
         assert "503 Service Unavailable" in title
 
-        service_list = default_sat.cli.Service.list()
+        service_list = target_sat.cli.Service.list()
         assert service_list.status == 0
         assert "foreman-cockpit.service" in service_list.stdout
 
-        service_restart = default_sat.cli.Service.restart()
+        service_restart = target_sat.cli.Service.restart()
         assert service_restart.status == 0
         session.browser.switch_to_window(session.browser.window_handles[0])
         session.browser.close_window(session.browser.window_handles[-1])
