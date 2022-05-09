@@ -58,6 +58,7 @@ logs/**
 
 .pytest_cache/
 tests/foreman/pytest.ini
+ven*/
 
 # For pytest --bz-cache generated file
 **/bz_cache.json
@@ -71,6 +72,7 @@ tests/foreman/pytest.ini
 /settings.local.yaml
 /settings*.local.yaml
 /conf/*.yaml
+/conf/*.conf
 !/conf/supportability.yaml
 
 # I don't know where those 2 files come from

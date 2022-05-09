@@ -75,14 +75,14 @@ def vm(
     module_gt_manifest_org,
     module_ak,
     rhel7_contenthost_module,
-    default_sat,
+    module_target_sat,
 ):
     # python-psutil obsoleted by python2-psutil, install older python2-psutil for errata test.
     rhel7_contenthost_module.run(
         'rpm -Uvh https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/p/'
         'python2-psutil-5.6.7-1.el7.x86_64.rpm'
     )
-    rhel7_contenthost_module.install_katello_ca(default_sat)
+    rhel7_contenthost_module.install_katello_ca(module_target_sat)
     rhel7_contenthost_module.register_contenthost(module_gt_manifest_org.label, module_ak.name)
     host = entities.Host().search(query={'search': f'name={rhel7_contenthost_module.hostname}'})
     host_id = host[0].id
@@ -166,7 +166,7 @@ def test_positive_erratum_installable(vm):
 
 
 @pytest.mark.tier2
-def test_negative_rct_not_shows_golden_ticket_enabled(default_sat):
+def test_negative_rct_not_shows_golden_ticket_enabled(target_sat):
     """Assert restricted manifest has no Golden Ticket enabled .
 
     :id: 754c1be7-468e-4795-bcf9-258a38f3418b
@@ -186,14 +186,14 @@ def test_negative_rct_not_shows_golden_ticket_enabled(default_sat):
     # upload organization manifest with org environment access disabled
     manifest = manifests.clone()
     manifests.upload_manifest_locked(org.id, manifest, interface=manifests.INTERFACE_CLI)
-    result = default_sat.execute(f'rct cat-manifest {manifest.filename}')
+    result = target_sat.execute(f'rct cat-manifest {manifest.filename}')
     assert result.status == 0
     assert 'Content Access Mode: Simple Content Access' not in result.stdout
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_rct_shows_golden_ticket_enabled(module_gt_manifest_org, default_sat):
+def test_positive_rct_shows_golden_ticket_enabled(module_gt_manifest_org, target_sat):
     """Assert unrestricted manifest has Golden Ticket enabled .
 
     :id: 0c6e2f88-1a86-4417-9248-d7bd20584197
@@ -207,7 +207,7 @@ def test_positive_rct_shows_golden_ticket_enabled(module_gt_manifest_org, defaul
 
     :CaseImportance: Medium
     """
-    result = default_sat.execute(f'rct cat-manifest {module_gt_manifest_org.manifest_filename}')
+    result = target_sat.execute(f'rct cat-manifest {module_gt_manifest_org.manifest_filename}')
     assert result.status == 0
     assert 'Content Access Mode: Simple Content Access' in result.stdout
 

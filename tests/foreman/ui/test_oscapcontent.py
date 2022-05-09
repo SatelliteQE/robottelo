@@ -27,17 +27,17 @@ from robottelo.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def oscap_content_path(default_sat):
+def oscap_content_path(module_target_sat):
     _, file_name = os.path.split(settings.oscap.content_path)
 
     local_file = robottelo_tmp_dir.joinpath(file_name)
-    default_sat.get(remote_path=settings.oscap.content_path, local_path=local_file)
+    module_target_sat.get(remote_path=settings.oscap.content_path, local_path=local_file)
     return local_file
 
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, oscap_content_path, default_sat):
+def test_positive_end_to_end(session, oscap_content_path, target_sat):
     """Perform end to end testing for openscap content component
 
     :id: 9870555d-0b60-41ab-a481-81d4d3f78fec
@@ -55,8 +55,8 @@ def test_positive_end_to_end(session, oscap_content_path, default_sat):
     """
     title = gen_string('alpha')
     new_title = gen_string('alpha')
-    org = default_sat.api.Organization().create()
-    loc = default_sat.api.Location().create()
+    org = target_sat.api.Organization().create()
+    loc = target_sat.api.Location().create()
     with session:
         session.oscapcontent.create(
             {

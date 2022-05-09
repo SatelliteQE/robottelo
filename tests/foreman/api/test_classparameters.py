@@ -60,9 +60,9 @@ def invalid_sc_parameters_data():
 
 
 @pytest.fixture(scope='module')
-def module_puppet(default_sat):
+def module_puppet(module_target_sat):
     puppet_class = 'api_test_classparameters'
-    env_name = default_sat.create_custom_environment(repo=puppet_class)
+    env_name = module_target_sat.create_custom_environment(repo=puppet_class)
     puppet_class = entities.PuppetClass().search(
         query={'search': f'name = "{puppet_class}" and environment = "{env_name}"'}
     )[0]

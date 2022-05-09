@@ -50,13 +50,13 @@ class TestScenarioPositiveGCEHostComputeResource:
     """
 
     @pytest.fixture(scope='class')
-    def arch_os_domain(self, default_sat):
-        arch = default_sat.api.Architecture().search(query={'search': 'name=x86_64'})[0]
-        os = default_sat.api.OperatingSystem().search(
+    def arch_os_domain(self, class_target_sat):
+        arch = class_target_sat.api.Architecture().search(query={'search': 'name=x86_64'})[0]
+        os = class_target_sat.api.OperatingSystem().search(
             query={'search': 'family=Redhat and major=7'}
         )[0]
 
-        domain_name = default_sat.hostname.split('.', 1)[1]
+        domain_name = class_target_sat.hostname.split('.', 1)[1]
         return namedtuple('ArchOsDomain', ['arch', 'os', 'domain'])(arch, os, domain_name)
 
     @pytest.fixture(scope='class')
@@ -115,7 +115,7 @@ class TestScenarioPositiveGCEHostComputeResource:
         assert gce_img.name == 'autoupgrade_gce_img'
 
     @pytest.mark.post_upgrade(depend_on=test_pre_create_gce_cr_and_host)
-    def test_post_create_gce_cr_and_host(self, default_sat, arch_os_domain, delete_host):
+    def test_post_create_gce_cr_and_host(self, target_sat, arch_os_domain, delete_host):
         """Host provisioned using preupgrade GCE CR
 
         :id: postupgrade-ef82143d-efef-49b2-9702-93d67ef6804c
@@ -147,7 +147,7 @@ class TestScenarioPositiveGCEHostComputeResource:
             'image_id': LATEST_RHEL7_GCE_IMG_UUID,
         }
         # Host Provisioning Tests
-        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
+        with target_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
             gce_hst = entities.Host(
                 name=hostname,
                 organization=org,

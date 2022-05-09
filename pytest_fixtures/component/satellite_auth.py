@@ -251,37 +251,37 @@ def enroll_configure_rhsso_external_auth():
 
 
 @pytest.fixture(scope='session')
-def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth, default_sat):
+def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth, session_target_sat):
     """register the satellite with RH-SSO Server for single sign-on"""
     client_id = get_rhsso_client_id()
     create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
     audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
     audience_mapper['config']['included.client.audience'] = audience_mapper['config'][
         'included.client.audience'
-    ].format(rhsso_host=default_sat)
+    ].format(rhsso_host=session_target_sat)
     create_mapper(audience_mapper, client_id)
     set_the_redirect_uri()
 
 
 @pytest.mark.external_auth
 @pytest.fixture(scope='session')
-def enroll_idm_and_configure_external_auth(default_sat):
+def enroll_idm_and_configure_external_auth(session_target_sat):
     """Enroll the Satellite6 Server to an IDM Server."""
     ipa_host = ContentHost(settings.ipa.hostname)
-    default_sat.execute(
+    session_target_sat.execute(
         'yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools'
     )
     ipa_host.execute(f'echo {settings.ipa.password} | kinit admin')
-    output = default_sat.execute(f'ipa host-find {default_sat.hostname}')
+    output = session_target_sat.execute(f'ipa host-find {session_target_sat.hostname}')
     if output.status != 0:
-        result = ipa_host.execute(f'ipa host-add --random {default_sat.hostname}')
+        result = ipa_host.execute(f'ipa host-add --random {session_target_sat.hostname}')
         for line in result.stdout.splitlines():
             if 'Random password' in line:
                 _, password = line.split(': ', 2)
                 break
-        ipa_host.execute(f'ipa service-add HTTP/{default_sat.hostname}')
+        ipa_host.execute(f'ipa service-add HTTP/{session_target_sat.hostname}')
         _, domain = settings.ipa.hostname.split('.', 1)
-        result = default_sat.execute(
+        result = session_target_sat.execute(
             f"ipa-client-install --password '{password}' "
             f'--domain {domain} '
             f'--server {settings.ipa.hostname} '
@@ -312,7 +312,7 @@ def configure_realm():
 
 
 @pytest.fixture()
-def rhsso_setting_setup(destructive_sat, request):
+def rhsso_setting_setup(target_sat, request):
     """Update the RHSSO setting and revert it in cleanup"""
     update_rhsso_settings_in_satellite()
     yield
@@ -320,7 +320,7 @@ def rhsso_setting_setup(destructive_sat, request):
 
 
 @pytest.fixture()
-def rhsso_setting_setup_with_timeout(destructive_sat, rhsso_setting_setup, request):
+def rhsso_setting_setup_with_timeout(target_sat, rhsso_setting_setup, request):
     """Update the RHSSO setting with timeout setting and revert it in cleanup"""
     setting_entity = entities.Setting().search(query={'search': 'name=idle_timeout'})[0]
     setting_entity.value = 1

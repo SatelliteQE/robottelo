@@ -503,7 +503,7 @@ def test_failed_inventory_upload():
 
 
 @pytest.mark.tier2
-def test_rhcloud_inventory_without_manifest(session, module_org, default_sat):
+def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
     """Verify that proper error message is given when no manifest is imported in an organization.
 
     :id: 1d90bb24-2380-4653-8ed6-a084fce66d1e
@@ -527,7 +527,7 @@ def test_rhcloud_inventory_without_manifest(session, module_org, default_sat):
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(module_org.name)
         wait_for(
-            lambda: default_sat.api.ForemanTask()
+            lambda: target_sat.api.ForemanTask()
             .search(
                 query={
                     'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '

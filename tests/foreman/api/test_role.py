@@ -511,7 +511,7 @@ class TestCannedRole:
 
     @pytest.mark.tier3
     def test_negative_access_entities_from_org_admin(
-        self, role_taxonomies, filter_taxonomies, default_sat
+        self, role_taxonomies, filter_taxonomies, target_sat
     ):
         """User can not access resources in taxonomies assigned to role if
         its own taxonomies are not same as its role
@@ -535,14 +535,14 @@ class TestCannedRole:
         domain = self.create_domain(
             orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
-        sc = self.user_config(user, default_sat)
+        sc = self.user_config(user, target_sat)
         # Getting the domain from user
         with pytest.raises(HTTPError):
             entities.Domain(sc, id=domain.id).read()
 
     @pytest.mark.tier3
     def test_negative_access_entities_from_user(
-        self, role_taxonomies, filter_taxonomies, default_sat
+        self, role_taxonomies, filter_taxonomies, target_sat
     ):
         """User can not access resources within its own taxonomies if assigned
         role does not have permissions for user taxonomies
@@ -566,7 +566,7 @@ class TestCannedRole:
         domain = self.create_domain(
             orgs=[filter_taxonomies['org'].id], locs=[filter_taxonomies['loc'].id]
         )
-        sc = self.user_config(user, default_sat)
+        sc = self.user_config(user, target_sat)
         # Getting the domain from user
         with pytest.raises(HTTPError):
             entities.Domain(sc, id=domain.id).read()
@@ -899,7 +899,7 @@ class TestCannedRole:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    def test_positive_user_group_users_access_as_org_admin(self, role_taxonomies, default_sat):
+    def test_positive_user_group_users_access_as_org_admin(self, role_taxonomies, target_sat):
         """Users in usergroup can have access to the resources in taxonomies if
         the taxonomies of Org Admin role is same
 
@@ -957,7 +957,7 @@ class TestCannedRole:
             location=[role_taxonomies['loc'].id],
         ).create()
         for login, password in ((userone_login, userone_pass), (usertwo_login, usertwo_pass)):
-            sc = ServerConfig(auth=(login, password), url=default_sat.url, verify=False)
+            sc = ServerConfig(auth=(login, password), url=target_sat.url, verify=False)
             try:
                 entities.Domain(sc).search(
                     query={
@@ -1005,7 +1005,7 @@ class TestCannedRole:
 
     @pytest.mark.tier2
     def test_negative_assign_org_admin_to_user_group(
-        self, role_taxonomies, filter_taxonomies, default_sat
+        self, role_taxonomies, filter_taxonomies, target_sat
     ):
         """Users in usergroup can not have access to the resources in
         taxonomies if the taxonomies of Org Admin role is not same
@@ -1037,13 +1037,13 @@ class TestCannedRole:
         assert user_group.name == ug_name
         dom = self.create_domain(orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id])
         for user in [user_one, user_two]:
-            sc = self.user_config(user, default_sat)
+            sc = self.user_config(user, target_sat)
             with pytest.raises(HTTPError):
                 entities.Domain(sc, id=dom.id).read()
 
     @pytest.mark.tier2
     def test_negative_assign_taxonomies_by_org_admin(
-        self, role_taxonomies, filter_taxonomies, default_sat
+        self, role_taxonomies, filter_taxonomies, target_sat
     ):
         """Org Admin doesn't have permissions to assign org to any of
         its entities
@@ -1086,7 +1086,7 @@ class TestCannedRole:
             location=[role_taxonomies['loc']],
         ).create()
         assert user_login == user.login
-        sc = ServerConfig(auth=(user_login, user_pass), url=default_sat.url, verify=False)
+        sc = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
         # Getting the domain from user1
         dom = entities.Domain(sc, id=dom.id).read()
         dom.organization = [filter_taxonomies['org']]
@@ -1127,7 +1127,7 @@ class TestCannedRole:
 
     @pytest.mark.tier2
     def test_positive_taxonomies_control_to_superadmin_with_org_admin(
-        self, role_taxonomies, default_sat
+        self, role_taxonomies, target_sat
     ):
         """Super Admin can access entities in taxonomies assigned to Org Admin
 
@@ -1146,7 +1146,7 @@ class TestCannedRole:
         :CaseLevel: Integration
         """
         user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
-        sc = self.user_config(user, default_sat)
+        sc = self.user_config(user, target_sat)
         # Creating resource
         dom_name = gen_string('alpha')
         dom = entities.Domain(
@@ -1168,7 +1168,7 @@ class TestCannedRole:
 
     @pytest.mark.tier2
     def test_positive_taxonomies_control_to_superadmin_without_org_admin(
-        self, role_taxonomies, default_sat
+        self, role_taxonomies, target_sat
     ):
         """Super Admin can access entities in taxonomies assigned to Org Admin
         after deleting Org Admin role/user
@@ -1189,7 +1189,7 @@ class TestCannedRole:
         :CaseLevel: Integration
         """
         user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
-        sc = self.user_config(user, default_sat)
+        sc = self.user_config(user, target_sat)
         # Creating resource
         dom_name = gen_string('alpha')
         dom = entities.Domain(
@@ -1217,7 +1217,7 @@ class TestCannedRole:
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    def test_negative_create_roles_by_org_admin(self, role_taxonomies, default_sat):
+    def test_negative_create_roles_by_org_admin(self, role_taxonomies, target_sat):
         """Org Admin doesnt have permissions to create new roles
 
         :id: 806ecc16-0dc7-405b-90d3-0584eced27a3
@@ -1245,7 +1245,7 @@ class TestCannedRole:
             location=[role_taxonomies['loc']],
         ).create()
         assert user_login == user.login
-        sc = ServerConfig(auth=(user_login, user_pass), url=default_sat.url, verify=False)
+        sc = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
         role_name = gen_string('alpha')
         with pytest.raises(HTTPError):
             entities.Role(
@@ -1256,7 +1256,7 @@ class TestCannedRole:
             ).create()
 
     @pytest.mark.tier1
-    def test_negative_modify_roles_by_org_admin(self, role_taxonomies, default_sat):
+    def test_negative_modify_roles_by_org_admin(self, role_taxonomies, target_sat):
         """Org Admin has no permissions to modify existing roles
 
         :id: 93ad9d7d-afad-4403-84a9-d59cc2ddfa58
@@ -1273,7 +1273,7 @@ class TestCannedRole:
         """
         user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
         test_role = entities.Role().create()
-        sc = self.user_config(user, default_sat)
+        sc = self.user_config(user, target_sat)
         test_role = entities.Role(sc, id=test_role.id).read()
         with pytest.raises(HTTPError):
             test_role.organization = [role_taxonomies['org']]
@@ -1281,7 +1281,7 @@ class TestCannedRole:
             test_role.update(['organization', 'location'])
 
     @pytest.mark.tier2
-    def test_negative_admin_permissions_to_org_admin(self, role_taxonomies, default_sat):
+    def test_negative_admin_permissions_to_org_admin(self, role_taxonomies, target_sat):
         """Org Admin has no access to Super Admin user
 
         :id: cdebf9a8-35c2-4730-8423-de47a2c15ff5
@@ -1310,13 +1310,13 @@ class TestCannedRole:
             location=[role_taxonomies['loc']],
         ).create()
         assert user_login == user.login
-        sc = ServerConfig(auth=(user_login, user_pass), url=default_sat.url, verify=False)
+        sc = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
         with pytest.raises(HTTPError):
             entities.User(sc, id=1).read()
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_create_user_by_org_admin(self, role_taxonomies, default_sat):
+    def test_positive_create_user_by_org_admin(self, role_taxonomies, target_sat):
         """Org Admin can create new users
 
         :id: f4edbe25-3ee6-46d6-8fca-a04f6ddc8eed
@@ -1355,7 +1355,7 @@ class TestCannedRole:
             location=[role_taxonomies['loc']],
         ).create()
         assert user_login == user.login
-        sc_user = ServerConfig(auth=(user_login, user_pass), url=default_sat.url, verify=False)
+        sc_user = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
         user = entities.User(
@@ -1374,7 +1374,7 @@ class TestCannedRole:
             assert location.name == name
 
     @pytest.mark.tier2
-    def test_positive_access_users_inside_org_admin_taxonomies(self, role_taxonomies, default_sat):
+    def test_positive_access_users_inside_org_admin_taxonomies(self, role_taxonomies, target_sat):
         """Org Admin can access users inside its taxonomies
 
         :id: c43275de-e0ff-4a22-b103-391a5ab81874
@@ -1396,7 +1396,7 @@ class TestCannedRole:
         """
         user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
         test_user = self.create_simple_user(filter_taxos=role_taxonomies)
-        sc = self.user_config(user, default_sat)
+        sc = self.user_config(user, target_sat)
         try:
             entities.User(sc, id=test_user.id).read()
         except HTTPError as err:
@@ -1404,7 +1404,7 @@ class TestCannedRole:
 
     @pytest.mark.skip_if_open('BZ:1825698')
     @pytest.mark.tier2
-    def test_positive_create_nested_location(self, role_taxonomies, default_sat):
+    def test_positive_create_nested_location(self, role_taxonomies, target_sat):
         """Org Admin can create nested locations
 
         :id: 971bc909-96a5-4614-b254-04a51c708432
@@ -1436,14 +1436,14 @@ class TestCannedRole:
         )
         user.role = [org_admin]
         user = user.update(['role'])
-        sc = ServerConfig(auth=(user_login, user_pass), url=default_sat.url, verify=False)
+        sc = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
         name = gen_string('alphanumeric')
         location = entities.Location(sc, name=name, parent=role_taxonomies['loc'].id).create()
         assert location.name == name
 
     @pytest.mark.tier2
     def test_negative_access_users_outside_org_admin_taxonomies(
-        self, role_taxonomies, filter_taxonomies, default_sat
+        self, role_taxonomies, filter_taxonomies, target_sat
     ):
         """Org Admin can not access users outside its taxonomies
 
@@ -1466,12 +1466,12 @@ class TestCannedRole:
         """
         user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
         test_user = self.create_simple_user(filter_taxos=filter_taxonomies)
-        sc = self.user_config(user, default_sat)
+        sc = self.user_config(user, target_sat)
         with pytest.raises(HTTPError):
             entities.User(sc, id=test_user.id).read()
 
     @pytest.mark.tier1
-    def test_negative_create_taxonomies_by_org_admin(self, role_taxonomies, default_sat):
+    def test_negative_create_taxonomies_by_org_admin(self, role_taxonomies, target_sat):
         """Org Admin cannot define/create organizations but can create
             locations
 
@@ -1500,7 +1500,7 @@ class TestCannedRole:
             location=[role_taxonomies['loc']],
         ).create()
         assert user_login == user.login
-        sc = ServerConfig(auth=(user_login, user_pass), url=default_sat.url, verify=False)
+        sc = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
         with pytest.raises(HTTPError):
             entities.Organization(sc, name=gen_string('alpha')).create()
         if not is_open("BZ:1825698"):
@@ -1514,7 +1514,7 @@ class TestCannedRole:
     @pytest.mark.upgrade
     @pytest.mark.tier1
     def test_positive_access_all_global_entities_by_org_admin(
-        self, role_taxonomies, filter_taxonomies, default_sat
+        self, role_taxonomies, filter_taxonomies, target_sat
     ):
         """Org Admin can access all global entities in any taxonomies
         regardless of its own assigned taxonomies
@@ -1544,7 +1544,7 @@ class TestCannedRole:
             location=[role_taxonomies['loc'], filter_taxonomies['loc']],
         ).create()
         assert user_login == user.login
-        sc = ServerConfig(auth=(user_login, user_pass), url=default_sat.url, verify=False)
+        sc = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
         try:
             for entity in [
                 entities.Architecture,

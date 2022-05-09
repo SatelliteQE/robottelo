@@ -2221,7 +2221,7 @@ class TestContentView:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     def test_positive_sub_host_with_restricted_user_perm_at_custom_loc(
-        self, module_org, rhel7_contenthost, default_sat
+        self, module_org, rhel7_contenthost, target_sat
     ):
         """Attempt to subscribe a host with restricted user permissions and
         custom location.
@@ -2365,7 +2365,7 @@ class TestContentView:
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
         # create a client host and register it with the created user
-        rhel7_contenthost.install_katello_ca(default_sat)
+        rhel7_contenthost.install_katello_ca(target_sat)
         rhel7_contenthost.register_contenthost(
             org['label'],
             lce=f'{env["name"]}/{content_view["name"]}',
@@ -2380,7 +2380,7 @@ class TestContentView:
 
     @pytest.mark.tier3
     def test_positive_sub_host_with_restricted_user_perm_at_default_loc(
-        self, module_org, rhel7_contenthost, default_sat
+        self, module_org, rhel7_contenthost, target_sat
     ):
         """Attempt to subscribe a host with restricted user permissions and
         default location.
@@ -2520,7 +2520,7 @@ class TestContentView:
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
         # create a client host and register it with the created user
-        rhel7_contenthost.install_katello_ca(default_sat)
+        rhel7_contenthost.install_katello_ca(target_sat)
         rhel7_contenthost.register_contenthost(
             org['label'],
             lce='/'.join([env['name'], content_view['name']]),
@@ -4125,7 +4125,7 @@ class TestContentViewFileRepo:
 
     @pytest.mark.skip_if_open('BZ:1610309')
     @pytest.mark.tier3
-    def test_positive_arbitrary_file_repo_addition(self, module_org, module_product, default_sat):
+    def test_positive_arbitrary_file_repo_addition(self, module_org, module_product, target_sat):
         """Check a File Repository with Arbitrary File can be added to a
         Content View
 
@@ -4150,7 +4150,7 @@ class TestContentViewFileRepo:
         :BZ: 1610309, 1908465
         """
         repo = self.make_file_repository_upload_contents(
-            module_org, module_product, satellite=default_sat
+            module_org, module_product, satellite=target_sat
         )
         cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV with names.
@@ -4167,7 +4167,7 @@ class TestContentViewFileRepo:
 
     @pytest.mark.skip_if_open('BZ:1908465')
     @pytest.mark.tier3
-    def test_positive_arbitrary_file_repo_removal(self, module_org, module_product, default_sat):
+    def test_positive_arbitrary_file_repo_removal(self, module_org, module_product, target_sat):
         """Check a File Repository with Arbitrary File can be removed from a
         Content View
 
@@ -4192,7 +4192,7 @@ class TestContentViewFileRepo:
         """
         cv = cli_factory.make_content_view({'organization-id': module_org.id})
         repo = self.make_file_repository_upload_contents(
-            module_org, module_product, satellite=default_sat
+            module_org, module_product, satellite=target_sat
         )
         ContentView.add_repository(
             {'id': cv['id'], 'repository-id': repo['id'], 'organization-id': module_org.id}
@@ -4228,7 +4228,7 @@ class TestContentViewFileRepo:
         """
 
     @pytest.mark.tier3
-    def test_positive_arbitrary_file_repo_promotion(self, module_org, module_product, default_sat):
+    def test_positive_arbitrary_file_repo_promotion(self, module_org, module_product, target_sat):
         """Check arbitrary files availability for Content view version after
         content-view promotion.
 
@@ -4256,7 +4256,7 @@ class TestContentViewFileRepo:
 
         cv = cli_factory.make_content_view({'organization-id': module_org.id})
         repo = self.make_file_repository_upload_contents(
-            module_product, module_product, satellite=default_sat
+            module_product, module_product, satellite=target_sat
         )
         ContentView.add_repository(
             {'id': cv['id'], 'repository-id': repo['id'], 'organization-id': module_org.id}
@@ -4279,7 +4279,7 @@ class TestContentViewFileRepo:
         assert repo['name'] in expected_repo
 
     @pytest.mark.tier3
-    def test_positive_katello_repo_rpms_max_int(self, default_sat):
+    def test_positive_katello_repo_rpms_max_int(self, target_sat):
         """Checking that datatype for katello_repository_rpms table is a
         bigint for id for a closed loop bz.
 
@@ -4293,7 +4293,7 @@ class TestContentViewFileRepo:
 
         :BZ: 1793701
         """
-        result = default_sat.execute(
+        result = target_sat.execute(
             'sudo -u postgres psql -d foreman -c "\\d katello_repository_rpms"'
         )
         assert 'id|bigint' in result.stdout.splitlines()[3].replace(' ', '')

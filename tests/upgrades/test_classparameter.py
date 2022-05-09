@@ -23,8 +23,6 @@ from nailgun import entities
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 
-from robottelo.api.utils import delete_puppet_class
-
 
 def _valid_sc_parameters_data():
     """Returns a list of valid smart class parameter types and values"""
@@ -56,7 +54,7 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
     """
 
     @pytest.fixture(scope="class")
-    def _setup_scenario(self, default_sat):
+    def _setup_scenario(self, class_target_sat):
         """Import some parametrized puppet classes. This is required to make
         sure that we have smart class variable available.
         Read all available smart class parameters for imported puppet class to
@@ -64,7 +62,7 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
         """
         self.org = entities.Organization().create()
         repo = 'api_test_classparameters'
-        env_name = default_sat.create_custom_environment(repo=repo)
+        env_name = class_target_sat.create_custom_environment(repo=repo)
         self.puppet_class = entities.PuppetClass().search(
             query={'search': f'name = "{repo}" and environment = "{env_name}"'}
         )[0]
@@ -75,11 +73,11 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
         create_dict(scenario_ents)
 
     @pytest.fixture(scope="class")
-    def _clean_scenario(self, request):
+    def _clean_scenario(self, request, class_target_sat):
         @request.addfinalizer
         def _cleanup():
             puppet_class = get_entity_data(self.__class__.__name__)['puppet_class']
-            delete_puppet_class(puppet_class)
+            class_target_sat.delete_puppet_class(puppet_class)
 
     def _validate_value(self, data, sc_param):
         """The helper function to validate the parameter actual and expected

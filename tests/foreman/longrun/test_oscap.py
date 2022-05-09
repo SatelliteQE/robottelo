@@ -80,9 +80,9 @@ def fetch_scap_and_profile_id(scap_name, scap_profile):
 
 
 @pytest.fixture(scope='module')
-def default_proxy(default_sat):
+def default_proxy(module_target_sat):
     """Returns default capsule/proxy id"""
-    proxy = Proxy.list({'search': default_sat.hostname})[0]
+    proxy = Proxy.list({'search': module_target_sat.hostname})[0]
     p_features = set(proxy.get('features').split(', '))
     if {'Puppet', 'Ansible', 'Openscap'}.issubset(p_features):
         proxy_id = proxy.get('id')
@@ -160,7 +160,7 @@ def test_positive_upload_to_satellite(
     lifecycle_env,
     puppet_env,
     distro,
-    default_sat,
+    target_sat,
 ):
     """Perform end to end oscap test, and push the updated scap content via puppet
      after first run.
@@ -202,11 +202,11 @@ def test_positive_upload_to_satellite(
     # Creates host_group.
     make_hostgroup(
         {
-            'content-source': default_sat.hostname,
+            'content-source': target_sat.hostname,
             'name': hgrp_name,
             'puppet-environment-id': puppet_env.id,
-            'puppet-ca-proxy': default_sat.hostname,
-            'puppet-proxy': default_sat.hostname,
+            'puppet-ca-proxy': target_sat.hostname,
+            'puppet-proxy': target_sat.hostname,
             'organizations': module_org.name,
             'puppet-classes': puppet_classes,
         }
@@ -233,7 +233,7 @@ def test_positive_upload_to_satellite(
         target_memory=OSCAP_TARGET_MEMORY,
     ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca(default_sat)
+        vm.install_katello_ca(target_sat)
         vm.register_contenthost(module_org.name, ak_name[distro])
         assert vm.subscribed
         Host.update(
@@ -273,7 +273,7 @@ def test_positive_upload_to_satellite(
             }
         )
 
-        vm.configure_puppet(rhel_repo={distro: rhel_repo}, proxy_hostname=default_sat.hostname)
+        vm.configure_puppet(rhel_repo={distro: rhel_repo}, proxy_hostname=target_sat.hostname)
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
@@ -316,7 +316,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
     content_view,
     lifecycle_env,
     puppet_env,
-    default_sat,
+    target_sat,
     tailoring_file_path,
 ):
     """End-to-End Oscap run with tailoring files and default capsule via puppet
@@ -349,11 +349,11 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
     # Creates host_group.
     make_hostgroup(
         {
-            'content-source': default_sat.hostname,
+            'content-source': target_sat.hostname,
             'name': hgrp_name,
             'puppet-environment-id': puppet_env.id,
-            'puppet-ca-proxy': default_sat.hostname,
-            'puppet-proxy': default_sat.hostname,
+            'puppet-ca-proxy': target_sat.hostname,
+            'puppet-proxy': target_sat.hostname,
             'organizations': module_org.name,
             'puppet-classes': puppet_classes,
         }
@@ -394,7 +394,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
         target_memory=OSCAP_TARGET_MEMORY,
     ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca(default_sat)
+        vm.install_katello_ca(target_sat)
         vm.register_contenthost(module_org.name, ak_name[DISTRO_RHEL7])
         assert vm.subscribed
         Host.update(
@@ -417,7 +417,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
             }
         )
         vm.configure_puppet(
-            rhel_repo={'rhel7': settings.repos.rhel7_os}, proxy_hostname=default_sat.hostname
+            rhel_repo={'rhel7': settings.repos.rhel7_os}, proxy_hostname=target_sat.hostname
         )
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
         assert result.status == 0
@@ -435,7 +435,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
 @pytest.mark.tier4
 @pytest.mark.parametrize('distro', [DISTRO_RHEL7, DISTRO_RHEL8])
 def test_positive_oscap_run_via_ansible(
-    module_org, default_proxy, content_view, lifecycle_env, distro, default_sat
+    module_org, default_proxy, content_view, lifecycle_env, distro, target_sat
 ):
     """End-to-End Oscap run via ansible
 
@@ -503,7 +503,7 @@ def test_positive_oscap_run_via_ansible(
         target_memory=OSCAP_TARGET_MEMORY,
     ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca(default_sat)
+        vm.install_katello_ca(target_sat)
         vm.register_contenthost(module_org.name, ak_name[distro])
         assert vm.subscribed
         Host.set_parameter(
@@ -514,8 +514,11 @@ def test_positive_oscap_run_via_ansible(
                 'parameter-type': 'boolean',
             }
         )
-        vm.create_custom_repos(**{distro: rhel_repo})
-        vm.add_rex_key(satellite=default_sat)
+        if distro not in (DISTRO_RHEL6, DISTRO_RHEL7):
+            vm.create_custom_repos(**rhel_repo)
+        else:
+            vm.create_custom_repos(**{distro: rhel_repo})
+        vm.add_rex_key(satellite=target_sat)
         Host.update(
             {
                 'name': vm.hostname.lower(),
@@ -551,7 +554,7 @@ def test_positive_oscap_run_via_ansible(
 
 @pytest.mark.tier4
 def test_positive_oscap_run_via_ansible_bz_1814988(
-    module_org, default_proxy, content_view, lifecycle_env, default_sat
+    module_org, default_proxy, content_view, lifecycle_env, target_sat
 ):
     """End-to-End Oscap run via ansible
 
@@ -615,7 +618,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         target_memory=OSCAP_TARGET_MEMORY,
     ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca(default_sat)
+        vm.install_katello_ca(target_sat)
         vm.register_contenthost(module_org.name, ak_name[DISTRO_RHEL7])
         assert vm.subscribed
         Host.set_parameter(
@@ -634,7 +637,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
             '--fetch-remote-resources --results-arf results.xml '
             '/usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml',
         )
-        vm.add_rex_key(satellite=default_sat)
+        vm.add_rex_key(satellite=target_sat)
         Host.update(
             {
                 'name': vm.hostname.lower(),

@@ -1139,7 +1139,7 @@ class TestRepository:
         ),
         indirect=True,
     )
-    def test_positive_access_protected_repository(self, module_org, repo, default_sat):
+    def test_positive_access_protected_repository(self, module_org, repo, target_sat):
         """Access protected/https repository data file URL using organization
         debug certificate
 
@@ -1160,7 +1160,7 @@ class TestRepository:
         repo.sync()
         repo_data_file_url = urljoin(repo.full_path, 'repodata/repomd.xml')
         # ensure the url is based on the protected base server URL
-        assert repo_data_file_url.startswith(default_sat.url)
+        assert repo_data_file_url.startswith(target_sat.url)
         # try to access repository data without organization debug certificate
         response = client.get(repo_data_file_url, verify=False)
         assert response.status_code == 403
@@ -1186,7 +1186,7 @@ class TestRepository:
         ),
         indirect=True,
     )
-    def test_positive_access_unprotected_repository(self, module_org, repo, default_sat):
+    def test_positive_access_unprotected_repository(self, module_org, repo, target_sat):
         """Access files in unprotected repository over HTTP and HTTPS
 
         :id: 43fe24c8-7a50-4d38-8259-b23e5ed5800a
@@ -1202,7 +1202,7 @@ class TestRepository:
         repo.sync()
         repo_data_file_url = urljoin(repo.full_path, 'repodata/repomd.xml')
         # ensure the repo url is based on the base server URL
-        assert repo_data_file_url.startswith(default_sat.url)
+        assert repo_data_file_url.startswith(target_sat.url)
         # try to access repository data without organization debug certificate
         response = client.get(repo_data_file_url, verify=False)
         assert response.status_code == 200
@@ -1580,7 +1580,7 @@ class TestDockerRepository:
         indirect=True,
     )
     def test_negative_synchronize_private_registry_no_passwd(
-        self, repo_options, module_product, default_sat
+        self, repo_options, module_product, target_sat
     ):
         """Create and try to sync a Docker-type repository from a private
         registry providing empty password and the sync must fail with
@@ -1602,7 +1602,7 @@ class TestDockerRepository:
         with pytest.raises(
             HTTPError,
             match='422 Client Error: Unprocessable Entity for url: '
-            f'{default_sat.url}:443/katello/api/v2/repositories',
+            f'{target_sat.url}:443/katello/api/v2/repositories',
         ):
             entities.Repository(**repo_options).create()
 

@@ -39,11 +39,11 @@ class TestPermission:
     """Tests for the ``permissions`` path."""
 
     @pytest.fixture(scope='class', autouse=True)
-    def create_permissions(self, default_sat):
+    def create_permissions(self, class_target_sat):
         # workaround for setting class variables
         cls = type(self)
         cls.permissions = PERMISSIONS.copy()
-        if default_sat.is_upstream:
+        if class_target_sat.is_upstream:
             cls.permissions[None].extend(cls.permissions.pop('DiscoveryRule'))
             cls.permissions[None].remove('app_root')
             cls.permissions[None].remove('attachments')
@@ -52,14 +52,14 @@ class TestPermission:
             cls.permissions[None].remove('view_cases')
             cls.permissions[None].remove('view_log_viewer')
 
-        result = default_sat.execute('rpm -qa | grep rubygem-foreman_openscap')
+        result = class_target_sat.execute('rpm -qa | grep rubygem-foreman_openscap')
         if result.status != 0:
             cls.permissions.pop('ForemanOpenscap::Policy')
             cls.permissions.pop('ForemanOpenscap::ScapContent')
             cls.permissions[None].remove('destroy_arf_reports')
             cls.permissions[None].remove('view_arf_reports')
             cls.permissions[None].remove('create_arf_reports')
-        result = default_sat.execute('rpm -qa | grep rubygem-foreman_remote_execution')
+        result = class_target_sat.execute('rpm -qa | grep rubygem-foreman_remote_execution')
         if result.status != 0:
             cls.permissions.pop('JobInvocation')
             cls.permissions.pop('JobTemplate')

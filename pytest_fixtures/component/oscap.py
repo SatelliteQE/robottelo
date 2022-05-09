@@ -13,10 +13,10 @@ from robottelo.helpers import get_data_file
 
 
 @pytest.fixture(scope="session")
-def tailoring_file_path(default_sat):
+def tailoring_file_path(session_target_sat):
     """Return Tailoring file path."""
     local = get_data_file(OSCAP_TAILORING_FILE)
-    default_sat.put(
+    session_target_sat.put(
         local_path=get_data_file(OSCAP_TAILORING_FILE),
         remote_path=f'/tmp/{OSCAP_TAILORING_FILE}',
     )
@@ -24,10 +24,10 @@ def tailoring_file_path(default_sat):
 
 
 @pytest.fixture(scope="session")
-def oscap_content_path(default_sat):
+def oscap_content_path(session_target_sat):
     """Download scap content from satellite and return local path of it."""
     local_file = robottelo_tmp_dir.joinpath(PurePath(settings.oscap.content_path).name)
-    default_sat.get(remote_path=settings.oscap.content_path, local_path=local_file)
+    session_target_sat.get(remote_path=settings.oscap.content_path, local_path=local_file)
     return local_file
 
 

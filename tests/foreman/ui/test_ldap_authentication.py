@@ -52,7 +52,7 @@ pytestmark = [pytest.mark.run_in_one_thread]
 EXTERNAL_GROUP_NAME = 'foobargroup'
 
 
-def set_certificate_in_satellite(server_type, default_sat, hostname=None):
+def set_certificate_in_satellite(server_type, target_sat, hostname=None):
     """update the cert settings in satellite based on type of ldap server"""
     if server_type == 'IPA':
         idm_cert_path_url = os.path.join(settings.ipa.hostname, 'ipa/config/ca.crt')
@@ -60,22 +60,22 @@ def set_certificate_in_satellite(server_type, default_sat, hostname=None):
             file_url=idm_cert_path_url,
             local_path=CERT_PATH,
             file_name='ipa.crt',
-            hostname=default_sat.hostname,
+            hostname=target_sat.hostname,
         )
     elif server_type == 'AD':
         assert hostname is not None
-        default_sat.execute('yum -y --disableplugin=foreman-protector install cifs-utils')
+        target_sat.execute('yum -y --disableplugin=foreman-protector install cifs-utils')
         command = r'mount -t cifs -o username=administrator,pass={0} //{1}/c\$ /mnt'
-        default_sat.execute(command.format(settings.ldap.password, hostname))
-        result = default_sat.execute(
+        target_sat.execute(command.format(settings.ldap.password, hostname))
+        result = target_sat.execute(
             f'cp /mnt/Users/Administrator/Desktop/satqe-QE-SAT6-AD-CA.cer {CERT_PATH}'
         )
         if result.status != 0:
             raise AssertionError('Failed to copy the AD server certificate at right path')
-    result = default_sat.execute(f'update-ca-trust extract && restorecon -R {CERT_PATH}')
+    result = target_sat.execute(f'update-ca-trust extract && restorecon -R {CERT_PATH}')
     if result.status != 0:
         raise AssertionError('Failed to update and trust the certificate')
-    result = default_sat.execute('systemctl restart httpd')
+    result = target_sat.execute('systemctl restart httpd')
     if result.status != 0:
         raise AssertionError(f'Failed to restart the httpd after applying {server_type} cert')
 
@@ -275,7 +275,7 @@ def test_positive_create_org_and_loc(session, ldap_auth_source, ldap_tear_down):
 @pytest.mark.parametrize('ldap_auth_source', ['AD_2016', 'AD_2019', 'IPA'], indirect=True)
 @pytest.mark.destructive
 def test_positive_create_with_https(
-    session, subscribe_satellite, test_name, ldap_auth_source, ldap_tear_down, default_sat
+    session, subscribe_satellite, test_name, ldap_auth_source, ldap_tear_down, target_sat
 ):
     """Create LDAP auth_source for IDM with HTTPS.
 
@@ -298,11 +298,11 @@ def test_positive_create_with_https(
     """
     ldap_data, auth_source = ldap_auth_source
     if ldap_data['auth_type'] == 'ipa':
-        set_certificate_in_satellite(server_type='IPA', default_sat=default_sat)
+        set_certificate_in_satellite(server_type='IPA', target_sat=target_sat)
         username = settings.ipa.user
     else:
         set_certificate_in_satellite(
-            server_type='AD', default_sat=default_sat, hostname=ldap_data['ldap_hostname']
+            server_type='AD', target_sat=target_sat, hostname=ldap_data['ldap_hostname']
         )
         username = settings.ldap.username
     org = entities.Organization().create()
@@ -923,7 +923,7 @@ def test_negative_login_user_with_invalid_password_otp(
 
 @pytest.mark.destructive
 def test_single_sign_on_ldap_ipa_server(
-    subscribe_satellite, enroll_idm_and_configure_external_auth, ldap_tear_down, default_sat
+    subscribe_satellite, enroll_idm_and_configure_external_auth, ldap_tear_down, target_sat
 ):
     """Verify the single sign-on functionality with external authentication
 
@@ -942,23 +942,23 @@ def test_single_sign_on_ldap_ipa_server(
         run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800000)
         run_command('foreman-maintain service restart', timeout=300000)
         if is_open('BZ:1941997'):
-            curl_command = f'curl -k -u : --negotiate {default_sat.url}/users/extlogin'
+            curl_command = f'curl -k -u : --negotiate {target_sat.url}/users/extlogin'
         else:
-            curl_command = f'curl -k -u : --negotiate {default_sat.url}/users/extlogin/'
+            curl_command = f'curl -k -u : --negotiate {target_sat.url}/users/extlogin/'
         result = run_command(curl_command)
         assert 'redirected' in result
-        assert f'{default_sat.url}/hosts' in result
+        assert f'{target_sat.url}/hosts' in result
         assert 'You are being' in result
     finally:
         # resetting the settings to default for external auth
         run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800000)
         run_command('foreman-maintain service restart', timeout=300000)
         run_command(
-            cmd=f'ipa service-del HTTP/{default_sat.hostname}',
+            cmd=f'ipa service-del HTTP/{target_sat.hostname}',
             hostname=settings.ipa.hostname,
         )
         run_command(
-            cmd=f'ipa host-del {default_sat.hostname}',
+            cmd=f'ipa host-del {target_sat.hostname}',
             hostname=settings.ipa.hostname,
         )
 
@@ -968,7 +968,7 @@ def test_single_sign_on_ldap_ipa_server(
 )
 @pytest.mark.destructive
 def test_single_sign_on_ldap_ad_server(
-    subscribe_satellite, enroll_ad_and_configure_external_auth, default_sat
+    subscribe_satellite, enroll_ad_and_configure_external_auth, target_sat
 ):
     """Verify the single sign-on functionality with external authentication
 
@@ -999,12 +999,12 @@ def test_single_sign_on_ldap_ad_server(
         # create the kerberos ticket for authentication
         run_command(f'echo {settings.ldap.password} | kinit {settings.ldap.username}')
         if is_open('BZ:1941997'):
-            curl_command = f'curl -k -u : --negotiate {default_sat.url}/users/extlogin'
+            curl_command = f'curl -k -u : --negotiate {target_sat.url}/users/extlogin'
         else:
-            curl_command = f'curl -k -u : --negotiate {default_sat.url}/users/extlogin/'
+            curl_command = f'curl -k -u : --negotiate {target_sat.url}/users/extlogin/'
         result = run_command(curl_command)
         assert 'redirected' in result
-        assert f'{default_sat.url}/hosts' in result
+        assert f'{target_sat.url}/hosts' in result
     finally:
         # resetting the settings to default for external auth
         run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800000)

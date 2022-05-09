@@ -27,7 +27,7 @@ CAPSULE_TARGET_VERSION = '6.10.z'
 
 
 @pytest.mark.tier4
-def test_positive_run_capsule_upgrade_playbook(capsule_configured, default_sat):
+def test_positive_run_capsule_upgrade_playbook(capsule_configured, target_sat):
     """Run Capsule Upgrade playbook against an External Capsule
 
     :id: 9ec6903d-2bb7-46a5-8002-afc74f06d83b
@@ -41,13 +41,13 @@ def test_positive_run_capsule_upgrade_playbook(capsule_configured, default_sat):
     :CaseImportance: Medium
     """
     template_id = (
-        default_sat.api.JobTemplate()
+        target_sat.api.JobTemplate()
         .search(query={'search': 'name="Capsule Upgrade Playbook"'})[0]
         .id
     )
 
-    capsule_configured.add_rex_key(satellite=default_sat)
-    job = default_sat.api.JobInvocation().run(
+    capsule_configured.add_rex_key(satellite=target_sat)
+    job = target_sat.api.JobInvocation().run(
         synchronous=False,
         data={
             'job_template_id': template_id,
@@ -60,23 +60,23 @@ def test_positive_run_capsule_upgrade_playbook(capsule_configured, default_sat):
         },
     )
     wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
-    result = default_sat.api.JobInvocation(id=job['id']).read()
+    result = target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
 
-    result = default_sat.execute('foreman-maintain health check')
+    result = target_sat.execute('satellite-maintain health check')
     assert result.status == 0
     for line in result.stdout:
         assert 'FAIL' not in line
 
-    result = default_sat.api.SmartProxy(
-        id=default_sat.api.SmartProxy(name=default_sat.hostname).search()[0].id
+    result = target_sat.api.SmartProxy(
+        id=target_sat.api.SmartProxy(name=target_sat.hostname).search()[0].id
     ).refresh()
     feature_list = [feat['name'] for feat in result['features']]
     assert {'Container_Gateway', 'Dynflow', 'SSH', 'Pulpcore', 'Templates'}.issubset(feature_list)
 
 
 @pytest.mark.destructive
-def test_negative_run_capsule_upgrade_playbook_on_satellite(default_sat):
+def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
     """Run Capsule Upgrade playbook against the Satellite itself
 
     :id: 99462a11-5133-415d-ba64-4354da539a34
@@ -90,16 +90,16 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(default_sat):
 
     :CaseImportance: Medium
     """
-    sat = default_sat.nailgun_host
+    sat = target_sat.nailgun_host
     template_id = (
-        default_sat.api.JobTemplate()
+        target_sat.api.JobTemplate()
         .search(query={'search': 'name="Capsule Upgrade Playbook"'})[0]
         .id
     )
 
-    default_sat.add_rex_key(satellite=default_sat)
+    target_sat.add_rex_key(satellite=target_sat)
     with pytest.raises(TaskFailedError) as error:
-        default_sat.api.JobInvocation().run(
+        target_sat.api.JobInvocation().run(
             data={
                 'job_template_id': template_id,
                 'inputs': {
@@ -111,12 +111,12 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(default_sat):
             }
         )
     assert 'A sub task failed' in error.value.args[0]
-    job = default_sat.api.JobInvocation().search(
+    job = target_sat.api.JobInvocation().search(
         query={'search': f'host={sat.name},status=failed,description="Capsule Upgrade Playbook"'}
     )[0]
     response = client.get(
-        f'{default_sat.url}/api/job_invocations/{job.id}/hosts/{sat.id}',
-        auth=(default_sat.username, default_sat.password),
+        f'{target_sat.url}/api/job_invocations/{job.id}/hosts/{sat.id}',
+        auth=(target_sat.username, target_sat.password),
         verify=False,
     )
     assert 'This playbook cannot be executed on a Satellite server.' in response.text

@@ -2588,7 +2588,7 @@ def test_positive_publish_with_repo_with_disabled_http(session, module_org):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthost, default_sat):
+def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthost, target_sat):
     """Attempt to subscribe a host to content view with custom repository
 
     :id: 715db997-707b-4868-b7cc-b6977fd6ac04
@@ -2608,7 +2608,7 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
         repositories=[SatelliteToolsRepository(), YumRepository(url=settings.repos.yum_0.url)],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
+    repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
     assert rhel7_contenthost.subscribed
     with session:
         session.organization.select(org.name)
@@ -2621,7 +2621,7 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
 
 
 @pytest.mark.tier3
-def test_positive_delete_with_kickstart_repo_and_host_group(session, default_sat):
+def test_positive_delete_with_kickstart_repo_and_host_group(session):
     """Check that Content View associated with kickstart repository and
     which is used by a host group can be removed from the system
 
@@ -2935,7 +2935,7 @@ def test_positive_rh_mixed_content_end_to_end(session, module_prod, module_org):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_errata_inc_update_list_package(session, default_sat):
+def test_positive_errata_inc_update_list_package(session):
     """Publish incremental update with a new errata for a custom repo
 
     :BZ: 1489778
@@ -2996,7 +2996,7 @@ def test_positive_errata_inc_update_list_package(session, default_sat):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_composite_child_inc_update(session, rhel7_contenthost, default_sat):
+def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_sat):
     """Incremental update with a new errata on a child content view should
     trigger incremental update of parent composite content view
 
@@ -3072,7 +3072,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, default
         f'hammer activation-key add-subscription --id {ak_id} '
         f'--subscription {product.name} --organization-id {org.id}'
     )
-    result = default_sat.execute(command)
+    result = target_sat.execute(command)
     assert result.status == 0
     # Create composite cv
     composite_cv = entities.ContentView(composite=True, organization=org).create()
@@ -3089,7 +3089,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, default
     entities.ActivationKey(
         id=content_data['activation_key']['id'], content_view=composite_cv
     ).update(['content_view'])
-    repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
+    repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
     result = rhel7_contenthost.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     with session:
@@ -3734,7 +3734,7 @@ def test_positive_depsolve_with_module_errata(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_filter_by_pkg_group_name(session, module_org, default_sat):
+def test_positive_filter_by_pkg_group_name(session, module_org, target_sat):
     """Publish a filtered version of a Content View, filtering on the package group's name.
 
     :id: c7021f46-0168-44f7-a863-4aa34533efdb
@@ -3750,10 +3750,10 @@ def test_positive_filter_by_pkg_group_name(session, module_org, default_sat):
     package_group = 'birds'
     expected_packages = [('cockateel'), ('duck'), ('penguin'), ('stork')]
     create_sync_custom_repo(module_org.id, repo_name=repo_name)
-    repo = default_sat.api.Repository(name=repo_name).search(
+    repo = target_sat.api.Repository(name=repo_name).search(
         query={'organization_id': module_org.id}
     )[0]
-    cv = default_sat.api.ContentView(organization=module_org, repository=[repo]).create()
+    cv = target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
     with session:
         session.contentviewfilter.create(
             cv.name,

@@ -37,7 +37,9 @@ class TestAzureRMComputeResourceTestCase:
 
     @pytest.mark.upgrade
     @pytest.mark.tier1
-    def test_positive_crud_azurerm_cr(self, module_org, module_location, azurerm_settings):
+    def test_positive_crud_azurerm_cr(
+        self, module_org, module_location, azurerm_settings, target_sat
+    ):
         """Create, Read, Update and Delete AzureRM compute resources
 
         :id: da081a1f-9614-4918-91cb-c900c40ac121
@@ -50,7 +52,7 @@ class TestAzureRMComputeResourceTestCase:
         """
         # Create CR
         cr_name = gen_string('alpha')
-        compresource = entities.AzureRMComputeResource(
+        compresource = target_sat.api.AzureRMComputeResource(
             name=cr_name,
             provider='AzureRm',
             tenant=azurerm_settings['tenant'],
@@ -79,7 +81,9 @@ class TestAzureRMComputeResourceTestCase:
 
         # Delete CR
         compresource.delete()
-        assert not entities.AzureRMComputeResource().search(query={'search': f'name={new_cr_name}'})
+        assert not target_sat.api.AzureRMComputeResource().search(
+            query={'search': f'name={new_cr_name}'}
+        )
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
@@ -221,7 +225,7 @@ class TestAzureRMHostProvisioningTestCase:
     @pytest.fixture(scope='class')
     def class_host_ft(
         self,
-        default_sat,
+        class_target_sat,
         azurermclient,
         module_azurerm_finishimg,
         module_azurerm_cr,
@@ -238,7 +242,9 @@ class TestAzureRMHostProvisioningTestCase:
         Later in tests this host will be used to perform assertions
         """
 
-        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
+        with class_target_sat.skip_yum_update_during_provisioning(
+            template='Kickstart default finish'
+        ):
             host = entities.Host(
                 architecture=default_architecture,
                 build=True,
@@ -370,7 +376,7 @@ class TestAzureRMUserDataProvisioning:
     @pytest.fixture(scope='class')
     def class_host_ud(
         self,
-        default_sat,
+        class_target_sat,
         azurermclient,
         module_azurerm_cloudimg,
         module_azurerm_cr,
@@ -387,7 +393,9 @@ class TestAzureRMUserDataProvisioning:
         Later in tests this host will be used to perform assertions
         """
 
-        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
+        with class_target_sat.skip_yum_update_during_provisioning(
+            template='Kickstart default finish'
+        ):
             host = entities.Host(
                 architecture=default_architecture,
                 build=True,
@@ -523,7 +531,7 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
     @pytest.fixture(scope='class')
     def class_host_gallery_ft(
         self,
-        default_sat,
+        class_target_sat,
         azurermclient,
         module_azurerm_gallery_finishimg,
         module_azurerm_cr,
@@ -540,7 +548,9 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
         Later in tests this host will be used to perform assertions
         """
 
-        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
+        with class_target_sat.skip_yum_update_during_provisioning(
+            template='Kickstart default finish'
+        ):
             host = entities.Host(
                 architecture=default_architecture,
                 build=True,
@@ -649,7 +659,7 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
     @pytest.fixture(scope='class')
     def class_host_custom_ft(
         self,
-        default_sat,
+        class_target_sat,
         azurermclient,
         module_azurerm_custom_finishimg,
         module_azurerm_cr,
@@ -666,7 +676,9 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         Later in tests this host will be used to perform assertions
         """
 
-        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
+        with class_target_sat.skip_yum_update_during_provisioning(
+            template='Kickstart default finish'
+        ):
             host = entities.Host(
                 architecture=default_architecture,
                 build=True,

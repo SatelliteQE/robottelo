@@ -71,9 +71,9 @@ from robottelo.hosts import ContentHostError
 
 
 @pytest.fixture(scope="module")
-def module_default_proxy(default_sat):
+def module_default_proxy(module_target_sat):
     """Use the default installation smart proxy"""
-    return Proxy.list({'search': f'url = {default_sat.url}:9090'})[0]
+    return module_target_sat.cli.Proxy.list({'search': f'url = {module_target_sat.url}:9090'})[0]
 
 
 @pytest.fixture(scope="function")
@@ -663,7 +663,7 @@ def test_positive_katello_and_openscap_loaded():
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_register_with_no_ak(
-    module_lce, module_org, module_promoted_cv, rhel7_contenthost, default_sat
+    module_lce, module_org, module_promoted_cv, rhel7_contenthost, target_sat
 ):
     """Register host to satellite without activation key
 
@@ -673,7 +673,7 @@ def test_positive_register_with_no_ak(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(
         module_org.label,
         lce=f'{module_lce.label}/{module_promoted_cv.label}',
@@ -683,7 +683,7 @@ def test_positive_register_with_no_ak(
 
 @pytest.mark.host_create
 @pytest.mark.tier3
-def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthost, default_sat):
+def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthost, target_sat):
     """Attempt to register a host twice to Satellite
 
     :id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
@@ -692,7 +692,7 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthos
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
     assert rhel7_contenthost.subscribed
     result = rhel7_contenthost.register_contenthost(
@@ -748,7 +748,7 @@ def test_positive_list_scparams(
 
 @pytest.mark.host_create
 @pytest.mark.tier3
-def test_positive_list(module_ak_with_cv, module_lce, module_org, rhel7_contenthost, default_sat):
+def test_positive_list(module_ak_with_cv, module_lce, module_org, rhel7_contenthost, target_sat):
     """List hosts for a given org
 
     :id: b9c056cd-11ca-4870-bac4-0ebc4a782cb0
@@ -757,7 +757,7 @@ def test_positive_list(module_ak_with_cv, module_lce, module_org, rhel7_contenth
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
     assert rhel7_contenthost.subscribed
     hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
@@ -768,7 +768,7 @@ def test_positive_list(module_ak_with_cv, module_lce, module_org, rhel7_contenth
 @pytest.mark.host_create
 @pytest.mark.tier3
 def test_positive_list_by_last_checkin(
-    module_lce, module_org, module_promoted_cv, rhel7_contenthost, default_sat
+    module_lce, module_org, module_promoted_cv, rhel7_contenthost, target_sat
 ):
     """List all content hosts using last checkin criteria
 
@@ -782,7 +782,7 @@ def test_positive_list_by_last_checkin(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(
         module_org.label,
         lce=f'{module_lce.label}/{module_promoted_cv.label}',
@@ -797,7 +797,7 @@ def test_positive_list_by_last_checkin(
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_unregister(
-    module_ak_with_cv, module_lce, module_org, rhel7_contenthost, default_sat
+    module_ak_with_cv, module_lce, module_org, rhel7_contenthost, target_sat
 ):
     """Unregister a host
 
@@ -809,7 +809,7 @@ def test_positive_unregister(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
     assert rhel7_contenthost.subscribed
     hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
@@ -1907,7 +1907,9 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
 
 @pytest.mark.katello_host_tools
 @pytest.mark.tier3
-def test_positive_install_package_via_rex(katello_host_tools_host, default_sat, setup_custom_repo):
+def test_positive_install_package_via_rex(
+    module_org, katello_host_tools_host, target_sat, setup_custom_repo
+):
     """Install a package to a host remotely using remote execution,
     install package using Katello SSH job template, host package list is used to verify that
 
@@ -1919,7 +1921,7 @@ def test_positive_install_package_via_rex(katello_host_tools_host, default_sat, 
     """
     client = katello_host_tools_host
     host_info = Host.info({'name': client.hostname})
-    client.configure_rex(satellite=default_sat, org=setup_custom_repo['org'], register=False)
+    client.configure_rex(satellite=target_sat, org=setup_custom_repo['org'], register=False)
     # Apply errata to the host collection using job invocation
     JobInvocation.create(
         {
@@ -1982,8 +1984,8 @@ def host_subscription(module_ak, module_cv, module_lce, module_org):
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.fixture(scope="function")
-def host_subscription_client(rhel7_contenthost, default_sat):
-    rhel7_contenthost.install_katello_ca(default_sat)
+def host_subscription_client(rhel7_contenthost, target_sat):
+    rhel7_contenthost.install_katello_ca(target_sat)
     yield rhel7_contenthost
 
 
@@ -2519,7 +2521,7 @@ def test_syspurpose_end_to_end(module_host_subscription, host_subscription_clien
 
 # -------------------------- HOST ERRATA SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.tier1
-def test_positive_errata_list_of_sat_server(default_sat):
+def test_positive_errata_list_of_sat_server(target_sat):
     """Check if errata list doesn't raise exception. Check BZ for details.
 
     :id: 6b22f0c0-9c4b-11e6-ab93-68f72889dc7f
@@ -2530,14 +2532,14 @@ def test_positive_errata_list_of_sat_server(default_sat):
 
     :CaseImportance: Critical
     """
-    hostname = default_sat.execute('hostname').stdout.strip()
+    hostname = target_sat.execute('hostname').stdout.strip()
     host = Host.info({'name': hostname})
     assert isinstance(Host.errata_list({'host-id': host['id']}), list)
 
 
 # -------------------------- HOST ENC SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.tier1
-def test_positive_dump_enc_yaml(default_sat):
+def test_positive_dump_enc_yaml(target_sat):
     """Dump host's ENC YAML. Check BZ for details.
 
     :id: 50bf2530-788c-4710-a382-d034d73d5d4d
@@ -2550,15 +2552,15 @@ def test_positive_dump_enc_yaml(default_sat):
 
     :CaseImportance: Critical
     """
-    enc_dump = Host.enc_dump({'name': default_sat.hostname})
-    assert f'fqdn: {default_sat.hostname}' in enc_dump
-    assert f'ip: {default_sat.ip_addr}' in enc_dump
+    enc_dump = Host.enc_dump({'name': target_sat.hostname})
+    assert f'fqdn: {target_sat.hostname}' in enc_dump
+    assert f'ip: {target_sat.ip_addr}' in enc_dump
     assert 'ssh-rsa' in enc_dump
 
 
 # -------------------------- HOST TRACE SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.tier3
-def test_positive_tracer_list_and_resolve(katello_host_tools_tracer_host, default_sat):
+def test_positive_tracer_list_and_resolve(katello_host_tools_tracer_host):
     """Install tracer on client, downgrade the service, check from the satellite
     that tracer shows and resolves the problem
 
