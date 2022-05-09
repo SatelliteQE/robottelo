@@ -23,7 +23,6 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from requests import HTTPError
 
-from robottelo.api.utils import delete_puppet_class
 from robottelo.config import settings
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import parametrized
@@ -74,7 +73,8 @@ def module_puppet(session_puppet_enabled_sat):
         .read()
     )
     yield {'env': env, 'class': puppet_class, 'sc_params': sc_params_list}
-    delete_puppet_class(puppet_class.name)
+    session_puppet_enabled_sat.delete_puppet_class(puppet_class.name)
+    session_puppet_enabled_sat.destroy_custom_environment(env_name)
 
 
 @pytest.mark.run_in_one_thread
@@ -612,3 +612,4 @@ class TestSmartClassParameters:
         ).create()
         hostgroup.add_puppetclass(data={'puppetclass_id': module_puppet['class'].id})
         assert len(sc_param.read().override_values) == 0
+        hostgroup.delete()
