@@ -405,10 +405,8 @@ class TestVirtwhoConfigforEsx:
             assert values['latest_config'] == 'No configuration found'
             # Check the 'Status' changed after deployed the virt-who config
             config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.name)
-            deploy_configure_by_command(
-                config_command, form_data['hypervisor_type'], org=default_org.label
-            )
+            config_command = get_configure_command(config_id, org_name)
+            deploy_configure_by_command(config_command, form_data['hypervisor_type'], org=org_name)
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             expected_values = [
                 {'Configuration Status': 'No Reports', 'Count': '0'},
