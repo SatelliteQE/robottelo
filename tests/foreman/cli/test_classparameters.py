@@ -16,7 +16,6 @@
 """
 import pytest
 
-from robottelo.api.utils import delete_puppet_class
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import add_role_permissions
 from robottelo.cli.factory import make_hostgroup
@@ -46,7 +45,8 @@ def module_puppet(session_puppet_enabled_sat, module_puppet_org, module_puppet_l
         .read()
     )
     yield {'env': env, 'class': puppet_class}
-    delete_puppet_class(puppet_class['name'])
+    session_puppet_enabled_sat.delete_puppet_class(puppet_class['name'])
+    session_puppet_enabled_sat.destroy_custom_environment(env_name)
 
 
 @pytest.fixture(scope='module')

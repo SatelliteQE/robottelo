@@ -111,44 +111,6 @@ def upload_manifest(organization_id, manifest):
     )
 
 
-def delete_puppet_class(
-    puppetclass_name, puppet_module=None, proxy_hostname=None, environment_name=None
-):
-    """Removes puppet class entity and uninstall puppet module from Capsule if
-    puppet module name and Capsule details provided.
-
-    :param str puppetclass_name: Name of the puppet class entity that should be
-        removed.
-    :param str puppet_module: Name of the module that should be
-        uninstalled via puppet.
-    :param str proxy_hostname: Hostname of the Capsule from which puppet module
-        should be removed.
-    :param str environment_name: Name of environment where puppet module was
-        imported.
-    """
-    # Find puppet class
-    puppet_classes = entities.PuppetClass().search(query={'search': f'name = "{puppetclass_name}"'})
-    # And all subclasses
-    puppet_classes.extend(
-        entities.PuppetClass().search(query={'search': f'name ~ "{puppetclass_name}::"'})
-    )
-    for puppet_class in puppet_classes:
-        # Search and remove puppet class from affected hostgroups
-        for hostgroup in puppet_class.read().hostgroup:
-            hostgroup.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
-        # Search and remove puppet class from affected hosts
-        for host in entities.Host().search(query={'search': f'class={puppet_class.name}'}):
-            host.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
-        # Remove puppet class entity
-        puppet_class.delete()
-    # And remove puppet module from the system if puppet_module name provided
-    if puppet_module and proxy_hostname and environment_name:
-        ssh.command(f'puppet module uninstall --force {puppet_module}')
-        env = entities.Environment().search(query={'search': f'name="{environment_name}"'})[0]
-        proxy = entities.SmartProxy(name=proxy_hostname).search()[0]
-        proxy.import_puppetclasses(environment=env)
-
-
 def create_sync_custom_repo(
     org_id=None,
     product_name=None,
