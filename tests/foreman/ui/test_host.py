@@ -1703,7 +1703,9 @@ def test_global_registration_upgrade_subscription_manager(
     client = rhel_contenthost
     repo_name = 'foreman_register'
     rhel_ver = rhel_contenthost.os_version.major
-    repo_url = settings.repos.get(f'rhel{rhel_ver}_os').baseos
+    repo_url = settings.repos.get(f'rhel{rhel_ver}_os')
+    if isinstance(repo_url, dict):
+        repo_url = repo_url['baseos']
     # Ensure subs-man is installed from repo_name by removing existing package.
     result = client.execute('rpm --erase --nodeps subscription-manager')
     assert result.status == 0
