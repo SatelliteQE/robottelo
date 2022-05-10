@@ -17,10 +17,6 @@
 import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import add_role_permissions
-from robottelo.cli.factory import make_hostgroup
-from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_user
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
 
@@ -93,7 +89,7 @@ class TestSmartClassParameters:
             environment=module_puppet['env'].name,
         ).create()
         host.add_puppetclass(data={'puppetclass_id': module_puppet['class']['id']})
-        hostgroup = make_hostgroup(
+        hostgroup = session_puppet_enabled_sat.cli_factory.make_hostgroup(
             {
                 'puppet-environment-id': module_puppet['env'].id,
                 'puppet-class-ids': module_puppet['class']['id'],
@@ -154,9 +150,14 @@ class TestSmartClassParameters:
                 ]
             },
         }
-        user = make_user({'admin': '0', 'password': password})
-        role = make_role()
-        add_role_permissions(role['id'], required_user_permissions)
+        user = session_puppet_enabled_sat.cli_factory.make_user(
+            {'admin': '0', 'password': password}
+        )
+        role = session_puppet_enabled_sat.cli_factory.make_role()
+        session_puppet_enabled_sat.cli_factory.add_role_permissions(
+            role['id'], required_user_permissions
+        )
+
         # Add the created and initiated role with permissions to user
         session_puppet_enabled_sat.cli.User.add_role({'id': user['id'], 'role-id': role['id']})
         sc_params = session_puppet_enabled_sat.cli.SmartClassParameter.with_user(

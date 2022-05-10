@@ -253,7 +253,8 @@ class CLIFactory:
         These are all basic cases where the make method just need some default values.
         For more complex make methods, we define them in methods below.
         """
-        if fields := ENTITY_FIELDS.get(name.replace('make_', '')):
+        fields = ENTITY_FIELDS.get(name.replace('make_', ''))
+        if isinstance(fields, dict):
             # someone is attempting to use a make_<entity> method
             if setup := fields.get('_setup'):
                 # check for an evaluate _setup fields
@@ -270,6 +271,8 @@ class CLIFactory:
             # evaluate functions that provide default values
             fields = self._evaluate_functions(fields)
             return partial(create_object, entity_cls, fields)
+        else:
+            raise CLIFactoryError(f'unknown factory method name: {name.replace("make_", "")}')
 
     def _evaluate_function(self, function):
         """Some functions may require an instance reference"""
@@ -1174,7 +1177,7 @@ class CLIFactory:
             # Create the current resource type role permissions
             options = {'role-id': role_id}
             options.update(permission_data)
-            self.make_filter(options=options)
+            self.make_filter(options)
 
     def setup_cdn_and_custom_repositories(
         self, org_id, repos, download_policy='on_demand', synchronize=True
