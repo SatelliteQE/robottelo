@@ -30,7 +30,7 @@ from robottelo.manifests import upload_manifest_locked
 from robottelo.products import RepositoryCollection
 from robottelo.products import YumRepository
 
-CUSTOM_REPO_ERRATA_ID = settings.repos.yum_0.errata[0]
+CUSTOM_REPO_ERRATA_ID = settings.repos.yum_0.errata[2]
 
 
 @pytest.fixture(scope='module')
