@@ -30,7 +30,7 @@ from robottelo.constants import DISTRO_RHEL8
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_list([8, 9])
+@pytest.mark.rhel_ver_list([9])
 def test_rhcloud_insights_e2e(
     rhel_insights_vm, organization_ak_setup, unset_rh_cloud_token, rhcloud_sat_host, fixable_rhel_vm
 ):
