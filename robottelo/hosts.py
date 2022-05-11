@@ -370,7 +370,11 @@ class ContentHost(Host):
         :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
             installed.
         """
-        self.execute(f'rpm -Uvh {satellite.url_katello_ca_rpm}')
+        self.execute(
+            f'curl --insecure --output katello-ca-consumer-latest.noarch.rpm \
+                    {satellite.url_katello_ca_rpm}'
+        )
+        self.execute('rpm -Uvh katello-ca-consumer-latest.noarch.rpm')
         # Not checking the status here, as rpm could be installed before
         # and installation may fail
         result = self.execute(f'rpm -q katello-ca-consumer-{satellite.hostname}')
