@@ -212,6 +212,7 @@ DOWNLOAD_POLICY_IMMEDIATE = 'immediate'
 DOWNLOAD_POLICY_BACKGROUND = 'background'
 
 PRODUCT_KEY_RHEL = 'rhel'
+PRODUCT_KEY_RHEL_EXTRAS = 'rhel7_extra'
 PRODUCT_KEY_SAT_TOOLS = 'rhst'
 PRODUCT_KEY_SAT_CAPSULE = 'rhsc'
 PRODUCT_KEY_VIRT_AGENTS = 'rhva6'
@@ -627,6 +628,12 @@ class RHELAnsibleEngineRepository(GenericRHRepository):
     """Red Hat Ansible Engine Repository"""
 
     _key = PRODUCT_KEY_ANSIBLE_ENGINE
+
+
+class RHELServerExtras(GenericRHRepository):
+    """Red Hat Server Extras Repository"""
+
+    _key = PRODUCT_KEY_RHEL_EXTRAS
 
 
 class RepositoryCollection:

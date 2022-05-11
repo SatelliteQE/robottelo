@@ -39,6 +39,7 @@ from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.datafactory import gen_string
 from robottelo.helpers import read_data_file
 from robottelo.hosts import get_sat_version
+from robottelo.products import RHELServerExtras
 from robottelo.products import SatelliteToolsRepository
 
 # from robottelo.constants.repos import FEDORA26_OSTREE_REPO
@@ -712,6 +713,33 @@ def test_positive_sync_ansible_collection_gallaxy_repo(session, module_prod):
         )
         result = session.repository.synchronize(module_prod.name, repo_name)
         assert result['result'] == 'success'
+
+
+@pytest.mark.tier2
+def test_positive_no_prodlog_errors_when_scan_repo(session, default_sat):
+    """Scan repos for RHEL Server Extras, then check the production log
+    for a specific error
+
+    :id: 443bf4af-7f9a-48b8-8f98-fdb170e8ae88
+
+    :expectedresults: The specific error isn't contained in the prod log
+
+    :BZ: 1994212
+
+    :CaseLevel: Integration
+    """
+    org = entities.Organization().create()
+    manifests.upload_manifest_locked(org.id)
+    sat_rpm_extras = RHELServerExtras(cdn=True)
+    with session:
+        session.organization.select(org.name)
+        session.redhatrepository.read(sat_rpm_extras.data['repository-set'])
+        result = default_sat.execute(
+            "cat /var/log/foreman/production.log | "
+            "grep \"Failed at scanning for repository: undefined method "
+            "`resolve_substitutions' for nil:NilClass\""
+        )
+        assert result.status == 1
 
 
 @pytest.mark.tier2
