@@ -83,8 +83,8 @@ def rhcloud_registered_hosts(organization_ak_setup, content_hosts, rhcloud_sat_h
     return content_hosts
 
 
-@pytest.fixture(scope='module')
-def rhel_insights_vm(rhcloud_sat_host, organization_ak_setup, module_rhel_contenthost):
+@pytest.fixture
+def rhel_insights_vm(rhcloud_sat_host, organization_ak_setup, rhel_contenthost):
     """A module-level fixture to create rhel8 content host registered with insights."""
     distro_repo_map = {
         7: DISTRO_RHEL7,
@@ -92,14 +92,14 @@ def rhel_insights_vm(rhcloud_sat_host, organization_ak_setup, module_rhel_conten
         9: DISTRO_RHEL9,
     }
     org, ak = organization_ak_setup
-    module_rhel_contenthost.configure_rex(satellite=rhcloud_sat_host, org=org, register=False)
-    module_rhel_contenthost.configure_rhai_client(
+    rhel_contenthost.configure_rex(satellite=rhcloud_sat_host, org=org, register=False)
+    rhel_contenthost.configure_rhai_client(
         satellite=rhcloud_sat_host,
         activation_key=ak.name,
         org=org.label,
-        rhel_distro=distro_repo_map.get(module_rhel_contenthost.os_version.major),
+        rhel_distro=distro_repo_map.get(rhel_contenthost.os_version.major),
     )
-    yield module_rhel_contenthost
+    yield rhel_contenthost
 
 
 @pytest.fixture
