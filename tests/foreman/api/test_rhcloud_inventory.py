@@ -103,8 +103,10 @@ def test_rhcloud_inventory_api_e2e(
     # Assert Hostnames, IP addresses, and installed packages are present in report.
     json_data = get_report_data(local_report_path)
     json_meta_data = get_report_metadata(local_report_path)
-    package_version = rhcloud_sat_host.run('rpm -qa --qf "%{VERSION}" tfm-rubygem-foreman_rh_cloud')
-
+    prefix = 'tfm-' if rhcloud_sat_host.os_version.major < 8 else ''
+    package_version = rhcloud_sat_host.run(
+        f'rpm -qa --qf "%{{VERSION}}" {prefix}rubygem-foreman_rh_cloud'
+    )
     assert json_meta_data['source_metadata']['foreman_rh_cloud_version'] == str(package_version)
     assert json_meta_data['source'] == 'Satellite'
     hostnames = [host['fqdn'] for host in json_data['hosts']]
