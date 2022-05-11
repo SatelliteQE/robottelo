@@ -5,6 +5,7 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_RHEL8
+from robottelo.constants import DISTRO_RHEL9
 from robottelo.helpers import file_downloader
 
 
@@ -83,22 +84,33 @@ def rhcloud_registered_hosts(organization_ak_setup, content_hosts, rhcloud_sat_h
 
 
 @pytest.fixture(scope='module')
-def rhel8_insights_vm(rhcloud_sat_host, organization_ak_setup, rhel8_contenthost_module):
+def rhel_insights_vm(rhcloud_sat_host, organization_ak_setup, module_rhel_contenthost):
     """A module-level fixture to create rhel8 content host registered with insights."""
+    distro_repo_map = {
+        7: DISTRO_RHEL7,
+        8: DISTRO_RHEL8,
+        9: DISTRO_RHEL9,
+    }
     org, ak = organization_ak_setup
-    rhel8_contenthost_module.configure_rex(satellite=rhcloud_sat_host, org=org, register=False)
-    rhel8_contenthost_module.configure_rhai_client(
-        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL8
+    module_rhel_contenthost.configure_rex(satellite=rhcloud_sat_host, org=org, register=False)
+    module_rhel_contenthost.configure_rhai_client(
+        satellite=rhcloud_sat_host,
+        activation_key=ak.name,
+        org=org.label,
+        rhel_distro=distro_repo_map.get(module_rhel_contenthost.os_version.major),
     )
-    yield rhel8_contenthost_module
+    yield module_rhel_contenthost
 
 
 @pytest.fixture
-def fixable_rhel8_vm(rhel8_insights_vm):
+def fixable_rhel_vm(rhel_insights_vm):
     """A function-level fixture to create dnf related insights recommendation for rhel8 host."""
-    rhel8_insights_vm.run('dnf update -y dnf')
-    rhel8_insights_vm.run('sed -i -e "/^best/d" /etc/dnf/dnf.conf')
-    rhel8_insights_vm.run('insights-client')
+
+    rhel_insights_vm.run('chmod 777 /etc/ssh/sshd_config;insights-client')
+    if rhel_insights_vm.os_version.major == 8:
+        rhel_insights_vm.run(
+            'dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client'
+        )
 
 
 @pytest.fixture

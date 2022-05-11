@@ -30,11 +30,9 @@ from robottelo.constants import DISTRO_RHEL8
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_list([8, 9])
 def test_rhcloud_insights_e2e(
-    rhel8_insights_vm,
-    organization_ak_setup,
-    unset_rh_cloud_token,
-    rhcloud_sat_host,
+    rhel_insights_vm, organization_ak_setup, unset_rh_cloud_token, rhcloud_sat_host, fixable_rhel_vm
 ):
     """Synchronize hits data from cloud, verify it is displayed in Satellite and run remediation.
 
@@ -44,15 +42,15 @@ def test_rhcloud_insights_e2e(
         1. Prepare misconfigured machine and upload its data to Insights.
         2. Add Cloud API key in Satellite.
         3. In Satellite UI, Configure -> Insights -> Add RH Cloud token and syns recommendations.
-        4. Run remediation for dnf.conf recommendation against rhel8 host.
+        4. Run remediation for "OpenSSH config permissions" recommendation against rhel8/rhel9 host.
         5. Assert that job completed successfully.
         6. Sync Insights recommendations.
         7. Search for previously remediated issue.
 
     :expectedresults:
-        1. Insights recommendation related to dnf.conf issue is listed for misconfigured machine.
+        1. Insights recommendation related to "OpenSSH config permissions" issue is listed for misconfigured machine.
         2. Remediation job finished successfully.
-        3. Insights recommendation related to dnf.conf issue is not listed.
+        3. Insights recommendation related to "OpenSSH config permissions" issue is not listed.
 
     :CaseImportance: Critical
 
@@ -65,12 +63,9 @@ def test_rhcloud_insights_e2e(
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
-    query = 'dnf.conf'
+    query = 'Decreased security: OpenSSH config permissions'
     job_query = (
-        f'Remote action: Insights remediations for selected issues on {rhel8_insights_vm.hostname}'
-    )
-    rhel8_insights_vm.run(
-        'dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client'
+        f'Remote action: Insights remediations for selected issues on {rhel_insights_vm.hostname}'
     )
     with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
@@ -90,11 +85,8 @@ def test_rhcloud_insights_e2e(
         # Workaround for alert message causing search to fail. See airgun issue 584.
         session.browser.refresh()
         result = session.cloudinsights.search(query)[0]
-        assert result['Hostname'] == rhel8_insights_vm.hostname
-        assert (
-            result['Recommendation'] == 'The dnf installs lower versions of packages when the '
-            '"best" option is not present in the /etc/dnf/dnf.conf'
-        )
+        assert result['Hostname'] == rhel_insights_vm.hostname
+        assert result['Recommendation'] == query
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.remediate(query)
         wait_for(
@@ -227,11 +219,9 @@ def test_host_sorting_based_on_recommendation_count():
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
+@pytest.mark.rhel_ver_list([8])
 def test_host_details_page(
-    rhel8_insights_vm,
-    organization_ak_setup,
-    set_rh_cloud_token,
-    rhcloud_sat_host,
+    rhel_insights_vm, organization_ak_setup, set_rh_cloud_token, rhcloud_sat_host, fixable_rhel_vm
 ):
     """Test host details page for host having insights recommendations.
 
@@ -264,9 +254,6 @@ def test_host_details_page(
     """
     org, ak = organization_ak_setup
     # Sync inventory status
-    rhel8_insights_vm.run(
-        'dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client'
-    )
     inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
     wait_for(
         lambda: rhcloud_sat_host.api.ForemanTask()
@@ -294,20 +281,20 @@ def test_host_details_page(
             silent_failure=True,
             handle_exception=True,
         )
-        result = session.host.host_status(rhel8_insights_vm.hostname)
+        result = session.host.host_status(rhel_insights_vm.hostname)
         assert 'Insights: Reporting' in result
         assert 'Inventory: Successfully uploaded to your RH cloud inventory' in result
-        result = session.host.search(rhel8_insights_vm.hostname)[0]
-        assert result['Name'] == rhel8_insights_vm.hostname
+        result = session.host.search(rhel_insights_vm.hostname)[0]
+        assert result['Name'] == rhel_insights_vm.hostname
         assert int(result['Recommendations']) > 0
-        values = session.host.get_details(rhel8_insights_vm.hostname)
+        values = session.host.get_details(rhel_insights_vm.hostname)
         # Note: Reading host properties adds 'clear' to original value.
         assert (
             values['properties']['properties_table']['Inventory']
             == 'Successfully uploaded to your RH cloud inventory clear'
         )
-        recommendations = session.host.read_insights_recommendations(rhel8_insights_vm.hostname)
-        assert recommendations[0]['Hostname'] == rhel8_insights_vm.hostname
+        recommendations = session.host.read_insights_recommendations(rhel_insights_vm.hostname)
+        assert recommendations[0]['Hostname'] == rhel_insights_vm.hostname
         assert int(result['Recommendations']) == len(recommendations)
 
 
@@ -315,7 +302,7 @@ def test_host_details_page(
 @pytest.mark.tier2
 def test_rh_cloud_insights_clean_statuses(
     rhel7_contenthost,
-    rhel8_insights_vm,
+    rhel8_contenthost,
     organization_ak_setup,
     rhcloud_sat_host,
 ):
@@ -343,12 +330,15 @@ def test_rh_cloud_insights_clean_statuses(
     rhel7_contenthost.configure_rhai_client(
         satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL7
     )
+    rhel8_contenthost.configure_rhai_client(
+        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL7
+    )
     with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         values = session.host.get_details(rhel7_contenthost.hostname)
         assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
-        values = session.host.get_details(rhel8_insights_vm.hostname)
+        values = session.host.get_details(rhel8_contenthost.hostname)
         assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
         # Clean insights status
         result = rhcloud_sat_host.run(
@@ -359,7 +349,7 @@ def test_rh_cloud_insights_clean_statuses(
         values = session.host.get_details(rhel7_contenthost.hostname)
         with pytest.raises(KeyError):
             values['properties']['properties_table']['Insights']
-        values = session.host.get_details(rhel8_insights_vm.hostname)
+        values = session.host.get_details(rhel8_contenthost.hostname)
         assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
         result = rhel7_contenthost.run('insights-client')
         assert result.status == 0
@@ -454,8 +444,9 @@ def test_delete_host_having_insights_recommendation(
 
 
 @pytest.mark.tier2
+@pytest.mark.rhel_ver_list([8])
 def test_insights_tab_on_host_details_page(
-    rhel8_insights_vm,
+    rhel_insights_vm,
     organization_ak_setup,
     set_rh_cloud_token,
     rhcloud_sat_host,
@@ -487,10 +478,6 @@ def test_insights_tab_on_host_details_page(
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
-    # Prepare misconfigured machine and upload its data to Insights.
-    rhel8_insights_vm.run(
-        'dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client'
-    )
     dnf_issue = (
         'The dnf installs lower versions of packages when the '
         '"best" option is not present in the /etc/dnf/dnf.conf'
@@ -511,10 +498,10 @@ def test_insights_tab_on_host_details_page(
             silent_failure=True,
             handle_exception=True,
         )
-        result = session.host.search(rhel8_insights_vm.hostname)[0]
-        assert result['Name'] == rhel8_insights_vm.hostname
+        result = session.host.search(rhel_insights_vm.hostname)[0]
+        assert result['Name'] == rhel_insights_vm.hostname
         assert int(result['Recommendations']) > 0
-        insights_recommendations = session.host.insights_tab(rhel8_insights_vm.hostname)
+        insights_recommendations = session.host.insights_tab(rhel_insights_vm.hostname)
         for recommendation in insights_recommendations:
             if recommendation['name'] == dnf_issue:
                 assert recommendation['label'] == 'Moderate'

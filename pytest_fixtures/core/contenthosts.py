@@ -43,6 +43,15 @@ def rhel_contenthost(request):
         yield host
 
 
+@pytest.fixture(scope='module')
+def module_rhel_contenthost(rhel_contenthost):
+    """A module-level fixture that provides a content host object parametrized"""
+    # Request should be parametrized through pytest_fixtures.fixture_markers
+    # unpack params dict
+    with VMBroker(**host_conf(rhel_contenthost), host_classes={'host': ContentHost}) as host:
+        yield host
+
+
 @pytest.fixture(params=[{'rhel_version': '7'}])
 def rhel7_contenthost(request):
     """A function-level fixture that provides a rhel7 content host object"""
