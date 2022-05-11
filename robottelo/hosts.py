@@ -383,7 +383,7 @@ class ContentHost(Host, ContentHostMixins):
         # Checking the status here to verify katello-ca rpm is actually
         # present in the system
         if result.status != 0:
-            ContentHostError('Failed to download and install the katello-ca rpm')
+            raise ContentHostError('Failed to download and install the katello-ca rpm')
 
     def remove_katello_ca(self):
         """Removes katello-ca rpm from the broker virtual machine.
