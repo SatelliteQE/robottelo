@@ -859,7 +859,7 @@ def test_positive_delete_subscription(module_manifest_org):
     ak_subs_info = ActivationKey.subscriptions(
         {'id': new_ak['id'], 'organization-id': module_manifest_org.id}
     )
-    assert len(ak_subs_info) == 6
+    assert subscription_result[-1]['name'] in ak_subs_info
     result = ActivationKey.remove_subscription(
         {'id': new_ak['id'], 'subscription-id': subscription_result[-1]['id']}
     )
@@ -867,7 +867,7 @@ def test_positive_delete_subscription(module_manifest_org):
     ak_subs_info = ActivationKey.subscriptions(
         {'id': new_ak['id'], 'organization-id': module_manifest_org.id}
     )
-    assert len(ak_subs_info) == 4
+    assert subscription_result[-1]['name'] not in ak_subs_info
 
 
 @pytest.mark.skip_if_not_set('clients')
