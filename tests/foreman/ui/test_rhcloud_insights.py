@@ -30,9 +30,9 @@ from robottelo.constants import DISTRO_RHEL8
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_list([9])
+@pytest.mark.rhel_ver_list([8, 9])
 def test_rhcloud_insights_e2e(
-    rhel_insights_vm, organization_ak_setup, unset_rh_cloud_token, rhcloud_sat_host, fixable_rhel_vm
+    rhel_insights_vm, organization_ak_setup, unset_rh_cloud_token, rhcloud_sat_host
 ):
     """Synchronize hits data from cloud, verify it is displayed in Satellite and run remediation.
 
@@ -48,7 +48,8 @@ def test_rhcloud_insights_e2e(
         7. Search for previously remediated issue.
 
     :expectedresults:
-        1. Insights recommendation related to "OpenSSH config permissions" issue is listed for misconfigured machine.
+        1. Insights recommendation related to "OpenSSH config permissions" issue is listed
+            for misconfigured machine.
         2. Remediation job finished successfully.
         3. Insights recommendation related to "OpenSSH config permissions" issue is not listed.
 
@@ -221,7 +222,7 @@ def test_host_sorting_based_on_recommendation_count():
 @pytest.mark.tier2
 @pytest.mark.rhel_ver_list([8])
 def test_host_details_page(
-    rhel_insights_vm, organization_ak_setup, set_rh_cloud_token, rhcloud_sat_host, fixable_rhel_vm
+    rhel_insights_vm, organization_ak_setup, set_rh_cloud_token, rhcloud_sat_host
 ):
     """Test host details page for host having insights recommendations.
 
@@ -331,7 +332,7 @@ def test_rh_cloud_insights_clean_statuses(
         satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL7
     )
     rhel8_contenthost.configure_rhai_client(
-        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL7
+        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL8
     )
     with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
@@ -359,8 +360,9 @@ def test_rh_cloud_insights_clean_statuses(
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
+@pytest.mark.rhel_ver_list([8])
 def test_delete_host_having_insights_recommendation(
-    rhel8_contenthost,
+    rhel_insights_vm,
     organization_ak_setup,
     set_rh_cloud_token,
     rhcloud_sat_host,
@@ -392,12 +394,6 @@ def test_delete_host_having_insights_recommendation(
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
-    rhel8_contenthost.configure_rhai_client(
-        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL8
-    )
-    rhel8_contenthost.run(
-        'dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client'
-    )
     # Sync inventory status
     inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
     wait_for(
@@ -426,10 +422,10 @@ def test_delete_host_having_insights_recommendation(
             silent_failure=True,
             handle_exception=True,
         )
-        result = session.host.search(rhel8_contenthost.hostname)[0]
-        assert result['Name'] == rhel8_contenthost.hostname
+        result = session.host.search(rhel_insights_vm.hostname)[0]
+        assert result['Name'] == rhel_insights_vm.hostname
         assert int(result['Recommendations']) > 0
-        values = session.host.get_details(rhel8_contenthost.hostname)
+        values = session.host.get_details(rhel_insights_vm.hostname)
         # Note: Reading host properties adds 'clear' to original value.
         assert (
             values['properties']['properties_table']['Inventory']
@@ -437,9 +433,9 @@ def test_delete_host_having_insights_recommendation(
         )
         assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
         # Delete host
-        session.host.delete(rhel8_contenthost.hostname)
+        session.host.delete(rhel_insights_vm.hostname)
         assert not rhcloud_sat_host.api.Host().search(
-            query={'search': f'name="{rhel8_contenthost.hostname}"'}
+            query={'search': f'name="{rhel_insights_vm.hostname}"'}
         )
 
 

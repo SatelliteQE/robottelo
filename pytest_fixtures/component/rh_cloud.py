@@ -99,18 +99,13 @@ def rhel_insights_vm(rhcloud_sat_host, organization_ak_setup, rhel_contenthost):
         org=org.label,
         rhel_distro=distro_repo_map.get(rhel_contenthost.os_version.major),
     )
-    yield rhel_contenthost
-
-
-@pytest.fixture
-def fixable_rhel_vm(rhel_insights_vm):
-    """A function-level fixture to create dnf related insights recommendation for rhel8 host."""
-
-    rhel_insights_vm.run('chmod 777 /etc/ssh/sshd_config;insights-client')
-    if rhel_insights_vm.os_version.major == 8:
-        rhel_insights_vm.run(
+    # Create a vulnerability which can be remediated
+    rhel_contenthost.run('chmod 777 /etc/ssh/sshd_config;insights-client')
+    if rhel_contenthost.os_version.major == 8:
+        rhel_contenthost.run(
             'dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client'
         )
+    yield rhel_contenthost
 
 
 @pytest.fixture
