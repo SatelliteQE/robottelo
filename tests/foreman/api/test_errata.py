@@ -33,6 +33,9 @@ from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DISTRO_RHEL8
+from robottelo.constants import DISTRO_RHEL9
 from robottelo.hosts import ContentHost
 from robottelo.products import RepositoryCollection
 from robottelo.products import YumRepository
@@ -168,7 +171,8 @@ def _fetch_available_errata(module_org, host, expected_amount, timeout=120):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_install_in_hc(module_org, activation_key, custom_repo, default_sat):
+@pytest.mark.parametrize('distro', [DISTRO_RHEL9, DISTRO_RHEL8, DISTRO_RHEL7])
+def test_positive_install_in_hc(module_org, activation_key, custom_repo, default_sat, distro):
     """Install errata in a host-collection
 
     :id: 6f0242df-6511-4c0f-95fc-3fa32c63a064
@@ -183,9 +187,7 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, default
 
     :BZ: 1983043
     """
-    with VMBroker(
-        nick=constants.DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=2
-    ) as clients:
+    with VMBroker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
             client.install_katello_ca(default_sat)
             client.register_contenthost(module_org.label, activation_key.name)
@@ -222,8 +224,9 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, default
 
 
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_list([7, 8, 9])
 def test_positive_install_in_host(
-    module_org, activation_key, custom_repo, rhel7_contenthost, default_sat
+    module_org, activation_key, custom_repo, rhel_contenthost, default_sat
 ):
     """Install errata in a host
 
@@ -241,23 +244,23 @@ def test_positive_install_in_host(
 
     :BZ: 1983043
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
-    assert rhel7_contenthost.subscribed
-    host_id = rhel7_contenthost.nailgun_host.id
+    rhel_contenthost.install_katello_ca(default_sat)
+    rhel_contenthost.register_contenthost(module_org.label, activation_key.name)
+    assert rhel_contenthost.subscribed
+    host_id = rhel_contenthost.nailgun_host.id
     _install_package(
         module_org,
-        clients=[rhel7_contenthost],
+        clients=[rhel_contenthost],
         host_ids=[host_id],
         package_name=constants.FAKE_1_CUSTOM_PACKAGE,
     )
-    rhel7_contenthost.add_rex_key(satellite=default_sat)
+    rhel_contenthost.add_rex_key(satellite=default_sat)
     task_id = default_sat.api.JobInvocation().run(
         data={
             'feature': 'katello_errata_install',
             'inputs': {'errata': str(CUSTOM_REPO_ERRATA_ID)},
             'targeting_type': 'static_query',
-            'search_query': f'name = {rhel7_contenthost.hostname}',
+            'search_query': f'name = {rhel_contenthost.hostname}',
             'organization_id': module_org.id,
         },
     )['id']
@@ -266,12 +269,13 @@ def test_positive_install_in_host(
         search_rate=15,
         max_tries=10,
     )
-    _validate_package_installed([rhel7_contenthost], constants.FAKE_2_CUSTOM_PACKAGE)
+    _validate_package_installed([rhel_contenthost], constants.FAKE_2_CUSTOM_PACKAGE)
 
 
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_list([7])
 def test_positive_install_multiple_in_host(
-    module_org, activation_key, custom_repo, rhel7_contenthost, default_sat
+    module_org, activation_key, custom_repo, rhel_contenthost, default_sat
 ):
     """For a host with multiple applicable errata install one and ensure
     the rest of errata is still available
@@ -292,25 +296,25 @@ def test_positive_install_multiple_in_host(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
-    assert rhel7_contenthost.subscribed
-    host = rhel7_contenthost.nailgun_host
+    rhel_contenthost.install_katello_ca(default_sat)
+    rhel_contenthost.register_contenthost(module_org.label, activation_key.name)
+    assert rhel_contenthost.subscribed
+    host = rhel_contenthost.nailgun_host
     for package in constants.FAKE_9_YUM_OUTDATED_PACKAGES:
         _install_package(
-            module_org, clients=[rhel7_contenthost], host_ids=[host.id], package_name=package
+            module_org, clients=[rhel_contenthost], host_ids=[host.id], package_name=package
         )
     host = host.read()
     applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
     assert applicable_errata_count > 1
-    rhel7_contenthost.add_rex_key(satellite=default_sat)
+    rhel_contenthost.add_rex_key(satellite=default_sat)
     for errata in settings.repos.yum_9.errata[1:4]:
         task_id = default_sat.api.JobInvocation().run(
             data={
                 'feature': 'katello_errata_install',
                 'inputs': {'errata': str(errata)},
                 'targeting_type': 'static_query',
-                'search_query': f'name = {rhel7_contenthost.hostname}',
+                'search_query': f'name = {rhel_contenthost.hostname}',
                 'organization_id': module_org.id,
             },
         )['id']
@@ -617,6 +621,7 @@ def test_positive_get_diff_for_cv_envs():
 
 @pytest.mark.skip_if_open("BZ:2013093")
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_list([7, 8, 9])
 def test_positive_incremental_update_required(
     module_org,
     module_lce,
@@ -624,7 +629,7 @@ def test_positive_incremental_update_required(
     module_cv,
     custom_repo,
     rh_repo,
-    rhel7_contenthost,
+    rhel_contenthost,
     default_sat,
 ):
     """Given a set of hosts and errata, check for content view version
@@ -657,16 +662,14 @@ def test_positive_incremental_update_required(
 
     :BZ: 2013093
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
-    assert rhel7_contenthost.subscribed
-    rhel7_contenthost.enable_repo(constants.REPOS['rhst7']['id'])
-    rhel7_contenthost.install_katello_agent()
-    host = rhel7_contenthost.nailgun_host
+    rhel_contenthost.install_katello_ca(default_sat)
+    rhel_contenthost.register_contenthost(module_org.label, activation_key.name)
+    assert rhel_contenthost.subscribed
+    host = rhel_contenthost.nailgun_host
     # install package to create demand for an Erratum
     _install_package(
         module_org,
-        [rhel7_contenthost],
+        [rhel_contenthost],
         [host.id],
         constants.FAKE_1_CUSTOM_PACKAGE,
         via_ssh=True,
