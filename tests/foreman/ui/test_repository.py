@@ -840,6 +840,54 @@ def test_positive_delete_random_docker_repo(session, module_org):
 
 
 @pytest.mark.tier2
+def test_positive_delete_rhel_repo(session, module_org):
+    """Enable and sync a Red Hat Repository, and then delete it
+
+    :id: e96f369d-3e58-4824-802e-0b7e99d6d207
+
+    :customerscenario: true
+
+    :expectedresults: Repository can be successfully deleted
+
+    :CaseLevel: Integration
+
+    :BZ: 1152672
+    """
+
+    manifests.upload_manifest_locked(module_org.id)
+    sat_tools_repo = SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
+    repository_name = sat_tools_repo.data['repository']
+    product_name = sat_tools_repo.data['product']
+    with session:
+        session.organization.select(module_org.name)
+        session.redhatrepository.enable(
+            sat_tools_repo.data['repository-set'],
+            sat_tools_repo.data['arch'],
+            version=sat_tools_repo.data['releasever'],
+        )
+        results = session.redhatrepository.search(f'name = "{repository_name}"', category='Enabled')
+        assert results[0]['name'] == repository_name
+        results = session.sync_status.synchronize(
+            [
+                (
+                    sat_tools_repo.data['product'],
+                    sat_tools_repo.data['releasever'],
+                    sat_tools_repo.data['arch'],
+                    repository_name,
+                )
+            ]
+        )
+        assert results and all([result == 'Syncing Complete.' for result in results])
+        session.repository.delete(product_name, repository_name)
+        assert not session.redhatrepository.search(
+            f'name = "{repository_name}"', category='Enabled'
+        )
+        assert (
+            'Your search returned zero Products' in session.product.search(product_name)[0]['Name']
+        )
+
+
+@pytest.mark.tier2
 def test_positive_recommended_repos(session, module_org):
     """list recommended repositories using
      On/Off 'Recommended Repositories' toggle.
