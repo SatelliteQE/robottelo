@@ -3,7 +3,6 @@ from fauxfactory import gen_string
 
 from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.proxy import CapsuleTunnelError
-from robottelo.config import settings
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
 
@@ -12,7 +11,7 @@ from robottelo.helpers import get_available_capsule_port
 def default_smart_proxy(default_sat):
     smart_proxy = (
         default_sat.api.SmartProxy()
-        .search(query={'search': f'name={settings.server.hostname}'})[0]
+        .search(query={'search': f'name={default_sat.hostname}'})[0]
         .read()
     )
     return default_sat.api.SmartProxy(id=smart_proxy.id).read()

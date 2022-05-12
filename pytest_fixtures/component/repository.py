@@ -3,6 +3,7 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
+from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import PRDS
@@ -16,8 +17,8 @@ def function_product(function_org):
 
 
 @pytest.fixture(scope='module')
-def module_product(module_org):
-    return entities.Product(organization=module_org).create()
+def module_product(module_org, default_sat):
+    return default_sat.api.Product(organization=module_org).create()
 
 
 @pytest.fixture(scope='module')
@@ -51,3 +52,10 @@ def repo_setup():
     lce = entities.LifecycleEnvironment(organization=org).create()
     details = {'org': org, 'product': product, 'repo': repo, 'lce': lce}
     yield details
+
+
+@pytest.fixture(scope='module')
+def module_repository(os_path, module_product, default_sat):
+    repo = default_sat.api.Repository(product=module_product, url=os_path).create()
+    call_entity_method_with_timeout(default_sat.api.Repository(id=repo.id).sync, timeout=3600)
+    return repo

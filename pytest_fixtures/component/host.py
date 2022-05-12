@@ -8,6 +8,11 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 
 
+@pytest.fixture(scope='function')
+def function_host(default_sat):
+    return default_sat.api.Host().create()
+
+
 @pytest.fixture(scope='module')
 def module_host():
     return entities.Host().create()

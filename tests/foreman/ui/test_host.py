@@ -32,7 +32,6 @@ from wait_for import wait_for
 
 from robottelo import constants
 from robottelo import manifests
-from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import cv_publish_promote
 from robottelo.api.utils import promote
@@ -40,9 +39,7 @@ from robottelo.api.utils import upload_manifest
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
-from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
-from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
@@ -51,8 +48,6 @@ from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import REPO_TYPE
-from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.constants import RHEL_8_MAJOR_VERSION
 from robottelo.datafactory import gen_string
 from robottelo.ui.utils import create_fake_host
 
@@ -114,55 +109,6 @@ def module_host_template(module_org, smart_proxy_location, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def default_partition_table(module_target_sat):
-    # Get the Partition table ID
-    return module_target_sat.api.PartitionTable().search(query={'search': f'name="{DEFAULT_PTABLE}"'})[0]
-
-
-@pytest.fixture(scope='module')
-def default_architecture(module_target_sat):
-    # Get the architecture ID
-    return module_target_sat.api.Architecture().search(
-        query={'search': f'name="{DEFAULT_ARCHITECTURE}"'}
-    )[0]
-
-
-@pytest.fixture(scope='module')
-def module_os(
-    default_architecture, default_partition_table, module_org, smart_proxy_location, module_target_sat
-):
-    # Get the OS ID
-    os = module_target_sat.api.OperatingSystem().search(
-        query={'search': 'name="RedHat" AND major="7"'}
-    ) or module_target_sat.api.OperatingSystem().search(query={'search': 'name="RedHat" AND major="8"'})
-    os = os[0].read()
-    return os
-
-
-@pytest.fixture(scope='module')
-def os_path(module_os):
-    # Check what OS was found to use correct media
-    if module_os.major == str(RHEL_7_MAJOR_VERSION):
-        os_distr_url = settings.repos.rhel6_os
-    elif module_os.major == str(RHEL_8_MAJOR_VERSION):
-        os_distr_url = settings.repos.rhel7_os
-    else:
-        raise ValueError('Proposed RHEL version is not supported')
-    return os_distr_url
-
-
-@pytest.fixture(scope='module')
-def module_proxy(module_org, smart_proxy_location, module_target_sat):
-    # Search for SmartProxy, and associate organization/location
-    proxy = (
-        module_target_sat.api.SmartProxy()
-        .search(query={'search': f'name={module_target_sat.hostname}'})[0]
-        .read()
-    )
-    return proxy
-
-
-@pytest.fixture(scope='module')
 def module_libvirt_resource(module_org, smart_proxy_location, module_target_sat):
     # Search if Libvirt compute-resource already exists
     # If so, just update its relevant fields otherwise,
@@ -192,27 +138,16 @@ def module_libvirt_resource(module_org, smart_proxy_location, module_target_sat)
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_domain(module_org, smart_proxy_location, module_proxy, module_target_sat):
-    # Search for existing domain or create new otherwise. Associate org,
-    # location and dns to it
-    _, _, domain = module_target_sat.hostname.partition('.')
-    domain = module_target_sat.api.Domain().search(query={'search': f'name="{domain}"'})
-    if len(domain) > 0:
-        domain = domain[0].read()
-        domain.location.append(smart_proxy_location)
-        domain.organization.append(module_org)
-        domain.dns = module_proxy
-        domain = domain.update(['dns', 'location', 'organization'])
-    else:
-        domain = module_target_sat.api.Domain(
-            dns=module_proxy, location=[smart_proxy_location], organization=[module_org]
-        ).create()
-    return domain
+def module_libvirt_domain(module_org, smart_proxy_location, default_domain):
+    default_domain.location.append(smart_proxy_location)
+    default_domain.organization.append(module_org)
+    default_domain.update(['location', 'organization'])
+    return default_domain
 
 
 @pytest.fixture(scope='module')
 def module_libvirt_subnet(
-    module_org, smart_proxy_location, module_libvirt_domain, module_proxy, module_target_sat
+    module_org, smart_proxy_location, module_libvirt_domain, default_smart_proxy, module_target_sat
 ):
     # Search if subnet is defined with given network.
     # If so, just update its relevant fields otherwise,
@@ -224,11 +159,11 @@ def module_libvirt_subnet(
         subnet.domain.append(module_libvirt_domain)
         subnet.location.append(smart_proxy_location)
         subnet.organization.append(module_org)
-        subnet.dns = module_proxy
-        subnet.dhcp = module_proxy
+        subnet.dns = default_smart_proxy
+        subnet.dhcp = default_smart_proxy
         subnet.ipam = 'DHCP'
-        subnet.tftp = module_proxy
-        subnet.discovery = module_proxy
+        subnet.tftp = default_smart_proxy
+        subnet.discovery = default_smart_proxy
         subnet = subnet.update(
             ['domain', 'discovery', 'dhcp', 'dns', 'ipam', 'location', 'organization', 'tftp']
         )
@@ -241,40 +176,23 @@ def module_libvirt_subnet(
             organization=[module_org],
             domain=[module_libvirt_domain],
             ipam='DHCP',
-            dns=module_proxy,
-            dhcp=module_proxy,
-            tftp=module_proxy,
-            discovery=module_proxy,
+            dns=default_smart_proxy,
+            dhcp=default_smart_proxy,
+            tftp=default_smart_proxy,
+            discovery=default_smart_proxy,
         ).create()
     return subnet
 
 
 @pytest.fixture(scope='module')
-def module_lce(module_org, module_target_sat):
-    return module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
-
-
-@pytest.fixture(scope='module')
-def module_product(module_org, module_target_sat):
-    return module_target_sat.api.Product(organization=module_org).create()
-
-
-@pytest.fixture(scope='module')
-def module_repository(os_path, module_product, module_target_sat):
-    repo = module_target_sat.api.Repository(product=module_product, url=os_path).create()
-    call_entity_method_with_timeout(module_target_sat.api.Repository(id=repo.id).sync, timeout=3600)
-    return repo
-
-
-@pytest.fixture(scope='module')
-def module_libvirt_media(module_org, smart_proxy_location, os_path, module_os, module_target_sat):
+def module_libvirt_media(module_org, smart_proxy_location, os_path, default_os, module_target_sat):
     media = module_target_sat.api.Media().search(query={'search': f'path="{os_path}"'})
     if len(media) > 0:
         # Media with this path already exist, make sure it is correct
         media = media[0].read()
         media.organization.append(module_org)
         media.location.append(smart_proxy_location)
-        media.operatingsystem.append(module_os)
+        media.operatingsystem.append(default_os)
         media.os_family = 'Redhat'
         media = media.update(['organization', 'location', 'operatingsystem', 'os_family'])
     else:
@@ -282,23 +200,11 @@ def module_libvirt_media(module_org, smart_proxy_location, os_path, module_os, m
         media = module_target_sat.api.Media(
             organization=[module_org],
             location=[smart_proxy_location],
-            operatingsystem=[module_os],
+            operatingsystem=[default_os],
             path_=os_path,
             os_family='Redhat',
         ).create()
     return media
-
-
-@pytest.fixture(scope='module')
-def module_content_view(module_org, module_repository, module_lce, module_target_sat):
-    # Create, Publish and promote CV
-    content_view = module_target_sat.api.ContentView(organization=module_org).create()
-    content_view.repository = [module_repository]
-    content_view = content_view.update(['repository'])
-    call_entity_method_with_timeout(content_view.publish, timeout=3600)
-    content_view = content_view.read()
-    promote(content_view.version[0], module_lce.id)
-    return content_view
 
 
 @pytest.fixture(scope='module')
@@ -307,10 +213,10 @@ def module_libvirt_hostgroup(
     smart_proxy_location,
     default_partition_table,
     default_architecture,
-    module_os,
+    default_os,
     module_libvirt_media,
     module_libvirt_subnet,
-    module_proxy,
+    default_smart_proxy,
     module_libvirt_domain,
     module_lce,
     module_content_view,
@@ -323,7 +229,7 @@ def module_libvirt_hostgroup(
         lifecycle_environment=module_lce,
         content_view=module_content_view,
         location=[smart_proxy_location],
-        operatingsystem=module_os,
+        operatingsystem=default_os,
         organization=[module_org],
         ptable=default_partition_table,
         medium=module_libvirt_media,
@@ -361,26 +267,15 @@ def module_activation_key(manifest_org, module_target_sat):
 
 
 @pytest.fixture(scope='function')
-def remove_vm_on_delete(target_sat):
-    target_sat.api.Setting(
-        id='destroy_vm_on_host_delete',
-        value='true',
-    ).update(['value'])
+def remove_vm_on_delete(target_sat, setting_update):
+    setting_update.value = 'true'
+    setting_update.update({'value'})
     assert (
         target_sat.api.Setting()
         .search(query={'search': 'name=destroy_vm_on_host_delete'})[0]
         .value
     )
     yield
-    target_sat.api.Setting(
-        id='destroy_vm_on_host_delete',
-        value='false',
-    ).update(['value'])
-    assert (
-        not target_sat.api.Setting()
-        .search(query={'search': 'name=destroy_vm_on_host_delete'})[0]
-        .value
-    )
 
 
 @pytest.mark.tier2
@@ -529,89 +424,10 @@ def test_positive_read_from_edit_page(session, module_host_template):
         assert values['additional_information']['enabled'] is True
 
 
-@pytest.mark.tier3
-def test_positive_inherit_puppet_env_from_host_group_when_action(session, target_sat):
-    """Host group puppet environment is inherited to already created
-    host when corresponding action is applied to that host
-
-    :id: 3f5af54e-e259-46ad-a2af-7dc1850891f5
-
-    :customerscenario: true
-
-    :expectedresults: Expected puppet environment is inherited to the host
-
-    :BZ: 1414914
-
-    :CaseLevel: System
-    """
-    org = target_sat.api.Organization().create()
-    loc = target_sat.api.Location().create()
-    host = target_sat.api.Host(organization=org, location=loc).create()
-    env = target_sat.api.Environment(organization=[org], location=[loc]).create()
-    hostgroup = target_sat.api.HostGroup(
-        environment=env, organization=[org], location=[loc]
-    ).create()
-    with session:
-        session.organization.select(org_name=org.name)
-        session.location.select(loc_name=loc.name)
-        session.host.apply_action(
-            'Change Environment', [host.name], {'environment': '*Clear environment*'}
-        )
-        host_values = session.host.search(host.name)
-        assert host_values[0]['Host group'] == ''
-        assert host_values[0]['Puppet Environment'] == ''
-        session.host.apply_action('Change Group', [host.name], {'host_group': hostgroup.name})
-        host_values = session.host.search(host.name)
-        assert host_values[0]['Host group'] == hostgroup.name
-        assert host_values[0]['Puppet Environment'] == ''
-        session.host.apply_action(
-            'Change Environment', [host.name], {'environment': '*Inherit from host group*'}
-        )
-        host_values = session.host.search(host.name)
-        assert host_values[0]['Puppet Environment'] == env.name
-        values = session.host.read(host.name, widget_names='host')
-        assert values['host']['hostgroup'] == hostgroup.name
-        assert values['host']['puppet_environment'] == env.name
-
-
-@pytest.mark.tier3
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_create_with_puppet_class(
-    session, module_host_template, module_org, smart_proxy_location, target_sat
-):
-    """Create new Host with puppet class assigned to it
-
-    :id: d883f169-1105-435c-8422-a7160055734a
-
-    :expectedresults: Host is created and contains correct puppet class
-
-    :CaseLevel: System
-    """
-    pc_name = 'generic_1'
-    env_name = target_sat.create_custom_environment(repo=pc_name)
-    env = target_sat.api.Environment().search(query={'search': f'name={env_name}'})[0].read()
-    env = target_sat.api.Environment(
-        id=env.id,
-        location=[smart_proxy_location],
-        organization=[module_org],
-    ).update(['location', 'organization'])
-    with session:
-        host_name = create_fake_host(
-            session,
-            module_host_template,
-            extra_values={
-                'host.puppet_environment': env.name,
-                'puppet_classes.classes.assigned': [pc_name],
-            },
-        )
-        assert session.host.search(host_name)[0]['Name'] == host_name
-        values = session.host.read(host_name, widget_names='puppet_classes')
-        assert len(values['puppet_classes']['classes']['assigned']) == 1
-        assert values['puppet_classes']['classes']['assigned'][0] == pc_name
-
-
 @pytest.mark.tier2
-def test_positive_assign_taxonomies(session, module_org, smart_proxy_location, target_sat):
+def test_positive_assign_taxonomies(
+    session, module_org, smart_proxy_location, target_sat, function_org, function_location_with_org
+):
     """Ensure Host organization and Location can be assigned.
 
     :id: 52466df5-6f56-4faa-b0f8-42b63731f494
@@ -622,54 +438,57 @@ def test_positive_assign_taxonomies(session, module_org, smart_proxy_location, t
     :CaseLevel: Integration
     """
     host = target_sat.api.Host(organization=module_org, location=smart_proxy_location).create()
-    new_host_org = target_sat.api.Organization().create()
-    new_host_location = target_sat.api.Location(organization=[new_host_org]).create()
     with session:
         assert session.host.search(host.name)[0]['Name'] == host.name
         session.host.apply_action(
             'Assign Organization',
             [host.name],
-            {'organization': new_host_org.name, 'on_mismatch': 'Fix Organization on Mismatch'},
+            {'organization': function_org.name, 'on_mismatch': 'Fix Organization on Mismatch'},
         )
         assert not target_sat.api.Host(organization=module_org).search(
             query={'search': f'name="{host.name}"'}
         )
         assert (
             len(
-                target_sat.api.Host(organization=new_host_org).search(
+                target_sat.api.Host(organization=function_org).search(
                     query={'search': f'name="{host.name}"'}
                 )
             )
             == 1
         )
-        session.organization.select(org_name=new_host_org.name)
+        session.organization.select(org_name=function_org.name)
         assert session.host.search(host.name)[0]['Name'] == host.name
         session.host.apply_action(
             'Assign Location',
             [host.name],
-            {'location': new_host_location.name, 'on_mismatch': 'Fix Location on Mismatch'},
+            {
+                'location': function_location_with_org.name,
+                'on_mismatch': 'Fix Location on Mismatch',
+            },
         )
         assert not target_sat.api.Host(location=smart_proxy_location).search(
             query={'search': f'name="{host.name}"'}
         )
         assert (
             len(
-                target_sat.api.Host(location=new_host_location).search(
+                target_sat.api.Host(location=function_location_with_org).search(
                     query={'search': f'name="{host.name}"'}
                 )
             )
             == 1
         )
-        session.location.select(loc_name=new_host_location.name)
+        session.location.select(loc_name=function_location_with_org.name)
         assert session.host.search(host.name)[0]['Name'] == host.name
         values = session.host.get_details(host.name)
-        assert values['properties']['properties_table']['Organization'] == new_host_org.name
-        assert values['properties']['properties_table']['Location'] == new_host_location.name
+        assert values['properties']['properties_table']['Organization'] == function_org.name
+        assert (
+            values['properties']['properties_table']['Location'] == function_location_with_org.name
+        )
 
 
 @pytest.mark.skip_if_not_set('oscap')
 @pytest.mark.tier2
-def test_positive_assign_compliance_policy(session, scap_policy, target_sat):
+def test_positive_assign_compliance_policy(session, scap_policy, target_sat, function_host):
     """Ensure host compliance Policy can be assigned.
 
     :id: 323661a4-e849-4cc2-aa39-4b4a5fe2abed
@@ -681,9 +500,8 @@ def test_positive_assign_compliance_policy(session, scap_policy, target_sat):
 
     :CaseLevel: Integration
     """
-    host = target_sat.api.Host().create()
-    org = host.organization.read()
-    loc = host.location.read()
+    org = function_host.organization.read()
+    loc = function_host.location.read()
     # add host organization and location to scap policy
     content = target_sat.api.ScapContents(id=scap_policy['scap-content-id']).read()
     content.organization.append(org)
@@ -703,30 +521,30 @@ def test_positive_assign_compliance_policy(session, scap_policy, target_sat):
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
         assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
-        assert session.host.search(host.name)[0]['Name'] == host.name
+        assert session.host.search(function_host.name)[0]['Name'] == function_host.name
         session.host.apply_action(
-            'Assign Compliance Policy', [host.name], {'policy': scap_policy['name']}
+            'Assign Compliance Policy', [function_host.name], {'policy': scap_policy['name']}
         )
         assert (
             session.host.search(f'compliance_policy = {scap_policy["name"]}')[0]['Name']
-            == host.name
+            == function_host.name
         )
         session.host.apply_action(
-            'Assign Compliance Policy', [host.name], {'policy': scap_policy['name']}
+            'Assign Compliance Policy', [function_host.name], {'policy': scap_policy['name']}
         )
         assert (
             session.host.search(f'compliance_policy = {scap_policy["name"]}')[0]['Name']
-            == host.name
+            == function_host.name
         )
         session.host.apply_action(
-            'Unassign Compliance Policy', [host.name], {'policy': scap_policy['name']}
+            'Unassign Compliance Policy', [function_host.name], {'policy': scap_policy['name']}
         )
         assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
 
 
 @pytest.mark.skipif((settings.ui.webdriver != 'chrome'), reason='Only tested on Chrome')
 @pytest.mark.tier3
-def test_positive_export(session, target_sat):
+def test_positive_export(session, target_sat, function_org, function_location):
     """Create few hosts and export them via UI
 
     :id: ffc512ad-982e-4b60-970a-41e940ebc74c
@@ -735,27 +553,27 @@ def test_positive_export(session, target_sat):
 
     :CaseLevel: System
     """
-    org = target_sat.api.Organization().create()
-    loc = target_sat.api.Location().create()
-    hosts = [target_sat.api.Host(organization=org, location=loc).create() for _ in range(3)]
-    expected_fields = {
-        (host.name, host.operatingsystem.read().title, host.environment.read().name)
-        for host in hosts
-    }
+    hosts = [
+        target_sat.api.Host(organization=function_org, location=function_location).create()
+        for _ in range(3)
+    ]
+    expected_fields = {(host.name, host.operatingsystem.read().title) for host in hosts}
     with session:
-        session.organization.select(org.name)
-        session.location.select(loc.name)
+        session.organization.select(function_org.name)
+        session.location.select(function_location.name)
         file_path = session.host.export()
         assert os.path.isfile(file_path)
         with open(file_path, newline='') as csvfile:
             actual_fields = []
             for row in csv.DictReader(csvfile):
-                actual_fields.append((row['Name'], row['Operatingsystem'], row['Environment']))
+                actual_fields.append((row['Name'], row['Operatingsystem']))
         assert set(actual_fields) == expected_fields
 
 
 @pytest.mark.tier4
-def test_positive_create_with_inherited_params(session, target_sat):
+def test_positive_create_with_inherited_params(
+    session, target_sat, function_org, function_location_with_org
+):
     """Create a new Host in organization and location with parameters
 
     :BZ: 1287223
@@ -767,18 +585,20 @@ def test_positive_create_with_inherited_params(session, target_sat):
 
     :CaseImportance: High
     """
-    org = target_sat.api.Organization().create()
-    loc = target_sat.api.Location(organization=[org]).create()
     org_param = dict(name=gen_string('alphanumeric'), value=gen_string('alphanumeric'))
     loc_param = dict(name=gen_string('alphanumeric'), value=gen_string('alphanumeric'))
-    host_template = target_sat.api.Host(organization=org, location=loc)
+    host_template = target_sat.api.Host(
+        organization=function_org, location=function_location_with_org
+    )
     host_template.create_missing()
     host_name = f'{host_template.name}.{host_template.domain.name}'
     with session:
-        session.organization.update(org.name, {'parameters.resources': org_param})
-        session.location.update(loc.name, {'parameters.resources': loc_param})
-        session.organization.select(org_name=org.name)
-        session.location.select(loc_name=loc.name)
+        session.organization.update(function_org.name, {'parameters.resources': org_param})
+        session.location.update(
+            function_location_with_org.name, {'parameters.resources': loc_param}
+        )
+        session.organization.select(org_name=function_org.name)
+        session.location.select(loc_name=function_location_with_org.name)
         create_fake_host(session, host_template)
         values = session.host.read(host_name, 'parameters')
         expected_params = {
@@ -964,7 +784,7 @@ def test_negative_remove_parameter_non_admin_user(
 
 @pytest.mark.tier3
 def test_positive_check_permissions_affect_create_procedure(
-    test_name, smart_proxy_location, target_sat
+    test_name, smart_proxy_location, target_sat, function_org, function_role
 ):
     """Verify whether user permissions affect what entities can be selected
     when host is created
@@ -980,28 +800,24 @@ def test_positive_check_permissions_affect_create_procedure(
 
     :CaseLevel: System
     """
-    # Create new organization
-    org = target_sat.api.Organization().create()
     # Create two lifecycle environments
-    lc_env = target_sat.api.LifecycleEnvironment(organization=org).create()
-    filter_lc_env = target_sat.api.LifecycleEnvironment(organization=org).create()
+    lc_env = target_sat.api.LifecycleEnvironment(organization=function_org).create()
+    filter_lc_env = target_sat.api.LifecycleEnvironment(organization=function_org).create()
     # Create two content views and promote them to one lifecycle
     # environment which will be used in filter
-    cv = target_sat.api.ContentView(organization=org).create()
-    filter_cv = target_sat.api.ContentView(organization=org).create()
+    cv = target_sat.api.ContentView(organization=function_org).create()
+    filter_cv = target_sat.api.ContentView(organization=function_org).create()
     for content_view in [cv, filter_cv]:
         content_view.publish()
         content_view = content_view.read()
         promote(content_view.version[0], filter_lc_env.id)
     # Create two host groups
-    hg = target_sat.api.HostGroup(organization=[org]).create()
-    filter_hg = target_sat.api.HostGroup(organization=[org]).create()
-    # Create new role
-    role = target_sat.api.Role().create()
+    hg = target_sat.api.HostGroup(organization=[function_org]).create()
+    filter_hg = target_sat.api.HostGroup(organization=[function_org]).create()
     # Create lifecycle environment permissions and select one specific
     # environment user will have access to
     create_role_permissions(
-        role,
+        function_role,
         {
             'Katello::KTEnvironment': [
                 'promote_or_remove_content_views_to_environments',
@@ -1013,7 +829,7 @@ def test_positive_check_permissions_affect_create_procedure(
     )
     # Add necessary permissions for content view as we did for lce
     create_role_permissions(
-        role,
+        function_role,
         {
             'Katello::ContentView': [
                 'promote_or_remove_content_views',
@@ -1026,31 +842,32 @@ def test_positive_check_permissions_affect_create_procedure(
     )
     # Add necessary permissions for hosts as we did for lce
     create_role_permissions(
-        role,
+        function_role,
         {'Host': ['create_hosts', 'view_hosts']},
         # allow access only to the mentioned here host group
         search=f'hostgroup_fullname = {filter_hg.name}',
     )
     # Add necessary permissions for host groups as we did for lce
     create_role_permissions(
-        role,
+        function_role,
         {'Hostgroup': ['view_hostgroups']},
         # allow access only to the mentioned here host group
         search=f'name = {filter_hg.name}',
     )
     # Add permissions for Organization and Location
     create_role_permissions(
-        role, {'Organization': PERMISSIONS['Organization'], 'Location': PERMISSIONS['Location']}
+        function_role,
+        {'Organization': PERMISSIONS['Organization'], 'Location': PERMISSIONS['Location']},
     )
     # Create new user with a configured role
     user_password = gen_string('alpha')
     user = target_sat.api.User(
-        role=[role],
+        role=[function_role],
         admin=False,
         password=user_password,
-        organization=[org],
+        organization=[function_org],
         location=[smart_proxy_location],
-        default_organization=org,
+        default_organization=function_org,
         default_location=smart_proxy_location,
     ).create()
     host_fields = [
@@ -1156,7 +973,9 @@ def test_positive_search_by_parameter_with_different_values(
 
 
 @pytest.mark.tier2
-def test_positive_search_by_parameter_with_prefix(session, smart_proxy_location, target_sat):
+def test_positive_search_by_parameter_with_prefix(
+    session, smart_proxy_location, target_sat, function_org
+):
     """Search by global parameter assigned to host using prefix 'not' and
     any random string as parameter value to make sure that all hosts will
     be present in the list
@@ -1168,17 +987,20 @@ def test_positive_search_by_parameter_with_prefix(session, smart_proxy_location,
 
     :CaseLevel: Integration
     """
-    org = target_sat.api.Organization().create()
     param_name = gen_string('alpha')
     param_value = gen_string('alpha')
     search_param_value = gen_string('alphanumeric')
     parameters = [{'name': param_name, 'value': param_value}]
     param_host = target_sat.api.Host(
-        organization=org, location=smart_proxy_location, host_parameters_attributes=parameters
+        organization=function_org,
+        location=smart_proxy_location,
+        host_parameters_attributes=parameters,
     ).create()
-    additional_host = target_sat.api.Host(organization=org, location=smart_proxy_location).create()
+    additional_host = target_sat.api.Host(
+        organization=function_org, location=smart_proxy_location
+    ).create()
     with session:
-        session.organization.select(org_name=org.name)
+        session.organization.select(org_name=function_org.name)
         # Check that the hosts are present
         for host in [param_host, additional_host]:
             assert session.host.search(host.name)[0]['Name'] == host.name
@@ -1188,7 +1010,9 @@ def test_positive_search_by_parameter_with_prefix(session, smart_proxy_location,
 
 
 @pytest.mark.tier2
-def test_positive_search_by_parameter_with_operator(session, smart_proxy_location, target_sat):
+def test_positive_search_by_parameter_with_operator(
+    session, smart_proxy_location, target_sat, function_org
+):
     """Search by global parameter assigned to host using operator '<>' and
     any random string as parameter value to make sure that all hosts will
     be present in the list
@@ -1202,7 +1026,6 @@ def test_positive_search_by_parameter_with_operator(session, smart_proxy_locatio
 
     :CaseLevel: Integration
     """
-    org = target_sat.api.Organization().create()
     param_name = gen_string('alpha')
     param_value = gen_string('alpha')
     param_global_value = gen_string('numeric')
@@ -1210,11 +1033,15 @@ def test_positive_search_by_parameter_with_operator(session, smart_proxy_locatio
     target_sat.api.CommonParameter(name=param_name, value=param_global_value).create()
     parameters = [{'name': param_name, 'value': param_value}]
     param_host = target_sat.api.Host(
-        organization=org, location=smart_proxy_location, host_parameters_attributes=parameters
+        organization=function_org,
+        location=smart_proxy_location,
+        host_parameters_attributes=parameters,
     ).create()
-    additional_host = target_sat.api.Host(organization=org, location=smart_proxy_location).create()
+    additional_host = target_sat.api.Host(
+        organization=function_org, location=smart_proxy_location
+    ).create()
     with session:
-        session.organization.select(org_name=org.name)
+        session.organization.select(org_name=function_org.name)
         # Check that the hosts are present
         for host in [param_host, additional_host]:
             assert session.host.search(host.name)[0]['Name'] == host.name
@@ -1224,7 +1051,9 @@ def test_positive_search_by_parameter_with_operator(session, smart_proxy_locatio
 
 
 @pytest.mark.tier2
-def test_positive_search_with_org_and_loc_context(session, target_sat):
+def test_positive_search_with_org_and_loc_context(
+    session, target_sat, function_org, function_location
+):
     """Perform usual search for host, but organization and location used
     for host create procedure should have 'All capsules' checkbox selected
 
@@ -1239,14 +1068,12 @@ def test_positive_search_with_org_and_loc_context(session, target_sat):
 
     :CaseLevel: Integration
     """
-    org = target_sat.api.Organization().create()
-    loc = target_sat.api.Location().create()
-    host = target_sat.api.Host(organization=org, location=loc).create()
+    host = target_sat.api.Host(organization=function_org, location=function_location).create()
     with session:
-        session.organization.update(org.name, {'capsules.all_capsules': True})
-        session.location.update(loc.name, {'capsules.all_capsules': True})
-        session.organization.select(org_name=org.name)
-        session.location.select(loc_name=loc.name)
+        session.organization.update(function_org.name, {'capsules.all_capsules': True})
+        session.location.update(function_location.name, {'capsules.all_capsules': True})
+        session.organization.select(org_name=function_org.name)
+        session.location.select(loc_name=function_location.name)
         assert session.host.search(f'name = "{host.name}"')[0]['Name'] == host.name
         assert session.host.search(host.name)[0]['Name'] == host.name
 
@@ -1332,7 +1159,7 @@ def test_positive_validate_inherited_cv_lce(
 
 @pytest.mark.tier2
 def test_positive_global_registration_form(
-    session, module_activation_key, module_org, smart_proxy_location, module_os, target_sat
+    session, module_activation_key, module_org, smart_proxy_location, default_os, target_sat
 ):
     """Host registration form produces a correct curl command for various inputs
 
@@ -1369,7 +1196,7 @@ def test_positive_global_registration_form(
                 'advanced.setup_rex': 'Yes (override)' if rex_value else 'No (override)',
                 'general.insecure': True,
                 'general.host_group': hostgroup.name,
-                'general.operating_system': module_os.title,
+                'general.operating_system': default_os.title,
                 'advanced.activation_keys': module_activation_key.name,
                 'advanced.update_packages': True,
                 'advanced.rex_interface': iface,
@@ -1380,7 +1207,7 @@ def test_positive_global_registration_form(
         f'activation_keys={module_activation_key.name}',
         f'hostgroup_id={hostgroup.id}',
         f'location_id={smart_proxy_location.id}',
-        f'operatingsystem_id={module_os.id}',
+        f'operatingsystem_id={default_os.id}',
         f'remote_execution_interface={iface}',
         f'setup_insights={"true" if insights_value else "false"}',
         f'setup_remote_execution={"true" if rex_value else "false"}',
@@ -1399,8 +1226,8 @@ def test_positive_global_registration_end_to_end(
     module_activation_key,
     module_org,
     smart_proxy_location,
-    module_os,
-    module_proxy,
+    default_os,
+    default_smart_proxy,
     rhel_contenthost,
     target_sat,
 ):
@@ -1443,7 +1270,7 @@ def test_positive_global_registration_end_to_end(
     with session:
         cmd = session.host.get_register_command(
             {
-                'general.operating_system': module_os.title,
+                'general.operating_system': default_os.title,
                 'advanced.activation_keys': module_activation_key.name,
                 'advanced.update_packages': True,
                 'advanced.rex_interface': iface,
@@ -1454,8 +1281,8 @@ def test_positive_global_registration_end_to_end(
         f'organization_id={module_org.id}',
         f'activation_keys={module_activation_key.name}',
         f'location_id={smart_proxy_location.id}',
-        f'operatingsystem_id={module_os.id}',
-        f'{module_proxy.name}',
+        f'operatingsystem_id={default_os.id}',
+        f'{default_smart_proxy.name}',
         'insecure',
         'update_packages=true',
     ]
@@ -1529,7 +1356,7 @@ def test_global_registration_form_populate(
     module_lce,
     module_promoted_cv,
     default_architecture,
-    module_os,
+    default_os,
     target_sat,
 ):
     """Host registration form should be populated automatically based on the host-group
@@ -1561,7 +1388,7 @@ def test_global_registration_form_populate(
         organization=[module_org],
         lifecycle_environment=module_lce,
         architecture=default_architecture,
-        operatingsystem=module_os,
+        operatingsystem=default_os,
         content_view=module_promoted_cv,
         group_parameters_attributes=[group_params],
     ).create()
@@ -1594,7 +1421,8 @@ def test_global_registration_with_capsule_host(
     rhel7_contenthost,
     module_org,
     module_location,
-    module_os,
+    module_product,
+    default_os,
     module_lce_library,
     target_sat,
 ):
@@ -1620,14 +1448,13 @@ def test_global_registration_with_capsule_host(
     :CaseAutomation: Automated
     """
     client = rhel7_contenthost
-    product = target_sat.api.Product(organization=module_org).create()
     repo = target_sat.api.Repository(
         url=settings.repos.yum_1.url,
         content_type=REPO_TYPE['yum'],
-        product=product,
+        product=module_product,
     ).create()
     # Sync all repositories in the product
-    product.sync()
+    module_product.sync()
     capsule = target_sat.api.Capsule(id=capsule_configured.nailgun_capsule.id).search(
         query={'search': f'name={capsule_configured.hostname}'}
     )[0]
@@ -1641,6 +1468,7 @@ def test_global_registration_with_capsule_host(
     # Associate the lifecycle environment with the capsule
     capsule.content_add_lifecycle_environment(data={'environment_id': module_lce_library.id})
     result = capsule.content_lifecycle_environments()
+    # TODO result is not used, please add assert once you fix the test
 
     # Create a content view with the repository
     cv = target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
@@ -1670,7 +1498,7 @@ def test_global_registration_with_capsule_host(
             {
                 'general.orgnization': module_org.name,
                 'general.location': module_location.name,
-                'general.operating_system': module_os.title,
+                'general.operating_system': default_os.title,
                 'general.capsule': capsule_configured.hostname,
                 'advanced.activation_keys': activation_key.name,
                 'general.insecure': True,
@@ -1688,7 +1516,7 @@ def test_global_registration_with_capsule_host(
 @pytest.mark.tier2
 @pytest.mark.usefixtures('enable_capsule_for_registration')
 def test_global_registration_with_gpg_repo_and_default_package(
-    session, module_activation_key, module_os, module_proxy, rhel7_contenthost
+    session, module_activation_key, default_os, default_smart_proxy, rhel7_contenthost
 ):
     """Host registration form produces a correct registration command and host is
     registered successfully with gpg repo enabled and have default package
@@ -1718,8 +1546,8 @@ def test_global_registration_with_gpg_repo_and_default_package(
     with session:
         cmd = session.host.get_register_command(
             {
-                'general.operating_system': module_os.title,
-                'general.capsule': module_proxy.name,
+                'general.operating_system': default_os.title,
+                'general.capsule': default_smart_proxy.name,
                 'advanced.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
@@ -1803,7 +1631,7 @@ def test_global_registration_upgrade_subscription_manager(
 @pytest.mark.tier3
 @pytest.mark.usefixtures('enable_capsule_for_registration')
 def test_global_re_registration_host_with_force_ignore_error_options(
-    session, module_activation_key, module_os, module_proxy, rhel7_contenthost
+    session, module_activation_key, default_os, default_smart_proxy, rhel7_contenthost
 ):
     """If the ignore_error and force checkbox is checked then registered host can
     get re-registered without any error.
@@ -1827,8 +1655,8 @@ def test_global_re_registration_host_with_force_ignore_error_options(
     with session:
         cmd = session.host.get_register_command(
             {
-                'general.operating_system': module_os.title,
-                'general.capsule': module_proxy.name,
+                'general.operating_system': default_os.title,
+                'general.capsule': default_smart_proxy.name,
                 'advanced.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
@@ -1847,7 +1675,7 @@ def test_global_re_registration_host_with_force_ignore_error_options(
 @pytest.mark.tier2
 @pytest.mark.usefixtures('enable_capsule_for_registration')
 def test_global_registration_token_restriction(
-    session, module_activation_key, rhel7_contenthost, module_os, module_proxy, target_sat
+    session, module_activation_key, rhel7_contenthost, default_os, default_smart_proxy, target_sat
 ):
     """Global registration token should be only used for registration call, it
     should be restricted for any other api calls.
@@ -1869,8 +1697,8 @@ def test_global_registration_token_restriction(
     with session:
         cmd = session.host.get_register_command(
             {
-                'general.operating_system': module_os.title,
-                'general.capsule': module_proxy.name,
+                'general.operating_system': default_os.title,
+                'general.capsule': default_smart_proxy.name,
                 'advanced.activation_keys': module_activation_key.name,
                 'general.insecure': True,
             }
@@ -1888,123 +1716,9 @@ def test_global_registration_token_restriction(
         'Unable to authenticate user' in result.stdout
 
 
-@pytest.mark.tier2
-def test_positive_inherit_puppet_env_from_host_group_when_create(
-    session, module_org, smart_proxy_location, target_sat
-):
-    """Host group puppet environment is inherited to host in create
-    procedure
-
-    :id: 05831ecc-3132-4eb7-ad90-155470f331b6
-
-    :customerscenario: true
-
-    :expectedresults: Expected puppet environment is inherited to the form
-
-    :BZ: 1414914
-
-    :CaseLevel: Integration
-    """
-    hg_name = gen_string('alpha')
-    env_name = gen_string('alpha')
-    target_sat.api.Environment(
-        name=env_name, organization=[module_org], location=[smart_proxy_location]
-    ).create()
-    with session:
-        session.hostgroup.create(
-            {'host_group.name': hg_name, 'host_group.puppet_environment': env_name}
-        )
-        assert session.hostgroup.search(hg_name)[0]['Name'] == hg_name
-        values = session.host.helper.read_create_view(
-            {}, ['host.puppet_environment', 'host.inherit_puppet_environment']
-        )
-        assert not values['host']['puppet_environment']
-        assert values['host']['inherit_puppet_environment'] is False
-        values = session.host.helper.read_create_view(
-            {'host.hostgroup': hg_name},
-            ['host.puppet_environment', 'host.inherit_puppet_environment'],
-        )
-        assert values['host']['puppet_environment'] == env_name
-        assert values['host']['inherit_puppet_environment'] is True
-        values = session.host.helper.read_create_view(
-            {'host.inherit_puppet_environment': False},
-            ['host.puppet_environment', 'host.inherit_puppet_environment'],
-        )
-        assert values['host']['puppet_environment'] == env_name
-        assert values['host']['inherit_puppet_environment'] is False
-
-
-@pytest.mark.tier3
-@pytest.mark.skip_if_open("BZ:2059597")
-def test_positive_set_multi_line_and_with_spaces_parameter_value(
-    session, module_host_template, target_sat
-):
-    """Check that host parameter value with multi-line and spaces is
-    correctly represented in yaml format
-
-    :id: d72b481d-2279-4478-ab2d-128f92c76d9c
-
-    :customerscenario: true
-
-    :expectedresults:
-        1. parameter is correctly represented in yaml format without
-           line break (special chars should be escaped)
-        2. host parameter value is the same when restored from yaml format
-
-    :BZ: 1315282
-
-    :CaseLevel: System
-    """
-    param_name = gen_string('alpha').lower()
-    # long string that should be escaped and affected by line break with
-    # yaml dump by default
-    param_value = (
-        'auth                          include              '
-        'password-auth\r\n'
-        'account     include                  password-auth'
-    )
-    host = target_sat.api.Host(
-        organization=module_host_template.organization,
-        architecture=module_host_template.architecture,
-        domain=module_host_template.domain,
-        location=module_host_template.location,
-        mac=module_host_template.mac,
-        medium=module_host_template.medium,
-        operatingsystem=module_host_template.operatingsystem,
-        ptable=module_host_template.ptable,
-        root_pass=module_host_template.root_pass,
-        content_facet_attributes={
-            'content_view_id': target_sat.api.ContentView(
-                organization=module_host_template.organization, name=DEFAULT_CV
-            )
-            .search()[0]
-            .id,
-            'lifecycle_environment_id': target_sat.api.LifecycleEnvironment(
-                organization=module_host_template.organization, name=ENVIRONMENT
-            )
-            .search()[0]
-            .id,
-        },
-    ).create()
-    with session:
-        session.host.update(
-            host.name, {'parameters.host_params': [dict(name=param_name, value=param_value)]}
-        )
-        yaml_text = session.host.read_yaml_output(host.name)
-        # ensure parameter value is represented in yaml format without
-        # line break (special chars should be escaped)
-        assert param_value.encode('unicode_escape') in bytes(yaml_text, 'utf-8')
-        # host parameter value is the same when restored from yaml format
-        yaml_content = yaml.load(yaml_text, yaml.SafeLoader)
-        host_parameters = yaml_content.get('parameters')
-        assert host_parameters
-        assert param_name in host_parameters
-        assert host_parameters[param_name] == param_value
-
-
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_bulk_delete_host(session, smart_proxy_location, target_sat):
+def test_positive_bulk_delete_host(session, smart_proxy_location, target_sat, function_org):
     """Delete multiple hosts from the list
 
     :id: 8da2084a-8b50-46dc-b305-18eeb80d01e0
@@ -2015,12 +1729,11 @@ def test_positive_bulk_delete_host(session, smart_proxy_location, target_sat):
 
     :CaseLevel: System
     """
-    org = target_sat.api.Organization().create()
-    host_template = target_sat.api.Host(organization=org, location=smart_proxy_location)
+    host_template = target_sat.api.Host(organization=function_org, location=smart_proxy_location)
     host_template.create_missing()
     hosts_names = [
         target_sat.api.Host(
-            organization=org,
+            organization=function_org,
             location=smart_proxy_location,
             root_pass=host_template.root_pass,
             architecture=host_template.architecture,
@@ -2034,7 +1747,7 @@ def test_positive_bulk_delete_host(session, smart_proxy_location, target_sat):
         for _ in range(3)
     ]
     with session:
-        session.organization.select(org_name=org.name)
+        session.organization.select(org_name=function_org.name)
         values = session.host.read_all()
         assert len(hosts_names) == len(values['table'])
         session.host.delete_hosts('All')
@@ -2101,6 +1814,7 @@ def test_positive_provision_end_to_end(
 @pytest.mark.on_premises_provisioning
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete'], indirect=True)
 def test_positive_delete_libvirt(
     session,
     module_org,
@@ -2108,6 +1822,7 @@ def test_positive_delete_libvirt(
     module_libvirt_domain,
     module_libvirt_hostgroup,
     module_libvirt_resource,
+    setting_update,
     remove_vm_on_delete,
     target_sat,
 ):
@@ -2184,7 +1899,7 @@ def gce_resource_with_image(
     gce_cloudinit_template,
     gce_cert,
     default_architecture,
-    module_os,
+    default_os,
     smart_proxy_location,
     module_org,
     target_sat,
@@ -2214,7 +1929,7 @@ def gce_resource_with_image(
         architecture=default_architecture,
         compute_resource=gce_cr,
         name='autogce_img',
-        operatingsystem=module_os,
+        operatingsystem=default_os,
         username=vm_user,
         uuid=gce_template,
     ).create()
@@ -2223,7 +1938,7 @@ def gce_resource_with_image(
         architecture=default_architecture,
         compute_resource=gce_cr,
         name='autogce_img_cinit',
-        operatingsystem=module_os,
+        operatingsystem=default_os,
         username=vm_user,
         uuid=gce_cloudinit_template,
         user_data=True,
@@ -2237,7 +1952,7 @@ def gce_hostgroup(
     smart_proxy_location,
     default_partition_table,
     default_architecture,
-    module_os,
+    default_os,
     gce_domain,
     gce_resource_with_image,
     module_lce,
@@ -2251,7 +1966,7 @@ def gce_hostgroup(
         lifecycle_environment=module_lce,
         content_view=module_content_view,
         location=[smart_proxy_location],
-        operatingsystem=module_os,
+        operatingsystem=default_os,
         organization=[module_org],
         ptable=default_partition_table,
     ).create()
@@ -2260,15 +1975,17 @@ def gce_hostgroup(
 @pytest.mark.tier4
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('gce')
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete'], indirect=True)
 def test_positive_gce_provision_end_to_end(
     session,
     target_sat,
     module_org,
     smart_proxy_location,
-    module_os,
+    default_os,
     gce_domain,
     gce_hostgroup,
     googleclient,
+    setting_update,
     remove_vm_on_delete,
 ):
     """Provision Host on GCE compute resource
@@ -2300,7 +2017,7 @@ def test_positive_gce_provision_end_to_end(
                         'provider_content.virtual_machine.external_ip': True,
                         'provider_content.virtual_machine.network': 'default',
                         'provider_content.virtual_machine.storage': storage,
-                        'operating_system.operating_system': module_os.title,
+                        'operating_system.operating_system': default_os.title,
                         'operating_system.image': 'autogce_img',
                         'operating_system.root_password': root_pwd,
                     }
@@ -2347,15 +2064,17 @@ def test_positive_gce_provision_end_to_end(
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('gce')
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete'], indirect=True)
 def test_positive_gce_cloudinit_provision_end_to_end(
     session,
     target_sat,
     module_org,
     smart_proxy_location,
-    module_os,
+    default_os,
     gce_domain,
     gce_hostgroup,
     googleclient,
+    setting_update,
     remove_vm_on_delete,
 ):
     """Provision Host on GCE compute resource
@@ -2387,7 +2106,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
                         'provider_content.virtual_machine.external_ip': True,
                         'provider_content.virtual_machine.network': 'default',
                         'provider_content.virtual_machine.storage': storage,
-                        'operating_system.operating_system': module_os.title,
+                        'operating_system.operating_system': default_os.title,
                         'operating_system.image': 'autogce_img_cinit',
                         'operating_system.root_password': root_pwd,
                     }
@@ -2505,3 +2224,225 @@ class TestHostCockpit:
                 f'cockpit page shows hostname {hostname_inside_cockpit} '
                 f'instead of {cockpit_host.hostname}'
             )
+
+
+# ------------------------------ PUPPET ENABLED SAT TESTS ----------------------------
+@pytest.mark.tier3
+def test_positive_inherit_puppet_env_from_host_group_when_action(
+    session_puppet_enabled_sat, module_puppet_org, module_puppet_loc, module_puppet_environment
+):
+    """Host group puppet environment is inherited to already created
+    host when corresponding action is applied to that host
+
+    :id: 3f5af54e-e259-46ad-a2af-7dc1850891f5
+
+    :customerscenario: true
+
+    :expectedresults: Expected puppet environment is inherited to the host
+
+    :BZ: 1414914
+
+    :CaseLevel: System
+    """
+    host = session_puppet_enabled_sat.api.Host(
+        organization=module_puppet_org, location=module_puppet_loc
+    ).create()
+    hostgroup = session_puppet_enabled_sat.api.HostGroup(
+        environment=module_puppet_environment,
+        organization=[module_puppet_org],
+        location=[module_puppet_loc],
+    ).create()
+    with session_puppet_enabled_sat.ui_session as session:
+        session.organization.select(org_name=module_puppet_org.name)
+        session.location.select(loc_name=module_puppet_loc.name)
+        session.host.apply_action(
+            'Change Environment', [host.name], {'environment': '*Clear environment*'}
+        )
+        values = session.host.read(host.name, widget_names='host')
+        assert values['host']['hostgroup'] == ''
+        assert values['host']['puppet_environment'] == ''
+        session.host.apply_action('Change Group', [host.name], {'host_group': hostgroup.name})
+        values = session.host.read(host.name, widget_names='host')
+        assert values['host']['hostgroup'] == hostgroup.name
+        assert values['host']['puppet_environment'] == ''
+        session.host.apply_action(
+            'Change Environment', [host.name], {'environment': '*Inherit from host group*'}
+        )
+        assert (
+            session.host.get_details(host.name)['properties']['properties_table'][
+                'Puppet Environment'
+            ]
+            == module_puppet_environment.name
+        )
+        values = session.host.read(host.name, widget_names='host')
+        assert values['host']['hostgroup'] == hostgroup.name
+        assert values['host']['puppet_environment'] == module_puppet_environment.name
+
+
+@pytest.mark.tier3
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+def test_positive_create_with_puppet_class(
+    session_puppet_enabled_sat,
+    module_puppet_loc,
+    module_puppet_org,
+    module_env_search,
+    module_import_puppet_module,
+    session_puppet_enabled_proxy,
+):
+    """Create new Host with puppet class assigned to it
+
+    :id: d883f169-1105-435c-8422-a7160055734a
+
+    :expectedresults: Host is created and contains correct puppet class
+
+    :CaseLevel: System
+    """
+
+    host_template = session_puppet_enabled_sat.api.Host(
+        organization=module_puppet_org, location=module_puppet_loc
+    )
+    host_template.create_missing()
+
+    session_puppet_enabled_proxy.location.append(
+        session_puppet_enabled_sat.api.Location(id=module_puppet_loc.id)
+    )
+    session_puppet_enabled_proxy.update(['location'])
+
+    with session_puppet_enabled_sat.ui_session as session:
+        session.organization.select(org_name=module_puppet_org.name)
+        session.location.select(loc_name='Any Location')
+        host_name = create_fake_host(
+            session,
+            host_template,
+            extra_values={
+                'host.puppet_environment': module_env_search.name,
+                'puppet_enc.classes.assigned': [module_import_puppet_module['puppet_class']],
+            },
+        )
+        assert session.host.search(host_name)[0]['Name'] == host_name
+        values = session.host.read(host_name, widget_names='puppet_enc')
+        assert len(values['puppet_enc']['classes']['assigned']) == 1
+        assert (
+            values['puppet_enc']['classes']['assigned'][0]
+            == module_import_puppet_module['puppet_class']
+        )
+
+
+@pytest.mark.tier2
+def test_positive_inherit_puppet_env_from_host_group_when_create(
+    session_puppet_enabled_sat, module_env_search, module_puppet_org, module_puppet_loc
+):
+    """Host group puppet environment is inherited to host in create
+    procedure
+
+    :id: 05831ecc-3132-4eb7-ad90-155470f331b6
+
+    :customerscenario: true
+
+    :expectedresults: Expected puppet environment is inherited to the form
+
+    :BZ: 1414914
+
+    :CaseLevel: Integration
+    """
+
+    hg_name = gen_string('alpha')
+    with session_puppet_enabled_sat.ui_session as session:
+        session.organization.select(org_name=module_puppet_org.name)
+        session.location.select(loc_name=module_puppet_loc.name)
+        session.hostgroup.create(
+            {'host_group.name': hg_name, 'host_group.puppet_environment': module_env_search.name}
+        )
+        assert session.hostgroup.search(hg_name)[0]['Name'] == hg_name
+        values = session.host.helper.read_create_view(
+            {}, ['host.puppet_environment', 'host.inherit_puppet_environment']
+        )
+        assert not values['host']['puppet_environment']
+        assert values['host']['inherit_puppet_environment'] is False
+        values = session.host.helper.read_create_view(
+            {'host.hostgroup': hg_name},
+            ['host.puppet_environment', 'host.inherit_puppet_environment'],
+        )
+        assert values['host']['puppet_environment'] == module_env_search.name
+        assert values['host']['inherit_puppet_environment'] is True
+        values = session.host.helper.read_create_view(
+            {'host.inherit_puppet_environment': False},
+            ['host.puppet_environment', 'host.inherit_puppet_environment'],
+        )
+        assert values['host']['puppet_environment'] == module_env_search.name
+        assert values['host']['inherit_puppet_environment'] is False
+
+
+@pytest.mark.tier3
+def test_positive_set_multi_line_and_with_spaces_parameter_value(
+    session_puppet_enabled_sat,
+    module_puppet_org,
+    module_puppet_loc,
+    module_puppet_published_cv,
+    module_puppet_lce_library,
+    session_puppet_enabled_proxy,
+):
+    """Check that host parameter value with multi-line and spaces is
+    correctly represented in yaml format
+
+    :id: d72b481d-2279-4478-ab2d-128f92c76d9c
+
+    :customerscenario: true
+
+    :expectedresults:
+        1. parameter is correctly represented in yaml format without
+           line break (special chars should be escaped)
+        2. host parameter value is the same when restored from yaml format
+
+    :BZ: 1315282
+
+    :CaseLevel: System
+    """
+    host_template = session_puppet_enabled_sat.api.Host(
+        organization=module_puppet_org, location=module_puppet_loc
+    )
+    host_template.create_missing()
+    session_puppet_enabled_proxy.location.append(
+        session_puppet_enabled_sat.api.Location(id=module_puppet_loc.id)
+    )
+    session_puppet_enabled_proxy.update(['location'])
+
+    param_name = gen_string('alpha').lower()
+    # long string that should be escaped and affected by line break with
+    # yaml dump by default
+    param_value = (
+        'auth                          include              '
+        'password-auth\r\n'
+        'account     include                  password-auth'
+    )
+    host = session_puppet_enabled_sat.api.Host(
+        organization=host_template.organization,
+        architecture=host_template.architecture,
+        domain=host_template.domain,
+        location=host_template.location,
+        mac=host_template.mac,
+        medium=host_template.medium,
+        operatingsystem=host_template.operatingsystem,
+        ptable=host_template.ptable,
+        root_pass=host_template.root_pass,
+        content_facet_attributes={
+            'content_view_id': module_puppet_published_cv.id,
+            'lifecycle_environment_id': module_puppet_lce_library.id,
+        },
+    ).create()
+    with session_puppet_enabled_sat.ui_session as session:
+        session.organization.select(org_name=module_puppet_org.name)
+        session.location.select(loc_name=module_puppet_loc.name)
+        session.host.update(
+            host.name, {'parameters.host_params': [dict(name=param_name, value=param_value)]}
+        )
+        yaml_text = session.host.read_yaml_output(host.name)
+        # ensure parameter value is represented in yaml format without
+        # line break (special chars should be escaped)
+        assert param_value.encode('unicode_escape') in bytes(yaml_text, 'utf-8')
+        # host parameter value is the same when restored from yaml format
+        yaml_content = yaml.load(yaml_text, yaml.SafeLoader)
+        host_parameters = yaml_content.get('parameters')
+        assert host_parameters
+        assert param_name in host_parameters
+        assert host_parameters[param_name] == param_value
