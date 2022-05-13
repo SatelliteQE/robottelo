@@ -37,6 +37,20 @@ def proxy_port_range(default_sat):
             default_sat.execute(f'semanage port -a -t websm_port_t -p tcp {port_pool_range}')
 
 
+@pytest.fixture(autouse=False, scope='session')
+def puppet_proxy_port_range(session_puppet_enabled_sat):
+    """Assigns port range for fake_capsules on puppet_enabled_sat"""
+    if session_puppet_enabled_sat:
+        port_pool_range = settings.fake_capsules.port_range
+        if (
+            session_puppet_enabled_sat.execute(f'semanage port -l | grep {port_pool_range}').status
+            != 0
+        ):
+            session_puppet_enabled_sat.execute(
+                f'semanage port -a -t websm_port_t -p tcp {port_pool_range}'
+            )
+
+
 @pytest.fixture(scope='session')
 def install_cockpit_plugin(default_sat):
     default_sat.register_to_dogfood()
