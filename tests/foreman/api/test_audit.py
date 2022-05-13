@@ -8,7 +8,7 @@
 
 :CaseComponent: AuditLog
 
-:Assignee: rplevka
+:Assignee: sbible
 
 :TestType: Functional
 
