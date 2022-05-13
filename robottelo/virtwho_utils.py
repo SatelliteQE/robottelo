@@ -36,10 +36,10 @@ def get_system(system_type):
     """Return a dict account for ssh connect.
 
     :param str system_type: The type of the system, should be one of
-        ('satellite', 'default_org', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt', 'ahv').
+        ('satellite', 'esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt', 'ahv').
     :raises: VirtWhoError: If wrong ``system_type`` specified.
     """
-    if system_type in ['default_org', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt', 'ahv']:
+    if system_type in ['esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt', 'ahv']:
         return {
             'hostname': getattr(settings.virtwho, system_type).guest,
             'username': getattr(settings.virtwho, system_type).guest_username,
