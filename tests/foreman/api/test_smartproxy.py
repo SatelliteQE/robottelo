@@ -233,7 +233,7 @@ def test_positive_refresh_features(request):
 
 @pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier2
-def test_positive_import_puppet_classes(request):
+def test_positive_import_puppet_classes(session_puppet_enabled_sat, puppet_proxy_port_range):
     """Import puppet classes from proxy
 
     :id: 385efd1b-6146-47bf-babf-0127ce5955ed
@@ -244,14 +244,18 @@ def test_positive_import_puppet_classes(request):
 
     :BZ: 1398695
     """
-    new_port = get_available_capsule_port()
-    with default_url_on_new_port(9090, new_port) as url:
-        proxy = _create_smart_proxy(request, url=url)
-        result = proxy.import_puppetclasses()
-        assert (
-            "Successfully updated environment and puppetclasses from "
-            "the on-disk puppet installation"
-        ) in result['message']
+    with session_puppet_enabled_sat:
+        new_port = get_available_capsule_port()
+        with default_url_on_new_port(9090, new_port) as url:
+            proxy = entities.SmartProxy(url=url).create()
+            result = proxy.import_puppetclasses()
+            assert (
+                "Successfully updated environment and puppetclasses from "
+                "the on-disk puppet installation"
+            ) in result['message'] or "No changes to your environments detected" in result[
+                'message'
+            ]
+        entities.SmartProxy(id=proxy.id).delete()
 
 
 """Tests to see if the server returns the attributes it should.
