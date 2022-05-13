@@ -8,7 +8,7 @@
 
 :CaseComponent: RemoteExecution
 
-:Assignee: pondrejk
+:Assignee: sbible
 
 :TestType: Functional
 
