@@ -35,10 +35,10 @@ def get_system(system_type):
     """Return a dict account for ssh connect.
 
     :param str system_type: The type of the system, should be one of
-        ('satellite', 'esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt').
+        ('satellite', 'default_org', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt', 'ahv').
     :raises: VirtWhoError: If wrong ``system_type`` specified.
     """
-    if system_type in ['esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt']:
+    if system_type in ['default_org', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt', 'ahv']:
         return {
             'hostname': getattr(settings.virtwho, system_type).guest,
             'username': getattr(settings.virtwho, system_type).guest_username,
@@ -54,7 +54,17 @@ def get_system(system_type):
     else:
         raise VirtWhoError(
             '"{}" system type is not supported. Please use one of {}'.format(
-                system_type, ('satellite', 'esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt')
+                system_type,
+                (
+                    'satellite',
+                    'default_org',
+                    'xen',
+                    'hyperv',
+                    'rhevm',
+                    'libvirt',
+                    'kubevirt',
+                    'ahv',
+                ),
             )
         )
 
@@ -208,7 +218,7 @@ def _get_hypervisor_mapping(logs, hypervisor_type):
     """Analysing rhsm.log and get to know: what is the hypervisor_name
     for the specific guest.
     :param str logs: the output of rhsm.log.
-    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt. ahv
     :raises: VirtWhoError: If hypervisor_name is None.
     :return: hypervisor_name and guest_name
     """
@@ -242,7 +252,7 @@ def _get_hypervisor_mapping(logs, hypervisor_type):
 
 def deploy_validation(hypervisor_type):
     """Checkout the deploy result
-    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
     :raises: VirtWhoError: If failed to start virt-who servcie.
     :ruturn: hypervisor_name and guest_name
     """
@@ -262,7 +272,7 @@ def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Defa
 
     :param str command: get the command by UI/CLI/API, it should be like:
         `hammer virt-who-config deploy --id 1 --organization-id 1`
-    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     :param str org: Organization Label
     """
@@ -283,7 +293,7 @@ def deploy_configure_by_script(
 ):
     """Deploy and run virt-who service by the shell script.
     :param str script_content: get the script by UI or API.
-    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     :param str org: Organization Label
     """

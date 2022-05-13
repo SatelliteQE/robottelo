@@ -5,7 +5,7 @@ VIRTWHO:
         # The SKU ID for virtual vdc
         VDC_VIRTUAL:
     ESX:
-        # The hypervisor type, one of the values: esx, hyperv, rhevm, libvirt, kubevirt
+        # The hypervisor type, one of the values: esx, hyperv, rhevm, libvirt, kubevirt, ahv
         HYPERVISOR_TYPE: esx
         # The hostname or ip or other values for hypervisor server, depends on the type
         HYPERVISOR_SERVER:
@@ -54,6 +54,16 @@ VIRTWHO:
         HYPERVISOR_USERNAME:
         HYPERVISOR_PASSWORD:
         HYPERVISOR_CONFIG_FILE:
+        GUEST:
+        GUEST_PORT:
+        GUEST_USERNAME:
+        GUEST_PASSWORD:
+    AHV:
+        HYPERVISOR_TYPE: ahv
+        HYPERVISOR_SERVER:
+        HYPERVISOR_USERNAME:
+        HYPERVISOR_PASSWORD:
+        PRISM_FLAVOR:
         GUEST:
         GUEST_PORT:
         GUEST_USERNAME:
