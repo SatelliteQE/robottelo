@@ -25,6 +25,9 @@ from nailgun import entities
 from nailgun.config import ServerConfig
 from requests.exceptions import HTTPError
 
+from robottelo.cli.ldapauthsource import LDAPAuthSource
+from robottelo.constants import LDAP_ATTR
+from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import gen_string
 from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import parametrized
@@ -171,6 +174,40 @@ class TestCannedRole:
             'org': entities.Organization().create(),
             'loc': entities.Location().create(),
         }
+
+    @pytest.fixture(scope='function')
+    def create_ldap(self, ad_data, default_sat, module_location, module_org):
+        """Fetch necessary properties from settings and Create ldap auth source"""
+        ad_data = ad_data()
+        authsource_name = gen_string('alpha')
+        yield dict(
+            sat_url=default_sat.url,
+            ldap_user_name=ad_data['ldap_user_name'],
+            ldap_user_passwd=ad_data['ldap_user_passwd'],
+            authsource=entities.AuthSourceLDAP(
+                onthefly_register=True,
+                account=ad_data['ldap_user_name'],
+                account_password=ad_data['ldap_user_passwd'],
+                base_dn=ad_data['base_dn'],
+                groups_base=ad_data['group_base_dn'],
+                attr_firstname=LDAP_ATTR['firstname'],
+                attr_lastname=LDAP_ATTR['surname'],
+                attr_login=LDAP_ATTR['login_ad'],
+                server_type=LDAP_SERVER_TYPE['API']['ad'],
+                attr_mail=LDAP_ATTR['mail'],
+                name=authsource_name,
+                host=ad_data['ldap_hostname'],
+                tls=False,
+                port='389',
+                organization=[module_org],
+                location=[module_location],
+            ).create(),
+        )
+        for user in default_sat.api.User().search(
+            query={'search': f'login={ad_data["ldap_user_name"]}'}
+        ):
+            user.delete()
+        LDAPAuthSource.delete({'name': authsource_name})
 
     @pytest.mark.tier1
     def test_positive_create_role_with_taxonomies(self, role_taxonomies):
@@ -1561,9 +1598,8 @@ class TestCannedRole:
         except HTTPError as err:
             pytest.fail(str(err))
 
-    @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_negative_access_entities_from_ldap_org_admin(self):
+    def test_negative_access_entities_from_ldap_org_admin(self, role_taxonomies, create_ldap):
         """LDAP User can not access resources in taxonomies assigned to role if
         its own taxonomies are not same as its role
 
@@ -1582,12 +1618,33 @@ class TestCannedRole:
 
         :CaseLevel: System
 
-        :CaseAutomation: NotAutomated
+        :CaseAutomation: Automated
         """
+        org_admin = self.create_org_admin_role(
+            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+        )
+        # Creating Domain resource in same taxonomies as Org Admin role to access later
+        domain = self.create_domain(
+            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+        )
+        sc = ServerConfig(
+            auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
+            url=create_ldap['sat_url'],
+            verify=False,
+        )
+        with pytest.raises(HTTPError):
+            entities.Architecture(sc).search()
+        user = entities.User().search(query={'search': f"login={create_ldap['ldap_user_name']}"})[0]
+        user.role = [entities.Role(id=org_admin.id).read()]
+        user.update(['role'])
+        # Trying to access the domain resource created in org admin role
+        with pytest.raises(HTTPError):
+            entities.Domain(sc, id=domain.id).read()
 
-    @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_negative_access_entities_from_ldap_user(self):
+    def test_negative_access_entities_from_ldap_user(
+        self, role_taxonomies, create_ldap, module_location, module_org
+    ):
         """LDAP User can not access resources within its own taxonomies if
         assigned role does not have permissions for same taxonomies
 
@@ -1606,12 +1663,29 @@ class TestCannedRole:
 
         :CaseLevel: System
 
-        :CaseAutomation: NotAutomated
+        :CaseAutomation: Automated
         """
+        org_admin = self.create_org_admin_role(
+            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+        )
+        # Creating Domain resource in different taxonomies to access later
+        domain = self.create_domain(orgs=[module_org.id], locs=[module_location.id])
+        sc = ServerConfig(
+            auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
+            url=create_ldap['sat_url'],
+            verify=False,
+        )
+        with pytest.raises(HTTPError):
+            entities.Architecture(sc).search()
+        user = entities.User().search(query={'search': f"login={create_ldap['ldap_user_name']}"})[0]
+        user.role = [entities.Role(id=org_admin.id).read()]
+        user.update(['role'])
+        # Trying to access the Domain resource
+        with pytest.raises(HTTPError):
+            entities.Domain(sc, id=domain.id).read()
 
-    @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_positive_assign_org_admin_to_ldap_user_group(self):
+    def test_positive_assign_org_admin_to_ldap_user_group(self, role_taxonomies, create_ldap):
         """Users in LDAP usergroup can access to the resources in taxonomies if
         the taxonomies of Org Admin role are same
 
@@ -1631,16 +1705,49 @@ class TestCannedRole:
 
         :CaseLevel: System
 
-        :CaseAutomation: NotAutomated
+        :CaseAutomation: Automated
         """
+        group_name = gen_string("alpha")
+        password = gen_string("alpha")
+        org_admin = self.create_org_admin_role(
+            orgs=[create_ldap['authsource'].organization[0].id],
+            locs=[create_ldap['authsource'].location[0].id],
+        )
+        # Creating Domain resource in same taxonomies as Org Admin role to access later
+        domain = self.create_domain(
+            orgs=[create_ldap['authsource'].organization[0].id],
+            locs=[create_ldap['authsource'].location[0].id],
+        )
+        users = [
+            entities.User(
+                login=gen_string("alpha"),
+                password=password,
+                organization=create_ldap['authsource'].organization,
+                location=create_ldap['authsource'].location,
+            ).create()
+            for _ in range(2)
+        ]
+        user_group = entities.UserGroup(name=group_name, user=users, role=[org_admin]).create()
+        # Adding LDAP authsource to the usergroup
+        entities.ExternalUserGroup(
+            name='foobargroup', usergroup=user_group, auth_source=create_ldap['authsource']
+        ).create()
 
-    @pytest.mark.stubbed
+        for user in users:
+            sc = ServerConfig(
+                auth=(user.login, password),
+                url=create_ldap['sat_url'],
+                verify=False,
+            )
+            # Accessing the Domain resource
+            entities.Domain(sc, id=domain.id).read()
+
     @pytest.mark.tier3
-    def test_negative_assign_org_admin_to_ldap_user_group(self):
+    def test_negative_assign_org_admin_to_ldap_user_group(self, create_ldap, role_taxonomies):
         """Users in LDAP usergroup can not have access to the resources in
         taxonomies if the taxonomies of Org Admin role is not same
 
-        :id: f62800eb-5408-4dbe-8d11-6d8a2c770dbc
+        :id: f62800eb-5408-4dbe-8d11-6d8a2c770dbct
 
         :steps:
 
@@ -1656,8 +1763,41 @@ class TestCannedRole:
 
         :CaseLevel: System
 
-        :CaseAutomation: NotAutomated
+        :CaseAutomation: Automated
         """
+        group_name = gen_string("alpha")
+        password = gen_string("alpha")
+        org_admin = self.create_org_admin_role(
+            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+        )
+        # Creating Domain resource in same taxonomies as Org Admin role to access later
+        domain = self.create_domain(
+            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+        )
+        users = [
+            entities.User(
+                login=gen_string("alpha"),
+                password=password,
+                organization=create_ldap['authsource'].organization,
+                location=create_ldap['authsource'].location,
+            ).create()
+            for _ in range(2)
+        ]
+        user_group = entities.UserGroup(name=group_name, user=users, role=[org_admin]).create()
+        # Adding LDAP authsource to usergroup
+        entities.ExternalUserGroup(
+            name='foobargroup', usergroup=user_group, auth_source=create_ldap['authsource']
+        ).create()
+
+        for user in users:
+            sc = ServerConfig(
+                auth=(user.login, password),
+                url=create_ldap['sat_url'],
+                verify=False,
+            )
+            # Trying to access the Domain resource
+            with pytest.raises(HTTPError):
+                entities.Domain(sc, id=domain.id).read()
 
 
 class TestRoleSearchFilter:
