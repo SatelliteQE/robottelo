@@ -48,6 +48,7 @@ from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
@@ -3781,3 +3782,60 @@ def test_positive_filter_by_pkg_group_name(session, module_org, default_sat):
         result = session.contentview.read_version(cv.name, VERSION)
         # Assert only the expected packages are present
         assert expected_packages == [pkg['Name'] for pkg in result['rpm_packages']['table']]
+
+
+@pytest.mark.tier3
+def test_positive_inc_update_should_not_fail(session, module_org):
+    """Incremental update after removing a package should not give a 400 error code
+
+    :BZ: 2041497
+
+    :id: 1d78db8f-53cc-4f00-9fea-d871c2f53d03
+
+    :setup:
+        1. Create custom repo and sync
+        2. Delete some packages from the repo (bear in this case)
+        3. Create a cv, add the repo, and publish it
+        4. Re-sync the repo to get hte deleted RPMs back
+        5. Perform incremental update to add back the repo to the cv
+
+    :customerscenario: true
+
+    :expectedresults: Incremental update is successful
+
+    :CaseImportance: High
+    """
+    package1_name = 'bear'
+    product = entities.Product(organization=module_org).create()
+    yum_repo_name = gen_string('alpha')
+    # Creates custom yum repository
+    yum_repo = entities.Repository(
+        name=yum_repo_name,
+        url=settings.repos.yum_1.url,
+        content_type=REPO_TYPE['yum'],
+        product=product,
+    ).create()
+    yum_repo.sync()
+    # remove 'bear' package
+    package_id = yum_repo.packages()['results'][0]['id']
+    yum_repo.remove_content(data={'ids': [package_id]})
+    assert yum_repo.packages()['total'] == 31
+    cv = entities.ContentView(organization=module_org, repository=[yum_repo]).create()
+    cv.publish()
+    cvvs = entities.ContentView(id=cv.id).read().version
+    assert len(cvvs) == 1
+    yum_repo.sync()
+    assert yum_repo.packages()['total'] == 32
+    cvv = cvvs[0].read()
+    result = ContentView.version_incremental_update(
+        {'content-view-version-id': cvv.id, 'errata-ids': settings.repos.yum_1.errata[0]}
+    )
+    result = [line.strip() for line_dict in result for line in line_dict.values()]
+    assert result[2] == FAKE_0_CUSTOM_PACKAGE
+    with session:
+        cvv = entities.ContentView(id=cv.id).read().version[1].read()
+        assert cvv.version == '1.1'
+        packages = session.contentview.search_version_package(
+            cv.name, 'Version 1.1', f'name= "{package1_name}"'
+        )
+        assert packages[0]['Name'] == package1_name
