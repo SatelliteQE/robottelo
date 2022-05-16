@@ -54,7 +54,7 @@ def virtwho_config(form_data):
 class TestVirtWhoConfigforNutanix:
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(self, default_org, form_data, virtwho_config):
-        """Verify " hammer virt-who-config deploy"
+        """Verify "hammer virt-who-config deploy"
 
         :id: 129d8e57-b4fc-4d95-ad33-5aa6ec6fb146
 
