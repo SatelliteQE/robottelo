@@ -38,7 +38,10 @@ def get_system(system_type):
         ('satellite', 'esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt', 'ahv').
     :raises: VirtWhoError: If wrong ``system_type`` specified.
     """
-    if system_type in ['esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt', 'ahv']:
+    hypervisor_list = ['esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt', 'ahv']
+    system_type_list = ['satellite']
+    system_type_list.extend(hypervisor_list)
+    if system_type in hypervisor_list:
         return {
             'hostname': getattr(settings.virtwho, system_type).guest,
             'username': getattr(settings.virtwho, system_type).guest_username,
@@ -53,19 +56,7 @@ def get_system(system_type):
         }
     else:
         raise VirtWhoError(
-            '"{}" system type is not supported. Please use one of {}'.format(
-                system_type,
-                (
-                    'satellite',
-                    'default_org',
-                    'xen',
-                    'hyperv',
-                    'rhevm',
-                    'libvirt',
-                    'kubevirt',
-                    'ahv',
-                ),
-            )
+            f'"{system_type}" system type is not supported. Please use one of {system_type_list}'
         )
 
 
@@ -218,7 +209,7 @@ def _get_hypervisor_mapping(logs, hypervisor_type):
     """Analysing rhsm.log and get to know: what is the hypervisor_name
     for the specific guest.
     :param str logs: the output of rhsm.log.
-    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt. ahv
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
     :raises: VirtWhoError: If hypervisor_name is None.
     :return: hypervisor_name and guest_name
     """
