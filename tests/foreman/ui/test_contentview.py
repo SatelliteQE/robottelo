@@ -3652,3 +3652,125 @@ def test_positive_inc_update_should_not_fail(session, module_org):
             cv.name, 'Version 1.1', f'name= "{package1_name}"'
         )
         assert packages[0]['Name'] == package1_name
+
+
+@pytest.mark.skip_if_open('BZ:2086957')
+@pytest.mark.tier2
+def test_positive_no_duplicate_key_violate_unique_constraint_using_filters(
+    session, module_org, target_sat
+):
+    """Ensure that there's no duplicate key issues when filtering packages
+
+    :BZ: 2080336
+
+    :id: 6e872dc4-ed8c-450b-8ce6-9f873ac490a1
+
+    :customerscenario: true
+
+    :Steps:
+        1. Sync rhel tools 6.10 repo
+        2. Create cv and add rhel repo
+        3. Create include package filter for 'foreman-cli' and 'katello-agent'
+        4. Publish cv
+        5. Check cv has only 2 packages
+        6. Amend the filter to add 'katello-host-tools'
+        7. Public cv and check it has 3 packages
+        8. Amend filter to remove 'foreman-cli' and 'katello-agent'.
+        9. Add 'katello-host-tools-facts-plugin'
+        10. Publish cv and check cv has 2 packages: katello-host-tools and
+            katello-host-tools-fact-plugin
+        11. Add 'foreman-cli' and 'katello-agent' back
+        12. Publish cv and check that all 4 packages are there
+        13. Trigger orphan clean up
+        14. Amend the filter and remove 'foreman-cli' and 'katello-agent'
+        15. Publish cv and check cv has 2 packages: katello-host-tools and
+            katello-host-tools-fact-plugin
+
+    :expectedresults:
+
+        1. Cv has 2 packages without errors: katello-host-tools and
+            katello-host-tools-fact-plugin
+
+    :CaseImportance: Medium
+
+    :CaseLevel: Integration
+    """
+    cv = gen_string('alpha')
+    filter_name = gen_string('alpha')
+    rh_repo = {
+        'name': REPOS['rhst7_610']['name'],
+        'product': PRDS['rhel'],
+        'reposet': REPOSET['rhst7_610'],
+        'basearch': 'x86_64',
+        'releasever': None,
+    }
+    packages = [
+        'foreman-cli',
+        'katello-agent',
+        'katello-host-tools',
+        'katello-host-tools-fact-plugin',
+    ]
+    with manifests.clone() as manifest:
+        upload_manifest(module_org.id, manifest.content)
+    enable_sync_redhat_repo(rh_repo, module_org.id)
+    with session:
+        session.contentview.create({'name': cv})
+        session.contentview.add_yum_repo(cv, rh_repo['name'])
+        # create filters and rule
+        session.contentviewfilter.create(
+            cv,
+            {
+                'name': filter_name,
+                'content_type': FILTER_CONTENT_TYPE['package'],
+                'inclusion_type': FILTER_TYPE['include'],
+            },
+        )
+        # add rule to include only 'foreman-cli' and 'katello-agent'
+        session.contentviewfilter.add_package_rule(cv, filter_name, packages[0], None, None)
+        session.contentviewfilter.add_package_rule(cv, filter_name, packages[1], None, None)
+        result = session.contentview.publish(cv)
+        assert result['Version'] == VERSION
+        # check only the 2 packages are in the cv
+        packages_check = session.contentview.read_version(cv, result['Version'])
+        assert len(packages_check['rpm_packages']['table']) == 2
+        for i in range(len(packages_check['rpm_packages']['table'])):
+            assert packages_check['rpm_packages']['table'][i]['Name'] == packages[i]
+        # add 3rd package - katello-host-tools
+        session.contentviewfilter.add_package_rule(cv, filter_name, packages[2], None, None)
+        result = session.contentview.publish(cv)
+        assert result['Version'] == 'Version 2.0'
+        packages_check = session.contentview.read_version(cv, result['Version'])
+        assert len(packages_check['rpm_packages']['table']) == 3
+        for i in range(len(packages_check['rpm_packages']['table'])):
+            assert packages_check['rpm_packages']['table'][i]['Name'] == packages[i]
+        # remove the rule for the first 2 packages and add another new package rule
+        session.contentviewfilter.remove_package_rule(cv, filter_name, packages[0])
+        session.contentviewfilter.remove_package_rule(cv, filter_name, packages[1])
+        session.contentviewfilter.add_package_rule(cv, filter_name, packages[3], None, None)
+        result = session.contentview.publish(cv)
+        assert result['Version'] == 'Version 3.0'
+        packages_check = session.contentview.read_version(cv, result['Version'])
+        assert len(packages_check['rpm_packages']['table']) == 2
+        assert packages_check['rpm_packages']['table'][0]['Name'] == packages[2]
+        assert packages_check['rpm_packages']['table'][1]['Name'] == packages[3]
+        session.contentviewfilter.add_package_rule(cv, filter_name, packages[0], None, None)
+        session.contentviewfilter.add_package_rule(cv, filter_name, packages[1], None, None)
+        result = session.contentview.publish(cv)
+        assert result['Version'] == 'Version 4.0'
+        packages_check = session.contentview.read_version(cv, result['Version'])
+        assert len(packages_check['rpm_packages']['table']) == 4
+        for i in range(len(packages)):
+            assert packages_check['rpm_packages']['table'][i]['Name'] == packages[i]
+        # trigger orphan cleanup
+        result = target_sat.execute('foreman-rake katello:delete_orphaned_content')
+        assert result.status == 0
+        # remove the rule for the first 2 packages again
+        session.contentviewfilter.remove_package_rule(cv, filter_name, packages[0])
+        session.contentviewfilter.remove_package_rule(cv, filter_name, packages[1])
+        result = session.contentview.publish(cv)
+        assert result['Version'] == 'Version 5.0'
+        packages_check = session.contentview.read_version(cv, result['Version'])
+        # finally should only see 'katello-host-tools' and 'katello-host-tools-fact-plugin'
+        assert len(packages_check['rpm_packages']['table']) == 2
+        assert packages_check['rpm_packages']['table'][0]['Name'] == packages[2]
+        assert packages_check['rpm_packages']['table'][1]['Name'] == packages[3]
