@@ -37,6 +37,7 @@ from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.location import Location
 from robottelo.cli.module_stream import ModuleStream
 from robottelo.cli.org import Org
+from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
@@ -4300,3 +4301,54 @@ class TestContentViewFileRepo:
             'sudo -u postgres psql -d foreman -c "\\d katello_repository_rpms"'
         )
         assert 'id|bigint' in result.stdout.splitlines()[3].replace(' ', '')
+
+    @pytest.mark.tier3
+    def test_positive_inc_update_should_not_fail(self, module_org):
+        """Incremental update after removing a package should not give a 400 error code
+
+        :BZ: 2041497
+
+        :id: 704c3302-ac7e-4485-bd97-c85720dd53e8
+
+        :customerscenario: true
+
+        :expectedresults: Incremental update is successful
+        """
+        custom_yum_product = cli_factory.make_product({'organization-id': module_org.id})
+        custom_yum_repo = cli_factory.make_repository(
+            {
+                'content-type': 'yum',
+                'product-id': custom_yum_product['id'],
+                'url': settings.repos.yum_1.url,
+            }
+        )
+        Repository.synchronize({'id': custom_yum_repo['id']})
+        repo = Repository.info({'id': custom_yum_repo['id']})
+        assert repo['content-counts']['packages'] == '32'
+        # grab and remove the 'bear' package
+        package = Package.list({'repository-id': repo['id']})[0]
+        Repository.remove_content({'id': repo['id'], 'ids': [package['id']]})
+        repo = Repository.info({'id': repo['id']})
+        assert repo['content-counts']['packages'] == '31'
+        content_view = cli_factory.make_content_view(
+            {'organization-id': module_org.id, 'repository-ids': repo['id']}
+        )
+        ContentView.add_repository(
+            {
+                'id': content_view['id'],
+                'organization-id': module_org.id,
+                'repository-id': repo['id'],
+            }
+        )
+        ContentView.publish({'id': content_view['id']})
+        Repository.synchronize({'id': custom_yum_repo['id']})
+        repo = Repository.info({'id': custom_yum_repo['id']})
+        assert repo['content-counts']['packages'] == '32'
+        content_view = ContentView.info({'id': content_view['id']})
+        cvv = content_view['versions'][0]
+        result = ContentView.version_incremental_update(
+            {'content-view-version-id': cvv['id'], 'errata-ids': settings.repos.yum_1.errata[0]}
+        )
+        assert result[2]
+        content_view = ContentView.info({'id': content_view['id']})
+        assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
