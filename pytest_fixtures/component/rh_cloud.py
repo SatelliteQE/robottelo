@@ -3,9 +3,6 @@ from broker.broker import VMBroker
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import DISTRO_RHEL8
-from robottelo.constants import DISTRO_RHEL9
 from robottelo.helpers import file_downloader
 
 
@@ -77,7 +74,7 @@ def rhcloud_registered_hosts(organization_ak_setup, content_hosts, rhcloud_sat_h
             satellite=rhcloud_sat_host,
             activation_key=ak.name,
             org=org.label,
-            rhel_distro=DISTRO_RHEL7,
+            rhel_distro=f"rhel{vm.os_version.major}",
         )
         assert vm.subscribed
     return content_hosts
@@ -85,26 +82,16 @@ def rhcloud_registered_hosts(organization_ak_setup, content_hosts, rhcloud_sat_h
 
 @pytest.fixture
 def rhel_insights_vm(rhcloud_sat_host, organization_ak_setup, rhel_contenthost):
-    """A module-level fixture to create rhel8 content host registered with insights."""
-    distro_repo_map = {
-        7: DISTRO_RHEL7,
-        8: DISTRO_RHEL8,
-        9: DISTRO_RHEL9,
-    }
+    """A module-level fixture to create rhel content host registered with insights."""
+    # settings.supportability.content_hosts.rhel.versions
     org, ak = organization_ak_setup
     rhel_contenthost.configure_rex(satellite=rhcloud_sat_host, org=org, register=False)
     rhel_contenthost.configure_rhai_client(
         satellite=rhcloud_sat_host,
         activation_key=ak.name,
         org=org.label,
-        rhel_distro=distro_repo_map.get(rhel_contenthost.os_version.major),
+        rhel_distro=f"rhel{rhel_contenthost.os_version.major}",
     )
-    # Create a vulnerability which can be remediated
-    rhel_contenthost.run('chmod 777 /etc/ssh/sshd_config;insights-client')
-    if rhel_contenthost.os_version.major == 8:
-        rhel_contenthost.run(
-            'dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client'
-        )
     yield rhel_contenthost
 
 

@@ -32,7 +32,10 @@ from robottelo.constants import DISTRO_RHEL8
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_list([8, 9])
 def test_rhcloud_insights_e2e(
-    rhel_insights_vm, organization_ak_setup, unset_rh_cloud_token, rhcloud_sat_host
+    rhel_insights_vm,
+    organization_ak_setup,
+    unset_rh_cloud_token,
+    rhcloud_sat_host,
 ):
     """Synchronize hits data from cloud, verify it is displayed in Satellite and run remediation.
 
@@ -64,6 +67,8 @@ def test_rhcloud_insights_e2e(
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
+    # Create a vulnerability which can be remediated
+    rhel_insights_vm.run('chmod 777 /etc/ssh/sshd_config;insights-client')
     query = 'Decreased security: OpenSSH config permissions'
     job_query = (
         f'Remote action: Insights remediations for selected issues on {rhel_insights_vm.hostname}'
@@ -222,7 +227,10 @@ def test_host_sorting_based_on_recommendation_count():
 @pytest.mark.tier2
 @pytest.mark.rhel_ver_list([8])
 def test_host_details_page(
-    rhel_insights_vm, organization_ak_setup, set_rh_cloud_token, rhcloud_sat_host
+    rhel_insights_vm,
+    organization_ak_setup,
+    set_rh_cloud_token,
+    rhcloud_sat_host,
 ):
     """Test host details page for host having insights recommendations.
 
@@ -254,6 +262,8 @@ def test_host_details_page(
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
+    # Create a vulnerability which can be remediated
+    rhel_insights_vm.run('dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client')
     # Sync inventory status
     inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
     wait_for(
@@ -295,6 +305,7 @@ def test_host_details_page(
             == 'Successfully uploaded to your RH cloud inventory clear'
         )
         recommendations = session.host.read_insights_recommendations(rhel_insights_vm.hostname)
+        assert len(recommendations), 'No recommendations were found'
         assert recommendations[0]['Hostname'] == rhel_insights_vm.hostname
         assert int(result['Recommendations']) == len(recommendations)
 
@@ -394,6 +405,8 @@ def test_delete_host_having_insights_recommendation(
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
+    # Create a vulnerability which can be remediated
+    rhel_insights_vm.run('dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client')
     # Sync inventory status
     inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
     wait_for(
@@ -474,6 +487,8 @@ def test_insights_tab_on_host_details_page(
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
+    # Create a vulnerability which can be remediated
+    rhel_insights_vm.run('dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client')
     dnf_issue = (
         'The dnf installs lower versions of packages when the '
         '"best" option is not present in the /etc/dnf/dnf.conf'
