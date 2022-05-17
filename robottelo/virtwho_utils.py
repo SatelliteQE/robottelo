@@ -220,12 +220,12 @@ def _get_hypervisor_mapping(hypervisor_type):
     :raises: VirtWhoError: If hypervisor_name is None.
     :return: hypervisor_name and guest_name
     """
-    logs, _ = wait_for(
-        get_rhsm_log,
-        fail_condition=lambda logs: "Host-to-guest mapping being sent to" not in logs,
+    wait_for(
+        lambda: 'Host-to-guest mapping being sent to' in get_rhsm_log(),
         timeout=10,
         delay=2,
     )
+    logs = get_rhsm_log()
     mapping = list()
     entry = None
     guest_name, guest_uuid = get_guest_info(hypervisor_type)
