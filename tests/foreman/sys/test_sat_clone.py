@@ -8,7 +8,7 @@
 
 :CaseComponent: SatelliteClone
 
-:Assignee: vsedmik
+:Assignee: lpramuk
 
 :TestType: functional
 
