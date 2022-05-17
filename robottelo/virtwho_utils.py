@@ -132,6 +132,7 @@ def virtwho_cleanup():
     runcmd("rm -f /var/run/virt-who.pid")
     runcmd("rm -f /var/log/rhsm/rhsm.log")
     runcmd("rm -rf /etc/virt-who.d/*")
+    runcmd("rm -rf /tmp/deploy_script.sh")
 
 
 def get_virtwho_status():
@@ -266,6 +267,9 @@ def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Defa
     :param str org: Organization Label
     """
     virtwho_cleanup()
+    guest_name, guest_uuid = get_guest_info(hypervisor_type)
+    if Host.list({'search': guest_name}):
+        Host.delete({'name': guest_name})
     register_system(get_system(hypervisor_type), org=org)
     ret, stdout = runcmd(command)
     if ret != 0 or 'Finished successfully' not in stdout:

@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set Up Python-${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -32,16 +32,16 @@ jobs:
           # link vs compile time ssl implementations can break the environment when installing requirements
           # Uninstall pycurl - its likely not installed, but in case the ubuntu-latest packages change
           # Then compile and install it with PYCURL_SSL_LIBRARY set to openssl
-          pip install -U pip
+          pip install -U pip wheel
           pip uninstall -y pycurl
           pip install --compile --no-cache-dir pycurl
-          pip install -U -r requirements.txt -r requirements-optional.txt
+          pip install -U --no-cache-dir -r requirements.txt -r requirements-optional.txt
           for conffile in conf/*.yaml.template; do mv -- "$conffile" "${conffile%.yaml.template}.yaml"; done
           cp broker_settings.yaml.example broker_settings.yaml
           cp .env.example .env
 
       - name: Pre Commit Checks
-        uses: pre-commit/action@v2.0.0
+        uses: pre-commit/action@v2.0.3
 
       - name: Collect Tests
         run: |

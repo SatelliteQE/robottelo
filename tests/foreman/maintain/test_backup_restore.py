@@ -8,7 +8,7 @@
 
 :CaseComponent: Foreman Maintain
 
-:Assignee: vsedmik or gtalreja
+:Assignee: gtalreja
 
 :TestType: Functional
 
