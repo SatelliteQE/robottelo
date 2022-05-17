@@ -35,24 +35,6 @@ def invalid_settings_values():
     return [' ', '-1', 'text', '0']
 
 
-def valid_error_messages():
-    """Returns the list of valid error messages"""
-    return [
-        'Value is invalid: must be integer',
-        'Value must be greater than 0',
-        'Value URL must be valid and schema must be one of http and https',
-    ]
-
-
-def is_valid_error_message(actual_error_message):
-    status = False
-    for error_message in valid_error_messages():
-        if error_message in actual_error_message:
-            status = True
-            break
-    return status
-
-
 def add_content_views_to_composite(composite_cv, org, repo):
     """Add necessary number of content views to the composite one
 
@@ -161,7 +143,7 @@ def test_negative_validate_foreman_url_error_message(session, setting_update):
         invalid_value = [invalid_value for invalid_value in invalid_settings_values()][0]
         with pytest.raises(AssertionError) as context:
             session.settings.update(f'name = {property_name}', invalid_value)
-            assert is_valid_error_message(str(context.value))
+            assert 'Value is invalid: must be integer' in str(context.value)
 
 
 @pytest.mark.tier2
@@ -499,8 +481,9 @@ def test_negative_update_hostname_with_empty_fact(session, setting_update):
     new_hostname = ""
     property_name = setting_update.name
     with session:
-        response = session.settings.update(property_name, new_hostname)
-        assert response is not None, "Value can't be blank"
+        with pytest.raises(AssertionError) as context:
+            session.settings.update(property_name, new_hostname)
+            assert 'can\'t be blank' in str(context.value)
 
 
 @pytest.mark.run_in_one_thread
