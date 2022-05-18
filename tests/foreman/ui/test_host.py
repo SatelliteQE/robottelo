@@ -2142,29 +2142,6 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             googleclient.disconnect()
 
 
-@pytest.mark.tier4
-def test_positive_read_details_page_from_new_ui(session, module_host_template):
-    """Create new Host and read all its content through details page
-
-    :id: ef0c5942-9049-11ec-8029-98fa9b6ecd5a
-
-    :expectedresults: Host is created and has expected content
-
-    :CaseLevel: System
-    """
-    interface_id = gen_string('alpha')
-    with session:
-        host_name = create_fake_host(session, module_host_template, interface_id)
-        assert session.host_new.search(host_name)[0]['Name'] == host_name
-        values = session.host_new.get_details(host_name)
-        assert values['Overview']['HostStatusCard']['status'] == 'All Statuses are OK'
-        assert (
-            values['Overview']['DetailsCard']['details']['mac_address'] == module_host_template.mac
-        )
-        assert values['Overview']['DetailsCard']['details']['host_owner'] == values['current_user']
-        assert values['Overview']['DetailsCard']['details']['comment'] == 'Host with fake data'
-
-
 class TestHostCockpit:
     """Tests for cockpit plugin"""
 
@@ -2224,6 +2201,43 @@ class TestHostCockpit:
                 f'cockpit page shows hostname {hostname_inside_cockpit} '
                 f'instead of {cockpit_host.hostname}'
             )
+
+
+# ------------------------------ NEW HOST UI DETAILS ----------------------------
+@pytest.fixture(scope='function')
+def enable_new_host_details_ui(default_sat, setting_update):
+    setting_update.value = 'true'
+    setting_update.update({'value'})
+    assert default_sat.api.Setting().search(query={'search': 'name=host_details_ui'})[0].value
+    yield
+
+
+@pytest.mark.tier4
+@pytest.mark.parametrize('setting_update', ['host_details_ui'], indirect=True)
+def test_positive_read_details_page_from_new_ui(
+    session, module_host_template, enable_new_host_details_ui, setting_update
+):
+    """Create new Host and read all its content through details page
+
+    :id: ef0c5942-9049-11ec-8029-98fa9b6ecd5a
+
+    :expectedresults: Host is created and has expected content
+
+    :CaseLevel: System
+    """
+    interface_id = gen_string('alpha')
+    with session:
+        host_name = create_fake_host(
+            session, module_host_template, interface_id, new_host_details=True
+        )
+        assert session.host_new.search(host_name)[0]['Name'] == host_name
+        values = session.host_new.get_details(host_name)
+        assert values['Overview']['HostStatusCard']['status'] == 'All Statuses are OK'
+        assert (
+            values['Overview']['DetailsCard']['details']['mac_address'] == module_host_template.mac
+        )
+        assert values['Overview']['DetailsCard']['details']['host_owner'] == values['current_user']
+        assert values['Overview']['DetailsCard']['details']['comment'] == 'Host with fake data'
 
 
 # ------------------------------ PUPPET ENABLED SAT TESTS ----------------------------
