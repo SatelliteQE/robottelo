@@ -223,16 +223,19 @@ API_PATHS = {
     'content_export_incrementals': (
         '/katello/api/content_export_incrementals/version',
         '/katello/api/content_export_incrementals/library',
+        '/katello/api/content_export_incrementals/repository',
     ),
     'content_exports': (
         '/katello/api/content_exports',
         '/katello/api/content_exports/version',
         '/katello/api/content_exports/library',
+        '/katello/api/content_exports/repository',
     ),
     'content_imports': (
         '/katello/api/content_imports',
         '/katello/api/content_imports/version',
         '/katello/api/content_imports/library',
+        '/katello/api/content_imports/repository',
     ),
     'content_uploads': (
         '/katello/api/repositories/:repository_id/content_uploads',
