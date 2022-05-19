@@ -54,7 +54,7 @@ def function_location(target_sat):
 
 
 @pytest.fixture(scope='function')
-def function_location_with_org(default_sat):
+def function_location_with_org(default_sat, function_org):
     return default_sat.api.Location(organization=[function_org]).create()
 
 

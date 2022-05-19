@@ -219,7 +219,7 @@ def module_libvirt_hostgroup(
     default_smart_proxy,
     module_libvirt_domain,
     module_lce,
-    module_content_view,
+    module_cv_repo,
     module_target_sat,
 ):
     return module_target_sat.api.HostGroup(
@@ -227,7 +227,7 @@ def module_libvirt_hostgroup(
         domain=module_libvirt_domain,
         subnet=module_libvirt_subnet,
         lifecycle_environment=module_lce,
-        content_view=module_content_view,
+        content_view=module_cv_repo,
         location=[smart_proxy_location],
         operatingsystem=default_os,
         organization=[module_org],
@@ -1956,7 +1956,7 @@ def gce_hostgroup(
     gce_domain,
     gce_resource_with_image,
     module_lce,
-    module_content_view,
+    module_cv_repo,
     target_sat,
 ):
     return target_sat.api.HostGroup(
@@ -1964,7 +1964,7 @@ def gce_hostgroup(
         compute_resource=gce_resource_with_image,
         domain=gce_domain,
         lifecycle_environment=module_lce,
-        content_view=module_content_view,
+        content_view=module_cv_repo,
         location=[smart_proxy_location],
         operatingsystem=default_os,
         organization=[module_org],
