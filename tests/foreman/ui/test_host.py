@@ -2241,6 +2241,16 @@ def test_positive_read_details_page_from_new_ui(
 
 
 # ------------------------------ PUPPET ENABLED SAT TESTS ----------------------------
+@pytest.fixture(scope='module')
+def module_puppet_enabled_proxy_with_loc(
+    session_puppet_enabled_sat, module_puppet_loc, session_puppet_enabled_proxy
+):
+    session_puppet_enabled_proxy.location.append(
+        session_puppet_enabled_sat.api.Location(id=module_puppet_loc.id)
+    )
+    session_puppet_enabled_proxy.update(['location'])
+
+
 @pytest.mark.tier3
 def test_positive_inherit_puppet_env_from_host_group_when_action(
     session_puppet_enabled_sat, module_puppet_org, module_puppet_loc, module_puppet_environment
@@ -2295,13 +2305,14 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+@pytest.mark.usefixtures('module_puppet_enabled_proxy_with_loc')
 def test_positive_create_with_puppet_class(
     session_puppet_enabled_sat,
     module_puppet_loc,
     module_puppet_org,
     module_env_search,
     module_import_puppet_module,
-    session_puppet_enabled_proxy,
+    module_puppet_enabled_proxy_with_loc,
 ):
     """Create new Host with puppet class assigned to it
 
@@ -2316,11 +2327,6 @@ def test_positive_create_with_puppet_class(
         organization=module_puppet_org, location=module_puppet_loc
     )
     host_template.create_missing()
-
-    session_puppet_enabled_proxy.location.append(
-        session_puppet_enabled_sat.api.Location(id=module_puppet_loc.id)
-    )
-    session_puppet_enabled_proxy.update(['location'])
 
     with session_puppet_enabled_sat.ui_session as session:
         session.organization.select(org_name=module_puppet_org.name)
@@ -2388,13 +2394,13 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(
 
 
 @pytest.mark.tier3
+@pytest.mark.usefixtures('module_puppet_enabled_proxy_with_loc')
 def test_positive_set_multi_line_and_with_spaces_parameter_value(
     session_puppet_enabled_sat,
     module_puppet_org,
     module_puppet_loc,
     module_puppet_published_cv,
     module_puppet_lce_library,
-    session_puppet_enabled_proxy,
 ):
     """Check that host parameter value with multi-line and spaces is
     correctly represented in yaml format
@@ -2416,10 +2422,6 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
         organization=module_puppet_org, location=module_puppet_loc
     )
     host_template.create_missing()
-    session_puppet_enabled_proxy.location.append(
-        session_puppet_enabled_sat.api.Location(id=module_puppet_loc.id)
-    )
-    session_puppet_enabled_proxy.update(['location'])
 
     param_name = gen_string('alpha').lower()
     # long string that should be escaped and affected by line break with
