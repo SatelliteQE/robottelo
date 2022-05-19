@@ -16,10 +16,8 @@
 """
 import pytest
 import requests
-from nailgun import entities
 
 from robottelo import manifests
-from robottelo import ssh
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
@@ -30,9 +28,9 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import REPOS
 
 
-def create_repo(org, repo_url, ssl_cert=None):
+def create_repo(sat, org, repo_url, ssl_cert=None):
     """Create and sync repository"""
-    product = entities.Product(organization=org).create()
+    product = sat.api.Product(organization=org).create()
     options = {
         'organization': org,
         'product': product,
@@ -42,15 +40,15 @@ def create_repo(org, repo_url, ssl_cert=None):
         'unprotected': True,
         'verify_ssl_on_sync': False,
     }
-    repo = entities.Repository(**options).create()
+    repo = sat.api.Repository(**options).create()
     repo.product = product
     repo.sync()
     return repo
 
 
-def create_activation_key(org, lce, cv, subscription_id):
+def create_activation_key(sat, org, lce, cv, subscription_id):
     """Create activation key with subscription"""
-    act_key = entities.ActivationKey(
+    act_key = sat.api.ActivationKey(
         organization=org,
         content_view=cv,
         environment=lce,
@@ -59,35 +57,35 @@ def create_activation_key(org, lce, cv, subscription_id):
     return act_key
 
 
-def update_cv(cv, lce, repos):
+def update_cv(sat, cv, lce, repos):
     """Update and publish Content view with repos"""
-    cv = entities.ContentView(id=cv.id, repository=repos).update(["repository"])
+    cv = sat.api.ContentView(id=cv.id, repository=repos).update(["repository"])
     cv.publish()
     cv = cv.read()
     promote(cv.version[-1], environment_id=lce.id)
     return cv
 
 
-def register_host(act_key, module_org, module_loc, hostname, ubi=None):
+def register_host(sat, act_key, module_org, module_loc, host, ubi=None):
     """Register host to satellite"""
     # generate registration command
-    command = entities.RegistrationCommand(
+    command = sat.api.RegistrationCommand(
         organization=module_org,
         activation_keys=[act_key.name],
         location=module_loc,
         insecure=True,
         repo=ubi,
     ).create()['registration_command']
-    result = ssh.command(command, hostname=hostname)
+    result = host.execute(command)
     assert result.status == 0
 
 
 @pytest.fixture(scope="module")
-def ssl_cert(module_org):
+def ssl_cert(default_sat, module_org):
     """Create credetial with SSL cert for Oracle Linux"""
     res = requests.get(settings.repos.convert2rhel.ssl_cert_oracle)
     res.raise_for_status()
-    return entities.ContentCredential(
+    return default_sat.api.ContentCredential(
         content=res.text, organization=module_org, content_type='cert'
     ).create()
 
@@ -99,22 +97,28 @@ def manifest(module_org):
 
 
 @pytest.fixture
-def activation_key_rhel(module_org, module_lce, module_promoted_cv, version):
+def activation_key_rhel(default_sat, module_org, module_lce, module_promoted_cv, version):
     """Create activation key that will be used after conversion for registration"""
-    subs = entities.Subscription(organization=module_org).search(
+    subs = default_sat.api.Subscription(organization=module_org).search(
         query={'search': f'{DEFAULT_SUBSCRIPTION_NAME}'}
     )
     assert subs
-    return create_activation_key(module_org, module_lce, module_promoted_cv, subs[0].id)
+    return create_activation_key(
+        default_sat, module_org, module_lce, module_promoted_cv, subs[0].id
+    )
 
 
 @pytest.fixture(scope='module')
-def enable_rhel_subscriptions(module_org, manifest, version):
+def enable_rhel_subscriptions(default_sat, module_org, manifest, version):
     """Enable and sync RHEL rpms repos"""
     major = version.split('.')[0]
     minor = ""
+    # synchronous repo sync
+    synchronous = True
     if major == '8':
         repo_names = ['rhel8_bos', 'rhel8_aps']
+        # make first run async
+        synchronous = False
         minor = version[1:]
     else:
         repo_names = ['rhel7']
@@ -130,14 +134,17 @@ def enable_rhel_subscriptions(module_org, manifest, version):
             releasever=REPOS[name]['releasever'] + minor,
         )
         # Sync step because repo is not synced by default
-        rh_repo = entities.Repository(id=rh_repo_id).read()
-        rh_repo.sync(timeout=2500)
+        rh_repo = default_sat.api.Repository(id=rh_repo_id).read()
+        rh_repo.sync(synchronous=synchronous, timeout=2500)
         rh_repos.append(rh_repo)
+        # wait for second sync
+        synchronous = True
     return rh_repos
 
 
 @pytest.fixture
 def centos(
+    default_sat,
     centos_host,
     module_org,
     smart_proxy_location,
@@ -151,11 +158,14 @@ def centos(
     major = version.split('.')[0]
     if major == '8':
         centos_host.execute("yum update -y centos-*")
-    repo = create_repo(module_org, settings.repos.convert2rhel.convert_to_rhel_repo.format(major))
-    cv = update_cv(module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo])
-    c2r_sub = entities.Subscription(organization=module_org, name=repo.product.name).search()[0]
-    act_key = create_activation_key(module_org, module_lce, cv, c2r_sub.id)
-    register_host(act_key, module_org, smart_proxy_location, centos_host.hostname)
+    repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
+    repo = create_repo(default_sat, module_org, repo_url)
+    cv = update_cv(default_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo])
+    c2r_sub = default_sat.api.Subscription(
+        organization=module_org, name=repo.product.name
+    ).search()[0]
+    act_key = create_activation_key(default_sat, module_org, module_lce, cv, c2r_sub.id)
+    register_host(default_sat, act_key, module_org, smart_proxy_location, centos_host)
     yield centos_host
     # close ssh session before teardown, because of reboot in conversion it may cause problems
     centos_host.close()
@@ -163,6 +173,7 @@ def centos(
 
 @pytest.fixture
 def oracle(
+    default_sat,
     oracle_host,
     module_org,
     smart_proxy_location,
@@ -184,16 +195,17 @@ def oracle(
     assert result.status == 0
     oracle_host.power_control(state='reboot')
     major = version.split('.')[0]
-    repo = create_repo(
-        module_org, settings.repos.convert2rhel.convert_to_rhel_repo.format(major), ssl_cert
-    )
-    cv = update_cv(module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo])
-    c2r_sub = entities.Subscription(organization=module_org, name=repo.product.name).search()[0]
-    act_key = create_activation_key(module_org, module_lce, cv, c2r_sub.id)
+    repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
+    repo = create_repo(default_sat, module_org, repo_url, ssl_cert)
+    cv = update_cv(default_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo])
+    c2r_sub = default_sat.api.Subscription(
+        organization=module_org, name=repo.product.name
+    ).search()[0]
+    act_key = create_activation_key(default_sat, module_org, module_lce, cv, c2r_sub.id)
     ubi_url = settings.repos.convert2rhel.ubi7 if major == '7' else settings.repos.convert2rhel.ubi8
-    ubi = create_repo(module_org, ubi_url)
+    ubi = create_repo(default_sat, module_org, ubi_url)
     ubi_repo = ubi.full_path.replace('https', 'http')
-    register_host(act_key, module_org, smart_proxy_location, oracle_host.hostname, ubi_repo)
+    register_host(default_sat, act_key, module_org, smart_proxy_location, oracle_host, ubi_repo)
     yield oracle_host
     # close ssh session before teardown, because of reboot in conversion it may cause problems
     oracle_host.close()
@@ -210,7 +222,7 @@ def version(request):
     ['oracle7', 'oracle8'],
     indirect=True,
 )
-def test_convert2rhel_oracle(oracle, activation_key_rhel, version):
+def test_convert2rhel_oracle(default_sat, oracle, activation_key_rhel, version):
     """Convert Oracle linux to RHEL
 
     :id: 7fd393f0-551a-4de0-acdd-7f026b485f79
@@ -227,12 +239,14 @@ def test_convert2rhel_oracle(oracle, activation_key_rhel, version):
 
     :CaseImportance: Medium
     """
-    host_content = entities.Host(id=oracle.hostname).read_json()
+    host_content = default_sat.api.Host(id=oracle.hostname).read_json()
     assert host_content['operatingsystem_name'] == f"OracleLinux {version}"
 
     # execute job 'Convert 2 RHEL' on host
-    template_id = entities.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
-    job = entities.JobInvocation().run(
+    template_id = (
+        default_sat.api.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
+    )
+    job = default_sat.api.JobInvocation().run(
         synchronous=False,
         data={
             'job_template_id': template_id,
@@ -248,11 +262,12 @@ def test_convert2rhel_oracle(oracle, activation_key_rhel, version):
     wait_for_tasks(
         f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
     )
-    result = entities.JobInvocation(id=job['id']).read()
+    result = default_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
 
     # check facts: correct os and valid subscription status
-    host_content = entities.Host(id=oracle.hostname).read_json()
+    host_content = default_sat.api.Host(id=oracle.hostname).read_json()
+    # workaround for BZ 2080347
     assert (
         host_content['operatingsystem_name'].startswith(f"RHEL Server {version}")
         or host_content['operatingsystem_name'].startswith(f"RedHat {version}")
@@ -262,7 +277,7 @@ def test_convert2rhel_oracle(oracle, activation_key_rhel, version):
 
 
 @pytest.mark.parametrize("version", ['centos7', 'centos8'], indirect=True)
-def test_convert2rhel_centos(centos, activation_key_rhel, version):
+def test_convert2rhel_centos(default_sat, centos, activation_key_rhel, version):
     """Convert Centos linux to RHEL
 
     :id: 6f698440-7d85-4deb-8dd9-363ea9003b92
@@ -279,13 +294,15 @@ def test_convert2rhel_centos(centos, activation_key_rhel, version):
 
     :CaseImportance: Medium
     """
-    host_content = entities.Host(id=centos.hostname).read_json()
+    host_content = default_sat.api.Host(id=centos.hostname).read_json()
     major = version.split('.')[0]
     assert host_content['operatingsystem_name'] == f"CentOS {major}"
 
     # execute job 'Convert 2 RHEL' on host
-    template_id = entities.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
-    job = entities.JobInvocation().run(
+    template_id = (
+        default_sat.api.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
+    )
+    job = default_sat.api.JobInvocation().run(
         synchronous=False,
         data={
             'job_template_id': template_id,
@@ -301,11 +318,12 @@ def test_convert2rhel_centos(centos, activation_key_rhel, version):
     wait_for_tasks(
         f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
     )
-    result = entities.JobInvocation(id=job['id']).read()
+    result = default_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
 
     # check facts: correct os and valid subscription status
-    host_content = entities.Host(id=centos.hostname).read_json()
+    host_content = default_sat.api.Host(id=centos.hostname).read_json()
+    # workaround for BZ 2080347
     assert (
         host_content['operatingsystem_name'].startswith(f"RHEL Server {version}")
         or host_content['operatingsystem_name'].startswith(f"RedHat {version}")
