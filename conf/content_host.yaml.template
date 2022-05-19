@@ -1,6 +1,6 @@
 content_host:
     default_rhel_version: 7
-    default_workflow: deploy-base-rhel
+    default_deploy_workflow: deploy-base-rhel
     deploy_kwargs:
         RHEL6:
             RELEASE: 6.10
@@ -19,13 +19,15 @@ content_host:
             COMPOSE: RHEL-9.0.0-20220118.1
             MEMORY: 1536 MiB
             CORES: 1
-        CENTOS:
-            SCENARIO: centos
-            DEPLOY_WORKFLOW: deploy-centos
-            MEMORY: 1536 MiB
+        CENTOS7:
+            deploy_workflow: deploy-centos
+            scenario: centos
+            release: '7'
+            MEMORY: 1GiB
             CORES: 1
-        ORACLE_LINUX:
-            SCENARIO: oracle
-            DEPLOY_WORKFLOW: deploy-oracle-linux
-            MEMORY: 1536 MiB
+        ORACLE7:
+            deploy_workflow: deploy-oracle-linux
+            scenario: oracle
+            release: '7.9'
+            MEMORY: 1GiB
             CORES: 1

@@ -30,7 +30,7 @@ def host_conf(request):
     if hasattr(settings.content_host.deploy_kwargs.get(_rhelver), 'deploy_workflow'):
         workflow = settings.content_host.deploy_kwargs.get(_rhelver).deploy_workflow
     else:
-        workflow = settings.content_host.default_workflow
+        workflow = settings.content_host.default_deploy_workflow
     conf['workflow'] = params.get('workflow', workflow)
     conf['deploy_rhel_version'] = settings.content_host.deploy_kwargs.get(_rhelver).release
     conf['memory'] = params.get('memory', settings.content_host.deploy_kwargs.get(_rhelver).memory)
