@@ -47,7 +47,7 @@ class TestVirtwhoConfigforHyperv:
     def test_positive_deploy_configure_by_id(self, default_org, session, form_data):
         """Verify configure created and deployed with id.
 
-        :id: 16f6d8c3-332d-4e36-bc19-028955b2bbc4
+        :id: c8913398-c5c6-4f2c-bc53-0bbfb158b762
 
         :expectedresults:
             1. Config can be created and deployed by command
