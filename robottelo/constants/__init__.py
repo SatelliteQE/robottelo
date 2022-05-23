@@ -324,6 +324,11 @@ DOWNLOAD_POLICIES = {
     'immediate': "Immediate",
 }
 
+MIRRORING_POLICIES = {
+    'additive': "Additive",
+    'mirror_complete': "Complete Mirroring",
+    'mirror_content_only': "Content Only",
+}
 HASH_TYPE = {'sha256': "SHA256", 'sha512': "SHA512", 'base64': "Base64", 'md5': "MD5"}
 
 REPO_TAB = {'rpms': "RPMs", 'kickstarts': "Kickstarts", 'isos': "ISOs", 'ostree': "OSTree"}
