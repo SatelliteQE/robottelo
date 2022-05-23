@@ -21,7 +21,6 @@ from datetime import datetime
 import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
-from nailgun import entities
 from wait_for import wait_for
 
 from robottelo.config import robottelo_tmp_dir
@@ -412,30 +411,35 @@ def test_rh_cloud_tag_values(
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 def test_positive_tag_values_max_length(
-    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
+    inventory_settings,
+    organization_ak_setup,
+    rhcloud_registered_hosts,
+    rhcloud_sat_host,
+    target_sat,
 ):
     """Verify that tags values are truncated properly for the host parameter
-            with max length.
+       with max length.
 
     :id: dbcc7245-88af-4c35-87b8-92de01030cb5
 
     :Steps:
         1. Enable include_parameter_tags setting
         2. Create a host parameter with long text value.
-        3. Generate an rh_cloud reportq
+        3. Generate a rh_cloud report.
         4. Observe the tag generated from the parameter.
 
     :expectedresults:
-        1. Parameter tag value must must not be created after the
-                allowed length.
+        1. Parameter tag value must not be created after the
+           allowed length.
 
     :BZ: 2035204
 
     :CaseAutomation: Automated
     """
+
     param_name = gen_string('alpha')
     param_value = gen_string('alpha', length=260)
-    entities.CommonParameter(name=param_name, value=param_value).create()
+    target_sat.api.CommonParameter(name=param_name, value=param_value).create()
 
     org, ak = organization_ak_setup
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
