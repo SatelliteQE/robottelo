@@ -62,6 +62,7 @@ from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import CUSTOM_FILE_REPO_FILES_COUNT
 from robottelo.constants import CUSTOM_LOCAL_FOLDER
 from robottelo.constants import DOWNLOAD_POLICIES
+from robottelo.constants import MIRRORING_POLICIES
 from robottelo.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import RPM_TO_UPLOAD
@@ -318,25 +319,25 @@ class TestRepository:
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
-            [{'content-type': 'yum', 'mirror-on-sync': value} for value in ('yes', 'no')]
+            [{'content-type': 'yum', 'mirroring-policy': policy} for policy in MIRRORING_POLICIES]
         ),
         indirect=True,
     )
-    def test_positive_create_with_mirror_on_sync(self, repo_options, repo):
-        """Create YUM repositories with available mirror on sync rule
+    def test_positive_mirroring_policy(self, repo_options, repo):
+        """Create YUM repositories with available mirroring policy options
 
         :id: 37a09a91-42fc-4271-b58b-8e00ef0dc5a7
 
         :parametrized: yes
 
-        :expectedresults: YUM repository created successfully and its mirror on
-            sync rule value can be read back
+        :expectedresults: YUM repository created successfully and its mirroring
+            policy value can be read back
 
         :BZ: 1383258
 
         :CaseImportance: Critical
         """
-        assert repo.get('mirror-on-sync') == repo_options['mirror-on-sync']
+        assert repo.get('mirroring-policy') == MIRRORING_POLICIES[repo_options['mirroring-policy']]
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
