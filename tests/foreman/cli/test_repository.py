@@ -28,11 +28,14 @@ from fauxfactory import gen_url
 from nailgun import entities
 from wait_for import wait_for
 
+from robottelo import manifests
+from robottelo.api.utils import upload_manifest
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.content_export import ContentExport
 from robottelo.cli.content_import import ContentImport
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_activation_key
 from robottelo.cli.factory import make_content_credential
 from robottelo.cli.factory import make_content_view
 from robottelo.cli.factory import make_filter
@@ -138,6 +141,24 @@ def repo(repo_options):
 def gpg_key(module_org):
     """Create a new GPG key."""
     return make_content_credential({'organization-id': module_org.id})
+
+
+@pytest.fixture(scope='class')
+def host_setup(module_org):
+    with manifests.clone(name='golden_ticket') as manifest:
+        upload_manifest(module_org.id, manifest.content)
+    new_product = make_product({'organization-id': module_org.id})
+    new_repo = make_repository({'product-id': new_product['id']})
+    Repository.synchronize({'id': new_repo['id']})
+    new_ak = make_activation_key(
+        {
+            'lifecycle-environment': 'Library',
+            'content-view': 'Default Organization View',
+            'organization-id': module_org.id,
+            'auto-attach': False,
+        }
+    )
+    return new_ak
 
 
 class TestRepository:
@@ -1940,7 +1961,7 @@ class TestRepository:
 
         :Steps:
             1. Create Yum Repositories with url contain module-streams and Products
-            2. Initialize synchronization
+            2. Initialize synchronizatio
             3. Verify the module-stream list with various inputs options
 
         :expectedresults: Verify the module-stream list response.
@@ -2040,34 +2061,32 @@ class TestRepository:
         repo_info = Repository.info({'organization-id': module_manifest_org.id, 'id': rh_repo_id})
         assert repo_info['url'] in [repo.get('url') for repo in repo_list]
 
-        @pytest.mark.tier1
-        def test_positive_accessible_content_status(
-            module_org, golden_ticket_host_setup, rhel7_contenthost_class, default_sat
-        ):
-            """Verify that the Candlepin respose accesible_content returns a 304 when no
-            certificate has been updated
+    @pytest.mark.tier1
+    def test_positive_accessible_content_status(
+        self, module_org, host_setup, rhel7_contenthost_class, target_sat
+    ):
+        """Verify that the Candlepin response accesible_content returns a 304 when no
+        certificate has been updated
 
-            :id: 9f8f443d-63fc-41ba-8962-b0ceb6763da1
+        :id: 9f8f443d-63fc-41ba-8962-b0ceb6763da1
 
-            :expectedresults: accessible_content should return 304 not Modified status when
-            yum repolist is run
+        :expectedresults: accessible_content should return 304 not Modified status when
+        yum repolist is run
 
-            :customerscenario: true
+        :customerscenario: true
 
-            :BZ: 2010138
+        :BZ: 2010138
 
-            :CaseImportance: Critical
-            """
-            rhel7_contenthost_class.install_katello_ca(default_sat)
-            rhel7_contenthost_class.register_contenthost(
-                module_org.label, golden_ticket_host_setup['name']
-            )
-            assert rhel7_contenthost_class.subscribed
-            rhel7_contenthost_class.run('yum repolist')
-            access_log = default_sat.execute(
-                'tail -n 10 /var/log/httpd/foreman-ssl_access_ssl.log | grep "/rhsm"'
-            )
-            assert 'accessible_content HTTP/1.1" 304' in access_log.stdout
+        :CaseImportance: Critical
+        """
+        rhel7_contenthost_class.install_katello_ca(target_sat)
+        rhel7_contenthost_class.register_contenthost(module_org.label, host_setup['name'])
+        assert rhel7_contenthost_class.subscribed
+        rhel7_contenthost_class.run('yum repolist')
+        access_log = target_sat.execute(
+            'tail -n 10 /var/log/httpd/foreman-ssl_access_ssl.log | grep "/rhsm"'
+        )
+        assert 'accessible_content HTTP/1.1" 304' in access_log.stdout
 
 
 # TODO: un-comment when OSTREE functionality is restored in Satellite 6.11
