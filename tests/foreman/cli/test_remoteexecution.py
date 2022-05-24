@@ -356,12 +356,12 @@ class TestRemoteExecution:
         """
         self.org = module_org
         client = rex_contenthost
-        packages = ['cow', 'dog', 'lion']
+        packages = ['monkey', 'panda', 'seal']
         # Create a custom repo
         repo = entities.Repository(
             content_type='yum',
             product=entities.Product(organization=self.org).create(),
-            url=settings.repos.yum_0.url,
+            url=settings.repos.yum_3.url,
         ).create()
         repo.sync()
         prod = repo.product.read()
@@ -786,12 +786,12 @@ class TestAnsibleREX:
         """
         self.org = module_org
         client = rex_contenthost
-        packages = ['cow']
+        packages = ['tapir']
         # Create a custom repo
         repo = entities.Repository(
             content_type='yum',
             product=entities.Product(organization=self.org).create(),
-            url=settings.repos.yum_0.url,
+            url=settings.repos.yum_3.url,
         ).create()
         repo.sync()
         prod = repo.product.read()
