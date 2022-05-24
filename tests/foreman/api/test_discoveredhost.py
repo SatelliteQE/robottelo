@@ -679,7 +679,7 @@ class TestLibvirtHostDiscovery:
 
         :CaseImportance: Critical
         """
-        subnet = entities.Subnet(id=provisioning_env['subnet']['id']).read()
+        subnet = target_sat.api.Subnet(id=provisioning_env['subnet']['id']).read()
         # Updating satellite subnet component and dhcp conf ranges
         # Storing now for restoring later
         old_sub_from = subnet.from_
@@ -709,13 +709,13 @@ class TestLibvirtHostDiscovery:
                         new_dhcp_conf_to.split('.')[-1]
                     )
                     # Provision just discovered host
-                    discovered_host.hostgroup = entities.HostGroup(
+                    discovered_host.hostgroup = target_sat.api.HostGroup(
                         id=provisioning_env['hostgroup']['id']
                     ).read()
                     discovered_host.root_pass = gen_string('alphanumeric')
                     discovered_host.update(['hostgroup', 'root_pass'])
                     # Assertions
-                    provisioned_host = entities.Host().search(
+                    provisioned_host = target_sat.api.Host().search(
                         query={
                             'search': 'name={}.{}'.format(
                                 discovered_host.name, provisioning_env['domain']['name']
@@ -726,7 +726,7 @@ class TestLibvirtHostDiscovery:
                         new_subnet_from.split('.')[-1]
                     )
                     assert int(provisioned_host.ip.split('.')[-1]) <= int(old_sub_to_4o)
-                    assert not entities.DiscoveredHost().search(
+                    assert not target_sat.api.DiscoveredHost().search(
                         query={'search': f'name={discovered_host.name}'}
                     )
             finally:

@@ -18,7 +18,6 @@
 """
 import pytest
 from fauxfactory import gen_ipaddr
-from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.datafactory import valid_hostgroups_list
@@ -75,7 +74,7 @@ def test_positive_host_hooks(logger_hook, target_sat):
     assert result.status == 0
 
     # delete host, check logs for hook activity
-    host = entities.Host(name=host_name).create()
+    host = target_sat.api.Host(name=host_name).create()
     assert host.name == f'{host_name}.{host.domain.read().name}'
     result = target_sat.execute(f'cat {LOGS_DIR}')
     assert result.status == 0
@@ -128,14 +127,14 @@ def test_positive_hostgroup_hooks(logger_hook, default_org, target_sat):
     assert result.status == 0
 
     # create hg, check logs for hook activity
-    hg = entities.HostGroup(name=hg_name, organization=[default_org.id]).create()
+    hg = target_sat.api.HostGroup(name=hg_name, organization=[default_org.id]).create()
     assert hg.name == hg_name
     result = target_sat.execute(f'cat {LOGS_DIR}')
     assert result.status == 0
     assert expected_msg.format(create_event, hg_name) in result.stdout
 
     # update hg, check logs for hook activity
-    new_arch = entities.Architecture().create()
+    new_arch = target_sat.api.Architecture().create()
     hg.architecture = new_arch
     hg = hg.update(['architecture'])
     assert hg.architecture.read().name == new_arch.name

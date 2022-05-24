@@ -1443,7 +1443,7 @@ class TestRepositorySync:
 
         :CaseAutomation: Automated
         """
-        org = entities.Organization().create()
+        org = target_sat.api.Organization().create()
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
         rhel7_extra = enable_rhrepo_and_fetchid(
@@ -1454,7 +1454,7 @@ class TestRepositorySync:
             reposet=constants.REPOSET['rhel7_extra'],
             releasever=None,
         )
-        rhel7_extra = entities.Repository(id=rhel7_extra).read()
+        rhel7_extra = target_sat.api.Repository(id=rhel7_extra).read()
         sync_task = rhel7_extra.sync(synchronous=False)
         target_sat.power_control(state='reboot', ensure=True)
         try:
@@ -1470,7 +1470,7 @@ class TestRepositorySync:
                 search_rate=15,
                 max_tries=10,
             )
-        task_status = entities.ForemanTask(id=sync_task['id']).poll()
+        task_status = target_sat.api.ForemanTask(id=sync_task['id']).poll()
         assert task_status['result'] == 'success'
 
 

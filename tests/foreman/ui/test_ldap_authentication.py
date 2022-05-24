@@ -305,8 +305,8 @@ def test_positive_create_with_https(
             server_type='AD', target_sat=target_sat, hostname=ldap_data['ldap_hostname']
         )
         username = settings.ldap.username
-    org = entities.Organization().create()
-    loc = entities.Location().create()
+    org = target_sat.api.Organization().create()
+    loc = target_sat.api.Location().create()
     ldap_auth_name = gen_string('alphanumeric')
 
     with session:
@@ -339,7 +339,7 @@ def test_positive_create_with_https(
     with Session(test_name, username, ldap_data['ldap_user_passwd']) as ldapsession:
         with pytest.raises(NavigationTriesExceeded):
             ldapsession.user.search('')
-    users = entities.User().search(
+    users = target_sat.api.User().search(
         query={'search': 'login="{}"'.format(ldap_data['ldap_user_name'])}
     )
     assert users[0].login == ldap_data['ldap_user_name']
