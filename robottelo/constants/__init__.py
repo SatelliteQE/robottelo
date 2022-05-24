@@ -918,6 +918,7 @@ FAKE_4_CUSTOM_PACKAGE = 'kangaroo-0.1-1.noarch'  # for RHBA-2012:1030
 FAKE_4_CUSTOM_PACKAGE_NAME = 'kangaroo'
 FAKE_5_CUSTOM_PACKAGE = 'kangaroo-0.2-1.noarch'  # for RHBA-2012:1030
 FAKE_6_CUSTOM_PACKAGE = 'kangaroo-0.3-1.noarch'  # for RHEA-2012:0059
+FAKE_7_CUSTOM_PACKAGE = 'rabbit-1.5.6-1.noarch'  # for RHEA-2012:61
 REAL_0_RH_PACKAGE = 'rhev-agent-2.3.16-3.el6.x86_64'
 REAL_RHEL7_0_0_PACKAGE = 'python-pulp-common-2.21.0-1.el7sat.noarch'
 REAL_RHEL7_0_0_PACKAGE_NAME = 'python-pulp-common'

@@ -54,6 +54,7 @@ from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
 from robottelo.constants import NO_REPOS_AVAILABLE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -1575,9 +1576,9 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
 
 
 @pytest.fixture(scope="function")
-def setup_custom_repo(module_org, katello_host_tools_host):
+def setup_custom_repo(module_org, katello_host_tools_host, custom_repo='yum_6'):
     """Create custom repository content"""
-    custom_repo_url = settings.repos.yum_6.url
+    custom_repo_url = settings.repos[custom_repo].url
     prod = entities.Product(organization=module_org, name=f'custom_{gen_string("alpha")}').create()
     custom_repo = entities.Repository(
         organization=module_org,
@@ -1726,6 +1727,7 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.tier3
+@pytest.mark.parametrize('setup_custom_repo', [{'custom_repo': 'yum_3'}], ids=[''], indirect=True)
 def test_positive_erratum_applicability(
     katello_host_tools_host, setup_custom_repo, yum_security_plugin
 ):
@@ -1753,8 +1755,8 @@ def test_positive_erratum_applicability(
     """
     client = katello_host_tools_host
     host_info = Host.info({'name': client.hostname})
-    client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
-    result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
+    client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
+    result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
     applicable_errata, _ = wait_for(
         lambda: Host.errata_list({'host-id': host_info['id']}),
         handle_exception=True,
@@ -1766,16 +1768,16 @@ def test_positive_erratum_applicability(
         erratum
         for erratum in applicable_errata
         if erratum['installable'] == 'true'
-        and erratum['erratum-id'] == settings.repos.yum_6.errata[2]
+        and erratum['erratum-id'] == settings.repos.yum_3.errata[0]
     ]
     # apply the erratum
-    result = client.run(f'yum update -y --advisory {settings.repos.yum_6.errata[2]}')
+    result = client.run(f'yum update -y --advisory {settings.repos.yum_3.errata[0]}')
     assert result.status == 0
     applicable_erratum = Host.errata_list({'host-id': host_info['id']})
     applicable_erratum_ids = [
         errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
     ]
-    assert settings.repos.yum_6.errata[2] not in applicable_erratum_ids
+    assert settings.repos.yum_3.errata[0] not in applicable_erratum_ids
 
 
 @pytest.mark.cli_katello_host_tools
