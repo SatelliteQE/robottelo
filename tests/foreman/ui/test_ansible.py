@@ -44,6 +44,9 @@ def test_positive_import_all_roles(default_sat):
         assert available_roles_count == imported_roles_count
         ansible_variables_count = int(session.ansiblevariables.read_total_variables())
         assert ansible_variables_count > 0
+        delete_role = 'theforeman.foreman_scap_client'
+        session.ansibleroles.delete(delete_role)
+        assert not session.ansibleroles.search(delete_role)
 
 
 def test_positive_create_and_delete_variable(default_sat):
