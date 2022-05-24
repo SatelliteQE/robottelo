@@ -29,7 +29,7 @@ BAD_HN_MSG = (
     "{0} is not a valid fully qualified domain name. Please use a valid FQDN and try again."
 )
 NO_CREDS_MSG = "Username and/or Password options are missing!"
-BAD_CREDS_MSG = "Unable to authenticate user admin"
+BAD_CREDS_MSG = "There is a problem with the credentials"
 
 
 @pytest.mark.run_in_one_thread
@@ -72,7 +72,7 @@ class TestRenameHost:
         """
         username = settings.server.admin_username
         password = settings.server.admin_password
-        old_hostname = destructive_sat.execute('hostname').stdout
+        old_hostname = destructive_sat.execute('hostname').stdout.strip()
         new_hostname = f'new-{old_hostname}'
         # create installation medium with hostname in path
         medium_path = f'http://{old_hostname}/testpath-{gen_string("alpha")}/os/'
@@ -157,7 +157,7 @@ class TestRenameHost:
         assert BAD_HN_MSG.format(hostname) in result.stdout
         # assert no changes were made
         result = destructive_sat.execute('hostname')
-        assert original_name == result.stdout, "Invalid hostame assigned"
+        assert original_name == result.stdout.strip(), "Invalid hostame assigned"
 
     @pytest.mark.destructive
     def test_negative_rename_sat_no_credentials(self, destructive_sat):
@@ -179,7 +179,7 @@ class TestRenameHost:
         assert NO_CREDS_MSG in result.stdout
         # assert no changes were made
         result = destructive_sat.execute('hostname')
-        assert original_name == result.stdout, "Invalid hostame assigned"
+        assert original_name == result.stdout.strip(), "Invalid hostame assigned"
 
     @pytest.mark.skip_if_open("BZ:1925616")
     @pytest.mark.destructive
