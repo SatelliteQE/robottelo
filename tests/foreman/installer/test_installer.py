@@ -49,7 +49,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--[no-]enable-foreman-plugin-azure',
     '--[no-]enable-foreman-plugin-bootdisk',
     '--[no-]enable-foreman-plugin-discovery',
-    '--[no-]enable-foreman-plugin-host-reports',
     '--[no-]enable-foreman-plugin-kubevirt',
     '--[no-]enable-foreman-plugin-leapp',
     '--[no-]enable-foreman-plugin-openscap',
@@ -70,7 +69,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--[no-]enable-foreman-proxy-plugin-dns-infoblox',
     '--[no-]enable-foreman-proxy-plugin-openscap',
     '--[no-]enable-foreman-proxy-plugin-remote-execution-ssh',
-    '--[no-]enable-foreman-proxy-plugin-reports',
     '--[no-]enable-foreman-proxy-plugin-shellhooks',
     '--[no-]enable-katello',
     '--[no-]enable-puppet',
@@ -213,6 +211,8 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--foreman-proxy-content-enable-ostree',
     '--foreman-proxy-content-enable-python',
     '--foreman-proxy-content-enable-yum',
+    '--foreman-proxy-content-pulpcore-additional-export-paths',
+    '--foreman-proxy-content-pulpcore-additional-import-paths',
     '--foreman-proxy-content-pulpcore-allowed-content-checksums',
     '--foreman-proxy-content-pulpcore-api-service-worker-timeout',
     '--foreman-proxy-content-pulpcore-cache-enabled',
@@ -372,12 +372,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--foreman-proxy-plugin-remote-execution-ssh-ssh-identity-file',
     '--foreman-proxy-plugin-remote-execution-ssh-ssh-kerberos-auth',
     '--foreman-proxy-plugin-remote-execution-ssh-ssh-keygen',
-    '--foreman-proxy-plugin-reports-enabled',
-    '--foreman-proxy-plugin-reports-keep-reports',
-    '--foreman-proxy-plugin-reports-listen-on',
-    '--foreman-proxy-plugin-reports-proxy-name',
-    '--foreman-proxy-plugin-reports-spool-dir',
-    '--foreman-proxy-plugin-reports-version',
     '--foreman-proxy-plugin-shellhooks-directory',
     '--foreman-proxy-plugin-shellhooks-enabled',
     '--foreman-proxy-plugin-shellhooks-listen-on',
@@ -427,7 +421,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--foreman-proxy-tftp-replace-grub2-cfg',
     '--foreman-proxy-tftp-root',
     '--foreman-proxy-tftp-servername',
-    '--foreman-proxy-tftp-syslinux-filenames',
     '--foreman-proxy-tls-disabled-versions',
     '--foreman-proxy-trusted-hosts',
     '--foreman-proxy-use-sudoers',
@@ -470,6 +463,7 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--katello-candlepin-db-password',
     '--katello-candlepin-db-port',
     '--katello-candlepin-db-ssl',
+    '--katello-candlepin-db-ssl-ca',
     '--katello-candlepin-db-ssl-verify',
     '--katello-candlepin-db-user',
     '--katello-candlepin-manage-db',
@@ -523,12 +517,10 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--puppet-package-source',
     '--puppet-pluginfactsource',
     '--puppet-pluginsource',
-    '--puppet-pluginsync',
     '--puppet-port',
     '--puppet-postrun-command',
     '--puppet-prerun-command',
     '--puppet-puppetmaster',
-    '--puppet-remove-lock',
     '--puppet-report',
     '--puppet-run-hour',
     '--puppet-run-minute',
@@ -553,7 +545,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--puppet-server-cipher-suites',
     '--puppet-server-common-modules-path',
     '--puppet-server-compile-mode',
-    '--puppet-server-config-version',
     '--puppet-server-connect-timeout',
     '--puppet-server-crl-enable',
     '--puppet-server-custom-trusted-oid-mapping',
@@ -566,6 +557,7 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--puppet-server-environments-group',
     '--puppet-server-environments-mode',
     '--puppet-server-environments-owner',
+    '--puppet-server-environment-vars',
     '--puppet-server-envs-dir',
     '--puppet-server-envs-target',
     '--puppet-server-external-nodes',
@@ -617,7 +609,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--puppet-server-puppetserver-auth-template',
     '--puppet-server-puppetserver-dir',
     '--puppet-server-puppetserver-experimental',
-    '--puppet-server-puppetserver-jruby9k',
     '--puppet-server-puppetserver-logdir',
     '--puppet-server-puppetserver-metrics',
     '--puppet-server-puppetserver-profiler',
@@ -788,6 +779,8 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-foreman-proxy-content-enable-ostree',
     '--reset-foreman-proxy-content-enable-python',
     '--reset-foreman-proxy-content-enable-yum',
+    '--reset-foreman-proxy-content-pulpcore-additional-export-paths',
+    '--reset-foreman-proxy-content-pulpcore-additional-import-paths',
     '--reset-foreman-proxy-content-pulpcore-allowed-content-checksums',
     '--reset-foreman-proxy-content-pulpcore-api-service-worker-timeout',
     '--reset-foreman-proxy-content-pulpcore-cache-enabled',
@@ -947,12 +940,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-foreman-proxy-plugin-remote-execution-ssh-ssh-identity-file',
     '--reset-foreman-proxy-plugin-remote-execution-ssh-ssh-kerberos-auth',
     '--reset-foreman-proxy-plugin-remote-execution-ssh-ssh-keygen',
-    '--reset-foreman-proxy-plugin-reports-enabled',
-    '--reset-foreman-proxy-plugin-reports-keep-reports',
-    '--reset-foreman-proxy-plugin-reports-listen-on',
-    '--reset-foreman-proxy-plugin-reports-proxy-name',
-    '--reset-foreman-proxy-plugin-reports-spool-dir',
-    '--reset-foreman-proxy-plugin-reports-version',
     '--reset-foreman-proxy-plugin-shellhooks-directory',
     '--reset-foreman-proxy-plugin-shellhooks-enabled',
     '--reset-foreman-proxy-plugin-shellhooks-listen-on',
@@ -1002,7 +989,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-foreman-proxy-tftp-replace-grub2-cfg',
     '--reset-foreman-proxy-tftp-root',
     '--reset-foreman-proxy-tftp-servername',
-    '--reset-foreman-proxy-tftp-syslinux-filenames',
     '--reset-foreman-proxy-tls-disabled-versions',
     '--reset-foreman-proxy-trusted-hosts',
     '--reset-foreman-proxy-use-sudoers',
@@ -1041,6 +1027,7 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-katello-candlepin-db-password',
     '--reset-katello-candlepin-db-port',
     '--reset-katello-candlepin-db-ssl',
+    '--reset-katello-candlepin-db-ssl-ca',
     '--reset-katello-candlepin-db-ssl-verify',
     '--reset-katello-candlepin-db-user',
     '--reset-katello-candlepin-manage-db',
@@ -1089,12 +1076,10 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-puppet-package-source',
     '--reset-puppet-pluginfactsource',
     '--reset-puppet-pluginsource',
-    '--reset-puppet-pluginsync',
     '--reset-puppet-port',
     '--reset-puppet-postrun-command',
     '--reset-puppet-prerun-command',
     '--reset-puppet-puppetmaster',
-    '--reset-puppet-remove-lock',
     '--reset-puppet-report',
     '--reset-puppet-run-hour',
     '--reset-puppet-run-minute',
@@ -1119,7 +1104,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-puppet-server-cipher-suites',
     '--reset-puppet-server-common-modules-path',
     '--reset-puppet-server-compile-mode',
-    '--reset-puppet-server-config-version',
     '--reset-puppet-server-connect-timeout',
     '--reset-puppet-server-crl-enable',
     '--reset-puppet-server-custom-trusted-oid-mapping',
@@ -1132,6 +1116,7 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-puppet-server-environments-group',
     '--reset-puppet-server-environments-mode',
     '--reset-puppet-server-environments-owner',
+    '--reset-puppet-server-environment-vars',
     '--reset-puppet-server-envs-dir',
     '--reset-puppet-server-envs-target',
     '--reset-puppet-server-external-nodes',
@@ -1183,7 +1168,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-puppet-server-puppetserver-auth-template',
     '--reset-puppet-server-puppetserver-dir',
     '--reset-puppet-server-puppetserver-experimental',
-    '--reset-puppet-server-puppetserver-jruby9k',
     '--reset-puppet-server-puppetserver-logdir',
     '--reset-puppet-server-puppetserver-metrics',
     '--reset-puppet-server-puppetserver-profiler',
@@ -1268,7 +1252,6 @@ LAST_SAVED_SECTIONS = {
     '= Module foreman_proxy_plugin_remote_execution_ssh:',
     '= Module katello:',
     '= Module puppet:',
-    '= Module foreman_proxy_plugin_reports:',
 }
 
 SATELLITE_SERVICES = {
@@ -1281,8 +1264,6 @@ SATELLITE_SERVICES = {
     'postgresql',
     'pulpcore-api',
     'pulpcore-content',
-    'rh-redis5-redis',
-    'puppetserver',
 }
 
 
@@ -1370,24 +1351,24 @@ def test_positive_check_installer_services(target_sat):
     for service in SATELLITE_SERVICES:
         result = target_sat.execute(status_format.format(service))
         assert result.status == 0
-        assert len(result.stderr) == 0
+        assert 'Active: active (running)' in result.stdout
 
     # check status reported by hammer ping command
     username = settings.server.admin_username
     password = settings.server.admin_password
     result = target_sat.execute(f'hammer -u {username} -p {password} ping')
+    test_result = {}
+    service = None
+    for line in result.stdout.strip().replace(' ', '').split('\n'):
+        if line.split(':')[0] not in ('Status', 'ServerResponse', 'message'):
+            service = line.split(':')[0]
+            test_result[service] = {}
+        else:
+            key, value = line.split(":", 1)
+            test_result[service][key] = value
 
-    result_output = [
-        service.strip() for service in result.stdout if not re.search(r'message:', service)
-    ]
-
-    # iterate over the lines grouping every 3 lines
-    # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
-    for service, status, response in zip(*[iter(result_output)] * 3):
-        service = service.replace(':', '').strip()
-        status = status.split(':')[1].strip().lower()
-        response = response.split(':', 1)[1].strip()
-        assert status == 'ok', f'{service} responded with {response}'
+    for service, result in test_result.items():
+        assert result['Status'] == 'ok', f'{service} responded with {result}'
 
 
 @pytest.mark.upgrade
@@ -1732,7 +1713,7 @@ def test_installer_sat_pub_directory_accessibility(target_sat):
         local_path='custom-hiera-satellite.yaml',
         remote_path=f'{custom_hiera_location}',
     )
-    command_output = target_sat.execute('satellite-installer')
+    command_output = target_sat.execute('satellite-installer', timeout='20m')
     assert 'Success!' in command_output.stdout
 
 
@@ -1828,44 +1809,3 @@ def test_installer_inventory_plugin_update(target_sat):
     )
     update_proxy_plugin_output = target_sat.execute(installer_obj.get_command())
     assert 'true' in update_proxy_plugin_output.stdout
-
-
-@pytest.mark.destructive
-def test_installer_puppet_overload(target_sat):
-    """Check the puppet server tuning parameter update
-
-    :id: 70458b3a-1215-49ad-9c94-a115888c8dbd
-
-    :steps:
-        1. Set the new puppet server tuning parameter(puppet_server_jvm_param) in the puppet.
-        2. Set the value in array and it should be updated successfully.
-
-    :expectedresults: Puppet server tuning parameters should be reflected in the puppet-server
-        service
-
-    :CaseImportance: Medium
-
-    :CaseLevel: System
-
-    :BZ: 1920072
-
-    :customerscenario: true
-    """
-    puppet_server_jvm_param_1 = '-Djruby.logger.class=com.puppetlabs.jruby_utils.jruby.Slf4jLogger'
-    puppet_server_jvm_param_2 = '-XX:ReservedCodeCacheSize=1024m'
-    installer_obj = InstallerCommand(puppet_server_jvm_extra_args=f'{puppet_server_jvm_param_1}')
-    command_output = target_sat.execute(installer_obj.get_command())
-    assert 'Success!' in command_output.stdout
-    puppet_service_output = target_sat.execute('systemctl status puppetserver')
-    assert puppet_server_jvm_param_1 in puppet_service_output.stdout
-    installer_obj = InstallerCommand(
-        puppet_server_jvm_extra_args=[
-            f'{puppet_server_jvm_param_1}',
-            f'{puppet_server_jvm_param_2}',
-        ]
-    )
-    command_output = target_sat.execute(installer_obj.get_command())
-    assert 'Success!' in command_output.stdout
-    puppet_service_output = target_sat.execute('systemctl status puppetserver')
-    assert puppet_server_jvm_param_1 in puppet_service_output.stdout
-    assert puppet_server_jvm_param_2 in puppet_service_output.stdout
