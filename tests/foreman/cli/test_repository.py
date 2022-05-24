@@ -2066,12 +2066,12 @@ class TestRepository:
         self, module_org, host_setup, rhel7_contenthost_class, target_sat
     ):
         """Verify that the Candlepin response accesible_content returns a 304 when no
-        certificate has been updated
+            certificate has been updated
 
         :id: 9f8f443d-63fc-41ba-8962-b0ceb6763da1
 
         :expectedresults: accessible_content should return 304 not Modified status when
-        yum repolist is run
+            yum repolist is run
 
         :customerscenario: true
 
