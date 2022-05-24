@@ -1961,7 +1961,7 @@ class TestRepository:
 
         :Steps:
             1. Create Yum Repositories with url contain module-streams and Products
-            2. Initialize synchronizatio
+            2. Initialize synchronization
             3. Verify the module-stream list with various inputs options
 
         :expectedresults: Verify the module-stream list response.
