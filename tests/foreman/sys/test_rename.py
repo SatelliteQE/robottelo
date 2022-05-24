@@ -19,7 +19,6 @@
 """
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 
 from robottelo.cli import hammer
 from robottelo.config import settings
@@ -76,8 +75,8 @@ class TestRenameHost:
         new_hostname = f'new-{old_hostname}'
         # create installation medium with hostname in path
         medium_path = f'http://{old_hostname}/testpath-{gen_string("alpha")}/os/'
-        medium = entities.Media(organization=[module_org], path_=medium_path).create()
-        repo = entities.Repository(product=module_product, name='testrepo').create()
+        medium = target_sat.api.Media(organization=[module_org], path_=medium_path).create()
+        repo = target_sat.api.Repository(product=module_product, name='testrepo').create()
         result = target_sat.execute(
             f'satellite-change-hostname {new_hostname} -y -u {username} -p {password}',
             timeout=1200000,
@@ -128,7 +127,7 @@ class TestRenameHost:
         assert result.status == 1, 'there are remaining instances of the old hostname'
 
         repo.sync()
-        cv = entities.ContentView(organization=module_org).create()
+        cv = target_sat.api.ContentView(organization=module_org).create()
         cv.repository = [repo]
         cv.update(['repository'])
         cv.publish()
