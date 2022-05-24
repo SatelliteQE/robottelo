@@ -19,6 +19,7 @@
 import re
 from datetime import datetime
 from datetime import timedelta
+from urllib.parse import urlparse
 
 import pytest
 from airgun.session import Session
@@ -247,7 +248,6 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm, target_s
     hc_name = gen_string('alpha')
     description = gen_string('alpha')
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
-    search_uri = f'{target_sat.hostname}/content_hosts?search=installable_errata={FAKE_1_ERRATA_ID}'
     assert result.status == 0
     with session:
         session.location.select(default_location.name)
@@ -265,8 +265,11 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm, target_s
         )
         session.hostcollection.associate_host(hc_name, vm.hostname)
         # For BZ#1838800, assert the Host Collection Errata Install table has the search URI
-        uri = session.hostcollection.search_applicable_hosts(hc_name, FAKE_1_ERRATA_ID)
-        assert search_uri in uri
+        p = urlparse(session.hostcollection.search_applicable_hosts(hc_name, FAKE_1_ERRATA_ID))
+        query = f'search=installable_errata%3D{FAKE_1_ERRATA_ID}'
+        assert p.hostname == target_sat.hostname
+        assert p.path == '/content_hosts'
+        assert p.query == query
         # Note time for later wait_for_tasks, and include 4 mins margin of safety.
         timestamp = (datetime.utcnow() - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
         # Update the package by name
