@@ -278,7 +278,6 @@ class TestAzureRMHostProvisioningTestCase:
 
         return azurermclient.get_vm(name=class_host_ft.name.split('.')[0])
 
-    @pytest.mark.skip_if_open("BZ:1850934")
     @pytest.mark.upgrade
     @pytest.mark.tier3
     def test_positive_azurerm_host_provisioned(self, class_host_ft, azureclient_host):
@@ -312,7 +311,6 @@ class TestAzureRMHostProvisioningTestCase:
         assert self.hostname.lower() == azureclient_host.name
         assert self.vm_size == azureclient_host.type
 
-    @pytest.mark.skip_if_open("BZ:1850934")
     @pytest.mark.tier3
     def test_positive_azurerm_host_power_on_off(self, class_host_ft, azureclient_host):
         """Host can be powered on and off
@@ -437,7 +435,6 @@ class TestAzureRMUserDataProvisioning:
 
         return azurermclient.get_vm(name=class_host_ud.name.split('.')[0])
 
-    @pytest.mark.skip_if_open("BZ:1850934")
     @pytest.mark.upgrade
     @pytest.mark.tier3
     def test_positive_azurerm_ud_host_provisioned(self, class_host_ud, azureclient_host):
@@ -473,7 +470,6 @@ class TestAzureRMUserDataProvisioning:
         assert self.hostname.lower() == azureclient_host.name
         assert self.vm_size == azureclient_host.type
 
-    @pytest.mark.skip_if_open("BZ:1850934")
     @pytest.mark.upgrade
     @pytest.mark.tier3
     def test_positive_host_disassociate_associate(self, class_host_ud, module_azurerm_cr_puppet):
@@ -594,7 +590,6 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
 
         return azurermclient.get_vm(name=class_host_gallery_ft.name.split('.')[0])
 
-    @pytest.mark.skip_if_open("BZ:1850934")
     @pytest.mark.upgrade
     @pytest.mark.tier3
     def test_positive_azurerm_shared_gallery_host_provisioned(
@@ -722,7 +717,6 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
 
         return azurermclient.get_vm(name=class_host_custom_ft.name.split('.')[0])
 
-    @pytest.mark.skip_if_open("BZ:1850934")
     @pytest.mark.upgrade
     @pytest.mark.tier3
     def test_positive_azurerm_custom_image_host_provisioned(
