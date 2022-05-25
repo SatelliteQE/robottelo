@@ -972,6 +972,7 @@ class TestRexUsers:
         yield (rexinfra, password)
 
     @pytest.mark.tier3
+    @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'infra_host',
         ['target_sat', 'capsule_configured'],
