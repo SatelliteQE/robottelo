@@ -8,7 +8,7 @@
 
 :CaseComponent: ProvisioningTemplates
 
-:Assignee: ogajduse
+:Assignee: akjha
 
 :TestType: Functional
 
