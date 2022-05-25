@@ -58,6 +58,12 @@ REPOS:
     RHEL9: "@format {this[repos].MOCK_SERVICE_REPO_BASE}/epel-9-x86_64/"
   MOCK_SERVICE_RPM: "robottelo-mock-service"
 
+  CONVERT2RHEL:
+    CONVERT_TO_RHEL_REPO: http://convert2rhel_repo.example.com
+    SSL_CERT_ORACLE: http://cert.example.com
+    UBI7: http://ubi7_repo.example.com
+    UBI8: http://ubi8_repo.example.com
+
 # Robottelo fixtures repos
   MODULE_STREAM_0:
     URL:

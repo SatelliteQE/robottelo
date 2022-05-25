@@ -359,7 +359,7 @@ class TestSshKeyInUser:
         assert ssh_name not in [i['name'] for i in result]
 
     @pytest.mark.tier1
-    def test_positive_create_ssh_key_super_admin_from_file(self, default_sat):
+    def test_positive_create_ssh_key_super_admin_from_file(self, target_sat):
         """SSH Key can be added to Super Admin user from file
 
         :id: b865d0ae-6317-475c-a6da-600615b71eeb
@@ -370,7 +370,7 @@ class TestSshKeyInUser:
         :CaseImportance: Critical
         """
         ssh_name = gen_string('alpha')
-        result = default_sat.execute(f"echo '{self.ssh_key}' > test_key.pub")
+        result = target_sat.execute(f"echo '{self.ssh_key}' > test_key.pub")
         assert result.status == 0, 'key file not created'
         User.ssh_keys_add({'user': 'admin', 'key-file': 'test_key.pub', 'name': ssh_name})
         result = User.ssh_keys_list({'user': 'admin'})
@@ -383,7 +383,7 @@ class TestPersonalAccessToken:
     """Implement personal access token for the users"""
 
     @pytest.mark.tier2
-    def test_personal_access_token_admin_user(self, default_sat):
+    def test_personal_access_token_admin_user(self, target_sat):
         """Personal access token for admin user
 
         :id: f2d3813f-e477-4b6b-8507-246b08fcb3b4
@@ -407,16 +407,16 @@ class TestPersonalAccessToken:
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
         token_value = result[0]['message'].split(':')[-1]
-        curl_command = f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/users'
-        command_output = default_sat.execute(curl_command)
+        curl_command = f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/v2/users'
+        command_output = target_sat.execute(curl_command)
         assert user['login'] in command_output.stdout
         assert user['email'] in command_output.stdout
         User.access_token(action="revoke", options={'name': token_name, 'user-id': user['id']})
-        command_output = default_sat.execute(curl_command)
+        command_output = target_sat.execute(curl_command)
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
 
     @pytest.mark.tier2
-    def test_positive_personal_access_token_user_with_role(self, default_sat):
+    def test_positive_personal_access_token_user_with_role(self, target_sat):
         """Personal access token for user with a role
 
         :id: b9fe7ddd-d1e4-4d76-9966-d223b02768ec
@@ -444,18 +444,18 @@ class TestPersonalAccessToken:
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
         token_value = result[0]['message'].split(':')[-1]
-        command_output = default_sat.execute(
-            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/users'
+        command_output = target_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/v2/users'
         )
         assert user['login'] in command_output.stdout
         assert user['email'] in command_output.stdout
-        command_output = default_sat.execute(
-            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/dashboard'
+        command_output = target_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/dashboard'
         )
         assert 'Access denied' in command_output.stdout
 
     @pytest.mark.tier2
-    def test_expired_personal_access_token(self, default_sat):
+    def test_expired_personal_access_token(self, target_sat):
         """Personal access token expired for the user.
 
         :id: cb07b096-aba4-4a95-9a15-5413f32b597b
@@ -482,19 +482,19 @@ class TestPersonalAccessToken:
             options={'name': token_name, 'user-id': user['id'], 'expires-at': datetime_expire},
         )
         token_value = result[0]['message'].split(':')[-1]
-        command_output = default_sat.execute(
-            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/users'
+        command_output = target_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/v2/users'
         )
         assert user['login'] in command_output.stdout
         assert user['email'] in command_output.stdout
         sleep(20)
-        command_output = default_sat.execute(
-            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/hosts'
+        command_output = target_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/v2/hosts'
         )
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
 
     @pytest.mark.tier2
-    def test_custom_personal_access_token_role(self, default_sat):
+    def test_custom_personal_access_token_role(self, target_sat):
         """Personal access token for non admin user with custom role
 
         :id: dcbd22df-2641-4d3e-a1ad-76f36642e31b
@@ -530,13 +530,13 @@ class TestPersonalAccessToken:
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
         token_value = result[0]['message'].split(':')[-1]
-        command_output = default_sat.execute(
-            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/users'
+        command_output = target_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/v2/users'
         )
         assert user['login'] in command_output.stdout
         assert user['email'] in command_output.stdout
         User.access_token(action="revoke", options={'name': token_name, 'user-id': user['id']})
-        command_output = default_sat.execute(
-            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/users'
+        command_output = target_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/v2/users'
         )
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout

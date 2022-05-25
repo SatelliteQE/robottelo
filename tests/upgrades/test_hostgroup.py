@@ -26,7 +26,7 @@ class TestHostgroup:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_create_hostgroup(self, request, default_sat):
+    def test_pre_create_hostgroup(self, request, target_sat):
         """Hostgroup with different data type are created
 
         :id: preupgrade-79958754-94b6-4bfe-af12-7d4031cd2dd2
@@ -36,31 +36,31 @@ class TestHostgroup:
         :expectedresults: Hostgroup should be create successfully.
         """
 
-        proxy = default_sat.api.SmartProxy().search(
-            query={'search': f'url = {default_sat.url}:9090'}
+        proxy = target_sat.api.SmartProxy().search(
+            query={'search': f'url = {target_sat.url}:9090'}
         )[0]
         test_name = request.node.name
-        org = default_sat.api.Organization(name=f"{test_name}_org").create()
-        loc = default_sat.api.Location(organization=[org], name=f"{test_name}_loc").create()
-        parent_hostgroup = default_sat.api.HostGroup(
+        org = target_sat.api.Organization(name=f"{test_name}_org").create()
+        loc = target_sat.api.Location(organization=[org], name=f"{test_name}_loc").create()
+        parent_hostgroup = target_sat.api.HostGroup(
             location=[loc.id], organization=[org.id], name=f'{test_name}_parent_host_grp'
         ).create()
-        lc_env = default_sat.api.LifecycleEnvironment(
+        lc_env = target_sat.api.LifecycleEnvironment(
             name=f"{test_name}_lce", organization=org
         ).create()
 
-        domain = default_sat.api.Domain(name=f"{test_name}_domain").create()
-        architecture = default_sat.api.Architecture().create()
-        ptable = default_sat.api.PartitionTable().create()
-        operatingsystem = default_sat.api.OperatingSystem(
+        domain = target_sat.api.Domain(name=f"{test_name}_domain").create()
+        architecture = target_sat.api.Architecture().create()
+        ptable = target_sat.api.PartitionTable().create()
+        operatingsystem = target_sat.api.OperatingSystem(
             architecture=[architecture], ptable=[ptable], name=f"{test_name}_os"
         ).create()
-        medium = default_sat.api.Media(operatingsystem=[operatingsystem]).create()
-        subnet = default_sat.api.Subnet(
+        medium = target_sat.api.Media(operatingsystem=[operatingsystem]).create()
+        subnet = target_sat.api.Subnet(
             location=[loc], organization=[org], name=f"{test_name}_subnet"
         ).create()
 
-        host_group = default_sat.api.HostGroup(
+        host_group = target_sat.api.HostGroup(
             architecture=architecture,
             domain=domain,
             location=[loc.id],
@@ -80,7 +80,7 @@ class TestHostgroup:
         assert host_group.name == f"{test_name}_host_grp"
 
     @pytest.mark.post_upgrade(depend_on=test_pre_create_hostgroup)
-    def test_post_crud_hostgroup(self, request, dependent_scenario_name, default_sat):
+    def test_post_crud_hostgroup(self, request, dependent_scenario_name, target_sat):
         """After upgrade, Update, delete and clone should work on existing hostgroup(created before
         upgrade)
 
@@ -103,16 +103,16 @@ class TestHostgroup:
         """
         pre_test_name = dependent_scenario_name
         # verify host-group is intact after upgrade
-        org = default_sat.api.Organization().search(
-            query={'search': f'name="{pre_test_name}_org"'}
-        )[0]
+        org = target_sat.api.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[
+            0
+        ]
         request.addfinalizer(org.delete)
-        loc = default_sat.api.Location().search(query={'search': f'name="{pre_test_name}_loc"'})[0]
+        loc = target_sat.api.Location().search(query={'search': f'name="{pre_test_name}_loc"'})[0]
         request.addfinalizer(loc.delete)
-        proxy = default_sat.api.SmartProxy().search(
-            query={'search': f'url = {default_sat.url}:9090'}
+        proxy = target_sat.api.SmartProxy().search(
+            query={'search': f'url = {target_sat.url}:9090'}
         )[0]
-        hostgrp = default_sat.api.HostGroup().search(
+        hostgrp = target_sat.api.HostGroup().search(
             query={'search': f'name={pre_test_name}_host_grp'}
         )[0]
         request.addfinalizer(hostgrp.parent.delete)
@@ -121,24 +121,20 @@ class TestHostgroup:
         assert proxy.id == hostgrp.puppet_proxy.id
         assert proxy.id == hostgrp.puppet_ca_proxy.id
 
-        domain = default_sat.api.Domain().search(query={'search': f'name={pre_test_name}_domain'})[
-            0
-        ]
+        domain = target_sat.api.Domain().search(query={'search': f'name={pre_test_name}_domain'})[0]
         assert domain.id == hostgrp.domain.id
         request.addfinalizer(domain.delete)
 
-        subnet = default_sat.api.Subnet().search(query={'search': f'name={pre_test_name}_subnet'})[
-            0
-        ]
+        subnet = target_sat.api.Subnet().search(query={'search': f'name={pre_test_name}_subnet'})[0]
         assert subnet.id == hostgrp.subnet.id
         request.addfinalizer(subnet.delete)
 
-        parent = default_sat.api.HostGroup().search(
+        parent = target_sat.api.HostGroup().search(
             query={'search': f'name={pre_test_name}_parent_host_grp'}
         )[0]
         assert parent.id == hostgrp.parent.id
 
-        os = default_sat.api.OperatingSystem().search(query={'search': f'name={pre_test_name}_os'})[
+        os = target_sat.api.OperatingSystem().search(query={'search': f'name={pre_test_name}_os'})[
             0
         ]
         assert os.id == hostgrp.operatingsystem.id
@@ -150,27 +146,27 @@ class TestHostgroup:
         hostgrp.update(['name'])
         assert new_name == hostgrp.name
 
-        new_subnet = default_sat.api.Subnet().create()
+        new_subnet = target_sat.api.Subnet().create()
         hostgrp.subnet = new_subnet
         hostgrp.update(['subnet'])
         assert new_subnet.id == hostgrp.subnet.id
 
-        new_domain = default_sat.api.Domain().create()
+        new_domain = target_sat.api.Domain().create()
         hostgrp.domain = new_domain
         hostgrp.update(['domain'])
         assert new_domain.id == hostgrp.domain.id
 
-        new_os = default_sat.api.OperatingSystem().create()
+        new_os = target_sat.api.OperatingSystem().create()
         hostgrp.operatingsystem = new_os
         hostgrp.update(['operatingsystem'])
         assert new_os.id == hostgrp.operatingsystem.id
 
         # clone hostgroup
         hostgroup_cloned_name = gen_string('alpha')
-        hostgroup_cloned = default_sat.api.HostGroup(id=hostgrp.id).clone(
+        hostgroup_cloned = target_sat.api.HostGroup(id=hostgrp.id).clone(
             data={'name': hostgroup_cloned_name}
         )
-        hostgroup_search = default_sat.api.HostGroup().search(
+        hostgroup_search = target_sat.api.HostGroup().search(
             query={'search': f'name={hostgroup_cloned_name}'}
         )
         assert len(hostgroup_search) == 1

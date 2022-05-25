@@ -3,8 +3,6 @@ from broker.broker import VMBroker
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import DISTRO_RHEL8
 from robottelo.helpers import file_downloader
 
 
@@ -76,29 +74,25 @@ def rhcloud_registered_hosts(organization_ak_setup, content_hosts, rhcloud_sat_h
             satellite=rhcloud_sat_host,
             activation_key=ak.name,
             org=org.label,
-            rhel_distro=DISTRO_RHEL7,
+            rhel_distro=f"rhel{vm.os_version.major}",
         )
         assert vm.subscribed
     return content_hosts
 
 
-@pytest.fixture(scope='module')
-def rhel8_insights_vm(rhcloud_sat_host, organization_ak_setup, rhel8_contenthost_module):
-    """A module-level fixture to create rhel8 content host registered with insights."""
-    org, ak = organization_ak_setup
-    rhel8_contenthost_module.configure_rex(satellite=rhcloud_sat_host, org=org, register=False)
-    rhel8_contenthost_module.configure_rhai_client(
-        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL8
-    )
-    yield rhel8_contenthost_module
-
-
 @pytest.fixture
-def fixable_rhel8_vm(rhel8_insights_vm):
-    """A function-level fixture to create dnf related insights recommendation for rhel8 host."""
-    rhel8_insights_vm.run('dnf update -y dnf')
-    rhel8_insights_vm.run('sed -i -e "/^best/d" /etc/dnf/dnf.conf')
-    rhel8_insights_vm.run('insights-client')
+def rhel_insights_vm(rhcloud_sat_host, organization_ak_setup, rhel_contenthost):
+    """A module-level fixture to create rhel content host registered with insights."""
+    # settings.supportability.content_hosts.rhel.versions
+    org, ak = organization_ak_setup
+    rhel_contenthost.configure_rex(satellite=rhcloud_sat_host, org=org, register=False)
+    rhel_contenthost.configure_rhai_client(
+        satellite=rhcloud_sat_host,
+        activation_key=ak.name,
+        org=org.label,
+        rhel_distro=f"rhel{rhel_contenthost.os_version.major}",
+    )
+    yield rhel_contenthost
 
 
 @pytest.fixture

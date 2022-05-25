@@ -37,7 +37,7 @@ from robottelo.virtwho_utils import get_configure_option
 
 
 @pytest.fixture
-def form_data(default_sat):
+def form_data(target_sat):
     esx = settings.virtwho.esx
     return {
         'debug': 1,
@@ -46,7 +46,7 @@ def form_data(default_sat):
         'hypervisor_type': esx.hypervisor_type,
         'hypervisor_server': esx.hypervisor_server,
         'filtering_mode': 'none',
-        'satellite_url': default_sat.hostname,
+        'satellite_url': target_sat.hostname,
         'hypervisor_username': esx.hypervisor_username,
         'hypervisor_password': esx.hypervisor_password,
         'name': 'preupgrade_virt_who',

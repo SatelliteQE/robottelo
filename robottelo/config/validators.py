@@ -33,7 +33,7 @@ VALIDATORS = dict(
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),
-        Validator('content_host.deploy_workflow.default', must_exist=True),
+        Validator('content_host.default_deploy_workflow', must_exist=True),
     ],
     subscription=[
         Validator('subscription.rhn_username', must_exist=True),

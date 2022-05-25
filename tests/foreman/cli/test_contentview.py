@@ -37,6 +37,7 @@ from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.location import Location
 from robottelo.cli.module_stream import ModuleStream
 from robottelo.cli.org import Org
+from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
@@ -2220,7 +2221,7 @@ class TestContentView:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     def test_positive_sub_host_with_restricted_user_perm_at_custom_loc(
-        self, module_org, rhel7_contenthost, default_sat
+        self, module_org, rhel7_contenthost, target_sat
     ):
         """Attempt to subscribe a host with restricted user permissions and
         custom location.
@@ -2366,7 +2367,7 @@ class TestContentView:
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
         # create a client host and register it with the created user
-        rhel7_contenthost.install_katello_ca(default_sat)
+        rhel7_contenthost.install_katello_ca(target_sat)
         rhel7_contenthost.register_contenthost(
             org['label'],
             lce=f'{env["name"]}/{content_view["name"]}',
@@ -2381,7 +2382,7 @@ class TestContentView:
 
     @pytest.mark.tier3
     def test_positive_sub_host_with_restricted_user_perm_at_default_loc(
-        self, module_org, rhel7_contenthost, default_sat
+        self, module_org, rhel7_contenthost, target_sat
     ):
         """Attempt to subscribe a host with restricted user permissions and
         default location.
@@ -2523,7 +2524,7 @@ class TestContentView:
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
         # create a client host and register it with the created user
-        rhel7_contenthost.install_katello_ca(default_sat)
+        rhel7_contenthost.install_katello_ca(target_sat)
         rhel7_contenthost.register_contenthost(
             org['label'],
             lce='/'.join([env['name'], content_view['name']]),
@@ -4128,7 +4129,7 @@ class TestContentViewFileRepo:
 
     @pytest.mark.skip_if_open('BZ:1610309')
     @pytest.mark.tier3
-    def test_positive_arbitrary_file_repo_addition(self, module_org, module_product, default_sat):
+    def test_positive_arbitrary_file_repo_addition(self, module_org, module_product, target_sat):
         """Check a File Repository with Arbitrary File can be added to a
         Content View
 
@@ -4153,7 +4154,7 @@ class TestContentViewFileRepo:
         :BZ: 1610309, 1908465
         """
         repo = self.make_file_repository_upload_contents(
-            module_org, module_product, satellite=default_sat
+            module_org, module_product, satellite=target_sat
         )
         cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV with names.
@@ -4170,7 +4171,7 @@ class TestContentViewFileRepo:
 
     @pytest.mark.skip_if_open('BZ:1908465')
     @pytest.mark.tier3
-    def test_positive_arbitrary_file_repo_removal(self, module_org, module_product, default_sat):
+    def test_positive_arbitrary_file_repo_removal(self, module_org, module_product, target_sat):
         """Check a File Repository with Arbitrary File can be removed from a
         Content View
 
@@ -4195,7 +4196,7 @@ class TestContentViewFileRepo:
         """
         cv = cli_factory.make_content_view({'organization-id': module_org.id})
         repo = self.make_file_repository_upload_contents(
-            module_org, module_product, satellite=default_sat
+            module_org, module_product, satellite=target_sat
         )
         ContentView.add_repository(
             {'id': cv['id'], 'repository-id': repo['id'], 'organization-id': module_org.id}
@@ -4231,7 +4232,7 @@ class TestContentViewFileRepo:
         """
 
     @pytest.mark.tier3
-    def test_positive_arbitrary_file_repo_promotion(self, module_org, module_product, default_sat):
+    def test_positive_arbitrary_file_repo_promotion(self, module_org, module_product, target_sat):
         """Check arbitrary files availability for Content view version after
         content-view promotion.
 
@@ -4259,7 +4260,7 @@ class TestContentViewFileRepo:
 
         cv = cli_factory.make_content_view({'organization-id': module_org.id})
         repo = self.make_file_repository_upload_contents(
-            module_product, module_product, satellite=default_sat
+            module_product, module_product, satellite=target_sat
         )
         ContentView.add_repository(
             {'id': cv['id'], 'repository-id': repo['id'], 'organization-id': module_org.id}
@@ -4282,7 +4283,7 @@ class TestContentViewFileRepo:
         assert repo['name'] in expected_repo
 
     @pytest.mark.tier3
-    def test_positive_katello_repo_rpms_max_int(self, default_sat):
+    def test_positive_katello_repo_rpms_max_int(self, target_sat):
         """Checking that datatype for katello_repository_rpms table is a
         bigint for id for a closed loop bz.
 
@@ -4296,7 +4297,58 @@ class TestContentViewFileRepo:
 
         :BZ: 1793701
         """
-        result = default_sat.execute(
+        result = target_sat.execute(
             'sudo -u postgres psql -d foreman -c "\\d katello_repository_rpms"'
         )
         assert 'id|bigint' in result.stdout.splitlines()[3].replace(' ', '')
+
+    @pytest.mark.tier3
+    def test_positive_inc_update_should_not_fail(self, module_org):
+        """Incremental update after removing a package should not give a 400 error code
+
+        :BZ: 2041497
+
+        :id: 704c3302-ac7e-4485-bd97-c85720dd53e8
+
+        :customerscenario: true
+
+        :expectedresults: Incremental update is successful
+        """
+        custom_yum_product = cli_factory.make_product({'organization-id': module_org.id})
+        custom_yum_repo = cli_factory.make_repository(
+            {
+                'content-type': 'yum',
+                'product-id': custom_yum_product['id'],
+                'url': settings.repos.yum_1.url,
+            }
+        )
+        Repository.synchronize({'id': custom_yum_repo['id']})
+        repo = Repository.info({'id': custom_yum_repo['id']})
+        assert repo['content-counts']['packages'] == '32'
+        # grab and remove the 'bear' package
+        package = Package.list({'repository-id': repo['id']})[0]
+        Repository.remove_content({'id': repo['id'], 'ids': [package['id']]})
+        repo = Repository.info({'id': repo['id']})
+        assert repo['content-counts']['packages'] == '31'
+        content_view = cli_factory.make_content_view(
+            {'organization-id': module_org.id, 'repository-ids': repo['id']}
+        )
+        ContentView.add_repository(
+            {
+                'id': content_view['id'],
+                'organization-id': module_org.id,
+                'repository-id': repo['id'],
+            }
+        )
+        ContentView.publish({'id': content_view['id']})
+        Repository.synchronize({'id': custom_yum_repo['id']})
+        repo = Repository.info({'id': custom_yum_repo['id']})
+        assert repo['content-counts']['packages'] == '32'
+        content_view = ContentView.info({'id': content_view['id']})
+        cvv = content_view['versions'][0]
+        result = ContentView.version_incremental_update(
+            {'content-view-version-id': cvv['id'], 'errata-ids': settings.repos.yum_1.errata[0]}
+        )
+        assert result[2]
+        content_view = ContentView.info({'id': content_view['id']})
+        assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]

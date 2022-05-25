@@ -119,7 +119,7 @@ class TestTailoringFiles:
         assert name in [tailoringfile['name'] for tailoringfile in result]
 
     @pytest.mark.tier1
-    def test_negative_create_with_invalid_file(self, default_sat):
+    def test_negative_create_with_invalid_file(self, target_sat):
         """Create Tailoring files with invalid file
 
         :id: 86f5ce13-856c-4e58-997f-fa21093edd04
@@ -132,7 +132,7 @@ class TestTailoringFiles:
 
         :CaseImportance: Medium
         """
-        default_sat.put(get_data_file(SNIPPET_DATA_FILE), f'/tmp/{SNIPPET_DATA_FILE}')
+        target_sat.put(get_data_file(SNIPPET_DATA_FILE), f'/tmp/{SNIPPET_DATA_FILE}')
         name = gen_string('alphanumeric')
         with pytest.raises(CLIFactoryError):
             make_tailoringfile({'name': name, 'scap-file': f'/tmp/{SNIPPET_DATA_FILE}'})
@@ -179,7 +179,7 @@ class TestTailoringFiles:
 
     @pytest.mark.skip_if_open("BZ:1857572")
     @pytest.mark.tier2
-    def test_positive_download_tailoring_file(self, tailoring_file_path, default_sat):
+    def test_positive_download_tailoring_file(self, tailoring_file_path, target_sat):
 
         """Download the tailoring file from satellite
 
@@ -204,7 +204,7 @@ class TestTailoringFiles:
         assert tailoring_file['name'] == name
         result = TailoringFiles.download_tailoring_file({'name': name, 'path': '/var/tmp/'})
         assert file_path in result
-        result = default_sat.execute(f'find {file_path} 2> /dev/null')
+        result = target_sat.execute(f'find {file_path} 2> /dev/null')
         assert result.status == 0
         assert file_path == result.stdout.strip()
 

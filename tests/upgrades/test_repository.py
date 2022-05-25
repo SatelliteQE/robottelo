@@ -58,7 +58,7 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_repository_scenario_upstream_authorization(self, default_sat):
+    def test_pre_repository_scenario_upstream_authorization(self, target_sat):
         """Create a custom repository and set the upstream username on it.
 
         :id: preupgrade-11c5ceee-bfe0-4ce9-8f7b-67a835baf522
@@ -75,7 +75,7 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
         :customerscenario: true
         """
 
-        org = default_sat.api.Organization().create()
+        org = target_sat.api.Organization().create()
         custom_repo = create_sync_custom_repo(org_id=org.id)
         rake_repo = f'repo = Katello::Repository.find_by_id({custom_repo})'
         rake_username = f'; repo.root.upstream_username = "{UPSTREAM_USERNAME}"'
@@ -132,7 +132,7 @@ class TestScenarioCustomRepoCheck:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_scenario_custom_repo_check(self, default_sat):
+    def test_pre_scenario_custom_repo_check(self, target_sat):
         """This is pre-upgrade scenario test to verify if we can create a
          custom repository and consume it via content host.
 
@@ -151,21 +151,21 @@ class TestScenarioCustomRepoCheck:
             2. Package is installed on Content host.
 
         """
-        org = default_sat.api.Organization().create()
-        loc = default_sat.api.Location(organization=[org]).create()
-        lce = default_sat.api.LifecycleEnvironment(organization=org).create()
+        org = target_sat.api.Organization().create()
+        loc = target_sat.api.Location(organization=[org]).create()
+        lce = target_sat.api.LifecycleEnvironment(organization=org).create()
 
-        product = default_sat.api.Product(organization=org).create()
+        product = target_sat.api.Product(organization=org).create()
         create_repo(rpm1, FILE_PATH)
-        repo = default_sat.api.Repository(
-            product=product.id, url=f'{default_sat.url}/pub/custom_repo'
+        repo = target_sat.api.Repository(
+            product=product.id, url=f'{target_sat.url}/pub/custom_repo'
         ).create()
         repo.sync()
 
         content_view = publish_content_view(org=org, repolist=repo)
         promote(content_view.version[0], lce.id)
 
-        result = default_sat.execute(
+        result = target_sat.execute(
             f'ls /var/lib/pulp/published/yum/https/repos/{org.label}/{lce.name}/'
             f'{content_view.label}/custom/{product.label}/{repo.label}/Packages/b/'
             f'|grep {RPM1_NAME}'
@@ -174,10 +174,10 @@ class TestScenarioCustomRepoCheck:
         assert result.status == 0
         assert len(result.stdout) >= 1
 
-        subscription = default_sat.api.Subscription(organization=org).search(
+        subscription = target_sat.api.Subscription(organization=org).search(
             query={'search': f'name={product.name}'}
         )[0]
-        ak = default_sat.api.ActivationKey(
+        ak = target_sat.api.ActivationKey(
             content_view=content_view, organization=org.id, environment=lce
         ).create()
         ak.add_subscriptions(data={'subscription_id': subscription.id})
@@ -212,7 +212,7 @@ class TestScenarioCustomRepoCheck:
         create_dict(scenario_dict)
 
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_custom_repo_check)
-    def test_post_scenario_custom_repo_check(self, default_sat):
+    def test_post_scenario_custom_repo_check(self, target_sat):
         """This is post-upgrade scenario test to verify if we can alter the
         created custom repository and satellite will be able to sync back
         the repo.
@@ -239,16 +239,16 @@ class TestScenarioCustomRepoCheck:
         repo_name = entity_data.get('repo_name')
 
         create_repo(rpm2, FILE_PATH, post_upgrade=True, other_rpm=rpm1)
-        repo = default_sat.api.Repository(name=repo_name).search()[0]
+        repo = target_sat.api.Repository(name=repo_name).search()[0]
         repo.sync()
 
-        content_view = default_sat.api.ContentView(name=content_view_name).search()[0]
+        content_view = target_sat.api.ContentView(name=content_view_name).search()[0]
         content_view.publish()
 
-        content_view = default_sat.api.ContentView(name=content_view_name).search()[0]
+        content_view = target_sat.api.ContentView(name=content_view_name).search()[0]
         promote(content_view.version[-1], lce_id)
 
-        result = default_sat.execute(
+        result = target_sat.execute(
             'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
             'Packages/c/| grep {}'.format(
                 org_label, lce_name, content_view.label, prod_label, repo.label, RPM2_NAME

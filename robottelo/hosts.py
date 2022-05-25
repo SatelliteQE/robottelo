@@ -376,7 +376,11 @@ class ContentHost(Host, ContentHostMixins):
         :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
             installed.
         """
-        self.execute(f'rpm -Uvh {satellite.url_katello_ca_rpm}')
+        self.execute(
+            f'curl --insecure --output katello-ca-consumer-latest.noarch.rpm \
+                    {satellite.url_katello_ca_rpm}'
+        )
+        self.execute('rpm -Uvh katello-ca-consumer-latest.noarch.rpm')
         # Not checking the status here, as rpm could be installed before
         # and installation may fail
         result = self.execute(f'rpm -q katello-ca-consumer-{satellite.hostname}')
@@ -1381,6 +1385,34 @@ class Satellite(Capsule, SatelliteMixins):
         )
         smart_proxy.import_puppetclasses()
         return env_name
+
+    def destroy_custom_environment(self, env_name):
+        """Remove custom environment including installed modules."""
+        self.execute(f'rm -rf /etc/puppetlabs/code/environments/{env_name}/')
+        smart_proxy = (
+            self.api.SmartProxy().search(query={'search': f'name={self.hostname}'})[0].read()
+        )
+        smart_proxy.import_puppetclasses()
+
+    def delete_puppet_class(self, puppetclass_name):
+        """Delete puppet class and its subclasses."""
+        # Find puppet class
+        puppet_classes = self.api.PuppetClass().search(
+            query={'search': f'name = "{puppetclass_name}"'}
+        )
+        # And all subclasses
+        puppet_classes.extend(
+            self.api.PuppetClass().search(query={'search': f'name ~ "{puppetclass_name}::"'})
+        )
+        for puppet_class in puppet_classes:
+            # Search and remove puppet class from affected hostgroups
+            for hostgroup in puppet_class.read().hostgroup:
+                hostgroup.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
+            # Search and remove puppet class from affected hosts
+            for host in self.api.Host().search(query={'search': f'class={puppet_class.name}'}):
+                host.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
+            # Remove puppet class entity
+            puppet_class.delete()
 
     @contextmanager
     def hammer_api_timeout(self, timeout=-1):

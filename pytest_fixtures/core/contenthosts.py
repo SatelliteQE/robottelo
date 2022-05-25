@@ -19,18 +19,22 @@ def host_conf(request):
     conf = params = {}
     if hasattr(request, 'param'):
         params = request.param
-    _rhelver = f"rhel{params.get('rhel_version', settings.content_host.default_rhel_version)}"
-    rhel_compose_id = settings.get(f"content_host.hardware.{_rhelver}.compose")
+    distro = params.get('distro', 'rhel')
+    _rhelver = f"{distro}{params.get('rhel_version', settings.content_host.default_rhel_version)}"
+    rhel_compose_id = settings.get(f"content_host.deploy_kwargs.{_rhelver}.compose")
     if rhel_compose_id:
         conf['deploy_rhel_compose_id'] = rhel_compose_id
-    default_workflow = (
-        settings.content_host.deploy_workflow.get(_rhelver)
-        or settings.content_host.deploy_workflow.default
-    )
-    conf['workflow'] = params.get('workflow', default_workflow)
-    conf['deploy_rhel_version'] = settings.content_host.hardware.get(_rhelver).release
-    conf['memory'] = params.get('memory', settings.content_host.hardware.get(_rhelver).memory)
-    conf['cores'] = params.get('cores', settings.content_host.hardware.get(_rhelver).cores)
+    scenario = settings.get(f"content_host.deploy_kwargs.{_rhelver}.scenario")
+    if scenario:
+        conf['deploy_scenario'] = scenario
+    if hasattr(settings.content_host.deploy_kwargs.get(_rhelver), 'deploy_workflow'):
+        workflow = settings.content_host.deploy_kwargs.get(_rhelver).deploy_workflow
+    else:
+        workflow = settings.content_host.default_deploy_workflow
+    conf['workflow'] = params.get('workflow', workflow)
+    conf['deploy_rhel_version'] = settings.content_host.deploy_kwargs.get(_rhelver).release
+    conf['memory'] = params.get('memory', settings.content_host.deploy_kwargs.get(_rhelver).memory)
+    conf['cores'] = params.get('cores', settings.content_host.deploy_kwargs.get(_rhelver).cores)
     return conf
 
 
@@ -94,42 +98,42 @@ def content_hosts(request):
 
 
 @pytest.fixture(scope='module')
-def registered_hosts(organization_ak_setup, content_hosts, default_sat):
+def registered_hosts(organization_ak_setup, content_hosts, module_target_sat):
     """Fixture that registers content hosts to Satellite, based on rh_cloud setup"""
     org, ak = organization_ak_setup
     for vm in content_hosts:
-        vm.install_katello_ca(default_sat)
+        vm.install_katello_ca(module_target_sat)
         vm.register_contenthost(org.label, ak.name)
-        vm.add_rex_key(default_sat)
+        vm.add_rex_key(module_target_sat)
         assert vm.subscribed
     return content_hosts
 
 
-@pytest.fixture(scope="function")
-def katello_host_tools_host(default_sat, module_org, rhel_contenthost):
+@pytest.fixture
+def katello_host_tools_host(target_sat, module_org, rhel_contenthost):
     """Register content host to Satellite and install katello-host-tools on the host."""
     repo = settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
-    register_host_custom_repo(default_sat, module_org, rhel_contenthost, [repo])
+    register_host_custom_repo(target_sat, module_org, rhel_contenthost, [repo])
     rhel_contenthost.install_katello_host_tools()
     yield rhel_contenthost
 
 
-@pytest.fixture(scope="function")
-def cockpit_host(default_sat, module_org, rhel_contenthost):
+@pytest.fixture
+def cockpit_host(target_sat, module_org, rhel_contenthost):
     """Register content host to Satellite and install cockpit on the host."""
     rhelver = rhel_contenthost.os_version.major
     if rhelver > 7:
         repo = [settings.repos[f'rhel{rhelver}_os']['baseos']]
     else:
         repo = [settings.repos['rhel7_os'], settings.repos['rhel7_extras']]
-    register_host_custom_repo(default_sat, module_org, rhel_contenthost, repo)
+    register_host_custom_repo(target_sat, module_org, rhel_contenthost, repo)
     rhel_contenthost.execute(f"hostnamectl set-hostname {rhel_contenthost.hostname} --static")
     rhel_contenthost.install_cockpit()
-    rhel_contenthost.add_rex_key(satellite=default_sat)
+    rhel_contenthost.add_rex_key(satellite=target_sat)
     yield rhel_contenthost
 
 
-def register_host_custom_repo(default_sat, module_org, rhel_contenthost, repo_urls):
+def register_host_custom_repo(target_sat, module_org, rhel_contenthost, repo_urls):
     """Register content host to Satellite and sync repos"""
     # prepare Product and appropriate Satellite Client repo on satellite
     rhelver = rhel_contenthost.os_version.major
@@ -149,7 +153,7 @@ def register_host_custom_repo(default_sat, module_org, rhel_contenthost, repo_ur
     subscription = subs[0]
 
     # finally, prepare the host end
-    rhel_contenthost.install_katello_ca(default_sat)
+    rhel_contenthost.install_katello_ca(target_sat)
     register = rhel_contenthost.register_contenthost(
         org=module_org.label,
         lce='Library',
@@ -173,14 +177,14 @@ def register_host_custom_repo(default_sat, module_org, rhel_contenthost, repo_ur
 
 
 @pytest.fixture
-def rex_contenthost(katello_host_tools_host, default_sat):
+def rex_contenthost(katello_host_tools_host, target_sat):
     """Fixture that enables remote execution on the host"""
-    katello_host_tools_host.add_rex_key(satellite=default_sat)
+    katello_host_tools_host.add_rex_key(satellite=target_sat)
     yield katello_host_tools_host
 
 
-@pytest.fixture(scope="function")
-def katello_host_tools_tracer_host(rex_contenthost, default_sat):
+@pytest.fixture
+def katello_host_tools_tracer_host(rex_contenthost, target_sat):
     """Install katello-host-tools-tracer, create custom
     repositories on the host"""
     # create a custom, rhel version-specific OS repo
@@ -196,9 +200,9 @@ def katello_host_tools_tracer_host(rex_contenthost, default_sat):
 
 
 @pytest.fixture
-def container_contenthost(rhel7_contenthost, default_sat):
+def container_contenthost(rhel7_contenthost, target_sat):
     """Fixture that installs docker on the content host"""
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
 
     repos = {
         'server': settings.repos.rhel7_os,
@@ -210,3 +214,17 @@ def container_contenthost(rhel7_contenthost, default_sat):
         rhel7_contenthost.execute(f'yum -y install {service}')
         rhel7_contenthost.execute(f'systemctl start {service}')
     return rhel7_contenthost
+
+
+@pytest.fixture
+def centos_host(request, version):
+    request.param = {"rhel_version": version.split('.')[0], "distro": "centos"}
+    with VMBroker(**host_conf(request), host_classes={'host': ContentHost}) as host:
+        yield host
+
+
+@pytest.fixture
+def oracle_host(request, version):
+    request.param = {"rhel_version": version.split('.')[0], "distro": "oracle"}
+    with VMBroker(**host_conf(request), host_classes={'host': ContentHost}) as host:
+        yield host

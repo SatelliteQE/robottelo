@@ -33,7 +33,7 @@ git = settings.git
 
 class TestTemplateSyncTestCase:
     @pytest.fixture(scope='module', autouse=True)
-    def setUpClass(self, default_sat):
+    def setUpClass(self, module_target_sat):
         """Setup for TemplateSync functional testing
 
         :setup:
@@ -54,11 +54,13 @@ class TestTemplateSyncTestCase:
             pytest.fail('The foreman templates git url is not accessible')
 
         # Download the Test Template in test running folder
-        default_sat.execute(f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}')
+        module_target_sat.execute(
+            f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}'
+        )
 
     @pytest.mark.tier2
     def test_positive_import_force_locked_template(
-        self, module_org, create_import_export_local_dir, default_sat
+        self, module_org, create_import_export_local_dir, target_sat
     ):
         """Assure locked templates are updated from repository when `force` is
         specified.
@@ -89,7 +91,7 @@ class TestTemplateSyncTestCase:
         if ptemplate:
             assert ptemplate[0].read().locked
             update_txt = 'updated a little'
-            default_sat.execute(f"echo {update_txt} >> {dir_path}/example_template.erb")
+            target_sat.execute(f"echo {update_txt} >> {dir_path}/example_template.erb")
             TemplateSync.imports(
                 {'repo': dir_path, 'prefix': prefix, 'organization-id': module_org.id}
             )
@@ -229,7 +231,7 @@ class TestTemplateSyncTestCase:
         assert exported_count == git_count
 
     @pytest.mark.tier2
-    def test_positive_export_filtered_templates_to_temp_dir(self, module_org, default_sat):
+    def test_positive_export_filtered_templates_to_temp_dir(self, module_org, target_sat):
         """Assure templates can be exported to /tmp directory without right permissions
 
         :id: e0427ee8-698e-4868-952f-5f4723ccee87
@@ -248,5 +250,5 @@ class TestTemplateSyncTestCase:
         ).split('\n')
         exported_count = [row == 'Exported: true' for row in output].count(True)
         assert exported_count == int(
-            default_sat.execute(f'find {dir_path} -type f -name *ansible* | wc -l').stdout.strip()
+            target_sat.execute(f'find {dir_path} -type f -name *ansible* | wc -l').stdout.strip()
         )

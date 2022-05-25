@@ -48,7 +48,7 @@ class TestScenarioPerformanceTuning:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_performance_tuning_apply(self, default_sat):
+    def test_pre_performance_tuning_apply(self, target_sat):
         """In preupgrade scenario we apply the medium tuning size.
 
         :id: preupgrade-83404326-20b7-11ea-a370-48f17f1fc2e1
@@ -63,27 +63,27 @@ class TestScenarioPerformanceTuning:
 
         """
         try:
-            default_sat.get(
+            target_sat.get(
                 local_path="custom-hiera-before-upgrade.yaml",
                 remote_path="/etc/foreman-installer/custom-hiera.yaml",
             )
             installer_obj = InstallerCommand(tuning='medium')
-            command_output = default_sat.execute(installer_obj.get_command(), timeout='30m')
+            command_output = target_sat.execute(installer_obj.get_command(), timeout='30m')
             assert 'Success!' in command_output.stdout
             installer_obj = InstallerCommand(help='tuning')
-            command_output = default_sat.execute(installer_obj.get_command())
+            command_output = target_sat.execute(installer_obj.get_command())
             assert 'default: "medium"' in command_output.stdout
 
         except Exception as exp:
             logger.critical(exp)
             installer_obj = InstallerCommand(tuning='default')
-            command_output = default_sat.execute(installer_obj.get_command(), timeout='30m')
+            command_output = target_sat.execute(installer_obj.get_command(), timeout='30m')
             assert 'Success!' in command_output.stdout
             assert 'default: "default"' in command_output.stdout
             raise
 
     @pytest.mark.post_upgrade(depend_on=test_pre_performance_tuning_apply)
-    def test_post_performance_tuning_apply(self, default_sat):
+    def test_post_performance_tuning_apply(self, target_sat):
         """In postupgrade scenario, we verify the set tuning parameters and custom-hiera.yaml
         file's content.
 
@@ -101,16 +101,16 @@ class TestScenarioPerformanceTuning:
 
         """
         installer_obj = InstallerCommand(help='tuning')
-        command_output = default_sat.execute(installer_obj.get_command(), timeout='30m')
+        command_output = target_sat.execute(installer_obj.get_command(), timeout='30m')
         assert 'default: "medium"' in command_output.stdout
-        default_sat.get(
+        target_sat.get(
             local_path="custom-hiera-after-upgrade.yaml",
             remote_path="/etc/foreman-installer/custom-hiera.yaml",
         )
         assert filecmp.cmp('custom-hiera-before-upgrade.yaml', 'custom-hiera-after-upgrade.yaml')
         installer_obj = InstallerCommand(tuning='default')
-        command_output = default_sat.execute(installer_obj.get_command(), timeout='30m')
+        command_output = target_sat.execute(installer_obj.get_command(), timeout='30m')
         assert 'Success!' in command_output.stdout
         installer_obj = InstallerCommand(help='tuning')
-        command_output = default_sat.execute(installer_obj.get_command())
+        command_output = target_sat.execute(installer_obj.get_command())
         assert 'default: "default"' in command_output.stdout

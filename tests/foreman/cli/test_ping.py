@@ -21,7 +21,7 @@ import pytest
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_ping(default_sat):
+def test_positive_ping(target_sat):
     """hammer ping return code
 
     :id: dfa3ab4f-a64f-4a96-8c7f-d940df22b8bf
@@ -33,7 +33,7 @@ def test_positive_ping(default_sat):
 
     :expectedresults: hammer ping returns a right return code
     """
-    result = default_sat.execute('hammer ping')
+    result = target_sat.execute('hammer ping')
     assert result.stderr[1].decode() == ''
 
     status_count = 0
@@ -57,7 +57,7 @@ def test_positive_ping(default_sat):
 
 
 @pytest.mark.destructive
-def test_negative_ping_fail_status_code(default_sat):
+def test_negative_ping_fail_status_code(target_sat):
     """Negative test to verify non-zero status code of ping fail
 
     :id: 8f8675aa-df52-11eb-9353-b0a460e02491
@@ -71,9 +71,9 @@ def test_negative_ping_fail_status_code(default_sat):
     :expectedresults: Hammer ping fails and returns non-zero(1) status code.
 
     """
-    command_out = default_sat.execute('satellite-maintain service stop --only tomcat.service')
+    command_out = target_sat.execute('satellite-maintain service stop --only tomcat.service')
     assert command_out.status == 0
-    result = default_sat.execute("hammer ping")
+    result = target_sat.execute("hammer ping")
     assert result.status == 1
-    command_out = default_sat.execute('satellite-maintain service start --only tomcat.service')
+    command_out = target_sat.execute('satellite-maintain service start --only tomcat.service')
     assert command_out.status == 0

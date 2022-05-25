@@ -14,13 +14,13 @@ _json_file = 'upgrade_workers.json'
 json_file = Path(_json_file)
 
 
-def save_worker_hostname(test_name, default_sat):
+def save_worker_hostname(test_name, target_sat):
     data = {}
     if json_file.exists():
         data = json.loads(json_file.read_text())
     # Removing the parameter name from test name before save
     test_name = test_name.split('[')[0] if '[' in test_name else test_name
-    data.update({test_name: default_sat.hostname})
+    data.update({test_name: target_sat.hostname})
     json_file.write_text(json.dumps(data))
 
 
@@ -35,10 +35,10 @@ def get_worker_hostname_from_testname(test_name, shared_workers):
 
 
 @pytest.fixture(autouse=True)
-def save_pre_upgrade_worker_hostname(request, default_sat):
+def save_pre_upgrade_worker_hostname(request, target_sat):
     """Saves the worker id of pre_upgrade test in json"""
     if request.node.get_closest_marker('pre_upgrade'):
-        save_worker_hostname(request.node.name, default_sat)
+        save_worker_hostname(request.node.name, target_sat)
 
 
 @pytest.fixture(autouse=True)

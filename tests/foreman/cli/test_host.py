@@ -54,6 +54,7 @@ from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
 from robottelo.constants import NO_REPOS_AVAILABLE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -68,9 +69,9 @@ from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope="module")
-def module_default_proxy(default_sat):
+def module_default_proxy(module_target_sat):
     """Use the default installation smart proxy"""
-    return default_sat.cli.Proxy.list({'search': f'url = {default_sat.url}:9090'})[0]
+    return module_target_sat.cli.Proxy.list({'search': f'url = {module_target_sat.url}:9090'})[0]
 
 
 @pytest.fixture(scope="function")
@@ -595,7 +596,7 @@ def test_positive_katello_and_openscap_loaded():
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_register_with_no_ak(
-    module_lce, module_org, module_promoted_cv, rhel7_contenthost, default_sat
+    module_lce, module_org, module_promoted_cv, rhel7_contenthost, target_sat
 ):
     """Register host to satellite without activation key
 
@@ -607,7 +608,7 @@ def test_positive_register_with_no_ak(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(
         module_org.label,
         lce=f'{module_lce.label}/{module_promoted_cv.label}',
@@ -617,7 +618,7 @@ def test_positive_register_with_no_ak(
 
 @pytest.mark.cli_host_create
 @pytest.mark.tier3
-def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthost, default_sat):
+def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthost, target_sat):
     """Attempt to register a host twice to Satellite
 
     :id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
@@ -628,7 +629,7 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthos
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
     assert rhel7_contenthost.subscribed
     result = rhel7_contenthost.register_contenthost(
@@ -644,7 +645,7 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthos
 @pytest.mark.cli_host_create
 @pytest.mark.tier3
 def test_positive_list_and_unregister(
-    module_ak_with_cv, module_lce, module_org, rhel7_contenthost, default_sat
+    module_ak_with_cv, module_lce, module_org, rhel7_contenthost, target_sat
 ):
     """List registered host for a given org and unregister the host
 
@@ -657,7 +658,7 @@ def test_positive_list_and_unregister(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
     assert rhel7_contenthost.subscribed
     hosts = Host.list({'organization-id': module_org.id})
@@ -671,7 +672,7 @@ def test_positive_list_and_unregister(
 @pytest.mark.cli_host_create
 @pytest.mark.tier3
 def test_positive_list_by_last_checkin(
-    module_lce, module_org, module_promoted_cv, rhel7_contenthost, default_sat
+    module_lce, module_org, module_promoted_cv, rhel7_contenthost, target_sat
 ):
     """List all content hosts using last checkin criteria
 
@@ -687,7 +688,7 @@ def test_positive_list_by_last_checkin(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(
         module_org.label,
         lce=f'{module_lce.label}/{module_promoted_cv.label}',
@@ -701,7 +702,7 @@ def test_positive_list_by_last_checkin(
 @pytest.mark.cli_host_create
 @pytest.mark.tier3
 def test_positive_list_infrastructure_hosts(
-    module_lce, module_org, module_promoted_cv, rhel7_contenthost, default_sat
+    module_lce, module_org, module_promoted_cv, rhel7_contenthost, target_sat
 ):
     """List infrasturcture hosts (Satellite and Capsule)
 
@@ -713,13 +714,13 @@ def test_positive_list_infrastructure_hosts(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(
         module_org.label,
         lce=f'{module_lce.label}/{module_promoted_cv.label}',
     )
     assert rhel7_contenthost.subscribed
-    Host.update({'name': default_sat.hostname, 'new-organization-id': module_org.id})
+    Host.update({'name': target_sat.hostname, 'new-organization-id': module_org.id})
     # list satellite hosts
     hosts = Host.list({'search': 'infrastructure_facet.foreman=true'})
     if is_open('BZ:1994685'):
@@ -728,7 +729,7 @@ def test_positive_list_infrastructure_hosts(
         assert len(hosts) == 1
     hostnames = [host['name'] for host in hosts]
     assert rhel7_contenthost.hostname not in hostnames
-    assert default_sat.hostname in hostnames
+    assert target_sat.hostname in hostnames
     # list capsule hosts
     hosts = Host.list({'search': 'infrastructure_facet.smart_proxy_id=1'})
     hostnames = [host['name'] for host in hosts]
@@ -737,7 +738,7 @@ def test_positive_list_infrastructure_hosts(
     else:
         assert len(hosts) == 1
     assert rhel7_contenthost.hostname not in hostnames
-    assert default_sat.hostname in hostnames
+    assert target_sat.hostname in hostnames
 
 
 @pytest.mark.skip_if_not_set('libvirt')
@@ -1575,9 +1576,9 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
 
 
 @pytest.fixture(scope="function")
-def setup_custom_repo(module_org, katello_host_tools_host):
+def setup_custom_repo(module_org, katello_host_tools_host, custom_repo='yum_6'):
     """Create custom repository content"""
-    custom_repo_url = settings.repos.yum_6.url
+    custom_repo_url = settings.repos[custom_repo].url
     prod = entities.Product(organization=module_org, name=f'custom_{gen_string("alpha")}').create()
     custom_repo = entities.Repository(
         organization=module_org,
@@ -1726,6 +1727,7 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.tier3
+@pytest.mark.parametrize('setup_custom_repo', [{'custom_repo': 'yum_3'}], ids=[''], indirect=True)
 def test_positive_erratum_applicability(
     katello_host_tools_host, setup_custom_repo, yum_security_plugin
 ):
@@ -1753,8 +1755,8 @@ def test_positive_erratum_applicability(
     """
     client = katello_host_tools_host
     host_info = Host.info({'name': client.hostname})
-    client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
-    result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
+    client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
+    result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
     applicable_errata, _ = wait_for(
         lambda: Host.errata_list({'host-id': host_info['id']}),
         handle_exception=True,
@@ -1766,16 +1768,16 @@ def test_positive_erratum_applicability(
         erratum
         for erratum in applicable_errata
         if erratum['installable'] == 'true'
-        and erratum['erratum-id'] == settings.repos.yum_6.errata[2]
+        and erratum['erratum-id'] == settings.repos.yum_3.errata[0]
     ]
     # apply the erratum
-    result = client.run(f'yum update -y --advisory {settings.repos.yum_6.errata[2]}')
+    result = client.run(f'yum update -y --advisory {settings.repos.yum_3.errata[0]}')
     assert result.status == 0
     applicable_erratum = Host.errata_list({'host-id': host_info['id']})
     applicable_erratum_ids = [
         errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
     ]
-    assert settings.repos.yum_6.errata[2] not in applicable_erratum_ids
+    assert settings.repos.yum_3.errata[0] not in applicable_erratum_ids
 
 
 @pytest.mark.cli_katello_host_tools
@@ -1817,7 +1819,7 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
 @pytest.mark.cli_katello_host_tools
 @pytest.mark.tier3
 def test_positive_install_package_via_rex(
-    module_org, katello_host_tools_host, default_sat, setup_custom_repo
+    module_org, katello_host_tools_host, target_sat, setup_custom_repo
 ):
     """Install a package to a host remotely using remote execution,
     install package using Katello SSH job template, host package list is used to verify that
@@ -1832,7 +1834,7 @@ def test_positive_install_package_via_rex(
     """
     client = katello_host_tools_host
     host_info = Host.info({'name': client.hostname})
-    client.configure_rex(satellite=default_sat, org=module_org, register=False)
+    client.configure_rex(satellite=target_sat, org=module_org, register=False)
     # Apply errata to the host collection using job invocation
     JobInvocation.create(
         {
@@ -1895,8 +1897,8 @@ def host_subscription(module_ak, module_cv, module_lce, module_org):
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.fixture(scope="function")
-def host_subscription_client(rhel7_contenthost, default_sat):
-    rhel7_contenthost.install_katello_ca(default_sat)
+def host_subscription_client(rhel7_contenthost, target_sat):
+    rhel7_contenthost.install_katello_ca(target_sat)
     yield rhel7_contenthost
 
 
@@ -2441,7 +2443,7 @@ def test_syspurpose_end_to_end(module_host_subscription, host_subscription_clien
 
 # -------------------------- HOST ERRATA SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.tier1
-def test_positive_errata_list_of_sat_server(default_sat):
+def test_positive_errata_list_of_sat_server(target_sat):
     """Check if errata list doesn't raise exception. Check BZ for details.
 
     :id: 6b22f0c0-9c4b-11e6-ab93-68f72889dc7f
@@ -2452,14 +2454,14 @@ def test_positive_errata_list_of_sat_server(default_sat):
 
     :CaseImportance: Critical
     """
-    hostname = default_sat.execute('hostname').stdout.strip()
+    hostname = target_sat.execute('hostname').stdout.strip()
     host = Host.info({'name': hostname})
     assert isinstance(Host.errata_list({'host-id': host['id']}), list)
 
 
 # -------------------------- HOST ENC SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.tier1
-def test_positive_dump_enc_yaml(default_sat):
+def test_positive_dump_enc_yaml(target_sat):
     """Dump host's ENC YAML. Check BZ for details.
 
     :id: 50bf2530-788c-4710-a382-d034d73d5d4d
@@ -2472,9 +2474,9 @@ def test_positive_dump_enc_yaml(default_sat):
 
     :CaseImportance: Critical
     """
-    enc_dump = Host.enc_dump({'name': default_sat.hostname})
-    assert f'fqdn: {default_sat.hostname}' in enc_dump
-    assert f'ip: {default_sat.ip_addr}' in enc_dump
+    enc_dump = Host.enc_dump({'name': target_sat.hostname})
+    assert f'fqdn: {target_sat.hostname}' in enc_dump
+    assert f'ip: {target_sat.ip_addr}' in enc_dump
     assert 'ssh-rsa' in enc_dump
 
 

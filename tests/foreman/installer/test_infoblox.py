@@ -64,7 +64,7 @@ def register_satellite(sat):
     params,
     ids=['isc_dhcp', 'infoblox_dhcp', 'infoblox_dns'],
 )
-def test_plugin_installation(destructive_sat, command_args, command_opts, rpm_command):
+def test_plugin_installation(target_sat, command_args, command_opts, rpm_command):
     """Check that external DNS and DHCP plugins install correctly
 
     :id: c75aa5f3-870a-4f4a-9d7a-0a871b47fd6f
@@ -79,11 +79,11 @@ def test_plugin_installation(destructive_sat, command_args, command_opts, rpm_co
 
     :BZ: 1994490, 2000237
     """
-    register_satellite(destructive_sat)
+    register_satellite(target_sat)
     installer_obj = InstallerCommand(command_args, **command_opts)
-    command_output = destructive_sat.execute(installer_obj.get_command())
+    command_output = target_sat.execute(installer_obj.get_command())
     assert 'Success!' in command_output.stdout
-    rpm_result = destructive_sat.execute(rpm_command)
+    rpm_result = target_sat.execute(rpm_command)
     assert rpm_result.status == 0
 
 

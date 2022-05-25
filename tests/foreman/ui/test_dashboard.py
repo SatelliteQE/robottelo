@@ -194,7 +194,7 @@ def test_positive_task_status(session):
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_user_access_with_host_filter(
-    test_name, module_location, rhel7_contenthost, default_sat
+    test_name, module_location, rhel7_contenthost, target_sat
 ):
     """Check if user with necessary host permissions can access dashboard
     and required widgets are rendered with proper values
@@ -250,7 +250,7 @@ def test_positive_user_access_with_host_filter(
         )
         repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
         repos_collection.setup_virtual_machine(
-            rhel7_contenthost, default_sat, location_title=module_location.name
+            rhel7_contenthost, target_sat, location_title=module_location.name
         )
         result = rhel7_contenthost.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
         assert result.status == 0

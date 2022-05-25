@@ -24,9 +24,9 @@ from robottelo.datafactory import gen_string
 
 
 @pytest.fixture
-def module_rhel_client_by_ip(module_org, smart_proxy_location, rhel7_contenthost, default_sat):
+def module_rhel_client_by_ip(module_org, smart_proxy_location, rhel7_contenthost, target_sat):
     """Setup a broker rhel client to be used in remote execution by ip"""
-    rhel7_contenthost.configure_rex(satellite=default_sat, org=module_org)
+    rhel7_contenthost.configure_rex(satellite=target_sat, org=module_org)
     update_vm_host_location(rhel7_contenthost, location_id=smart_proxy_location.id)
     yield rhel7_contenthost
 

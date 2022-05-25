@@ -34,7 +34,7 @@ CUSTOM_REPO_ERRATA_ID = settings.repos.yum_0.errata[2]
 
 
 @pytest.fixture(scope='module')
-def module_repos_col(module_org, module_lce, default_sat, request):
+def module_repos_col(module_org, module_lce, module_target_sat, request):
     upload_manifest_locked(org_id=module_org.id)
     repos_collection = RepositoryCollection(
         repositories=[
@@ -49,7 +49,7 @@ def module_repos_col(module_org, module_lce, default_sat, request):
     @request.addfinalizer
     def _cleanup():
         try:
-            default_sat.api.Subscription(organization=module_org).delete_manifest(
+            module_target_sat.api.Subscription(organization=module_org).delete_manifest(
                 data={'organization_id': module_org.id}
             )
         except Exception:
@@ -315,7 +315,7 @@ def test_positive_download_debug_cert_after_refresh(session):
 
 @pytest.mark.tier2
 def test_positive_errata_view_organization_switch(
-    session, module_org, module_lce, module_repos_col, default_sat
+    session, module_org, module_lce, module_repos_col, target_sat
 ):
     """Verify no errata list visible on Organization switch
 

@@ -375,7 +375,7 @@ REPOSET = {
         'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
         'rhel9': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Beta (Kickstart)',
     },
-    'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8',
+    'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)',
     'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)',
     'rhel7_extra': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
@@ -635,6 +635,7 @@ REPOS = {
     'rhel8_bos': {
         'id': 'rhel-8-for-x86_64-baseos-rpms',
         'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8',
+        'releasever': '8',
         'version': '8',
         'reposet': REPOSET['rhel8_bos'],
         'product': PRDS['rhel8'],
@@ -918,6 +919,7 @@ FAKE_4_CUSTOM_PACKAGE = 'kangaroo-0.1-1.noarch'  # for RHBA-2012:1030
 FAKE_4_CUSTOM_PACKAGE_NAME = 'kangaroo'
 FAKE_5_CUSTOM_PACKAGE = 'kangaroo-0.2-1.noarch'  # for RHBA-2012:1030
 FAKE_6_CUSTOM_PACKAGE = 'kangaroo-0.3-1.noarch'  # for RHEA-2012:0059
+FAKE_7_CUSTOM_PACKAGE = 'rabbit-1.5.6-1.noarch'  # for RHEA-2012:61
 REAL_0_RH_PACKAGE = 'rhev-agent-2.3.16-3.el6.x86_64'
 REAL_RHEL7_0_0_PACKAGE = 'python-pulp-common-2.21.0-1.el7sat.noarch'
 REAL_RHEL7_0_0_PACKAGE_NAME = 'python-pulp-common'

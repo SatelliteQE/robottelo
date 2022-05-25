@@ -39,6 +39,7 @@ CaseComponent:
     - ContentCredentials
     - ContentManagement
     - ContentViews
+    - Convert2rhel
     - Dashboard
     - DHCPDNS
     - DiscoveryImage

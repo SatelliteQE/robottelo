@@ -244,7 +244,7 @@ def test_positive_access_manifest_as_another_admin_user(test_name):
 
 
 @pytest.mark.tier3
-def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, default_sat):
+def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, target_sat):
     """Ensure that Virtual Datacenters subscription provided products is
     not empty and that a consumed product exist in content products.
 
@@ -287,7 +287,7 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, def
         org.id, lce.id, upload_manifest=True, rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME]
     )
     rhel7_contenthost.contenthost_setup(
-        default_sat,
+        target_sat,
         org.label,
         activation_key=repos_collection.setup_content_data['activation_key']['name'],
         install_katello_agent=False,
@@ -307,7 +307,7 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, def
 
 @pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.tier3
-def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthost, default_sat):
+def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthost, target_sat):
     """Ensure that Virtual Data Centers guest subscription Provided
     Products and Content Products are not empty.
 
@@ -353,7 +353,7 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
     )
     # configure virtual machine and setup virt-who service
     virt_who_data = rhel7_contenthost.virt_who_hypervisor_config(
-        default_sat,
+        target_sat,
         virt_who_config['general-information']['id'],
         org_id=org.id,
         lce_id=lce.id,
@@ -443,7 +443,7 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
 
 @pytest.mark.tier3
 def test_positive_subscription_status_disabled_golden_ticket(
-    session, golden_ticket_host_setup, rhel7_contenthost, default_sat
+    session, golden_ticket_host_setup, rhel7_contenthost, target_sat
 ):
     """Verify that Content host Subscription status is set to 'Disabled'
      for a golden ticket manifest
@@ -460,7 +460,7 @@ def test_positive_subscription_status_disabled_golden_ticket(
 
     :CaseImportance: Medium
     """
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     org, ak = golden_ticket_host_setup
     rhel7_contenthost.register_contenthost(org.label, ak.name)
     assert rhel7_contenthost.subscribed
@@ -473,7 +473,7 @@ def test_positive_subscription_status_disabled_golden_ticket(
 
 
 @pytest.mark.tier2
-def test_positive_candlepin_events_processed_by_STOMP(session, rhel7_contenthost, default_sat):
+def test_positive_candlepin_events_processed_by_STOMP(session, rhel7_contenthost, target_sat):
     """Verify that Candlepin events are being read and processed by
        attaching subscriptions, validating host subscriptions status,
        and viewing processed and failed Candlepin events
@@ -507,7 +507,7 @@ def test_positive_candlepin_events_processed_by_STOMP(session, rhel7_contenthost
         organization=org,
         environment=entities.LifecycleEnvironment(id=org.library.id),
     ).create()
-    rhel7_contenthost.install_katello_ca(default_sat)
+    rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(org.name, ak.name)
     with session:
         session.organization.select(org_name=org.name)

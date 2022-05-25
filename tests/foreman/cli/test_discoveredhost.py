@@ -50,7 +50,7 @@ def _assertdiscoveredhost(hostname):
 
 @pytest.mark.skip_if_not_set('vlan_networking')
 @pytest.fixture(scope='class')
-def foreman_discovery(default_sat):
+def foreman_discovery(target_sat):
     """Steps to Configure foreman discovery
 
     1. Build PXE default template
@@ -63,10 +63,10 @@ def foreman_discovery(default_sat):
     # Build PXE default template to get default PXE file
     Template.build_pxe_default()
     # let's just modify the timeouts to speed things up
-    default_sat.execute(
+    target_sat.execute(
         "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' /var/lib/tftpboot/pxelinux.cfg/default"
     )
-    default_sat.execute(
+    target_sat.execute(
         "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1/' /var/lib/tftpboot/pxelinux.cfg/default"
     )
 

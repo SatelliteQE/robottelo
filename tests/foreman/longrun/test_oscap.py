@@ -75,9 +75,9 @@ def fetch_scap_and_profile_id(scap_name, scap_profile):
 
 
 @pytest.fixture(scope='module')
-def default_proxy(default_sat):
+def default_proxy(module_target_sat):
     """Returns default capsule/proxy id"""
-    proxy = Proxy.list({'search': default_sat.hostname})[0]
+    proxy = Proxy.list({'search': module_target_sat.hostname})[0]
     p_features = set(proxy.get('features').split(', '))
     if {'Ansible', 'Openscap'}.issubset(p_features):
         proxy_id = proxy.get('id')
@@ -140,7 +140,7 @@ def update_scap_content(module_org):
 @pytest.mark.tier4
 @pytest.mark.parametrize('distro', [DISTRO_RHEL6, DISTRO_RHEL7, DISTRO_RHEL8])
 def test_positive_oscap_run_via_ansible(
-    module_org, default_proxy, content_view, lifecycle_env, distro, default_sat
+    module_org, default_proxy, content_view, lifecycle_env, distro, target_sat
 ):
     """End-to-End Oscap run via ansible
 
@@ -211,7 +211,7 @@ def test_positive_oscap_run_via_ansible(
         target_memory=OSCAP_TARGET_MEMORY,
     ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca(default_sat)
+        vm.install_katello_ca(target_sat)
         vm.register_contenthost(module_org.name, ak_name[distro])
         assert vm.subscribed
         Host.set_parameter(
@@ -226,7 +226,7 @@ def test_positive_oscap_run_via_ansible(
             vm.create_custom_repos(**rhel_repo)
         else:
             vm.create_custom_repos(**{distro: rhel_repo})
-        vm.add_rex_key(satellite=default_sat)
+        vm.add_rex_key(satellite=target_sat)
         Host.update(
             {
                 'name': vm.hostname.lower(),
@@ -262,7 +262,7 @@ def test_positive_oscap_run_via_ansible(
 
 @pytest.mark.tier4
 def test_positive_oscap_run_via_ansible_bz_1814988(
-    module_org, default_proxy, content_view, lifecycle_env, default_sat
+    module_org, default_proxy, content_view, lifecycle_env, target_sat
 ):
     """End-to-End Oscap run via ansible
 
@@ -326,7 +326,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         target_memory=OSCAP_TARGET_MEMORY,
     ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca(default_sat)
+        vm.install_katello_ca(target_sat)
         vm.register_contenthost(module_org.name, ak_name[DISTRO_RHEL7])
         assert vm.subscribed
         Host.set_parameter(
@@ -345,7 +345,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
             '--fetch-remote-resources --results-arf results.xml '
             '/usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml',
         )
-        vm.add_rex_key(satellite=default_sat)
+        vm.add_rex_key(satellite=target_sat)
         Host.update(
             {
                 'name': vm.hostname.lower(),

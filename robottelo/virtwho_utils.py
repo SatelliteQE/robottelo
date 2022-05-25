@@ -8,6 +8,7 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_url
 from nailgun import entities
+from wait_for import wait_for
 
 from robottelo import ssh
 from robottelo.cli.base import Base
@@ -35,10 +36,13 @@ def get_system(system_type):
     """Return a dict account for ssh connect.
 
     :param str system_type: The type of the system, should be one of
-        ('satellite', 'esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt').
+        ('satellite', 'esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt', 'ahv').
     :raises: VirtWhoError: If wrong ``system_type`` specified.
     """
-    if system_type in ['esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt']:
+    hypervisor_list = ['esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt', 'ahv']
+    system_type_list = ['satellite']
+    system_type_list.extend(hypervisor_list)
+    if system_type in hypervisor_list:
         return {
             'hostname': getattr(settings.virtwho, system_type).guest,
             'username': getattr(settings.virtwho, system_type).guest_username,
@@ -53,9 +57,7 @@ def get_system(system_type):
         }
     else:
         raise VirtWhoError(
-            '"{}" system type is not supported. Please use one of {}'.format(
-                system_type, ('satellite', 'esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt')
-            )
+            f'"{system_type}" system type is not supported. Please use one of {system_type_list}'
         )
 
 
@@ -204,14 +206,28 @@ def get_configure_option(option, filename):
         raise VirtWhoError(f"option {option} is not exist or not be enabled in {filename}")
 
 
-def _get_hypervisor_mapping(logs, hypervisor_type):
+def get_rhsm_log():
+    """
+    Return the content of log file /var/log/rhsm/rhsm.log
+    """
+    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
+    return logs
+
+
+def _get_hypervisor_mapping(hypervisor_type):
     """Analysing rhsm.log and get to know: what is the hypervisor_name
     for the specific guest.
     :param str logs: the output of rhsm.log.
-    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
     :raises: VirtWhoError: If hypervisor_name is None.
     :return: hypervisor_name and guest_name
     """
+    wait_for(
+        lambda: 'Host-to-guest mapping being sent to' in get_rhsm_log(),
+        timeout=10,
+        delay=2,
+    )
+    logs = get_rhsm_log()
     mapping = list()
     entry = None
     guest_name, guest_uuid = get_guest_info(hypervisor_type)
@@ -242,15 +258,14 @@ def _get_hypervisor_mapping(logs, hypervisor_type):
 
 def deploy_validation(hypervisor_type):
     """Checkout the deploy result
-    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
     :raises: VirtWhoError: If failed to start virt-who servcie.
     :ruturn: hypervisor_name and guest_name
     """
     status = get_virtwho_status()
     if status != 'running':
         raise VirtWhoError("Failed to start virt-who service")
-    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
-    hypervisor_name, guest_name = _get_hypervisor_mapping(logs, hypervisor_type)
+    hypervisor_name, guest_name = _get_hypervisor_mapping(hypervisor_type)
     for host in Host.list({'search': hypervisor_name}):
         Host.delete({'id': host['id']})
     restart_virtwho_service()
@@ -262,7 +277,7 @@ def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Defa
 
     :param str command: get the command by UI/CLI/API, it should be like:
         `hammer virt-who-config deploy --id 1 --organization-id 1`
-    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     :param str org: Organization Label
     """
@@ -283,7 +298,7 @@ def deploy_configure_by_script(
 ):
     """Deploy and run virt-who service by the shell script.
     :param str script_content: get the script by UI or API.
-    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     :param str org: Organization Label
     """
@@ -400,8 +415,7 @@ def get_hypervisor_info(hypervisor_type):
     """
     Get the hypervisor_name and guest_name from rhsm.log.
     """
-    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
-    hypervisor_name, guest_name = _get_hypervisor_mapping(logs, hypervisor_type)
+    hypervisor_name, guest_name = _get_hypervisor_mapping(hypervisor_type)
     return hypervisor_name, guest_name
 
 

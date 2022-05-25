@@ -172,12 +172,12 @@ def module_erratatype_repos_col(module_org, module_lce):
 
 
 @pytest.fixture
-def erratatype_vm(module_erratatype_repos_col, default_sat):
+def erratatype_vm(module_erratatype_repos_col, target_sat):
     """Virtual machine client using module_erratatype_repos_col for subscription"""
     with VMBroker(
         nick=module_erratatype_repos_col.distro, host_classes={'host': ContentHost}
     ) as client:
-        module_erratatype_repos_col.setup_virtual_machine(client, default_sat)
+        module_erratatype_repos_col.setup_virtual_machine(client, target_sat)
         yield client
 
 
@@ -209,16 +209,16 @@ def repos_collection(module_org):
 
 
 @pytest.fixture(scope='function')
-def vm(repos_collection, rhel7_contenthost, default_sat):
+def vm(repos_collection, rhel7_contenthost, target_sat):
     """Virtual machine registered in satellite"""
-    repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
-    rhel7_contenthost.add_rex_key(satellite=default_sat)
+    repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
+    rhel7_contenthost.add_rex_key(satellite=target_sat)
     yield rhel7_contenthost
 
 
 @pytest.mark.tier3
 @pytest.mark.parametrize('setting_update', ['remote_execution_by_default'], indirect=True)
-def test_end_to_end(session, module_org, module_repos_col, vm, default_sat, setting_update):
+def test_end_to_end(session, module_org, module_repos_col, vm, target_sat, setting_update):
     """Create all entities required for errata, set up applicable host,
     read errata details and apply it to host
 
@@ -298,7 +298,7 @@ def test_end_to_end(session, module_org, module_repos_col, vm, default_sat, sett
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_content_host_errata_page_pagination(session, org, lce, default_sat):
+def test_content_host_errata_page_pagination(session, org, lce, target_sat):
     """
     # Test per-page pagination for BZ#1662254
     # Test apply by REX using Select All for BZ#1846670
@@ -340,9 +340,9 @@ def test_content_host_errata_page_pagination(session, org, lce, default_sat):
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     with VMBroker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
-        client.add_rex_key(satellite=default_sat)
+        client.add_rex_key(satellite=target_sat)
         # Add repo and install packages that need errata
-        repos_collection.setup_virtual_machine(client, default_sat)
+        repos_collection.setup_virtual_machine(client, target_sat)
         assert _install_client_package(client, pkgs)
         with session:
             # Go to content host's Errata tab and read the page's pagination widgets
@@ -463,7 +463,7 @@ def test_positive_list_permission(test_name, module_org, module_repos_col, modul
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_apply_for_all_hosts(session, module_org, module_repos_col, default_sat):
+def test_positive_apply_for_all_hosts(session, module_org, module_repos_col, target_sat):
     """Apply an erratum for all content hosts
 
     :id: d70a1bee-67f4-4883-a0b9-2ccc08a91738
@@ -486,13 +486,13 @@ def test_positive_apply_for_all_hosts(session, module_org, module_repos_col, def
         nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:
-            module_repos_col.setup_virtual_machine(client, default_sat, install_katello_agent=False)
-            client.add_rex_key(satellite=default_sat)
+            module_repos_col.setup_virtual_machine(client, target_sat, install_katello_agent=False)
+            client.add_rex_key(satellite=target_sat)
             assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE)
         with session:
             session.location.select(loc_name=DEFAULT_LOC)
             for client in clients:
-                client.add_rex_key(satellite=default_sat)
+                client.add_rex_key(satellite=target_sat)
                 status = session.contenthost.install_errata(
                     client.hostname, CUSTOM_REPO_ERRATA_ID, install_via='rex'
                 )
@@ -534,7 +534,7 @@ def test_positive_view_cve(session, module_repos_col, module_rhva_repos_col):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_filter_by_environment(session, module_org, module_repos_col, default_sat):
+def test_positive_filter_by_environment(session, module_org, module_repos_col, target_sat):
     """Filter Content hosts by environment
 
     :id: 578c3a92-c4d8-4933-b122-7ff511c276ec
@@ -556,7 +556,7 @@ def test_positive_filter_by_environment(session, module_org, module_repos_col, d
         nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:
-            module_repos_col.setup_virtual_machine(client, default_sat, install_katello_agent=False)
+            module_repos_col.setup_virtual_machine(client, target_sat, install_katello_agent=False)
             assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
         # Promote the latest content view version to a new lifecycle environment
         content_view = entities.ContentView(
@@ -817,7 +817,7 @@ def test_positive_show_count_on_content_host_details_page(session, module_org, e
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.parametrize('setting_update', ['errata_status_installable'], indirect=True)
 def test_positive_filtered_errata_status_installable_param(
-    session, errata_status_installable, default_sat, setting_update
+    session, errata_status_installable, target_sat, setting_update
 ):
     """Filter errata for specific content view and verify that host that
     was registered using that content view has different states in
@@ -859,7 +859,7 @@ def test_positive_filtered_errata_status_installable_param(
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     with VMBroker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
-        repos_collection.setup_virtual_machine(client, default_sat)
+        repos_collection.setup_virtual_machine(client, target_sat)
         assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
         # Adding content view filter and content view filter rule to exclude errata for the
         # installed package.
@@ -918,7 +918,7 @@ def test_positive_filtered_errata_status_installable_param(
 
 
 @pytest.mark.tier3
-def test_content_host_errata_search_commands(session, module_org, module_repos_col, default_sat):
+def test_content_host_errata_search_commands(session, module_org, module_repos_col, target_sat):
     """View a list of affected content hosts for security (RHSA) and bugfix (RHBA) errata,
     filtered with errata status and applicable flags. Applicability is calculated using the
     Library, but Installability is calculated using the attached CV, and is subject to the
@@ -948,7 +948,7 @@ def test_content_host_errata_search_commands(session, module_org, module_repos_c
         nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:
-            module_repos_col.setup_virtual_machine(client, default_sat)
+            module_repos_col.setup_virtual_machine(client, target_sat)
         # Install pkg walrus-0.71-1.noarch to create need for RHSA on client 1
         assert _install_client_package(
             clients[0], FAKE_1_CUSTOM_PACKAGE, errata_applicability=False

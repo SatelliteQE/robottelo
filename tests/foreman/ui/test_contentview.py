@@ -48,6 +48,7 @@ from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
@@ -2587,7 +2588,7 @@ def test_positive_publish_with_repo_with_disabled_http(session, module_org):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthost, default_sat):
+def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthost, target_sat):
     """Attempt to subscribe a host to content view with custom repository
 
     :id: 715db997-707b-4868-b7cc-b6977fd6ac04
@@ -2609,7 +2610,7 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
         repositories=[SatelliteToolsRepository(), YumRepository(url=settings.repos.yum_0.url)],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
+    repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
     assert rhel7_contenthost.subscribed
     with session:
         session.organization.select(org.name)
@@ -2623,7 +2624,7 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
 
 @pytest.mark.tier3
 def test_positive_delete_with_kickstart_repo_and_host_group(
-    session, default_sat, smart_proxy_location
+    session, target_sat, smart_proxy_location
 ):
     """Check that Content View associated with kickstart repository and
     which is used by a host group can be removed from the system
@@ -2641,7 +2642,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(
     :CaseImportance: High
     """
     hg_name = gen_string('alpha')
-    sat_hostname = default_sat.hostname
+    sat_hostname = target_sat.hostname
     org = entities.Organization().create()
     # Create a new Lifecycle environment
     lc_env = entities.LifecycleEnvironment(organization=org).create()
@@ -2943,7 +2944,7 @@ def test_positive_rh_mixed_content_end_to_end(session, module_prod, module_org):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_errata_inc_update_list_package(session, default_sat):
+def test_positive_errata_inc_update_list_package(session, target_sat):
     """Publish incremental update with a new errata for a custom repo
 
     :BZ: 1489778
@@ -3004,7 +3005,7 @@ def test_positive_errata_inc_update_list_package(session, default_sat):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_composite_child_inc_update(session, rhel7_contenthost, default_sat):
+def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_sat):
     """Incremental update with a new errata on a child content view should
     trigger incremental update of parent composite content view
 
@@ -3082,7 +3083,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, default
         f'hammer activation-key add-subscription --id {ak_id} '
         f'--subscription {product.name} --organization-id {org.id}'
     )
-    result = default_sat.execute(command)
+    result = target_sat.execute(command)
     assert result.status == 0
     # Create composite cv
     composite_cv = entities.ContentView(composite=True, organization=org).create()
@@ -3099,7 +3100,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, default
     entities.ActivationKey(
         id=content_data['activation_key']['id'], content_view=composite_cv
     ).update(['content_view'])
-    repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
+    repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
     result = rhel7_contenthost.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     with session:
@@ -3744,7 +3745,7 @@ def test_positive_depsolve_with_module_errata(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_filter_by_pkg_group_name(session, module_org, default_sat):
+def test_positive_filter_by_pkg_group_name(session, module_org, target_sat):
     """Publish a filtered version of a Content View, filtering on the package group's name.
 
     :id: c7021f46-0168-44f7-a863-4aa34533efdb
@@ -3760,10 +3761,10 @@ def test_positive_filter_by_pkg_group_name(session, module_org, default_sat):
     package_group = 'birds'
     expected_packages = [('cockateel'), ('duck'), ('penguin'), ('stork')]
     create_sync_custom_repo(module_org.id, repo_name=repo_name)
-    repo = default_sat.api.Repository(name=repo_name).search(
+    repo = target_sat.api.Repository(name=repo_name).search(
         query={'organization_id': module_org.id}
     )[0]
-    cv = default_sat.api.ContentView(organization=module_org, repository=[repo]).create()
+    cv = target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
     with session:
         session.contentviewfilter.create(
             cv.name,
@@ -3781,3 +3782,60 @@ def test_positive_filter_by_pkg_group_name(session, module_org, default_sat):
         result = session.contentview.read_version(cv.name, VERSION)
         # Assert only the expected packages are present
         assert expected_packages == [pkg['Name'] for pkg in result['rpm_packages']['table']]
+
+
+@pytest.mark.tier3
+def test_positive_inc_update_should_not_fail(session, module_org):
+    """Incremental update after removing a package should not give a 400 error code
+
+    :BZ: 2041497
+
+    :id: 1d78db8f-53cc-4f00-9fea-d871c2f53d03
+
+    :setup:
+        1. Create custom repo and sync
+        2. Delete some packages from the repo (bear in this case)
+        3. Create a cv, add the repo, and publish it
+        4. Re-sync the repo to get hte deleted RPMs back
+        5. Perform incremental update to add back the repo to the cv
+
+    :customerscenario: true
+
+    :expectedresults: Incremental update is successful
+
+    :CaseImportance: High
+    """
+    package1_name = 'bear'
+    product = entities.Product(organization=module_org).create()
+    yum_repo_name = gen_string('alpha')
+    # Creates custom yum repository
+    yum_repo = entities.Repository(
+        name=yum_repo_name,
+        url=settings.repos.yum_1.url,
+        content_type=REPO_TYPE['yum'],
+        product=product,
+    ).create()
+    yum_repo.sync()
+    # remove 'bear' package
+    package_id = yum_repo.packages()['results'][0]['id']
+    yum_repo.remove_content(data={'ids': [package_id]})
+    assert yum_repo.packages()['total'] == 31
+    cv = entities.ContentView(organization=module_org, repository=[yum_repo]).create()
+    cv.publish()
+    cvvs = entities.ContentView(id=cv.id).read().version
+    assert len(cvvs) == 1
+    yum_repo.sync()
+    assert yum_repo.packages()['total'] == 32
+    cvv = cvvs[0].read()
+    result = ContentView.version_incremental_update(
+        {'content-view-version-id': cvv.id, 'errata-ids': settings.repos.yum_1.errata[0]}
+    )
+    result = [line.strip() for line_dict in result for line in line_dict.values()]
+    assert result[2] == FAKE_0_CUSTOM_PACKAGE
+    with session:
+        cvv = entities.ContentView(id=cv.id).read().version[1].read()
+        assert cvv.version == '1.1'
+        packages = session.contentview.search_version_package(
+            cv.name, 'Version 1.1', f'name= "{package1_name}"'
+        )
+        assert packages[0]['Name'] == package1_name

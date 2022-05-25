@@ -25,9 +25,9 @@ def azurerm_settings():
 
 
 @pytest.fixture(scope='module')
-def module_azurerm_cr(azurerm_settings, module_org, module_location, default_sat):
+def module_azurerm_cr(azurerm_settings, module_org, module_location, module_target_sat):
     """Create AzureRM Compute Resource"""
-    azure_cr = default_sat.api.AzureRMComputeResource(
+    azure_cr = module_target_sat.api.AzureRMComputeResource(
         name=gen_string('alpha'),
         provider='AzureRm',
         tenant=azurerm_settings['tenant'],
@@ -64,11 +64,11 @@ def module_azurerm_cr_puppet(
 def module_azurerm_finishimg(
     default_architecture,
     default_os,
-    default_sat,
+    module_target_sat,
     module_azurerm_cr,
 ):
     """Creates Finish Template image on AzureRM Compute Resource"""
-    finish_image = default_sat.api.Image(
+    finish_image = module_target_sat.api.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
@@ -103,10 +103,10 @@ def module_azurerm_byos_finishimg(
     default_architecture,
     default_os,
     module_azurerm_cr,
-    default_sat,
+    module_target_sat,
 ):
     """Creates BYOS Finish Template image on AzureRM Compute Resource"""
-    finish_image = default_sat.api.Image(
+    finish_image = module_target_sat.api.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
@@ -140,11 +140,11 @@ def module_azurerm_byos_finishimg_puppet(
 def module_azurerm_cloudimg(
     default_architecture,
     default_os,
-    default_sat,
+    module_target_sat,
     module_azurerm_cr,
 ):
     """Creates cloudinit image on AzureRM Compute Resource"""
-    finish_image = default_sat.api.Image(
+    finish_image = module_target_sat.api.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
@@ -180,11 +180,11 @@ def module_azurerm_cloudimg_puppet(
 def module_azurerm_gallery_finishimg(
     default_architecture,
     default_os,
-    default_sat,
+    module_target_sat,
     module_azurerm_cr,
 ):
     """Creates Shared Gallery Finish Template image on AzureRM Compute Resource"""
-    finish_image = default_sat.api.Image(
+    finish_image = module_target_sat.api.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
@@ -218,11 +218,11 @@ def module_azurerm_gallery_finishimg_puppet(
 def module_azurerm_custom_finishimg(
     default_architecture,
     default_os,
-    default_sat,
+    module_target_sat,
     module_azurerm_cr,
 ):
     """Creates Custom Finish Template image on AzureRM Compute Resource"""
-    finish_image = default_sat.api.Image(
+    finish_image = module_target_sat.api.Image(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),

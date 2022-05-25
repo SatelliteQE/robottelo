@@ -34,19 +34,19 @@ from robottelo.logging import logger
 
 
 @pytest.fixture
-def module_vm_client_by_ip(rhel7_contenthost, module_org, smart_proxy_location, default_sat):
+def module_vm_client_by_ip(rhel7_contenthost, module_org, smart_proxy_location, target_sat):
     """Setup a VM client to be used in remote execution by ip"""
-    rhel7_contenthost.configure_rex(satellite=default_sat, org=module_org)
+    rhel7_contenthost.configure_rex(satellite=target_sat, org=module_org)
     update_vm_host_location(rhel7_contenthost, location_id=smart_proxy_location.id)
     yield rhel7_contenthost
 
 
 @pytest.fixture()
-def fixture_enable_receptor_repos(request, default_sat):
+def fixture_enable_receptor_repos(request, target_sat):
     """Enable RHSCL repo required by receptor installer"""
-    default_sat.enable_repo(constants.REPOS['rhscl7']['id'])
-    default_sat.enable_repo(constants.REPOS['rhae2']['id'])
-    default_sat.enable_repo(constants.REPOS['rhs7']['id'])
+    target_sat.enable_repo(constants.REPOS['rhscl7']['id'])
+    target_sat.enable_repo(constants.REPOS['rhae2']['id'])
+    target_sat.enable_repo(constants.REPOS['rhs7']['id'])
 
 
 @pytest.mark.tier3
@@ -155,7 +155,7 @@ def test_positive_run_custom_job_template_by_ip(
 @pytest.mark.upgrade
 @pytest.mark.tier3
 def test_positive_run_job_template_multiple_hosts_by_ip(
-    session, module_org, smart_proxy_location, default_sat
+    session, module_org, smart_proxy_location, target_sat
 ):
     """Run a job template against multiple hosts by ip
 
@@ -179,7 +179,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
         host_names = []
         for host in hosts:
             host_names.append(host.hostname)
-            host.configure_rex(satellite=default_sat, org=module_org)
+            host.configure_rex(satellite=target_sat, org=module_org)
             update_vm_host_location(host, location_id=smart_proxy_location.id)
         with session:
             session.location.select(smart_proxy_location.name)
@@ -578,7 +578,7 @@ def test_positive_matcher_field_highlight(session):
 
 @pytest.mark.tier3
 def test_positive_configure_cloud_connector(
-    session, default_sat, subscribe_satellite, fixture_enable_receptor_repos
+    session, target_sat, subscribe_satellite, fixture_enable_receptor_repos
 ):
     """Install Cloud Connector through WebUI button
 
@@ -603,12 +603,12 @@ def test_positive_configure_cloud_connector(
     :BZ: 1818076
     """
     # Copy foreman-proxy user's key to root@localhost user's authorized_keys
-    default_sat.add_rex_key(satellite=default_sat)
+    target_sat.add_rex_key(satellite=target_sat)
 
     # Set Host parameter source_display_name to something random.
     # To avoid 'name has already been taken' error when run multiple times
     # on a machine with the same hostname.
-    host_id = Host.info({'name': default_sat.hostname})['id']
+    host_id = Host.info({'name': target_sat.hostname})['id']
     Host.set_parameter(
         {'host-id': host_id, 'name': 'source_display_name', 'value': gen_string('alpha')}
     )
@@ -632,10 +632,10 @@ def test_positive_configure_cloud_connector(
         timeout="1500s",
     )
 
-    result = JobInvocation.get_output({'id': invocation_id, 'host': default_sat.hostname})
+    result = JobInvocation.get_output({'id': invocation_id, 'host': target_sat.hostname})
     logger.debug(f"Invocation output>>\n{result}\n<<End of invocation output")
     # if installation fails, it's often due to missing rhscl repo -> print enabled repos
-    repolist = default_sat.execute('yum repolist')
+    repolist = target_sat.execute('yum repolist')
     logger.debug(f"Repolist>>\n{repolist}\n<<End of repolist")
 
     assert entities.JobInvocation(id=invocation_id).read().status == 0
@@ -643,7 +643,7 @@ def test_positive_configure_cloud_connector(
     assert 'Exit status: 0' in result
     # check that there is one receptor conf file and it's only readable
     # by the receptor user and root
-    result = default_sat.execute('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
+    result = target_sat.execute('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
     assert all(filestats == '400:foreman-proxy' for filestats in result.stdout.strip().split('\n'))
-    result = default_sat.execute('ls -l /etc/receptor/*/receptor.conf | wc -l')
+    result = target_sat.execute('ls -l /etc/receptor/*/receptor.conf | wc -l')
     assert int(result.stdout.strip()) >= 1

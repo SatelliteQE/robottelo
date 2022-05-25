@@ -51,7 +51,7 @@ from robottelo.logging import logger
 
 
 @pytest.fixture()
-def fixture_vmsetup(request, module_org, default_sat):
+def fixture_vmsetup(request, module_org, target_sat):
     """Create VM and register content host"""
     if '_count' in request.param.keys():
         with VMBroker(
@@ -60,16 +60,16 @@ def fixture_vmsetup(request, module_org, default_sat):
             _count=request.param['_count'],
         ) as clients:
             for client in clients:
-                client.configure_rex(satellite=default_sat, org=module_org)
+                client.configure_rex(satellite=target_sat, org=module_org)
             yield clients
     else:
         with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
-            client.configure_rex(satellite=default_sat, org=module_org)
+            client.configure_rex(satellite=target_sat, org=module_org)
             yield client
 
 
 @pytest.fixture()
-def fixture_sca_vmsetup(request, module_gt_manifest_org, default_sat):
+def fixture_sca_vmsetup(request, module_gt_manifest_org, target_sat):
     """Create VM and register content host to Simple Content Access organization"""
     if '_count' in request.param.keys():
         with VMBroker(
@@ -78,25 +78,25 @@ def fixture_sca_vmsetup(request, module_gt_manifest_org, default_sat):
             _count=request.param['_count'],
         ) as clients:
             for client in clients:
-                client.configure_rex(satellite=default_sat, org=module_gt_manifest_org)
+                client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
             yield clients
     else:
         with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
-            client.configure_rex(satellite=default_sat, org=module_gt_manifest_org)
+            client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
             yield client
 
 
 @pytest.fixture()
-def fixture_enable_receptor_repos(request, default_sat):
+def fixture_enable_receptor_repos(request, target_sat):
     """Enable RHSCL repo required by receptor installer"""
-    default_sat.enable_repo(constants.REPOS['rhscl7']['id'])
-    default_sat.enable_repo(constants.REPOS['rhae2']['id'])
-    default_sat.enable_repo(constants.REPOS['rhs7']['id'])
+    target_sat.enable_repo(constants.REPOS['rhscl7']['id'])
+    target_sat.enable_repo(constants.REPOS['rhae2']['id'])
+    target_sat.enable_repo(constants.REPOS['rhs7']['id'])
 
 
 @pytest.fixture()
-def infra_host(request, default_sat, capsule_configured):
-    infra_hosts = {'default_sat': default_sat, 'capsule_configured': capsule_configured}
+def infra_host(request, target_sat, capsule_configured):
+    infra_hosts = {'target_sat': target_sat, 'capsule_configured': capsule_configured}
     yield infra_hosts[request.param]
 
 
@@ -214,7 +214,7 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([7, '7_fips', 8, '8_fips', 9, '9_fips'])
-    def test_positive_run_custom_job_template_by_ip(self, rex_contenthost, module_org, default_sat):
+    def test_positive_run_custom_job_template_by_ip(self, rex_contenthost, module_org, target_sat):
         """Run custom template on host connected by ip
 
         :id: 9740eb1d-59f5-42b2-b3ab-659ca0202c74
@@ -232,7 +232,7 @@ class TestRemoteExecution:
         self.org = module_org
         client = rex_contenthost
         template_file = 'template_file.txt'
-        default_sat.execute(f'echo "echo Enforcing" > {template_file}')
+        target_sat.execute(f'echo "echo Enforcing" > {template_file}')
         template_name = gen_string('alpha', 7)
         make_job_template(
             {'organizations': self.org.name, 'name': template_name, 'file': template_file}
@@ -255,7 +255,7 @@ class TestRemoteExecution:
 
     @pytest.mark.destructive
     @pytest.mark.rhel_ver_list([7])
-    def test_positive_use_alternate_directory(self, rex_contenthost, module_org, default_sat):
+    def test_positive_use_alternate_directory(self, rex_contenthost, module_org, target_sat):
         """Use alternate working directory on client to execute rex jobs
 
         :id: a0181f18-d3dc-4bd9-a2a6-430c2a49809e
@@ -272,12 +272,12 @@ class TestRemoteExecution:
         assert result.status == 0
         result = client.run(f'chcon --reference=/var /{testdir}')
         assert result.status == 0
-        result = default_sat.execute(
+        result = target_sat.execute(
             f"sed -i r's/^:remote_working_dir:.*/:remote_working_dir: \\/{testdir}/' \
             /etc/foreman-proxy/settings.d/remote_execution_ssh.yml",
         )
         assert result.status == 0
-        result = default_sat.execute('systemctl restart foreman-proxy')
+        result = target_sat.execute('systemctl restart foreman-proxy')
         assert result.status == 0
 
         command = f'echo {gen_string("alpha")}'
@@ -443,7 +443,7 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([7])
-    def test_positive_run_scheduled_job_template_by_ip(self, rex_contenthost, default_sat):
+    def test_positive_run_scheduled_job_template_by_ip(self, rex_contenthost, target_sat):
         """Schedule a job to be ran against a host
 
         :id: 0407e3de-ef59-4706-ae0d-b81172b81e5c
@@ -454,7 +454,7 @@ class TestRemoteExecution:
         :parametrized: yes
         """
         client = rex_contenthost
-        system_current_time = default_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout
+        system_current_time = target_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout
         current_time_object = datetime.strptime(system_current_time.strip('\n'), '%b %d %Y %I:%M%p')
         plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M")
         Host.set_parameter(
@@ -495,7 +495,7 @@ class TestRemoteExecution:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_run_receptor_installer(
-        self, default_sat, subscribe_satellite, fixture_enable_receptor_repos
+        self, target_sat, subscribe_satellite, fixture_enable_receptor_repos
     ):
         """Run Receptor installer ("Configure Cloud Connector")
 
@@ -509,7 +509,7 @@ class TestRemoteExecution:
 
         :BZ: 1818076
         """
-        result = default_sat.execute('stat /etc/receptor/*/receptor.conf')
+        result = target_sat.execute('stat /etc/receptor/*/receptor.conf')
         if result.status == 0:
             pytest.skip(
                 'Cloud Connector has already been configured on this system. '
@@ -517,12 +517,12 @@ class TestRemoteExecution:
                 'check if everything is correctly configured from scratch. Skipping.'
             )
         # Copy foreman-proxy user's key to root@localhost user's authorized_keys
-        default_sat.add_rex_key(satellite=default_sat)
+        target_sat.add_rex_key(satellite=target_sat)
 
         # Set Host parameter source_display_name to something random.
         # To avoid 'name has already been taken' error when run multiple times
         # on a machine with the same hostname.
-        host_id = Host.info({'name': default_sat.hostname})['id']
+        host_id = Host.info({'name': target_sat.hostname})['id']
         Host.set_parameter(
             {'host-id': host_id, 'name': 'source_display_name', 'value': gen_string('alpha')}
         )
@@ -534,7 +534,7 @@ class TestRemoteExecution:
                 'job-template': template_name,
                 'inputs': f'satellite_user="{settings.server.admin_username}",\
                         satellite_password="{settings.server.admin_password}"',
-                'search-query': f'name ~ {default_sat.hostname}',
+                'search-query': f'name ~ {target_sat.hostname}',
             }
         )
         invocation_id = invocation['id']
@@ -544,10 +544,10 @@ class TestRemoteExecution:
             timeout='1500s',
         )
 
-        result = JobInvocation.get_output({'id': invocation_id, 'host': default_sat.hostname})
+        result = JobInvocation.get_output({'id': invocation_id, 'host': target_sat.hostname})
         logger.debug(f'Invocation output>>\n{result}\n<<End of invocation output')
         # if installation fails, it's often due to missing rhscl repo -> print enabled repos
-        repolist = default_sat.execute('yum repolist')
+        repolist = target_sat.execute('yum repolist')
         logger.debug(f'Repolist>>\n{repolist}\n<<End of repolist')
 
         assert entities.JobInvocation(id=invocation_id).read().status == 0
@@ -555,11 +555,11 @@ class TestRemoteExecution:
         assert 'Exit status: 0' in result
         # check that there is one receptor conf file and it's only readable
         # by the receptor user and root
-        result = default_sat.execute('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
+        result = target_sat.execute('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
         assert all(
             filestats == '400:foreman-proxy' for filestats in result.stdout.strip().split('\n')
         )
-        result = default_sat.execute('ls -l /etc/receptor/*/receptor.conf | wc -l')
+        result = target_sat.execute('ls -l /etc/receptor/*/receptor.conf | wc -l')
         assert int(result.stdout.strip()) >= 1
 
 
@@ -974,7 +974,7 @@ class TestRexUsers:
     @pytest.mark.tier3
     @pytest.mark.parametrize(
         'infra_host',
-        ['default_sat', 'capsule_configured'],
+        ['target_sat', 'capsule_configured'],
         ids=['satellite', 'capsule'],
         indirect=True,
     )
@@ -984,7 +984,7 @@ class TestRexUsers:
         rex_contenthost,
         class_rexmanager_user,
         class_rexinfra_user,
-        default_sat,
+        target_sat,
         infra_host,
         module_org,
     ):
@@ -1008,7 +1008,7 @@ class TestRexUsers:
 
         """
         client = rex_contenthost
-        infra_host.add_rex_key(satellite=default_sat)
+        infra_host.add_rex_key(satellite=target_sat)
         Host.update({'name': infra_host.hostname, 'new-organization-id': module_org.id})
 
         # run job as admin
