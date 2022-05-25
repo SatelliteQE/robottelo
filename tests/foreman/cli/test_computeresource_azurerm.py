@@ -215,7 +215,6 @@ class TestAzureRMComputeResourceTestCase:
         assert result['message'] == 'Image deleted.'
         assert result['name'] == new_img_name
 
-    @pytest.mark.skip_if_open("BZ:1850934")
     @pytest.mark.tier2
     def test_positive_check_available_networks(self, azurermclient, module_azurerm_cr):
         """Check networks from AzureRm CR are available to select during host provision.
@@ -373,7 +372,6 @@ class TestAzureRMFinishTemplateProvisioning:
         """Returns the AzureRM Client Host object to perform the assertions"""
         return azurermclient.get_vm(name=class_host_ft['name'].split('.')[0])
 
-    @pytest.mark.skip_if_open("BZ:1850934")
     @pytest.mark.upgrade
     @pytest.mark.tier3
     def test_positive_azurerm_host_provisioned(
@@ -499,7 +497,6 @@ class TestAzureRMUserDataProvisioning:
         """Returns the AzureRM Client Host object to perform the assertions"""
         return azurermclient.get_vm(name=class_host_ud['name'].split('.')[0])
 
-    @pytest.mark.skip_if_open("BZ:1850934")
     @pytest.mark.upgrade
     @pytest.mark.tier3
     def test_positive_azurerm_host_provisioned(

@@ -85,7 +85,6 @@ def module_azure_hg(
     ).create()
 
 
-@pytest.mark.skip_if_open("BZ:1850934")
 @pytest.mark.tier4
 def test_positive_end_to_end_azurerm_ft_host_provision(
     session,
@@ -163,12 +162,12 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             )
             if azure_vm:
                 azure_vm[0].delete(synchronous=False)
+            azurecloud_vm = azurermclient.get_vm(name=hostname.lower())
             if azurecloud_vm.exists:
                 azurecloud_vm.delete()
             raise error
 
 
-@pytest.mark.skip_if_open("BZ:1850934")
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_azurerm_host_provision_ud(
