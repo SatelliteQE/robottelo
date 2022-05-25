@@ -9,7 +9,7 @@ http://theforeman.org/api/apidoc/v2/provisioning_templates.html
 
 :CaseComponent: ProvisioningTemplates
 
-:Assignee: ogajduse
+:Assignee: akjha
 
 :TestType: Functional
 
@@ -110,7 +110,7 @@ def tftpboot(module_org, target_sat):
         },
     }
     # we keep the value of these for the teardown
-    default_settings = entities.Setting().search(query={"search": "name ~ Global default"})
+    default_settings = entities.Setting().search(query={"search": "name ~ global_"})
     kinds = entities.TemplateKind().search(query={"search": "name ~ PXE"})
 
     # clean the already-deployed default pxe configs
@@ -131,7 +131,6 @@ def tftpboot(module_org, target_sat):
             id=[i.id for i in default_settings if i.name == template['setting']][0],
             value=template['entity'].name,
         ).update(fields=['value'])
-
     yield default_templates
 
     # delete the deployed tftp files
@@ -255,7 +254,11 @@ class TestProvisioningTemplate:
                 rendered = r.text
             else:
                 rendered = target_sat.execute(f'cat {template["path"]}').stdout.splitlines()[0]
-            assert (
-                rendered == f"{settings.server.scheme}://"
-                f"{target_sat.hostname} {template['kind']}"
-            )
+
+            if template['kind'] == 'iPXE':
+                assert f'{target_sat.hostname}/unattended/iPXE' in r.text
+            else:
+                assert (
+                    rendered == f"{settings.server.scheme}://"
+                    f"{target_sat.hostname} {template['kind']}"
+                )
