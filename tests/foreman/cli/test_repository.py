@@ -2399,7 +2399,7 @@ class TestAnsibleCollectionRepository:
         import_path = export_metadata.replace('/metadata.json', '').replace('exports', 'imports')
         ContentImport.library({'organization-id': import_org['id'], 'path': import_path})
         cv = ContentView.info({'name': 'Import-Library', 'organization-label': import_org['label']})
-        assert cv['description'] == 'Content View used for importing library'
+        assert cv['description'] == 'Content View used for importing into library'
         prods = Product.list({'organization-id': import_org['id']})
         prod = Product.info({'id': prods[0]['id'], 'organization-id': import_org['id']})
         ac_content = [
