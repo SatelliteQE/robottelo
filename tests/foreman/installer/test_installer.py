@@ -1704,7 +1704,7 @@ def test_installer_sat_pub_directory_accessibility(target_sat):
         remote_path=f'{custom_hiera_location}',
     )
     _ = target_sat.execute(f'echo {custom_hiera_settings} >> {custom_hiera_location}')
-    command_output = target_sat.execute('satellite-installer')
+    command_output = target_sat.execute('satellite-installer', timeout='20m')
     assert 'Success!' in command_output.stdout
     for command in [http_curl_command, https_curl_command]:
         accessibility_check = target_sat.execute(command)
@@ -1758,7 +1758,7 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
         remote_path=f'{custom_hiera_location}',
     )
     _ = capsule_configured.execute(f'echo {custom_hiera_settings} >> {custom_hiera_location}')
-    command_output = capsule_configured.execute('satellite-installer')
+    command_output = capsule_configured.execute('satellite-installer', timeout='20m')
     assert 'Success!' in command_output.stdout
     for command in [http_curl_command, https_curl_command]:
         accessibility_check = capsule_configured.execute(command)
@@ -1767,7 +1767,7 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
         local_path='custom-hiera-capsule.yaml',
         remote_path=f'{custom_hiera_location}',
     )
-    command_output = capsule_configured.execute('satellite-installer')
+    command_output = capsule_configured.execute('satellite-installer', timeout='20m')
     assert 'Success!' in command_output.stdout
 
 
