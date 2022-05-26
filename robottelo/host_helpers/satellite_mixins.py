@@ -3,6 +3,7 @@ import re
 import requests
 
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 
 
@@ -92,3 +93,9 @@ class Factories:
         if not getattr(self, '_cli_factory', None):
             self._cli_factory = CLIFactory(self)
         return self._cli_factory
+
+    @property
+    def api_factory(self):
+        if not getattr(self, '_api_factory', None):
+            self._api_factory = APIFactory(self)
+        return self._api_factory
