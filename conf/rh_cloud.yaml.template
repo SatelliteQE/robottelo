@@ -1,2 +1,3 @@
 RH_CLOUD:
   Token: rh_cloud_token_value
+  INSTALL_RHC: false
