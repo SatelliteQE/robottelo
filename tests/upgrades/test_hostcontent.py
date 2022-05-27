@@ -17,23 +17,22 @@
 :Upstream: No
 """
 import pytest
-from fabric.api import run
 from nailgun import entities
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 
 
 class TestScenarioDBseedHostMismatch:
-    """This test scenenario veryfies the
+    """This test scenenario veryfies that the upgrade succeeds when inconsistencies exist
+    within the database.
 
     Test Steps:
 
         1. Before Satellite upgrade
         2. Create a New Organization and Location
-        3. Create another Organization in another Location
-        4. Create a content host in the first Location
-        5. Ensure the host's org is in the first location
-        6. Edit the host information using rake console to be in the second location
+        3. Create a Content Host in the Org
+        4. Ensure the Org is not in the Location
+        4. Assign the content host to the Location
         7. Ensure the host is not in the same Location as its Org
         8. Upgrade Satellite
         9. Ensure upgrade succeeds
@@ -42,57 +41,67 @@ class TestScenarioDBseedHostMismatch:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_db_seed_host_mismatch(self, default_sat, rhel7_contenthost):
+    def test_pre_db_seed_host_mismatch(self, target_sat, rhel7_contenthost):
         """
 
         :id:
 
         :steps:
-            1. Create an Organizaiton1 and Location
-            2. Create another Organization2
-            3. Create a content host on Organization1
-            4. Use rake console to edit the content host to Org2
-            5. Ensure the taxonomy between the content host and Location is broken
+            1. Create a Location
+            2. Create an Org and ensure the Org is not in the Location
+            3. Create a content host on Org
+            4. Use rake console to assign the Content Host to the Location
+            5. Ensure the taxonomy between the Content Host, Org and Location is broken
+            6. Do the upgrade
 
         :expectedresults:
-            1. The content host should be in Organization2 but not Location
+            1. The Content Hosts is assigned to Location but Org is not
 
         :BZ: 2043705, 2028786, 2019467
 
-
-
         :customerscenario: true
         """
-        org = default_sat.Organization.create()
-        loc = default_sat.Location.create(organization=org)
-        org2 = default_sat.Organization.create()
+        org = target_sat.api.Organization().create()
+        loc = target_sat.api.Location().create()
 
-        rhel7_contenthost.install_capsule_katello_ca(capsule=self.proxy_name)
-        rhel7_contenthost.register_contenthost(org=org, lce='Library')
+        rhel7_contenthost.install_katello_ca(target_sat)
+        rhel7_contenthost.register_contenthost(org=org.label, lce='Library')
 
-        chost = default_sat.Host().search(query={'search': f'name="{rhel7_contenthost.hostname}"'})
+        chost = entities.Host().search(query={'search': f'name="{rhel7_contenthost.hostname}"'})
 
-        assert chost[0]['organization'] == org.name
-        assert chost[0]['organization'] != org2.name
-        assert chost[0]['location'] == loc.name
+        assert chost[0].organization.id == org.id
 
-        rake_host = f"host = Host.where(:name => '{chost.name}')"
-        rake_organization = f'; host.organization_id=${org2.id}'
-        rake_host_save = '; host.save!'
-        result = run(
+        # Now we need to break the taxonomy between chost, org and location
+        rake_host = f"host = ::Host.find({chost[0].id})"
+        rake_organization = f"; host.location_id={loc.id}"
+        rake_host_save = "; host.save!"
+        result = target_sat.run(
             f"echo '{rake_host}{rake_organization}{rake_host_save}' | foreman-rake console"
         )
 
-        assert 'true' in result
-        assert chost['organization'] == org2.name
+        assert 'true' in result.stdout
+        chost = entities.Host().search(query={'search': f'name="{rhel7_contenthost.hostname}"'})
+        assert chost[0].location.id == loc.id
 
-        global_dict = {self.__class__.__name__: {'client_name': rhel7_contenthost.hostname}}
+        global_dict = {
+            self.__class__.__name__: {
+                'client_name': rhel7_contenthost.hostname,
+                'organization_id': org.id,
+                'location_id': loc.id,
+            }
+        }
+
         create_dict(global_dict)
 
-        # do the upgrade
 
     @pytest.mark.post_upgrade(depend_on=test_pre_db_seed_host_mismatch)
-    def test_post_db_seed_host_mismatch(self, default_sat):
+    def test_post_db_seed_host_mismatch(self, target_sat):
         """"""
+        chostname = get_entity_data(self.__class__.__name__)['client_name']
+        org_id = get_entity_data(self.__class__.__name__)['organization_id']
+        loc_id = get_entity_data(self.__class__.__name__)['location_id']
+        chost = entities.Host(name=chostname)
 
-        # ensure the upgrade succeeds and is in org 1
+        assert org_id == chost[0].organization.id
+        assert loc_id == chost[0].location.id
+        # ensure the upgrade succeeds and is in org/location
