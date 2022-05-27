@@ -23,6 +23,7 @@ import pytest
 from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
+from robottelo.helpers import get_data_file
 
 
 @pytest.fixture(scope='module')
@@ -116,3 +117,35 @@ def test_negative_create_with_same_name(session, oscap_content_path, default_org
                 {'file_upload.title': content_name, 'file_upload.scap_file': oscap_content_path}
             )
         assert 'has already been taken' in str(context.value)
+
+
+@pytest.mark.tier1
+def test_external_disa_scap_content(session, default_org, default_location):
+    """Create OpenScap content with external DISA SCAP content.
+
+    :id: 5f29254e-7c15-45e1-a2ec-4da1d3d8d74d
+
+    :Steps:
+
+        1. Create an openscap content with external DISA SCAP content.
+        2. Assert that openscap content has been created.
+
+    :expectedresults: External DISA SCAP content uploaded successfully.
+
+    :BZ: 2053478
+
+    :customerscenario: true
+
+    :CaseImportance: Medium
+    """
+    content_name = gen_string('alpha')
+    with session:
+        session.organization.select(org_name=default_org.name)
+        session.location.select(loc_name=default_location.name)
+        session.oscapcontent.create(
+            {
+                'file_upload.title': content_name,
+                'file_upload.scap_file': get_data_file('U_RHEL_7_V3R6_STIG_SCAP_1-2_Benchmark.xml'),
+            }
+        )
+        assert session.oscapcontent.search(content_name)[0]['Title'] == content_name
