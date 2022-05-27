@@ -1,9 +1,7 @@
 content_host:
-    deploy_workflow:
-        default:
-        rhel9: # example of workflow override for version
     default_rhel_version: 7
-    hardware:
+    default_deploy_workflow: deploy-base-rhel
+    deploy_kwargs:
         RHEL6:
             RELEASE: 6.10
             MEMORY: 1GiB
