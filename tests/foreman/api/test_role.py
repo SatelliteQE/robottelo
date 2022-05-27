@@ -1540,12 +1540,13 @@ class TestCannedRole:
         sc = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
         with pytest.raises(HTTPError):
             entities.Organization(sc, name=gen_string('alpha')).create()
-        try:
-            loc_name = gen_string('alpha')
-            loc = entities.Location(sc, name=loc_name).create()
-        except HTTPError as err:
-            pytest.fail(str(err))
-        assert loc_name == loc.name
+        if not is_open("BZ:1825698"):
+            try:
+                loc_name = gen_string('alpha')
+                loc = entities.Location(sc, name=loc_name).create()
+            except HTTPError as err:
+                pytest.fail(str(err))
+            assert loc_name == loc.name
 
     @pytest.mark.upgrade
     @pytest.mark.tier1
@@ -1590,7 +1591,6 @@ class TestCannedRole:
                 entities.LibvirtComputeResource,
                 entities.OVirtComputeResource,
                 entities.VMWareComputeResource,
-                entities.ConfigGroup,
                 entities.Errata,
                 entities.OperatingSystem,
             ]:
