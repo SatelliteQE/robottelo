@@ -96,6 +96,14 @@ def content_hosts(request):
         yield hosts
 
 
+@pytest.fixture(scope='module')
+def mod_content_hosts(request):
+    """A module-level fixture that provides two content hosts object"""
+    with Broker(**host_conf(request), host_classes={'host': ContentHost}, _count=2) as hosts:
+        hosts[0].set_infrastructure_type('physical')
+        yield hosts
+
+
 @pytest.fixture()
 def registered_hosts(request, target_sat, module_org):
     """Fixture that registers content hosts to Satellite, based on rh_cloud setup"""
