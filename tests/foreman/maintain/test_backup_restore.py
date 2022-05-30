@@ -6,7 +6,7 @@
 
 :CaseLevel: Component
 
-:CaseComponent: Foreman Maintain
+:CaseComponent: ForemanMaintain
 
 :Assignee: gtalreja
 
