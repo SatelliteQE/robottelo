@@ -134,32 +134,36 @@ def test_positive_create_with_limit(module_org):
 
 
 @pytest.mark.tier1
-def test_positive_create_with_unlimited_hosts(module_org):
-    """Create Host Collection with different values of unlimited-hosts
-    parameter
+def test_positive_update_to_unlimited_hosts(module_org):
+    """Create Host Collection with a limit and update it to unlimited hosts
 
     :id: d688fd4a-88eb-484e-9e90-854e0595edd0
 
-    :expectedresults: Host Collection is created and unlimited-hosts
-        parameter is set
+    :expectedresults: Host Collection is created and updated to unlimited hosts
 
-    :CaseImportance: Critical
+    :CaseImportance: High
     """
-    for unlimited in ('True', 'Yes', 1, 'False', 'No', 0):
-        host_collection = make_host_collection(
-            {
-                'max-hosts': 1 if unlimited in ('False', 'No', 0) else None,
-                'organization-id': module_org.id,
-                'unlimited-hosts': unlimited,
-            }
-        )
-        result = HostCollection.info(
-            {'name': host_collection['name'], 'organization-id': module_org.id}
-        )
-        if unlimited in ('True', 'Yes', 1):
-            assert result['limit'] == 'None'
-        else:
-            assert result['limit'] == '1'
+    host_collection = make_host_collection(
+        {
+            'max-hosts': 1,
+            'organization-id': module_org.id,
+        }
+    )
+    result = HostCollection.info(
+        {'name': host_collection['name'], 'organization-id': module_org.id}
+    )
+    assert result['limit'] == '1'
+    HostCollection.update(
+        {
+            'name': host_collection['name'],
+            'organization-id': module_org.id,
+            'unlimited-hosts': True,
+        }
+    )
+    result = HostCollection.info(
+        {'name': host_collection['name'], 'organization-id': module_org.id}
+    )
+    assert result['limit'] == 'None'
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
@@ -194,7 +198,7 @@ def test_positive_update_limit(module_org):
     """
     new_host_col = make_host_collection({'organization-id': module_org.id})
     for limit in ('3', '6', '9', '12', '15', '17', '19'):
-        HostCollection.update({'id': new_host_col['id'], 'max-hosts': limit, 'unlimited-hosts': 0})
+        HostCollection.update({'id': new_host_col['id'], 'max-hosts': limit})
         result = HostCollection.info({'id': new_host_col['id']})
         assert result['limit'] == limit
 
