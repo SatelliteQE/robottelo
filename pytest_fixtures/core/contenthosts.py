@@ -7,7 +7,6 @@ All functions in this module will be treated as fixtures that apply the contenth
 import pytest
 from broker import VMBroker
 from fauxfactory import gen_string
-from nailgun import entities
 
 from robottelo import constants
 from robottelo.config import settings
@@ -137,18 +136,18 @@ def register_host_custom_repo(target_sat, module_org, rhel_contenthost, repo_url
     """Register content host to Satellite and sync repos"""
     # prepare Product and appropriate Satellite Client repo on satellite
     rhelver = rhel_contenthost.os_version.major
-    prod = entities.Product(
+    prod = target_sat.api.Product(
         organization=module_org, name=f'rhel{rhelver}_{gen_string("alpha")}'
     ).create()
     for url in repo_urls:
-        repo = entities.Repository(
+        repo = target_sat.api.Repository(
             organization=module_org,
             product=prod,
             content_type='yum',
             url=url,
         ).create()
         repo.sync(timeout=1200)
-    subs = entities.Subscription(organization=module_org, name=prod.name).search()
+    subs = target_sat.api.Subscription(organization=module_org, name=prod.name).search()
     assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
     subscription = subs[0]
 
@@ -162,13 +161,14 @@ def register_host_custom_repo(target_sat, module_org, rhel_contenthost, repo_url
     )
     assert register.status == 0, (
         f'Failed to register the host: {rhel_contenthost.hostname}:'
-        'rc: {register.status}: {register.stderr}'
+        f'rc: {register.status}: {register.stderr}'
     )
     # attach product subscription to the host
-    rhel_contenthost.nailgun_host.bulk_add_subscriptions(
+    nailgun_host = target_sat.api.Host().search(query={'search': rhel_contenthost.hostname})[0]
+    nailgun_host.bulk_add_subscriptions(
         data={
             "organization_id": module_org.id,
-            "included": {"ids": [rhel_contenthost.nailgun_host.id]},
+            "included": {"ids": [nailgun_host.id]},
             "subscriptions": [{"id": subscription.id, "quantity": 1}],
         }
     )
