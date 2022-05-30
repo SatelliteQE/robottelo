@@ -136,8 +136,23 @@ def capsule_host(capsule_factory):
     VMBroker(hosts=[new_cap]).checkin()
 
 
+@pytest.fixture(scope='module')
+def module_capsule_host(capsule_factory):
+    """A fixture that provides a Capsule based on config settings"""
+    new_cap = capsule_factory()
+    yield new_cap
+    VMBroker(hosts=[new_cap]).checkin()
+
+
 @pytest.fixture
 def capsule_configured(capsule_host, target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
     capsule_host.capsule_setup(sat_host=target_sat)
     yield capsule_host
+
+
+@pytest.fixture(scope='module')
+def module_capsule_configured(module_capsule_host, module_target_sat):
+    """Configure the capsule instance with the satellite from settings.server.hostname"""
+    module_capsule_host.capsule_setup(sat_host=module_target_sat)
+    yield module_capsule_host
