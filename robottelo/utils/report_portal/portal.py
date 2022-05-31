@@ -3,6 +3,7 @@ from tenacity import retry
 from tenacity import stop_after_attempt
 from tenacity import wait_fixed
 
+from robottelo.config import settings
 from robottelo.logging import logger
 
 
@@ -28,11 +29,11 @@ class ReportPortal:
     statuses = ['FAILED', 'PASSED', 'SKIPPED', 'INTERRUPTED', 'IN_PROGRESS']
     importance_levels = ['Low', 'Medium', 'High', 'Critical', 'Fips']
 
-    def __init__(self, rp_url, rp_api_key, rp_project):
+    def __init__(self, rp_url=None, rp_api_key=None, rp_project=None):
         """initiate report portal properties"""
-        self.rp_url = rp_url
-        self.rp_project = rp_project
-        self.rp_api_key = rp_api_key
+        self.rp_url = rp_url or settings.report_portal.portal_url
+        self.rp_project = rp_project or settings.report_portal.project
+        self.rp_api_key = rp_api_key or settings.report_portal.api_key
         self.rp_project_settings = None
 
         # fetch the project settings
