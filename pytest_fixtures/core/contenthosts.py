@@ -97,16 +97,16 @@ def content_hosts(request):
         yield hosts
 
 
-@pytest.fixture(scope='module')
-def registered_hosts(organization_ak_setup, content_hosts, module_target_sat):
+@pytest.fixture()
+def registered_hosts(request, target_sat, module_org):
     """Fixture that registers content hosts to Satellite, based on rh_cloud setup"""
-    org, ak = organization_ak_setup
-    for vm in content_hosts:
-        vm.install_katello_ca(module_target_sat)
-        vm.register_contenthost(org.label, ak.name)
-        vm.add_rex_key(module_target_sat)
-        assert vm.subscribed
-    return content_hosts
+    with VMBroker(**host_conf(request), host_classes={'host': ContentHost}, _count=2) as hosts:
+        for vm in hosts:
+            repo = settings.repos['SATCLIENT_REPO'][f'RHEL{vm.os_version.major}']
+            register_host_custom_repo(target_sat, module_org, vm, [repo])
+            vm.install_katello_host_tools()
+            vm.add_rex_key(target_sat)
+        yield hosts
 
 
 @pytest.fixture
