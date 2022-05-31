@@ -3,7 +3,7 @@ import pytest
 from robottelo.config import settings
 from robottelo.hosts import get_sat_version
 from robottelo.logging import logger
-from robottelo.report_portal.portal import ReportPortal
+from robottelo.utils.report_portal.portal import ReportPortal
 
 
 class LaunchError(Exception):

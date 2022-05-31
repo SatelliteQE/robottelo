@@ -2,7 +2,7 @@
 
 The `pytest_plugins/rerun_rp/reren_rp.py` module is designed as a plugin to pytest in the robottelo test framework.
 
-This plugin helps https://github.com/SatelliteQE[SatelliteQE] to rerun `failed or skipped` and specific `user` tests from the latest finished ReportPortal launch.
+This plugin helps https://github.com/SatelliteQE[SatelliteQE] to rerun `failed or skipped` and specific `user` tests from the given finished ReportPortal launch.
 
 == Goal:
 
@@ -13,7 +13,7 @@ This plugin is to rerun failed or skipped tests to retest flaky and fixed tests 
 Checks that will skip the rerun:
 
 ** Skip rerun execution for wrong arguments to `--only-failed` option.
-** Skip rerun execution if the latest launch for the Report Portal is still processing.
+** Skip rerun execution if the launch for the Report Portal is still processing.
 ** Skip rerun execution if the failed tests percentage in the latest finished launch is more than the `fail_threshold` percent set in robottelo properties. If it is not set, the fail_threshold is 20% by default.
 
 
@@ -34,25 +34,25 @@ $ py.test --user jyejare --only-skipped     ## To rerun user specific failed or 
 
 == Example:
 
-* To rerun `failed` tests with `defect_type` _automation_bug_ of `user` _jyejare_ from `tests/foreman/ui/test_ldap_authentication.py`
+* To rerun `failed` tests with `defect_type` = _to_investigate_ for `user` _jyejare_ from `tests/foreman/api/test_computeresource_azure.py`
 ____
- Observe only 2 tests are selected
+ Observe only 1 test is selected
 ____
 
 [source,shell]
 ----
-$ py.test --collect-only tests/foreman/ui/test_ldap_authentication.py --only-failed automation_bug --user jyejare
-======= test session starts ========
+$ pytest tests/foreman/api/test_computeresource_azurerm.py --collect-only --rp-reference-launch-uuid bd4bc4ba-1d6f-465e-87d8-086c0b6352d5 --user jyejare --only-failed
+================ test session starts =================
+platform darwin -- Python 3.9.12, pytest-7.1.2, pluggy-1.0.0
+shared_function enabled - OFF - scope:  - storage: file
+rootdir: /Users/jitendrayejare/JWorkspace/GitRepos/robottelo, configfile: pyproject.toml
+plugins: xdist-2.5.0, forked-1.4.0, reportportal-5.1.1, mock-3.7.0, services-2.2.1, ibutsu-2.0.2, cov-3.0.0
+collected 11 items / 10 deselected / 1 selected
 
-2020-10-30 16:58:01 - robottelo.rerun_failures.uncollector - DEBUG - Selecting/Deselecting tests based on latest launch test results..
-2020-10-30 16:58:01 - robottelo.rerun_failures.uncollector - DEBUG - Selected 2 and deselected 17 tests based on latest launch test results.
-2020-10-30 11:28:01 - conftest - DEBUG - Collected 2 test cases
-2020-10-30 16:58:01 - robottelo.helpers - DEBUG - Generated file bz_cache.json with BZ collect data
-collected 21 items / 19 deselected / 2 Selected
-<Package /home/jitendrayejare/Desktop/RedHat/RoboTelloNew/robottelo/tests/foreman/ui>
-  <Module test_ldap_authentication.py>
-    <Function test_single_sign_on_ldap_ipa_server>
-    <Function test_single_sign_on_using_rhsso>
+<Package api>
+  <Module test_computeresource_azurerm.py>
+    <Class TestAzureRMHostProvisioningTestCase>
+      <Function test_positive_azurerm_host_power_on_off>
 
-======== 19 deselected in 11.59 seconds ========
+======== 1/11 tests collected (10 deselected) in 27.92s ========
 ----
