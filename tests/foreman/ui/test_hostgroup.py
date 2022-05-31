@@ -20,7 +20,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
 
@@ -96,72 +95,6 @@ def test_negative_delete_with_discovery_rule(session, module_org, module_locatio
             session.hostgroup.delete(hostgroup.name)
         assert "Cannot delete record because dependent discovery rules exist" in str(context.value)
         assert session.hostgroup.search(hostgroup.name)[0]['Name'] == hostgroup.name
-
-
-@pytest.mark.tier2
-def test_create_with_config_group(session, module_org, module_location):
-    """Create new host group with assigned config group to it
-
-    :id: 05a64d6b-113b-4652-86bf-19bc65b70131
-
-    :CaseImportance: Medium
-
-    :expectedresults: Host group created and contains proper config group
-    """
-    name = gen_string('alpha')
-    environment = entities.Environment(
-        organization=[module_org], location=[module_location]
-    ).create()
-    config_group = entities.ConfigGroup().create()
-    with session:
-        # Create host group with config group
-        session.hostgroup.create(
-            {
-                'host_group.name': name,
-                'host_group.puppet_environment': environment.name,
-                'puppet_classes.config_groups.assigned': [config_group.name],
-            }
-        )
-        hostgroup_values = session.hostgroup.read(name, widget_names='puppet_classes')
-        assert len(hostgroup_values['puppet_classes']['config_groups']['assigned']) == 1
-        assert (
-            hostgroup_values['puppet_classes']['config_groups']['assigned'][0] == config_group.name
-        )
-
-
-@pytest.mark.tier2
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_create_with_puppet_class(session, module_org, module_location, target_sat):
-    """Create new host group with assigned puppet class to it
-
-    :id: 166ca6a6-c0f7-4fa0-a3f2-b0d6980cf50d
-
-    :CaseImportance: Medium
-
-    :expectedresults: Host group created and contains proper puppet class
-    """
-    name = gen_string('alpha')
-    pc_name = 'generic_1'
-    env_name = target_sat.create_custom_environment(repo=pc_name)
-    env = target_sat.api.Environment().search(query={'search': f'name={env_name}'})[0].read()
-    env = entities.Environment(
-        id=env.id,
-        location=[module_location],
-        organization=[module_org],
-    ).update(['location', 'organization'])
-    env = entities.Environment(id=env.id, location=[module_location]).update(['location'])
-    with session:
-        # Create host group with puppet class
-        session.hostgroup.create(
-            {
-                'host_group.name': name,
-                'host_group.puppet_environment': env.name,
-                'puppet_classes.classes.assigned': [pc_name],
-            }
-        )
-        hostgroup_values = session.hostgroup.read(name, widget_names='puppet_classes')
-        assert len(hostgroup_values['puppet_classes']['classes']['assigned']) == 1
-        assert hostgroup_values['puppet_classes']['classes']['assigned'][0] == pc_name
 
 
 @pytest.mark.stubbed
