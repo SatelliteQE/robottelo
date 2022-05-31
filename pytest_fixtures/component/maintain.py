@@ -1,6 +1,6 @@
 # Satellite-maintain fixtures
 import pytest
-from broker import VMBroker
+from broker import Broker
 
 from robottelo import constants
 from robottelo.config import settings
@@ -15,7 +15,7 @@ def sat_maintain(satellite_factory):
     else:
         sat = satellite_factory()
         yield sat
-        VMBroker(hosts=[sat]).checkin()
+        Broker(hosts=[sat]).checkin()
 
 
 @pytest.fixture(scope="function")

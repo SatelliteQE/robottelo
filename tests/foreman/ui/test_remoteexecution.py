@@ -20,7 +20,7 @@ import datetime
 import time
 
 import pytest
-from broker import VMBroker
+from broker import Broker
 from nailgun import entities
 from wait_for import wait_for
 
@@ -175,7 +175,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
 
     :CaseLevel: System
     """
-    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
+    with Broker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
         host_names = []
         for host in hosts:
             host_names.append(host.hostname)

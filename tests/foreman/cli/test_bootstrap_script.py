@@ -17,7 +17,7 @@
 :Upstream: No
 """
 import pytest
-from broker.broker import VMBroker
+from broker import Broker
 
 from robottelo.hosts import ContentHost
 
@@ -45,7 +45,7 @@ def test_positive_register(
     :CaseImportance: Critical
     """
     hg = target_sat.api.HostGroup(location=[module_location], organization=[module_org]).create()
-    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
+    with Broker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
         # assure system is not registered
         result = vm.execute('subscription-manager identity')
         # result will be 1 if not registered
