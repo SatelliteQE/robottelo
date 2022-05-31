@@ -210,13 +210,13 @@ def container_contenthost(rhel7_contenthost, target_sat):
 
 
 @pytest.fixture(scope='module')
-def set_remote_execution_by_default(request):
+def set_remote_execution_by_default(request, module_target_sat):
     """Fixture to set the 'remote_execution_by_default' setting"""
     if getattr(request, 'param', None) is not None:
         value = request.param  # indirect parametrization value
     else:
         value = True  # default value
-    remote_execution_setting = entities.Setting().search(
+    remote_execution_setting = module_target_sat.api.Setting().search(
         query={'search': 'name="remote_execution_by_default"'}
     )[0]
     remote_execution_setting.value = str(value)
