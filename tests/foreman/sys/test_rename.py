@@ -29,7 +29,7 @@ BAD_HN_MSG = (
     "{0} is not a valid fully qualified domain name. Please use a valid FQDN and try again."
 )
 NO_CREDS_MSG = "Username and/or Password options are missing!"
-BAD_CREDS_MSG = "There is a problem with the credentials"
+BAD_CREDS_MSG = "Unable to authenticate user admin"
 
 
 @pytest.mark.run_in_one_thread
@@ -37,7 +37,6 @@ BAD_CREDS_MSG = "There is a problem with the credentials"
 class TestRenameHost:
     """Implements ``katello-change-hostname`` tests"""
 
-    @pytest.mark.skip_if_open("BZ:1925616")
     @pytest.mark.destructive
     def test_positive_rename_satellite(self, module_org, module_product, target_sat):
         """run katello-change-hostname on Satellite server
@@ -181,7 +180,6 @@ class TestRenameHost:
         result = target_sat.execute('hostname')
         assert original_name == result.stdout.strip(), "Invalid hostame assigned"
 
-    @pytest.mark.skip_if_open("BZ:1925616")
     @pytest.mark.destructive
     def test_negative_rename_sat_wrong_passwd(self, target_sat):
         """change hostname with wrong password on Satellite server
@@ -203,7 +201,7 @@ class TestRenameHost:
             f'satellite-change-hostname -y {new_hostname} -u {username} -p {password}'
         )
         assert result.status == 1
-        assert BAD_CREDS_MSG in result.stderr
+        assert BAD_CREDS_MSG in result.stderr[1].decode()
 
     @pytest.mark.stubbed
     @pytest.mark.destructive
