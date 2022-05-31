@@ -67,6 +67,17 @@ def install_cockpit_plugin(session_target_sat):
     setting_object.update({'value'})
 
 
+@pytest.fixture(scope='module')
+def enable_capsule_for_registration(module_target_sat):
+    """Enable registration and template features for capsule required for
+    global registration command"""
+    res = module_target_sat.install(
+        cmd_args={},
+        cmd_kwargs={'foreman-proxy-registration': 'true', 'foreman-proxy-templates': 'true'},
+    )
+    assert res.status == 0
+
+
 @pytest.fixture(scope='session')
 def block_fake_repo_access(session_target_sat):
     """Block traffic to given port used by fake repo"""
