@@ -126,6 +126,7 @@ class ContentHost(Host, ContentHostMixins):
 
         :param hostname: The fqdn of a ContentHost target
         :param auth: ('root', 'rootpass') or '/path/to/keyfile.rsa'
+        :param satellite: optional parameter satellite object.
         """
         if not hostname:
             raise ContentHostError('A valid hostname must be provided')
@@ -135,13 +136,20 @@ class ContentHost(Host, ContentHostMixins):
         elif isinstance(auth, str):
             # key file based authentication
             kwargs.update({'key_filename': auth})
+        self._satellite = kwargs.get('satellite')
         super().__init__(hostname=hostname, **kwargs)
+
+    @property
+    def satellite(self):
+        if not self._satellite:
+            self._satellite = Satellite()
+        return self._satellite
 
     @property
     def nailgun_host(self):
         """If this host is subscribed, provide access to its nailgun object"""
         if self.subscribed:
-            return entities.Host().search(query={'search': self.hostname})[0]
+            return self.satellite.api.Host().search(query={'search': self.hostname})[0]
 
     @property
     def subscribed(self):
@@ -376,6 +384,7 @@ class ContentHost(Host, ContentHostMixins):
         :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
             installed.
         """
+        self._satellite = satellite
         self.execute(
             f'curl --insecure --output katello-ca-consumer-latest.noarch.rpm \
                     {satellite.url_katello_ca_rpm}'
@@ -404,6 +413,7 @@ class ContentHost(Host, ContentHostMixins):
         if result.status == 0:
             raise ContentHostError(f'katello-ca rpm(s) are still installed: {result.stdout}')
         self.execute('subscription-manager clean')
+        self._satellite = None
 
     def install_capsule_katello_ca(self, capsule=None):
         """Downloads and installs katello-ca rpm on the broker virtual machine.
@@ -463,6 +473,7 @@ class ContentHost(Host, ContentHostMixins):
         :return: SSHCommandResult instance filled with the result of the
             registration.
         """
+
         if username and password:
             userpass = f' --username {username} --password {password}'
         else:
@@ -724,6 +735,7 @@ class ContentHost(Host, ContentHostMixins):
         if register:
             # Install Satellite CA rpm
             self.install_katello_ca(satellite)
+
             self.register_contenthost(org, activation_key)
 
         # Red Hat Insights requires RHEL 6/7/8 repo and it is not
