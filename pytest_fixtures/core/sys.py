@@ -51,7 +51,7 @@ def puppet_proxy_port_range(session_puppet_enabled_sat):
             )
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='class')
 def install_cockpit_plugin(class_target_sat):
     class_target_sat.register_to_dogfood()
     class_target_sat.install_cockpit()
