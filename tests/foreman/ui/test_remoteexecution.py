@@ -47,11 +47,9 @@ def fixture_enable_rhc_repos(request, target_sat):
     if target_sat.os_version.major == 8:
         target_sat.enable_repo(constants.REPOS['rhel8_bos']['id'])
         target_sat.enable_repo(constants.REPOS['rhel8_aps']['id'])
-        target_sat.enable_repo(constants.REPOS['rhae8']['id'])
     else:
         target_sat.enable_repo(constants.REPOS['rhscl7']['id'])
         target_sat.enable_repo(constants.REPOS['rhel7']['id'])
-        target_sat.enable_repo(constants.REPOS['rhae2']['id'])
 
 
 @pytest.mark.tier3
