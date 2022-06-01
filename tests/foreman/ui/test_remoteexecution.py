@@ -643,12 +643,5 @@ def test_positive_configure_cloud_connector(
     repolist = target_sat.execute('yum repolist')
     logger.debug(f"Repolist>>\n{repolist}\n<<End of repolist")
 
-    # assert entities.JobInvocation(id=invocation_id).read().status == 0
-    # assert 'project-receptor.satellite_receptor_installer' in result
-    # assert 'Exit status: 0' in result
-    # check that there is one receptor conf file and it's only readable
-    # by the receptor user and root
-    # result = target_sat.execute('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
-    # assert all(filestats == '400:foreman-proxy' for filestats in result.stdout.strip().split('\n'))
-    # result = target_sat.execute('ls -l /etc/receptor/*/receptor.conf | wc -l')
-    # assert int(result.stdout.strip()) >= 1
+    assert entities.JobInvocation(id=invocation_id).read().status == 0
+    assert 'Exit status: 0' in result
