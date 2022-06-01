@@ -494,6 +494,7 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.skip("This test is for receptor plugin which is deprecated/removed for Satellite >= 6.11")
     def test_positive_run_receptor_installer(
         self, target_sat, subscribe_satellite, fixture_enable_receptor_repos
     ):
