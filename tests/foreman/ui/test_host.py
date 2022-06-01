@@ -2397,7 +2397,7 @@ class TestHostCockpit:
     @pytest.mark.rhel_ver_match('[^6].*')
     @pytest.mark.usefixtures('install_cockpit_plugin')
     @pytest.mark.tier2
-    def test_positive_cockpit(session, cockpit_host, class_target_sat, module_org):
+    def test_positive_cockpit(session, cockpit_host, class_target_sat, class_org):
         """Install cockpit plugin and test whether webconsole button and cockpit integration works.
         also verify if cockpit service is restarted after the service restart.
 
@@ -2423,7 +2423,7 @@ class TestHostCockpit:
         :parametrized: yes
         """
         with session:
-            session.organization.select(org_name=module_org.name)
+            session.organization.select(org_name=class_org.name)
             session.location.select(loc_name='Any Location')
             kill_process = class_target_sat.execute('pkill -f cockpit-ws')
             assert kill_process.status == 0
