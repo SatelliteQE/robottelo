@@ -52,11 +52,11 @@ def puppet_proxy_port_range(session_puppet_enabled_sat):
 
 
 @pytest.fixture(scope='session')
-def install_cockpit_plugin(session_target_sat):
-    session_target_sat.register_to_dogfood()
-    session_target_sat.install_cockpit()
+def install_cockpit_plugin(class_target_sat):
+    class_target_sat.register_to_dogfood()
+    class_target_sat.install_cockpit()
     # TODO remove this change when we start using new host detail view
-    setting_object = session_target_sat.api.Setting().search(
+    setting_object = class_target_sat.api.Setting().search(
         query={'search': 'name=host_details_ui'}
     )[0]
     old_value = setting_object.value
