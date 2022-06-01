@@ -448,6 +448,9 @@ def test_positive_create_with_21_filters(session):
             session.filter.create(
                 role_name, {'resource_type': resource_type, 'permission.assigned': [permission]}
             )
+        # setting the page size to 25 as 20 is default
+        view = session.filter.navigate_to(session.filter, 'All', role_name=role_name)
+        view.pagination.per_page.fill('25')
         assigned_permissions = session.filter.read_permissions(role_name)
         assigned_filters = {
             (resource_type, permission)
