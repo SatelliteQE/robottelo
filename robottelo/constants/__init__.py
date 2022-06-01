@@ -1226,23 +1226,15 @@ PERMISSIONS = {
 PERMISSIONS_UI = {
     '(Miscellaneous)': [
         'access_dashboard',
-        'app_root',
-        'attachments',
-        'configuration',
-        'download_bootdisk',
-        'escalate_roles',
-        'generate_ansible_inventory',
-        'logs',
-        'my_organizations',
-        'rh_telemetry_api',
-        'rh_telemetry_configurations',
-        'rh_telemetry_view',
-        'view_cases',
-        'view_log_viewer',
         'view_plugins',
-        'view_rh_search',
+        'escalate_roles',
         'view_tasks',
         'view_statuses',
+        'generate_ansible_inventory',
+        'download_bootdisk',
+        'my_organizations',
+        'generate_foreman_rh_cloud',
+        'view_foreman_rh_cloud',
     ],
     'Activation Keys': [
         'view_activation_keys',
@@ -1257,7 +1249,7 @@ PERMISSIONS_UI = {
         'destroy_architectures',
     ],
     'Audit': ['view_audit_logs'],
-    'Auth source ldap': [
+    'Auth source': [
         'view_authenticators',
         'create_authenticators',
         'edit_authenticators',
@@ -1290,6 +1282,8 @@ PERMISSIONS_UI = {
         'create_compute_resources',
         'edit_compute_resources',
         'destroy_compute_resources',
+        'power_vm_compute_resources',
+        'destroy_vm_compute_resources',
         'view_compute_resources_vms',
         'create_compute_resources_vms',
         'edit_compute_resources_vms',
@@ -1311,7 +1305,6 @@ PERMISSIONS_UI = {
         'destroy_content_views',
         'publish_content_views',
         'promote_or_remove_content_views',
-        'export_content_views',
     ],
     'Discovery rule': [
         'view_discovery_rules',
@@ -1345,6 +1338,9 @@ PERMISSIONS_UI = {
         'power_hosts',
         'console_hosts',
         'ipmi_boot_hosts',
+        'forget_status_hosts',
+        'cockpit_hosts',
+        'play_roles_on_host',
         'view_discovered_hosts',
         'submit_discovered_hosts',
         'auto_provision_discovered_hosts',
@@ -1363,10 +1359,11 @@ PERMISSIONS_UI = {
         'create_hostgroups',
         'edit_hostgroups',
         'destroy_hostgroups',
+        'play_roles_on_hostgroup',
     ],
     'Host сlass': ['edit_classes'],
     'Image': ['view_images', 'create_images', 'edit_images', 'destroy_images'],
-    'Job invocation': ['create_job_invocations', 'view_job_invocations'],
+    'Job invocation': ['create_job_invocations', 'view_job_invocations', 'cancel_job_invocations'],
     'Job template': [
         'view_job_templates',
         'create_job_templates',
@@ -1389,7 +1386,7 @@ PERMISSIONS_UI = {
         'destroy_locations',
         'assign_locations',
     ],
-    'Mail notification': ['view_mail_notifications'],
+    'Mail notification': ['view_mail_notifications', 'edit_user_mail_notifications'],
     'Medium': ['view_media', 'create_media', 'edit_media', 'destroy_media'],
     'Model': ['view_models', 'create_models', 'edit_models', 'destroy_models'],
     'Operatingsystem': [
@@ -1408,7 +1405,7 @@ PERMISSIONS_UI = {
         'export_content',
     ],
     'Parameter': ['view_params', 'create_params', 'edit_params', 'destroy_params'],
-    'Partition Table': [
+    'Ptable': [
         'view_ptables',
         'create_ptables',
         'edit_ptables',
@@ -1421,7 +1418,6 @@ PERMISSIONS_UI = {
         'edit_products',
         'destroy_products',
         'sync_products',
-        'export_products',
     ],
     'Provisioning template': [
         'view_provisioning_templates',
@@ -1498,6 +1494,7 @@ PERMISSIONS_UI = {
         'unattach_subscriptions',
         'import_manifest',
         'delete_manifest',
+        'manage_subscription_allocations',
     ],
     'Sync Plans': [
         'view_sync_plans',
