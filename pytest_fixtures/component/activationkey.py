@@ -4,9 +4,6 @@ from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
-from robottelo.cli.factory import make_activation_key
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
 from robottelo.cli.repository import Repository
 
 
@@ -35,14 +32,16 @@ def module_ak_with_cv(module_lce, module_org, module_promoted_cv):
 
 
 @pytest.fixture(scope='module')
-def module_ak_with_synced_repo(module_org):
+def module_ak_with_synced_repo(module_org, module_target_sat):
     """Prepare an activation key with synced repository for host registration"""
     with manifests.clone(name='golden_ticket') as manifest:
         upload_manifest(module_org.id, manifest.content)
-    new_product = make_product({'organization-id': module_org.id})
-    new_repo = make_repository({'product-id': new_product['id']})
+    new_product = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    new_repo = module_target_sat.cli_factory.make_repository(
+        {'product-id': new_product['id'], 'content-type': 'yum'}
+    )
     Repository.synchronize({'id': new_repo['id']})
-    ak = make_activation_key(
+    ak = module_target_sat.cli_factory.make_activation_key(
         {
             'lifecycle-environment': 'Library',
             'content-view': 'Default Organization View',

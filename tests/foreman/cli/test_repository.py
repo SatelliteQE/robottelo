@@ -2041,7 +2041,7 @@ class TestRepository:
 
     @pytest.mark.tier1
     def test_positive_accessible_content_status(
-        self, module_org, module_ak_with_synced_repo, rhel7_contenthost_class, class_target_sat
+        self, module_org, module_ak_with_synced_repo, rhel7_contenthost, target_sat
     ):
         """Verify that the Candlepin response accesible_content returns a 304 when no
             certificate has been updated
@@ -2057,13 +2057,11 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        rhel7_contenthost_class.install_katello_ca(class_target_sat)
-        rhel7_contenthost_class.register_contenthost(
-            module_org.label, module_ak_with_synced_repo['name']
-        )
-        assert rhel7_contenthost_class.subscribed
-        rhel7_contenthost_class.run('yum repolist')
-        access_log = class_target_sat.execute(
+        rhel7_contenthost.install_katello_ca(target_sat)
+        rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_synced_repo['name'])
+        assert rhel7_contenthost.subscribed
+        rhel7_contenthost.run('yum repolist')
+        access_log = target_sat.execute(
             'tail -n 10 /var/log/httpd/foreman-ssl_access_ssl.log | grep "/rhsm"'
         )
         assert 'accessible_content HTTP/1.1" 304' in access_log.stdout
