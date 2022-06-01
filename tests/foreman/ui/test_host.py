@@ -2391,7 +2391,7 @@ class TestHostCockpit:
     @pytest.mark.rhel_ver_match('[^6].*')
     @pytest.mark.usefixtures('install_cockpit_plugin')
     @pytest.mark.tier2
-    def test_positive_cockpit(session, cockpit_host, class_target_sat, class_org):
+    def test_positive_cockpit(self, session, cockpit_host, class_target_sat, class_org):
         """Install cockpit plugin and test whether webconsole button and cockpit integration works.
         also verify if cockpit service is restarted after the service restart.
 
