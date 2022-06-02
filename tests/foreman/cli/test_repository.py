@@ -1251,10 +1251,12 @@ class TestRepository:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'mirror-on-sync': 'no'}]), indirect=True
+        'repo_options',
+        **parametrized([{'mirroring-policy': policy} for policy in MIRRORING_POLICIES]),
+        indirect=True,
     )
-    def test_positive_update_mirror_on_sync(self, repo):
-        """Update the mirror on sync rule for repository
+    def test_positive_update_mirroring_policy(self, repo, repo_options):
+        """Update the mirroring policy rule for repository
 
         :id: 9bab2537-3223-40d7-bc4c-a51b09d2e812
 
@@ -1264,9 +1266,9 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        Repository.update({'id': repo['id'], 'mirror-on-sync': 'yes'})
+        Repository.update({'id': repo['id'], 'mirroring-policy': repo_options['mirroring-policy']})
         result = Repository.info({'id': repo['id']})
-        assert result['mirror-on-sync'] == 'yes'
+        assert result['mirroring-policy'] == MIRRORING_POLICIES[repo_options['mirroring-policy']]
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
