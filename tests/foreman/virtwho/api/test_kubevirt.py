@@ -41,7 +41,7 @@ def form_data(default_org, target_sat):
         'organization_id': default_org.id,
         'filtering_mode': 'none',
         'satellite_url': target_sat.hostname,
-        'kubeconfig': settings.virtwho.kubevirt.hypervisor_config_file,
+        'kubeconfig_path': settings.virtwho.kubevirt.hypervisor_config_file,
     }
     return form
 
@@ -68,7 +68,7 @@ class TestVirtWhoConfigforKubevirt:
         assert virtwho_config.status == 'unknown'
         command = get_configure_command(virtwho_config.id, default_org.name)
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data['hypervisor-type'], debug=True, org=default_org.label
+            command, form_data['hypervisor_type'], debug=True, org=default_org.label
         )
         virt_who_instance = (
             entities.VirtWhoConfig()
@@ -121,7 +121,7 @@ class TestVirtWhoConfigforKubevirt:
         script = virtwho_config.deploy_script()
         hypervisor_name, guest_name = deploy_configure_by_script(
             script['virt_who_config_script'],
-            form_data['hypervisor-type'],
+            form_data['hypervisor_type'],
             debug=True,
             org=default_org.label,
         )
