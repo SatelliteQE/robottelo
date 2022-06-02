@@ -2,7 +2,6 @@ import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from requests.exceptions import HTTPError
-import nailgun.entities
 
 from robottelo.logging import logger
 
