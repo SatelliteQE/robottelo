@@ -27,9 +27,11 @@ def subscribe_satellite(clean_rhsm, module_target_sat):
         0
     ]
     if 'Successfully attached a subscription' in result.stdout:
-        module_target_sat.enable_repo(
-            f'rhel-{module_target_sat.os_version.major}-server-extras-rpms', force=True
-        )
+        # extras is not in RHEL8: https://access.redhat.com/solutions/5331391
+        if module_target_sat.os_version.major < 8:
+            module_target_sat.enable_repo(
+                f'rhel-{module_target_sat.os_version.major}-server-extras-rpms', force=True
+            )
         yield
     else:
         pytest.fail('Failed to attach system to pool. Aborting Test!.')
