@@ -1,5 +1,16 @@
 """Defines various constants"""
+from box import Box
 from nailgun import entities
+
+
+# String Color codes
+class Colored(Box):
+    YELLOW = '\033[1;33m'
+    REDLIGHT = '\033[3;31m'
+    REDDARK = '\033[1;31m'
+    GREEN = '\033[1;32m'
+    WHITELIGHT = '\033[1;30m'
+
 
 # This should be updated after each version branch
 SATELLITE_VERSION = "6.9"
