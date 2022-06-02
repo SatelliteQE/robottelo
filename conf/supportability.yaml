@@ -1,4 +1,4 @@
 supportability:
   content_hosts:
     rhel:
-      versions: [6, 7,'7_fips', 8, '8_fips', 9, '9_fips']
+      versions: [6, 7,'7_fips', 8, '8_fips', 9]
