@@ -60,6 +60,7 @@ from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_WEEKDAY
@@ -1422,6 +1423,9 @@ def test_positive_global_registration_end_to_end(
         # rhel repo required for insights client installation,
         # syncing it to the satellite would take too long
         client.create_custom_repos(rhel7=settings.repos.rhel7_os)
+        # make sure there will be package availabe for update
+        client.create_custom_repos(yum_3=settings.repos.yum_3['url'])
+        client.execute(f"yum install {FAKE_7_CUSTOM_PACKAGE}")
         # run curl
         result = client.execute(cmd)
         assert result.status == 0
@@ -1778,8 +1782,6 @@ def test_global_re_registration_host_with_force_ignore_error_options(
             }
         )
     client.execute(cmd)
-    result = client.execute(f'rpm -qa | grep "katello-ca-consumer-{module_proxy.name}"')
-    assert result.status == 0
     result = client.execute('subscription-manager identity')
     assert result.status == 0
     # rerun the register command
