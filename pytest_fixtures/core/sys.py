@@ -69,7 +69,7 @@ def install_cockpit_plugin(class_target_sat):
 
 @pytest.fixture(scope='module')
 def enable_capsule_for_registration(module_target_sat):
-    """Enable registration and template features for capsule required for
+    """Enable registration and template features for Satellite internal capsule required for
     global registration command"""
     res = module_target_sat.install(
         cmd_args={},
