@@ -1534,7 +1534,6 @@ def test_global_registration_form_populate(
 
 
 @pytest.mark.tier2
-@pytest.mark.usefixtures('enable_capsule_for_registration')
 def test_global_registration_with_capsule_host(
     session,
     capsule_configured,
