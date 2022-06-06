@@ -164,11 +164,10 @@ def register_host_custom_repo(target_sat, module_org, rhel_contenthost, repo_url
         f'rc: {register.status}: {register.stderr}'
     )
     # attach product subscription to the host
-    nailgun_host = target_sat.api.Host().search(query={'search': rhel_contenthost.hostname})[0]
-    nailgun_host.bulk_add_subscriptions(
+    rhel_contenthost.nailgun_host.bulk_add_subscriptions(
         data={
             "organization_id": module_org.id,
-            "included": {"ids": [nailgun_host.id]},
+            "included": {"ids": [rhel_contenthost.nailgun_host.id]},
             "subscriptions": [{"id": subscription.id, "quantity": 1}],
         }
     )
