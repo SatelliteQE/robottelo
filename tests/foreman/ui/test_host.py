@@ -28,7 +28,6 @@ import yaml
 from airgun.exceptions import DisabledWidgetError
 from airgun.exceptions import NoSuchElementException
 from airgun.session import Session
-from broker.broker import VMBroker
 from nailgun import entities
 from wait_for import wait_for
 
@@ -69,7 +68,6 @@ from robottelo.constants import REPO_TYPE
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.datafactory import gen_string
-from robottelo.hosts import ContentHost
 from robottelo.ui.utils import create_fake_host
 from robottelo.utils.issue_handlers import is_open
 
@@ -1374,8 +1372,15 @@ def test_positive_global_registration_form(
 
 
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_match('[^6]')
 def test_positive_global_registration_end_to_end(
-    session, module_activation_key, module_org, smart_proxy_location, module_os, module_proxy
+    session,
+    module_activation_key,
+    module_org,
+    smart_proxy_location,
+    module_os,
+    module_proxy,
+    rhel_contenthost,
 ):
     """Host registration form produces a correct registration command and host is
     registered successfully with it, remote execution and insights are set up
@@ -1388,6 +1393,8 @@ def test_positive_global_registration_end_to_end(
 
     :expectedresults: Host is successfully registered, remote execution and insights
          client work out of the box
+
+    :parametrized: yes
 
     :CaseLevel: Integration
     """
@@ -1418,50 +1425,56 @@ def test_positive_global_registration_end_to_end(
     ]
     for pair in expected_pairs:
         assert pair in cmd
-    # register host
-    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as client:
-        # rhel repo required for insights client installation,
-        # syncing it to the satellite would take too long
-        client.create_custom_repos(rhel7=settings.repos.rhel7_os)
-        # make sure there will be package availabe for update
-        client.create_custom_repos(yum_3=settings.repos.yum_3['url'])
-        client.execute(f"yum install {FAKE_7_CUSTOM_PACKAGE}")
-        # run curl
-        result = client.execute(cmd)
-        assert result.status == 0
-        result = client.execute('subscription-manager identity')
-        assert result.status == 0
-        # Assert that a yum update was made this day ("Update" or "I, U" in history)
-        result = client.execute('yum history | grep U')
-        assert result.status == 0
-        assert datetime.utcnow().strftime('%Y-%m-%d') in result.stdout
-        # Set "Connect to host using IP address"
-        Host.set_parameter(
-            {
-                'host': client.hostname,
-                'name': 'remote_execution_connect_by_ip',
-                'parameter-type': 'boolean',
-                'value': 'True',
-            }
+    # rhel repo required for insights client installation,
+    # syncing it to the satellite would take too long
+    rhelver = rhel_contenthost.os_version.major
+    if rhelver > 7:
+        rhel_contenthost.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
+    else:
+        rhel_contenthost.create_custom_repos(
+            **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
-        # run insights-client via REX
-        command = "insights-client --status"
-        invocation_command = make_job_invocation(
-            {
-                'job-template': 'Run Command - SSH Default',
-                'inputs': f'command={command}',
-                'search-query': f"name ~ {client.hostname}",
-            }
-        )
-        result = JobInvocation.get_output({'id': invocation_command['id'], 'host': client.hostname})
-        assert (
-            invocation_command['message'] == f'Job invocation {invocation_command["id"]} created'
-        ), result
-        assert 'Insights API confirms registration' in result
-        # check rex interface is set
-        host = Host.info({'name': client.hostname})
-        interface = [item for item in host['network-interfaces'] if item['identifier'] == iface]
-        assert 'execution' in interface[0]['type']
+    # make sure there will be package availabe for update
+    rhel_contenthost.create_custom_repos(yum_3=settings.repos.yum_3['url'])
+    rhel_contenthost.execute(f"yum install -y {FAKE_7_CUSTOM_PACKAGE}")
+    # run curl
+    result = rhel_contenthost.execute(cmd)
+    assert result.status == 0
+    result = rhel_contenthost.execute('subscription-manager identity')
+    assert result.status == 0
+    # Assert that a yum update was made this day ("Update" or "I, U" in history)
+    result = rhel_contenthost.execute('yum history | grep U')
+    assert result.status == 0
+    assert datetime.utcnow().strftime('%Y-%m-%d') in result.stdout
+    # Set "Connect to host using IP address"
+    Host.set_parameter(
+        {
+            'host': rhel_contenthost.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'parameter-type': 'boolean',
+            'value': 'True',
+        }
+    )
+    # run insights-client via REX
+    command = "insights-client --status"
+    invocation_command = make_job_invocation(
+        {
+            'job-template': 'Run Command - SSH Default',
+            'inputs': f'command={command}',
+            'search-query': f"name ~ {rhel_contenthost.hostname}",
+        }
+    )
+    result = JobInvocation.get_output(
+        {'id': invocation_command['id'], 'host': rhel_contenthost.hostname}
+    )
+    assert (
+        invocation_command['message'] == f'Job invocation {invocation_command["id"]} created'
+    ), result
+    assert 'Insights API confirms registration' in result
+    # check rex interface is set
+    host = Host.info({'name': rhel_contenthost.hostname})
+    interface = [item for item in host['network-interfaces'] if item['identifier'] == iface]
+    assert 'execution' in interface[0]['type']
 
 
 @pytest.mark.tier2
@@ -1562,7 +1575,7 @@ def test_global_registration_with_capsule_host(
 
     :parametrized: yes
 
-    :CaseAutomation: ManualOnly
+    :CaseAutomation: Automated
     """
     client = rhel7_contenthost
     product = entities.Product(organization=module_org).create()
