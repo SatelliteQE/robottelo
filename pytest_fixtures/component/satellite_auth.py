@@ -268,11 +268,13 @@ def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth, session_tar
 def enroll_idm_and_configure_external_auth(session_target_sat):
     """Enroll the Satellite6 Server to an IDM Server."""
     ipa_host = ContentHost(settings.ipa.hostname)
-    session_target_sat.execute(
+    result = session_target_sat.execute(
         'yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools'
     )
+    if result.status != 0:
+        raise CLIReturnCodeError(result.status, result.stderr, 'Failed to install ipa client')
     ipa_host.execute(f'echo {settings.ipa.password} | kinit admin')
-    output = session_target_sat.execute(f'ipa host-find {session_target_sat.hostname}')
+    output = ipa_host.execute(f'ipa host-find {session_target_sat.hostname}')
     if output.status != 0:
         result = ipa_host.execute(f'ipa host-add --random {session_target_sat.hostname}')
         for line in result.stdout.splitlines():
@@ -288,27 +290,26 @@ def enroll_idm_and_configure_external_auth(session_target_sat):
             f'--realm {domain.upper()} -U'
         )
         if result.status not in [0, 3]:
-            CLIReturnCodeError(
-                result.status,
-                result.stderr,
-            )
+            raise CLIReturnCodeError(result.status, result.stderr, 'Failed to enable ipa client')
 
 
 @pytest.fixture(scope='session')
-def configure_realm():
+def configure_realm(session_target_sat):
     """Configure realm"""
     realm = settings.upgrade.vm_domain.upper()
-    run_command(cmd=f'curl -o /root/freeipa.keytab {settings.ipa.keytab_url}')
-    run_command(cmd='mv /root/freeipa.keytab /etc/foreman-proxy')
-    run_command(cmd='chown foreman-proxy:foreman-proxy /etc/foreman-proxy/freeipa.keytab')
-    run_command(
-        cmd='satellite-installer --foreman-proxy-realm true '
+    session_target_sat.execute(f'curl -o /root/freeipa.keytab {settings.ipa.keytab_url}')
+    session_target_sat.execute('mv /root/freeipa.keytab /etc/foreman-proxy')
+    session_target_sat.execute(
+        'chown foreman-proxy:foreman-proxy /etc/foreman-proxy/freeipa.keytab'
+    )
+    session_target_sat.execute(
+        'satellite-installer --foreman-proxy-realm true '
         f'--foreman-proxy-realm-principal realm-proxy@{realm} '
         f'--foreman-proxy-dhcp-nameservers {socket.gethostbyname(settings.ipa.hostname)}'
     )
-    run_command(cmd='cp /etc/ipa/ca.crt /etc/pki/ca-trust/source/anchors/ipa.crt')
-    run_command(cmd='update-ca-trust enable ; update-ca-trust')
-    run_command(cmd='service foreman-proxy restart')
+    session_target_sat.execute('cp /etc/ipa/ca.crt /etc/pki/ca-trust/source/anchors/ipa.crt')
+    session_target_sat.execute('update-ca-trust enable ; update-ca-trust')
+    session_target_sat.execute('service foreman-proxy restart')
 
 
 @pytest.fixture()
