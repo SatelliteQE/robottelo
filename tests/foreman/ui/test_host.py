@@ -69,7 +69,6 @@ from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.datafactory import gen_string
 from robottelo.ui.utils import create_fake_host
-from robottelo.utils.issue_handlers import is_open
 
 
 def _get_set_from_list_of_dict(value):
@@ -1504,16 +1503,13 @@ def test_global_registration_form_populate(
         4. Open the global registration form and select the same host-group
         5. check host registration form should be populated automatically based on the host-group
 
-    :BZ: 2092860
+    :BZ: 2056469
 
     :CaseAutomation: Automated
     """
     hg_name = gen_string('alpha')
     iface = gen_string('alpha')
-    if is_open('BZ:2092860'):
-        group_params = None
-    else:
-        group_params = {'name': 'host_packages', 'value': constants.FAKE_0_CUSTOM_PACKAGE}
+    group_params = {'name': 'host_packages', 'value': constants.FAKE_0_CUSTOM_PACKAGE}
     entities.HostGroup(
         name=hg_name,
         organization=[module_org],
@@ -1542,8 +1538,7 @@ def test_global_registration_form_populate(
         assert hg_name in cmd['general']['host_group']
         assert module_ak_with_cv.name in cmd['advanced']['activation_key_helper']
         assert module_lce.name in cmd['advanced']['life_cycle_env_helper']
-        if not is_open('BZ:2092860'):
-            assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages_helper']
+        assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages_helper']
 
 
 @pytest.mark.tier2
