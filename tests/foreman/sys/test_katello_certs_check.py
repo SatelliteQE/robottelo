@@ -274,7 +274,7 @@ class TestKatelloCertsCheck:
             # assert no hammer ping SSL cert error
             result = satellite.execute('hammer ping')
             assert 'SSL certificate verification failed' not in result.stdout
-            assert result.stdout.count('ok') == 7
+            assert result.stdout.count('ok') == 8
             # assert all services are running
             result = satellite.execute('satellite-maintain health check --label services-up -y')
             assert result.status == 0, 'Not all services are running'
@@ -315,13 +315,25 @@ class TestKatelloCertsCheck:
         :CaseAutomation: Automated
         """
         cert_data, rhel_vm = vm_setup
+        version = settings.server.version.rhel_version
+        rhel_vm.download_repos(repo_name='satellite')
+        rhel_vm.register_contenthost(
+            org=None,
+            lce=None,
+            username=settings.subscription.rhn_username,
+            password=settings.subscription.rhn_password,
+        )
+        result = rhel_vm.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
+        for repo in (
+            f'rhel-{version}-server-extras-rpms',
+            f'rhel-{version}-server-rpms',
+            f'rhel-server-rhscl-{version}-rpms',
+            f'rhel-{version}-server-ansible-2.9-rpms',
+        ):
+            rhel_vm.enable_repo(repo, force=True)
         rhel_vm.execute(
             f'yum -y localinstall {settings.repos.dogfood_repo_host}'
             f'/pub/katello-ca-consumer-latest.noarch.rpm'
-        )
-        rhel_vm.execute(
-            f'subscription-manager register --org {settings.subscription.dogfood_org} '
-            f'--activationkey "{settings.subscription.dogfood_activationkey}" '
         )
         rhel_vm.execute('yum -y update')
         result = rhel_vm.execute('yum -y install satellite')
@@ -337,7 +349,7 @@ class TestKatelloCertsCheck:
         # assert no hammer ping SSL cert error
         result = rhel_vm.execute('hammer ping')
         assert 'SSL certificate verification failed' not in result.stdout
-        assert result.stdout.count('ok') == 7
+        assert result.stdout.count('ok') == 8
         # assert all services are running
         result = rhel_vm.execute('satellite-maintain health check --label services-up -y')
         assert result.status == 0, 'Not all services are running'

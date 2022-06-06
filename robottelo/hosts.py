@@ -253,6 +253,20 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise ContentHostError(f'Failed to install {package_name} rpm.')
 
+    def download_repos(self, repo_name):
+        """Downloads the satellite or capsule repos on the machine
+        :param repo_name: satellite or capsule repo_name
+        """
+        release_version = f'{settings.server.version.release}.0'
+        repo_location = (
+            f'{settings.repos.ohsnap_repo_host}/api/releases/'
+            f'{release_version}/el7/{repo_name}/repo_file'
+        )
+        if repo_name in ('satellite', 'capsule'):
+            self.execute(f'curl -o /etc/yum.repos.d/{repo_name}.repo {repo_location}')
+        else:
+            raise ValueError("Invalid repo_name, must be of value ('satellite', 'capsule')")
+
     def enable_repo(self, repo, force=False):
         """Enables specified Red Hat repository on the broker virtual machine.
         Does nothing if downstream capsule or satellite tools repo was passed.
