@@ -1169,6 +1169,8 @@ class Capsule(ContentHost, CapsuleMixins):
 
     def capsule_setup(self, sat_host=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
+        if sat_host is not None:
+            self._satellite = sat_host
         self.register_to_dogfood(ak_type='capsule')
         self._satellite = sat_host or Satellite()
 
