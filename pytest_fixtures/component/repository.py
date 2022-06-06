@@ -17,8 +17,8 @@ def function_product(function_org):
 
 
 @pytest.fixture(scope='module')
-def module_product(module_org, default_sat):
-    return default_sat.api.Product(organization=module_org).create()
+def module_product(module_org, module_target_sat):
+    return module_target_sat.api.Product(organization=module_org).create()
 
 
 @pytest.fixture(scope='module')
@@ -55,7 +55,7 @@ def repo_setup():
 
 
 @pytest.fixture(scope='module')
-def module_repository(os_path, module_product, default_sat):
-    repo = default_sat.api.Repository(product=module_product, url=os_path).create()
-    call_entity_method_with_timeout(default_sat.api.Repository(id=repo.id).sync, timeout=3600)
+def module_repository(os_path, module_product, module_target_sat):
+    repo = module_target_sat.api.Repository(product=module_product, url=os_path).create()
+    call_entity_method_with_timeout(module_target_sat.api.Repository(id=repo.id).sync, timeout=3600)
     return repo

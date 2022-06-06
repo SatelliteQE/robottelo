@@ -102,7 +102,9 @@ def module_global_params(module_target_sat):
 
 @pytest.fixture(scope='module')
 def module_host_template(module_org, smart_proxy_location, module_target_sat):
-    host_template = module_target_sat.api.Host(organization=module_org, location=smart_proxy_location)
+    host_template = module_target_sat.api.Host(
+        organization=module_org, location=smart_proxy_location
+    )
     host_template.create_missing()
     host_template.name = None
     return host_template
@@ -271,9 +273,7 @@ def remove_vm_on_delete(target_sat, setting_update):
     setting_update.value = 'true'
     setting_update.update({'value'})
     assert (
-        target_sat.api.Setting()
-        .search(query={'search': 'name=destroy_vm_on_host_delete'})[0]
-        .value
+        target_sat.api.Setting().search(query={'search': 'name=destroy_vm_on_host_delete'})[0].value
     )
     yield
 
@@ -1328,9 +1328,9 @@ def test_positive_global_registration_end_to_end(
     # results provide all info but job invocation might not be finished yet
     result = (
         target_sat.api.JobInvocation()
-        .search(query={'search': f'id={invocation_command["id"]} and host={rhel_contenthost.hostname}'})[
-            0
-        ]
+        .search(
+            query={'search': f'id={invocation_command["id"]} and host={rhel_contenthost.hostname}'}
+        )[0]
         .read()
     )
     # make sure that task is finished
@@ -1338,7 +1338,11 @@ def test_positive_global_registration_end_to_end(
         search_query=(f'id = {result.task.id}'), search_rate=2, max_tries=60
     )
     assert task_result[0].result == 'success'
-    host = target_sat.api.Host().search(query={'search': f'name={rhel_contenthost.hostname}'})[0].read()
+    host = (
+        target_sat.api.Host()
+        .search(query={'search': f'name={rhel_contenthost.hostname}'})[0]
+        .read()
+    )
     for interface in host.interface:
         interface_result = target_sat.api.Interface(host=host.id).search(
             query={'search': f'{interface.id}'}
@@ -1921,9 +1925,7 @@ def gce_resource_with_image(
                 'locations.resources.assigned': [smart_proxy_location.name],
             }
         )
-    gce_cr = target_sat.api.AbstractComputeResource().search(query={'search': f'name={cr_name}'})[
-        0
-    ]
+    gce_cr = target_sat.api.AbstractComputeResource().search(query={'search': f'name={cr_name}'})[0]
     # Finish Image
     target_sat.api.Image(
         architecture=default_architecture,
@@ -2205,10 +2207,10 @@ class TestHostCockpit:
 
 # ------------------------------ NEW HOST UI DETAILS ----------------------------
 @pytest.fixture(scope='function')
-def enable_new_host_details_ui(default_sat, setting_update):
+def enable_new_host_details_ui(target_sat, setting_update):
     setting_update.value = 'true'
     setting_update.update({'value'})
-    assert default_sat.api.Setting().search(query={'search': 'name=host_details_ui'})[0].value
+    assert target_sat.api.Setting().search(query={'search': 'name=host_details_ui'})[0].value
     yield
 
 

@@ -8,13 +8,13 @@ from robottelo.helpers import get_available_capsule_port
 
 
 @pytest.fixture(scope='session')
-def default_smart_proxy(default_sat):
+def default_smart_proxy(session_target_sat):
     smart_proxy = (
-        default_sat.api.SmartProxy()
-        .search(query={'search': f'name={default_sat.hostname}'})[0]
+        session_target_sat.api.SmartProxy()
+        .search(query={'search': f'name={session_target_sat.hostname}'})[0]
         .read()
     )
-    return default_sat.api.SmartProxy(id=smart_proxy.id).read()
+    return session_target_sat.api.SmartProxy(id=smart_proxy.id).read()
 
 
 @pytest.fixture(scope='session')

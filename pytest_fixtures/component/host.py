@@ -9,8 +9,8 @@ from robottelo.constants import REPOSET
 
 
 @pytest.fixture(scope='function')
-def function_host(default_sat):
-    return default_sat.api.Host().create()
+def function_host(target_sat):
+    return target_sat.api.Host().create()
 
 
 @pytest.fixture(scope='module')

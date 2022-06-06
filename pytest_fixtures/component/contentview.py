@@ -45,9 +45,9 @@ def module_ak_cv_lce(module_org, module_lce, module_published_cv):
 
 
 @pytest.fixture(scope='module')
-def module_cv_repo(module_org, module_repository, module_lce, default_sat):
+def module_cv_repo(module_org, module_repository, module_lce, module_target_sat):
     """Create, Publish and promote CV with a repository"""
-    content_view = default_sat.api.ContentView(organization=module_org).create()
+    content_view = module_target_sat.api.ContentView(organization=module_org).create()
     content_view.repository = [module_repository]
     content_view = content_view.update(['repository'])
     call_entity_method_with_timeout(content_view.publish, timeout=3600)
