@@ -374,13 +374,18 @@ class ContentHost(Host):
             f'curl --insecure --output katello-ca-consumer-latest.noarch.rpm \
                     {satellite.url_katello_ca_rpm}'
         )
-        self.execute('rpm -Uvh katello-ca-consumer-latest.noarch.rpm')
+        # check if the host is fips-enabled
+        result = self.execute('sysctl crypto.fips_enabled')
+        if 'crypto.fips_enabled = 1' in result.stdout:
+            self.execute('rpm -Uvh --nodigest --nofiledigest katello-ca-consumer-latest.noarch.rpm')
+        else:
+            self.execute('rpm -Uvh katello-ca-consumer-latest.noarch.rpm')
         # Not checking the status here, as rpm could be installed before
         # and installation may fail
-        result = self.execute(f'rpm -q katello-ca-consumer-{satellite.hostname}')
+        result = self.execute('rpm -q katello-ca-consumer*')
         # Checking the status here to verify katello-ca rpm is actually
         # present in the system
-        if result.status != 0:
+        if satellite.hostname not in result.stdout:
             raise ContentHostError('Failed to download and install the katello-ca rpm')
 
     def remove_katello_ca(self):
