@@ -95,8 +95,8 @@ def fixture_enable_receptor_repos(request, target_sat):
 
 
 @pytest.fixture()
-def infra_host(request, target_sat, capsule_configured):
-    infra_hosts = {'target_sat': target_sat, 'capsule_configured': capsule_configured}
+def infra_host(request, target_sat, module_capsule_configured):
+    infra_hosts = {'target_sat': target_sat, 'capsule_configured': module_capsule_configured}
     yield infra_hosts[request.param]
 
 
@@ -975,7 +975,7 @@ class TestRexUsers:
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'infra_host',
-        ['target_sat', 'capsule_configured'],
+        ['target_sat', 'module_capsule_configured'],
         ids=['satellite', 'capsule'],
         indirect=True,
     )

@@ -27,7 +27,7 @@ CAPSULE_TARGET_VERSION = '6.10.z'
 
 
 @pytest.mark.tier4
-def test_positive_run_capsule_upgrade_playbook(capsule_configured, target_sat):
+def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target_sat):
     """Run Capsule Upgrade playbook against an External Capsule
 
     :id: 9ec6903d-2bb7-46a5-8002-afc74f06d83b
@@ -46,7 +46,7 @@ def test_positive_run_capsule_upgrade_playbook(capsule_configured, target_sat):
         .id
     )
 
-    capsule_configured.add_rex_key(satellite=target_sat)
+    module_capsule_configured.add_rex_key(satellite=target_sat)
     job = target_sat.api.JobInvocation().run(
         synchronous=False,
         data={
@@ -56,7 +56,7 @@ def test_positive_run_capsule_upgrade_playbook(capsule_configured, target_sat):
                 'whitelist_options': 'repositories-validate,repositories-setup',
             },
             'targeting_type': 'static_query',
-            'search_query': f'name = {capsule_configured.hostname}',
+            'search_query': f'name = {module_capsule_configured.hostname}',
         },
     )
     wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
