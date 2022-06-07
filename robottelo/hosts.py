@@ -1169,18 +1169,14 @@ class Capsule(ContentHost, CapsuleMixins):
 
     def capsule_setup(self, sat_host=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
-        self.satellite = sat_host or Satellite()
         self.register_to_dogfood(ak_type='capsule')
+        self._satellite = sat_host or Satellite()
+
         # self.execute('yum repolist')
         self.execute('yum -y update', timeout=0)
 
-        # workaround from DF for RHEL8
         if settings.server.version.rhel_version == 8:
-            self.execute(
-                'subscription-manager repo-override --repo=Sat6-CI_Satellite_Capsule_7_0_Composes_Satellite_Capsule_7_0_RHEL8 --add=module_hotfixes:1'  # noqa
-            )
-            self.execute('dnf -y module enable ruby:2.7')
-            self.execute('dnf -y module enable pki-core')
+            self.execute('dnf -y module enable satellite:el8')
 
         self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
         self.execute('firewall-cmd --runtime-to-permanent')
