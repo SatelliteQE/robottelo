@@ -114,7 +114,7 @@ def test_positive_end_to_end(session, module_org):
         assert syncplan_values['details']['enabled'] == 'Yes'
         assert syncplan_values['details']['interval'] == SYNC_INTERVAL['day']
         time = syncplan_values['details']['date_time'].rpartition(':')[0]
-        assert time == startdate.strftime("%B %-d, %Y, %I")
+        assert time == startdate.strftime("%B %d, %Y, %I")
         # Update sync plan with new description
         session.syncplan.update(plan_name, {'details.description': new_description})
         syncplan_values = session.syncplan.read(plan_name)
@@ -166,7 +166,7 @@ def test_positive_end_to_end_custom_cron(session):
         assert syncplan_values['details']['cron_expression'] == cron_expression
         assert syncplan_values['details']['recurring_logic'].isdigit()
         time = syncplan_values['details']['date_time'].rpartition(':')[0]
-        assert time == startdate.strftime("%B %-d, %Y, %I")
+        assert time == startdate.strftime("%B %d, %Y, %I")
         # Update sync plan with new description
         session.syncplan.update(plan_name, {'details.interval': SYNC_INTERVAL['day']})
         syncplan_values = session.syncplan.read(plan_name)
