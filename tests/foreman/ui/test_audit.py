@@ -68,7 +68,6 @@ def test_positive_create_event(session, module_org, module_location):
         assert summary.get('Architecture') == host.architecture.read().name
         os = host.operatingsystem.read()
         assert summary.get('Operatingsystem') == f'{os.name} {os.major}'
-        assert summary.get('Environment') == host.environment.read().name
         assert summary.get('Ptable') == host.ptable.read().name
         assert summary.get('Medium') == host.medium.read().name
         assert summary.get('Build') == 'false'
