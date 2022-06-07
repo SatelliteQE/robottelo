@@ -1,4 +1,4 @@
-"""Test Hosts Content related Upgrade Scenario's
+"""Test Hosts Content related Upgrade Scenarios
 
 :Requirement: UpgradedSatellite
 
@@ -17,23 +17,25 @@
 :Upstream: No
 """
 import pytest
-from nailgun import entities
+from broker.broker import VMBroker
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 
+from robottelo.hosts import ContentHost
+
 
 class TestScenarioDBseedHostMismatch:
-    """This test scenenario veryfies that the upgrade succeeds when inconsistencies exist
-    within the database.
+    """This test scenenario veryfies that the upgrade succeeds even when inconsistencies exist
+    in the database between Organization, Location and Content Host.
 
     Test Steps:
 
         1. Before Satellite upgrade
         2. Create a New Organization and Location
-        3. Create a Content Host in the Org
+        3. Create a Content Host in the Organization
         4. Ensure the Org is not in the Location
-        4. Assign the content host to the Location
-        7. Ensure the host is not in the same Location as its Org
+        4. Assign the Content Host to the Location using the rake console
+        7. Ensure the Host is in both but the Org is not in Location, creating a mismatch
         8. Upgrade Satellite
         9. Ensure upgrade succeeds
 
@@ -41,21 +43,20 @@ class TestScenarioDBseedHostMismatch:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_db_seed_host_mismatch(self, target_sat, rhel7_contenthost):
+    def test_pre_db_seed_host_mismatch(self, target_sat):
         """
-
         :id:
 
         :steps:
             1. Create a Location
             2. Create an Org and ensure the Org is not in the Location
-            3. Create a content host on Org
+            3. Create a Content Host on Org
             4. Use rake console to assign the Content Host to the Location
-            5. Ensure the taxonomy between the Content Host, Org and Location is broken
+            5. Ensure the mismatch is created for Content Host when Org is not in the Location
             6. Do the upgrade
 
         :expectedresults:
-            1. The Content Hosts is assigned to Location but Org is not
+            1. The Content Host is assigned to both Location and Org, but Org is not in Location
 
         :BZ: 2043705, 2028786, 2019467
 
@@ -64,10 +65,12 @@ class TestScenarioDBseedHostMismatch:
         org = target_sat.api.Organization().create()
         loc = target_sat.api.Location().create()
 
-        rhel7_contenthost.install_katello_ca(target_sat)
-        rhel7_contenthost.register_contenthost(org=org.label, lce='Library')
+        chost_vm = VMBroker(nick='rhel7', host_classes={'host': ContentHost}).checkout()
 
-        chost = entities.Host().search(query={'search': f'name="{rhel7_contenthost.hostname}"'})
+        chost_vm.install_katello_ca(target_sat)
+        chost_vm.register_contenthost(org=org.label, lce='Library')
+
+        chost = target_sat.api.Host().search(query={'search': chost_vm.hostname})
 
         assert chost[0].organization.id == org.id
 
@@ -80,12 +83,12 @@ class TestScenarioDBseedHostMismatch:
         )
 
         assert 'true' in result.stdout
-        chost = entities.Host().search(query={'search': f'name="{rhel7_contenthost.hostname}"'})
+        chost = target_sat.api.Host().search(query={'search': chost_vm.hostname})
         assert chost[0].location.id == loc.id
 
         global_dict = {
             self.__class__.__name__: {
-                'client_name': rhel7_contenthost.hostname,
+                'client_name': chost_vm.hostname,
                 'organization_id': org.id,
                 'location_id': loc.id,
             }
@@ -93,15 +96,17 @@ class TestScenarioDBseedHostMismatch:
 
         create_dict(global_dict)
 
-
     @pytest.mark.post_upgrade(depend_on=test_pre_db_seed_host_mismatch)
     def test_post_db_seed_host_mismatch(self, target_sat):
-        """"""
+        """Check whether the upgrade succeeds, and ensure Content Host
+        exists on the Satellite and has not had any attributes changed
+        """
         chostname = get_entity_data(self.__class__.__name__)['client_name']
         org_id = get_entity_data(self.__class__.__name__)['organization_id']
         loc_id = get_entity_data(self.__class__.__name__)['location_id']
-        chost = entities.Host(name=chostname)
+        chost = target_sat.api.Host().search(query={'search': chostname})
 
         assert org_id == chost[0].organization.id
         assert loc_id == chost[0].location.id
-        # ensure the upgrade succeeds and is in org/location
+
+        VMBroker(host=chost).checkin()
