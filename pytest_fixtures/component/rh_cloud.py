@@ -25,21 +25,6 @@ def rhcloud_manifest_org(rhcloud_sat_host):
     return org
 
 
-@pytest.fixture
-def set_rh_cloud_token(rhcloud_sat_host):
-    """A function-level fixture to set rh cloud token value."""
-    rhcloud_sat_host.update_setting('rh_cloud_token', settings.rh_cloud.token)
-    yield
-    rhcloud_sat_host.update_setting('rh_cloud_token', '')
-
-
-@pytest.fixture
-def unset_rh_cloud_token(rhcloud_sat_host):
-    """A function-level fixture to unset rh cloud token value."""
-    yield
-    rhcloud_sat_host.update_setting('rh_cloud_token', '')
-
-
 @pytest.fixture(scope='module')
 def organization_ak_setup(rhcloud_sat_host, rhcloud_manifest_org):
     """A module-level fixture to create an Activation key in module_org"""

@@ -92,7 +92,6 @@ def test_positive_inventory_generate_upload_cli(
 
 @pytest.mark.tier3
 def test_positive_inventory_recommendation_sync(
-    set_rh_cloud_token,
     organization_ak_setup,
     rhcloud_registered_hosts,
     rhcloud_sat_host,
@@ -136,7 +135,6 @@ def test_positive_inventory_recommendation_sync(
 
 @pytest.mark.tier3
 def test_positive_sync_inventory_status(
-    set_rh_cloud_token,
     organization_ak_setup,
     rhcloud_registered_hosts,
     rhcloud_sat_host,

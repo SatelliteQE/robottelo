@@ -135,7 +135,6 @@ def test_rhcloud_inventory_api_e2e(
 
 @pytest.mark.tier3
 def test_rhcloud_inventory_api_hosts_synchronization(
-    set_rh_cloud_token,
     organization_ak_setup,
     rhcloud_registered_hosts,
     rhcloud_sat_host,
@@ -147,11 +146,10 @@ def test_rhcloud_inventory_api_hosts_synchronization(
     :Steps:
 
         1. Prepare machine and upload its data to Insights.
-        2. Add Cloud API key in Satellite
-        3. Sync inventory status using RH Cloud plugin api.
-        4. Assert content of finished tasks.
-        5. Get host details.
-        6. Assert inventory status for the host.
+        2. Sync inventory status using RH Cloud plugin api.
+        3. Assert content of finished tasks.
+        4. Get host details.
+        5. Assert inventory status for the host.
 
     :expectedresults:
         1. Task detail should contain should contain number of hosts
