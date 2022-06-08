@@ -149,7 +149,8 @@ class ContentHost(Host, ContentHostMixins):
     def nailgun_host(self):
         """If this host is subscribed, provide access to its nailgun object"""
         if self.subscribed:
-            return self.satellite.api.Host().search(query={'search': self.hostname})[0]
+            host_list = self.satellite.api.Host().search(query={'search': self.hostname})
+            return None if not host_list else host_list[0]
 
     @property
     def subscribed(self):
@@ -257,15 +258,14 @@ class ContentHost(Host, ContentHostMixins):
         """Downloads the satellite or capsule repos on the machine
         :param repo_name: satellite or capsule repo_name
         """
-        release_version = f'{settings.server.version.release}.0'
         repo_location = (
             f'{settings.repos.ohsnap_repo_host}/api/releases/'
-            f'{release_version}/el7/{repo_name}/repo_file'
+            f'{self.satellite.version}/el7/{repo_name}/repo_file'
         )
         if repo_name in ('satellite', 'capsule'):
             self.execute(f'curl -o /etc/yum.repos.d/{repo_name}.repo {repo_location}')
         else:
-            raise ValueError("Invalid repo_name, must be of value ('satellite', 'capsule')")
+            raise ValueError("Invalid repo_name, must be of value satellite or capsule")
 
     def enable_repo(self, repo, force=False):
         """Enables specified Red Hat repository on the broker virtual machine.
