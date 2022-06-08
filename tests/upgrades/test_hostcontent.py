@@ -45,7 +45,7 @@ class TestScenarioDBseedHostMismatch:
     @pytest.mark.pre_upgrade
     def test_pre_db_seed_host_mismatch(self, target_sat):
         """
-        :id:
+        :id: 28861b9f-8abd-4efc-bfd5-40b7e825a941
 
         :steps:
             1. Create a Location
