@@ -315,7 +315,7 @@ class TestKatelloCertsCheck:
         :CaseAutomation: Automated
         """
         cert_data, rhel_vm = vm_setup
-        version = settings.server.version.rhel_version
+        version = str(settings.server.version.rhel_version)[0]
         rhel_vm.download_repos(repo_name='satellite')
         rhel_vm.register_contenthost(
             org=None,
