@@ -19,7 +19,7 @@ def default_location(session_target_sat):
     return session_target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_org(target_sat):
     return target_sat.api.Organization().create()
 
@@ -48,12 +48,12 @@ def class_location(class_target_sat, class_org):
     loc.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_location(target_sat):
     return target_sat.api.Location().create()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_location_with_org(target_sat, function_org):
     return target_sat.api.Location(organization=[function_org]).create()
 
