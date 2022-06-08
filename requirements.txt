@@ -18,7 +18,7 @@ pytest-services==2.2.1
 pytest-mock==3.7.0
 pytest-reportportal==5.1.1
 pytest-xdist==2.5.0
-pytest-ibutsu==2.0.2
+pytest-ibutsu==2.1.0
 PyYAML==6.0
 requests==2.27.1
 tenacity==8.0.1
