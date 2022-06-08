@@ -378,20 +378,21 @@ def hypervisor_json_create(hypervisors, guests):
     :param hypervisors: how many hypervisors will be created
     :param guests: how many guests will be created
     """
-    hypervisors_list = []
     for i in range(hypervisors):
         guest_list = []
         for c in range(guests):
             guest_list.append(
                 {
-                    "guestId": str(uuid.uuid4()),
-                    "state": 1,
-                    "attributes": {"active": 1, "virtWhoType": "esx"},
+                    "guestIds": [
+                        {
+                            "attributes": {"active": 1, "virtWhoType": "esx"},
+                            "state": 1,
+                            "guestId": str(uuid.uuid4()),
+                        }
+                    ],
                 }
             )
-        hypervisor = {"hypervisorId": str(uuid.uuid4()), "guests": guest_list}
-        hypervisors_list.append(hypervisor)
-    mapping = {"hypervisors": hypervisors_list}
+    mapping = {"hypervisors": guest_list}
     return mapping
 
 
