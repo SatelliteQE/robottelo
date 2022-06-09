@@ -2,7 +2,6 @@
 import pytest
 from nailgun import entities
 
-from robottelo.config import settings
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants import RHEL_8_MAJOR_VERSION
@@ -46,6 +45,8 @@ def module_os():
 
 @pytest.fixture(scope='module')
 def os_path(default_os):
+    from robottelo.config import settings
+
     # Check what OS was found to use correct media
     if default_os.major == str(RHEL_6_MAJOR_VERSION):
         os_distr_url = settings.repos.rhel6_os
