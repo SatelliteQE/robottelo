@@ -390,6 +390,9 @@ def hypervisor_json_create(hypervisors, guests):
                             "guestId": str(uuid.uuid4()),
                         }
                     ],
+                    "hypervisorId": {
+                        "hypervisorId": str(uuid.uuid4()),
+                    },
                 }
             )
     mapping = {"hypervisors": guest_list}
