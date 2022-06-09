@@ -272,7 +272,7 @@ class CLIFactory:
             fields = self._evaluate_functions(fields)
             return partial(create_object, entity_cls, fields)
         else:
-            raise CLIFactoryError(f'unknown factory method name: {name.replace("make_", "")}')
+            raise AttributeError(f'unknown factory method name: {name}')
 
     def _evaluate_function(self, function):
         """Some functions may require an instance reference"""
