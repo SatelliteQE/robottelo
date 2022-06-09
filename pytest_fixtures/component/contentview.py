@@ -2,6 +2,7 @@
 import pytest
 from nailgun import entities
 
+from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import promote
 from robottelo.constants import DEFAULT_CV
 
@@ -41,6 +42,18 @@ def module_ak_cv_lce(module_org, module_lce, module_published_cv):
         organization=module_org,
     ).create()
     return module_ak_with_cv_lce
+
+
+@pytest.fixture(scope='module')
+def module_cv_repo(module_org, module_repository, module_lce, module_target_sat):
+    """Create, Publish and promote CV with a repository"""
+    content_view = module_target_sat.api.ContentView(organization=module_org).create()
+    content_view.repository = [module_repository]
+    content_view = content_view.update(['repository'])
+    call_entity_method_with_timeout(content_view.publish, timeout=3600)
+    content_view = content_view.read()
+    promote(content_view.version[0], module_lce.id)
+    return content_view
 
 
 @pytest.fixture

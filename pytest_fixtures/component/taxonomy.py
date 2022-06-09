@@ -19,7 +19,7 @@ def default_location(session_target_sat):
     return session_target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_org(target_sat):
     return target_sat.api.Organization().create()
 
@@ -48,9 +48,14 @@ def class_location(class_target_sat, class_org):
     loc.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_location(target_sat):
     return target_sat.api.Location().create()
+
+
+@pytest.fixture
+def function_location_with_org(target_sat, function_org):
+    return target_sat.api.Location(organization=[function_org]).create()
 
 
 @pytest.fixture(scope='module')
@@ -72,13 +77,8 @@ def module_gt_manifest_org(module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def smart_proxy_location(module_org, module_target_sat):
+def smart_proxy_location(module_org, module_target_sat, default_smart_proxy):
     location = module_target_sat.api.Location(organization=[module_org]).create()
-    smart_proxy = (
-        module_target_sat.api.SmartProxy()
-        .search(query={'search': f'name={module_target_sat.hostname}'})[0]
-        .read()
-    )
-    smart_proxy.location.append(module_target_sat.api.Location(id=location.id))
-    smart_proxy.update(['location'])
+    default_smart_proxy.location.append(module_target_sat.api.Location(id=location.id))
+    default_smart_proxy.update(['location'])
     return location
