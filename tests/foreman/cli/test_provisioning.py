@@ -17,43 +17,64 @@
 :Upstream: No
 """
 import ipaddress
+import re
 
 import pytest
 from box import Box
 from broker.broker import VMBroker
 from fauxfactory import gen_string
+from packaging.version import Version
 
 from robottelo import constants
 from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
 
 
-# TODO: parametrize this fixture to provide more than one RHEL
 # TODO: sync at the module level?
 @pytest.fixture(scope="module")
-def provisioning_rhel_content(module_target_sat, module_manifest_org):
+def provisioning_rhel_content(request, module_target_sat, module_manifest_org):
+    rhel_ver = request.param
     sat = module_target_sat
-    repo_id = enable_rhrepo_and_fetchid(
-        basearch='x86_64',
-        org_id=module_manifest_org.id,
-        product=constants.PRDS['rhel8'],
-        repo=constants.REPOS['rhel8_bos_ks']['name'],
-        reposet=constants.REPOSET['rhel8_bos_ks'],
-        releasever='8.4',  # TODO: should be parametrizable
-    )  # TODO: add appstream repo
-    repo = sat.api.Repository(id=repo_id).read()
-    repo.sync()
-    repo = repo.read()
+    repo_names = [f'rhel{rhel_ver}']
+    if int(rhel_ver) > 7:
+        repo_names.append(f'rhel{rhel_ver}_aps')
 
+    rh_repos = []
+    tasks = []
+    for name in repo_names:
+        rh_repo_id = enable_rhrepo_and_fetchid(
+            basearch=constants.DEFAULT_ARCHITECTURE,
+            org_id=module_manifest_org.id,
+            product=constants.REPOS['kickstart'][name]['product'],
+            repo=constants.REPOS['kickstart'][name]['name'],
+            reposet=constants.REPOS['kickstart'][name]['reposet'],
+            releasever=constants.REPOS['kickstart'][name]['version'],
+        )
+        # Sync step because repo is not synced by default
+        rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+        task = rh_repo.sync(synchronous=False)
+        tasks.append(task)
+        rh_repos.append(rh_repo)
+    for task in tasks:
+        wait_for_tasks(
+            search_query=(f'id = {task["id"]}'),
+            poll_timeout=2500,
+        )
+        task_status = module_target_sat.api.ForemanTask(id=task['id']).poll()
+        assert task_status['result'] == 'success'
+
+    rhel_xy = Version(constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version'])
     os = (
         sat.api.OperatingSystem()
-        .search(query={'search': 'family=Redhat and major=8 and minor=4'})[
-            0
-        ]  # TODO: parametrize fixture
+        .search(
+            query={'search': f'family=Redhat and major={rhel_xy.major} and minor={rhel_xy.minor}'}
+        )[0]
         .read()
     )
-    return Box(sat=sat, os=os, repo=repo)
+    # return only the first repo - RHEL X KS or RHEL X BaseOS KS
+    return Box(sat=sat, os=os, repo=rh_repos[0])
 
 
 @pytest.fixture(scope='module')
@@ -69,15 +90,15 @@ def provisioning_sat(
     host_root_pass = settings.provisioning.host_root_password
     pxe_loader = "PXELinux BIOS"  # TODO: this should be a test parameter
     provisioning_domain_name = f"{gen_string('alpha').lower()}.foo"
-    provisioning_network_vlan_id = settings.provisioning.vlan_id
 
     broker_data_out = VMBroker().execute(
         workflow="configure-install-sat-provisioning-rhv",
         artifacts="last",
-        target_vlan_id=provisioning_network_vlan_id,
+        target_vlan_id=settings.provisioning.vlan_id,
         target_host=sat.name,
         provisioning_dns_zone=provisioning_domain_name,
         sat_version=settings.server.version.release,
+        AnsibleTower='testing',
     )
 
     # temp mock data
@@ -217,6 +238,11 @@ def test_rhel_pxe_provisioning_on_libvirt():
 
 
 # @pytest.mark.on_premises_provisioning
+@pytest.mark.parametrize(
+    "provisioning_rhel_content",
+    [v for v in settings.supportability.content_hosts.rhel.versions if re.match('^[7-9]$', str(v))],
+    indirect=True,
+)
 def test_rhel_pxe_provisioning_on_rhv(
     provisioning_sat,
     module_manifest_org,
@@ -259,3 +285,5 @@ def test_rhel_pxe_provisioning_on_rhv(
     ).create(create_missing=False)
 
     host
+
+    # Call wrapanapi -> RHVM-02 to start the VM
