@@ -17,8 +17,6 @@
 :Upstream: No
 """
 import re
-from datetime import datetime
-from datetime import timedelta
 from random import choice
 
 import pytest
@@ -1852,49 +1850,7 @@ def test_positive_install_package_via_rex(
     assert len(installed_packages) == 1
 
 
-# ------------------------ HOST SUBSCRIPTION SUBCOMMAND FIXTURES AND CLASS -----------------------
-@pytest.mark.skip_if_not_set('fake_manifest')
-@pytest.fixture(scope="module")
-def host_subscription(module_ak, module_cv, module_lce, module_org):
-    subscription_name = SATELLITE_SUBSCRIPTION_NAME
-    # create a satellite tools repository content
-    setup_org_for_a_rh_repo(
-        {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
-            'organization-id': module_org.id,
-            'content-view-id': module_cv.id,
-            'lifecycle-environment-id': module_lce.id,
-            'activationkey-id': module_ak.id,
-            'subscription': subscription_name,
-        },
-        force_use_cdn=True,
-    )
-    org_subscriptions = Subscription.list({'organization-id': module_org.id})
-    default_subscription_id = None
-    repository_id = REPOS['rhst7']['id']
-    for org_subscription in org_subscriptions:
-        if org_subscription['name'] == subscription_name:
-            default_subscription_id = org_subscription['id']
-            break
-    # create a new lce for hosts subscription
-    host_lce = entities.LifecycleEnvironment(organization=module_org).create()
-    # refresh content view data
-    module_cv.publish()
-    promote(module_cv.read().version[-1], environment_id=host_lce.id)
-    return {
-        'ak': module_ak,
-        'cv': module_cv,
-        'default_subscription_id': default_subscription_id,
-        'host_lce': host_lce,
-        'lce': module_lce,
-        'org': module_org,
-        'repository_id': repository_id,
-        'subscription_name': subscription_name,
-    }
-
-
+# -------------------------- HOST SUBSCRIPTION SUBCOMMAND FIXTURES --------------------------
 @pytest.mark.skip_if_not_set('clients')
 @pytest.fixture(scope="function")
 def host_subscription_client(rhel7_contenthost, target_sat):
@@ -1902,113 +1858,33 @@ def host_subscription_client(rhel7_contenthost, target_sat):
     yield rhel7_contenthost
 
 
-@pytest.fixture(scope="module")
-def module_host_subscription(host_subscription):
-    yield HostSubscription(host_subscription)
+@pytest.fixture(scope='module')
+def default_subscription(module_org_with_manifest):
+    subscription = Subscription.exists(
+        {'organization-id': module_org_with_manifest.id}, ('name', SATELLITE_SUBSCRIPTION_NAME)
+    )
+    assert len(subscription) > 0
+    return subscription
 
 
-@pytest.mark.skip_if_not_set('clients')
-@pytest.mark.run_in_one_thread
-class HostSubscription:
-    def __init__(self, host_subscription):
-        self.ak = host_subscription['ak']
-        self.content_view = host_subscription['cv']
-        self.default_subscription_id = host_subscription['default_subscription_id']
-        self.host_lce = host_subscription['host_lce']
-        self.lce = host_subscription['lce']
-        self.org = host_subscription['org']
-        self.repository_id = host_subscription['repository_id']
-        self.subscription_name = host_subscription['subscription_name']
-        self.client = None
-
-    def _register_client(
-        self,
-        activation_key=None,
-        lce=False,
-        enable_repo=False,
+@pytest.fixture
+def ak_with_subscription(module_org, module_promoted_cv, module_lce, default_subscription):
+    activation_key = entities.ActivationKey(
+        content_view=module_promoted_cv,
+        organization=module_org,
+        environment=module_lce,
         auto_attach=False,
-    ):
-        """Register the client as a content host consumer
-
-        :param activation_key: activation key if registration with activation
-            key
-        :param lce: boolean to indicate whether the registration should be made
-            by environment
-        :param enable_repo: boolean to indicate whether to enable repository
-        :param auto_attach: boolean to indicate whether to register with
-            auto-attach option, in case of registration with activation key a
-            command is launched
-        :return: the registration result
-        """
-        activation_key = activation_key or self.ak
-
-        if lce:
-            result = self.client.register_contenthost(
-                self.org.name,
-                lce=f'{self.host_lce.name}/{self.content_view.name}',
-                auto_attach=auto_attach,
-            )
-        else:
-            result = self.client.register_contenthost(
-                self.org.name, activation_key=activation_key.name
-            )
-            if auto_attach and self.client.subscribed:
-                result = self.client.run('subscription-manager attach --auto')
-
-        if self.client.subscribed and enable_repo:
-            self.client.enable_repo(self.repository_id)
-
-        return result
-
-    def _make_activation_key(self, add_subscription=False):
-        """Create a new activation key
-
-        :param add_subscription: boolean to indicate whether to add the default
-            subscription to the created activation key
-        :return: the created activation key
-        """
-        activation_key = entities.ActivationKey(
-            content_view=self.content_view,
-            organization=self.org,
-            environment=self.host_lce,
-            auto_attach=False,
-        ).create()
-        if add_subscription:
-            activation_key.add_subscriptions(data={'subscription_id': self.default_subscription_id})
-        return activation_key
-
-    def _host_subscription_register(self, request):
-        """Register the subscription of client as a content host consumer"""
-
-        @request.addfinalizer
-        def _cleanup():
-            # check whether the client was not unregistered in _register_client method
-            if (
-                datetime.utcnow().strftime("%Y-%m-%d")
-                in Host.info({'name': self.client.hostname})['subscription-information'][
-                    'registered-at'
-                ]
-                or (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
-                in Host.info({'name': self.client.hostname})['subscription-information'][
-                    'registered-at'
-                ]
-            ):
-                Host.subscription_unregister({'host': self.client.hostname})
-
-        Host.subscription_register(
-            {
-                'organization-id': self.org.id,
-                'content-view-id': self.content_view.id,
-                'lifecycle-environment-id': self.host_lce.id,
-                'name': self.client.hostname,
-            }
-        )
+    ).create()
+    activation_key.add_subscriptions(data={'subscription_id': default_subscription['id']})
+    return activation_key
 
 
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
-def test_positive_register(request, module_host_subscription, host_subscription_client):
+def test_positive_register(
+    module_org, module_promoted_cv, module_lce, module_ak_with_cv, host_subscription_client
+):
     """Attempt to register a host
 
     :id: b1c601ee-4def-42ce-b353-fc2657237533
@@ -2019,31 +1895,36 @@ def test_positive_register(request, module_host_subscription, host_subscription_
 
     :CaseLevel: System
     """
-    module_host_subscription.client = host_subscription_client
-    activation_key = module_host_subscription._make_activation_key(add_subscription=False)
     hosts = Host.list(
         {
-            'organization-id': module_host_subscription.org.id,
-            'search': module_host_subscription.client.hostname,
+            'organization-id': module_org.id,
+            'search': host_subscription_client.hostname,
         }
     )
     assert len(hosts) == 0
-    module_host_subscription._host_subscription_register(request)
+    Host.subscription_register(
+        {
+            'organization-id': module_org.id,
+            'content-view-id': module_promoted_cv.id,
+            'lifecycle-environment-id': module_lce.id,
+            'name': host_subscription_client.hostname,
+        }
+    )
     hosts = Host.list(
         {
-            'organization-id': module_host_subscription.org.id,
-            'search': module_host_subscription.client.hostname,
+            'organization-id': module_org.id,
+            'search': host_subscription_client.hostname,
         }
     )
     assert len(hosts) > 0
     host = Host.info({'id': hosts[0]['id']})
-    assert host['name'] == module_host_subscription.client.hostname
+    assert host['name'] == host_subscription_client.hostname
     # note: when not registered the following command lead to exception,
     # see unregister
     host_subscriptions = ActivationKey.subscriptions(
         {
-            'organization-id': module_host_subscription.org.id,
-            'id': activation_key.id,
+            'organization-id': module_org.id,
+            'id': module_ak_with_cv.id,
             'host-id': host['id'],
         },
         output_format='json',
@@ -2053,7 +1934,15 @@ def test_positive_register(request, module_host_subscription, host_subscription_
 
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
-def test_positive_attach(request, module_host_subscription, host_subscription_client):
+def test_positive_attach(
+    module_org,
+    module_promoted_cv,
+    module_lce,
+    module_ak_with_cv,
+    module_rhst_repo,
+    default_subscription,
+    host_subscription_client,
+):
     """Attempt to attach a subscription to host
 
     :id: d5825bfb-59e3-4d49-8df8-902cc7a9d66b
@@ -2069,32 +1958,46 @@ def test_positive_attach(request, module_host_subscription, host_subscription_cl
 
     :CaseLevel: System
     """
-    module_host_subscription.client = host_subscription_client
     # create an activation key without subscriptions
-    activation_key = module_host_subscription._make_activation_key(add_subscription=False)
     # register the client host
-    module_host_subscription._host_subscription_register(request)
-    host = Host.info({'name': module_host_subscription.client.hostname})
-    module_host_subscription._register_client(activation_key=activation_key)
-    assert module_host_subscription.client.subscribed
+    Host.subscription_register(
+        {
+            'organization-id': module_org.id,
+            'content-view-id': module_promoted_cv.id,
+            'lifecycle-environment-id': module_lce.id,
+            'name': host_subscription_client.hostname,
+        }
+    )
+    host = Host.info({'name': host_subscription_client.hostname})
+    host_subscription_client.register_contenthost(
+        module_org.name, activation_key=module_ak_with_cv.name
+    )
+    assert host_subscription_client.subscribed
     # attach the subscription to host
     Host.subscription_attach(
         {
             'host-id': host['id'],
-            'subscription-id': module_host_subscription.default_subscription_id,
+            'subscription-id': default_subscription['id'],
         }
     )
-    module_host_subscription.client.enable_repo(module_host_subscription.repository_id)
+    host_subscription_client.enable_repo(module_rhst_repo)
     # ensure that katello agent can be installed
     try:
-        module_host_subscription.client.install_katello_agent()
+        host_subscription_client.install_katello_agent()
     except ContentHostError:
         pytest.fail('ContentHostError raised unexpectedly!')
 
 
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
-def test_positive_attach_with_lce(module_host_subscription, host_subscription_client):
+def test_positive_attach_with_lce(
+    module_org,
+    module_promoted_cv,
+    module_lce,
+    module_rhst_repo,
+    default_subscription,
+    host_subscription_client,
+):
     """Attempt to attach a subscription to host, registered by lce
 
     :id: a362b959-9dde-4d1b-ae62-136c6ef943ba
@@ -2110,27 +2013,32 @@ def test_positive_attach_with_lce(module_host_subscription, host_subscription_cl
 
     :CaseLevel: System
     """
-    module_host_subscription.client = host_subscription_client
-    module_host_subscription._register_client(lce=True, auto_attach=True)
-    assert module_host_subscription.client.subscribed
-    host = Host.info({'name': module_host_subscription.client.hostname})
+    host_subscription_client.register_contenthost(
+        module_org.name,
+        lce=f'{module_lce.name}/{module_promoted_cv.name}',
+        auto_attach=False,
+    )
+    assert host_subscription_client.subscribed
+    host = Host.info({'name': host_subscription_client.hostname})
     Host.subscription_attach(
         {
             'host-id': host['id'],
-            'subscription-id': module_host_subscription.default_subscription_id,
+            'subscription-id': default_subscription['id'],
         }
     )
-    module_host_subscription.client.enable_repo(module_host_subscription.repository_id)
+    host_subscription_client.enable_repo(module_rhst_repo)
     # ensure that katello agent can be installed
     try:
-        module_host_subscription.client.install_katello_agent()
+        host_subscription_client.install_katello_agent()
     except ContentHostError:
         pytest.fail('ContentHostError raised unexpectedly!')
 
 
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
-def test_negative_without_attach(request, module_host_subscription, host_subscription_client):
+def test_negative_without_attach(
+    module_org, module_promoted_cv, module_lce, host_subscription_client
+):
     """Register content host from satellite, register client to uuid
     of that content host, as there was no attach on the client,
     Test if the list of the repository subscriptions is empty
@@ -2143,24 +2051,30 @@ def test_negative_without_attach(request, module_host_subscription, host_subscri
 
     :CaseLevel: System
     """
-    module_host_subscription.client = host_subscription_client
-    module_host_subscription._host_subscription_register(request)
-    host = Host.info({'name': module_host_subscription.client.hostname})
-    module_host_subscription.client.register_contenthost(
-        module_host_subscription.org.name,
+    Host.subscription_register(
+        {
+            'organization-id': module_org.id,
+            'content-view-id': module_promoted_cv.id,
+            'lifecycle-environment-id': module_lce.id,
+            'name': host_subscription_client.hostname,
+        }
+    )
+    host = Host.info({'name': host_subscription_client.hostname})
+    host_subscription_client.register_contenthost(
+        module_org.name,
         lce=None,  # required, to jump into right branch in register_contenthost method
         consumerid=host['subscription-information']['uuid'],
         force=False,
     )
-    client_status = module_host_subscription.client.subscription_manager_status()
+    client_status = host_subscription_client.subscription_manager_status()
     assert SM_OVERALL_STATUS['current'] in client_status.stdout
-    repo_list = module_host_subscription.client.subscription_manager_list_repos()
+    repo_list = host_subscription_client.subscription_manager_list_repos()
     assert NO_REPOS_AVAILABLE in repo_list.stdout
 
 
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
-def test_negative_without_attach_with_lce(module_host_subscription, host_subscription_client):
+def test_negative_without_attach_with_lce(host_subscription_client):
     """Attempt to enable a repository of a subscription that was not
     attached to a host
     This test is not using the host_subscription entities except
@@ -2175,7 +2089,6 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
     :CaseLevel: System
     """
     # Setup as in host_subscription
-    module_host_subscription.client = host_subscription_client
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     content_view = entities.ContentView(organization=org).create()
@@ -2192,7 +2105,7 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
             'content-view-id': content_view.id,
             'lifecycle-environment-id': lce.id,
             'activationkey-id': ak.id,
-            'subscription': module_host_subscription.subscription_name,
+            'subscription': SATELLITE_SUBSCRIPTION_NAME,
         },
         force_use_cdn=True,
     )
@@ -2202,27 +2115,34 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
     promote(content_view.read().version[-1], environment_id=host_lce.id)
 
     # register client
-    module_host_subscription.client.register_contenthost(
+    host_subscription_client.register_contenthost(
         org.name,
         lce=f'{host_lce.name}/{content_view.name}',
         auto_attach=False,
     )
 
     # get list of available subscriptions which are matched with default subscription
-    subscriptions = module_host_subscription.client.run(
+    subscriptions = host_subscription_client.run(
         f'subscription-manager list --available --matches "{DEFAULT_SUBSCRIPTION_NAME}" --pool-only'
     )
     pool_id = subscriptions.stdout.strip()
     # attach to plain RHEL subsctiption
-    module_host_subscription.client.subscription_manager_attach_pool([pool_id])
-    assert module_host_subscription.client.subscribed
-    module_host_subscription.client.enable_repo(module_host_subscription.repository_id)
+    host_subscription_client.subscription_manager_attach_pool([pool_id])
+    assert host_subscription_client.subscribed
+    host_subscription_client.enable_repo(REPOS['rhst7']['id'])
 
 
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_remove(request, module_host_subscription, host_subscription_client):
+def test_positive_remove(
+    module_org,
+    module_promoted_cv,
+    module_lce,
+    ak_with_subscription,
+    default_subscription,
+    host_subscription_client,
+):
     """Attempt to remove a subscription from content host
 
     :id: 3833c349-1f5b-41ac-bbac-2c1f33232d76
@@ -2233,59 +2153,69 @@ def test_positive_remove(request, module_host_subscription, host_subscription_cl
 
     :CaseLevel: System
     """
-    module_host_subscription.client = host_subscription_client
-    activation_key = module_host_subscription._make_activation_key(add_subscription=True)
-    module_host_subscription._host_subscription_register(request)
-    host = Host.info({'name': module_host_subscription.client.hostname})
+    Host.subscription_register(
+        {
+            'organization-id': module_org.id,
+            'content-view-id': module_promoted_cv.id,
+            'lifecycle-environment-id': module_lce.id,
+            'name': host_subscription_client.hostname,
+        }
+    )
+    host = Host.info({'name': host_subscription_client.hostname})
     host_subscriptions = ActivationKey.subscriptions(
         {
-            'organization-id': module_host_subscription.org.id,
-            'id': activation_key.id,
+            'organization-id': module_org.id,
+            'id': ak_with_subscription.id,
             'host-id': host['id'],
         },
         output_format='json',
     )
-    assert module_host_subscription.subscription_name not in [
-        sub['name'] for sub in host_subscriptions
-    ]
-    module_host_subscription._register_client(activation_key=activation_key)
+    assert default_subscription['name'] not in [sub['name'] for sub in host_subscriptions]
+    host_subscription_client.register_contenthost(
+        module_org.name, activation_key=ak_with_subscription.name
+    )
     Host.subscription_attach(
         {
             'host-id': host['id'],
-            'subscription-id': module_host_subscription.default_subscription_id,
+            'subscription-id': default_subscription['id'],
         }
     )
     host_subscriptions = ActivationKey.subscriptions(
         {
-            'organization-id': module_host_subscription.org.id,
-            'id': activation_key.id,
+            'organization-id': module_org.id,
+            'id': ak_with_subscription.id,
             'host-id': host['id'],
         },
         output_format='json',
     )
-    assert module_host_subscription.subscription_name in [sub['name'] for sub in host_subscriptions]
+    assert default_subscription['name'] in [sub['name'] for sub in host_subscriptions]
     Host.subscription_remove(
         {
             'host-id': host['id'],
-            'subscription-id': module_host_subscription.default_subscription_id,
+            'subscription-id': default_subscription['id'],
         }
     )
     host_subscriptions = ActivationKey.subscriptions(
         {
-            'organization-id': module_host_subscription.org.id,
-            'id': activation_key.id,
+            'organization-id': module_org.id,
+            'id': ak_with_subscription.id,
             'host-id': host['id'],
         },
         output_format='json',
     )
-    assert module_host_subscription.subscription_name not in [
-        sub['name'] for sub in host_subscriptions
-    ]
+    assert default_subscription['name'] not in [sub['name'] for sub in host_subscriptions]
 
 
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
-def test_positive_auto_attach(request, module_host_subscription, host_subscription_client):
+def test_positive_auto_attach(
+    module_org,
+    module_promoted_cv,
+    module_lce,
+    module_rhst_repo,
+    ak_with_subscription,
+    host_subscription_client,
+):
     """Attempt to auto attach a subscription to content host
 
     :id: e3eebf72-d512-4892-828b-70165ea4b129
@@ -2297,23 +2227,32 @@ def test_positive_auto_attach(request, module_host_subscription, host_subscripti
 
     :CaseLevel: System
     """
-    module_host_subscription.client = host_subscription_client
-    activation_key = module_host_subscription._make_activation_key(add_subscription=True)
-    module_host_subscription._host_subscription_register(request)
-    host = Host.info({'name': module_host_subscription.client.hostname})
-    module_host_subscription._register_client(activation_key=activation_key)
+    Host.subscription_register(
+        {
+            'organization-id': module_org.id,
+            'content-view-id': module_promoted_cv.id,
+            'lifecycle-environment-id': module_lce.id,
+            'name': host_subscription_client.hostname,
+        }
+    )
+    host = Host.info({'name': host_subscription_client.hostname})
+    host_subscription_client.register_contenthost(
+        module_org.name, activation_key=ak_with_subscription.name
+    )
     Host.subscription_auto_attach({'host-id': host['id']})
-    module_host_subscription.client.enable_repo(module_host_subscription.repository_id)
+    host_subscription_client.enable_repo(module_rhst_repo)
     # ensure that katello agent can be installed
     try:
-        module_host_subscription.client.install_katello_agent()
+        host_subscription_client.install_katello_agent()
     except ContentHostError:
         pytest.fail('ContentHostError raised unexpectedly!')
 
 
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
-def test_positive_unregister_host_subscription(module_host_subscription, host_subscription_client):
+def test_positive_unregister_host_subscription(
+    module_org, module_rhst_repo, ak_with_subscription, host_subscription_client
+):
     """Attempt to unregister host subscription
 
     :id: 608f5b6d-4688-478e-8be8-e946771d5247
@@ -2324,31 +2263,33 @@ def test_positive_unregister_host_subscription(module_host_subscription, host_su
 
     :CaseLevel: System
     """
-    module_host_subscription.client = host_subscription_client
     # register the host client
-    activation_key = module_host_subscription._make_activation_key(add_subscription=True)
-    module_host_subscription._register_client(
-        activation_key=activation_key, enable_repo=True, auto_attach=True
+    host_subscription_client.register_contenthost(
+        module_org.name, activation_key=ak_with_subscription.name
     )
-    assert module_host_subscription.client.subscribed
-    host = Host.info({'name': module_host_subscription.client.hostname})
+
+    assert host_subscription_client.subscribed
+    host_subscription_client.run('subscription-manager attach --auto')
+    host_subscription_client.enable_repo(module_rhst_repo)
+    assert host_subscription_client.subscribed
+    host = Host.info({'name': host_subscription_client.hostname})
     host_subscriptions = ActivationKey.subscriptions(
         {
-            'organization-id': module_host_subscription.org.id,
-            'id': activation_key.id,
+            'organization-id': module_org.id,
+            'id': ak_with_subscription.id,
             'host-id': host['id'],
         },
         output_format='json',
     )
     assert len(host_subscriptions) > 0
-    Host.subscription_unregister({'host': module_host_subscription.client.hostname})
+    Host.subscription_unregister({'host': host_subscription_client.hostname})
     with pytest.raises(CLIReturnCodeError):
         # raise error that the host was not registered by
         # subscription-manager register
         ActivationKey.subscriptions(
             {
-                'organization-id': module_host_subscription.org.id,
-                'id': activation_key.id,
+                'organization-id': module_org.id,
+                'id': ak_with_subscription.id,
                 'host-id': host['id'],
             }
         )
@@ -2358,7 +2299,14 @@ def test_positive_unregister_host_subscription(module_host_subscription, host_su
 @pytest.mark.pit_server
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
-def test_syspurpose_end_to_end(module_host_subscription, host_subscription_client):
+def test_syspurpose_end_to_end(
+    module_org,
+    module_promoted_cv,
+    module_lce,
+    module_rhst_repo,
+    default_subscription,
+    host_subscription_client,
+):
     """Create a host with system purpose values set by activation key.
 
     :id: b88e9b6c-2348-49ce-b5e9-a2b9f0abed3f
@@ -2371,13 +2319,12 @@ def test_syspurpose_end_to_end(module_host_subscription, host_subscription_clien
 
     :CaseLevel: System
     """
-    module_host_subscription.client = host_subscription_client
     # Create an activation key with test values
     purpose_addons = "test-addon1, test-addon2"
     activation_key = entities.ActivationKey(
-        content_view=module_host_subscription.content_view,
-        environment=module_host_subscription.lce,
-        organization=module_host_subscription.org,
+        content_view=module_promoted_cv,
+        environment=module_lce,
+        organization=module_org,
         purpose_addons=[purpose_addons],
         purpose_role="test-role",
         purpose_usage="test-usage",
@@ -2385,17 +2332,19 @@ def test_syspurpose_end_to_end(module_host_subscription, host_subscription_clien
     ).create()
     ActivationKey.add_subscription(
         {
-            'organization-id': module_host_subscription.org.id,
+            'organization-id': module_org.id,
             'id': activation_key.id,
-            'subscription-id': module_host_subscription.default_subscription_id,
+            'subscription-id': default_subscription['id'],
         }
     )
     # Register a host using the activation key
-    module_host_subscription._register_client(
-        activation_key=activation_key, enable_repo=True, auto_attach=True
+    host_subscription_client.register_contenthost(
+        module_org.name, activation_key=activation_key.name
     )
-    assert module_host_subscription.client.subscribed
-    host = Host.info({'name': module_host_subscription.client.hostname})
+    assert host_subscription_client.subscribed
+    host_subscription_client.run('subscription-manager attach --auto')
+    host_subscription_client.enable_repo(module_rhst_repo)
+    host = Host.info({'name': host_subscription_client.hostname})
     # Assert system purpose values are set in the host as expected
     assert host['subscription-information']['system-purpose']['purpose-addons'] == purpose_addons
     assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role"
@@ -2419,22 +2368,22 @@ def test_syspurpose_end_to_end(module_host_subscription, host_subscription_clien
     assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support2"
     host_subscriptions = ActivationKey.subscriptions(
         {
-            'organization-id': module_host_subscription.org.id,
+            'organization-id': module_org.id,
             'id': activation_key.id,
             'host-id': host['id'],
         },
         output_format='json',
     )
     assert len(host_subscriptions) > 0
-    assert host_subscriptions[0]['name'] == module_host_subscription.subscription_name
+    assert host_subscriptions[0]['name'] == default_subscription['name']
     # Unregister host
-    Host.subscription_unregister({'host': module_host_subscription.client.hostname})
+    Host.subscription_unregister({'host': host_subscription_client.hostname})
     with pytest.raises(CLIReturnCodeError):
         # raise error that the host was not registered by
         # subscription-manager register
         ActivationKey.subscriptions(
             {
-                'organization-id': module_host_subscription.org.id,
+                'organization-id': module_org.id,
                 'id': activation_key.id,
                 'host-id': host['id'],
             }
