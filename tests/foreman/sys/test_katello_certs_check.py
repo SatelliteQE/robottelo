@@ -25,6 +25,7 @@ from box import Box
 from broker.broker import VMBroker
 from fauxfactory import gen_string
 
+import robottelo.constants as constants
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
@@ -293,8 +294,11 @@ class TestKatelloCertsCheck:
     @pytest.mark.destructive
     @pytest.mark.parametrize(
         'vm_setup',
-        [{'nick': 'rhel7', 'target_memory': '20GiB', 'target_cores': 4}],
-        ids=['rhel7'],
+        [
+            {'nick': 'rhel7', 'target_memory': '20GiB', 'target_cores': 4},
+            {'nick': 'rhel8', 'target_memory': '20GiB', 'target_cores': 4},
+        ],
+        ids=['rhel7', 'rhel8'],
         indirect=True,
     )
     def test_positive_install_sat_with_katello_certs(self, vm_setup):
@@ -315,8 +319,8 @@ class TestKatelloCertsCheck:
         :CaseAutomation: Automated
         """
         cert_data, rhel_vm = vm_setup
-        version = str(settings.server.version.rhel_version)[0]
-        rhel_vm.download_repos(repo_name='satellite')
+        version = rhel_vm.os_version.major
+        rhel_vm.download_repos(repo_name='satellite', version=version)
         rhel_vm.register_contenthost(
             org=None,
             lce=None,
@@ -324,19 +328,14 @@ class TestKatelloCertsCheck:
             password=settings.subscription.rhn_password,
         )
         result = rhel_vm.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
-        for repo in (
-            f'rhel-{version}-server-extras-rpms',
-            f'rhel-{version}-server-rpms',
-            f'rhel-server-rhscl-{version}-rpms',
-            f'rhel-{version}-server-ansible-2.9-rpms',
-        ):
+        for repo in getattr(constants, f"OHSNAP_RHEL{version}_REPOS"):
             rhel_vm.enable_repo(repo, force=True)
         rhel_vm.execute(
             f'yum -y localinstall {settings.repos.dogfood_repo_host}'
             f'/pub/katello-ca-consumer-latest.noarch.rpm'
         )
         rhel_vm.execute('yum -y update')
-        result = rhel_vm.execute('yum -y install satellite')
+        result = rhel_vm.execute(getattr(constants, f"INSTALL_RHEL{version}_STEPS"))
         assert result.status == 0
         command = (
             'satellite-installer --scenario satellite '

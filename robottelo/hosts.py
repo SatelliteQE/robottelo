@@ -254,13 +254,14 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise ContentHostError(f'Failed to install {package_name} rpm.')
 
-    def download_repos(self, repo_name):
+    def download_repos(self, repo_name, version):
         """Downloads the satellite or capsule repos on the machine
         :param repo_name: satellite or capsule repo_name
+        :param vesion: rhel version
         """
         repo_location = (
             f'{settings.repos.ohsnap_repo_host}/api/releases/'
-            f'{self.satellite.version}/el7/{repo_name}/repo_file'
+            f'{self.satellite.version}/el{version}/{repo_name}/repo_file'
         )
         if repo_name in ('satellite', 'capsule'):
             self.execute(f'curl -o /etc/yum.repos.d/{repo_name}.repo {repo_location}')
