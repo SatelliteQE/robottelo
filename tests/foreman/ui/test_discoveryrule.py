@@ -83,6 +83,11 @@ def reader_user(module_location, module_org):
     return reader_user
 
 
+def gen_int32(min_value=1):
+    max_value = (2**31) - 1
+    return gen_integer(min_value=min_value, max_value=max_value)
+
+
 @pytest.mark.tier2
 def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user, module_org, test_name):
     """Create rule with non-admin user by associating discovery_manager role
@@ -99,7 +104,12 @@ def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user, mod
     with Session(test_name, user=manager_user.login, password=manager_user.password) as session:
         session.location.select(loc_name=manager_loc.name)
         session.discoveryrule.create(
-            {'primary.name': name, 'primary.search': search, 'primary.host_group': hg.name}
+            {
+                'primary.name': name,
+                'primary.search': search,
+                'primary.host_group': hg.name,
+                'primary.priority': gen_int32(),
+            }
         )
         dr_val = session.discoveryrule.read(name, widget_names='primary')
         assert dr_val['primary']['name'] == name
@@ -226,6 +236,7 @@ def test_positive_list_host_based_on_rule_search_query(
         search_=rule_search,
         organization=[module_org],
         location=[module_location],
+        priority=gen_int32(),
     ).create()
     discovered_host = create_discovered_host(
         ip_address=ip_address, options={'physicalprocessorcount': cpu_count}
@@ -234,8 +245,6 @@ def test_positive_list_host_based_on_rule_search_query(
     create_discovered_host(options={'physicalprocessorcount': cpu_count + 1})
     provisioned_host_name = '{}.{}'.format(discovered_host['name'], host.domain.read().name)
     with session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_location.name)
         values = session.discoveryrule.read_all()
         assert discovery_rule.name in [rule['Name'] for rule in values]
         values = session.discoveryrule.read_discovered_hosts(discovery_rule.name)
