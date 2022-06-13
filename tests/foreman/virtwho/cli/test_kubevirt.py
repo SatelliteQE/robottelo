@@ -41,7 +41,7 @@ def form_data(target_sat, default_org):
         'organization-id': default_org.id,
         'filtering-mode': 'none',
         'satellite-url': target_sat.hostname,
-        'kubeconfig': settings.virtwho.kubevirt.hypervisor_config_file,
+        'kubeconfig-path': settings.virtwho.kubevirt.hypervisor_config_file,
     }
     return form
 
