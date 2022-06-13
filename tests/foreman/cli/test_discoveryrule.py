@@ -74,7 +74,7 @@ class TestDiscoveryRule:
                 'model = KVM',
                 'Organization = Default_Organization',
                 'last_report = Today',
-                'subnet =  192.168.100.0',
+                'subnet = 192.168.100.0',
                 'facts.architecture != x86_64',
             ]
 
@@ -202,22 +202,6 @@ class TestDiscoveryRule:
         hosts_limit = '5'
         rule = discoveryrule_factory(options={'hosts-limit': hosts_limit})
         assert rule['hosts-limit'] == hosts_limit
-
-    @pytest.mark.tier1
-    def test_positive_create_with_max_count(self, discoveryrule_factory):
-        """Create Discovery Rule providing any number from range 1..100 for
-        max count option
-
-        :id: 590ca353-d3d7-4700-be34-13de00f46276
-
-        :expectedresults: Rule should be successfully created and has max_count
-            set as per given value
-
-        :CaseLevel: Component
-        """
-        max_count = '10'
-        rule = discoveryrule_factory(options={'max-count': max_count})
-        assert rule['hosts-limit'] == max_count
 
     @pytest.mark.tier1
     def test_positive_create_with_priority(self, discoveryrule_factory):

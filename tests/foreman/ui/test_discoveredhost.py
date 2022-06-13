@@ -29,27 +29,25 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def discovery_org():
-    org = entities.Organization().create()
+def discovery_org(module_org):
     # Update default discovered host organization
     discovery_org = entities.Setting().search(query={'search': 'name="discovery_organization"'})[0]
     default_discovery_org = discovery_org.value
-    discovery_org.value = org.name
+    discovery_org.value = module_org.name
     discovery_org.update(['value'])
-    yield org
+    yield module_org
     discovery_org.value = default_discovery_org
     discovery_org.update(['value'])
 
 
 @pytest.fixture(scope='module')
-def discovery_location(discovery_org):
-    loc = entities.Location(name=gen_string('alpha'), organization=[discovery_org]).create()
+def discovery_location(module_location):
     # Update default discovered host location
     discovery_loc = entities.Setting().search(query={'search': 'name="discovery_location"'})[0]
     default_discovery_loc = discovery_loc.value
-    discovery_loc.value = loc.name
+    discovery_loc.value = module_location.name
     discovery_loc.update(['value'])
-    yield loc
+    yield module_location
     discovery_loc.value = default_discovery_loc
     discovery_loc.update(['value'])
 
@@ -283,7 +281,7 @@ def test_positive_auto_provision_host_with_rule(
 
 
 @pytest.mark.tier3
-def test_positive_delete(session, discovered_host):
+def test_positive_delete(session, discovery_org, discovery_location, discovered_host):
     """Delete the selected discovered host
 
     :id: 25a2a3ea-9659-4bdb-8631-c4dd19766014
