@@ -1442,9 +1442,11 @@ def test_positive_global_registration_end_to_end(
     result = rhel_contenthost.execute('subscription-manager identity')
     assert result.status == 0
     # Assert that a yum update was made this day ("Update" or "I, U" in history)
+    timezone_offset = rhel_contenthost.execute('date +"%:z"').stdout
+    tzinfo = datetime.strptime(timezone_offset, '%z').tzinfo
     result = rhel_contenthost.execute('yum history | grep U')
     assert result.status == 0
-    assert datetime.utcnow().strftime('%Y-%m-%d') in result.stdout
+    assert datetime.now(tzinfo).strftime('%Y-%m-%d') in result.stdout
     # Set "Connect to host using IP address"
     Host.set_parameter(
         {
