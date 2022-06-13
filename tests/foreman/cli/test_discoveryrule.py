@@ -74,7 +74,7 @@ class TestDiscoveryRule:
                 'model = KVM',
                 'Organization = Default_Organization',
                 'last_report = Today',
-                'subnet =  192.168.100.0',
+                'subnet = 192.168.100.0',
                 'facts.architecture != x86_64',
             ]
 
