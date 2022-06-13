@@ -22,7 +22,6 @@ import pytest
 from airgun.session import Session
 from wait_for import wait_for
 
-from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_RHEL8
@@ -34,7 +33,6 @@ from robottelo.constants import DISTRO_RHEL8
 def test_rhcloud_insights_e2e(
     rhel_insights_vm,
     organization_ak_setup,
-    unset_rh_cloud_token,
     rhcloud_sat_host,
 ):
     """Synchronize hits data from cloud, verify it is displayed in Satellite and run remediation.
@@ -43,12 +41,11 @@ def test_rhcloud_insights_e2e(
 
     :Steps:
         1. Prepare misconfigured machine and upload its data to Insights.
-        2. Add Cloud API key in Satellite.
-        3. In Satellite UI, Configure -> Insights -> Add RH Cloud token and syns recommendations.
-        4. Run remediation for "OpenSSH config permissions" recommendation against rhel8/rhel9 host.
-        5. Assert that job completed successfully.
-        6. Sync Insights recommendations.
-        7. Search for previously remediated issue.
+        2. In Satellite UI, Configure -> Insights -> Sync recommendations.
+        3. Run remediation for "OpenSSH config permissions" recommendation against rhel8/rhel9 host.
+        4. Assert that job completed successfully.
+        5. Sync Insights recommendations.
+        6. Search for previously remediated issue.
 
     :expectedresults:
         1. Insights recommendation related to "OpenSSH config permissions" issue is listed
@@ -76,7 +73,6 @@ def test_rhcloud_insights_e2e(
     with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
-        session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         wait_for(
             lambda: rhcloud_sat_host.api.ForemanTask()
@@ -229,7 +225,6 @@ def test_host_sorting_based_on_recommendation_count():
 def test_host_details_page(
     rhel_insights_vm,
     organization_ak_setup,
-    set_rh_cloud_token,
     rhcloud_sat_host,
 ):
     """Test host details page for host having insights recommendations.
@@ -237,15 +232,14 @@ def test_host_details_page(
     :id: e079ed10-c9f5-4331-9cb3-70b224b1a584
 
     :Steps:
-        1. Prepare misconfigured machine and upload its data to Insights
-        2. Add Cloud API key in Satellite
-        3. Sync insights recommendations.
-        4. Sync RH Cloud inventory status.
-        5. Go to Hosts -> All Hosts
-        6. Assert there is "Recommendations" column containing insights recommendation count.
-        7. Check popover status of host.
-        8. Assert that host properties shows reporting inventory upload status.
-        9. Click on "Recommendations" tab.
+        1. Prepare misconfigured machine and upload its data to Insights.
+        2. Sync insights recommendations.
+        3. Sync RH Cloud inventory status.
+        4. Go to Hosts -> All Hosts
+        5. Assert there is "Recommendations" column containing insights recommendation count.
+        6. Check popover status of host.
+        7. Assert that host properties shows reporting inventory upload status.
+        8. Click on "Recommendations" tab.
 
     :expectedresults:
         1. There's Insights column with number of recommendations.
@@ -375,7 +369,6 @@ def test_rh_cloud_insights_clean_statuses(
 def test_delete_host_having_insights_recommendation(
     rhel_insights_vm,
     organization_ak_setup,
-    set_rh_cloud_token,
     rhcloud_sat_host,
 ):
     """Verify that host having insights recommendations can be deleted from Satellite.
@@ -385,13 +378,12 @@ def test_delete_host_having_insights_recommendation(
     :customerscenario: true
 
     :Steps:
-        1. Prepare misconfigured machine and upload its data to Insights
-        2. Add Cloud API key in Satellite
-        3. Sync insights recommendations.
-        4. Sync RH Cloud inventory status.
-        5. Go to Hosts -> All Hosts
-        6. Assert there is "Recommendations" column containing insights recommendation count.
-        7. Try to delete host.
+        1. Prepare misconfigured machine and upload its data to Insights.
+        2. Sync insights recommendations.
+        3. Sync RH Cloud inventory status.
+        4. Go to Hosts -> All Hosts
+        5. Assert there is "Recommendations" column containing insights recommendation count.
+        6. Try to delete host.
 
     :expectedresults:
         1. host having insights recommendations is deleted from Satellite.
@@ -457,7 +449,6 @@ def test_delete_host_having_insights_recommendation(
 def test_insights_tab_on_host_details_page(
     rhel_insights_vm,
     organization_ak_setup,
-    set_rh_cloud_token,
     rhcloud_sat_host,
 ):
     """Test recommendations count in hosts index is a link and contents
@@ -467,11 +458,10 @@ def test_insights_tab_on_host_details_page(
 
     :Steps:
         1. Prepare misconfigured machine and upload its data to Insights.
-        2. Add Cloud API key in Satellite.
-        3. In Satellite UI, Configure -> Insights -> Sync now.
-        4. Go to Hosts -> All Hosts.
-        5. Click on recommendation count.
-        6. Assert the contents of Insights tab.
+        2. In Satellite UI, Configure -> Insights -> Sync now.
+        3. Go to Hosts -> All Hosts.
+        4. Click on recommendation count.
+        5. Assert the contents of Insights tab.
 
     :expectedresults:
         1. There's Insights recommendation column with number of recommendations and
