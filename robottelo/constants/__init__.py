@@ -1804,11 +1804,11 @@ ROLES_LOCKED = [
 BOOKMARK_ENTITIES = [
     {'name': 'ActivationKey', 'controller': 'katello_activation_keys'},
     {'name': 'Dashboard', 'controller': 'dashboard', 'skip_for_ui': True},
-    {'name': 'Fact', 'controller': 'fact_values', 'skip_for_ui': True},
     {'name': 'Audit', 'controller': 'audits', 'skip_for_ui': True},
     {'name': 'Report', 'controller': 'config_reports', 'skip_for_ui': True},
     {'name': 'Task', 'controller': 'foreman_tasks_tasks', 'skip_for_ui': True},
-    {'name': 'Subscriptions', 'controller': 'katello_subscriptions', 'skip_for_ui': True},
+    # TODO Load manifest for the test_positive_end_to_end from the ui/test_bookmarks.py
+    # {'name': 'Subscriptions', 'controller': 'subscriptions', 'skip_for_ui': True},
     {'name': 'Product', 'controller': 'katello_products'},
     {'name': 'Repository', 'controller': 'katello_repositories', 'skip_for_ui': True},
     {'name': 'ContentCredential', 'controller': 'katello_gpg_keys'},
@@ -1865,8 +1865,6 @@ BOOKMARK_ENTITIES = [
         'setup': entities.ConfigGroup,
         'skip_for_ui': True,
     },
-    {'name': 'PuppetEnvironment', 'controller': 'environments', 'setup': entities.Environment},
-    {'name': 'PuppetClass', 'controller': 'puppetclasses', 'setup': entities.PuppetClass},
     {'name': 'Role', 'controller': 'ansible_roles', 'setup': entities.Role},
     {'name': 'Variables', 'controller': 'ansible_variables', 'skip_for_ui': True},
     {'name': 'SmartProxy', 'controller': 'smart_proxies', 'skip_for_ui': True},
