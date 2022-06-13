@@ -2,7 +2,7 @@
 
 :Requirement: Loadbalancer capsule
 
-:CaseAutomation: ManualOnly
+:CaseAutomation: Automated
 
 :CaseLevel: Integration
 
@@ -25,13 +25,21 @@ from broker import VMBroker
 from nailgun import entities
 
 from robottelo.api.utils import promote
+from robottelo.cli.capsule import Capsule as ContentCapsule
 from robottelo.config import settings
+from robottelo.helpers import get_data_file
+from robottelo.helpers import InstallerCommand
 from robottelo.hosts import Capsule
 from robottelo.hosts import ContentHost
 
 
 @pytest.fixture(scope='session')
 def get_hosts_from_broker():
+    """Get hosts from broker.
+       Using threading to reduce the checkout time.
+    :return: Capsule and haproxy host
+    """
+
     def _get_hosts(vm_nick, vm_count):
         if 'cap' in vm_nick:
             host_class = Capsule
@@ -44,7 +52,7 @@ def get_hosts_from_broker():
     threads = list()
     q = queue.Queue()
     results = dict()
-    host_count = [['rhel7', 1], ['cap611_7', 1], ['cap611_8', 1]]
+    host_count = [['rhel7', 1], ['cap611_8', 1], ['cap611_7', 1]]
     for host in host_count:
         threads.append(threading.Thread(target=_get_hosts, args=(host[0], host[1])))
         sleep(1)
@@ -56,13 +64,16 @@ def get_hosts_from_broker():
 
     yield results
 
-    all_hosts = [results['rhel7'], results['cap611_7'], results['cap611_8']]
-
+    all_hosts = [results['rhel7'], results['cap611_8'], results['cap611_7']]
     VMBroker(hosts=all_hosts).checkin()
 
 
 @pytest.fixture(scope='module')
-def content_for_haproxy(module_org):
+def content_for_client(module_org):
+    """Setup content to be used by haproxy and client
+
+    :return: Activation key, client lifecycle environment(used by setup_capsules())
+    """
     rhel7_product = entities.Product(organization=module_org).create()
     rhel7_repo = entities.Repository(
         product=rhel7_product,
@@ -70,107 +81,141 @@ def content_for_haproxy(module_org):
     rhel7_repo.url = settings.repos.RHEL7_OS
     rhel7_repo = rhel7_repo.update(['url'])
     rhel7_repo.sync(timeout=900)
-    client7_lce = entities.LifecycleEnvironment(organization=module_org).create()
-    client7_cv = entities.ContentView(organization=module_org, repository=[rhel7_repo]).create()
-    client7_cv.publish()
-    client7_cv = client7_cv.read().version[0].read()
-    promote(client7_cv, client7_lce.id)
-    client7_ak = entities.ActivationKey(
-        content_view=client7_cv.id, organization=module_org, environment=client7_lce
+    client_lce = entities.LifecycleEnvironment(organization=module_org).create()
+    client_cv = entities.ContentView(organization=module_org, repository=[rhel7_repo]).create()
+    client_cv.publish()
+    client_cv = client_cv.read().version[0].read()
+    promote(client_cv, client_lce.id)
+    client_ak = entities.ActivationKey(
+        content_view=client_cv.id, organization=module_org, environment=client_lce
     ).create()
     org_subscriptions = entities.Subscription(organization=module_org).search()
     for subscription in org_subscriptions:
-        client7_ak.add_subscriptions(data={'subscription_id': subscription.id})
-    return {'client7_ak': client7_ak}
+        client_ak.add_subscriptions(data={'subscription_id': subscription.id})
+    return {'client_ak': client_ak, 'client_lce': client_lce}
 
 
 @pytest.fixture(scope='module')
-def setup_haproxy(module_org, get_hosts_from_broker, content_for_haproxy, module_target_sat):
+def setup_capsules(module_org, get_hosts_from_broker, module_target_sat, content_for_client):
+    """Install capsules with loadbalancer options"""
+    extra_cert_var = {'foreman-proxy-cname': get_hosts_from_broker['rhel7'].hostname}
+    extra_installer_var = {'certs-cname': get_hosts_from_broker['rhel7'].hostname}
+
+    for capsule in [get_hosts_from_broker['cap611_8'], get_hosts_from_broker['cap611_7']]:
+        capsule.register_to_dogfood(ak_type='capsule')
+        command = InstallerCommand(
+            command='capsule-certs-generate',
+            foreman_proxy_fqdn=capsule.hostname,
+            certs_tar=f'/root/{capsule.hostname}-certs.tar',
+            **extra_cert_var,
+        )
+        result = module_target_sat.execute(command.get_command())
+        install_cmd = InstallerCommand.from_cmd_str(cmd_str=result.stdout)
+        install_cmd.opts['certs-tar-file'] = f'/root/{capsule.hostname}-certs.tar'
+        module_target_sat.satellite.session.remote_copy(install_cmd.opts['certs-tar-file'], capsule)
+        install_cmd.opts.update(**extra_installer_var)
+        result = capsule.install(install_cmd)
+        assert result.status == 0
+        ContentCapsule.content_add_lifecycle_environment(
+            {
+                'id': capsule.nailgun_capsule.id,
+                'organization-id': module_org.id,
+                'environment': content_for_client['client_lce'].name,
+            }
+        )
+        ContentCapsule.content_synchronize(
+            {'id': capsule.nailgun_capsule.id, 'organization-id': module_org.id}
+        )
+    return {
+        'capsule_1': get_hosts_from_broker["cap611_8"],
+        'capsule_2': get_hosts_from_broker["cap611_7"],
+    }
+
+
+@pytest.fixture(scope='module')
+def setup_haproxy(
+    module_org, get_hosts_from_broker, content_for_client, module_target_sat, setup_capsules
+):
+    """Install and configure haproxy and setup logging"""
     haproxy = get_hosts_from_broker['rhel7']
-    client_ak = content_for_haproxy['client7_ak']
+    client_ak = content_for_client['client_ak']
     haproxy.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
     haproxy.execute('firewall-cmd --runtime-to-permanent')
     haproxy.install_katello_ca(module_target_sat)
     haproxy.register_contenthost(module_org.label, client_ak.name)
     result = haproxy.execute('yum install haproxy policycoreutils-python -y')
     assert result.status == 0
-    haproxy.execute(
-        'curl --output /etc/haproxy/haproxy.cfg '
-        'https://gist.githubusercontent.com/akhil-jha'
-        '/8aaa5752c1f5621af8f5b367d50b1c75/raw'
-        '/2f46a881380d2b69ce058dedf50c0f62a3f6e237/haproxy.cfg '
+    haproxy.session.sftp_write(
+        source=get_data_file('haproxy.cfg'), destination='/etc/haproxy/haproxy.cfg'
     )
     haproxy.execute(
-        f'sed --in-place --expression'
-        f'"s/CAPSULE_1/{get_hosts_from_broker["cap611_7"].hostname}/g "'
-        f'--expression '
-        f'"s/CAPSULE_2/{get_hosts_from_broker["cap611_8"].hostname}/g "'
-        f'/etc/haproxy/haproxy.cfg'
+        f'sed -i -e s/CAPSULE_1/{setup_capsules["capsule_1"].hostname}/g '
+        f' --e s/CAPSULE_2/{setup_capsules["capsule_2"].hostname}/g '
+        f' /etc/haproxy/haproxy.cfg'
     )
-    result = haproxy.host_services(action='restart', services=['haproxy.service'])
+    result = haproxy.execute('systemctl restart haproxy.service')
     assert result.status == 0
     haproxy.execute('mkdir /var/lib/haproxy/dev')
-    haproxy.execute(
-        'curl --output /etc/rsyslog.d/99-haproxy.conf '
-        'https://gist.githubusercontent.com/akhil-jha'
-        '/8aaa5752c1f5621af8f5b367d50b1c75/raw'
-        '/2f46a881380d2b69ce058dedf50c0f62a3f6e237/99-haproxy.conf '
+    haproxy.session.sftp_write(
+        source=get_data_file('99-haproxy.conf'), destination='/etc/rsyslog.d/99-haproxy.conf'
     )
     haproxy.execute('setenforce Permissive')
-    result = haproxy.host_services(
-        action='restart', services=['rsyslog.service', 'haproxy.service']
-    )
+    result = haproxy.execute('systemctl restart haproxy.service rsyslog.service')
     assert result.status == 0
+
+    return {'haproxy': haproxy}
 
 
 @pytest.fixture(scope='module')
-def setup_capsules(module_org, get_hosts_from_broker):
-    capsule_7 = get_hosts_from_broker['cap611_7']
-    capsule_8 = get_hosts_from_broker['cap611_8']
+def loadbalancer_setup(
+    module_org, content_for_client, setup_capsules, module_target_sat, setup_haproxy
+):
+    """Just to keep the tests arguments clean. Yes it's redundant"""
+    return {
+        'module_org': module_org,
+        'content_for_client': content_for_client,
+        'setup_capsules': setup_capsules,
+        'module_target_sat': module_target_sat,
+        'setup_haproxy': setup_haproxy,
+    }
 
-    # TODO: Satellite capsule integrate
-    # capsule-certs-generate \
-    # --foreman-proxy-fqdn capsule.example.com \
-    # --certs-tar "/root/capsule.example.com-certs.tar" \
-    # --foreman-proxy-cname loadbalancer.example.com
 
-    # And during the capsule installation
-    # satellite-installer --scenario capsule .......--certs-cname "loadbalancer.example.com"
-
-
-# @pytest.mark.stubbed
 @pytest.mark.tier1
-def test_random(module_org, content_for_haproxy, setup_capsules, target_sat):
-
-    """Download katello-ca-consumer-latest.noarch.rpm through LB
-
-    :id: 9398d59e-e141-11ea-83a6-4ceb42ab8dbc
-
-    :Steps: run `yum localinstall -y \
-            http://loadbalancer.example.com/pub/katello-ca-consumer-latest.noarch.rpm`
-
-    :expectedresults: Katello cert should be installed from any one of the capsules.
-
-    """
-    pass
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier1
-def test_manually_register_client_using_ak():
+def test_loadbalancer_register_client_using_ak_to_capsule(loadbalancer_setup, rhel7_contenthost):
     """Register the client using ak to the capsule
 
     :id: 7318c380-e149-11ea-9b17-4ceb42ab8dbc
 
-    :Steps: run `subscription-manager register --org=Your_Organization \
+    :Steps:
+        1. run `subscription-manager register --org=Your_Organization \
             --activationkey=Your_Activation_Key \
             --serverurl=https://loadbalancer.example.com:8443/rhsm \
             --baseurl=https://loadbalancer.example.com/pulp/repos`
 
     :expectedresults: The client should be registered to one of the capsules
 
+    :CaseLevel: Integration
     """
-    pass
+    server_url = f'https://{loadbalancer_setup["setup_haproxy"]["haproxy"].hostname}:8443/rhsm'
+    base_url = f'https://{loadbalancer_setup["setup_haproxy"]["haproxy"].hostname}/pulp/content/'
+    'http://loadbalancer.example.com/pub/katello-ca-consumer-latest.noarch.rpm'
+    result = rhel7_contenthost.download_install_rpm(
+        repo_url=f'http://{loadbalancer_setup["setup_haproxy"]["haproxy"].hostname}/pub',
+        package_name='katello-ca-consumer-latest.noarch',
+    )
+    assert result.status == 0
+    result = rhel7_contenthost.register_contenthost(
+        org=loadbalancer_setup['module_org'].label,
+        activation_key=loadbalancer_setup['content_for_client']['client_ak'].name,
+        serverurl=server_url,
+        baseurl=base_url,
+    )
+    assert result.status == 0
+    result = rhel7_contenthost.execute('rpm -qa |grep katello-ca-consumer')
+    assert (
+        loadbalancer_setup['setup_capsules']['capsule_1'].hostname
+        or loadbalancer_setup['setup_capsules']['capsule_2'].hostname in result.stdout
+    )
 
 
 @pytest.mark.stubbed
