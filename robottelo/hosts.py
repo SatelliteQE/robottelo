@@ -289,7 +289,7 @@ class ContentHost(Host, ContentHostMixins):
         elif repo in (constants.REPOS['rhsc6']['id'], constants.REPOS['rhsc7']['id']):
             downstream_repo = settings.repos.capsule_repo
         if force or settings.robottelo.cdn or not downstream_repo:
-            self.execute(f'subscription-manager repos --enable {repo}')
+            return self.execute(f'subscription-manager repos --enable {repo}')
 
     def subscription_manager_list_repos(self):
         return self.execute('subscription-manager repos --list')
@@ -1189,48 +1189,59 @@ class Capsule(ContentHost, CapsuleMixins):
 
     def capsule_setup(self, sat_host=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
-        if sat_host is not None:
-            self._satellite = sat_host
-        self.register_to_dogfood(ak_type='capsule')
         self._satellite = sat_host or Satellite()
 
-        # self.execute('yum repolist')
+        # Register capsule host to CDN and enable repos
+        result = self.register_contenthost(
+            org=None,
+            lce=None,
+            username=settings.subscription.rhn_username,
+            password=settings.subscription.rhn_password,
+            auto_attach=True,
+        )
+        if result.status:
+            raise CapsuleHostError(f'Capsule CDN registration failed\n{result.stderr}')
+
+        for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
+            result = self.enable_repo(repo, force=True)
+            if result.status:
+                raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
+
+        # Update system, firewall services and check capsule is already installed from template
         self.execute('yum -y update', timeout=0)
-
-        if settings.server.version.rhel_version == 8:
-            self.execute('dnf -y module enable satellite:el8')
-
         self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
         self.execute('firewall-cmd --runtime-to-permanent')
-        # self.execute('yum -y install satellite-capsule', timeout=1200000)
         result = self.execute('rpm -q satellite-capsule')
-        if result.status != 0:
-            raise CapsuleHostError(f'Failed to install satellite-capsule package\n{result.stderr}')
-        # update http proxy except list
+        if result.status:
+            raise CapsuleHostError(f'The satellite-capsule package was not found\n{result.stdout}')
+
+        # Update Satellite's http proxy except list
         result = self.satellite.cli.Settings.list({'search': 'http_proxy_except_list'})[0]
         if result['value'] == '[]':
             except_list = f'[{self.hostname}]'
         else:
             except_list = result['value'][:-1] + f', {self.hostname}]'
-        result = self.satellite.cli.Settings.set(
-            {'name': 'http_proxy_except_list', 'value': except_list}
-        )
-        # generate certificate
+        self.satellite.cli.Settings.set({'name': 'http_proxy_except_list', 'value': except_list})
+
+        # Generate certificate, copy it to Capsule, run installer, check it succeeds
         installer = self.satellite.capsule_certs_generate(self, **installer_kwargs)
-        # copy certs from satellite to capsule
         self.satellite.session.remote_copy(installer.opts['certs-tar-file'], self)
         installer.update(**installer_kwargs)
         result = self.install(installer)
-        if result.status != 0:
+        if result.status:
             # before exit download the capsule log file
             self.session.sftp_read(
                 '/var/log/foreman-installer/capsule.log',
                 f'{settings.robottelo.tmp_dir}/capsule-{self.ip_addr}.log',
             )
-            raise CapsuleHostError(f'foreman installer failed at capsule host: {result.stderr}')
+            raise CapsuleHostError(
+                f'Foreman installer failed at capsule host\n{result.stdout}\n{result.stderr}'
+            )
         result = self.execute('satellite-maintain service status')
         if 'inactive (dead)' in '\n'.join(result.stdout):
-            raise CapsuleHostError('a core service is not running at capsule host')
+            raise CapsuleHostError(
+                f'A core service is not running at capsule host\n{result.stdout}'
+            )
 
 
 class Satellite(Capsule, SatelliteMixins):
