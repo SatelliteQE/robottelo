@@ -2458,3 +2458,117 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
         assert host_parameters
         assert param_name in host_parameters
         assert host_parameters[param_name] == param_value
+
+
+class TestHostAnsible:
+    """Tests for Ansible portion of Hosts"""
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier2
+    def test_positive_host_role_information(self):
+        """Assign Ansible Role to a Host and an attached Host group and verify that the information
+        in the new UI is displayed correctly
+
+        :id: 7da913ef-3b43-4bfa-9a45-d895431c8b56
+
+        :caseComponent: Ansible
+
+        :assignee: sbible
+
+        :CaseLevel: System
+
+        :Steps:
+            1. Register a RHEL host to Satellite.
+            2. Import all roles available by default.
+            3. Create a host group and assign one of the Ansible roles to the host group.
+            4. Assign the host to the host group.
+            5. Assign one role to the RHEL host.
+            6. Navigate to the new UI for the given Host.
+            7. Select the 'Ansible' tab, then the 'Inventory' sub-tab.
+
+        :expectedresults: Roles assigned directly to the Host are visible on the subtab, and
+            roles assigned to the Host Group are visible by clicking the "view all assigned
+            roles" link
+
+        """
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier2
+    def test_positive_role_variable_information(self):
+        """Create and assign variables to an Ansible Role and verify that the information in
+        the new UI is displayed correctly
+
+        :id: 4ab2813a-6b83-4907-b104-0473465814f5
+
+        :caseComponent: Ansible
+
+        :assignee: sbible
+
+        :CaseLevel: System
+
+        :Steps:
+            1. Register a RHEL host to Satellite.
+            2. Import all roles available by default.
+            3. Create a host group and assign one of the Ansible roles to the host group.
+            4. Assign the host to the host group.
+            5. Assign one roles to the RHEL host.
+            6. Create a variable and associate it with the role assigned to the Host.
+            7. Create a variable and associate it with the role assigned to the Hostgroup.
+            8. Navigate to the new UI for the given Host.
+            9. Select the 'Ansible' tab, then the 'Variables' sub-tab.
+
+        :expectedresults: The variables information for the given Host is visible.
+
+        """
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier2
+    def test_positive_assign_role_in_new_ui(self):
+        """Using the new Host UI, assign a role to a Host
+
+        :id: 044f38b4-cff2-4ddc-b93c-7e9f2826d00d
+
+        :caseComponent: Ansible
+
+        :assignee: sbible
+
+        :CaseLevel: System
+
+        :Steps:
+            1. Register a RHEL host to Satellite.
+            2. Import all roles available by default.
+            3. Navigate to the new UI for the given Host.
+            4. Select the 'Ansible' tab
+            5. Click the 'Assign Ansible Roles' button.
+            6. Using the popup, assign a role to the Host.
+
+        :expectedresults: The Role is successfully assigned to the Host, and shows up on the UI
+
+        """
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier2
+    def test_positive_remove_role_in_new_ui(self):
+        """Using the new Host UI, remove the role(s) of a Host
+
+        :id: d6de5130-45f6-4349-b490-fbde2aed082c
+
+        :caseComponent: Ansible
+
+        :assignee: sbible
+
+        :CaseLevel: System
+
+        :Steps:
+            1. Register a RHEL host to Satellite.
+            2. Import all roles available by default.
+            3. Assign a role to the host.
+            4. Navigate to the new UI for the given Host.
+            5. Select the 'Ansible' tab
+            6. Click the 'Edit Ansible roles' button.
+            7. Using the popup, remove the assigned role from the Host.
+
+        :expectedresults: The Role is successfully removed from the Host, and no longer shows
+            up on the UI
+
+        """
