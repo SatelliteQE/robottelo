@@ -2019,3 +2019,233 @@ def test_positive_cockpit(session, default_sat):
         ), 'cockpit page shows hostname {} instead of {}'.format(
             hostname_inside_cockpit, default_sat.hostname
         )
+
+
+@pytest.mark.tier2
+def test_positive_inherit_puppet_env_from_host_group_when_create(
+    session_puppet_enabled_sat, module_env_search, module_puppet_org, module_puppet_loc
+):
+    """Host group puppet environment is inherited to host in create
+    procedure
+
+    :id: 05831ecc-3132-4eb7-ad90-155470f331b6
+
+    :customerscenario: true
+
+    :expectedresults: Expected puppet environment is inherited to the form
+
+    :BZ: 1414914
+
+    :CaseLevel: Integration
+    """
+
+    hg_name = gen_string('alpha')
+    with session_puppet_enabled_sat.ui_session() as session:
+        session.organization.select(org_name=module_puppet_org.name)
+        session.location.select(loc_name=module_puppet_loc.name)
+        session.hostgroup.create(
+            {'host_group.name': hg_name, 'host_group.puppet_environment': module_env_search.name}
+        )
+        assert session.hostgroup.search(hg_name)[0]['Name'] == hg_name
+        values = session.host.helper.read_create_view(
+            {}, ['host.puppet_environment', 'host.inherit_puppet_environment']
+        )
+        assert not values['host']['puppet_environment']
+        assert values['host']['inherit_puppet_environment'] is False
+        values = session.host.helper.read_create_view(
+            {'host.hostgroup': hg_name},
+            ['host.puppet_environment', 'host.inherit_puppet_environment'],
+        )
+        assert values['host']['puppet_environment'] == module_env_search.name
+        assert values['host']['inherit_puppet_environment'] is True
+        values = session.host.helper.read_create_view(
+            {'host.inherit_puppet_environment': False},
+            ['host.puppet_environment', 'host.inherit_puppet_environment'],
+        )
+        assert values['host']['puppet_environment'] == module_env_search.name
+        assert values['host']['inherit_puppet_environment'] is False
+
+
+@pytest.mark.tier3
+@pytest.mark.usefixtures('module_puppet_enabled_proxy_with_loc')
+def test_positive_set_multi_line_and_with_spaces_parameter_value(
+    session_puppet_enabled_sat,
+    module_puppet_org,
+    module_puppet_loc,
+    module_puppet_published_cv,
+    module_puppet_lce_library,
+):
+    """Check that host parameter value with multi-line and spaces is
+    correctly represented in yaml format
+
+    :id: d72b481d-2279-4478-ab2d-128f92c76d9c
+
+    :customerscenario: true
+
+    :expectedresults:
+        1. parameter is correctly represented in yaml format without
+           line break (special chars should be escaped)
+        2. host parameter value is the same when restored from yaml format
+
+    :BZ: 1315282
+
+    :CaseLevel: System
+    """
+    host_template = session_puppet_enabled_sat.api.Host(
+        organization=module_puppet_org, location=module_puppet_loc
+    )
+    host_template.create_missing()
+
+    param_name = gen_string('alpha').lower()
+    # long string that should be escaped and affected by line break with
+    # yaml dump by default
+    param_value = (
+        'auth                          include              '
+        'password-auth\r\n'
+        'account     include                  password-auth'
+    )
+    host = session_puppet_enabled_sat.api.Host(
+        organization=host_template.organization,
+        architecture=host_template.architecture,
+        domain=host_template.domain,
+        location=host_template.location,
+        mac=host_template.mac,
+        medium=host_template.medium,
+        operatingsystem=host_template.operatingsystem,
+        ptable=host_template.ptable,
+        root_pass=host_template.root_pass,
+        content_facet_attributes={
+            'content_view_id': module_puppet_published_cv.id,
+            'lifecycle_environment_id': module_puppet_lce_library.id,
+        },
+    ).create()
+    with session_puppet_enabled_sat.ui_session() as session:
+        session.organization.select(org_name=module_puppet_org.name)
+        session.location.select(loc_name=module_puppet_loc.name)
+        session.host.update(
+            host.name, {'parameters.host_params': [dict(name=param_name, value=param_value)]}
+        )
+        yaml_text = session.host.read_yaml_output(host.name)
+        # ensure parameter value is represented in yaml format without
+        # line break (special chars should be escaped)
+        assert param_value.encode('unicode_escape') in bytes(yaml_text, 'utf-8')
+        # host parameter value is the same when restored from yaml format
+        yaml_content = yaml.load(yaml_text, yaml.SafeLoader)
+        host_parameters = yaml_content.get('parameters')
+        assert host_parameters
+        assert param_name in host_parameters
+        assert host_parameters[param_name] == param_value
+
+
+class TestHostAnsible:
+    """Tests for Ansible portion of Hosts"""
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier2
+    def test_positive_host_role_information(self):
+        """Assign Ansible Role to a Host and an attached Host group and verify that the information
+        in the new UI is displayed correctly
+
+        :id: 7da913ef-3b43-4bfa-9a45-d895431c8b56
+
+        :caseComponent: Ansible
+
+        :assignee: sbible
+
+        :CaseLevel: System
+
+        :Steps:
+            1. Register a RHEL host to Satellite.
+            2. Import all roles available by default.
+            3. Create a host group and assign one of the Ansible roles to the host group.
+            4. Assign the host to the host group.
+            5. Assign one role to the RHEL host.
+            6. Navigate to the new UI for the given Host.
+            7. Select the 'Ansible' tab, then the 'Inventory' sub-tab.
+
+        :expectedresults: Roles assigned directly to the Host are visible on the subtab, and
+            roles assigned to the Host Group are visible by clicking the "view all assigned
+            roles" link
+
+        """
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier2
+    def test_positive_role_variable_information(self):
+        """Create and assign variables to an Ansible Role and verify that the information in
+        the new UI is displayed correctly
+
+        :id: 4ab2813a-6b83-4907-b104-0473465814f5
+
+        :caseComponent: Ansible
+
+        :assignee: sbible
+
+        :CaseLevel: System
+
+        :Steps:
+            1. Register a RHEL host to Satellite.
+            2. Import all roles available by default.
+            3. Create a host group and assign one of the Ansible roles to the host group.
+            4. Assign the host to the host group.
+            5. Assign one roles to the RHEL host.
+            6. Create a variable and associate it with the role assigned to the Host.
+            7. Create a variable and associate it with the role assigned to the Hostgroup.
+            8. Navigate to the new UI for the given Host.
+            9. Select the 'Ansible' tab, then the 'Variables' sub-tab.
+
+        :expectedresults: The variables information for the given Host is visible.
+
+        """
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier2
+    def test_positive_assign_role_in_new_ui(self):
+        """Using the new Host UI, assign a role to a Host
+
+        :id: 044f38b4-cff2-4ddc-b93c-7e9f2826d00d
+
+        :caseComponent: Ansible
+
+        :assignee: sbible
+
+        :CaseLevel: System
+
+        :Steps:
+            1. Register a RHEL host to Satellite.
+            2. Import all roles available by default.
+            3. Navigate to the new UI for the given Host.
+            4. Select the 'Ansible' tab
+            5. Click the 'Assign Ansible Roles' button.
+            6. Using the popup, assign a role to the Host.
+
+        :expectedresults: The Role is successfully assigned to the Host, and shows up on the UI
+
+        """
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier2
+    def test_positive_remove_role_in_new_ui(self):
+        """Using the new Host UI, remove the role(s) of a Host
+
+        :id: d6de5130-45f6-4349-b490-fbde2aed082c
+
+        :caseComponent: Ansible
+
+        :assignee: sbible
+
+        :CaseLevel: System
+
+        :Steps:
+            1. Register a RHEL host to Satellite.
+            2. Import all roles available by default.
+            3. Assign a role to the host.
+            4. Navigate to the new UI for the given Host.
+            5. Select the 'Ansible' tab
+            6. Click the 'Edit Ansible roles' button.
+            7. Using the popup, remove the assigned role from the Host.
+
+        :expectedresults: The Role is successfully removed from the Host, and no longer shows
+            up on the UI
+
+        """
