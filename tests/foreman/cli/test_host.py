@@ -42,7 +42,6 @@ from robottelo.cli.host import HostInterface
 from robottelo.cli.host import HostTraces
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.package import Package
-from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -1856,15 +1855,6 @@ def test_positive_install_package_via_rex(
 def host_subscription_client(rhel7_contenthost, target_sat):
     rhel7_contenthost.install_katello_ca(target_sat)
     yield rhel7_contenthost
-
-
-@pytest.fixture(scope='module')
-def default_subscription(module_org_with_manifest):
-    subscription = Subscription.exists(
-        {'organization-id': module_org_with_manifest.id}, ('name', SATELLITE_SUBSCRIPTION_NAME)
-    )
-    assert len(subscription) > 0
-    return subscription
 
 
 @pytest.fixture

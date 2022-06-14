@@ -52,7 +52,7 @@ def module_rhst_repo(module_target_sat, module_org_with_manifest, module_promote
         reposet=REPOSET['rhst7'],
         releasever=None,
     )
-    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
     cv = module_target_sat.api.ContentView(id=module_promoted_cv.id, repository=[rh_repo]).update(
         ["repository"]

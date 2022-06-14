@@ -17,10 +17,8 @@
 import pytest
 import requests
 
-from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
-from robottelo.api.utils import upload_manifest
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
@@ -90,12 +88,6 @@ def ssl_cert(module_target_sat, module_org):
     ).create()
 
 
-@pytest.fixture(scope='module')
-def manifest(module_org):
-    with manifests.clone() as manifest:
-        upload_manifest(module_org.id, manifest.content)
-
-
 @pytest.fixture
 def activation_key_rhel(target_sat, module_org, module_lce, module_promoted_cv, version):
     """Create activation key that will be used after conversion for registration"""
@@ -107,7 +99,7 @@ def activation_key_rhel(target_sat, module_org, module_lce, module_promoted_cv, 
 
 
 @pytest.fixture(scope='module')
-def enable_rhel_subscriptions(module_target_sat, module_org, manifest, version):
+def enable_rhel_subscriptions(module_target_sat, module_org_with_manifest, version):
     """Enable and sync RHEL rpms repos"""
     major = version.split('.')[0]
     minor = ""
@@ -122,7 +114,7 @@ def enable_rhel_subscriptions(module_target_sat, module_org, manifest, version):
     for name in repo_names:
         rh_repo_id = enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_org.id,
+            org_id=module_org_with_manifest.id,
             product=REPOS[name]['product'],
             repo=REPOS[name]['name'] + minor,
             reposet=REPOS[name]['reposet'],

@@ -1,10 +1,22 @@
 import pytest
 
+from robottelo.cli.subscription import Subscription
+from robottelo.constants import SATELLITE_SUBSCRIPTION_NAME
+
 
 @pytest.fixture(scope='session')
 def clean_rhsm(session_target_sat):
     """removes pre-existing candlepin certs and resets RHSM."""
     session_target_sat.remove_katello_ca()
+
+
+@pytest.fixture(scope='module')
+def default_subscription(module_org_with_manifest):
+    subscription = Subscription.exists(
+        {'organization-id': module_org_with_manifest.id}, ('name', SATELLITE_SUBSCRIPTION_NAME)
+    )
+    assert len(subscription)
+    return subscription
 
 
 @pytest.fixture(scope='module')

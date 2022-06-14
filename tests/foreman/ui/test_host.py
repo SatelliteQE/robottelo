@@ -31,11 +31,9 @@ from airgun.session import Session
 from wait_for import wait_for
 
 from robottelo import constants
-from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import cv_publish_promote
 from robottelo.api.utils import promote
-from robottelo.api.utils import upload_manifest
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
@@ -239,25 +237,17 @@ def module_libvirt_hostgroup(
 
 
 @pytest.fixture(scope='module')
-def manifest_org(module_org):
-    """Upload manifest to organization."""
-    with manifests.clone() as manifest:
-        upload_manifest(module_org.id, manifest.content)
-    return module_org
-
-
-@pytest.fixture(scope='module')
-def module_activation_key(manifest_org, module_target_sat):
+def module_activation_key(module_org_with_manifest, module_target_sat):
     """Create activation key using default CV and library environment."""
     activation_key = module_target_sat.api.ActivationKey(
         auto_attach=True,
-        content_view=manifest_org.default_content_view.id,
-        environment=manifest_org.library.id,
-        organization=manifest_org,
+        content_view=module_org_with_manifest.default_content_view.id,
+        environment=module_org_with_manifest.library.id,
+        organization=module_org_with_manifest,
     ).create()
 
     # Find the 'Red Hat Employee Subscription' and attach it to the activation key.
-    for subs in module_target_sat.api.Subscription(organization=manifest_org).search():
+    for subs in module_target_sat.api.Subscription(organization=module_org_with_manifest).search():
         if subs.name == DEFAULT_SUBSCRIPTION_NAME:
             # 'quantity' must be 1, not subscription['quantity']. Greater
             # values produce this error: 'RuntimeError: Error: Only pools
