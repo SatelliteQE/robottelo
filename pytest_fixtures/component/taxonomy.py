@@ -1,4 +1,4 @@
-# Contenxt Component fixtures
+# Content Component fixtures
 import pytest
 
 from robottelo import manifests
