@@ -125,3 +125,57 @@ def test_positive_run_custom_job_template_by_ip(
         )
         status = session.jobinvocation.read(entity_name=job_description, host_name=hostname)
         assert status['overview']['hosts_table'][0]['Status'] == 'success'
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_positive_schedule_recurring_host_job(self):
+    """Using the new Host UI, schedule a recurring job on a Host
+
+    :id: 5052be04-28ab-4349-8bee-851ef76e4ffa
+
+    :caseComponent: Ansible
+
+    :assignee: sbible
+
+    :Steps:
+        1. Register a RHEL host to Satellite.
+        2. Import all roles available by default.
+        3. Assign a role to host.
+        4. Navigate to the new UI for the given Host.
+        5. Select the Jobs subtab.
+        6. Click the Schedule Recurring Job button, and using the popup, schedule a
+            recurring Job.
+        7. Navigate to Job Invocations.
+
+    :expectedresults: The scheduled Job appears in the Job Invocation list at the appointed
+        time
+
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_positive_schedule_recurring_hostgroup_job(self):
+    """Using the new recurring job scheduler, schedule a recurring job on a Hostgroup
+
+    :id: c65db99b-11fe-4a32-89d0-0a4692b07efe
+
+    :caseComponent: Ansible
+
+    :assignee: sbible
+
+    :Steps:
+        1. Register a RHEL host to Satellite.
+        2. Import all roles available by default.
+        3. Assign a role to host.
+        4. Navigate to the Host Group page.
+        5. Select the "Configure Ansible Job" action.
+        6. Click the Schedule Recurring Job button, and using the popup, schedule a
+            recurring Job.
+        7. Navigate to Job Invocations.
+
+    :expectedresults: The scheduled Job appears in the Job Invocation list at the appointed
+        time
+
+    """
