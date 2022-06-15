@@ -8,7 +8,7 @@
 
 :CaseComponent: RemoteExecution
 
-:Assignee: sbible
+:Assignee: pondrejk
 
 :TestType: Functional
 
@@ -897,7 +897,7 @@ class TestAnsibleREX:
 
         :CaseComponent: Ansible
 
-        :Assignee: dsynk
+        :Assignee: sbible
         """
 
         # Configure repository to prepare for installing ansible on host
