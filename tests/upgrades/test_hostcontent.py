@@ -33,11 +33,11 @@ class TestScenarioDBseedHostMismatch:
         1. Before Satellite upgrade
         2. Create a New Organization and Location
         3. Create a Content Host in the Organization
-        4. Ensure the Org is not in the Location
-        4. Assign the Content Host to the Location using the rake console
-        7. Ensure the Host is in both but the Org is not in Location, creating a mismatch
-        8. Upgrade Satellite
-        9. Ensure upgrade succeeds
+        4. Ensure the Location is not in the Org
+        5. Assign the Content Host to the Location using the rake console
+        6. Ensure the Host is in both but the Location is not in Org, creating a mismatch
+        7. Upgrade Satellite
+        8. Ensure upgrade succeeds
 
     BZ: 2043705, 2028786, 2019467
     """
@@ -45,18 +45,18 @@ class TestScenarioDBseedHostMismatch:
     @pytest.mark.pre_upgrade
     def test_pre_db_seed_host_mismatch(self, target_sat):
         """
-        :id: 28861b9f-8abd-4efc-bfd5-40b7e825a941
+        :id: preupgrade-28861b9f-8abd-4efc-bfd5-40b7e825a941
 
         :steps:
             1. Create a Location
-            2. Create an Org and ensure the Org is not in the Location
+            2. Create an Org and ensure the Location is not in the Org
             3. Create a Content Host on Org
             4. Use rake console to assign the Content Host to the Location
-            5. Ensure the mismatch is created for Content Host when Org is not in the Location
+            5. Ensure the mismatch is created for Content Host when Location is not in the Org
             6. Do the upgrade
 
         :expectedresults:
-            1. The Content Host is assigned to both Location and Org, but Org is not in Location
+            1. The Content Host is assigned to both Location and Org, but Location is not in Org
 
         :BZ: 2043705, 2028786, 2019467
 
