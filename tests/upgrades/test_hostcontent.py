@@ -106,4 +106,5 @@ class TestScenarioDBseedHostMismatch:
         assert org_id == chost[0].organization.id
         assert loc_id == chost[0].location.id
 
-        VMBroker().from_inventory(f'hostname<{chostname}').checkin()
+        match = VMBroker().from_inventory(f'hostname<{chostname}')
+        VMBroker(hosts=match).checkin()
