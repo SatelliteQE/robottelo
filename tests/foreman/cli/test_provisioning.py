@@ -32,6 +32,24 @@ from robottelo.config import settings
 from robottelo.hosts import ContentHost
 
 
+@pytest.fixture(scope='module')
+def module_location(module_manifest_org, module_target_sat):
+    return module_target_sat.api.Location(organization=[module_manifest_org]).create()
+
+
+# use internal Capsule
+@pytest.fixture(scope='module')
+def provisioning_capsule(module_target_sat, module_location):
+    capsule = (
+        module_target_sat.api.SmartProxy()
+        .search(query={'search': f'name={module_target_sat.hostname}'})[0]
+        .read()
+    )
+    capsule.location = [module_location]
+    capsule.update(['location'])
+    return capsule
+
+
 # TODO: sync at the module level?
 @pytest.fixture(scope="module")
 def provisioning_rhel_content(request, module_target_sat, module_manifest_org):
@@ -85,6 +103,7 @@ def provisioning_sat(
     module_location,
     default_architecture,
     default_partitiontable,
+    provisioning_capsule,
 ):
     sat = module_target_sat
     host_root_pass = settings.provisioning.host_root_password
@@ -97,7 +116,7 @@ def provisioning_sat(
         target_vlan_id=settings.provisioning.vlan_id,
         target_host=sat.name,
         provisioning_dns_zone=provisioning_domain_name,
-        sat_version=settings.server.version.release,
+        sat_version=str(settings.server.version.release),
         AnsibleTower='testing',
     )
 
@@ -127,11 +146,6 @@ def provisioning_sat(
         broker_data_out.provisioning_upstream_dns.pop()
         if len(broker_data_out.provisioning_upstream_dns)
         else None
-    )
-
-    # use internal Capsule
-    provisioning_capsule = (
-        sat.api.SmartProxy().search(query={'search': f'name={sat.hostname}'})[0].read()
     )
 
     domain = sat.api.Domain(
@@ -211,6 +225,7 @@ def provisioning_contenthost():
         target_vlan_id=vlan_id,
         target_vm_firmware=vm_firmware,
         target_vm_cd_iso=cd_iso,
+        AnsibleTower='testing',
     ) as host:
         yield host
 
@@ -266,10 +281,11 @@ def test_rhel_pxe_provisioning_on_rhv(
     """
     bios_firmware = "BIOS"  # TODO: teach the test to use this parameter
     bios_firmware
-    # TODO: get mac addr from the broker inventory
-    # host_mac_addr = provisioning_contenthost.mac_addr
+    # TODO fix mac addr nested argument in satlab-tower
+    host_mac_addr = provisioning_contenthost._broker_args['provisioning_nic_mac_addr']['address']
+    sat = provisioning_sat.sat
 
-    host = provisioning_sat.api.Host(
+    host = sat.api.Host(
         hostgroup=provisioning_sat.hostgroup,
         organization=module_manifest_org,
         location=module_location,
@@ -278,10 +294,10 @@ def test_rhel_pxe_provisioning_on_rhv(
             'lifecycle_environment_id': provisioning_sat.lce.id,
         },
         name=gen_string('alpha').lower(),
-        # mac=host_mac_addr,
+        mac=host_mac_addr,
         operatingsystem=provisioning_rhel_content.os,
         subnet=provisioning_sat.subnet,
-        # ip="10.1.5.91"  # TODO how to get IP from the Satellite API?
+        build=True,  # put the host to build mode
     ).create(create_missing=False)
 
     host
