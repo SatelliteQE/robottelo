@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentCredentials
 
-:Assignee: swadeley
+:Assignee: spusater
 
 :TestType: Functional
 
