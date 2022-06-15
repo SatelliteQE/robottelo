@@ -111,11 +111,13 @@ def test_positive_end_to_end(session):
             file_handler.write(manifest.content.read())
     with session:
         session.organization.select(org.name)
-        # Ignore "404 Not Found" as server will connect to upstream subscription service to verify
+        # Ignore "Danger alert: Katello::Errors::UpstreamConsumerNotFound'" as server will connect
+        # to upstream subscription service to verify
         # the consumer uuid, that will be displayed in flash error messages
         # Note: this happen only when using clone manifest.
         session.subscription.add_manifest(
-            temporary_local_manifest_path, ignore_error_messages=['404 Not Found']
+            temporary_local_manifest_path,
+            ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound'],
         )
         assert session.subscription.has_manifest
         # dashboard check
@@ -130,14 +132,16 @@ def test_positive_end_to_end(session):
         delete_message = session.subscription.read_delete_manifest_message()
         assert ' '.join(expected_message_lines) == delete_message
         assert session.subscription.has_manifest
-        session.subscription.delete_manifest(ignore_error_messages=['404 Not Found'])
+        session.subscription.delete_manifest(
+            ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound']
+        )
         assert not session.subscription.has_manifest
 
 
 @pytest.mark.tier2
 def test_positive_access_with_non_admin_user_without_manifest(test_name):
-    """Access subscription page with user that has only view_subscriptions
-    permission and organization that has no manifest uploaded.
+    """Access subscription page with non admin user that has the necessary
+    permissions to check that there is no manifest uploaded.
 
     :id: dab9dc15-39a8-4105-b7ff-ecef909dc6e6
 
@@ -151,7 +155,18 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name):
     """
     org = entities.Organization().create()
     role = entities.Role(organization=[org]).create()
-    create_role_permissions(role, {'Katello::Subscription': ['view_subscriptions']})
+    create_role_permissions(
+        role,
+        {
+            'Katello::Subscription': [
+                'view_subscriptions',
+                'manage_subscription_allocations',
+                'import_manifest',
+                'delete_manifest',
+            ],
+            'Organization': ['view_organizations', 'edit_organizations'],
+        },
+    )
     user_password = gen_string('alphanumeric')
     user = entities.User(
         admin=False,
@@ -161,14 +176,13 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name):
         default_organization=org,
     ).create()
     with Session(test_name, user=user.login, password=user_password) as session:
-        assert not session.subscription.search('')
         assert not session.subscription.has_manifest
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_access_with_non_admin_user_with_manifest(test_name):
-    """Access subscription page with user that has only view_subscriptions
+    """Access subscription page with user that has only view_subscriptions and view organizations
     permission and organization that has a manifest uploaded.
 
     :id: 9184fcf6-36be-42c8-984c-3c5d7834b3b4
@@ -187,7 +201,11 @@ def test_positive_access_with_non_admin_user_with_manifest(test_name):
     org = entities.Organization().create()
     manifests.upload_manifest_locked(org.id)
     role = entities.Role(organization=[org]).create()
-    create_role_permissions(role, {'Katello::Subscription': ['view_subscriptions']})
+    # create_role_permissions(role, {'Katello::Subscription': ['view_subscriptions']})
+    create_role_permissions(
+        role,
+        {'Katello::Subscription': ['view_subscriptions'], 'Organization': ['view_organizations']},
+    )
     user_password = gen_string('alphanumeric')
     user = entities.User(
         admin=False,
@@ -239,7 +257,9 @@ def test_positive_access_manifest_as_another_admin_user(test_name):
     with Session(test_name, user=user2.login, password=user2_password) as session:
         assert session.subscription.has_manifest
         assert rh_subs == session.subscription.search("Red Hat")
-        session.subscription.delete_manifest(ignore_error_messages=['404 Not Found'])
+        session.subscription.delete_manifest(
+            ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound']
+        )
         assert not session.subscription.has_manifest
 
 
@@ -397,8 +417,9 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
         2. Click selectable customizable column icon next to search button
         3. Iterate through list of checkboxes
         4. Unchecks all ticked checkboxes
-        5. Verify that the table header column doesn't have any headers from
-           checkboxes
+        5. Verify that the table header column is empty after filter
+        6. Check all ticked checkboxes
+        7. Verify that the table header column is the same as the Checkbox_dict
 
         Note: Table header will always contain 'Select all rows' header in html,
         but will not be displayed in UI
@@ -410,12 +431,12 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
     """
     checkbox_dict = {
         'Name': False,
-        'Type': False,
         'SKU': False,
         'Contract': False,
         'Start Date': False,
         'End Date': False,
         'Requires Virt-Who': False,
+        'Type': False,
         'Consumed': False,
         'Entitlements': False,
     }
@@ -427,18 +448,21 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
 
     with session:
         session.organization.select(org.name)
-        # Ignore "404 Not Found" as server will connect to upstream subscription service to verify
+        # Ignore "Danger alert: Katello::Errors::UpstreamConsumerNotFound" as server will connect
+        # to upstream subscription service to verify
         # the consumer uuid, that will be displayed in flash error messages
         # Note: this happen only when using clone manifest.
         session.subscription.add_manifest(
-            temporary_local_manifest_path, ignore_error_messages=['404 Not Found']
+            temporary_local_manifest_path,
+            ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound'],
         )
         headers = session.subscription.filter_columns(checkbox_dict)
-        assert headers[0] not in list(checkbox_dict)
+        assert not headers
+        assert len(checkbox_dict) == 9
         time.sleep(3)
         checkbox_dict.update((k, True) for k in checkbox_dict)
         col = session.subscription.filter_columns(checkbox_dict)
-        assert set(col[1:]) == set(checkbox_dict)
+        assert set(col) == set(checkbox_dict)
 
 
 @pytest.mark.tier3
