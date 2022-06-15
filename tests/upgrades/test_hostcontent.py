@@ -1,4 +1,4 @@
-"""Test Hosts Content related Upgrade Scenarios
+"""Test Hosts-Content related Upgrade Scenarios
 
 :Requirement: UpgradedSatellite
 
@@ -25,7 +25,7 @@ from robottelo.hosts import ContentHost
 
 
 class TestScenarioDBseedHostMismatch:
-    """This test scenenario veryfies that the upgrade succeeds even when inconsistencies exist
+    """This test scenario verifies that the upgrade succeeds even when inconsistencies exist
     in the database between Organization, Location and Content Host.
 
     Test Steps:
@@ -70,12 +70,10 @@ class TestScenarioDBseedHostMismatch:
         chost_vm.install_katello_ca(target_sat)
         chost_vm.register_contenthost(org=org.label, lce='Library')
 
-        chost = target_sat.api.Host().search(query={'search': chost_vm.hostname})
-
-        assert chost[0].organization.id == org.id
+        assert chost_vm.nailgun_host.organization.id == org.id
 
         # Now we need to break the taxonomy between chost, org and location
-        rake_host = f"host = ::Host.find({chost[0].id})"
+        rake_host = f"host = ::Host.find({chost_vm.nailgun_host.id})"
         rake_organization = f"; host.location_id={loc.id}"
         rake_host_save = "; host.save!"
         result = target_sat.run(
@@ -83,8 +81,7 @@ class TestScenarioDBseedHostMismatch:
         )
 
         assert 'true' in result.stdout
-        chost = target_sat.api.Host().search(query={'search': chost_vm.hostname})
-        assert chost[0].location.id == loc.id
+        assert chost_vm.nailgun_host.location.id == loc.id
 
         global_dict = {
             self.__class__.__name__: {
@@ -109,4 +106,4 @@ class TestScenarioDBseedHostMismatch:
         assert org_id == chost[0].organization.id
         assert loc_id == chost[0].location.id
 
-        VMBroker(host=chost).checkin()
+        VMBroker().from_inventory(f'hostname<{chostname}').checkin()
