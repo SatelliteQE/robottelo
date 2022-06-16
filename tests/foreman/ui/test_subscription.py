@@ -201,7 +201,6 @@ def test_positive_access_with_non_admin_user_with_manifest(test_name):
     org = entities.Organization().create()
     manifests.upload_manifest_locked(org.id)
     role = entities.Role(organization=[org]).create()
-    # create_role_permissions(role, {'Katello::Subscription': ['view_subscriptions']})
     create_role_permissions(
         role,
         {'Katello::Subscription': ['view_subscriptions'], 'Organization': ['view_organizations']},
