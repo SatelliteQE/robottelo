@@ -1,5 +1,5 @@
 import pytest
-from broker.broker import VMBroker
+from broker import Broker
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -13,7 +13,7 @@ def rhcloud_sat_host(satellite_factory):
     """A module level fixture that provides a Satellite based on config settings"""
     new_sat = satellite_factory()
     yield new_sat
-    VMBroker(hosts=[new_sat]).checkin()
+    Broker(hosts=[new_sat]).checkin()
 
 
 @pytest.fixture(scope='module')

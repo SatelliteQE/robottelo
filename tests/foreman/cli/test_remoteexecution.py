@@ -21,7 +21,7 @@ from datetime import timedelta
 from time import sleep
 
 import pytest
-from broker import VMBroker
+from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 from wait_for import wait_for
@@ -48,7 +48,7 @@ from robottelo.utils.issue_handlers import is_open
 def fixture_vmsetup(request, module_org, target_sat):
     """Create VM and register content host"""
     if '_count' in request.param.keys():
-        with VMBroker(
+        with Broker(
             nick=request.param['nick'],
             host_classes={'host': ContentHost},
             _count=request.param['_count'],
@@ -57,7 +57,7 @@ def fixture_vmsetup(request, module_org, target_sat):
                 client.configure_rex(satellite=target_sat, org=module_org)
             yield clients
     else:
-        with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
+        with Broker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
             client.configure_rex(satellite=target_sat, org=module_org)
             yield client
 
@@ -66,7 +66,7 @@ def fixture_vmsetup(request, module_org, target_sat):
 def fixture_sca_vmsetup(request, module_gt_manifest_org, target_sat):
     """Create VM and register content host to Simple Content Access organization"""
     if '_count' in request.param.keys():
-        with VMBroker(
+        with Broker(
             nick=request.param['nick'],
             host_classes={'host': ContentHost},
             _count=request.param['_count'],
@@ -75,7 +75,7 @@ def fixture_sca_vmsetup(request, module_gt_manifest_org, target_sat):
                 client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
             yield clients
     else:
-        with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
+        with Broker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
             client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
             yield client
 

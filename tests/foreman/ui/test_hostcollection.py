@@ -19,7 +19,7 @@
 import time
 
 import pytest
-from broker import VMBroker
+from broker import Broker
 from nailgun import entities
 
 from robottelo import constants
@@ -78,7 +78,7 @@ def module_repos_collection_module_stream(module_org, module_lce):
 @pytest.fixture
 def vm_content_hosts(smart_proxy_location, module_repos_collection, target_sat):
     distro = module_repos_collection.distro
-    with VMBroker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
+    with Broker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
             module_repos_collection.setup_virtual_machine(
                 client, target_sat, install_katello_agent=False
@@ -93,7 +93,7 @@ def vm_content_hosts_module_stream(
     smart_proxy_location, module_repos_collection_module_stream, target_sat
 ):
     distro = module_repos_collection_module_stream.distro
-    with VMBroker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
+    with Broker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
             module_repos_collection_module_stream.setup_virtual_machine(
                 client, target_sat, install_katello_agent=False
