@@ -93,8 +93,18 @@ class TestScenarioDBseedHostMismatch:
 
     @pytest.mark.post_upgrade(depend_on=test_pre_db_seed_host_mismatch)
     def test_post_db_seed_host_mismatch(self, target_sat):
-        """Check whether the upgrade succeeds, and ensure Content Host
-        exists on the Satellite and has not had any attributes changed
+        """
+        :id: postupgrade-28861b9f-8abd-4efc-bfd5-40b7e825a941
+
+        :steps:
+            1. After the upgrade finishes ensure the content host data is unchanged
+
+        :expectedresults:
+            1. The upgrade succeeds and content host exists
+
+        :BZ: 2043705, 2028786, 2019467
+
+        :customerscenario: true
         """
         data = get_entity_data(self.__class__.__name__)
         chostname = data['client_name']
