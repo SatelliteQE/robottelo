@@ -17,11 +17,8 @@
 :Upstream: No
 """
 import pytest
-from broker.broker import VMBroker
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
-
-from robottelo.hosts import ContentHost
 
 
 class TestScenarioDBseedHostMismatch:
@@ -43,7 +40,9 @@ class TestScenarioDBseedHostMismatch:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_db_seed_host_mismatch(self, target_sat, function_org, function_location):
+    def test_pre_db_seed_host_mismatch(
+        self, target_sat, function_org, function_location, rhel7_contenthost_module
+    ):
         """
         :id: preupgrade-28861b9f-8abd-4efc-bfd5-40b7e825a941
 
@@ -62,16 +61,13 @@ class TestScenarioDBseedHostMismatch:
 
         :customerscenario: true
         """
+        rhel7_contenthost_module.install_katello_ca(target_sat)
+        rhel7_contenthost_module.register_contenthost(org=function_org.label, lce='Library')
 
-        chost_vm = VMBroker(nick='rhel7', host_classes={'host': ContentHost}).checkout()
-
-        chost_vm.install_katello_ca(target_sat)
-        chost_vm.register_contenthost(org=function_org.label, lce='Library')
-
-        assert chost_vm.nailgun_host.organization.id == function_org.id
+        assert rhel7_contenthost_module.nailgun_host.organization.id == function_org.id
 
         # Now we need to break the taxonomy between chost, org and location
-        rake_host = f"host = ::Host.find({chost_vm.nailgun_host.id})"
+        rake_host = f"host = ::Host.find({rhel7_contenthost_module.nailgun_host.id})"
         rake_location = f"; host.location_id={function_location.id}"
         rake_host_save = "; host.save!"
         result = target_sat.run(
@@ -79,11 +75,11 @@ class TestScenarioDBseedHostMismatch:
         )
 
         assert 'true' in result.stdout
-        assert chost_vm.nailgun_host.location.id == function_location.id
+        assert rhel7_contenthost_module.nailgun_host.location.id == function_location.id
 
         global_dict = {
             self.__class__.__name__: {
-                'client_name': chost_vm.hostname,
+                'client_name': rhel7_contenthost_module.hostname,
                 'organization_id': function_org.id,
                 'location_id': function_location.id,
             }
@@ -114,6 +110,3 @@ class TestScenarioDBseedHostMismatch:
 
         assert org_id == chost[0].organization.id
         assert loc_id == chost[0].location.id
-
-        match = VMBroker().from_inventory(f'hostname<{chostname}')
-        VMBroker(hosts=match).checkin()
