@@ -96,7 +96,7 @@ def repos_collection_for_module_streams(module_org):
         repositories=[
             YumRepository(url=settings.repos.rhel8_os.baseos),
             YumRepository(url=settings.repos.rhel8_os.appstream),
-            YumRepository(url=settings.repos.sattools_repo[DISTRO_RHEL8]),
+            YumRepository(url=settings.repos.satutils_repo),
             YumRepository(url=settings.repos.module_stream_1.url),
         ],
     )
