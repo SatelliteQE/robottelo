@@ -255,7 +255,7 @@ class TestRemoteExecution:
 
     @pytest.mark.destructive
     @pytest.mark.rhel_ver_list([7])
-    def test_positive_use_alternate_directory(self, rex_contenthost, module_org, target_sat):
+    def test_positive_use_alternate_directory(self, rex_contenthost, target_sat):
         """Use alternate working directory on client to execute rex jobs
 
         :id: a0181f18-d3dc-4bd9-a2a6-430c2a49809e
