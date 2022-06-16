@@ -16,7 +16,6 @@ from robottelo.datafactory import gen_string
 from robottelo.hosts import ContentHost
 from robottelo.rhsso_utils import create_mapper
 from robottelo.rhsso_utils import get_rhsso_client_id
-from robottelo.rhsso_utils import run_command
 from robottelo.rhsso_utils import set_the_redirect_uri
 
 
@@ -145,12 +144,14 @@ def auth_source_open_ldap(module_org, module_location, open_ldap_data):
 
 
 @pytest.fixture
-def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data, open_ldap_data):
+def ldap_auth_source(
+    request, module_org, module_location, ad_data, ipa_data, open_ldap_data, module_target_sat
+):
     auth_type = request.param.lower()
     if 'ad' in auth_type:
         ad_data = ad_data('2019') if '2019' in auth_type else ad_data()
         # entity create with AD settings
-        auth_source = entities.AuthSourceLDAP(
+        auth_source = module_target_sat.api.AuthSourceLDAP(
             onthefly_register=True,
             account=ad_data['ldap_user_name'],
             account_password=ad_data['ldap_user_passwd'],
@@ -171,7 +172,7 @@ def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data, op
         ldap_data = ad_data
     elif auth_type == 'ipa':
         # entity create with IPA settings
-        auth_source = entities.AuthSourceLDAP(
+        auth_source = module_target_sat.api.AuthSourceLDAP(
             onthefly_register=True,
             account=ipa_data['ldap_user_cn'],
             account_password=ipa_data['ldap_user_passwd'],
@@ -192,7 +193,7 @@ def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data, op
         ldap_data = ipa_data
     elif auth_type == 'openldap':
         # entity create with OpenLdap settings
-        auth_source = entities.AuthSourceLDAP(
+        auth_source = module_target_sat.api.AuthSourceLDAP(
             onthefly_register=True,
             account=open_ldap_data['ldap_user_cn'],
             account_password=open_ldap_data['ldap_user_passwd'],
@@ -226,64 +227,78 @@ def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data, op
     yield ldap_data, auth_source
 
 
-@pytest.fixture(scope='session')
-def enroll_configure_rhsso_external_auth():
+@pytest.fixture
+def auth_data(request, ad_data, ipa_data):
+    auth_type = request.param.lower()
+    if 'ad' in auth_type:
+        ad_data = ad_data('2019') if '2019' in auth_type else ad_data()
+        ad_data['server_type'] = LDAP_SERVER_TYPE['UI']['ad']
+        ad_data['attr_login'] = LDAP_ATTR['login_ad']
+        ad_data['auth_type'] = auth_type
+        return ad_data
+    elif auth_type == 'ipa':
+        ipa_data['server_type'] = LDAP_SERVER_TYPE['UI']['ipa']
+        ipa_data['attr_login'] = LDAP_ATTR['login']
+        ipa_data['auth_type'] = auth_type
+        return ipa_data
+
+
+@pytest.fixture(scope='module')
+def enroll_configure_rhsso_external_auth(module_target_sat):
     """Enroll the Satellite6 Server to an RHSSO Server."""
-    run_command(
-        cmd='yum -y --disableplugin=foreman-protector install '
+    module_target_sat.execute(
+        'yum -y --disableplugin=foreman-protector install '
         'mod_auth_openidc keycloak-httpd-client-install'
     )
-    run_command(
-        cmd=f'echo {settings.rhsso.password} | keycloak-httpd-client-install --app-name foreman-openidc \
+    module_target_sat.execute(
+        f'echo {settings.rhsso.rhsso_password} | keycloak-httpd-client-install --app-name foreman-openidc \
                 --keycloak-server-url {settings.rhsso.host_url} \
                 --keycloak-admin-username "admin" \
                 --keycloak-realm "{settings.rhsso.realm}" \
                 --keycloak-admin-realm master \
                 --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'
     )
-    run_command(
-        cmd=f'satellite-installer --foreman-keycloak true '
+    module_target_sat.execute(
+        f'satellite-installer --foreman-keycloak true '
         f"--foreman-keycloak-app-name 'foreman-openidc' "
         f"--foreman-keycloak-realm '{settings.rhsso.realm}' ",
         timeout=1000000,
     )
-    run_command(cmd="systemctl restart httpd")
+    module_target_sat.execute('systemctl restart httpd')
 
 
-@pytest.fixture(scope='session')
-def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth, session_target_sat):
+@pytest.fixture(scope='module')
+def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth, module_target_sat):
     """register the satellite with RH-SSO Server for single sign-on"""
-    client_id = get_rhsso_client_id()
+    client_id = get_rhsso_client_id(module_target_sat)
     create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
     audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
     audience_mapper['config']['included.client.audience'] = audience_mapper['config'][
         'included.client.audience'
-    ].format(rhsso_host=session_target_sat)
+    ].format(rhsso_host=module_target_sat)
     create_mapper(audience_mapper, client_id)
     set_the_redirect_uri()
 
 
-@pytest.mark.external_auth
-@pytest.fixture(scope='session')
-def enroll_idm_and_configure_external_auth(session_target_sat):
+def enroll_idm_and_configure_external_auth(sat):
     """Enroll the Satellite6 Server to an IDM Server."""
     ipa_host = ContentHost(settings.ipa.hostname)
-    result = session_target_sat.execute(
+    result = sat.execute(
         'yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools'
     )
     if result.status != 0:
         raise CLIReturnCodeError(result.status, result.stderr, 'Failed to install ipa client')
     ipa_host.execute(f'echo {settings.ipa.password} | kinit admin')
-    output = ipa_host.execute(f'ipa host-find {session_target_sat.hostname}')
+    output = ipa_host.execute(f'ipa host-find {sat.hostname}')
     if output.status != 0:
-        result = ipa_host.execute(f'ipa host-add --random {session_target_sat.hostname}')
+        result = ipa_host.execute(f'ipa host-add --random {sat.hostname}')
         for line in result.stdout.splitlines():
             if 'Random password' in line:
                 _, password = line.split(': ', 2)
                 break
-        ipa_host.execute(f'ipa service-add HTTP/{session_target_sat.hostname}')
+        ipa_host.execute(f'ipa service-add HTTP/{sat.hostname}')
         _, domain = settings.ipa.hostname.split('.', 1)
-        result = session_target_sat.execute(
+        result = sat.execute(
             f"ipa-client-install --password '{password}' "
             f'--domain {domain} '
             f'--server {settings.ipa.hostname} '
@@ -293,7 +308,19 @@ def enroll_idm_and_configure_external_auth(session_target_sat):
             raise CLIReturnCodeError(result.status, result.stderr, 'Failed to enable ipa client')
 
 
-@pytest.fixture(scope='session')
+@pytest.mark.external_auth
+@pytest.fixture(scope='module')
+def module_enroll_idm_and_configure_external_auth(module_target_sat):
+    enroll_idm_and_configure_external_auth(module_target_sat)
+
+
+@pytest.mark.external_auth
+@pytest.fixture
+def func_enroll_idm_and_configure_external_auth(target_sat):
+    enroll_idm_and_configure_external_auth(target_sat)
+
+
+@pytest.fixture(scope='module')
 def configure_realm(session_target_sat):
     """Configure realm"""
     realm = settings.upgrade.vm_domain.upper()
@@ -312,18 +339,20 @@ def configure_realm(session_target_sat):
     session_target_sat.execute('service foreman-proxy restart')
 
 
-@pytest.fixture()
-def rhsso_setting_setup(target_sat, request):
+@pytest.fixture(scope="module")
+def rhsso_setting_setup(module_target_sat, request):
     """Update the RHSSO setting and revert it in cleanup"""
-    update_rhsso_settings_in_satellite()
+    update_rhsso_settings_in_satellite(sat=module_target_sat)
     yield
-    update_rhsso_settings_in_satellite(revert=True)
+    update_rhsso_settings_in_satellite(revert=True, sat=module_target_sat)
 
 
-@pytest.fixture()
-def rhsso_setting_setup_with_timeout(target_sat, rhsso_setting_setup, request):
+@pytest.fixture(scope="module")
+def rhsso_setting_setup_with_timeout(module_target_sat, rhsso_setting_setup, request):
     """Update the RHSSO setting with timeout setting and revert it in cleanup"""
-    setting_entity = entities.Setting().search(query={'search': 'name=idle_timeout'})[0]
+    setting_entity = module_target_sat.api.Setting().search(query={'search': 'name=idle_timeout'})[
+        0
+    ]
     setting_entity.value = 1
     setting_entity.update({'value'})
     yield
@@ -332,8 +361,8 @@ def rhsso_setting_setup_with_timeout(target_sat, rhsso_setting_setup, request):
 
 
 @pytest.mark.external_auth
-@pytest.fixture(scope='session')
-def enroll_ad_and_configure_external_auth(request, ad_data):
+@pytest.fixture
+def enroll_ad_and_configure_external_auth(request, ad_data, target_sat):
     """Enroll Satellite Server to an AD Server."""
     auth_type = request.param.lower()
     ad_data = ad_data('2019') if '2019' in auth_type else ad_data()
@@ -351,24 +380,26 @@ def enroll_ad_and_configure_external_auth(request, ad_data):
     )
 
     # install the required packages
-    run_command(cmd=f'yum -y --disableplugin=foreman-protector install {packages}')
+    target_sat.execute(f'yum -y --disableplugin=foreman-protector install {packages}')
 
     # update the AD name server
-    run_command(cmd='chattr -i /etc/resolv.conf')
-    line_number = run_command(
-        cmd="awk -v search='nameserver' '$0~search{print NR; exit}' /etc/resolv.conf"
-    )
-    run_command(cmd=f'sed -i "{line_number}i nameserver {ad_data.nameserver}" /etc/resolv.conf')
-    run_command(cmd='chattr +i /etc/resolv.conf')
+    target_sat.execute('chattr -i /etc/resolv.conf')
+    line_number = str(
+        target_sat.execute(
+            "awk -v search='nameserver' '$0~search{print NR; exit}' /etc/resolv.conf"
+        )
+    ).strip()
+    target_sat.execute(f'sed -i "{line_number}i nameserver {ad_data.nameserver}" /etc/resolv.conf')
+    target_sat.execute('chattr +i /etc/resolv.conf')
 
     # join the realm
-    run_command(cmd=f'echo {settings.ldap.password} | realm join -v {realm}')
-    run_command(cmd='touch /etc/ipa/default.conf')
-    run_command(cmd=f'echo "{default_content}" > /etc/ipa/default.conf')
-    run_command(cmd=f'echo "{keytab_content}" > /etc/net-keytab.conf')
+    target_sat.execute(f'echo {settings.ldap.password} | realm join -v {realm}')
+    target_sat.execute('touch /etc/ipa/default.conf')
+    target_sat.execute(f'echo "{default_content}" > /etc/ipa/default.conf')
+    target_sat.execute(f'echo "{keytab_content}" > /etc/net-keytab.conf')
 
     # gather the apache id
-    result = run_command(cmd='id -u apache')
+    result = str(target_sat.execute('id -u apache')).strip()
     id_apache = result
     http_conf_content = (
         f'[service/HTTP]\nmechs = krb5\ncred_store = keytab:/etc/krb5.keytab'
@@ -377,11 +408,11 @@ def enroll_ad_and_configure_external_auth(request, ad_data):
     )
 
     # register the satellite as client for external auth
-    run_command(cmd=f'echo "{http_conf_content}" > /etc/gssproxy/00-http.conf')
+    target_sat.execute(f'echo "{http_conf_content}" > /etc/gssproxy/00-http.conf')
     token_command = (
         'KRB5_KTNAME=FILE:/etc/httpd/conf/http.keytab net ads keytab add HTTP '
         '-U administrator -d3 -s /etc/net-keytab.conf'
     )
-    run_command(cmd=f'echo {settings.ldap.password} | {token_command}')
-    run_command(cmd='chown root.apache /etc/httpd/conf/http.keytab')
-    run_command(cmd='chmod 640 /etc/httpd/conf/http.keytab')
+    target_sat.execute(f'echo {settings.ldap.password} | {token_command}')
+    target_sat.execute('chown root.apache /etc/httpd/conf/http.keytab')
+    target_sat.execute('chmod 640 /etc/httpd/conf/http.keytab')

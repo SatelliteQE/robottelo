@@ -140,7 +140,7 @@ def test_positive_create_bookmark_public(session, random_entity, default_viewer_
 
 @pytest.mark.tier2
 def test_positive_update_bookmark_public(
-    session, random_entity, default_viewer_role, module_user, test_name
+    session, random_entity, default_viewer_role, ui_user, test_name
 ):
     """Update and save a bookmark public state
 
@@ -183,7 +183,7 @@ def test_positive_update_bookmark_public(
     public_name = gen_string('alphanumeric')
     nonpublic_name = gen_string('alphanumeric')
     cfg = get_nailgun_config()
-    cfg.auth = (module_user.login, module_user.password)
+    cfg.auth = (ui_user.login, ui_user.password)
     for name in (public_name, nonpublic_name):
         entities.Bookmark(
             cfg, name=name, controller=random_entity['controller'], public=name == public_name

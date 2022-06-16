@@ -940,6 +940,11 @@ CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
 CUSTOM_REPODATA_PATH = '/var/lib/pulp/published/yum/https/repos'
 CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
+CERT_DATA = {
+    'capsule_hostname': 'capsule.example.com',
+    'ca_bundle_file_name': 'cacert.crt',
+    'success_message': 'Validation succeeded',
+}
 FAKE_0_YUM_REPO_PACKAGES_COUNT = 32
 FAKE_0_INC_UPD_ERRATA = 'EXA:2015-0002'
 FAKE_0_INC_UPD_OLD_PACKAGE = 'pulp-test-package-0.2.1-1.fc11.x86_64.rpm'
