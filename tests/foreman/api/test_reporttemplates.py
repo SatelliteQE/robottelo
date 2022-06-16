@@ -17,7 +17,7 @@
 :Upstream: No
 """
 import pytest
-from broker.broker import VMBroker
+from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 from requests import HTTPError
@@ -492,7 +492,7 @@ def test_positive_generate_entitlements_report(setup_content, target_sat):
 
     :CaseImportance: High
     """
-    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
+    with Broker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
         ak, org = setup_content
         vm.install_katello_ca(target_sat)
         vm.register_contenthost(org.label, ak.name)
@@ -531,7 +531,7 @@ def test_positive_schedule_entitlements_report(setup_content, target_sat):
 
     :CaseImportance: High
     """
-    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
+    with Broker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
         ak, org = setup_content
         vm.install_katello_ca(target_sat)
         vm.register_contenthost(org.label, ak.name)

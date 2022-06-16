@@ -26,7 +26,7 @@ import pytest
 import yaml
 from airgun.exceptions import DisabledWidgetError
 from airgun.session import Session
-from broker.broker import VMBroker
+from broker.broker import Broker
 from nailgun import entities
 from wait_for import wait_for
 from widgetastic.exceptions import NoSuchElementException
@@ -1420,7 +1420,7 @@ def test_positive_global_registration_end_to_end(
     for pair in expected_pairs:
         assert pair in cmd
     # register host
-    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as client:
+    with Broker(nick='rhel7', host_classes={'host': ContentHost}) as client:
         # rhel repo required for insights client installation,
         # syncing it to the satellite would take too long
         client.create_custom_repos(rhel7=settings.repos.rhel7_os)

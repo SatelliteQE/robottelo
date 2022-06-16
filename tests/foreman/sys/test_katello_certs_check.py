@@ -22,7 +22,7 @@ from pathlib import Path
 
 import pytest
 from box import Box
-from broker.broker import VMBroker
+from broker import Broker
 from fauxfactory import gen_string
 
 from robottelo.config import settings
@@ -80,7 +80,7 @@ class TestKatelloCertsCheck:
         """Create VM and register content host"""
         target_cores = request.param.get('target_cores', 1)
         target_memory = request.param.get('target_memory', '1GiB')
-        with VMBroker(
+        with Broker(
             nick=request.param['nick'],
             host_classes={'host': ContentHost},
             target_cores=target_cores,
