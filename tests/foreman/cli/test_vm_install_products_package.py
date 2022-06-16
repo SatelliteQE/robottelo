@@ -17,7 +17,7 @@
 :Upstream: No
 """
 import pytest
-from broker import VMBroker
+from broker import Broker
 
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_org
@@ -69,7 +69,7 @@ def test_vm_install_package(org, lce, distro, cdn, target_sat):
     )
     # Create repos, content view, and activation key.
     repos_collection.setup_content(org['id'], lce['id'], upload_manifest=True)
-    with VMBroker(nick=distro, host_classes={'host': ContentHost}) as host:
+    with Broker(nick=distro, host_classes={'host': ContentHost}) as host:
         # install katello-agent
         repos_collection.setup_virtual_machine(
             host, target_sat, enable_custom_repos=True, install_katello_agent=False

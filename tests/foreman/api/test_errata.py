@@ -20,7 +20,7 @@
 from time import sleep
 
 import pytest
-from broker import VMBroker
+from broker import Broker
 from nailgun import entities
 
 from robottelo import constants
@@ -183,7 +183,7 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_
 
     :BZ: 1983043
     """
-    with VMBroker(
+    with Broker(
         nick=constants.DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:

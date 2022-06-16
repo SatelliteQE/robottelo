@@ -17,7 +17,7 @@
 :Upstream: No
 """
 import pytest
-from broker.broker import VMBroker
+from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -204,7 +204,7 @@ def test_positive_oscap_run_via_ansible(
             'organizations': module_org.name,
         }
     )
-    with VMBroker(
+    with Broker(
         nick=distro,
         host_classes={'host': ContentHost},
         target_cores=OSCAP_TARGET_CORES,
@@ -319,7 +319,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
             'organizations': module_org.name,
         }
     )
-    with VMBroker(
+    with Broker(
         nick=DISTRO_RHEL7,
         host_classes={'host': ContentHost},
         target_cores=OSCAP_TARGET_CORES,

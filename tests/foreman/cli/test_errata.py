@@ -22,7 +22,7 @@ from datetime import timedelta
 from operator import itemgetter
 
 import pytest
-from broker.broker import VMBroker
+from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -195,7 +195,7 @@ def custom_repo(module_org, module_lce, module_cv, module_ak_cv_lce):
 def hosts(request):
     """Deploy hosts via broker."""
     num_hosts = getattr(request, 'param', 2)
-    with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=num_hosts) as hosts:
+    with Broker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=num_hosts) as hosts:
         if type(hosts) is not list or len(hosts) != num_hosts:
             pytest.fail('Failed to provision the expected number of hosts.')
         yield hosts

@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 
 import pytest
-from broker import VMBroker
+from broker import Broker
 from wait_for import wait_for
 
 from robottelo.config import settings
@@ -31,7 +31,7 @@ def _target_sat_imp(request, _default_sat, satellite_factory):
     if request.node.get_closest_marker(name='destructive'):
         new_sat = satellite_factory()
         yield new_sat
-        VMBroker(hosts=[new_sat]).checkin()
+        Broker(hosts=[new_sat]).checkin()
     else:
         yield _default_sat
 
@@ -72,7 +72,7 @@ def satellite_factory():
             broker_args.update(settings.server.deploy_arguments)
             logger.debug(f'Updated broker args for sat: {broker_args}')
 
-        vmb = VMBroker(
+        vmb = Broker(
             host_classes={'host': Satellite},
             workflow=workflow or settings.server.deploy_workflow,
             **broker_args,
@@ -92,7 +92,7 @@ def capsule_factory():
     def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
         if settings.capsule.deploy_arguments:
             broker_args.update(settings.capsule.deploy_arguments)
-        vmb = VMBroker(
+        vmb = Broker(
             host_classes={'host': Capsule},
             workflow=workflow or settings.capsule.deploy_workflow,
             **broker_args,
@@ -109,7 +109,7 @@ def satellite_host(satellite_factory):
     """A fixture that provides a Satellite based on config settings"""
     new_sat = satellite_factory()
     yield new_sat
-    VMBroker(hosts=[new_sat]).checkin()
+    Broker(hosts=[new_sat]).checkin()
 
 
 @pytest.fixture(scope='module')
@@ -117,7 +117,7 @@ def module_satellite_host(satellite_factory):
     """A fixture that provides a Satellite based on config settings"""
     new_sat = satellite_factory()
     yield new_sat
-    VMBroker(hosts=[new_sat]).checkin()
+    Broker(hosts=[new_sat]).checkin()
 
 
 @pytest.fixture(scope='session')
@@ -125,7 +125,7 @@ def session_satellite_host(satellite_factory):
     """A fixture that provides a Satellite based on config settings"""
     new_sat = satellite_factory()
     yield new_sat
-    VMBroker(hosts=[new_sat]).checkin()
+    Broker(hosts=[new_sat]).checkin()
 
 
 @pytest.fixture
@@ -133,7 +133,7 @@ def capsule_host(capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
     new_cap = capsule_factory()
     yield new_cap
-    VMBroker(hosts=[new_cap]).checkin()
+    Broker(hosts=[new_cap]).checkin()
 
 
 @pytest.fixture(scope='module')
@@ -141,7 +141,7 @@ def module_capsule_host(capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
     new_cap = capsule_factory()
     yield new_cap
-    VMBroker(hosts=[new_cap]).checkin()
+    Broker(hosts=[new_cap]).checkin()
 
 
 @pytest.fixture
