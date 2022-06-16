@@ -35,7 +35,7 @@ class TestScenarioDBseedHostMismatch:
         3. Create a Content Host in the Organization
         4. Ensure the Location is not in the Org
         5. Assign the Content Host to the Location using the rake console
-        6. Ensure the Host is in both but the Location is not in Org, creating a mismatch
+        6. Ensure the Host is in both, but the Location is not in Org, creating a mismatch
         7. Upgrade Satellite
         8. Ensure upgrade succeeds
 
@@ -43,7 +43,7 @@ class TestScenarioDBseedHostMismatch:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_db_seed_host_mismatch(self, target_sat):
+    def test_pre_db_seed_host_mismatch(self, target_sat, function_org, function_location):
         """
         :id: preupgrade-28861b9f-8abd-4efc-bfd5-40b7e825a941
 
@@ -62,32 +62,30 @@ class TestScenarioDBseedHostMismatch:
 
         :customerscenario: true
         """
-        org = target_sat.api.Organization().create()
-        loc = target_sat.api.Location().create()
 
         chost_vm = VMBroker(nick='rhel7', host_classes={'host': ContentHost}).checkout()
 
         chost_vm.install_katello_ca(target_sat)
-        chost_vm.register_contenthost(org=org.label, lce='Library')
+        chost_vm.register_contenthost(org=function_org.label, lce='Library')
 
-        assert chost_vm.nailgun_host.organization.id == org.id
+        assert chost_vm.nailgun_host.organization.id == function_org.id
 
         # Now we need to break the taxonomy between chost, org and location
         rake_host = f"host = ::Host.find({chost_vm.nailgun_host.id})"
-        rake_organization = f"; host.location_id={loc.id}"
+        rake_location = f"; host.location_id={function_location.id}"
         rake_host_save = "; host.save!"
         result = target_sat.run(
-            f"echo '{rake_host}{rake_organization}{rake_host_save}' | foreman-rake console"
+            f"echo '{rake_host}{rake_location}{rake_host_save}' | foreman-rake console"
         )
 
         assert 'true' in result.stdout
-        assert chost_vm.nailgun_host.location.id == loc.id
+        assert chost_vm.nailgun_host.location.id == function_location.id
 
         global_dict = {
             self.__class__.__name__: {
                 'client_name': chost_vm.hostname,
-                'organization_id': org.id,
-                'location_id': loc.id,
+                'organization_id': function_org.id,
+                'location_id': function_location.id,
             }
         }
 
@@ -98,9 +96,10 @@ class TestScenarioDBseedHostMismatch:
         """Check whether the upgrade succeeds, and ensure Content Host
         exists on the Satellite and has not had any attributes changed
         """
-        chostname = get_entity_data(self.__class__.__name__)['client_name']
-        org_id = get_entity_data(self.__class__.__name__)['organization_id']
-        loc_id = get_entity_data(self.__class__.__name__)['location_id']
+        data = get_entity_data(self.__class__.__name__)
+        chostname = data['client_name']
+        org_id = data['organization_id']
+        loc_id = data['location_id']
         chost = target_sat.api.Host().search(query={'search': chostname})
 
         assert org_id == chost[0].organization.id
