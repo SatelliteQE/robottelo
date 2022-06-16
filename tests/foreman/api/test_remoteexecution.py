@@ -17,8 +17,6 @@
 :Upstream: No
 """
 import pytest
-from nailgun import client
-from nailgun.entity_mixins import TaskFailedError
 
 from robottelo.api.utils import wait_for_tasks
 
@@ -73,50 +71,3 @@ def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target
     ).refresh()
     feature_list = [feat['name'] for feat in result['features']]
     assert {'Container_Gateway', 'Dynflow', 'SSH', 'Pulpcore', 'Templates'}.issubset(feature_list)
-
-
-@pytest.mark.destructive
-def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
-    """Run Capsule Upgrade playbook against the Satellite itself
-
-    :id: 99462a11-5133-415d-ba64-4354da539a34
-
-    :steps:
-        1. Add REX key to the Satellite server.
-        2. Run the Capsule Upgrade Playbook.
-        3. Check the job output for proper failure reason.
-
-    :expectedresults: Should fail
-
-    :CaseImportance: Medium
-    """
-    sat = target_sat.nailgun_host
-    template_id = (
-        target_sat.api.JobTemplate()
-        .search(query={'search': 'name="Capsule Upgrade Playbook"'})[0]
-        .id
-    )
-
-    target_sat.add_rex_key(satellite=target_sat)
-    with pytest.raises(TaskFailedError) as error:
-        target_sat.api.JobInvocation().run(
-            data={
-                'job_template_id': template_id,
-                'inputs': {
-                    'target_version': CAPSULE_TARGET_VERSION,
-                    'whitelist_options': "repositories-validqqate,repositories-setup",
-                },
-                'targeting_type': "static_query",
-                'search_query': f"name = {sat.name}",
-            }
-        )
-    assert 'A sub task failed' in error.value.args[0]
-    job = target_sat.api.JobInvocation().search(
-        query={'search': f'host={sat.name},status=failed,description="Capsule Upgrade Playbook"'}
-    )[0]
-    response = client.get(
-        f'{target_sat.url}/api/job_invocations/{job.id}/hosts/{sat.id}',
-        auth=(target_sat.username, target_sat.password),
-        verify=False,
-    )
-    assert 'This playbook cannot be executed on a Satellite server.' in response.text

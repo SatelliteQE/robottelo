@@ -16,9 +16,9 @@ import pytest
 
 from robottelo.constants import DEFAULT_ORG
 
+pytestmark = pytest.mark.destructive
 
-@pytest.mark.destructive
-@pytest.mark.run_in_one_thread
+
 @pytest.mark.upgrade
 def test_positive_foreman_service_auto_restart(foreman_service_teardown):
     """Foreman Service should get auto-restarted in case it is halted or stopped for some reason

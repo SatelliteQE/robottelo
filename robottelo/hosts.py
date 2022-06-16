@@ -1326,8 +1326,7 @@ class Satellite(Capsule, SatelliteMixins):
                         pass
         return self._cli
 
-    @property
-    def ui_session(self):
+    def ui_session(self, testname=None, user=None, password=None, url=None, login=True):
         """Initialize an airgun Session object and store it as self.ui_session"""
 
         from airgun.session import Session
@@ -1341,9 +1340,11 @@ class Satellite(Capsule, SatelliteMixins):
 
         return Session(
             session_name=get_caller(),
-            user=settings.server.admin_username,
-            password=settings.server.admin_password,
+            user=user or settings.server.admin_username,
+            password=password or settings.server.admin_password,
+            url=url,
             hostname=self.hostname,
+            login=login,
         )
 
     @cached_property

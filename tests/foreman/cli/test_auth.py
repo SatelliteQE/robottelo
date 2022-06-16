@@ -347,32 +347,3 @@ def test_negative_no_permissions(admin_user, non_admin_user, target_sat):
     # try to update user from viewer's session
     with pytest.raises(CLIReturnCodeError):
         User.with_user().update({'login': admin_user['login'], 'new-login': gen_string('alpha')})
-
-
-@pytest.mark.destructive
-@pytest.mark.tier1
-def test_positive_password_reset(target_sat):
-    """Reset admin password using foreman rake and update the hammer config.
-    verify the reset password is working.
-
-    :id: 7ab65b6f-cf41-42b9-808c-570fc928e18d
-
-    :expectedresults: verify the 'foreman-rake permissions:reset' command for the admin user
-
-    :CaseImportance: High
-
-    """
-    result = target_sat.execute('foreman-rake permissions:reset')
-    assert result.status == 0
-    reset_password = result.stdout.strip().split('password: ')[1]
-    result = target_sat.execute(
-        f'''sed -i -e '/username/d;/password/d;/use_sessions/d' {HAMMER_CONFIG};\
-        echo '  :use_sessions: true' >> {HAMMER_CONFIG}'''
-    )
-    assert result.status == 0
-    target_sat.cli.AuthLogin.basic(
-        {'username': settings.server.admin_username, 'password': reset_password}
-    )
-    result = target_sat.cli.Auth.with_user().status()
-    assert LOGEDIN_MSG.format(settings.server.admin_username) in result[0]['message']
-    assert target_sat.cli.Org.with_user().list()

@@ -19,8 +19,6 @@
 import pytest
 
 from robottelo import constants
-from robottelo.cli.factory import setup_org_for_a_custom_repo
-from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.config import settings
 from robottelo.helpers import InstallerCommand
 
@@ -57,7 +55,7 @@ def katello_agent_repos(sat_with_katello_agent):
     lce = sat.api.LifecycleEnvironment(organization=org).create()
     cv = sat.api.ContentView(organization=org).create()
     ak = sat.api.ActivationKey(environment=lce, organization=org).create()
-    setup_org_for_a_rh_repo(
+    sat.cli_factory.setup_org_for_a_rh_repo(
         {
             'product': constants.PRDS['rhel'],
             'repository-set': constants.REPOSET['rhst7'],
@@ -69,7 +67,7 @@ def katello_agent_repos(sat_with_katello_agent):
         }
     )
     # Create custom repository content
-    setup_org_for_a_custom_repo(
+    sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_1.url,
             'organization-id': org.id,

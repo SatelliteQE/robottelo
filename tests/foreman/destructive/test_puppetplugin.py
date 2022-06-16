@@ -34,6 +34,8 @@ puppet_cli_commands = [
 
 err_msg = 'Error: No such sub-command'
 
+pytestmark = pytest.mark.destructive
+
 
 def assert_puppet_status(server, expected):
     result = server.get_features()
@@ -54,7 +56,6 @@ def assert_puppet_status(server, expected):
             assert (f"{err_msg} '{cmd.split()[-1]}'." in str(result.stderr)) is not expected
 
 
-@pytest.mark.destructive
 def test_positive_enable_disable_logic(target_sat, capsule_configured):
     """Test puppet enable/disable logic on Satellite and Capsule
 
