@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: DiscoveryPlugin
+:CaseComponent: DiscoveryImage
 
 :Assignee: gsulliva
 

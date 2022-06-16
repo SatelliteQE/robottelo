@@ -2,7 +2,7 @@
 
 :Requirement: DiscoveredHost
 
-:CaseComponent: DiscoveryPlugin
+:CaseComponent: DiscoveryImage
 
 :Assignee: gsulliva
 
