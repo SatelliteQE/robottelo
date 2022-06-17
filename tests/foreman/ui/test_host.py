@@ -1306,7 +1306,7 @@ def test_positive_global_registration_end_to_end(
     result = rhel_contenthost.execute('subscription-manager identity')
     assert result.status == 0
     # Assert that a yum update was made this day ("Update" or "I, U" in history)
-    timezone_offset = rhel_contenthost.execute('date +"%:z"').stdout
+    timezone_offset = rhel_contenthost.execute('date +"%:z"').stdout.strip()
     tzinfo = datetime.strptime(timezone_offset, '%z').tzinfo
     result = rhel_contenthost.execute('yum history | grep U')
     assert result.status == 0
