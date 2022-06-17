@@ -56,7 +56,6 @@ from robottelo.constants import NO_REPOS_AVAILABLE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants import SATELLITE_SUBSCRIPTION_NAME
 from robottelo.constants import SM_OVERALL_STATUS
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
@@ -1858,14 +1857,16 @@ def host_subscription_client(rhel7_contenthost, target_sat):
 
 
 @pytest.fixture
-def ak_with_subscription(module_org, module_promoted_cv, module_lce, default_subscription):
-    activation_key = entities.ActivationKey(
+def ak_with_subscription(
+    target_sat, module_org, module_promoted_cv, module_lce, default_subscription
+):
+    activation_key = target_sat.api.ActivationKey(
         content_view=module_promoted_cv,
         organization=module_org,
         environment=module_lce,
         auto_attach=False,
     ).create()
-    activation_key.add_subscriptions(data={'subscription_id': default_subscription['id']})
+    activation_key.add_subscriptions(data={'subscription_id': default_subscription.id})
     return activation_key
 
 
@@ -1967,7 +1968,7 @@ def test_positive_attach(
     Host.subscription_attach(
         {
             'host-id': host['id'],
-            'subscription-id': default_subscription['id'],
+            'subscription-id': default_subscription.id,
         }
     )
     host_subscription_client.enable_repo(module_rhst_repo)
@@ -2013,7 +2014,7 @@ def test_positive_attach_with_lce(
     Host.subscription_attach(
         {
             'host-id': host['id'],
-            'subscription-id': default_subscription['id'],
+            'subscription-id': default_subscription.id,
         }
     )
     host_subscription_client.enable_repo(module_rhst_repo)
@@ -2064,7 +2065,9 @@ def test_negative_without_attach(
 
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
-def test_negative_without_attach_with_lce(host_subscription_client):
+def test_negative_without_attach_with_lce(
+    target_sat, host_subscription_client, function_org, function_lce
+):
     """Attempt to enable a repository of a subscription that was not
     attached to a host
     This test is not using the host_subscription entities except
@@ -2078,35 +2081,32 @@ def test_negative_without_attach_with_lce(host_subscription_client):
 
     :CaseLevel: System
     """
-    # Setup as in host_subscription
-    org = entities.Organization().create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    content_view = entities.ContentView(organization=org).create()
-    ak = entities.ActivationKey(
-        environment=lce,
-        organization=org,
+    content_view = target_sat.api.ContentView(organization=function_org).create()
+    ak = target_sat.api.ActivationKey(
+        environment=function_lce,
+        organization=function_org,
     ).create()
     setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
             'repository': REPOS['rhst7']['name'],
-            'organization-id': org.id,
+            'organization-id': function_org.id,
             'content-view-id': content_view.id,
-            'lifecycle-environment-id': lce.id,
+            'lifecycle-environment-id': function_lce.id,
             'activationkey-id': ak.id,
-            'subscription': SATELLITE_SUBSCRIPTION_NAME,
+            'subscription': DEFAULT_SUBSCRIPTION_NAME,
         },
         force_use_cdn=True,
     )
-    host_lce = entities.LifecycleEnvironment(organization=org).create()
+    host_lce = target_sat.api.LifecycleEnvironment(organization=function_org).create()
     # refresh content view data
     content_view.publish()
     promote(content_view.read().version[-1], environment_id=host_lce.id)
 
     # register client
     host_subscription_client.register_contenthost(
-        org.name,
+        function_org.name,
         lce=f'{host_lce.name}/{content_view.name}',
         auto_attach=False,
     )
@@ -2160,14 +2160,14 @@ def test_positive_remove(
         },
         output_format='json',
     )
-    assert default_subscription['name'] not in [sub['name'] for sub in host_subscriptions]
+    assert default_subscription.name not in [sub['name'] for sub in host_subscriptions]
     host_subscription_client.register_contenthost(
         module_org.name, activation_key=ak_with_subscription.name
     )
     Host.subscription_attach(
         {
             'host-id': host['id'],
-            'subscription-id': default_subscription['id'],
+            'subscription-id': default_subscription.id,
         }
     )
     host_subscriptions = ActivationKey.subscriptions(
@@ -2178,11 +2178,11 @@ def test_positive_remove(
         },
         output_format='json',
     )
-    assert default_subscription['name'] in [sub['name'] for sub in host_subscriptions]
+    assert default_subscription.name in [sub['name'] for sub in host_subscriptions]
     Host.subscription_remove(
         {
             'host-id': host['id'],
-            'subscription-id': default_subscription['id'],
+            'subscription-id': default_subscription.id,
         }
     )
     host_subscriptions = ActivationKey.subscriptions(
@@ -2193,7 +2193,7 @@ def test_positive_remove(
         },
         output_format='json',
     )
-    assert default_subscription['name'] not in [sub['name'] for sub in host_subscriptions]
+    assert default_subscription.name not in [sub['name'] for sub in host_subscriptions]
 
 
 @pytest.mark.cli_host_subscription
@@ -2290,6 +2290,7 @@ def test_positive_unregister_host_subscription(
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_syspurpose_end_to_end(
+    target_sat,
     module_org,
     module_promoted_cv,
     module_lce,
@@ -2311,7 +2312,7 @@ def test_syspurpose_end_to_end(
     """
     # Create an activation key with test values
     purpose_addons = "test-addon1, test-addon2"
-    activation_key = entities.ActivationKey(
+    activation_key = target_sat.api.ActivationKey(
         content_view=module_promoted_cv,
         environment=module_lce,
         organization=module_org,
@@ -2324,7 +2325,7 @@ def test_syspurpose_end_to_end(
         {
             'organization-id': module_org.id,
             'id': activation_key.id,
-            'subscription-id': default_subscription['id'],
+            'subscription-id': default_subscription.id,
         }
     )
     # Register a host using the activation key
@@ -2365,7 +2366,7 @@ def test_syspurpose_end_to_end(
         output_format='json',
     )
     assert len(host_subscriptions) > 0
-    assert host_subscriptions[0]['name'] == default_subscription['name']
+    assert host_subscriptions[0]['name'] == default_subscription.name
     # Unregister host
     Host.subscription_unregister({'host': host_subscription_client.hostname})
     with pytest.raises(CLIReturnCodeError):
