@@ -384,7 +384,7 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise ContentHostError(f'Failed to install katello-agent: {result.stdout}')
         try:
-            wait_for(lambda: self.execute('systemctl status goferd').status == 0)
+            wait_for(lambda: self.execute('service goferd status').status == 0)
         except TimedOutError:
             raise ContentHostError('katello-agent is not running')
 
@@ -1118,6 +1118,24 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
+    def register_to_cdn(self):
+        """Subscribe satellite to CDN"""
+        self.remove_katello_ca()
+        major_version = self.os_version.major
+        release_version = f'{major_version}Server' if major_version < 8 else f'{major_version}'
+        cmd_result = self.register_contenthost(
+            org=None,
+            lce=None,
+            username=settings.subscription.rhn_username,
+            password=settings.subscription.rhn_password,
+            releasever=release_version,
+        )
+        if cmd_result.status != 0:
+            raise ContentHostError(
+                f'Error during registration, command output: {cmd_result.stdout}'
+            )
+        self.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
+
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
@@ -1524,3 +1542,31 @@ class Satellite(Capsule, SatelliteMixins):
                 f'Error during cockpit installation, installation output: {cmd_result.stdout}'
             )
         self.add_rex_key(self)
+
+    def wait_for_tasks(
+        self, search_query, search_rate=1, max_tries=10, poll_rate=None, poll_timeout=None
+    ):
+        """Search for tasks by specified search query and poll them to ensure that
+        task has finished.
+
+        :param search_query: Search query that will be passed to API call.
+        :param search_rate: Delay between searches.
+        :param max_tries: How many times search should be executed.
+        :param poll_rate: Delay between the end of one task check-up and
+            the start of the next check-up. Parameter for ``sat.api.ForemanTask.poll()`` method.
+        :param poll_timeout: Maximum number of seconds to wait until timing out.
+            Parameter for ``sat.api.ForemanTask.poll()`` method.
+        :return: List of ``sat.api.ForemanTasks`` entities.
+        :raises: ``AssertionError``. If not tasks were found until timeout.
+        """
+        for _ in range(max_tries):
+            tasks = self.api.ForemanTask().search(query={'search': search_query})
+            if len(tasks) > 0:
+                for task in tasks:
+                    task.poll(poll_rate=poll_rate, timeout=poll_timeout)
+                break
+            else:
+                time.sleep(search_rate)
+        else:
+            raise AssertionError(f"No task was found using query '{search_query}'")
+        return tasks

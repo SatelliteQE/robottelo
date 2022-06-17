@@ -9,7 +9,6 @@ from broker import Broker
 from fauxfactory import gen_string
 
 from robottelo import constants
-from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
 
@@ -159,7 +158,7 @@ def register_host_custom_repo(target_sat, module_org, rhel_contenthost, repo_url
         task = repo.sync(synchronous=False)
         tasks.append(task)
     for task in tasks:
-        wait_for_tasks(
+        target_sat.wait_for_tasks(
             search_query=(f'id = {task["id"]}'),
             poll_timeout=1500,
         )
