@@ -1859,12 +1859,6 @@ BOOKMARK_ENTITIES = [
         'setup': entities.CommonParameter,
         'skip_for_ui': True,
     },
-    {
-        'name': 'ConfigGroup',
-        'controller': 'config_groups',
-        'setup': entities.ConfigGroup,
-        'skip_for_ui': True,
-    },
     {'name': 'Role', 'controller': 'ansible_roles', 'setup': entities.Role},
     {'name': 'Variables', 'controller': 'ansible_variables', 'skip_for_ui': True},
     {'name': 'SmartProxy', 'controller': 'smart_proxies', 'skip_for_ui': True},

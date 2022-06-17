@@ -52,7 +52,6 @@ def ui_entity(module_org, module_location, request):
         # entities with no organizations and locations
         elif entity_name in (
             'ComputeProfile',
-            'ConfigGroup',
             'GlobalParameter',
             'HardwareModel',
             'UserGroup',
