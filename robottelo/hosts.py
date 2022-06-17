@@ -412,7 +412,7 @@ class ContentHost(Host, ContentHostMixins):
             self.execute('rpm -Uvh katello-ca-consumer-latest.noarch.rpm')
         # Not checking the status here, as rpm could be installed before
         # and installation may fail
-        result = self.execute('rpm -q katello-ca-consumer*')
+        result = self.execute(f'rpm -q katello-ca-consumer-{satellite.hostname}')
         # Checking the status here to verify katello-ca rpm is actually
         # present in the system
         if satellite.hostname not in result.stdout:
