@@ -62,6 +62,7 @@ from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import CUSTOM_FILE_REPO_FILES_COUNT
 from robottelo.constants import CUSTOM_LOCAL_FOLDER
 from robottelo.constants import DOWNLOAD_POLICIES
+from robottelo.constants import MIRRORING_POLICIES
 from robottelo.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import RPM_TO_UPLOAD
@@ -318,25 +319,25 @@ class TestRepository:
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
-            [{'content-type': 'yum', 'mirror-on-sync': value} for value in ('yes', 'no')]
+            [{'content-type': 'yum', 'mirroring-policy': policy} for policy in MIRRORING_POLICIES]
         ),
         indirect=True,
     )
-    def test_positive_create_with_mirror_on_sync(self, repo_options, repo):
-        """Create YUM repositories with available mirror on sync rule
+    def test_positive_mirroring_policy(self, repo_options, repo):
+        """Create YUM repositories with available mirroring policy options
 
         :id: 37a09a91-42fc-4271-b58b-8e00ef0dc5a7
 
         :parametrized: yes
 
-        :expectedresults: YUM repository created successfully and its mirror on
-            sync rule value can be read back
+        :expectedresults: YUM repository created successfully and its mirroring
+            policy value can be read back
 
         :BZ: 1383258
 
         :CaseImportance: Critical
         """
-        assert repo.get('mirror-on-sync') == repo_options['mirror-on-sync']
+        assert repo.get('mirroring-policy') == MIRRORING_POLICIES[repo_options['mirroring-policy']]
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -1250,10 +1251,12 @@ class TestRepository:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'mirror-on-sync': 'no'}]), indirect=True
+        'repo_options',
+        **parametrized([{'mirroring-policy': policy} for policy in MIRRORING_POLICIES]),
+        indirect=True,
     )
-    def test_positive_update_mirror_on_sync(self, repo):
-        """Update the mirror on sync rule for repository
+    def test_positive_update_mirroring_policy(self, repo, repo_options):
+        """Update the mirroring policy rule for repository
 
         :id: 9bab2537-3223-40d7-bc4c-a51b09d2e812
 
@@ -1263,9 +1266,9 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        Repository.update({'id': repo['id'], 'mirror-on-sync': 'yes'})
+        Repository.update({'id': repo['id'], 'mirroring-policy': repo_options['mirroring-policy']})
         result = Repository.info({'id': repo['id']})
-        assert result['mirror-on-sync'] == 'yes'
+        assert result['mirroring-policy'] == MIRRORING_POLICIES[repo_options['mirroring-policy']]
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -2039,6 +2042,33 @@ class TestRepository:
         repo_info = Repository.info({'organization-id': module_manifest_org.id, 'id': rh_repo_id})
         assert repo_info['url'] in [repo.get('url') for repo in repo_list]
 
+    @pytest.mark.tier1
+    def test_positive_accessible_content_status(
+        self, module_org, module_ak_with_synced_repo, rhel7_contenthost, target_sat
+    ):
+        """Verify that the Candlepin response accesible_content returns a 304 when no
+            certificate has been updated
+
+        :id: 9f8f443d-63fc-41ba-8962-b0ceb6763da1
+
+        :expectedresults: accessible_content should return 304 not Modified status when
+            yum repolist is run
+
+        :customerscenario: true
+
+        :BZ: 2010138
+
+        :CaseImportance: Critical
+        """
+        rhel7_contenthost.install_katello_ca(target_sat)
+        rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_synced_repo['name'])
+        assert rhel7_contenthost.subscribed
+        rhel7_contenthost.run('yum repolist')
+        access_log = target_sat.execute(
+            'tail -n 10 /var/log/httpd/foreman-ssl_access_ssl.log | grep "/rhsm"'
+        )
+        assert 'accessible_content HTTP/1.1" 304' in access_log.stdout
+
 
 # TODO: un-comment when OSTREE functionality is restored in Satellite 6.11
 # class TestOstreeRepository:
@@ -2399,7 +2429,7 @@ class TestAnsibleCollectionRepository:
         import_path = export_metadata.replace('/metadata.json', '').replace('exports', 'imports')
         ContentImport.library({'organization-id': import_org['id'], 'path': import_path})
         cv = ContentView.info({'name': 'Import-Library', 'organization-label': import_org['label']})
-        assert cv['description'] == 'Content View used for importing library'
+        assert cv['description'] == 'Content View used for importing into library'
         prods = Product.list({'organization-id': import_org['id']})
         prod = Product.info({'id': prods[0]['id'], 'organization-id': import_org['id']})
         ac_content = [

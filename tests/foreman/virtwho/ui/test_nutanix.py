@@ -8,7 +8,7 @@
 
 :CaseComponent: Virt-whoConfigurePlugin
 
-:Assignee: kuhuang
+:Assignee: yanpliu
 
 :TestType: Functional
 
@@ -34,20 +34,21 @@ def form_data():
         'debug': True,
         'interval': 'Every hour',
         'hypervisor_id': 'hostname',
-        'hypervisor_type': settings.virtwho.hyperv.hypervisor_type,
-        'hypervisor_content.server': settings.virtwho.hyperv.hypervisor_server,
-        'hypervisor_content.username': settings.virtwho.hyperv.hypervisor_username,
-        'hypervisor_content.password': settings.virtwho.hyperv.hypervisor_password,
+        'hypervisor_type': settings.virtwho.ahv.hypervisor_type,
+        'hypervisor_content.server': settings.virtwho.ahv.hypervisor_server,
+        'hypervisor_content.username': settings.virtwho.ahv.hypervisor_username,
+        'hypervisor_content.password': settings.virtwho.ahv.hypervisor_password,
+        'hypervisor_content.prism_flavor': "Prism Element",
     }
     return form
 
 
-class TestVirtwhoConfigforHyperv:
+class TestVirtwhoConfigforNutanix:
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(self, default_org, session, form_data):
         """Verify configure created and deployed with id.
 
-        :id: c8913398-c5c6-4f2c-bc53-0bbfb158b762
+        :id: becea4d0-db4e-4a85-93d2-d40e86da0e2f
 
         :expectedresults:
             1. Config can be created and deployed by command
@@ -84,7 +85,7 @@ class TestVirtwhoConfigforHyperv:
     def test_positive_deploy_configure_by_script(self, default_org, session, form_data):
         """Verify configure created and deployed with script.
 
-        :id: b0401417-3a6e-4a54-b8e8-22d290813da3
+        :id: 1c1b19c9-988c-4b86-a2b2-658fded10ccb
 
         :expectedresults:
             1. Config can be created and deployed by script
@@ -121,7 +122,7 @@ class TestVirtwhoConfigforHyperv:
     def test_positive_hypervisor_id_option(self, default_org, session, form_data):
         """Verify Hypervisor ID dropdown options.
 
-        :id: f2efc018-d57e-4dc5-895e-53af320237de
+        :id: e076a305-88f4-42fb-8ef2-cb55e38eb912
 
         :expectedresults:
             hypervisor_id can be changed in virt-who-config-{}.conf if the

@@ -22,9 +22,10 @@ from pathlib import Path
 
 import pytest
 from box import Box
-from broker.broker import VMBroker
+from broker import Broker
 from fauxfactory import gen_string
 
+import robottelo.constants as constants
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
@@ -80,7 +81,7 @@ class TestKatelloCertsCheck:
         """Create VM and register content host"""
         target_cores = request.param.get('target_cores', 1)
         target_memory = request.param.get('target_memory', '1GiB')
-        with VMBroker(
+        with Broker(
             nick=request.param['nick'],
             host_classes={'host': ContentHost},
             target_cores=target_cores,
@@ -274,7 +275,7 @@ class TestKatelloCertsCheck:
             # assert no hammer ping SSL cert error
             result = satellite.execute('hammer ping')
             assert 'SSL certificate verification failed' not in result.stdout
-            assert result.stdout.count('ok') == 7
+            assert result.stdout.count('ok') == 8
             # assert all services are running
             result = satellite.execute('satellite-maintain health check --label services-up -y')
             assert result.status == 0, 'Not all services are running'
@@ -293,8 +294,11 @@ class TestKatelloCertsCheck:
     @pytest.mark.destructive
     @pytest.mark.parametrize(
         'vm_setup',
-        [{'nick': 'rhel7', 'target_memory': '20GiB', 'target_cores': 4}],
-        ids=['rhel7'],
+        [
+            {'nick': 'rhel7', 'target_memory': '20GiB', 'target_cores': 4},
+            {'nick': 'rhel8', 'target_memory': '20GiB', 'target_cores': 4},
+        ],
+        ids=['rhel7', 'rhel8'],
         indirect=True,
     )
     def test_positive_install_sat_with_katello_certs(self, vm_setup):
@@ -315,16 +319,23 @@ class TestKatelloCertsCheck:
         :CaseAutomation: Automated
         """
         cert_data, rhel_vm = vm_setup
+        version = rhel_vm.os_version.major
+        rhel_vm.download_repos(repo_name='satellite', version=version)
+        rhel_vm.register_contenthost(
+            org=None,
+            lce=None,
+            username=settings.subscription.rhn_username,
+            password=settings.subscription.rhn_password,
+        )
+        result = rhel_vm.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
+        for repo in getattr(constants, f"OHSNAP_RHEL{version}_REPOS"):
+            rhel_vm.enable_repo(repo, force=True)
         rhel_vm.execute(
             f'yum -y localinstall {settings.repos.dogfood_repo_host}'
             f'/pub/katello-ca-consumer-latest.noarch.rpm'
         )
-        rhel_vm.execute(
-            f'subscription-manager register --org {settings.subscription.dogfood_org} '
-            f'--activationkey "{settings.subscription.dogfood_activationkey}" '
-        )
         rhel_vm.execute('yum -y update')
-        result = rhel_vm.execute('yum -y install satellite')
+        result = rhel_vm.execute(getattr(constants, f"INSTALL_RHEL{version}_STEPS"))
         assert result.status == 0
         command = (
             'satellite-installer --scenario satellite '
@@ -337,7 +348,7 @@ class TestKatelloCertsCheck:
         # assert no hammer ping SSL cert error
         result = rhel_vm.execute('hammer ping')
         assert 'SSL certificate verification failed' not in result.stdout
-        assert result.stdout.count('ok') == 7
+        assert result.stdout.count('ok') == 8
         # assert all services are running
         result = rhel_vm.execute('satellite-maintain health check --label services-up -y')
         assert result.status == 0, 'Not all services are running'

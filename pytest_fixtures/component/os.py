@@ -5,6 +5,7 @@ from nailgun import entities
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants import RHEL_8_MAJOR_VERSION
+from robottelo.constants import RHEL_9_MAJOR_VERSION
 
 
 @pytest.fixture(scope='session')
@@ -40,3 +41,21 @@ def default_os(
 @pytest.fixture(scope='module')
 def module_os():
     return entities.OperatingSystem().create()
+
+
+@pytest.fixture(scope='module')
+def os_path(default_os):
+    from robottelo.config import settings
+
+    # Check what OS was found to use correct media
+    if default_os.major == str(RHEL_6_MAJOR_VERSION):
+        os_distr_url = settings.repos.rhel6_os
+    elif default_os.major == str(RHEL_7_MAJOR_VERSION):
+        os_distr_url = settings.repos.rhel7_os
+    elif default_os.major == str(RHEL_8_MAJOR_VERSION):
+        os_distr_url = settings.repos.rhel8_os.baseos
+    elif default_os.major == str(RHEL_9_MAJOR_VERSION):
+        os_distr_url = settings.repos.rhel9_os.baseos
+    else:
+        pytest.fail('Proposed RHEL version is not supported')
+    return os_distr_url

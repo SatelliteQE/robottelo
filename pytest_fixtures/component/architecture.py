@@ -1,14 +1,15 @@
 # Architecture Fixtures
 import pytest
-from nailgun import entities
 
 from robottelo.constants import DEFAULT_ARCHITECTURE
 
 
 @pytest.fixture(scope='session')
-def default_architecture():
+def default_architecture(session_target_sat):
     arch = (
-        entities.Architecture().search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0].read()
+        session_target_sat.api.Architecture()
+        .search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0]
+        .read()
     )
     return arch
 
@@ -24,5 +25,5 @@ def session_puppet_default_architecture(session_puppet_enabled_sat):
 
 
 @pytest.fixture(scope='module')
-def module_architecture():
-    return entities.Architecture().create()
+def module_architecture(module_target_sat):
+    return module_target_sat.api.Architecture().create()

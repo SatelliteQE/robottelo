@@ -1,5 +1,5 @@
 import pytest
-from broker.broker import VMBroker
+from broker import Broker
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -11,7 +11,7 @@ def rhcloud_sat_host(satellite_factory):
     """A module level fixture that provides a Satellite based on config settings"""
     new_sat = satellite_factory()
     yield new_sat
-    VMBroker(hosts=[new_sat]).checkin()
+    Broker(hosts=[new_sat]).checkin()
 
 
 @pytest.fixture(scope='module')
@@ -23,21 +23,6 @@ def rhcloud_manifest_org(rhcloud_sat_host):
     )[0]
     rhcloud_sat_host.cli.Subscription.upload({'file': manifests_path, 'organization-id': org.id})
     return org
-
-
-@pytest.fixture
-def set_rh_cloud_token(rhcloud_sat_host):
-    """A function-level fixture to set rh cloud token value."""
-    rhcloud_sat_host.update_setting('rh_cloud_token', settings.rh_cloud.token)
-    yield
-    rhcloud_sat_host.update_setting('rh_cloud_token', '')
-
-
-@pytest.fixture
-def unset_rh_cloud_token(rhcloud_sat_host):
-    """A function-level fixture to unset rh cloud token value."""
-    yield
-    rhcloud_sat_host.update_setting('rh_cloud_token', '')
 
 
 @pytest.fixture(scope='module')

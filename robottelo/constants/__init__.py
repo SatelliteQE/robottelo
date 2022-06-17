@@ -34,6 +34,7 @@ DISTRO_SLES12 = "sles12"
 RHEL_6_MAJOR_VERSION = 6
 RHEL_7_MAJOR_VERSION = 7
 RHEL_8_MAJOR_VERSION = 8
+RHEL_9_MAJOR_VERSION = 9
 
 DISTRO_DEFAULT = DISTRO_RHEL7
 DISTROS_SUPPORTED = [DISTRO_RHEL6, DISTRO_RHEL7, DISTRO_RHEL8]
@@ -324,9 +325,30 @@ DOWNLOAD_POLICIES = {
     'immediate': "Immediate",
 }
 
+MIRRORING_POLICIES = {
+    'additive': "Additive",
+    'mirror_complete': "Complete Mirroring",
+    'mirror_content_only': "Content Only",
+}
 HASH_TYPE = {'sha256': "SHA256", 'sha512': "SHA512", 'base64': "Base64", 'md5': "MD5"}
 
 REPO_TAB = {'rpms': "RPMs", 'kickstarts': "Kickstarts", 'isos': "ISOs", 'ostree': "OSTree"}
+
+OHSNAP_RHEL7_REPOS = (
+    'rhel-7-server-extras-rpms',
+    'rhel-7-server-rpms',
+    'rhel-server-rhscl-7-rpms',
+    'rhel-7-server-ansible-2.9-rpms',
+)
+
+OHSNAP_RHEL8_REPOS = (
+    'rhel-8-for-x86_64-baseos-rpms',
+    'rhel-8-for-x86_64-appstream-rpms',
+    'ansible-2.9-for-rhel-8-x86_64-rpms',
+)
+
+INSTALL_RHEL7_STEPS = 'yum -y install satellite'
+INSTALL_RHEL8_STEPS = 'dnf -y module enable satellite:el8 && dnf -y install satellite'
 
 # On importing manifests, Red Hat repositories are listed like this:
 # Product -> RepositorySet -> Repository
@@ -1405,23 +1427,15 @@ PERMISSIONS = {
 PERMISSIONS_UI = {
     '(Miscellaneous)': [
         'access_dashboard',
-        'app_root',
-        'attachments',
-        'configuration',
-        'download_bootdisk',
-        'escalate_roles',
-        'generate_ansible_inventory',
-        'logs',
-        'my_organizations',
-        'rh_telemetry_api',
-        'rh_telemetry_configurations',
-        'rh_telemetry_view',
-        'view_cases',
-        'view_log_viewer',
         'view_plugins',
-        'view_rh_search',
-        'view_tasks',
+        'escalate_roles',
         'view_statuses',
+        'generate_ansible_inventory',
+        'download_bootdisk',
+        'my_organizations',
+        'generate_foreman_rh_cloud',
+        'view_foreman_rh_cloud',
+        'dispatch_cloud_requests',
     ],
     'Activation Keys': [
         'view_activation_keys',
@@ -1436,13 +1450,13 @@ PERMISSIONS_UI = {
         'destroy_architectures',
     ],
     'Audit': ['view_audit_logs'],
-    'Auth source ldap': [
+    'Auth source': [
         'view_authenticators',
         'create_authenticators',
         'edit_authenticators',
         'destroy_authenticators',
     ],
-    'Bookmark': ['view_bookmarks', 'create_bookmarks', 'edit_bookmarks', 'destroy_bookmarks'],
+    'Bookmark': ['create_bookmarks', 'edit_bookmarks', 'destroy_bookmarks'],
     'Capsule': [
         'view_smart_proxies',
         'create_smart_proxies',
@@ -1469,18 +1483,14 @@ PERMISSIONS_UI = {
         'create_compute_resources',
         'edit_compute_resources',
         'destroy_compute_resources',
+        'power_vm_compute_resources',
+        'destroy_vm_compute_resources',
         'view_compute_resources_vms',
         'create_compute_resources_vms',
         'edit_compute_resources_vms',
         'destroy_compute_resources_vms',
         'power_compute_resources_vms',
         'console_compute_resources_vms',
-    ],
-    'Config group': [
-        'view_config_groups',
-        'create_config_groups',
-        'edit_config_groups',
-        'destroy_config_groups',
     ],
     'Config report': ['view_config_reports', 'destroy_config_reports', 'upload_config_reports'],
     'Content Views': [
@@ -1490,7 +1500,6 @@ PERMISSIONS_UI = {
         'destroy_content_views',
         'publish_content_views',
         'promote_or_remove_content_views',
-        'export_content_views',
     ],
     'Discovery rule': [
         'view_discovery_rules',
@@ -1500,13 +1509,6 @@ PERMISSIONS_UI = {
         'destroy_discovery_rules',
     ],
     'Domain': ['view_domains', 'create_domains', 'edit_domains', 'destroy_domains'],
-    'Environment': [
-        'view_environments',
-        'create_environments',
-        'edit_environments',
-        'destroy_environments',
-        'import_environments',
-    ],
     'External usergroup': [
         'view_external_usergroups',
         'create_external_usergroups',
@@ -1520,10 +1522,12 @@ PERMISSIONS_UI = {
         'create_hosts',
         'edit_hosts',
         'destroy_hosts',
-        'build_hosts',
-        'power_hosts',
+        'build_hosts' 'power_hosts',
         'console_hosts',
         'ipmi_boot_hosts',
+        'forget_status_hosts',
+        'cockpit_hosts',
+        'play_roles_on_host',
         'view_discovered_hosts',
         'submit_discovered_hosts',
         'auto_provision_discovered_hosts',
@@ -1542,10 +1546,16 @@ PERMISSIONS_UI = {
         'create_hostgroups',
         'edit_hostgroups',
         'destroy_hostgroups',
+        'play_roles_on_hostgroup',
     ],
     'Host сlass': ['edit_classes'],
     'Image': ['view_images', 'create_images', 'edit_images', 'destroy_images'],
-    'Job invocation': ['create_job_invocations', 'view_job_invocations'],
+    'Job invocation': [
+        'create_job_invocations',
+        'view_job_invocations',
+        'execute_jobs_on_infrastructure_hosts',
+        'cancel_job_invocations',
+    ],
     'Job template': [
         'view_job_templates',
         'create_job_templates',
@@ -1568,7 +1578,7 @@ PERMISSIONS_UI = {
         'destroy_locations',
         'assign_locations',
     ],
-    'Mail notification': ['view_mail_notifications'],
+    'Mail notification': ['view_mail_notifications', 'edit_user_mail_notifications'],
     'Medium': ['view_media', 'create_media', 'edit_media', 'destroy_media'],
     'Model': ['view_models', 'create_models', 'edit_models', 'destroy_models'],
     'Operatingsystem': [
@@ -1587,7 +1597,7 @@ PERMISSIONS_UI = {
         'export_content',
     ],
     'Parameter': ['view_params', 'create_params', 'edit_params', 'destroy_params'],
-    'Partition Table': [
+    'Ptable': [
         'view_ptables',
         'create_ptables',
         'edit_ptables',
@@ -1600,7 +1610,6 @@ PERMISSIONS_UI = {
         'edit_products',
         'destroy_products',
         'sync_products',
-        'export_products',
     ],
     'Provisioning template': [
         'view_provisioning_templates',
@@ -1609,13 +1618,6 @@ PERMISSIONS_UI = {
         'destroy_provisioning_templates',
         'deploy_provisioning_templates',
         'lock_provisioning_templates',
-    ],
-    'Puppet class': [
-        'view_puppetclasses',
-        'create_puppetclasses',
-        'edit_puppetclasses',
-        'destroy_puppetclasses',
-        'import_puppetclasses',
     ],
     'Realm': ['view_realms', 'create_realms', 'edit_realms', 'destroy_realms'],
     'Remote execution feature': ['edit_remote_execution_features'],
@@ -1657,12 +1659,6 @@ PERMISSIONS_UI = {
         "edit_virt_who_config",
         "destroy_virt_who_config",
     ],
-    'Smart class parameter': [
-        'view_external_parameters',
-        'create_external_parameters',
-        'edit_external_parameters',
-        'destroy_external_parameters',
-    ],
     'Ssh key': ["view_ssh_keys", "create_ssh_keys", "destroy_ssh_keys"],
     'Subnet': [
         'view_subnets',
@@ -1677,6 +1673,7 @@ PERMISSIONS_UI = {
         'unattach_subscriptions',
         'import_manifest',
         'delete_manifest',
+        'manage_subscription_allocations',
     ],
     'Sync Plans': [
         'view_sync_plans',
@@ -1686,7 +1683,8 @@ PERMISSIONS_UI = {
         'sync_sync_plans',
     ],
     'Template invocation': [
-        'execute_template_invocation',
+        'view_template_invocations',
+        'create_template_invocations',
         'filter_autocompletion_for_template_invocation',
     ],
     'User': ['view_users', 'create_users', 'edit_users', 'destroy_users'],

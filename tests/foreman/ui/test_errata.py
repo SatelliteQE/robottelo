@@ -18,7 +18,7 @@
 """
 import pytest
 from airgun.session import Session
-from broker import VMBroker
+from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -174,7 +174,7 @@ def module_erratatype_repos_col(module_org, module_lce):
 @pytest.fixture
 def erratatype_vm(module_erratatype_repos_col, target_sat):
     """Virtual machine client using module_erratatype_repos_col for subscription"""
-    with VMBroker(
+    with Broker(
         nick=module_erratatype_repos_col.distro, host_classes={'host': ContentHost}
     ) as client:
         module_erratatype_repos_col.setup_virtual_machine(client, target_sat)
@@ -339,7 +339,7 @@ def test_content_host_errata_page_pagination(session, org, lce, target_sat):
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    with VMBroker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
+    with Broker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
         client.add_rex_key(satellite=target_sat)
         # Add repo and install packages that need errata
         repos_collection.setup_virtual_machine(client, target_sat)
@@ -482,7 +482,7 @@ def test_positive_apply_for_all_hosts(session, module_org, module_repos_col, tar
 
     :CaseLevel: System
     """
-    with VMBroker(
+    with Broker(
         nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:
@@ -552,7 +552,7 @@ def test_positive_filter_by_environment(session, module_org, module_repos_col, t
 
     :CaseLevel: System
     """
-    with VMBroker(
+    with Broker(
         nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:
@@ -858,7 +858,7 @@ def test_positive_filtered_errata_status_installable_param(
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    with VMBroker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
+    with Broker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
         repos_collection.setup_virtual_machine(client, target_sat)
         assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
         # Adding content view filter and content view filter rule to exclude errata for the
@@ -944,7 +944,7 @@ def test_content_host_errata_search_commands(session, module_org, module_repos_c
 
     :BZ: 1707335
     """
-    with VMBroker(
+    with Broker(
         nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:

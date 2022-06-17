@@ -754,7 +754,7 @@ class TestContentViewPublishPromote:
 
         :CaseAutomation: Automated
         """
-        org = entities.Organization().create()
+        org = target_sat.api.Organization().create()
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
         rhel7_extra = enable_rhrepo_and_fetchid(
@@ -781,12 +781,12 @@ class TestContentViewPublishPromote:
             reposet=constants.REPOSET['rhel7_sup'],
             releasever=constants.REPOS['rhel7_sup']['releasever'],
         )
-        rhel7_extra = entities.Repository(id=rhel7_extra).read()
-        rhel7_optional = entities.Repository(id=rhel7_optional).read()
-        rhel7_sup = entities.Repository(id=rhel7_sup).read()
+        rhel7_extra = target_sat.api.Repository(id=rhel7_extra).read()
+        rhel7_optional = target_sat.api.Repository(id=rhel7_optional).read()
+        rhel7_sup = target_sat.api.Repository(id=rhel7_sup).read()
         for repo in [rhel7_extra, rhel7_optional, rhel7_sup]:
             repo.sync(timeout=1200)
-        cv = entities.ContentView(
+        cv = target_sat.api.ContentView(
             organization=org,
             solve_dependencies=True,
             repository=[rhel7_extra, rhel7_sup, rhel7_optional],
@@ -800,13 +800,13 @@ class TestContentViewPublishPromote:
                 max_tries=60,
             )
         except TaskFailedError:
-            entities.ForemanTask().bulk_resume(data={"task_ids": [publish_task['id']]})
+            target_sat.api.ForemanTask().bulk_resume(data={"task_ids": [publish_task['id']]})
             wait_for_tasks(
                 search_query=(f'id = {publish_task["id"]}'),
                 search_rate=30,
                 max_tries=60,
             )
-        task_status = entities.ForemanTask(id=publish_task['id']).poll()
+        task_status = target_sat.api.ForemanTask(id=publish_task['id']).poll()
         assert task_status['result'] == 'success'
 
 

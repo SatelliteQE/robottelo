@@ -570,7 +570,7 @@ def make_repository_with_credentials(options=None, credentials=None):
         'gpg-key-id': None,
         'ignorable-content': None,
         'label': None,
-        'mirror-on-sync': None,
+        'mirroring-policy': None,
         'name': gen_string('alpha', 15),
         'organization': None,
         'organization-id': None,

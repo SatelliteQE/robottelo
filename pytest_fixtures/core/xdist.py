@@ -2,7 +2,7 @@
 import random
 
 import pytest
-from broker import VMBroker
+from broker import Broker
 
 from robottelo.config import configure_airgun
 from robottelo.config import configure_nailgun
@@ -24,7 +24,7 @@ def align_to_satellite(worker_id, satellite_factory):
 
     # attempt to add potential satellites from the broker inventory file
     if settings.server.inventory_filter:
-        hosts = VMBroker().from_inventory(filter=settings.server.inventory_filter)
+        hosts = Broker().from_inventory(filter=settings.server.inventory_filter)
         settings.server.hostnames += [host.hostname for host in hosts]
 
     # attempt to align a worker to a satellite
@@ -47,4 +47,4 @@ def align_to_satellite(worker_id, satellite_factory):
     configure_nailgun()
     yield
     if on_demand_sat and settings.server.auto_checkin:
-        VMBroker(hosts=[on_demand_sat]).checkin()
+        Broker(hosts=[on_demand_sat]).checkin()

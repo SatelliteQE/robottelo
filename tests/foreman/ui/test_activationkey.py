@@ -20,7 +20,7 @@ import random
 
 import pytest
 from airgun.session import Session
-from broker import VMBroker
+from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -957,7 +957,7 @@ def test_negative_usage_limit(session, module_org, target_sat):
         session.activationkey.update(name, {'details.hosts_limit': hosts_limit})
         ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['hosts_limit'] == hosts_limit
-    with VMBroker(nick='rhel6', host_classes={'host': ContentHost}, _count=2) as hosts:
+    with Broker(nick='rhel6', host_classes={'host': ContentHost}, _count=2) as hosts:
         vm1, vm2 = hosts
         vm1.install_katello_ca(target_sat)
         vm1.register_contenthost(module_org.label, name)
@@ -1056,7 +1056,7 @@ def test_positive_host_associations(session, target_sat):
         environment=org_entities['lifecycle-environment-id'],
         organization=org.id,
     ).create()
-    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
+    with Broker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
         vm1, vm2 = hosts
         vm1.install_katello_ca(target_sat)
         vm1.register_contenthost(org.label, ak1.name)

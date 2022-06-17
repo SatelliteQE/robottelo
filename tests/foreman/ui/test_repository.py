@@ -16,6 +16,8 @@
 
 :Upstream: No
 """
+from datetime import datetime
+from datetime import timedelta
 from random import randint
 from random import shuffle
 
@@ -26,6 +28,7 @@ from navmazing import NavigationTriesExceeded
 
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
+from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DISTRO_RHEL7
@@ -840,6 +843,54 @@ def test_positive_delete_random_docker_repo(session, module_org):
 
 
 @pytest.mark.tier2
+def test_positive_delete_rhel_repo(session, module_org):
+    """Enable and sync a Red Hat Repository, and then delete it
+
+    :id: e96f369d-3e58-4824-802e-0b7e99d6d207
+
+    :customerscenario: true
+
+    :expectedresults: Repository can be successfully deleted
+
+    :CaseLevel: Integration
+
+    :BZ: 1152672
+    """
+
+    manifests.upload_manifest_locked(module_org.id)
+    sat_tools_repo = SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
+    repository_name = sat_tools_repo.data['repository']
+    product_name = sat_tools_repo.data['product']
+    with session:
+        session.organization.select(module_org.name)
+        session.redhatrepository.enable(
+            sat_tools_repo.data['repository-set'],
+            sat_tools_repo.data['arch'],
+            version=sat_tools_repo.data['releasever'],
+        )
+        results = session.redhatrepository.search(f'name = "{repository_name}"', category='Enabled')
+        assert results[0]['name'] == repository_name
+        results = session.sync_status.synchronize(
+            [
+                (
+                    sat_tools_repo.data['product'],
+                    sat_tools_repo.data['releasever'],
+                    sat_tools_repo.data['arch'],
+                    repository_name,
+                )
+            ]
+        )
+        assert results and all([result == 'Syncing Complete.' for result in results])
+        session.repository.delete(product_name, repository_name)
+        assert not session.redhatrepository.search(
+            f'name = "{repository_name}"', category='Enabled'
+        )
+        assert (
+            'Your search returned zero Products' in session.product.search(product_name)[0]['Name']
+        )
+
+
+@pytest.mark.tier2
 def test_positive_recommended_repos(session, module_org):
     """list recommended repositories using
      On/Off 'Recommended Repositories' toggle.
@@ -959,7 +1010,7 @@ def test_positive_remove_credentials(session, function_product, function_org, fu
     :customerscenario: true
 
     :Steps:
-        1. Create a custom repository, with a repositority type of 'yum' and an upstream username
+        1. Create a custom repository, with a repository type of 'yum' and an upstream username
         and password.
         3. Remove the saved credentials by clicking the delete icon next to the 'Upstream
         Authorization' field in the repository details page.
@@ -989,6 +1040,63 @@ def test_positive_remove_credentials(session, function_product, function_org, fu
         )
         repo_values = session.repository.read(function_product.name, repo_name)
         assert not repo_values['repo_content']['upstream_authorization']
+
+
+@pytest.mark.tier2
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+def test_sync_status_persists_after_task_delete(session, module_prod, module_org, target_sat):
+    """Red Hat repositories displayed correctly on Sync Status page.
+
+    :id: 29b79d15-9b92-4b6e-a1e4-9bf79de99c9b
+
+    :BZ: 1924625
+
+    :customerscenario: true
+
+    :Steps:
+        1. Sync a custom Repo.
+        2. Navigate to Content > Sync Status. Assert status is Synced.
+        3. Use foreman-rake console to delete the Sync task.
+        4. Navigate to Content > Sync Status. Assert status is still Synced.
+
+    :expectedresults: Displayed Sync Status is still "Synced" after task deleted.
+    """
+    # make a note of time for later API wait_for_tasks, and include 4 mins margin of safety.
+    timestamp = (datetime.utcnow() - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
+    repo = target_sat.api.Repository(url=settings.repos.yum_1.url, product=module_prod).create()
+    with session:
+        result = session.sync_status.read()
+        result = result['table'][module_prod.name][repo.name]['RESULT']
+        assert result == 'Never Synced'
+        result = session.sync_status.synchronize([(module_prod.name, repo.name)])
+        assert len(result) == 1
+        assert result[0] == 'Syncing Complete.'
+        # Get the UUID of the sync task.
+        search_result = wait_for_tasks(
+            search_query='label = Actions::Katello::Repository::Sync'
+            f' and organization_id = {module_org.id}'
+            f' and started_at >= "{timestamp}"',
+            search_rate=15,
+            max_tries=5,
+        )
+        # Delete the task using UUID (search_result[0].id)
+        task_result = target_sat.execute(
+            f"""echo "ForemanTasks::Task.find(
+            '{search_result[0].id}').destroy!" | foreman-rake console"""
+        )
+        assert task_result.status == 0
+        # Ensure task record was deleted.
+        task_result = target_sat.execute(
+            f"""echo "ForemanTasks::Task.find('{search_result[0].id}')" | foreman-rake console"""
+        )
+        assert task_result.status == 0
+        assert 'RecordNotFound' in task_result.stdout
+        # Navigate to some other page to ensure we get a refreshed sync status page
+        session.repository.read(module_prod.name, repo.name)
+        # Read the status again and assert the status is still "Synced".
+        result = session.sync_status.read()
+        result = result['table'][module_prod.name][repo.name]['RESULT']
+        assert 'Synced' in result
 
 
 @pytest.mark.stubbed

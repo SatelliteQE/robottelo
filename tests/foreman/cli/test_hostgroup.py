@@ -38,7 +38,6 @@ from robottelo.cli.factory import make_proxy
 from robottelo.cli.factory import make_subnet
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
-from robottelo.cli.puppet import Puppet
 from robottelo.config import settings
 from robottelo.datafactory import invalid_id_list
 from robottelo.datafactory import invalid_values_list
@@ -55,21 +54,37 @@ pc_name = 'generic_1'
 
 
 @pytest.fixture(scope='module')
-def env(module_org, module_location, module_target_sat):
+def env(module_puppet_org, module_puppet_loc, session_puppet_enabled_sat):
     """Return the puppet environment."""
 
-    env_name = module_target_sat.create_custom_environment(repo=pc_name)
-    env = module_target_sat.api.Environment().search(query={'search': f'name={env_name}'})[0].read()
-    env.location = [module_location]
-    env.organization = [module_org]
+    env_name = session_puppet_enabled_sat.create_custom_environment(repo=pc_name)
+    env = (
+        session_puppet_enabled_sat.api.Environment()
+        .search(query={'search': f'name={env_name}'})[0]
+        .read()
+    )
+    env.location = [module_puppet_loc]
+    env.organization = [module_puppet_org]
     env.update(['location', 'organization'])
     return env
 
 
 @pytest.fixture(scope='module')
-def puppet_classes(env):
+def puppet_classes(env, session_puppet_enabled_sat):
     """Return puppet classes."""
-    return [Puppet.info({'name': pc_name, 'puppet-environment': env.name})]
+    return [
+        session_puppet_enabled_sat.cli.Puppet.info(
+            {'name': pc_name, 'puppet-environment': env.name}
+        )
+    ]
+
+
+@pytest.fixture(scope='module')
+def puppet_content_source(session_puppet_enabled_sat):
+    """Return the proxy."""
+    return session_puppet_enabled_sat.cli.Proxy.list(
+        {'search': f'url = {session_puppet_enabled_sat.url}:9090'}
+    )[0]
 
 
 @pytest.fixture(scope='module')
@@ -104,7 +119,7 @@ def test_negative_create_with_name(name):
 @pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_create_with_multiple_entities_and_delete(
-    module_org, content_source, puppet_classes
+    module_puppet_org, puppet_content_source, puppet_classes, session_puppet_enabled_sat
 ):
     """Check if hostgroup with multiple options can be created and deleted
 
@@ -119,77 +134,78 @@ def test_positive_create_with_multiple_entities_and_delete(
 
     :CaseImportance: Critical
     """
-    # Common entities
-    name = valid_hostgroups_list()[0]
-    loc = make_location()
-    org_2 = entities.Organization().create()
-    orgs = [module_org, org_2]
-    env = make_environment({'location-ids': loc['id'], 'organization-ids': org_2.id})
-    lce = make_lifecycle_environment({'organization-id': org_2.id})
-    # Content View should be promoted to be used with LC Env
-    cv = make_content_view({'organization-id': org_2.id})
-    ContentView.publish({'id': cv['id']})
-    cv = ContentView.info({'id': cv['id']})
-    ContentView.version_promote(
-        {'id': cv['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
-    )
-    # Network
-    domain = make_domain({'location-ids': loc['id'], 'organization-ids': org_2.id})
-    subnet = make_subnet({'domain-ids': domain['id'], 'organization-ids': org_2.id})
-    # Operating System
-    arch = make_architecture()
-    ptable = make_partition_table({'location-ids': loc['id'], 'organization-ids': org_2.id})
-    os = make_os({'architecture-ids': arch['id'], 'partition-table-ids': ptable['id']})
-    os_full_name = "{} {}.{}".format(os['name'], os['major-version'], os['minor-version'])
-    media = make_medium(
-        {
-            'operatingsystem-ids': os['id'],
-            'location-ids': loc['id'],
-            'organization-ids': org_2.id,
+    with session_puppet_enabled_sat:
+        # Common entities
+        name = valid_hostgroups_list()[0]
+        loc = make_location()
+        org_2 = entities.Organization().create()
+        orgs = [module_puppet_org, org_2]
+        env = make_environment({'location-ids': loc['id'], 'organization-ids': org_2.id})
+        lce = make_lifecycle_environment({'organization-id': org_2.id})
+        # Content View should be promoted to be used with LC Env
+        cv = make_content_view({'organization-id': org_2.id})
+        ContentView.publish({'id': cv['id']})
+        cv = ContentView.info({'id': cv['id']})
+        ContentView.version_promote(
+            {'id': cv['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
+        )
+        # Network
+        domain = make_domain({'location-ids': loc['id'], 'organization-ids': org_2.id})
+        subnet = make_subnet({'domain-ids': domain['id'], 'organization-ids': org_2.id})
+        # Operating System
+        arch = make_architecture()
+        ptable = make_partition_table({'location-ids': loc['id'], 'organization-ids': org_2.id})
+        os = make_os({'architecture-ids': arch['id'], 'partition-table-ids': ptable['id']})
+        os_full_name = "{} {}.{}".format(os['name'], os['major-version'], os['minor-version'])
+        media = make_medium(
+            {
+                'operatingsystem-ids': os['id'],
+                'location-ids': loc['id'],
+                'organization-ids': org_2.id,
+            }
+        )
+        # Note: in the current hammer version there is no content source name
+        # option
+        make_hostgroup_params = {
+            'name': name,
+            'organization-ids': [org.id for org in orgs],
+            'locations': loc['name'],
+            'puppet-environment': env['name'],
+            'lifecycle-environment-id': lce['id'],
+            'puppet-proxy': puppet_content_source['name'],
+            'puppet-ca-proxy': puppet_content_source['name'],
+            'content-source-id': puppet_content_source['id'],
+            'content-view': cv['name'],
+            'domain': domain['name'],
+            'subnet': subnet['name'],
+            'architecture': arch['name'],
+            'partition-table': ptable['name'],
+            'medium': media['name'],
+            'operatingsystem': os_full_name,
+            'puppet-classes': puppet_classes[0]['name'],
+            'query-organization': org_2.name,
         }
-    )
-    # Note: in the current hammer version there is no content source name
-    # option
-    make_hostgroup_params = {
-        'name': name,
-        'organization-ids': [org.id for org in orgs],
-        'locations': loc['name'],
-        'environment': env['name'],
-        'lifecycle-environment': lce['name'],
-        'puppet-proxy': content_source['name'],
-        'puppet-ca-proxy': content_source['name'],
-        'content-source-id': content_source['id'],
-        'content-view': cv['name'],
-        'domain': domain['name'],
-        'subnet': subnet['name'],
-        'architecture': arch['name'],
-        'partition-table': ptable['name'],
-        'medium': media['name'],
-        'operatingsystem': os_full_name,
-        'puppet-classes': puppet_classes[0]['name'],
-        'query-organization': org_2.name,
-    }
-    hostgroup = make_hostgroup(make_hostgroup_params)
-    assert hostgroup['name'] == name
-    assert {org.name for org in orgs} == set(hostgroup['organizations'])
-    assert loc['name'] in hostgroup['locations']
-    assert env['name'] == hostgroup['puppet-environment']
-    assert content_source['name'] == hostgroup['puppet-master-proxy']
-    assert content_source['name'] == hostgroup['puppet-ca-proxy']
-    assert domain['name'] == hostgroup['network']['domain']
-    assert subnet['name'] == hostgroup['network']['subnet-ipv4']
-    assert arch['name'] == hostgroup['operating-system']['architecture']
-    assert ptable['name'] == hostgroup['operating-system']['partition-table']
-    assert media['name'] == hostgroup['operating-system']['medium']
-    assert os_full_name == hostgroup['operating-system']['operating-system']
-    assert cv['name'] == hostgroup['content-view']['name']
-    assert lce['name'] == hostgroup['lifecycle-environment']['name']
-    assert content_source['name'] == hostgroup['content-source']['name']
-    assert puppet_classes[0]['name'] in hostgroup['puppetclasses']
-    # delete hostgroup
-    HostGroup.delete({'id': hostgroup['id']})
-    with pytest.raises(CLIReturnCodeError):
-        HostGroup.info({'id': hostgroup['id']})
+        hostgroup = make_hostgroup(make_hostgroup_params)
+        assert hostgroup['name'] == name
+        assert {org.name for org in orgs} == set(hostgroup['organizations'])
+        assert loc['name'] in hostgroup['locations']
+        assert env['name'] == hostgroup['puppet-environment']
+        assert puppet_content_source['name'] == hostgroup['puppet-master-proxy']
+        assert puppet_content_source['name'] == hostgroup['puppet-ca-proxy']
+        assert domain['name'] == hostgroup['network']['domain']
+        assert subnet['name'] == hostgroup['network']['subnet-ipv4']
+        assert arch['name'] == hostgroup['operating-system']['architecture']
+        assert ptable['name'] == hostgroup['operating-system']['partition-table']
+        assert media['name'] == hostgroup['operating-system']['medium']
+        assert os_full_name == hostgroup['operating-system']['operating-system']
+        assert cv['name'] == hostgroup['content-view']['name']
+        assert lce['name'] == hostgroup['lifecycle-environment']['name']
+        assert puppet_content_source['name'] == hostgroup['content-source']['name']
+        assert puppet_classes[0]['name'] in hostgroup['puppetclasses']
+        # delete hostgroup
+        HostGroup.delete({'id': hostgroup['id']})
+        with pytest.raises(CLIReturnCodeError):
+            HostGroup.info({'id': hostgroup['id']})
 
 
 @pytest.mark.tier2
@@ -215,7 +231,15 @@ def test_negative_create_with_content_source(module_org):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-def test_positive_update_hostgroup(request, module_org, env, content_source, puppet_classes):
+def test_positive_update_hostgroup(
+    request,
+    module_puppet_org,
+    env,
+    puppet_content_source,
+    puppet_classes,
+    session_puppet_enabled_sat,
+    puppet_proxy_port_range,
+):
     """Update hostgroup's content source, name and puppet classes
 
     :id: c22218a1-4d86-4ac1-ad4b-79b10c9adcde
@@ -229,37 +253,39 @@ def test_positive_update_hostgroup(request, module_org, env, content_source, pup
 
     :CaseLevel: Integration
     """
-    hostgroup = make_hostgroup(
-        {
-            'content-source-id': content_source['id'],
-            'organization-ids': module_org.id,
-            'environment-id': env.id,
-            'query-organization-id': module_org.id,
-        }
-    )
-    new_content_source = make_proxy()
+    with session_puppet_enabled_sat:
+        hostgroup = make_hostgroup(
+            {
+                'content-source-id': puppet_content_source['id'],
+                'organization-ids': module_puppet_org.id,
+                'environment-id': env.id,
+                'query-organization-id': module_puppet_org.id,
+            }
+        )
+        new_content_source = make_proxy()
 
-    @request.addfinalizer
-    def _cleanup():
-        HostGroup.delete({'id': hostgroup['id']})
-        capsule_cleanup(new_content_source['id'])
+        @request.addfinalizer
+        def _cleanup():
+            with session_puppet_enabled_sat:
+                HostGroup.delete({'id': hostgroup['id']})
+                capsule_cleanup(new_content_source['id'])
 
-    assert len(hostgroup['puppetclasses']) == 0
-    new_name = valid_hostgroups_list()[0]
-    puppet_class_names = [puppet['name'] for puppet in puppet_classes]
-    HostGroup.update(
-        {
-            'new-name': new_name,
-            'id': hostgroup['id'],
-            'content-source-id': new_content_source['id'],
-            'puppet-classes': puppet_class_names,
-        }
-    )
-    hostgroup = HostGroup.info({'id': hostgroup['id']})
-    assert hostgroup['name'] == new_name
-    assert hostgroup['content-source']['name'] == new_content_source['name']
-    for puppet_class_name in puppet_class_names:
-        assert puppet_class_name in hostgroup['puppetclasses']
+        assert len(hostgroup['puppetclasses']) == 0
+        new_name = valid_hostgroups_list()[0]
+        puppet_class_names = [puppet['name'] for puppet in puppet_classes]
+        HostGroup.update(
+            {
+                'new-name': new_name,
+                'id': hostgroup['id'],
+                'content-source-id': new_content_source['id'],
+                'puppet-classes': puppet_class_names,
+            }
+        )
+        hostgroup = HostGroup.info({'id': hostgroup['id']})
+        assert hostgroup['name'] == new_name
+        assert hostgroup['content-source']['name'] == new_content_source['name']
+        for puppet_class_name in puppet_class_names:
+            assert puppet_class_name in hostgroup['puppetclasses']
 
 
 @pytest.mark.tier2

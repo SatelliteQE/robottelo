@@ -103,8 +103,10 @@ def test_rhcloud_inventory_api_e2e(
     # Assert Hostnames, IP addresses, and installed packages are present in report.
     json_data = get_report_data(local_report_path)
     json_meta_data = get_report_metadata(local_report_path)
-    package_version = rhcloud_sat_host.run('rpm -qa --qf "%{VERSION}" tfm-rubygem-foreman_rh_cloud')
-
+    prefix = 'tfm-' if rhcloud_sat_host.os_version.major < 8 else ''
+    package_version = rhcloud_sat_host.run(
+        f'rpm -qa --qf "%{{VERSION}}" {prefix}rubygem-foreman_rh_cloud'
+    )
     assert json_meta_data['source_metadata']['foreman_rh_cloud_version'] == str(package_version)
     assert json_meta_data['source'] == 'Satellite'
     hostnames = [host['fqdn'] for host in json_data['hosts']]
@@ -133,7 +135,6 @@ def test_rhcloud_inventory_api_e2e(
 
 @pytest.mark.tier3
 def test_rhcloud_inventory_api_hosts_synchronization(
-    set_rh_cloud_token,
     organization_ak_setup,
     rhcloud_registered_hosts,
     rhcloud_sat_host,
@@ -145,11 +146,10 @@ def test_rhcloud_inventory_api_hosts_synchronization(
     :Steps:
 
         1. Prepare machine and upload its data to Insights.
-        2. Add Cloud API key in Satellite
-        3. Sync inventory status using RH Cloud plugin api.
-        4. Assert content of finished tasks.
-        5. Get host details.
-        6. Assert inventory status for the host.
+        2. Sync inventory status using RH Cloud plugin api.
+        3. Assert content of finished tasks.
+        4. Get host details.
+        5. Assert inventory status for the host.
 
     :expectedresults:
         1. Task detail should contain should contain number of hosts
@@ -406,3 +406,53 @@ def test_rh_cloud_tag_values(
                 if tag['key'] == 'host_collection':
                     assert tag['value'] == f'"{host_col_name}"'
                     break
+
+
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier2
+def test_positive_tag_values_max_length(
+    inventory_settings,
+    organization_ak_setup,
+    rhcloud_registered_hosts,
+    rhcloud_sat_host,
+    target_sat,
+):
+    """Verify that tags values are truncated properly for the host parameter
+       with max length.
+
+    :id: dbcc7245-88af-4c35-87b8-92de01030cb5
+
+    :Steps:
+        1. Enable include_parameter_tags setting
+        2. Create a host parameter with long text value.
+        3. Generate a rh_cloud report.
+        4. Observe the tag generated from the parameter.
+
+    :expectedresults:
+        1. Parameter tag value must not be created after the
+           allowed length.
+
+    :BZ: 2035204
+
+    :CaseAutomation: Automated
+    """
+
+    param_name = gen_string('alpha')
+    param_value = gen_string('alpha', length=260)
+    target_sat.api.CommonParameter(name=param_name, value=param_value).create()
+
+    org, ak = organization_ak_setup
+    local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
+    rhcloud_sat_host.update_setting('include_parameter_tags', True)
+    generate_inventory_report(rhcloud_sat_host, org)
+    # Download report
+    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_download_report(
+        destination=local_report_path
+    )
+    json_data = get_report_data(local_report_path)
+    common_assertion(local_report_path)
+    for host in json_data['hosts']:
+        for tag in host['tags']:
+            if tag['key'] == param_name:
+                assert tag['value'] == "Original value exceeds 250 characters"
+                break

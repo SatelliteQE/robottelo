@@ -137,15 +137,14 @@ def test_obfuscate_host_names(
 
     :Steps:
 
-        1. Prepare machine and upload its data to Insights
-        2. Add Cloud API key in Satellite
-        3. Go to Configure > Inventory upload > enable “Obfuscate host names” setting.
-        4. Generate report after enabling the setting.
-        5. Check if host names are obfuscated in generated reports.
-        6. Disable previous setting.
-        7. Go to Administer > Settings > RH Cloud and enable "Obfuscate host names" setting.
-        8. Generate report after enabling the setting.
-        9. Check if host names are obfuscated in generated reports.
+        1. Prepare machine and upload its data to Insights.
+        2. Go to Configure > Inventory upload > enable “Obfuscate host names” setting.
+        3. Generate report after enabling the setting.
+        4. Check if host names are obfuscated in generated reports.
+        5. Disable previous setting.
+        6. Go to Administer > Settings > RH Cloud and enable "Obfuscate host names" setting.
+        7. Generate report after enabling the setting.
+        8. Check if host names are obfuscated in generated reports.
 
     :expectedresults:
         1. Obfuscated host names in reports generated.
@@ -242,15 +241,14 @@ def test_obfuscate_host_ipv4_addresses(
 
     :Steps:
 
-        1. Prepare machine and upload its data to Insights
-        2. Add Cloud API key in Satellite
-        3. Go to Configure > Inventory upload > enable “Obfuscate host ipv4 addresses” setting.
-        4. Generate report after enabling the setting.
-        5. Check if hosts ipv4 addresses are obfuscated in generated reports.
-        6. Disable previous setting.
-        7. Go to Administer > Settings > RH Cloud and enable "Obfuscate IPs" setting.
-        8. Generate report after enabling the setting.
-        9. Check if hosts ipv4 addresses are obfuscated in generated reports.
+        1. Prepare machine and upload its data to Insights.
+        2. Go to Configure > Inventory upload > enable “Obfuscate host ipv4 addresses” setting.
+        3. Generate report after enabling the setting.
+        4. Check if hosts ipv4 addresses are obfuscated in generated reports.
+        5. Disable previous setting.
+        6. Go to Administer > Settings > RH Cloud and enable "Obfuscate IPs" setting.
+        7. Generate report after enabling the setting.
+        8. Check if hosts ipv4 addresses are obfuscated in generated reports.
 
     :expectedresults:
         1. Obfuscated host ipv4 addresses in generated reports.
@@ -362,15 +360,14 @@ def test_exclude_packages_setting(
     :Steps:
 
         1. Prepare machine and upload its data to Insights
-        2. Add Cloud API key in Satellite
-        3. Go to Configure > Inventory upload > enable “Exclude Packages” setting.
-        4. Generate report after enabling the setting.
-        5. Check if packages are excluded from generated reports.
-        6. Disable previous setting.
-        7. Go to Administer > Settings > RH Cloud and enable
+        2. Go to Configure > Inventory upload > enable “Exclude Packages” setting.
+        3. Generate report after enabling the setting.
+        4. Check if packages are excluded from generated reports.
+        5. Disable previous setting.
+        6. Go to Administer > Settings > RH Cloud and enable
             "Don't upload installed packages" setting.
-        8. Generate report after enabling the setting.
-        9. Check if packages are excluded from generated reports.
+        7. Generate report after enabling the setting.
+        8. Check if packages are excluded from generated reports.
 
     :expectedresults:
         1. Packages are excluded from reports generated.

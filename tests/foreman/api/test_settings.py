@@ -219,7 +219,7 @@ def test_positive_custom_repo_download_policy(setting_update, download_policy):
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('valid_value', **parametrized(valid_timeout_values()))
-@pytest.mark.parametrize('setting_update', ['sync_connect_timeout'], indirect=True)
+@pytest.mark.parametrize('setting_update', ['sync_connect_timeout_v2'], indirect=True)
 def test_positive_update_sync_timeout(setting_update, valid_value):
     """Check that values from provided range can be set to
     sync connection timeout
@@ -240,7 +240,7 @@ def test_positive_update_sync_timeout(setting_update, valid_value):
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('invalid_value', ["-1", "3.1415", "2.71828e+11", "123456789", "0x3f77"])
-@pytest.mark.parametrize('setting_update', ['sync_connect_timeout'], indirect=True)
+@pytest.mark.parametrize('setting_update', ['sync_connect_timeout_v2'], indirect=True)
 def test_negative_update_sync_timeout(setting_update, invalid_value):
     """Check that non-integer or too long values can't be set to
     sync connection timeout

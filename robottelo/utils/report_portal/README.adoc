@@ -1,0 +1,109 @@
+= Report Portal Module
+
+
+The `ReportPortal` python module is designed to read the `Satellite6` test results data from the Report Portal Analyzer tool.
+
+
+
+This module consists of mainly two classes:
+
+
+* *ReportPortal:*
+
+    This class holds the properties and functions to interact with Report Portal properties and launches.
+
+    ** `get_launches()`: Retrives all the launches from Satelite project. It can be filtered by specific Satellite version / uuid etc. The launches data will be sorted by Satellite release version, with the latest snap version at the top.
+
+    ** `get_tests()`: Retrieves all the tests and their data from a specific launch from Satellite Project. The tests can be filtered by particular test_statuses and defect_types.
+
+
+== Examples:
+
+[#ReportPortal Examples]
+==== ReportPortal Examples:
+
+* ReportPortal Class Attributes
+** rp.defect_types
+** rp.statuses
+
+* ReportPortal Object
+
+[source,python]
+----
+In [0]: rp = ReportPortal(rp_url='http://example.com:port', rp_api_key='somekey', rp_project='someproj')
+In [1]: rp
+Out[1]: <robottelo.utils.report_portal.portal.ReportPortal at 0x7feebe552710>
+----
+
+* Retrive launches from Report Portal
+
+[source,python]
+----
+In [2]: rp.get_launches(name='OCP-Jenkins-CI', sat_version='6.11')
+Out [2]:
+[{'owner': 'robottelo',
+  'share': False,
+  'description': '6.11.0 snap: 19.0 rhel7',
+  'id': 1069,
+  'uuid': '3d3b198b-4c8a-424e-98a8-8c3c3114100a',
+  'name': 'OCP-Jenkins-CI',
+  ......
+----
+
+* Retrieve launch from Report Portal
+
+[source,python]
+----
+In [3]: launch = rp.get_launches(uuid='launch_uuid')
+In [4]: launch
+Out [4]:
+[{'owner': 'robottelo',
+  'share': False,
+  'description': '6.11.0 snap: 18.5 rhel7',
+  'id': 1047,
+  'uuid': 'd605f773-043e-4f3a-be9a-00bc5b471e9f',
+  'name': 'OCP-Jenkins-CI',
+  'number': 493,
+  ......
+----
+
+* Retrieve tests with test status _failed_ and _skipped_
+
+[source,python]
+----
+In [5]: rp.get_tests(launch=launch[0], status=['SKIPPED', 'FAILED'])
+Out [5]:
+[{'id': 1225859,
+  'uuid': 'c654d19e-c80e-4201-b915-cabb527e4cf7',
+  'name': 'tests/foreman/ui/test_usergroup.py::test_positive_end_to_end',
+  'description': 'test_positive_end_to_end time: 169.159',
+  'parameters': [],
+  'attributes': [{'key': 'SnapVersion', 'value': '22.0'},
+   {'key': 'SatelliteVersion', 'value': '6.11.0'},
+   {'key': '', 'value': 'tier2'},
+   {'key': 'upgrade', 'value': 'None'},
+   {'key': 'endpoint', 'value': 'ui'},
+   {'key': 'importance', 'value': 'High'},
+   {'key': 'assignee', 'value': 'sganar'},
+   {'key': 'BaseOS', 'value': '7.9'},
+   {'key': 'component', 'value': 'UsersRoles'}],
+   ......
+----
+
+* Retrieve tests with test status _failed_ and defect type _to_investigate_
+
+[source,python]
+----
+In [6]: rp.get_tests(launch=launch[0], status=["FAILED"], defect_types=["to_investigate"])
+Out [6]:
+[{'id': 1225859,
+  'uuid': 'c654d19e-c80e-4201-b915-cabb527e4cf7',
+  'name': 'tests/foreman/ui/test_usergroup.py::test_positive_end_to_end',
+  'description': 'test_positive_end_to_end time: 169.159',
+  'parameters': [],
+  'issue': {'issueType': 'ti001',
+   'autoAnalyzed': False,
+   'ignoreAnalyzer': False,
+   'externalSystemIssues': []},
+   .....
+----

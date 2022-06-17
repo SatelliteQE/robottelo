@@ -5,9 +5,8 @@ The functions in this module are read in the pytest_plugins/fixture_markers.py m
 All functions in this module will be treated as fixtures that apply the contenthost mark
 """
 import pytest
-from broker import VMBroker
+from broker import Broker
 from fauxfactory import gen_string
-from nailgun import entities
 
 from robottelo import constants
 from robottelo.config import settings
@@ -15,7 +14,7 @@ from robottelo.hosts import ContentHost
 
 
 def host_conf(request):
-    """A function that returns arguments for VMBroker host deployment"""
+    """A function that returns arguments for Broker host deployment"""
     conf = params = {}
     if hasattr(request, 'param'):
         params = request.param
@@ -43,70 +42,70 @@ def rhel_contenthost(request):
     """A function-level fixture that provides a content host object parametrized"""
     # Request should be parametrized through pytest_fixtures.fixture_markers
     # unpack params dict
-    with VMBroker(**host_conf(request), host_classes={'host': ContentHost}) as host:
+    with Broker(**host_conf(request), host_classes={'host': ContentHost}) as host:
         yield host
 
 
 @pytest.fixture(params=[{'rhel_version': '7'}])
 def rhel7_contenthost(request):
     """A function-level fixture that provides a rhel7 content host object"""
-    with VMBroker(**host_conf(request), host_classes={'host': ContentHost}) as host:
+    with Broker(**host_conf(request), host_classes={'host': ContentHost}) as host:
         yield host
 
 
 @pytest.fixture(scope="class", params=[{'rhel_version': '7'}])
 def rhel7_contenthost_class(request):
     """A fixture for use with unittest classes. Provides a rhel7 Content Host object"""
-    with VMBroker(**host_conf(request), host_classes={'host': ContentHost}) as host:
+    with Broker(**host_conf(request), host_classes={'host': ContentHost}) as host:
         yield host
 
 
 @pytest.fixture(scope='module', params=[{'rhel_version': '7'}])
 def rhel7_contenthost_module(request):
     """A module-level fixture that provides a rhel7 content host object"""
-    with VMBroker(**host_conf(request), host_classes={'host': ContentHost}) as host:
+    with Broker(**host_conf(request), host_classes={'host': ContentHost}) as host:
         yield host
 
 
 @pytest.fixture(params=[{'rhel_version': '8'}])
 def rhel8_contenthost(request):
     """A fixture that provides a rhel8 content host object"""
-    with VMBroker(**host_conf(request), host_classes={'host': ContentHost}) as host:
+    with Broker(**host_conf(request), host_classes={'host': ContentHost}) as host:
         yield host
 
 
 @pytest.fixture(scope='module', params=[{'rhel_version': '8'}])
 def rhel8_contenthost_module(request):
     """A module-level fixture that provides a rhel8 content host object"""
-    with VMBroker(**host_conf(request), host_classes={'host': ContentHost}) as host:
+    with Broker(**host_conf(request), host_classes={'host': ContentHost}) as host:
         yield host
 
 
 @pytest.fixture(params=[{'rhel_version': 6}])
 def rhel6_contenthost(request):
     """A function-level fixture that provides a rhel6 content host object"""
-    with VMBroker(**host_conf(request), host_classes={'host': ContentHost}) as host:
+    with Broker(**host_conf(request), host_classes={'host': ContentHost}) as host:
         yield host
 
 
 @pytest.fixture(scope='module')
 def content_hosts(request):
     """A module-level fixture that provides two rhel7 content hosts object"""
-    with VMBroker(**host_conf(request), host_classes={'host': ContentHost}, _count=2) as hosts:
+    with Broker(**host_conf(request), host_classes={'host': ContentHost}, _count=2) as hosts:
         hosts[0].set_infrastructure_type('physical')
         yield hosts
 
 
-@pytest.fixture(scope='module')
-def registered_hosts(organization_ak_setup, content_hosts, module_target_sat):
+@pytest.fixture()
+def registered_hosts(request, target_sat, module_org):
     """Fixture that registers content hosts to Satellite, based on rh_cloud setup"""
-    org, ak = organization_ak_setup
-    for vm in content_hosts:
-        vm.install_katello_ca(module_target_sat)
-        vm.register_contenthost(org.label, ak.name)
-        vm.add_rex_key(module_target_sat)
-        assert vm.subscribed
-    return content_hosts
+    with Broker(**host_conf(request), host_classes={'host': ContentHost}, _count=2) as hosts:
+        for vm in hosts:
+            repo = settings.repos['SATCLIENT_REPO'][f'RHEL{vm.os_version.major}']
+            register_host_custom_repo(target_sat, module_org, vm, [repo])
+            vm.install_katello_host_tools()
+            vm.add_rex_key(target_sat)
+        yield hosts
 
 
 @pytest.fixture
@@ -119,17 +118,17 @@ def katello_host_tools_host(target_sat, module_org, rhel_contenthost):
 
 
 @pytest.fixture
-def cockpit_host(target_sat, module_org, rhel_contenthost):
+def cockpit_host(class_target_sat, class_org, rhel_contenthost):
     """Register content host to Satellite and install cockpit on the host."""
     rhelver = rhel_contenthost.os_version.major
     if rhelver > 7:
         repo = [settings.repos[f'rhel{rhelver}_os']['baseos']]
     else:
         repo = [settings.repos['rhel7_os'], settings.repos['rhel7_extras']]
-    register_host_custom_repo(target_sat, module_org, rhel_contenthost, repo)
+    register_host_custom_repo(class_target_sat, class_org, rhel_contenthost, repo)
     rhel_contenthost.execute(f"hostnamectl set-hostname {rhel_contenthost.hostname} --static")
     rhel_contenthost.install_cockpit()
-    rhel_contenthost.add_rex_key(satellite=target_sat)
+    rhel_contenthost.add_rex_key(satellite=class_target_sat)
     yield rhel_contenthost
 
 
@@ -137,18 +136,18 @@ def register_host_custom_repo(target_sat, module_org, rhel_contenthost, repo_url
     """Register content host to Satellite and sync repos"""
     # prepare Product and appropriate Satellite Client repo on satellite
     rhelver = rhel_contenthost.os_version.major
-    prod = entities.Product(
+    prod = target_sat.api.Product(
         organization=module_org, name=f'rhel{rhelver}_{gen_string("alpha")}'
     ).create()
     for url in repo_urls:
-        repo = entities.Repository(
+        repo = target_sat.api.Repository(
             organization=module_org,
             product=prod,
             content_type='yum',
             url=url,
         ).create()
         repo.sync(timeout=1200)
-    subs = entities.Subscription(organization=module_org, name=prod.name).search()
+    subs = target_sat.api.Subscription(organization=module_org, name=prod.name).search()
     assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
     subscription = subs[0]
 
@@ -162,7 +161,7 @@ def register_host_custom_repo(target_sat, module_org, rhel_contenthost, repo_url
     )
     assert register.status == 0, (
         f'Failed to register the host: {rhel_contenthost.hostname}:'
-        'rc: {register.status}: {register.stderr}'
+        f'rc: {register.status}: {register.stderr}'
     )
     # attach product subscription to the host
     rhel_contenthost.nailgun_host.bulk_add_subscriptions(
@@ -219,12 +218,12 @@ def container_contenthost(rhel7_contenthost, target_sat):
 @pytest.fixture
 def centos_host(request, version):
     request.param = {"rhel_version": version.split('.')[0], "distro": "centos"}
-    with VMBroker(**host_conf(request), host_classes={'host': ContentHost}) as host:
+    with Broker(**host_conf(request), host_classes={'host': ContentHost}) as host:
         yield host
 
 
 @pytest.fixture
 def oracle_host(request, version):
     request.param = {"rhel_version": version.split('.')[0], "distro": "oracle"}
-    with VMBroker(**host_conf(request), host_classes={'host': ContentHost}) as host:
+    with Broker(**host_conf(request), host_classes={'host': ContentHost}) as host:
         yield host

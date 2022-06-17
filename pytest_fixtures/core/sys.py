@@ -37,12 +37,26 @@ def proxy_port_range(session_target_sat):
             session_target_sat.execute(f'semanage port -a -t websm_port_t -p tcp {port_pool_range}')
 
 
-@pytest.fixture(scope='session')
-def install_cockpit_plugin(session_target_sat):
-    session_target_sat.register_to_dogfood()
-    session_target_sat.install_cockpit()
+@pytest.fixture(autouse=False, scope='session')
+def puppet_proxy_port_range(session_puppet_enabled_sat):
+    """Assigns port range for fake_capsules on puppet_enabled_sat"""
+    if session_puppet_enabled_sat:
+        port_pool_range = settings.fake_capsules.port_range
+        if (
+            session_puppet_enabled_sat.execute(f'semanage port -l | grep {port_pool_range}').status
+            != 0
+        ):
+            session_puppet_enabled_sat.execute(
+                f'semanage port -a -t websm_port_t -p tcp {port_pool_range}'
+            )
+
+
+@pytest.fixture(scope='class')
+def install_cockpit_plugin(class_target_sat):
+    class_target_sat.register_to_dogfood()
+    class_target_sat.install_cockpit()
     # TODO remove this change when we start using new host detail view
-    setting_object = session_target_sat.api.Setting().search(
+    setting_object = class_target_sat.api.Setting().search(
         query={'search': 'name=host_details_ui'}
     )[0]
     old_value = setting_object.value
@@ -51,6 +65,17 @@ def install_cockpit_plugin(session_target_sat):
     yield
     setting_object.value = old_value
     setting_object.update({'value'})
+
+
+@pytest.fixture(scope='module')
+def enable_capsule_for_registration(module_target_sat):
+    """Enable registration and template features for Satellite internal capsule required for
+    global registration command"""
+    res = module_target_sat.install(
+        cmd_args={},
+        cmd_kwargs={'foreman-proxy-registration': 'true', 'foreman-proxy-templates': 'true'},
+    )
+    assert res.status == 0
 
 
 @pytest.fixture(scope='session')

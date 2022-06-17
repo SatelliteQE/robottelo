@@ -51,21 +51,18 @@ def test_positive_create_by_type():
             'entity_type': 'compute_resource',
             'value_template': '{entity.name} (Libvirt)',
         },
-        {'entity': entities.ConfigGroup(), 'entity_type': 'config_group'},
         {'entity': entities.Domain()},
         {'entity': entities.Host()},
         {'entity': entities.HostGroup()},
         {'entity': entities.Image(compute_resource=entities.LibvirtComputeResource().create())},
         {'entity': entities.Location()},
         {'entity': entities.Media(), 'entity_type': 'medium'},
-        {'entity': entities.Organization()},
         {
             'entity': entities.OperatingSystem(),
             'entity_type': 'os',
             'value_template': '{entity.name} {entity.major}',
         },
         {'entity': entities.PartitionTable(), 'entity_type': 'ptable'},
-        {'entity': entities.PuppetClass()},
         {'entity': entities.Role()},
         {
             'entity': entities.Subnet(),
@@ -79,11 +76,6 @@ def test_positive_create_by_type():
         {'entity': entities.ActivationKey(), 'entity_type': 'katello/activation_key'},
         {'entity': entities.HostCollection(), 'entity_type': 'katello/host_collection'},
         {'entity': entities.Product(), 'entity_type': 'katello/product'},
-        {
-            'entity': entities.GPGKey(),
-            'entity_type': 'katello/gpg_key',
-            'value_template': 'content credential (gpg_key - {entity.name})',
-        },
         {
             'entity': entities.SyncPlan(organization=entities.Organization(id=1)),
             'entity_type': 'katello/sync_plan',
@@ -122,7 +114,6 @@ def test_positive_update_by_type():
         entities.Domain(),
         entities.HostGroup(),
         entities.Location(),
-        entities.Organization(),
         entities.Role(),
         entities.UserGroup(),
     ]:
@@ -161,7 +152,6 @@ def test_positive_delete_by_type():
         entities.Host(),
         entities.HostGroup(),
         entities.Location(),
-        entities.Organization(),
         entities.Role(),
         entities.UserGroup(),
     ]:

@@ -299,6 +299,8 @@ def valid_emails_list():
         f'{gen_string("alphanumeric")}@example.com',
         f'{gen_string("numeric")}@example.com',
         f'{gen_string("alphanumeric", 48)}@example.com',
+        f'{gen_string("latin1")}@example.com',
+        f'{gen_string("utf8")}@example.com',
         f'{gen_string("alphanumeric")}+{gen_string("alphanumeric")}@example.com',
         f'{gen_string("alphanumeric")}.{gen_string("alphanumeric")}@example.com',
         '"():;"@example.com',

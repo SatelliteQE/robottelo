@@ -11,6 +11,7 @@ def create_fake_host(
     global_parameters=None,
     host_parameters=None,
     extra_values=None,
+    new_host_details=False,
 ):
     if extra_values is None:
         extra_values = {}
@@ -39,5 +40,8 @@ def create_fake_host(
         'additional_information.comment': 'Host with fake data',
     }
     values.update(extra_values)
-    session.host.create(values)
+    if new_host_details:
+        session.host_new.create(values)
+    else:
+        session.host.create(values)
     return f'{name}.{host.domain.name}'

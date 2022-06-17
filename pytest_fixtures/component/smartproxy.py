@@ -1,20 +1,20 @@
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 
 from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.proxy import CapsuleTunnelError
-from robottelo.config import settings
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
 
 
 @pytest.fixture(scope='session')
-def default_smart_proxy():
+def default_smart_proxy(session_target_sat):
     smart_proxy = (
-        entities.SmartProxy().search(query={'search': f'name={settings.server.hostname}'})[0].read()
+        session_target_sat.api.SmartProxy()
+        .search(query={'search': f'name={session_target_sat.hostname}'})[0]
+        .read()
     )
-    return entities.SmartProxy(id=smart_proxy.id).read()
+    return session_target_sat.api.SmartProxy(id=smart_proxy.id).read()
 
 
 @pytest.fixture(scope='session')

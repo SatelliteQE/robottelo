@@ -42,6 +42,7 @@ from robottelo.cli.org import Org
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import LOCALES
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
@@ -70,8 +71,9 @@ class TestUser:
         stubbed_roles = {role['id']: role for role in roles_helper()}
         yield stubbed_roles
 
+    @pytest.mark.parametrize('email', **parametrized(valid_emails_list()))
     @pytest.mark.tier2
-    def test_positive_CRUD(self):
+    def test_positive_CRUD(self, email):
         """Create User with various parameters, updating and deleting
 
         :id: 2d430243-8512-46ee-8d21-7ccf0c7af807
@@ -79,10 +81,14 @@ class TestUser:
         :expectedresults: User is created with parameters, parameters
                           are updated, user is deleted
 
+        :BZ: 1204667
+
+        :parametrized: yes
+
         :CaseImportance: Critical
         """
         # create with params
-        mail = random.choice(valid_emails_list())
+        mail = email
         user_params = {
             'login': random.choice(valid_usernames_list()),
             'firstname': random.choice(valid_usernames_list()),

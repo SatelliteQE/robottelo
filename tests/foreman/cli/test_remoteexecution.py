@@ -8,7 +8,7 @@
 
 :CaseComponent: RemoteExecution
 
-:Assignee: sbible
+:Assignee: pondrejk
 
 :TestType: Functional
 
@@ -21,7 +21,7 @@ from datetime import timedelta
 from time import sleep
 
 import pytest
-from broker import VMBroker
+from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 from wait_for import wait_for
@@ -54,7 +54,7 @@ from robottelo.logging import logger
 def fixture_vmsetup(request, module_org, target_sat):
     """Create VM and register content host"""
     if '_count' in request.param.keys():
-        with VMBroker(
+        with Broker(
             nick=request.param['nick'],
             host_classes={'host': ContentHost},
             _count=request.param['_count'],
@@ -63,7 +63,7 @@ def fixture_vmsetup(request, module_org, target_sat):
                 client.configure_rex(satellite=target_sat, org=module_org)
             yield clients
     else:
-        with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
+        with Broker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
             client.configure_rex(satellite=target_sat, org=module_org)
             yield client
 
@@ -72,7 +72,7 @@ def fixture_vmsetup(request, module_org, target_sat):
 def fixture_sca_vmsetup(request, module_gt_manifest_org, target_sat):
     """Create VM and register content host to Simple Content Access organization"""
     if '_count' in request.param.keys():
-        with VMBroker(
+        with Broker(
             nick=request.param['nick'],
             host_classes={'host': ContentHost},
             _count=request.param['_count'],
@@ -81,7 +81,7 @@ def fixture_sca_vmsetup(request, module_gt_manifest_org, target_sat):
                 client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
             yield clients
     else:
-        with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
+        with Broker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
             client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
             yield client
 
@@ -95,8 +95,8 @@ def fixture_enable_receptor_repos(request, target_sat):
 
 
 @pytest.fixture()
-def infra_host(request, target_sat, capsule_configured):
-    infra_hosts = {'target_sat': target_sat, 'capsule_configured': capsule_configured}
+def infra_host(request, target_sat, module_capsule_configured):
+    infra_hosts = {'target_sat': target_sat, 'capsule_configured': module_capsule_configured}
     yield infra_hosts[request.param]
 
 
@@ -213,7 +213,7 @@ class TestRemoteExecution:
         assert username == result.stdout.strip('\n')
 
     @pytest.mark.tier3
-    @pytest.mark.rhel_ver_list([7, '7_fips', 8, '8_fips', 9, '9_fips'])
+    @pytest.mark.rhel_ver_match('[^6].*')
     def test_positive_run_custom_job_template_by_ip(self, rex_contenthost, module_org, target_sat):
         """Run custom template on host connected by ip
 
@@ -356,12 +356,12 @@ class TestRemoteExecution:
         """
         self.org = module_org
         client = rex_contenthost
-        packages = ['cow', 'dog', 'lion']
+        packages = ['monkey', 'panda', 'seal']
         # Create a custom repo
         repo = entities.Repository(
             content_type='yum',
             product=entities.Product(organization=self.org).create(),
-            url=settings.repos.yum_0.url,
+            url=settings.repos.yum_3.url,
         ).create()
         repo.sync()
         prod = repo.product.read()
@@ -749,7 +749,7 @@ class TestAnsibleREX:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.pit_server
-    @pytest.mark.rhel_ver_list([7, '7_fips', 8, '8_fips', 9, '9_fips'])
+    @pytest.mark.rhel_ver_match('[^6].*')
     @pytest.mark.skipif(
         (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
     )
@@ -786,12 +786,12 @@ class TestAnsibleREX:
         """
         self.org = module_org
         client = rex_contenthost
-        packages = ['cow']
+        packages = ['tapir']
         # Create a custom repo
         repo = entities.Repository(
             content_type='yum',
             product=entities.Product(organization=self.org).create(),
-            url=settings.repos.yum_0.url,
+            url=settings.repos.yum_3.url,
         ).create()
         repo.sync()
         prod = repo.product.read()
@@ -897,7 +897,7 @@ class TestAnsibleREX:
 
         :CaseComponent: Ansible
 
-        :Assignee: dsynk
+        :Assignee: sbible
         """
 
         # Configure repository to prepare for installing ansible on host
@@ -972,9 +972,10 @@ class TestRexUsers:
         yield (rexinfra, password)
 
     @pytest.mark.tier3
+    @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'infra_host',
-        ['target_sat', 'capsule_configured'],
+        ['target_sat', 'module_capsule_configured'],
         ids=['satellite', 'capsule'],
         indirect=True,
     )

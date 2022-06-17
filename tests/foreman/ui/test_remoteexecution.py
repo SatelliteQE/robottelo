@@ -8,7 +8,7 @@
 
 :CaseComponent: RemoteExecution
 
-:Assignee: sbible
+:Assignee: pondrejk
 
 :TestType: Functional
 
@@ -20,7 +20,7 @@ import datetime
 import time
 
 import pytest
-from broker import VMBroker
+from broker import Broker
 from nailgun import entities
 from wait_for import wait_for
 
@@ -175,7 +175,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
 
     :CaseLevel: System
     """
-    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
+    with Broker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
         host_names = []
         for host in hosts:
             host_names.append(host.hostname)
@@ -313,7 +313,7 @@ def test_positive_ansible_job_check_mode(session):
 
     :CaseComponent: Ansible
 
-    :assignee: dsynk
+    :assignee: sbible
     """
 
 
@@ -338,7 +338,7 @@ def test_positive_ansible_config_report_failed_tasks_errors(session):
 
     :CaseComponent: Ansible
 
-    :assignee: dsynk
+    :assignee: sbible
     """
 
 
@@ -364,7 +364,7 @@ def test_positive_ansible_config_report_changes_notice(session):
 
     :CaseComponent: Ansible
 
-    :assignee: dsynk
+    :assignee: sbible
     """
 
 
@@ -387,7 +387,7 @@ def test_positive_ansible_variables_imported_with_roles(session):
 
     :CaseComponent: Ansible
 
-    :assignee: dsynk
+    :assignee: sbible
     """
 
 
@@ -410,7 +410,7 @@ def test_positive_roles_import_in_background(session):
 
     :CaseComponent: Ansible
 
-    :assignee: dsynk
+    :assignee: sbible
     """
 
 
@@ -434,7 +434,7 @@ def test_positive_ansible_roles_ignore_list(session):
 
     :CaseComponent: Ansible
 
-    :assignee: dsynk
+    :assignee: sbible
     """
 
 
@@ -460,7 +460,7 @@ def test_positive_ansible_variables_installed_with_collection(session):
 
     :CaseComponent: Ansible
 
-    :assignee: dsynk
+    :assignee: sbible
     """
 
 
@@ -488,7 +488,7 @@ def test_positive_install_ansible_collection_via_job_invocation(session):
 
     :CaseComponent: Ansible
 
-    :assignee: dsynk
+    :assignee: sbible
     """
 
 
@@ -515,7 +515,7 @@ def test_positive_set_ansible_role_order_per_host(session):
 
     :CaseComponent: Ansible
 
-    :assignee: dsynk
+    :assignee: sbible
     """
 
 
@@ -544,7 +544,7 @@ def test_positive_set_ansible_role_order_per_hostgroup(session):
 
     :CaseComponent: Ansible
 
-    :assignee: dsynk
+    :assignee: sbible
     """
 
 
@@ -572,7 +572,7 @@ def test_positive_matcher_field_highlight(session):
 
     :CaseComponent: Ansible
 
-    :assignee: dsynk
+    :assignee: sbible
     """
 
 

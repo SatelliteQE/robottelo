@@ -8,7 +8,7 @@
 
 :CaseComponent: ProvisioningTemplates
 
-:Assignee: ogajduse
+:Assignee: akjha
 
 :TestType: Functional
 
@@ -20,18 +20,15 @@ from requests.exceptions import HTTPError
 
 
 @pytest.fixture(scope='module')
-def module_hostgroup_and_environment(module_hostgroup, module_env):
-    """Create hostgroup and environment to be used on
-    TemplateCombination creation
-    """
-    yield {'hostgroup': module_hostgroup, 'env': module_env}
-    # Delete hostgroup and environment used on TemplateCombination creation
-    for entity in (module_hostgroup, module_env):
-        entity.delete()
+def module_hostgroup_template(module_hostgroup):
+    """Create hostgroup to be used on TemplateCombination creation"""
+    yield {'hostgroup': module_hostgroup}
+    # Delete hostgroup used on TemplateCombination creation
+    module_hostgroup.delete()
 
 
 @pytest.fixture(scope='function')
-def function_template_combination(module_hostgroup_and_environment):
+def function_template_combination(module_hostgroup_template):
     """Create ProvisioningTemplate and TemplateConfiguration for each test
     and at the end delete ProvisioningTemplate used on tests
     """
@@ -39,8 +36,7 @@ def function_template_combination(module_hostgroup_and_environment):
         snippet=False,
         template_combinations=[
             {
-                'hostgroup_id': module_hostgroup_and_environment['hostgroup'].id,
-                'environment_id': module_hostgroup_and_environment['env'].id,
+                'hostgroup_id': module_hostgroup_template['hostgroup'].id,
             }
         ],
     )
@@ -48,9 +44,8 @@ def function_template_combination(module_hostgroup_and_environment):
     template_combination_dct = template.template_combinations[0]
     template_combination = entities.TemplateCombination(
         id=template_combination_dct['id'],
-        environment=module_hostgroup_and_environment['env'],
         provisioning_template=template,
-        hostgroup=module_hostgroup_and_environment['hostgroup'],
+        hostgroup=module_hostgroup_template['hostgroup'],
     )
     yield {'template': template, 'template_combination': template_combination}
     # Clean combination if it is not already deleted
@@ -62,7 +57,7 @@ def function_template_combination(module_hostgroup_and_environment):
 
 
 @pytest.mark.tier1
-def test_positive_get_combination(function_template_combination, module_hostgroup_and_environment):
+def test_positive_get_combination(function_template_combination, module_hostgroup_template):
     """Assert API template combination get method works.
 
     :id: 2447674e-c37e-11e6-93cb-68f72889dc7f
@@ -78,8 +73,7 @@ def test_positive_get_combination(function_template_combination, module_hostgrou
     combination = function_template_combination['template_combination'].read()
     assert isinstance(combination, entities.TemplateCombination)
     assert function_template_combination['template'].id == combination.provisioning_template.id
-    assert module_hostgroup_and_environment['env'].id == combination.environment.id
-    assert module_hostgroup_and_environment['hostgroup'].id == combination.hostgroup.id
+    assert module_hostgroup_template['hostgroup'].id == combination.hostgroup.id
 
 
 @pytest.mark.tier1

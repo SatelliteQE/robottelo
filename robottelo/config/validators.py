@@ -255,6 +255,7 @@ VALIDATORS = dict(
             'repos.rhscl_repo',
             'repos.ansible_repo',
             'repos.swid_tools_repo',
+            'repos.ohsnap_repo_host',
             must_exist=True,
             is_type_of=str,
         ),

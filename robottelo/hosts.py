@@ -126,6 +126,7 @@ class ContentHost(Host, ContentHostMixins):
 
         :param hostname: The fqdn of a ContentHost target
         :param auth: ('root', 'rootpass') or '/path/to/keyfile.rsa'
+        :param satellite: optional parameter satellite object.
         """
         if not hostname:
             raise ContentHostError('A valid hostname must be provided')
@@ -135,13 +136,21 @@ class ContentHost(Host, ContentHostMixins):
         elif isinstance(auth, str):
             # key file based authentication
             kwargs.update({'key_filename': auth})
+        self._satellite = kwargs.get('satellite')
         super().__init__(hostname=hostname, **kwargs)
+
+    @property
+    def satellite(self):
+        if not self._satellite:
+            self._satellite = Satellite()
+        return self._satellite
 
     @property
     def nailgun_host(self):
         """If this host is subscribed, provide access to its nailgun object"""
         if self.subscribed:
-            return entities.Host().search(query={'search': self.hostname})[0]
+            host_list = self.satellite.api.Host().search(query={'search': self.hostname})
+            return None if not host_list else host_list[0]
 
     @property
     def subscribed(self):
@@ -244,6 +253,20 @@ class ContentHost(Host, ContentHostMixins):
         result = self.execute(f'rpm -i {package_name}.rpm')
         if result.status != 0:
             raise ContentHostError(f'Failed to install {package_name} rpm.')
+
+    def download_repos(self, repo_name, version):
+        """Downloads the satellite or capsule repos on the machine
+        :param repo_name: satellite or capsule repo_name
+        :param vesion: rhel version
+        """
+        repo_location = (
+            f'{settings.repos.ohsnap_repo_host}/api/releases/'
+            f'{self.satellite.version}/el{version}/{repo_name}/repo_file'
+        )
+        if repo_name in ('satellite', 'capsule'):
+            self.execute(f'curl -o /etc/yum.repos.d/{repo_name}.repo {repo_location}')
+        else:
+            raise ValueError("Invalid repo_name, must be of value satellite or capsule")
 
     def enable_repo(self, repo, force=False):
         """Enables specified Red Hat repository on the broker virtual machine.
@@ -376,17 +399,23 @@ class ContentHost(Host, ContentHostMixins):
         :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
             installed.
         """
+        self._satellite = satellite
         self.execute(
             f'curl --insecure --output katello-ca-consumer-latest.noarch.rpm \
                     {satellite.url_katello_ca_rpm}'
         )
-        self.execute('rpm -Uvh katello-ca-consumer-latest.noarch.rpm')
+        # check if the host is fips-enabled
+        result = self.execute('sysctl crypto.fips_enabled')
+        if 'crypto.fips_enabled = 1' in result.stdout:
+            self.execute('rpm -Uvh --nodigest --nofiledigest katello-ca-consumer-latest.noarch.rpm')
+        else:
+            self.execute('rpm -Uvh katello-ca-consumer-latest.noarch.rpm')
         # Not checking the status here, as rpm could be installed before
         # and installation may fail
-        result = self.execute(f'rpm -q katello-ca-consumer-{satellite.hostname}')
+        result = self.execute('rpm -q katello-ca-consumer*')
         # Checking the status here to verify katello-ca rpm is actually
         # present in the system
-        if result.status != 0:
+        if satellite.hostname not in result.stdout:
             raise ContentHostError('Failed to download and install the katello-ca rpm')
 
     def remove_katello_ca(self):
@@ -404,6 +433,7 @@ class ContentHost(Host, ContentHostMixins):
         if result.status == 0:
             raise ContentHostError(f'katello-ca rpm(s) are still installed: {result.stdout}')
         self.execute('subscription-manager clean')
+        self._satellite = None
 
     def install_capsule_katello_ca(self, capsule=None):
         """Downloads and installs katello-ca rpm on the broker virtual machine.
@@ -463,6 +493,7 @@ class ContentHost(Host, ContentHostMixins):
         :return: SSHCommandResult instance filled with the result of the
             registration.
         """
+
         if username and password:
             userpass = f' --username {username} --password {password}'
         else:
@@ -724,6 +755,7 @@ class ContentHost(Host, ContentHostMixins):
         if register:
             # Install Satellite CA rpm
             self.install_katello_ca(satellite)
+
             self.register_contenthost(org, activation_key)
 
         # Red Hat Insights requires RHEL 6/7/8 repo and it is not
@@ -1157,18 +1189,16 @@ class Capsule(ContentHost, CapsuleMixins):
 
     def capsule_setup(self, sat_host=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
-        self.satellite = sat_host or Satellite()
+        if sat_host is not None:
+            self._satellite = sat_host
         self.register_to_dogfood(ak_type='capsule')
+        self._satellite = sat_host or Satellite()
+
         # self.execute('yum repolist')
         self.execute('yum -y update', timeout=0)
 
-        # workaround from DF for RHEL8
         if settings.server.version.rhel_version == 8:
-            self.execute(
-                'subscription-manager repo-override --repo=Sat6-CI_Satellite_Capsule_7_0_Composes_Satellite_Capsule_7_0_RHEL8 --add=module_hotfixes:1'  # noqa
-            )
-            self.execute('dnf -y module enable ruby:2.7')
-            self.execute('dnf -y module enable pki-core')
+            self.execute('dnf -y module enable satellite:el8')
 
         self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
         self.execute('firewall-cmd --runtime-to-permanent')

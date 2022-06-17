@@ -6,6 +6,7 @@ REPOS:
   # Provide link to RHEL6,7,8 & 9 repo here, as puppet rpm requires packages from
   # those repos and syncing the entire repo on the fly would take longer for
   # tests to run. Specify the *.repo link to an internal repo for tests to execute properly.
+  OHSNAP_REPO_HOST: replace with ohsnap repo host url
   RHEL_REPO_HOST: http://rhel_repo.example.com
   RHEL6_REPO: '@format {this[repos].rhel_repo_host}/pub/rhel6.repo'
   RHEL7_REPO: '@format {this[repos].rhel_repo_host}/pub/rhel7.repo'

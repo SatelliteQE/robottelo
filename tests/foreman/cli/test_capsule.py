@@ -178,7 +178,7 @@ def test_positive_refresh_features_by_name(request):
 
 @pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
-def test_positive_import_puppet_classes(request):
+def test_positive_import_puppet_classes(session_puppet_enabled_sat, puppet_proxy_port_range):
     """Import puppet classes from proxy
 
     :id: 42e3a9c0-62e1-4049-9667-f3c0cdfe0b04
@@ -188,10 +188,12 @@ def test_positive_import_puppet_classes(request):
     :CaseLevel: Component
 
     """
-    port = get_available_capsule_port()
-    with default_url_on_new_port(9090, port) as url:
-        proxy = _make_proxy(request, {'url': url})
-        Proxy.import_classes({'id': proxy['id']})
+    with session_puppet_enabled_sat:
+        port = get_available_capsule_port()
+        with default_url_on_new_port(9090, port) as url:
+            proxy = make_proxy({'url': url})
+            Proxy.import_classes({'id': proxy['id']})
+        Proxy.delete({'id': proxy['id']})
 
 
 @pytest.mark.stubbed
