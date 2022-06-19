@@ -22,8 +22,10 @@ from time import sleep
 
 import pytest
 from fauxfactory import gen_string
+from nailgun import entities
 
 from robottelo import manifests
+from robottelo.api.utils import disable_syncplan
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
@@ -130,17 +132,6 @@ def validate_repo_content(repo, content_types, after_sync=True):
         assert count > 0 if after_sync else count == 0
 
 
-def disable_syncplan(sync_plan):
-    """
-    Disable sync plans after a test to reduce distracting task events, logs, and load on Satellite.
-    Note that only a Sync Plan with a repo would create a noticeable load.
-    You can also create sync plans in a disabled state where it is unlikely to impact the test.
-    """
-    SyncPlan.update({'id': sync_plan['id'], 'enabled': 'false'})
-    result = SyncPlan.info({'id': sync_plan['id']})
-    assert result['enabled'] == 'no'
-
-
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
 def test_positive_create_with_name(module_org, name):
@@ -154,9 +145,7 @@ def test_positive_create_with_name(module_org, name):
 
     :CaseImportance: Critical
     """
-    sync_plan = make_sync_plan(
-        {'enabled': 'false', 'name': name, 'organization-id': module_org.id}
-    )
+    sync_plan = make_sync_plan({'enabled': 'false', 'name': name, 'organization-id': module_org.id})
     result = SyncPlan.info({'id': sync_plan['id']})
     assert result['name'] == name
 
@@ -266,7 +255,8 @@ def test_positive_update_interval(module_org, test_data):
     result = SyncPlan.info({'id': new_sync_plan['id']})
     assert result['interval'] == test_data['new-interval']
     # disable sync plan after test
-    disable_syncplan(new_sync_plan)
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier1
@@ -305,7 +295,8 @@ def test_positive_update_sync_date(module_org):
         new_sync_plan['start-date'], '%Y/%m/%d %H:%M:%S'
     ), 'Sync date was not updated'
     # disable sync plan after test
-    disable_syncplan(new_sync_plan)
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
@@ -342,7 +333,8 @@ def test_positive_info_enabled_field_is_displayed(module_org):
     result = SyncPlan.info({'id': new_sync_plan['id']})
     assert result.get('enabled') is not None
     # disable sync plan after test
-    disable_syncplan(new_sync_plan)
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier2
@@ -408,6 +400,7 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org):
     with pytest.raises(AssertionError):
         validate_task_status(repo['id'], module_org.id, max_tries=2)
     # disable sync plan after test
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=sync_plan['id']).read()
     disable_syncplan(sync_plan)
 
 
@@ -462,6 +455,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
     validate_task_status(repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
     # disable sync plan after test
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=sync_plan['id']).read()
     disable_syncplan(sync_plan)
 
 
@@ -521,6 +515,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
     validate_task_status(repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
     # disable sync plan after test
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=sync_plan['id']).read()
     disable_syncplan(sync_plan)
 
 
@@ -590,6 +585,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
         validate_task_status(repo['id'], module_org.id)
         validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
     # disable sync plan after test
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=sync_plan['id']).read()
     disable_syncplan(sync_plan)
 
 
@@ -789,6 +785,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
     validate_task_status(repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
     # disable sync plan after test
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=sync_plan['id']).read()
     disable_syncplan(sync_plan)
 
 
@@ -840,4 +837,5 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
     validate_task_status(repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
     # disable sync plan after test
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=sync_plan['id']).read()
     disable_syncplan(sync_plan)

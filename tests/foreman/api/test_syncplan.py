@@ -32,6 +32,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo import manifests
+from robottelo.api.utils import disable_syncplan
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import get_credentials
@@ -106,17 +107,6 @@ def validate_repo_content(repo, content_types, after_sync=True):
             assert not repo.content_counts[
                 content
             ], 'Repository contains invalid number of content entities.'
-
-
-def disable_syncplan(sync_plan):
-    """
-    Disable sync plans after a test to reduce distracting task events, logs, and load on Satellite.
-    Note that only a Sync Plan with a repo would create a noticeable load.
-    You can also create sync plans in a disabled state where it is unlikely to impact the test.
-    """
-    sync_plan.enabled = False
-    sync_plan = sync_plan.update(['enabled'])
-    assert sync_plan.enabled is False
 
 
 @pytest.mark.tier1
