@@ -286,10 +286,11 @@ class ContentHost(Host, ContentHostMixins):
         :raises robottelo.hosts.ContentHostError: If package wasn't installed.
 
         """
-        self.execute(f'curl -O {repo_url}/{package_name}.rpm')
+        self.execute(f'curl -k -O {repo_url}/{package_name}.rpm')
         result = self.execute(f'rpm -i {package_name}.rpm')
         if result.status != 0:
             raise ContentHostError(f'Failed to install {package_name} rpm.')
+        return result
 
     def enable_repo(self, repo, force=False):
         """Enables specified Red Hat repository on the broker virtual machine.
