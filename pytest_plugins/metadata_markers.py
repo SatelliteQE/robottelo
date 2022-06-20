@@ -98,8 +98,8 @@ def pytest_collection_modifyitems(session, items, config):
             for d in map(inspect.getdoc, (item.function, getattr(item, 'cls', None), item.module))
             if d is not None
         ]
-        item_mark_names = [m.name for m in item.iter_markers()]
         for docstring in item_docstrings:
+            item_mark_names = [m.name for m in item.iter_markers()]
             # Add marker starting at smallest docstring scope
             # only add the mark if it hasn't already been applied at a lower scope
             doc_component = component_regex.findall(docstring)
