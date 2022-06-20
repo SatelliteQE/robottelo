@@ -21,13 +21,10 @@ import time
 
 import pytest
 from broker import Broker
-from nailgun import entities
 from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.api.utils import update_vm_host_location
-from robottelo.cli.host import Host
-from robottelo.cli.job_invocation import JobInvocation
 from robottelo.datafactory import gen_string
 from robottelo.hosts import ContentHost
 from robottelo.logging import logger
@@ -611,8 +608,8 @@ def test_positive_configure_cloud_connector(
     # Set Host parameter source_display_name to something random.
     # To avoid 'name has already been taken' error when run multiple times
     # on a machine with the same hostname.
-    host_id = Host.info({'name': target_sat.hostname})['id']
-    Host.set_parameter(
+    host_id = target_sat.cli.Host.info({'name': target_sat.hostname})['id']
+    target_sat.cli.Host.set_parameter(
         {'host-id': host_id, 'name': 'source_display_name', 'value': gen_string('alpha')}
     )
 
@@ -627,19 +624,32 @@ def test_positive_configure_cloud_connector(
 
     template_name = 'Configure Cloud Connector'
     invocation_id = (
-        entities.JobInvocation().search(query={'search': f'description="{template_name}"'})[0].id
+        target_sat.api.JobInvocation()
+        .search(query={'search': f'description="{template_name}"'})[0]
+        .id
     )
     wait_for(
-        lambda: entities.JobInvocation(id=invocation_id).read().status_label
+        lambda: target_sat.api.JobInvocation(id=invocation_id).read().status_label
         in ["succeeded", "failed"],
         timeout="1500s",
     )
 
-    result = JobInvocation.get_output({'id': invocation_id, 'host': target_sat.hostname})
+    result = target_sat.cli.JobInvocation.get_output(
+        {'id': invocation_id, 'host': target_sat.hostname}
+    )
     logger.debug(f"Invocation output>>\n{result}\n<<End of invocation output")
     # if installation fails, it's often due to missing rhscl repo -> print enabled repos
     repolist = target_sat.execute('yum repolist')
     logger.debug(f"Repolist>>\n{repolist}\n<<End of repolist")
-
-    assert entities.JobInvocation(id=invocation_id).read().status == 0
+    assert target_sat.api.JobInvocation(id=invocation_id).read().status == 0
+    assert "Install yggdrasil-worker-forwarder and rhc" in result
+    assert "Restart rhcd" in result
     assert 'Exit status: 0' in result
+
+    result = target_sat.execute('rhc status')
+    assert result.status == 0
+    assert "Connected to Red Hat Subscription Management" in result.stdout
+    assert "The Red Hat connector daemon is active" in result.stdout
+
+    result = target_sat.execute('journalctl --unit=rhcd')
+    assert "error" not in result.stdout
