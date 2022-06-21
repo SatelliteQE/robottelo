@@ -916,7 +916,7 @@ class TestRepository:
                     'content-type': 'docker',
                     'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
                     'url': CONTAINER_REGISTRY_HUB,
-                    'docker-tags-whitelist': 'latest',
+                    'include-tags': 'latest',
                 }
             ]
         ),
@@ -933,7 +933,7 @@ class TestRepository:
         """
         Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo)
-        assert repo_options['docker-tags-whitelist'] in repo['container-image-tags-filter']
+        assert repo_options['include-tags'] in repo['container-image-tags-filter']
         assert int(repo['content-counts']['container-image-tags']) == 1
 
     @pytest.mark.tier2
@@ -945,29 +945,30 @@ class TestRepository:
                     'content-type': 'docker',
                     'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
                     'url': CONTAINER_REGISTRY_HUB,
-                    'mirror-on-sync': 'no',
+                    'mirroring-policy': 'additive',
                 }
             ]
         ),
         indirect=True,
     )
-    def test_positive_synchronize_docker_repo_set_tags_later(self, repo):
+    def test_positive_synchronize_docker_repo_set_tags_later_additive(self, repo):
         """Verify that adding tags whitelist and re-syncing after
         synchronizing full repository doesn't remove content that was
-        already pulled in
+        already pulled in when mirroring policy is set to additive
 
         :id: 97f2087f-6041-4242-8b7c-be53c68f46ff
 
         :parametrized: yes
 
-        :expectedresults: Non-whitelisted tags are not removed
+        :expectedresults: Non-whitelisted tags are not removed when
+        mirroring policy is set to additive
         """
         tags = 'latest'
         Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo)
         assert not repo['container-image-tags-filter']
         assert int(repo['content-counts']['container-image-tags']) >= 2
-        Repository.update({'id': repo['id'], 'docker-tags-whitelist': tags})
+        Repository.update({'id': repo['id'], 'include-tags': tags})
         Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo)
         assert tags in repo['container-image-tags-filter']
@@ -982,7 +983,46 @@ class TestRepository:
                     'content-type': 'docker',
                     'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
                     'url': CONTAINER_REGISTRY_HUB,
-                    'docker-tags-whitelist': f"latest,{gen_string('alpha')}",
+                    'mirroring-policy': 'mirror_content_only',
+                }
+            ]
+        ),
+        indirect=True,
+    )
+    def test_positive_synchronize_docker_repo_set_tags_later_content_only(self, repo):
+        """Verify that adding tags whitelist and re-syncing after
+        synchronizing full repository doesn't remove content that was
+        already pulled in when mirroring policy is set to content only
+
+        :id: 539dc138-8566-40ad-b0de-1d9ec80aa56f
+
+
+        :parametrized: yes
+
+        :expectedresults: Non-whitelisted tags are removed when mirroring policy
+        is set to content only
+        """
+        tags = 'latest'
+        Repository.synchronize({'id': repo['id']})
+        repo = _validated_image_tags_count(repo=repo)
+        assert not repo['container-image-tags-filter']
+        assert int(repo['content-counts']['container-image-tags']) >= 2
+        Repository.update({'id': repo['id'], 'include-tags': tags})
+        Repository.synchronize({'id': repo['id']})
+        repo = _validated_image_tags_count(repo=repo)
+        assert tags in repo['container-image-tags-filter']
+        assert int(repo['content-counts']['container-image-tags']) <= 2
+
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content-type': 'docker',
+                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+                    'url': CONTAINER_REGISTRY_HUB,
+                    'include-tags': f"latest,{gen_string('alpha')}",
                 }
             ]
         ),
@@ -1000,7 +1040,7 @@ class TestRepository:
         """
         Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo)
-        for tag in repo_options['docker-tags-whitelist'].split(','):
+        for tag in repo_options['include-tags'].split(','):
             assert tag in repo['container-image-tags-filter']
         assert int(repo['content-counts']['container-image-tags']) == 1
 
@@ -1013,7 +1053,7 @@ class TestRepository:
                     'content-type': 'docker',
                     'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
                     'url': CONTAINER_REGISTRY_HUB,
-                    'docker-tags-whitelist': ",".join([gen_string('alpha') for _ in range(3)]),
+                    'include-tags': ",".join([gen_string('alpha') for _ in range(3)]),
                 }
             ]
         ),
@@ -1031,7 +1071,7 @@ class TestRepository:
         """
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
-        for tag in repo_options['docker-tags-whitelist'].split(','):
+        for tag in repo_options['include-tags'].split(','):
             assert tag in repo['container-image-tags-filter']
         assert int(repo['content-counts']['container-image-tags']) == 0
 
