@@ -54,7 +54,6 @@ def assert_puppet_status(server, expected):
             assert (f"{err_msg} '{cmd.split()[-1]}'." in str(result.stderr)) is not expected
 
 
-@pytest.mark.skip_if_open("BZ:2034552")
 @pytest.mark.destructive
 def test_positive_enable_disable_logic(target_sat, capsule_configured):
     """Test puppet enable/disable logic on Satellite and Capsule
@@ -131,3 +130,31 @@ def test_positive_enable_disable_logic(target_sat, capsule_configured):
     )
     assert result.status == 0
     assert_puppet_status(target_sat, expected=False)
+
+
+@pytest.mark.rhel_ver_match('[^9]')
+def test_positive_install_configure(session_puppet_enabled_sat, rhel_contenthost):
+    """Test that puppet-agent can be installed from the sat-client repo
+    and configured to report back to the Satellite.
+
+    :id: 07777fbb-4f2e-4fab-ba5a-2b698f9b9f38
+
+    :setup:
+        1. Satellite with enabled puppet plugin.
+        2. Blank RHEL content host.
+
+    :steps:
+        1. Configure puppet on the content host. This creates sat-client repository,
+           installs puppet-agent, configures it, runs it to create the puppet cert,
+           signs in on the Satellite side and reruns it.
+        2. Assert that Config report was created at the Satellite for the content host.
+
+    :expectedresults:
+        1. Configuration passes without errors.
+        2. Config report is created.
+    """
+    rhel_contenthost.configure_puppet(proxy_hostname=session_puppet_enabled_sat.hostname)
+    result = session_puppet_enabled_sat.cli.ConfigReport.list(
+        {'search': f'host={rhel_contenthost.hostname},origin=Puppet'}
+    )
+    assert len(result)

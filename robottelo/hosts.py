@@ -641,16 +641,24 @@ class ContentHost(Host, ContentHostMixins):
                 f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}'
             )
 
-    def configure_puppet(self, rhel_repo=None, proxy_hostname=None):
+    def configure_puppet(self, proxy_hostname=None):
         """Configures puppet on the virtual machine/Host.
         :param proxy_hostname: external capsule hostname
-        :param rhel_repo: dictionary mapping repo name to repo baseurl.
         :return: None.
+        :raises robottelo.hosts.ContentHostError: If installation or configuration fails.
         """
         if proxy_hostname is None:
             proxy_hostname = settings.server.hostname
 
-        self.create_custom_repos(**rhel_repo)
+        self.create_custom_repos(
+            **{'sat-client': settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']}
+        )
+        result = self.execute('yum install puppet-agent -y')
+        if result.status != 0:
+            raise ContentHostError('Failed to install the puppet-agent rpm')
+        self.execute('export PATH=/opt/puppetlabs/bin:$PATH')
+
+        cert_name = self.hostname
         puppet_conf = (
             '[main]\n'
             'vardir = /opt/puppetlabs/puppet/cache\n'
@@ -662,24 +670,24 @@ class ContentHost(Host, ContentHostMixins):
             'report          = true\n'
             'ignoreschedules = true\n'
             f'ca_server       = {proxy_hostname}\n'
-            f'certname        = {self.hostname}\n'
+            f'certname        = {cert_name}\n'
             'environment     = production\n'
             f'server          = {proxy_hostname}\n'
         )
-        result = self.execute('yum install puppet -y')
-        if result.status != 0:
-            raise ContentHostError('Failed to install the puppet rpm')
         self.execute(f'echo "{puppet_conf}" >> /etc/puppetlabs/puppet/puppet.conf')
+
         # This particular puppet run on client would populate a cert on
         # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
         self.execute('puppet agent -t')
         proxy_host = Host(proxy_hostname)
-        proxy_host.execute('puppetserver ca sign --all')
+        proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
         # This particular puppet run would create the host entity under
         # 'All Hosts' and let's redirect stderr to /dev/null as errors at
         #  this stage can be ignored.
-        self.execute('puppet agent -t 2> /dev/null')
+        result = self.execute('puppet agent -t 2> /dev/null')
+        if result.status:
+            raise ContentHostError('Failed to configure puppet on the content host')
 
     def execute_foreman_scap_client(self, policy_id=None):
         """Executes foreman_scap_client on the vm to create security audit report.
