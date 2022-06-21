@@ -180,7 +180,7 @@ def test_positive_end_to_end_custom_cron(session):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_search_scoped(session):
+def test_positive_search_scoped(session, request):
     """Test scoped search for different sync plan parameters
 
     :id: 3a48513e-205d-47a3-978e-79b764cc74d9
@@ -203,13 +203,13 @@ def test_positive_search_scoped(session):
         enabled=True,
         sync_date=start_date,
     ).create()
+    sync_plan = entities.SyncPlan(organization=org.id, id=sync_plan.id).read()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     with session:
         session.organization.select(org.name)
         for query_type, query_value in [('interval', SYNC_INTERVAL['day']), ('enabled', 'true')]:
             assert session.syncplan.search(f'{query_type} = {query_value}')[0]['Name'] == name
         assert name not in session.syncplan.search('enabled = false')
-    # disable sync plan after test
-    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier3
