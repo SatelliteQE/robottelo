@@ -20,7 +20,6 @@
 from time import sleep
 
 import pytest
-
 from nailgun import entities
 
 from robottelo import constants
@@ -314,7 +313,6 @@ def test_positive_install_multiple_in_host(
                 'organization_id': module_org.id,
             },
         )['id']
-        Host.errata_recalculate({'host-id': rhel_contenthost.nailgun_host.id})
         wait_for_tasks(
             search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
             search_rate=20,
@@ -500,9 +498,13 @@ def test_positive_get_count_for_host(setup_content_rhel6, rhel6_contenthost, tar
     ak_name = setup_content_rhel6[0].name
     org_label = setup_content_rhel6[1].label
     org_id = setup_content_rhel6[1].id
+    sub_list = setup_content_rhel6[2]
     rhel6_contenthost.install_katello_ca(target_sat)
     rhel6_contenthost.register_contenthost(org_label, ak_name)
     assert rhel6_contenthost.subscribed
+    pool_id = rhel6_contenthost.subscription_manager_get_pool(sub_list=sub_list)
+    pool_list = [pool_id[0][0], pool_id[1][0], pool_id[2][0]]
+    rhel6_contenthost.subscription_manager_attach_pool(pool_list=pool_list)
     rhel6_contenthost.install_katello_host_tools()
     rhel6_contenthost.enable_repo(constants.REPOS['rhva6']['id'])
     host = rhel6_contenthost.nailgun_host
@@ -541,6 +543,9 @@ def test_positive_get_applicable_for_host(setup_content_rhel6, rhel6_contenthost
     rhel6_contenthost.install_katello_ca(target_sat)
     rhel6_contenthost.register_contenthost(org_label, ak_name)
     assert rhel6_contenthost.subscribed
+    pool_id = rhel6_contenthost.subscription_manager_get_pool(sub_list=setup_content_rhel6[2])
+    pool_list = [pool_id[0][0], pool_id[1][0], pool_id[2][0]]
+    rhel6_contenthost.subscription_manager_attach_pool(pool_list=pool_list)
     rhel6_contenthost.install_katello_host_tools()
     rhel6_contenthost.enable_repo(constants.REPOS['rhva6']['id'])
     host = rhel6_contenthost.nailgun_host
@@ -654,6 +659,8 @@ def test_positive_incremental_update_required(
     rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
     assert rhel7_contenthost.subscribed
+    rhel7_contenthost.enable_repo(constants.REPOS['rhst7']['id'])
+    rhel7_contenthost.install_katello_agent()
     host = rhel7_contenthost.nailgun_host
     # install package to create demand for an Erratum
     _install_package(
@@ -781,7 +788,7 @@ def test_errata_installation_with_swidtags(
     _run_remote_command_on_content_host(
         module_org, f'dnf -y module install {module_name}:0:{version}', rhel8_contenthost
     )
-
+    Host.errata_recalculate({'host-id': rhel8_contenthost.nailgun_host.id})
     # validate swid tags Installed
     before_errata_apply_result = _run_remote_command_on_content_host(
         module_org,
@@ -791,7 +798,6 @@ def test_errata_installation_with_swidtags(
     )
     assert before_errata_apply_result != ''
     host = rhel8_contenthost.nailgun_host
-    Host.errata_recalculate({'host-id': rhel8_contenthost.nailgun_host.id})
     host = host.read()
     applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
     assert applicable_errata_count == 1
