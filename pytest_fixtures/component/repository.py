@@ -5,6 +5,7 @@ from nailgun import entities
 
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import promote
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -37,6 +38,29 @@ def rh_repo_gt_manifest(module_gt_manifest_org):
     rh_repo = entities.Repository(id=rh_repo_id).read()
     rh_repo.sync()
     return rh_repo
+
+
+@pytest.fixture(scope='module')
+def module_rhst_repo(module_target_sat, module_org_with_manifest, module_promoted_cv, module_lce):
+    """Use module org with manifest, creates RH tools repo, syncs and returns RH repo id."""
+    # enable rhel repo and return its ID
+    rh_repo_id = enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=module_org_with_manifest.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+        releasever=None,
+    )
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    cv = module_target_sat.api.ContentView(id=module_promoted_cv.id, repository=[rh_repo]).update(
+        ["repository"]
+    )
+    cv.publish()
+    cv = cv.read()
+    promote(cv.version[-1], environment_id=module_lce.id)
+    return REPOS['rhst7']['id']
 
 
 @pytest.fixture(scope="function")
