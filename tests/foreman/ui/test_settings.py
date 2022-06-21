@@ -334,6 +334,7 @@ def test_negative_update_email_delivery_method_smtp():
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
+@pytest.mark.skip_if_open("BZ:2080324")
 def test_positive_update_email_delivery_method_sendmail(session, target_sat):
     """Updating Sendmail params on Email tab
 
@@ -353,6 +354,8 @@ def test_positive_update_email_delivery_method_sendmail(session, target_sat):
             accordingly
 
     :expectedresults: Email is sent through Sendmail
+
+    :BZ: 2080324
 
     :CaseImportance: Critical
 
@@ -374,7 +377,7 @@ def test_positive_update_email_delivery_method_sendmail(session, target_sat):
     mail_config_new_params = {
         "delivery_method": "Sendmail",
         "email_reply_address": f"root@{target_sat.hostname}",
-        "email_subject_prefix": [gen_string('alpha')],
+        "email_subject_prefix": gen_string('alpha'),
         "sendmail_location": "/usr/sbin/sendmail",
         "send_welcome_email": "Yes",
     }
@@ -385,7 +388,7 @@ def test_positive_update_email_delivery_method_sendmail(session, target_sat):
             for mail_content, mail_content_value in mail_config_new_params.items():
                 session.settings.update(mail_content, mail_content_value)
             test_mail_response = session.settings.send_test_mail(property_name)[0]
-            assert test_mail_response == "Success alert: Email was sent successfully"
+            assert "Email was sent successfully" in test_mail_response
             assert target_sat.execute(command).status == 0
         finally:
             for key, value in mail_config_default_param.items():

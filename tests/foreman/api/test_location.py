@@ -78,7 +78,6 @@ class TestLocation:
         return dict(
             domain=entities.Domain().create(),
             subnet=entities.Subnet().create(),
-            env=entities.Environment().create(),
             host_group=entities.HostGroup().create(),
             template=entities.ProvisioningTemplate().create(),
             test_cr=entities.LibvirtComputeResource().create(),
