@@ -232,7 +232,7 @@ def test_positive_update_description(module_org, new_desc):
 
 @pytest.mark.parametrize('test_data', **parametrized(valid_name_interval_update_tests()))
 @pytest.mark.tier1
-def test_positive_update_interval(module_org, test_data):
+def test_positive_update_interval(module_org, test_data, request):
     """Check if syncplan interval can be updated
 
     :id: d676d7f3-9f7c-4375-bb8b-277d71af94b4
@@ -251,17 +251,16 @@ def test_positive_update_interval(module_org, test_data):
             'organization-id': module_org.id,
         }
     )
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     SyncPlan.update({'id': new_sync_plan['id'], 'interval': test_data['new-interval']})
     result = SyncPlan.info({'id': new_sync_plan['id']})
     assert result['interval'] == test_data['new-interval']
-    # disable sync plan after test
-    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
-    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_update_sync_date(module_org):
+def test_positive_update_sync_date(module_org, request):
     """Check if syncplan sync date can be updated
 
     :id: f0c17d7d-3e86-4b64-9747-6cba6809815e
@@ -282,6 +281,8 @@ def test_positive_update_sync_date(module_org):
             'organization-id': module_org.id,
         }
     )
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     # Assert that sync date matches data passed
     assert new_sync_plan['start-date'] == today.strftime("%Y/%m/%d %H:%M:%S")
     # Set sync date 5 days in the future
@@ -294,9 +295,6 @@ def test_positive_update_sync_date(module_org):
     assert datetime.strptime(result['start-date'], '%Y/%m/%d %H:%M:%S') > datetime.strptime(
         new_sync_plan['start-date'], '%Y/%m/%d %H:%M:%S'
     ), 'Sync date was not updated'
-    # disable sync plan after test
-    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
-    disable_syncplan(sync_plan)
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
@@ -320,7 +318,7 @@ def test_positive_delete_by_id(module_org, name):
 
 
 @pytest.mark.tier1
-def test_positive_info_enabled_field_is_displayed(module_org):
+def test_positive_info_enabled_field_is_displayed(module_org, request):
     """Check if Enabled field is displayed in sync-plan info output
 
     :id: 54e3a4ea-315c-4026-8101-c4605ca6b874
@@ -330,11 +328,10 @@ def test_positive_info_enabled_field_is_displayed(module_org):
     :CaseImportance: Critical
     """
     new_sync_plan = make_sync_plan({'organization-id': module_org.id})
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     result = SyncPlan.info({'id': new_sync_plan['id']})
     assert result.get('enabled') is not None
-    # disable sync plan after test
-    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
-    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier2
@@ -375,7 +372,7 @@ def test_positive_info_with_assigned_product(module_org):
 
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_negative_synchronize_custom_product_past_sync_date(module_org):
+def test_negative_synchronize_custom_product_past_sync_date(module_org, request):
     """Verify product won't get synced immediately after adding association
     with a sync plan which has already been started
 
@@ -387,26 +384,25 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org):
 
     :CaseLevel: System
     """
-    sync_plan = make_sync_plan(
+    new_sync_plan = make_sync_plan(
         {
             'enabled': 'true',
             'organization-id': module_org.id,
             'sync-date': datetime.utcnow().strftime(SYNC_DATE_FMT),
         }
     )
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     product = make_product({'organization-id': module_org.id})
     repo = make_repository({'product-id': product['id']})
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
+    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     with pytest.raises(AssertionError):
         validate_task_status(repo['id'], module_org.id, max_tries=2)
-    # disable sync plan after test
-    sync_plan = entities.SyncPlan(organization=module_org.id, id=sync_plan['id']).read()
-    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_custom_product_past_sync_date(module_org):
+def test_positive_synchronize_custom_product_past_sync_date(module_org, request):
     """Create a sync plan with a past datetime as a sync date, add a
     custom product and verify the product gets synchronized on the next
     sync occurrence
@@ -423,7 +419,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
     delay = 2 * 60
     product = make_product({'organization-id': module_org.id})
     repo = make_repository({'product-id': product['id']})
-    sync_plan = make_sync_plan(
+    new_sync_plan = make_sync_plan(
         {
             'enabled': 'true',
             'interval': 'hourly',
@@ -433,12 +429,14 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
             ),
         }
     )
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     # Associate sync plan with product
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
+    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
     logger.info(
         f"Waiting {(delay / 4)} seconds to check product {product['name']}"
-        f" was not synced by {sync_plan['name']}"
+        f" was not synced by {new_sync_plan['name']}"
     )
     sleep(delay / 4)
     # Verify product has not been synced yet
@@ -448,20 +446,17 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
     # Wait until the first recurrence
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
-        f" was synced by {sync_plan['name']}"
+        f" was synced by {new_sync_plan['name']}"
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
-    # disable sync plan after test
-    sync_plan = entities.SyncPlan(organization=module_org.id, id=sync_plan['id']).read()
-    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_custom_product_future_sync_date(module_org):
+def test_positive_synchronize_custom_product_future_sync_date(module_org, request):
     """Create a sync plan with sync date in a future and sync one custom
     product with it automatically.
 
@@ -481,7 +476,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
     # if < 3 mins before the target event rather wait 3 mins for the next test window
     if int(datetime.utcnow().strftime('%M')) % (cron_multiple) > int(guardtime / 60):
         sleep(guardtime)
-    sync_plan = make_sync_plan(
+    new_sync_plan = make_sync_plan(
         {
             'enabled': 'true',
             'organization-id': module_org.id,
@@ -491,14 +486,16 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
             'cron-expression': [f'*/{cron_multiple} * * * *'],
         }
     )
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     # Verify product is not synced and doesn't have any content
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Associate sync plan with product
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
+    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
     logger.info(
         f"Waiting {(delay / 4)} seconds to check product {product['name']}"
-        f" was not synced by {sync_plan['name']}"
+        f" was not synced by {new_sync_plan['name']}"
     )
     sleep(delay / 4)
     # Verify product has not been synced yet
@@ -508,20 +505,17 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
-        f" was synced by {sync_plan['name']}"
+        f" was synced by {new_sync_plan['name']}"
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
-    # disable sync plan after test
-    sync_plan = entities.SyncPlan(organization=module_org.id, id=sync_plan['id']).read()
-    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_custom_products_future_sync_date(module_org):
+def test_positive_synchronize_custom_products_future_sync_date(module_org, request):
     """Create a sync plan with sync date in a future and sync multiple
     custom products with multiple repos automatically.
 
@@ -543,7 +537,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
     # if < 3 mins before the target event rather wait 3 mins for the next test window
     if int(datetime.utcnow().strftime('%M')) % (cron_multiple) > int(guardtime / 60):
         sleep(guardtime)
-    sync_plan = make_sync_plan(
+    new_sync_plan = make_sync_plan(
         {
             'enabled': 'true',
             'organization-id': module_org.id,
@@ -553,6 +547,8 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
             'cron-expression': [f'*/{cron_multiple} * * * *'],
         }
     )
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     # Verify products have not been synced yet
     logger.info(
         f"Check products {products[0]['name']} and {products[1]['name']}"
@@ -563,11 +559,11 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
             validate_task_status(repo['id'], module_org.id, max_tries=1)
     # Associate sync plan with products
     for product in products:
-        Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
+        Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait fifth of expected time
     logger.info(
         f"Waiting {(delay / 5)} seconds to check products {products[0]['name']}"
-        f" and {products[1]['name']} were not synced by {sync_plan['name']} "
+        f" and {products[1]['name']} were not synced by {new_sync_plan['name']} "
     )
     sleep(delay / 5)
     # Verify products have not been synced yet
@@ -577,22 +573,19 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 4 / 5)} seconds to check product {products[0]['name']}"
-        f" and {products[1]['name']} were synced by {sync_plan['name']}"
+        f" and {products[1]['name']} were synced by {new_sync_plan['name']}"
     )
     sleep(delay * 4 / 5)
     # Verify products were synced successfully
     for repo in repos:
         validate_task_status(repo['id'], module_org.id)
         validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
-    # disable sync plan after test
-    sync_plan = entities.SyncPlan(organization=module_org.id, id=sync_plan['id']).read()
-    disable_syncplan(sync_plan)
 
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_rh_product_past_sync_date(target_sat):
+def test_positive_synchronize_rh_product_past_sync_date(target_sat, request):
     """Create a sync plan with past datetime as a sync date, add a
     RH product and verify the product gets synchronized on the next sync
     occurrence
@@ -624,7 +617,7 @@ def test_positive_synchronize_rh_product_past_sync_date(target_sat):
     repo = Repository.info(
         {'name': REPOS['rhva6']['name'], 'product': product['name'], 'organization-id': org['id']}
     )
-    sync_plan = make_sync_plan(
+    new_sync_plan = make_sync_plan(
         {
             'enabled': 'true',
             'interval': 'hourly',
@@ -634,12 +627,14 @@ def test_positive_synchronize_rh_product_past_sync_date(target_sat):
             ),
         }
     )
+    sync_plan = entities.SyncPlan(organization=org['id'], id=new_sync_plan['id']).read()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     # Associate sync plan with product
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
+    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
     logger.info(
         f"Waiting {(delay / 4)} seconds to check product {product['name']}"
-        f" was not synced by {sync_plan['name']}"
+        f" was not synced by {new_sync_plan['name']}"
     )
     sleep(delay / 4)
     # Verify product has not been synced yet
@@ -649,21 +644,18 @@ def test_positive_synchronize_rh_product_past_sync_date(target_sat):
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
-        f" was synced by {sync_plan['name']}"
+        f" was synced by {new_sync_plan['name']}"
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo['id'], org['id'])
     validate_repo_content(repo, ['errata', 'packages'])
-    # disable sync plan after test
-    sync_plan = entities.SyncPlan(organization=org['id'], id=sync_plan['id']).read()
-    disable_syncplan(sync_plan)
 
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_rh_product_future_sync_date(target_sat):
+def test_positive_synchronize_rh_product_future_sync_date(target_sat, request):
     """Create a sync plan with sync date in a future and sync one RH
     product with it automatically.
 
@@ -698,7 +690,7 @@ def test_positive_synchronize_rh_product_future_sync_date(target_sat):
     # if < 3 mins before the target event rather wait 3 mins for the next test window
     if int(datetime.utcnow().strftime('%M')) % (cron_multiple) > int(guardtime / 60):
         sleep(guardtime)
-    sync_plan = make_sync_plan(
+    new_sync_plan = make_sync_plan(
         {
             'enabled': 'true',
             'organization-id': org['id'],
@@ -708,16 +700,18 @@ def test_positive_synchronize_rh_product_future_sync_date(target_sat):
             'cron-expression': [f'*/{cron_multiple} * * * *'],
         }
     )
+    sync_plan = entities.SyncPlan(organization=org['id'], id=new_sync_plan['id']).read()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
         validate_task_status(repo['id'], org['id'], max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Associate sync plan with product
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
+    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait fifth of expected time
     logger.info(
         f"Waiting {(delay / 5)} seconds to check product {product['name']}"
-        f" was not synced by {sync_plan['name']}"
+        f" was not synced by {new_sync_plan['name']}"
     )
     sleep(delay / 5)
     # Verify product has not been synced yet
@@ -727,20 +721,17 @@ def test_positive_synchronize_rh_product_future_sync_date(target_sat):
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 4 / 5)} seconds to check product {product['name']}"
-        f" was synced by {sync_plan['name']}"
+        f" was synced by {new_sync_plan['name']}"
     )
     sleep(delay * 4 / 5)
     # Verify product was synced successfully
     validate_task_status(repo['id'], org['id'])
     validate_repo_content(repo, ['errata', 'packages'])
-    # disable sync plan after test
-    sync_plan = entities.SyncPlan(organization=org['id'], id=sync_plan['id']).read()
-    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_synchronize_custom_product_daily_recurrence(module_org):
+def test_positive_synchronize_custom_product_daily_recurrence(module_org, request):
     """Create a daily sync plan with a past datetime as a sync date,
     add a custom product and verify the product gets synchronized on
     the next sync occurrence
@@ -755,7 +746,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
     product = make_product({'organization-id': module_org.id})
     repo = make_repository({'product-id': product['id']})
     start_date = datetime.utcnow() - timedelta(days=1) + timedelta(seconds=delay)
-    sync_plan = make_sync_plan(
+    new_sync_plan = make_sync_plan(
         {
             'enabled': 'true',
             'interval': 'daily',
@@ -763,12 +754,14 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
             'sync-date': start_date.strftime(SYNC_DATE_FMT),
         }
     )
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     # Associate sync plan with product
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
+    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
     logger.info(
         f"Waiting {(delay / 4)} seconds to check product {product['name']}"
-        f" was not synced by {sync_plan['name']}"
+        f" was not synced by {new_sync_plan['name']}"
     )
     sleep(delay / 4)
     # Verify product has not been synced yet
@@ -778,19 +771,16 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
     # Wait until the first recurrence
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
-        f" was synced by {sync_plan['name']}"
+        f" was synced by {new_sync_plan['name']}"
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
-    # disable sync plan after test
-    sync_plan = entities.SyncPlan(organization=module_org.id, id=sync_plan['id']).read()
-    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier3
-def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
+def test_positive_synchronize_custom_product_weekly_recurrence(module_org, request):
     """Create a weekly sync plan with a past datetime as a sync date,
     add a custom product and verify the product gets synchronized on
     the next sync occurrence
@@ -807,7 +797,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
     product = make_product({'organization-id': module_org.id})
     repo = make_repository({'product-id': product['id']})
     start_date = datetime.utcnow() - timedelta(weeks=1) + timedelta(seconds=delay)
-    sync_plan = make_sync_plan(
+    new_sync_plan = make_sync_plan(
         {
             'enabled': 'true',
             'interval': 'weekly',
@@ -815,12 +805,14 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
             'sync-date': start_date.strftime(SYNC_DATE_FMT),
         }
     )
+    sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     # Associate sync plan with product
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
+    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
     logger.info(
         f"Waiting {(delay / 4)} seconds to check product {product['name']}"
-        f" was not synced by {sync_plan['name']}"
+        f" was not synced by {new_sync_plan['name']}"
     )
     sleep(delay / 4)
     # Verify product has not been synced yet
@@ -830,12 +822,9 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
     # Wait until the first recurrence
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
-        f" was synced by {sync_plan['name']}"
+        f" was synced by {new_sync_plan['name']}"
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
-    # disable sync plan after test
-    sync_plan = entities.SyncPlan(organization=module_org.id, id=sync_plan['id']).read()
-    disable_syncplan(sync_plan)
