@@ -188,6 +188,7 @@ def loadbalancer_setup(
     }
 
 
+@pytest.mark.dependency()
 @pytest.mark.tier1
 def test_loadbalancer_register_client_using_ak_to_capsule(loadbalancer_setup, rhel7_contenthost):
     """Register the client using ak to the capsule
@@ -224,7 +225,7 @@ def test_loadbalancer_register_client_using_ak_to_capsule(loadbalancer_setup, rh
     )
 
 
-@pytest.mark.stubbed
+@pytest.mark.dependency(depends=['test_loadbalancer_register_client_using_ak_to_capsule'])
 @pytest.mark.tier1
 def test_list_repolist():
     """List all the repositories
