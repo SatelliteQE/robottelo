@@ -364,7 +364,7 @@ PRDS = {
     'rhscl': 'Red Hat Software Collections (for RHEL Server)',
     'rhae': 'Red Hat Ansible Engine',
     'rhel8': 'Red Hat Enterprise Linux for x86_64',
-    'rhel9': 'Red Hat Enterprise Linux for x86_64 Beta',
+    'rhel9': 'Red Hat Enterprise Linux for x86_64',
 }
 
 REPOSET = {
@@ -395,7 +395,7 @@ REPOSET = {
         'rhel7': 'Red Hat Enterprise Linux 7 Server (Kickstart)',
         'rhel8': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
         'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
-        'rhel9': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Beta (Kickstart)',
+        'rhel9': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (Kickstart)',
     },
     'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)',
     'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)',
@@ -646,8 +646,8 @@ REPOS = {
             'distro': DISTRO_RHEL8,
         },
         'rhel9': {
-            'id': 'rhel-9-for-x86_64-baseos-beta-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Beta Kickstart',
+            'id': 'rhel-9-for-x86_64-baseos-kickstart',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.0',
             'version': '9.0',
             'reposet': REPOSET['kickstart']['rhel9'],
             'product': PRDS['rhel9'],
