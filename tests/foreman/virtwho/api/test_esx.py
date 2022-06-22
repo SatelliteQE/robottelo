@@ -18,10 +18,7 @@
 """
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 
-from robottelo.cli.host import Host
-from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.virtwho_utils import create_http_proxy
 from robottelo.virtwho_utils import deploy_configure_by_command
@@ -51,13 +48,15 @@ def form_data(default_org, target_sat):
 
 
 @pytest.fixture()
-def virtwho_config(form_data):
-    return entities.VirtWhoConfig(**form_data).create()
+def virtwho_config(form_data, target_sat):
+    return target_sat.api.VirtWhoConfig(**form_data).create()
 
 
 class TestVirtWhoConfigforEsx:
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_id(self, default_org, form_data, virtwho_config):
+    def test_positive_deploy_configure_by_id(
+        self, default_org, form_data, virtwho_config, target_sat
+    ):
         """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
         :id: 72d74c05-2580-4f38-b6c0-999ff470d4d6
@@ -74,7 +73,7 @@ class TestVirtWhoConfigforEsx:
             command, form_data['hypervisor_type'], debug=True, org=default_org.label
         )
         virt_who_instance = (
-            entities.VirtWhoConfig()
+            target_sat.api.VirtWhoConfig()
             .search(query={'search': f'name={virtwho_config.name}'})[0]
             .status
         )
@@ -90,24 +89,30 @@ class TestVirtWhoConfigforEsx:
             ),
         ]
         for hostname, sku in hosts:
-            host = Host.list({'search': hostname})[0]
-            subscriptions = Subscription.list({'organization': default_org.name, 'search': sku})
+            host = target_sat.cli.Host.list({'search': hostname})[0]
+            subscriptions = target_sat.cli.Subscription.list(
+                {'organization': default_org.name, 'search': sku}
+            )
             vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
                     if hypervisor_name.lower() in item['type']:
                         vdc_id = item['id']
                         break
-            entities.HostSubscription(host=host['id']).add_subscriptions(
+            target_sat.api.HostSubscription(host=host['id']).add_subscriptions(
                 data={'subscriptions': [{'id': vdc_id, 'quantity': 1}]}
             )
-            result = entities.Host().search(query={'search': hostname})[0].read_json()
+            result = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
+        assert not target_sat.api.VirtWhoConfig().search(
+            query={'search': f"name={form_data['name']}"}
+        )
 
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_script(self, default_org, form_data, virtwho_config):
+    def test_positive_deploy_configure_by_script(
+        self, default_org, form_data, virtwho_config, target_sat
+    ):
         """Verify "GET /foreman_virt_who_configure/api/
 
         v2/configs/:id/deploy_script"
@@ -129,7 +134,7 @@ class TestVirtWhoConfigforEsx:
             org=default_org.label,
         )
         virt_who_instance = (
-            entities.VirtWhoConfig()
+            target_sat.api.VirtWhoConfig()
             .search(query={'search': f'name={virtwho_config.name}'})[0]
             .status
         )
@@ -145,24 +150,28 @@ class TestVirtWhoConfigforEsx:
             ),
         ]
         for hostname, sku in hosts:
-            host = Host.list({'search': hostname})[0]
-            subscriptions = Subscription.list({'organization': default_org.name, 'search': sku})
+            host = target_sat.cli.Host.list({'search': hostname})[0]
+            subscriptions = target_sat.cli.Subscription.list(
+                {'organization': default_org.name, 'search': sku}
+            )
             vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
                     if hypervisor_name.lower() in item['type']:
                         vdc_id = item['id']
                         break
-            entities.HostSubscription(host=host['id']).add_subscriptions(
+            target_sat.api.HostSubscription(host=host['id']).add_subscriptions(
                 data={'subscriptions': [{'id': vdc_id, 'quantity': 1}]}
             )
-            result = entities.Host().search(query={'search': hostname})[0].read_json()
+            result = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
+        assert not target_sat.api.VirtWhoConfig().search(
+            query={'search': f"name={form_data['name']}"}
+        )
 
     @pytest.mark.tier2
-    def test_positive_debug_option(self, default_org, form_data, virtwho_config):
+    def test_positive_debug_option(self, default_org, form_data, virtwho_config, target_sat):
         """Verify debug option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id"
@@ -185,10 +194,12 @@ class TestVirtWhoConfigforEsx:
             )
             assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == value
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
+        assert not target_sat.api.VirtWhoConfig().search(
+            query={'search': f"name={form_data['name']}"}
+        )
 
     @pytest.mark.tier2
-    def test_positive_interval_option(self, default_org, form_data, virtwho_config):
+    def test_positive_interval_option(self, default_org, form_data, virtwho_config, target_sat):
         """Verify interval option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id"
@@ -220,10 +231,14 @@ class TestVirtWhoConfigforEsx:
             )
             assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
+        assert not target_sat.api.VirtWhoConfig().search(
+            query={'search': f"name={form_data['name']}"}
+        )
 
     @pytest.mark.tier2
-    def test_positive_hypervisor_id_option(self, default_org, form_data, virtwho_config):
+    def test_positive_hypervisor_id_option(
+        self, default_org, form_data, virtwho_config, target_sat
+    ):
         """Verify hypervisor_id option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id"
@@ -248,10 +263,12 @@ class TestVirtWhoConfigforEsx:
             )
             assert get_configure_option('hypervisor_id', config_file) == value
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
+        assert not target_sat.api.VirtWhoConfig().search(
+            query={'search': f"name={form_data['name']}"}
+        )
 
     @pytest.mark.tier2
-    def test_positive_filter_option(self, default_org, form_data, virtwho_config):
+    def test_positive_filter_option(self, default_org, form_data, virtwho_config, target_sat):
         """Verify filter option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id"
@@ -296,10 +313,12 @@ class TestVirtWhoConfigforEsx:
             == blacklist['exclude_host_parents']
         )
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
+        assert not target_sat.api.VirtWhoConfig().search(
+            query={'search': f"name={form_data['name']}"}
+        )
 
     @pytest.mark.tier2
-    def test_positive_proxy_option(self, default_org, form_data, virtwho_config):
+    def test_positive_proxy_option(self, default_org, form_data, virtwho_config, target_sat):
         """Verify http_proxy option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id""
@@ -337,10 +356,14 @@ class TestVirtWhoConfigforEsx:
         deploy_configure_by_command(command, form_data['hypervisor_type'], org=default_org.label)
         assert get_configure_option('https_proxy', ETC_VIRTWHO_CONFIG) == https_proxy_url
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
+        assert not target_sat.api.VirtWhoConfig().search(
+            query={'search': f"name={form_data['name']}"}
+        )
 
     @pytest.mark.tier2
-    def test_positive_configure_organization_list(self, default_org, form_data, virtwho_config):
+    def test_positive_configure_organization_list(
+        self, default_org, form_data, virtwho_config, target_sat
+    ):
         """Verify "GET /foreman_virt_who_configure/
 
         api/v2/organizations/:organization_id/configs"
@@ -358,4 +381,6 @@ class TestVirtWhoConfigforEsx:
         search_result = virtwho_config.get_organization_configs(data={'per_page': '1000'})
         assert [item for item in search_result['results'] if item['name'] == form_data['name']]
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
+        assert not target_sat.api.VirtWhoConfig().search(
+            query={'search': f"name={form_data['name']}"}
+        )
