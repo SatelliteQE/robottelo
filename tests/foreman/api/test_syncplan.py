@@ -760,7 +760,8 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
 
     :BZ: 1695733
     """
-    delay = 4 * 60  # delay for sync date in seconds
+    # Test with multiple products and multiple repos needs more delay.
+    delay = 8 * 60  # delay for sync date in seconds
     products = [entities.Product(organization=module_org).create() for _ in range(2)]
     repos = [
         entities.Repository(product=product).create() for product in products for _ in range(2)
