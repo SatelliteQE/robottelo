@@ -24,6 +24,7 @@ import pytest
 from fauxfactory import gen_choice
 from nailgun import entities
 
+from robottelo.api.utils import disable_syncplan
 from robottelo.api.utils import wait_for_tasks
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.datafactory import gen_string
@@ -179,7 +180,7 @@ def test_positive_end_to_end_custom_cron(session):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_search_scoped(session):
+def test_positive_search_scoped(session, request):
     """Test scoped search for different sync plan parameters
 
     :id: 3a48513e-205d-47a3-978e-79b764cc74d9
@@ -195,13 +196,15 @@ def test_positive_search_scoped(session):
     name = gen_string('alpha')
     start_date = datetime.utcnow() + timedelta(days=10)
     org = entities.Organization().create()
-    entities.SyncPlan(
+    sync_plan = entities.SyncPlan(
         name=name,
         interval=SYNC_INTERVAL['day'],
         organization=org,
         enabled=True,
         sync_date=start_date,
     ).create()
+    sync_plan = entities.SyncPlan(organization=org.id, id=sync_plan.id).read()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     with session:
         session.organization.select(org.name)
         for query_type, query_value in [('interval', SYNC_INTERVAL['day']), ('enabled', 'true')]:

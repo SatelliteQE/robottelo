@@ -32,6 +32,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo import manifests
+from robottelo.api.utils import disable_syncplan
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import get_credentials
@@ -141,7 +142,7 @@ def test_positive_get_routes():
 @pytest.mark.build_sanity
 @pytest.mark.parametrize("enabled", [False, True])
 @pytest.mark.tier1
-def test_positive_create_enabled_disabled(module_org, enabled):
+def test_positive_create_enabled_disabled(module_org, enabled, request):
     """Create sync plan with different 'enabled' field values.
 
     :id: df5837e7-3d0f-464a-bd67-86b423c16eb4
@@ -154,6 +155,7 @@ def test_positive_create_enabled_disabled(module_org, enabled):
     :CaseImportance: Critical
     """
     sync_plan = entities.SyncPlan(enabled=enabled, organization=module_org).create()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     sync_plan = sync_plan.read()
     assert sync_plan.enabled == enabled
 
@@ -171,7 +173,7 @@ def test_positive_create_with_name(module_org, name):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(name=name, organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, name=name, organization=module_org).create()
     sync_plan = sync_plan.read()
     assert sync_plan.name == name
 
@@ -190,7 +192,9 @@ def test_positive_create_with_description(module_org, description):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(description=description, organization=module_org).create()
+    sync_plan = entities.SyncPlan(
+        enabled=False, description=description, organization=module_org
+    ).create()
     sync_plan = sync_plan.read()
     assert sync_plan.description == description
 
@@ -209,7 +213,7 @@ def test_positive_create_with_interval(module_org, interval):
     :CaseImportance: Critical
     """
     sync_plan = entities.SyncPlan(
-        description=gen_string('alpha'), organization=module_org, interval=interval
+        enabled=False, description=gen_string('alpha'), organization=module_org, interval=interval
     )
     if interval == SYNC_INTERVAL['custom']:
         sync_plan.cron_expression = gen_choice(valid_cron_expressions())
@@ -232,7 +236,9 @@ def test_positive_create_with_sync_date(module_org, sync_delta):
     :CaseImportance: Critical
     """
     sync_date = datetime.now() + timedelta(seconds=sync_delta)
-    sync_plan = entities.SyncPlan(organization=module_org, sync_date=sync_date).create()
+    sync_plan = entities.SyncPlan(
+        enabled=False, organization=module_org, sync_date=sync_date
+    ).create()
     sync_plan = sync_plan.read()
     assert sync_date.strftime('%Y-%m-%d %H:%M:%S UTC') == sync_plan.sync_date
 
@@ -293,7 +299,7 @@ def test_negative_create_with_empty_interval(module_org):
 
 @pytest.mark.parametrize("enabled", [False, True])
 @pytest.mark.tier1
-def test_positive_update_enabled(module_org, enabled):
+def test_positive_update_enabled(module_org, enabled, request):
     """Create sync plan and update it with opposite 'enabled' value.
 
     :id: 325c0ef5-c0e8-4cb9-b85e-87eb7f42c2f8
@@ -305,6 +311,7 @@ def test_positive_update_enabled(module_org, enabled):
     :CaseImportance: Critical
     """
     sync_plan = entities.SyncPlan(enabled=not enabled, organization=module_org).create()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     sync_plan.enabled = enabled
     sync_plan.update(['enabled'])
     sync_plan = sync_plan.read()
@@ -325,7 +332,7 @@ def test_positive_update_name(module_org, name):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     sync_plan.name = name
     sync_plan.update(['name'])
     sync_plan = sync_plan.read()
@@ -344,7 +351,9 @@ def test_positive_update_description(module_org, description):
     :expectedresults: A sync plan is created and its description can be
         updated with the specified description.
     """
-    sync_plan = entities.SyncPlan(description=gen_string('alpha'), organization=module_org).create()
+    sync_plan = entities.SyncPlan(
+        enabled=False, description=gen_string('alpha'), organization=module_org
+    ).create()
     sync_plan.description = description
     sync_plan.update(['description'])
     sync_plan = sync_plan.read()
@@ -366,7 +375,7 @@ def test_positive_update_interval(module_org, interval):
     :CaseImportance: Critical
     """
     sync_plan = entities.SyncPlan(
-        description=gen_string('alpha'), organization=module_org, interval=interval
+        enabled=False, description=gen_string('alpha'), organization=module_org, interval=interval
     )
     if interval == SYNC_INTERVAL['custom']:
         sync_plan.cron_expression = gen_choice(valid_cron_expressions())
@@ -399,7 +408,10 @@ def test_positive_update_interval_custom_cron(module_org, interval):
     """
     if interval != SYNC_INTERVAL['custom']:
         sync_plan = entities.SyncPlan(
-            description=gen_string('alpha'), organization=module_org, interval=interval
+            enabled=False,
+            description=gen_string('alpha'),
+            organization=module_org,
+            interval=interval,
         ).create()
 
         sync_plan.interval = SYNC_INTERVAL['custom']
@@ -424,7 +436,7 @@ def test_positive_update_sync_date(module_org, sync_delta):
     """
     sync_date = datetime.now() + timedelta(seconds=sync_delta)
     sync_plan = entities.SyncPlan(
-        organization=module_org, sync_date=datetime.now() + timedelta(days=10)
+        enabled=False, organization=module_org, sync_date=datetime.now() + timedelta(days=10)
     ).create()
     sync_plan.sync_date = sync_date
     sync_plan.update(['sync_date'])
@@ -446,7 +458,7 @@ def test_negative_update_name(module_org, name):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     sync_plan.name = name
     with pytest.raises(HTTPError):
         sync_plan.update(['name'])
@@ -466,7 +478,7 @@ def test_negative_update_interval(module_org, interval):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     sync_plan.interval = interval
     with pytest.raises(HTTPError):
         sync_plan.update(['interval'])
@@ -485,12 +497,12 @@ def test_positive_add_product(module_org):
 
     :CaseImportance: Critical
     """
-    syncplan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     product = entities.Product(organization=module_org).create()
-    syncplan.add_products(data={'product_ids': [product.id]})
-    syncplan = syncplan.read()
-    assert len(syncplan.product) == 1
-    assert syncplan.product[0].id == product.id
+    sync_plan.add_products(data={'product_ids': [product.id]})
+    sync_plan = sync_plan.read()
+    assert len(sync_plan.product) == 1
+    assert sync_plan.product[0].id == product.id
 
 
 @pytest.mark.tier2
@@ -504,12 +516,12 @@ def test_positive_add_products(module_org):
 
     :CaseLevel: Integration
     """
-    syncplan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     products = [entities.Product(organization=module_org).create() for _ in range(2)]
-    syncplan.add_products(data={'product_ids': [product.id for product in products]})
-    syncplan = syncplan.read()
-    assert len(syncplan.product) == 2
-    assert {product.id for product in products} == {product.id for product in syncplan.product}
+    sync_plan.add_products(data={'product_ids': [product.id for product in products]})
+    sync_plan = sync_plan.read()
+    assert len(sync_plan.product) == 2
+    assert {product.id for product in products} == {product.id for product in sync_plan.product}
 
 
 @pytest.mark.tier2
@@ -526,14 +538,14 @@ def test_positive_remove_product(module_org):
 
     :BZ: 1199150
     """
-    syncplan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     products = [entities.Product(organization=module_org).create() for _ in range(2)]
-    syncplan.add_products(data={'product_ids': [product.id for product in products]})
-    assert len(syncplan.read().product) == 2
-    syncplan.remove_products(data={'product_ids': [products[0].id]})
-    syncplan = syncplan.read()
-    assert len(syncplan.product) == 1
-    assert syncplan.product[0].id == products[1].id
+    sync_plan.add_products(data={'product_ids': [product.id for product in products]})
+    assert len(sync_plan.read().product) == 2
+    sync_plan.remove_products(data={'product_ids': [products[0].id]})
+    sync_plan = sync_plan.read()
+    assert len(sync_plan.product) == 1
+    assert sync_plan.product[0].id == products[1].id
 
 
 @pytest.mark.tier2
@@ -549,16 +561,16 @@ def test_positive_remove_products(module_org):
 
     :CaseLevel: Integration
     """
-    syncplan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     products = [entities.Product(organization=module_org).create() for _ in range(2)]
-    syncplan.add_products(data={'product_ids': [product.id for product in products]})
-    assert len(syncplan.read().product) == 2
-    syncplan.remove_products(data={'product_ids': [product.id for product in products]})
-    assert len(syncplan.read().product) == 0
+    sync_plan.add_products(data={'product_ids': [product.id for product in products]})
+    assert len(sync_plan.read().product) == 2
+    sync_plan.remove_products(data={'product_ids': [product.id for product in products]})
+    assert len(sync_plan.read().product) == 0
 
 
 @pytest.mark.tier2
-def test_positive_repeatedly_add_remove(module_org):
+def test_positive_repeatedly_add_remove(module_org, request):
     """Repeatedly add and remove a product from a sync plan.
 
     :id: b67536ba-3a36-4bb7-a405-0e12081d5a7e
@@ -570,17 +582,18 @@ def test_positive_repeatedly_add_remove(module_org):
 
     :BZ: 1199150
     """
-    syncplan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(organization=module_org).create()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     product = entities.Product(organization=module_org).create()
     for _ in range(5):
-        syncplan.add_products(data={'product_ids': [product.id]})
-        assert len(syncplan.read().product) == 1
-        syncplan.remove_products(data={'product_ids': [product.id]})
-        assert len(syncplan.read().product) == 0
+        sync_plan.add_products(data={'product_ids': [product.id]})
+        assert len(sync_plan.read().product) == 1
+        sync_plan.remove_products(data={'product_ids': [product.id]})
+        assert len(sync_plan.read().product) == 0
 
 
 @pytest.mark.tier2
-def test_positive_add_remove_products_custom_cron(module_org):
+def test_positive_add_remove_products_custom_cron(module_org, request):
     """Create a sync plan with two products having custom cron interval
     and then remove both products from it.
 
@@ -593,18 +606,19 @@ def test_positive_add_remove_products_custom_cron(module_org):
     """
     cron_expression = gen_choice(valid_cron_expressions())
 
-    syncplan = entities.SyncPlan(
+    sync_plan = entities.SyncPlan(
         organization=module_org, interval='custom cron', cron_expression=cron_expression
     ).create()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     products = [entities.Product(organization=module_org).create() for _ in range(2)]
-    syncplan.add_products(data={'product_ids': [product.id for product in products]})
-    assert len(syncplan.read().product) == 2
-    syncplan.remove_products(data={'product_ids': [product.id for product in products]})
-    assert len(syncplan.read().product) == 0
+    sync_plan.add_products(data={'product_ids': [product.id for product in products]})
+    assert len(sync_plan.read().product) == 2
+    sync_plan.remove_products(data={'product_ids': [product.id for product in products]})
+    assert len(sync_plan.read().product) == 0
 
 
 @pytest.mark.tier4
-def test_negative_synchronize_custom_product_past_sync_date(module_org):
+def test_negative_synchronize_custom_product_past_sync_date(module_org, request):
     """Verify product won't get synced immediately after adding association
     with a sync plan which has already been started
 
@@ -626,6 +640,7 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org):
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, sync_date=datetime.utcnow().replace(second=0)
     ).create()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Verify product was not synced right after it was added to sync plan
     with pytest.raises(AssertionError):
@@ -634,7 +649,7 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org):
 
 
 @pytest.mark.tier4
-def test_positive_synchronize_custom_product_past_sync_date(module_org):
+def test_positive_synchronize_custom_product_past_sync_date(module_org, request):
     """Create a sync plan with past datetime as a sync date, add a
     custom product and verify the product gets synchronized on the next
     sync occurrence
@@ -658,6 +673,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
         interval='hourly',
         sync_date=datetime.utcnow().replace(second=0) - timedelta(seconds=interval - delay),
     ).create()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
     logger.info(
@@ -681,7 +697,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
 
 
 @pytest.mark.tier4
-def test_positive_synchronize_custom_product_future_sync_date(module_org):
+def test_positive_synchronize_custom_product_future_sync_date(module_org, request):
     """Create a sync plan with sync date in a future and sync one custom
     product with it automatically.
 
@@ -707,6 +723,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, sync_date=sync_date
     ).create()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
     logger.info(
@@ -731,7 +748,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
 
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_custom_products_future_sync_date(module_org):
+def test_positive_synchronize_custom_products_future_sync_date(module_org, request):
     """Create a sync plan with sync date in a future and sync multiple
     custom products with multiple repos automatically.
 
@@ -743,7 +760,8 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
 
     :BZ: 1695733
     """
-    delay = 4 * 60  # delay for sync date in seconds
+    # Test with multiple products and multiple repos needs more delay.
+    delay = 8 * 60  # delay for sync date in seconds
     products = [entities.Product(organization=module_org).create() for _ in range(2)]
     repos = [
         entities.Repository(product=product).create() for product in products for _ in range(2)
@@ -763,6 +781,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, sync_date=sync_date
     ).create()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     # Wait quarter of expected time
     logger.info(
@@ -788,7 +807,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
-def test_positive_synchronize_rh_product_past_sync_date():
+def test_positive_synchronize_rh_product_past_sync_date(request):
     """Create a sync plan with past datetime as a sync date, add a
     RH product and verify the product gets synchronized on the next sync
     occurrence
@@ -826,6 +845,7 @@ def test_positive_synchronize_rh_product_past_sync_date():
         interval='hourly',
         sync_date=datetime.utcnow() - timedelta(seconds=interval - delay),
     ).create()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     # Associate sync plan with product
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
@@ -859,7 +879,7 @@ def test_positive_synchronize_rh_product_past_sync_date():
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_rh_product_future_sync_date():
+def test_positive_synchronize_rh_product_future_sync_date(request):
     """Create a sync plan with sync date in a future and sync one RH
     product with it automatically.
 
@@ -891,6 +911,7 @@ def test_positive_synchronize_rh_product_future_sync_date():
     sync_plan = entities.SyncPlan(
         organization=org, enabled=True, interval='hourly', sync_date=sync_date
     ).create()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     # Create and Associate sync plan with product
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Verify product is not synced and doesn't have any content
@@ -919,7 +940,7 @@ def test_positive_synchronize_rh_product_future_sync_date():
 
 
 @pytest.mark.tier3
-def test_positive_synchronize_custom_product_daily_recurrence(module_org):
+def test_positive_synchronize_custom_product_daily_recurrence(module_org, request):
     """Create a daily sync plan with current datetime as a sync date,
     add a custom product and verify the product gets synchronized on
     the next sync occurrence
@@ -938,6 +959,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, interval='daily', sync_date=start_date
     ).create()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
     logger.info(
@@ -961,7 +983,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
 
 
 @pytest.mark.tier3
-def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
+def test_positive_synchronize_custom_product_weekly_recurrence(module_org, request):
     """Create a weekly sync plan with a past datetime as a sync date,
     add a custom product and verify the product gets synchronized on
     the next sync occurrence
@@ -982,6 +1004,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, interval='weekly', sync_date=start_date
     ).create()
+    request.addfinalizer(lambda: disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
     logger.info(

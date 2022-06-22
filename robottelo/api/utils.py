@@ -903,3 +903,14 @@ def update_rhsso_settings_in_satellite(revert=False):
             setting_entity = entities.Setting().search(query={'search': f'name={setting_name}'})[0]
             setting_entity.value = setting_value
             setting_entity.update({'value'})
+
+
+def disable_syncplan(sync_plan):
+    """
+    Disable sync plans after a test to reduce distracting task events, logs, and load on Satellite.
+    Note that only a Sync Plan with a repo would create a noticeable load.
+    You can also create sync plans in a disabled state where it is unlikely to impact the test.
+    """
+    sync_plan.enabled = False
+    sync_plan = sync_plan.update(['enabled'])
+    assert sync_plan.enabled is False
