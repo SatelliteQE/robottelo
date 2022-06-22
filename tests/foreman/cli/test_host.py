@@ -50,8 +50,9 @@ from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_8_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_8_CUSTOM_PACKAGE_NAME
 from robottelo.constants import NO_REPOS_AVAILABLE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -1572,8 +1573,11 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
 
 
 @pytest.fixture(scope="function")
-def setup_custom_repo(module_org, katello_host_tools_host, custom_repo='yum_6'):
+def setup_custom_repo(request, module_org, katello_host_tools_host):
     """Create custom repository content"""
+    custom_repo = 'yum_6'
+    if hasattr(request, 'param'):
+        custom_repo = request.param.get('custom_repo', 'yum_6')
     custom_repo_url = settings.repos[custom_repo].url
     prod = entities.Product(organization=module_org, name=f'custom_{gen_string("alpha")}').create()
     custom_repo = entities.Repository(
@@ -1723,7 +1727,9 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.tier3
-@pytest.mark.parametrize('setup_custom_repo', [{'custom_repo': 'yum_3'}], ids=[''], indirect=True)
+@pytest.mark.parametrize(
+    'setup_custom_repo', [{'custom_repo': 'yum_3'}], ids=['yum3'], indirect=True
+)
 def test_positive_erratum_applicability(
     katello_host_tools_host, setup_custom_repo, yum_security_plugin
 ):
@@ -1778,6 +1784,9 @@ def test_positive_erratum_applicability(
 
 @pytest.mark.cli_katello_host_tools
 @pytest.mark.tier3
+@pytest.mark.parametrize(
+    'setup_custom_repo', [{'custom_repo': 'yum_3'}], ids=['yum3'], indirect=True
+)
 def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_repo):
     """Apply security erratum to a host
 
@@ -1796,8 +1805,8 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
     """
     client = katello_host_tools_host
     host_info = Host.info({'name': client.hostname})
-    client.download_install_rpm(settings.repos.yum_6.url, FAKE_2_CUSTOM_PACKAGE)
-    client.run(f'yum downgrade -y {FAKE_2_CUSTOM_PACKAGE_NAME}')
+    client.download_install_rpm(settings.repos.yum_3.url, FAKE_8_CUSTOM_PACKAGE)
+    client.run(f'yum downgrade -y {FAKE_8_CUSTOM_PACKAGE_NAME}')
     # Check that host has applicable errata
     host_erratum, _ = wait_for(
         lambda: Host.errata_list({'host-id': host_info['id']})[0],
@@ -1805,7 +1814,7 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
         timeout=120,
         delay=5,
     )
-    assert host_erratum['erratum-id'] == settings.repos.yum_6.errata[2]
+    assert host_erratum['erratum-id'] == settings.repos.yum_3.errata[25]
     assert host_erratum['installable'] == 'true'
     # Check the erratum becomes available
     result = client.run('yum update --assumeno --security | grep "No packages needed for security"')
