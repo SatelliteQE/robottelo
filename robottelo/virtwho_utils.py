@@ -373,7 +373,7 @@ def hypervisor_json_create(hypervisors, guests):
     """
     Create a hypervisor guest json data. For example:
     {'hypervisors': [{'hypervisorId': '820b5143-3885-4dba-9358-4ce8c30d934e',
-    'guests': [{'guestId': 'afb91b1f-8438-46f5-bc67-d7ab328ef782', 'state': 1,
+    'guestIds': [{'guestId': 'afb91b1f-8438-46f5-bc67-d7ab328ef782', 'state': 1,
     'attributes': {'active': 1, 'virtWhoType': 'esx'}}]}]}
     :param hypervisors: how many hypervisors will be created
     :param guests: how many guests will be created
@@ -389,7 +389,7 @@ def hypervisor_json_create(hypervisors, guests):
                     "attributes": {"active": 1, "virtWhoType": "esx"},
                 }
             )
-        hypervisor = {"hypervisorId": str(uuid.uuid4()), "guests": guest_list}
+        hypervisor = {"hypervisorId": str(uuid.uuid4()), "guestIds": guest_list}
         hypervisors_list.append(hypervisor)
     mapping = {"hypervisors": hypervisors_list}
     return mapping
