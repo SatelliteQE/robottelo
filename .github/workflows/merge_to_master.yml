@@ -8,6 +8,7 @@ on:
 
 env:
     PYCURL_SSL_LIBRARY: openssl
+    ROBOTTELO_BUGZILLA__API_KEY: ${{ secrets.BUGZILLA_KEY }}
 
 jobs:
   codechecks:
