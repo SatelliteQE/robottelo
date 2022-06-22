@@ -1727,7 +1727,9 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.tier3
-@pytest.mark.parametrize('setup_custom_repo', [{'custom_repo': 'yum_3'}], ids=[''], indirect=True)
+@pytest.mark.parametrize(
+    'setup_custom_repo', [{'custom_repo': 'yum_3'}], ids=['yum3'], indirect=True
+)
 def test_positive_erratum_applicability(
     katello_host_tools_host, setup_custom_repo, yum_security_plugin
 ):
@@ -1782,7 +1784,9 @@ def test_positive_erratum_applicability(
 
 @pytest.mark.cli_katello_host_tools
 @pytest.mark.tier3
-@pytest.mark.parametrize('setup_custom_repo', [{'custom_repo': 'yum_3'}], ids=[''], indirect=True)
+@pytest.mark.parametrize(
+    'setup_custom_repo', [{'custom_repo': 'yum_3'}], ids=['yum3'], indirect=True
+)
 def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_repo):
     """Apply security erratum to a host
 
