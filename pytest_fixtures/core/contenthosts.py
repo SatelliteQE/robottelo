@@ -9,6 +9,7 @@ from broker import Broker
 from fauxfactory import gen_string
 
 from robottelo import constants
+from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
 
@@ -139,6 +140,7 @@ def register_host_custom_repo(target_sat, module_org, rhel_contenthost, repo_url
     prod = target_sat.api.Product(
         organization=module_org, name=f'rhel{rhelver}_{gen_string("alpha")}'
     ).create()
+    tasks = []
     for url in repo_urls:
         repo = target_sat.api.Repository(
             organization=module_org,
@@ -146,7 +148,15 @@ def register_host_custom_repo(target_sat, module_org, rhel_contenthost, repo_url
             content_type='yum',
             url=url,
         ).create()
-        repo.sync(timeout=1200)
+        task = repo.sync(synchronous=False)
+        tasks.append(task)
+    for task in tasks:
+        wait_for_tasks(
+            search_query=(f'id = {task["id"]}'),
+            poll_timeout=1500,
+        )
+        task_status = target_sat.api.ForemanTask(id=task['id']).poll()
+        assert task_status['result'] == 'success'
     subs = target_sat.api.Subscription(organization=module_org, name=prod.name).search()
     assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
     subscription = subs[0]
