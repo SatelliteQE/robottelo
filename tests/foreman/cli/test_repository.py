@@ -960,8 +960,7 @@ class TestRepository:
 
         :parametrized: yes
 
-        :expectedresults: Non-whitelisted tags are not removed when
-        mirroring policy is set to additive
+        :expectedresults: Non-whitelisted tags are not removed
         """
         tags = 'latest'
         Repository.synchronize({'id': repo['id']})
@@ -999,8 +998,7 @@ class TestRepository:
 
         :parametrized: yes
 
-        :expectedresults: Non-whitelisted tags are removed when mirroring policy
-        is set to content only
+        :expectedresults: Non-whitelisted tags are removed
         """
         tags = 'latest'
         Repository.synchronize({'id': repo['id']})
