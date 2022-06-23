@@ -216,6 +216,7 @@ def test_positive_list_host_based_on_rule_search_query(
 
     :BZ: 1731112
     """
+    print("hi there")
     ip_address = gen_ipaddr()
     cpu_count = gen_integer(2, 10)
     rule_search = f'cpu_count = {cpu_count}'
