@@ -2191,7 +2191,7 @@ class TestHostCockpit:
             hostname_inside_cockpit = session.host.get_webconsole_content(
                 entity_name=cockpit_host.hostname, rhel_version=cockpit_host.os_version.major
             )
-            assert hostname_inside_cockpit == cockpit_host.hostname, (
+            assert cockpit_host.hostname in hostname_inside_cockpit, (
                 f'cockpit page shows hostname {hostname_inside_cockpit} '
                 f'instead of {cockpit_host.hostname}'
             )
