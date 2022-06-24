@@ -5,6 +5,7 @@ from tempfile import mkstemp
 import pytest
 from box import Box
 from broker import Broker
+from broker.exceptions import HostError
 from fauxfactory import gen_string
 from packaging.version import Version
 
