@@ -23,7 +23,6 @@ from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
 from nailgun import entities
-from nailgun import entity_mixins
 from wait_for import TimedOutError
 from wait_for import wait_for
 
@@ -71,96 +70,9 @@ def _assert_discovered_host(host, channel=None, user_config=None):
     retrieved back
     Introduced a delay of 300secs by polling every 10 secs to get expected
     host
+
+    DEPRECATED: Will replace all tests using this function.
     """
-    # assert that server receives DHCP discover from hosts PXELinux
-    for pattern in [
-        (
-            f"DHCPDISCOVER from {host.mac}",
-            "DHCPDISCOVER",
-        ),
-        (f"DHCPACK on [0-9.]+ to {host.mac}", "DHCPACK"),
-    ]:
-        try:
-            dhcp_pxe = _wait_for_log(channel, pattern[0], timeout=10)
-        except TimedOutError:
-            # raise assertion error
-            raise AssertionError(f'Timed out waiting for {pattern[1]} from VM')
-
-    groups = re.search('DHCPACK on (\\d.+) to', dhcp_pxe.out)
-    assert len(groups.groups()) == 1, 'Unable to parse bootloader ip address'
-    pxe_ip = groups.groups()[0]
-
-    # assert that server retrieves pxelinux config over TFTP
-    for pattern in [
-        (f'Client {pxe_ip} finished pxelinux.0', 'pxelinux.0'),
-        (f'Client {pxe_ip} finished pxelinux.cfg/default', 'pxelinux.cfg/default'),
-        (f'Client {pxe_ip} finished boot/fdi-image/vmlinuz0', 'fdi-image/vmlinuz0'),
-        (f'Client {pxe_ip} finished boot/fdi-image/initrd0.img', 'fdi-image/initrd0.img'),
-    ]:
-        try:
-            _wait_for_log(channel, pattern[0], timeout=20)
-        except TimedOutError:
-            # raise assertion error
-            raise AssertionError(f'Timed out waiting for VM (tftp) to fetch {pattern[1]}')
-
-    # assert that server receives DHCP discover from FDI
-    for pattern in [
-        (
-            f"DHCPDISCOVER from {host.mac}",
-            "DHCPDISCOVER",
-        ),
-        (f"DHCPACK on [0-9.]+ to {host.mac}", "DHCPACK"),
-    ]:
-        try:
-            dhcp_fdi = _wait_for_log(channel, pattern[0], timeout=30)
-        except TimedOutError:
-            # raise assertion error
-            raise AssertionError(f'Timed out waiting for {pattern[1]} from VM')
-    groups = re.search('DHCPACK on (\\d.+) to', dhcp_fdi.out)
-    assert len(groups.groups()) == 1, 'Unable to parse FDI ip address'
-    fdi_ip = groups.groups()[0]
-
-    # finally, assert that the FDI successfully uploaded its facts to the server
-    try:
-        facts_fdi = _wait_for_log(
-            channel,
-            f'\\[I\\|app\\|[a-z0-9]+\\] Started POST '
-            f'"/api/v2/discovered_hosts/facts" for {fdi_ip}',
-            timeout=60,
-        )
-    except TimedOutError:
-        # raise assertion error
-        raise AssertionError('Timed out waiting for /facts POST request')
-    groups = re.search('\\[I\\|app\\|([a-z0-9]+)\\]', facts_fdi.out)
-    assert len(groups.groups()) == 1, 'Unable to parse POST request UUID'
-    req_id = groups.groups()[0]
-
-    try:
-        _wait_for_log(channel, f'\\[I\\|app\\|{req_id}\\] Completed 201 Created')
-    except TimedOutError:
-        # raise assertion error
-        raise AssertionError('Timed out waiting for "/facts" 201 response')
-
-    default_config = entity_mixins.DEFAULT_SERVER_CONFIG
-
-    try:
-        wait_for(
-            lambda: len(
-                entities.DiscoveredHost(user_config or default_config).search(
-                    query={'search': f'name={host.guest_name}'}
-                )
-            )
-            > 0,
-            timeout=20,
-            delay=2,
-            logger=logger,
-        )
-    except TimedOutError:
-        raise AssertionError('Timed out waiting for discovered_host to appear on satellite')
-    discovered_host = entities.DiscoveredHost(user_config or default_config).search(
-        query={'search': f'name={host.guest_name}'}
-    )
-    return discovered_host[0]
 
 
 def assert_discovered_host_provisioned(channel, ksrepo):
