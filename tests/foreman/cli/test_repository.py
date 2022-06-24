@@ -990,7 +990,7 @@ class TestRepository:
     )
     def test_positive_synchronize_docker_repo_set_tags_later_content_only(self, repo):
         """Verify that adding tags whitelist and re-syncing after
-        synchronizing full repository doesn't remove content that was
+        synchronizing full repository does remove content that was
         already pulled in when mirroring policy is set to content only
 
         :id: 539dc138-8566-40ad-b0de-1d9ec80aa56f
