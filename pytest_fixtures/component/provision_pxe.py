@@ -28,10 +28,9 @@ def module_provisioning_rhel_content(
     request,
     module_provisioning_sat,
     module_provisioning_capsule,
-    module_org_with_manifest,
+    module_sca_manifest_org,
     module_lce_library,
     module_default_org_view,
-    default_subscription,
     module_location,
     default_architecture,
     default_partitiontable,
@@ -51,7 +50,7 @@ def module_provisioning_rhel_content(
     for name in repo_names:
         rh_repo_id = enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=module_org_with_manifest.id,
+            org_id=module_sca_manifest_org.id,
             product=constants.REPOS['kickstart'][name]['product'],
             repo=constants.REPOS['kickstart'][name]['name'],
             reposet=constants.REPOS['kickstart'][name]['reposet'],
@@ -80,17 +79,16 @@ def module_provisioning_rhel_content(
     ksrepo = rh_repos[0]
 
     ak = sat.api.ActivationKey(
-        organization=module_org_with_manifest,
+        organization=module_sca_manifest_org,
         content_view=module_default_org_view,
         environment=module_lce_library,
     ).create()
-    ak.add_subscriptions(data={'subscription_id': default_subscription.id})
 
     host_root_pass = settings.provisioning.host_root_password
     pxe_loader = "PXELinux BIOS"  # TODO: Make this a fixture parameter
 
     hostgroup = sat.api.HostGroup(
-        organization=[module_org_with_manifest],
+        organization=[module_sca_manifest_org],
         location=[module_location],
         architecture=default_architecture,
         domain=module_provisioning_sat.domain,
@@ -118,13 +116,13 @@ def module_provisioning_rhel_content(
         ],
     ).create()
 
-    return Box(hostgroup=hostgroup, os=os)
+    return Box(hostgroup=hostgroup, os=os, ksrepo=ksrepo)
 
 
 @pytest.fixture(scope='module')
 def module_provisioning_sat(
     module_target_sat,
-    module_org_with_manifest,
+    module_sca_manifest_org,
     module_location,
     module_provisioning_capsule,
 ):
@@ -162,14 +160,14 @@ def module_provisioning_sat(
 
     domain = sat.api.Domain(
         location=[module_location],
-        organization=[module_org_with_manifest],
+        organization=[module_sca_manifest_org],
         dns=module_provisioning_capsule.id,
         name=provisioning_domain_name,
     ).create()
 
     subnet = sat.api.Subnet(
         location=[module_location],
-        organization=[module_org_with_manifest],
+        organization=[module_sca_manifest_org],
         network=str(provisioning_network.network_address),
         mask=str(provisioning_network.netmask),
         gateway=broker_data_out.provisioning_gw_ipv4,
@@ -202,11 +200,13 @@ def module_ssh_key_file():
 
 
 @pytest.fixture()
-def provisioning_host(module_ssh_key_file):
+def provisioning_host(module_ssh_key_file, request):
     """Fixture to check out blank VM"""
     vlan_id = settings.provisioning.vlan_id
-    vm_firmware = "bios"  # TODO: Make this a fixture parameter - bios, uefi
-    cd_iso = ""  # TODO: Make this an optional fixture parameter
+    vm_firmware = 'bios' if not hasattr(request, 'param') else request.param
+    cd_iso = (
+        ""  # TODO: Make this an optional fixture parameter (update vm_firmware when adding this)
+    )
     with Broker(
         workflow="deploy-configure-pxe-provisioning-host-rhv",
         host_class=ContentHost,
@@ -216,7 +216,7 @@ def provisioning_host(module_ssh_key_file):
         blank=True,
         target_memory='6GiB',
         auth=module_ssh_key_file,
-    ) as host:
-        yield host
+    ) as prov_host:
+        yield prov_host
         # Set host as non-blank to run teardown of the host
-        host.blank = False
+        prov_host.blank = getattr(prov_host, 'blank', False)
