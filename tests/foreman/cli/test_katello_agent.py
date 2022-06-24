@@ -18,24 +18,23 @@
 """
 import pytest
 
+from pytest_fixtures.core.contenthosts import register_host_custom_repo
 from robottelo import constants
-from robottelo.cli.factory import setup_org_for_a_custom_repo
-from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.config import settings
 from robottelo.helpers import InstallerCommand
 
-
 pytestmark = [
     pytest.mark.run_in_one_thread,
-    pytest.mark.skip_if_not_set('clients', 'fake_manifest'),
     pytest.mark.destructive,
+    pytest.mark.tier5,
+    pytest.mark.upgrade,
 ]
 
 
 @pytest.fixture(scope='module')
 def sat_with_katello_agent(module_target_sat):
-    """Enable katello-agent on target_sat"""
-    module_target_sat.register_to_dogfood()
+    """Enable katello-agent on module_target_sat"""
+    module_target_sat.register_to_cdn()
     # Enable katello-agent from satellite-installer
     result = module_target_sat.install(
         InstallerCommand('foreman-proxy-content-enable-katello-agent true')
@@ -49,67 +48,27 @@ def sat_with_katello_agent(module_target_sat):
     yield module_target_sat
 
 
-@pytest.fixture(scope='module')
-def katello_agent_repos(sat_with_katello_agent):
-    """Create Org, Lifecycle Environment, Content View, Activation key"""
-    sat = sat_with_katello_agent
-    org = sat.api.Organization().create()
-    lce = sat.api.LifecycleEnvironment(organization=org).create()
-    cv = sat.api.ContentView(organization=org).create()
-    ak = sat.api.ActivationKey(environment=lce, organization=org).create()
-    setup_org_for_a_rh_repo(
-        {
-            'product': constants.PRDS['rhel'],
-            'repository-set': constants.REPOSET['rhst7'],
-            'repository': constants.REPOS['rhst7']['name'],
-            'organization-id': org.id,
-            'content-view-id': cv.id,
-            'lifecycle-environment-id': lce.id,
-            'activationkey-id': ak.id,
-        }
-    )
-    # Create custom repository content
-    setup_org_for_a_custom_repo(
-        {
-            'url': settings.repos.yum_1.url,
-            'organization-id': org.id,
-            'content-view-id': cv.id,
-            'lifecycle-environment-id': lce.id,
-            'activationkey-id': ak.id,
-        }
-    )
-    return {
-        'ak': ak,
-        'cv': cv,
-        'lce': lce,
-        'org': org,
-    }, sat_with_katello_agent
-
-
 @pytest.fixture
-def katello_agent_client(katello_agent_repos, rhel7_contenthost):
-    katello_agent_repos, sat_with_katello_agent = katello_agent_repos
-    rhel7_contenthost.install_katello_ca(sat_with_katello_agent)
-    # Register content host and install katello-agent
-    rhel7_contenthost.register_contenthost(
-        katello_agent_repos['org'].label,
-        katello_agent_repos['ak'].name,
+def katello_agent_client(sat_with_katello_agent, rhel_contenthost):
+    """Register content host to Satellite and install katello-agent on the host."""
+    org = sat_with_katello_agent.api.Organization().create()
+    repo = settings.repos['SATTOOLS_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
+    register_host_custom_repo(
+        sat_with_katello_agent, org, rhel_contenthost, [repo, settings.repos.yum_1.url]
     )
-    assert rhel7_contenthost.subscribed
-    host_info = sat_with_katello_agent.cli.Host.info({'name': rhel7_contenthost.hostname})
-    rhel7_contenthost.enable_repo(constants.REPOS['rhst7']['id'])
-    rhel7_contenthost.install_katello_agent()
-    yield {'client': rhel7_contenthost, 'host_info': host_info, 'sat': sat_with_katello_agent}
+    rhel_contenthost.install_katello_agent()
+    host_info = sat_with_katello_agent.cli.Host.info({'name': rhel_contenthost.hostname})
+    yield {'client': rhel_contenthost, 'host_info': host_info, 'sat': sat_with_katello_agent}
 
 
-@pytest.mark.tier3
-@pytest.mark.upgrade
 def test_positive_apply_errata(katello_agent_client):
     """Apply errata to a host
 
     :id: 8d0e5c93-f9fd-4ec0-9a61-aa93082a30c5
 
     :expectedresults: Errata is scheduled for installation
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -130,14 +89,14 @@ def test_positive_apply_errata(katello_agent_client):
     assert result.status == 0
 
 
-@pytest.mark.tier3
-@pytest.mark.upgrade
 def test_positive_install_package(katello_agent_client):
     """Install a package to a host remotely
 
     :id: b1009bba-0c7e-4b00-8ac4-256e5cfe4a78
 
     :expectedresults: Package was successfully installed
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -151,13 +110,14 @@ def test_positive_install_package(katello_agent_client):
     assert result.status == 0
 
 
-@pytest.mark.tier3
 def test_positive_remove_package(katello_agent_client):
     """Remove a package from a host remotely
 
     :id: 573dec11-8f14-411f-9e41-84426b0f23b5
 
     :expectedresults: Package was successfully removed
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -172,13 +132,14 @@ def test_positive_remove_package(katello_agent_client):
     assert result.status != 0
 
 
-@pytest.mark.tier3
 def test_positive_upgrade_package(katello_agent_client):
     """Upgrade a host package remotely
 
     :id: ad751c63-7175-40ae-8bc4-800462cd9c29
 
     :expectedresults: Package was successfully upgraded
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -193,7 +154,6 @@ def test_positive_upgrade_package(katello_agent_client):
     assert result.status == 0
 
 
-@pytest.mark.tier3
 def test_positive_upgrade_packages_all(katello_agent_client):
     """Upgrade all the host packages remotely
 
@@ -201,6 +161,8 @@ def test_positive_upgrade_packages_all(katello_agent_client):
 
     :expectedresults: Packages (at least 1 with newer version available)
         were successfully upgraded
+
+    :parametrized: yes
 
     :CaseLevel: System
     """
@@ -213,8 +175,6 @@ def test_positive_upgrade_packages_all(katello_agent_client):
     assert result.status == 0
 
 
-@pytest.mark.tier3
-@pytest.mark.upgrade
 def test_positive_install_and_remove_package_group(katello_agent_client):
     """Install and remove a package group to a host remotely
 
@@ -222,6 +182,8 @@ def test_positive_install_and_remove_package_group(katello_agent_client):
 
     :expectedresults: Package group was successfully installed
         and removed
+
+    :parametrized: yes
 
     :CaseLevel: System
     """

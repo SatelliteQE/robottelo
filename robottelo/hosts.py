@@ -122,6 +122,7 @@ class ContentHost(Host):
 
         :param hostname: The fqdn of a ContentHost target
         :param auth: ('root', 'rootpass') or '/path/to/keyfile.rsa'
+        :param satellite: optional parameter satellite object.
         """
         if not hostname:
             raise ContentHostError('A valid hostname must be provided')
@@ -131,13 +132,21 @@ class ContentHost(Host):
         elif isinstance(auth, str):
             # key file based authentication
             kwargs.update({'key_filename': auth})
+        self._satellite = kwargs.get('satellite')
         super().__init__(hostname=hostname, **kwargs)
+
+    @property
+    def satellite(self):
+        if not self._satellite:
+            self._satellite = Satellite()
+        return self._satellite
 
     @property
     def nailgun_host(self):
         """If this host is subscribed, provide access to its nailgun object"""
         if self.subscribed:
-            return entities.Host().search(query={'search': self.hostname})[0]
+            host_list = self.satellite.api.Host().search(query={'search': self.hostname})
+            return None if not host_list else host_list[0]
 
     @property
     def subscribed(self):
@@ -349,7 +358,7 @@ class ContentHost(Host):
         if result.status != 0:
             raise ContentHostError(f'Failed to install katello-agent: {result.stdout}')
         try:
-            wait_for(lambda: self.execute('systemctl status goferd').status == 0)
+            wait_for(lambda: self.execute('service goferd status').status == 0)
         except TimedOutError:
             raise ContentHostError('katello-agent is not running')
 
@@ -372,6 +381,7 @@ class ContentHost(Host):
         :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
             installed.
         """
+        self._satellite = satellite
         self.execute(
             f'curl --insecure --output katello-ca-consumer-latest.noarch.rpm \
                     {satellite.url_katello_ca_rpm}'
@@ -405,6 +415,7 @@ class ContentHost(Host):
         if result.status == 0:
             raise ContentHostError(f'katello-ca rpm(s) are still installed: {result.stdout}')
         self.execute('subscription-manager clean')
+        self._satellite = None
 
     def install_capsule_katello_ca(self, capsule=None):
         """Downloads and installs katello-ca rpm on the broker virtual machine.
@@ -428,8 +439,8 @@ class ContentHost(Host):
         force=True,
         releasever=None,
         name=None,
-        username=None,
-        password=None,
+        username=settings.server.admin_username,
+        password=settings.server.admin_password,
         auto_attach=False,
     ):
         """Registers content host on foreman server either by specifying
@@ -454,31 +465,28 @@ class ContentHost(Host):
         :return: SSHCommandResult instance filled with the result of the
             registration.
         """
-        cmd = f'subscription-manager register --org {org}'
-        if activation_key is not None:
+        if username and password:
+            userpass = f' --username {username} --password {password}'
+        else:
+            userpass = ''
+        # Setup the base command
+        cmd = 'subscription-manager register'
+        if org:
+            cmd += f' --org {org}'
+        # Determine our registration path
+        if activation_key:
             cmd += f' --activationkey {activation_key}'
         elif lce:
-            if username is None and password is None:
-                username = settings.server.admin_username
-                password = settings.server.admin_password
-
-            cmd += f' --environment {lce} --username {username} --password {password}'
-            if auto_attach:
-                cmd += ' --auto-attach'
+            cmd += f' --environment {lce}{userpass}'
         elif consumerid:
-            if username is None and password is None:
-                username = settings.server.admin_username
-                password = settings.server.admin_password
-
-            cmd += f' --consumerid {consumerid} --username {username} --password {password}'
-            if auto_attach:
-                cmd += ' --auto-attach'
+            cmd += f' --consumerid {consumerid}{userpass}'
         else:
-            raise ContentHostError(
-                'Please provide either activation key or lifecycle '
-                'environment name to successfully register a host'
-            )
-        if releasever is not None:
+            # if no other methods are provided, we can still try user/pass
+            cmd += userpass
+        # Additional registration modifiers
+        if auto_attach:
+            cmd += ' --auto-attach'
+        if releasever:
             cmd += f' --release {releasever}'
         if force:
             cmd += ' --force'
@@ -1065,6 +1073,24 @@ class ContentHost(Host):
         """
         baseurl = self.get_base_url_for_older_rhel_minor()
         self.create_custom_repos(rhel=baseurl)
+
+    def register_to_cdn(self):
+        """Subscribe Satellite/Capsule/ContentHost to CDN"""
+        self.remove_katello_ca()
+        major_version = self.os_version.major
+        release_version = f'{major_version}Server' if major_version < 8 else f'{major_version}'
+        cmd_result = self.register_contenthost(
+            org=None,
+            lce=None,
+            username=settings.subscription.rhn_username,
+            password=settings.subscription.rhn_password,
+            releasever=release_version,
+        )
+        if cmd_result.status != 0:
+            raise ContentHostError(
+                f'Error during registration, command output: {cmd_result.stdout}'
+            )
+        self.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
 
 
 class Capsule(ContentHost):
