@@ -15,7 +15,6 @@
 :Upstream: No
 """
 import re
-from copy import copy
 
 import pytest
 import simplejson
@@ -41,7 +40,7 @@ class HostNotDiscoveredException(Exception):
 
 
 def _read_log(ch, pattern):
-    """Read a first line from the given channel buffer and return the matching line"""
+    """Read the first line from the given channel buffer and return the matching line"""
     # read lines until the buffer is empty
     for log_line in ch.stdout().splitlines():
         logger.debug(f'foreman-tail: {log_line}')
@@ -64,13 +63,12 @@ def _wait_for_log(channel, pattern, timeout=5, delay=0.2):
         delay=delay,
         logger=logger,
     )
-    return matching_log
+    return matching_log.out
 
 
 def _assert_discovered_host(host, channel=None, user_config=None):
     """Check if host is discovered and information about it can be
     retrieved back
-
     Introduced a delay of 300secs by polling every 10 secs to get expected
     host
     """
@@ -165,67 +163,15 @@ def _assert_discovered_host(host, channel=None, user_config=None):
     return discovered_host[0]
 
 
-@pytest.fixture(scope="module", params=['non-admin', 'admin'])
-def _module_user(request, module_org, module_location):
-    if request.param == 'admin':
-        yield None
-    else:
-        # setup a clone of DiscoveryManager role
-        discoman_role = entities.Role().search(query={'search': 'name="Discovery Manager"'})[0]
-        passwd = gen_string('alpha')
-        user = entities.User(
-            organization=[module_org],
-            location=[module_location],
-            password=passwd,
-            role=[discoman_role],
-        ).create()
-        yield (user, passwd)
-
-
-@pytest.fixture(scope="module")
-def discovery_settings(module_org, module_location, target_sat):
-    """Steps to Configure foreman discovery
-
-    1. Build PXE default template
-    2. Create Organization/Location
-    3. Update Global parameters to set default org and location for
-       discovered hosts.
-    4. Enable auto_provision flag to perform discovery via discovery
-       rules.
-    """
-    # Build PXE default template to get default PXE file
-    entities.ProvisioningTemplate().build_pxe_default()
-    # let's just modify the timeouts to speed things up
-    target_sat.execute(
-        "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' " "/var/lib/tftpboot/pxelinux.cfg/default"
-    )
-    target_sat.execute(
-        "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1 fdi.ssh=1 fdi.rootpw=changeme/' "
-        "/var/lib/tftpboot/pxelinux.cfg/default"
-    )
-    # Get default settings values
-    default_disco_settings = {
-        i.name: i for i in entities.Setting().search(query={'search': 'name~discovery'})
-    }
-
-    # Update discovery taxonomies settings
-    discovery_loc = copy(default_disco_settings['discovery_location'])
-    discovery_loc.value = module_location.name
-    discovery_loc.update(['value'])
-    discovery_org = copy(default_disco_settings['discovery_organization'])
-    discovery_org.value = module_org.name
-    discovery_org.update(['value'])
-
-    # Enable flag to auto provision discovered hosts via discovery rules
-    discovery_auto = copy(default_disco_settings['discovery_auto'])
-    discovery_auto.value = 'true'
-    discovery_auto.update(['value'])
-
-    yield
-    # Restore default global setting's values
-    default_disco_settings['discovery_location'].update(['value'])
-    default_disco_settings['discovery_organization'].update(['value'])
-    default_disco_settings['discovery_auto'].update(['value'])
+def assert_discovered_host_provisioned(channel, ksrepo):
+    """Reads foreman logs until host provisioning messages are found"""
+    endpoint = '/'.join(ksrepo.full_path.split('/')[3:-1])
+    pattern = f'GET /{endpoint}'
+    try:
+        log = _wait_for_log(channel, pattern, timeout=300, delay=10)
+        assert pattern in log
+    except TimedOutError:
+        raise AssertionError(f'Timed out waiting for {pattern} from VM')
 
 
 @pytest.fixture(scope='module')
@@ -242,6 +188,56 @@ def discovered_host_cleanup():
     hosts = entities.DiscoveredHost().search()
     for host in hosts:
         host.delete()
+
+
+class TestDiscoveredHost:
+    """General Discovered Host tests."""
+
+    @pytest.mark.parametrize('provisioning_host', ['bios', 'uefi'], indirect=True)
+    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.tier3
+    def test_positive_provision_pxe_host(
+        self, module_provisioning_rhel_content, module_discovery_sat, provisioning_host
+    ):
+        """Provision a pxe-based discovered host
+
+        :id: e805b9c5-e8f6-4129-a0e6-ab54e5671ddb
+
+        :parametrized: yes
+
+        :Setup: Provisioning and discovery should be configured
+
+        :Steps:
+
+            1. Boot up the host to discover
+            2. Provision the host
+
+        :expectedresults: Host should be provisioned successfully
+
+        :CaseImportance: Critical
+        """
+        sat = module_discovery_sat
+        provisioning_host.power_control(ensure=False)
+        mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
+        wait_for(
+            lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
+            timeout=240,
+            delay=20,
+        )
+        discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+        discovered_host.hostgroup = module_provisioning_rhel_content.hostgroup
+        discovered_host.location = module_provisioning_rhel_content.hostgroup.location[0]
+        discovered_host.organization = module_provisioning_rhel_content.hostgroup.organization[0]
+        discovered_host.build = True
+        with sat.session.shell() as shell:
+            shell.send('foreman-tail')
+            host = discovered_host.update(['hostgroup', 'build', 'location', 'organization'])
+            host = sat.api.Host().search(query={"search": f'name={host.name}'})[0]
+            assert host
+            assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
+            host.delete()
+            assert not sat.api.Host().search(query={"search": f'name={host.name}'})
+        provisioning_host.blank = True
 
 
 class TestFakeDiscoveryTests:
@@ -355,63 +351,6 @@ class TestLibvirtHostDiscovery:
 
         :CaseImportance: Critical
         """
-
-    @pytest.mark.run_in_one_thread
-    @pytest.mark.skip_if_not_set('vlan_networking')
-    @pytest.mark.tier3
-    def test_positive_provision_pxe_host(
-        self, _module_user, discovery_settings, provisioning_env, target_sat
-    ):
-        """Provision a pxe-based discovered hosts
-
-        :id: e805b9c5-e8f6-4129-a0e6-ab54e5671ddb
-
-        :parametrized: yes
-
-        :Setup: Provisioning should be configured and a host should be
-            discovered
-
-        :Steps: PUT /api/v2/discovered_hosts/:id
-
-        :expectedresults: Host should be provisioned successfully
-
-        :CaseImportance: Critical
-        """
-        cfg = user_nailgun_config()
-        if _module_user:
-            cfg.auth = (_module_user[0].login, _module_user[1])
-
-        # open a ssh channel and attach it to foreman-tail output
-        with target_sat.session.shell() as shell:
-            shell.send('foreman-tail')
-
-            with LibvirtGuest() as pxe_host:
-                discovered_host = _assert_discovered_host(pxe_host, shell, user_config=cfg)
-                # Provision just discovered host
-                discovered_host.hostgroup = target_sat.api.HostGroup(
-                    cfg, id=provisioning_env['hostgroup']['id']
-                ).read()
-                discovered_host.root_pass = gen_string('alphanumeric')
-                discovered_host.update(['hostgroup', 'root_pass'])
-                # Assertions
-                provisioned_host = target_sat.api.Host(cfg).search(
-                    query={
-                        'search': 'name={}.{}'.format(
-                            discovered_host.name, provisioning_env['domain']['name']
-                        )
-                    }
-                )[0]
-                assert provisioned_host.subnet.read().name == provisioning_env['subnet']['name']
-                assert (
-                    provisioned_host.operatingsystem.read().ptable[0].read().name
-                    == provisioning_env['ptable']['name']
-                )
-                assert (
-                    provisioned_host.operatingsystem.read().title == provisioning_env['os']['title']
-                )
-                assert not target_sat.api.DiscoveredHost(cfg).search(
-                    query={'search': f'name={discovered_host.name}'}
-                )
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
