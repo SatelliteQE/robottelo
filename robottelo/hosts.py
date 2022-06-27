@@ -69,10 +69,10 @@ def get_sat_rhel_version():
         rhel_version = Satellite().os_version
     except (AuthenticationError, ContentHostError, BoxKeyError):
         if hasattr(settings.server.version, 'rhel_version'):
-            rhel_version = str(settings.server.version.rhel_version)
+            rhel_version = Version(str(settings.server.version.rhel_version))
         elif hasattr(settings.robottelo, 'rhel_version'):
-            rhel_version = settings.robottelo.rhel_version
-    return Version(rhel_version)
+            rhel_version = Version(settings.robottelo.rhel_version)
+    return rhel_version
 
 
 def setup_capsule(satellite, capsule, registration_args=None, installation_args=None):
@@ -425,6 +425,7 @@ class ContentHost(Host):
         consumerid=None,
         force=True,
         releasever=None,
+        name=None,
         username=None,
         password=None,
         auto_attach=False,
@@ -478,6 +479,8 @@ class ContentHost(Host):
             cmd += f' --release {releasever}'
         if force:
             cmd += ' --force'
+        if name:
+            cmd += f' --name {name}'
         return self.execute(cmd)
 
     def unregister(self):
