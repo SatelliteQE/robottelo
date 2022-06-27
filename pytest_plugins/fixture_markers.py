@@ -6,7 +6,10 @@ from robottelo.config import settings
 
 
 def pytest_generate_tests(metafunc):
-    if 'rhel_contenthost' in metafunc.fixturenames:
+    content_host_fixture = ''.join(
+        [i for i in ['rhel_contenthost', 'content_hosts'] if i in metafunc.fixturenames]
+    )
+    if content_host_fixture in metafunc.fixturenames:
         function_marks = getattr(metafunc.function, 'pytestmark', [])
         # process eventual rhel_version_list markers
         matchers = [i.args for i in function_marks if i.name == 'rhel_ver_list']
@@ -38,7 +41,7 @@ def pytest_generate_tests(metafunc):
         if rhel_params:
             rhel_params.sort(key=lambda r: str(r['rhel_version']))
             metafunc.parametrize(
-                'rhel_contenthost',
+                content_host_fixture,
                 rhel_params,
                 ids=[f'rhel{r["rhel_version"]}' for r in rhel_params],
                 indirect=True,

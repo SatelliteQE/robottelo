@@ -20,7 +20,6 @@
 from time import sleep
 
 import pytest
-from broker import Broker
 from nailgun import entities
 
 from robottelo import constants
@@ -31,9 +30,9 @@ from robottelo.api.utils import upload_manifest
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.cli.host import Host
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.hosts import ContentHost
 from robottelo.products import RepositoryCollection
 from robottelo.products import YumRepository
 
@@ -168,7 +167,8 @@ def _fetch_available_errata(module_org, host, expected_amount, timeout=120):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_sat):
+@pytest.mark.rhel_ver_list([7, 8, 9])
+def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_sat, content_hosts):
     """Install errata in a host-collection
 
     :id: 6f0242df-6511-4c0f-95fc-3fa32c63a064
@@ -183,47 +183,45 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_
 
     :BZ: 1983043
     """
-    with Broker(
-        nick=constants.DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=2
-    ) as clients:
-        for client in clients:
-            client.install_katello_ca(target_sat)
-            client.register_contenthost(module_org.label, activation_key.name)
-            assert client.subscribed
-            client.add_rex_key(satellite=target_sat)
-        host_ids = [client.nailgun_host.id for client in clients]
-        _install_package(
-            module_org,
-            clients=clients,
-            host_ids=host_ids,
-            package_name=constants.FAKE_1_CUSTOM_PACKAGE,
-        )
-        host_collection = target_sat.api.HostCollection(organization=module_org).create()
-        host_ids = [client.nailgun_host.id for client in clients]
-        host_collection.host_ids = host_ids
-        host_collection = host_collection.update(['host_ids'])
-        task_id = target_sat.api.JobInvocation().run(
-            data={
-                'feature': 'katello_errata_install',
-                'inputs': {'errata': str(CUSTOM_REPO_ERRATA_ID)},
-                'targeting_type': 'static_query',
-                'search_query': f'host_collection_id = {host_collection.id}',
-                'organization_id': module_org.id,
-            },
-        )['id']
-        wait_for_tasks(
-            search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
-            search_rate=15,
-            max_tries=10,
-        )
-        for client in clients:
-            result = client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}')
-            assert result.status == 0
+    for client in content_hosts:
+        client.install_katello_ca(target_sat)
+        client.register_contenthost(module_org.label, activation_key.name)
+        assert client.subscribed
+        client.add_rex_key(satellite=target_sat)
+    host_ids = [client.nailgun_host.id for client in content_hosts]
+    _install_package(
+        module_org,
+        clients=content_hosts,
+        host_ids=host_ids,
+        package_name=constants.FAKE_1_CUSTOM_PACKAGE,
+    )
+    host_collection = target_sat.api.HostCollection(organization=module_org).create()
+    host_ids = [client.nailgun_host.id for client in content_hosts]
+    host_collection.host_ids = host_ids
+    host_collection = host_collection.update(['host_ids'])
+    task_id = target_sat.api.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install',
+            'inputs': {'errata': str(CUSTOM_REPO_ERRATA_ID)},
+            'targeting_type': 'static_query',
+            'search_query': f'host_collection_id = {host_collection.id}',
+            'organization_id': module_org.id,
+        },
+    )['id']
+    wait_for_tasks(
+        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+        search_rate=15,
+        max_tries=10,
+    )
+    for client in content_hosts:
+        result = client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}')
+        assert result.status == 0
 
 
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_list([7, 8, 9])
 def test_positive_install_in_host(
-    module_org, activation_key, custom_repo, rhel7_contenthost, target_sat
+    module_org, activation_key, custom_repo, rhel_contenthost, target_sat
 ):
     """Install errata in a host
 
@@ -241,23 +239,23 @@ def test_positive_install_in_host(
 
     :BZ: 1983043
     """
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
-    assert rhel7_contenthost.subscribed
-    host_id = rhel7_contenthost.nailgun_host.id
+    rhel_contenthost.install_katello_ca(target_sat)
+    rhel_contenthost.register_contenthost(module_org.label, activation_key.name)
+    assert rhel_contenthost.subscribed
+    host_id = rhel_contenthost.nailgun_host.id
     _install_package(
         module_org,
-        clients=[rhel7_contenthost],
+        clients=[rhel_contenthost],
         host_ids=[host_id],
         package_name=constants.FAKE_1_CUSTOM_PACKAGE,
     )
-    rhel7_contenthost.add_rex_key(satellite=target_sat)
+    rhel_contenthost.add_rex_key(satellite=target_sat)
     task_id = target_sat.api.JobInvocation().run(
         data={
             'feature': 'katello_errata_install',
             'inputs': {'errata': str(CUSTOM_REPO_ERRATA_ID)},
             'targeting_type': 'static_query',
-            'search_query': f'name = {rhel7_contenthost.hostname}',
+            'search_query': f'name = {rhel_contenthost.hostname}',
             'organization_id': module_org.id,
         },
     )['id']
@@ -266,12 +264,13 @@ def test_positive_install_in_host(
         search_rate=15,
         max_tries=10,
     )
-    _validate_package_installed([rhel7_contenthost], constants.FAKE_2_CUSTOM_PACKAGE)
+    _validate_package_installed([rhel_contenthost], constants.FAKE_2_CUSTOM_PACKAGE)
 
 
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_list([7, 8, 9])
 def test_positive_install_multiple_in_host(
-    module_org, activation_key, custom_repo, rhel7_contenthost, target_sat
+    module_org, activation_key, custom_repo, rhel_contenthost, target_sat
 ):
     """For a host with multiple applicable errata install one and ensure
     the rest of errata is still available
@@ -292,25 +291,25 @@ def test_positive_install_multiple_in_host(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
-    assert rhel7_contenthost.subscribed
-    host = rhel7_contenthost.nailgun_host
+    rhel_contenthost.install_katello_ca(target_sat)
+    rhel_contenthost.register_contenthost(module_org.label, activation_key.name)
+    assert rhel_contenthost.subscribed
+    host = rhel_contenthost.nailgun_host
     for package in constants.FAKE_9_YUM_OUTDATED_PACKAGES:
         _install_package(
-            module_org, clients=[rhel7_contenthost], host_ids=[host.id], package_name=package
+            module_org, clients=[rhel_contenthost], host_ids=[host.id], package_name=package
         )
     host = host.read()
     applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
     assert applicable_errata_count > 1
-    rhel7_contenthost.add_rex_key(satellite=target_sat)
+    rhel_contenthost.add_rex_key(satellite=target_sat)
     for errata in settings.repos.yum_9.errata[1:4]:
         task_id = target_sat.api.JobInvocation().run(
             data={
                 'feature': 'katello_errata_install',
                 'inputs': {'errata': str(errata)},
                 'targeting_type': 'static_query',
-                'search_query': f'name = {rhel7_contenthost.hostname}',
+                'search_query': f'name = {rhel_contenthost.hostname}',
                 'organization_id': module_org.id,
             },
         )['id']
@@ -442,7 +441,7 @@ def setup_content_rhel6():
     host_tools_repo = entities.Repository(
         product=host_tools_product,
     ).create()
-    host_tools_repo.url = settings.repos.SATTOOLS_REPO.RHEL6
+    host_tools_repo.url = settings.repos.SATCLIENT_REPO.RHEL6
     host_tools_repo = host_tools_repo.update(['url'])
     host_tools_repo.sync()
 
@@ -789,7 +788,7 @@ def test_errata_installation_with_swidtags(
     _run_remote_command_on_content_host(
         module_org, f'dnf -y module install {module_name}:0:{version}', rhel8_contenthost
     )
-
+    Host.errata_recalculate({'host-id': rhel8_contenthost.nailgun_host.id})
     # validate swid tags Installed
     before_errata_apply_result = _run_remote_command_on_content_host(
         module_org,
@@ -808,6 +807,7 @@ def test_errata_installation_with_swidtags(
         module_org, f'dnf -y module update {module_name}', rhel8_contenthost
     )
     _run_remote_command_on_content_host(module_org, 'dnf -y upload-profile', rhel8_contenthost)
+    Host.errata_recalculate({'host-id': rhel8_contenthost.nailgun_host.id})
     host = host.read()
     applicable_errata_count -= 1
     assert host.content_facet_attributes['errata_counts']['total'] == applicable_errata_count

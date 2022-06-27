@@ -89,8 +89,16 @@ def rhel6_contenthost(request):
         yield host
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def content_hosts(request):
+    """A function-level fixture that provides two rhel content hosts object"""
+    with Broker(**host_conf(request), host_classes={'host': ContentHost}, _count=2) as hosts:
+        hosts[0].set_infrastructure_type('physical')
+        yield hosts
+
+
+@pytest.fixture(scope='module')
+def mod_content_hosts(request):
     """A module-level fixture that provides two rhel7 content hosts object"""
     with Broker(**host_conf(request), host_classes={'host': ContentHost}, _count=2) as hosts:
         hosts[0].set_infrastructure_type('physical')
