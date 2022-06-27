@@ -39,7 +39,6 @@ from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_host
 from robottelo.cli.factory import make_proxy
-from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
 from robottelo.cli.host import HostInterface
@@ -1710,24 +1709,31 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
     """
 
 
-@pytest.fixture(scope="module")
-def setup_custom_repo(setup_rhst_repo):
+@pytest.fixture
+def setup_custom_repo(module_org, katello_host_tools_host):
     """Create custom repository content"""
-    setup_org_for_a_custom_repo(
-        {
-            'url': settings.repos.yum_6.url,
-            'organization-id': setup_rhst_repo['org'].id,
-            'content-view-id': setup_rhst_repo['cv'].id,
-            'lifecycle-environment-id': setup_rhst_repo['lce'].id,
-            'activationkey-id': setup_rhst_repo['ak'].id,
+    custom_repo_url = settings.repos['yum_6'].url
+    prod = entities.Product(organization=module_org, name=f'custom_{gen_string("alpha")}').create()
+    custom_repo = entities.Repository(
+        organization=module_org,
+        product=prod,
+        content_type='yum',
+        url=custom_repo_url,
+    ).create()
+    custom_repo.sync()
+    subs = entities.Subscription(organization=module_org, name=prod.name).search()
+    assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
+    custom_sub = subs[0]
+
+    katello_host_tools_host.nailgun_host.bulk_add_subscriptions(
+        data={
+            "organization_id": module_org.id,
+            "included": {"ids": [katello_host_tools_host.nailgun_host.id]},
+            "subscriptions": [{"id": custom_sub.id, "quantity": 1}],
         }
     )
-    return {
-        'ak': setup_rhst_repo['ak'],
-        'cv': setup_rhst_repo['cv'],
-        'lce': setup_rhst_repo['lce'],
-        'org': setup_rhst_repo['org'],
-    }
+    # refresh repository metadata
+    katello_host_tools_host.subscription_manager_list_repos()
 
 
 @pytest.mark.katello_host_tools
@@ -1921,14 +1927,14 @@ def test_positive_install_package_via_rex(
     """
     client = katello_host_tools_host
     host_info = Host.info({'name': client.hostname})
-    client.configure_rex(satellite=target_sat, org=setup_custom_repo['org'], register=False)
+    client.configure_rex(satellite=target_sat, org=module_org, register=False)
     # Apply errata to the host collection using job invocation
     JobInvocation.create(
         {
             'feature': 'katello_package_install',
             'search-query': f'name ~ {client.hostname}',
             'inputs': f'package={FAKE_1_CUSTOM_PACKAGE}',
-            'organization-id': setup_custom_repo['org'].id,
+            'organization-id': module_org.id,
         }
     )
     result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
