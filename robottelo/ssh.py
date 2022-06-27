@@ -20,6 +20,7 @@ def get_client(
         hostname=hostname or settings.server.hostname,
         username=username or settings.server.ssh_username,
         password=password or settings.server.ssh_password,
+        port=port or settings.server.port,
     )
     return client
 
