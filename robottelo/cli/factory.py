@@ -563,7 +563,7 @@ def make_repository_with_credentials(options=None, credentials=None):
     args = {
         'checksum-type': None,
         'content-type': 'yum',
-        'docker-tags-whitelist': None,
+        'include-tags': None,
         'docker-upstream-name': None,
         'download-policy': None,
         'gpg-key': None,
