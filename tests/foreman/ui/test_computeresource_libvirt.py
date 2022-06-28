@@ -39,7 +39,7 @@ def module_libvirt_url():
 def test_positive_end_to_end(session, module_org, module_location, module_libvirt_url):
     """Perform end to end testing for compute resource Libvirt component.
 
-    :id: 4f4650c8-32f3-4dab-b3bf-9c54d0cda3b2
+    :id: 7ef925ac-5aec-4e9d-b786-328a9b219c01
 
     :expectedresults: All expected CRUD actions finished successfully.
 
