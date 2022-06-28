@@ -90,7 +90,7 @@ def module_org():
 
 @pytest.fixture(scope='module')
 def module_vmware_settings():
-    return dict(
+    ret = dict(
         vcenter=settings.vmware.vcenter,
         user=settings.vmware.username,
         password=settings.vmware.password,
@@ -101,8 +101,10 @@ def module_vmware_settings():
         image_username=settings.vmware.image_username,
         image_password=settings.vmware.image_password,
         vm_name=settings.vmware.vm_name,
-        current_interface=VMWARE_CONSTANTS['network_interfaces'] % settings.vlan_networking.bridge,
     )
+    if 'INTERFACE' in settings.vmware:
+        ret['interface'] = VMWARE_CONSTANTS['network_interfaces'] % settings.vmware.interface
+    return ret
 
 
 @pytest.mark.tier1
@@ -404,14 +406,16 @@ def test_positive_access_vmware_with_custom_profile(session, module_vmware_setti
         cpu_hot_add=True,
         cdrom_drive=True,
         annotation_notes=gen_string('alpha'),
-        network_interfaces=[
+        network_interfaces=[]
+        if 'interface' not in module_vmware_settings
+        else [
             dict(
                 nic_type=VMWARE_CONSTANTS.get('network_interface_name'),
-                network=module_vmware_settings['current_interface'],
+                network=module_vmware_settings['interface'],
             ),
             dict(
                 nic_type=VMWARE_CONSTANTS.get('network_interface_name'),
-                network=module_vmware_settings['current_interface'],
+                network=module_vmware_settings['interface'],
             ),
         ],
         storage=[

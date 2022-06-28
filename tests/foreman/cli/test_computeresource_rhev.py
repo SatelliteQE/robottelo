@@ -36,7 +36,6 @@ from robottelo.utils.issue_handlers import is_open
 
 @pytest.fixture(scope='module')
 def rhev():
-    bridge = settings.vlan_networking.bridge
     rhev = settings.rhev.copy()
     rhev.rhv_api = RHEVMSystem(
         hostname=rhev.hostname.split('/')[2],
@@ -47,10 +46,6 @@ def rhev():
     )
     rhev.cluster_id = rhev.rhv_api.get_cluster(rhev.datacenter).id
     rhev.storage_id = rhev.rhv_api.get_storage_domain(rhev.storage_domain).id
-    if bridge:
-        rhev.network_id = (
-            rhev.rhv_api.api.system_service().networks_service().list(search=f'name={bridge}')[0].id
-        )
     if is_open('BZ:1685949'):
         dc = rhev.rhv_api._data_centers_service.list(search=f'name={rhev.datacenter}')[0]
         dc = rhev.rhv_api._data_centers_service.data_center_service(dc.id)

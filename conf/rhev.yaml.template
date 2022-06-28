@@ -26,6 +26,8 @@ RHEV:
   IMAGE_NAME:
   # Image UUID
   IMAGE_UUID:
+  # Interface used for some tests; not required to work with provisioning, not required to be in VLAN
+  INTERFACE:
   # RHV CA cert for adding RHV as compute resource
   CA_CERT: |
     ---BEGIN CERT---
