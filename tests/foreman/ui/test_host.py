@@ -2234,6 +2234,69 @@ def test_positive_read_details_page_from_new_ui(
         assert values['Overview']['DetailsCard']['details']['comment'] == 'Host with fake data'
 
 
+@pytest.mark.tier4
+@pytest.mark.stubbed
+def test_positive_update_delete_package():
+    """Update a package on host using the new Content tab
+
+    :id: ffc19a40-85f4-4894-a18b-f6d88b2ce377
+
+    :steps:
+        1. Install a package on a registered host.
+        2. Navigate to the Content tab.
+        3. Check if the package is in an upgradable state.
+        4. Select package and upgrade via rex.
+        5. Delete the package
+
+    :expectedresults: The package is updated and deleted
+
+    """
+
+
+@pytest.mark.tier4
+@pytest.mark.stubbed
+def test_positive_apply_erratum():
+    """Apply an erratum on host using the new Errata tab
+
+    :id: 328e629a-f261-4dc1-ad6f-def27e2fcf07
+
+    :setup:
+        1. Valid yum repo with an applicable erratum.
+
+    :steps:
+        1. Install a package on a registered host.
+        2. Check the Errata card on the Overview tab
+        3. Navigate to the Errata tab.
+        4. Check for applicable errata.
+        5. Select errata and apply via rex.
+
+    :expectedresults: The erratum is applied
+
+    """
+
+
+@pytest.mark.tier4
+@pytest.mark.stubbed
+def test_positive_crud_module_streams():
+    """CRUD test for the Module streams new UI tab
+
+    :id: 9800a006-49cc-4c0a-aed8-6a32c4bf0eab
+
+    :setup:
+        1. Valid yum repo with Module Streams.
+
+    :steps:
+        1. Create Yum Repository which contains module-streams as URL
+        2. Initialize synchronization
+        3. Module-Stream Get
+        4. Update the Module-Stream
+        5. Delete the Module-Stream
+
+    :expectedresults: Yum repository with modules is synced, updated, deleted.
+
+    """
+
+
 # ------------------------------ PUPPET ENABLED SAT TESTS ----------------------------
 @pytest.fixture(scope='module')
 def module_puppet_enabled_proxy_with_loc(
