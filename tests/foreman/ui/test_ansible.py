@@ -21,7 +21,7 @@ from airgun.session import Session
 from robottelo.datafactory import gen_string
 
 
-def test_positive_import_all_roles(default_sat):
+def test_positive_import_all_roles(target_sat):
     """Import all Ansible roles available by default.
 
     :id: 53fe3857-a08f-493d-93c7-3fed331ed391
@@ -38,7 +38,7 @@ def test_positive_import_all_roles(default_sat):
 
     :expectedresults: All roles are imported successfully.
     """
-    with Session(hostname=default_sat.hostname) as session:
+    with Session(hostname=target_sat.hostname) as session:
         available_roles_count = session.ansibleroles.import_all_roles()
         imported_roles_count = session.ansibleroles.imported_roles_count
         assert available_roles_count == imported_roles_count
@@ -49,7 +49,7 @@ def test_positive_import_all_roles(default_sat):
         assert not session.ansibleroles.search(delete_role)
 
 
-def test_positive_create_and_delete_variable(default_sat):
+def test_positive_create_and_delete_variable(target_sat):
     """Create an Ansible variable with the minimum required values, then delete the variable.
 
     :id: 7006d7c7-788a-4447-a564-d6b03ec06aaf
@@ -66,7 +66,7 @@ def test_positive_create_and_delete_variable(default_sat):
     """
     key = gen_string('alpha')
     role = 'redhat.satellite.activation_keys'
-    with Session(hostname=default_sat.hostname) as session:
+    with Session(hostname=target_sat.hostname) as session:
         preimport_check = session.ansibleroles.preimport_check()
         if preimport_check is False:
             session.ansibleroles.import_all_roles()
@@ -81,7 +81,7 @@ def test_positive_create_and_delete_variable(default_sat):
         assert not session.ansiblevariables.search(key)
 
 
-def test_positive_create_variable_with_overrides(default_sat):
+def test_positive_create_variable_with_overrides(target_sat):
     """Create an Ansible variable with all values populated.
 
     :id: 90acea37-4c2f-42e5-92a6-0c88148f4fb6
@@ -96,7 +96,7 @@ def test_positive_create_variable_with_overrides(default_sat):
     """
     key = gen_string('alpha')
     role = 'redhat.satellite.activation_keys'
-    with Session(hostname=default_sat.hostname) as session:
+    with Session(hostname=target_sat.hostname) as session:
         preimport_check = session.ansibleroles.preimport_check()
         if preimport_check is False:
             session.ansibleroles.import_all_roles()
