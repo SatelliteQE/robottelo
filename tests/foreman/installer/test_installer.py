@@ -8,7 +8,7 @@
 
 :CaseComponent: Installer
 
-:Assignee: okhatavk
+:Assignee: gtalreja
 
 :TestType: Functional
 
