@@ -76,7 +76,13 @@ def test_positive_inventory_generate_upload_cli(
     remote_report_path = (
         f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     )
-    rhcloud_sat_host.get(remote_path=remote_report_path, local_path=local_report_path)
+    wait_for(
+        lambda: rhcloud_sat_host.get(remote_path=remote_report_path, local_path=local_report_path),
+        timeout=60,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
     local_file_data = get_local_file_data(local_report_path)
     assert local_file_data['checksum'] == get_remote_report_checksum(rhcloud_sat_host, org.id)
     assert local_file_data['size'] > 0
