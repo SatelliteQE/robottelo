@@ -182,6 +182,8 @@ class ContentHost(Host):
         self.execute('subscription-manager clean')
 
     def teardown(self):
+        if self.nailgun_host:
+            self.nailgun_host.delete()
         self.unregister()
 
     def power_control(self, state=VmState.RUNNING, ensure=True):
@@ -444,6 +446,7 @@ class ContentHost(Host):
         :param org: Organization name to register content host for.
         :param force: Register the content host even if it's already registered
         :param releasever: Set a release version
+        :param name: name of the system to register, defaults to the hostname
         :param username: a user name to register the content host with
         :param password: the user password
         :param auto_attach: automatically attach compatible subscriptions to
