@@ -1710,18 +1710,20 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
 
 
 @pytest.fixture
-def setup_custom_repo(module_org, katello_host_tools_host):
+def setup_custom_repo(target_sat, module_org, katello_host_tools_host):
     """Create custom repository content"""
     custom_repo_url = settings.repos['yum_6'].url
-    prod = entities.Product(organization=module_org, name=f'custom_{gen_string("alpha")}').create()
-    custom_repo = entities.Repository(
+    prod = target_sat.api.Product(
+        organization=module_org, name=f'custom_{gen_string("alpha")}'
+    ).create()
+    custom_repo = target_sat.api.Repository(
         organization=module_org,
         product=prod,
         content_type='yum',
         url=custom_repo_url,
     ).create()
     custom_repo.sync()
-    subs = entities.Subscription(organization=module_org, name=prod.name).search()
+    subs = target_sat.api.Subscription(organization=module_org, name=prod.name).search()
     assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
     custom_sub = subs[0]
 
