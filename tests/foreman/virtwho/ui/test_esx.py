@@ -22,6 +22,7 @@ import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 
+from robottelo.cli.host import Host
 from robottelo.config import settings
 from robottelo.datafactory import valid_emails_list
 from robottelo.virtwho_utils import add_configure_option
@@ -34,9 +35,11 @@ from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_id
 from robottelo.virtwho_utils import get_configure_option
+from robottelo.virtwho_utils import get_guest_info
 from robottelo.virtwho_utils import get_virtwho_status
 from robottelo.virtwho_utils import restart_virtwho_service
 from robottelo.virtwho_utils import update_configure_option
+from robottelo.virtwho_utils import virtwho_cleanup
 
 
 @pytest.fixture()
@@ -54,6 +57,14 @@ def form_data():
 
 
 class TestVirtwhoConfigforEsx:
+    @pytest.mark.tier2
+    def setup_method(self):
+        """Set up a clean env for tests."""
+        virtwho_cleanup()
+        guest_name, guest_uuid = get_guest_info(settings.virtwho.esx.hypervisor_type)
+        if Host.list({'search': guest_name}):
+            Host.delete({'name': guest_name})
+
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(self, default_org, session, form_data):
         """Verify configure created and deployed with id.
@@ -420,7 +431,6 @@ class TestVirtwhoConfigforEsx:
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
             session.organization.select("Default Organization")
-            session.organization.delete(org_name)
 
     @pytest.mark.tier2
     def test_positive_delete_configure(self, default_org, session, form_data):
