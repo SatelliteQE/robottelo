@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-import random
-
 import pytest
 from airgun.exceptions import DisabledWidgetError
 from airgun.exceptions import NoSuchElementException
@@ -30,53 +28,44 @@ from robottelo.helpers import get_nailgun_config
 from robottelo.utils.issue_handlers import is_open
 
 
-@pytest.fixture(scope='module')
-def ui_entities(module_org, module_location):
+@pytest.fixture(
+    scope='module', params=BOOKMARK_ENTITIES, ids=(i['name'] for i in BOOKMARK_ENTITIES)
+)
+def ui_entity(module_org, module_location, request):
     """Collects the list of all applicable UI entities for testing and does all
     required preconditions.
     """
-    ui_entities = []
-    for entity in BOOKMARK_ENTITIES:
+    entity = request.param
+    # Some pages require at least 1 existing entity for search bar to
+    # appear. Creating 1 entity for such pages
+    entity_name, entity_setup = entity['name'], entity.get('setup')
+    if entity_setup:
         # Skip the entities, which can't be tested ATM (not implemented in
         # airgun or have open BZs)
         skip = entity.get('skip_for_ui')
         if isinstance(skip, (tuple, list)):
-            skip = any([is_open(issue) for issue in skip])
-        if skip is True:
-            continue
-        ui_entities.append(entity)
-        # Some pages require at least 1 existing entity for search bar to
-        # appear. Creating 1 entity for such pages
-        entity_name, entity_setup = entity['name'], entity.get('setup')
-        if entity_setup:
-            # entities with 1 organization and location
-            if entity_name in ('Host',):
-                entity_setup(organization=module_org, location=module_location).create()
-            # entities with no organizations and locations
-            elif entity_name in (
-                'ComputeProfile',
-                'ConfigGroup',
-                'GlobalParameter',
-                'HardwareModel',
-                'PuppetClass',
-                'UserGroup',
-            ):
-                entity_setup().create()
-            # entities with multiple organizations and locations
-            else:
-                entity_setup(organization=[module_org], location=[module_location]).create()
-    return ui_entities
-
-
-@pytest.fixture()
-def random_entity(ui_entities):
-    """Returns one random entity from list of available UI entities"""
-    return ui_entities[random.randint(0, len(ui_entities) - 1)]
+            open_issues = {issue for issue in skip if is_open(issue)}
+            pytest.skip(f'There is/are an open issue(s) {open_issues} with entity {entity_name}')
+        # entities with 1 organization and location
+        if entity_name in ('Host',):
+            entity_setup(organization=module_org, location=module_location).create()
+        # entities with no organizations and locations
+        elif entity_name in (
+            'ComputeProfile',
+            'GlobalParameter',
+            'HardwareModel',
+            'UserGroup',
+        ):
+            entity_setup().create()
+        # entities with multiple organizations and locations
+        else:
+            entity_setup(organization=[module_org], location=[module_location]).create()
+    return entity
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, random_entity):
+def test_positive_end_to_end(session, ui_entity):
     """Perform end to end testing for bookmark component
 
     :id: 13e89c36-6332-451e-a4b5-2ab46346211f
@@ -90,9 +79,10 @@ def test_positive_end_to_end(session, random_entity):
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     query = gen_string('alphanumeric')
+
     with session:
         # Create new bookmark
-        ui_lib = getattr(session, random_entity['name'].lower())
+        ui_lib = getattr(session, ui_entity['name'].lower())
         ui_lib.create_bookmark({'name': name, 'query': query, 'public': True})
         assert session.bookmark.search(name)[0]['Name'] == name
         bookmark_values = session.bookmark.read(name)
