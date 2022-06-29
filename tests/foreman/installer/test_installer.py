@@ -22,7 +22,6 @@ import pytest
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.helpers import InstallerCommand
 
 PREVIOUS_INSTALLER_OPTIONS = {
@@ -1268,8 +1267,10 @@ SATELLITE_SERVICES = {
     'postgresql',
     'pulpcore-api',
     'pulpcore-content',
+    'pulpcore-worker@*',
     'rh-redis5-redis',
     'puppetserver',
+    'tomcat',
 }
 
 
@@ -1324,7 +1325,6 @@ def test_positive_foreman_module(target_sat):
     assert rpm_version.replace('-', '.') == semodule_version
 
 
-@pytest.mark.skip_if_open('BZ:1964394')
 @pytest.mark.upgrade
 @pytest.mark.tier1
 def test_positive_check_installer_services(target_sat):
@@ -1333,46 +1333,32 @@ def test_positive_check_installer_services(target_sat):
     :id: 85fd4388-6d94-42f5-bed2-24be38e9f104
 
     :steps:
-        1. Run 'systemctl status <tomcat>' command to check tomcat service status on satellite.
-        2. Run 'foreman-maintain service status' command on satellite to check the satellite
-            services.
-        3. Run the 'hammer ping' command on satellite.
+        1. Run 'systemctl status SATELLITE_SERVICES' command to check services status on satellite.
+        2. Run the 'hammer ping' command on satellite.
 
-    :BZ: 1964394
-
-    :expectedresults: All services are started
+    :expectedresults: All services are active (running)
 
     :CaseLevel: System
     """
-    if target_sat.os_version.major >= RHEL_7_MAJOR_VERSION:
-        service_name = 'tomcat'
-        status_format = "systemctl status {0}"
-    else:
-        service_name = 'tomcat6'
-        status_format = "service {0} status"
-    SATELLITE_SERVICES.add(service_name)
-
     for service in SATELLITE_SERVICES:
-        result = target_sat.execute(status_format.format(service))
+        result = target_sat.execute(f'systemctl status {service}')
         assert result.status == 0
-        assert len(result.stderr) == 0
+        assert 'Active: active (running)' in result.stdout
 
     # check status reported by hammer ping command
-    username = settings.server.admin_username
-    password = settings.server.admin_password
-    result = target_sat.execute(f'hammer -u {username} -p {password} ping')
+    result = target_sat.execute('hammer ping')
+    test_result = {}
+    service = None
+    for line in result.stdout.strip().replace(' ', '').split('\n'):
+        if line.split(':')[0] not in ('Status', 'ServerResponse', 'message'):
+            service = line.split(':')[0]
+            test_result[service] = {}
+        else:
+            key, value = line.split(":", 1)
+            test_result[service][key] = value
 
-    result_output = [
-        service.strip() for service in result.stdout if not re.search(r'message:', service)
-    ]
-
-    # iterate over the lines grouping every 3 lines
-    # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
-    for service, status, response in zip(*[iter(result_output)] * 3):
-        service = service.replace(':', '').strip()
-        status = status.split(':')[1].strip().lower()
-        response = response.split(':', 1)[1].strip()
-        assert status == 'ok', f'{service} responded with {response}'
+    for service, result in test_result.items():
+        assert result['Status'] == 'ok', f'{service} responded with {result}'
 
 
 @pytest.mark.upgrade
@@ -1708,7 +1694,7 @@ def test_installer_sat_pub_directory_accessibility(target_sat):
         remote_path=f'{custom_hiera_location}',
     )
     _ = target_sat.execute(f'echo {custom_hiera_settings} >> {custom_hiera_location}')
-    command_output = target_sat.execute('satellite-installer')
+    command_output = target_sat.execute('satellite-installer', timeout='20m')
     assert 'Success!' in command_output.stdout
     for command in [http_curl_command, https_curl_command]:
         accessibility_check = target_sat.execute(command)
@@ -1717,7 +1703,7 @@ def test_installer_sat_pub_directory_accessibility(target_sat):
         local_path='custom-hiera-satellite.yaml',
         remote_path=f'{custom_hiera_location}',
     )
-    command_output = target_sat.execute('satellite-installer')
+    command_output = target_sat.execute('satellite-installer', timeout='20m')
     assert 'Success!' in command_output.stdout
 
 
@@ -1762,7 +1748,7 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
         remote_path=f'{custom_hiera_location}',
     )
     _ = capsule_configured.execute(f'echo {custom_hiera_settings} >> {custom_hiera_location}')
-    command_output = capsule_configured.execute('satellite-installer')
+    command_output = capsule_configured.execute('satellite-installer', timeout='20m')
     assert 'Success!' in command_output.stdout
     for command in [http_curl_command, https_curl_command]:
         accessibility_check = capsule_configured.execute(command)
@@ -1771,7 +1757,7 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
         local_path='custom-hiera-capsule.yaml',
         remote_path=f'{custom_hiera_location}',
     )
-    command_output = capsule_configured.execute('satellite-installer')
+    command_output = capsule_configured.execute('satellite-installer', timeout='20m')
     assert 'Success!' in command_output.stdout
 
 
