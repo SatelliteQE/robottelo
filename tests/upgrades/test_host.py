@@ -186,3 +186,31 @@ class TestScenarioPositiveGCEHostComputeResource:
         gce_cr = entities.GCEComputeResource(id=gce_cr.id).read()
         assert gce_cr.name == newgce_name
         assert gce_cr.zone == newgce_zone
+
+
+class TestScenarioUpgradeWithoutTemplate:
+    """
+    Test that Sat6.9 can be upgraded to Sat6.10.5 or later without a default init template.
+
+    Test Steps::
+
+        1. Before Satellite upgrade, set the `default_host_init_config_template` setting to
+        `not-existing-host-init-config-template` value.
+        2. Upgrade the Satellite.
+
+           :expectedresults:
+
+        1. The Pulp3 migration and Satellite upgrade succeeds.
+    """
+
+    @pytest.mark.pre_upgrade
+    def test_pre_senario_no_default_init_template(self, default_sat):
+        init_template = entities.Setting().search(
+            query={'search': 'name="default_host_init_config_template"'}
+        )[0]
+        init_template.value = ''
+        init_template.update({'value'})
+        init_template = entities.Setting().search(
+            query={'search': 'name="default_host_init_config_template"'}
+        )[0]
+        assert init_template.value == ''
