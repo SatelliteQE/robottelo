@@ -129,6 +129,7 @@ def capsule_host(capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
     new_cap = capsule_factory()
     yield new_cap
+    new_cap.unregister()
     Broker(hosts=[new_cap]).checkin()
 
 
@@ -137,6 +138,7 @@ def module_capsule_host(capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
     new_cap = capsule_factory()
     yield new_cap
+    new_cap.unregister()
     Broker(hosts=[new_cap]).checkin()
 
 
