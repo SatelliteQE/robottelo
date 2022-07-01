@@ -326,6 +326,13 @@ HASH_TYPE = {'sha256': "SHA256", 'sha512': "SHA512", 'base64': "Base64", 'md5': 
 
 REPO_TAB = {'rpms': "RPMs", 'kickstarts': "Kickstarts", 'isos': "ISOs", 'ostree': "OSTree"}
 
+OHSNAP_RHEL7_REPOS = (
+    'rhel-7-server-extras-rpms',
+    'rhel-7-server-rpms',
+    'rhel-server-rhscl-7-rpms',
+    'rhel-7-server-ansible-2.9-rpms',
+)
+
 # On importing manifests, Red Hat repositories are listed like this:
 # Product -> RepositorySet -> Repository
 # We need to first select the Product, then the reposet and then the repos
