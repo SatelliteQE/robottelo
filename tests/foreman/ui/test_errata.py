@@ -8,7 +8,7 @@
 
 :CaseComponent: ErrataManagement
 
-:Assignee: akjha
+:Assignee: addubey
 
 :TestType: Functional
 
