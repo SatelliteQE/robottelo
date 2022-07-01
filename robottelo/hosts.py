@@ -651,7 +651,7 @@ class ContentHost(Host, ContentHostMixins):
             proxy_hostname = settings.server.hostname
 
         self.create_custom_repos(
-            **{'sat-client': settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']}
+            sat_client=settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']
         )
         result = self.execute('yum install puppet-agent -y')
         if result.status != 0:
