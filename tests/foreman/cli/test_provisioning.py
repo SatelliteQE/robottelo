@@ -8,7 +8,7 @@
 
 :CaseComponent: Provisioning
 
-:Assignee: akjha
+:Assignee: sganar
 
 :TestType: Functional
 
