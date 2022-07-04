@@ -1,0 +1,17 @@
+# CI jobs to check specific labels present / absent
+name: required_labels
+
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize]
+
+jobs:
+  cherrypick_label:
+    name: Enforcing cherrypick labels
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mheap/github-action-required-labels@v2
+        with:
+          mode: exactly
+          count: 1
+          labels: "CherryPick, No-CherryPick"
