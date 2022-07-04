@@ -8,7 +8,7 @@
 
 :CaseComponent: Provisioning
 
-:Assignee: ogajduse
+:Assignee: sganar
 
 :TestType: Functional
 
