@@ -1809,8 +1809,6 @@ def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
 
     :CaseImportance: Medium
 
-    :CaseComponent: Infrastructure
-
     :parametrized: yes
     """
     org = target_sat.api.Organization().create()
