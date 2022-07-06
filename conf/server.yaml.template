@@ -42,7 +42,7 @@ SERVER:
   SSH_PASSWORD:  # replace-with-ssh-passwd
   # Path to private ssh key to be used when connecting via SSH.
   # Specify port number for ssh client, Default: 22
-  SSH_CLIENT.PORT:
+  SSH_PORT:
   SSH_KEY:
   # private ssh key as a string to be used when connecting via SSH.
   SSH_KEY_STRING:
