@@ -1839,6 +1839,5 @@ def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
     assert result.status == 1
     result = rhel7_contenthost.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')
     assert result.status == 0
-    assert target_sat.execute('satellite-maintain service start --only foreman').status == 0
-    result = target_sat.execute('satellite-maintain service status --only=foreman')
-    assert result.status == 0
+    assert target_sat.cli.Service.start(options={'only': 'foreman'}).status == 0
+    assert target_sat.cli.Service.status(options={'only': 'foreman'}).status == 0
