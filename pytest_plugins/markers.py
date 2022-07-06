@@ -10,6 +10,7 @@ def pytest_configure(config):
         "tier2: Tier 2 tests",  # Association tests
         "tier3: Tier 3 tests",  # Systems integration tests
         "tier4: Tier 4 tests",  # Long running tests
+        "tier5: Tier 5 tests",  # Deprecated component tests
         "destructive: Destructive tests",
         "upgrade: Upgrade tests",
         "pit_server: PIT server scenario tests",

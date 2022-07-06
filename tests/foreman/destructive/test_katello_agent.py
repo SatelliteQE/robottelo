@@ -18,7 +18,6 @@
 """
 import pytest
 
-from pytest_fixtures.core.contenthosts import register_host_custom_repo
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.helpers import InstallerCommand
@@ -52,9 +51,9 @@ def sat_with_katello_agent(module_target_sat):
 def katello_agent_client(sat_with_katello_agent, rhel_contenthost):
     """Register content host to Satellite and install katello-agent on the host."""
     org = sat_with_katello_agent.api.Organization().create()
-    repo = settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
-    register_host_custom_repo(
-        sat_with_katello_agent, org, rhel_contenthost, [repo, settings.repos.yum_1.url]
+    client_repo = settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
+    sat_with_katello_agent.register_host_custom_repo(
+        org, rhel_contenthost, [client_repo, settings.repos.yum_1.url]
     )
     rhel_contenthost.install_katello_agent()
     host_info = sat_with_katello_agent.cli.Host.info({'name': rhel_contenthost.hostname})
