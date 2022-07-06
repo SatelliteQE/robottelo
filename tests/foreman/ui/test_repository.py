@@ -1192,3 +1192,33 @@ def test_positive_select_org_in_any_context():
     :CaseImportance: High
     """
     pass
+
+
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+def test_positive_sync_repo_and_verify_checksum(session, module_org):
+    """
+
+    :id: 577be1f8-7510-49d2-8b33-600db60bd960
+
+    :expectedresults:
+
+    :CaseLevel:
+
+    :BZ:
+    """
+    repo_name = gen_string('alpha')
+    product = entities.Product(organization=module_org).create()
+    with session:
+        session.repository.create(
+            product.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': settings.repos.yum_1.url,
+            },
+        )
+        # Repository sync
+        session.repository.synchronize(product.name, repo_name)
+        # Optimized Sync
