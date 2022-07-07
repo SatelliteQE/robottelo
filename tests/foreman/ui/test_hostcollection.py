@@ -519,6 +519,7 @@ def test_positive_install_errata(
         assert _is_package_installed(vm_content_hosts, constants.FAKE_2_CUSTOM_PACKAGE)
 
 
+@pytest.mark.skip_if_open("BZ:2094815")
 @pytest.mark.tier3
 def test_positive_change_assigned_content(
     session,
