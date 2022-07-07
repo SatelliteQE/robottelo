@@ -1798,7 +1798,7 @@ def test_search_for_virt_who_hypervisors(session, default_location):
 @pytest.mark.destructive
 @pytest.mark.run_in_one_thread
 @pytest.mark.upgrade
-def test_content_access_after_stopped_foreman(foreman_service_teardown, rhel7_contenthost):
+def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
     """Install a package even after foreman service is stopped
 
     :id: 71ae6a56-30bb-11eb-8489-d46d6dd3b5b2
@@ -1809,36 +1809,33 @@ def test_content_access_after_stopped_foreman(foreman_service_teardown, rhel7_co
 
     :CaseImportance: Medium
 
-    :CaseComponent: Infrastructure
-
-    :Assignee: lpramuk
-
     :parametrized: yes
     """
-    sat = foreman_service_teardown
-    org = sat.api.Organization().create()
+    org = target_sat.api.Organization().create()
     # adding remote_execution_connect_by_ip=Yes at org level
-    sat.api.Parameter(
+    target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         value='Yes',
         parameter_type='boolean',
         organization=org.id,
     ).create()
-    lce = sat.api.LifecycleEnvironment(organization=org).create()
-    repos_collection = foreman_service_teardown.cli_factory.RepositoryCollection(
+    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro=DISTRO_RHEL7,
         repositories=[
-            foreman_service_teardown.cli_factory.SatelliteToolsRepository(),
-            foreman_service_teardown.cli_factory.YumRepository(url=settings.repos.yum_1.url),
-            foreman_service_teardown.cli_factory.YumRepository(url=settings.repos.yum_6.url),
+            target_sat.cli_factory.YumRepository(url=settings.repos.yum_1.url),
         ],
     )
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    repos_collection.setup_virtual_machine(rhel7_contenthost)
+    repos_collection.setup_content(org.id, lce.id, upload_manifest=False)
+    repos_collection.setup_virtual_machine(
+        rhel7_contenthost, target_sat, install_katello_agent=False
+    )
     result = rhel7_contenthost.execute(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
-    assert foreman_service_teardown.execute('systemctl stop foreman').status == 0
-    result = foreman_service_teardown.execute('satellite-maintain service status --only=foreman')
+    assert target_sat.cli.Service.stop(options={'only': 'foreman'}).status == 0
+    assert target_sat.cli.Service.status(options={'only': 'foreman'}).status == 1
     assert result.status == 1
     result = rhel7_contenthost.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')
     assert result.status == 0
+    assert target_sat.cli.Service.start(options={'only': 'foreman'}).status == 0
+    assert target_sat.cli.Service.status(options={'only': 'foreman'}).status == 0
