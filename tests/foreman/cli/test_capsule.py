@@ -20,7 +20,6 @@ import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 
-from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_proxy
@@ -34,13 +33,13 @@ from robottelo.helpers import get_available_capsule_port
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
-def _make_proxy(request, options=None):
+def _make_proxy(request, target_sat, options=None):
     """Create a Proxy and add the finalizer"""
     proxy = make_proxy(options=options)
 
     @request.addfinalizer
     def _cleanup():
-        capsule_cleanup(proxy['id'])
+        target_sat.cli.Proxy.delete({'id': proxy['id']})
 
     return proxy
 

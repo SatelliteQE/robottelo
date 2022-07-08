@@ -27,8 +27,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.cleanup import capsule_cleanup
-from robottelo.cli.factory import make_proxy
 from robottelo.constants import DEFAULT_LOC
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_values_list
@@ -61,13 +59,13 @@ class TestLocation:
     # TODO Add coverage for media, realms as soon as they're implemented
 
     @pytest.fixture
-    def make_proxies(self, options=None):
+    def make_proxies(self, target_sat):
         """Create a Proxy"""
-        proxy1 = make_proxy(options=options)
-        proxy2 = make_proxy(options=options)
+        proxy1 = target_sat.cli_factory.make_proxy()
+        proxy2 = target_sat.cli_factory.make_proxy()
         yield dict(proxy1=proxy1, proxy2=proxy2)
-        capsule_cleanup(proxy1['id'])
-        capsule_cleanup(proxy2['id'])
+        target_sat.cli.Proxy.delete({'id': proxy1['id']})
+        target_sat.cli.Proxy.delete({'id': proxy2['id']})
 
     @pytest.fixture
     def make_orgs(self):

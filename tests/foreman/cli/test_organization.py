@@ -19,7 +19,6 @@
 import pytest
 from fauxfactory import gen_string
 
-from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_compute_resource
@@ -63,11 +62,11 @@ def valid_labels_list():
 
 
 @pytest.fixture
-def proxy():
+def proxy(target_sat):
     """Create a Proxy and clean up when done."""
     proxy = make_proxy()
     yield proxy
-    capsule_cleanup(proxy_id=proxy['id'])
+    target_sat.cli.Proxy.delete({'id': proxy['id']})
 
 
 @pytest.mark.tier2
