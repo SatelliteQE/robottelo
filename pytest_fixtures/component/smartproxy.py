@@ -1,7 +1,6 @@
 import pytest
 from fauxfactory import gen_string
 
-from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
@@ -32,6 +31,6 @@ def module_fake_proxy(request, module_target_sat):
             args['url'] = url
             proxy = module_target_sat.api.SmartProxy(**args).create()
             yield proxy
-            capsule_cleanup(proxy.id)
+            module_target_sat.cli.Proxy.delete({'id': proxy.id})
     except CapsuleTunnelError as err:
         pytest.fail(f'Failed to create ssh tunnel: {err}')
