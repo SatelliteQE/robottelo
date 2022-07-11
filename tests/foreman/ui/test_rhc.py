@@ -22,6 +22,7 @@ from wait_for import wait_for
 from robottelo import constants
 from robottelo.api.utils import enable_sync_redhat_repo
 from robottelo.config import settings
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.datafactory import gen_string
 from robottelo.helpers import file_downloader
 from robottelo.logging import logger
@@ -89,6 +90,11 @@ def fixture_setup_rhc_satellite(request, target_sat, module_org):
         cv.publish()
         # Create Activation key
         ak = target_sat.api.ActivationKey(content_view=cv, organization=module_org).create()
+        subscription = target_sat.api.Subscription(organization=module_org)
+        default_subscription = subscription.search(
+            query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
+        )[0]
+        ak.add_subscriptions(data={'quantity': 10, 'subscription_id': default_subscription.id})
         logger.debug(f"Activation key: {ak} \n Content view: {cv} \n Organization: {module_org}")
 
 
