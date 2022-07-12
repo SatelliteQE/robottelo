@@ -468,7 +468,7 @@ def test_positive_associate_with_custom_profile(session, rhev_data):
         cluster=rhev_data['datacenter'],
         cores='2',
         sockets='2',
-        memory='1 GB',
+        memory='1024 MB',
         network_interfaces=[]
         if 'interface' not in rhev_data
         else [
@@ -555,7 +555,7 @@ def test_positive_associate_with_custom_profile_with_template(session, rhev_data
         cluster=rhev_data['datacenter'],
         template='{} (base version)'.format(rhev_data['image_name']),
         cores='2',
-        memory='1 GB',
+        memory='1024 MB',
     )
     with session:
         session.computeresource.create(
