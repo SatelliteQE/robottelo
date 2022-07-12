@@ -41,7 +41,8 @@ def validate_task_status(repo_id, org_id, max_tries=10):
     wait_for_tasks(
         search_query='Actions::Katello::Repository::Sync'
         f' and organization_id = {org_id}'
-        f' and resource_id = {repo_id}',
+        f' and resource_id = {repo_id}'
+        ' and resource_type = Katello::Repository',
         max_tries=max_tries,
         search_rate=10,
     )
