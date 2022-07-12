@@ -8,7 +8,7 @@
 
 :CaseComponent: Ansible
 
-:Assignee: dsynk
+:Assignee: sbible
 
 :TestType: Functional
 
@@ -16,7 +16,7 @@
 
 :Upstream: No
 """
-from robottelo.datafactory import gen_string
+from fauxfactory import gen_string
 
 
 def test_positive_import_all_roles(target_sat):
