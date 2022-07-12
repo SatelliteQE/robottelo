@@ -65,13 +65,6 @@ def fixture_setup_rhc_satellite(request, target_sat, module_org):
             'releasever': '8',
         }
         rh_repo3 = {
-            'name': constants.REPOS['rhscl7']['name'],
-            'product': constants.PRDS['rhscl'],
-            'reposet': constants.REPOSET['rhscl7'],
-            'basearch': constants.DEFAULT_ARCHITECTURE,
-            'releasever': '7Server',
-        }
-        rh_repo4 = {
             'name': constants.REPOS['rhel7']['name'],
             'product': constants.PRDS['rhel'],
             'reposet': constants.REPOSET['rhel7'],
@@ -82,14 +75,17 @@ def fixture_setup_rhc_satellite(request, target_sat, module_org):
         repo1_id = enable_sync_redhat_repo(rh_repo1, module_org.id)
         repo2_id = enable_sync_redhat_repo(rh_repo2, module_org.id)
         repo3_id = enable_sync_redhat_repo(rh_repo3, module_org.id)
-        repo4_id = enable_sync_redhat_repo(rh_repo4, module_org.id)
         # Add repos to Content view
         cv = target_sat.api.ContentView(
-            organization=module_org, repository=[repo1_id, repo2_id, repo3_id, repo4_id]
+            organization=module_org, repository=[repo1_id, repo2_id, repo3_id]
         ).create()
         cv.publish()
         # Create Activation key
-        ak = target_sat.api.ActivationKey(content_view=cv, organization=module_org).create()
+        ak = target_sat.api.ActivationKey(
+            content_view=cv,
+            organization=module_org,
+            environment=target_sat.api.LifecycleEnvironment(id=module_org.library.id),
+        ).create()
         subscription = target_sat.api.Subscription(organization=module_org)
         default_subscription = subscription.search(
             query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
