@@ -41,8 +41,6 @@ SERVER:
   # SSH password if not using a SSH key to connect
   SSH_PASSWORD:  # replace-with-ssh-passwd
   # Path to private ssh key to be used when connecting via SSH.
-  # Specify port number for ssh client, Default: 22
-  SSH_PORT:
   SSH_KEY:
   # private ssh key as a string to be used when connecting via SSH.
   SSH_KEY_STRING:
@@ -52,6 +50,8 @@ SERVER:
   ADMIN_PASSWORD: changeme
 
   SSH_CLIENT:
+    # Specify port number for ssh client, Default: 22
+    SSH_PORT:
     # Time to wait for the ssh command to finish, in miliseconds
     COMMAND_TIMEOUT: 300000
     # Time to wait for establishing the ssh connection, in seconds
