@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-from airgun.session import Session
-
 from robottelo.datafactory import gen_string
 
 
@@ -38,7 +36,7 @@ def test_positive_import_all_roles(target_sat):
 
     :expectedresults: All roles are imported successfully.
     """
-    with Session(hostname=target_sat.hostname) as session:
+    with target_sat.ui_session as session:
         available_roles_count = session.ansibleroles.import_all_roles()
         imported_roles_count = session.ansibleroles.imported_roles_count
         assert available_roles_count == imported_roles_count
@@ -66,7 +64,7 @@ def test_positive_create_and_delete_variable(target_sat):
     """
     key = gen_string('alpha')
     role = 'redhat.satellite.activation_keys'
-    with Session(hostname=target_sat.hostname) as session:
+    with target_sat.ui_session as session:
         preimport_check = session.ansibleroles.preimport_check()
         if preimport_check is False:
             session.ansibleroles.import_all_roles()
@@ -96,7 +94,7 @@ def test_positive_create_variable_with_overrides(target_sat):
     """
     key = gen_string('alpha')
     role = 'redhat.satellite.activation_keys'
-    with Session(hostname=target_sat.hostname) as session:
+    with target_sat.ui_session as session:
         preimport_check = session.ansibleroles.preimport_check()
         if preimport_check is False:
             session.ansibleroles.import_all_roles()
