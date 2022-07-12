@@ -11,7 +11,7 @@ sat6-upgrade requires env.satellite_hostname to be set, this is required for the
 
 :CaseComponent: Hosts-Content
 
-:Assignee: swadeley
+:Assignee: spusater
 
 :TestType: Functional
 
