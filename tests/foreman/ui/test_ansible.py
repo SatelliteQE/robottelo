@@ -94,8 +94,7 @@ def test_positive_create_variable_with_overrides(target_sat):
     key = gen_string('alpha')
     role = 'redhat.satellite.activation_keys'
     with target_sat.ui_session as session:
-        preimport_check = session.ansibleroles.preimport_check()
-        if preimport_check is False:
+        if session.ansibleroles.preimport_check() is False:
             session.ansibleroles.import_all_roles()
         session.ansiblevariables.create_with_overrides(
             {
