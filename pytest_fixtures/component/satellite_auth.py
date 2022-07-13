@@ -19,6 +19,18 @@ from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import set_the_redirect_uri
 
 
+@pytest.fixture()
+def ldap_cleanup():
+    """this is an extra step taken to clean any existing ldap source"""
+    ldap_auth_sources = entities.AuthSourceLDAP().search()
+    for ldap_auth in ldap_auth_sources:
+        users = entities.User(auth_source=ldap_auth).search()
+        for user in users:
+            user.delete()
+        ldap_auth.delete()
+    yield
+
+
 @pytest.fixture(scope='session')
 def ad_data():
     supported_server_versions = ['2016', '2019']
@@ -77,7 +89,7 @@ def open_ldap_data():
 
 
 @pytest.fixture(scope='function')
-def auth_source(module_org, module_location, ad_data):
+def auth_source(ldap_cleanup, module_org, module_location, ad_data):
     ad_data = ad_data()
     return entities.AuthSourceLDAP(
         onthefly_register=True,
@@ -100,7 +112,7 @@ def auth_source(module_org, module_location, ad_data):
 
 
 @pytest.fixture(scope='function')
-def auth_source_ipa(module_org, module_location, ipa_data):
+def auth_source_ipa(ldap_cleanup, module_org, module_location, ipa_data):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
         account=ipa_data['ldap_user_cn'],
@@ -122,7 +134,7 @@ def auth_source_ipa(module_org, module_location, ipa_data):
 
 
 @pytest.fixture(scope='function')
-def auth_source_open_ldap(module_org, module_location, open_ldap_data):
+def auth_source_open_ldap(ldap_cleanup, module_org, module_location, open_ldap_data):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
         account=open_ldap_data['ldap_user_cn'],
@@ -143,9 +155,15 @@ def auth_source_open_ldap(module_org, module_location, open_ldap_data):
     ).create()
 
 
-@pytest.fixture
 def ldap_auth_source(
-    request, module_org, module_location, ad_data, ipa_data, open_ldap_data, module_target_sat
+    request,
+    module_org,
+    module_location,
+    ldap_cleanup,
+    ad_data,
+    ipa_data,
+    open_ldap_data,
+    module_target_sat,
 ):
     auth_type = request.param.lower()
     if 'ad' in auth_type:

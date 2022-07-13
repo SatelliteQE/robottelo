@@ -116,7 +116,6 @@ class TestADAuthSource:
             based on user-sync
         """
         ad_data = ad_data()
-        group_base_dn = ','.join(ad_data['group_base_dn'].split(',')[1:])
         LOGEDIN_MSG = "Using configured credentials for user '{0}'."
         auth_source = make_ldap_auth_source(
             {
@@ -131,10 +130,8 @@ class TestADAuthSource:
                 'account': ad_data['ldap_user_name'],
                 'account-password': ad_data['ldap_user_passwd'],
                 'base-dn': ad_data['base_dn'],
-                'groups-base': group_base_dn,
             }
         )
-        # assert auth_source['account']['groups-base'] == group_base_dn
         viewer_role = Role.info({'name': 'Viewer'})
         user_group = make_usergroup()
         make_usergroup_external(
