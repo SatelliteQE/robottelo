@@ -13,10 +13,9 @@ from robottelo.config import settings
 from robottelo.hosts import ContentHost
 
 
-# use internal Capsule
 @pytest.fixture(scope='module')
 def provisioning_capsule(module_target_sat, module_location):
-    """Return Satellite's internal capsule"""
+    """Assings the `module_location` to Satellite's internal capsule and returns it"""
     capsule = (
         module_target_sat.api.SmartProxy()
         .search(query={'search': f'name={module_target_sat.hostname}'})[0]
@@ -28,7 +27,13 @@ def provisioning_capsule(module_target_sat, module_location):
 
 
 @pytest.fixture(scope='module')
-def provisioning_rhel_content(request, module_target_sat, module_manifest_org):
+def provisioning_rhel_content(
+    request,
+    module_target_sat,
+    module_org_with_manifest,
+    module_lce_library,
+    module_default_org_view,
+):
     """
     This fixture sets up kickstart repositories for a specific RHEL version
     that is specified in `request.param`.
@@ -44,7 +49,7 @@ def provisioning_rhel_content(request, module_target_sat, module_manifest_org):
     for name in repo_names:
         rh_repo_id = enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=module_manifest_org.id,
+            org_id=module_org_with_manifest.id,
             product=constants.REPOS['kickstart'][name]['product'],
             repo=constants.REPOS['kickstart'][name]['name'],
             reposet=constants.REPOS['kickstart'][name]['reposet'],
@@ -70,45 +75,37 @@ def provisioning_rhel_content(request, module_target_sat, module_manifest_org):
     assert o_systems, f'Operating system RHEL {rhel_xy} was found'
     os = o_systems[0].read()
 
-    # use default Environment
-    lce = (
-        sat.api.LifecycleEnvironment(organization=module_manifest_org)
-        .search(query={'search': f'name={constants.ENVIRONMENT}'})[0]
-        .read()
-    )
-
-    # use default Content View
-    cv = (
-        sat.api.ContentView(
-            organization=module_manifest_org,
-            name=constants.DEFAULT_CV,
-        )
-        .search()[0]
-        .read()
-    )
-
     ak = sat.api.ActivationKey(
-        organization=module_manifest_org, content_view=cv, environment=lce
+        organization=module_org_with_manifest,
+        content_view=module_default_org_view,
+        environment=module_lce_library,
     ).create()
 
-    subs = sat.api.Subscription(organization=module_manifest_org).search(
+    subs = sat.api.Subscription(organization=module_org_with_manifest).search(
         query={'search': f'{constants.DEFAULT_SUBSCRIPTION_NAME}'}
     )
     assert subs, f'Subscription "{constants.DEFAULT_SUBSCRIPTION_NAME}" was not found'
     ak.add_subscriptions(data={'subscription_id': subs[0].id})
 
     # return only the first kickstart repo - RHEL X KS or RHEL X BaseOS KS
-    return Box(sat=sat, os=os, ksrepo=rh_repos[0], cv=cv, lce=lce, ak=ak)
+    return Box(
+        sat=sat,
+        os=os,
+        ksrepo=rh_repos[0],
+        ak=ak,
+    )
 
 
 @pytest.fixture(scope='module')
 def provisioning_sat(
-    module_target_sat,  # TODO: add module_org_with_manifest
+    module_target_sat,
     provisioning_rhel_content,
-    module_manifest_org,
+    module_org_with_manifest,
     module_location,
     default_architecture,
     default_partitiontable,
+    module_lce_library,
+    module_default_org_view,
     provisioning_capsule,
 ):
     """
@@ -158,14 +155,14 @@ def provisioning_sat(
 
     domain = sat.api.Domain(
         location=[module_location],
-        organization=[module_manifest_org],
+        organization=[module_org_with_manifest],
         dns=provisioning_capsule.id,
         name=provisioning_domain_name,
     ).create()
 
     subnet = sat.api.Subnet(
         location=[module_location],
-        organization=[module_manifest_org],
+        organization=[module_org_with_manifest],
         network=str(provisioning_network.network_address),
         mask=str(provisioning_network.netmask),
         gateway=broker_data_out.provisioning_gw_ipv4,
@@ -186,14 +183,14 @@ def provisioning_sat(
     ).create()
 
     hostgroup = sat.api.HostGroup(
-        organization=[module_manifest_org],
+        organization=[module_org_with_manifest],
         location=[module_location],
         architecture=default_architecture,
         domain=domain,
         content_source=provisioning_capsule.id,
-        content_view=provisioning_rhel_content.cv,
+        content_view=module_default_org_view,
         kickstart_repository=provisioning_rhel_content.ksrepo,
-        lifecycle_environment=provisioning_rhel_content.lce,
+        lifecycle_environment=module_lce_library,
         root_pass=host_root_pass,
         operatingsystem=provisioning_rhel_content.os,
         ptable=default_partitiontable,
@@ -212,7 +209,7 @@ def provisioning_sat(
 
 
 @pytest.fixture()
-def provisioning_contenthost():
+def provisioning_host():
     """Fixture to check out blank VM"""
     vlan_id = settings.provisioning.vlan_id
     vm_firmware = "bios"  # TODO: Make this a fixture parameter

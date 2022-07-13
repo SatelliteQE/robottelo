@@ -27,13 +27,6 @@ from wrapanapi import RHEVMSystem
 from robottelo.config import settings
 
 
-@pytest.fixture(scope='module')
-def module_location(module_manifest_org, module_target_sat):
-    # TODO: should not be needed once there is module_org_with_manifest
-    """Create location associated with module_manifest_org"""
-    return module_target_sat.api.Location(organization=[module_manifest_org]).create()
-
-
 @pytest.mark.stubbed
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
@@ -63,9 +56,9 @@ def test_rhel_pxe_provisioning_on_libvirt():
 def test_rhel_pxe_provisioning_on_rhv(
     request,
     provisioning_sat,
-    module_manifest_org,
+    module_org_with_manifest,
     module_location,
-    provisioning_contenthost,
+    provisioning_host,
     provisioning_rhel_content,
 ):
     """Provision RHEL system via PXE on RHV and make sure it behaves
@@ -84,12 +77,12 @@ def test_rhel_pxe_provisioning_on_rhv(
     """
     bios_firmware = "BIOS"  # TODO: Make this a test parameter
     bios_firmware
-    host_mac_addr = provisioning_contenthost._broker_args['provisioning_nic_mac_addr']
+    host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
     sat = provisioning_sat.sat
 
     host = sat.api.Host(
         hostgroup=provisioning_sat.hostgroup,
-        organization=module_manifest_org,
+        organization=module_org_with_manifest,
         location=module_location,
         content_facet_attributes={
             'content_view_id': provisioning_rhel_content.cv.id,
@@ -116,7 +109,7 @@ def test_rhel_pxe_provisioning_on_rhv(
         version=settings.provisioning_rhev.version,
         verify=settings.provisioning_rhev.verify,
     )
-    rhv_vm = rhv_api.get_vm(provisioning_contenthost.name)
+    rhv_vm = rhv_api.get_vm(provisioning_host.name)
     rhv_vm.start()
 
     # TODO: Implement Satellite log capturing logic to verify that
@@ -135,14 +128,14 @@ def test_rhel_pxe_provisioning_on_rhv(
     # Change the hostname of the host as we know it already.
     # In the current infra environment we do not support
     # addressing hosts using FQDNs, falling back to IP.
-    provisioning_contenthost.hostname = host.ip
+    provisioning_host.hostname = host.ip
     # Host is not blank anymore
-    provisioning_contenthost.blank = False
+    provisioning_host.blank = False
 
     # Wait for the host to be rebooted and SSH daemon to be started.
     try:
         wait_for(
-            provisioning_contenthost.connect,
+            provisioning_host.connect,
             fail_condition=lambda res: res is not None,
             handle_exception=True,
             raise_original=True,
@@ -156,7 +149,7 @@ def test_rhel_pxe_provisioning_on_rhv(
     host_os = host.operatingsystem.read()
     expected_rhel_version = Version(f'{host_os.major}.{host_os.minor}')
     assert (
-        provisioning_contenthost.os_version == expected_rhel_version
+        provisioning_host.os_version == expected_rhel_version
     ), 'Different than the expected OS version was installed'
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
@@ -177,4 +170,4 @@ def test_rhel_pxe_provisioning_on_rhv(
 
     # assert that the host is subscribed and consumes
     # subsctiption provided by the activation key
-    assert provisioning_contenthost.subscribed, 'Host is not subscribed'
+    assert provisioning_host.subscribed, 'Host is not subscribed'
