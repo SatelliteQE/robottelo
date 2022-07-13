@@ -28,23 +28,23 @@ def test_positive_import_all_roles(target_sat):
 
         1. Navigate to the Configure > Roles page.
         2. Click the `Import from [hostname]` button.
-        3. Get totally number of importable roles from pagination?
+        3. Get total number of importable roles from pagination.
         4. Fill the `Select All` checkbox.
         5. Click the `Submit` button.
         6. Verify that number of imported roles == number of importable roles from step 3.
         7. Verify that Ansible variables have been imported along with roles.
+        8. Delete an imported role.
+        9. Verify that the role was successfully deleted.
 
-    :expectedresults: All roles are imported successfully.
+    :expectedresults: All roles are imported successfully. One role is deleted successfully.
     """
     with target_sat.ui_session as session:
-        available_roles_count = session.ansibleroles.import_all_roles()
-        imported_roles_count = session.ansibleroles.imported_roles_count
-        assert available_roles_count == imported_roles_count
-        ansible_variables_count = int(session.ansiblevariables.read_total_variables())
-        assert ansible_variables_count > 0
-        delete_role = 'theforeman.foreman_scap_client'
-        session.ansibleroles.delete(delete_role)
-        assert not session.ansibleroles.search(delete_role)
+        assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
+        assert int(session.ansiblevariables.read_total_variables()) > 0
+        # The choice of role to be deleted is arbitrary; any of the roles present on Satellite
+        # by default should work here.
+        session.ansibleroles.delete('theforeman.foreman_scap_client')
+        assert not session.ansibleroles.search('theforeman.foreman_scap_client')
 
 
 def test_positive_create_and_delete_variable(target_sat):
@@ -65,8 +65,7 @@ def test_positive_create_and_delete_variable(target_sat):
     key = gen_string('alpha')
     role = 'redhat.satellite.activation_keys'
     with target_sat.ui_session as session:
-        preimport_check = session.ansibleroles.preimport_check()
-        if preimport_check is False:
+        if session.ansibleroles.preimport_check() is False:
             session.ansibleroles.import_all_roles()
         session.ansiblevariables.create(
             {
