@@ -12,7 +12,7 @@ http://theforeman.org/api/apidoc/v2/ptables.html
 
 :CaseComponent: Hosts
 
-:Assignee: tstrych
+:Assignee: pdragun
 
 :TestType: Functional
 

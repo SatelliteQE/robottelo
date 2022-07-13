@@ -8,7 +8,7 @@
 
 :CaseComponent: Hosts
 
-:Assignee: tstrych
+:Assignee: pdragun
 
 :TestType: Functional
 
