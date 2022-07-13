@@ -22,7 +22,7 @@ def _resolve_deploy_args(args_dict):
 def _default_sat(align_to_satellite):
     """Returns a Satellite object for settings.server.hostname"""
     if settings.server.hostname:
-        hosts = VMBroker(host_classes={'host': Satellite}).from_inventory(
+        hosts = Broker(host_classes={'host': Satellite}).from_inventory(
             filter=f'hostname={settings.server.hostname}'
         )
         if hosts:

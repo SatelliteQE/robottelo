@@ -21,7 +21,7 @@ import re
 
 import pytest
 from box import Box
-from broker.broker import VMBroker
+from broker.broker import Broker
 from fauxfactory import gen_string
 from packaging.version import Version
 from wait_for import wait_for
@@ -36,12 +36,15 @@ from robottelo.hosts import ContentHost
 
 @pytest.fixture(scope='module')
 def module_location(module_manifest_org, module_target_sat):
+    # TODO: should not be needed once there is module_org_with_manifest
+    """Create location associated with module_manifest_org"""
     return module_target_sat.api.Location(organization=[module_manifest_org]).create()
 
 
 # use internal Capsule
 @pytest.fixture(scope='module')
 def provisioning_capsule(module_target_sat, module_location):
+    """Return Satellite's internal capsule"""
     capsule = (
         module_target_sat.api.SmartProxy()
         .search(query={'search': f'name={module_target_sat.hostname}'})[0]
@@ -52,9 +55,12 @@ def provisioning_capsule(module_target_sat, module_location):
     return capsule
 
 
-# TODO: sync at the module level?
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def provisioning_rhel_content(request, module_target_sat, module_manifest_org):
+    """
+    This fixture sets up kickstart repositories for a specific RHEL version
+    that is specified in `request.param`.
+    """
     rhel_ver = request.param
     sat = module_target_sat
     repo_names = [f'rhel{rhel_ver}']
@@ -86,13 +92,11 @@ def provisioning_rhel_content(request, module_target_sat, module_manifest_org):
         assert task_status['result'] == 'success'
 
     rhel_xy = Version(constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version'])
-    os = (
-        sat.api.OperatingSystem()
-        .search(
-            query={'search': f'family=Redhat and major={rhel_xy.major} and minor={rhel_xy.minor}'}
-        )[0]
-        .read()
+    o_systems = sat.api.OperatingSystem().search(
+        query={'search': f'family=Redhat and major={rhel_xy.major} and minor={rhel_xy.minor}'}
     )
+    assert o_systems, f'Operating system RHEL {rhel_xy} was found'
+    os = o_systems[0].read()
 
     # use default Environment
     lce = (
@@ -115,11 +119,14 @@ def provisioning_rhel_content(request, module_target_sat, module_manifest_org):
         organization=module_manifest_org, content_view=cv, environment=lce
     ).create()
 
-    # TODO: Assign subs to the AK
-    ak
+    subs = sat.api.Subscription(organization=module_manifest_org).search(
+        query={'search': f'{constants.DEFAULT_SUBSCRIPTION_NAME}'}
+    )
+    assert subs, f'Subscription "{constants.DEFAULT_SUBSCRIPTION_NAME}" was not found'
+    ak.add_subscriptions(data={'subscription_id': subs[0].id})
 
     # return only the first kickstart repo - RHEL X KS or RHEL X BaseOS KS
-    return Box(sat=sat, os=os, ksrepo=rh_repos[0], cv=cv, lce=lce)
+    return Box(sat=sat, os=os, ksrepo=rh_repos[0], cv=cv, lce=lce, ak=ak)
 
 
 @pytest.fixture(scope='module')
@@ -132,12 +139,18 @@ def provisioning_sat(
     default_partitiontable,
     provisioning_capsule,
 ):
+    """
+    This fixture sets up the Satellite for PXE provisioning.
+    It calls a workflow using broker to set up the network and to run satellite-installer.
+    It uses the artifacts from the workflow to create all the necessary Satellite entities
+    that are later used by the tests.
+    """
     sat = module_target_sat
     host_root_pass = settings.provisioning.host_root_password
-    pxe_loader = "PXELinux BIOS"  # TODO: this should be a fixture parameter
+    pxe_loader = "PXELinux BIOS"  # TODO: Make this a fixture parameter
     provisioning_domain_name = f"{gen_string('alpha').lower()}.foo"
 
-    broker_data_out = VMBroker().execute(
+    broker_data_out = Broker().execute(
         workflow="configure-install-sat-provisioning-rhv",
         artifacts="last",
         target_vlan_id=settings.provisioning.vlan_id,
@@ -214,19 +227,25 @@ def provisioning_sat(
         ptable=default_partitiontable,
         subnet=subnet,
         pxe_loader=pxe_loader,
+        group_parameters_attributes=[  # assign AK in order the hosts to be subscribed
+            {
+                'name': 'kt_activation_keys',
+                'parameter_type': 'string',
+                'value': provisioning_rhel_content.ak,
+            }
+        ],
     ).create()
 
     return Box(sat=sat, hostgroup=hostgroup, subnet=subnet)
 
 
-@pytest.fixture(scope="module")  # TODO: scope="function"?
+@pytest.fixture()
 def provisioning_contenthost():
-    # TODO: write docstrings for fixtures,
-    # move fixtures to pytest_fixtures/
+    """Fixture to check out blank VM"""
     vlan_id = settings.provisioning.vlan_id
-    vm_firmware = "bios"  # TODO: this should be parametrizable by the test, or parametrize fixture
-    cd_iso = ""  # TODO: this should be parametrizable by the test
-    with VMBroker(
+    vm_firmware = "bios"  # TODO: Make this a fixture parameter
+    cd_iso = ""  # TODO: Make this a fixture parameter
+    with Broker(
         workflow="deploy-configure-pxe-provisioning-host-rhv",
         host_classes={'host': ContentHost},
         target_vlan_id=vlan_id,
@@ -285,7 +304,7 @@ def test_rhel_pxe_provisioning_on_rhv(
         2. Host is registered to Satellite and subscription status is 'Success'
         3. Host can install package from Satellite
     """
-    bios_firmware = "BIOS"  # TODO: teach the test to use this parameter
+    bios_firmware = "BIOS"  # TODO: Make this a test parameter
     bios_firmware
     host_mac_addr = provisioning_contenthost._broker_args['provisioning_nic_mac_addr']
     sat = provisioning_sat.sat
@@ -311,8 +330,6 @@ def test_rhel_pxe_provisioning_on_rhv(
     # broker should do that as a part of the teardown, putting here just to make sure.
     request.addfinalizer(host.delete)
 
-    # TODO: register the host to Satellite
-
     # Call RHVM API using wrapanapi to start the VM
     rhv_api = RHEVMSystem(
         hostname=settings.provisioning_rhev.hostname,
@@ -324,6 +341,11 @@ def test_rhel_pxe_provisioning_on_rhv(
     rhv_vm = rhv_api.get_vm(provisioning_contenthost.name)
     rhv_vm.start()
 
+    # TODO: Implement Satellite log capturing logic to verify that
+    # all the events are captured in the logs.
+
+    # Host should do call back to the Satellite reporting
+    # the result of the installation. Wait until Satellite reports that the host is installed.
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',
         timeout=900,
@@ -339,7 +361,7 @@ def test_rhel_pxe_provisioning_on_rhv(
     # Host is not blank anymore
     provisioning_contenthost.blank = False
 
-    # TODO: add comment
+    # Wait for the host to be rebooted and SSH daemon to be started.
     try:
         wait_for(
             provisioning_contenthost.connect,
@@ -355,22 +377,26 @@ def test_rhel_pxe_provisioning_on_rhv(
     # Perform version check
     host_os = host.operatingsystem.read()
     expected_rhel_version = Version(f'{host_os.major}.{host_os.minor}')
-    assert provisioning_contenthost.os_version == expected_rhel_version
+    assert (
+        provisioning_contenthost.os_version == expected_rhel_version
+    ), 'Different than the expected OS version was installed'
 
-    assert provisioning_contenthost.subscribed
-
+    # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
     template_id = (
         sat.api.JobTemplate().search(query={'search': 'name="Run Command - SSH Default"'})[0].id
     )
     job = sat.api.JobInvocation().run(
         data={
-            'job_template_id': template_id,  # TODO install package using rex
-            'inputs': {'command': 'rpm -q redhat-release'},
+            'job_template_id': template_id,
+            'inputs': {
+                'command': f'grep KATELLO_SERVER={sat.hostname} /usr/bin/katello-rhsm-consumer'
+            },
             'search_query': f"name = {host.name}",
             'targeting_type': 'static_query',
         },
     )
-    # wait for job to complete
-    wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
-    result = sat.api.JobInvocation(id=job['id']).read()
-    assert result.succeeded == 1
+    assert job['result'] == 'success', 'Job invocation failed'
+
+    # assert that the host is subscribed and consumes
+    # subsctiption provided by the activation key
+    assert provisioning_contenthost.subscribed, 'Host is not subscribed'
