@@ -1222,3 +1222,4 @@ def test_positive_sync_repo_and_verify_checksum(session, module_org):
         # Repository sync
         session.repository.synchronize(product.name, repo_name)
         # Optimized Sync
+        session.product.Verify_content_checksum([product.name])
