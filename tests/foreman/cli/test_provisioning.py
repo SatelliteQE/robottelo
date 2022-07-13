@@ -24,6 +24,8 @@ from box import Box
 from broker.broker import VMBroker
 from fauxfactory import gen_string
 from packaging.version import Version
+from wait_for import wait_for
+from wrapanapi import RHEVMSystem
 
 from robottelo import constants
 from robottelo.api.utils import enable_rhrepo_and_fetchid
@@ -91,13 +93,38 @@ def provisioning_rhel_content(request, module_target_sat, module_manifest_org):
         )[0]
         .read()
     )
-    # return only the first repo - RHEL X KS or RHEL X BaseOS KS
-    return Box(sat=sat, os=os, repo=rh_repos[0])
+
+    # use default Environment
+    lce = (
+        sat.api.LifecycleEnvironment(organization=module_manifest_org)
+        .search(query={'search': f'name={constants.ENVIRONMENT}'})[0]
+        .read()
+    )
+
+    # use default Content View
+    cv = (
+        sat.api.ContentView(
+            organization=module_manifest_org,
+            name=constants.DEFAULT_CV,
+        )
+        .search()[0]
+        .read()
+    )
+
+    ak = sat.api.ActivationKey(
+        organization=module_manifest_org, content_view=cv, environment=lce
+    ).create()
+
+    # TODO: Assign subs to the AK
+    ak
+
+    # return only the first kickstart repo - RHEL X KS or RHEL X BaseOS KS
+    return Box(sat=sat, os=os, ksrepo=rh_repos[0], cv=cv, lce=lce)
 
 
 @pytest.fixture(scope='module')
 def provisioning_sat(
-    module_target_sat,
+    module_target_sat,  # TODO: add module_org_with_manifest
     provisioning_rhel_content,
     module_manifest_org,
     module_location,
@@ -107,7 +134,7 @@ def provisioning_sat(
 ):
     sat = module_target_sat
     host_root_pass = settings.provisioning.host_root_password
-    pxe_loader = "PXELinux BIOS"  # TODO: this should be a test parameter
+    pxe_loader = "PXELinux BIOS"  # TODO: this should be a fixture parameter
     provisioning_domain_name = f"{gen_string('alpha').lower()}.foo"
 
     broker_data_out = VMBroker().execute(
@@ -116,8 +143,7 @@ def provisioning_sat(
         target_vlan_id=settings.provisioning.vlan_id,
         target_host=sat.name,
         provisioning_dns_zone=provisioning_domain_name,
-        sat_version=str(settings.server.version.release),
-        AnsibleTower='testing',
+        sat_version=sat.version,
     )
 
     # temp mock data
@@ -132,13 +158,10 @@ def provisioning_sat(
     #     }
     # }
     broker_data_out = Box(**broker_data_out['data_out'])
-    provisioning_iface = broker_data_out.provisioning_iface  # TODO: is this needed?
-    provisioning_iface
-
     provisioning_interface = ipaddress.ip_interface(broker_data_out.provisioning_addr_ipv4)
     provisioning_network = provisioning_interface.network
     # TODO: investigate DNS setup issue on Satellite,
-    # we might need to set up Sat as the primary DNS server
+    # we might need to set up Sat's DNS server as the primary one on the Sat host
     provisioning_upstream_dns_primary = (
         broker_data_out.provisioning_upstream_dns.pop()
     )  # There should always be at least one upstream DNS
@@ -177,32 +200,15 @@ def provisioning_sat(
         domain=[domain.id],
     ).create()
 
-    # use default Environment
-    lce = (
-        sat.api.LifecycleEnvironment(organization=module_manifest_org)
-        .search(query={'search': f'name={constants.ENVIRONMENT}'})[0]
-        .read()
-    )
-
-    # use default Content View
-    cv = (
-        sat.api.ContentView(
-            organization=module_manifest_org,
-            name=constants.DEFAULT_CV,
-        )
-        .search()[0]
-        .read()
-    )
-
     hostgroup = sat.api.HostGroup(
         organization=[module_manifest_org],
         location=[module_location],
         architecture=default_architecture,
         domain=domain,
         content_source=provisioning_capsule.id,
-        content_view=cv,
-        kickstart_repository=provisioning_rhel_content.repo,
-        lifecycle_environment=lce,
+        content_view=provisioning_rhel_content.cv,
+        kickstart_repository=provisioning_rhel_content.ksrepo,
+        lifecycle_environment=provisioning_rhel_content.lce,
         root_pass=host_root_pass,
         operatingsystem=provisioning_rhel_content.os,
         ptable=default_partitiontable,
@@ -210,26 +216,25 @@ def provisioning_sat(
         pxe_loader=pxe_loader,
     ).create()
 
-    return Box(sat=sat, hostgroup=hostgroup, subnet=subnet, cv=cv, lce=lce)
+    return Box(sat=sat, hostgroup=hostgroup, subnet=subnet)
 
 
 @pytest.fixture(scope="module")  # TODO: scope="function"?
 def provisioning_contenthost():
+    # TODO: write docstrings for fixtures,
+    # move fixtures to pytest_fixtures/
     vlan_id = settings.provisioning.vlan_id
-    vm_firmware = "bios"  # TODO: this should be parametrizable by the test
+    vm_firmware = "bios"  # TODO: this should be parametrizable by the test, or parametrize fixture
     cd_iso = ""  # TODO: this should be parametrizable by the test
-
     with VMBroker(
         workflow="deploy-configure-pxe-provisioning-host-rhv",
         host_classes={'host': ContentHost},
         target_vlan_id=vlan_id,
         target_vm_firmware=vm_firmware,
         target_vm_cd_iso=cd_iso,
-        AnsibleTower='testing',
+        blank=True,
     ) as host:
         yield host
-
-    # TODO: Tell Satellite to access the host by IP address, not FQDN
 
 
 @pytest.mark.stubbed
@@ -259,6 +264,7 @@ def test_rhel_pxe_provisioning_on_libvirt():
     indirect=True,
 )
 def test_rhel_pxe_provisioning_on_rhv(
+    request,
     provisioning_sat,
     module_manifest_org,
     module_location,
@@ -281,8 +287,7 @@ def test_rhel_pxe_provisioning_on_rhv(
     """
     bios_firmware = "BIOS"  # TODO: teach the test to use this parameter
     bios_firmware
-    # TODO fix mac addr nested argument in satlab-tower
-    host_mac_addr = provisioning_contenthost._broker_args['provisioning_nic_mac_addr']['address']
+    host_mac_addr = provisioning_contenthost._broker_args['provisioning_nic_mac_addr']
     sat = provisioning_sat.sat
 
     host = sat.api.Host(
@@ -290,16 +295,82 @@ def test_rhel_pxe_provisioning_on_rhv(
         organization=module_manifest_org,
         location=module_location,
         content_facet_attributes={
-            'content_view_id': provisioning_sat.cv.id,
-            'lifecycle_environment_id': provisioning_sat.lce.id,
+            'content_view_id': provisioning_rhel_content.cv.id,
+            'lifecycle_environment_id': provisioning_rhel_content.lce.id,
         },
         name=gen_string('alpha').lower(),
         mac=host_mac_addr,
         operatingsystem=provisioning_rhel_content.os,
         subnet=provisioning_sat.subnet,
+        host_parameters_attributes=[
+            {'name': 'remote_execution_connect_by_ip', 'value': 'true', 'parameter_type': 'boolean'}
+        ],
         build=True,  # put the host to build mode
     ).create(create_missing=False)
+    # Clean up the host to free IP leases on Satellite.
+    # broker should do that as a part of the teardown, putting here just to make sure.
+    request.addfinalizer(host.delete)
 
-    host
+    # TODO: register the host to Satellite
 
-    # Call wrapanapi -> RHVM-02 to start the VM
+    # Call RHVM API using wrapanapi to start the VM
+    rhv_api = RHEVMSystem(
+        hostname=settings.provisioning_rhev.hostname,
+        username=settings.provisioning_rhev.username,
+        password=settings.provisioning_rhev.password,
+        version=settings.provisioning_rhev.version,
+        verify=settings.provisioning_rhev.verify,
+    )
+    rhv_vm = rhv_api.get_vm(provisioning_contenthost.name)
+    rhv_vm.start()
+
+    wait_for(
+        lambda: host.read().build_status_label != 'Pending installation',
+        timeout=900,
+        delay=30,
+    )
+    host = host.read()
+    assert host.build_status_label == 'Installed'
+
+    # Change the hostname of the host as we know it already.
+    # In the current infra environment we do not support
+    # addressing hosts using FQDNs, falling back to IP.
+    provisioning_contenthost.hostname = host.ip
+    # Host is not blank anymore
+    provisioning_contenthost.blank = False
+
+    # TODO: add comment
+    try:
+        wait_for(
+            provisioning_contenthost.connect,
+            fail_condition=lambda res: res is not None,
+            handle_exception=True,
+            raise_original=True,
+            timeout=180,
+            delay=1,
+        )
+    except ConnectionRefusedError:
+        raise ConnectionRefusedError("Timed out waiting for SSH daemon to start on the host")
+
+    # Perform version check
+    host_os = host.operatingsystem.read()
+    expected_rhel_version = Version(f'{host_os.major}.{host_os.minor}')
+    assert provisioning_contenthost.os_version == expected_rhel_version
+
+    assert provisioning_contenthost.subscribed
+
+    template_id = (
+        sat.api.JobTemplate().search(query={'search': 'name="Run Command - SSH Default"'})[0].id
+    )
+    job = sat.api.JobInvocation().run(
+        data={
+            'job_template_id': template_id,  # TODO install package using rex
+            'inputs': {'command': 'rpm -q redhat-release'},
+            'search_query': f"name = {host.name}",
+            'targeting_type': 'static_query',
+        },
+    )
+    # wait for job to complete
+    wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
+    result = sat.api.JobInvocation(id=job['id']).read()
+    assert result.succeeded == 1
