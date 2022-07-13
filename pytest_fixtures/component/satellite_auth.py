@@ -6,7 +6,6 @@ from box import Box
 from broker import Broker
 from nailgun import entities
 
-from robottelo.api.utils import update_rhsso_settings_in_satellite
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import AUDIENCE_MAPPER
@@ -23,6 +22,8 @@ from robottelo.rhsso_utils import set_the_redirect_uri
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
+
+# from robottelo.api.utils import update_rhsso_settings_in_satellite
 
 
 @pytest.fixture()
@@ -400,9 +401,29 @@ def configure_realm(session_target_sat):
 @pytest.fixture(scope="module")
 def rhsso_setting_setup(module_target_sat):
     """Update the RHSSO setting and revert it in cleanup"""
-    update_rhsso_settings_in_satellite(sat=module_target_sat)
+    rhhso_settings = {
+        'authorize_login_delegation': True,
+        'authorize_login_delegation_auth_source_user_autocreate': 'External',
+        'login_delegation_logout_url': f'https://{settings.server.hostname}/users/extlogout',
+        'oidc_algorithm': 'RS256',
+        'oidc_audience': [f'{settings.server.hostname}-foreman-openidc'],
+        'oidc_issuer': f'{settings.rhsso.host_url}/auth/realms/{settings.rhsso.realm}',
+        'oidc_jwks_url': f'{settings.rhsso.host_url}/auth/realms'
+        f'/{settings.rhsso.realm}/protocol/openid-connect/certs',
+    }
+    for setting_name, setting_value in rhhso_settings.items():
+        # replace entietes field with targetsat.api
+        setting_entity = module_target_sat.api.Setting().search(query={'search': f'name={setting_name}'})[
+            0
+        ]
+        setting_entity.value = setting_value
+        setting_entity.update({'value'})
     yield
-    update_rhsso_settings_in_satellite(revert=True, sat=module_target_sat)
+    setting_entity = module_target_sat.api.Setting().search(
+        query={'search': 'name=authorize_login_delegation'}
+    )[0]
+    setting_entity.value = False
+    setting_entity.update({'value'})
 
 
 @pytest.fixture(scope="module")
