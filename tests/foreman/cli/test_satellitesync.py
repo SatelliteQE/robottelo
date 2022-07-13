@@ -65,7 +65,7 @@ def config_export_import_settings():
     Settings.set({'name': 'content_disconnected', 'value': disconnected_mode_value})
 
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def export_import_cleanup_function(target_sat, function_org):
     """Deletes export/import dirs of function org"""
     yield
@@ -74,7 +74,7 @@ def export_import_cleanup_function(target_sat, function_org):
     assert target_sat.execute(f'rm -rf {IMPORT_DIR}/{function_org.name}').stdout == ''
 
 
-@pytest.fixture  # perform the cleanup after each testcase of a module
+@pytest.fixture(scope='function')  # perform the cleanup after each testcase of a module
 def export_import_cleanup_module(target_sat, module_org):
     """Deletes export/import dirs of module_org"""
     yield
@@ -541,7 +541,6 @@ class TestContentViewSync:
         class_export_entities,
         config_export_import_settings,
         export_import_cleanup_module,
-        export_import_cleanup_function,
         target_sat,
         module_org,
     ):
@@ -584,22 +583,15 @@ class TestContentViewSync:
         # Verify export directory is empty
         assert validate_filepath(target_sat, module_org) == ''
         # Export cv
-        path = ContentExport.completeVersion(
+        export = ContentExport.completeVersion(
             {'id': export_cvv_id, 'organization-id': module_org.id}
         )
-        import_path = move_pulp_archive(target_sat, module_org, path['message'])
-        export_dir = os.path.dirname(path['message'])
-        export_folder = os.path.split(export_dir)
-        result = target_sat.execute(f'ls {export_dir}')
-        assert result.stdout != ''
+        import_path = move_pulp_archive(target_sat, module_org, export['message'])
+
         # importing portion
         importing_org = make_org()
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
-        # Move export files to import location and set permission
-        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
-        import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
@@ -706,14 +698,9 @@ class TestContentViewSync:
         # Verify export directory is empty
         assert validate_filepath(target_sat, function_org) == ''
         # Export complete library
-        path = ContentExport.completeLibrary({'organization-id': function_org.id})
-        # grab export dir and check all exported files are there
-        export_dir = os.path.dirname(path['message'])
-        export_folder = os.path.split(export_dir)
-        result = target_sat.execute(f'ls {export_dir}')
-        assert result.stdout != ''
+        export = ContentExport.completeLibrary({'organization-id': function_org.id})
         # Verify 'export-library' is created and packages are there
-        import_path = move_pulp_archive(target_sat, function_org, path['message'])
+        import_path = move_pulp_archive(target_sat, function_org, export['message'])
         export_lib_cv = ContentView.info(
             {
                 'name': export_library,
@@ -724,16 +711,10 @@ class TestContentViewSync:
         exported_lib_packages = Package.list({'content-view-version-id': export_lib_cvv_id})
         assert len(cv_packages)
         assert exported_lib_packages == cv_packages
-        # Verify export directory is not empty
-        assert validate_filepath(target_sat, function_org) != ''
         # importing portion
         importing_org = make_org()
         # set disconnected mode on and set download policy to immediate
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
-        # Move export files to import location and set permission
-        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
-        import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
@@ -818,22 +799,15 @@ class TestContentViewSync:
         # Verify export directory is empty
         assert validate_filepath(target_sat, module_org) == ''
         # Export cv
-        path = ContentExport.completeVersion(
+        export = ContentExport.completeVersion(
             {'id': exporting_cvv_id, 'organization-id': module_org.id}
         )
-        # grab export dir and check all exported files are there
-        export_dir = os.path.dirname(path['message'])
-        export_folder = os.path.split(export_dir)
-        result = target_sat.execute(f'ls {export_dir}')
-        assert result.stdout != ''
+        import_path = move_pulp_archive(target_sat, module_org, export['message'])
+
         # Import section
         importing_org = make_org()
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
-        # Move export files to import location and set permission
-        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
-        import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
@@ -895,25 +869,17 @@ class TestContentViewSync:
         # Verify export directory is empty
         assert validate_filepath(target_sat, module_org) == ''
         # Export cv
-        path = ContentExport.completeVersion(
+        export = ContentExport.completeVersion(
             {'id': export_cvv_id, 'organization-id': module_org.id}
         )
-        # Grab export dir and check all exported files are there
-        export_dir = os.path.dirname(path['message'])
-        export_folder = os.path.split(export_dir)
-        result = target_sat.execute(f'ls {export_dir}')
-        assert result.stdout != ''
+        import_path = move_pulp_archive(target_sat, module_org, export['message'])
+
         # importing portion
         importing_org = make_org()
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
         # Move export files to import location and set permission
-        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
-        import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        target_sat.execute(f'chown -R pulp:pulp {import_path}')
-        # check that files are present in import_path
-        result = target_sat.execute(f'ls {import_path}')
-        assert result.stdout != ''
+
         # Import and verify content
         ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
         importing_cv_id = ContentView.info(
@@ -1008,20 +974,15 @@ class TestContentViewSync:
         # Verify export directory is empty
         assert validate_filepath(target_sat, function_org) == ''
         # Export cv
-        path = ContentExport.completeVersion({'id': cvv['id'], 'organization-id': function_org.id})
-        # grab export dir and check all exported files are there
-        export_dir = os.path.dirname(path['message'])
-        export_folder = os.path.split(export_dir)
-        result = target_sat.execute(f'ls {export_dir}')
-        assert len(result.stdout) > 1
+        export = ContentExport.completeVersion(
+            {'id': cvv['id'], 'organization-id': function_org.id}
+        )
+        import_path = move_pulp_archive(target_sat, function_org, export['message'])
         exported_packages = Package.list({'content-view-version-id': cvv['id']})
         assert len(exported_packages)
 
         # importing portion
         importing_org = make_org()
-        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
-        import_path = f'/{IMPORT_DIR}{export_folder[1]}'
-        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
@@ -1131,21 +1092,14 @@ class TestContentViewSync:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Export cv
-        path = ContentExport.completeVersion(
+        export = ContentExport.completeVersion(
             {'id': cvv['id'], 'organization-id': function_org.id}, timeout=7200000
         )
-        # grab export dir and check all exported files are there
-        export_dir = os.path.dirname(path['message'])
-        export_folder = os.path.split(export_dir)
-        result = target_sat.execute(f'ls {export_dir}')
-        assert len(result.stdout) > 1
+        import_path = move_pulp_archive(target_sat, function_org, export['message'])
         exported_packages = Package.list({'content-view-version-id': cvv['id']})
         assert len(exported_packages)
         # importing portion
         importing_org = make_org()
-        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
-        import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
@@ -1214,21 +1168,15 @@ class TestContentViewSync:
         # Verify export directory is empty
         assert validate_filepath(target_sat, module_org) == ''
         # Export cv
-        path = ContentExport.completeVersion(
+        export = ContentExport.completeVersion(
             {'id': export_cvv_id, 'organization-id': module_org.id}
         )
-        # grab export dir and check all exported files are there
-        export_dir = os.path.dirname(path['message'])
-        export_folder = os.path.split(export_dir)
-        result = target_sat.execute(f'ls {export_dir}')
-        assert result.stdout != ''
+        import_path = move_pulp_archive(target_sat, module_org, export['message'])
+
         # importing portion
         importing_org = make_org()
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
-        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
-        import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
@@ -1421,13 +1369,11 @@ class TestContentViewSync:
         # Verify export directory is empty
         assert validate_filepath(target_sat, module_org) == ''
         # Export cv
-        path = ContentExport.completeVersion(
+        ContentExport.completeVersion(
             {'id': exporting_cvv_id['id'], 'organization-id': module_org.id}
         )
-        # grab export dir and check all exported files are there
-        export_dir = os.path.dirname(path['message'])
-        result = target_sat.execute(f'ls {export_dir}')
-        assert result.stdout != ''
+        # Verify export directory is not empty
+        assert validate_filepath(target_sat, module_org) != ''
 
     @pytest.mark.tier3
     def test_postive_import_export_cv_with_file_content(
@@ -1479,22 +1425,15 @@ class TestContentViewSync:
         # Verify export directory is empty
         assert validate_filepath(target_sat, module_org) == ''
         # Export cv
-        path = ContentExport.completeVersion(
+        export = ContentExport.completeVersion(
             {'id': exporting_cvv_id, 'organization-id': module_org.id}
         )
-        # grab export dir and check all exported files are there
-        export_dir = os.path.dirname(path['message'])
-        export_folder = os.path.split(export_dir)
-        result = target_sat.execute(f'ls {export_dir}')
-        assert result.stdout != ''
+        import_path = move_pulp_archive(target_sat, module_org, export['message'])
+
         # importing portion
         importing_org = make_org()
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
-        # Move export files to import location and set permission
-        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
-        import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        target_sat.execute(f'chown -R pulp:pulp {import_path}')
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
@@ -1510,7 +1449,11 @@ class TestContentViewSync:
 
     @pytest.mark.tier3
     def test_postive_import_export_ansible_collection_repo(
-        self, target_sat, config_export_import_settings, export_import_cleanup_module, function_org
+        self,
+        target_sat,
+        config_export_import_settings,
+        export_import_cleanup_function,
+        function_org,
     ):
         """Exporting and Importing library with ansible collection
 
@@ -1541,20 +1484,14 @@ class TestContentViewSync:
         )
         Repository.synchronize({'id': ansible_repo['id']})
         # Export library
-        path = ContentExport.completeLibrary({'organization-id': function_org.id})
-        # grab export dir and check all exported files are there
-        export_dir = os.path.dirname(path['message'])
-        export_folder = os.path.split(export_dir)
-        result = target_sat.execute(f'ls {export_dir}')
-        assert result.stdout != ''
+        export = ContentExport.completeLibrary({'organization-id': function_org.id})
+        import_path = move_pulp_archive(target_sat, function_org, export['message'])
+
         # importing portion
         importing_org = make_org()
         # set disconnected mode on
         Settings.set({'name': 'content_disconnected', 'value': "Yes"})
-        # Move export files to import location and set permission
-        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
-        import_path = f'{IMPORT_DIR}{export_folder[1]}'
-        target_sat.execute(f'chown -R pulp:pulp {import_path}')
+
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
@@ -1574,7 +1511,11 @@ class TestContentViewSync:
     @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier3
     def test_negative_import_redhat_cv_without_manifest(
-        self, export_import_cleanup_module, config_export_import_settings, function_org, target_sat
+        self,
+        export_import_cleanup_function,
+        config_export_import_settings,
+        function_org,
+        target_sat,
     ):
         """Redhat content can't be imported into satellite/organization without manifest
 
@@ -1635,17 +1576,10 @@ class TestContentViewSync:
         # Verify export directory is empty
         assert validate_filepath(target_sat, function_org) == ''
         # Export cv
-        path = ContentExport.completeVersion({'id': cvv['id'], 'organization-id': function_org.id})
-        # grab export dir and check all exported files are there
-        export_dir = os.path.dirname(path['message'])
-        export_folder = os.path.split(export_dir)
-        result = target_sat.execute(f'ls {export_dir}')
-        assert len(result.stdout) > 1
-        # importing portion
-        importing_org = make_org()
-        target_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
-        import_path = f'/{IMPORT_DIR}{export_folder[1]}'
-        target_sat.execute(f'chown -R pulp:pulp {import_path}')
+        export = ContentExport.completeVersion(
+            {'id': cvv['id'], 'organization-id': function_org.id}
+        )
+        import_path = move_pulp_archive(target_sat, function_org, export['message'])
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
