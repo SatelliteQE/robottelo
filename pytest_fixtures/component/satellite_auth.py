@@ -36,6 +36,8 @@ def ldap_cleanup():
         ldap_auth.delete()
     yield
 
+# from robottelo.api.utils import update_rhsso_settings_in_satellite
+
 
 @pytest.fixture(scope='session')
 def ad_data():
