@@ -14,7 +14,7 @@ from robottelo.hosts import ContentHost
 
 
 @pytest.fixture(scope='module')
-def provisioning_capsule(module_target_sat, module_location):
+def module_provisioning_capsule(module_target_sat, module_location):
     """Assings the `module_location` to Satellite's internal capsule and returns it"""
     capsule = (
         module_target_sat.api.SmartProxy()
@@ -27,7 +27,7 @@ def provisioning_capsule(module_target_sat, module_location):
 
 
 @pytest.fixture(scope='module')
-def provisioning_rhel_content(
+def module_provisioning_rhel_content(
     request,
     module_target_sat,
     module_org_with_manifest,
@@ -97,16 +97,16 @@ def provisioning_rhel_content(
 
 
 @pytest.fixture(scope='module')
-def provisioning_sat(
+def module_provisioning_sat(
     module_target_sat,
-    provisioning_rhel_content,
+    module_provisioning_rhel_content,
     module_org_with_manifest,
     module_location,
     default_architecture,
     default_partitiontable,
     module_lce_library,
     module_default_org_view,
-    provisioning_capsule,
+    module_provisioning_capsule,
 ):
     """
     This fixture sets up the Satellite for PXE provisioning.
@@ -156,7 +156,7 @@ def provisioning_sat(
     domain = sat.api.Domain(
         location=[module_location],
         organization=[module_org_with_manifest],
-        dns=provisioning_capsule.id,
+        dns=module_provisioning_capsule.id,
         name=provisioning_domain_name,
     ).create()
 
@@ -172,13 +172,13 @@ def provisioning_sat(
         dns_secondary=provisioning_upstream_dns_secondary,
         boot_mode='DHCP',
         ipam='DHCP',
-        dhcp=provisioning_capsule.id,
-        tftp=provisioning_capsule.id,
-        template=provisioning_capsule.id,
-        dns=provisioning_capsule.id,
-        httpboot=provisioning_capsule.id,
-        discovery=provisioning_capsule.id,
-        remote_execution_proxy=[provisioning_capsule.id],
+        dhcp=module_provisioning_capsule.id,
+        tftp=module_provisioning_capsule.id,
+        template=module_provisioning_capsule.id,
+        dns=module_provisioning_capsule.id,
+        httpboot=module_provisioning_capsule.id,
+        discovery=module_provisioning_capsule.id,
+        remote_execution_proxy=[module_provisioning_capsule.id],
         domain=[domain.id],
     ).create()
 
@@ -187,12 +187,12 @@ def provisioning_sat(
         location=[module_location],
         architecture=default_architecture,
         domain=domain,
-        content_source=provisioning_capsule.id,
+        content_source=module_provisioning_capsule.id,
         content_view=module_default_org_view,
-        kickstart_repository=provisioning_rhel_content.ksrepo,
+        kickstart_repository=module_provisioning_rhel_content.ksrepo,
         lifecycle_environment=module_lce_library,
         root_pass=host_root_pass,
-        operatingsystem=provisioning_rhel_content.os,
+        operatingsystem=module_provisioning_rhel_content.os,
         ptable=default_partitiontable,
         subnet=subnet,
         pxe_loader=pxe_loader,
@@ -200,7 +200,7 @@ def provisioning_sat(
             {
                 'name': 'kt_activation_keys',
                 'parameter_type': 'string',
-                'value': provisioning_rhel_content.ak,
+                'value': module_provisioning_rhel_content.ak,
             }
         ],
     ).create()

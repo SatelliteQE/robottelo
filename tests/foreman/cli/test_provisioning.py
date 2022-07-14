@@ -47,19 +47,21 @@ def test_rhel_pxe_provisioning_on_libvirt():
     """
 
 
+# TODO: move the whole test to api/ directory
+
 # @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize(
-    "provisioning_rhel_content",
+    "module_provisioning_rhel_content",
     [v for v in settings.supportability.content_hosts.rhel.versions if re.match('^[7-9]$', str(v))],
     indirect=True,
 )
 def test_rhel_pxe_provisioning_on_rhv(
     request,
-    provisioning_sat,
+    module_provisioning_sat,
     module_org_with_manifest,
     module_location,
     provisioning_host,
-    provisioning_rhel_content,
+    module_provisioning_rhel_content,
 ):
     """Provision RHEL system via PXE on RHV and make sure it behaves
 
@@ -78,20 +80,20 @@ def test_rhel_pxe_provisioning_on_rhv(
     bios_firmware = "BIOS"  # TODO: Make this a test parameter
     bios_firmware
     host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
-    sat = provisioning_sat.sat
+    sat = module_provisioning_sat.sat
 
     host = sat.api.Host(
-        hostgroup=provisioning_sat.hostgroup,
+        hostgroup=module_provisioning_sat.hostgroup,
         organization=module_org_with_manifest,
         location=module_location,
         content_facet_attributes={
-            'content_view_id': provisioning_rhel_content.cv.id,
-            'lifecycle_environment_id': provisioning_rhel_content.lce.id,
+            'content_view_id': module_provisioning_rhel_content.cv.id,
+            'lifecycle_environment_id': module_provisioning_rhel_content.lce.id,
         },
         name=gen_string('alpha').lower(),
         mac=host_mac_addr,
-        operatingsystem=provisioning_rhel_content.os,
-        subnet=provisioning_sat.subnet,
+        operatingsystem=module_provisioning_rhel_content.os,
+        subnet=module_provisioning_sat.subnet,
         host_parameters_attributes=[
             {'name': 'remote_execution_connect_by_ip', 'value': 'true', 'parameter_type': 'boolean'}
         ],
