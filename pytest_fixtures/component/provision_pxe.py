@@ -123,17 +123,6 @@ def module_provisioning_sat(
         sat_version=sat.version,
     )
 
-    # temp mock data
-    # broker_data_out = {
-    #     'data_out': {
-    #         'provisioning_addr_ipv4': '10.1.5.57/29',
-    #         'provisioning_gw_ipv4': '10.1.5.62',
-    #         'provisioning_host_range_end': '10.1.5.61',
-    #         'provisioning_host_range_start': '10.1.5.58',
-    #         'provisioning_iface': 'eth1',
-    #         'provisioning_upstream_dns': ['10.5.30.160', '10.11.5.19'],
-    #     }
-    # }
     broker_data_out = Box(**broker_data_out['data_out'])
     provisioning_interface = ipaddress.ip_interface(broker_data_out.provisioning_addr_ipv4)
     provisioning_network = provisioning_interface.network

@@ -91,7 +91,7 @@ def test_rhel_pxe_provisioning_on_rhv(
         host_parameters_attributes=[
             {'name': 'remote_execution_connect_by_ip', 'value': 'true', 'parameter_type': 'boolean'}
         ],
-        build=True,  # put the host to build mode
+        build=True,  # put the host in build mode
     ).create(create_missing=False)
     # Clean up the host to free IP leases on Satellite.
     # broker should do that as a part of the teardown, putting here just to make sure.
