@@ -33,13 +33,13 @@ def module_provisioning_rhel_content(
     module_org_with_manifest,
     module_lce_library,
     module_default_org_view,
+    default_subscription,
 ):
     """
     This fixture sets up kickstart repositories for a specific RHEL version
     that is specified in `request.param`.
     """
-    rhel_ver = request.param
-    sat = module_target_sat
+    rhel_ver = request.param['rhel_version']
     repo_names = [f'rhel{rhel_ver}']
     if int(rhel_ver) > 7:
         repo_names.append(f'rhel{rhel_ver}_aps')
@@ -69,27 +69,22 @@ def module_provisioning_rhel_content(
         assert task_status['result'] == 'success'
 
     rhel_xy = Version(constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version'])
-    o_systems = sat.api.OperatingSystem().search(
+    o_systems = module_target_sat.api.OperatingSystem().search(
         query={'search': f'family=Redhat and major={rhel_xy.major} and minor={rhel_xy.minor}'}
     )
-    assert o_systems, f'Operating system RHEL {rhel_xy} was found'
+    assert o_systems, f'Operating system RHEL {rhel_xy} was not found'
     os = o_systems[0].read()
 
-    ak = sat.api.ActivationKey(
+    ak = module_target_sat.api.ActivationKey(
         organization=module_org_with_manifest,
         content_view=module_default_org_view,
         environment=module_lce_library,
     ).create()
 
-    subs = sat.api.Subscription(organization=module_org_with_manifest).search(
-        query={'search': f'{constants.DEFAULT_SUBSCRIPTION_NAME}'}
-    )
-    assert subs, f'Subscription "{constants.DEFAULT_SUBSCRIPTION_NAME}" was not found'
-    ak.add_subscriptions(data={'subscription_id': subs[0].id})
+    ak.add_subscriptions(data={'subscription_id': default_subscription.id})
 
     # return only the first kickstart repo - RHEL X KS or RHEL X BaseOS KS
     return Box(
-        sat=sat,
         os=os,
         ksrepo=rh_repos[0],
         ak=ak,
@@ -200,7 +195,7 @@ def module_provisioning_sat(
             {
                 'name': 'kt_activation_keys',
                 'parameter_type': 'string',
-                'value': module_provisioning_rhel_content.ak,
+                'value': module_provisioning_rhel_content.ak.name,
             }
         ],
     ).create()
@@ -212,8 +207,8 @@ def module_provisioning_sat(
 def provisioning_host():
     """Fixture to check out blank VM"""
     vlan_id = settings.provisioning.vlan_id
-    vm_firmware = "bios"  # TODO: Make this a fixture parameter
-    cd_iso = ""  # TODO: Make this a fixture parameter
+    vm_firmware = "bios"  # TODO: Make this a fixture parameter - bios, uefi
+    cd_iso = ""  # TODO: Make this an optional fixture parameter
     with Broker(
         workflow="deploy-configure-pxe-provisioning-host-rhv",
         host_classes={'host': ContentHost},

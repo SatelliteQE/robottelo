@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-import re
-
 import pytest
 from fauxfactory import gen_string
 from packaging.version import Version
@@ -50,11 +48,7 @@ def test_rhel_pxe_provisioning_on_libvirt():
 # TODO: move the whole test to api/ directory
 
 # @pytest.mark.on_premises_provisioning
-@pytest.mark.parametrize(
-    "module_provisioning_rhel_content",
-    [v for v in settings.supportability.content_hosts.rhel.versions if re.match('^[7-9]$', str(v))],
-    indirect=True,
-)
+@pytest.mark.rhel_ver_match('^((?!fips|6).)*$')
 def test_rhel_pxe_provisioning_on_rhv(
     request,
     module_provisioning_sat,
@@ -62,6 +56,8 @@ def test_rhel_pxe_provisioning_on_rhv(
     module_location,
     provisioning_host,
     module_provisioning_rhel_content,
+    module_lce_library,
+    module_default_org_view,
 ):
     """Provision RHEL system via PXE on RHV and make sure it behaves
 
@@ -77,8 +73,6 @@ def test_rhel_pxe_provisioning_on_rhv(
         2. Host is registered to Satellite and subscription status is 'Success'
         3. Host can install package from Satellite
     """
-    bios_firmware = "BIOS"  # TODO: Make this a test parameter
-    bios_firmware
     host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
     sat = module_provisioning_sat.sat
 
@@ -87,8 +81,8 @@ def test_rhel_pxe_provisioning_on_rhv(
         organization=module_org_with_manifest,
         location=module_location,
         content_facet_attributes={
-            'content_view_id': module_provisioning_rhel_content.cv.id,
-            'lifecycle_environment_id': module_provisioning_rhel_content.lce.id,
+            'content_view_id': module_default_org_view.id,
+            'lifecycle_environment_id': module_lce_library.id,
         },
         name=gen_string('alpha').lower(),
         mac=host_mac_addr,
