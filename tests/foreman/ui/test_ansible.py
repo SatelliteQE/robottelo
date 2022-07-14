@@ -65,7 +65,7 @@ def test_positive_create_and_delete_variable(target_sat):
     key = gen_string('alpha')
     role = 'redhat.satellite.activation_keys'
     with target_sat.ui_session as session:
-        if session.ansibleroles.preimport_check() is False:
+        if not session.ansibleroles.imported_roles_count:
             session.ansibleroles.import_all_roles()
         session.ansiblevariables.create(
             {
@@ -94,7 +94,7 @@ def test_positive_create_variable_with_overrides(target_sat):
     key = gen_string('alpha')
     role = 'redhat.satellite.activation_keys'
     with target_sat.ui_session as session:
-        if session.ansibleroles.preimport_check() is False:
+        if not session.ansibleroles.imported_roles_count:
             session.ansibleroles.import_all_roles()
         session.ansiblevariables.create_with_overrides(
             {
