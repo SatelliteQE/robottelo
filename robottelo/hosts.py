@@ -195,7 +195,8 @@ class ContentHost(Host):
             self.nailgun_host.delete()
         self.unregister()
         # Strip most unnecessary attributes from our instance for checkin
-        self.__dict__ = self.to_dict()
+        keep_keys = set(self.to_dict()) | {'release', '_prov_inst'}
+        self.__dict__ = {k: v for k, v in self.__dict__.items() if k in keep_keys}
         self.__class__ = Host
 
     def power_control(self, state=VmState.RUNNING, ensure=True):
