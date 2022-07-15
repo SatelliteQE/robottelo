@@ -1,4 +1,4 @@
 RH_CLOUD:
   INSTALL_RHC: false
-  Organization: org_name
-  Activation_key: ak_name
+  ORGANIZATION: org_name
+  ACTIVATION_KEY: ak_name
