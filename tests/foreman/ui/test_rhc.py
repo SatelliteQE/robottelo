@@ -39,59 +39,50 @@ def fixture_enable_rhc_repos(target_sat):
         target_sat.enable_repo(constants.REPOS['rhel7']['id'])
 
 
+@pytest.fixture(scope='module')
+def module_rhc_org(target_sat):
+    """Module level fixture for creating organization"""
+    org = target_sat.api.Organization(
+        name=gen_string('alpha')
+        if not settings.rh_cloud.organization
+        else settings.rh_cloud.organization
+    ).create()
+    # adding remote_execution_connect_by_ip=Yes at org level
+    target_sat.api.Parameter(
+        name='remote_execution_connect_by_ip',
+        value='Yes',
+        organization=org.id,
+    ).create()
+    return org
+
+
 @pytest.fixture()
-def fixture_setup_rhc_satellite(request, target_sat, module_org):
-    """Populate Satellite with repo, cv and ak after successful test execution"""
+def fixture_setup_rhc_satellite(request, target_sat, module_rhc_org):
+    """Create Organization and activation key after successful test execution"""
     yield
     if request.node.rep_call.passed:
         manifests_path = file_downloader(
             file_url=settings.fake_manifest.url['default'], hostname=target_sat.hostname
         )[0]
         target_sat.cli.Subscription.upload(
-            {'file': manifests_path, 'organization-id': module_org.id}
+            {'file': manifests_path, 'organization-id': module_rhc_org.id}
         )
-        rh_repo1 = {
-            'name': constants.REPOS['rhel8_bos']['name'],
-            'product': constants.PRDS['rhel8'],
-            'reposet': constants.REPOSET['rhel8_bos'],
-            'basearch': constants.DEFAULT_ARCHITECTURE,
-            'releasever': '8',
-        }
-        rh_repo2 = {
-            'name': constants.REPOS['rhel8_aps']['name'],
-            'product': constants.PRDS['rhel8'],
-            'reposet': constants.REPOSET['rhel8_aps'],
-            'basearch': constants.DEFAULT_ARCHITECTURE,
-            'releasever': '8',
-        }
-        rh_repo3 = {
-            'name': constants.REPOS['rhel7']['name'],
-            'product': constants.PRDS['rhel'],
-            'reposet': constants.REPOSET['rhel7'],
-            'basearch': constants.DEFAULT_ARCHITECTURE,
-            'releasever': '7Server',
-        }
-        # Enable and sync required repos
-        repo1_id = enable_sync_redhat_repo(rh_repo1, module_org.id)
-        repo2_id = enable_sync_redhat_repo(rh_repo2, module_org.id)
-        repo3_id = enable_sync_redhat_repo(rh_repo3, module_org.id)
-        # Add repos to Content view
-        cv = target_sat.api.ContentView(
-            organization=module_org, repository=[repo1_id, repo2_id, repo3_id]
-        ).create()
-        cv.publish()
         # Create Activation key
         ak = target_sat.api.ActivationKey(
-            content_view=cv,
-            organization=module_org,
-            environment=target_sat.api.LifecycleEnvironment(id=module_org.library.id),
+            name=gen_string('alpha')
+            if not settings.rh_cloud.activation_key
+            else settings.rh_cloud.activation_key,
+            content_view=module_rhc_org.default_content_view,
+            organization=module_rhc_org,
+            environment=target_sat.api.LifecycleEnvironment(id=module_rhc_org.library.id),
+            auto_attach=True,
         ).create()
-        subscription = target_sat.api.Subscription(organization=module_org)
+        subscription = target_sat.api.Subscription(organization=module_rhc_org)
         default_subscription = subscription.search(
             query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
         )[0]
         ak.add_subscriptions(data={'quantity': 10, 'subscription_id': default_subscription.id})
-        logger.debug(f"Activation key: {ak} \n Content view: {cv} \n Organization: {module_org}")
+        logger.debug(f"Activation key: {ak} \n Organization: {module_rhc_org}")
 
 
 @pytest.mark.tier3
@@ -100,7 +91,7 @@ def test_positive_configure_cloud_connector(
     target_sat,
     subscribe_satellite,
     fixture_enable_rhc_repos,
-    module_org,
+    module_rhc_org,
     fixture_setup_rhc_satellite,
 ):
     """Install Cloud Connector through WebUI button
@@ -133,7 +124,7 @@ def test_positive_configure_cloud_connector(
     )
 
     with session:
-        session.organization.select(org_name=module_org.name)
+        session.organization.select(org_name=module_rhc_org.name)
         if session.cloudinventory.is_cloud_connector_configured():
             pytest.skip(
                 'Cloud Connector has already been configured on this system. '
