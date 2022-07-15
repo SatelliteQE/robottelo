@@ -47,4 +47,5 @@ def align_to_satellite(worker_id, satellite_factory):
     configure_nailgun()
     yield
     if on_demand_sat and settings.server.auto_checkin:
+        on_demand_sat.teardown()
         Broker(hosts=[on_demand_sat]).checkin()

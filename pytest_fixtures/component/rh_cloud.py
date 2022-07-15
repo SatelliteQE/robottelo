@@ -11,6 +11,7 @@ def rhcloud_sat_host(satellite_factory):
     """A module level fixture that provides a Satellite based on config settings"""
     new_sat = satellite_factory()
     yield new_sat
+    new_sat.teardown()
     Broker(hosts=[new_sat]).checkin()
 
 
