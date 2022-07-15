@@ -67,30 +67,6 @@ class TestPubKey:
         assert validate_ssh_pub_key(valid_key)
 
 
-class TestEscapeSearch:
-    def test_return_type(self):
-        """Tests if escape search returns a unicode string"""
-        assert isinstance(escape_search('search term'), str)
-
-    def test_escapes_double_quotes(self):
-        """Tests if escape search escapes double quotes"""
-        assert escape_search('termwith"')[1:-1] == 'termwith\\"'
-
-    def test_escapes_backslash(self):
-        """Tests if escape search escapes backslashes"""
-        assert escape_search('termwith\\')[1:-1] == 'termwith\\\\'
-
-    def test_escapes_double_quotes_and_backslash(self):
-        """Tests if escape search escapes backslashes"""
-        assert escape_search('termwith"and\\')[1:-1] == 'termwith\\"and\\\\'
-
-    def test_wraps_in_double_quotes(self):
-        """Tests if escape search wraps the term in double quotes"""
-        term = escape_search('term')
-        assert term[0] == '"'
-        assert term[-1] == '"'
-
-
 class TestStorage:
     def test_dict_converted_to_storage(self):
         d = {'key': 'value'}

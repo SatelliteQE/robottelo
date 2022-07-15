@@ -546,6 +546,7 @@ class ContentHost(Host, ContentHostMixins):
     def get(self, remote_path, local_path=None):
         """Get a remote file from the broker virtual machine."""
         self.session.sftp_read(source=remote_path, destination=local_path)
+        return local_path
 
     def put(self, local_path, remote_path=None):
         """Put a local file to the broker virtual machine.
