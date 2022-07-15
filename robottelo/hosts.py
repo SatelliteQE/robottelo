@@ -194,6 +194,9 @@ class ContentHost(Host):
         if self.nailgun_host:
             self.nailgun_host.delete()
         self.unregister()
+        # Strip most unnecessary attributes from our instance for checkin
+        self.__dict__ = self.to_dict()
+        self.__class__ = Host
 
     def power_control(self, state=VmState.RUNNING, ensure=True):
         """Lookup the host workflow for power on and execute
