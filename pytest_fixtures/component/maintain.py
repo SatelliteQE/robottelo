@@ -15,6 +15,7 @@ def sat_maintain(satellite_factory):
     else:
         sat = satellite_factory()
         yield sat
+        sat.teardown()
         Broker(hosts=[sat]).checkin()
 
 
