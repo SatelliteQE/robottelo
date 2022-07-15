@@ -62,7 +62,7 @@ def katello_agent_client(sat_with_katello_agent, rhel_contenthost):
 
 @pytest.mark.rhel_ver_list([6, 7, 8, 9])
 def test_positive_apply_errata(katello_agent_client):
-    """Apply errata to a host
+    """Apply errata on a host
 
     :id: 8d0e5c93-f9fd-4ec0-9a61-aa93082a30c5
 
@@ -85,17 +85,16 @@ def test_positive_apply_errata(katello_agent_client):
     sat.cli.Host.errata_apply(
         {'errata-ids': settings.repos.yum_0.errata[1], 'host-id': host_info['id']}
     )
-    result = client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}')
-    assert result.status == 0
+    assert client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}').status == 0
 
 
 @pytest.mark.rhel_ver_list([6, 7, 8, 9])
-def test_positive_install_package(katello_agent_client):
-    """Install a package to a host remotely
+def test_positive_install_and_remove_package(katello_agent_client):
+    """Install and remove a package on a host remotely
 
     :id: b1009bba-0c7e-4b00-8ac4-256e5cfe4a78
 
-    :expectedresults: Package was successfully installed
+    :expectedresults: Package successfully installed and removed
 
     :parametrized: yes
 
@@ -107,40 +106,20 @@ def test_positive_install_package(katello_agent_client):
     sat.cli.Host.package_install(
         {'host-id': host_info['id'], 'packages': constants.FAKE_0_CUSTOM_PACKAGE_NAME}
     )
-    result = client.run(f'rpm -q {constants.FAKE_0_CUSTOM_PACKAGE_NAME}')
-    assert result.status == 0
-
-
-@pytest.mark.rhel_ver_list([6, 7, 8, 9])
-def test_positive_remove_package(katello_agent_client):
-    """Remove a package from a host remotely
-
-    :id: 573dec11-8f14-411f-9e41-84426b0f23b5
-
-    :expectedresults: Package was successfully removed
-
-    :parametrized: yes
-
-    :CaseLevel: System
-    """
-    sat = katello_agent_client['sat']
-    client = katello_agent_client['client']
-    host_info = katello_agent_client['host_info']
-    client.run(f'yum install -y {constants.FAKE_1_CUSTOM_PACKAGE}')
+    assert client.run(f'rpm -q {constants.FAKE_0_CUSTOM_PACKAGE_NAME}').status == 0
     sat.cli.Host.package_remove(
-        {'host-id': host_info['id'], 'packages': constants.FAKE_1_CUSTOM_PACKAGE_NAME}
+        {'host-id': host_info['id'], 'packages': constants.FAKE_0_CUSTOM_PACKAGE_NAME}
     )
-    result = client.run(f'rpm -q {constants.FAKE_1_CUSTOM_PACKAGE_NAME}')
-    assert result.status != 0
+    assert client.run(f'rpm -q {constants.FAKE_0_CUSTOM_PACKAGE_NAME}').status != 0
 
 
 @pytest.mark.rhel_ver_list([6, 7, 8, 9])
 def test_positive_upgrade_package(katello_agent_client):
-    """Upgrade a host package remotely
+    """Upgrade a package on a host remotely
 
     :id: ad751c63-7175-40ae-8bc4-800462cd9c29
 
-    :expectedresults: Package was successfully upgraded
+    :expectedresults: Package successfully upgraded
 
     :parametrized: yes
 
@@ -153,18 +132,16 @@ def test_positive_upgrade_package(katello_agent_client):
     sat.cli.Host.package_upgrade(
         {'host-id': host_info['id'], 'packages': constants.FAKE_1_CUSTOM_PACKAGE_NAME}
     )
-    result = client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}')
-    assert result.status == 0
+    assert client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}').status == 0
 
 
 @pytest.mark.rhel_ver_list([6, 7, 8, 9])
 def test_positive_upgrade_packages_all(katello_agent_client):
-    """Upgrade all the host packages remotely
+    """Upgrade all packages on a host remotely
 
     :id: 003101c7-bb95-4e51-a598-57977b2858a9
 
-    :expectedresults: Packages (at least 1 with newer version available)
-        were successfully upgraded
+    :expectedresults: Packages successfully upgraded (at least 1 with newer version available)
 
     :parametrized: yes
 
@@ -175,18 +152,16 @@ def test_positive_upgrade_packages_all(katello_agent_client):
     host_info = katello_agent_client['host_info']
     client.run(f'yum install -y {constants.FAKE_1_CUSTOM_PACKAGE}')
     sat.cli.Host.package_upgrade_all({'host-id': host_info['id']})
-    result = client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}')
-    assert result.status == 0
+    assert client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}').status == 0
 
 
 @pytest.mark.rhel_ver_list([6, 7, 8, 9])
 def test_positive_install_and_remove_package_group(katello_agent_client):
-    """Install and remove a package group to a host remotely
+    """Install and remove a package group on a host remotely
 
     :id: ded20a89-cfd9-48d5-8829-739b1a4d4042
 
-    :expectedresults: Package group was successfully installed
-        and removed
+    :expectedresults: Package group successfully installed and removed
 
     :parametrized: yes
 
@@ -198,9 +173,7 @@ def test_positive_install_and_remove_package_group(katello_agent_client):
     hammer_args = {'groups': constants.FAKE_0_CUSTOM_PACKAGE_GROUP_NAME, 'host-id': host_info['id']}
     sat.cli.Host.package_group_install(hammer_args)
     for package in constants.FAKE_0_CUSTOM_PACKAGE_GROUP:
-        result = client.run(f'rpm -q {package}')
-        assert result.status == 0
+        assert client.run(f'rpm -q {package}').status == 0
     sat.cli.Host.package_group_remove(hammer_args)
     for package in constants.FAKE_0_CUSTOM_PACKAGE_GROUP:
-        result = client.run(f'rpm -q {package}')
-        assert result.status != 0
+        assert client.run(f'rpm -q {package}').status != 0
