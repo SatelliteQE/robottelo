@@ -734,7 +734,7 @@ def test_positive_list_infrastructure_hosts(
 @pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.cli_host_create
 @pytest.mark.libvirt_discovery
-@pytest.mark.onprem_provisioning
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier1
 def test_positive_create_using_libvirt_without_mac(module_location, module_org):
     """Create a libvirt host and not specify a MAC address.
