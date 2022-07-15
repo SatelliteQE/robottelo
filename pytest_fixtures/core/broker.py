@@ -29,7 +29,7 @@ def _target_sat_imp(request, _default_sat, satellite_factory):
     if request.node.get_closest_marker(name='destructive'):
         new_sat = satellite_factory()
         yield new_sat
-        new_sat.unregister()
+        new_sat.teardown()
         Broker(hosts=[new_sat]).checkin()
     else:
         yield _default_sat
@@ -105,6 +105,7 @@ def satellite_host(satellite_factory):
     """A fixture that provides a Satellite based on config settings"""
     new_sat = satellite_factory()
     yield new_sat
+    new_sat.teardown()
     Broker(hosts=[new_sat]).checkin()
 
 
@@ -113,6 +114,7 @@ def module_satellite_host(satellite_factory):
     """A fixture that provides a Satellite based on config settings"""
     new_sat = satellite_factory()
     yield new_sat
+    new_sat.teardown()
     Broker(hosts=[new_sat]).checkin()
 
 
@@ -121,6 +123,7 @@ def session_satellite_host(satellite_factory):
     """A fixture that provides a Satellite based on config settings"""
     new_sat = satellite_factory()
     yield new_sat
+    new_sat.teardown()
     Broker(hosts=[new_sat]).checkin()
 
 
@@ -129,7 +132,7 @@ def capsule_host(capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
     new_cap = capsule_factory()
     yield new_cap
-    new_cap.unregister()
+    new_cap.teardown()
     Broker(hosts=[new_cap]).checkin()
 
 
@@ -138,7 +141,7 @@ def module_capsule_host(capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
     new_cap = capsule_factory()
     yield new_cap
-    new_cap.unregister()
+    new_cap.teardown()
     Broker(hosts=[new_cap]).checkin()
 
 
