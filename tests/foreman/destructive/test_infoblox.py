@@ -16,7 +16,6 @@
 """
 import pytest
 
-from robottelo.config import settings
 from robottelo.helpers import InstallerCommand
 
 pytestmark = pytest.mark.destructive
@@ -46,18 +45,6 @@ params = [
 ]
 
 
-def register_satellite(sat):
-    sat.execute(
-        'yum -y localinstall '
-        f'{settings.repos.dogfood_repo_host}/pub/katello-ca-consumer-latest.noarch.rpm'
-    )
-    sat.execute(
-        f'subscription-manager register --org {settings.subscription.dogfood_org} '
-        f'--activationkey {settings.subscription.dogfood_activationkey}'
-    )
-    return sat
-
-
 @pytest.mark.tier4
 @pytest.mark.parametrize(
     'command_args,command_opts,rpm_command',
@@ -79,7 +66,7 @@ def test_plugin_installation(target_sat, command_args, command_opts, rpm_command
 
     :BZ: 1994490, 2000237
     """
-    register_satellite(target_sat)
+    target_sat.download_repofile()
     installer_obj = InstallerCommand(command_args, **command_opts)
     command_output = target_sat.execute(installer_obj.get_command())
     assert 'Success!' in command_output.stdout

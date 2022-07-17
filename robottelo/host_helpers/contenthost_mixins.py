@@ -40,7 +40,27 @@ class VersionedContent:
             'cbrhel': constants.OSCAP_PROFILE[f'cbrhel{self._v_major}'],
         }
 
-    # pull from settings.server.repos???
+    @cached_property
+    def dogfood_repofile(self):
+        from robottelo.config import settings
+
+        if self.__class__.__name__ == 'ContentHost':
+            product = 'tools'
+        else:
+            product = self.__class__.__name__.lower()
+        # this may be also available from self.satellite.version
+        split_ver = self.satellite.version.split('.')
+        if len(split_ver) == 2:
+            split_ver.append('0')
+        sat_ver = '.'.join(split_ver[:3])  # keep only major.minor.patch
+        return (
+            f'{settings.repos.ohsnap_repo_host}/api/releases/'
+            f'{sat_ver}/el{self._v_major}/{product}/repo_file'
+        )
+
+    def download_repofile(self):
+        """Downloads the tools, capsule, or satellite repos on the machine"""
+        self.execute(f'curl -o /etc/yum.repos.d/dogfood.repo {self.dogfood_repofile}')
 
     def enable_tools_repo(self, organization_id):
         return utils.enable_rhrepo_and_fetchid(

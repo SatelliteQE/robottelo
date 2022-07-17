@@ -53,7 +53,7 @@ def puppet_proxy_port_range(session_puppet_enabled_sat):
 
 @pytest.fixture(scope='class')
 def install_cockpit_plugin(class_target_sat):
-    class_target_sat.register_to_dogfood()
+    class_target_sat.download_repofile()
     class_target_sat.install_cockpit()
     # TODO remove this change when we start using new host detail view
     setting_object = class_target_sat.api.Setting().search(

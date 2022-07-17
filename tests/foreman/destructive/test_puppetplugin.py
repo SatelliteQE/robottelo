@@ -94,7 +94,7 @@ def test_positive_enable_disable_logic(target_sat, capsule_configured):
     assert 'failed to load one or more features (Puppet)' in result.stdout
 
     # Enable puppet on Satellite and check it succeeded.
-    target_sat.register_to_dogfood()
+    target_sat.download_repofile()
     result = target_sat.execute(enable_satellite_cmd.get_command(), timeout='20m')
     assert result.status == 0
     assert 'Success!' in result.stdout
