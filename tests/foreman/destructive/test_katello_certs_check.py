@@ -117,6 +117,7 @@ def test_positive_install_sat_with_katello_certs(certs_vm_setup):
     result = rhel_vm.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
     for repo in getattr(constants, f"OHSNAP_RHEL{version}_REPOS"):
         rhel_vm.enable_repo(repo, force=True)
+    # What is the purpose of this?
     rhel_vm.execute(
         f'yum -y localinstall {settings.repos.dogfood_repo_host}'
         f'/pub/katello-ca-consumer-latest.noarch.rpm'
