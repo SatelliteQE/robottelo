@@ -264,20 +264,6 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise ContentHostError(f'Failed to install {package_name} rpm.')
 
-    def download_repos(self, repo_name, version):
-        """Downloads the satellite or capsule repos on the machine
-        :param repo_name: satellite or capsule repo_name
-        :param vesion: rhel version
-        """
-        repo_location = (
-            f'{settings.repos.ohsnap_repo_host}/api/releases/'
-            f'{self.satellite.version}/el{version}/{repo_name}/repo_file'
-        )
-        if repo_name in ('satellite', 'capsule'):
-            self.execute(f'curl -o /etc/yum.repos.d/{repo_name}.repo {repo_location}')
-        else:
-            raise ValueError("Invalid repo_name, must be of value satellite or capsule")
-
     def enable_repo(self, repo, force=False):
         """Enables specified Red Hat repository on the broker virtual machine.
         Does nothing if downstream capsule or satellite tools repo was passed.
@@ -1207,25 +1193,6 @@ class Capsule(ContentHost, CapsuleMixins):
         """Get capsule features"""
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
-    def register_to_dogfood(self, ak_type='satellite'):
-        dogfood_canonical_hostname = settings.repos.dogfood_repo_host.partition('//')[2]
-        # get hostname of dogfood machine
-        dig_result = self.execute(f'dig +short {dogfood_canonical_hostname}')
-        # the host name finishes with a dot, so last character is removed
-        dogfood_hostname = dig_result.stdout.split()[0][:-1]
-        dogfood = Satellite(dogfood_hostname)
-        self.install_katello_ca(satellite=dogfood)
-        # satellite version consist from x.y.z, we need only x.y
-        sat_release = '.'.join(self.version.split('.')[:2])
-        cmd_result = self.register_contenthost(
-            org=f'{settings.subscription.dogfood_org}',
-            activation_key=f'{ak_type}-{sat_release}-qa-rhel{self.os_version.major}',
-        )
-        if cmd_result.status != 0:
-            raise CapsuleHostError(
-                f'Error during registration, command output: {cmd_result.stdout}'
-            )
-
     def capsule_setup(self, sat_host=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
@@ -1382,6 +1349,13 @@ class Satellite(Capsule, SatelliteMixins):
             hostname=self.hostname,
             login=login,
         )
+
+    @property
+    def satellite(self):
+        """Use self when no other Satellite is set to avoid unecessary/incorrect instances"""
+        if not self._satellite:
+            return self
+        return self._satellite
 
     @cached_property
     def is_upstream(self):
