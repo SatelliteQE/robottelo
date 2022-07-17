@@ -2272,7 +2272,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(
         organization=[module_puppet_org],
         location=[module_puppet_loc],
     ).create()
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
         session.host.apply_action(
@@ -2324,7 +2324,7 @@ def test_positive_create_with_puppet_class(
     )
     host_template.create_missing()
 
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name='Any Location')
         host_name = create_fake_host(
@@ -2363,7 +2363,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(
     """
 
     hg_name = gen_string('alpha')
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
         session.hostgroup.create(
@@ -2442,7 +2442,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
             'lifecycle_environment_id': module_puppet_lce_library.id,
         },
     ).create()
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
         session.host.update(

@@ -40,7 +40,7 @@ def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_class):
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         # Create new config group
         session.configgroup.create({'name': name, 'classes.assigned': [module_puppet_class.name]})
         assert session.configgroup.search(name)[0]['Name'] == name
