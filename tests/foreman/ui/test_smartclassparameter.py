@@ -113,7 +113,7 @@ def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_classes, 
             ),
         },
     ]
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         assert session.sc_parameter.search(sc_param.parameter)[0]['Parameter'] == sc_param.parameter
         for data in data_list:
             session.sc_parameter.update(
@@ -211,7 +211,7 @@ def test_positive_create_matcher_attribute_priority(
     sc_param = sc_params_list.pop()
     override_value = gen_string('alphanumeric')
     override_value2 = "['<%= @host.domain %>', '<%= @host.mac %>']"
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
         session.sc_parameter.update(
@@ -314,7 +314,7 @@ def test_positive_create_matcher_avoid_duplicate(
     sc_param = sc_params_list.pop()
     override_value = '[80,90]'
     override_value2 = '[90,100]'
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
         session.sc_parameter.update(
@@ -389,7 +389,7 @@ def test_positive_update_matcher_from_attribute(
     param_default_value = gen_string('numeric').lstrip('0')
     override_value = gen_string('numeric').lstrip('0')
     new_override_value = gen_string('numeric').lstrip('0')
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
         session.sc_parameter.update(
@@ -459,7 +459,7 @@ def test_positive_impact_parameter_delete_attribute(
         name=hg_name, environment=module_env_search
     ).create()
     hostgroup.add_puppetclass(data={'puppetclass_id': module_puppet_classes[0].id})
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.sc_parameter.update(
             sc_param.parameter,
             {
@@ -530,7 +530,7 @@ def test_positive_hidden_value_in_attribute(
     sc_param = sc_params_list.pop()
     param_default_value = gen_string('alpha')
     host_override_value = gen_string('alpha')
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
         session.sc_parameter.update(

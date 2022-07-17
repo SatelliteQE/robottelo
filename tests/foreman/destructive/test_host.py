@@ -54,7 +54,7 @@ class TestHostCockpit:
 
         :parametrized: yes
         """
-        with class_target_sat.ui_session as session:
+        with class_target_sat.ui_session() as session:
             session.organization.select(org_name=class_org.name)
             session.location.select(loc_name='Any Location')
             kill_process = class_target_sat.execute('pkill -f cockpit-ws')

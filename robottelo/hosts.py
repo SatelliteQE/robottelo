@@ -9,7 +9,7 @@ from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
 import requests
-from broker import VMBroker
+from broker import Broker
 from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha
@@ -225,7 +225,7 @@ class ContentHost(Host, ContentHostMixins):
             )
         assert (
             # TODO read the kwarg name from settings too?
-            VMBroker()
+            Broker()
             .execute(
                 workflow=workflow_name,
                 vm_operation=vm_operation,

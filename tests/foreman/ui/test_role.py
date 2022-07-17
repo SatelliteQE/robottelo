@@ -478,7 +478,7 @@ def test_positive_create_with_sc_parameter_permission(session_puppet_enabled_sat
     role_name = gen_string('alpha')
     resource_type = 'Smart class parameter'
     permissions = ['view_external_parameters', 'edit_external_parameters']
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.role.create({'name': role_name})
         assert session.role.search(role_name)[0]['Name'] == role_name
         session.filter.create(
