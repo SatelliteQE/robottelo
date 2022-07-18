@@ -578,7 +578,7 @@ def test_positive_matcher_field_highlight(session):
 
 @pytest.mark.tier3
 def test_positive_configure_cloud_connector(
-    session, target_sat, subscribe_satellite, fixture_enable_rhc_repos
+    session, target_sat, func_subscribe_satellite, fixture_enable_rhc_repos
 ):
     """Install Cloud Connector through WebUI button
 
