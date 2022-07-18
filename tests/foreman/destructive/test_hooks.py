@@ -6,9 +6,9 @@
 
 :CaseLevel: System
 
-:CaseComponent: HooksPlugin
+:CaseComponent: Webhooks
 
-:Assignee: rdrazny
+:Assignee: gsulliva
 
 :TestType: Functional
 
