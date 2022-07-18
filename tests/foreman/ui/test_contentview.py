@@ -3797,3 +3797,58 @@ def test_positive_no_duplicate_key_violate_unique_constraint_using_filters(
         assert len(packages_check['rpm_packages']['table']) == 2
         assert packages_check['rpm_packages']['table'][0]['Name'] == packages[2]
         assert packages_check['rpm_packages']['table'][1]['Name'] == packages[3]
+
+
+@pytest.mark.tier2
+def test_positive_inc_publish_cv(session, module_org):
+    """Ensure that the content count gets updated when doing incremental update
+
+    :BZ: 2032098
+
+    :id: 611693c5-bfa5-462a-bd78-fa624af7ff75
+
+    :setup:
+        1. Create custom repo and sync
+        2. Create a cv and add the repo
+        3. Create a filter to exclude a package
+        4. Publish cv
+        5. Incrementally update the cv with an errata
+
+    :customerscenario: true
+
+    :expectedresults: Content count is updated as expected
+
+    :CaseImportance: High
+    """
+    package_name = 'bear'
+    product = entities.Product(organization=module_org).create()
+    yum_repo_name = gen_string('alpha')
+    filter_name = gen_string('alpha')
+    yum_repo = entities.Repository(
+        name=yum_repo_name,
+        url=settings.repos.yum_1.url,
+        content_type=REPO_TYPE['yum'],
+        product=product,
+    ).create()
+    yum_repo.sync()
+    cv = entities.ContentView(organization=module_org, repository=[yum_repo]).create()
+    with session:
+        session.contentviewfilter.create(
+            cv.name,
+            {
+                'name': filter_name,
+                'content_type': FILTER_CONTENT_TYPE['package'],
+                'inclusion_type': FILTER_TYPE['exclude'],
+            },
+        )
+        session.contentviewfilter.add_package_rule(
+            cv.name, filter_name, package_name, None, ('Equal To', '4.1-1')
+        )
+        session.contentview.publish(cv.name)
+        cvv = entities.ContentView(id=cv.id).read().version[0].read()
+        assert cvv.package_count == 31
+        ContentView.version_incremental_update(
+            {'content-view-version-id': cvv.id, 'errata-ids': settings.repos.yum_1.errata[0]}
+        )
+        cvv = entities.ContentView(id=cv.id).read().version[1].read()
+        assert cvv.package_count == 32
