@@ -54,7 +54,6 @@ CaseComponent:
     - ForemanMaintain
     - Hammer
     - Hammer-Content
-    - HooksPlugin
     - HostCollections
     - HostForm
     - HostGroup
