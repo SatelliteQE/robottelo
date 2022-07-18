@@ -149,8 +149,12 @@ class ContentHost(Host, ContentHostMixins):
     def nailgun_host(self):
         """If this host is subscribed, provide access to its nailgun object"""
         if self.subscribed:
-            host_list = self.satellite.api.Host().search(query={'search': self.hostname})
-            return None if not host_list else host_list[0]
+            try:
+                host_list = self.satellite.api.Host().search(query={'search': self.hostname})[0]
+            except Exception as err:
+                logger.error(f'Failed to get nailgun host for {self.hostname}: {err}')
+                host_list = None
+            return host_list
 
     @property
     def subscribed(self):
