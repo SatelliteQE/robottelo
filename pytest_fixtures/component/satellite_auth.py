@@ -155,6 +155,7 @@ def auth_source_open_ldap(ldap_cleanup, module_org, module_location, open_ldap_d
     ).create()
 
 
+@pytest.fixture
 def ldap_auth_source(
     request,
     module_org,
