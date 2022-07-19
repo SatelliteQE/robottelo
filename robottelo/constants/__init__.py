@@ -1852,7 +1852,7 @@ BOOKMARK_ENTITIES = [
     # {'name': 'Subscriptions', 'controller': 'subscriptions', 'skip_for_ui': True},
     {'name': 'Product', 'controller': 'katello_products'},
     {'name': 'Repository', 'controller': 'katello_repositories', 'skip_for_ui': True},
-    {'name': 'ContentCredential', 'controller': 'katello_gpg_keys'},
+    {'name': 'ContentCredential', 'controller': 'katello_content_credentials'},
     {'name': 'SyncPlan', 'controller': 'katello_sync_plans'},
     {'name': 'ContentView', 'controller': 'katello_content_views'},
     {'name': 'Errata', 'controller': 'katello_errata', 'skip_for_ui': True},
