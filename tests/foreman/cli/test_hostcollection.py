@@ -157,7 +157,7 @@ def test_positive_update_to_unlimited_hosts(module_org):
         {
             'name': host_collection['name'],
             'organization-id': module_org.id,
-            'unlimited-hosts': True,
+            'unlimited-hosts': "True",
         }
     )
     result = HostCollection.info(
