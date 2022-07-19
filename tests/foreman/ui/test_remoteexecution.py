@@ -79,12 +79,13 @@ def test_positive_run_default_job_template_by_ip(
     with session:
         session.location.select(smart_proxy_location.name)
         assert session.host.search(hostname)[0]['Name'] == hostname
+        command = 'ls'
         job_status = session.host.schedule_remote_job(
             [hostname],
             {
                 'job_category': 'Commands',
                 'job_template': 'Run Command - SSH Default',
-                'template_content.command': 'ls',
+                'template_content.command': command,
                 'advanced_options.execution_order': 'Randomized',
                 'schedule': 'Execute now',
             },
@@ -93,10 +94,13 @@ def test_positive_run_default_job_template_by_ip(
         assert job_status['overview']['execution_order'] == 'Execution order: randomized'
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
+
         # check status also on the job dashboard
+        job_name = f'Run {command}'
         jobs = session.dashboard.read('LatestJobs')['jobs']
-        assert len(jobs) == 1
-        assert jobs[0]['State'] == 'success'
+        success_jobs = [job for job in jobs if job['State'] == 'succeeded']
+        assert len(success_jobs) > 0
+        assert job_name in [job['Name'] for job in success_jobs]
 
 
 @pytest.mark.tier3
