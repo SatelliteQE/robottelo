@@ -73,7 +73,7 @@ def golden_ticket_host_setup():
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session):
+def test_positive_end_to_end(session, target_sat):
     """Upload a manifest with minimal input parameters, attempt to
     delete it with checking the warning message and hit 'Cancel' button after than delete it.
 
@@ -86,8 +86,14 @@ def test_positive_end_to_end(session):
             message which warns user about downsides and consequences of manifest deletion.
         4. When hitting cancel the manifest was not deleted.
         5. When deleting and confirming deletion, the manifest was deleted successfully.
+        6. When reimporting manifest, the manifest is reimported successfully and the candlepin log
+            shows no error.
 
-    :BZ: 1266827
+    :BZ: 1266827, 2066899, 2076684
+
+    :SubComponent: Candlepin
+
+    :customerscenario: true
 
     :CaseImportance: Critical
     """
@@ -134,6 +140,16 @@ def test_positive_end_to_end(session):
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound']
         )
         assert not session.subscription.has_manifest
+        # reimport manifest
+        session.subscription.add_manifest(
+            temporary_local_manifest_path,
+            ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound'],
+        )
+        assert session.subscription.has_manifest
+        results = target_sat.execute(
+            'grep -E "NullPointerException|CandlepinError" /var/log/candlepin/candlepin.log'
+        )
+        assert results.stdout == ''
 
 
 @pytest.mark.tier2
