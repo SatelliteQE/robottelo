@@ -773,7 +773,7 @@ def test_errata_installation_with_swidtags(
         }
     )
     module_repos_collection_with_manifest.setup_virtual_machine(
-        rhel8_contenthost, target_sat, install_katello_agent=False
+        rhel8_contenthost, install_katello_agent=False
     )
 
     # install older module stream

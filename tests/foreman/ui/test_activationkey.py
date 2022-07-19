@@ -103,7 +103,7 @@ def test_positive_end_to_end_register(session, repos_collection, rhel7_contentho
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     ak_name = repos_collection.setup_content_data['activation_key']['name']
 
-    repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
     with session:
         session.organization.select(org.name)
         chost = session.contenthost.read(rhel7_contenthost.hostname, widget_names='details')
