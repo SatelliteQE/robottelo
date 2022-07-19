@@ -29,7 +29,7 @@ pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.destructive]
 
 
 def test_positive_delete_by_name(
-    module_module_subscribe_satellite,
+    module_subscribe_satellite,
     module_enroll_idm_and_configure_external_auth,
     configure_realm,
     module_fake_proxy,
