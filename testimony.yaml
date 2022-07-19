@@ -147,6 +147,12 @@ Requirement:
     required: true
 Setup: {}
 Steps: {}
+SubComponent:
+    casesensitive: true
+    choices:
+    - Candlepin
+    - Pulp
+    type: choice
 Subtype1: {}
 Teardown: {}
 TestType:
