@@ -126,7 +126,7 @@ def erratatype_vm(module_repos_collection_with_setup, target_sat):
     with Broker(
         nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}
     ) as client:
-        module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
+        module_repos_collection_with_setup.setup_virtual_machine(client)
         yield client
 
 
@@ -144,7 +144,7 @@ def errata_status_installable():
 @pytest.fixture(scope='function')
 def vm(module_repos_collection_with_setup, rhel7_contenthost, target_sat):
     """Virtual machine registered in satellite"""
-    module_repos_collection_with_setup.setup_virtual_machine(rhel7_contenthost, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(rhel7_contenthost)
     rhel7_contenthost.add_rex_key(satellite=target_sat)
     yield rhel7_contenthost
 
@@ -289,7 +289,7 @@ def test_content_host_errata_page_pagination(session, org, lce, target_sat):
     with Broker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
         client.add_rex_key(satellite=target_sat)
         # Add repo and install packages that need errata
-        repos_collection.setup_virtual_machine(client, target_sat)
+        repos_collection.setup_virtual_machine(client)
         assert _install_client_package(client, pkgs)
         with session:
             # Go to content host's Errata tab and read the page's pagination widgets
@@ -460,7 +460,7 @@ def test_positive_apply_for_all_hosts(
     ) as clients:
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(
-                client, target_sat, install_katello_agent=False
+                client, install_katello_agent=False
             )
             client.add_rex_key(satellite=target_sat)
             assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE)
@@ -559,7 +559,7 @@ def test_positive_filter_by_environment(
     ) as clients:
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(
-                client, target_sat, install_katello_agent=False
+                client, install_katello_agent=False
             )
             assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
         # Promote the latest content view version to a new lifecycle environment
@@ -925,7 +925,7 @@ def test_positive_filtered_errata_status_installable_param(
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     with Broker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
-        repos_collection.setup_virtual_machine(client, target_sat)
+        repos_collection.setup_virtual_machine(client)
         assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
         # Adding content view filter and content view filter rule to exclude errata for the
         # installed package.
@@ -1028,7 +1028,7 @@ def test_content_host_errata_search_commands(
         nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}, _count=2
     ) as clients:
         for client in clients:
-            module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
+            module_repos_collection_with_setup.setup_virtual_machine(client)
         # Install pkg walrus-0.71-1.noarch to create need for RHSA on client 1
         assert _install_client_package(
             clients[0], FAKE_1_CUSTOM_PACKAGE, errata_applicability=False

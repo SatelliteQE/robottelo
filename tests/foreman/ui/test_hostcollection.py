@@ -67,9 +67,7 @@ def vm_content_hosts(smart_proxy_location, module_repos_collection, module_targe
     distro = module_repos_collection.distro
     with Broker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
-            module_repos_collection.setup_virtual_machine(
-                client, module_target_sat, install_katello_agent=False
-            )
+            module_repos_collection.setup_virtual_machine(client, install_katello_agent=False)
             client.add_rex_key(satellite=module_target_sat)
             update_vm_host_location(client, smart_proxy_location.id)
         yield clients
@@ -83,7 +81,7 @@ def vm_content_hosts_module_stream(
     with Broker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
             module_repos_collection_with_manifest.setup_virtual_machine(
-                client, module_target_sat, install_katello_agent=False
+                client, install_katello_agent=False
             )
             client.add_rex_key(satellite=module_target_sat)
             update_vm_host_location(client, smart_proxy_location.id)

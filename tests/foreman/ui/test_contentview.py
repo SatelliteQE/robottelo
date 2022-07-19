@@ -2631,7 +2631,7 @@ def test_positive_subscribe_system_with_custom_content(
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
     assert rhel7_contenthost.subscribed
     with session:
         session.organization.select(org.name)
@@ -2936,7 +2936,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
     entities.ActivationKey(
         id=content_data['activation_key']['id'], content_view=composite_cv
     ).update(['content_view'])
-    repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
     result = rhel7_contenthost.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     with session:

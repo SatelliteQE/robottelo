@@ -68,7 +68,7 @@ def module_org():
 @pytest.fixture
 def vm(module_repos_collection_with_manifest, rhel7_contenthost, target_sat):
     """Virtual machine registered in satellite"""
-    module_repos_collection_with_manifest.setup_virtual_machine(rhel7_contenthost, target_sat)
+    module_repos_collection_with_manifest.setup_virtual_machine(rhel7_contenthost)
     rhel7_contenthost.add_rex_key(target_sat)
     yield rhel7_contenthost
 
@@ -77,7 +77,7 @@ def vm(module_repos_collection_with_manifest, rhel7_contenthost, target_sat):
 def vm_module_streams(module_repos_collection_with_manifest, rhel8_contenthost, target_sat):
     """Virtual machine registered in satellite without katello-agent installed"""
     module_repos_collection_with_manifest.setup_virtual_machine(
-        rhel8_contenthost, target_sat, install_katello_agent=False
+        rhel8_contenthost, install_katello_agent=False
     )
     rhel8_contenthost.add_rex_key(satellite=target_sat)
     yield rhel8_contenthost
