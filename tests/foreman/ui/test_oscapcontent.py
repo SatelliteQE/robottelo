@@ -20,10 +20,10 @@ import os
 
 import pytest
 
+from robottelo.constants import DataFile
 from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
-from robottelo.helpers import get_data_file
 
 
 @pytest.fixture(scope='module')
@@ -145,7 +145,9 @@ def test_external_disa_scap_content(session, default_org, default_location):
         session.oscapcontent.create(
             {
                 'file_upload.title': content_name,
-                'file_upload.scap_file': get_data_file('U_RHEL_7_V3R6_STIG_SCAP_1-2_Benchmark.xml'),
+                'file_upload.scap_file': DataFile.DATA_DIR.joinpath(
+                    'U_RHEL_7_V3R6_STIG_SCAP_1-2_Benchmark.xml'
+                ),
             }
         )
         assert session.oscapcontent.search(content_name)[0]['Title'] == content_name

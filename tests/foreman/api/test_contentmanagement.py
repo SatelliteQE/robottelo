@@ -30,11 +30,11 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants.repos import ANSIBLE_GALAXY
+from robottelo.constants import DataFile
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.content_info import get_repomd
 from robottelo.content_info import get_repomd_revision
 from robottelo.helpers import form_repo_url
-from robottelo.helpers import get_data_file
 from robottelo.helpers import md5_by_url
 
 
@@ -216,8 +216,11 @@ class TestSatelliteContentManagement:
         packages = entities.Package(repository=repo).search(query={'per_page': '1000'})
         repo.remove_content(data={'ids': [package.id for package in packages]})
 
-        with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
-            repo.upload_content(files={'content': handle})
+        repo.upload_content(
+            files={
+                'content': DataFile.RPM_TO_UPLOAD.read_bytes()
+            }
+        )
 
         repo = repo.read()
         assert repo.content_counts['rpm'] == 1
@@ -361,8 +364,11 @@ class TestCapsuleContentManagement:
         cv = entities.ContentView(organization=function_org, repository=[repo]).create()
 
         # Upload custom content into the repo
-        with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
-            repo.upload_content(files={'content': handle})
+        repo.upload_content(
+            files={
+                'content': DataFile.RPM_TO_UPLOAD.read_bytes()
+            }
+        )
 
         assert repo.read().content_counts['rpm'] == 1
 
@@ -527,8 +533,11 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Upload custom content into the repo
-        with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
-            repo.upload_content(files={'content': handle})
+        repo.upload_content(
+            files={
+                'content': DataFile.RPM_TO_UPLOAD.read_bytes()
+            }
+        )
 
         assert repo.read().content_counts['rpm'] == 1
 
@@ -546,8 +555,11 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Upload more content to the repository
-        with open(get_data_file(constants.SRPM_TO_UPLOAD), 'rb') as handle:
-            repo.upload_content(files={'content': handle})
+        repo.upload_content(
+            files={
+                'content': DataFile.SRPM_TO_UPLOAD.read_bytes()
+            }
+        )
 
         assert repo.read().content_counts['rpm'] == 2
 
@@ -699,8 +711,11 @@ class TestCapsuleContentManagement:
         assert lce_revision_capsule == new_lce_revision_capsule
 
         # Update a repository with 1 new rpm
-        with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
-            repo.upload_content(files={'content': handle})
+        repo.upload_content(
+            files={
+                'content': DataFile.RPM_TO_UPLOAD.read_bytes()
+            }
+        )
 
         # Publish and promote the repository
         repo = repo.read()
@@ -1319,8 +1334,11 @@ class TestCapsuleContentManagement:
         repo.sync()
 
         # Upload one more iso file
-        with open(get_data_file(constants.FAKE_FILE_NEW_NAME), 'rb') as handle:
-            repo.upload_content(files={'content': handle})
+        repo.upload_content(
+            files={
+                'content': DataFile.FAKE_FILE_NEW_NAME.read_bytes()
+            }
+        )
 
         # Associate LCE with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(

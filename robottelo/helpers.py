@@ -1,7 +1,6 @@
 """Several helper methods and functions."""
 import base64
 import contextlib
-import os
 import random
 import re
 from urllib.parse import urljoin  # noqa
@@ -31,25 +30,6 @@ def get_nailgun_config(user=None):
     """
     creds = (user.login, user.passwd) if user else get_credentials()
     return ServerConfig(get_url(), creds, verify=False)
-
-
-def get_data_file(filename):
-    """Returns correct path of file from data folder."""
-    path = os.path.realpath(os.path.join(os.path.dirname(__file__), os.pardir))
-    data_file = os.path.join(path, "tests", "foreman", "data", filename)
-    if os.path.isfile(data_file):
-        return data_file
-    else:
-        raise DataFileError(f'Could not locate the data file "{data_file}"')
-
-
-def read_data_file(filename):
-    """
-    Read the contents of data file
-    """
-    absolute_file_path = get_data_file(filename)
-    with open(absolute_file_path) as file_contents:
-        return file_contents.read()
 
 
 def md5_by_url(url, hostname=None):

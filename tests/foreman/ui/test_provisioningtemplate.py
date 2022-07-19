@@ -19,16 +19,14 @@
 import pytest
 from airgun.session import Session
 from nailgun import entities
-
+from robottelo.constants import DataFile
 from robottelo.config import settings
-from robottelo.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.datafactory import gen_string
-from robottelo.helpers import read_data_file
 
 
 @pytest.fixture(scope='module')
 def template_data():
-    return read_data_file(OS_TEMPLATE_DATA_FILE)
+    return DataFile.OS_TEMPLATE_DATA_FILE.read_bytes()
 
 
 @pytest.fixture(scope='function', autouse=False)

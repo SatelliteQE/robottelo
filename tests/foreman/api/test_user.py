@@ -22,6 +22,7 @@ http://<satellite-host>/apidoc/v2/users.html
 """
 import json
 import re
+from robottelo.constants import DataFile
 
 import pytest
 from nailgun import entities
@@ -40,7 +41,6 @@ from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
-from robottelo.helpers import read_data_file
 from robottelo.utils import gen_ssh_keypairs
 
 
@@ -457,7 +457,7 @@ class TestSshKeyInUser:
     def create_user(self):
         """Create an user and import different keys from data json file"""
         user = entities.User().create()
-        data_keys = json.loads(read_data_file('sshkeys.json'))
+        data_keys = json.loads(DataFile.SSH_KEYS_JSON.read_bytes())
         return dict(user=user, data_keys=data_keys)
 
     @pytest.mark.tier1

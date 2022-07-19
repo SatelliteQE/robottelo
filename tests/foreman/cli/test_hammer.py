@@ -19,6 +19,7 @@
 import io
 import json
 import re
+from robottelo.constants import DataFile
 
 import pytest
 from fauxfactory import gen_string
@@ -28,10 +29,11 @@ from robottelo.cli.admin import Admin
 from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
-from robottelo.helpers import read_data_file
 
 
-HAMMER_COMMANDS = json.loads(read_data_file('hammer_commands.json'))
+HAMMER_COMMANDS = json.loads(
+    DataFile.HAMMER_COMMANDS_JSON.read_bytes()
+)
 
 pytestmark = [pytest.mark.tier1]
 

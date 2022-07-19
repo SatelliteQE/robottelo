@@ -25,7 +25,7 @@ import pytest
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
-
+from robottelo.constants import DataFile
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import wait_for_tasks
@@ -40,7 +40,6 @@ from robottelo.constants import VALID_GPG_KEY_BETA_FILE
 from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.datafactory import gen_string
-from robottelo.helpers import read_data_file
 from robottelo.hosts import get_sat_version
 
 
@@ -484,10 +483,12 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
     new_repo_name = gen_string('alphanumeric')
     new_checksum_type = 'sha1'
     gpg_key = entities.GPGKey(
-        content=read_data_file(VALID_GPG_KEY_FILE), organization=module_org
+        content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
+        organization=module_org,
     ).create()
     new_gpg_key = entities.GPGKey(
-        content=read_data_file(VALID_GPG_KEY_BETA_FILE), organization=module_org
+        content=DataFile.VALID_GPG_KEY_BETA_FILE.read_bytes(),
+        organization=module_org,
     ).create()
     with session:
         session.repository.create(

@@ -26,8 +26,7 @@ from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants import ZOO_CUSTOM_GPG_KEY
-from robottelo.helpers import read_data_file
+from robottelo.constants import DataFile
 
 
 @pytest.fixture(scope='module')
@@ -212,7 +211,7 @@ def test_positive_delete(module_org, module_product):
 
     :CaseImportance: Critical
     """
-    key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
+    key_content = DataFile.ZOO_CUSTOM_GPG_KEY.read_bytes()
     gpgkey = entities.GPGKey(content=key_content, organization=module_org).create()
     # Creates new repository with GPGKey
     repo = entities.Repository(

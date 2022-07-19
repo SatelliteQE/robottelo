@@ -35,8 +35,7 @@ from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.helpers import read_data_file
-
+from robottelo.constants import DataFile
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
@@ -99,7 +98,8 @@ def test_positive_create_with_gpg(module_org):
     :CaseLevel: Integration
     """
     gpg_key = entities.GPGKey(
-        content=read_data_file(VALID_GPG_KEY_FILE), organization=module_org
+        content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
+        organization=module_org,
     ).create()
     product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
     assert product.gpg_key.id == gpg_key.id
@@ -228,13 +228,15 @@ def test_positive_update_gpg(module_org):
     """
     # Create a product and make it point to a GPG key.
     gpg_key_1 = entities.GPGKey(
-        content=read_data_file(VALID_GPG_KEY_FILE), organization=module_org
+        content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
+        organization=module_org,
     ).create()
     product = entities.Product(gpg_key=gpg_key_1, organization=module_org).create()
 
     # Update the product and make it point to a new GPG key.
     gpg_key_2 = entities.GPGKey(
-        content=read_data_file(VALID_GPG_KEY_BETA_FILE), organization=module_org
+        content=DataFile.VALID_GPG_KEY_BETA_FILE.read_bytes(),
+        organization=module_org,
     ).create()
     product.gpg_key = gpg_key_2
     product = product.update()

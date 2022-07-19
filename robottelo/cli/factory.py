@@ -72,7 +72,6 @@ from robottelo.datafactory import valid_cron_expressions
 from robottelo.decorators import cacheable
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
-from robottelo.helpers import update_dictionary
 from robottelo.logging import logger
 
 

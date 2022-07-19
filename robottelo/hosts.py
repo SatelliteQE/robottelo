@@ -33,7 +33,6 @@ from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import SATELLITE_VERSION
-from robottelo.helpers import get_data_file
 from robottelo.helpers import InstallerCommand
 from robottelo.helpers import validate_ssh_pub_key
 from robottelo.host_helpers import CapsuleMixins
@@ -1088,7 +1087,7 @@ class ContentHost(Host, ContentHostMixins):
             'certs.sh',
             'extensions.txt',
         ]:
-            self.session.sftp_write(get_data_file(file), f'/root/{file}')
+            self.session.sftp_write(PurePath('tests/foreman/data').joinpath(file), f'/root/{file}')
         self.execute('echo 100001 > serial')
         self.execute('bash generate-ca.sh')
         result = self.execute(f'yes | bash generate-crt.sh {self.hostname}')
