@@ -19,12 +19,11 @@
 import pytest
 from fabric.api import execute
 from fabric.api import run
+from nailgun.entity_mixins import call_entity_method_with_timeout
 from upgrade.helpers.tasks import wait_untill_capsule_sync
 from upgrade_tests.helpers.scenarios import rpm1
 from upgrade_tests.helpers.scenarios import rpm2
 
-from robottelo.api.utils import call_entity_method_with_timeout
-from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
 from robottelo.upgrade_utility import create_repo
@@ -92,7 +91,7 @@ class TestCapsuleSync:
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
         content_view.publish()
-        promote(content_view.read().version[0], ak_env.id)
+        content_view.read().version[0].promote(data={'environment_ids': ak_env.id})
         content_view_env_id = [env.id for env in content_view.read().environment]
         assert ak_env.id in content_view_env_id
 
@@ -203,7 +202,7 @@ class TestCapsuleSyncNewRepo:
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
         content_view.publish()
-        promote(content_view.read().version[0], ak_env.id)
+        content_view.read().version[0].promote(data={'environment_ids': ak_env.id})
         content_view_env = [env.id for env in content_view.read().environment]
         assert ak_env.id in content_view_env
 

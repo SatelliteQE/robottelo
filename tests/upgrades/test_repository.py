@@ -29,7 +29,6 @@ from upgrade_tests.helpers.scenarios import rpm1
 from upgrade_tests.helpers.scenarios import rpm2
 
 from robottelo.api.utils import create_sync_custom_repo
-from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.logging import logger
 from robottelo.upgrade_utility import create_repo
@@ -163,7 +162,7 @@ class TestScenarioCustomRepoCheck:
         repo.sync()
 
         content_view = publish_content_view(org=org, repolist=repo)
-        promote(content_view.version[0], lce.id)
+        content_view.version[0].promote(data={'environment_ids': lce.id})
 
         result = target_sat.execute(
             f'ls /var/lib/pulp/published/yum/https/repos/{org.label}/{lce.name}/'
@@ -246,7 +245,7 @@ class TestScenarioCustomRepoCheck:
         content_view.publish()
 
         content_view = target_sat.api.ContentView(name=content_view_name).search()[0]
-        promote(content_view.version[-1], lce_id)
+        content_view.version[-1].promote(data={'environment_ids': lce_id})
 
         result = target_sat.execute(
             'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'

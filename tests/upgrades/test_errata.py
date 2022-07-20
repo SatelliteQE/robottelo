@@ -19,13 +19,13 @@
 import pytest
 from fabric.api import execute
 from nailgun import entities
+from nailgun.entity_mixins import call_entity_method_with_timeout
 from upgrade.helpers.docker import docker_execute_command
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import dockerize
 from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
 
-from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES

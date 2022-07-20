@@ -20,7 +20,6 @@ import pytest
 from nailgun import entities
 
 from robottelo import manifests
-from robottelo.api.utils import promote
 from robottelo.cli.host import Host
 from robottelo.cli.package import Package
 from robottelo.config import settings
@@ -51,7 +50,7 @@ def rh_repo_cv(module_gt_manifest_org, rh_repo_gt_manifest, module_lce):
     rh_repo_cv.publish()
     rh_repo_cv = rh_repo_cv.read()
     # promote the last version published into the module lce
-    promote(rh_repo_cv.version[-1], environment_id=module_lce.id)
+    rh_repo_cv.version[-1].promote(data={'environment_ids': module_lce.id, 'force': False})
     return rh_repo_cv
 
 
