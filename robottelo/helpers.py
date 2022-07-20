@@ -32,28 +32,6 @@ def get_nailgun_config(user=None):
     return ServerConfig(get_url(), creds, verify=False)
 
 
-def md5_by_url(url, hostname=None):
-    """Returns md5 checksum of a file, accessible via URL. Useful when you want
-    to calculate checksum but don't want to deal with storing a file and
-    removing it afterwards.
-
-    :param str url: URL of a file.
-    :param str hostname: Hostname or IP address of the remote host. If
-         ``None`` the hostname will be get from ``main.server.hostname`` config
-    :return str: string containing md5 checksum.
-    :raises: AssertionError: If non-zero return code received (file couldn't be
-        reached or calculation was not successful).
-    """
-    filename = url.split('/')[-1]
-    result = ssh.command(
-        f'wget -qO - {url} | tee {filename} | md5sum | awk \'{{print $1}}\'',
-        hostname=hostname,
-    )
-    if result.status != 0:
-        raise AssertionError(f'Failed to calculate md5 checksum of {filename}')
-    return result.stdout
-
-
 def validate_ssh_pub_key(key):
     """Validates if a string is in valid ssh pub key format
 

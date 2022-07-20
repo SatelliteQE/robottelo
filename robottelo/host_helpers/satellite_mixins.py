@@ -84,6 +84,24 @@ class ContentInfo:
 
         return match.group(0)
 
+    def md5_by_url(self, url):
+        """Returns md5 checksum of a file, accessible via URL. Useful when you want
+        to calculate checksum but don't want to deal with storing a file and
+        removing it afterwards.
+
+        :param str url: URL of a file.
+        :return str: string containing md5 checksum.
+        :raises: AssertionError: If non-zero return code received (file couldn't be
+            reached or calculation was not successful).
+        """
+        filename = url.split('/')[-1]
+        result = self.execute(
+            f'wget -qO - {url} | tee {filename} | md5sum | awk \'{{print $1}}\''
+        )
+        if result.status != 0:
+            raise AssertionError(f'Failed to calculate md5 checksum of {filename}')
+        return result.stdout
+
 
 class Factories:
     """Mixin that provides attributes for each factory type"""

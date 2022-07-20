@@ -35,7 +35,6 @@ from robottelo.content_info import get_repo_files_by_url
 from robottelo.content_info import get_repomd
 from robottelo.content_info import get_repomd_revision
 from robottelo.helpers import form_repo_url
-from robottelo.helpers import md5_by_url
 
 
 class TestSatelliteContentManagement:
@@ -885,9 +884,9 @@ class TestCapsuleContentManagement:
         assert len(caps_files) == packages_count
 
         # Download a package from the Capsule and get its md5 checksum
-        published_package_md5 = md5_by_url(f'{caps_repo_url}/{package}')
+        published_package_md5 = target_sat.md5_by_url(f'{caps_repo_url}/{package}')
         # Get md5 checksum of source package
-        package_md5 = md5_by_url(f'{repo_url}/{package}')
+        package_md5 = target_sat.md5_by_url(f'{repo_url}/{package}')
         # Assert checksums are matching
         assert package_md5 == published_package_md5
 
@@ -1088,8 +1087,8 @@ class TestCapsuleContentManagement:
 
         # Check kickstart specific files
         for file in constants.KICKSTART_CONTENT:
-            sat_file = md5_by_url(f'{target_sat.url}/{url_base}/{file}')
-            caps_file = md5_by_url(f'{module_capsule_configured.url}/{url_base}/{file}')
+            sat_file = target_sat.md5_by_url(f'{target_sat.url}/{url_base}/{file}')
+            caps_file = target_sat.md5_by_url(f'{module_capsule_configured.url}/{url_base}/{file}')
             assert sat_file == caps_file
 
         # Check packages
@@ -1390,6 +1389,6 @@ class TestCapsuleContentManagement:
         assert sat_files == caps_files
 
         for file in sat_files:
-            sat_file = md5_by_url(f'{sat_repo_url}{file}')
-            caps_file = md5_by_url(f'{caps_repo_url}{file}')
+            sat_file = target_sat.md5_by_url(f'{sat_repo_url}{file}')
+            caps_file = target_sat.md5_by_url(f'{caps_repo_url}{file}')
             assert sat_file == caps_file
