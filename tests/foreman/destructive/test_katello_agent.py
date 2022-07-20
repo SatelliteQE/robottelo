@@ -60,7 +60,7 @@ def katello_agent_client(sat_with_katello_agent, rhel_contenthost):
     yield {'client': rhel_contenthost, 'host_info': host_info, 'sat': sat_with_katello_agent}
 
 
-@pytest.mark.rhel_ver_list([6, 7, 8, 9])
+@pytest.mark.rhel_ver_match(r'[\d]+')
 def test_positive_apply_errata(katello_agent_client):
     """Apply errata on a host
 
@@ -88,7 +88,7 @@ def test_positive_apply_errata(katello_agent_client):
     assert client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}').status == 0
 
 
-@pytest.mark.rhel_ver_list([6, 7, 8, 9])
+@pytest.mark.rhel_ver_match(r'[\d]+')
 def test_positive_install_and_remove_package(katello_agent_client):
     """Install and remove a package on a host remotely
 
@@ -113,7 +113,7 @@ def test_positive_install_and_remove_package(katello_agent_client):
     assert client.run(f'rpm -q {constants.FAKE_0_CUSTOM_PACKAGE_NAME}').status != 0
 
 
-@pytest.mark.rhel_ver_list([6, 7, 8, 9])
+@pytest.mark.rhel_ver_match(r'[\d]+')
 def test_positive_upgrade_package(katello_agent_client):
     """Upgrade a package on a host remotely
 
@@ -135,7 +135,7 @@ def test_positive_upgrade_package(katello_agent_client):
     assert client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}').status == 0
 
 
-@pytest.mark.rhel_ver_list([6, 7, 8, 9])
+@pytest.mark.rhel_ver_match(r'[\d]+')
 def test_positive_upgrade_packages_all(katello_agent_client):
     """Upgrade all packages on a host remotely
 
@@ -155,7 +155,7 @@ def test_positive_upgrade_packages_all(katello_agent_client):
     assert client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}').status == 0
 
 
-@pytest.mark.rhel_ver_list([6, 7, 8, 9])
+@pytest.mark.rhel_ver_match(r'[\d]+')
 def test_positive_install_and_remove_package_group(katello_agent_client):
     """Install and remove a package group on a host remotely
 
