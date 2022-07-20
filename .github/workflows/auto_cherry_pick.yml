@@ -2,14 +2,16 @@
 name: auto_cherry_pick_commits
 
 on:
-  push
+  pull_request:
+    types:
+      - closed
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   branch-matrix:
-    if: contains(github.event.pull_request.labels.*.name, 'CherryPick')
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
     name: Generate a branch matrix to apply cherrypicks
     runs-on: ubuntu-latest
     outputs:
@@ -21,7 +23,7 @@ jobs:
       - id: set-matrix
         run: echo "::set-output name=branches::$(git branch -rl --sort=-authordate 'origin/6.*.z' --format='%(refname:lstrip=-1)' | head -n2 | jq -cnR '[inputs | select(length>0)]')"
   auto_cherry_picking:
-    if: contains(github.event.pull_request.labels.*.name, 'CherryPick')
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
     name: Auto Cherry picking to branches
     needs: branch-matrix
     runs-on: ubuntu-latest
