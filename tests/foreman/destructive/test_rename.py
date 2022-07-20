@@ -71,6 +71,11 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
     medium_path = f'http://{old_hostname}/testpath-{gen_string("alpha")}/os/'
     medium = module_target_sat.api.Media(organization=[module_org], path_=medium_path).create()
     repo = module_target_sat.api.Repository(product=module_product, name='testrepo').create()
+    # create /etc/hosts entry to pass s-c-h validation
+    sat_ip = module_target_sat.execute(
+        "ip addr show eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1"
+    ).stdout.strip()
+    module_target_sat.execute(f'echo "{sat_ip} {old_hostname} {new_hostname}" >> /etc/hosts')
     result = module_target_sat.execute(
         f'satellite-change-hostname {new_hostname} -y -u {username} -p {password}',
         timeout=1200000,
@@ -90,12 +95,7 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
     )
     assert result.status == 0, 'internal capsule not renamed correctly'
     assert hammer.parse_json(result.stdout)['url'] == f"https://{new_hostname}:9090"
-    # check old consumer certs were deleted
-    result = module_target_sat.execute(f'rpm -qa | grep ^{old_hostname}')
-    assert result.status == 1, 'old consumer certificates not removed'
-    # check new consumer certs were created
-    result = module_target_sat.execute(f'rpm -qa | grep ^{new_hostname}')
-    assert result.status == 0, 'new consumer certificates not created'
+
     # check if installation media paths were updated
     result = module_target_sat.execute(
         f'hammer -u {username} -p {password} --output json medium info --id {medium.id}'
@@ -118,7 +118,7 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
 
     # check for any other occurences of old hostname
     result = module_target_sat.execute(f'grep " {old_hostname}" /etc/* -r')
-    assert result.status == 1, 'there are remaining instances of the old hostname'
+    assert result.status != 0, 'there are remaining instances of the old hostname'
 
     repo.sync()
     cv = module_target_sat.api.ContentView(organization=module_org).create()
@@ -141,7 +141,7 @@ def test_negative_rename_sat_to_invalid_hostname(module_target_sat):
     """
     username = settings.server.admin_username
     password = settings.server.admin_password
-    original_name = module_target_sat.hostname
+    original_name = module_target_sat.execute('hostname').stdout.strip()
     hostname = gen_string('alpha')
     result = module_target_sat.execute(
         f'satellite-change-hostname -y {hostname} -u {username} -p {password}'
@@ -165,7 +165,7 @@ def test_negative_rename_sat_no_credentials(module_target_sat):
 
     :CaseAutomation: Automated
     """
-    original_name = module_target_sat.hostname
+    original_name = module_target_sat.execute('hostname').stdout.strip()
     hostname = gen_string('alpha')
     result = module_target_sat.execute(f'satellite-change-hostname -y {hostname}')
     assert result.status == 1
@@ -188,7 +188,7 @@ def test_negative_rename_sat_wrong_passwd(module_target_sat):
     :CaseAutomation: Automated
     """
     username = settings.server.admin_username
-    original_name = module_target_sat.hostname
+    original_name = module_target_sat.execute('hostname').stdout.strip()
     new_hostname = f'new-{original_name}'
     password = gen_string('alpha')
     result = module_target_sat.execute(
