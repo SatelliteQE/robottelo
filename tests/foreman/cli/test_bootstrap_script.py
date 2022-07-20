@@ -8,7 +8,7 @@
 
 :CaseComponent: Bootstrap
 
-:Assignee: swadeley
+:Assignee: sbible
 
 :TestType: Functional
 
