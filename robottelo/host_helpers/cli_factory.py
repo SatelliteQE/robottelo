@@ -222,6 +222,7 @@ ENTITY_FIELDS = {
     },
     'lifecycle_environment': {
         '_entity_cls': 'LifecycleEnvironment',
+        'prior': 'Library',
         'name': gen_alphanumeric,
     },
     'tailoringfile': {

@@ -1417,6 +1417,7 @@ def test_positive_remove_cv_version_from_default_env(session, module_org):
         assert ENVIRONMENT not in cvv['Environments']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_remove_promoted_cv_version_from_default_env(session, module_org, target_sat):
@@ -1591,6 +1592,7 @@ def test_positive_remove_cv_version_from_env(session, module_org, repos_collecti
         assert all(item in cvv['Environments'] for item in [ENVIRONMENT, dev_lce.name, qe_lce.name])
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.upgrade
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
@@ -1987,6 +1989,7 @@ def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
         assert not packages[0]['Name']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_remove_package_from_exclusion_filter(session, module_org, target_sat):
