@@ -9,6 +9,7 @@ env:
 
 jobs:
   branch-matrix:
+    if: contains(github.event.pull_request.labels.*.name, 'CherryPick')
     name: Generate a branch matrix to apply cherrypicks
     runs-on: ubuntu-latest
     outputs:
@@ -19,24 +20,25 @@ jobs:
           fetch-depth: 0
       - id: set-matrix
         run: echo "::set-output name=branches::$(git branch -rl --sort=-authordate 'origin/6.*.z' --format='%(refname:lstrip=-1)' | head -n2 | jq -cnR '[inputs | select(length>0)]')"
-
   auto_cherry_picking:
+    if: contains(github.event.pull_request.labels.*.name, 'CherryPick')
     name: Auto Cherry picking to branches
     needs: branch-matrix
     runs-on: ubuntu-latest
     strategy:
       matrix:
         to_branch: ${{ fromJson(needs.branch-matrix.outputs.branches) }}
-    # skipping PRs remote target_branch from cherrypicking again in self with the if condition
-    if: ${{ matrix.to_branch }} != github.base_ref && contains(github.event.pull_request.labels.*.name, 'CherryPick')
     steps:
       - name: Checkout Robottelo
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+        if: matrix.to_branch != github.base_ref
       - name: Cherry pick into ${{ matrix.to_branch }}
         uses: carloscastrojumo/github-cherry-pick-action@v1.0.1
         with:
           branch: ${{ matrix.to_branch }}
           labels: |
             Auto_Cherry_Picked
+        # skipping PRs remote target_branch from cherrypicking into itself
+        if: matrix.to_branch != github.base_ref
