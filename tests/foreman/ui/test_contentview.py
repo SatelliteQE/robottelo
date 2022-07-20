@@ -1301,6 +1301,7 @@ def test_positive_promote_composite_with_custom_content(session):
         assert f'Promoted to {lce.name}' in result['Status']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 def test_positive_publish_rh_content_with_errata_by_date_filter(session):
@@ -1469,6 +1470,7 @@ def test_positive_remove_promoted_cv_version_from_default_env(session, module_or
         assert cvv['yum_repositories']['table'][0]['Name']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module_org):
     """Remove QE promoted content view version from Library environment
@@ -1521,6 +1523,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
         assert all(item in cvv_table[0]['Environments'] for item in [dev_lce.name, qe_lce.name])
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_remove_cv_version_from_env(session, module_org):
@@ -1884,6 +1887,7 @@ def test_positive_add_package_filter(session, module_org):
         assert expected_packages == actual_packages
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 def test_positive_add_package_inclusion_filter_and_publish(session, module_org):
     """Add package to inclusion content views filter, publish CV and verify
@@ -1929,6 +1933,7 @@ def test_positive_add_package_inclusion_filter_and_publish(session, module_org):
         assert not packages[0]['Name']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
     """Add package to exclusion content views filter, publish CV and verify
@@ -2021,6 +2026,7 @@ def test_positive_remove_package_from_exclusion_filter(session, module_org):
         assert packages[0]['Name'] == package_name
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 def test_positive_update_inclusive_filter_package_version(session, module_org):
     """Update version of package inside inclusive cv package filter
@@ -2082,6 +2088,7 @@ def test_positive_update_inclusive_filter_package_version(session, module_org):
         assert packages[0]['Name'] == package_name and packages[0]['Version'] == '5.21'
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 def test_positive_update_exclusive_filter_package_version(session, module_org):
     """Update version of package inside exclusive cv package filter
@@ -2143,6 +2150,7 @@ def test_positive_update_exclusive_filter_package_version(session, module_org):
         assert packages[0]['Name'] == package_name and packages[0]['Version'] == '0.71'
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_all_security_errata_by_date_range_filter(session, module_org):
@@ -2299,6 +2307,7 @@ def test_positive_promote_with_rh_custom_spin(session):
         assert f'Promoted to {lce.name}' in result['Status']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_all_security_errata_by_id_filter(session, module_org):
@@ -2344,6 +2353,7 @@ def test_positive_add_all_security_errata_by_id_filter(session, module_org):
         )
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 def test_positive_add_errata_filter(session, module_org):
     """add errata to content views filter
@@ -2381,6 +2391,7 @@ def test_positive_add_errata_filter(session, module_org):
         }
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_module_stream_filter(session, module_org):
@@ -2456,6 +2467,7 @@ def test_positive_add_package_group_filter(session, module_org):
         assert cvf['content_tabs']['assigned'][0]['Name'] == package_group
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_update_filter_affected_repos(session, module_org):
@@ -2933,6 +2945,7 @@ def test_positive_rh_mixed_content_end_to_end(session, module_prod, module_org):
         assert session.contentview.search_version(cv_name, VERSION)[0]['Version'] != VERSION
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_errata_inc_update_list_package(session):
@@ -2994,6 +3007,7 @@ def test_positive_errata_inc_update_list_package(session):
         assert set(result[4:]).issubset(packages)
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_sat):
@@ -3159,6 +3173,7 @@ def test_positive_module_stream_end_to_end(session, module_org):
         assert session.contentview.search(cv_name)[0]['Name'] != cv_name
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_search_module_streams_in_content_view(session, module_org):
@@ -3515,6 +3530,7 @@ def test_negative_non_readonly_user_actions(module_org, test_name):
         assert 'Navigation failed to reach [All]' in str(context.value)
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_conservative_solve_dependencies(session, module_org):
@@ -3590,6 +3606,7 @@ def test_positive_conservative_solve_dependencies(session, module_org):
             assert not package[0]['Name']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 def test_positive_conservative_dep_solving_with_multiversion_packages(session, module_org):
     """Performing solve dependencies on a package with multiple versions that is required
@@ -3656,6 +3673,7 @@ def test_positive_conservative_dep_solving_with_multiversion_packages(session, m
         assert package[0]['Version'] == '0.71'
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_depsolve_with_module_errata(session, module_org):
@@ -3733,6 +3751,7 @@ def test_positive_depsolve_with_module_errata(session, module_org):
         assert result['errata']['table'][0]['Errata ID'] == settings.repos.yum_10.errata[0]
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 def test_positive_filter_by_pkg_group_name(session, module_org, target_sat):
     """Publish a filtered version of a Content View, filtering on the package group's name.
@@ -3773,6 +3792,7 @@ def test_positive_filter_by_pkg_group_name(session, module_org, target_sat):
         assert expected_packages == [pkg['Name'] for pkg in result['rpm_packages']['table']]
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 def test_positive_inc_update_should_not_fail(session, module_org):
     """Incremental update after removing a package should not give a 400 error code
