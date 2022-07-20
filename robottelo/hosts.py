@@ -34,11 +34,11 @@ from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import SATELLITE_VERSION
 from robottelo.helpers import InstallerCommand
-from robottelo.helpers import validate_ssh_pub_key
 from robottelo.host_helpers import CapsuleMixins
 from robottelo.host_helpers import ContentHostMixins
 from robottelo.host_helpers import SatelliteMixins
 from robottelo.logging import logger
+from robottelo.utils import validate_ssh_pub_key
 
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',

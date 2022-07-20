@@ -1,5 +1,4 @@
 """Several helper methods and functions."""
-import base64
 import contextlib
 import random
 import re
@@ -15,6 +14,7 @@ from robottelo.config import get_credentials
 from robottelo.config import get_url
 from robottelo.config import settings
 from robottelo.constants import PULP_PUBLISHED_YUM_REPOS_PATH
+from robottelo.errors import ProvisioningCheckError
 from robottelo.logging import logger
 
 
@@ -30,26 +30,6 @@ def get_nailgun_config(user=None):
     """
     creds = (user.login, user.passwd) if user else get_credentials()
     return ServerConfig(get_url(), creds, verify=False)
-
-
-def validate_ssh_pub_key(key):
-    """Validates if a string is in valid ssh pub key format
-
-    :param key: A string containing a ssh public key encoded in base64
-    :return: Boolean
-    """
-
-    if not isinstance(key, str):
-        raise ValueError(f"Key should be a string type, received: {type(key)}")
-
-    # 1) a valid pub key has 3 parts separated by space
-    # 2) The second part (key string) should be a valid base64
-    try:
-        key_type, key_string, _ = key.split()  # need more than one value to unpack
-        base64.decodebytes(key_string.encode('ascii'))
-        return key_type in ('ecdsa-sha2-nistp256', 'ssh-dss', 'ssh-rsa', 'ssh-ed25519')
-    except (ValueError, base64.binascii.Error):
-        return False
 
 
 def get_available_capsule_port(port_pool=None):

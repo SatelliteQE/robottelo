@@ -6,7 +6,7 @@ import pytest
 from robottelo.helpers import get_available_capsule_port
 from robottelo.helpers import slugify_component
 from robottelo.helpers import Storage
-from robottelo.helpers import validate_ssh_pub_key
+from robottelo.utils import validate_ssh_pub_key
 
 
 class FakeSSHResult:

@@ -3,6 +3,8 @@
 import os
 import re
 from pathlib import Path
+import base64
+
 
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization
@@ -43,3 +45,23 @@ def gen_ssh_keypairs():
         crypto_serialization.Encoding.OpenSSH, crypto_serialization.PublicFormat.OpenSSH
     )
     return private.decode('utf-8'), public.decode('utf-8')
+
+
+def validate_ssh_pub_key(key):
+    """Validates if a string is in valid ssh pub key format
+
+    :param key: A string containing a ssh public key encoded in base64
+    :return: Boolean
+    """
+
+    if not isinstance(key, str):
+        raise ValueError(f"Key should be a string type, received: {type(key)}")
+
+    # 1) a valid pub key has 3 parts separated by space
+    # 2) The second part (key string) should be a valid base64
+    try:
+        key_type, key_string, _ = key.split()  # need more than one value to unpack
+        base64.decodebytes(key_string.encode('ascii'))
+        return key_type in ('ecdsa-sha2-nistp256', 'ssh-dss', 'ssh-rsa', 'ssh-ed25519')
+    except (ValueError, base64.binascii.Error):
+        return False
