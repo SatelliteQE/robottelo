@@ -6,9 +6,6 @@ on:
     types:
       - closed
 
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
   branch-matrix:
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
@@ -24,6 +21,8 @@ jobs:
         run: echo "::set-output name=branches::$(git branch -rl --sort=-authordate 'origin/6.*.z' --format='%(refname:lstrip=-1)' | head -n2 | jq -cnR '[inputs | select(length>0)]')"
   auto_cherry_picking:
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
+    permissions:
+      pull-requests: write
     name: Auto Cherry picking to branches
     needs: branch-matrix
     runs-on: ubuntu-latest
