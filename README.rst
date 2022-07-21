@@ -4,9 +4,6 @@ Robottelo
 .. image:: https://codecov.io/gh/SatelliteQE/robottelo/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/SatelliteQE/robottelo
 
-.. image:: https://api.travis-ci.org/SatelliteQE/robottelo.svg?branch=master
-  :target: https://travis-ci.org/SatelliteQE/robottelo
-
 .. image:: https://img.shields.io/pypi/pyversions/robottelo.svg
   :target: https://pypi.org/project/robottelo
 
@@ -19,6 +16,9 @@ Robottelo
 .. image:: https://github.com/SatelliteQE/robottelo/workflows/update_robottelo_image/badge.svg
    :alt: update_robottelo_image build status on GitHub Actions
    :target: https://github.com/SatelliteQE/robottelo/actions
+   
+.. image:: https://github.com/SatelliteQE/robottelo/actions/workflows/auto_cherry_pick.yml/badge.svg
+   :target: https://github.com/SatelliteQE/robottelo/actions/workflows/auto_cherry_pick.yml
 
 `Robottelo`_ is a test suite which exercises `The Foreman`_. All tests are
 automated, suited for use in a continuous integration environment, and `data
