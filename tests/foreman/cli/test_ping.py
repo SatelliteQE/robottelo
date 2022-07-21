@@ -18,9 +18,10 @@
 """
 import pytest
 
+pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
 
-@pytest.mark.tier1
-@pytest.mark.upgrade
+
+@pytest.mark.build_sanity
 def test_positive_ping(target_sat):
     """hammer ping return code
 
