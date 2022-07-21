@@ -8,7 +8,7 @@
 
 :CaseComponent: InterSatelliteSync
 
-:Assignee: ltran
+:Assignee: rmynar
 
 :TestType: Functional
 
