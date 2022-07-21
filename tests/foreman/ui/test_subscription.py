@@ -95,6 +95,8 @@ def test_positive_end_to_end(session, target_sat):
     :customerscenario: true
 
     :CaseImportance: Critical
+
+    :subcomponent: Candlepin
     """
     expected_message_lines = [
         'Are you sure you want to delete the manifest?',
@@ -308,6 +310,8 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, tar
     :parametrized: yes
 
     :CaseLevel: System
+
+    :subcomponent: Candlepin
     """
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
@@ -369,6 +373,8 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
     :parametrized: yes
 
     :CaseLevel: System
+
+    :subcomponent: Candlepin
     """
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
@@ -534,6 +540,8 @@ def test_positive_candlepin_events_processed_by_STOMP(session, rhel7_contenthost
     :parametrized: yes
 
     :CaseImportance: High
+
+    :subcomponent: Candlepin
     """
     org = entities.Organization().create()
     repo = entities.Repository(product=entities.Product(organization=org).create()).create()

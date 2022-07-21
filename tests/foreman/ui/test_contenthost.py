@@ -328,6 +328,8 @@ def test_positive_search_by_subscription_status(session, default_location, vm):
     :parametrized: yes
 
     :CaseLevel: System
+
+    :subcomponent: Candlepin
     """
     with session:
         session.location.select(default_location.name)
@@ -381,6 +383,8 @@ def test_positive_toggle_subscription_status(session, default_location, vm):
     :parametrized: yes
 
     :CaseImportance: Medium
+
+    :subcomponent: Candlepin
     """
     with session:
         session.location.select(default_location.name)
@@ -688,6 +692,8 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, de
     :parametrized: yes
 
     :CaseLevel: System
+
+    :subcomponent: Candlepin
     """
     vm.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     result = vm.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
@@ -887,6 +893,8 @@ def test_positive_virt_who_hypervisor_subscription_status(
     :parametrized: yes
 
     :CaseLevel: System
+
+    :subcomponent: Candlepin
     """
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
@@ -1614,6 +1622,8 @@ def test_syspurpose_matched(session, default_location, vm_module_streams):
     :parametrized: yes
 
     :CaseImportance: High
+
+    :subcomponent: Candlepin
     """
     run_remote_command_on_content_host('syspurpose set-sla Premium', vm_module_streams)
     run_remote_command_on_content_host('subscription-manager attach --auto', vm_module_streams)
@@ -1703,6 +1713,8 @@ def test_syspurpose_mismatched(session, default_location, vm_module_streams):
     :parametrized: yes
 
     :CaseImportance: High
+
+    :subcomponent: Candlepin
     """
     run_remote_command_on_content_host('syspurpose set-sla Premium', vm_module_streams)
     run_remote_command_on_content_host('subscription-manager attach --auto', vm_module_streams)

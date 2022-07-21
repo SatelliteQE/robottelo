@@ -90,6 +90,8 @@ def test_positive_create():
     :expectedresults: Manifest is uploaded successfully
 
     :CaseImportance: Critical
+
+    :subcomponent: Candlepin
     """
     org = entities.Organization().create()
     with manifests.clone() as manifest:
@@ -107,6 +109,8 @@ def test_positive_refresh(request):
     :expectedresults: Manifest is refreshed successfully
 
     :CaseImportance: Critical
+
+    :subcomponent: Candlepin
     """
     org = entities.Organization().create()
     sub = entities.Subscription(organization=org)
@@ -133,6 +137,8 @@ def test_positive_create_after_refresh(function_org):
     :BZ: 1393442
 
     :CaseImportance: Critical
+
+    :subcomponent: Candlepin
     """
     org_sub = entities.Subscription(organization=function_org)
     new_org = entities.Organization().create()
@@ -157,6 +163,8 @@ def test_positive_delete(function_org):
     :expectedresults: Manifest is Deleted successfully
 
     :CaseImportance: Critical
+
+    :subcomponent: Candlepin
     """
     sub = entities.Subscription(organization=function_org)
     with manifests.clone() as manifest:
@@ -336,6 +344,8 @@ def test_positive_candlepin_events_processed_by_stomp(rhel7_contenthost, functio
     :parametrized: yes
 
     :CaseImportance: High
+
+    :subcomponent: Candlepin
     """
     repo = entities.Repository(
         product=entities.Product(organization=function_org).create()

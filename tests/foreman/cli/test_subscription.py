@@ -72,6 +72,8 @@ def test_positive_manifest_upload(function_org, manifest_clone_upload):
     :expectedresults: Manifest are uploaded properly
 
     :CaseImportance: Critical
+
+    :subcomponent: Candlepin
     """
 
     Subscription.list({'organization-id': function_org.id}, per_page=False)
@@ -87,6 +89,8 @@ def test_positive_manifest_delete(function_org, manifest_clone_upload):
     :expectedresults: Manifest are deleted properly
 
     :CaseImportance: Critical
+
+    :subcomponent: Candlepin
     """
     Subscription.list({'organization-id': function_org.id}, per_page=False)
     Subscription.delete_manifest({'organization-id': function_org.id})
@@ -152,6 +156,8 @@ def test_positive_manifest_refresh(function_org):
     :expectedresults: Manifests can be refreshed
 
     :CaseImportance: Critical
+
+    :subcomponent: Candlepin
     """
     upload_manifest(function_org.id, manifests.original_manifest().content)
     Subscription.list({'organization-id': function_org.id}, per_page=False)

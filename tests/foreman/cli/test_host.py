@@ -1949,6 +1949,8 @@ def test_positive_attach(
     :parametrized: yes
 
     :CaseLevel: System
+
+    :subcomponent: Candlepin
     """
     # create an activation key without subscriptions
     # register the client host
@@ -2004,6 +2006,8 @@ def test_positive_attach_with_lce(
     :parametrized: yes
 
     :CaseLevel: System
+
+    :subcomponent: Candlepin
     """
     host_subscription_client.register_contenthost(
         module_org.name,
@@ -2143,6 +2147,8 @@ def test_positive_remove(
     :parametrized: yes
 
     :CaseLevel: System
+
+    :subcomponent: Candlepin
     """
     Host.subscription_register(
         {
@@ -2217,6 +2223,8 @@ def test_positive_auto_attach(
     :parametrized: yes
 
     :CaseLevel: System
+
+    :subcomponent: Candlepin
     """
     Host.subscription_register(
         {
@@ -2253,6 +2261,8 @@ def test_positive_unregister_host_subscription(
     :parametrized: yes
 
     :CaseLevel: System
+
+    :subcomponent: Candlepin
     """
     # register the host client
     host_subscription_client.register_contenthost(
