@@ -2,12 +2,9 @@
 name: auto_cherry_pick_commits
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - closed
-
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   branch-matrix:
