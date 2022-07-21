@@ -20,9 +20,6 @@ import pytest
 from fauxfactory import gen_string
 from packaging.version import Version
 from wait_for import wait_for
-from wrapanapi import RHEVMSystem
-
-from robottelo.config import settings
 
 
 @pytest.mark.stubbed
@@ -48,7 +45,7 @@ def test_rhel_pxe_provisioning_on_libvirt():
 # TODO: move the whole test to api/ directory
 
 # @pytest.mark.on_premises_provisioning
-@pytest.mark.rhel_ver_match('^((?!fips|6).)*$')
+@pytest.mark.rhel_ver_match('[^6]')
 def test_rhel_pxe_provisioning_on_rhv(
     request,
     module_provisioning_sat,
@@ -97,16 +94,8 @@ def test_rhel_pxe_provisioning_on_rhv(
     # broker should do that as a part of the teardown, putting here just to make sure.
     request.addfinalizer(host.delete)
 
-    # Call RHVM API using wrapanapi to start the VM
-    rhv_api = RHEVMSystem(
-        hostname=settings.provisioning_rhev.hostname,
-        username=settings.provisioning_rhev.username,
-        password=settings.provisioning_rhev.password,
-        version=settings.provisioning_rhev.version,
-        verify=settings.provisioning_rhev.verify,
-    )
-    rhv_vm = rhv_api.get_vm(provisioning_host.name)
-    rhv_vm.start()
+    # Start the VM, do not ensure that we can connect to SSHD
+    provisioning_host.power_control(ensure=False)
 
     # TODO: Implement Satellite log capturing logic to verify that
     # all the events are captured in the logs.
