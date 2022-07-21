@@ -1,4 +1,6 @@
 import ipaddress
+import os
+from tempfile import mkstemp
 
 import pytest
 from box import Box
@@ -182,18 +184,32 @@ def module_provisioning_sat(
         pxe_loader=pxe_loader,
         group_parameters_attributes=[  # assign AK in order the hosts to be subscribed
             {
+                'name': 'remote_execution_ssh_keys',
+                'parameter_type': 'string',
+                'value': settings.provisioning.host_ssh_key_pub,
+            },
+            {
                 'name': 'kt_activation_keys',
                 'parameter_type': 'string',
                 'value': module_provisioning_rhel_content.ak.name,
-            }
+            },
         ],
     ).create()
 
     return Box(sat=sat, hostgroup=hostgroup, subnet=subnet)
 
 
+@pytest.fixture(scope='module')
+def module_ssh_key_file():
+    (_, layout) = mkstemp(text=True)
+    os.chmod(layout, 0o600)
+    with open(layout, 'w') as ssh_key:
+        ssh_key.write(settings.provisioning.host_ssh_key_priv)
+    return layout
+
+
 @pytest.fixture()
-def provisioning_host():
+def provisioning_host(module_ssh_key_file):
     """Fixture to check out blank VM"""
     vlan_id = settings.provisioning.vlan_id
     vm_firmware = "bios"  # TODO: Make this a fixture parameter - bios, uefi
@@ -206,5 +222,6 @@ def provisioning_host():
         target_vm_cd_iso=cd_iso,
         blank=True,
         target_memory='6GiB',
+        auth=module_ssh_key_file,
     ) as host:
         yield host
