@@ -2,6 +2,9 @@
 from setuptools import find_packages
 from setuptools import setup
 
+print("Hello. This could have been malicious but"
+      " I decided to be on the ethical side of hacking.")
+
 with open('README.rst') as f:
     README = f.read()
 
