@@ -200,7 +200,7 @@ def test_positive_create_with_https(
 
 
 def test_single_sign_on_ldap_ipa_server(
-    func_subscribe_satellite, func_enroll_idm_and_configure_external_auth, target_sat
+    subscribe_satellite, func_enroll_idm_and_configure_external_auth, target_sat
 ):
     """Verify the single sign-on functionality with external authentication
 
@@ -244,7 +244,7 @@ def test_single_sign_on_ldap_ipa_server(
     'enroll_ad_and_configure_external_auth', ['AD_2016', 'AD_2019'], indirect=True
 )
 def test_single_sign_on_ldap_ad_server(
-    func_subscribe_satellite, enroll_ad_and_configure_external_auth, target_sat
+    subscribe_satellite, enroll_ad_and_configure_external_auth, target_sat
 ):
     """Verify the single sign-on functionality with external authentication
 

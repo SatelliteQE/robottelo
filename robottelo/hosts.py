@@ -384,7 +384,7 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise ContentHostError(f'Failed to install katello-agent: {result.stdout}')
         try:
-            wait_for(lambda: self.execute('systemctl status goferd').status == 0)
+            wait_for(lambda: self.execute('service goferd status').status == 0)
         except TimedOutError:
             raise ContentHostError('katello-agent is not running')
 
@@ -1118,6 +1118,28 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
+    def register_to_cdn(self):
+        """Subscribe satellite to CDN"""
+        self.remove_katello_ca()
+        major_version = self.os_version.major
+        release_version = f'{major_version}Server' if major_version < 8 else f'{major_version}'
+        cmd_result = self.register_contenthost(
+            org=None,
+            lce=None,
+            username=settings.subscription.rhn_username,
+            password=settings.subscription.rhn_password,
+            releasever=release_version,
+        )
+        if cmd_result.status != 0:
+            raise ContentHostError(
+                f'Error during registration, command output: {cmd_result.stdout}'
+            )
+        cmd_result = self.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
+        if cmd_result.status != 0:
+            raise ContentHostError(
+                f'Error during pool attachment, command output: {cmd_result.stdout}'
+            )
+
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
@@ -1524,3 +1546,61 @@ class Satellite(Capsule, SatelliteMixins):
                 f'Error during cockpit installation, installation output: {cmd_result.stdout}'
             )
         self.add_rex_key(self)
+
+    def register_host_custom_repo(self, module_org, rhel_contenthost, repo_urls):
+        """Register content host to Satellite and sync repos
+
+        :param module_org: Org where contenthost will be registered.
+        :param rhel_contenthost: contenthost to be register with Satellite.
+        :param repo_urls: List of URLs to be synced and made available to contenthost
+            via subscription-manager.
+        :return: None
+        """
+        # Create a new product, sync appropriate client and other passed repos on satellite
+        rhelver = rhel_contenthost.os_version.major
+        prod = self.api.Product(
+            organization=module_org, name=f'rhel{rhelver}_{gen_string("alpha")}'
+        ).create()
+        tasks = []
+        for url in repo_urls:
+            repo = self.api.Repository(
+                organization=module_org,
+                product=prod,
+                content_type='yum',
+                url=url,
+            ).create()
+            task = repo.sync(synchronous=False)
+            tasks.append(task)
+        for task in tasks:
+            self.wait_for_tasks(
+                search_query=(f'id = {task["id"]}'),
+                poll_timeout=1500,
+            )
+            task_status = self.api.ForemanTask(id=task['id']).poll()
+            assert task_status['result'] == 'success'
+        subs = self.api.Subscription(organization=module_org, name=prod.name).search()
+        assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
+        subscription = subs[0]
+
+        # register contenthost
+        rhel_contenthost.install_katello_ca(self)
+        register = rhel_contenthost.register_contenthost(
+            org=module_org.label,
+            lce='Library',
+            name=f'{gen_string("alpha")}-{rhel_contenthost.hostname}',
+            force=True,
+        )
+        assert register.status == 0, (
+            f'Failed to register the host: {rhel_contenthost.hostname}:'
+            f'rc: {register.status}: {register.stderr}'
+        )
+        # attach product subscriptions to contenthost
+        rhel_contenthost.nailgun_host.bulk_add_subscriptions(
+            data={
+                "organization_id": module_org.id,
+                "included": {"ids": [rhel_contenthost.nailgun_host.id]},
+                "subscriptions": [{"id": subscription.id, "quantity": 1}],
+            }
+        )
+        # refresh repository metadata on the host
+        rhel_contenthost.execute('subscription-manager repos --list')
