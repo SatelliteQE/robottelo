@@ -32,13 +32,13 @@ CUSTOM_REPO_ERRATA_ID = settings.repos.yum_0.errata[0]
 
 
 @pytest.fixture(scope='module')
-def module_repos_col(module_org, module_lce, module_target_sat, request, target_sat):
+def module_repos_col(module_org, module_lce, module_target_sat, request):
     upload_manifest_locked(org_id=module_org.id)
-    repos_collection = target_sat.cli_factory.RepositoryCollection(
+    repos_collection = module_target_sat.cli_factory.RepositoryCollection(
         repositories=[
             # As Satellite Tools may be added as custom repo and to have a "Fully entitled" host,
             # force the host to consume an RH product with adding a cdn repo.
-            target_sat.cli_factory.YumRepository(url=settings.repos.yum_0.url),
+            module_target_sat.cli_factory.YumRepository(url=settings.repos.yum_0.url),
         ],
     )
     repos_collection.setup_content(module_org.id, module_lce.id)
@@ -313,7 +313,7 @@ def test_positive_download_debug_cert_after_refresh(session):
 
 @pytest.mark.tier2
 def test_positive_errata_view_organization_switch(
-    session, module_org, module_lce, module_repos_col, target_sat
+    session, module_org, module_lce, module_repos_col, module_target_sat
 ):
     """Verify no errata list visible on Organization switch
 
@@ -328,8 +328,8 @@ def test_positive_errata_view_organization_switch(
 
     :CaseLevel: Integration
     """
-    rc = target_sat.cli_factory.RepositoryCollection(
-        repositories=[target_sat.cli_factory.YumRepository(settings.repos.yum_3.url)]
+    rc = module_target_sat.cli_factory.RepositoryCollection(
+        repositories=[module_target_sat.cli_factory.YumRepository(settings.repos.yum_3.url)]
     )
     rc.setup_content(module_org.id, module_lce.id)
     with session:
