@@ -8,7 +8,7 @@
 
 :CaseComponent: SyncPlans
 
-:Assignee: swadeley
+:Assignee: sbible
 
 :TestType: Functional
 
