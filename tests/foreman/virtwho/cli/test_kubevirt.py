@@ -48,7 +48,6 @@ def virtwho_config(form_data, target_sat):
     return target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
 
 
-@pytest.mark.skip_if_open('BZ:1735540')
 class TestVirtWhoConfigforKubevirt:
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(
