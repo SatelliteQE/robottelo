@@ -532,7 +532,6 @@ class TestContentViewSync:
 
     :CaseComponent: ContentViews
 
-    :Assignee: rmynar
     """
 
     @pytest.mark.tier3
@@ -566,8 +565,6 @@ class TestContentViewSync:
         :CaseAutomation: Automated
 
         :CaseComponent: ContentViews
-
-        :Assignee: rmynar
 
         :CaseImportance: High
 
@@ -655,8 +652,6 @@ class TestContentViewSync:
         :CaseAutomation: Automated
 
         :CaseComponent: ContentViews
-
-        :Assignee: rmynar
 
         :CaseImportance: High
 
@@ -928,8 +923,6 @@ class TestContentViewSync:
 
         :CaseComponent: ContentViews
 
-        :Assignee: rmynar
-
         :CaseImportance: High
 
         :CaseLevel: System
@@ -1047,8 +1040,6 @@ class TestContentViewSync:
         :CaseAutomation: Automated
 
         :CaseComponent: ContentViews
-
-        :Assignee: rmynar
 
         :CaseImportance: Critical
 
