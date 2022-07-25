@@ -104,7 +104,7 @@ def test_rhel_pxe_provisioning_on_rhv(
     # the result of the installation. Wait until Satellite reports that the host is installed.
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',
-        timeout=900,
+        timeout=1500,
         delay=30,
     )
     host = host.read()
