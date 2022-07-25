@@ -70,8 +70,8 @@ def export_import_cleanup_function(target_sat, function_org):
     """Deletes export/import dirs of function org"""
     yield
     # Deletes directories created for export/import test
-    assert target_sat.execute(f'rm -rf {EXPORT_DIR}/{function_org.name}').stdout == ''
-    assert target_sat.execute(f'rm -rf {IMPORT_DIR}/{function_org.name}').stdout == ''
+    target_sat.execute(f'rm -rf {EXPORT_DIR}/{function_org.name}')
+    target_sat.execute(f'rm -rf {IMPORT_DIR}/{function_org.name}')
 
 
 @pytest.fixture(scope='function')  # perform the cleanup after each testcase of a module
@@ -79,8 +79,8 @@ def export_import_cleanup_module(target_sat, module_org):
     """Deletes export/import dirs of module_org"""
     yield
     # Deletes directories created for export/import test
-    assert target_sat.execute(f'rm -rf {EXPORT_DIR}/{module_org.name}').stdout == ''
-    assert target_sat.execute(f'rm -rf {IMPORT_DIR}/{module_org.name}').stdout == ''
+    target_sat.execute(f'rm -rf {EXPORT_DIR}/{module_org.name}')
+    target_sat.execute(f'rm -rf {IMPORT_DIR}/{module_org.name}')
 
 
 def validate_filepath(sat_obj, org):
