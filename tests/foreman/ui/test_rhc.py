@@ -30,32 +30,14 @@ from robottelo.logging import logger
 @pytest.fixture(scope='module')
 def subscribe_rhc_satellite(clean_rhsm, module_target_sat):
     """subscribe rhc satellite to cdn"""
-    if module_target_sat.os_version.major < 8:
-        release_version = f'{module_target_sat.os_version.major}Server'
-    else:
-        release_version = f'{module_target_sat.os_version.major}'
-    module_target_sat.register_contenthost(
-        org=None,
-        lce=None,
-        username=settings.subscription.rhn_username,
-        password=settings.subscription.rhn_password,
-        releasever=release_version,
-    )
-    result = module_target_sat.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
-    if 'Successfully attached a subscription' in result.stdout:
-        # extras is not in RHEL8: https://access.redhat.com/solutions/5331391
-        if module_target_sat.os_version.major < 8:
-            module_target_sat.enable_repo(
-                f'rhel-{module_target_sat.os_version.major}-server-extras-rpms', force=True
-            )
-        yield
-    else:
-        pytest.fail('Failed to attach system to pool. Aborting Test!.')
+    module_target_sat.register_to_cdn()
 
 
-@pytest.fixture()
+@pytest.fixture(scope='module')
 def fixture_enable_rhc_repos(module_target_sat):
     """Enable repos required for configuring RHC."""
+    # subscribe rhc satellite to cdn.
+    module_target_sat.register_to_cdn()
     if module_target_sat.os_version.major == 8:
         module_target_sat.enable_repo(constants.REPOS['rhel8_bos']['id'])
         module_target_sat.enable_repo(constants.REPOS['rhel8_aps']['id'])
@@ -114,7 +96,6 @@ def fixture_setup_rhc_satellite(request, module_target_sat, module_rhc_org):
 def test_positive_configure_cloud_connector(
     session,
     module_target_sat,
-    subscribe_rhc_satellite,
     fixture_enable_rhc_repos,
     module_rhc_org,
     fixture_setup_rhc_satellite,
