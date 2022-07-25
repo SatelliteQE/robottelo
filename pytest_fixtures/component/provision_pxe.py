@@ -4,7 +4,7 @@ from tempfile import mkstemp
 
 import pytest
 from box import Box
-from broker.broker import Broker
+from broker import Broker
 from fauxfactory import gen_string
 from packaging.version import Version
 
@@ -18,14 +18,9 @@ from robottelo.hosts import ContentHost
 @pytest.fixture(scope='module')
 def module_provisioning_capsule(module_target_sat, module_location):
     """Assings the `module_location` to Satellite's internal capsule and returns it"""
-    capsule = (
-        module_target_sat.api.SmartProxy()
-        .search(query={'search': f'name={module_target_sat.hostname}'})[0]
-        .read()
-    )
+    capsule = module_target_sat.internal_capsule
     capsule.location = [module_location]
-    capsule.update(['location'])
-    return capsule
+    return capsule.update(['location'])
 
 
 @pytest.fixture(scope='module')
@@ -201,7 +196,7 @@ def module_provisioning_sat(
 
 @pytest.fixture(scope='module')
 def module_ssh_key_file():
-    (_, layout) = mkstemp(text=True)
+    _, layout = mkstemp(text=True)
     os.chmod(layout, 0o600)
     with open(layout, 'w') as ssh_key:
         ssh_key.write(settings.provisioning.host_ssh_key_priv)

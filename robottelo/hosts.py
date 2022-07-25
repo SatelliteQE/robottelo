@@ -1359,6 +1359,11 @@ class Satellite(Capsule, SatelliteMixins):
                         pass
         return self._cli
 
+    @property
+    def internal_capsule(self):
+        capsule_list = self.api.SmartProxy().search(query={'search': f'name={self.hostname}'})
+        return None if not capsule_list else capsule_list[0]
+
     def ui_session(self, testname=None, user=None, password=None, url=None, login=True):
         """Initialize an airgun Session object and store it as self.ui_session"""
 
