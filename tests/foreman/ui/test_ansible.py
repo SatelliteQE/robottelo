@@ -38,7 +38,7 @@ def test_positive_import_all_roles(target_sat):
 
     :expectedresults: All roles are imported successfully. One role is deleted successfully.
     """
-    with target_sat.ui_session as session:
+    with target_sat.ui_session() as session:
         assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
         assert int(session.ansiblevariables.read_total_variables()) > 0
         # The choice of role to be deleted is arbitrary; any of the roles present on Satellite
@@ -64,7 +64,7 @@ def test_positive_create_and_delete_variable(target_sat):
     """
     key = gen_string('alpha')
     role = 'redhat.satellite.activation_keys'
-    with target_sat.ui_session as session:
+    with target_sat.ui_session() as session:
         if not session.ansibleroles.imported_roles_count:
             session.ansibleroles.import_all_roles()
         session.ansiblevariables.create(
@@ -93,7 +93,7 @@ def test_positive_create_variable_with_overrides(target_sat):
     """
     key = gen_string('alpha')
     role = 'redhat.satellite.activation_keys'
-    with target_sat.ui_session as session:
+    with target_sat.ui_session() as session:
         if not session.ansibleroles.imported_roles_count:
             session.ansibleroles.import_all_roles()
         session.ansiblevariables.create_with_overrides(
