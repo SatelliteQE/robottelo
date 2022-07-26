@@ -7,7 +7,11 @@ from robottelo.config import settings
 
 def pytest_generate_tests(metafunc):
     content_host_fixture = ''.join(
-        [i for i in ['rhel_contenthost', 'content_hosts'] if i in metafunc.fixturenames]
+        [
+            i
+            for i in ['rhel_contenthost', 'content_hosts', 'module_provisioning_rhel_content']
+            if i in metafunc.fixturenames
+        ]
     )
     if content_host_fixture in metafunc.fixturenames:
         function_marks = getattr(metafunc.function, 'pytestmark', [])

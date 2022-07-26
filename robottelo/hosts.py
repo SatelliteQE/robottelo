@@ -137,6 +137,7 @@ class ContentHost(Host, ContentHostMixins):
             # key file based authentication
             kwargs.update({'key_filename': auth})
         self._satellite = kwargs.get('satellite')
+        self.blank = kwargs.get('blank', False)
         super().__init__(hostname=hostname, **kwargs)
 
     @property
@@ -195,13 +196,15 @@ class ContentHost(Host, ContentHostMixins):
         return Version(version=version_string)
 
     def setup(self):
-        self.remove_katello_ca()
-        self.execute('subscription-manager clean')
+        if not self.blank:
+            self.remove_katello_ca()
+            self.execute('subscription-manager clean')
 
     def teardown(self):
-        if self.nailgun_host:
-            self.nailgun_host.delete()
-        self.unregister()
+        if not self.blank:
+            if self.nailgun_host:
+                self.nailgun_host.delete()
+            self.unregister()
         # Strip most unnecessary attributes from our instance for checkin
         keep_keys = set(self.to_dict()) | {'release', '_prov_inst'}
         self.__dict__ = {k: v for k, v in self.__dict__.items() if k in keep_keys}
@@ -1355,6 +1358,11 @@ class Satellite(Capsule, SatelliteMixins):
                         # not everything has an mro method, we don't care about them
                         pass
         return self._cli
+
+    @property
+    def internal_capsule(self):
+        capsule_list = self.api.SmartProxy().search(query={'search': f'name={self.hostname}'})
+        return None if not capsule_list else capsule_list[0]
 
     def ui_session(self, testname=None, user=None, password=None, url=None, login=True):
         """Initialize an airgun Session object and store it as self.ui_session"""
