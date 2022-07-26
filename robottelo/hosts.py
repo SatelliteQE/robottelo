@@ -479,6 +479,118 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise ContentHostError('Failed to install the cockpit')
 
+    def register(
+        self,
+        target=settings.server.hostname,
+        org='Default_Organization',
+        loc='Default_Location',
+        activation_keys=None,
+        setup_insights=False,
+        setup_remote_execution=True,
+        setup_remote_execution_pull=False,
+        lifecycle_environment=None,
+        operating_system=None,
+        packages=None,
+        repo=None,
+        repo_gpg_key_url=None,
+        remote_execution_interface=None,
+        update_packages=False,
+        ignore_subman_errors=True,
+        force=True,
+        insecure=True,
+        username=settings.server.admin_username,
+        password=settings.server.admin_password,
+    ):
+        """Registers content host to the Satellite or Capsule server
+        using a global registration template.
+
+        :param target: Satellite or Capusle hostname to register to, required.
+        :param org: Organization name to register content host for, required.
+        :param loc: Location name to register content host for, required.
+        :param activation_keys: Activation key name to register content host
+            with, required.
+        :param setup_insights: Install and register Insights client, requires OS repo.
+        :param setup_remote_execution: Copy remote execution SSH key.
+        :param setup_remote_execution_pull: Deploy pull provider client on host
+        :param lifecycle_environment: Lifecycle environment.
+        :param operating_system: Operating system.
+        :param packages: A list of packages to install on the host when registered.
+        :param repo: Repository to be added before the registration is performed, supply url.
+        :param repo_gpg_key_url: Public key to verify the package signatures, supply url.
+        :param remote_execution_interface: Identifier of the host interface for remote execution.
+        :param update_packages: Update all packages on the host.
+        :param ignore_subman_errors: Ignore subscription manager errors.
+        :param force: Register the content host even if it's already registered.
+        :param insecure: Don't verify server authenticity.
+        :param username: A user name to register the content host with.
+        :param password: The user password.
+        :return: SSHCommandResult instance filled with the result of the
+            registration.
+        """
+        cmd = 'curl -sS '
+        if username and password:
+            cmd += f'-u {username}:{password} '
+        if insecure:
+            cmd += '--insecure '
+        if target:
+            cmd += f"'https://{target}:9090/register?"
+        else:
+            raise ContentHostError('Target Satellite/Capsule not specified')
+        if activation_keys:
+            cmd += f'activation_keys={activation_keys}'
+        else:
+            raise ContentHostError('Activation key not specified')
+        if org:
+            selected_org = entities.Organization().search(query={'search': f'name="{org}"'})[0]
+            cmd += f'&organization_id={selected_org.id}'
+        else:
+            raise ContentHostError('Organization not specified')
+        if loc:
+            selected_loc = entities.Location().search(query={'search': f'name="{loc}"'})[0]
+            cmd += f'&location_id={selected_loc.id}'
+        else:
+            raise ContentHostError('Location not specified')
+        if setup_insights:
+            # requires OS repo enabled for host
+            cmd += '&setup_insights=true'
+        else:
+            cmd += '&setup_insights=false'
+        if setup_remote_execution:
+            cmd += '&setup_remote_execution=true'
+        else:
+            cmd += '&setup_remote_execution=false'
+        if update_packages:
+            cmd += '&update_packages=true'
+        else:
+            cmd += '&update_packages=false'
+        if lifecycle_environment:
+            selected_lce = entities.LifecycleEnvironment().search(
+                query={'search': f'name="{lifecycle_environment}"'}
+            )[0]
+            cmd += f'&lifecycle_environment_id={selected_lce.id}'
+        if operating_system:
+            selected_os = entities.OperatingSystem().search(
+                query={'search': f'name="{operating_system}"'}
+            )[0]
+            cmd += f'&operating_system_id={selected_os.id}'
+        if setup_remote_execution_pull:
+            # requires Satellite Client repo enabled for host
+            cmd += '&setup_remote_execution_pull=true'
+        if packages:
+            cmd += f'&packages={"+".join(packages)}'
+        if repo_gpg_key_url:
+            cmd += f'&repo_gpg_key_url={repo_gpg_key_url.replace("/", "%2F").replace(":", "%3A")}'
+        if repo:
+            cmd += f'&repo={repo.replace("/", "%2F").replace(":", "%3A")}'
+        if remote_execution_interface:
+            cmd += f'&remote_execution_interface={remote_execution_interface}'
+        if ignore_subman_errors:
+            cmd += '&ignore_subman_errors=true'
+        if force:
+            cmd += '&force=true'
+        cmd += "' | bash"
+        return self.execute(cmd)
+
     def register_contenthost(
         self,
         org='Default_Organization',
@@ -1272,6 +1384,17 @@ class Capsule(ContentHost, CapsuleMixins):
             raise CapsuleHostError(
                 f'A core service is not running at capsule host\n{result.stdout}'
             )
+
+    def enable_mqtt(self):
+        result = self.execute(
+            'satellite-installer \
+                    --foreman-proxy-templates=true \
+                    --foreman-proxy-registration=true \
+                    --foreman-proxy-plugin-remote-execution-script-mode=pull-mqtt',
+            timeout='20m',
+        )
+        if result.status != 0:
+            raise SatelliteHostError(f'Failed to enable pull provider: {result.stdout}')
 
 
 class Satellite(Capsule, SatelliteMixins):
