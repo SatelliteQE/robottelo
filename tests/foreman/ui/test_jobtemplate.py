@@ -67,12 +67,12 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
     ]
     job_foreign_input_sets = [
         {
-            'target_template': 'Run Command - SSH Default',
+            'target_template': 'Run Command - Script Default',
             'include_all': True,
             'exclude': ', '.join([gen_string('alpha') for _ in range(3)]),
         },
         {
-            'target_template': 'Run Command - SSH Default',
+            'target_template': 'Run Command - Script Default',
             'include_all': False,
             'include': ', '.join([gen_string('alpha') for _ in range(3)]),
         },
@@ -88,7 +88,7 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
                 'template.description': template_description,
                 'job.job_category': 'Miscellaneous',
                 'job.description_format': description_format,
-                'job.provider_type': 'SSH',
+                'job.provider_type': 'Script',
                 'job.timeout': '6000',
                 'inputs': template_inputs,
                 'job.value': value,
@@ -107,7 +107,7 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
         assert template['template']['description'] == template_description
         assert template['job']['job_category'] == job_category
         assert template['job']['description_format'] == description_format
-        assert template['job']['provider_type'] == 'SSH'
+        assert template['job']['provider_type'] == 'Script'
         assert template['job']['timeout'] == '6000'
         assert template['job']['value'] == value
         assert template['job']['current_user']
@@ -228,7 +228,7 @@ def test_positive_clone_job_template_with_foreign_input_sets(session):
     :BZ: 1705866
     """
     child_name = gen_string('alpha')
-    parent_name = 'Install Group - Katello SSH Default'
+    parent_name = 'Install Group - Katello Script Default'
     with session:
         parent = session.jobtemplate.read(parent_name, widget_names='job')['job'][
             'foreign_input_sets'

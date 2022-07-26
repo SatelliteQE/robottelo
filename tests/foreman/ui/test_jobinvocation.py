@@ -62,7 +62,7 @@ def test_positive_run_default_job_template_by_ip(
         session.jobinvocation.run(
             {
                 'job_category': 'Commands',
-                'job_template': 'Run Command - SSH Default',
+                'job_template': 'Run Command - Script Default',
                 'search_query': f'name ^ {hostname}',
                 'template_content.command': 'ls',
             }
@@ -106,7 +106,7 @@ def test_positive_run_custom_job_template_by_ip(
                 'template.name': job_template_name,
                 'template.template_editor.rendering_options': 'Editor',
                 'template.template_editor.editor': '<%= input("command") %>',
-                'job.provider_type': 'SSH',
+                'job.provider_type': 'Script',
                 'inputs': [{'name': 'command', 'required': True, 'input_type': 'User input'}],
             }
         )

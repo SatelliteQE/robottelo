@@ -106,7 +106,7 @@ class TestRemoteExecution:
     @pytest.mark.tier3
     @pytest.mark.pit_client
     @pytest.mark.pit_server
-    @pytest.mark.rhel_ver_list([7])
+    @pytest.mark.rhel_ver_list([8])
     def test_positive_run_default_job_template_by_ip(self, rex_contenthost):
         """Run default template on host connected by ip and list task
 
@@ -125,7 +125,7 @@ class TestRemoteExecution:
         command = f'echo {gen_string("alpha")}'
         invocation_command = make_job_invocation(
             {
-                'job-template': 'Run Command - SSH Default',
+                'job-template': 'Run Command - Script Default',
                 'inputs': f'command={command}',
                 'search-query': f"name ~ {client.hostname}",
             }
@@ -169,7 +169,7 @@ class TestRemoteExecution:
         filename = gen_string('alpha')
         make_user_job = make_job_invocation(
             {
-                'job-template': 'Run Command - SSH Default',
+                'job-template': 'Run Command - Script Default',
                 'inputs': f"command='useradd -m {username}'",
                 'search-query': f"name ~ {client.hostname}",
             }
@@ -187,7 +187,7 @@ class TestRemoteExecution:
         # create a file as new user
         invocation_command = make_job_invocation(
             {
-                'job-template': 'Run Command - SSH Default',
+                'job-template': 'Run Command - Script Default',
                 'inputs': f"command='touch /home/{username}/{filename}'",
                 'search-query': f"name ~ {client.hostname}",
                 'effective-user': f'{username}',
@@ -269,7 +269,7 @@ class TestRemoteExecution:
         clients = registered_hosts
         invocation_command = make_job_invocation(
             {
-                'job-template': 'Run Command - SSH Default',
+                'job-template': 'Run Command - Script Default',
                 'inputs': 'command="ls"',
                 'search-query': f'name ~ {clients[0].hostname} or name ~ {clients[1].hostname}',
             }
@@ -291,7 +291,7 @@ class TestRemoteExecution:
         assert result['success'] == '2', output_msgs
 
     @pytest.mark.tier3
-    @pytest.mark.rhel_ver_list([7])
+    @pytest.mark.rhel_ver_list([8])
     @pytest.mark.skipif(
         (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
     )
@@ -331,7 +331,7 @@ class TestRemoteExecution:
 
         invocation_command = make_job_invocation(
             {
-                'job-template': 'Install Package - Katello SSH Default',
+                'job-template': 'Install Package - Katello Script Default',
                 'inputs': 'package={} {} {}'.format(*packages),
                 'search-query': f'name ~ {client.hostname}',
             }
@@ -352,7 +352,7 @@ class TestRemoteExecution:
         assert result.status == 0
 
     @pytest.mark.tier3
-    @pytest.mark.rhel_ver_list([7])
+    @pytest.mark.rhel_ver_list([8])
     def test_positive_run_recurring_job_with_max_iterations_by_ip(self, rex_contenthost):
         """Run default job template multiple times with max iteration by ip
 
@@ -366,7 +366,7 @@ class TestRemoteExecution:
         client = rex_contenthost
         invocation_command = make_job_invocation(
             {
-                'job-template': 'Run Command - SSH Default',
+                'job-template': 'Run Command - Script Default',
                 'inputs': 'command="ls"',
                 'search-query': f"name ~ {client.hostname}",
                 'cron-line': '* * * * *',  # every minute
@@ -393,7 +393,7 @@ class TestRemoteExecution:
         assert rec_logic['iteration'] == '2'
 
     @pytest.mark.tier3
-    @pytest.mark.rhel_ver_list([7])
+    @pytest.mark.rhel_ver_list([8])
     def test_positive_run_scheduled_job_template_by_ip(self, rex_contenthost, target_sat):
         """Schedule a job to be ran against a host
 
@@ -418,7 +418,7 @@ class TestRemoteExecution:
         )
         invocation_command = make_job_invocation(
             {
-                'job-template': 'Run Command - SSH Default',
+                'job-template': 'Run Command - Script Default',
                 'inputs': 'command="ls"',
                 'start-at': plan_time,
                 'search-query': f"name ~ {client.hostname}",
@@ -597,7 +597,7 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.rhel_ver_list([7])
+    @pytest.mark.rhel_ver_list([8])
     def test_positive_run_reccuring_job(self, rex_contenthost):
         """Tests Ansible REX reccuring job runs successfully multiple times
 
@@ -931,7 +931,7 @@ class TestRexUsers:
         ids=['satellite', 'capsule'],
         indirect=True,
     )
-    @pytest.mark.rhel_ver_list([7])
+    @pytest.mark.rhel_ver_list([8])
     def test_positive_rex_against_infra_hosts(
         self,
         rex_contenthost,
@@ -968,7 +968,7 @@ class TestRexUsers:
         command = f"echo {gen_string('alpha')}"
         invocation_command = make_job_invocation(
             {
-                'job-template': 'Run Command - SSH Default',
+                'job-template': 'Run Command - Script Default',
                 'inputs': f'command={command}',
                 'search-query': f"name ^ ({client.hostname}, {infra_host.hostname})",
             }
@@ -986,7 +986,7 @@ class TestRexUsers:
         # run job as regular rex user on all hosts
         invocation_command = make_job_invocation_with_credentials(
             {
-                'job-template': 'Run Command - SSH Default',
+                'job-template': 'Run Command - Script Default',
                 'inputs': f'command={command}',
                 'search-query': f"name ^ ({client.hostname}, {infra_host.hostname})",
             },
@@ -999,7 +999,7 @@ class TestRexUsers:
         # run job as regular rex user just on infra hosts
         invocation_command = make_job_invocation_with_credentials(
             {
-                'job-template': 'Run Command - SSH Default',
+                'job-template': 'Run Command - Script Default',
                 'inputs': f'command={command}',
                 'search-query': f"name ^ ({infra_host.hostname})",
             },
@@ -1011,7 +1011,7 @@ class TestRexUsers:
         # run job as rex user on Satellite
         invocation_command = make_job_invocation_with_credentials(
             {
-                'job-template': 'Run Command - SSH Default',
+                'job-template': 'Run Command - Script Default',
                 'inputs': f'command={command}',
                 'search-query': f"name ^ ({infra_host.hostname})",
             },
