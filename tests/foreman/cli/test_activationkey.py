@@ -1633,3 +1633,31 @@ def test_positive_subscription_quantity_attached(module_org, rhel7_contenthost, 
         amount = subs_lookup[ak_sub['id']]['quantity']
         regex = re.compile(f'1 out of {amount}')
         assert regex.match(ak_sub['attached'])
+
+
+@pytest.mark.skip_if_not_set('clients')
+@pytest.mark.tier3
+def test_positive_ak_with_custom_product_on_rhel6(module_org, rhel6_contenthost, target_sat):
+    """Registering a rhel6 host using an ak with custom repos should not fail
+
+    :id: d02c2664-8034-4562-914a-3b68f0c35b32
+
+    :customerscenario: true
+
+    :Steps:
+        1. Create a custom repo
+        2. Create ak and add custom repo to ak
+        3. Add subscriptions to the ak
+        4. Register a rhel6 chost with the ak
+
+    :expectedresults: Host is registered successfully
+
+    :bz: 2038388
+    """
+    entities_ids = target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {'url': settings.repos.yum_1.url, 'organization-id': module_org.id}
+    )
+    ak = target_sat.api.ActivationKey(id=entities_ids['activationkey-id']).read()
+    rhel6_contenthost.install_katello_ca(target_sat)
+    result = rhel6_contenthost.register_contenthost(module_org.label, activation_key=ak.name)
+    assert 'The system has been registered with ID' in result.stdout
