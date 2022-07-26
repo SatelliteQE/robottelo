@@ -102,7 +102,7 @@ def test_positive_use_alternate_directory(rex_contenthost, target_sat):
     command = f'echo {gen_string("alpha")}'
     invocation_command = target_sat.cli_factory.make_job_invocation(
         {
-            'job-template': 'Run Command - SSH Default',
+            'job-template': 'Run Command - Script Default',
             'inputs': f'command={command}',
             'search-query': f"name ~ {client.hostname}",
         }

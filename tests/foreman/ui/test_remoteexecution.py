@@ -84,7 +84,7 @@ def test_positive_run_default_job_template_by_ip(
             [hostname],
             {
                 'job_category': 'Commands',
-                'job_template': 'Run Command - SSH Default',
+                'job_template': 'Run Command - Script Default',
                 'template_content.command': command,
                 'advanced_options.execution_order': 'Randomized',
                 'schedule': 'Execute now',
@@ -136,7 +136,7 @@ def test_positive_run_custom_job_template_by_ip(
                 'template.name': job_template_name,
                 'template.template_editor.rendering_options': 'Editor',
                 'template.template_editor.editor': '<%= input("command") %>',
-                'job.provider_type': 'SSH',
+                'job.provider_type': 'Script',
                 'inputs': [{'name': 'command', 'required': True, 'input_type': 'User input'}],
             }
         )
@@ -195,7 +195,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
                 host_names,
                 {
                     'job_category': 'Commands',
-                    'job_template': 'Run Command - SSH Default',
+                    'job_template': 'Run Command - Script Default',
                     'template_content.command': 'ls',
                     'schedule': 'Execute now',
                 },
@@ -248,7 +248,7 @@ def test_positive_run_scheduled_job_template_by_ip(
             [hostname],
             {
                 'job_category': 'Commands',
-                'job_template': 'Run Command - SSH Default',
+                'job_template': 'Run Command - Script Default',
                 'template_content.command': 'ls',
                 'schedule': 'Schedule future execution',
                 'schedule_content.start_at': plan_time.strftime("%Y-%m-%d %H:%M"),
