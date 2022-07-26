@@ -55,7 +55,7 @@ def module_rhc_org(module_target_sat):
     return org
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def fixture_setup_rhc_satellite(request, module_target_sat, module_rhc_org):
     """Create Organization and activation key after successful test execution"""
     yield
@@ -113,10 +113,10 @@ def test_positive_configure_cloud_connector(
     # Set Host parameter source_display_name to something random.
     # To avoid 'name has already been taken' error when run multiple times
     # on a machine with the same hostname.
-    host_id = module_target_sat.cli.Host.info({'name': module_target_sat.hostname})['id']
-    module_target_sat.cli.Host.set_parameter(
-        {'host-id': host_id, 'name': 'source_display_name', 'value': gen_string('alpha')}
-    )
+    host = module_target_sat.api.Host().search(query={'search': module_target_sat.hostname})[0]
+    parameters = [{'name': 'source_display_name', 'value': gen_string('alpha')}]
+    host.host_parameters_attributes = parameters
+    host.update(['host_parameters_attributes'])
 
     with session:
         session.organization.select(org_name=module_rhc_org.name)
