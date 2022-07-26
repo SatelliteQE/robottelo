@@ -252,6 +252,46 @@ on your system. Instead, UI tests launch a web browser within a docker
 container.
 
 
+Running UI Tests On a local Docker Browser grid
+
+.. code-block:: shell
+
+    $ . selenium_grid.sh
+    $ selenium_grid_start_hub
+    Running selenium hub:
+    bbaafb2341aae77c32408d1f44e47bed5ced8a97683689b1083080f0389e025c
+    $ selenium_grid_start_node
+    Running selenium node:
+    0d70919ee049679e6dae2cfa7e14d97d26e5be12ad6e48d9a0d1638618f39769
+    $ selenium_grid_start_node
+    Running selenium node:
+    069a294f43be182635008cfdcb6291c8c8cfed4a054640773bfea9a0baae4dc6
+    $ selenium_grid_start_node
+    Running selenium node:
+    4b1881e5d880d49f5380cc90f9ff5deb133c7f42d3565eccb0d91fff6a440307
+    $ selenium_grid_start_node
+    Running selenium node:
+    2504bbe723f3b850b2d87760b7fd90940abb9e827762298652cb5d9facc9195c
+
+We can check the containers started fine:
+
+.. code-block:: shell
+
+    $ podman ps -a | grep selenium-
+    bbaafb2341aa  docker.io/selenium/hub:4.3.0                                                /opt/bin/entry_po...  33 seconds ago  Up 33 seconds ago          0.0.0.0:4442-4445->4442-4445/tcp  selenium-hub
+    0d70919ee049  docker.io/selenium/node-chrome:4.3.0                                        /opt/bin/entry_po...  30 seconds ago  Up 30 seconds ago                                            selenium-node-chrome-f4qVX
+    069a294f43be  docker.io/selenium/node-chrome:4.3.0                                        /opt/bin/entry_po...  28 seconds ago  Up 28 seconds ago                                            selenium-node-chrome-3k56l
+    4b1881e5d880  docker.io/selenium/node-chrome:4.3.0                                        /opt/bin/entry_po...  26 seconds ago  Up 26 seconds ago                                            selenium-node-chrome-KIAOk
+    2504bbe723f3  docker.io/selenium/node-chrome:4.3.0                                        /opt/bin/entry_po...  24 seconds ago  Up 24 seconds ago                                            selenium-node-chrome-JQhOi
+    $ xdg-open http://localhost:4444/ui
+
+To cleanup after the test there is a command
+
+.. code-block:: shell
+
+    selenium_grid_cleanup
+
+
 Running UI Tests On SauceLabs
 -----------------------------
 
