@@ -1369,7 +1369,7 @@ class Satellite(Capsule, SatelliteMixins):
                     return frame.function
 
         return Session(
-            session_name=get_caller(),
+            session_name=testname or get_caller(),
             user=user or settings.server.admin_username,
             password=password or settings.server.admin_password,
             url=url,
