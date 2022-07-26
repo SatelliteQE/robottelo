@@ -2146,6 +2146,8 @@ FAM_MODULE_PATH = (
 )
 
 RH_SAT_ROLES = [
+    'activation_keys',
+    'auth_sources_ldap',
     'compute_profiles',
     'compute_resources',
     'content_credentials',
@@ -2163,6 +2165,7 @@ RH_SAT_ROLES = [
     'provisioning_templates',
     'repositories',
     'settings',
+    'subnets',
     'sync_plans',
 ]
 
