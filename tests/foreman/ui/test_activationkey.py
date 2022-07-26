@@ -1191,3 +1191,41 @@ def test_positive_delete_manifest(session):
         # Verify subscription is not assigned to activation key anymore
         ak = session.activationkey.read(activation_key.name, widget_names='subscriptions')
         assert not ak['subscriptions']['resources']['assigned']
+
+
+@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.tier3
+@pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
+def test_positive_ak_with_custom_product_on_rhel6(session, rhel6_contenthost, target_sat):
+    """Registering a rhel6 host using an ak with custom repos should not fail
+
+    :id: 4efed0b5-99af-4933-bea7-92a33984ce10
+
+    :customerscenario: true
+
+    :Steps:
+        1. Create a custom repo
+        2. Create ak and add custom repo to ak
+        3. Add subscriptions to the ak
+        4. Register a rhel6 chost with the ak
+
+    :expectedresults: Host is registered successfully
+
+    :bz: 2038388
+
+    :CaseLevel: Integration
+    """
+    org = target_sat.api.Organization().create()
+    entities_ids = target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {'url': settings.repos.yum_1.url, 'organization-id': org.id}
+    )
+    ak = target_sat.api.ActivationKey(id=entities_ids['activationkey-id']).read()
+    rhel6_contenthost.install_katello_ca(target_sat)
+    result = rhel6_contenthost.register_contenthost(org.label, activation_key=ak.name)
+    assert 'The system has been registered with ID' in result.stdout
+    with target_sat.ui_session() as session:
+        session.location.select(constants.DEFAULT_LOC)
+        session.organization.select(org.name)
+        ak = session.activationkey.read(ak.name, widget_names='content_hosts')
+        assert len(ak['content_hosts']['table']) == 1
+        assert ak['content_hosts']['table'][0]['Name'] == rhel6_contenthost.hostname
