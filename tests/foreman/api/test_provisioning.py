@@ -52,7 +52,7 @@ def test_rhel_pxe_provisioning(
     sat = module_provisioning_sat.sat
 
     host = sat.api.Host(
-        hostgroup=module_provisioning_sat.hostgroup,
+        hostgroup=module_provisioning_rhel_content.hostgroup,
         organization=module_org_with_manifest,
         location=module_location,
         content_facet_attributes={
