@@ -17,7 +17,7 @@ from robottelo.hosts import ContentHost
 
 @pytest.fixture(scope='module')
 def module_provisioning_capsule(module_target_sat, module_location):
-    """Assings the `module_location` to Satellite's internal capsule and returns it"""
+    """Assigns the `module_location` to Satellite's internal capsule and returns it"""
     capsule = module_target_sat.internal_capsule
     capsule.location = [module_location]
     return capsule.update(['location'])
@@ -26,16 +26,21 @@ def module_provisioning_capsule(module_target_sat, module_location):
 @pytest.fixture(scope='module')
 def module_provisioning_rhel_content(
     request,
-    module_target_sat,
+    module_provisioning_sat,
+    module_provisioning_capsule,
     module_org_with_manifest,
     module_lce_library,
     module_default_org_view,
     default_subscription,
+    module_location,
+    default_architecture,
+    default_partitiontable,
 ):
     """
     This fixture sets up kickstart repositories for a specific RHEL version
     that is specified in `request.param`.
     """
+    sat = module_provisioning_sat.sat
     rhel_ver = request.param['rhel_version']
     repo_names = [f'rhel{rhel_ver}']
     if int(rhel_ver) > 7:
@@ -53,7 +58,7 @@ def module_provisioning_rhel_content(
             releasever=constants.REPOS['kickstart'][name]['version'],
         )
         # Sync step because repo is not synced by default
-        rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+        rh_repo = sat.api.Repository(id=rh_repo_id).read()
         task = rh_repo.sync(synchronous=False)
         tasks.append(task)
         rh_repos.append(rh_repo)
@@ -62,42 +67,67 @@ def module_provisioning_rhel_content(
             search_query=(f'id = {task["id"]}'),
             poll_timeout=2500,
         )
-        task_status = module_target_sat.api.ForemanTask(id=task['id']).poll()
+        task_status = sat.api.ForemanTask(id=task['id']).poll()
         assert task_status['result'] == 'success'
 
     rhel_xy = Version(constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version'])
-    o_systems = module_target_sat.api.OperatingSystem().search(
+    o_systems = sat.api.OperatingSystem().search(
         query={'search': f'family=Redhat and major={rhel_xy.major} and minor={rhel_xy.minor}'}
     )
     assert o_systems, f'Operating system RHEL {rhel_xy} was not found'
     os = o_systems[0].read()
+    # return only the first kickstart repo - RHEL X KS or RHEL X BaseOS KS
+    ksrepo = rh_repos[0]
 
-    ak = module_target_sat.api.ActivationKey(
+    ak = sat.api.ActivationKey(
         organization=module_org_with_manifest,
         content_view=module_default_org_view,
         environment=module_lce_library,
     ).create()
-
     ak.add_subscriptions(data={'subscription_id': default_subscription.id})
 
-    # return only the first kickstart repo - RHEL X KS or RHEL X BaseOS KS
+    host_root_pass = settings.provisioning.host_root_password
+    pxe_loader = "PXELinux BIOS"  # TODO: Make this a fixture parameter
+
+    hostgroup = sat.api.HostGroup(
+        organization=[module_org_with_manifest],
+        location=[module_location],
+        architecture=default_architecture,
+        domain=module_provisioning_sat.domain,
+        content_source=module_provisioning_capsule.id,
+        content_view=module_default_org_view,
+        kickstart_repository=ksrepo,
+        lifecycle_environment=module_lce_library,
+        root_pass=host_root_pass,
+        operatingsystem=os,
+        ptable=default_partitiontable,
+        subnet=module_provisioning_sat.subnet,
+        pxe_loader=pxe_loader,
+        group_parameters_attributes=[
+            {
+                'name': 'remote_execution_ssh_keys',
+                'parameter_type': 'string',
+                'value': settings.provisioning.host_ssh_key_pub,
+            },
+            # assign AK in order the hosts to be subscribed
+            {
+                'name': 'kt_activation_keys',
+                'parameter_type': 'string',
+                'value': ak.name,
+            },
+        ],
+    ).create()
+
     return Box(
-        os=os,
-        ksrepo=rh_repos[0],
-        ak=ak,
+        hostgroup=hostgroup,
     )
 
 
 @pytest.fixture(scope='module')
 def module_provisioning_sat(
     module_target_sat,
-    module_provisioning_rhel_content,
     module_org_with_manifest,
     module_location,
-    default_architecture,
-    default_partitiontable,
-    module_lce_library,
-    module_default_org_view,
     module_provisioning_capsule,
 ):
     """
@@ -107,8 +137,6 @@ def module_provisioning_sat(
     that are later used by the tests.
     """
     sat = module_target_sat
-    host_root_pass = settings.provisioning.host_root_password
-    pxe_loader = "PXELinux BIOS"  # TODO: Make this a fixture parameter
     provisioning_domain_name = f"{gen_string('alpha').lower()}.foo"
 
     broker_data_out = Broker().execute(
@@ -163,35 +191,7 @@ def module_provisioning_sat(
         domain=[domain.id],
     ).create()
 
-    hostgroup = sat.api.HostGroup(
-        organization=[module_org_with_manifest],
-        location=[module_location],
-        architecture=default_architecture,
-        domain=domain,
-        content_source=module_provisioning_capsule.id,
-        content_view=module_default_org_view,
-        kickstart_repository=module_provisioning_rhel_content.ksrepo,
-        lifecycle_environment=module_lce_library,
-        root_pass=host_root_pass,
-        operatingsystem=module_provisioning_rhel_content.os,
-        ptable=default_partitiontable,
-        subnet=subnet,
-        pxe_loader=pxe_loader,
-        group_parameters_attributes=[  # assign AK in order the hosts to be subscribed
-            {
-                'name': 'remote_execution_ssh_keys',
-                'parameter_type': 'string',
-                'value': settings.provisioning.host_ssh_key_pub,
-            },
-            {
-                'name': 'kt_activation_keys',
-                'parameter_type': 'string',
-                'value': module_provisioning_rhel_content.ak.name,
-            },
-        ],
-    ).create()
-
-    return Box(sat=sat, hostgroup=hostgroup, subnet=subnet)
+    return Box(sat=sat, domain=domain, subnet=subnet)
 
 
 @pytest.fixture(scope='module')
@@ -220,3 +220,5 @@ def provisioning_host(module_ssh_key_file):
         auth=module_ssh_key_file,
     ) as host:
         yield host
+        # Set host as non-blank to run teardown of the host
+        host.blank = False
