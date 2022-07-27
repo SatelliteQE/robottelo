@@ -21,7 +21,6 @@ import random
 import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.report import ConfigReport
 
 
 @pytest.fixture(scope='module')
@@ -34,7 +33,7 @@ def run_puppet_agent(session_puppet_enabled_sat):
 
 
 @pytest.mark.tier1
-def test_positive_info(run_puppet_agent):
+def test_positive_info(run_puppet_agent, session_puppet_enabled_sat):
     """Test Info for Puppet report
 
     :id: 32646d4b-7101-421a-85e0-777d3c6b71ec
@@ -43,17 +42,17 @@ def test_positive_info(run_puppet_agent):
 
     :CaseImportance: Critical
     """
-    result = ConfigReport.list()
+    result = session_puppet_enabled_sat.cli.ConfigReport.list()
     assert len(result) > 0
     # Grab a random report
     report = random.choice(result)
-    result = ConfigReport.info({'id': report['id']})
+    result = session_puppet_enabled_sat.cli.ConfigReport.info({'id': report['id']})
     assert report['id'] == result['id']
 
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_delete_by_id(run_puppet_agent):
+def test_positive_delete_by_id(run_puppet_agent, session_puppet_enabled_sat):
     """Check if Puppet Report can be deleted by its ID
 
     :id: bf918ec9-e2d4-45d0-b913-ab939b5d5e6a
@@ -62,10 +61,10 @@ def test_positive_delete_by_id(run_puppet_agent):
 
     :CaseImportance: Critical
     """
-    result = ConfigReport.list()
+    result = session_puppet_enabled_sat.cli.ConfigReport.list()
     assert len(result) > 0
     # Grab a random report
     report = random.choice(result)
-    ConfigReport.delete({'id': report['id']})
+    session_puppet_enabled_sat.cli.ConfigReport.delete({'id': report['id']})
     with pytest.raises(CLIReturnCodeError):
-        ConfigReport.info({'id': report['id']})
+        session_puppet_enabled_sat.cli.ConfigReport.info({'id': report['id']})
