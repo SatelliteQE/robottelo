@@ -2169,7 +2169,7 @@ def test_positive_read_details_page_from_new_ui(
         )
         assert session.host_new.search(host_name)[0]['Name'] == host_name
         values = session.host_new.get_details(host_name, widget_names='Overview')
-        assert values['Overview']['HostStatusCard']['status'] == 'All Statuses are OK'
+        assert values['Overview']['HostStatusCard']['status'] == 'All statuses OK'
         assert (
             values['Overview']['DetailsCard']['details']['mac_address'] == module_host_template.mac
         )
