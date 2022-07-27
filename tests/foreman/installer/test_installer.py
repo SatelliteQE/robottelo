@@ -21,8 +21,6 @@ import re
 import pytest
 
 from robottelo import ssh
-from robottelo.config import settings
-from robottelo.constants import RHEL_7_MAJOR_VERSION
 
 PREVIOUS_INSTALLER_OPTIONS = {
     '-',
@@ -1263,6 +1261,8 @@ SATELLITE_SERVICES = {
     'postgresql',
     'pulpcore-api',
     'pulpcore-content',
+    'pulpcore-worker@*',
+    'tomcat',
 }
 
 
@@ -1317,7 +1317,6 @@ def test_positive_foreman_module(target_sat):
     assert rpm_version.replace('-', '.') == semodule_version
 
 
-@pytest.mark.skip_if_open('BZ:1964394')
 @pytest.mark.upgrade
 @pytest.mark.tier1
 def test_positive_check_installer_services(target_sat):
@@ -1326,36 +1325,24 @@ def test_positive_check_installer_services(target_sat):
     :id: 85fd4388-6d94-42f5-bed2-24be38e9f104
 
     :steps:
-        1. Run 'systemctl status <tomcat>' command to check tomcat service status on satellite.
-        2. Run 'satellite-maintain service status' command on satellite to check the satellite
-            services.
-        3. Run the 'hammer ping' command on satellite.
+        1. Run 'systemctl status SATELLITE_SERVICES' command to check services status on satellite.
+        2. Run the 'hammer ping' command on satellite.
 
     :BZ: 1964394
 
     :customerscenario: true
 
-    :expectedresults: All services are started
+    :expectedresults: All services are active (running)
 
     :CaseLevel: System
     """
-    if target_sat.os_version.major >= RHEL_7_MAJOR_VERSION:
-        service_name = 'tomcat'
-        status_format = "systemctl status {0}"
-    else:
-        service_name = 'tomcat6'
-        status_format = "service {0} status"
-    SATELLITE_SERVICES.add(service_name)
-
     for service in SATELLITE_SERVICES:
-        result = target_sat.execute(status_format.format(service))
+        result = target_sat.execute(f'systemctl status {service}')
         assert result.status == 0
         assert 'Active: active (running)' in result.stdout
 
     # check status reported by hammer ping command
-    username = settings.server.admin_username
-    password = settings.server.admin_password
-    result = target_sat.execute(f'hammer -u {username} -p {password} ping')
+    result = target_sat.execute('hammer ping')
     test_result = {}
     service = None
     for line in result.stdout.strip().replace(' ', '').split('\n'):
