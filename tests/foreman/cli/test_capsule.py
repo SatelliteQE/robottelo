@@ -64,7 +64,7 @@ def test_negative_create_with_url():
 @pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_name(request, name):
+def test_positive_create_with_name(request, target_sat, name):
     """Proxy creation with the home proxy
 
     :id: 7decd7a3-2d35-43ff-9a20-de44e83c7389
@@ -77,7 +77,7 @@ def test_positive_create_with_name(request, name):
 
     :BZ: 1398695
     """
-    proxy = _make_proxy(request, {'name': name})
+    proxy = _make_proxy(request, target_sat, options={'name': name})
     assert proxy['name'] == name
 
 
@@ -105,7 +105,7 @@ def test_positive_delete_by_id(name):
 
 @pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
-def test_positive_update_name(request):
+def test_positive_update_name(request, target_sat):
     """Proxy name update with the home proxy
 
     :id: 1a02a06b-e9ab-4b9b-bcb0-ac7060188316
@@ -116,7 +116,7 @@ def test_positive_update_name(request):
 
     :BZ: 1398695
     """
-    proxy = _make_proxy(request, {'name': gen_alphanumeric()})
+    proxy = _make_proxy(request, target_sat, options={'name': gen_alphanumeric()})
     for new_name in valid_data_list().values():
         newport = get_available_capsule_port()
         with default_url_on_new_port(9090, newport) as url:
@@ -127,7 +127,7 @@ def test_positive_update_name(request):
 
 @pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier2
-def test_positive_refresh_features_by_id(request):
+def test_positive_refresh_features_by_id(request, target_sat):
     """Refresh smart proxy features, search for proxy by id
 
     :id: d3db63ce-b877-40eb-a863-294c12489ddd
@@ -146,13 +146,13 @@ def test_positive_refresh_features_by_id(request):
     # get an available port for our fake capsule
     port = get_available_capsule_port()
     with default_url_on_new_port(9090, port) as url:
-        proxy = _make_proxy(request, {'url': url})
+        proxy = _make_proxy(request, target_sat, options={'url': url})
         Proxy.refresh_features({'id': proxy['id']})
 
 
 @pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier2
-def test_positive_refresh_features_by_name(request):
+def test_positive_refresh_features_by_name(request, target_sat):
     """Refresh smart proxy features, search for proxy by name
 
     :id: 2ddd0097-8f65-430e-963d-a3b5dcffe86b
@@ -171,7 +171,7 @@ def test_positive_refresh_features_by_name(request):
     # get an available port for our fake capsule
     port = get_available_capsule_port()
     with default_url_on_new_port(9090, port) as url:
-        proxy = _make_proxy(request, {'url': url})
+        proxy = _make_proxy(request, target_sat, options={'url': url})
         Proxy.refresh_features({'id': proxy['name']})
 
 

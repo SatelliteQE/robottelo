@@ -53,7 +53,7 @@ def _create_smart_proxy(request, target_sat, **kwargs):
 
     @request.addfinalizer
     def _cleanup():
-        target_sat.api.Proxy.delete({'id': proxy.id})
+        target_sat.api.SmartProxy(id=proxy.id).delete()
 
     return proxy
 
