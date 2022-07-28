@@ -228,14 +228,15 @@ def test_positive_end_to_end(session, module_org, module_location, template_data
     audit_comment = gen_string('alpha')
     os_family = 'FreeBSD'
     input_name = gen_string('alpha')
+    variable_name = gen_string('alpha')
+    input_description = gen_string('alpha')
     template_inputs = [
         {
             'name': input_name,
             'required': True,
-            'input_type': 'Puppet parameter',
-            'input_content.puppet_class_name': gen_string('alpha'),
-            'input_content.puppet_parameter_name': gen_string('alpha'),
-            'input_content.description': gen_string('alpha'),
+            'input_type': 'Variable',
+            'input_content.variable_name': variable_name,
+            'input_content.description': input_description,
         }
     ]
     with session:
@@ -259,7 +260,9 @@ def test_positive_end_to_end(session, module_org, module_location, template_data
         assert pt['template']['template_editor'] == template_data
         assert pt['inputs'][0]['name'] == input_name
         assert pt['inputs'][0]['required'] is True
-        assert pt['inputs'][0]['input_type'] == 'Puppet parameter'
+        assert pt['inputs'][0]['input_type'] == 'Variable'
+        assert pt['inputs'][0]['input_content']['variable_name'] == variable_name
+        assert pt['inputs'][0]['input_content']['description'] == input_description
         assert module_location.name in pt['locations']['resources']['assigned']
         assert module_org.name in pt['organizations']['resources']['assigned']
         session.partitiontable.update(
