@@ -312,7 +312,7 @@ class TestCapsuleContentManagement:
 
         :CaseComponent: RHCloud-Insights
 
-        :Assignee: jpathan
+        :Assignee: addubey
 
         :customerscenario: true
 
