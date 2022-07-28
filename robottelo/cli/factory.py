@@ -213,6 +213,7 @@ def make_content_view_with_credentials(options=None, credentials=None):
         'component-ids': None,
         'composite': False,
         'description': None,
+        'import-only': False,
         'label': None,
         'name': gen_string('alpha', 10),
         'organization': None,

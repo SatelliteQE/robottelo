@@ -1586,6 +1586,60 @@ class TestContentViewSync:
             'appropriate subscriptions before importing content.'
         ) in error.value.message
 
+    @pytest.mark.tier2
+    def test_positive_import_content_for_disconnected_sat_with_existing_content(
+        self,
+        class_export_entities,
+        config_export_import_settings,
+        target_sat,
+        module_org,
+    ):
+        """Import a content view into a disconnected satellite for an existing content view
+
+        :id: 22c077dc-0041-4c6c-9da5-fd58e5497ae8
+
+        :steps:
+
+            1. Sync a few repos
+            2. Create a cv with the repo from 1
+            3. Run complete export
+            4. On Disconnected satellite, create a cv with same name as cv on 2 and with
+                'import-only' selected
+            5. run import command
+
+        :expectedresults: Import should run successfully
+
+        :bz: 2030101
+
+        :customerscenario: true
+        """
+        export_cvv_id = class_export_entities['exporting_cvv_id']
+        export_cv_name = class_export_entities['exporting_cv_name']
+        # Verify export directory is empty
+        assert validate_filepath(target_sat, module_org) == ''
+        # Export cv
+        export = ContentExport.completeVersion(
+            {'id': export_cvv_id, 'organization-id': module_org.id}
+        )
+        import_path = move_pulp_archive(target_sat, module_org, export['message'])
+        # importing portion
+        importing_org = make_org()
+        # set disconnected mode
+        Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
+        # check that files are present in import_path
+        result = target_sat.execute(f'ls {import_path}')
+        assert result.stdout != ''
+        # Import section
+        # Create cv with 'import-only' set to true
+        make_content_view(
+            {'name': export_cv_name, 'import-only': True, 'organization-id': importing_org['id']}
+        )
+        ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
+        importing_cvv = ContentView.info(
+            {'name': export_cv_name, 'organization-id': importing_org['id']}
+        )['versions']
+        assert len(importing_cvv) >= 1
+
 
 class TestInterSatelliteSync:
     """Implements InterSatellite Sync tests in CLI"""
