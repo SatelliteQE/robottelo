@@ -2162,7 +2162,6 @@ class TestContentView:
                the following permissions::
 
                 - (Miscellaneous) [my_organizations]
-                - Environment [view_environments]
                 - Organization [view_organizations],
                 - Katello::Subscription: [
                     view_subscriptions,
@@ -2171,7 +2170,6 @@ class TestContentView:
                     import_manifest,
                     delete_manifest]
                 - Katello::ContentView [view_content_views]
-                - ConfigGroup [view_config_groups]
                 - Hostgroup view_hostgroups
                 - Host [view_hosts, create_hosts, edit_hosts]
                 - Location [view_locations]
@@ -2192,7 +2190,6 @@ class TestContentView:
         user_password = gen_alphanumeric()
         required_rc_permissions = {
             '(Miscellaneous)': ['my_organizations'],
-            'Environment': ['view_environments'],
             'Organization': ['view_organizations'],
             'Katello::Subscription': [
                 'view_subscriptions',
@@ -2202,7 +2199,6 @@ class TestContentView:
                 'delete_manifest',
             ],
             'Katello::ContentView': ['view_content_views'],
-            'ConfigGroup': ['view_config_groups'],
             'Hostgroup': ['view_hostgroups'],
             'Host': ['view_hosts', 'create_hosts', 'edit_hosts'],
             'Location': ['view_locations'],
@@ -2321,7 +2317,6 @@ class TestContentView:
                location  with the following permissions::
 
                 - (Miscellaneous) [my_organizations]
-                - Environment [view_environments]
                 - Organization [view_organizations],
                 - Katello::Subscription: [
                     view_subscriptions,
@@ -2330,7 +2325,6 @@ class TestContentView:
                     import_manifest,
                     delete_manifest]
                 - Katello::ContentView [view_content_views]
-                - ConfigGroup [view_config_groups]
                 - Hostgroup view_hostgroups
                 - Host [view_hosts, create_hosts, edit_hosts]
                 - Location [view_locations]
@@ -2350,7 +2344,6 @@ class TestContentView:
         user_password = gen_alphanumeric()
         required_rc_permissions = {
             '(Miscellaneous)': ['my_organizations'],
-            'Environment': ['view_environments'],
             'Organization': ['view_organizations'],
             'Katello::Subscription': [
                 'view_subscriptions',
@@ -2360,7 +2353,6 @@ class TestContentView:
                 'delete_manifest',
             ],
             'Katello::ContentView': ['view_content_views'],
-            'ConfigGroup': ['view_config_groups'],
             'Hostgroup': ['view_hostgroups'],
             'Host': ['view_hosts', 'create_hosts', 'edit_hosts'],
             'Location': ['view_locations'],
