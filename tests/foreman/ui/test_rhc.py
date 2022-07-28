@@ -23,7 +23,6 @@ from wait_for import wait_for
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.helpers import file_downloader
 from robottelo.logging import logger
 
 
@@ -60,8 +59,8 @@ def fixture_setup_rhc_satellite(request, module_target_sat, module_rhc_org):
     """Create Organization and activation key after successful test execution"""
     yield
     if request.node.rep_call.passed:
-        manifests_path = file_downloader(
-            file_url=settings.fake_manifest.url['default'], hostname=module_target_sat.hostname
+        manifests_path = module_target_sat.download_file(
+            file_url=settings.fake_manifest.url['default']
         )[0]
         module_target_sat.cli.Subscription.upload(
             {'file': manifests_path, 'organization-id': module_rhc_org.id}
@@ -143,16 +142,12 @@ def test_positive_configure_cloud_connector(
     job_output = module_target_sat.cli.JobInvocation.get_output(
         {'id': invocation_id, 'host': module_target_sat.hostname}
     )
-    logger.debug(f"Invocation output>>\n{job_output}\n<<End of invocation output")
     # if installation fails, it's often due to missing rhscl repo -> print enabled repos
-    repolist = module_target_sat.execute('yum repolist')
-    logger.debug(f"Repolist>>\n{repolist}\n<<End of repolist")
-    # print rhc status
+    module_target_sat.execute('yum repolist')
+    # get rhc status
     rhc_status = module_target_sat.execute('rhc status')
-    logger.debug(f"rhc status>>\n{rhc_status}\n<<End of rhc status")
-    # print rhcd log
+    # get rhcd log
     rhcd_log = module_target_sat.execute('journalctl --unit=rhcd')
-    logger.debug(f"journalctl log>>\n{rhcd_log}\n<<End of log")
 
     assert module_target_sat.api.JobInvocation(id=invocation_id).read().status == 0
     assert "Install yggdrasil-worker-forwarder and rhc" in job_output
