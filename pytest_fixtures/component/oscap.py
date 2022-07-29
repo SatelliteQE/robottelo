@@ -1,6 +1,5 @@
 from pathlib import PurePath
 
-
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
@@ -8,9 +7,9 @@ from nailgun import entities
 from robottelo.cli.factory import make_scapcontent
 from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
+from robottelo.constants import DataFile
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_TAILORING_FILE
-from robottelo.constants import DataFile
 
 
 @pytest.fixture(scope="session")

@@ -25,19 +25,18 @@ import pytest
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
-from robottelo.constants import DataFile
+
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
+from robottelo.constants import DataFile
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DOWNLOAD_POLICIES
 from robottelo.constants import INVALID_URL
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOSET
-from robottelo.constants import VALID_GPG_KEY_BETA_FILE
-from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.datafactory import gen_string
 from robottelo.hosts import get_sat_version

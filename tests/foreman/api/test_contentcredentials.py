@@ -21,8 +21,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 from requests import HTTPError
 
-from robottelo.constants import VALID_GPG_KEY_BETA_FILE
-from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.constants import DataFile
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized

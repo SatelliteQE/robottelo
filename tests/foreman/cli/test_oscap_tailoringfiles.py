@@ -23,8 +23,8 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_tailoringfile
 from robottelo.cli.scap_tailoring_files import TailoringFiles
-from robottelo.constants import SNIPPET_DATA_FILE
 from robottelo.constants import DataFile
+from robottelo.constants import SNIPPET_DATA_FILE
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
@@ -132,9 +132,7 @@ class TestTailoringFiles:
 
         :CaseImportance: Medium
         """
-        target_sat.put(
-            DataFile.SNIPPET_DATA_FILE, f'/tmp/{SNIPPET_DATA_FILE}'
-        )
+        target_sat.put(DataFile.SNIPPET_DATA_FILE, f'/tmp/{SNIPPET_DATA_FILE}')
         name = gen_string('alphanumeric')
         with pytest.raises(CLIFactoryError):
             make_tailoringfile({'name': name, 'scap-file': f'/tmp/{SNIPPET_DATA_FILE}'})

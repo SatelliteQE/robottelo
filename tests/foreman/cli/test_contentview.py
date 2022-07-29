@@ -43,9 +43,9 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.role import Role
 from robottelo.cli.user import User
 from robottelo.config import settings
+from robottelo.constants import DataFile
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
-from robottelo.constants import DataFile
 from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized

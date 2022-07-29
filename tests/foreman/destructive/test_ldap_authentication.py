@@ -50,7 +50,7 @@ def set_certificate_in_satellite(server_type, sat, hostname=None):
         idm_cert_path_url = os.path.join(settings.ipa.hostname, 'ipa/config/ca.crt')
         sat.get(
             remote_path=idm_cert_path_url,
-            local_path=CERT_PATH+certfile,
+            local_path=CERT_PATH + certfile,
         )
     elif server_type == 'AD':
         certfile = 'satqe-QE-SAT6-AD-CA.cer'

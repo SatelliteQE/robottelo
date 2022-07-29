@@ -20,9 +20,9 @@ import os
 
 import pytest
 
-from robottelo.constants import DataFile
 from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
+from robottelo.constants import DataFile
 from robottelo.datafactory import gen_string
 
 

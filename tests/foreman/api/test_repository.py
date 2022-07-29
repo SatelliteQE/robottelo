@@ -39,8 +39,8 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
-from robottelo.constants import repos as repo_constants
 from robottelo.constants import DataFile
+from robottelo.constants import repos as repo_constants
 from robottelo.datafactory import parametrized
 from robottelo.logging import logger
 
@@ -809,11 +809,7 @@ class TestRepository:
         :CaseLevel: Integration
         """
         # Upload RPM content.
-        repo.upload_content(
-            files={
-                'content': DataFile.RPM_TO_UPLOAD.read_bytes()
-            }
-        )
+        repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
         # Verify the repository's contents.
         assert repo.read().content_counts['rpm'] == 1
 
@@ -2229,11 +2225,7 @@ class TestFileRepository:
 
         :CaseAutomation: Automated
         """
-        repo.upload_content(
-            files={
-                'content': DataFile.RPM_TO_UPLOAD.read_bytes()
-            }
-        )
+        repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
         assert repo.read().content_counts['file'] == 1
 
         filesearch = entities.File().search(query={"search": f"name={constants.RPM_TO_UPLOAD}"})
@@ -2285,11 +2277,7 @@ class TestFileRepository:
 
         :CaseAutomation: Automated
         """
-        repo.upload_content(
-            files={
-                'content': DataFile.RPM_TO_UPLOAD.read_bytes()
-            }
-        )
+        repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
         assert repo.read().content_counts['file'] == 1
 
         file_detail = entities.File().search(query={'repository_id': repo.id})

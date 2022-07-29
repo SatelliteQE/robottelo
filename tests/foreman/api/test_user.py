@@ -22,7 +22,6 @@ http://<satellite-host>/apidoc/v2/users.html
 """
 import json
 import re
-from robottelo.constants import DataFile
 
 import pytest
 from nailgun import entities
@@ -30,6 +29,7 @@ from nailgun.config import ServerConfig
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
+from robottelo.constants import DataFile
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import gen_string

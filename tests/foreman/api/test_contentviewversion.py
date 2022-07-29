@@ -24,9 +24,9 @@ from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
+from robottelo.constants import DataFile
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants import DataFile
 
 
 @pytest.fixture(scope='module')

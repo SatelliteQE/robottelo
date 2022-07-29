@@ -18,6 +18,7 @@
 """
 import pytest
 from fauxfactory import gen_string
+
 from robottelo.constants import DataFile
 
 

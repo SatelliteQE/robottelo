@@ -1,39 +1,17 @@
 """Defines various constants"""
+from pathlib import Path
+
 from box import Box
 from nailgun import entities
-from pathlib import Path
 
 
 # String Color codes
-from tests.foreman.cli.test_hammer import HAMMER_COMMANDS
-
-
 class Colored(Box):
     YELLOW = '\033[1;33m'
     REDLIGHT = '\033[3;31m'
     REDDARK = '\033[1;31m'
     GREEN = '\033[1;32m'
     WHITELIGHT = '\033[1;30m'
-
-
-# Data File Paths
-class DataFile(Box):
-    """The boxed Data directory class with its attributes pointing to the Data directory files"""
-    DATA_DIR = Path('tests/foreman/data')
-    OSCAP_TAILORING_FILE = DATA_DIR.joinpath(OSCAP_TAILORING_FILE)
-    REPORT_TEMPLATE_FILE = DATA_DIR.joinpath(REPORT_TEMPLATE_FILE)
-    VALID_GPG_KEY_FILE = DATA_DIR.joinpath(VALID_GPG_KEY_FILE)
-    VALID_GPG_KEY_BETA_FILE = DATA_DIR.joinpath(VALID_GPG_KEY_BETA_FILE)
-    RPM_TO_UPLOAD = DATA_DIR.joinpath(RPM_TO_UPLOAD)
-    SRPM_TO_UPLOAD = DATA_DIR.joinpath(SRPM_TO_UPLOAD)
-    FAKE_FILE_NEW_NAME = DATA_DIR.joinpath(FAKE_FILE_NEW_NAME)
-    ZOO_CUSTOM_GPG_KEY = DATA_DIR.joinpath(ZOO_CUSTOM_GPG_KEY)
-    SSH_KEYS_JSON = DATA_DIR.joinpath('sshkeys.json')
-    HAMMER_COMMANDS_JSON = DATA_DIR.joinpath('hammer_commands.json')
-    SNIPPET_DATA_FILE = DATA_DIR.joinpath(SNIPPET_DATA_FILE)
-    PARTITION_SCRIPT_DATA_FILE = DATA_DIR.joinpath(PARTITION_SCRIPT_DATA_FILE)
-    OS_TEMPLATE_DATA_FILE = DATA_DIR.joinpath(OS_TEMPLATE_DATA_FILE)
-
 
 
 # This should be updated after each version branch
@@ -2270,3 +2248,23 @@ WEBHOOK_METHODS = [
     "DELETE",
     "PATCH",
 ]
+
+
+# Data File Paths
+class DataFile(Box):
+    """The boxed Data directory class with its attributes pointing to the Data directory files"""
+
+    DATA_DIR = Path('tests/foreman/data')
+    OSCAP_TAILORING_FILE = DATA_DIR.joinpath(OSCAP_TAILORING_FILE)
+    REPORT_TEMPLATE_FILE = DATA_DIR.joinpath(REPORT_TEMPLATE_FILE)
+    VALID_GPG_KEY_FILE = DATA_DIR.joinpath(VALID_GPG_KEY_FILE)
+    VALID_GPG_KEY_BETA_FILE = DATA_DIR.joinpath(VALID_GPG_KEY_BETA_FILE)
+    RPM_TO_UPLOAD = DATA_DIR.joinpath(RPM_TO_UPLOAD)
+    SRPM_TO_UPLOAD = DATA_DIR.joinpath(SRPM_TO_UPLOAD)
+    FAKE_FILE_NEW_NAME = DATA_DIR.joinpath(FAKE_FILE_NEW_NAME)
+    ZOO_CUSTOM_GPG_KEY = DATA_DIR.joinpath(ZOO_CUSTOM_GPG_KEY)
+    SSH_KEYS_JSON = DATA_DIR.joinpath('sshkeys.json')
+    HAMMER_COMMANDS_JSON = DATA_DIR.joinpath('hammer_commands.json')
+    SNIPPET_DATA_FILE = DATA_DIR.joinpath(SNIPPET_DATA_FILE)
+    PARTITION_SCRIPT_DATA_FILE = DATA_DIR.joinpath(PARTITION_SCRIPT_DATA_FILE)
+    OS_TEMPLATE_DATA_FILE = DATA_DIR.joinpath(OS_TEMPLATE_DATA_FILE)

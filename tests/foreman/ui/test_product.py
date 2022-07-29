@@ -21,11 +21,11 @@ from datetime import timedelta
 import pytest
 from fauxfactory import gen_choice
 from nailgun import entities
-from robottelo.constants import DataFile
+
 from robottelo.config import settings
+from robottelo.constants import DataFile
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import SYNC_INTERVAL
-from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import gen_string
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_cron_expressions

@@ -19,8 +19,9 @@
 import pytest
 from airgun.session import Session
 from nailgun import entities
-from robottelo.constants import DataFile
+
 from robottelo.config import settings
+from robottelo.constants import DataFile
 from robottelo.datafactory import gen_string
 
 

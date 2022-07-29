@@ -57,11 +57,11 @@ from robottelo.cli.srpm import Srpm
 from robottelo.cli.task import Task
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import DataFile
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import CUSTOM_FILE_REPO_FILES_COUNT
 from robottelo.constants import CUSTOM_LOCAL_FOLDER
+from robottelo.constants import DataFile
 from robottelo.constants import DOWNLOAD_POLICIES
 from robottelo.constants import MIRRORING_POLICIES
 from robottelo.constants import OS_TEMPLATE_DATA_FILE
