@@ -917,7 +917,7 @@ class TestContentViewSync:
             1. CV version redhat contents has been exported to directory
             2. All The exported redhat contents has been imported in org/satellite
 
-        :BZ: 1655239
+        :BZ: 1655239, 2040870
 
         :CaseAutomation: Automated
 
@@ -935,15 +935,15 @@ class TestContentViewSync:
         RepositorySet.enable(
             {
                 'basearch': 'x86_64',
-                'name': REPOSET['rhva6'],
+                'name': REPOSET['kickstart']['rhel7'],
                 'organization-id': function_org.id,
                 'product': PRDS['rhel'],
-                'releasever': '6Server',
+                'releasever': '7.9',
             }
         )
         repo = Repository.info(
             {
-                'name': REPOS['rhva6']['name'],
+                'name': REPOS['kickstart']['rhel7']['name'],
                 'organization-id': function_org.id,
                 'product': PRDS['rhel'],
             }
