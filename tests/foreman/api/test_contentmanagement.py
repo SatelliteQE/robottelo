@@ -1067,8 +1067,8 @@ class TestCapsuleContentManagement:
 
         # Check for kickstart content on SAT and CAPS
         url_base = (
-            f'pulp/content/{module_manifest_org.label}/{lce.label}/'
-            f'{cv.label}/content/dist/rhel8/8.5/x86_64/appstream/kickstart'
+            f'pulp/content/{module_manifest_org.label}/{lce.label}/{cv.label}/content/dist/'
+            f'rhel8/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/appstream/kickstart'
         )
 
         # Check kickstart specific files
