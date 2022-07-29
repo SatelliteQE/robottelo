@@ -67,6 +67,14 @@ def module_manifest_org(module_target_sat):
 
 
 @pytest.fixture(scope='module')
+def module_org_with_manifest(module_org):
+    """Upload manifest to organization."""
+    with manifests.clone() as manifest:
+        upload_manifest(module_org.id, manifest.content)
+    return module_org
+
+
+@pytest.fixture(scope='module')
 def module_gt_manifest_org(module_target_sat):
     """Creates a new org and loads GT manifest in the new org"""
     org = module_target_sat.api.Organization().create()

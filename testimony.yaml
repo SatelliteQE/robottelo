@@ -54,7 +54,6 @@ CaseComponent:
     - ForemanMaintain
     - Hammer
     - Hammer-Content
-    - HooksPlugin
     - HostCollections
     - HostForm
     - HostGroup
@@ -108,6 +107,7 @@ CaseComponent:
     - Upgrades
     - UsersRoles
     - Virt-whoConfigurePlugin
+    - Webhooks
     required: true
     type: choice
 CaseImportance:

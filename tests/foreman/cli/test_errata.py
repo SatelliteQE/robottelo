@@ -8,7 +8,7 @@
 
 :CaseComponent: ErrataManagement
 
-:Assignee: akjha
+:Assignee: addubey
 
 :TestType: Functional
 
@@ -607,10 +607,7 @@ def test_install_errata_to_one_host(module_org, errata_hosts, host_collection, t
 
     :Steps:
         1. Remove packages from one host.
-        2. Use Job Invocation to install errata
-            job-invocation create --feature="katello_errata_install" \
-            --search-query="host_collection[-id] = <value>" \
-            --inputs="errata=<errata_id>" --organization[-id][-title]=<value>'
+        2. Recalculate errata for both hosts.
         3. Assert first host does not have the package.
         4. Assert second host does have the new package.
 
@@ -627,16 +624,7 @@ def test_install_errata_to_one_host(module_org, errata_hosts, host_collection, t
     # Add ssh keys
     for host in errata_hosts:
         host.add_rex_key(satellite=target_sat)
-    # Apply errata to the host collection using job invocation
-    result = JobInvocation.create(
-        {
-            'feature': 'katello_errata_install',
-            'search-query': f'host_collection_id = {host_collection["id"]}',
-            'inputs': f"errata='{REAL_0_ERRATA_ID}'",
-            'organization-id': module_org.id,
-        }
-    )[1]['id']
-    assert 'success' in result
+        Host.errata_recalculate({'host-id': host.nailgun_host.id})
     timestamp = (datetime.utcnow() - timedelta(minutes=1)).strftime(TIMESTAMP_FMT)
     wait_for_tasks(
         search_query=(
@@ -650,7 +638,7 @@ def test_install_errata_to_one_host(module_org, errata_hosts, host_collection, t
         errata_hosts[0], rpm=errata['package_name']
     ), 'Package should not be installed on host.'
     assert is_rpm_installed(
-        errata_hosts[1], rpm=errata['new_package']
+        errata_hosts[1], rpm=errata['package_name']
     ), 'Package should be installed on host.'
 
 
@@ -1485,6 +1473,7 @@ def test_update_applicable_package_using_default_content_view(errata_host):
     )
 
     # Assert that the package is no longer applicable
+    Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
     applicable_packages = Package.list(
         {
             'host-id': errata_host.nailgun_host.id,
@@ -1589,7 +1578,6 @@ def test_install_applicable_package_to_registerd_host(chost):
     # note time for later wait_for_tasks include 2 mins margin of safety.
     timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     chost.run(f'yum -y install {PSUTIL_RPM}')
-    Host.errata_recalculate({'host-id': chost.nailgun_host.id})
     # Wait for upload profile event (in case Satellite system slow)
     wait_for_tasks(
         search_query=(
@@ -1599,6 +1587,7 @@ def test_install_applicable_package_to_registerd_host(chost):
         search_rate=15,
         max_tries=10,
     )
+    Host.errata_recalculate({'host-id': chost.nailgun_host.id})
 
     # check that package is applicable
     applicable_packages = Package.list(

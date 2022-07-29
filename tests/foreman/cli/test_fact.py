@@ -8,7 +8,7 @@
 
 :CaseComponent: Fact
 
-:Assignee: rdrazny
+:Assignee: rmynar
 
 :TestType: Functional
 
@@ -27,7 +27,7 @@ pytestmark = [pytest.mark.tier1]
 
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
-    'fact', ['uptime', 'uptime_days', 'uptime_seconds', 'memoryfree', 'ipaddress']
+    'fact', ['uptime', 'os::family', 'uptime_seconds', 'memorysize', 'ipaddress']
 )
 def test_positive_list_by_name(fact):
     """Test Fact List
@@ -40,6 +40,19 @@ def test_positive_list_by_name(fact):
     """
     facts = Fact().list(options={'search': f'fact={fact}'})
     assert facts[0]['fact'] == fact
+
+
+@pytest.mark.parametrize('fact', ['uptime_days', 'memoryfree'])
+def test_negative_list_ignored_by_name(fact):
+    """Test Fact List
+
+    :id: b6375f39-b8c3-4807-b04b-b0e43644441f
+
+    :expectedresults: Ignored fact is not listed
+
+    :parametrized: yes
+    """
+    assert Fact().list(options={'search': f'fact={fact}'}) == []
 
 
 def test_negative_list_by_name():

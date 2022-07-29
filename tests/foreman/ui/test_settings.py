@@ -23,7 +23,6 @@ from airgun.session import Session
 from fauxfactory import gen_url
 from nailgun import entities
 
-from robottelo.cleanup import setting_cleanup
 from robottelo.cli.user import User
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import gen_string
@@ -386,11 +385,13 @@ def test_positive_update_email_delivery_method_sendmail(session, target_sat):
             for mail_content, mail_content_value in mail_config_new_params.items():
                 session.settings.update(mail_content, mail_content_value)
             test_mail_response = session.settings.send_test_mail(property_name)[0]
-            assert test_mail_response == "Email was sent successfully"
+            assert test_mail_response == "Success alert: Email was sent successfully"
             assert target_sat.execute(command).status == 0
         finally:
             for key, value in mail_config_default_param.items():
-                setting_cleanup(setting_name=key, setting_value=value.value)
+                setting_entity = target_sat.api.Setting().search(query={'search': f'name={key}'})[0]
+                setting_entity.value = value.value
+                setting_entity.update({'value'})
 
 
 @pytest.mark.stubbed

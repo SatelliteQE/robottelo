@@ -20,7 +20,6 @@ from robottelo.cli.factory import make_compute_resource
 from robottelo.cli.org import Org
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.constants import VMWARE_CONSTANTS
 
 
 @pytest.fixture(scope='module')
@@ -39,9 +38,6 @@ def vmware(module_org, module_location):
     vmware.vmware_img_user = settings.vmware.image_username
     vmware.vmware_img_pass = settings.vmware.image_password
     vmware.vmware_vm_name = settings.vmware.vm_name
-    vmware.current_interface = (
-        VMWARE_CONSTANTS.get('network_interfaces') % settings.vlan_networking.bridge
-    )
     return vmware
 
 

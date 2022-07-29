@@ -253,55 +253,6 @@ class TestRemoteExecution:
             )
             raise AssertionError(result)
 
-    @pytest.mark.destructive
-    @pytest.mark.rhel_ver_list([7])
-    def test_positive_use_alternate_directory(self, rex_contenthost, module_org, target_sat):
-        """Use alternate working directory on client to execute rex jobs
-
-        :id: a0181f18-d3dc-4bd9-a2a6-430c2a49809e
-
-        :expectedresults: Verify the job was successfully ran against the host
-
-        :customerscenario: true
-
-        :parametrized: yes
-        """
-        client = rex_contenthost
-        testdir = gen_string('alpha')
-        result = client.run(f'mkdir /{testdir}')
-        assert result.status == 0
-        result = client.run(f'chcon --reference=/var /{testdir}')
-        assert result.status == 0
-        result = target_sat.execute(
-            f"sed -i r's/^:remote_working_dir:.*/:remote_working_dir: \\/{testdir}/' \
-            /etc/foreman-proxy/settings.d/remote_execution_ssh.yml",
-        )
-        assert result.status == 0
-        result = target_sat.execute('systemctl restart foreman-proxy')
-        assert result.status == 0
-
-        command = f'echo {gen_string("alpha")}'
-        invocation_command = make_job_invocation(
-            {
-                'job-template': 'Run Command - SSH Default',
-                'inputs': f'command={command}',
-                'search-query': f"name ~ {client.hostname}",
-            }
-        )
-        result = JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            output = ' '.join(
-                JobInvocation.get_output({'id': invocation_command['id'], 'host': client.hostname})
-            )
-            result = f'host output: {output}'
-            raise AssertionError(result)
-
-        task = Task.list_tasks({'search': command})[0]
-        search = Task.list_tasks({'search': f'id={task["id"]}'})
-        assert search[0]['action'] == task['action']
-
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_run_default_job_template_multiple_hosts_by_ip(
@@ -494,6 +445,7 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.skip("Receptor plugin is deprecated/removed for Satellite >= 6.11")
     def test_positive_run_receptor_installer(
         self, target_sat, subscribe_satellite, fixture_enable_receptor_repos
     ):

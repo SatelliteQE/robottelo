@@ -42,10 +42,6 @@ from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.datafactory import gen_string
 from robottelo.helpers import read_data_file
 from robottelo.hosts import get_sat_version
-from robottelo.products import SatelliteToolsRepository
-
-# from robottelo.constants.repos import FEDORA26_OSTREE_REPO
-# from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 
 
 @pytest.fixture(scope='module')
@@ -718,7 +714,7 @@ def test_positive_sync_ansible_collection_gallaxy_repo(session, module_prod):
 
 
 @pytest.mark.tier2
-def test_positive_reposet_disable(session):
+def test_positive_reposet_disable(session, target_sat):
     """Enable RH repo, sync it and then disable
 
     :id: de596c56-1327-49e8-86d5-a1ab907f26aa
@@ -729,7 +725,7 @@ def test_positive_reposet_disable(session):
     """
     org = entities.Organization().create()
     manifests.upload_manifest_locked(org.id)
-    sat_tools_repo = SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
+    sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
     repository_name = sat_tools_repo.data['repository']
     with session:
         session.organization.select(org.name)
@@ -759,7 +755,7 @@ def test_positive_reposet_disable(session):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-def test_positive_reposet_disable_after_manifest_deleted(session):
+def test_positive_reposet_disable_after_manifest_deleted(session, target_sat):
     """Enable RH repo and sync it. Remove manifest and then disable
     repository
 
@@ -776,7 +772,7 @@ def test_positive_reposet_disable_after_manifest_deleted(session):
     org = entities.Organization().create()
     manifests.upload_manifest_locked(org.id)
     sub = entities.Subscription(organization=org)
-    sat_tools_repo = SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
+    sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
     repository_name = sat_tools_repo.data['repository']
     repository_name_orphaned = f'{repository_name} (Orphaned)'
     with session:
@@ -843,7 +839,7 @@ def test_positive_delete_random_docker_repo(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_delete_rhel_repo(session, module_org):
+def test_positive_delete_rhel_repo(session, module_org, target_sat):
     """Enable and sync a Red Hat Repository, and then delete it
 
     :id: e96f369d-3e58-4824-802e-0b7e99d6d207
@@ -858,7 +854,7 @@ def test_positive_delete_rhel_repo(session, module_org):
     """
 
     manifests.upload_manifest_locked(module_org.id)
-    sat_tools_repo = SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
+    sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
     repository_name = sat_tools_repo.data['repository']
     product_name = sat_tools_repo.data['product']
     with session:
@@ -1196,3 +1192,37 @@ def test_positive_select_org_in_any_context():
     :CaseImportance: High
     """
     pass
+
+
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+def test_positive_sync_repo_and_verify_checksum(session, module_org):
+    """Tests that Verify Content Checksum succeeds when executing from the products page
+
+    :id: 577be1f8-7510-49d2-8b33-600db60bd960
+
+    :customerscenario: true
+
+    :BZ: 1951626
+
+    :Steps:
+        1. Enable and sync repository
+        2. Go to Products -> Select Action -> Verify Content Checksum
+
+    :expectedresults: Verify Content Checksum task succeeds
+    """
+    repo_name = gen_string('alpha')
+    product = entities.Product(organization=module_org).create()
+    with session:
+        session.repository.create(
+            product.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': settings.repos.yum_1.url,
+            },
+        )
+        session.repository.synchronize(product.name, repo_name)
+        results = session.product.verify_content_checksum([product.name])
+        assert results['task']['result'] == 'success'

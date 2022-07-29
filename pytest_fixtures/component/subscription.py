@@ -1,39 +1,36 @@
 import pytest
 
-
-@pytest.fixture(scope='session')
-def clean_rhsm(session_target_sat):
-    """removes pre-existing candlepin certs and resets RHSM."""
-    session_target_sat.remove_katello_ca()
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 
 
 @pytest.fixture(scope='module')
-def subscribe_satellite(clean_rhsm, module_target_sat):
-    """subscribe satellite to cdn"""
-    from robottelo.config import settings
+def default_subscription(module_target_sat, module_org_with_manifest):
+    subscription = module_target_sat.api.Subscription(
+        organization=module_org_with_manifest.id
+    ).search(query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'})
+    assert len(subscription)
+    return subscription[0]
 
+
+@pytest.fixture(scope='module')
+def module_subscribe_satellite(module_target_sat):
+    """Subscribe Satellite to CDN"""
+    module_target_sat.register_to_cdn()
+    # Enable extras repo if os_version is RHEL7
     if module_target_sat.os_version.major < 8:
-        release_version = f'{module_target_sat.os_version.major}Server'
-    else:
-        release_version = f'{module_target_sat.os_version.major}'
-    module_target_sat.register_contenthost(
-        org=None,
-        lce=None,
-        username=settings.subscription.rhn_username,
-        password=settings.subscription.rhn_password,
-        releasever=release_version,
-    )
-    result = module_target_sat.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[
-        0
-    ]
-    if 'Successfully attached a subscription' in result.stdout:
-        # extras is not in RHEL8: https://access.redhat.com/solutions/5331391
-        if module_target_sat.os_version.major < 8:
-            module_target_sat.enable_repo(
-                f'rhel-{module_target_sat.os_version.major}-server-extras-rpms', force=True
-            )
-        yield
-    else:
-        pytest.fail('Failed to attach system to pool. Aborting Test!.')
+        module_target_sat.enable_repo(
+            f'rhel-{module_target_sat.os_version.major}-server-extras-rpms', force=True
+        )
+    yield
     module_target_sat.unregister()
-    module_target_sat.remove_katello_ca()
+
+
+@pytest.fixture
+def subscribe_satellite(target_sat):
+    """Subscribe Satellite to CDN"""
+    target_sat.register_to_cdn()
+    # Enable extras repo if os_version is RHEL7
+    if target_sat.os_version.major < 8:
+        target_sat.enable_repo(f'rhel-{target_sat.os_version.major}-server-extras-rpms', force=True)
+    yield
+    target_sat.unregister()

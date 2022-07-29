@@ -8,7 +8,7 @@
 
 :CaseComponent: HostCollections
 
-:Assignee: swadeley
+:Assignee: spusater
 
 :TestType: Functional
 

@@ -22,6 +22,7 @@ from functools import partial
 import pytest
 from box import Box
 from fauxfactory import gen_choice
+from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from nailgun.entities import Role as RoleEntity
 from nailgun.entities import User as UserEntity
@@ -56,6 +57,11 @@ def invalid_hostnames_list():
         'whitespace': '" "',
         'negative': '-1',
     }
+
+
+def gen_int32(min_value=1):
+    max_value = (2**31) - 1
+    return gen_integer(min_value=min_value, max_value=max_value)
 
 
 class TestDiscoveryRule:
@@ -97,7 +103,7 @@ class TestDiscoveryRule:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_with_name(self, name, discoveryrule_factory):
+    def test_positive_create_with_name(self, name, discoveryrule_factory, request, target_sat):
         """Create Discovery Rule using different names
 
         :id: 066e66bc-c572-4ae9-b458-90daf83bab54
@@ -108,7 +114,8 @@ class TestDiscoveryRule:
 
         :parametrized: yes
         """
-        rule = discoveryrule_factory(options={'name': name})
+        rule = discoveryrule_factory(options={'name': name, 'priority': gen_int32()})
+        request.addfinalizer(target_sat.api.DiscoveryRule(id=rule.id).delete)
         assert rule.name == name
 
     @pytest.mark.tier1

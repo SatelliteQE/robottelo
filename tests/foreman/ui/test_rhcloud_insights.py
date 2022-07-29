@@ -74,6 +74,7 @@ def test_rhcloud_insights_e2e(
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        session.cloudinsights.sync_hits()
         wait_for(
             lambda: rhcloud_sat_host.api.ForemanTask()
             .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
@@ -274,18 +275,7 @@ def test_host_details_page(
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Sync insights recommendations
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
-        wait_for(
-            lambda: rhcloud_sat_host.api.ForemanTask()
-            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
-            .result
-            == 'success',
-            timeout=400,
-            delay=15,
-            silent_failure=True,
-            handle_exception=True,
-        )
         result = session.host.host_status(rhel_insights_vm.hostname)
         assert 'Insights: Reporting' in result
         assert 'Inventory: Successfully uploaded to your RH cloud inventory' in result

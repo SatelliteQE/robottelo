@@ -63,11 +63,6 @@ from robottelo.constants import REPOSET
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.datafactory import gen_string
-from robottelo.products import DockerRepository
-from robottelo.products import RepositoryCollection
-from robottelo.products import SatelliteToolsRepository
-from robottelo.products import VirtualizationAgentsRepository
-from robottelo.products import YumRepository
 
 VERSION = 'Version 1.0'
 
@@ -1300,9 +1295,10 @@ def test_positive_promote_composite_with_custom_content(session):
         assert f'Promoted to {lce.name}' in result['Status']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-def test_positive_publish_rh_content_with_errata_by_date_filter(session):
+def test_positive_publish_rh_content_with_errata_by_date_filter(session, target_sat):
     """Publish a CV, containing only RH repo, having errata excluding by
     date filter
 
@@ -1321,8 +1317,8 @@ def test_positive_publish_rh_content_with_errata_by_date_filter(session):
     version = 'Version 2.0'
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL6, repositories=[VirtualizationAgentsRepository()]
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
+        distro=DISTRO_RHEL6, repositories=[target_sat.cli_factory.VirtualizationAgentsRepository()]
     )
     repos_collection.setup_content(
         org.id, lce.id, download_policy='immediate', upload_manifest=True
@@ -1421,9 +1417,10 @@ def test_positive_remove_cv_version_from_default_env(session, module_org):
         assert ENVIRONMENT not in cvv['Environments']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_promoted_cv_version_from_default_env(session, module_org):
+def test_positive_remove_promoted_cv_version_from_default_env(session, module_org, target_sat):
     """Remove promoted content view version from Library environment
 
     :id: a8649444-b063-4fb4-b932-a3fae7d4021d
@@ -1445,9 +1442,9 @@ def test_positive_remove_promoted_cv_version_from_default_env(session, module_or
 
     :CaseImportance: High
     """
-    repo = RepositoryCollection(
+    repo = target_sat.cli_factory.RepositoryCollection(
         repositories=[
-            YumRepository(url=settings.repos.yum_0.url),
+            target_sat.cli_factory.YumRepository(url=settings.repos.yum_0.url),
         ]
     )
     repo.setup(module_org.id)
@@ -1468,8 +1465,9 @@ def test_positive_remove_promoted_cv_version_from_default_env(session, module_or
         assert cvv['yum_repositories']['table'][0]['Name']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
-def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module_org):
+def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module_org, target_sat):
     """Remove QE promoted content view version from Library environment
 
     :id: 71ad8b72-68c4-4c98-9387-077f54ef0184
@@ -1492,9 +1490,11 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
     """
     dev_lce = entities.LifecycleEnvironment(organization=module_org).create()
     qe_lce = entities.LifecycleEnvironment(organization=module_org, prior=dev_lce).create()
-    repo = RepositoryCollection(
+    repo = target_sat.cli_factory.RepositoryCollection(
         repositories=[
-            DockerRepository(url=CONTAINER_REGISTRY_HUB, upstream_name=CONTAINER_UPSTREAM_NAME)
+            target_sat.cli_factory.DockerRepository(
+                url=CONTAINER_REGISTRY_HUB, upstream_name=CONTAINER_UPSTREAM_NAME
+            )
         ]
     )
     repo.setup(module_org.id)
@@ -1520,9 +1520,24 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
         assert all(item in cvv_table[0]['Environments'] for item in [dev_lce.name, qe_lce.name])
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_cv_version_from_env(session, module_org):
+@pytest.mark.parametrize(
+    'repos_collection',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'YumRepository': {'url': settings.repos.yum_0.url},
+            'DockerRepository': {
+                'url': CONTAINER_REGISTRY_HUB,
+                'upstream_name': CONTAINER_UPSTREAM_NAME,
+            },
+        }
+    ],
+    indirect=True,
+)
+def test_positive_remove_cv_version_from_env(session, module_org, repos_collection):
     """Remove promoted content view version from environment
 
     :id: d1da23ee-a5db-4990-9572-1a0919a9fe1c
@@ -1546,18 +1561,14 @@ def test_positive_remove_cv_version_from_env(session, module_org):
     """
     dev_lce = entities.LifecycleEnvironment(organization=module_org).create()
     qe_lce = entities.LifecycleEnvironment(organization=module_org, prior=dev_lce).create()
-    repos = RepositoryCollection(
-        repositories=[
-            YumRepository(url=settings.repos.yum_0.url),
-            DockerRepository(url=CONTAINER_REGISTRY_HUB, upstream_name=CONTAINER_UPSTREAM_NAME),
-        ]
-    )
-    repos.setup(module_org.id)
-    yum_repo_name = [repo['name'] for repo in repos.repos_info if repo['content-type'] == 'yum'][0]
-    docker_repo_name = [
-        repo['name'] for repo in repos.repos_info if repo['content-type'] == 'docker'
+    repos_collection.setup(module_org.id)
+    yum_repo_name = [
+        repo['name'] for repo in repos_collection.repos_info if repo['content-type'] == 'yum'
     ][0]
-    cv, lce = repos.setup_content_view(module_org.id, dev_lce.id)
+    docker_repo_name = [
+        repo['name'] for repo in repos_collection.repos_info if repo['content-type'] == 'docker'
+    ][0]
+    cv, lce = repos_collection.setup_content_view(module_org.id, dev_lce.id)
     cvv = entities.ContentView(id=cv['id']).read().version[0]
     promote(cvv, qe_lce.id)
     with session:
@@ -1581,10 +1592,11 @@ def test_positive_remove_cv_version_from_env(session, module_org):
         assert all(item in cvv['Environments'] for item in [ENVIRONMENT, dev_lce.name, qe_lce.name])
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.upgrade
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
+def test_positive_delete_cv_promoted_to_multi_env(session, module_org, target_sat):
     """Delete published content view with version promoted to multiple
      environments
 
@@ -1605,7 +1617,9 @@ def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
 
     :CaseImportance:High
     """
-    repo = RepositoryCollection(repositories=[YumRepository(url=settings.repos.yum_0.url)])
+    repo = target_sat.cli_factory.RepositoryCollection(
+        repositories=[target_sat.cli_factory.YumRepository(url=settings.repos.yum_0.url)]
+    )
     repo.setup(module_org.id)
     cv, lce = repo.setup_content_view(module_org.id)
     repo_name = repo.repos_info[0]['name']
@@ -1883,6 +1897,7 @@ def test_positive_add_package_filter(session, module_org):
         assert expected_packages == actual_packages
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 def test_positive_add_package_inclusion_filter_and_publish(session, module_org):
     """Add package to inclusion content views filter, publish CV and verify
@@ -1928,6 +1943,7 @@ def test_positive_add_package_inclusion_filter_and_publish(session, module_org):
         assert not packages[0]['Name']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
     """Add package to exclusion content views filter, publish CV and verify
@@ -1973,9 +1989,10 @@ def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
         assert not packages[0]['Name']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_package_from_exclusion_filter(session, module_org):
+def test_positive_remove_package_from_exclusion_filter(session, module_org, target_sat):
     """Remove package from content view exclusion filter
 
     :id: 2f0adc16-2305-4adf-8582-82e6110fa385
@@ -1989,7 +2006,9 @@ def test_positive_remove_package_from_exclusion_filter(session, module_org):
     """
     filter_name = gen_string('alpha')
     package_name = 'cow'
-    repo = RepositoryCollection(repositories=[YumRepository(url=settings.repos.yum_1.url)])
+    repo = target_sat.cli_factory.RepositoryCollection(
+        repositories=[target_sat.cli_factory.YumRepository(url=settings.repos.yum_1.url)]
+    )
     repo.setup(module_org.id)
     cv, lce = repo.setup_content_view(module_org.id)
     with session:
@@ -2020,6 +2039,7 @@ def test_positive_remove_package_from_exclusion_filter(session, module_org):
         assert packages[0]['Name'] == package_name
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 def test_positive_update_inclusive_filter_package_version(session, module_org):
     """Update version of package inside inclusive cv package filter
@@ -2081,6 +2101,7 @@ def test_positive_update_inclusive_filter_package_version(session, module_org):
         assert packages[0]['Name'] == package_name and packages[0]['Version'] == '5.21'
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 def test_positive_update_exclusive_filter_package_version(session, module_org):
     """Update version of package inside exclusive cv package filter
@@ -2142,9 +2163,10 @@ def test_positive_update_exclusive_filter_package_version(session, module_org):
         assert packages[0]['Name'] == package_name and packages[0]['Version'] == '0.71'
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_all_security_errata_by_date_range_filter(session, module_org):
+def test_positive_add_all_security_errata_by_date_range_filter(session, module_org, target_sat):
     """Create erratum date range filter to include only security errata and
     publish new content view version
 
@@ -2158,7 +2180,9 @@ def test_positive_add_all_security_errata_by_date_range_filter(session, module_o
     filter_name = gen_string('alphanumeric')
     start_date = datetime.date(2010, 1, 1)
     end_date = datetime.date.today()
-    repo = RepositoryCollection(repositories=[YumRepository(url=settings.repos.yum_9.url)])
+    repo = target_sat.cli_factory.RepositoryCollection(
+        repositories=[target_sat.cli_factory.YumRepository(url=settings.repos.yum_9.url)]
+    )
     repo.setup(module_org.id)
     cv, lce = repo.setup_content_view(module_org.id)
     with session:
@@ -2193,7 +2217,7 @@ def test_positive_add_all_security_errata_by_date_range_filter(session, module_o
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
-def test_positive_edit_rh_custom_spin(session):
+def test_positive_edit_rh_custom_spin(session, target_sat):
     """Edit content views for a custom rh spin.  For example, modify a filter.
 
     :id: 05639074-ef6d-4c6b-8ff6-53033821e686
@@ -2210,8 +2234,8 @@ def test_positive_edit_rh_custom_spin(session):
     end_date = datetime.date(2016, 6, 1)
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
+        distro=DISTRO_RHEL7, repositories=[target_sat.cli_factory.SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
@@ -2254,7 +2278,7 @@ def test_positive_edit_rh_custom_spin(session):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_promote_with_rh_custom_spin(session):
+def test_positive_promote_with_rh_custom_spin(session, target_sat):
     """attempt to promote a content view containing a custom RH
     spin - i.e., contains filters.
 
@@ -2269,8 +2293,8 @@ def test_positive_promote_with_rh_custom_spin(session):
     filter_name = gen_string('alpha')
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
+        distro=DISTRO_RHEL7, repositories=[target_sat.cli_factory.SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
@@ -2298,6 +2322,7 @@ def test_positive_promote_with_rh_custom_spin(session):
         assert f'Promoted to {lce.name}' in result['Status']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_all_security_errata_by_id_filter(session, module_org):
@@ -2343,6 +2368,7 @@ def test_positive_add_all_security_errata_by_id_filter(session, module_org):
         )
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 def test_positive_add_errata_filter(session, module_org):
     """add errata to content views filter
@@ -2380,6 +2406,7 @@ def test_positive_add_errata_filter(session, module_org):
         }
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_module_stream_filter(session, module_org):
@@ -2455,6 +2482,7 @@ def test_positive_add_package_group_filter(session, module_org):
         assert cvf['content_tabs']['assigned'][0]['Name'] == package_group
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_update_filter_affected_repos(session, module_org):
@@ -2587,7 +2615,20 @@ def test_positive_publish_with_repo_with_disabled_http(session, module_org):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthost, target_sat):
+@pytest.mark.parametrize(
+    'repos_collection',
+    [
+        {
+            'distro': DISTRO_RHEL7,
+            'SatelliteToolsRepository': {},
+            'YumRepository': {'url': settings.repos.yum_0.url},
+        }
+    ],
+    indirect=True,
+)
+def test_positive_subscribe_system_with_custom_content(
+    session, rhel7_contenthost, target_sat, repos_collection
+):
     """Attempt to subscribe a host to content view with custom repository
 
     :id: 715db997-707b-4868-b7cc-b6977fd6ac04
@@ -2604,12 +2645,8 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
     """
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7,
-        repositories=[SatelliteToolsRepository(), YumRepository(url=settings.repos.yum_0.url)],
-    )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
     assert rhel7_contenthost.subscribed
     with session:
         session.organization.select(org.name)
@@ -2755,6 +2792,7 @@ def test_positive_rh_mixed_content_end_to_end(session, module_prod, module_org):
         assert session.contentview.search_version(cv_name, VERSION)[0]['Version'] != VERSION
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_errata_inc_update_list_package(session, target_sat):
@@ -2816,6 +2854,7 @@ def test_positive_errata_inc_update_list_package(session, target_sat):
         assert set(result[4:]).issubset(packages)
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_sat):
@@ -2886,8 +2925,9 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
     cvv = entities.ContentView(id=cv.id).read().version[0]
     promote(cvv, lce.id)
     # Setup tools repo and add it to ak
-    repos_collection = RepositoryCollection(
-        distro=constants.DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
+    repos_collection = target_sat.cli_factory.RepositoryCollection(
+        distro=constants.DISTRO_RHEL7,
+        repositories=[target_sat.cli_factory.SatelliteToolsRepository()],
     )
     content_data = repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     # adding custom repo subscription to ak
@@ -2913,7 +2953,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
     entities.ActivationKey(
         id=content_data['activation_key']['id'], content_view=composite_cv
     ).update(['content_view'])
-    repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
     result = rhel7_contenthost.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     with session:
@@ -2983,6 +3023,7 @@ def test_positive_module_stream_end_to_end(session, module_org):
         assert session.contentview.search(cv_name)[0]['Name'] != cv_name
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_search_module_streams_in_content_view(session, module_org):
@@ -3339,6 +3380,7 @@ def test_negative_non_readonly_user_actions(module_org, test_name):
         assert 'Navigation failed to reach [All]' in str(context.value)
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_conservative_solve_dependencies(session, module_org):
@@ -3414,6 +3456,7 @@ def test_positive_conservative_solve_dependencies(session, module_org):
             assert not package[0]['Name']
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 def test_positive_conservative_dep_solving_with_multiversion_packages(session, module_org):
     """Performing solve dependencies on a package with multiple versions that is required
@@ -3480,6 +3523,7 @@ def test_positive_conservative_dep_solving_with_multiversion_packages(session, m
         assert package[0]['Version'] == '0.71'
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_depsolve_with_module_errata(session, module_org):
@@ -3557,6 +3601,7 @@ def test_positive_depsolve_with_module_errata(session, module_org):
         assert result['errata']['table'][0]['Errata ID'] == settings.repos.yum_10.errata[0]
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 def test_positive_filter_by_pkg_group_name(session, module_org, target_sat):
     """Publish a filtered version of a Content View, filtering on the package group's name.
@@ -3597,6 +3642,7 @@ def test_positive_filter_by_pkg_group_name(session, module_org, target_sat):
         assert expected_packages == [pkg['Name'] for pkg in result['rpm_packages']['table']]
 
 
+@pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 def test_positive_inc_update_should_not_fail(session, module_org):
     """Incremental update after removing a package should not give a 400 error code
@@ -3652,3 +3698,180 @@ def test_positive_inc_update_should_not_fail(session, module_org):
             cv.name, 'Version 1.1', f'name= "{package1_name}"'
         )
         assert packages[0]['Name'] == package1_name
+
+
+@pytest.mark.skip_if_open('BZ:2086957')
+@pytest.mark.tier2
+def test_positive_no_duplicate_key_violate_unique_constraint_using_filters(
+    session, module_org, target_sat
+):
+    """Ensure that there's no duplicate key issues when filtering packages
+
+    :BZ: 2080336
+
+    :id: 6e872dc4-ed8c-450b-8ce6-9f873ac490a1
+
+    :customerscenario: true
+
+    :Steps:
+        1. Sync rhel tools 6.10 repo
+        2. Create cv and add rhel repo
+        3. Create include package filter for 'foreman-cli' and 'katello-agent'
+        4. Publish cv
+        5. Check cv has only 2 packages
+        6. Amend the filter to add 'katello-host-tools'
+        7. Public cv and check it has 3 packages
+        8. Amend filter to remove 'foreman-cli' and 'katello-agent'.
+        9. Add 'katello-host-tools-facts-plugin'
+        10. Publish cv and check cv has 2 packages: katello-host-tools and
+            katello-host-tools-fact-plugin
+        11. Add 'foreman-cli' and 'katello-agent' back
+        12. Publish cv and check that all 4 packages are there
+        13. Trigger orphan clean up
+        14. Amend the filter and remove 'foreman-cli' and 'katello-agent'
+        15. Publish cv and check cv has 2 packages: katello-host-tools and
+            katello-host-tools-fact-plugin
+
+    :expectedresults:
+
+        1. Cv has 2 packages without errors: katello-host-tools and
+            katello-host-tools-fact-plugin
+
+    :CaseImportance: Medium
+
+    :CaseLevel: Integration
+    """
+    cv = gen_string('alpha')
+    filter_name = gen_string('alpha')
+    rh_repo = {
+        'name': REPOS['rhst7_610']['name'],
+        'product': PRDS['rhel'],
+        'reposet': REPOSET['rhst7_610'],
+        'basearch': 'x86_64',
+        'releasever': None,
+    }
+    packages = [
+        'foreman-cli',
+        'katello-agent',
+        'katello-host-tools',
+        'katello-host-tools-fact-plugin',
+    ]
+    with manifests.clone() as manifest:
+        upload_manifest(module_org.id, manifest.content)
+    enable_sync_redhat_repo(rh_repo, module_org.id)
+    with session:
+        session.contentview.create({'name': cv})
+        session.contentview.add_yum_repo(cv, rh_repo['name'])
+        # create filters and rule
+        session.contentviewfilter.create(
+            cv,
+            {
+                'name': filter_name,
+                'content_type': FILTER_CONTENT_TYPE['package'],
+                'inclusion_type': FILTER_TYPE['include'],
+            },
+        )
+        # add rule to include only 'foreman-cli' and 'katello-agent'
+        session.contentviewfilter.add_package_rule(cv, filter_name, packages[0], None, None)
+        session.contentviewfilter.add_package_rule(cv, filter_name, packages[1], None, None)
+        result = session.contentview.publish(cv)
+        assert result['Version'] == VERSION
+        # check only the 2 packages are in the cv
+        packages_check = session.contentview.read_version(cv, result['Version'])
+        assert len(packages_check['rpm_packages']['table']) == 2
+        for i in range(len(packages_check['rpm_packages']['table'])):
+            assert packages_check['rpm_packages']['table'][i]['Name'] == packages[i]
+        # add 3rd package - katello-host-tools
+        session.contentviewfilter.add_package_rule(cv, filter_name, packages[2], None, None)
+        result = session.contentview.publish(cv)
+        assert result['Version'] == 'Version 2.0'
+        packages_check = session.contentview.read_version(cv, result['Version'])
+        assert len(packages_check['rpm_packages']['table']) == 3
+        for i in range(len(packages_check['rpm_packages']['table'])):
+            assert packages_check['rpm_packages']['table'][i]['Name'] == packages[i]
+        # remove the rule for the first 2 packages and add another new package rule
+        session.contentviewfilter.remove_package_rule(cv, filter_name, packages[0])
+        session.contentviewfilter.remove_package_rule(cv, filter_name, packages[1])
+        session.contentviewfilter.add_package_rule(cv, filter_name, packages[3], None, None)
+        result = session.contentview.publish(cv)
+        assert result['Version'] == 'Version 3.0'
+        packages_check = session.contentview.read_version(cv, result['Version'])
+        assert len(packages_check['rpm_packages']['table']) == 2
+        assert packages_check['rpm_packages']['table'][0]['Name'] == packages[2]
+        assert packages_check['rpm_packages']['table'][1]['Name'] == packages[3]
+        session.contentviewfilter.add_package_rule(cv, filter_name, packages[0], None, None)
+        session.contentviewfilter.add_package_rule(cv, filter_name, packages[1], None, None)
+        result = session.contentview.publish(cv)
+        assert result['Version'] == 'Version 4.0'
+        packages_check = session.contentview.read_version(cv, result['Version'])
+        assert len(packages_check['rpm_packages']['table']) == 4
+        for i in range(len(packages)):
+            assert packages_check['rpm_packages']['table'][i]['Name'] == packages[i]
+        # trigger orphan cleanup
+        result = target_sat.execute('foreman-rake katello:delete_orphaned_content')
+        assert result.status == 0
+        # remove the rule for the first 2 packages again
+        session.contentviewfilter.remove_package_rule(cv, filter_name, packages[0])
+        session.contentviewfilter.remove_package_rule(cv, filter_name, packages[1])
+        result = session.contentview.publish(cv)
+        assert result['Version'] == 'Version 5.0'
+        packages_check = session.contentview.read_version(cv, result['Version'])
+        # finally should only see 'katello-host-tools' and 'katello-host-tools-fact-plugin'
+        assert len(packages_check['rpm_packages']['table']) == 2
+        assert packages_check['rpm_packages']['table'][0]['Name'] == packages[2]
+        assert packages_check['rpm_packages']['table'][1]['Name'] == packages[3]
+
+
+@pytest.mark.tier2
+def test_positive_inc_publish_cv(session, module_org):
+    """Ensure that the content count gets updated when doing incremental update
+
+    :BZ: 2032098
+
+    :id: 611693c5-bfa5-462a-bd78-fa624af7ff75
+
+    :setup:
+        1. Create custom repo and sync
+        2. Create a cv and add the repo
+        3. Create a filter to exclude a package
+        4. Publish cv
+        5. Incrementally update the cv with an errata
+
+    :customerscenario: true
+
+    :expectedresults: Content count is updated as expected
+
+    :CaseImportance: High
+    """
+    package_name = 'bear'
+    product = entities.Product(organization=module_org).create()
+    yum_repo_name = gen_string('alpha')
+    filter_name = gen_string('alpha')
+    yum_repo = entities.Repository(
+        name=yum_repo_name,
+        url=settings.repos.yum_1.url,
+        content_type=REPO_TYPE['yum'],
+        product=product,
+    ).create()
+    yum_repo.sync()
+    cv = entities.ContentView(organization=module_org, repository=[yum_repo]).create()
+    with session:
+        session.contentviewfilter.create(
+            cv.name,
+            {
+                'name': filter_name,
+                'content_type': FILTER_CONTENT_TYPE['package'],
+                'inclusion_type': FILTER_TYPE['exclude'],
+            },
+        )
+        session.contentviewfilter.add_package_rule(
+            cv.name, filter_name, package_name, None, ('Equal To', '4.1-1')
+        )
+        session.contentview.publish(cv.name)
+        cvv = entities.ContentView(id=cv.id).read().version[0].read()
+        assert cvv.package_count == 31
+        ContentView.version_incremental_update(
+            {'content-view-version-id': cvv.id, 'errata-ids': settings.repos.yum_1.errata[0]}
+        )
+        cvv = entities.ContentView(id=cv.id).read().version[1].read()
+        assert cvv.package_count == 32

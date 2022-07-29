@@ -32,7 +32,9 @@ def module_rhel_client_by_ip(module_org, smart_proxy_location, rhel7_contenthost
 
 
 @pytest.mark.tier4
-def test_positive_run_default_job_template_by_ip(session, module_org, module_rhel_client_by_ip):
+def test_positive_run_default_job_template_by_ip(
+    session, module_org, smart_proxy_location, module_rhel_client_by_ip
+):
     """Run a job template on a host connected by ip
 
     :id: 9a90aa9a-00b4-460e-b7e6-250360ee8e4d
@@ -55,6 +57,7 @@ def test_positive_run_default_job_template_by_ip(session, module_org, module_rhe
     hostname = module_rhel_client_by_ip.hostname
     with session:
         session.organization.select(module_org.name)
+        session.location.select(smart_proxy_location.name)
         assert session.host.search(hostname)[0]['Name'] == hostname
         session.jobinvocation.run(
             {
@@ -70,7 +73,9 @@ def test_positive_run_default_job_template_by_ip(session, module_org, module_rhe
 
 
 @pytest.mark.tier4
-def test_positive_run_custom_job_template_by_ip(session, module_org, module_rhel_client_by_ip):
+def test_positive_run_custom_job_template_by_ip(
+    session, module_org, smart_proxy_location, module_rhel_client_by_ip
+):
     """Run a job template on a host connected by ip
 
     :id: e283ae09-8b14-4ce1-9a76-c1bbd511d58c
@@ -94,6 +99,7 @@ def test_positive_run_custom_job_template_by_ip(session, module_org, module_rhel
     job_template_name = gen_string('alpha')
     with session:
         session.organization.select(module_org.name)
+        session.location.select(smart_proxy_location.name)
         assert session.host.search(hostname)[0]['Name'] == hostname
         session.jobtemplate.create(
             {

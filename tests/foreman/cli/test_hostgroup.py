@@ -20,7 +20,6 @@ import pytest
 from fauxfactory import gen_integer
 from nailgun import entities
 
-from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import CLIFactoryError
@@ -268,7 +267,7 @@ def test_positive_update_hostgroup(
         def _cleanup():
             with session_puppet_enabled_sat:
                 HostGroup.delete({'id': hostgroup['id']})
-                capsule_cleanup(new_content_source['id'])
+                session_puppet_enabled_sat.cli.Proxy.delete({'id': new_content_source['id']})
 
         assert len(hostgroup['puppetclasses']) == 0
         new_name = valid_hostgroups_list()[0]

@@ -462,7 +462,7 @@ def test_positive_create_with_21_filters(session):
 
 
 @pytest.mark.tier2
-def test_positive_create_with_sc_parameter_permission(session):
+def test_positive_create_with_sc_parameter_permission(session_puppet_enabled_sat):
     """Create role filter with few permissions for smart class parameters.
 
     :id: c9e466e5-d6ce-4596-bd32-c2a7817da34a
@@ -478,13 +478,13 @@ def test_positive_create_with_sc_parameter_permission(session):
     role_name = gen_string('alpha')
     resource_type = 'Smart class parameter'
     permissions = ['view_external_parameters', 'edit_external_parameters']
-    with session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.role.create({'name': role_name})
         assert session.role.search(role_name)[0]['Name'] == role_name
         session.filter.create(
             role_name, {'resource_type': resource_type, 'permission.assigned': permissions}
         )
-        values = session.filter.search(role_name, 'PuppetclassLookupKey')
+        values = session.filter.search(role_name, 'ForemanPuppet::PuppetclassLookupKey')
         assert values
         assert values[0]['Resource'] == resource_type
         assigned_permissions = values[0]['Permissions'].split(', ')

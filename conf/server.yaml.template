@@ -50,6 +50,8 @@ SERVER:
   ADMIN_PASSWORD: changeme
 
   SSH_CLIENT:
+    # Specify port number for ssh client, Default: 22
+    PORT:
     # Time to wait for the ssh command to finish, in miliseconds
     COMMAND_TIMEOUT: 300000
     # Time to wait for establishing the ssh connection, in seconds

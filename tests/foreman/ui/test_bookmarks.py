@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-import random
-
 import pytest
 from airgun.exceptions import DisabledWidgetError
 from airgun.exceptions import NoSuchElementException
@@ -30,53 +28,44 @@ from robottelo.helpers import get_nailgun_config
 from robottelo.utils.issue_handlers import is_open
 
 
-@pytest.fixture(scope='module')
-def ui_entities(module_org, module_location):
+@pytest.fixture(
+    scope='module', params=BOOKMARK_ENTITIES, ids=(i['name'] for i in BOOKMARK_ENTITIES)
+)
+def ui_entity(module_org, module_location, request):
     """Collects the list of all applicable UI entities for testing and does all
     required preconditions.
     """
-    ui_entities = []
-    for entity in BOOKMARK_ENTITIES:
+    entity = request.param
+    # Some pages require at least 1 existing entity for search bar to
+    # appear. Creating 1 entity for such pages
+    entity_name, entity_setup = entity['name'], entity.get('setup')
+    if entity_setup:
         # Skip the entities, which can't be tested ATM (not implemented in
         # airgun or have open BZs)
         skip = entity.get('skip_for_ui')
         if isinstance(skip, (tuple, list)):
-            skip = any([is_open(issue) for issue in skip])
-        if skip is True:
-            continue
-        ui_entities.append(entity)
-        # Some pages require at least 1 existing entity for search bar to
-        # appear. Creating 1 entity for such pages
-        entity_name, entity_setup = entity['name'], entity.get('setup')
-        if entity_setup:
-            # entities with 1 organization and location
-            if entity_name in ('Host',):
-                entity_setup(organization=module_org, location=module_location).create()
-            # entities with no organizations and locations
-            elif entity_name in (
-                'ComputeProfile',
-                'ConfigGroup',
-                'GlobalParameter',
-                'HardwareModel',
-                'PuppetClass',
-                'UserGroup',
-            ):
-                entity_setup().create()
-            # entities with multiple organizations and locations
-            else:
-                entity_setup(organization=[module_org], location=[module_location]).create()
-    return ui_entities
-
-
-@pytest.fixture()
-def random_entity(ui_entities):
-    """Returns one random entity from list of available UI entities"""
-    return ui_entities[random.randint(0, len(ui_entities) - 1)]
+            open_issues = {issue for issue in skip if is_open(issue)}
+            pytest.skip(f'There is/are an open issue(s) {open_issues} with entity {entity_name}')
+        # entities with 1 organization and location
+        if entity_name in ('Host',):
+            entity_setup(organization=module_org, location=module_location).create()
+        # entities with no organizations and locations
+        elif entity_name in (
+            'ComputeProfile',
+            'GlobalParameter',
+            'HardwareModel',
+            'UserGroup',
+        ):
+            entity_setup().create()
+        # entities with multiple organizations and locations
+        else:
+            entity_setup(organization=[module_org], location=[module_location]).create()
+    return entity
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, random_entity):
+def test_positive_end_to_end(session, ui_entity):
     """Perform end to end testing for bookmark component
 
     :id: 13e89c36-6332-451e-a4b5-2ab46346211f
@@ -90,9 +79,10 @@ def test_positive_end_to_end(session, random_entity):
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     query = gen_string('alphanumeric')
+
     with session:
         # Create new bookmark
-        ui_lib = getattr(session, random_entity['name'].lower())
+        ui_lib = getattr(session, ui_entity['name'].lower())
         ui_lib.create_bookmark({'name': name, 'query': query, 'public': True})
         assert session.bookmark.search(name)[0]['Name'] == name
         bookmark_values = session.bookmark.read(name)
@@ -109,7 +99,7 @@ def test_positive_end_to_end(session, random_entity):
 
 
 @pytest.mark.tier2
-def test_positive_create_bookmark_public(session, random_entity, default_viewer_role, test_name):
+def test_positive_create_bookmark_public(session, ui_entity, default_viewer_role, test_name):
     """Create and check visibility of the (non)public bookmarks
 
     :id: 93139529-7690-429b-83fe-3dcbac4f91dc
@@ -137,7 +127,7 @@ def test_positive_create_bookmark_public(session, random_entity, default_viewer_
     public_name = gen_string('alphanumeric')
     nonpublic_name = gen_string('alphanumeric')
     with session:
-        ui_lib = getattr(session, random_entity['name'].lower())
+        ui_lib = getattr(session, ui_entity['name'].lower())
         for name in (public_name, nonpublic_name):
             ui_lib.create_bookmark(
                 {'name': name, 'query': gen_string('alphanumeric'), 'public': name == public_name}
@@ -150,7 +140,7 @@ def test_positive_create_bookmark_public(session, random_entity, default_viewer_
 
 @pytest.mark.tier2
 def test_positive_update_bookmark_public(
-    session, random_entity, default_viewer_role, module_user, test_name
+    session, ui_entity, default_viewer_role, ui_user, test_name
 ):
     """Update and save a bookmark public state
 
@@ -193,10 +183,10 @@ def test_positive_update_bookmark_public(
     public_name = gen_string('alphanumeric')
     nonpublic_name = gen_string('alphanumeric')
     cfg = get_nailgun_config()
-    cfg.auth = (module_user.login, module_user.password)
+    cfg.auth = (ui_user.login, ui_user.password)
     for name in (public_name, nonpublic_name):
         entities.Bookmark(
-            cfg, name=name, controller=random_entity['controller'], public=name == public_name
+            cfg, name=name, controller=ui_entity['controller'], public=name == public_name
         ).create()
     with Session(
         test_name, default_viewer_role.login, default_viewer_role.password
@@ -216,7 +206,7 @@ def test_positive_update_bookmark_public(
 
 
 @pytest.mark.tier2
-def test_negative_delete_bookmark(random_entity, default_viewer_role, test_name):
+def test_negative_delete_bookmark(ui_entity, default_viewer_role, test_name):
     """Simple removal of a bookmark query without permissions
 
     :id: 1a94bf2b-bcc6-4663-b70d-e13244a0783b
@@ -237,7 +227,7 @@ def test_negative_delete_bookmark(random_entity, default_viewer_role, test_name)
 
     :CaseLevel: Integration
     """
-    bookmark = entities.Bookmark(controller=random_entity['controller'], public=True).create()
+    bookmark = entities.Bookmark(controller=ui_entity['controller'], public=True).create()
     with Session(
         test_name, default_viewer_role.login, default_viewer_role.password
     ) as non_admin_session:
@@ -248,7 +238,7 @@ def test_negative_delete_bookmark(random_entity, default_viewer_role, test_name)
 
 
 @pytest.mark.tier2
-def test_negative_create_with_duplicate_name(session, random_entity):
+def test_negative_create_with_duplicate_name(session, ui_entity):
     """Create bookmark with duplicate name
 
     :id: 18168c9c-bdd1-4839-a506-cf9b06c4ab44
@@ -268,10 +258,10 @@ def test_negative_create_with_duplicate_name(session, random_entity):
     :CaseLevel: Integration
     """
     query = gen_string('alphanumeric')
-    bookmark = entities.Bookmark(controller=random_entity['controller'], public=True).create()
+    bookmark = entities.Bookmark(controller=ui_entity['controller'], public=True).create()
     with session:
         assert session.bookmark.search(bookmark.name)[0]['Name'] == bookmark.name
-        ui_lib = getattr(session, random_entity['name'].lower())
+        ui_lib = getattr(session, ui_entity['name'].lower())
         with pytest.raises(DisabledWidgetError) as error:
             ui_lib.create_bookmark({'name': bookmark.name, 'query': query, 'public': True})
             assert error == 'name already exists'

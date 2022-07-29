@@ -113,7 +113,7 @@ def test_create_with_config_group(module_puppet_org, module_puppet_loc, session_
         organization=[module_puppet_org], location=[module_puppet_loc]
     ).create()
     config_group = session_puppet_enabled_sat.api.ConfigGroup().create()
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         # Create host group with config group
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
@@ -156,7 +156,7 @@ def test_create_with_puppet_class(module_puppet_org, module_puppet_loc, session_
     env = session_puppet_enabled_sat.api.Environment(
         id=env.id, location=[module_puppet_loc]
     ).update(['location'])
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
         # Create host group with puppet class

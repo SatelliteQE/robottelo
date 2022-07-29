@@ -115,7 +115,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
     fqdn = f'{hostname}.{module_puppet_domain.name}'.lower()
     finishimg_image = module_azurerm_finishimg_puppet.name
 
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
 
@@ -201,7 +201,7 @@ def test_positive_azurerm_host_provision_ud(
     fqdn = f'{hostname}.{module_puppet_domain.name}'.lower()
     cloudimg_image = module_azurerm_cloudimg_puppet.name
 
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
         # Provision Host

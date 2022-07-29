@@ -8,7 +8,7 @@
 
 :CaseComponent: HostCollections
 
-:Assignee: swadeley
+:Assignee: spusater
 
 :TestType: Functional
 
@@ -28,9 +28,6 @@ from robottelo.api.utils import update_vm_host_location
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
 from robottelo.hosts import ContentHost
-from robottelo.products import RepositoryCollection
-from robottelo.products import SatelliteToolsRepository
-from robottelo.products import YumRepository
 
 
 @pytest.fixture(scope='module')
@@ -52,53 +49,41 @@ def module_lce(module_org):
 
 
 @pytest.fixture(scope='module')
-def module_repos_collection(module_org, module_lce):
-    repos_collection = RepositoryCollection(
+def module_repos_collection(module_org, module_lce, module_target_sat):
+    repos_collection = module_target_sat.cli_factory.RepositoryCollection(
         distro=constants.DISTRO_DEFAULT,
         repositories=[
-            SatelliteToolsRepository(),
-            YumRepository(url=settings.repos.yum_1.url),
-            YumRepository(url=settings.repos.yum_6.url),
+            module_target_sat.cli_factory.SatelliteToolsRepository(),
+            module_target_sat.cli_factory.YumRepository(url=settings.repos.yum_1.url),
+            module_target_sat.cli_factory.YumRepository(url=settings.repos.yum_6.url),
         ],
     )
     repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
     return repos_collection
 
 
-@pytest.fixture(scope='module')
-def module_repos_collection_module_stream(module_org, module_lce):
-    repos_collection = RepositoryCollection(
-        distro=constants.DISTRO_RHEL8,
-        repositories=[YumRepository(url=settings.repos.module_stream_1.url)],
-    )
-    repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
-    return repos_collection
-
-
 @pytest.fixture
-def vm_content_hosts(smart_proxy_location, module_repos_collection, target_sat):
+def vm_content_hosts(smart_proxy_location, module_repos_collection, module_target_sat):
     distro = module_repos_collection.distro
     with Broker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
-            module_repos_collection.setup_virtual_machine(
-                client, target_sat, install_katello_agent=False
-            )
-            client.add_rex_key(satellite=target_sat)
+            module_repos_collection.setup_virtual_machine(client, install_katello_agent=False)
+            client.add_rex_key(satellite=module_target_sat)
             update_vm_host_location(client, smart_proxy_location.id)
         yield clients
 
 
 @pytest.fixture
 def vm_content_hosts_module_stream(
-    smart_proxy_location, module_repos_collection_module_stream, target_sat
+    smart_proxy_location, module_repos_collection_with_manifest, module_target_sat
 ):
-    distro = module_repos_collection_module_stream.distro
+    distro = constants.DISTRO_RHEL8
     with Broker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
-            module_repos_collection_module_stream.setup_virtual_machine(
-                client, target_sat, install_katello_agent=False
+            module_repos_collection_with_manifest.setup_virtual_machine(
+                client, install_katello_agent=False
             )
-            client.add_rex_key(satellite=target_sat)
+            client.add_rex_key(satellite=module_target_sat)
             update_vm_host_location(client, smart_proxy_location.id)
         yield clients
 
@@ -168,12 +153,12 @@ def _install_package_with_assertion(vm_clients, package_name):
     assert _is_package_installed(vm_clients, package_name)
 
 
-def _get_content_repository_urls(repos_collection, lce, content_view, target_sat):
+def _get_content_repository_urls(repos_collection, lce, content_view, module_target_sat):
     """Returns a list of the content repository urls"""
     repos_urls = [
         '/'.join(
             [
-                target_sat.url,
+                module_target_sat.url,
                 'pulp',
                 'content',
                 repos_collection.organization["label"],
@@ -189,11 +174,11 @@ def _get_content_repository_urls(repos_collection, lce, content_view, target_sat
     # add sat-tool rh repo
     # Note: if sat-tools is not cdn it must be already in repos_urls
     for repo in repos_collection:
-        if isinstance(repo, SatelliteToolsRepository) and repo.cdn:
+        if isinstance(repo, module_target_sat.cli_factory.SatelliteToolsRepository) and repo.cdn:
             repos_urls.append(
                 '/'.join(
                     [
-                        target_sat.url,
+                        module_target_sat.url,
                         'pulp',
                         'content',
                         repos_collection.organization["label"],
@@ -532,6 +517,7 @@ def test_positive_install_errata(
         assert _is_package_installed(vm_content_hosts, constants.FAKE_2_CUSTOM_PACKAGE)
 
 
+@pytest.mark.skip_if_open("BZ:2094815")
 @pytest.mark.tier3
 def test_positive_change_assigned_content(
     session,
@@ -541,7 +527,7 @@ def test_positive_change_assigned_content(
     vm_content_hosts,
     vm_host_collection,
     module_repos_collection,
-    target_sat,
+    module_target_sat,
 ):
     """Change Assigned Life cycle environment and content view of host
     collection
@@ -588,13 +574,13 @@ def test_positive_change_assigned_content(
     """
     new_lce_name = gen_string('alpha')
     new_cv_name = gen_string('alpha')
-    new_lce = target_sat.api.LifecycleEnvironment(
+    new_lce = module_target_sat.api.LifecycleEnvironment(
         name=new_lce_name, organization=module_org
     ).create()
-    content_view = target_sat.api.ContentView(
+    content_view = module_target_sat.api.ContentView(
         id=module_repos_collection.setup_content_data['content_view']['id']
     ).read()
-    new_content_view = target_sat.api.ContentView(
+    new_content_view = module_target_sat.api.ContentView(
         id=content_view.copy(data={'name': new_cv_name})['id']
     )
     new_content_view.publish()
@@ -607,7 +593,7 @@ def test_positive_change_assigned_content(
     # /{product_name}/{repo_name}
     repo_line_start_with = 'Repo URL:  '
     expected_repo_urls = _get_content_repository_urls(
-        module_repos_collection, module_lce, content_view, target_sat
+        module_repos_collection, module_lce, content_view, module_target_sat
     )
     for client in vm_content_hosts:
         result = client.run("subscription-manager repos")
@@ -627,7 +613,7 @@ def test_positive_change_assigned_content(
         )
         assert task_values['result'] == 'success'
         expected_repo_urls = _get_content_repository_urls(
-            module_repos_collection, new_lce, new_content_view, target_sat
+            module_repos_collection, new_lce, new_content_view, module_target_sat
         )
         for client in vm_content_hosts:
             result = client.run("subscription-manager refresh")
@@ -696,6 +682,18 @@ def test_negative_hosts_limit(session, module_org, smart_proxy_location):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'YumRepository': {
+                'url': settings.repos.module_stream_1.url,
+                'distro': constants.DISTRO_RHEL8,
+            }
+        }
+    ],
+    indirect=True,
+)
 def test_positive_install_module_stream(
     session, smart_proxy_location, vm_content_hosts_module_stream, vm_host_collection_module_stream
 ):
@@ -734,6 +732,18 @@ def test_positive_install_module_stream(
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'YumRepository': {
+                'url': settings.repos.module_stream_1.url,
+                'distro': constants.DISTRO_RHEL8,
+            }
+        }
+    ],
+    indirect=True,
+)
 def test_positive_install_modular_errata(
     session, smart_proxy_location, vm_content_hosts_module_stream, vm_host_collection_module_stream
 ):

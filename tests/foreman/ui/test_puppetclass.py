@@ -38,7 +38,7 @@ def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_org, modu
         organization=[module_puppet_org], location=[module_puppet_loc]
     ).create()
     puppet_class = session_puppet_enabled_sat.api.PuppetClass(name=name).create()
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         # Check that created puppet class can be found in UI
         assert session.puppetclass.search(name)[0]['Class name'] == name

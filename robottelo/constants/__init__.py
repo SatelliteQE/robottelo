@@ -1,5 +1,16 @@
 """Defines various constants"""
+from box import Box
 from nailgun import entities
+
+
+# String Color codes
+class Colored(Box):
+    YELLOW = '\033[1;33m'
+    REDLIGHT = '\033[3;31m'
+    REDDARK = '\033[1;31m'
+    GREEN = '\033[1;32m'
+    WHITELIGHT = '\033[1;30m'
+
 
 # This should be updated after each version branch
 SATELLITE_VERSION = "6.11"
@@ -165,7 +176,7 @@ AZURERM_VALID_REGIONS = [
 AZURERM_RHEL7_FT_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW:latest'
 AZURERM_RHEL7_UD_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW-CI:7.6.2019072418'
 AZURERM_RHEL7_FT_BYOS_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-lvm78:7.8.20200410'
-AZURERM_RHEL7_FT_CUSTOM_IMG_URN = 'custom://vm1-shared-image-20200514081407'
+AZURERM_RHEL7_FT_CUSTOM_IMG_URN = 'custom://imageVM1-RHEL7-image-20220617150105'
 AZURERM_RHEL7_FT_GALLERY_IMG_URN = 'gallery://RHEL77img'
 AZURERM_PLATFORM_DEFAULT = 'Linux'
 AZURERM_VM_SIZE_DEFAULT = 'Standard_B1s'
@@ -330,6 +341,14 @@ MIRRORING_POLICIES = {
     'mirror_complete': "Complete Mirroring",
     'mirror_content_only': "Content Only",
 }
+
+PRODUCT_KEY_RHEL = 'rhel'
+PRODUCT_KEY_SAT_TOOLS = 'rhst'
+PRODUCT_KEY_SAT_CAPSULE = 'rhsc'
+PRODUCT_KEY_VIRT_AGENTS = 'rhva6'
+PRODUCT_KEY_CLOUD_FORMS_TOOLS = 'rhct6'
+PRODUCT_KEY_ANSIBLE_ENGINE = 'rhae2'
+
 HASH_TYPE = {'sha256': "SHA256", 'sha512': "SHA512", 'base64': "Base64", 'md5': "MD5"}
 
 REPO_TAB = {'rpms': "RPMs", 'kickstarts': "Kickstarts", 'isos': "ISOs", 'ostree': "OSTree"}
@@ -364,7 +383,7 @@ PRDS = {
     'rhscl': 'Red Hat Software Collections (for RHEL Server)',
     'rhae': 'Red Hat Ansible Engine',
     'rhel8': 'Red Hat Enterprise Linux for x86_64',
-    'rhel9': 'Red Hat Enterprise Linux for x86_64 Beta',
+    'rhel9': 'Red Hat Enterprise Linux for x86_64',
 }
 
 REPOSET = {
@@ -383,6 +402,7 @@ REPOSET = {
     'rhst7_67': 'Red Hat Satellite Tools 6.7 (for RHEL 7 Server) (RPMs)',
     'rhst7_68': 'Red Hat Satellite Tools 6.8 (for RHEL 7 Server) (RPMs)',
     'rhst7_69': 'Red Hat Satellite Tools 6.9 (for RHEL 7 Server) (RPMs)',
+    'rhst7_610': 'Red Hat Satellite Tools 6.10 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.9 (for RHEL 6 Server) (RPMs)',
     'rhaht': 'Red Hat Enterprise Linux Atomic Host (RPMs)',
     'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7 Server'),
@@ -395,7 +415,8 @@ REPOSET = {
         'rhel7': 'Red Hat Enterprise Linux 7 Server (Kickstart)',
         'rhel8': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
         'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
-        'rhel9': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Beta (Kickstart)',
+        'rhel9': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (Kickstart)',
+        'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (Kickstart)',
     },
     'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)',
     'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)',
@@ -543,6 +564,15 @@ REPOS = {
         'distro': DISTRO_RHEL7,
         'key': 'rhst',
     },
+    'rhst7_610': {
+        'id': 'rhel-7-server-satellite-tools-6.10-rpms',
+        'name': ('Red Hat Satellite Tools 6.10 for RHEL 7 Server RPMs x86_64'),
+        'version': '6.10',
+        'reposet': REPOSET['rhst7_610'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhst',
+    },
     'rhst6': {
         'id': 'rhel-6-server-satellite-tools-6.9-rpms',
         'name': ('Red Hat Satellite Tools 6.9 for RHEL 6 Server RPMs x86_64'),
@@ -631,25 +661,33 @@ REPOS = {
         },
         'rhel8': {
             'id': 'rhel-8-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.4',
-            'version': '8.4',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.6',
+            'version': '8.6',
             'reposet': REPOSET['kickstart']['rhel8'],
             'product': PRDS['rhel8'],
             'distro': DISTRO_RHEL8,
         },
         'rhel8_aps': {
             'id': 'rhel-8-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.5',
-            'version': '8.5',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.6',
+            'version': '8.6',
             'reposet': REPOSET['kickstart']['rhel8_aps'],
             'product': PRDS['rhel8'],
             'distro': DISTRO_RHEL8,
         },
         'rhel9': {
-            'id': 'rhel-9-for-x86_64-baseos-beta-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Beta Kickstart',
+            'id': 'rhel-9-for-x86_64-baseos-kickstart',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.0',
             'version': '9.0',
             'reposet': REPOSET['kickstart']['rhel9'],
+            'product': PRDS['rhel9'],
+            'distro': DISTRO_RHEL9,
+        },
+        'rhel9_aps': {
+            'id': 'rhel-9-for-x86_64-appstream-kickstart',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.0',
+            'version': '9.0',
+            'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': DISTRO_RHEL9,
         },
@@ -922,6 +960,11 @@ CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
 CUSTOM_REPODATA_PATH = '/var/lib/pulp/published/yum/https/repos'
 CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
+CERT_DATA = {
+    'capsule_hostname': 'capsule.example.com',
+    'ca_bundle_file_name': 'cacert.crt',
+    'success_message': 'Validation succeeded',
+}
 FAKE_0_YUM_REPO_PACKAGES_COUNT = 32
 FAKE_0_INC_UPD_ERRATA = 'EXA:2015-0002'
 FAKE_0_INC_UPD_OLD_PACKAGE = 'pulp-test-package-0.2.1-1.fc11.x86_64.rpm'
@@ -942,6 +985,8 @@ FAKE_4_CUSTOM_PACKAGE_NAME = 'kangaroo'
 FAKE_5_CUSTOM_PACKAGE = 'kangaroo-0.2-1.noarch'  # for RHBA-2012:1030
 FAKE_6_CUSTOM_PACKAGE = 'kangaroo-0.3-1.noarch'  # for RHEA-2012:0059
 FAKE_7_CUSTOM_PACKAGE = 'rabbit-1.5.6-1.noarch'  # for RHEA-2012:61
+FAKE_8_CUSTOM_PACKAGE = 'rabbit-3.8.12-1.noarch'  # for RHEA-2012:9245
+FAKE_8_CUSTOM_PACKAGE_NAME = 'rabbit'
 REAL_0_RH_PACKAGE = 'rhev-agent-2.3.16-3.el6.x86_64'
 REAL_RHEL7_0_0_PACKAGE = 'python-pulp-common-2.21.0-1.el7sat.noarch'
 REAL_RHEL7_0_0_PACKAGE_NAME = 'python-pulp-common'
@@ -1820,14 +1865,14 @@ ROLES_LOCKED = [
 BOOKMARK_ENTITIES = [
     {'name': 'ActivationKey', 'controller': 'katello_activation_keys'},
     {'name': 'Dashboard', 'controller': 'dashboard', 'skip_for_ui': True},
-    {'name': 'Fact', 'controller': 'fact_values', 'skip_for_ui': True},
     {'name': 'Audit', 'controller': 'audits', 'skip_for_ui': True},
     {'name': 'Report', 'controller': 'config_reports', 'skip_for_ui': True},
     {'name': 'Task', 'controller': 'foreman_tasks_tasks', 'skip_for_ui': True},
-    {'name': 'Subscriptions', 'controller': 'katello_subscriptions', 'skip_for_ui': True},
+    # TODO Load manifest for the test_positive_end_to_end from the ui/test_bookmarks.py
+    # {'name': 'Subscriptions', 'controller': 'subscriptions', 'skip_for_ui': True},
     {'name': 'Product', 'controller': 'katello_products'},
     {'name': 'Repository', 'controller': 'katello_repositories', 'skip_for_ui': True},
-    {'name': 'ContentCredential', 'controller': 'katello_gpg_keys'},
+    {'name': 'ContentCredential', 'controller': 'katello_content_credentials'},
     {'name': 'SyncPlan', 'controller': 'katello_sync_plans'},
     {'name': 'ContentView', 'controller': 'katello_content_views'},
     {'name': 'Errata', 'controller': 'katello_errata', 'skip_for_ui': True},
@@ -1875,14 +1920,6 @@ BOOKMARK_ENTITIES = [
         'setup': entities.CommonParameter,
         'skip_for_ui': True,
     },
-    {
-        'name': 'ConfigGroup',
-        'controller': 'config_groups',
-        'setup': entities.ConfigGroup,
-        'skip_for_ui': True,
-    },
-    {'name': 'PuppetEnvironment', 'controller': 'environments', 'setup': entities.Environment},
-    {'name': 'PuppetClass', 'controller': 'puppetclasses', 'setup': entities.PuppetClass},
     {'name': 'Role', 'controller': 'ansible_roles', 'setup': entities.Role},
     {'name': 'Variables', 'controller': 'ansible_variables', 'skip_for_ui': True},
     {'name': 'SmartProxy', 'controller': 'smart_proxies', 'skip_for_ui': True},
@@ -2129,6 +2166,8 @@ FAM_MODULE_PATH = (
 )
 
 RH_SAT_ROLES = [
+    'activation_keys',
+    'auth_sources_ldap',
     'compute_profiles',
     'compute_resources',
     'content_credentials',
@@ -2146,5 +2185,64 @@ RH_SAT_ROLES = [
     'provisioning_templates',
     'repositories',
     'settings',
+    'subnets',
     'sync_plans',
+]
+
+WEBHOOK_EVENTS = [
+    "actions.katello.content_view.promote_succeeded",
+    "actions.katello.content_view.publish_succeeded",
+    "actions.katello.repository.sync_succeeded",
+    "actions.remote_execution.run_host_job_ansible_configure_cloud_connector_succeeded",
+    "actions.remote_execution.run_host_job_ansible_enable_web_console_succeeded",
+    "actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_succeeded",
+    "actions.remote_execution.run_host_job_ansible_run_host_succeeded",
+    "actions.remote_execution.run_host_job_ansible_run_insights_plan_succeeded",
+    "actions.remote_execution.run_host_job_ansible_run_playbook_succeeded",
+    "actions.remote_execution.run_host_job_foreman_openscap_run_oval_scans_succeeded",
+    "actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded",
+    "actions.remote_execution.run_host_job_katello_errata_install_succeeded",
+    "actions.remote_execution.run_host_job_katello_group_install_succeeded",
+    "actions.remote_execution.run_host_job_katello_group_remove_succeeded",
+    "actions.remote_execution.run_host_job_katello_group_update_succeeded",
+    "actions.remote_execution.run_host_job_katello_module_stream_action_succeeded",
+    "actions.remote_execution.run_host_job_katello_package_install_succeeded",
+    "actions.remote_execution.run_host_job_katello_package_remove_succeeded",
+    "actions.remote_execution.run_host_job_katello_package_update_succeeded",
+    "actions.remote_execution.run_host_job_katello_service_restart_succeeded",
+    "actions.remote_execution.run_host_job_puppet_run_host_succeeded",
+    "actions.remote_execution.run_host_job_rh_cloud_remediate_hosts_succeeded",
+    "actions.remote_execution.run_host_job_succeeded",
+    "build_entered",
+    "build_exited",
+    "content_view_created",
+    "content_view_destroyed",
+    "content_view_updated",
+    "domain_created",
+    "domain_destroyed",
+    "domain_updated",
+    "host_created",
+    "host_destroyed",
+    "host_updated",
+    "hostgroup_created",
+    "hostgroup_destroyed",
+    "hostgroup_updated",
+    "model_created",
+    "model_destroyed",
+    "model_updated",
+    "status_changed",
+    "subnet_created",
+    "subnet_destroyed",
+    "subnet_updated",
+    "user_created",
+    "user_destroyed",
+    "user_updated",
+]
+
+WEBHOOK_METHODS = [
+    "POST",
+    "GET",
+    "PUT",
+    "DELETE",
+    "PATCH",
 ]

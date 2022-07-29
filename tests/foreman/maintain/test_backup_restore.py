@@ -24,7 +24,7 @@ from fauxfactory import gen_string
 from robottelo.config import settings
 from robottelo.logging import logger
 
-pytestmark = [pytest.mark.destructive]
+pytestmark = pytest.mark.destructive
 
 
 BACKUP_DIR = "/tmp/"

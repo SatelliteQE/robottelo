@@ -34,9 +34,9 @@ def run_command(cmd, hostname=None, timeout=None):
         return result.stdout
 
 
-def get_rhsso_client_id():
+def get_rhsso_client_id(sat):
     """Getter method for fetching the client id and can be used other functions"""
-    client_name = f'{settings.server.hostname}-foreman-openidc'
+    client_name = f'{sat.hostname}-foreman-openidc'
     run_command(
         cmd='{} config credentials '
         '--server {}/auth '
@@ -56,7 +56,7 @@ def get_rhsso_client_id():
         cmd=f'{KEY_CLOAK_CLI} get clients --fields id,clientId',
         hostname=settings.rhsso.host_name,
     )
-    result_json = json.loads(f'[{{{result}')
+    result_json = json.loads(result)
     client_id = None
     for client in result_json:
         if client_name in client['clientId']:

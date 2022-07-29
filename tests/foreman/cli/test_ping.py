@@ -18,9 +18,10 @@
 """
 import pytest
 
+pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
 
-@pytest.mark.tier1
-@pytest.mark.upgrade
+
+@pytest.mark.build_sanity
 def test_positive_ping(target_sat):
     """hammer ping return code
 
@@ -54,26 +55,3 @@ def test_positive_ping(target_sat):
         assert result.status == 0, 'Return code should be 0 if all services are ok'
     else:
         assert result.status != 0, 'Return code should not be 0 if any service is not ok'
-
-
-@pytest.mark.destructive
-def test_negative_ping_fail_status_code(target_sat):
-    """Negative test to verify non-zero status code of ping fail
-
-    :id: 8f8675aa-df52-11eb-9353-b0a460e02491
-
-    :customerscenario: true
-
-    :BZ: 1941240
-
-    :CaseImportance: Critical
-
-    :expectedresults: Hammer ping fails and returns non-zero(1) status code.
-
-    """
-    command_out = target_sat.execute('satellite-maintain service stop --only tomcat.service')
-    assert command_out.status == 0
-    result = target_sat.execute("hammer ping")
-    assert result.status == 1
-    command_out = target_sat.execute('satellite-maintain service start --only tomcat.service')
-    assert command_out.status == 0

@@ -140,7 +140,12 @@ class TestSatelliteContentManagement:
         assert rh_repo.content_counts['rpm'] > 0
 
     @pytest.mark.parametrize(
-        'distro', [f'rhel{ver}' for ver in settings.supportability.content_hosts.rhel.versions]
+        'distro',
+        {
+            f'rhel{ver}'
+            for ver in settings.supportability.content_hosts.rhel.versions
+            if isinstance(ver, int)
+        },
     )
     def test_positive_sync_kickstart_check_os(self, module_manifest_org, distro):
         """Sync rhel KS repo and assert that OS was created
@@ -307,7 +312,7 @@ class TestCapsuleContentManagement:
 
         :CaseComponent: RHCloud-Insights
 
-        :Assignee: jpathan
+        :Assignee: addubey
 
         :customerscenario: true
 

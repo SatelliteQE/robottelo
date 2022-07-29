@@ -880,7 +880,7 @@ def create_org_admin_user(orgs, locs):
     return user
 
 
-def update_rhsso_settings_in_satellite(revert=False):
+def update_rhsso_settings_in_satellite(revert=False, sat=None):
     """Update or Revert the RH-SSO settings in satellite"""
     rhhso_settings = {
         'authorize_login_delegation': True,
@@ -893,13 +893,24 @@ def update_rhsso_settings_in_satellite(revert=False):
         f'/{settings.rhsso.realm}/protocol/openid-connect/certs',
     }
     if revert:
-        setting_entity = entities.Setting().search(
+        setting_entity = sat.api.Setting().search(
             query={'search': 'name=authorize_login_delegation'}
         )[0]
         setting_entity.value = False
         setting_entity.update({'value'})
     else:
         for setting_name, setting_value in rhhso_settings.items():
-            setting_entity = entities.Setting().search(query={'search': f'name={setting_name}'})[0]
+            setting_entity = sat.api.Setting().search(query={'search': f'name={setting_name}'})[0]
             setting_entity.value = setting_value
             setting_entity.update({'value'})
+
+
+def disable_syncplan(sync_plan):
+    """
+    Disable sync plans after a test to reduce distracting task events, logs, and load on Satellite.
+    Note that only a Sync Plan with a repo would create a noticeable load.
+    You can also create sync plans in a disabled state where it is unlikely to impact the test.
+    """
+    sync_plan.enabled = False
+    sync_plan = sync_plan.update(['enabled'])
+    assert sync_plan.enabled is False

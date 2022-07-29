@@ -21,13 +21,10 @@ import time
 
 import pytest
 from broker import Broker
-from nailgun import entities
 from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.api.utils import update_vm_host_location
-from robottelo.cli.host import Host
-from robottelo.cli.job_invocation import JobInvocation
 from robottelo.datafactory import gen_string
 from robottelo.hosts import ContentHost
 from robottelo.logging import logger
@@ -42,11 +39,14 @@ def module_vm_client_by_ip(rhel7_contenthost, module_org, smart_proxy_location, 
 
 
 @pytest.fixture()
-def fixture_enable_receptor_repos(request, target_sat):
-    """Enable RHSCL repo required by receptor installer"""
-    target_sat.enable_repo(constants.REPOS['rhscl7']['id'])
-    target_sat.enable_repo(constants.REPOS['rhae2']['id'])
-    target_sat.enable_repo(constants.REPOS['rhs7']['id'])
+def fixture_enable_rhc_repos(request, target_sat):
+    """Enable repos required for configuring RHC."""
+    if target_sat.os_version.major == 8:
+        target_sat.enable_repo(constants.REPOS['rhel8_bos']['id'])
+        target_sat.enable_repo(constants.REPOS['rhel8_aps']['id'])
+    else:
+        target_sat.enable_repo(constants.REPOS['rhscl7']['id'])
+        target_sat.enable_repo(constants.REPOS['rhel7']['id'])
 
 
 @pytest.mark.tier3
@@ -79,12 +79,13 @@ def test_positive_run_default_job_template_by_ip(
     with session:
         session.location.select(smart_proxy_location.name)
         assert session.host.search(hostname)[0]['Name'] == hostname
+        command = 'ls'
         job_status = session.host.schedule_remote_job(
             [hostname],
             {
                 'job_category': 'Commands',
                 'job_template': 'Run Command - SSH Default',
-                'template_content.command': 'ls',
+                'template_content.command': command,
                 'advanced_options.execution_order': 'Randomized',
                 'schedule': 'Execute now',
             },
@@ -93,10 +94,13 @@ def test_positive_run_default_job_template_by_ip(
         assert job_status['overview']['execution_order'] == 'Execution order: randomized'
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
+
         # check status also on the job dashboard
+        job_name = f'Run {command}'
         jobs = session.dashboard.read('LatestJobs')['jobs']
-        assert len(jobs) == 1
-        assert jobs[0]['State'] == 'success'
+        success_jobs = [job for job in jobs if job['State'] == 'succeeded']
+        assert len(success_jobs) > 0
+        assert job_name in [job['Name'] for job in success_jobs]
 
 
 @pytest.mark.tier3
@@ -578,7 +582,7 @@ def test_positive_matcher_field_highlight(session):
 
 @pytest.mark.tier3
 def test_positive_configure_cloud_connector(
-    session, target_sat, subscribe_satellite, fixture_enable_receptor_repos
+    session, target_sat, subscribe_satellite, fixture_enable_rhc_repos
 ):
     """Install Cloud Connector through WebUI button
 
@@ -608,8 +612,8 @@ def test_positive_configure_cloud_connector(
     # Set Host parameter source_display_name to something random.
     # To avoid 'name has already been taken' error when run multiple times
     # on a machine with the same hostname.
-    host_id = Host.info({'name': target_sat.hostname})['id']
-    Host.set_parameter(
+    host_id = target_sat.cli.Host.info({'name': target_sat.hostname})['id']
+    target_sat.cli.Host.set_parameter(
         {'host-id': host_id, 'name': 'source_display_name', 'value': gen_string('alpha')}
     )
 
@@ -624,26 +628,32 @@ def test_positive_configure_cloud_connector(
 
     template_name = 'Configure Cloud Connector'
     invocation_id = (
-        entities.JobInvocation().search(query={'search': f'description="{template_name}"'})[0].id
+        target_sat.api.JobInvocation()
+        .search(query={'search': f'description="{template_name}"'})[0]
+        .id
     )
     wait_for(
-        lambda: entities.JobInvocation(id=invocation_id).read().status_label
+        lambda: target_sat.api.JobInvocation(id=invocation_id).read().status_label
         in ["succeeded", "failed"],
         timeout="1500s",
     )
 
-    result = JobInvocation.get_output({'id': invocation_id, 'host': target_sat.hostname})
+    result = target_sat.cli.JobInvocation.get_output(
+        {'id': invocation_id, 'host': target_sat.hostname}
+    )
     logger.debug(f"Invocation output>>\n{result}\n<<End of invocation output")
     # if installation fails, it's often due to missing rhscl repo -> print enabled repos
     repolist = target_sat.execute('yum repolist')
     logger.debug(f"Repolist>>\n{repolist}\n<<End of repolist")
-
-    assert entities.JobInvocation(id=invocation_id).read().status == 0
-    assert 'project-receptor.satellite_receptor_installer' in result
+    assert target_sat.api.JobInvocation(id=invocation_id).read().status == 0
+    assert "Install yggdrasil-worker-forwarder and rhc" in result
+    assert "Restart rhcd" in result
     assert 'Exit status: 0' in result
-    # check that there is one receptor conf file and it's only readable
-    # by the receptor user and root
-    result = target_sat.execute('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
-    assert all(filestats == '400:foreman-proxy' for filestats in result.stdout.strip().split('\n'))
-    result = target_sat.execute('ls -l /etc/receptor/*/receptor.conf | wc -l')
-    assert int(result.stdout.strip()) >= 1
+
+    result = target_sat.execute('rhc status')
+    assert result.status == 0
+    assert "Connected to Red Hat Subscription Management" in result.stdout
+    assert "The Red Hat connector daemon is active" in result.stdout
+
+    result = target_sat.execute('journalctl --unit=rhcd')
+    assert "error" not in result.stdout

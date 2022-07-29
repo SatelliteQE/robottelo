@@ -16,6 +16,8 @@
 
 :Upstream: No
 """
+from math import floor
+from math import log10
 from random import choice
 
 import pytest
@@ -35,6 +37,10 @@ from robottelo.datafactory import gen_string
 pytestmark = [pytest.mark.skip_if_not_set('vmware')]
 
 
+def _round_to_2_significant_digits(x):
+    return round(x, -int(floor(log10(abs(x)))) + 1)
+
+
 def _get_normalized_size(size):
     """Convert a size in bytes to KB or MB or GB or TB
 
@@ -50,10 +56,7 @@ def _get_normalized_size(size):
     while size > 1024 and suffix_index < 4:
         suffix_index += 1
         size = size / 1024.0
-    if size >= 100:
-        size = round(size, 0)
-    else:
-        size = round(size, 2)
+    size = _round_to_2_significant_digits(size)
     if size == int(size):
         size = int(size)
     return f'{size} {suffixes[suffix_index]}'
@@ -90,7 +93,7 @@ def module_org():
 
 @pytest.fixture(scope='module')
 def module_vmware_settings():
-    return dict(
+    ret = dict(
         vcenter=settings.vmware.vcenter,
         user=settings.vmware.username,
         password=settings.vmware.password,
@@ -101,8 +104,10 @@ def module_vmware_settings():
         image_username=settings.vmware.image_username,
         image_password=settings.vmware.image_password,
         vm_name=settings.vmware.vm_name,
-        current_interface=VMWARE_CONSTANTS['network_interfaces'] % settings.vlan_networking.bridge,
     )
+    if 'INTERFACE' in settings.vmware:
+        ret['interface'] = VMWARE_CONSTANTS['network_interfaces'] % settings.vmware.interface
+    return ret
 
 
 @pytest.mark.tier1
@@ -404,14 +409,16 @@ def test_positive_access_vmware_with_custom_profile(session, module_vmware_setti
         cpu_hot_add=True,
         cdrom_drive=True,
         annotation_notes=gen_string('alpha'),
-        network_interfaces=[
+        network_interfaces=[]
+        if 'interface' not in module_vmware_settings
+        else [
             dict(
                 nic_type=VMWARE_CONSTANTS.get('network_interface_name'),
-                network=module_vmware_settings['current_interface'],
+                network=module_vmware_settings['interface'],
             ),
             dict(
                 nic_type=VMWARE_CONSTANTS.get('network_interface_name'),
-                network=module_vmware_settings['current_interface'],
+                network=module_vmware_settings['interface'],
             ),
         ],
         storage=[
@@ -422,7 +429,6 @@ def test_positive_access_vmware_with_custom_profile(session, module_vmware_setti
                         data_store=data_store_summary_string,
                         size='10 GB',
                         thin_provision=True,
-                        eager_zero=True,
                     ),
                     dict(
                         data_store=data_store_summary_string,

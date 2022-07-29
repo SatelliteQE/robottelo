@@ -37,7 +37,7 @@ if not setting_is_set('rhev'):
 
 @pytest.fixture(scope='module')
 def rhev_data():
-    return {
+    ret = {
         'rhev_url': settings.rhev.hostname,
         'username': settings.rhev.username,
         'password': settings.rhev.password,
@@ -51,6 +51,9 @@ def rhev_data():
         'storage_domain': settings.rhev.storage_domain,
         'cert': settings.rhev.ca_cert,
     }
+    if 'INTERFACE' in settings.rhev:
+        ret['interface'] = settings.rhev.interface
+    return ret
 
 
 @pytest.mark.tier2
@@ -435,7 +438,6 @@ def test_positive_image_end_to_end(session, rhev_data, module_location):
         )
 
 
-@pytest.mark.skip_if_not_set('vlan_networking')
 @pytest.mark.tier2
 def test_positive_associate_with_custom_profile(session, rhev_data):
     """ "Associate custom default (3-Large) compute profile to RHV compute resource.
@@ -466,11 +468,13 @@ def test_positive_associate_with_custom_profile(session, rhev_data):
         cluster=rhev_data['datacenter'],
         cores='2',
         sockets='2',
-        memory='1 GB',
-        network_interfaces=[
-            dict(name='nic1', network=settings.vlan_networking.bridge),
-            dict(name='nic2', network=settings.vlan_networking.bridge),
-            dict(name='nic3', network=settings.vlan_networking.bridge),
+        memory='1024 MB',
+        network_interfaces=[]
+        if 'interface' not in rhev_data
+        else [
+            dict(name='nic1', network=rhev_data['interface']),
+            dict(name='nic1', network=rhev_data['interface']),
+            dict(name='nic1', network=rhev_data['interface']),
         ],
         storage=[
             dict(size='10', bootable=False, preallocate_disk=True),
@@ -551,7 +555,7 @@ def test_positive_associate_with_custom_profile_with_template(session, rhev_data
         cluster=rhev_data['datacenter'],
         template='{} (base version)'.format(rhev_data['image_name']),
         cores='2',
-        memory='1 GB',
+        memory='1024 MB',
     )
     with session:
         session.computeresource.create(

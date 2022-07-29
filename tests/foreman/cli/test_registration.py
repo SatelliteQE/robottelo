@@ -6,7 +6,7 @@
 
 :CaseComponent: Registration
 
-:Assignee: swadeley
+:Assignee: sbible
 
 :TestType: Functional
 

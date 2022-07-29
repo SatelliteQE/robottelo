@@ -213,6 +213,7 @@ def make_content_view_with_credentials(options=None, credentials=None):
         'component-ids': None,
         'composite': False,
         'description': None,
+        'import-only': False,
         'label': None,
         'name': gen_string('alpha', 10),
         'organization': None,
@@ -563,7 +564,7 @@ def make_repository_with_credentials(options=None, credentials=None):
     args = {
         'checksum-type': None,
         'content-type': 'yum',
-        'docker-tags-whitelist': None,
+        'include-tags': None,
         'docker-upstream-name': None,
         'download-policy': None,
         'gpg-key': None,

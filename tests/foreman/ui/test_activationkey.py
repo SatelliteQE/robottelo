@@ -38,8 +38,6 @@ from robottelo.config import settings
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.hosts import ContentHost
-from robottelo.products import RepositoryCollection
-from robottelo.products import SatelliteToolsRepository
 
 
 @pytest.mark.tier2
@@ -81,7 +79,12 @@ def test_positive_end_to_end_crud(session, module_org):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_end_to_end_register(session, rhel7_contenthost, target_sat):
+@pytest.mark.parametrize(
+    'repos_collection',
+    [{'SatelliteToolsRepository': {'distro': constants.DISTRO_RHEL7}}],
+    indirect=True,
+)
+def test_positive_end_to_end_register(session, repos_collection, rhel7_contenthost, target_sat):
     """Create activation key and use it during content host registering
 
     :id: dfaecf6a-ba61-47e1-87c5-f8966a319b41
@@ -97,13 +100,10 @@ def test_positive_end_to_end_register(session, rhel7_contenthost, target_sat):
     """
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    repos_collection = RepositoryCollection(
-        distro=constants.DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
-    )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     ak_name = repos_collection.setup_content_data['activation_key']['name']
 
-    repos_collection.setup_virtual_machine(rhel7_contenthost, target_sat)
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
     with session:
         session.organization.select(org.name)
         chost = session.contenthost.read(rhel7_contenthost.hostname, widget_names='details')

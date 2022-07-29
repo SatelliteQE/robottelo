@@ -21,6 +21,7 @@ pytest_plugins = [
     'pytest_fixtures.core.sys',
     'pytest_fixtures.core.upgrade',
     'pytest_fixtures.core.xdist',
+    'pytest_fixtures.core.ui',
     # Component Fixtures
     'pytest_fixtures.component.activationkey',
     'pytest_fixtures.component.ansible',
@@ -30,6 +31,7 @@ pytest_plugins = [
     'pytest_fixtures.component.domain',
     'pytest_fixtures.component.host',
     'pytest_fixtures.component.hostgroup',
+    'pytest_fixtures.component.katello_certs_check',
     'pytest_fixtures.component.lce',
     'pytest_fixtures.component.maintain',
     'pytest_fixtures.component.os',
@@ -38,6 +40,7 @@ pytest_plugins = [
     'pytest_fixtures.component.provision_azure',
     'pytest_fixtures.component.provision_gce',
     'pytest_fixtures.component.provision_libvirt',
+    'pytest_fixtures.component.provision_pxe',
     'pytest_fixtures.component.provisioning_template',
     'pytest_fixtures.component.puppet',
     'pytest_fixtures.component.repository',

@@ -8,7 +8,7 @@
 
 :CaseComponent: Hosts
 
-:Assignee: tstrych
+:Assignee: pdragun
 
 :TestType: Functional
 
@@ -31,11 +31,9 @@ from airgun.session import Session
 from wait_for import wait_for
 
 from robottelo import constants
-from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import cv_publish_promote
 from robottelo.api.utils import promote
-from robottelo.api.utils import upload_manifest
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
@@ -60,14 +58,14 @@ def _get_set_from_list_of_dict(value):
     return {tuple(sorted(list(global_param.items()), key=lambda t: t[0])) for global_param in value}
 
 
-# this fixture inherits the fixture called module_user in confest.py, method name has to be same
+# this fixture inherits the fixture called ui_user in confest.py, method name has to be same
 @pytest.fixture(scope='module')
-def module_user(module_user, smart_proxy_location, module_target_sat):
+def ui_user(ui_user, smart_proxy_location, module_target_sat):
     module_target_sat.api.User(
-        id=module_user.id,
+        id=ui_user.id,
         default_location=smart_proxy_location,
     ).update(['default_location'])
-    yield module_user
+    yield ui_user
 
 
 @pytest.fixture
@@ -239,25 +237,17 @@ def module_libvirt_hostgroup(
 
 
 @pytest.fixture(scope='module')
-def manifest_org(module_org):
-    """Upload manifest to organization."""
-    with manifests.clone() as manifest:
-        upload_manifest(module_org.id, manifest.content)
-    return module_org
-
-
-@pytest.fixture(scope='module')
-def module_activation_key(manifest_org, module_target_sat):
+def module_activation_key(module_org_with_manifest, module_target_sat):
     """Create activation key using default CV and library environment."""
     activation_key = module_target_sat.api.ActivationKey(
         auto_attach=True,
-        content_view=manifest_org.default_content_view.id,
-        environment=manifest_org.library.id,
-        organization=manifest_org,
+        content_view=module_org_with_manifest.default_content_view.id,
+        environment=module_org_with_manifest.library.id,
+        organization=module_org_with_manifest,
     ).create()
 
     # Find the 'Red Hat Employee Subscription' and attach it to the activation key.
-    for subs in module_target_sat.api.Subscription(organization=manifest_org).search():
+    for subs in module_target_sat.api.Subscription(organization=module_org_with_manifest).search():
         if subs.name == DEFAULT_SUBSCRIPTION_NAME:
             # 'quantity' must be 1, not subscription['quantity']. Greater
             # values produce this error: 'RuntimeError: Error: Only pools
@@ -1306,7 +1296,7 @@ def test_positive_global_registration_end_to_end(
     result = rhel_contenthost.execute('subscription-manager identity')
     assert result.status == 0
     # Assert that a yum update was made this day ("Update" or "I, U" in history)
-    timezone_offset = rhel_contenthost.execute('date +"%:z"').stdout
+    timezone_offset = rhel_contenthost.execute('date +"%:z"').stdout.strip()
     tzinfo = datetime.strptime(timezone_offset, '%z').tzinfo
     result = rhel_contenthost.execute('yum history | grep U')
     assert result.status == 0
@@ -1580,7 +1570,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
 @pytest.mark.tier2
 @pytest.mark.rhel_ver_match('[^6].*')
 def test_global_registration_upgrade_subscription_manager(
-    session, module_activation_key, module_os, module_proxy, rhel_contenthost
+    session, module_activation_key, module_os, rhel_contenthost
 ):
     """Host registration form produces a correct registration command and
     subscription-manager can be updated from a custom repository before
@@ -2146,67 +2136,6 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             googleclient.disconnect()
 
 
-class TestHostCockpit:
-    """Tests for cockpit plugin"""
-
-    @pytest.mark.destructive
-    @pytest.mark.upgrade
-    @pytest.mark.rhel_ver_match('[^6].*')
-    @pytest.mark.usefixtures('install_cockpit_plugin')
-    @pytest.mark.tier2
-    def test_positive_cockpit(self, session, cockpit_host, class_target_sat, class_org):
-        """Install cockpit plugin and test whether webconsole button and cockpit integration works.
-        also verify if cockpit service is restarted after the service restart.
-
-        :id: 5a9be063-cdc4-43ce-91b9-7608fbebf8bb
-
-        :expectedresults: Cockpit page is loaded and displays sat host info
-
-        :BZ: 1876220
-
-        :CaseLevel: System
-
-        :steps:
-            1. kill the cockpit service.
-            2. go to web console and verify if getting 503 error.
-            3. check if service "cockpit.service" exists using service list.
-            4. restart the satellite services.
-            5. check cockpit page is loaded and displays sat host info.
-
-        expectedresults:
-            1. cockpit service is restarted after the services restart.
-            2. cockpit page is loaded and displays sat host info
-
-        :parametrized: yes
-        """
-        with session:
-            session.organization.select(org_name=class_org.name)
-            session.location.select(loc_name='Any Location')
-            kill_process = class_target_sat.execute('pkill -f cockpit-ws')
-            assert kill_process.status == 0
-            # Verify if getting 503 error
-            with pytest.raises(NoSuchElementException):
-                session.host.get_webconsole_content(entity_name=cockpit_host.hostname)
-            title = session.browser.title
-            assert "503 Service Unavailable" in title
-
-            service_list = class_target_sat.cli.Service.list()
-            assert service_list.status == 0
-            assert "foreman-cockpit.service" in service_list.stdout
-
-            service_restart = class_target_sat.cli.Service.restart()
-            assert service_restart.status == 0
-            session.browser.switch_to_window(session.browser.window_handles[0])
-            session.browser.close_window(session.browser.window_handles[-1])
-            hostname_inside_cockpit = session.host.get_webconsole_content(
-                entity_name=cockpit_host.hostname, rhel_version=cockpit_host.os_version.major
-            )
-            assert hostname_inside_cockpit == cockpit_host.hostname, (
-                f'cockpit page shows hostname {hostname_inside_cockpit} '
-                f'instead of {cockpit_host.hostname}'
-            )
-
-
 # ------------------------------ NEW HOST UI DETAILS ----------------------------
 @pytest.fixture(scope='function')
 def enable_new_host_details_ui(target_sat, setting_update):
@@ -2242,6 +2171,69 @@ def test_positive_read_details_page_from_new_ui(
         )
         assert values['Overview']['DetailsCard']['details']['host_owner'] == values['current_user']
         assert values['Overview']['DetailsCard']['details']['comment'] == 'Host with fake data'
+
+
+@pytest.mark.tier4
+@pytest.mark.stubbed
+def test_positive_update_delete_package():
+    """Update a package on host using the new Content tab
+
+    :id: ffc19a40-85f4-4894-a18b-f6d88b2ce377
+
+    :steps:
+        1. Install a package on a registered host.
+        2. Navigate to the Content tab.
+        3. Check if the package is in an upgradable state.
+        4. Select package and upgrade via rex.
+        5. Delete the package
+
+    :expectedresults: The package is updated and deleted
+
+    """
+
+
+@pytest.mark.tier4
+@pytest.mark.stubbed
+def test_positive_apply_erratum():
+    """Apply an erratum on host using the new Errata tab
+
+    :id: 328e629a-f261-4dc1-ad6f-def27e2fcf07
+
+    :setup:
+        1. Valid yum repo with an applicable erratum.
+
+    :steps:
+        1. Install a package on a registered host.
+        2. Check the Errata card on the Overview tab
+        3. Navigate to the Errata tab.
+        4. Check for applicable errata.
+        5. Select errata and apply via rex.
+
+    :expectedresults: The erratum is applied
+
+    """
+
+
+@pytest.mark.tier4
+@pytest.mark.stubbed
+def test_positive_crud_module_streams():
+    """CRUD test for the Module streams new UI tab
+
+    :id: 9800a006-49cc-4c0a-aed8-6a32c4bf0eab
+
+    :setup:
+        1. Valid yum repo with Module Streams.
+
+    :steps:
+        1. Create Yum Repository which contains module-streams as URL
+        2. Initialize synchronization
+        3. Module-Stream Get
+        4. Update the Module-Stream
+        5. Delete the Module-Stream
+
+    :expectedresults: Yum repository with modules is synced, updated, deleted.
+
+    """
 
 
 # ------------------------------ PUPPET ENABLED SAT TESTS ----------------------------
@@ -2280,7 +2272,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(
         organization=[module_puppet_org],
         location=[module_puppet_loc],
     ).create()
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
         session.host.apply_action(
@@ -2332,7 +2324,7 @@ def test_positive_create_with_puppet_class(
     )
     host_template.create_missing()
 
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name='Any Location')
         host_name = create_fake_host(
@@ -2371,7 +2363,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(
     """
 
     hg_name = gen_string('alpha')
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
         session.hostgroup.create(
@@ -2450,7 +2442,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
             'lifecycle_environment_id': module_puppet_lce_library.id,
         },
     ).create()
-    with session_puppet_enabled_sat.ui_session as session:
+    with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
         session.host.update(

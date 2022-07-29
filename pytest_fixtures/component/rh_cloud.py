@@ -11,6 +11,7 @@ def rhcloud_sat_host(satellite_factory):
     """A module level fixture that provides a Satellite based on config settings"""
     new_sat = satellite_factory()
     yield new_sat
+    new_sat.teardown()
     Broker(hosts=[new_sat]).checkin()
 
 
@@ -51,10 +52,10 @@ def organization_ak_setup(rhcloud_sat_host, rhcloud_manifest_org):
 
 
 @pytest.fixture(scope='module')
-def rhcloud_registered_hosts(organization_ak_setup, content_hosts, rhcloud_sat_host):
+def rhcloud_registered_hosts(organization_ak_setup, mod_content_hosts, rhcloud_sat_host):
     """Fixture that registers content hosts to Satellite and Insights."""
     org, ak = organization_ak_setup
-    for vm in content_hosts:
+    for vm in mod_content_hosts:
         vm.configure_rhai_client(
             satellite=rhcloud_sat_host,
             activation_key=ak.name,
@@ -62,7 +63,7 @@ def rhcloud_registered_hosts(organization_ak_setup, content_hosts, rhcloud_sat_h
             rhel_distro=f"rhel{vm.os_version.major}",
         )
         assert vm.subscribed
-    return content_hosts
+    return mod_content_hosts
 
 
 @pytest.fixture

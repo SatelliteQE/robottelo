@@ -22,3 +22,5 @@ VMWARE:
   IMAGE_PASSWORD:
   # Image name on the external provider
   IMAGE_NAME:
+  # Interface used for some tests; not required to work with provisioning, not required to be in VLAN
+  INTERFACE:
