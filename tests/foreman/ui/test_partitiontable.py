@@ -19,13 +19,12 @@
 import pytest
 from fauxfactory import gen_string
 
-from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
-from robottelo.helpers import read_data_file
+from robottelo.constants import DataFile
 
 
 @pytest.fixture(scope='module')
 def template_data():
-    return read_data_file(PARTITION_SCRIPT_DATA_FILE)
+    return DataFile.PARTITION_SCRIPT_DATA_FILE.read_bytes()
 
 
 @pytest.mark.tier2

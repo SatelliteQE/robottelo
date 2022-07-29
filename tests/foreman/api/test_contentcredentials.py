@@ -21,15 +21,12 @@ from fauxfactory import gen_string
 from nailgun import entities
 from requests import HTTPError
 
-from robottelo.constants import VALID_GPG_KEY_BETA_FILE
-from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.constants import DataFile
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.helpers import read_data_file
 
-
-key_content = read_data_file(VALID_GPG_KEY_FILE)
+key_content = DataFile.VALID_GPG_KEY_FILE.read_bytes()
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
@@ -147,7 +144,8 @@ def test_positive_update_content(module_org):
     :CaseImportance: Critical
     """
     gpg_key = entities.GPGKey(
-        organization=module_org, content=read_data_file(VALID_GPG_KEY_BETA_FILE)
+        organization=module_org,
+        content=DataFile.VALID_GPG_KEY_BETA_FILE.read_bytes(),
     ).create()
     gpg_key.content = key_content
     gpg_key = gpg_key.update(['content'])

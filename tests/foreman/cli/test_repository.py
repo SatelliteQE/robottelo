@@ -61,6 +61,7 @@ from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import CUSTOM_FILE_REPO_FILES_COUNT
 from robottelo.constants import CUSTOM_LOCAL_FOLDER
+from robottelo.constants import DataFile
 from robottelo.constants import DOWNLOAD_POLICIES
 from robottelo.constants import MIRRORING_POLICIES
 from robottelo.constants import OS_TEMPLATE_DATA_FILE
@@ -78,7 +79,6 @@ from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_http_credentials
-from robottelo.helpers import get_data_file
 from robottelo.logging import logger
 
 # from robottelo.constants.repos import FEDORA27_OSTREE_REPO
@@ -1554,7 +1554,10 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        target_sat.put(local_path=get_data_file(RPM_TO_UPLOAD), remote_path=f"/tmp/{RPM_TO_UPLOAD}")
+        target_sat.put(
+            local_path=DataFile.RPM_TO_UPLOAD,
+            remote_path=f"/tmp/{RPM_TO_UPLOAD}",
+        )
         result = Repository.upload_content(
             {
                 'name': repo['name'],
@@ -1592,7 +1595,7 @@ class TestRepository:
         new_repo = Repository.info({'id': repo['id']})
         assert int(new_repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT
         target_sat.put(
-            local_path=get_data_file(OS_TEMPLATE_DATA_FILE),
+            local_path=DataFile.OS_TEMPLATE_DATA_FILE,
             remote_path=f"/tmp/{OS_TEMPLATE_DATA_FILE}",
         )
         result = Repository.upload_content(
@@ -1782,7 +1785,8 @@ class TestRepository:
         :BZ: 1378442
         """
         target_sat.put(
-            local_path=get_data_file(SRPM_TO_UPLOAD), remote_path=f"/tmp/{SRPM_TO_UPLOAD}"
+            local_path=DataFile.SRPM_TO_UPLOAD,
+            remote_path=f"/tmp/{SRPM_TO_UPLOAD}",
         )
         # Upload SRPM
         result = Repository.upload_content(
@@ -1826,7 +1830,8 @@ class TestRepository:
         :CaseImportance: High
         """
         target_sat.put(
-            local_path=get_data_file(SRPM_TO_UPLOAD), remote_path=f"/tmp/{SRPM_TO_UPLOAD}"
+            local_path=DataFile.SRPM_TO_UPLOAD,
+            remote_path=f"/tmp/{SRPM_TO_UPLOAD}",
         )
         # Upload SRPM
         Repository.upload_content(
@@ -2867,7 +2872,10 @@ class TestFileRepository:
 
         :CaseImportance: Critical
         """
-        target_sat.put(local_path=get_data_file(RPM_TO_UPLOAD), remote_path=f"/tmp/{RPM_TO_UPLOAD}")
+        target_sat.put(
+            local_path=DataFile.RPM_TO_UPLOAD,
+            remote_path=f"/tmp/{RPM_TO_UPLOAD}",
+        )
         result = Repository.upload_content(
             {
                 'name': repo['name'],
@@ -2929,7 +2937,10 @@ class TestFileRepository:
 
         :CaseImportance: Critical
         """
-        target_sat.put(local_path=get_data_file(RPM_TO_UPLOAD), remote_path=f"/tmp/{RPM_TO_UPLOAD}")
+        target_sat.put(
+            local_path=DataFile.RPM_TO_UPLOAD,
+            remote_path=f"/tmp/{RPM_TO_UPLOAD}",
+        )
         result = Repository.upload_content(
             {
                 'name': repo['name'],

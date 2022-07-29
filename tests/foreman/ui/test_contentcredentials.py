@@ -21,10 +21,8 @@ from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.constants import CONTENT_CREDENTIALS_TYPES
-from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.constants import DataFile
 from robottelo.datafactory import gen_string
-from robottelo.helpers import get_data_file
-from robottelo.helpers import read_data_file
 
 empty_message = "You currently don't have any Products associated with this Content Credential."
 
@@ -36,12 +34,12 @@ def module_org():
 
 @pytest.fixture(scope='module')
 def gpg_content():
-    return read_data_file(VALID_GPG_KEY_FILE)
+    return DataFile.VALID_GPG_KEY_FILE.read_bytes()
 
 
 @pytest.fixture(scope='module')
 def gpg_path():
-    return get_data_file(VALID_GPG_KEY_FILE)
+    return DataFile.VALID_GPG_KEY_FILE
 
 
 @pytest.mark.tier2

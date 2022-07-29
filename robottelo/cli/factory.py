@@ -72,7 +72,6 @@ from robottelo.datafactory import valid_cron_expressions
 from robottelo.decorators import cacheable
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
-from robottelo.helpers import update_dictionary
 from robottelo.logging import logger
 
 
@@ -106,7 +105,10 @@ def create_object(cli_object, options, values):
                 "Option(s) {} not supported by CLI factory. Please check for "
                 "a typo or update default options".format(diff)
             )
-    update_dictionary(options, values)
+    if options:
+        for key in set(options.keys()).intersection(set(values.keys())):
+            options[key] = values[key]
+
     try:
         result = cli_object.create(options)
     except CLIReturnCodeError as err:

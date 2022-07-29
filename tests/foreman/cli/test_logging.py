@@ -31,9 +31,15 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
-from robottelo.helpers import cut_lines
-from robottelo.helpers import line_count
 from robottelo.logging import logger
+
+
+def cut_lines(start_line, end_line, source_file, out_file, host):
+    """Given start and end line numbers, cut lines from source file
+    and put them in out file."""
+    return host.execute(
+        f'sed -n "{start_line},{end_line} p" {source_file} < {source_file} > {out_file}'
+    )
 
 
 @pytest.mark.tier4
@@ -51,12 +57,12 @@ def test_positive_logging_from_foreman_core(target_sat):
     source_log = '/var/log/foreman/production.log'
     test_logfile = '/var/tmp/logfile_from_foreman_core'
     # get the number of lines in the source log before the test
-    line_count_start = line_count(source_log, target_sat)
+    line_count_start = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
     # hammer command for this test
     result = target_sat.execute('hammer host list')
     assert result.status == 0, f'Non-zero status for host list: {result.stderr}'
     # get the number of lines in the source log after the test
-    line_count_end = line_count(source_log, target_sat)
+    line_count_end = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
     # get the log lines of interest, put them in test_logfile
     cut_lines(line_count_start, line_count_end, source_log, test_logfile, target_sat)
     # use same location on remote and local for log file extract
@@ -93,14 +99,14 @@ def test_positive_logging_from_foreman_proxy(target_sat):
     source_log_2 = '/var/log/foreman-proxy/proxy.log'
     test_logfile_2 = '/var/tmp/logfile_2_from_proxy'
     # get the number of lines in the source logs before the test
-    line_count_start_1 = line_count(source_log_1, target_sat)
-    line_count_start_2 = line_count(source_log_2, target_sat)
+    line_count_start_1 = target_sat.execute(f'wc -l < {source_log_1}').stdout.strip('\n')
+    line_count_start_2 = target_sat.execute(f'wc -l < {source_log_2}').stdout.strip('\n')
     # hammer command for this test
     result = target_sat.execute('hammer proxy refresh-features --id 1')
     assert result.status == 0, f'Non-zero status for host list: {result.stderr}'
     # get the number of lines in the source logs after the test
-    line_count_end_1 = line_count(source_log_1, target_sat)
-    line_count_end_2 = line_count(source_log_2, target_sat)
+    line_count_end_1 = target_sat.execute(f'wc -l < {source_log_1}').stdout.strip('\n')
+    line_count_end_2 = target_sat.execute(f'wc -l < {source_log_2}').stdout.strip('\n')
     # get the log lines of interest, put them in test_logfile_1
     cut_lines(line_count_start_1, line_count_end_1, source_log_1, test_logfile_1, target_sat)
     # get the log lines of interest, put them in test_logfile_2
@@ -151,7 +157,7 @@ def test_positive_logging_from_candlepin(module_org, target_sat):
     # regex for a version 4 UUID (8-4-4-12 format)
     regex = r"\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b"
     # get the number of lines in the source log before the test
-    line_count_start = line_count(source_log, target_sat)
+    line_count_start = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
     # command for this test
     with manifests.clone() as manifest:
         with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
@@ -160,7 +166,7 @@ def test_positive_logging_from_candlepin(module_org, target_sat):
             target_sat.put(local_path=content_file.name, remote_path=manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': module_org.id})
     # get the number of lines in the source log after the test
-    line_count_end = line_count(source_log, target_sat)
+    line_count_end = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
     # get the log lines of interest, put them in test_logfile
     cut_lines(line_count_start, line_count_end, source_log, test_logfile, target_sat)
     # use same location on remote and local for log file extract
@@ -197,12 +203,12 @@ def test_positive_logging_from_dynflow(module_org, target_sat):
     product = entities.Product(organization=module_org).create()
     repo_name = gen_string('alpha')
     # get the number of lines in the source log before the test
-    line_count_start = line_count(source_log, target_sat)
+    line_count_start = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
     # command for this test
     new_repo = entities.Repository(name=repo_name, product=product).create()
     logger.info(f'Created Repo {new_repo.name} for dynflow log test')
     # get the number of lines in the source log after the test
-    line_count_end = line_count(source_log, target_sat)
+    line_count_end = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
     # get the log lines of interest, put them in test_logfile
     cut_lines(line_count_start, line_count_end, source_log, test_logfile, target_sat)
     # use same location on remote and local for log file extract

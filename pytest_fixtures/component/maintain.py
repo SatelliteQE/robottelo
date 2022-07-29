@@ -4,7 +4,6 @@ from broker import Broker
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.helpers import file_downloader
 from robottelo.hosts import Satellite
 
 
@@ -35,9 +34,7 @@ def setup_backup_tests(request, sat_maintain):
 @pytest.fixture(scope="module")
 def module_synced_repos(sat_maintain):
     org = sat_maintain.api.Organization().create()
-    manifests_path = file_downloader(
-        file_url=settings.fake_manifest.url['default'], hostname=sat_maintain.hostname
-    )[0]
+    manifests_path = sat_maintain.get(remote_path=settings.fake_manifest.url['default'])
     sat_maintain.cli.Subscription.upload({'file': manifests_path, 'organization-id': org.id})
 
     # sync custom repo

@@ -35,14 +35,13 @@ from robottelo.cli.factory import make_repository
 from robottelo.cli.org import Org
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
+from robottelo.constants import DataFile
 from robottelo.constants import DEFAULT_ORG
-from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.helpers import get_data_file
 
-VALID_GPG_KEY_FILE_PATH = get_data_file(VALID_GPG_KEY_FILE)
+VALID_GPG_KEY_FILE_PATH = DataFile.VALID_GPG_KEY_FILE
 
 
 def create_gpg_key_file(content=None):

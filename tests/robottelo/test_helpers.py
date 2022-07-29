@@ -3,11 +3,10 @@ from unittest import mock
 
 import pytest
 
-from robottelo.helpers import escape_search
 from robottelo.helpers import get_available_capsule_port
 from robottelo.helpers import slugify_component
 from robottelo.helpers import Storage
-from robottelo.helpers import validate_ssh_pub_key
+from robottelo.utils import validate_ssh_pub_key
 
 
 class FakeSSHResult:
@@ -65,30 +64,6 @@ class TestPubKey:
     )
     def test_valid_ssh_pub_keys(self, valid_key):
         assert validate_ssh_pub_key(valid_key)
-
-
-class TestEscapeSearch:
-    def test_return_type(self):
-        """Tests if escape search returns a unicode string"""
-        assert isinstance(escape_search('search term'), str)
-
-    def test_escapes_double_quotes(self):
-        """Tests if escape search escapes double quotes"""
-        assert escape_search('termwith"')[1:-1] == 'termwith\\"'
-
-    def test_escapes_backslash(self):
-        """Tests if escape search escapes backslashes"""
-        assert escape_search('termwith\\')[1:-1] == 'termwith\\\\'
-
-    def test_escapes_double_quotes_and_backslash(self):
-        """Tests if escape search escapes backslashes"""
-        assert escape_search('termwith"and\\')[1:-1] == 'termwith\\"and\\\\'
-
-    def test_wraps_in_double_quotes(self):
-        """Tests if escape search wraps the term in double quotes"""
-        term = escape_search('term')
-        assert term[0] == '"'
-        assert term[-1] == '"'
 
 
 class TestStorage:

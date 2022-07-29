@@ -23,14 +23,13 @@ from fauxfactory import gen_choice
 from nailgun import entities
 
 from robottelo.config import settings
+from robottelo.constants import DataFile
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import SYNC_INTERVAL
-from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import gen_string
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_cron_expressions
 from robottelo.datafactory import valid_data_list
-from robottelo.helpers import read_data_file
 
 
 @pytest.fixture(scope='module')
@@ -56,7 +55,8 @@ def test_positive_end_to_end(session, module_org):
     product_label = gen_string('alpha')
     product_description = gen_string('alpha')
     gpg_key = entities.GPGKey(
-        content=read_data_file(VALID_GPG_KEY_FILE), organization=module_org
+        content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
+        organization=module_org,
     ).create()
     sync_plan = entities.SyncPlan(organization=module_org).create()
     with session:
@@ -141,7 +141,8 @@ def test_positive_product_create_with_create_sync_plan(session, module_org):
     product_name = gen_string('alpha')
     product_description = gen_string('alpha')
     gpg_key = entities.GPGKey(
-        content=read_data_file(VALID_GPG_KEY_FILE), organization=module_org
+        content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
+        organization=module_org,
     ).create()
     plan_name = gen_string('alpha')
     description = gen_string('alpha')

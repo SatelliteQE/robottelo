@@ -23,8 +23,8 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
+from robottelo.constants import DataFile
 from robottelo.constants import RPM_TO_UPLOAD
-from robottelo.helpers import get_data_file
 
 
 @pytest.fixture(scope='module')
@@ -191,8 +191,7 @@ def test_positive_check_custom_package_details(session, module_org, module_yum_r
 
     :BZ: 1387766, 1394390
     """
-    with open(get_data_file(RPM_TO_UPLOAD), 'rb') as handle:
-        module_yum_repo.upload_content(files={'content': handle})
+    module_yum_repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
     with session:
         session.organization.select(org_name=module_org.name)
         assert session.package.search(
