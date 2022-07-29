@@ -29,7 +29,6 @@ from robottelo.constants import CERT_PATH
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import PERMISSIONS
 from robottelo.datafactory import gen_string
-from robottelo.helpers import file_downloader
 from robottelo.rhsso_utils import create_group
 from robottelo.rhsso_utils import create_new_rhsso_user
 from robottelo.rhsso_utils import delete_rhsso_group
@@ -49,11 +48,9 @@ def set_certificate_in_satellite(server_type, sat, hostname=None):
     if server_type == 'IPA':
         certfile = 'ipa.crt'
         idm_cert_path_url = os.path.join(settings.ipa.hostname, 'ipa/config/ca.crt')
-        file_downloader(
-            file_url=idm_cert_path_url,
-            local_path=CERT_PATH,
-            file_name=certfile,
-            hostname=sat.hostname,
+        sat.get(
+            remote_path=idm_cert_path_url,
+            local_path=CERT_PATH + certfile,
         )
     elif server_type == 'AD':
         certfile = 'satqe-QE-SAT6-AD-CA.cer'

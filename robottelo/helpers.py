@@ -1,16 +1,10 @@
 """Several helper methods and functions."""
-import base64
 import contextlib
-import os
 import random
 import re
-from tempfile import mkstemp
 from urllib.parse import urljoin  # noqa
 
 import requests
-from cryptography.hazmat.backends import default_backend as crypto_default_backend
-from cryptography.hazmat.primitives import serialization as crypto_serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
 from nailgun.config import ServerConfig
 
 from robottelo import ssh
@@ -20,127 +14,8 @@ from robottelo.config import get_credentials
 from robottelo.config import get_url
 from robottelo.config import settings
 from robottelo.constants import PULP_PUBLISHED_YUM_REPOS_PATH
+from robottelo.errors import ProvisioningCheckError
 from robottelo.logging import logger
-
-
-def gen_ssh_keypairs():
-    key = rsa.generate_private_key(
-        backend=crypto_default_backend(), public_exponent=65537, key_size=2048
-    )
-    private = key.private_bytes(
-        crypto_serialization.Encoding.PEM,
-        crypto_serialization.PrivateFormat.TraditionalOpenSSL,
-        crypto_serialization.NoEncryption(),
-    )
-    public = key.public_key().public_bytes(
-        crypto_serialization.Encoding.OpenSSH, crypto_serialization.PublicFormat.OpenSSH
-    )
-    return private.decode('utf-8'), public.decode('utf-8')
-
-
-class DataFileError(Exception):
-    """Indicates any issue when reading a data file."""
-
-
-class ProvisioningCheckError(Exception):
-    """Indicates any issue when provisioning a host."""
-
-    pass
-
-
-class InvalidArgumentError(Exception):
-    """Indicates an error when an invalid argument is received."""
-
-
-class ProxyError(Exception):
-    """Indicates an error in state of proxy"""
-
-
-class DownloadFileError(Exception):
-    """Indicates an error when failure in downloading file from server."""
-
-
-class ServerFileDownloader:
-    """Downloads file from given fileurl to local /temp dirctory."""
-
-    def __init__(self):
-        self.file_downloaded = False
-        self.fd = None
-        self.file_path = None
-
-    def __call__(self, extention, fileurl):
-        """Downloads file from given fileurl to local /temp directory with
-        given extention.
-
-        :param str extention: The file extention with which the file to be
-            saved in /temp directory.
-        :param str fileurl: The complete server file path from where the
-            file will be downloaded.
-        :returns: Returns complete file path with name of downloaded file.
-        """
-        if not self.file_downloaded:  # pragma: no cover
-            self.fd, self.file_path = mkstemp(suffix=f'.{extention}')
-            fileobj = os.fdopen(self.fd, 'wb')
-            fileobj.write(requests.get(fileurl).content)
-            fileobj.close()
-            if os.path.exists(self.file_path):
-                self.file_downloaded = True
-            else:
-                raise DownloadFileError('Failed to download file from Server.')
-        return self.file_path
-
-
-download_server_file = ServerFileDownloader()
-
-
-def file_downloader(file_url, local_path=None, file_name=None, hostname=None):
-    """Downloads file from given fileurl to directory specified by local_path
-    with given file_name on host specified by hostname. Leave hostname as None
-    to download file on the localhost.If remote directory is not specified it
-    downloads file to /tmp/.
-
-    :param str file_url: The complete server file path from where the
-        file will be downloaded.
-    :param str local_path: Name of directory where file will be saved. If not
-        provided file will be saved in /tmp/ directory.
-    :param str file_name: Name of the file to be saved with. If not provided filename
-        from url will be used.
-    :param str hostname: Hostname of server where the file need to be downloaded.
-    :returns: Returns list containing complete file path and name of downloaded file.
-    """
-    if file_name is None:
-        _, file_name = os.path.split(file_url)
-    if local_path is None:
-        local_path = '/tmp/'
-
-    # download on localhost
-    if hostname is None:
-        with open(f'{local_path}{file_name}', 'wb') as fileobj:
-            r = requests.get(file_url)
-            r.raise_for_status()
-            fileobj.write(r.content)
-            fileobj.close()
-        if not os.path.exists(f"{local_path}{file_name}"):
-            raise DownloadFileError(f'Unable to download {file_name}')
-    # download on any server.
-    else:
-        result = ssh.command(f'wget -O {local_path}{file_name} {file_url}', hostname=hostname)
-        if result.status != 0:
-            raise DownloadFileError(f'Unable to download {file_name}')
-    return [f'{local_path}{file_name}', file_name]
-
-
-def line_count(file, host):
-    """Get number of lines in a file."""
-    return host.execute(f'wc -l < {file}').stdout.strip('\n')
-
-
-def cut_lines(start_line, end_line, source_file, out_file, host):
-    """Given start and end line numbers, cut lines from source file
-    and put them in out file."""
-    return host.execute(
-        f'sed -n "{start_line},{end_line} p" {source_file} < {source_file} > {out_file}'
-    )
 
 
 def get_nailgun_config(user=None):
@@ -155,93 +30,6 @@ def get_nailgun_config(user=None):
     """
     creds = (user.login, user.passwd) if user else get_credentials()
     return ServerConfig(get_url(), creds, verify=False)
-
-
-def escape_search(term):
-    """Wraps a search term in " and escape term's " and \\ characters"""
-    strip_term = term.strip()
-    return '"%s"' % strip_term.replace('\\', '\\\\').replace('"', '\\"')
-
-
-def update_dictionary(default, updates):
-    """
-    Updates default dictionary with elements from
-    optional dictionary.
-
-    @param default: A python dictionary containing the minimal
-    required arguments to create a CLI object.
-    @param updates: A python dictionary containing attributes
-    to overwrite on default dictionary.
-
-    @return default: The modified default python dictionary.
-    """
-
-    if updates:
-        for key in set(default.keys()).intersection(set(updates.keys())):
-            default[key] = updates[key]
-
-    return default
-
-
-def get_data_file(filename):
-    """Returns correct path of file from data folder."""
-    path = os.path.realpath(os.path.join(os.path.dirname(__file__), os.pardir))
-    data_file = os.path.join(path, "tests", "foreman", "data", filename)
-    if os.path.isfile(data_file):
-        return data_file
-    else:
-        raise DataFileError(f'Could not locate the data file "{data_file}"')
-
-
-def read_data_file(filename):
-    """
-    Read the contents of data file
-    """
-    absolute_file_path = get_data_file(filename)
-    with open(absolute_file_path) as file_contents:
-        return file_contents.read()
-
-
-def md5_by_url(url, hostname=None):
-    """Returns md5 checksum of a file, accessible via URL. Useful when you want
-    to calculate checksum but don't want to deal with storing a file and
-    removing it afterwards.
-
-    :param str url: URL of a file.
-    :param str hostname: Hostname or IP address of the remote host. If
-         ``None`` the hostname will be get from ``main.server.hostname`` config
-    :return str: string containing md5 checksum.
-    :raises: AssertionError: If non-zero return code received (file couldn't be
-        reached or calculation was not successful).
-    """
-    filename = url.split('/')[-1]
-    result = ssh.command(
-        f'wget -qO - {url} | tee {filename} | md5sum | awk \'{{print $1}}\'',
-        hostname=hostname,
-    )
-    if result.status != 0:
-        raise AssertionError(f'Failed to calculate md5 checksum of {filename}')
-    return result.stdout
-
-
-def validate_ssh_pub_key(key):
-    """Validates if a string is in valid ssh pub key format
-
-    :param key: A string containing a ssh public key encoded in base64
-    :return: Boolean
-    """
-
-    if not isinstance(key, str):
-        raise ValueError(f"Key should be a string type, received: {type(key)}")
-
-    # 1) a valid pub key has 3 parts separated by space
-    # 2) The second part (key string) should be a valid base64
-    try:
-        key_type, key_string, _ = key.split()  # need more than one value to unpack
-        base64.decodebytes(key_string.encode('ascii'))
-        return key_type in ('ecdsa-sha2-nistp256', 'ssh-dss', 'ssh-rsa', 'ssh-ed25519')
-    except (ValueError, base64.binascii.Error):
-        return False
 
 
 def get_available_capsule_port(port_pool=None):

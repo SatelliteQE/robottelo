@@ -46,7 +46,7 @@ from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
-from robottelo.helpers import gen_ssh_keypairs
+from robottelo.utils import gen_ssh_keypairs
 
 
 class TestUser:

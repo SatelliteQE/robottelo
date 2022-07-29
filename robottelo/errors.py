@@ -45,3 +45,23 @@ class RepositoryAlreadyCreated(Exception):
 class ReposContentSetupWasNotPerformed(Exception):
     """Raised when trying to setup a VM but the repositories content was not
     setup"""
+
+
+class DataFileError(Exception):
+    """Indicates any issue when reading a data file."""
+
+
+class ProvisioningCheckError(Exception):
+    """Indicates any issue when provisioning a host."""
+
+
+class InvalidArgumentError(Exception):
+    """Indicates an error when an invalid argument is received."""
+
+
+class ProxyError(Exception):
+    """Indicates an error in state of proxy"""
+
+
+class DownloadFileError(Exception):
+    """Indicates an error when failure in downloading file from server."""

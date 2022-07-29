@@ -43,13 +43,13 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.role import Role
 from robottelo.cli.user import User
 from robottelo.config import settings
+from robottelo.constants import DataFile
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_names_list
-from robottelo.helpers import get_data_file
 
 
 @pytest.fixture(scope='module')
@@ -3724,7 +3724,7 @@ class TestContentViewFileRepo:
             raise cli_factory.CLIFactoryError('Please provide a valid Content Type.')
         new_repo = cli_factory.make_repository(options)
         remote_path = f'/tmp/{constants.RPM_TO_UPLOAD}'
-        satellite.put(get_data_file(constants.RPM_TO_UPLOAD), remote_path)
+        satellite.put(DataFile.RPM_TO_UPLOAD, remote_path)
         Repository.upload_content(
             {
                 'name': new_repo['name'],

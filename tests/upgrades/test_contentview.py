@@ -20,8 +20,8 @@ import pytest
 from nailgun import entities
 
 from robottelo.config import settings
+from robottelo.constants import DataFile
 from robottelo.constants import RPM_TO_UPLOAD
-from robottelo.helpers import get_data_file
 
 
 class TestContentView:
@@ -56,9 +56,8 @@ class TestContentView:
 
         remote_file_path = f"/tmp/{RPM_TO_UPLOAD}"
 
-        target_sat.put(get_data_file(RPM_TO_UPLOAD), remote_file_path)
-        with open(f'{get_data_file(RPM_TO_UPLOAD)}', "rb") as content:
-            file_repository.upload_content(files={'content': content})
+        target_sat.put(DataFile.RPM_TO_UPLOAD, remote_file_path)
+        file_repository.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
         assert RPM_TO_UPLOAD in file_repository.files()["results"][0]['name']
         cv = entities.ContentView(name=f"{test_name}_cv", organization=org).create()
         cv.repository = [yum_repository, file_repository]

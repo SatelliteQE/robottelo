@@ -27,8 +27,8 @@ from tempfile import mkstemp
 from robottelo import ssh
 from robottelo.cli.base import Base
 from robottelo.cli.base import CLIError
+from robottelo.constants import DataFile
 from robottelo.constants import REPORT_TEMPLATE_FILE
-from robottelo.helpers import get_data_file
 
 
 class ReportTemplate(Base):
@@ -52,7 +52,7 @@ class ReportTemplate(Base):
             raise CLIError(tmpl.format(cls.__name__))
 
         if options['file'] == REPORT_TEMPLATE_FILE:
-            local_path = get_data_file(REPORT_TEMPLATE_FILE)
+            local_path = DataFile.REPORT_TEMPLATE_FILE
         else:
             local_path = ''
 

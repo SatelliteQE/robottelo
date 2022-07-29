@@ -39,10 +39,9 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
+from robottelo.constants import DataFile
 from robottelo.constants import repos as repo_constants
 from robottelo.datafactory import parametrized
-from robottelo.helpers import get_data_file
-from robottelo.helpers import read_data_file
 from robottelo.logging import logger
 
 
@@ -424,7 +423,8 @@ class TestRepository:
         :CaseLevel: Integration
         """
         gpg_key = entities.GPGKey(
-            organization=module_org, content=read_data_file(constants.VALID_GPG_KEY_FILE)
+            organization=module_org,
+            content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
         ).create()
         repo = entities.Repository(product=module_product, gpg_key=gpg_key).create()
         # Verify that the given GPG key ID is used.
@@ -783,13 +783,15 @@ class TestRepository:
         """
         # Create a repo and make it point to a GPG key.
         gpg_key_1 = entities.GPGKey(
-            organization=module_org, content=read_data_file(constants.VALID_GPG_KEY_FILE)
+            organization=module_org,
+            content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
         ).create()
         repo = entities.Repository(product=module_product, gpg_key=gpg_key_1).create()
 
         # Update the repo and make it point to a new GPG key.
         gpg_key_2 = entities.GPGKey(
-            organization=module_org, content=read_data_file(constants.VALID_GPG_KEY_BETA_FILE)
+            organization=module_org,
+            content=DataFile.VALID_GPG_KEY_BETA_FILE.read_bytes(),
         ).create()
 
         repo.gpg_key = gpg_key_2
@@ -807,8 +809,7 @@ class TestRepository:
         :CaseLevel: Integration
         """
         # Upload RPM content.
-        with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
-            repo.upload_content(files={'content': handle})
+        repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
         # Verify the repository's contents.
         assert repo.read().content_counts['rpm'] == 1
 
@@ -829,7 +830,8 @@ class TestRepository:
         """
         # upload srpm
         entities.ContentUpload(repository=repo).upload(
-            filepath=get_data_file(constants.SRPM_TO_UPLOAD), content_type='srpm'
+            filepath=DataFile.SRPM_TO_UPLOAD,
+            content_type='srpm',
         )
         assert repo.read().content_counts['srpm'] == 1
         srpm_detail = entities.Srpms().search(query={'repository_id': repo.id})
@@ -2043,7 +2045,8 @@ class TestSRPMRepository:
         :expectedresults: srpms can be listed in organization, content view, Lifecycle env
         """
         entities.ContentUpload(repository=repo).upload(
-            filepath=get_data_file(constants.SRPM_TO_UPLOAD), content_type='srpm'
+            filepath=DataFile.SRPM_TO_UPLOAD,
+            content_type='srpm',
         )
 
         cv = entities.ContentView(organization=module_org, repository=[repo]).create()
@@ -2222,8 +2225,7 @@ class TestFileRepository:
 
         :CaseAutomation: Automated
         """
-        with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
-            repo.upload_content(files={'content': handle})
+        repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
         assert repo.read().content_counts['file'] == 1
 
         filesearch = entities.File().search(query={"search": f"name={constants.RPM_TO_UPLOAD}"})
@@ -2275,8 +2277,7 @@ class TestFileRepository:
 
         :CaseAutomation: Automated
         """
-        with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
-            repo.upload_content(files={'content': handle})
+        repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
         assert repo.read().content_counts['file'] == 1
 
         file_detail = entities.File().search(query={'repository_id': repo.id})
