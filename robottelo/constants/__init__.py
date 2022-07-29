@@ -15,8 +15,8 @@ class Colored(Box):
 
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.11"
-SATELLITE_OS_VERSION = "7"
+SATELLITE_VERSION = "6.12"
+SATELLITE_OS_VERSION = "8"
 
 LOCALES = (
     'ca',
@@ -57,12 +57,6 @@ DISTROS_MAJOR_VERSION = {
     DISTRO_RHEL8: RHEL_8_MAJOR_VERSION,
 }
 MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
-
-BROKER_DEPLOY_WORKFLOW = "deploy-base-rhel"
-BROKER_RHEL77 = {
-    "workflow": BROKER_DEPLOY_WORKFLOW,
-    "rhel_version": "7.7",
-}
 
 INTERFACE_API = 'API'
 INTERFACE_CLI = 'CLI'
