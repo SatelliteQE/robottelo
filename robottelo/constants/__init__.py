@@ -36,27 +36,15 @@ LOCALES = (
     'zh_TW',
 )
 
-DISTRO_RHEL6 = "rhel6"
-DISTRO_RHEL7 = "rhel7"
-DISTRO_RHEL8 = "rhel8"
-DISTRO_RHEL9 = "rhel9"
 
-RHEL_6_MAJOR_VERSION = 6
-RHEL_7_MAJOR_VERSION = 7
-RHEL_8_MAJOR_VERSION = 8
-RHEL_9_MAJOR_VERSION = 9
-
-DISTRO_DEFAULT = DISTRO_RHEL7
-DISTROS_SUPPORTED = [DISTRO_RHEL6, DISTRO_RHEL7, DISTRO_RHEL8]
+DISTRO_DEFAULT = 'rhel7'
+DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8']
 DISTROS_MAJOR_VERSION = {
-    DISTRO_RHEL6: RHEL_6_MAJOR_VERSION,
-    DISTRO_RHEL7: RHEL_7_MAJOR_VERSION,
-    DISTRO_RHEL8: RHEL_8_MAJOR_VERSION,
+    'rhel6': 6,
+    'rhel7': 7,
+    'rhel8': 8,
 }
 MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
-
-INTERFACE_API = 'API'
-INTERFACE_CLI = 'CLI'
 
 FOREMAN_PROVIDERS = {
     'libvirt': 'Libvirt',
@@ -292,12 +280,6 @@ REPOSET = {
     'rhsc7_iso': 'Red Hat Satellite Capsule 6.4 (for RHEL 7 Server) (ISOs)',
     'rhsc6': 'Red Hat Satellite Capsule 6.9 (for RHEL 6 Server) (RPMs)',
     'rhst7': 'Red Hat Satellite Tools 6.9 (for RHEL 7 Server) (RPMs)',
-    'rhst7_64': 'Red Hat Satellite Tools 6.4 (for RHEL 7 Server) (RPMs)',
-    'rhst7_65': 'Red Hat Satellite Tools 6.5 (for RHEL 7 Server) (RPMs)',
-    'rhst7_66': 'Red Hat Satellite Tools 6.6 (for RHEL 7 Server) (RPMs)',
-    'rhst7_67': 'Red Hat Satellite Tools 6.7 (for RHEL 7 Server) (RPMs)',
-    'rhst7_68': 'Red Hat Satellite Tools 6.8 (for RHEL 7 Server) (RPMs)',
-    'rhst7_69': 'Red Hat Satellite Tools 6.9 (for RHEL 7 Server) (RPMs)',
     'rhst7_610': 'Red Hat Satellite Tools 6.10 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.9 (for RHEL 6 Server) (RPMs)',
     'rhaht': 'Red Hat Enterprise Linux Atomic Host (RPMs)',
@@ -320,11 +302,7 @@ REPOSET = {
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
     'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
     'rhst7_610': 'Red Hat Satellite Tools 6.10 (for RHEL 7 Server) (RPMs)',
-    'rhel6_optional': 'Red Hat Enterprise Linux 6 Server - Optional (RPMs)',
-    'rhel6_sup': 'Red Hat Enterprise Linux 6 Server - Supplementary (RPMs)',
 }
-
-NO_REPOS_AVAILABLE = "This system has no repositories available through subscriptions."
 
 SM_OVERALL_STATUS = {
     'current': 'Overall Status: Current',
@@ -339,10 +317,10 @@ REPOS = {
         'name': 'Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server',
         'releasever': '7Server',
         'arch': 'x86_64',
-        'distro': DISTRO_RHEL7,
+        'distro': 'rhel7',
         'reposet': REPOSET['rhel7'],
         'product': PRDS['rhel'],
-        'major_version': RHEL_7_MAJOR_VERSION,
+        'major_version': 7,
         'distro_repository': True,
         'key': 'rhel',
         'version': '7.7',
@@ -352,10 +330,10 @@ REPOS = {
         'name': 'Red Hat Enterprise Linux 6 Server RPMs x86_64 6Server',
         'releasever': '6Server',
         'arch': 'x86_64',
-        'distro': DISTRO_RHEL6,
+        'distro': 'rhel6',
         'reposet': REPOSET['rhel6'],
         'product': PRDS['rhel'],
-        'major_version': RHEL_6_MAJOR_VERSION,
+        'major_version': 6,
         'distro_repository': True,
         'key': 'rhel',
         'version': '6.8',
@@ -366,7 +344,7 @@ REPOS = {
         'version': '6.11',
         'reposet': REPOSET['rhs7'],
         'product': PRDS['rhs'],
-        'distro': DISTRO_RHEL7,
+        'distro': 'rhel7',
         'key': 'rhs',
     },
     'rhsc7': {
@@ -375,7 +353,7 @@ REPOS = {
         'version': '6.9',
         'reposet': REPOSET['rhsc7'],
         'product': PRDS['rhsc'],
-        'distro': DISTRO_RHEL7,
+        'distro': 'rhel7',
         'key': 'rhsc',
     },
     'rhsc7_iso': {
@@ -388,7 +366,7 @@ REPOS = {
         'version': '6.8',
         'reposet': REPOSET['rhsc6'],
         'product': PRDS['rhsc'],
-        'distro': DISTRO_RHEL6,
+        'distro': 'rhel6',
         'key': 'rhsc',
     },
     'rhst7': {
@@ -397,65 +375,7 @@ REPOS = {
         'version': '6.9',
         'reposet': REPOSET['rhst7'],
         'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL7,
-        'key': 'rhst',
-    },
-    'rhst7_64': {
-        'id': 'rhel-7-server-satellite-tools-6.4-rpms',
-        'name': ('Red Hat Satellite Tools 6.4 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.4',
-        'releasever': None,
-        'reposet': REPOSET['rhst7_64'],
-        'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL7,
-        'key': 'rhst',
-    },
-    'rhst7_65': {
-        'id': 'rhel-7-server-satellite-tools-6.5-rpms',
-        'name': ('Red Hat Satellite Tools 6.5 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.5',
-        'releasever': None,
-        'reposet': REPOSET['rhst7_65'],
-        'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL7,
-        'key': 'rhst',
-    },
-    'rhst7_66': {
-        'id': 'rhel-7-server-satellite-tools-6.6-rpms',
-        'name': ('Red Hat Satellite Tools 6.6 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.6',
-        'releasever': None,
-        'reposet': REPOSET['rhst7_66'],
-        'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL7,
-        'key': 'rhst',
-    },
-    'rhst7_67': {
-        'id': 'rhel-7-server-satellite-tools-6.7-rpms',
-        'name': ('Red Hat Satellite Tools 6.7 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.7',
-        'releasever': None,
-        'reposet': REPOSET['rhst7_67'],
-        'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL7,
-        'key': 'rhst',
-    },
-    'rhst7_68': {
-        'id': 'rhel-7-server-satellite-tools-6.8-rpms',
-        'name': ('Red Hat Satellite Tools 6.8 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.8',
-        'reposet': REPOSET['rhst7_68'],
-        'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL7,
-        'key': 'rhst',
-    },
-    'rhst7_69': {
-        'id': 'rhel-7-server-satellite-tools-6.9-rpms',
-        'name': ('Red Hat Satellite Tools 6.9 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.9',
-        'reposet': REPOSET['rhst7_69'],
-        'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL7,
+        'distro': 'rhel7',
         'key': 'rhst',
     },
     'rhst7_610': {
@@ -464,7 +384,7 @@ REPOS = {
         'version': '6.10',
         'reposet': REPOSET['rhst7_610'],
         'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL7,
+        'distro': 'rhel7',
         'key': 'rhst',
     },
     'rhst6': {
@@ -473,7 +393,7 @@ REPOS = {
         'version': '6.9',
         'reposet': REPOSET['rhst6'],
         'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL6,
+        'distro': 'rhel6',
         'key': 'rhst',
     },
     'rhva6': {
@@ -482,24 +402,16 @@ REPOS = {
         'version': '6.0',
         'reposet': REPOSET['rhva6'],
         'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL6,
+        'distro': 'rhel6',
         'releasever': '6Server',
         'key': 'rhva6',
-    },
-    'rhva65': {
-        'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6.5'),
-        'version': '6.5',
-        'reposet': REPOSET['rhva6'],
-        'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL6,
-        'key': 'rhva65',
     },
     'rhva610': {
         'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6.10'),
         'version': '6.10',
         'reposet': REPOSET['rhva6'],
         'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL6,
+        'distro': 'rhel6',
         'key': 'rhva610',
     },
     'rhct6': {
@@ -509,7 +421,7 @@ REPOS = {
         'arch': 'x86_64',
         'reposet': REPOSET['rhct6'],
         'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL6,
+        'distro': 'rhel6',
         'key': 'rhct6',
     },
     'rhaht': {'name': ('Red Hat Enterprise Linux Atomic Host RPMs x86_64')},
@@ -524,7 +436,7 @@ REPOS = {
         'arch': 'x86_64',
         'reposet': REPOSET['rhae2'],
         'product': PRDS['rhae'],
-        'distro': DISTRO_RHEL7,
+        'distro': 'rhel7',
         'key': 'rhae2',
     },
     'rhst8': {
@@ -533,7 +445,7 @@ REPOS = {
         'version': '6.9',
         'reposet': REPOSET['rhst8'],
         'product': PRDS['rhel8'],
-        'distro': DISTRO_RHEL8,
+        'distro': 'rhel8',
         'key': 'rhst',
     },
     'kickstart': {
@@ -543,7 +455,7 @@ REPOS = {
             'version': '6.10',
             'reposet': REPOSET['kickstart']['rhel6'],
             'product': PRDS['rhel'],
-            'distro': DISTRO_RHEL6,
+            'distro': 'rhel6',
         },
         'rhel7': {
             'id': 'rhel-7-server-kickstart',
@@ -551,7 +463,7 @@ REPOS = {
             'version': '7.9',
             'reposet': REPOSET['kickstart']['rhel7'],
             'product': PRDS['rhel'],
-            'distro': DISTRO_RHEL7,
+            'distro': 'rhel7',
         },
         'rhel8': {
             'id': 'rhel-8-for-x86_64-baseos-kickstart',
@@ -559,7 +471,7 @@ REPOS = {
             'version': '8.6',
             'reposet': REPOSET['kickstart']['rhel8'],
             'product': PRDS['rhel8'],
-            'distro': DISTRO_RHEL8,
+            'distro': 'rhel8',
         },
         'rhel8_aps': {
             'id': 'rhel-8-for-x86_64-appstream-kickstart',
@@ -567,7 +479,7 @@ REPOS = {
             'version': '8.6',
             'reposet': REPOSET['kickstart']['rhel8_aps'],
             'product': PRDS['rhel8'],
-            'distro': DISTRO_RHEL8,
+            'distro': 'rhel8',
         },
         'rhel9': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
@@ -575,7 +487,7 @@ REPOS = {
             'version': '9.0',
             'reposet': REPOSET['kickstart']['rhel9'],
             'product': PRDS['rhel9'],
-            'distro': DISTRO_RHEL9,
+            'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
@@ -583,7 +495,7 @@ REPOS = {
             'version': '9.0',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
-            'distro': DISTRO_RHEL9,
+            'distro': 'rhel9',
         },
     },
     'rhel8_bos': {
@@ -593,7 +505,7 @@ REPOS = {
         'version': '8',
         'reposet': REPOSET['rhel8_bos'],
         'product': PRDS['rhel8'],
-        'distro': DISTRO_RHEL8,
+        'distro': 'rhel8',
         'key': 'rhel8_bos',
     },
     'rhel8_aps': {
@@ -603,7 +515,7 @@ REPOS = {
         'version': '8',
         'reposet': REPOSET['rhel8_aps'],
         'product': PRDS['rhel8'],
-        'distro': DISTRO_RHEL8,
+        'distro': 'rhel8',
         'key': 'rhel8_aps',
     },
     'rhel7_optional': {
@@ -613,7 +525,7 @@ REPOS = {
         'version': '7',
         'reposet': REPOSET['rhel7_optional'],
         'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL7,
+        'distro': 'rhel7',
         'key': 'rhel7_optional',
     },
     'rhel7_extra': {
@@ -623,7 +535,7 @@ REPOS = {
         'version': '7',
         'reposet': REPOSET['rhel7_extra'],
         'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL7,
+        'distro': 'rhel7',
         'key': 'rhel7_extra',
     },
     'rhel7_sup': {
@@ -633,28 +545,8 @@ REPOS = {
         'version': '7',
         'reposet': REPOSET['rhel7_sup'],
         'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL7,
+        'distro': 'rhel7',
         'key': 'rhel7_sup',
-    },
-    'rhel6_optional': {
-        'id': 'rhel-6-server-optional-rpms',
-        'name': 'Red Hat Enterprise Linux 6 Server - Optional RPMs x86_64 6Server',
-        'releasever': '6Server',
-        'version': '6',
-        'reposet': REPOSET['rhel6_optional'],
-        'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL6,
-        'key': 'rhel6_optional',
-    },
-    'rhel6_sup': {
-        'id': 'rhel-6-server-supplementary-rpms',
-        'name': 'Red Hat Enterprise Linux 6 Server - Supplementary RPMs x86_64 6Server',
-        'releasever': '6Server',
-        'version': '6',
-        'reposet': REPOSET['rhel6_sup'],
-        'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL6,
-        'key': 'rhel6_sup',
     },
     'rhscl7': {
         'id': 'rhel-server-rhscl-7-rpms',
@@ -666,14 +558,12 @@ REPOS = {
         'version': '7',
         'reposet': REPOSET['rhscl7'],
         'product': PRDS['rhscl'],
-        'distro': DISTRO_RHEL7,
+        'distro': 'rhel7',
         'key': 'rhscl7',
     },
 }
 
 BULK_REPO_LIST = [
-    REPOS['rhel6_optional'],
-    REPOS['rhel6_sup'],
     REPOS['rhel7_optional'],
     REPOS['rhel7_sup'],
     REPOS['rhel7'],
@@ -682,10 +572,7 @@ BULK_REPO_LIST = [
     REPOS['rhel8_aps'],
 ]
 
-DISTRO_REPOS = {
-    # DISTRO_RHEL6: REPOS['rhel6'],
-    DISTRO_RHEL7: REPOS['rhel7']
-}
+DISTRO_REPOS = {'rhel7': REPOS['rhel7']}
 #: Name (not label!) of the default organization.
 DEFAULT_ORG = "Default Organization"
 #: Name (not label!) of the default location.

@@ -32,7 +32,6 @@ from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DataFile
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DOWNLOAD_POLICIES
 from robottelo.constants import INVALID_URL
 from robottelo.constants import REPO_TYPE
@@ -725,7 +724,7 @@ def test_positive_reposet_disable(session, target_sat):
     """
     org = entities.Organization().create()
     manifests.upload_manifest_locked(org.id)
-    sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
+    sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro='rhel7', cdn=True)
     repository_name = sat_tools_repo.data['repository']
     with session:
         session.organization.select(org.name)
@@ -772,7 +771,7 @@ def test_positive_reposet_disable_after_manifest_deleted(session, target_sat):
     org = entities.Organization().create()
     manifests.upload_manifest_locked(org.id)
     sub = entities.Subscription(organization=org)
-    sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
+    sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro='rhel7', cdn=True)
     repository_name = sat_tools_repo.data['repository']
     repository_name_orphaned = f'{repository_name} (Orphaned)'
     with session:
@@ -854,7 +853,7 @@ def test_positive_delete_rhel_repo(session, module_org, target_sat):
     """
 
     manifests.upload_manifest_locked(module_org.id)
-    sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
+    sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro='rhel7', cdn=True)
     repository_name = sat_tools_repo.data['repository']
     product_name = sat_tools_repo.data['product']
     with session:

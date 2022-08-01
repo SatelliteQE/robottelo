@@ -15,8 +15,6 @@ from nailgun import entities
 from robottelo import ssh
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
-from robottelo.constants import INTERFACE_API
-from robottelo.constants import INTERFACE_CLI
 from robottelo.decorators.func_locker import lock_function
 
 
@@ -195,7 +193,7 @@ def original_manifest(name='default'):
 
 
 @lock_function
-def upload_manifest_locked(org_id, manifest=None, interface=INTERFACE_API, timeout=None):
+def upload_manifest_locked(org_id, manifest=None, interface='API', timeout=None):
     """Upload a manifest with locking, using the requested interface.
 
     :type org_id: int
@@ -212,18 +210,18 @@ def upload_manifest_locked(org_id, manifest=None, interface=INTERFACE_API, timeo
 
         # for API interface
         manifest = manifests.clone()
-        upload_manifest_locked(org_id, manifest, interface=INTERFACE_API)
+        upload_manifest_locked(org_id, manifest, interface='API')
 
         # for CLI interface
         manifest = manifests.clone()
-        upload_manifest_locked(org_id, manifest, interface=INTERFACE_CLI)
+        upload_manifest_locked(org_id, manifest, interface='CLI')
 
         # or in one line with default interface
         result = upload_manifest_locked(org_id, manifests.clone())
         subscription_id = result[id']
     """
 
-    if interface not in [INTERFACE_API, INTERFACE_CLI]:
+    if interface not in ['API', 'CLI']:
         raise ValueError(f'upload manifest with interface "{interface}" not supported')
     if manifest is None:
         manifest = clone()
@@ -233,7 +231,7 @@ def upload_manifest_locked(org_id, manifest=None, interface=INTERFACE_API, timeo
         # other processes and we do not want to be interrupted by the default configuration
         # ssh_client timeout.
         timeout = 1500000
-    if interface == INTERFACE_API:
+    if interface == 'API':
         with manifest:
             result = entities.Subscription().upload(
                 data={'organization_id': org_id}, files={'content': manifest.content}

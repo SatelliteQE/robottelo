@@ -53,7 +53,6 @@ from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_8_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_8_CUSTOM_PACKAGE_NAME
-from robottelo.constants import NO_REPOS_AVAILABLE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
@@ -2062,7 +2061,7 @@ def test_negative_without_attach(
     client_status = host_subscription_client.subscription_manager_status()
     assert SM_OVERALL_STATUS['current'] in client_status.stdout
     repo_list = host_subscription_client.subscription_manager_list_repos()
-    assert NO_REPOS_AVAILABLE in repo_list.stdout
+    assert "This system has no repositories available through subscriptions." in repo_list.stdout
 
 
 @pytest.mark.cli_host_subscription

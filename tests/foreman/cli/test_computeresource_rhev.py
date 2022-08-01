@@ -28,8 +28,6 @@ from robottelo.cli.factory import make_compute_resource
 from robottelo.cli.factory import make_host
 from robottelo.cli.host import Host
 from robottelo.config import settings
-from robottelo.constants import RHEL_6_MAJOR_VERSION
-from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.helpers import host_provisioning_check
 from robottelo.utils.issue_handlers import is_open
 
@@ -575,12 +573,7 @@ def test_positive_provision_rhev_image_based_and_disassociate(
         # use some RHEL (usually latest)
         os = (
             entities.OperatingSystem()
-            .search(
-                query={
-                    'search': f'name="RedHat" AND (major="{RHEL_6_MAJOR_VERSION}" OR '
-                    f'major="{RHEL_7_MAJOR_VERSION}")'
-                }
-            )[0]
+            .search(query={'search': 'name="RedHat" AND (major="6" OR major="7")'})[0]
             .read()
         )
         image = ComputeResource.image_create(

@@ -77,8 +77,7 @@ def vm_content_hosts(smart_proxy_location, module_repos_collection, module_targe
 def vm_content_hosts_module_stream(
     smart_proxy_location, module_repos_collection_with_manifest, module_target_sat
 ):
-    distro = constants.DISTRO_RHEL8
-    with Broker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
+    with Broker(nick='rhel8', host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
             module_repos_collection_with_manifest.setup_virtual_machine(
                 client, install_katello_agent=False
@@ -688,7 +687,7 @@ def test_negative_hosts_limit(session, module_org, smart_proxy_location):
         {
             'YumRepository': {
                 'url': settings.repos.module_stream_1.url,
-                'distro': constants.DISTRO_RHEL8,
+                'distro': 'rhel8',
             }
         }
     ],
@@ -738,7 +737,7 @@ def test_positive_install_module_stream(
         {
             'YumRepository': {
                 'url': settings.repos.module_stream_1.url,
-                'distro': constants.DISTRO_RHEL8,
+                'distro': 'rhel8',
             }
         }
     ],

@@ -25,8 +25,6 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import DISTRO_RHEL6
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
@@ -86,7 +84,7 @@ def test_positive_sync_rh_repos(session, target_sat, module_org_with_manifest):
         target_sat.cli_factory.SatelliteCapsuleRepository(cdn=True),
         target_sat.cli_factory.RHELCloudFormsTools(cdn=True),
     )
-    distros = [DISTRO_RHEL7, DISTRO_RHEL6]
+    distros = ['rhel6', 'rhel7']
     repo_collections = [
         target_sat.cli_factory.RepositoryCollection(distro=distro, repositories=[repo])
         for distro, repo in zip(distros, repos)

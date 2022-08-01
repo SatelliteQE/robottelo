@@ -25,8 +25,6 @@ from nailgun import entities
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DISTRO_RHEL6
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_10_YUM_BUGFIX_ERRATUM
 from robottelo.constants import FAKE_10_YUM_BUGFIX_ERRATUM_COUNT
 from robottelo.constants import FAKE_11_YUM_ENHANCEMENT_ERRATUM
@@ -155,7 +153,7 @@ def vm(module_repos_collection_with_setup, rhel7_contenthost, target_sat):
     'module_repos_collection_with_setup',
     [
         {
-            'distro': DISTRO_RHEL7,
+            'distro': 'rhel7',
             'SatelliteToolsRepository': {},
             'RHELAnsibleEngineRepository': {},
             'YumRepository': {'url': CUSTOM_REPO_URL},
@@ -279,7 +277,7 @@ def test_content_host_errata_page_pagination(session, org, lce, target_sat):
     """
     pkgs = ' '.join(FAKE_3_YUM_OUTDATED_PACKAGES)
     repos_collection = target_sat.cli_factory.RepositoryCollection(
-        distro=DISTRO_RHEL7,
+        distro='rhel7',
         repositories=[
             target_sat.cli_factory.SatelliteToolsRepository(),
             target_sat.cli_factory.YumRepository(url=settings.repos.yum_3.url),
@@ -371,7 +369,7 @@ def test_positive_list(session, org, lce, target_sat):
     'module_repos_collection_with_setup',
     [
         {
-            'distro': DISTRO_RHEL6,
+            'distro': 'rhel6',
             'VirtualizationAgentsRepository': {'cdn': True},
             'YumRepository': {'url': CUSTOM_REPO_URL},
         }
@@ -426,7 +424,7 @@ def test_positive_list_permission(test_name, module_org, module_repos_collection
     'module_repos_collection_with_setup',
     [
         {
-            'distro': DISTRO_RHEL7,
+            'distro': 'rhel7',
             'SatelliteToolsRepository': {},
             'RHELAnsibleEngineRepository': {'cdn': True},
             'YumRepository': {'url': CUSTOM_REPO_URL},
@@ -485,8 +483,8 @@ def test_positive_apply_for_all_hosts(
     'module_repos_collection_with_setup',
     [
         {
-            'distro': DISTRO_RHEL7,
-            'VirtualizationAgentsRepository': {'cdn': True, 'distro': DISTRO_RHEL6},
+            'distro': 'rhel7',
+            'VirtualizationAgentsRepository': {'cdn': True, 'distro': 'rhel6'},
             'YumRepository': {'url': CUSTOM_REPO_URL},
             'SatelliteToolsRepository': {},
             'RHELAnsibleEngineRepository': {'cdn': True},
@@ -526,7 +524,7 @@ def test_positive_view_cve(session, module_repos_collection_with_setup):
     'module_repos_collection_with_setup',
     [
         {
-            'distro': DISTRO_RHEL7,
+            'distro': 'rhel7',
             'SatelliteToolsRepository': {},
             'RHELAnsibleEngineRepository': {'cdn': True},
             'YumRepository': {'url': CUSTOM_REPO_URL},
@@ -602,7 +600,7 @@ def test_positive_filter_by_environment(
     'module_repos_collection_with_setup',
     [
         {
-            'distro': DISTRO_RHEL7,
+            'distro': 'rhel7',
             'SatelliteToolsRepository': {},
             'RHELAnsibleEngineRepository': {'cdn': True},
             'YumRepository': {'url': CUSTOM_REPO_URL},
@@ -662,7 +660,7 @@ def test_positive_content_host_previous_env(
     'module_repos_collection_with_setup',
     [
         {
-            'distro': DISTRO_RHEL7,
+            'distro': 'rhel7',
             'SatelliteToolsRepository': {},
             'RHELAnsibleEngineRepository': {'cdn': True},
             'YumRepository': {'url': CUSTOM_REPO_URL},
@@ -704,7 +702,7 @@ def test_positive_content_host_library(session, module_org, vm):
     'module_repos_collection_with_setup',
     [
         {
-            'distro': DISTRO_RHEL7,
+            'distro': 'rhel7',
             'SatelliteToolsRepository': {},
             'RHELAnsibleEngineRepository': {'cdn': True},
             'YumRepository': {'url': settings.repos.yum_9.url},
@@ -776,7 +774,7 @@ def test_positive_content_host_search_type(session, erratatype_vm):
     'module_repos_collection_with_setup',
     [
         {
-            'distro': DISTRO_RHEL7,
+            'distro': 'rhel7',
             'SatelliteToolsRepository': {},
             'RHELAnsibleEngineRepository': {'cdn': True},
             'YumRepository': {'url': settings.repos.yum_9.url},
@@ -832,7 +830,7 @@ def test_positive_show_count_on_content_host_page(session, module_org, erratatyp
     'module_repos_collection_with_setup',
     [
         {
-            'distro': DISTRO_RHEL7,
+            'distro': 'rhel7',
             'SatelliteToolsRepository': {},
             'RHELAnsibleEngineRepository': {'cdn': True},
             'YumRepository': {'url': settings.repos.yum_9.url},
@@ -914,7 +912,7 @@ def test_positive_filtered_errata_status_installable_param(
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
-        distro=DISTRO_RHEL7,
+        distro='rhel7',
         repositories=[
             target_sat.cli_factory.SatelliteToolsRepository(),
             # As Satellite Tools may be added as custom repo and to have a "Fully entitled" host,
@@ -988,7 +986,7 @@ def test_positive_filtered_errata_status_installable_param(
     'module_repos_collection_with_setup',
     [
         {
-            'distro': DISTRO_RHEL7,
+            'distro': 'rhel7',
             'SatelliteToolsRepository': {},
             'RHELAnsibleEngineRepository': {'cdn': True},
             'YumRepository': {'url': CUSTOM_REPO_URL},

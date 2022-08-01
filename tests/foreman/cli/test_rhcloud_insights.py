@@ -19,13 +19,11 @@
 import pytest
 from broker import Broker
 
-from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import DISTRO_RHEL8
 from robottelo.hosts import ContentHost
 
 
 @pytest.mark.tier4
-@pytest.mark.parametrize('distro', [DISTRO_RHEL8, DISTRO_RHEL7])
+@pytest.mark.parametrize('distro', ['rhel7', 'rhel8'])
 def test_positive_connection_option(organization_ak_setup, rhcloud_sat_host, distro):
     """Verify that 'insights-client --test-connection' successfully tests the proxy connection via
     the Satellite.

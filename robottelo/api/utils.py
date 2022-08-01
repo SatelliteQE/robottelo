@@ -19,8 +19,6 @@ from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_PXE_TEMPLATE
 from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import REPO_TYPE
-from robottelo.constants import RHEL_6_MAJOR_VERSION
-from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.errors import ImproperlyConfigured
 
 
@@ -359,13 +357,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     if os is None:
         os = (
             entities.OperatingSystem()
-            .search(
-                query={
-                    'search': 'name="RedHat" AND (major="{}" OR major="{}")'.format(
-                        RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
-                    )
-                }
-            )[0]
+            .search(query={'search': 'name="RedHat" AND (major="6" OR major="7")'})[0]
             .read()
         )
     else:

@@ -28,7 +28,6 @@ from wait_for import wait_for
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
 from robottelo.constants import FAKE_9_YUM_UPDATED_PACKAGES
 from robottelo.constants import REPOS
@@ -55,7 +54,7 @@ class TestScenarioErrataAbstract:
     def _create_custom_rhel_tools_repos(self, product):
         """Install packge on docker content host."""
         rhel_repo_url = settings.repos.rhel7_os
-        tools_repo_url = settings.repos.sattools_repo[DISTRO_RHEL7]
+        tools_repo_url = settings.repos.sattools_repo['rhel7']
         if None in [rhel_repo_url, tools_repo_url]:
             raise ValueError('The rhel7_os or tools_rhel7 Repo url is not set in settings!')
         tools_repo = entities.Repository(

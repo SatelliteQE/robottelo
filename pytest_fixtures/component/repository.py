@@ -92,7 +92,7 @@ def _simplify_repos(request, repos):
 
     E.g: the parameters list to repos_collection fixture is:
     [{
-        'distro': DISTRO_RHEL7,
+        'distro': 'rhel7',
         'SatelliteToolsRepository': {},
         'YumRepository': [{'url': settings.repos.yum_0.url},{'url': settings.repos.yum_6.url}]
     }]
