@@ -118,9 +118,7 @@ def module_provisioning_rhel_content(
         ],
     ).create()
 
-    return Box(
-        hostgroup=hostgroup,
-    )
+    return Box(hostgroup=hostgroup, os=os)
 
 
 @pytest.fixture(scope='module')
