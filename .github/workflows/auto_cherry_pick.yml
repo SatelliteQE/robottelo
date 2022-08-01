@@ -34,7 +34,7 @@ jobs:
           fetch-depth: 0
         if: matrix.to_branch != github.base_ref
       - name: Cherry pick into ${{ matrix.to_branch }}
-        uses: carloscastrojumo/github-cherry-pick-action@v1.0.1
+        uses: carloscastrojumo/github-cherry-pick-action@v1.0.2
         with:
           branch: ${{ matrix.to_branch }}
           labels: |
