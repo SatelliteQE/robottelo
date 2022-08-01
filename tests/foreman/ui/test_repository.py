@@ -659,19 +659,19 @@ def test_positive_upstream_with_credentials(session, module_prod):
 #             {
 #                 'name': repo_name,
 #                 'repo_type': REPO_TYPE['ostree'],
-#                 'repo_content.upstream_url': FEDORA26_OSTREE_REPO,
+#                 'repo_content.upstream_url': FEDORA_OSTREE_REPO,
 #             },
 #         )
 #         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
 #         session.repository.update(
 #             module_prod.name,
 #             repo_name,
-#             {'name': new_repo_name, 'repo_content.upstream_url': FEDORA27_OSTREE_REPO},
+#             {'name': new_repo_name, 'repo_content.upstream_url': FEDORA_OSTREE_REPO},
 #         )
 #         assert not session.repository.search(module_prod.name, repo_name)
 #         repo_values = session.repository.read(module_prod.name, new_repo_name)
 #         assert repo_values['name'] == new_repo_name
-#         assert repo_values['repo_content']['upstream_url'] == FEDORA27_OSTREE_REPO
+#         assert repo_values['repo_content']['upstream_url'] == FEDORA_OSTREE_REPO
 #         session.repository.delete(module_prod.name, new_repo_name)
 #         assert not session.repository.search(module_prod.name, new_repo_name)
 

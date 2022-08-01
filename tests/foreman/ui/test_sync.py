@@ -31,7 +31,7 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants.repos import FEDORA27_OSTREE_REPO
+from robottelo.constants.repos import FEDORA_OSTREE_REPO
 
 
 @pytest.fixture(scope='module')
@@ -128,7 +128,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
     """
     repo = entities.Repository(
         content_type='ostree',
-        url=FEDORA27_OSTREE_REPO,
+        url=FEDORA_OSTREE_REPO,
         product=module_custom_product,
         unprotected=False,
     ).create()

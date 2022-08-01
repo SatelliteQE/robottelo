@@ -36,13 +36,10 @@ LOCALES = (
     'zh_TW',
 )
 
-DISTRO_RHEL5 = "rhel5"
 DISTRO_RHEL6 = "rhel6"
 DISTRO_RHEL7 = "rhel7"
 DISTRO_RHEL8 = "rhel8"
 DISTRO_RHEL9 = "rhel9"
-DISTRO_SLES11 = "sles11"
-DISTRO_SLES12 = "sles12"
 
 RHEL_6_MAJOR_VERSION = 6
 RHEL_7_MAJOR_VERSION = 7
@@ -181,101 +178,6 @@ AZURERM_FILE_URI = (
     'https://raw.githubusercontent.com/SatelliteQE/robottelo/master/tests/foreman/data/uri.sh'
 )
 
-HTML_TAGS = [
-    'A',
-    'ABBR',
-    'ACRONYM',
-    'ADDRESS',
-    'APPLET',
-    'AREA',
-    'B',
-    'BASE',
-    'BASEFONT',
-    'BDO',
-    'BIG',
-    'BLINK',
-    'BLOCKQUOTE',
-    'BODY',
-    'BR',
-    'BUTTON',
-    'CAPTION',
-    'CENTER',
-    'CITE',
-    'CODE',
-    'COL',
-    'COLGROUP',
-    'DD',
-    'DEL',
-    'DFN',
-    'DIR',
-    'DIV',
-    'DL',
-    'DT',
-    'EM',
-    'FIELDSET',
-    'FONT',
-    'FORM',
-    'FRAME',
-    'FRAMESET',
-    'H1',
-    'H2',
-    'H3',
-    'H4',
-    'H5',
-    'H6',
-    'HEAD',
-    'HR',
-    'HTML',
-    'I',
-    'IFRAME',
-    'IMG',
-    'INPUT',
-    'INS',
-    'ISINDEX',
-    'KBD',
-    'LABEL',
-    'LEGEND',
-    'LI',
-    'LINK',
-    'MAP',
-    'MENU',
-    'META',
-    'NOFRAMES',
-    'NOSCRIPT',
-    'OBJECT',
-    'OL',
-    'OPTGROUP',
-    'OPTION',
-    'P',
-    'PARAM',
-    'PRE',
-    'Q',
-    'S',
-    'SAMP',
-    'SCRIPT',
-    'SELECT',
-    'SMALL',
-    'SPAN',
-    'STRIKE',
-    'STRONG',
-    'STYLE',
-    'SUB',
-    'SUP',
-    'TABLE',
-    'TBODY',
-    'TD',
-    'TEXTAREA',
-    'TFOOT',
-    'TH',
-    'THEAD',
-    'TITLE',
-    'TR',
-    'TT',
-    'U',
-    'UL',
-    'VAR',
-]
-
 OPERATING_SYSTEMS = entities._OPERATING_SYSTEMS
 
 TEMPLATE_TYPES = [
@@ -315,8 +217,6 @@ RPM_TO_UPLOAD = "which-2.19-6.el6.x86_64.rpm"
 SRPM_TO_UPLOAD = "which-2.19-6.el6.src.rpm"
 
 ENVIRONMENT = "Library"
-
-NOT_IMPLEMENTED = 'This is a Manual test!'
 
 SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "custom cron"}
 
@@ -387,7 +287,7 @@ REPOSET = {
     'rhel6': 'Red Hat Enterprise Linux 6 Server (RPMs)',
     'rhel7': 'Red Hat Enterprise Linux 7 Server (RPMs)',
     'rhva6': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'),
-    'rhs7': 'Red Hat Satellite 6.10 (for RHEL 7 Server) (RPMs)',
+    'rhs7': 'Red Hat Satellite 6.11 (for RHEL 7 Server) (RPMs)',
     'rhsc7': 'Red Hat Satellite Capsule 6.9 (for RHEL 7 Server) (RPMs)',
     'rhsc7_iso': 'Red Hat Satellite Capsule 6.4 (for RHEL 7 Server) (ISOs)',
     'rhsc6': 'Red Hat Satellite Capsule 6.9 (for RHEL 6 Server) (RPMs)',
@@ -422,8 +322,6 @@ REPOSET = {
     'rhst7_610': 'Red Hat Satellite Tools 6.10 (for RHEL 7 Server) (RPMs)',
     'rhel6_optional': 'Red Hat Enterprise Linux 6 Server - Optional (RPMs)',
     'rhel6_sup': 'Red Hat Enterprise Linux 6 Server - Supplementary (RPMs)',
-    'rhel5': 'Red Hat Enterprise Linux 5 Server (RPMs)',
-    'rhel5_sup': 'Red Hat Enterprise Linux 5 Server - Supplementary (RPMs)',
 }
 
 NO_REPOS_AVAILABLE = "This system has no repositories available through subscriptions."
@@ -463,9 +361,9 @@ REPOS = {
         'version': '6.8',
     },
     'rhs7': {
-        'id': 'rhel-7-server-satellite-6.10-rpms',
-        'name': ('Red Hat Satellite 6.10 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.10',
+        'id': 'rhel-7-server-satellite-6.11-rpms',
+        'name': ('Red Hat Satellite 6.11 for RHEL 7 Server RPMs x86_64'),
+        'version': '6.11',
         'reposet': REPOSET['rhs7'],
         'product': PRDS['rhs'],
         'distro': DISTRO_RHEL7,
@@ -758,26 +656,6 @@ REPOS = {
         'distro': DISTRO_RHEL6,
         'key': 'rhel6_sup',
     },
-    'rhel5': {
-        'id': 'rhel-5-server-rpms',
-        'name': 'Red Hat Enterprise Linux 5 Server RPMs x86_64 5Server',
-        'releasever': '5Server',
-        'version': '5',
-        'reposet': REPOSET['rhel5'],
-        'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL5,
-        'key': 'rhel5',
-    },
-    'rhel5_sup': {
-        'id': 'rhel-5-server-supplementary-rpms',
-        'name': 'Red Hat Enterprise Linux 5 Server - Supplementary RPMs x86_64 5Server',
-        'releasever': '5Server',
-        'version': '5',
-        'reposet': REPOSET['rhel5_sup'],
-        'product': PRDS['rhel'],
-        'distro': DISTRO_RHEL5,
-        'key': 'rhel5_sup',
-    },
     'rhscl7': {
         'id': 'rhel-server-rhscl-7-rpms',
         'name': (
@@ -796,12 +674,10 @@ REPOS = {
 BULK_REPO_LIST = [
     REPOS['rhel6_optional'],
     REPOS['rhel6_sup'],
-    REPOS['rhel5_sup'],
     REPOS['rhel7_optional'],
     REPOS['rhel7_sup'],
     REPOS['rhel7'],
     REPOS['rhel6'],
-    REPOS['rhel5'],
     REPOS['rhscl7'],
     REPOS['rhel8_aps'],
 ]
@@ -810,62 +686,6 @@ DISTRO_REPOS = {
     # DISTRO_RHEL6: REPOS['rhel6'],
     DISTRO_RHEL7: REPOS['rhel7']
 }
-
-# The 'create_repos_tree' function under 'sync' module uses the following
-# list of tuples. It actually includes following two repos under
-# Reposet: Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs
-#
-# Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6.8
-# Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64
-# 6Server
-
-RHVA_REPO_TREE = [
-    (
-        'rhel',
-        'rhva6',
-        'rhva65',
-        'repo_name',
-        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6.5',
-    ),
-    ('rhel', 'rhva6', 'rhva65', 'repo_arch', 'x86_64'),
-    ('rhel', 'rhva6', 'rhva65', 'repo_ver', '6.5'),
-    (
-        'rhel',
-        'rhva6',
-        'rhva610',
-        'repo_name',
-        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6.10',
-    ),
-    ('rhel', 'rhva6', 'rhva610', 'repo_arch', 'x86_64'),
-    ('rhel', 'rhva6', 'rhva610', 'repo_ver', '6.10'),
-    (
-        'rhel',
-        'rhva6',
-        'rhva6S',
-        'repo_name',
-        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6Server',
-    ),
-    ('rhel', 'rhva6', 'rhva6S', 'repo_arch', 'x86_64'),
-    ('rhel', 'rhva6', 'rhva6S', 'repo_ver', '6Server'),
-]
-
-SAT6_TOOLS_TREE = [
-    (
-        'rhel',
-        'rhst6',
-        'rhst6',
-        'repo_name',
-        'Red Hat Satellite Tools 6.9 for RHEL 6 Server RPMs x86_64',
-    ),
-    ('rhel', 'rhst6', 'rhst6', 'repo_arch', 'x86_64'),
-    ('rhel', 'rhst6', 'rhst6', 'repo_ver', '6.9'),
-]
-
-ATOMIC_HOST_TREE = [
-    ('rhah', 'rhaht', 'rhaht', 'repo_name', 'Red Hat Enterprise Linux Atomic Host Trees'),
-    ('rhah', 'rhaht', 'rhaht', 'repo_arch', None),
-    ('rhah', 'rhaht', 'rhaht', 'repo_ver', None),
-]
 #: Name (not label!) of the default organization.
 DEFAULT_ORG = "Default Organization"
 #: Name (not label!) of the default location.
@@ -873,34 +693,12 @@ DEFAULT_LOC = "Default Location"
 DEFAULT_CV = "Default Organization View"
 DEFAULT_TEMPLATE = "Kickstart default"
 DEFAULT_PXE_TEMPLATE = "Kickstart default PXELinux"
-DEFAULT_ATOMIC_TEMPLATE = 'Atomic Kickstart default'
 DEFAULT_PTABLE = "Kickstart default"
 DEFAULT_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux Server, Premium (Physical or Virtual Nodes)'
 DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Default role'
 
-LANGUAGES = {
-    'Català': 'ca',
-    'Deutsch': 'de',
-    'English (United States)': 'en',
-    'English (United Kingdom)': 'en_GB',
-    'Español': 'es',
-    'Français': 'fr',
-    'Galego': 'gl',
-    'it': 'it',
-    '日本語': 'ja',
-    '한국어': 'ko',
-    'pl': 'pl',
-    'Português (Brasil)': 'pt_BR',
-    'Русский': 'ru',
-    'sv_SE': 'sv_SE',
-    '简体中文': 'zh_CN',
-    'zh_TW': 'zh_TW',
-}
-
-SATELLITE_SUBSCRIPTION_NAME = 'Red Hat Satellite Infrastructure Subscription'
-SATELLITE_FIREWALL_SERVICE_NAME = 'RH-Satellite-6'
 VDC_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux for Virtual Datacenters, Premium'
 
 TIMEZONES = [
@@ -933,17 +731,6 @@ FILTER_ERRATA_TYPE = {
 FILTER_ERRATA_DATE = {'updated': "updated", 'issued': "issued"}
 
 REPORT_TEMPLATE_FILE = 'report_template.txt'
-REP_TEM_APPLIED_ERRATA_INPUT = {
-    'Filter Errata Type': FILTER_ERRATA_TYPE,
-    'Status': {
-        'success': 'success',
-        'warning': 'warning',
-        'error': 'error',
-        'canceled': 'canceled',
-        'pending': 'pending',
-    },
-    'Include Last Reboot': {'yes': 'yes', 'no': 'no'},
-}
 CONTAINER_REGISTRY_HUB = 'https://mirror.gcr.io'
 RH_CONTAINER_REGISTRY_HUB = 'https://registry.redhat.io/'
 CONTAINER_UPSTREAM_NAME = 'library/busybox'
@@ -1937,76 +1724,6 @@ BOOKMARK_ENTITIES = [
 ]
 
 STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
-
-REAL_4_ERRATA_DETAILS = [
-    ['Advisory', REAL_4_ERRATA_ID],
-    ['CVEs', set(REAL_4_ERRATA_CVES)],
-    ['Type', 'Security Advisory'],
-    ['Severity', 'Moderate'],
-    ['Issued', '11/18/14'],
-    ['Last Updated On', '11/18/14'],
-    ['Reboot Suggested', 'No'],
-    [
-        'Topic',
-        'Updated libvirt packages that fix three security issues and one bug '
-        'are now\navailable for Red Hat Enterprise Linux 6.',
-    ],
-    [
-        'Description',
-        'The libvirt library is a C API for managing and interacting with the'
-        '\nvirtualization capabilities of Linux and other operating systems.',
-    ],
-    [
-        'Solution',
-        'Before applying this update, make sure all previously released errata'
-        '\nrelevant to your system have been applied.',
-    ],
-]
-
-TOOLS_ERRATA_DETAILS = [
-    ['Advisory', 'RHBA-2016:1503'],
-    ['CVEs', 'N/A'],
-    ['Type', 'Bug Fix Advisory'],
-    ['Severity', 'None'],
-    ['Issued', '7/27/16'],
-    ['Last Updated On', '7/27/16'],
-    ['Reboot Suggested', 'No'],
-    ['Topic', 'Red Hat Satellite 6.2 now available for Red Hat Enterprise Linux 6 and 7'],
-    ['Description', 'This update provides Satellite 6.2 client tooling'],
-    ['Solution', 'Before applying this update, make sure all previously released errata'],
-]
-
-TOOLS_ERRATA_TABLE_DETAILS = [
-    'RHBA-2016:1503',
-    'Satellite 6.2 Tools Release',
-    'Bug Fix Advisory',
-    'Installable',
-    '7/27/16',
-]
-
-BACKUP_FILES = [
-    'config_files.tar.gz',
-    '.config.snar',
-    'metadata.yml',
-    'mongo_data.tar.gz',
-    '.mongo.snar',
-    'pgsql_data.tar.gz',
-    '.postgres.snar',
-    'pulp_data.tar',
-    '.pulp.snar',
-]
-
-HOT_BACKUP_FILES = [
-    'candlepin.dump',
-    'config_files.tar.gz',
-    '.config.snar',
-    'foreman.dump',
-    'metadata.yml',
-    'mongo_dump',
-    'pulp_data.tar',
-    '.pulp.snar',
-    'pg_globals.dump',
-]
 
 VMWARE_CONSTANTS = {
     'cluster': 'Satellite-Engineering',
