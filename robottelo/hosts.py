@@ -780,17 +780,17 @@ class ContentHost(Host, ContentHostMixins):
         # Red Hat Insights requires RHEL 6/7/8 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
         distro_repo_map = {
-            constants.DISTRO_RHEL6: settings.repos.rhel6_os,
-            constants.DISTRO_RHEL7: settings.repos.rhel7_os,
-            constants.DISTRO_RHEL8: settings.repos.rhel8_os,
-            constants.DISTRO_RHEL9: settings.repos.rhel9_os,
+            'rhel6': settings.repos.rhel6_os,
+            'rhel7': settings.repos.rhel7_os,
+            'rhel8': settings.repos.rhel8_os,
+            'rhel9': settings.repos.rhel9_os,
         }
         rhel_repo = distro_repo_map.get(rhel_distro)
 
         if rhel_repo is None:
             raise ContentHostError(f'Missing RHEL repository configuration for {rhel_distro}.')
 
-        if rhel_distro not in (constants.DISTRO_RHEL6, constants.DISTRO_RHEL7):
+        if rhel_distro not in ('rhel6', 'rhel7'):
             self.create_custom_repos(**rhel_repo)
         else:
             self.create_custom_repos(**{rhel_distro: rhel_repo})
@@ -828,13 +828,13 @@ class ContentHost(Host, ContentHostMixins):
         script_content = '\n'.join(script_content)
         self.execute(f"echo -e '{script_content}' > {script_path}")
 
-    def patch_os_release_version(self, distro=constants.DISTRO_RHEL7):
+    def patch_os_release_version(self, distro='rhel7'):
         """Patch VM OS release version.
 
         This is needed by yum package manager to generate the right RH
         repositories urls.
         """
-        if distro == constants.DISTRO_RHEL7:
+        if distro == 'rhel7':
             rh_product_os_releasever = constants.REPOS['rhel7']['releasever']
         else:
             raise ContentHostError('No distro package available to retrieve release version')
@@ -959,15 +959,13 @@ class ContentHost(Host, ContentHostMixins):
             satellite=satellite,
             org_label=org['label'],
             activation_key=activation_key['name'],
-            patch_os_release_distro=constants.DISTRO_RHEL7,
+            patch_os_release_distro='rhel7',
             rh_repo_ids=[repo['repository-id'] for repo in repos if repo['cdn']],
             install_katello_agent=False,
         )
         # configure manually RHEL custom repo url as sync time is very big
         # (more than 2 hours for RHEL 7Server) and not critical in this context.
-        rhel_repo_option_name = (
-            f'rhel{constants.DISTROS_MAJOR_VERSION[constants.DISTRO_RHEL7]}_repo'
-        )
+        rhel_repo_option_name = 'rhel7_repo'
         rhel_repo_url = getattr(settings.repos, rhel_repo_option_name, None)
         if not rhel_repo_url:
             raise ValueError(

@@ -874,11 +874,7 @@ def make_fake_host(options=None):
     if not options.get('operatingsystem') and not options.get('operatingsystem-id'):
         try:
             options['operatingsystem-id'] = OperatingSys.list(
-                {
-                    'search': 'name="RedHat" AND major="{}" OR major="{}"'.format(
-                        constants.RHEL_6_MAJOR_VERSION, constants.RHEL_7_MAJOR_VERSION
-                    )
-                }
+                {'search': 'name="RedHat" AND (major="6" OR major="7")'}
             )[0]['id']
         except IndexError:
             options['operatingsystem-id'] = make_os(
@@ -2059,13 +2055,7 @@ def configure_env_for_provision(org=None, loc=None):
     ptable = PartitionTable.info({'name': constants.DEFAULT_PTABLE})
 
     # Get the OS entity
-    os = OperatingSys.list(
-        {
-            'search': 'name="RedHat" AND major="{}" OR major="{}"'.format(
-                constants.RHEL_6_MAJOR_VERSION, constants.RHEL_7_MAJOR_VERSION
-            )
-        }
-    )[0]
+    os = OperatingSys.list({'search': 'name="RedHat" AND (major="6" OR major="7")'})[0]
 
     # Get proper Provisioning templates and update with OS, Org, Location
     provisioning_template = Template.info({'name': constants.DEFAULT_TEMPLATE})
@@ -2154,7 +2144,7 @@ def configure_env_for_provision(org=None, loc=None):
 def _get_capsule_vm_distro_repos(distro):
     """Return the right RH repos info for the capsule setup"""
     rh_repos = []
-    if distro == constants.DISTRO_RHEL7:
+    if distro == 'rhel7':
         # Red Hat Enterprise Linux 7 Server
         rh_product_arch = constants.REPOS['rhel7']['arch']
         rh_product_releasever = constants.REPOS['rhel7']['releasever']
@@ -2341,9 +2331,7 @@ def setup_cdn_and_custom_repos_content(
     if upload_manifest:
         # Upload the organization manifest
         try:
-            manifests.upload_manifest_locked(
-                org_id, manifests.clone(), interface=manifests.INTERFACE_CLI
-            )
+            manifests.upload_manifest_locked(org_id, manifests.clone(), interface='CLI')
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
 

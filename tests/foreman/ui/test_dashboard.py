@@ -23,7 +23,6 @@ from nailgun.entity_mixins import TaskFailedError
 
 from robottelo.api.utils import create_role_permissions
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.datafactory import gen_string
 from robottelo.utils.issue_handlers import is_open
@@ -194,7 +193,7 @@ def test_positive_task_status(session):
     'repos_collection',
     [
         {
-            'distro': DISTRO_RHEL7,
+            'distro': 'rhel7',
             'SatelliteToolsRepository': {},
             'YumRepository': {'url': settings.repos.yum_6.url},
         },

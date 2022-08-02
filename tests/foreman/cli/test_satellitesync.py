@@ -979,9 +979,7 @@ class TestContentViewSync:
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
-        manifests.upload_manifest_locked(
-            importing_org['id'], interface=manifests.INTERFACE_CLI, timeout=7200000
-        )
+        manifests.upload_manifest_locked(importing_org['id'], interface='CLI', timeout=7200000)
         # set disconnected mode
         Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
         ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
@@ -1095,9 +1093,7 @@ class TestContentViewSync:
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import and verify content
-        manifests.upload_manifest_locked(
-            importing_org['id'], interface=manifests.INTERFACE_CLI, timeout=7200000
-        )
+        manifests.upload_manifest_locked(importing_org['id'], interface='CLI', timeout=7200000)
         # set disconnected mode
         Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
         ContentImport.version(
