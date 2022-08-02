@@ -1,7 +1,0 @@
-github_checks:
-  annotations: false
-
-# https://docs.codecov.io/docs/github-checks-beta
-# Annotations are shown for unchanged files on the diff
-# Turn off all annotations until this is more configurable
-# The codecov comment will still be made on the PR
