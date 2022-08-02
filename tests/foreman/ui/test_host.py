@@ -2215,6 +2215,7 @@ def test_positive_update_delete_package(
 
     """
     client = rhel_contenthost
+    client.add_rex_key(target_sat)
     module_repos_collection_with_manifest.setup_virtual_machine(client, target_sat)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
@@ -2316,6 +2317,7 @@ def test_positive_apply_erratum(
     """
     # install package
     client = rhel_contenthost
+    client.add_rex_key(target_sat)
     module_repos_collection_with_manifest.setup_virtual_machine(client, target_sat)
     client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
@@ -2397,6 +2399,7 @@ def test_positive_crud_module_streams(
     """
     module_name = 'duck'
     client = rhel_contenthost
+    client.add_rex_key(target_sat)
     module_repos_collection_with_manifest.setup_virtual_machine(client, target_sat)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
