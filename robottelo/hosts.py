@@ -1,3 +1,4 @@
+import os
 import re
 import time
 from contextlib import contextmanager
@@ -33,12 +34,14 @@ from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import SATELLITE_VERSION
+from robottelo.errors import DownloadFileError
 from robottelo.helpers import InstallerCommand
 from robottelo.host_helpers import CapsuleMixins
 from robottelo.host_helpers import ContentHostMixins
 from robottelo.host_helpers import SatelliteMixins
 from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
+
 
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
@@ -249,6 +252,32 @@ class ContentHost(Host, ContentHostMixins):
             # really broad diaper here, but connection exceptions could be a ton of types
             except TimedOutError:
                 raise ContentHostError('Unable to connect to host that should be running')
+
+    def download_file(self, file_url, local_path=None, file_name=None):
+        """Downloads file from given fileurl to directory specified by local_path by given filename
+        on satellite.
+
+        If remote directory is not specified it downloads file to /tmp/.
+
+        :param str file_url: The complete server file path from where the
+            file will be downloaded.
+        :param str local_path: Name of directory where file will be saved. If not
+            provided file will be saved in /tmp/ directory.
+        :param str file_name: New name of the Downloaded file else its given from file_url
+
+        :returns: Returns list containing complete file path and name of downloaded file.
+        """
+        if not file_name:
+            _, file_name = os.path.split(file_url)
+
+        if not local_path:
+            local_path = '/tmp/'
+
+        # download on server
+        result = self.execute(f'wget -O {local_path}{file_name} {file_url}')
+        if result.status != 0:
+            raise DownloadFileError(f'Unable to download {file_name}')
+        return [f'{local_path}{file_name}', file_name]
 
     def download_install_rpm(self, repo_url, package_name):
         """Downloads and installs custom rpm on the broker virtual machine.
@@ -545,7 +574,6 @@ class ContentHost(Host, ContentHostMixins):
     def get(self, remote_path, local_path=None):
         """Get a remote file from the broker virtual machine."""
         self.session.sftp_read(source=remote_path, destination=local_path)
-        return local_path
 
     def put(self, local_path, remote_path=None):
         """Put a local file to the broker virtual machine.
