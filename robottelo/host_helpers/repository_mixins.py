@@ -395,11 +395,11 @@ class VirtualizationAgentsRepository(GenericRHRepository):
     """Virtualization Agents repository"""
 
     _key = constants.PRODUCT_KEY_VIRT_AGENTS
-    _distro = constants.DISTRO_RHEL6
+    _distro = 'rhel6'
 
 
 class RHELCloudFormsTools(GenericRHRepository):
-    _distro = constants.DISTRO_RHEL6
+    _distro = 'rhel6'
     _key = constants.PRODUCT_KEY_CLOUD_FORMS_TOOLS
 
 
@@ -660,7 +660,7 @@ class RepositoryCollection:
         if self.need_subscription:
             # upload manifest only when needed
             if upload_manifest and not self.organization_has_manifest(org_id):
-                manifests.upload_manifest_locked(org_id, interface=manifests.INTERFACE_CLI)
+                manifests.upload_manifest_locked(org_id, interface='CLI')
             if not rh_subscriptions:
                 # add the default subscription if no subscription provided
                 rh_subscriptions = [constants.DEFAULT_SUBSCRIPTION_NAME]

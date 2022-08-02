@@ -32,9 +32,6 @@ from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL6
-from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import DISTRO_RHEL8
 from robottelo.constants import OSCAP_DEFAULT_CONTENT
 from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_PROFILE
@@ -138,7 +135,7 @@ def update_scap_content(module_org):
 
 @pytest.mark.upgrade
 @pytest.mark.tier4
-@pytest.mark.parametrize('distro', [DISTRO_RHEL6, DISTRO_RHEL7, DISTRO_RHEL8])
+@pytest.mark.parametrize('distro', ['rhel6', 'rhel7', 'rhel8'])
 def test_positive_oscap_run_via_ansible(
     module_org, default_proxy, content_view, lifecycle_env, distro, target_sat
 ):
@@ -222,7 +219,7 @@ def test_positive_oscap_run_via_ansible(
                 'parameter-type': 'boolean',
             }
         )
-        if distro not in (DISTRO_RHEL6, DISTRO_RHEL7):
+        if distro not in ('rhel6', 'rhel7'):
             vm.create_custom_repos(**rhel_repo)
         else:
             vm.create_custom_repos(**{distro: rhel_repo})
@@ -320,14 +317,14 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         }
     )
     with Broker(
-        nick=DISTRO_RHEL7,
+        nick='rhel7',
         host_classes={'host': ContentHost},
         target_cores=OSCAP_TARGET_CORES,
         target_memory=OSCAP_TARGET_MEMORY,
     ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca(target_sat)
-        vm.register_contenthost(module_org.name, ak_name[DISTRO_RHEL7])
+        vm.register_contenthost(module_org.name, ak_name['rhel7'])
         assert vm.subscribed
         Host.set_parameter(
             {

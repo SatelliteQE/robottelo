@@ -45,8 +45,6 @@ from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_PTABLE
-from robottelo.constants import DISTRO_RHEL6
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
@@ -60,8 +58,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants import RHEL_6_MAJOR_VERSION
-from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.datafactory import gen_string
 
 VERSION = 'Version 1.0'
@@ -1318,7 +1314,7 @@ def test_positive_publish_rh_content_with_errata_by_date_filter(session, target_
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
-        distro=DISTRO_RHEL6, repositories=[target_sat.cli_factory.VirtualizationAgentsRepository()]
+        distro='rhel6', repositories=[target_sat.cli_factory.VirtualizationAgentsRepository()]
     )
     repos_collection.setup_content(
         org.id, lce.id, download_policy='immediate', upload_manifest=True
@@ -1527,7 +1523,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
     'repos_collection',
     [
         {
-            'distro': DISTRO_RHEL7,
+            'distro': 'rhel7',
             'YumRepository': {'url': settings.repos.yum_0.url},
             'DockerRepository': {
                 'url': CONTAINER_REGISTRY_HUB,
@@ -2235,7 +2231,7 @@ def test_positive_edit_rh_custom_spin(session, target_sat):
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
-        distro=DISTRO_RHEL7, repositories=[target_sat.cli_factory.SatelliteToolsRepository()]
+        distro='rhel7', repositories=[target_sat.cli_factory.SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
@@ -2294,7 +2290,7 @@ def test_positive_promote_with_rh_custom_spin(session, target_sat):
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
-        distro=DISTRO_RHEL7, repositories=[target_sat.cli_factory.SatelliteToolsRepository()]
+        distro='rhel7', repositories=[target_sat.cli_factory.SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
@@ -2619,7 +2615,7 @@ def test_positive_publish_with_repo_with_disabled_http(session, module_org):
     'repos_collection',
     [
         {
-            'distro': DISTRO_RHEL7,
+            'distro': 'rhel7',
             'SatelliteToolsRepository': {},
             'YumRepository': {'url': settings.repos.yum_0.url},
         }
@@ -2703,11 +2699,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(
     )
     # Get the OS ID
     os = entities.OperatingSystem().search(
-        query={
-            'search': 'name="RedHat" AND (major="{}" OR major="{}")'.format(
-                RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
-            )
-        }
+        query={'search': 'name="RedHat" AND (major="6" OR major="7")'}
     )[0]
     # Update the OS to associate arch and ptable
     os.architecture = [arch]
@@ -2926,7 +2918,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
     promote(cvv, lce.id)
     # Setup tools repo and add it to ak
     repos_collection = target_sat.cli_factory.RepositoryCollection(
-        distro=constants.DISTRO_RHEL7,
+        distro='rhel7',
         repositories=[target_sat.cli_factory.SatelliteToolsRepository()],
     )
     content_data = repos_collection.setup_content(org.id, lce.id, upload_manifest=True)

@@ -24,7 +24,6 @@ from robottelo.cli.factory import make_org
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTROS_SUPPORTED
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
 from robottelo.hosts import ContentHost
@@ -67,8 +66,8 @@ def test_vm_install_package(repos_collection, org, lce, distro, cdn):
 
     :expectedresults: Package is install is installed
     """
-    if distro == DISTRO_RHEL6:
-        pytest.skip(f'{DISTRO_RHEL6!s} skipped until ELS subscriptions are in manifest.')
+    if distro == 'rhel6':
+        pytest.skip('rhel6 skipped until ELS subscriptions are in manifest.')
     # Create repos, content view, and activation key.
     repos_collection.setup_content(org['id'], lce['id'], upload_manifest=True)
     with Broker(nick=distro, host_classes={'host': ContentHost}) as host:

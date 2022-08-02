@@ -79,7 +79,7 @@ def module_gt_manifest_org(module_target_sat):
     """Creates a new org and loads GT manifest in the new org"""
     org = module_target_sat.api.Organization().create()
     manifest = manifests.clone(org_environment_access=True, name='golden_ticket')
-    manifests.upload_manifest_locked(org.id, manifest, interface=manifests.INTERFACE_CLI)
+    manifests.upload_manifest_locked(org.id, manifest, interface='CLI')
     org.manifest_filename = manifest.filename
     return org
 

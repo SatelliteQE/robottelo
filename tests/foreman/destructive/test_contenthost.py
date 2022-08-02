@@ -19,7 +19,6 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 
@@ -55,7 +54,7 @@ def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
     ).create()
     lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
-        distro=DISTRO_RHEL7,
+        distro='rhel7',
         repositories=[
             target_sat.cli_factory.YumRepository(url=settings.repos.yum_1.url),
         ],

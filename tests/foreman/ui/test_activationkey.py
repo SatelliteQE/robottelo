@@ -81,7 +81,7 @@ def test_positive_end_to_end_crud(session, module_org):
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'repos_collection',
-    [{'SatelliteToolsRepository': {'distro': constants.DISTRO_RHEL7}}],
+    [{'SatelliteToolsRepository': {'distro': 'rhel7'}}],
     indirect=True,
 )
 def test_positive_end_to_end_register(session, repos_collection, rhel7_contenthost, target_sat):

@@ -729,7 +729,7 @@ def _validate_swid_tags_installed(module_org, vm, module_name):
 @pytest.mark.pit_client
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
-    [{'YumRepository': {'url': settings.repos.swid_tag.url, 'distro': constants.DISTRO_RHEL8}}],
+    [{'YumRepository': {'url': settings.repos.swid_tag.url, 'distro': 'rhel8'}}],
     indirect=True,
 )
 def test_errata_installation_with_swidtags(

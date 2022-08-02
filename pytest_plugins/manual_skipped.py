@@ -1,6 +1,5 @@
 import pytest
 
-from robottelo.constants import NOT_IMPLEMENTED
 from robottelo.logging import collection_logger as logger
 
 
@@ -26,7 +25,7 @@ def pytest_collection_modifyitems(session, config, items):
             # enforce skip/pass behavior by marking skip
             if mark_skipped:
                 logger.debug(f'Marking collected stubbed test "{item.nodeid}" to skip')
-                item.add_marker(marker=pytest.mark.skip(reason=NOT_IMPLEMENTED))
+                item.add_marker(marker=pytest.mark.skip(reason='This is a Manual test!'))
             continue
 
         # The test case is stubbed, but --include-stubbed was NOT passed, deselect the item

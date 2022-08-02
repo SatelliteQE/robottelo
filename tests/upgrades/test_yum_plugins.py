@@ -28,7 +28,6 @@ from wait_for import wait_for
 from robottelo.api.utils import attach_custom_product_subscription
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import REPOS
 from robottelo.logging import logger
 from robottelo.upgrade_utility import install_or_update_package
@@ -37,7 +36,6 @@ from robottelo.upgrade_utility import run_goferd
 
 
 DOCKER_VM = settings.upgrade.docker_vm
-CLIENT_OS = DISTRO_RHEL7
 
 
 class TestScenarioYumPluginsCount:
@@ -78,7 +76,7 @@ class TestScenarioYumPluginsCount:
     def _create_custom_tools_repos(self, product):
         """Create custom tools repo and sync it"""
 
-        tools_repo_url = settings.repos.sattools_repo[DISTRO_RHEL7]
+        tools_repo_url = settings.repos.sattools_repo['rhel7']
         if None in [tools_repo_url]:
             raise ValueError(f'The Tools Repo URL {self.client_os} is not provided!')
 

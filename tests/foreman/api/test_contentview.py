@@ -38,7 +38,7 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_SHA_512
-from robottelo.constants.repos import FEDORA27_OSTREE_REPO
+from robottelo.constants.repos import FEDORA_OSTREE_REPO
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
@@ -1263,7 +1263,7 @@ class TestOstreeContentView:
         request.cls.ostree_repo = entities.Repository(
             product=module_product,
             content_type='ostree',
-            url=FEDORA27_OSTREE_REPO,
+            url=FEDORA_OSTREE_REPO,
             unprotected=False,
         ).create()
         self.ostree_repo.sync()

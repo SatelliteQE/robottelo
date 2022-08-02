@@ -23,8 +23,6 @@ from airgun.session import Session
 from wait_for import wait_for
 
 from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import DISTRO_RHEL8
 
 
 @pytest.mark.run_in_one_thread
@@ -324,10 +322,10 @@ def test_rh_cloud_insights_clean_statuses(
     """
     org, ak = organization_ak_setup
     rhel7_contenthost.configure_rhai_client(
-        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL7
+        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro='rhel7'
     )
     rhel8_contenthost.configure_rhai_client(
-        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL8
+        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro='rhel8'
     )
     with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)

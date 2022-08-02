@@ -3,9 +3,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants import RHEL_6_MAJOR_VERSION
-from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.constants import RHEL_8_MAJOR_VERSION
 from robottelo.helpers import InstallerCommand
 
 
@@ -150,10 +147,7 @@ def session_puppet_enabled_proxy(session_puppet_enabled_sat):
 @pytest.fixture(scope='session')
 def session_puppet_default_os(session_puppet_enabled_sat):
     """Default OS on the puppet-enabled Satellite"""
-    search_string = (
-        f'name="RedHat" AND (major="{RHEL_6_MAJOR_VERSION}" '
-        f'OR major="{RHEL_7_MAJOR_VERSION}" OR major="{RHEL_8_MAJOR_VERSION}")'
-    )
+    search_string = 'name="RedHat" AND (major="6" OR major="7" OR major="8")'
     return (
         session_puppet_enabled_sat.api.OperatingSystem()
         .search(query={'search': search_string})[0]

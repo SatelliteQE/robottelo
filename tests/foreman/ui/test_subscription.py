@@ -31,7 +31,6 @@ from robottelo.api.utils import upload_manifest
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
@@ -297,7 +296,7 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, tar
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
-        distro=DISTRO_RHEL7,
+        distro='rhel7',
         repositories=[target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)],
     )
     product_name = repos_collection.rh_repos[0].data['product']

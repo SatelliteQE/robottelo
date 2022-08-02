@@ -81,7 +81,7 @@ from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_http_credentials
 from robottelo.logging import logger
 
-# from robottelo.constants.repos import FEDORA27_OSTREE_REPO
+# from robottelo.constants.repos import FEDORA_OSTREE_REPO
 
 
 YUM_REPOS = (
@@ -2126,7 +2126,7 @@ class TestRepository:
 #                     'name': name,
 #                     'content-type': 'ostree',
 #                     'publish-via-http': 'false',
-#                     'url': FEDORA27_OSTREE_REPO,
+#                     'url': FEDORA_OSTREE_REPO,
 #                 }
 #                 for name in valid_data_list().values()
 #             ]
@@ -2159,7 +2159,7 @@ class TestRepository:
 #                     'content-type': 'ostree',
 #                     'checksum-type': checksum_type,
 #                     'publish-via-http': 'false',
-#                     'url': FEDORA27_OSTREE_REPO,
+#                     'url': FEDORA_OSTREE_REPO,
 #                 }
 #                 for checksum_type in ('sha1', 'sha256')
 #             ]
@@ -2193,7 +2193,7 @@ class TestRepository:
 #                 {
 #                     'content-type': 'ostree',
 #                     'publish-via-http': use_http,
-#                     'url': FEDORA27_OSTREE_REPO,
+#                     'url': FEDORA_OSTREE_REPO,
 #                 }
 #                 for use_http in ('true', 'yes', '1')
 #             ]
@@ -2223,7 +2223,7 @@ class TestRepository:
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **parametrized(
-#             [{'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA27_OSTREE_REPO}]
+#             [{'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA_OSTREE_REPO}]
 #         ),
 #         indirect=True,
 #     )
@@ -2250,7 +2250,7 @@ class TestRepository:
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **parametrized(
-#             [{'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA27_OSTREE_REPO}]
+#             [{'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA_OSTREE_REPO}]
 #         ),
 #         indirect=True,
 #     )
@@ -2280,7 +2280,7 @@ class TestRepository:
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **parametrized(
-#             [{'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA27_OSTREE_REPO}]
+#             [{'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA_OSTREE_REPO}]
 #         ),
 #         indirect=True,
 #     )

@@ -1901,7 +1901,7 @@ class TestDockerRepository:
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **datafactory.parametrized(
-#             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
+#             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA_OSTREE_REPO}]
 #         ),
 #         indirect=True,
 #     )
@@ -1925,7 +1925,7 @@ class TestDockerRepository:
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **datafactory.parametrized(
-#             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
+#             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA_OSTREE_REPO}]
 #         ),
 #         indirect=True,
 #     )
@@ -1952,7 +1952,7 @@ class TestDockerRepository:
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **datafactory.parametrized(
-#             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
+#             [{'content_type': 'ostree', 'unprotected': False, 'url': OSTREE_REPO}]
 #         ),
 #         indirect=True,
 #     )
@@ -1967,7 +1967,7 @@ class TestDockerRepository:
 #
 #         :CaseImportance: Critical
 #         """
-#         new_url = FEDORA26_OSTREE_REPO
+#         new_url = FEDORA_OSTREE_REPO
 #         repo.url = new_url
 #         repo = repo.update(['url'])
 #         assert repo.url == new_url
@@ -1980,7 +1980,7 @@ class TestDockerRepository:
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **datafactory.parametrized(
-#             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
+#             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA_OSTREE_REPO}]
 #         ),
 #         indirect=True,
 #     )
