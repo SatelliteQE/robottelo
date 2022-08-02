@@ -40,7 +40,6 @@ from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL8
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_8_CUSTOM_PACKAGE
@@ -2184,7 +2183,7 @@ def test_positive_read_details_page_from_new_ui(
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': DISTRO_RHEL8,
+            'distro': 'rhel8',
             'SatelliteToolsRepository': {},
             'YumRepository': {'url': settings.repos.yum_3.url},
         }
@@ -2282,7 +2281,7 @@ def test_positive_update_delete_package(
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': DISTRO_RHEL8,
+            'distro': 'rhel8',
             'SatelliteToolsRepository': {},
             'YumRepository': {'url': settings.repos.yum_3.url},
         }
@@ -2363,7 +2362,7 @@ def test_positive_apply_erratum(
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': DISTRO_RHEL8,
+            'distro': 'rhel8',
             'SatelliteToolsRepository': {},
             'YumRepository': {'url': settings.repos.module_stream_1.url},
         }
