@@ -78,7 +78,7 @@ class TestScenarioYumPluginsCount:
 
         tools_repo_url = settings.repos.sattools_repo['rhel7']
         if None in [tools_repo_url]:
-            raise ValueError(f'The Tools Repo URL {self.client_os} is not provided!')
+            raise ValueError('The Tools Repo URL rhel7 is not provided!')
 
         tools_repo = entities.Repository(
             product=product, content_type='yum', url=tools_repo_url
