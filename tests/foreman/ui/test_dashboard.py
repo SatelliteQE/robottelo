@@ -165,11 +165,13 @@ def test_positive_task_status(session):
         searchbox = session.task.read_all('searchbox')
         assert searchbox['searchbox'] == 'state=stopped&result=warning'
         session.task.set_chart_filter('ScheduledChart')
-        tasks = session.task.read_all(['pagination', 'ScheduledChart'])
-        assert tasks['pagination']['total_items'] == tasks['ScheduledChart']['total'].split()[0]
+        tasks = session.task.read_all(['ScheduledChart'])
+        total_items = session.task.total_items()
+        assert total_items == int(tasks['ScheduledChart']['total'].split()[0])
         session.task.set_chart_filter('StoppedChart', {'row': 1, 'focus': 'Total'})
         tasks = session.task.read_all()
-        assert tasks['pagination']['total_items'] == tasks['StoppedChart']['table'][1]['Total']
+        total_items = session.task.total_items()
+        assert total_items == int(tasks['StoppedChart']['table'][1]['Total'])
         task_name = "Synchronize repository '{}'; product '{}'; organization '{}'".format(
             repo.name, product.name, org.name
         )
