@@ -877,9 +877,9 @@ def update_rhsso_settings_in_satellite(revert=False, sat=None):
     rhhso_settings = {
         'authorize_login_delegation': True,
         'authorize_login_delegation_auth_source_user_autocreate': 'External',
-        'login_delegation_logout_url': f'https://{settings.server.hostname}/users/extlogout',
+        'login_delegation_logout_url': f'https://{sat.hostname}/users/extlogout',
         'oidc_algorithm': 'RS256',
-        'oidc_audience': [f'{settings.server.hostname}-foreman-openidc'],
+        'oidc_audience': [f'{sat.hostname}-foreman-openidc'],
         'oidc_issuer': f'{settings.rhsso.host_url}/auth/realms/{settings.rhsso.realm}',
         'oidc_jwks_url': f'{settings.rhsso.host_url}/auth/realms'
         f'/{settings.rhsso.realm}/protocol/openid-connect/certs',

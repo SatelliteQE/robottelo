@@ -28,37 +28,36 @@ from robottelo.rhsso_utils import get_oidc_client_id
 from robottelo.rhsso_utils import get_oidc_token_endpoint
 from robottelo.rhsso_utils import get_two_factor_token_rh_sso_url
 from robottelo.rhsso_utils import open_pxssh_session
-from robottelo.rhsso_utils import run_command
 from robottelo.rhsso_utils import update_client_configuration
 
 pytestmark = [pytest.mark.destructive]
 
 
-def configure_hammer_session(enable=True):
+def configure_hammer_session(sat, enable=True):
     """take backup of the hammer config file and enable use_sessions"""
-    run_command(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
-    run_command(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
-    run_command(f"echo '  :use_sessions: {'true' if enable else 'false'}' >> {HAMMER_CONFIG}")
+    sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
+    sat.execute(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
+    sat.execute(f"echo '  :use_sessions: {'true' if enable else 'false'}' >> {HAMMER_CONFIG}")
 
 
 @pytest.fixture()
-def rh_sso_hammer_auth_setup(target_sat, request):
+def rh_sso_hammer_auth_setup(module_target_sat, request):
     """rh_sso hammer setup before running the auth login tests"""
-    configure_hammer_session()
+    configure_hammer_session(module_target_sat)
     client_config = {'publicClient': 'true'}
-    update_client_configuration(client_config)
+    update_client_configuration(module_target_sat, client_config)
 
     def rh_sso_hammer_auth_cleanup():
         """restore the hammer config backup file and rhsso client settings"""
-        run_command(f'mv {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
+        module_target_sat.execute(f'mv {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
         client_config = {'publicClient': 'false'}
-        update_client_configuration(client_config)
+        update_client_configuration(module_target_sat, client_config)
 
     request.addfinalizer(rh_sso_hammer_auth_cleanup)
 
 
 def test_rhsso_login_using_hammer(
-    target_sat,
+    module_target_sat,
     enable_external_auth_rhsso,
     rhsso_setting_setup,
     rh_sso_hammer_auth_setup,
@@ -71,28 +70,28 @@ def test_rhsso_login_using_hammer(
 
     :CaseImportance: High
     """
-    result = target_sat.cli.AuthLogin.oauth(
+    result = module_target_sat.cli.AuthLogin.oauth(
         {
             'oidc-token-endpoint': get_oidc_token_endpoint(),
-            'oidc-client-id': get_oidc_client_id(),
+            'oidc-client-id': get_oidc_client_id(module_target_sat),
             'username': settings.rhsso.rhsso_user,
             'password': settings.rhsso.rhsso_password,
         }
     )
     assert f"Successfully logged in as '{settings.rhsso.rhsso_user}'." == result[0]['message']
-    result = target_sat.cli.Auth.with_user(
+    result = module_target_sat.cli.Auth.with_user(
         username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
     ).status()
     assert (
         f"Session exists, currently logged in as '{settings.rhsso.rhsso_user}'."
         == result[0]['message']
     )
-    task_list = target_sat.cli.Task.with_user(
+    task_list = module_target_sat.cli.Task.with_user(
         username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
     ).list()
     assert len(task_list) >= 0
     with pytest.raises(CLIReturnCodeError) as error:
-        target_sat.cli.Role.with_user(
+        module_target_sat.cli.Role.with_user(
             username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
         ).list()
     assert 'Missing one of the required permissions' in error.value.message
@@ -115,7 +114,7 @@ def test_rhsso_timeout_using_hammer(
     result = module_target_sat.cli.AuthLogin.oauth(
         {
             'oidc-token-endpoint': get_oidc_token_endpoint(),
-            'oidc-client-id': get_oidc_client_id(),
+            'oidc-client-id': get_oidc_client_id(module_target_sat),
             'username': settings.rhsso.rhsso_user,
             'password': settings.rhsso.rhsso_password,
         }
@@ -130,7 +129,7 @@ def test_rhsso_timeout_using_hammer(
 
 
 def test_rhsso_two_factor_login_using_hammer(
-    module_target_sat, rhsso_setting_setup, rh_sso_hammer_auth_setup
+    enable_external_auth_rhsso, module_target_sat, rhsso_setting_setup, rh_sso_hammer_auth_setup
 ):
     """verify the hammer auth login using RHSSO auth source
 
@@ -143,14 +142,14 @@ def test_rhsso_two_factor_login_using_hammer(
     with module_target_sat.ui_session(login=False) as rhsso_session:
         two_factor_code = rhsso_session.rhsso_login.get_two_factor_login_code(
             {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.rhsso_password},
-            get_two_factor_token_rh_sso_url(),
+            get_two_factor_token_rh_sso_url(module_target_sat),
         )
         with open_pxssh_session() as ssh_session:
             ssh_session.sendline(
                 f"echo '{two_factor_code['code']}' | hammer auth login oauth "
                 f'--oidc-token-endpoint {get_oidc_token_endpoint()} '
                 f'--oidc-authorization-endpoint {get_oidc_authorization_endpoint()} '
-                f'--oidc-client-id {get_oidc_client_id()} '
+                f'--oidc-client-id {get_oidc_client_id(module_target_sat)} '
                 f"--oidc-redirect-uri 'urn:ietf:wg:oauth:2.0:oob' "
                 f'--two-factor '
             )
