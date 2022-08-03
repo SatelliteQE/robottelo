@@ -17,13 +17,11 @@ from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.hosts import ContentHost
 from robottelo.rhsso_utils import create_mapper
-from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import set_the_redirect_uri
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
-
-# from robottelo.api.utils import update_rhsso_settings_in_satellite
+from robottelo.utils.sso import sso_host
 
 
 @pytest.fixture()
@@ -313,7 +311,7 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
 @pytest.fixture(scope='module')
 def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth, module_target_sat):
     """register the satellite with RH-SSO Server for single sign-on"""
-    client_id = get_rhsso_client_id(module_target_sat)
+    client_id = sso_host.get_rhsso_client_id(module_target_sat)
     create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
     audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
     audience_mapper['config']['included.client.audience'] = audience_mapper['config'][
@@ -413,9 +411,9 @@ def rhsso_setting_setup(module_target_sat):
     }
     for setting_name, setting_value in rhhso_settings.items():
         # replace entietes field with targetsat.api
-        setting_entity = module_target_sat.api.Setting().search(query={'search': f'name={setting_name}'})[
-            0
-        ]
+        setting_entity = module_target_sat.api.Setting().search(
+            query={'search': f'name={setting_name}'}
+        )[0]
         setting_entity.value = setting_value
         setting_entity.update({'value'})
     yield
@@ -437,6 +435,7 @@ def rhsso_setting_setup_with_timeout(module_target_sat, rhsso_setting_setup):
     yield
     setting_entity.value = 30
     setting_entity.update({'value'})
+
 
 
 def enroll_ad_and_configure_external_auth(request, ad_data, sat):

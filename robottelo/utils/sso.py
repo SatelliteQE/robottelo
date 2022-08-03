@@ -1,6 +1,7 @@
 import json
 import random
 from contextlib import contextmanager
+from functools import lru_cache
 
 from broker.hosts import Host
 from fauxfactory import gen_string
@@ -17,22 +18,13 @@ from robottelo.datafactory import valid_emails_list
 
 class SSOHost(Host):
     def __init__(self, **kwargs):
-        self.hostname = kwargs.get('hostname', settings.rhsso.hostname)
-        self.settings = settings.rhsso
-        kwargs['hostname'] = self.hostname
+        kwargs['hostname'] = kwargs.get('hostname', settings.rhsso.hostname)
         super().__init__(**kwargs)
-        self.__dict__.update(settings.rhsso)
-        # self. realm, self.hostname , etc...
-        # want the ability to pass in their own host
-        # can also store other settings values on the instance
 
-    # def some_rhsso_methd(self):
-    #    # formerly a run_command() call, you can now use self.execute
-    #    self.execute(f”{KEY_CLOAK_CLI} some command”)
-
-    def get_rhsso_client_id(self):
+    @lru_cache
+    def get_rhsso_client_id(self, sat_obj):
         """Getter method for fetching the client id and can be used other functions"""
-        client_name = f'{self.hostname}-foreman-openidc'
+        client_name = f'{sat_obj.hostname}-foreman-openidc'
         self.execute(
             '{} config credentials '
             '--server {}/auth '
@@ -47,10 +39,7 @@ class SSOHost(Host):
             ),
         )
 
-        result = self.execute(
-            f'{KEY_CLOAK_CLI} get clients --fields id,clientId',
-            self.hostname,
-        )
+        result = self.execute(f'{KEY_CLOAK_CLI} get clients --fields id,clientId')
         result_json = json.loads(f'[{{{result}')
         client_id = None
         for client in result_json:
@@ -62,8 +51,7 @@ class SSOHost(Host):
     def get_rhsso_user_details(self, username):
         """Getter method to receive the user id"""
         result = self.execute(
-            f"{KEY_CLOAK_CLI} get users -r {settings.rhsso.realm} -q username={username}",
-            self.hostname,
+            f"{KEY_CLOAK_CLI} get users -r {settings.rhsso.realm} -q username={username}"
         )
         result_json = json.loads(f'[{{{result}')
         return result_json[0]
@@ -71,8 +59,7 @@ class SSOHost(Host):
     def get_rhsso_groups_details(self, group_name):
         """Getter method to receive the group id"""
         result = self.execute(
-            f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm} -q group_name={group_name}",
-            self.hostname,
+            f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm} -q group_name={group_name}"
         )
         result_json = json.loads(f'[{{{result}')
         return result_json[0]
@@ -90,11 +77,10 @@ class SSOHost(Host):
         self.execute(
             "{} create clients/{}/protocol-mappers/models -r {} -f {}".format(
                 KEY_CLOAK_CLI, client_id, settings.rhsso.realm, "mapper_file"
-            ),
-            self.hostname,
+            )
         )
 
-    def create_new_rhsso_user(self, client_id, username=None):
+    def create_new_rhsso_user(self, username=None):
         """create new user in RHSSO instance and set the password"""
         if not username:
             username = gen_string('alphanumeric')
@@ -103,16 +89,12 @@ class SSOHost(Host):
         RHSSO_RESET_PASSWORD['value'] = settings.rhsso.rhsso_password
         self.upload_rhsso_entity(RHSSO_NEW_USER, "create_user")
         self.upload_rhsso_entity(RHSSO_RESET_PASSWORD, "reset_password")
-        self.execute(
-            f"{KEY_CLOAK_CLI} create users -r {settings.rhsso.realm} -f create_user",
-            self.hostname,
-        )
+        self.execute(f"{KEY_CLOAK_CLI} create users -r {settings.rhsso.realm} -f create_user")
         user_details = self.get_rhsso_user_details(RHSSO_NEW_USER['username'])
         self.execute(
             "{} update -r {} users/{}/reset-password -f {}".format(
                 KEY_CLOAK_CLI, settings.rhsso.realm, user_details['id'], "reset_password"
-            ),
-            self.hostname,
+            )
         )
         return RHSSO_NEW_USER
 
@@ -126,17 +108,13 @@ class SSOHost(Host):
             self.upload_rhsso_entity(RHSSO_USER_UPDATE, "update_user")
             group_path = f"users/{user_details['id']}/groups/{group_details['id']}"
             self.execute(
-                f"{KEY_CLOAK_CLI} update -r {settings.rhsso.realm} {group_path} -f update_user",
-                self.hostname,
+                f"{KEY_CLOAK_CLI} update -r {settings.rhsso.realm} {group_path} -f update_user"
             )
 
     def delete_rhsso_user(self, username):
         """Delete the RHSSO user"""
         user_details = self.get_rhsso_user_details(username)
-        self.execute(
-            f"{KEY_CLOAK_CLI} delete -r {settings.rhsso.realm} users/{user_details['id']}",
-            self.hostname,
-        )
+        self.execute(f"{KEY_CLOAK_CLI} delete -r {settings.rhsso.realm} users/{user_details['id']}")
 
     def create_group(self, group_name=None):
         """Create the RHSSO group"""
@@ -145,8 +123,7 @@ class SSOHost(Host):
         RHSSO_NEW_GROUP['name'] = group_name
         self.upload_rhsso_entity(RHSSO_NEW_GROUP, "create_group")
         result = self.execute(
-            f"{KEY_CLOAK_CLI} create groups -r {settings.rhsso.realm} -f create_group",
-            self.hostname,
+            f"{KEY_CLOAK_CLI} create groups -r {settings.rhsso.realm} -f create_group"
         )
         return result
 
@@ -154,8 +131,7 @@ class SSOHost(Host):
         """Delete the RHSSO group"""
         group_details = self.get_rhsso_groups_details(group_name)
         self.execute(
-            f"{KEY_CLOAK_CLI} delete -r {settings.rhsso.realm} groups/{group_details['id']}",
-            self.hostname,
+            f"{KEY_CLOAK_CLI} delete -r {settings.rhsso.realm} groups/{group_details['id']}"
         )
 
     def update_client_configuration(self, json_content):
@@ -166,7 +142,7 @@ class SSOHost(Host):
             f"{KEY_CLOAK_CLI} update clients/{client_id}"
             f"-f update_client_info -s enabled=true --merge"
         )
-        self.execute(update_cmd, self.hostname)
+        self.execute(update_cmd)
 
     def get_oidc_token_endpoint(self):
         """getter oidc token endpoint"""
@@ -192,7 +168,7 @@ class SSOHost(Host):
             f"https://{settings.rhsso.host_name}/auth/realms/"
             f"{settings.rhsso.realm}/protocol/openid-connect/"
             f"auth?response_type=code&client_id={settings.server.hostname}-foreman-openidc&"
-            f"redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=openid"
+            "redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=openid"
         )
 
     @contextmanager
@@ -216,3 +192,6 @@ class SSOHost(Host):
             ]
         }
         self.update_client_configuration(client_config)
+
+
+sso_host = SSOHost()
