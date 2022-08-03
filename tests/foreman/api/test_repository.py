@@ -1451,6 +1451,39 @@ class TestRepositorySync:
         )
         assert result.status == 1
 
+    @pytest.mark.tier2
+    def test_positive_sync_repo_null_contents_changed(self, module_manifest_org, target_sat):
+        """test for null contents_changed parameter on actions::katello::repository::sync.
+
+        :id: f3923940-e097-4da3-aba7-b14dbcda857b
+
+        :expectedresults: After syncing a repo and running that null contents_changed
+            command, 0 rows should be returned(empty string)
+
+        :CaseImportance: High
+
+        :customerscenario: true
+
+        :BZ: 2089580
+
+        :CaseAutomation: Automated
+        """
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_manifest_org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhst7']['name'],
+            reposet=constants.REPOSET['rhst7'],
+            releasever=None,
+        )
+        target_sat.api.Repository(id=repo_id).sync()
+        prod_log_out = target_sat.execute(
+            'sudo -u postgres psql -d foreman -c "select class,execution_plan_uuid,input '
+            'from dynflow_actions where input LIKE \'%"contents_changed":null%\''
+            ' AND class = \'Actions::Katello::Repository::Sync\';"'
+        )
+        assert prod_log_out.status == 0
+        assert "(0 rows)" in prod_log_out.stdout
 
 class TestDockerRepository:
     """Tests specific to using ``Docker`` repositories."""
