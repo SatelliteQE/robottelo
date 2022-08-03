@@ -18,7 +18,7 @@ from robottelo.datafactory import valid_emails_list
 
 class SSOHost(Host):
     def __init__(self, **kwargs):
-        kwargs['hostname'] = kwargs.get('hostname', settings.rhsso.hostname)
+        kwargs['hostname'] = kwargs.get('hostname', settings.rhsso.host_name)
         super().__init__(**kwargs)
 
     @lru_cache
