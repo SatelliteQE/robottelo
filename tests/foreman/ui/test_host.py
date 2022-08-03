@@ -2222,7 +2222,7 @@ def test_positive_update_delete_package(
         # install package
         session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         task_result = wait_for_tasks(
-            search_query=(f'Install package(s) {FAKE_8_CUSTOM_PACKAGE_NAME}'),
+            search_query=(f'Install package(s) {FAKE_8_CUSTOM_PACKAGE_NAME} on {client.hostname}'),
             search_rate=4,
             max_tries=60,
         )
@@ -2251,7 +2251,7 @@ def test_positive_update_delete_package(
             client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME, "Upgrade via remote execution"
         )
         task_result = wait_for_tasks(
-            search_query=(f'Update package(s) {FAKE_8_CUSTOM_PACKAGE_NAME}'),
+            search_query=(f'Update package(s) {FAKE_8_CUSTOM_PACKAGE_NAME} on {client.hostname}'),
             search_rate=2,
             max_tries=60,
         )
@@ -2263,14 +2263,14 @@ def test_positive_update_delete_package(
         # remove package
         session.host_new.apply_package_action(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME, "Remove")
         task_result = wait_for_tasks(
-            search_query=(f'Remove package(s) {FAKE_8_CUSTOM_PACKAGE_NAME}'),
+            search_query=(f'Remove package(s) {FAKE_8_CUSTOM_PACKAGE_NAME} on {client.hostname}'),
             search_rate=2,
             max_tries=60,
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        assert len(packages['table']) == 0
+        assert 'table' not in packages.keys()
         result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
         assert result.status != 0
 
@@ -2319,6 +2319,7 @@ def test_positive_apply_erratum(
     client = rhel_contenthost
     client.add_rex_key(target_sat)
     module_repos_collection_with_manifest.setup_virtual_machine(client, target_sat)
+    errata_id = settings.repos.yum_3.errata[25]
     client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
     assert result.status == 0
@@ -2335,19 +2336,18 @@ def test_positive_apply_erratum(
         # filter just security erratum
         erratas = session.host_new.get_errata_by_type(client.hostname, 'Security')
         assert len(erratas['Content']['Errata']['table']) == 1
-        assert erratas['Content']['Errata']['table'][0]['Errata'] == settings.repos.yum_3.errata[25]
+        assert erratas['Content']['Errata']['table'][0]['Errata'] == errata_id
         # apply errata
-        session.host_new.apply_erratas(
-            client.hostname, f"errata_id == {settings.repos.yum_3.errata[25]}"
-        )
+        session.host_new.apply_erratas(client.hostname, f"errata_id == {errata_id}")
         task_result = wait_for_tasks(
             search_query=(
-                f'Install errata errata_id == {settings.repos.yum_3.errata[25].lower()}"'
+                f'"Install errata errata_id == {errata_id.lower()} on {client.hostname}"'
             ),
             search_rate=2,
             max_tries=60,
         )
-        assert task_result[0].result == 'success'
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
         # verify
         values = session.host_new.get_details(client.hostname, widget_names='Content.Errata')
         assert 'table' not in values['Content']['Errata'].keys()
@@ -2410,7 +2410,7 @@ def test_positive_crud_module_streams(
         # enable module stream
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Enable")
         task_result = wait_for_tasks(
-            search_query=(f'Module enable {module_name}'),
+            search_query=(f'Module enable {module_name} on {client.hostname}'),
             search_rate=5,
             max_tries=60,
         )
@@ -2423,7 +2423,7 @@ def test_positive_crud_module_streams(
         # install
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Install")
         task_result = wait_for_tasks(
-            search_query=(f'Module install {module_name}'),
+            search_query=(f'Module install {module_name} on {client.hostname}'),
             search_rate=5,
             max_tries=60,
         )
@@ -2435,7 +2435,7 @@ def test_positive_crud_module_streams(
         # remove
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Remove")
         task_result = wait_for_tasks(
-            search_query=(f'Module remove {module_name}'),
+            search_query=(f'Module remove {module_name} on {client.hostname}'),
             search_rate=5,
             max_tries=60,
         )
@@ -2447,7 +2447,7 @@ def test_positive_crud_module_streams(
 
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Reset")
         task_result = wait_for_tasks(
-            search_query=(f'Module reset {module_name}'),
+            search_query=(f'Module reset {module_name} on {client.hostname}'),
             search_rate=5,
             max_tries=60,
         )
