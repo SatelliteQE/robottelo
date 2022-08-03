@@ -1135,6 +1135,8 @@ PERMISSIONS = {
         'destroy_vm_compute_resources',
         'power_vm_compute_resources',
         'view_foreman_rh_cloud',
+        'dispatch_cloud_requests',
+        'control_organization_insights',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
