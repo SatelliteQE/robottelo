@@ -48,10 +48,7 @@ def set_certificate_in_satellite(server_type, sat, hostname=None):
     if server_type == 'IPA':
         certfile = 'ipa.crt'
         idm_cert_path_url = os.path.join(settings.ipa.hostname, 'ipa/config/ca.crt')
-        sat.get(
-            remote_path=idm_cert_path_url,
-            local_path=CERT_PATH + certfile,
-        )
+        sat.download_file(file_url=idm_cert_path_url, local_path=CERT_PATH, file_name=certfile)
     elif server_type == 'AD':
         certfile = 'satqe-QE-SAT6-AD-CA.cer'
         assert hostname is not None
