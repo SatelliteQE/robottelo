@@ -9,6 +9,7 @@ from robottelo.api.utils import update_rhsso_settings_in_satellite
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import AUDIENCE_MAPPER
+from robottelo.constants import CERT_PATH
 from robottelo.constants import GROUP_MEMBERSHIP_MAPPER
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
@@ -269,6 +270,20 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
         'yum -y --disableplugin=foreman-protector install '
         'mod_auth_openidc keycloak-httpd-client-install'
     )
+    if module_target_sat.os_version.major == '8':
+        # if target directory not given it is installing in /usr/local/lib64
+        module_target_sat.execute(
+            'python3 -m pip install lxml -t /usr/lib64/python3.6/site-packages'
+        )
+    module_target_sat.execute(
+        f'openssl s_client -connect {settings.rhsso.host_name} -showcerts </dev/null 2>/dev/null| '
+        f'sed "/BEGIN CERTIFICATE/,/END CERTIFICATE/!d" > {CERT_PATH}/rh-sso.crt'
+    )
+    module_target_sat.execute(
+        f'sshpass -p "{settings.rhsso.rhsso_password}" scp -o "StrictHostKeyChecking no" '
+        f'root@{settings.rhsso.host_name}:/root/ca_certs/*.crt {CERT_PATH}'
+    )
+    module_target_sat.execute('update-ca-trust')
     module_target_sat.execute(
         f'echo {settings.rhsso.rhsso_password} | keycloak-httpd-client-install --app-name foreman-openidc \
                 --keycloak-server-url {settings.rhsso.host_url} \
@@ -277,6 +292,7 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
                 --keycloak-admin-realm master \
                 --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'
     )
+
     module_target_sat.execute(
         f'satellite-installer --foreman-keycloak true '
         f"--foreman-keycloak-app-name 'foreman-openidc' "
@@ -294,9 +310,9 @@ def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth, module_targ
     audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
     audience_mapper['config']['included.client.audience'] = audience_mapper['config'][
         'included.client.audience'
-    ].format(rhsso_host=module_target_sat)
+    ].format(rhsso_host=module_target_sat.hostname)
     create_mapper(audience_mapper, client_id)
-    set_the_redirect_uri()
+    set_the_redirect_uri(module_target_sat)
 
 
 def enroll_idm_and_configure_external_auth(sat):
@@ -359,7 +375,7 @@ def configure_realm(session_target_sat):
 
 
 @pytest.fixture(scope="module")
-def rhsso_setting_setup(module_target_sat, request):
+def rhsso_setting_setup(module_target_sat):
     """Update the RHSSO setting and revert it in cleanup"""
     update_rhsso_settings_in_satellite(sat=module_target_sat)
     yield
@@ -367,7 +383,7 @@ def rhsso_setting_setup(module_target_sat, request):
 
 
 @pytest.fixture(scope="module")
-def rhsso_setting_setup_with_timeout(module_target_sat, rhsso_setting_setup, request):
+def rhsso_setting_setup_with_timeout(module_target_sat, rhsso_setting_setup):
     """Update the RHSSO setting with timeout setting and revert it in cleanup"""
     setting_entity = module_target_sat.api.Setting().search(query={'search': 'name=idle_timeout'})[
         0
