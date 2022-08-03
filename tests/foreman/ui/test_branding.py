@@ -8,7 +8,7 @@
 
 :CaseComponent: Branding
 
-:Assignee: akjha
+:Assignee: chiggins
 
 :TestType: Functional
 
