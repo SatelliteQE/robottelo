@@ -14,6 +14,7 @@ pytest_plugins = [
     'pytest_plugins.settings_skip',
     'pytest_plugins.rerun_rp.rerun_rp',
     'pytest_plugins.fspath_plugins',
+    'pytest_plugins.fixture_collection',
     # Fixtures
     'pytest_fixtures.core.broker',
     'pytest_fixtures.core.contenthosts',
