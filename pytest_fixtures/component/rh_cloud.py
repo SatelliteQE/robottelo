@@ -18,7 +18,9 @@ def rhcloud_sat_host(satellite_factory):
 def rhcloud_manifest_org(rhcloud_sat_host):
     """A module level fixture to get organization with manifest."""
     org = rhcloud_sat_host.api.Organization().create()
-    manifests_path = rhcloud_sat_host.get(remote_path=settings.fake_manifest.url['default'])
+    manifests_path = rhcloud_sat_host.download_file(file_url=settings.fake_manifest.url['default'])[
+        0
+    ]
     rhcloud_sat_host.cli.Subscription.upload({'file': manifests_path, 'organization-id': org.id})
     return org
 

@@ -45,7 +45,9 @@ def set_certificate_in_satellite(server_type, target_sat, hostname=None):
     """update the cert settings in satellite based on type of ldap server"""
     if server_type == 'IPA':
         idm_cert_path_url = os.path.join(settings.ipa.hostname, 'ipa/config/ca.crt')
-        target_sat.get(remote_path=idm_cert_path_url, local_path=CERT_PATH + 'ipa.crt')
+        target_sat.download_file(
+            file_url=idm_cert_path_url, local_path=CERT_PATH, file_name='ipa.crt'
+        )
     elif server_type == 'AD':
         assert hostname is not None
         target_sat.execute('yum -y --disableplugin=foreman-protector install cifs-utils')

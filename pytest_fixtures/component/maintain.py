@@ -34,7 +34,7 @@ def setup_backup_tests(request, sat_maintain):
 @pytest.fixture(scope="module")
 def module_synced_repos(sat_maintain):
     org = sat_maintain.api.Organization().create()
-    manifests_path = sat_maintain.get(remote_path=settings.fake_manifest.url['default'])
+    manifests_path = sat_maintain.download_file(file_url=settings.fake_manifest.url['default'])[0]
     sat_maintain.cli.Subscription.upload({'file': manifests_path, 'organization-id': org.id})
 
     # sync custom repo
