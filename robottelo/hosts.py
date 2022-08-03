@@ -1,4 +1,3 @@
-import os
 import re
 import time
 from contextlib import contextmanager
@@ -267,17 +266,14 @@ class ContentHost(Host, ContentHostMixins):
 
         :returns: Returns list containing complete file path and name of downloaded file.
         """
-        if not file_name:
-            _, file_name = os.path.split(file_url)
-
-        if not local_path:
-            local_path = '/tmp/'
+        file_name = PurePath(file_name or file_url).name
+        local_path = PurePath(local_path or '/tmp') / file_name
 
         # download on server
-        result = self.execute(f'wget -O {local_path}{file_name} {file_url}')
+        result = self.execute(f'wget -O {local_path} {file_url}')
         if result.status != 0:
-            raise DownloadFileError(f'Unable to download {file_name}')
-        return [f'{local_path}{file_name}', file_name]
+            raise DownloadFileError(f'Unable to download {file_name}: {result.stderr}')
+        return local_path, file_name
 
     def download_install_rpm(self, repo_url, package_name):
         """Downloads and installs custom rpm on the broker virtual machine.
