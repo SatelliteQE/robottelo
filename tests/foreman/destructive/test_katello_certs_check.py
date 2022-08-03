@@ -82,10 +82,9 @@ def test_positive_update_katello_certs(cert_setup_destructive_teardown):
 @pytest.mark.parametrize(
     'certs_vm_setup',
     [
-        {'nick': 'rhel7', 'target_memory': '20GiB', 'target_cores': 4},
         {'nick': 'rhel8', 'target_memory': '20GiB', 'target_cores': 4},
     ],
-    ids=['rhel7', 'rhel8'],
+    ids=['rhel8'],
     indirect=True,
 )
 def test_positive_install_sat_with_katello_certs(certs_vm_setup):
