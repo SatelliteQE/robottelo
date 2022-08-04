@@ -36,6 +36,7 @@ from robottelo.constants import REPOSET
 from robottelo.constants import VALID_GPG_KEY_BETA_FILE
 from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.constants.repos import ANSIBLE_GALAXY
+from robottelo.constants.repos import CUSTOM_RPM_SHA
 from robottelo.datafactory import gen_string
 from robottelo.helpers import read_data_file
 from robottelo.hosts import get_sat_version
@@ -1088,3 +1089,64 @@ def test_positive_select_org_in_any_context():
     :CaseImportance: High
     """
     pass
+
+
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+def test_positive_sync_repo_and_verify_checksum(session, module_org):
+    """Tests that Verify Content Checksum succeeds when executing from the products page
+
+    :id: 577be1f8-7510-49d2-8b33-600db60bd960
+
+    :customerscenario: true
+
+    :BZ: 1951626
+
+    :Steps:
+        1. Enable and sync repository
+        2. Go to Products -> Select Action -> Verify Content Checksum
+
+    :expectedresults: Verify Content Checksum task succeeds
+    """
+    repo_name = gen_string('alpha')
+    product = entities.Product(organization=module_org).create()
+    with session:
+        session.repository.create(
+            product.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': settings.repos.yum_1.url,
+            },
+        )
+        session.repository.synchronize(product.name, repo_name)
+        results = session.product.verify_content_checksum([product.name])
+        assert results['task']['result'] == 'success'
+
+
+@pytest.mark.tier2
+def test_positive_sync_sha_repo(session, module_org):
+    """Sync 'sha' repo successfully
+
+    :id: 6172035f-96c4-41e4-a79b-acfaa78ad734
+
+    :customerscenario: true
+
+    :BZ: 2024889
+
+    :SubComponent: Candlepin
+    """
+    repo_name = gen_string('alpha')
+    product = entities.Product(organization=module_org).create()
+    with session:
+        session.repository.create(
+            product.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': CUSTOM_RPM_SHA,
+            },
+        )
+        result = session.repository.synchronize(product.name, repo_name)
+        assert result['result'] == 'success'
