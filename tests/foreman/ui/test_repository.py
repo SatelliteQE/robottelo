@@ -25,7 +25,6 @@ import pytest
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
-from widgetastic.exceptions import NoSuchElementException
 
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
@@ -1227,6 +1226,7 @@ def test_positive_sync_repo_and_verify_checksum(session, module_org):
         results = session.product.verify_content_checksum([product.name])
         assert results['task']['result'] == 'success'
 
+
 @pytest.mark.tier2
 def test_positive_search_product_any_organization(session):
     """Navigating to products page when Any Organization is selected should
@@ -1251,10 +1251,6 @@ def test_positive_search_product_any_organization(session):
     entities.Product(organization=org).create()
     with session:
         session.organization.select(org_name='Any Organization')
-        try:
-            search_page = session.product.search(gen_string("alpha"))
-        except NoSuchElementException:
-            search_page = None
-        return search_page
+        session.product.search(gen_string("alpha"))
         product_page = session.browser.selenium.page_source
         assert 'access requires selecting a specific organization' in product_page
