@@ -17,18 +17,15 @@
 """
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
+from wait_for import wait_for
 from wrapanapi import RHEVMSystem
 
-from robottelo.api.utils import configure_provisioning
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import CLIReturnCodeError
 from robottelo.cli.factory import make_compute_resource
-from robottelo.cli.factory import make_host
 from robottelo.cli.host import Host
 from robottelo.config import settings
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -43,33 +40,8 @@ def rhev():
     )
     rhev.cluster_id = rhev.rhv_api.get_cluster(rhev.cluster).id
     rhev.storage_id = rhev.rhv_api.get_storage_domain(rhev.storage_domain).id
-    if is_open('BZ:1685949'):
-        dc = rhev.rhv_api._data_centers_service.list(search=f'name={rhev.datacenter}')[0]
-        dc = rhev.rhv_api._data_centers_service.data_center_service(dc.id)
-        rhev.quota = dc.quotas_service().list()[0].id
-    else:
-        rhev.quota = 'Default'
+    rhev.quota = 'Default'
     return rhev
-
-
-@pytest.fixture(scope='module')
-def provisioning(module_org, module_location):
-    provisioning.org_name = module_org.name
-    provisioning.loc_name = module_location.name
-    provisioning.config_env = configure_provisioning(
-        compute=True, org=module_org, loc=module_location, os=None
-    )
-    provisioning.os_name = provisioning.config_env['os']
-    return provisioning
-
-
-@pytest.fixture(scope='module')
-def tear_down(provisioning):
-    """Delete the hosts to free the resources"""
-    yield
-    hosts = Host.list({'organization': provisioning.org_name})
-    for host in hosts:
-        Host.delete({'id': host['id']})
 
 
 @pytest.mark.tier1
@@ -405,10 +377,20 @@ def test_negative_add_image_rhev_with_invalid_name(rhev, module_os):
 
 
 @pytest.mark.on_premises_provisioning
-@pytest.mark.vlan_networking
 @pytest.mark.tier3
-@pytest.mark.skip_if_not_set('vlan_networking')
-def test_positive_provision_rhev_with_host_group(target_sat, rhev, provisioning, tear_down):
+@pytest.mark.rhel_ver_match('[^6]')
+def test_positive_provision_rhev_with_host_group(
+    request,
+    module_provisioning_sat,
+    rhev,
+    module_sca_manifest_org,
+    module_location,
+    module_default_org_view,
+    module_provisioning_rhel_content,
+    module_lce_library,
+    default_architecture,
+    default_partitiontable,
+):
     """Provision a host on RHEV compute resource with
     the help of hostgroup.
 
@@ -438,46 +420,75 @@ def test_positive_provision_rhev_with_host_group(target_sat, rhev, provisioning,
 
     :CaseAutomation: Automated
     """
-    name = gen_string('alpha')
-    rhv_cr = ComputeResource.create(
+    cli = module_provisioning_sat.sat.cli
+    cr_name = gen_string('alpha')
+    org_name = module_sca_manifest_org.name
+    loc_name = module_location.name
+    rhv_cr = cli.ComputeResource.create(
         {
-            'name': name,
+            'name': cr_name,
             'provider': 'Ovirt',
             'user': rhev.username,
             'password': rhev.password,
             'datacenter': rhev.datacenter,
             'url': rhev.hostname,
             'ovirt-quota': rhev.quota,
-            'organizations': provisioning.org_name,
-            'locations': provisioning.loc_name,
+            'organizations': org_name,
+            'locations': loc_name,
         }
     )
-    assert rhv_cr['name'] == name
+    assert rhv_cr['name'] == cr_name
+    domain_name = module_provisioning_sat.domain.name
+    subnet_name = module_provisioning_sat.subnet.name
+    hostgroup = cli.HostGroup.create(
+        {
+            'name': gen_string('alpha'),
+            'organization': org_name,
+            'location': loc_name,
+            'architecture': default_architecture.name,
+            'domain': domain_name,
+            'subnet': subnet_name,
+            'content-source-id': module_provisioning_sat.domain.dns.id,
+            'content-view-id': module_sca_manifest_org.default_content_view.id,
+            'kickstart-repository-id': module_provisioning_rhel_content.ksrepo.id,
+            'lifecycle-environment-id': module_sca_manifest_org.library.id,
+            'operatingsystem': module_provisioning_rhel_content.os.title,
+            'pxe-loader': "PXELinux BIOS",
+            'partition-table': default_partitiontable.name,
+            'compute-resource-id': rhv_cr.get('id'),
+        }
+    )
     host_name = gen_string('alpha').lower()
-    host = make_host(
+    host = cli.Host.create(
         {
             'name': f'{host_name}',
-            'root-password': gen_string('alpha'),
-            'organization': provisioning.org_name,
-            'location': provisioning.loc_name,
+            'organization': org_name,
+            'location': loc_name,
+            'root-password': settings.provisioning.host_root_password,
             'pxe-loader': 'PXELinux BIOS',
-            'hostgroup': provisioning.config_env['host_group'],
+            'hostgroup': hostgroup['name'],
             'compute-resource-id': rhv_cr.get('id'),
-            'compute-attributes': f"cluster={rhev.cluster_id},"
-            "cores=1,"
-            "memory=1073741824,"
-            "start=1",
             'ip': None,
             'mac': None,
-            'interface': f"compute_name=nic1, compute_network={rhev.network_id}",
-            'volume': f"size_gb=10,storage_domain={rhev.storage_id},bootable=True",
+            'compute-attributes': f"cluster={rhev.cluster_id},"
+            "cores=1,"
+            "memory=4294967296,"  # 4 GiB
+            "start=1",
+            'interface': (
+                f"compute_name=nic1, compute_network="
+                f"{settings.rhev.network_prefix}{settings.provisioning.vlan_id}"
+            ),
+            'volume': f"size_gb=20,storage_domain={rhev.storage_domain},bootable=True",
             'provision-method': 'build',
         }
     )
-    hostname = f'{host_name}.{provisioning.config_env["domain"]}'
+    # cleanup
+    request.addfinalizer(lambda: cli.Host.delete({'id': host['id']}))
+
+    # checks
+    hostname = f'{host_name}.{domain_name}'
     assert hostname == host['name']
     host_info = Host.info({'name': hostname})
-    host_ip = host_info.get('network', {}).get('ipv4-address')
     # Check on RHV, if VM exists
     assert rhev.rhv_api.does_vm_exist(hostname)
     # Get the information of created VM
@@ -486,7 +497,22 @@ def test_positive_provision_rhev_with_host_group(target_sat, rhev, provisioning,
     assert host_info.get('network').get('mac') == rhv_vm.get_nics()[0].mac.address
     # Start to run a ping check if network was established on VM
     # If this fails, there's probably some issue with PXE booting or network setup in automation
-    target_sat.ping_host(host=host_ip)
+    # TODO run the following check once https://github.com/SatelliteQE/broker/issues/161 is fixed
+    # TODO note: host_provisioning_check has been changed to target_sat.ping_host(host=host_ip)
+    # host_ip = host_info.get('network', {}).get('ipv4-address')
+    # host_provisioning_check(ip_addr=host_ip)
+
+    # Host should do call back to the Satellite reporting
+    # the result of the installation. Wait until Satellite reports that the host is installed.
+    exp_st = 'Pending installation'
+    wait_for(
+        lambda: cli.Host.info({'id': host['id']})['status']['build-status'] != exp_st,
+        # timeout=200,  # no need to wait long, the host was already pingable
+        timeout=4000,  # wait long because the ping check has not been done, TODO
+        delay=10,
+    )
+    host = cli.Host.info({'id': host['id']})
+    assert host['status']['build-status'] == 'Installed'
 
 
 @pytest.mark.stubbed
@@ -518,10 +544,16 @@ def test_positive_provision_rhev_without_host_group(rhev):
 
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
-@pytest.mark.skip_if_not_set('vlan_networking')
+@pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete'], indirect=True)
 def test_positive_provision_rhev_image_based_and_disassociate(
-    provisioning, rhev, tear_down, setting_update
+    request,
+    module_provisioning_sat,
+    rhev,
+    module_org,
+    module_location,
+    module_provisioning_rhel_content,
+    setting_update,
 ):
     """Provision a host on RHEV compute resource using image-based provisioning
 
@@ -552,63 +584,74 @@ def test_positive_provision_rhev_image_based_and_disassociate(
 
     :CaseAutomation: Automated
     """
+    cli = module_provisioning_sat.sat.cli
+    org_name = module_org.name
+    loc_name = module_location.name
+    name = gen_string('alpha')
+    rhv_cr = cli.ComputeResource.create(
+        {
+            'name': name,
+            'provider': 'Ovirt',
+            'user': rhev.username,
+            'password': rhev.password,
+            'datacenter': rhev.datacenter,
+            'url': rhev.hostname,
+            'ovirt-quota': rhev.quota,
+            'organizations': org_name,
+            'locations': loc_name,
+        }
+    )
+    assert rhv_cr['name'] == name
+    host_name = gen_string('alpha').lower()
+    # use some RHEL (usually latest)
+    os = module_provisioning_rhel_content.os
+    image = cli.ComputeResource.image_create(
+        {
+            'compute-resource': rhv_cr['name'],
+            'name': f'img {gen_string(str_type="alpha")}',
+            'uuid': rhev.image_uuid,
+            'operatingsystem-id': os.id,
+            'architecture': rhev.image_arch,
+            'username': 'root',
+            'password': rhev.image_password,
+            'user-data': 'yes',  # so finish template won't be used
+        }
+    )
+    domain_name = module_provisioning_sat.domain.name
+    subnet_name = module_provisioning_sat.subnet.name
+    host_name = gen_string('alpha').lower()
+    host = None  # to avoid UnboundLocalError in finally block
+    rhv_vm = None
     try:
-        name = gen_string('alpha')
-        rhv_cr = ComputeResource.create(
-            {
-                'name': name,
-                'provider': 'Ovirt',
-                'user': rhev.username,
-                'password': rhev.password,
-                'datacenter': rhev.datacenter,
-                'url': rhev.hostname,
-                'ovirt-quota': rhev.quota,
-                'organizations': provisioning.org_name,
-                'locations': provisioning.loc_name,
-            }
-        )
-        assert rhv_cr['name'] == name
-        host_name = gen_string('alpha').lower()
-        # use some RHEL (usually latest)
-        os = (
-            entities.OperatingSystem()
-            .search(query={'search': 'name="RedHat" AND (major="6" OR major="7")'})[0]
-            .read()
-        )
-        image = ComputeResource.image_create(
-            {
-                'compute-resource': rhv_cr['name'],
-                'name': f'img {gen_string(str_type="alpha")}',
-                'uuid': rhev.image_uuid,
-                'operatingsystem-id': os.id,
-                'architecture': rhev.image_arch,
-                'username': 'root',
-                'password': rhev.image_password,
-                'user-data': 'yes',  # so finish template won't be used
-            }
-        )
-        host = make_host(
+        host = cli.Host.create(
             {
                 'name': f'{host_name}',
-                'organization': provisioning.org_name,
-                'domain': provisioning.config_env['domain'],
-                'subnet': provisioning.config_env['subnet'],
-                'location': provisioning.loc_name,
+                'organization': org_name,
+                'location': loc_name,
+                'root-password': settings.provisioning.host_root_password,
+                'pxe-loader': 'PXELinux BIOS',
+                'architecture': os.architecture[0].read().name,
+                'domain': domain_name,
+                'subnet': subnet_name,
                 'compute-resource-id': rhv_cr.get('id'),
-                'compute-attributes': f"cluster={rhev.cluster_id},"
-                "cores=1,"
-                "memory=1073741824,"
-                "start=0",
                 'ip': None,
                 'mac': None,
-                'interface': f"compute_name=nic1, compute_network={rhev.network_id}",
+                'compute-attributes': f"cluster={rhev.cluster_id},"
+                "cores=1,"
+                "memory=4294967296,"  # 4 GiB
+                "start=1",
+                'interface': (
+                    f"compute_name=nic1, compute_network="
+                    f"{settings.rhev.network_prefix}{settings.provisioning.vlan_id}"
+                ),
+                # we already have a disk in image
+                # 'volume': f"size_gb=20,storage_domain={rhev.storage_domain},bootable=True",
                 'provision-method': 'image',
                 'operatingsystem-id': os.id,
-                'architecture': rhev.image_arch,
                 'image-id': f'{image[0]["id"]}',
             }
         )
-        hostname = f'{host_name}.{provisioning.config_env["domain"]}'
+        hostname = f'{host_name}.{domain_name}'
         assert hostname == host['name']
         host_info = Host.info({'name': hostname})
         # Check on RHV, if VM exists
@@ -625,13 +668,15 @@ def test_positive_provision_rhev_image_based_and_disassociate(
         # that's enough.
 
         # Disassociate the host from the CR, check it's disassociated
-        Host.disassociate({'name': hostname})
-        host_info = Host.info({'name': hostname})
+        cli.Host.disassociate({'name': hostname})
+        host_info = cli.Host.info({'name': hostname})
         assert 'compute-resource' not in host_info
 
     finally:
 
         # Now, let's just remove the host
-        Host.delete({'id': host['id']})
+        if host is not None:
+            cli.Host.delete({'id': host['id']})
         # Delete the VM since the disassociated VM won't get deleted
-        rhv_vm.delete()
+        if rhv_vm is not None:
+            rhv_vm.delete()

@@ -116,6 +116,7 @@ def module_provisioning_rhel_content(
         ],
     ).create()
 
+    # also return ksrepo because it is not returned in hostgroup
     return Box(hostgroup=hostgroup, os=os, ksrepo=ksrepo)
 
 
