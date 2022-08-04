@@ -38,6 +38,7 @@ from robottelo.constants import INVALID_URL
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import ANSIBLE_GALAXY
+from robottelo.constants.repos import CUSTOM_RPM_SHA
 from robottelo.datafactory import gen_string
 from robottelo.hosts import get_sat_version
 
@@ -1226,3 +1227,30 @@ def test_positive_sync_repo_and_verify_checksum(session, module_org):
         session.repository.synchronize(product.name, repo_name)
         results = session.product.verify_content_checksum([product.name])
         assert results['task']['result'] == 'success'
+
+
+@pytest.mark.tier2
+def test_positive_sync_sha_repo(session, module_org):
+    """Sync 'sha' repo successfully
+
+    :id: 6172035f-96c4-41e4-a79b-acfaa78ad734
+
+    :customerscenario: true
+
+    :BZ: 2024889
+
+    :SubComponent: Candlepin
+    """
+    repo_name = gen_string('alpha')
+    product = entities.Product(organization=module_org).create()
+    with session:
+        session.repository.create(
+            product.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': CUSTOM_RPM_SHA,
+            },
+        )
+        result = session.repository.synchronize(product.name, repo_name)
+        assert result['result'] == 'success'
