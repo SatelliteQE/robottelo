@@ -176,19 +176,14 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
         assert actual_repos == expected_repos
         # Check start date for BZ#1920860 (but handle BZ#2112320 offset-by-one bug)
         custom_product_name = module_repos_collection_with_manifest.custom_product['name']
-        if is_open('BZ:2112320'):
-            custom_sub = next(
+        custom_sub = next(
                 item
                 for item in chost['subscriptions']['resources']['assigned']
                 if item["Repository Name"] == custom_product_name
             )
+        if is_open('BZ:2112320'):
             assert startdate in custom_sub['Expires']
         else:
-            custom_sub = next(
-                item
-                for item in chost['subscriptions']['resources']['assigned']
-                if item["Repository Name"] == custom_product_name
-            )
             assert startdate in custom_sub['Starts']
         # Update description
         new_description = gen_string('alpha')
