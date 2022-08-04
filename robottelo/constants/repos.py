@@ -4,6 +4,7 @@
 CUSTOM_FILE_REPO = 'https://fixtures.pulpproject.org/file/'
 CUSTOM_KICKSTART_REPO = 'http://ftp.cvut.cz/centos/8/BaseOS/x86_64/kickstart/'
 CUSTOM_RPM_REPO = 'https://fixtures.pulpproject.org/rpm-signed/'
+CUSTOM_RPM_SHA = 'https://fixtures.pulpproject.org/rpm-with-sha/'
 CUSTOM_RPM_SHA_512 = 'https://fixtures.pulpproject.org/rpm-with-sha-512/'
 FAKE_5_YUM_REPO = 'https://rplevka.fedorapeople.org/fakerepo01/'
 FAKE_YUM_DRPM_REPO = 'https://fixtures.pulpproject.org/drpm-signed/'

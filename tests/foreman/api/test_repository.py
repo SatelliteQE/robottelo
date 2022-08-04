@@ -1425,6 +1425,32 @@ class TestRepositorySync:
             )
             assert result.status == 0
 
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized([{'content_type': 'yum', 'url': repo_constants.CUSTOM_RPM_SHA}]),
+        indirect=True,
+    )
+    def test_positive_sync_sha_repo(self, repo, target_sat):
+        """Sync a 'sha' repo successfully
+
+        :id: b842a21d-639a-48aa-baf3-9244d8bc1415
+
+        :parametrized: yes
+
+        :customerscenario: true
+
+        :BZ: 2024889
+
+        :SubComponent: Candlepin
+        """
+        sync_result = repo.sync()
+        assert sync_result['result'] == 'success'
+        result = target_sat.execute(
+            'grep "Artifact() got an unexpected keyword argument" /var/log/messages'
+        )
+        assert result.status == 1
+
 
 class TestDockerRepository:
     """Tests specific to using ``Docker`` repositories."""

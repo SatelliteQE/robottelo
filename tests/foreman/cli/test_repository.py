@@ -70,6 +70,7 @@ from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.constants import SRPM_TO_UPLOAD
 from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.constants.repos import CUSTOM_FILE_REPO
+from robottelo.constants.repos import CUSTOM_RPM_SHA
 from robottelo.constants.repos import FAKE_5_YUM_REPO
 from robottelo.constants.repos import FAKE_YUM_DRPM_REPO
 from robottelo.constants.repos import FAKE_YUM_MD5_REPO
@@ -2111,6 +2112,31 @@ class TestRepository:
             'tail -n 10 /var/log/httpd/foreman-ssl_access_ssl.log | grep "/rhsm"'
         )
         assert 'accessible_content HTTP/1.1" 304' in access_log.stdout
+
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized([{'content_type': 'yum', 'url': CUSTOM_RPM_SHA}]),
+        indirect=True,
+    )
+    def test_positive_sync_sha_repo(self, repo_options):
+        """Sync a 'sha' repo successfully
+
+        :id: 20579f52-a67b-4d3f-be07-41eec059a891
+
+        :parametrized: yes
+
+        :customerscenario: true
+
+        :BZ: 2024889
+
+        :SubComponent: Candlepin
+        """
+        sha_repo = make_repository(repo_options)
+        sha_repo = Repository.info({'id': sha_repo['id']})
+        Repository.synchronize({'id': sha_repo['id']})
+        sha_repo = Repository.info({'id': sha_repo['id']})
+        assert sha_repo['sync']['status'] == 'Success'
 
 
 # TODO: un-comment when OSTREE functionality is restored in Satellite 6.11
