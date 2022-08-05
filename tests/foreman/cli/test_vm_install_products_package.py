@@ -70,7 +70,7 @@ def test_vm_install_package(repos_collection, org, lce, distro, cdn):
         pytest.skip('rhel6 skipped until ELS subscriptions are in manifest.')
     # Create repos, content view, and activation key.
     repos_collection.setup_content(org['id'], lce['id'], upload_manifest=True)
-    with Broker(nick=distro, host_classes={'host': ContentHost}) as host:
+    with Broker(nick=distro, host_class=ContentHost) as host:
         # install katello-agent
         repos_collection.setup_virtual_machine(
             host, enable_custom_repos=True, install_katello_agent=False

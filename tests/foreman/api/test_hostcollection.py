@@ -428,7 +428,7 @@ def test_positive_add_remove_subscription(module_org, module_ak_cv_lce, target_s
         query={'search': f'name={prod_name}'}
     )[0]
     # Create and register VMs as members of Host Collection
-    with Broker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
+    with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
         for client in hosts:
             client.install_katello_ca(target_sat)
             client.register_contenthost(module_org.label, module_ak_cv_lce.name)

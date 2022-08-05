@@ -17,7 +17,7 @@ def certs_vm_setup(request):
     target_memory = request.param.get('target_memory', '1GiB')
     with Broker(
         nick=request.param['nick'],
-        host_classes={'host': ContentHost},
+        host_class=ContentHost,
         target_cores=target_cores,
         target_memory=target_memory,
     ) as host:

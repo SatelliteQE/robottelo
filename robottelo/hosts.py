@@ -166,7 +166,7 @@ class ContentHost(Host, ContentHostMixins):
 
     @property
     def ip_addr(self):
-        ipv4, ipv6 = self.execute('hostname -I').stdout.split()
+        ipv4, *ipv6 = self.execute('hostname -I').stdout.split()
         return ipv4
 
     @cached_property
@@ -208,7 +208,7 @@ class ContentHost(Host, ContentHostMixins):
                 self.nailgun_host.delete()
             self.unregister()
         # Strip most unnecessary attributes from our instance for checkin
-        keep_keys = set(self.to_dict()) | {'release', '_prov_inst'}
+        keep_keys = set(self.to_dict()) | {'release', '_prov_inst', '_cont_inst_p'}
         self.__dict__ = {k: v for k, v in self.__dict__.items() if k in keep_keys}
         self.__class__ = Host
 

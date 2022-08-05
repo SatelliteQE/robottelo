@@ -903,7 +903,7 @@ def test_positive_generate_hostpkgcompare(
     )
 
     clients = []
-    with Broker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
+    with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
         for client in hosts:
             # Create RHEL hosts via broker and register content host
             client.install_katello_ca(target_sat)

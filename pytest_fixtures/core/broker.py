@@ -22,7 +22,7 @@ def _resolve_deploy_args(args_dict):
 def _default_sat(align_to_satellite):
     """Returns a Satellite object for settings.server.hostname"""
     if settings.server.hostname:
-        hosts = Broker(host_classes={'host': Satellite}).from_inventory(
+        hosts = Broker(host_class=Satellite).from_inventory(
             filter=f'hostname={settings.server.hostname}'
         )
         if hosts:
@@ -80,7 +80,7 @@ def satellite_factory():
             logger.debug(f'Updated broker args for sat: {broker_args}')
 
         vmb = Broker(
-            host_classes={'host': Satellite},
+            host_class=Satellite,
             workflow=workflow or settings.server.deploy_workflow,
             **broker_args,
         )
@@ -100,7 +100,7 @@ def capsule_factory():
         if settings.capsule.deploy_arguments:
             broker_args.update(settings.capsule.deploy_arguments)
         vmb = Broker(
-            host_classes={'host': Capsule},
+            host_class=Capsule,
             workflow=workflow or settings.capsule.deploy_workflow,
             **broker_args,
         )

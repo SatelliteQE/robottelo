@@ -166,7 +166,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
 
     :CaseLevel: System
     """
-    with Broker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
+    with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
         host_names = []
         for host in hosts:
             host_names.append(host.hostname)
