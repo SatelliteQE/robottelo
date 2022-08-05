@@ -19,6 +19,7 @@ def pytest_configure(config):
         "build_sanity: Fast, basic tests that confirm build is ready for full test suite",
         "rhel_ver_list: Filter rhel_contenthost versions by list",
         "rhel_ver_match: Filter rhel_contenthost versions by regexp",
+        "no_containers: Disable container hosts from being used in favor of VMs",
     ]
     markers.extend(module_markers())
     for marker in markers:

@@ -1,33 +1,52 @@
 content_host:
-    default_rhel_version: 7
-    default_deploy_workflow: deploy-base-rhel
-    deploy_kwargs:
-        RHEL6:
-            RELEASE: 6.10
-            MEMORY: 1GiB
-            CORES: 1
-        RHEL7:
-            RELEASE: 7.9
-            MEMORY: 1GiB
-            CORES: 1
-        RHEL8:
-            RELEASE: 8.3
-            MEMORY: 1536 MiB
-            CORES: 1
-        RHEL9:
-            RELEASE: 9.0
-            COMPOSE: RHEL-9.0.0-20220118.1
-            MEMORY: 1536 MiB
-            CORES: 1
-        CENTOS7:
-            deploy_workflow: deploy-centos
-            scenario: centos
-            release: '7'
-            MEMORY: 1GiB
-            CORES: 1
-        ORACLE7:
-            deploy_workflow: deploy-oracle-linux
-            scenario: oracle
-            release: '7.9'
-            MEMORY: 1GiB
-            CORES: 1
+  default_rhel_version: 7
+  rhel6:
+    vm:
+      workflow: deploy-base-rhel
+      release: '6.10'
+      memory: 1GiB
+      cores: 1
+    container:
+      container_host: rhel6:latest"
+  rhel7:
+    vm:
+      workflow: deploy-base-rhel
+      release: '7.9'
+      memory: 1GiB
+      cores: 1
+    container:
+      container_host: ubi7:latest
+  rhel7_fips:
+    vm:
+      workflow: deploy-base-rhel-fips
+      release: '7.9'
+      memory: 1GiB
+      cores: 1
+  rhel8:
+    vm:
+      workflow: deploy-base-rhel
+      release: '8.5'
+      memory: 1536 MiB
+      cores: 1
+    container:
+      container_host: ubi8:latest
+  rhel8_fips:
+    vm:
+      workflow: deploy-base-rhel-fips
+      release: '8.5'
+      memory: 1536 MiB
+      cores: 1
+  rhel9:
+    vm:
+      workflow: deploy-base-rhel
+      release: '9.0'
+      memory: 1536 MiB
+      cores: 1
+    container:
+      container_host: ubi9:latest
+  rhel9_fips:
+    vm:
+      workflow: deploy-base-rhel-fips
+      release: '9.0'
+      memory: 1536 MiB
+      cores: 1
