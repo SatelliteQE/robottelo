@@ -203,7 +203,7 @@ def test_positive_oscap_run_via_ansible(
     )
     with Broker(
         nick=distro,
-        host_classes={'host': ContentHost},
+        host_class=ContentHost,
         target_cores=OSCAP_TARGET_CORES,
         target_memory=OSCAP_TARGET_MEMORY,
     ) as vm:
@@ -318,7 +318,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
     )
     with Broker(
         nick='rhel7',
-        host_classes={'host': ContentHost},
+        host_class=ContentHost,
         target_cores=OSCAP_TARGET_CORES,
         target_memory=OSCAP_TARGET_MEMORY,
     ) as vm:

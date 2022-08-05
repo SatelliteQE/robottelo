@@ -56,14 +56,14 @@ def fixture_sca_vmsetup(request, module_gt_manifest_org, target_sat):
     if '_count' in request.param.keys():
         with Broker(
             nick=request.param['nick'],
-            host_classes={'host': ContentHost},
+            host_class=ContentHost,
             _count=request.param['_count'],
         ) as clients:
             for client in clients:
                 client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
             yield clients
     else:
-        with Broker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
+        with Broker(nick=request.param['nick'], host_class=ContentHost) as client:
             client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
             yield client
 
@@ -808,6 +808,7 @@ class TestRexUsers:
         indirect=True,
     )
     @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.no_containers
     def test_positive_rex_against_infra_hosts(
         self,
         rex_contenthost,

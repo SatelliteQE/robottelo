@@ -166,6 +166,7 @@ def _fetch_available_errata(module_org, host, expected_amount, timeout=120):
 @pytest.mark.upgrade
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.no_containers
 def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_sat, content_hosts):
     """Install errata in a host-collection
 
@@ -218,6 +219,7 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_
 
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.no_containers
 def test_positive_install_in_host(
     module_org, activation_key, custom_repo, rhel_contenthost, target_sat
 ):
@@ -267,6 +269,7 @@ def test_positive_install_in_host(
 
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.no_containers
 def test_positive_install_multiple_in_host(
     module_org, activation_key, custom_repo, rhel_contenthost, target_sat
 ):
@@ -732,6 +735,7 @@ def _validate_swid_tags_installed(module_org, vm, module_name):
     [{'YumRepository': {'url': settings.repos.swid_tag.url, 'distro': 'rhel8'}}],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_errata_installation_with_swidtags(
     module_org, module_lce, module_repos_collection_with_manifest, rhel8_contenthost, target_sat
 ):

@@ -65,6 +65,7 @@ class TestScenarioREXCapsule:
     """
 
     @pytest.mark.pre_upgrade
+    @pytest.mark.no_containers
     def test_pre_scenario_remoteexecution_external_capsule(
         self, request, default_location, rhel7_contenthost
     ):
