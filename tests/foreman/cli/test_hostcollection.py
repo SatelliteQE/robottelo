@@ -305,7 +305,7 @@ def test_positive_register_host_ak_with_host_collection(module_org, module_ak_wi
         {'id': hc['id'], 'organization-id': module_org.id, 'host-ids': host_info['id']}
     )
 
-    with Broker(nick='rhel7', host_classes={'host': ContentHost}) as client:
+    with Broker(nick='rhel7', host_class=ContentHost) as client:
         client.install_katello_ca(target_sat)
         # register the client host with the current activation key
         client.register_contenthost(module_org.name, activation_key=module_ak_with_cv.name)

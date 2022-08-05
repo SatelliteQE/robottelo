@@ -65,7 +65,7 @@ def module_repos_collection(module_org, module_lce, module_target_sat):
 @pytest.fixture
 def vm_content_hosts(smart_proxy_location, module_repos_collection, module_target_sat):
     distro = module_repos_collection.distro
-    with Broker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
+    with Broker(nick=distro, host_class=ContentHost, _count=2) as clients:
         for client in clients:
             module_repos_collection.setup_virtual_machine(client, install_katello_agent=False)
             client.add_rex_key(satellite=module_target_sat)
@@ -77,8 +77,7 @@ def vm_content_hosts(smart_proxy_location, module_repos_collection, module_targe
 def vm_content_hosts_module_stream(
     smart_proxy_location, module_repos_collection_with_manifest, module_target_sat
 ):
-    distro = constants.DISTRO_RHEL8
-    with Broker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
+    with Broker(nick='rhel8', host_class=ContentHost, _count=2) as clients:
         for client in clients:
             module_repos_collection_with_manifest.setup_virtual_machine(
                 client, install_katello_agent=False

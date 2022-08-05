@@ -207,7 +207,7 @@ def oracle(
 @pytest.fixture(scope='module')
 def version(request):
     """Version of converted OS"""
-    return settings.content_host.deploy_kwargs.get(request.param).release
+    return settings.content_host.get(request.param).vm.release
 
 
 @pytest.mark.parametrize(
