@@ -18,22 +18,20 @@
 """
 import queue
 import threading
+from pathlib import PurePath
 from time import sleep
 
 import pytest
 from broker import Broker
 
-from robottelo import constants
 from robottelo.cli.capsule import Capsule as ContentCapsule
-from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.config import settings
-from robottelo.helpers import get_data_file
 from robottelo.helpers import InstallerCommand
 from robottelo.hosts import Capsule
 from robottelo.hosts import ContentHost
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def get_hosts_from_broker():
     """Get hosts from broker.
        Using threading to reduce the checkout time.
@@ -41,30 +39,27 @@ def get_hosts_from_broker():
     """
 
     def _get_hosts(vm_nick, vm_count):
-        if 'cap' in vm_nick:
-            host_class = Capsule
-        if 'rhel' in vm_nick:
-            host_class = ContentHost
+        host_class = Capsule if 'cap' in vm_nick else ContentHost
 
         host = Broker(nick=vm_nick, host_classes={'host': host_class}, _count=vm_count).checkout()
-        q.put({vm_nick: host})
+        que.put({vm_nick: host})
 
     threads = list()
-    q = queue.Queue()
+    que = queue.Queue()
     results = dict()
-    host_count = [['rhel7', 1], ['cap611_8', 1], ['cap611_7', 1]]
+    host_count = [['rhel7', 1], ['cap612', 2]]
     for host in host_count:
         threads.append(threading.Thread(target=_get_hosts, args=(host[0], host[1])))
         sleep(1)
         threads[-1].start()
     _ = [t.join() for t in threads]
 
-    while not q.empty():
-        results.update(q.get())
+    while not que.empty():
+        results.update(que.get())
 
     yield results
 
-    all_hosts = [results['rhel7'], results['cap611_8'], results['cap611_7']]
+    all_hosts = [results['rhel7'], results['cap612'][0], results['cap612'][1]]
     Broker(hosts=all_hosts).checkin()
 
 
@@ -74,7 +69,7 @@ def content_for_client(module_org, module_target_sat, module_lce, module_cv, mod
 
     :return: Activation key, client lifecycle environment(used by setup_capsules())
     """
-    setup_org_for_a_custom_repo(
+    module_target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.RHEL7_OS,
             'organization-id': module_org.id,
@@ -92,20 +87,8 @@ def setup_capsules(module_org, get_hosts_from_broker, module_target_sat, content
     extra_cert_var = {'foreman-proxy-cname': get_hosts_from_broker['rhel7'].hostname}
     extra_installer_var = {'certs-cname': get_hosts_from_broker['rhel7'].hostname}
 
-    for capsule in [get_hosts_from_broker['cap611_8'], get_hosts_from_broker['cap611_7']]:
-        capsule.register_contenthost(
-            org=None,
-            lce=None,
-            username=settings.subscription.rhn_username,
-            password=settings.subscription.rhn_password,
-        )
-        result = capsule.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
-        assert result.status == 0
-        version = capsule.os_version.major
-        for repo in getattr(constants, f'OHSNAP_RHEL{version}_REPOS'):
-            capsule.enable_repo(repo=repo, force=True)
-        capsule.download_repos(repo_name='capsule', version=version)
-
+    for capsule in get_hosts_from_broker['cap612']:
+        capsule.register_to_cdn()
         command = InstallerCommand(
             command='capsule-certs-generate',
             foreman_proxy_fqdn=capsule.hostname,
@@ -130,14 +113,11 @@ def setup_capsules(module_org, get_hosts_from_broker, module_target_sat, content
             {'id': capsule.nailgun_capsule.id, 'organization-id': module_org.id}
         )
     yield {
-        'capsule_1': get_hosts_from_broker["cap611_8"],
-        'capsule_2': get_hosts_from_broker["cap611_7"],
+        'capsule_1': get_hosts_from_broker["cap612"][0],
+        'capsule_2': get_hosts_from_broker["cap612"][1],
     }
 
-    _ = [
-        capsule.unregister()
-        for capsule in [get_hosts_from_broker['cap611_8'], get_hosts_from_broker['cap611_7']]
-    ]
+    _ = [capsule.unregister() for capsule in [get_hosts_from_broker['cap612']]]
 
 
 @pytest.fixture(scope='module')
@@ -155,7 +135,8 @@ def setup_haproxy(
     assert result.status == 0
     haproxy.execute('rm -r /etc/haproxy/haproxy.cfg')
     haproxy.session.sftp_write(
-        source=get_data_file('haproxy.cfg'), destination='/etc/haproxy/haproxy.cfg'
+        source=PurePath('tests/foreman/data').joinpath('haproxy.cfg'),
+        destination='/etc/haproxy/haproxy.cfg',
     )
     haproxy.execute(
         f'sed -i -e s/CAPSULE_1/{setup_capsules["capsule_1"].hostname}/g '
@@ -165,7 +146,8 @@ def setup_haproxy(
     haproxy.execute('systemctl restart haproxy.service')
     haproxy.execute('mkdir /var/lib/haproxy/dev')
     haproxy.session.sftp_write(
-        source=get_data_file('99-haproxy.conf'), destination='/etc/rsyslog.d/99-haproxy.conf'
+        source=PurePath('tests/foreman/data').joinpath('99-haproxy.conf'),
+        destination='/etc/rsyslog.d/99-haproxy.conf',
     )
     haproxy.execute('setenforce Permissive')
     result = haproxy.execute('systemctl restart haproxy.service rsyslog.service')
@@ -190,7 +172,7 @@ def loadbalancer_setup(
 
 @pytest.mark.dependency()
 @pytest.mark.tier1
-def test_loadbalancer_register_client_using_ak_to_capsule(loadbalancer_setup, rhel7_contenthost):
+def test_loadbalancer_register_client_using_ak_to_ha_proxy(loadbalancer_setup, rhel7_contenthost):
     """Register the client using ak to the capsule
 
     :id: 7318c380-e149-11ea-9b17-4ceb42ab8dbc
@@ -225,7 +207,7 @@ def test_loadbalancer_register_client_using_ak_to_capsule(loadbalancer_setup, rh
     )
 
 
-@pytest.mark.dependency(depends=['test_loadbalancer_register_client_using_ak_to_capsule'])
+@pytest.mark.dependency(depends=['test_loadbalancer_register_client_using_ak_to_ha_proxy'])
 @pytest.mark.tier1
 def test_list_repolist():
     """List all the repositories
