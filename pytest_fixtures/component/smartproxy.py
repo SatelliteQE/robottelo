@@ -3,7 +3,6 @@ from fauxfactory import gen_string
 
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.helpers import default_url_on_new_port
-from robottelo.helpers import get_available_capsule_port
 
 
 @pytest.fixture(scope='session')
@@ -25,7 +24,7 @@ def import_puppet_classes(default_smart_proxy):
 def module_fake_proxy(request, module_target_sat):
     """Create a Proxy and register the cleanup function"""
     args = {'name': gen_string(str_type='alpha')}
-    newport = get_available_capsule_port()
+    newport = module_target_sat.get_available_capsule_port
     try:
         with default_url_on_new_port(9090, newport) as url:
             args['url'] = url

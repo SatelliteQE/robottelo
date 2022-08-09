@@ -498,7 +498,7 @@ class CLIFactory:
         args = {'name': gen_alphanumeric()}
 
         if options is None or 'url' not in options:
-            newport = self._satellite.get_available_capsule_port()
+            newport = self._satellite.get_available_capsule_port
             try:
                 with self._satellite.default_url_on_new_port(9090, newport) as url:
                     args['url'] = url

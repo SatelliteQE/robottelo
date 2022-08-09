@@ -64,7 +64,7 @@ def valid_labels_list():
 @pytest.fixture
 def proxy(target_sat):
     """Create a Proxy and clean up when done."""
-    proxy = make_proxy()
+    proxy = make_proxy({'newport': target_sat.get_available_capsule_port})
     yield proxy
     target_sat.cli.Proxy.delete({'id': proxy['id']})
 

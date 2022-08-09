@@ -1,6 +1,5 @@
 """Several helper methods and functions."""
 import contextlib
-import random
 import re
 from urllib.parse import urljoin  # noqa
 
@@ -30,58 +29,6 @@ def get_nailgun_config(user=None):
     """
     creds = (user.login, user.passwd) if user else get_credentials()
     return ServerConfig(get_url(), creds, verify=False)
-
-
-def get_available_capsule_port(port_pool=None):
-    """returns a list of unused ports dedicated for fake capsules
-    This calls an ss command on the server prompting for a port range. ss
-    returns a list of ports which have a PID assigned (a list of ports
-    which are already used). This function then substracts unavailable ports
-    from the other ones and returns one of available ones randomly.
-
-    :param port_pool: A list of ports used for fake capsules (for RHEL7+: don't
-        forget to set a correct selinux context before otherwise you'll get
-        Connection Refused error)
-
-    :return: Random available port from interval <9091, 9190>.
-    :rtype: int
-    """
-    if port_pool is None:
-        port_pool_range = settings.fake_capsules.port_range
-        if type(port_pool_range) is str:
-            port_pool_range = tuple(port_pool_range.split('-'))
-        if type(port_pool_range) is tuple and len(port_pool_range) == 2:
-            port_pool = range(int(port_pool_range[0]), int(port_pool_range[1]))
-        else:
-            raise TypeError(
-                'Expected type of port_range is a tuple of 2 elements,'
-                f'got {type(port_pool_range)} instead'
-            )
-    # returns a list of strings
-    ss_cmd = ssh.command(
-        f"ss -tnaH sport ge {port_pool[0]} sport le {port_pool[-1]}"
-        " | awk '{n=split($4, p, \":\"); print p[n]}' | sort -u"
-    )
-    if ss_cmd.stderr[1]:
-        raise CapsuleTunnelError(
-            f'Failed to create ssh tunnel: Error getting port status: {ss_cmd.stderr}'
-        )
-    # converts a List of strings to a List of integers
-    try:
-        print(ss_cmd)
-        used_ports = map(
-            int, [val for val in ss_cmd.stdout.splitlines()[:-1] if val != 'Cannot stat file ']
-        )
-
-    except ValueError:
-        raise CapsuleTunnelError(
-            f'Failed parsing the port numbers from stdout: {ss_cmd.stdout.splitlines()[:-1]}'
-        )
-    try:
-        # take the list of available ports and return randomly selected one
-        return random.choice([port for port in port_pool if port not in used_ports])
-    except IndexError:
-        raise CapsuleTunnelError('Failed to create ssh tunnel: No more ports available for mapping')
 
 
 @contextlib.contextmanager
