@@ -1,3 +1,4 @@
 RH_CLOUD:
-  Token: rh_cloud_token_value
   INSTALL_RHC: false
+  ORGANIZATION: org_name
+  ACTIVATION_KEY: ak_name
