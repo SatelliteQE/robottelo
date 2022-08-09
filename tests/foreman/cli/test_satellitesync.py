@@ -252,7 +252,10 @@ def _create_cv(cv_name, repo, organization, publish=True):
     :param publish: Publishes the CV if True else doesnt
     :return: The directory of CV and Content View ID
     """
-    content_view = make_content_view({'name': cv_name, 'organization-id': organization['id']})
+    description = gen_string('alpha')
+    content_view = make_content_view(
+        {'name': cv_name, 'description': description, 'organization-id': module_org.id}
+    )
     ContentView.add_repository(
         {
             'id': content_view['id'],
@@ -378,6 +381,97 @@ class TestContentViewSync:
 
     :Assignee: ltran
     """
+
+    @pytest.mark.tier3
+    def test_positive_export_import_cv_end_to_end(
+        self,
+        class_export_entities,
+        config_export_import_settings,
+        export_import_cleanup_module,
+        target_sat,
+        module_org,
+    ):
+        """Export the CV and import it.  Ensure that all content is same from
+            export to import
+
+        :id: b4fb9386-9b6a-4fc5-a8bf-96d7c80af93e
+
+        :steps:
+
+            1. Create product and repository with custom contents.
+            2. Sync the repository.
+            3. Create CV with above product and publish.
+            4. Export CV version via complete version
+            5. Import the exported files to satellite
+            6. Check that content of export and import matches
+
+        :expectedresults:
+
+            1. CV version custom contents has been exported to directory
+            2. All The exported custom contents has been imported in org/satellite
+
+        :CaseAutomation: Automated
+
+        :CaseComponent: ContentViews
+
+        :CaseImportance: High
+
+        :CaseLevel: System
+
+        :BZ: 1832858
+
+        :customerscenario: true
+        """
+        export_prod_name = import_prod_name = class_export_entities['exporting_prod_name']
+        export_repo_name = import_repo_name = class_export_entities['exporting_repo_name']
+        export_cvv_id = class_export_entities['exporting_cvv_id']
+        export_cv_description = class_export_entities['exporting_cv']['description']
+        import_cv_name = class_export_entities['exporting_cv_name']
+        # check packages
+        exported_packages = Package.list({'content-view-version-id': export_cvv_id})
+        assert len(exported_packages)
+        # Verify export directory is empty
+        assert validate_filepath(target_sat, module_org) == ''
+        # Export cv
+        export = ContentExport.completeVersion(
+            {'id': export_cvv_id, 'organization-id': module_org.id}
+        )
+        import_path = move_pulp_archive(target_sat, module_org, export['message'])
+
+        # importing portion
+        importing_org = make_org()
+        # set disconnected mode
+        Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
+        # check that files are present in import_path
+        result = target_sat.execute(f'ls {import_path}')
+        assert result.stdout != ''
+        # Import files and verify content
+        ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
+        importing_cv = ContentView.info(
+            {'name': import_cv_name, 'organization-id': importing_org['id']}
+        )
+        importing_cvv = importing_cv['versions']
+        assert importing_cv['description'] == export_cv_description
+        assert len(importing_cvv) >= 1
+        imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
+        assert len(imported_packages)
+        assert len(exported_packages) == len(imported_packages)
+        exported_repo = Repository.info(
+            {
+                'name': export_repo_name,
+                'product': export_prod_name,
+                'organization-id': module_org.id,
+            }
+        )
+        imported_repo = Repository.info(
+            {
+                'name': import_repo_name,
+                'product': import_prod_name,
+                'organization-id': importing_org['id'],
+            }
+        )
+        for item in ['packages', 'source-rpms', 'package-groups', 'errata', 'module-streams']:
+            assert exported_repo['content-counts'][item] == imported_repo['content-counts'][item]
 
     @pytest.mark.upgrade
     @pytest.mark.tier3
