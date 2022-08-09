@@ -71,7 +71,6 @@ from robottelo.config import settings
 from robottelo.datafactory import valid_cron_expressions
 from robottelo.decorators import cacheable
 from robottelo.helpers import default_url_on_new_port
-from robottelo.helpers import get_available_capsule_port
 from robottelo.logging import logger
 
 
@@ -534,7 +533,7 @@ def make_proxy(options=None):
     args = {'name': gen_alphanumeric()}
 
     if options is None or 'url' not in options:
-        newport = get_available_capsule_port()
+        newport = options['newport']
         try:
             with default_url_on_new_port(9090, newport) as url:
                 args['url'] = url

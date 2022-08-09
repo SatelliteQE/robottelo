@@ -1,5 +1,4 @@
 import contextlib
-import random
 import time
 
 from robottelo.cli.proxy import CapsuleTunnelError
@@ -8,60 +7,6 @@ from robottelo.logging import logger
 
 class CapsuleInfo:
     """Miscellaneous Capsule helper methods"""
-
-    def get_available_capsule_port(self, port_pool=None):
-        """returns a list of unused ports dedicated for fake capsules
-        This calls an ss command on the server prompting for a port range. ss
-        returns a list of ports which have a PID assigned (a list of ports
-        which are already used). This function then substracts unavailable ports
-        from the other ones and returns one of available ones randomly.
-
-        :param port_pool: A list of ports used for fake capsules (for RHEL7+: don't
-            forget to set a correct selinux context before otherwise you'll get
-            Connection Refused error)
-
-        :return: Random available port from interval <9091, 9190>.
-        :rtype: int
-        """
-        if port_pool is None:
-            from robottelo.config import settings
-
-            port_pool_range = settings.fake_capsules.port_range
-            if isinstance(port_pool_range, str):
-                port_pool_range = tuple(port_pool_range.split('-'))
-            if isinstance(port_pool_range, tuple) and len(port_pool_range) == 2:
-                port_pool = range(int(port_pool_range[0]), int(port_pool_range[1]))
-            else:
-                raise TypeError(
-                    'Expected type of port_range is a tuple of 2 elements,'
-                    f'got {type(port_pool_range)} instead'
-                )
-        # returns a list of strings
-        ss_cmd = self.execute(
-            f"ss -tnaH sport ge {port_pool[0]} sport le {port_pool[-1]}"
-            " | awk '{n=split($4, p, \":\"); print p[n]}' | sort -u"
-        )
-        if ss_cmd.stderr[1]:
-            raise CapsuleTunnelError(
-                f'Failed to create ssh tunnel: Error getting port status: {ss_cmd.stderr}'
-            )
-        # converts a List of strings to a List of integers
-        try:
-            used_ports = map(
-                int, [val for val in ss_cmd.stdout.splitlines()[:-1] if val != 'Cannot stat file ']
-            )
-
-        except ValueError:
-            raise CapsuleTunnelError(
-                f'Failed parsing the port numbers from stdout: {ss_cmd.stdout.splitlines()[:-1]}'
-            )
-        try:
-            # take the list of available ports and return randomly selected one
-            return random.choice([port for port in port_pool if port not in used_ports])
-        except IndexError:
-            raise CapsuleTunnelError(
-                'Failed to create ssh tunnel: No more ports available for mapping'
-            )
 
     @contextlib.contextmanager
     def default_url_on_new_port(self, oldport, newport):

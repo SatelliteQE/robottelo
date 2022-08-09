@@ -154,11 +154,6 @@ def _user(request):
     return user
 
 
-@pytest.fixture
-def _make_proxy(request):
-    yield _proxy(request)
-
-
 class TestLocation:
     """Tests for Location via Hammer CLI"""
 
@@ -292,7 +287,7 @@ class TestLocation:
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_add_and_remove_capsule(self, request):
+    def test_positive_add_and_remove_capsule(self, request, target_sat):
         """Add a capsule to location and remove it
 
         :id: 15e3c1e6-4fa3-4965-8808-a9ba01d1c050
@@ -304,7 +299,7 @@ class TestLocation:
         :CaseLevel: Integration
         """
         location = _location(request)
-        proxy = _proxy(request)
+        proxy = _proxy(request, {'newport': target_sat.get_available_capsule_port})
 
         Location.add_smart_proxy({'name': location['name'], 'smart-proxy-id': proxy['id']})
         location = Location.info({'name': location['name']})
