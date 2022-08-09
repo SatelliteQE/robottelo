@@ -252,7 +252,7 @@ def test_positive_update_hostgroup(
 
     :CaseLevel: Integration
     """
-    with session_puppet_enabled_sat:
+    with session_puppet_enabled_sat as puppet_sat:
         hostgroup = make_hostgroup(
             {
                 'content-source-id': puppet_content_source['id'],
@@ -261,7 +261,7 @@ def test_positive_update_hostgroup(
                 'query-organization-id': module_puppet_org.id,
             }
         )
-        new_content_source = make_proxy()
+        new_content_source = make_proxy({'newport': puppet_sat.get_available_capsule_port})
 
         @request.addfinalizer
         def _cleanup():
