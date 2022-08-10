@@ -28,26 +28,6 @@ def get_nailgun_config(user=None):
     return ServerConfig(get_url(), creds, verify=False)
 
 
-class Storage:
-    """Turns a dict into an attribute based object.
-
-    Example::
-
-        d = {'foo': 'bar'}
-        d['foo'] == 'bar'
-        storage = Storage(d)
-        storage.foo == 'bar'
-    """
-
-    def __init__(self, *args, **kwargs):
-        """takes a dict or attrs and sets as attrs"""
-        super().__init__()
-        for item in args:
-            kwargs.update(item)
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-
 def get_func_name(func, test_item=None):
     """Given a func object return standardized name to use across project"""
     names = [func.__module__]
