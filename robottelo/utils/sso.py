@@ -40,7 +40,7 @@ class SSOHost(Host):
         )
 
         result = self.execute(f'{KEY_CLOAK_CLI} get clients --fields id,clientId')
-        result_json = json.loads(f'[{{{result}')
+        result_json = json.loads(f'{result}')
         client_id = None
         for client in result_json:
             if client_name in client['clientId']:
