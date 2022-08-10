@@ -1486,6 +1486,7 @@ class TestRepositorySync:
         assert prod_log_out.status == 0
         assert "(0 rows)" in prod_log_out.stdout
 
+
 class TestDockerRepository:
     """Tests specific to using ``Docker`` repositories."""
 
