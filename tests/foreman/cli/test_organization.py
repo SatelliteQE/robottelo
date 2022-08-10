@@ -28,7 +28,6 @@ from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_medium
 from robottelo.cli.factory import make_org
-from robottelo.cli.factory import make_proxy
 from robottelo.cli.factory import make_subnet
 from robottelo.cli.factory import make_template
 from robottelo.cli.factory import make_user
@@ -64,7 +63,7 @@ def valid_labels_list():
 @pytest.fixture
 def proxy(target_sat):
     """Create a Proxy and clean up when done."""
-    proxy = make_proxy()
+    proxy = target_sat.cli_factory.make_proxy()
     yield proxy
     target_sat.cli.Proxy.delete({'id': proxy['id']})
 
