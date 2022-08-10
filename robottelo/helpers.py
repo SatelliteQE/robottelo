@@ -28,24 +28,6 @@ def get_nailgun_config(user=None):
     return ServerConfig(get_url(), creds, verify=False)
 
 
-def get_func_name(func, test_item=None):
-    """Given a func object return standardized name to use across project"""
-    names = [func.__module__]
-    if test_item:
-        func_class = getattr(test_item, 'cls')
-    elif hasattr(func, 'im_class'):
-        func_class = getattr(func, 'im_class')
-    elif hasattr(func, '__self__'):
-        func_class = func.__self__.__class__
-    else:
-        func_class = None
-    if func_class:
-        names.append(func_class.__name__)
-
-    names.append(func.__name__)
-    return '.'.join(names)
-
-
 def form_repo_url(capsule, org, prod, repo, lce=None, cv=None):
     """Forms url of a repo or CV published on a Satellite or Capsule.
 
