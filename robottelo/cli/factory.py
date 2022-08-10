@@ -47,7 +47,6 @@ from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.org import Org
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
-from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.realm import Realm
 from robottelo.cli.report_template import ReportTemplate
@@ -67,8 +66,6 @@ from robottelo.cli.usergroup import UserGroup
 from robottelo.cli.usergroup import UserGroupExternal
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
-from robottelo.helpers import default_url_on_new_port
-from robottelo.helpers import get_available_capsule_port
 from robottelo.logging import logger
 from robottelo.utils import ssh
 from robottelo.utils.datafactory import valid_cron_expressions
@@ -521,29 +518,6 @@ def make_product_wait(options=None, wait_for=5):
         if not product:
             raise err
     return product
-
-
-@cacheable
-def make_proxy(options=None):
-    """Creates a Proxy
-
-    :param options: Check options using `hammer proxy create --help` on satellite.
-
-    :returns Proxy object
-    """
-    args = {'name': gen_alphanumeric()}
-
-    if options is None or 'url' not in options:
-        newport = get_available_capsule_port()
-        try:
-            with default_url_on_new_port(9090, newport) as url:
-                args['url'] = url
-                return create_object(Proxy, args, options)
-        except CapsuleTunnelError as err:
-            raise CLIFactoryError(f'Failed to create ssh tunnel: {err}')
-    args['url'] = options['url']
-    return create_object(Proxy, args, options)
-
 
 @cacheable
 def make_repository(options=None):

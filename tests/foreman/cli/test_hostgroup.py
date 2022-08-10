@@ -33,7 +33,6 @@ from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_medium
 from robottelo.cli.factory import make_os
 from robottelo.cli.factory import make_partition_table
-from robottelo.cli.factory import make_proxy
 from robottelo.cli.factory import make_subnet
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
@@ -252,7 +251,7 @@ def test_positive_update_hostgroup(
 
     :CaseLevel: Integration
     """
-    with session_puppet_enabled_sat:
+    with session_puppet_enabled_sat as puppet_sat:
         hostgroup = make_hostgroup(
             {
                 'content-source-id': puppet_content_source['id'],
@@ -261,7 +260,7 @@ def test_positive_update_hostgroup(
                 'query-organization-id': module_puppet_org.id,
             }
         )
-        new_content_source = make_proxy()
+        new_content_source = puppet_sat.cli_factory.make_proxy()
 
         @request.addfinalizer
         def _cleanup():
