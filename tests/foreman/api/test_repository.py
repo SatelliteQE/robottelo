@@ -1324,6 +1324,122 @@ class TestRepositorySync:
         """
         pass
 
+    @pytest.mark.tier3
+    def test_positive_bulk_cancel_sync(self, target_sat, module_manifest_org):
+        """Bulk cancel 10+ repository syncs
+
+        :id: f9bb1c95-d60f-4c93-b32e-09d58ebce80e
+
+        :steps:
+            1. Add 10+ repos and sync all of them
+            2. Cancel all of the syncs
+            3. Check Foreman Tasks and /var/log/messages
+
+        :expectedresults: All the syncs stop successfully.
+
+        :CaseImportance: High
+
+        :CaseAutomation: Automated
+        """
+        repo_ids = []
+        for repo in constants.BULK_REPO_LIST:
+            repo_id = enable_rhrepo_and_fetchid(
+                basearch='x86_64',
+                org_id=module_manifest_org.id,
+                product=repo['product'],
+                repo=repo['name'],
+                reposet=repo['reposet'],
+                releasever=repo['releasever'],
+            )
+            repo_ids.append(repo_id)
+            rh_repo = entities.Repository(id=repo_id).read()
+            rh_repo.download_policy = 'immediate'
+            rh_repo = rh_repo.update()
+        sync_ids = []
+        for repo_id in repo_ids:
+            sync_task = entities.Repository(id=repo_id).sync(synchronous=False)
+            sync_ids.append(sync_task['id'])
+        entities.ForemanTask().bulk_cancel(data={"task_ids": sync_ids[0:5]})
+        # Give some time for sync cancels to calm down
+        time.sleep(30)
+        entities.ForemanTask().bulk_cancel(data={"task_ids": sync_ids[5:]})
+        for sync_id in sync_ids:
+            sync_result = entities.ForemanTask(id=sync_id).poll(canceled=True)
+            assert (
+                'Task canceled' in sync_result['humanized']['errors']
+                or 'No content added' in sync_result['humanized']['output']
+            )
+            # Find correlating pulp task using Foreman Task id
+            prod_log_out = target_sat.execute(
+                f'grep {sync_id} /var/log/foreman/production.log'
+            ).stdout.splitlines()[0]
+            correlation_id = re.search(r'\[I\|bac\|\w{8}\]', prod_log_out).group()[7:15]
+            # Assert the cancelation was executed in Pulp
+            result = target_sat.execute(
+                f'grep "{correlation_id}" /var/log/messages | grep "Canceling task"'
+            )
+            assert result.status == 0
+
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized([{'content_type': 'yum', 'url': repo_constants.CUSTOM_RPM_SHA}]),
+        indirect=True,
+    )
+    def test_positive_sync_sha_repo(self, repo, target_sat):
+        """Sync a 'sha' repo successfully
+
+        :id: b842a21d-639a-48aa-baf3-9244d8bc1415
+
+        :parametrized: yes
+
+        :customerscenario: true
+
+        :BZ: 2024889
+
+        :SubComponent: Candlepin
+        """
+        sync_result = repo.sync()
+        assert sync_result['result'] == 'success'
+        result = target_sat.execute(
+            'grep "Artifact() got an unexpected keyword argument" /var/log/messages'
+        )
+        assert result.status == 1
+
+    @pytest.mark.tier2
+    def test_positive_sync_repo_null_contents_changed(self, module_manifest_org, target_sat):
+        """test for null contents_changed parameter on actions::katello::repository::sync.
+
+        :id: f3923940-e097-4da3-aba7-b14dbcda857b
+
+        :expectedresults: After syncing a repo and running that null contents_changed
+            command, 0 rows should be returned(empty string)
+
+        :CaseImportance: High
+
+        :customerscenario: true
+
+        :BZ: 2089580
+
+        :CaseAutomation: Automated
+        """
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_manifest_org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhst7']['name'],
+            reposet=constants.REPOSET['rhst7'],
+            releasever=None,
+        )
+        target_sat.api.Repository(id=repo_id).sync()
+        prod_log_out = target_sat.execute(
+            'sudo -u postgres psql -d foreman -c "select class,execution_plan_uuid,input '
+            'from dynflow_actions where input LIKE \'%"contents_changed":null%\''
+            ' AND class = \'Actions::Katello::Repository::Sync\';"'
+        )
+        assert prod_log_out.status == 0
+        assert "(0 rows)" in prod_log_out.stdout
+
 
 class TestDockerRepository:
     """Tests specific to using ``Docker`` repositories."""
