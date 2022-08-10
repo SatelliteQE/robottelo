@@ -926,6 +926,8 @@ class TestContentViewSync:
 
         :CaseAutomation: Automated
 
+        :customerscenario: true
+
         :CaseComponent: ContentViews
 
         :Assignee: ltran
