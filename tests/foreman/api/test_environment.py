@@ -25,7 +25,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.api.utils import one_to_many_names
 from robottelo.datafactory import invalid_environments_list
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
@@ -189,7 +188,7 @@ def test_positive_update_loc(module_puppet_environment):
 
     :CaseLevel: Integration
     """
-    names = one_to_many_names('location')
+    names = {'location', 'location_ids', 'locations'}
     attributes = set(module_puppet_environment.update_json([]).keys())
     assert len(names & attributes) >= 1, f'None of {names} are in {attributes}'
 
@@ -207,6 +206,6 @@ def test_positive_update_org(module_puppet_environment):
 
     :CaseLevel: Integration
     """
-    names = one_to_many_names('organization')
+    names = {'organization', 'organization_ids', 'organizations'}
     attributes = set(module_puppet_environment.update_json([]).keys())
     assert len(names & attributes) >= 1, f'None of {names} are in {attributes}'
