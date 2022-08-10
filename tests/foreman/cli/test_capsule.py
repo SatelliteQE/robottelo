@@ -22,11 +22,9 @@ from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_proxy
 from robottelo.cli.proxy import Proxy
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.helpers import default_url_on_new_port
 
 
 pytestmark = [pytest.mark.run_in_one_thread]
@@ -34,8 +32,7 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 def _make_proxy(request, target_sat, options=None):
     """Create a Proxy and add the finalizer"""
-    options.update({'newport': target_sat.get_available_capsule_port})
-    proxy = make_proxy(options=options)
+    proxy = target_sat.cli_factory.make_proxy(options)
 
     @request.addfinalizer
     def _cleanup():
@@ -58,10 +55,9 @@ def test_negative_create_with_url(target_sat):
     """
     # Create a random proxy
     with pytest.raises(CLIFactoryError, match='Could not create the proxy:'):
-        make_proxy(
+        target_sat.cli_factory.make_proxy(
             {
                 'url': 'http://{}:{}'.format(gen_string('alpha', 6), gen_string('numeric', 4)),
-                'newport': target_sat.get_available_capsule_port,
             }
         )
 
@@ -102,7 +98,7 @@ def test_positive_delete_by_id(name, target_sat):
 
     :BZ: 1398695
     """
-    proxy = make_proxy({'name': name, 'newport': target_sat.get_available_capsule_port})
+    proxy = target_sat.cli_factory.make_proxy({'name': name})
     Proxy.delete({'id': proxy['id']})
     with pytest.raises(CLIReturnCodeError):
         Proxy.info({'id': proxy['id']})
@@ -124,7 +120,7 @@ def test_positive_update_name(request, target_sat):
     proxy = _make_proxy(request, target_sat, options={'name': gen_alphanumeric()})
     for new_name in valid_data_list().values():
         newport = target_sat.get_available_capsule_port
-        with default_url_on_new_port(9090, newport) as url:
+        with target_sat.default_url_on_new_port(9090, newport) as url:
             Proxy.update({'id': proxy['id'], 'name': new_name, 'url': url})
             proxy = Proxy.info({'id': proxy['id']})
             assert proxy['name'] == new_name
@@ -150,7 +146,7 @@ def test_positive_refresh_features_by_id(request, target_sat):
 
     # get an available port for our fake capsule
     port = target_sat.get_available_capsule_port
-    with default_url_on_new_port(9090, port) as url:
+    with target_sat.default_url_on_new_port(9090, port) as url:
         proxy = _make_proxy(request, target_sat, options={'url': url})
         Proxy.refresh_features({'id': proxy['id']})
 
@@ -175,7 +171,7 @@ def test_positive_refresh_features_by_name(request, target_sat):
 
     # get an available port for our fake capsule
     port = target_sat.get_available_capsule_port
-    with default_url_on_new_port(9090, port) as url:
+    with target_sat.default_url_on_new_port(9090, port) as url:
         proxy = _make_proxy(request, target_sat, options={'url': url})
         Proxy.refresh_features({'id': proxy['name']})
 
@@ -194,8 +190,8 @@ def test_positive_import_puppet_classes(session_puppet_enabled_sat, puppet_proxy
     """
     with session_puppet_enabled_sat as puppet_sat:
         port = puppet_sat.get_available_capsule_port
-        with default_url_on_new_port(9090, port) as url:
-            proxy = make_proxy({'url': url, 'newport': puppet_sat.get_available_capsule_port})
+        with puppet_sat.default_url_on_new_port(9090, port) as url:
+            proxy = puppet_sat.cli_factory.make_proxy({'url': url})
             Proxy.import_classes({'id': proxy['id']})
         Proxy.delete({'id': proxy['id']})
 
