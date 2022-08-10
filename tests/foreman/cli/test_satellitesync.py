@@ -931,6 +931,8 @@ class TestContentViewSync:
 
         :CaseAutomation: Automated
 
+        :customerscenario: true
+
         :CaseComponent: ContentViews
 
         :CaseImportance: High
