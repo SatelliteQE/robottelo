@@ -30,7 +30,6 @@ from robottelo.cli.factory import make_environment
 from robottelo.cli.factory import make_hostgroup
 from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_medium
-from robottelo.cli.factory import make_proxy
 from robottelo.cli.factory import make_subnet
 from robottelo.cli.factory import make_template
 from robottelo.cli.factory import make_user
@@ -43,9 +42,9 @@ from robottelo.cli.template import Template
 from robottelo.cli.user import User
 
 
-def _proxy(request, options=None):
+def _proxy(request, target_sat):
     """Create a Proxy"""
-    proxy = make_proxy(options=options)
+    proxy = target_sat.cli_factory.make_proxy()
 
     @request.addfinalizer
     def _cleanup():
@@ -299,7 +298,7 @@ class TestLocation:
         :CaseLevel: Integration
         """
         location = _location(request)
-        proxy = _proxy(request, {'newport': target_sat.get_available_capsule_port})
+        proxy = _proxy(request, target_sat)
 
         Location.add_smart_proxy({'name': location['name'], 'smart-proxy-id': proxy['id']})
         location = Location.info({'name': location['name']})
