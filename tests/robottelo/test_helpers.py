@@ -2,7 +2,6 @@
 import pytest
 
 from robottelo.helpers import slugify_component
-from robottelo.helpers import Storage
 from robottelo.utils import validate_ssh_pub_key
 
 
@@ -61,21 +60,6 @@ class TestPubKey:
     )
     def test_valid_ssh_pub_keys(self, valid_key):
         assert validate_ssh_pub_key(valid_key)
-
-
-class TestStorage:
-    def test_dict_converted_to_storage(self):
-        d = {'key': 'value'}
-        storage = Storage(d)
-        assert storage.key == 'value'
-
-    def test_multiple_dicts_converted_to_storage(self):
-        d = {'key': 'value'}
-        e = {'another_key': 'another value'}
-        storage = Storage(d, e, spare_argument='one more value')
-        assert storage.key == 'value'
-        assert storage.another_key == 'another value'
-        assert storage.spare_argument == 'one more value'
 
 
 def test_slugify_component():
