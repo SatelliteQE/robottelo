@@ -1053,7 +1053,7 @@ class TestPullProviderRex:
         )
         assert result.status == 0, 'Failed to download certificate'
         client_repo = (
-            'https://satellite.sat.engineering.redhat.com/pulp/content/'
+            f'{settings.repos["DOGFOOD_REPO_HOST"]}/pulp/content/'
             'Satellite_Engineering/QA/Satellite_Client/custom/Satellite_Client_Composes/'
             f'Satellite_Client_RHEL{rhel_contenthost.os_version.major}_x86_64/'
         )
