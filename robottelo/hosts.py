@@ -5,6 +5,7 @@ from functools import cached_property
 from pathlib import Path
 from pathlib import PurePath
 from tempfile import NamedTemporaryFile
+from urllib.parse import urlencode
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
@@ -481,10 +482,10 @@ class ContentHost(Host, ContentHostMixins):
 
     def register(
         self,
-        target=settings.server.hostname,
-        org='Default_Organization',
-        loc='Default_Location',
-        activation_keys=None,
+        target,
+        org,
+        loc,
+        activation_keys,
         setup_insights=False,
         setup_remote_execution=True,
         setup_remote_execution_pull=False,
@@ -505,8 +506,8 @@ class ContentHost(Host, ContentHostMixins):
         using a global registration template.
 
         :param target: Satellite or Capusle hostname to register to, required.
-        :param org: Organization name to register content host for, required.
-        :param loc: Location name to register content host for, required.
+        :param org: Organization to register content host for, required.
+        :param loc: Location to register content host for, required.
         :param activation_keys: Activation key name to register content host
             with, required.
         :param setup_insights: Install and register Insights client, requires OS repo.
@@ -522,73 +523,68 @@ class ContentHost(Host, ContentHostMixins):
         :param ignore_subman_errors: Ignore subscription manager errors.
         :param force: Register the content host even if it's already registered.
         :param insecure: Don't verify server authenticity.
-        :param username: A user name to register the content host with.
-        :param password: The user password.
+        :param username: Satellite admin username
+        :param password: Satellite admin password
         :return: SSHCommandResult instance filled with the result of the
             registration.
         """
-        cmd = 'curl -sS '
-        if username and password:
-            cmd += f'-u {username}:{password} '
-        if insecure:
-            cmd += '--insecure '
-        if target:
-            cmd += f"'https://{target}:9090/register?"
-        else:
-            raise ContentHostError('Target Satellite/Capsule not specified')
-        if activation_keys:
-            cmd += f'activation_keys={activation_keys}'
-        else:
-            raise ContentHostError('Activation key not specified')
-        if org:
-            selected_org = entities.Organization().search(query={'search': f'name="{org}"'})[0]
-            cmd += f'&organization_id={selected_org.id}'
-        else:
-            raise ContentHostError('Organization not specified')
-        if loc:
-            selected_loc = entities.Location().search(query={'search': f'name="{loc}"'})[0]
-            cmd += f'&location_id={selected_loc.id}'
-        else:
-            raise ContentHostError('Location not specified')
-        if setup_insights:
+        insights = (
             # requires OS repo enabled for host
-            cmd += '&setup_insights=true'
-        else:
-            cmd += '&setup_insights=false'
-        if setup_remote_execution:
-            cmd += '&setup_remote_execution=true'
-        else:
-            cmd += '&setup_remote_execution=false'
-        if update_packages:
-            cmd += '&update_packages=true'
-        else:
-            cmd += '&update_packages=false'
-        if lifecycle_environment:
-            selected_lce = entities.LifecycleEnvironment().search(
-                query={'search': f'name="{lifecycle_environment}"'}
-            )[0]
-            cmd += f'&lifecycle_environment_id={selected_lce.id}'
-        if operating_system:
-            selected_os = entities.OperatingSystem().search(
-                query={'search': f'name="{operating_system}"'}
-            )[0]
-            cmd += f'&operating_system_id={selected_os.id}'
-        if setup_remote_execution_pull:
+            f'&setup_insights={str(setup_insights).lower()}'
+            if setup_insights is not None
+            else ''
+        )
+        rex = (
+            f'&setup_remote_execution={str(setup_remote_execution).lower()}'
+            if setup_remote_execution is not None
+            else ''
+        )
+        rex_pull = (
             # requires Satellite Client repo enabled for host
-            cmd += '&setup_remote_execution_pull=true'
-        if packages:
-            cmd += f'&packages={"+".join(packages)}'
-        if repo_gpg_key_url:
-            cmd += f'&repo_gpg_key_url={repo_gpg_key_url.replace("/", "%2F").replace(":", "%3A")}'
-        if repo:
-            cmd += f'&repo={repo.replace("/", "%2F").replace(":", "%3A")}'
-        if remote_execution_interface:
-            cmd += f'&remote_execution_interface={remote_execution_interface}'
-        if ignore_subman_errors:
-            cmd += '&ignore_subman_errors=true'
-        if force:
-            cmd += '&force=true'
-        cmd += "' | bash"
+            f'&setup_remote_execution_pull={str(setup_remote_execution_pull).lower()}'
+            if setup_remote_execution_pull is not None
+            else ''
+        )
+        lce = (
+            f'&lifecycle_environment_id={lifecycle_environment.id}'
+            if lifecycle_environment is not None
+            else ''
+        )
+        os = f'&operating_system_id={operating_system.id}' if operating_system is not None else ''
+        pkgs = f'&packages={"+".join(packages)}' if packages is not None else ''
+        rex_iface = (
+            f'&remote_execution_interface={remote_execution_interface}'
+            if remote_execution_interface is not None
+            else ''
+        )
+        rp = f'&{urlencode({"repo": repo })}' if repo is not None else ''
+        gpg = (
+            f'&{urlencode({"repo_gpg_key_url": repo_gpg_key_url })}'
+            if repo_gpg_key_url is not None
+            else ''
+        )
+        cmd = (
+            'curl -sS '
+            f'-u {username}:{password} '
+            f'{"--insecure " if insecure else ""}'
+            f"'https://{target.hostname}:9090/register?"
+            f'activation_keys={activation_keys}'
+            f'&organization_id={org.id}'
+            f'&location_id={loc.id}'
+            f'{insights}'
+            f'{rex}'
+            f'&update_packages={"true" if update_packages else "false"}'
+            f'{rex_pull}'
+            f'{rex_iface}'
+            f'{lce}'
+            f'{os}'
+            f'{pkgs}'
+            f'{"&ignore_subman_errors=true" if ignore_subman_errors else ""}'
+            f'{"&force=true" if force else ""}'
+            f'{rp}'
+            f'{gpg}'
+            "' | bash"
+        )
         return self.execute(cmd)
 
     def register_contenthost(
@@ -1386,11 +1382,16 @@ class Capsule(ContentHost, CapsuleMixins):
             )
 
     def enable_mqtt(self):
+        installer_opts = {
+            'foreman-proxy-templates': 'true',
+            'foreman-proxy-registration': 'true',
+            'foreman-proxy-plugin-remote-execution-script-mode': 'pull-mqtt',
+        }
+        enable_mqtt_command = InstallerCommand(
+            installer_opts=installer_opts,
+        )
         result = self.execute(
-            'satellite-installer \
-                    --foreman-proxy-templates=true \
-                    --foreman-proxy-registration=true \
-                    --foreman-proxy-plugin-remote-execution-script-mode=pull-mqtt',
+            enable_mqtt_command.get_command(),
             timeout='20m',
         )
         if result.status != 0:

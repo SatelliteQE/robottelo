@@ -1053,7 +1053,7 @@ class TestPullProviderRex:
         )
         assert result.status == 0, 'Failed to download certificate'
         client_repo = (
-            f'{settings.repos["DOGFOOD_REPO_HOST"]}/pulp/content/'
+            f'{settings.repos["DOGFOOD_REPO_HOST"].replace("http", "https")}/pulp/content/'
             'Satellite_Engineering/QA/Satellite_Client/custom/Satellite_Client_Composes/'
             f'Satellite_Client_RHEL{rhel_contenthost.os_version.major}_x86_64/'
         )
@@ -1063,9 +1063,9 @@ class TestPullProviderRex:
 
         # register host with rex, enable client repo, install katello-agent
         result = rhel_contenthost.register(
-            module_capsule_configured_mqtt.hostname,
-            module_org.name,
-            smart_proxy_location.name,
+            module_capsule_configured_mqtt,
+            module_org,
+            smart_proxy_location,
             module_ak_with_cv.name,
             packages=['katello-agent'],
             repo=client_repo,
@@ -1180,7 +1180,7 @@ class TestPullProviderRex:
         )
         assert result.status == 0, 'Failed to download certificate'
         client_repo = (
-            f'{settings.repos["DOGFOOD_REPO_HOST"]}/pulp/content/'
+            f'{settings.repos["DOGFOOD_REPO_HOST"].replace("http", "https")}/pulp/content/'
             'Satellite_Engineering/QA/Satellite_Client/custom/Satellite_Client_Composes/'
             f'Satellite_Client_RHEL{rhel_contenthost.os_version.major}_x86_64/'
         )
@@ -1190,15 +1190,14 @@ class TestPullProviderRex:
 
         # register host with pull provider rex (SAT-1677)
         result = rhel_contenthost.register(
-            module_capsule_configured_mqtt.hostname,
-            module_org.name,
-            smart_proxy_location.name,
+            module_capsule_configured_mqtt,
+            module_org,
+            smart_proxy_location,
             module_ak_with_cv.name,
             setup_remote_execution_pull=True,
             repo=client_repo,
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
-
         # check mqtt client is running
         result = rhel_contenthost.execute('yggdrasil status')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
