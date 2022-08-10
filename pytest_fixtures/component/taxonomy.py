@@ -1,6 +1,7 @@
 # Content Component fixtures
 import pytest
 
+from manifester import Manifester
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import DEFAULT_LOC
@@ -83,6 +84,26 @@ def module_gt_manifest_org(module_target_sat):
     org.manifest_filename = manifest.filename
     return org
 
+# Note: Manifester should not be used with the Satellite QE RHSM account until 
+# subscription needs are scoped and sufficient subscriptions added to the 
+# Satellite QE RHSM account. Manifester can be safely used locally with personal 
+# or stage RHSM accounts. 
+
+# Yields a manifest in entitlement mode with subscriptions determined by the 
+# `manifest_category.robottelo_automation` setting in manifester_settings.yaml.
+@pytest.fixture(scope='session')
+def session_entitlement_manifest():
+    manifester = Manifester(manifest_category='robottelo_automation')
+    with manifester.get_manifest() as manifest:
+        yield manifest
+
+# Yields a manifest in Simple Content Access mode with subscriptions determined by the
+# `manifest_category.golden_ticket` setting in manifester_settings.yaml
+@pytest.fixture(scope='session')
+def session_sca_manifest():
+    manifester = Manifester(manifest_category='golden_ticket')
+    with manifester.get_manifest() as manifest:
+        yield manifest
 
 @pytest.fixture(scope='module')
 def smart_proxy_location(module_org, module_target_sat, default_smart_proxy):
