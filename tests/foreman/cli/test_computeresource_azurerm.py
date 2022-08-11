@@ -360,7 +360,8 @@ class TestAzureRMFinishTemplateProvisioning:
                 )
                 yield host
                 with satellite_setting('destroy_vm_on_host_delete=True'):
-                    Host.delete({'name': self.fullhostname}, timeout=1800000)
+                    if Host.exists(search=('name', host['name'])):
+                        Host.delete({'name': self.fullhostname}, timeout=1800000)
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_ft):
@@ -480,7 +481,8 @@ class TestAzureRMUserDataProvisioning:
                 )
                 yield host
                 with satellite_setting('destroy_vm_on_host_delete=True'):
-                    Host.delete({'name': self.fullhostname}, timeout=1800000)
+                    if Host.exists(search=('name', host['name'])):
+                        Host.delete({'name': self.fullhostname}, timeout=1800000)
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_ud):
@@ -600,7 +602,8 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
                 )
                 yield host
                 with satellite_setting('destroy_vm_on_host_delete=True'):
-                    Host.delete({'name': self.fullhostname}, timeout=1800000)
+                    if Host.exists(search=('name', host['name'])):
+                        Host.delete({'name': self.fullhostname}, timeout=1800000)
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_byos_ft_host):
