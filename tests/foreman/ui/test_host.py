@@ -2167,13 +2167,11 @@ def test_positive_read_details_page_from_new_ui(
             session, module_host_template, interface_id, new_host_details=True
         )
         assert session.host_new.search(host_name)[0]['Name'] == host_name
-        values = session.host_new.get_details(host_name, widget_names='Overview')
-        assert values['Overview']['HostStatusCard']['status'] == 'All statuses OK'
-        assert (
-            values['Overview']['DetailsCard']['details']['mac_address'] == module_host_template.mac
-        )
-        assert values['Overview']['DetailsCard']['details']['host_owner'] == values['current_user']
-        assert values['Overview']['DetailsCard']['details']['comment'] == 'Host with fake data'
+        values = session.host_new.get_details(host_name, widget_names='overview')
+        assert values['overview']['HostStatusCard']['status'] == 'All statuses OK'
+        assert values['overview']['details']['details']['mac_address'] == module_host_template.mac
+        assert values['overview']['details']['details']['host_owner'] == values['current_user']
+        assert values['overview']['details']['details']['comment'] == 'Host with fake data'
 
 
 @pytest.mark.tier4
@@ -2239,6 +2237,9 @@ def test_positive_update_delete_package(
         client.run(f'yum -y downgrade {FAKE_8_CUSTOM_PACKAGE_NAME}')
         result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0
+
+        # this should reload page to update packages table
+        session.host_new.get_details(client.hostname, widget_names='overview')
 
         # filter packages
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
@@ -2327,16 +2328,16 @@ def test_positive_apply_erratum(
         session.location.select(loc_name=DEFAULT_LOC)
         assert session.host_new.search(client.hostname)[0]['Name'] == client.hostname
         # read widget on overview page
-        values = session.host_new.get_details(client.hostname, widget_names='Overview')['Overview']
-        assert values['InstallableErrataCard']['security_advisory'] == '1 security advisory'
-        assert values['InstallableErrataCard']['enhancements'] == '1 enhancement'
+        values = session.host_new.get_details(client.hostname, widget_names='overview')['overview']
+        assert values['installable_errata']['security_advisory'] == '1 security advisory'
+        assert values['installable_errata']['enhancements'] == '1 enhancement'
         # read errata tab
-        values = session.host_new.get_details(client.hostname, widget_names='Content.Errata')
-        assert len(values['Content']['Errata']['table']) == 2
+        values = session.host_new.get_details(client.hostname, widget_names='content.errata')
+        assert len(values['content']['errata']['table']) == 2
         # filter just security erratum
         erratas = session.host_new.get_errata_by_type(client.hostname, 'Security')
-        assert len(erratas['Content']['Errata']['table']) == 1
-        assert erratas['Content']['Errata']['table'][0]['Errata'] == errata_id
+        assert len(erratas['content']['errata']['table']) == 1
+        assert erratas['content']['errata']['table'][0]['errata'] == errata_id
         # apply errata
         session.host_new.apply_erratas(client.hostname, f"errata_id == {errata_id}")
         task_result = wait_for_tasks(
@@ -2349,8 +2350,8 @@ def test_positive_apply_erratum(
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         # verify
-        values = session.host_new.get_details(client.hostname, widget_names='Content.Errata')
-        assert 'table' not in values['Content']['Errata'].keys()
+        values = session.host_new.get_details(client.hostname, widget_names='content.errata')
+        assert 'table' not in values['content']['errata'].keys()
         result = client.run(
             'yum update --assumeno --security | grep "No packages needed for security"'
         )
