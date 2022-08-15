@@ -15,7 +15,6 @@
 :CaseImportance: High
 
 :Upstream: No
-
 """
 import pytest
 
@@ -27,7 +26,6 @@ def test_selinux_status(target_sat):
     :id: 43218070-ac5e-4679-b74a-3e2bcb497a0a
 
     :expectedresults: SELinux is enabled and there are no denials
-
     """
     # check SELinux is enabled
     result = target_sat.execute('getenforce')
@@ -55,7 +53,6 @@ def test_pulp_directory_exists(target_sat, directory):
     :parametrized: yes
 
     :expectedresults: Directories are present
-
     """
     # check pulp3 directories present
     assert target_sat.execute(f'test -d {directory}').status == 0, f'{directory} must exist.'
@@ -68,7 +65,6 @@ def test_pulp_service_definitions(target_sat):
     :id: e584faea-dede-4895-8d7f-411cb074f6c0
 
     :expectedresults: systemd files are present
-
     """
     # check pulpcore settings
     result = target_sat.execute('systemctl cat pulpcore-content.socket')
@@ -83,3 +79,20 @@ def test_pulp_service_definitions(target_sat):
     # check pulp3 configuration file present
     result = target_sat.execute('test -f /etc/pulp/settings.py')
     assert result.status == 0
+
+
+@pytest.mark.tier1
+def test_pulp_workers_status(target_sat):
+    """Ensure pulpcore-workers are in active (running) state
+
+    :BZ: 1848111
+
+    :id: f0b8b354-1a30-41c3-93d7-fb51e99c82b6
+
+    :customerscenario: true
+
+    :expectedresults: Pulpcore-workers are in active (running) state
+    """
+    output = target_sat.execute('systemctl status pulpcore-worker* | grep Active')
+    result = output.stdout.rstrip().splitlines()
+    assert all('Active: active (running)' in r for r in result)
