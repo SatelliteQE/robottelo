@@ -51,7 +51,7 @@ def test_positive_end_to_end(session, tailoring_file_path, default_org, default_
         assert tailroingfile_values['file_upload']['name'] == name
         assert (
             tailroingfile_values['file_upload']['uploaded_scap_file']
-            == tailoring_file_path['local'].rsplit('/', 1)[-1]
+            == str(tailoring_file_path['local']).rsplit('/', 1)[-1]
         )
         assert default_org.name in tailroingfile_values['organizations']['resources']['assigned']
         assert default_location.name in tailroingfile_values['locations']['resources']['assigned']
