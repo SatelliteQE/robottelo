@@ -2140,19 +2140,8 @@ def test_positive_gce_cloudinit_provision_end_to_end(
 
 
 # ------------------------------ NEW HOST UI DETAILS ----------------------------
-@pytest.fixture(scope='function')
-def enable_new_host_details_ui(target_sat, setting_update):
-    setting_update.value = 'true'
-    setting_update.update({'value'})
-    assert target_sat.api.Setting().search(query={'search': 'name=host_details_ui'})[0].value
-    yield
-
-
 @pytest.mark.tier4
-@pytest.mark.parametrize('setting_update', ['host_details_ui'], indirect=True)
-def test_positive_read_details_page_from_new_ui(
-    session, module_host_template, enable_new_host_details_ui, setting_update
-):
+def test_positive_read_details_page_from_new_ui(session, module_host_template):
     """Create new Host and read all its content through details page
 
     :id: ef0c5942-9049-11ec-8029-98fa9b6ecd5a
@@ -2176,7 +2165,6 @@ def test_positive_read_details_page_from_new_ui(
 
 @pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
-@pytest.mark.parametrize('setting_update', ['host_details_ui'], indirect=True)
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -2193,8 +2181,6 @@ def test_positive_update_delete_package(
     session,
     target_sat,
     rhel_contenthost,
-    enable_new_host_details_ui,
-    setting_update,
     module_repos_collection_with_manifest,
 ):
     """Update a package on a host using the new Content tab
@@ -2278,7 +2264,6 @@ def test_positive_update_delete_package(
 
 @pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
-@pytest.mark.parametrize('setting_update', ['host_details_ui'], indirect=True)
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -2295,8 +2280,6 @@ def test_positive_apply_erratum(
     session,
     target_sat,
     rhel_contenthost,
-    enable_new_host_details_ui,
-    setting_update,
     module_repos_collection_with_manifest,
 ):
     """Apply an erratum on a host using the new Errata tab
@@ -2337,7 +2320,7 @@ def test_positive_apply_erratum(
         # filter just security erratum
         erratas = session.host_new.get_errata_by_type(client.hostname, 'Security')
         assert len(erratas['content']['errata']['table']) == 1
-        assert erratas['content']['errata']['table'][0]['errata'] == errata_id
+        assert erratas['content']['errata']['table'][0]['Errata'] == errata_id
         # apply errata
         session.host_new.apply_erratas(client.hostname, f"errata_id == {errata_id}")
         task_result = wait_for_tasks(
@@ -2360,7 +2343,6 @@ def test_positive_apply_erratum(
 
 @pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
-@pytest.mark.parametrize('setting_update', ['host_details_ui'], indirect=True)
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -2377,8 +2359,6 @@ def test_positive_crud_module_streams(
     session,
     target_sat,
     rhel_contenthost,
-    setting_update,
-    enable_new_host_details_ui,
     module_repos_collection_with_manifest,
 ):
     """CRUD test for the Module streams new UI tab
