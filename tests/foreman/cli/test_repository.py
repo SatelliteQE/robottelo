@@ -69,6 +69,7 @@ from robottelo.constants import REPO_TYPE
 from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.constants import SRPM_TO_UPLOAD
 from robottelo.constants.repos import ANSIBLE_GALAXY
+from robottelo.constants.repos import CUSTOM_3RD_PARTY_REPO
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.constants.repos import CUSTOM_RPM_SHA
 from robottelo.constants.repos import FAKE_5_YUM_REPO
@@ -2137,6 +2138,31 @@ class TestRepository:
         Repository.synchronize({'id': sha_repo['id']})
         sha_repo = Repository.info({'id': sha_repo['id']})
         assert sha_repo['sync']['status'] == 'Success'
+
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized([{'content_type': 'yum', 'url': CUSTOM_3RD_PARTY_REPO}]),
+        indirect=True,
+    )
+    def test_positive_sync_third_party_repo(self, repo_options):
+        """Sync third party repo successfully
+
+        :id: 45936ab8-46b7-4f07-8b71-d7c8a4a2d984
+
+        :parametrized: yes
+
+        :customerscenario: true
+
+        :BZ: 1920511
+
+        :SubComponent: Pulp
+        """
+        repo = make_repository(repo_options)
+        repo = Repository.info({'id': repo['id']})
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        assert repo['sync']['status'] == 'Success'
 
 
 # TODO: un-comment when OSTREE functionality is restored in Satellite 6.11
