@@ -16,7 +16,9 @@
 
 :Upstream: No
 """
+import re
 import tempfile
+import time
 from string import punctuation
 from urllib.parse import urljoin
 from urllib.parse import urlparse
