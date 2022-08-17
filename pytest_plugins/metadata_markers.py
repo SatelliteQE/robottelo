@@ -87,7 +87,7 @@ def pytest_collection_modifyitems(session, items, config):
     deselected = []
     logger.info('Processing test items to add testimony token markers')
     for item in items:
-        if item.nodeid.startswith('tests/robottelo/') and 'test_junit' not in item.nodeid:
+        if item.nodeid.startswith('tests/robottelo/'):
             # Unit test, no testimony markers
             continue
 
