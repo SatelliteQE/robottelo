@@ -1390,6 +1390,10 @@ class TestContentViewSync:
 
         :expectedresults:  Imported cv should have the files present in the cv of
             the imported system
+
+        :BZ: 1995827
+
+        :customerscenario: true
         """
         # setup custom repo
         cv_name = import_cv_name = gen_string('alpha')
