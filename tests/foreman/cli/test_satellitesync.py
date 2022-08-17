@@ -167,6 +167,10 @@ class TestRepositoryExport:
             present on satellite machine
 
         :CaseLevel: System
+
+        :BZ: 1944733
+
+        :customerscenario: true
         """
         # Create custom product and repository
         cv_name = gen_string('alpha')
