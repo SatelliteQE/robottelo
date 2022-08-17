@@ -870,6 +870,7 @@ class TestAnsibleREX:
             }
         )
         client = fixture_sca_vmsetup
+        client.execute('subscription-manager refresh')
         client.execute(f'subscription-manager repos --enable {REPOS["rhae2"]["id"]}')
         client.execute('yum -y install ansible')
         collection_job = make_job_invocation(
