@@ -21,17 +21,6 @@ def get_nailgun_config(user=None):
     return ServerConfig(get_url(), creds, verify=False)
 
 
-# --- Issue based Pytest markers ---
-
-
-def idgen(val):
-    """
-    The id generator function which will return string that will append to the parameterized
-    test name
-    """
-    return '_parameter'
-
-
 class InstallerCommand:
     """This class constructs, parses, updates and gets formatted installer commands"""
 
