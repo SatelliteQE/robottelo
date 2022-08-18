@@ -51,7 +51,7 @@ class DataFileError(Exception):
     """Indicates any issue when reading a data file."""
 
 
-class ProvisioningCheckError(Exception):
+class HostPingFailed(Exception):
     """Indicates any issue when provisioning a host."""
 
 
