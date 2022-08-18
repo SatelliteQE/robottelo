@@ -34,7 +34,23 @@ from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.content_info import get_repomd
 from robottelo.content_info import get_repomd_revision
-from robottelo.helpers import form_repo_url
+
+
+def get_published_repo_url(capsule, org, prod, repo, lce=None, cv=None):
+    """Forms url of a repo or CV published on a Satellite or Capsule.
+
+    :param object capsule: Capsule or Satellite object providing its url
+    :param str org: organization label
+    :param str prod: product label
+    :param str repo: repository label
+    :param str lce: lifecycle environment label
+    :param str cv: content view label
+    :return: url of the specific repo or CV
+    """
+    if lce and cv:
+        return f'{capsule.url}/pulp/content/{org}/{lce}/{cv}/custom/{prod}/{repo}/'
+    else:
+        return f'{capsule.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'
 
 
 class TestSatelliteContentManagement:
@@ -374,7 +390,7 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Verify the RPM published on Capsule
-        caps_repo_url = form_repo_url(
+        caps_repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             lce=function_lce_library.label,
@@ -442,7 +458,7 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Verify repodata's checksum type is sha256, not sha1 on capsule
-        repo_url = form_repo_url(
+        repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             prod=function_product.label,
@@ -563,7 +579,7 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Check the content is synced on the Capsule side properly
-        sat_repo_url = form_repo_url(
+        sat_repo_url = get_published_repo_url(
             target_sat,
             org=function_org.label,
             lce=function_lce.label,
@@ -571,7 +587,7 @@ class TestCapsuleContentManagement:
             prod=function_product.label,
             repo=repo.label,
         )
-        caps_repo_url = form_repo_url(
+        caps_repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             lce=function_lce.label,
@@ -650,7 +666,7 @@ class TestCapsuleContentManagement:
 
         # Assert that the content published on the capsule is exactly the
         # same as in repository on satellite
-        sat_repo_url = form_repo_url(
+        sat_repo_url = get_published_repo_url(
             target_sat,
             org=function_org.label,
             lce=function_lce.label,
@@ -658,7 +674,7 @@ class TestCapsuleContentManagement:
             prod=function_product.label,
             repo=repo.label,
         )
-        caps_repo_url = form_repo_url(
+        caps_repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             lce=function_lce.label,
@@ -855,7 +871,7 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Verify packages on Capsule match the source
-        caps_repo_url = form_repo_url(
+        caps_repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             lce=function_lce.label,
@@ -963,7 +979,7 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Verify the count of RPMs published on Capsule
-        caps_repo_url = form_repo_url(
+        caps_repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             lce=function_lce.label,
@@ -1358,7 +1374,7 @@ class TestCapsuleContentManagement:
         assert sync_status['result'] == 'success'
 
         # Check for content on SAT and CAPS
-        sat_repo_url = form_repo_url(
+        sat_repo_url = get_published_repo_url(
             target_sat,
             org=function_org.label,
             lce=function_lce.label,
@@ -1366,7 +1382,7 @@ class TestCapsuleContentManagement:
             prod=function_product.label,
             repo=repo.label,
         )
-        caps_repo_url = form_repo_url(
+        caps_repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             lce=function_lce.label,
