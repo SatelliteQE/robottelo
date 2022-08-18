@@ -2,16 +2,10 @@
 import re
 from urllib.parse import urljoin  # noqa
 
-import requests
 from nailgun.config import ServerConfig
 
-from robottelo import ssh
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import get_credentials
 from robottelo.config import get_url
-from robottelo.config import settings
-from robottelo.constants import PULP_PUBLISHED_YUM_REPOS_PATH
-from robottelo.errors import ProvisioningCheckError
 
 
 def get_nailgun_config(user=None):
@@ -26,29 +20,6 @@ def get_nailgun_config(user=None):
     """
     creds = (user.login, user.passwd) if user else get_credentials()
     return ServerConfig(get_url(), creds, verify=False)
-
-
-    published_url = 'http://{}{}/pulp/repos/{}/'.format(
-        settings.server.hostname,
-        f':{settings.server.port}' if settings.server.port else '',
-        name,
-    )
-
-    return published_url
-
-
-def host_provisioning_check(ip_addr):
-    """Check the provisioned host status by pinging the ip of host and check
-    to connect to ssh port
-
-    :param ip_addr: IP address of the provisioned host
-    :return: ssh command return code and stdout
-    """
-    result = ssh.command(
-        f'for i in {{1..60}}; do ping -c1 {ip_addr} && exit 0; sleep 20; done; exit 1'
-    )
-    if result.status != 0:
-        raise ProvisioningCheckError(f'Failed to ping virtual machine Error:{result.stdout}')
 
 
 def slugify_component(string, keep_hyphens=True):

@@ -28,7 +28,6 @@ from robottelo.cli.factory import make_compute_resource
 from robottelo.cli.factory import make_host
 from robottelo.cli.host import Host
 from robottelo.config import settings
-from robottelo.helpers import host_provisioning_check
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -409,7 +408,7 @@ def test_negative_add_image_rhev_with_invalid_name(rhev, module_os):
 @pytest.mark.vlan_networking
 @pytest.mark.tier3
 @pytest.mark.skip_if_not_set('vlan_networking')
-def test_positive_provision_rhev_with_host_group(rhev, provisioning, tear_down):
+def test_positive_provision_rhev_with_host_group(target_sat, rhev, provisioning, tear_down):
     """Provision a host on RHEV compute resource with
     the help of hostgroup.
 
@@ -487,7 +486,7 @@ def test_positive_provision_rhev_with_host_group(rhev, provisioning, tear_down):
     assert host_info.get('network').get('mac') == rhv_vm.get_nics()[0].mac.address
     # Start to run a ping check if network was established on VM
     # If this fails, there's probably some issue with PXE booting or network setup in automation
-    host_provisioning_check(ip_addr=host_ip)
+    target_sat.ping_host(host=host_ip)
 
 
 @pytest.mark.stubbed
