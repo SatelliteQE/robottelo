@@ -28,23 +28,6 @@ def get_nailgun_config(user=None):
     return ServerConfig(get_url(), creds, verify=False)
 
 
-def form_repo_url(capsule, org, prod, repo, lce=None, cv=None):
-    """Forms url of a repo or CV published on a Satellite or Capsule.
-
-    :param object capsule: Capsule or Satellite object providing its url
-    :param str org: organization label
-    :param str lce: lifecycle environment label
-    :param str cv: content view label
-    :param str prod: product label
-    :param str repo: repository label
-    :return: url of the specific repo or CV
-    """
-    if lce and cv:
-        return f'{capsule.url}/pulp/content/{org}/{lce}/{cv}/custom/{prod}/{repo}/'
-    else:
-        return f'{capsule.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'
-
-
 def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False, hostname=None):
     """Creates a repository from given packages and publishes it into pulp's
     directory for web access.
