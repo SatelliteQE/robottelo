@@ -37,38 +37,6 @@ def get_nailgun_config(user=None):
     return published_url
 
 
-def extract_ui_token(input):
-    """Extracts and returns the CSRF protection token from a given
-    HTML string"""
-    token = re.search('"token":"(.*?)"', input)
-    if token is None:
-        raise IndexError("the given string does not contain any authenticity token references")
-    else:
-        return token[1]
-
-
-def get_web_session():
-    """Logs in as admin user and returns the valid requests.Session object"""
-    sat_session = requests.Session()
-    url = f'https://{settings.server.hostname}'
-
-    init_request = sat_session.get(url, verify=False)
-    login_request = sat_session.post(
-        f'{url}/users/login',
-        data={
-            'authenticity_token': extract_ui_token(init_request.text),
-            'login[login]': settings.server.admin_username,
-            'login[password]': settings.server.admin_password,
-            'commit': 'Log In',
-        },
-        verify=False,
-    )
-    login_request.raise_for_status()
-    if 'users/login' in login_request.history[0].headers.get('Location'):
-        raise requests.HTTPError('Failed to authenticate using the given credentials')
-    return sat_session
-
-
 def host_provisioning_check(ip_addr):
     """Check the provisioned host status by pinging the ip of host and check
     to connect to ssh port
