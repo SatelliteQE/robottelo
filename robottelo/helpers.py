@@ -28,52 +28,6 @@ def get_nailgun_config(user=None):
     return ServerConfig(get_url(), creds, verify=False)
 
 
-def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False, hostname=None):
-    """Creates a repository from given packages and publishes it into pulp's
-    directory for web access.
-
-    :param str name: repository name - name of a directory with packages
-    :param str repo_fetch_url: URL to fetch packages from
-    :param packages: list of packages to fetch (with extension)
-    :param wipe_repodata: whether to recursively delete repodata folder
-    :param str optional hostname: hostname or IP address of the remote host. If
-        ``None`` the hostname will be get from ``main.server.hostname`` config.
-    :return: URL where the repository can be accessed
-    :rtype: str
-    """
-    repo_path = f'{PULP_PUBLISHED_YUM_REPOS_PATH}/{name}'
-    result = ssh.command(f'sudo -u apache mkdir -p {repo_path}', hostname=hostname)
-    if result.status != 0:
-        raise CLIReturnCodeError(result.status, result.stderr, 'Unable to create repo dir')
-    if repo_fetch_url:
-        # Add trailing slash if it's not there already
-        if not repo_fetch_url.endswith('/'):
-            repo_fetch_url += '/'
-        for package in packages:
-            result = ssh.command(
-                f'wget -P {repo_path} {urljoin(repo_fetch_url, package)}',
-                hostname=hostname,
-            )
-            if result.status != 0:
-                raise CLIReturnCodeError(
-                    result.status,
-                    result.stderr,
-                    f'Unable to download package {package}',
-                )
-    if wipe_repodata:
-        result = ssh.command(f'rm -rf {repo_path}/repodata/', hostname=hostname)
-        if result.status != 0:
-            raise CLIReturnCodeError(
-                result.status, result.stderr, 'Unable to delete repodata folder'
-            )
-    result = ssh.command(f'createrepo {repo_path}', hostname=hostname)
-    if result.status != 0:
-        raise CLIReturnCodeError(
-            result.status,
-            result.stderr,
-            f'Unable to create repository. stderr contains following info:\n{result.stderr}',
-        )
-
     published_url = 'http://{}{}/pulp/repos/{}/'.format(
         settings.server.hostname,
         f':{settings.server.port}' if settings.server.port else '',
