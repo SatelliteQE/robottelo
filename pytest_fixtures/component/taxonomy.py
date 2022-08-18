@@ -89,20 +89,18 @@ def module_gt_manifest_org(module_target_sat):
 # Satellite QE RHSM account. Manifester can be safely used locally with personal 
 # or stage RHSM accounts. 
 
-# Yields a manifest in entitlement mode with subscriptions determined by the 
-# `manifest_category.robottelo_automation` setting in manifester_settings.yaml.
 @pytest.fixture(scope='session')
 def session_entitlement_manifest():
-    manifester = Manifester(manifest_category='robottelo_automation')
-    with manifester.get_manifest() as manifest:
+    """Yields a manifest in entitlement mode with subscriptions determined by the 
+    `manifest_category.robottelo_automation` setting in manifester_settings.yaml."""
+    with Manifester(manifest_category='robottelo_automation') as manifest:
         yield manifest
 
-# Yields a manifest in Simple Content Access mode with subscriptions determined by the
-# `manifest_category.golden_ticket` setting in manifester_settings.yaml
 @pytest.fixture(scope='session')
 def session_sca_manifest():
-    manifester = Manifester(manifest_category='golden_ticket')
-    with manifester.get_manifest() as manifest:
+    """Yields a manifest in Simple Content Access mode with subscriptions determined by the
+    `manifest_category.golden_ticket` setting in manifester_settings.yaml."""
+    with Manifester(manifest_category='golden_ticket') as manifest:
         yield manifest
 
 @pytest.fixture(scope='module')
