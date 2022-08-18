@@ -1,5 +1,4 @@
 """Several helper methods and functions."""
-import re
 from urllib.parse import urljoin  # noqa
 
 from nailgun.config import ServerConfig
@@ -20,22 +19,6 @@ def get_nailgun_config(user=None):
     """
     creds = (user.login, user.passwd) if user else get_credentials()
     return ServerConfig(get_url(), creds, verify=False)
-
-
-def slugify_component(string, keep_hyphens=True):
-    """Make component name a slug
-
-    Arguments:
-        string {str} -- Component name e.g: ActivationKeys
-        keep_hyphens {bool} -- Keep hyphens or replace with underscores
-
-    Returns:
-        str -- component slug e.g: activationkeys
-    """
-    string = string.replace(" and ", "&")
-    if not keep_hyphens:
-        string = string.replace('-', '_')
-    return re.sub("[^-_a-zA-Z0-9]", "", string.lower())
 
 
 # --- Issue based Pytest markers ---

@@ -64,3 +64,19 @@ def validate_ssh_pub_key(key):
         return key_type in ('ecdsa-sha2-nistp256', 'ssh-dss', 'ssh-rsa', 'ssh-ed25519')
     except (ValueError, base64.binascii.Error):
         return False
+
+
+def slugify_component(string, keep_hyphens=True):
+    """Make component name a slug
+
+    Arguments:
+        string {str} -- Component name e.g: ActivationKeys
+        keep_hyphens {bool} -- Keep hyphens or replace with underscores
+
+    Returns:
+        str -- component slug e.g: activationkeys
+    """
+    string = string.replace(" and ", "&")
+    if not keep_hyphens:
+        string = string.replace('-', '_')
+    return re.sub("[^-_a-zA-Z0-9]", "", string.lower())

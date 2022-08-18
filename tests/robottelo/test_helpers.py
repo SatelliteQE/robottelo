@@ -1,7 +1,7 @@
 """Tests for module ``robottelo.helpers``."""
 import pytest
 
-from robottelo.helpers import slugify_component
+from robottelo.utils import slugify_component
 from robottelo.utils import validate_ssh_pub_key
 
 
