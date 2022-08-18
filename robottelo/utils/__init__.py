@@ -68,9 +68,11 @@ def validate_ssh_pub_key(key):
 
 def slugify_component(string, keep_hyphens=True):
     """Make component name a slug
+
     Arguments:
         string {str} -- Component name e.g: ActivationKeys
         keep_hyphens {bool} -- Keep hyphens or replace with underscores
+
     Returns:
         str -- component slug e.g: activationkeys
     """
