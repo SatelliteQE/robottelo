@@ -35,6 +35,7 @@ from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import SATELLITE_VERSION
 from robottelo.errors import DownloadFileError
+from robottelo.errors import HostPingFailed
 from robottelo.helpers import InstallerCommand
 from robottelo.host_helpers import CapsuleMixins
 from robottelo.host_helpers import ContentHostMixins
@@ -1264,6 +1265,19 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError(
                 f'Error during pool attachment, command output: {cmd_result.stdout}'
             )
+
+    def ping_host(self, host):
+        """Check the provisioned host status by pinging the ip of host
+
+        :param host: IP address or hostname of the provisioned host
+        :returns: None
+        :raises: : `ProvisioningCheckError` if the host is not pingable
+        """
+        result = self.execute(
+            f'for i in {{1..60}}; do ping -c1 {host} && exit 0; sleep 20; done; exit 1'
+        )
+        if result.status != 0:
+            raise HostPingFailed(f'Failed to ping host {host}:{result.stdout}')
 
 
 class Capsule(ContentHost, CapsuleMixins):
