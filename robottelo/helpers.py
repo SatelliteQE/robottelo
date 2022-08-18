@@ -37,43 +37,6 @@ def get_nailgun_config(user=None):
     return published_url
 
 
-def repo_add_updateinfo(name, updateinfo_url=None, hostname=None):
-    """Modify repo with contents of updateinfo.xml file.
-
-    :param str name: repository name
-    :param str optional updateinfo_url: URL to download updateinfo.xml file
-        from. If not specified - updateinfo.xml from repository folder will be
-        used instead
-    :param str optional hostname: hostname or IP address of the remote host. If
-        ``None`` the hostname will be get from ``main.server.hostname`` config.
-    :return: result of executing `modifyrepo` command
-    """
-    updatefile = 'updateinfo.xml'
-    repo_path = f'{PULP_PUBLISHED_YUM_REPOS_PATH}/{name}'
-    updatefile_path = f'{repo_path}/{updatefile}'
-    if updateinfo_url:
-        result = ssh.command(f'find {updatefile_path}', hostname=hostname)
-        if result.status == 0 and updatefile in result.stdout:
-            result = ssh.command(
-                f'mv -f {updatefile_path} {updatefile_path}.bak', hostname=hostname
-            )
-            if result.status != 0:
-                raise CLIReturnCodeError(
-                    result.status,
-                    result.stderr,
-                    f'Unable to backup existing {updatefile}',
-                )
-        result = ssh.command(f'wget -O {updatefile_path} {updateinfo_url}', hostname=hostname)
-        if result.status != 0:
-            raise CLIReturnCodeError(
-                result.status, result.stderr, f'Unable to download {updateinfo_url}'
-            )
-
-    result = ssh.command(f'modifyrepo {updatefile_path} {repo_path}/repodata/')
-
-    return result
-
-
 def extract_ui_token(input):
     """Extracts and returns the CSRF protection token from a given
     HTML string"""
