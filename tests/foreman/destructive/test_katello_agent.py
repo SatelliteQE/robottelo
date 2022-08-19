@@ -20,7 +20,7 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.helpers import InstallerCommand
+from robottelo.utils.installer import InstallerCommand
 
 pytestmark = [
     pytest.mark.run_in_one_thread,

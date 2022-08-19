@@ -20,8 +20,8 @@ import filecmp
 
 import pytest
 
-from robottelo.helpers import InstallerCommand
 from robottelo.logging import logger
+from robottelo.utils.installer import InstallerCommand
 
 
 class TestScenarioPerformanceTuning:
