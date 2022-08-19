@@ -6,7 +6,7 @@ from robottelo.constants import ENVIRONMENT
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants import RHEL_8_MAJOR_VERSION
-from robottelo.helpers import InstallerCommand
+from robottelo.utils.installer import InstallerCommand
 
 
 common_opts = {
