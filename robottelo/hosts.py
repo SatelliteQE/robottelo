@@ -36,12 +36,12 @@ from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import SATELLITE_VERSION
 from robottelo.errors import DownloadFileError
 from robottelo.errors import HostPingFailed
-from robottelo.helpers import InstallerCommand
 from robottelo.host_helpers import CapsuleMixins
 from robottelo.host_helpers import ContentHostMixins
 from robottelo.host_helpers import SatelliteMixins
 from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
+from robottelo.utils.installer import InstallerCommand
 
 
 POWER_OPERATIONS = {
