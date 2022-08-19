@@ -16,7 +16,7 @@
 """
 import pytest
 
-from robottelo.helpers import InstallerCommand
+from robottelo.utils.installer import InstallerCommand
 
 pytestmark = pytest.mark.destructive
 params = [
