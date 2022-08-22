@@ -99,7 +99,7 @@ class TestVirtWhoConfigforNutanix:
                         vdc_id = item['id']
                         break
             target_sat.api.HostSubscription(host=host['id']).add_subscriptions(
-                data={'subscriptions': [{'id': vdc_id, 'quantity': 1}]}
+                data={'subscriptions': [{'id': vdc_id, 'quantity': 'Automatic'}]}
             )
             result = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
@@ -160,7 +160,7 @@ class TestVirtWhoConfigforNutanix:
                         vdc_id = item['id']
                         break
             target_sat.api.HostSubscription(host=host['id']).add_subscriptions(
-                data={'subscriptions': [{'id': vdc_id, 'quantity': 1}]}
+                data={'subscriptions': [{'id': vdc_id, 'quantity': 'Automatic'}]}
             )
             result = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
