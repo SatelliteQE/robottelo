@@ -16,96 +16,30 @@
 
 :Upstream: No
 """
-import re
-import tempfile
-import time
-from string import punctuation
-from urllib.parse import urljoin
-from urllib.parse import urlparse
-from urllib.parse import urlunparse
-
 import pytest
 from fauxfactory import gen_string
-from nailgun import client
-from nailgun import entities
-from nailgun.entity_mixins import TaskFailedError
-from requests.exceptions import HTTPError
 
 from robottelo import constants
-from robottelo import datafactory
-from robottelo import manifests
-from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
-from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
-from robottelo.constants import DataFile
-from robottelo.constants import repos as repo_constants
-from robottelo.datafactory import parametrized
-from robottelo.logging import logger
 
 
-@pytest.fixture
-def repo_options(request, module_org, module_product):
-    """Return the options that were passed as indirect parameters."""
-    options = getattr(request, 'param', {}).copy()
-    options['organization'] = module_org
-    options['product'] = module_product
-    return options
-
-
-@pytest.fixture
-def repo_options_custom_product(request, module_org):
-    """Return the options that were passed as indirect parameters."""
-    options = getattr(request, 'param', {}).copy()
-    options['organization'] = module_org
-    options['product'] = entities.Product(organization=module_org).create()
-    return options
-
-
-@pytest.fixture
-def env(module_org):
-    """Create a new puppet environment."""
-    return entities.Environment(organization=[module_org]).create()
-
-
-@pytest.fixture
-def repo(repo_options):
-    """Create a new repository."""
-    return entities.Repository(**repo_options).create()
-
-
-@pytest.fixture(scope="function")
-def settings_update(request):
+def create_http_proxy(sat, org, proxy_type):
     """
-    This fixture is used to create an object of the provided settings parameter that we use in
-    each test case to update their attributes and once the test case gets completed it helps to
-    restore their default value
-    """
-    setting_object = entities.Setting().search(query={'search': f'name={request.param}'})[0]
-    default_setting_value = setting_object.value
-    if default_setting_value is None:
-        default_setting_value = ''
-    yield setting_object
-    setting_object.value = default_setting_value
-    setting_object.update({'value'})
+    Creates HTTP proxy.
 
-
-def create_http_proxy(org, proxy_type):
-    """
-    Create a HTTP proxy.
-
+    :param str sat: Satellite to use.
     :param str org: Organization
     :param str proxy_type: 'auth_http_proxy' or 'unauth_http_proxy' http proxy.
     """
     if proxy_type == 'unauth_http_proxy':
-        return entities.HTTPProxy(
+        return sat.api.HTTPProxy(
             name=gen_string('alpha', 15),
-            url=settings.http_proxy.auth_proxy_url,
+            url=settings.http_proxy.un_auth_proxy_url,
             organization=[org.id],
         ).create()
     if proxy_type == 'auth_http_proxy':
-        return entities.HTTPProxy(
+        return sat.api.HTTPProxy(
             name=gen_string('alpha', 15),
             url=settings.http_proxy.auth_proxy_url,
             username=settings.http_proxy.username,
@@ -114,56 +48,95 @@ def create_http_proxy(org, proxy_type):
         ).create()
 
 
-@pytest.fixture(scope="function")
-def restore_settings(request):
-    """ds"""
-    default_settings = {}
-    for setting in request.param:
-        setting_object = entities.Setting().search(query={'search': f'name={setting}'})[0]
-        default_settings[setting] = setting_object.value
-        if default_settings[setting] is None:
-            default_settings[setting] = ''
-    yield
-    for setting, value in default_settings.items():
-        setting_object = entities.Setting().search(query={'search': f'name={setting}'})[0]
-        setting_object.value = value
-        setting_object.update({'value'})
-
-
 @pytest.fixture(scope='function')
-def update_http_proxy_setting(request, module_org):
-    """Set HTTP Proxy related settings based on proxy"""
-    http_proxy = create_http_proxy(module_org, request.param)
+def function_http_proxy(request, module_manifest_org, target_sat):
+    """Create a new HTTP proxy and set related settings based on proxy"""
+    http_proxy = create_http_proxy(target_sat, module_manifest_org, request.param)
     general_proxy = http_proxy.url if request.param == "unauth_http_proxy" else ''
     if request.param == "auth_http_proxy":
-        general_proxy = f'http://{settings.http_proxy.username}:{settings.http_proxy.password}@{http_proxy.url[7:]}'
-
-    setting_entity = entities.Setting().search(query={'search': 'name=content_default_http_proxy'})[0]
-    setting_entity.value = http_proxy.name if request.param != "no_http_proxy" else ''
-    setting_entity.update({'value'})
-
-    setting_entity = entities.Setting().search(query={'search': 'name=http_proxy'})[0]
-    setting_entity.value = general_proxy if request.param != "no_http_proxy" else ''
-    setting_entity.update({'value'})
+        general_proxy = (
+            f'http://{settings.http_proxy.username}:'
+            f'{settings.http_proxy.password}@{http_proxy.url[7:]}'
+        )
+    content_proxy_value = target_sat.update_setting(
+        'content_default_http_proxy', http_proxy.name if request.param != "no_http_proxy" else ''
+    )
+    general_proxy_value = target_sat.update_setting(
+        'http_proxy', general_proxy if request.param != "no_http_proxy" else ''
+    )
+    yield http_proxy, request.param
+    target_sat.update_setting('content_default_http_proxy', content_proxy_value)
+    target_sat.update_setting('http_proxy', general_proxy_value)
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
-@pytest.mark.parametrize('restore_settings', [['content_default_http_proxy', 'http_proxy']], indirect=True, ids='')
-@pytest.mark.parametrize('update_http_proxy_setting', ['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'], indirect=True)
-def test_positive_end_to_end(update_http_proxy_setting, restore_settings):
-    """Assign http_proxy to Redhat repository and perform repository sync.
+@pytest.mark.parametrize(
+    'function_http_proxy', ['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'], indirect=True
+)
+def test_positive_end_to_end(function_http_proxy, target_sat, module_manifest_org):
+    """End-to-end test for HTTP Proxy related scenarios.
 
     :id: 38df5479-9127-49f3-a30e-26b33655971a
 
-    :expectedresults: HTTP Proxy can be assigned to redhat repository and sync operation
-        performed successfully.
+    :steps:
+        1. Set Http proxy settings for Satellite.
+        2. Enable and sync redhat repository.
+        3. Assign Http Proxy to custom repository and perform repo sync.
+
+    :expectedresults: HTTP Proxy works with other satellite components.
 
     :Assignee: jpathan
 
     :BZ: 2011303, 2042473
 
+    :parametrized: yes
+
     :CaseImportance: Critical
     """
-    print('fsd')
+    http_proxy, http_proxy_type = function_http_proxy
+    http_proxy_id = http_proxy.id if http_proxy_type != 'no_http_proxy' else None
+    http_proxy_policy = 'use_selected_http_proxy' if http_proxy_type != 'no_http_proxy' else 'none'
+    # Assign http_proxy to Redhat repository and perform repository sync.
+    rh_repo_id = enable_rhrepo_and_fetchid(
+        basearch=constants.DEFAULT_ARCHITECTURE,
+        org_id=module_manifest_org.id,
+        product=constants.PRDS['rhae'],
+        repo=constants.REPOS['rhae2']['name'],
+        reposet=constants.REPOSET['rhae2'],
+        releasever=None,
+    )
+    rh_repo = target_sat.api.Repository(
+        id=rh_repo_id,
+        http_proxy_policy=http_proxy_policy,
+        http_proxy_id=http_proxy_id,
+        download_policy='immediate',
+    ).update()
+    assert rh_repo.http_proxy_policy == http_proxy_policy
+    assert rh_repo.http_proxy_id == http_proxy_id
+    assert rh_repo.download_policy == 'immediate'
+    rh_repo.sync()
+    assert rh_repo.read().content_counts['rpm'] >= 1
+
+    # Assign http_proxy to Repositories and perform repository sync.
+    repo_options = {
+        'http_proxy_policy': http_proxy_policy,
+        'http_proxy_id': http_proxy_id,
+    }
+    repo = target_sat.api.Repository(**repo_options).create()
+
+    assert repo.http_proxy_policy == http_proxy_policy
+    assert repo.http_proxy_id == http_proxy_id
+    repo.sync()
+    assert repo.read().content_counts['rpm'] >= 1
+
+    # Use global_default_http_proxy
+    repo_options['http_proxy_policy'] = 'global_default_http_proxy'
+    repo_2 = target_sat.api.Repository(**repo_options).create()
+    assert repo_2.http_proxy_policy == 'global_default_http_proxy'
+
+    # Update to selected_http_proxy
+    repo_2.http_proxy_policy = 'none'
+    repo_2.update(['http_proxy_policy'])
+    assert repo_2.http_proxy_policy == 'none'
