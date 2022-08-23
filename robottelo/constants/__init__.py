@@ -365,7 +365,6 @@ OHSNAP_RHEL7_REPOS = (
 OHSNAP_RHEL8_REPOS = (
     'rhel-8-for-x86_64-baseos-rpms',
     'rhel-8-for-x86_64-appstream-rpms',
-    'ansible-2.9-for-rhel-8-x86_64-rpms',
 )
 
 INSTALL_RHEL7_STEPS = 'yum -y install satellite'
