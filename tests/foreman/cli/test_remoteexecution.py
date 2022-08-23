@@ -1048,8 +1048,8 @@ class TestPullProviderRex:
         """
         result = rhel_contenthost.execute(
             f'curl -o /etc/pki/ca-trust/source/anchors/satellite-sat-engineering-ca.crt \
-                    {settings.repos["DOGFOOD_REPO_HOST"]}/pub/katello-server-ca.crt; \
-                    update-ca-trust'
+                    {settings.repos["DOGFOOD_REPO_HOST"]}/pub/katello-server-ca.crt \
+                    && update-ca-trust'
         )
         assert result.status == 0, 'Failed to download certificate'
         client_repo = (
@@ -1071,7 +1071,6 @@ class TestPullProviderRex:
             repo=client_repo,
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
-        # result = rhel_contenthost.execute('subsription-manager identity/status')
 
         # install conversion script (SAT-1670)
         result = rhel_contenthost.execute('yum install -y katello-pull-transport-migrate')
@@ -1175,8 +1174,8 @@ class TestPullProviderRex:
         """
         result = rhel_contenthost.execute(
             f'curl -o /etc/pki/ca-trust/source/anchors/satellite-sat-engineering-ca.crt \
-                    {settings.repos["DOGFOOD_REPO_HOST"]}/pub/katello-server-ca.crt; \
-                    update-ca-trust'
+                    {settings.repos["DOGFOOD_REPO_HOST"]}/pub/katello-server-ca.crt \
+                    && update-ca-trust'
         )
         assert result.status == 0, 'Failed to download certificate'
         client_repo = (
