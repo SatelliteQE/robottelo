@@ -128,6 +128,47 @@ def module_provisioning_rhel_content(
 
 
 @pytest.fixture(scope='module')
+def module_provisioning_client_repo(
+    request, module_provisioning_rhel_content, module_org_with_manifest, module_provisioning_sat
+):
+    """
+    This fixture sets up kickstart repositories for a specific RHEL version
+    that is specified in `request.param`.
+    """
+    sat = module_provisioning_sat.sat
+    rhel_ver = request.param['rhel_version']
+    # add sat client repo
+    client_repo = (
+        f'{settings.repos["DOGFOOD_REPO_HOST"].replace("http", "https")}/pulp/content/'
+        'Satellite_Engineering/QA/Satellite_Client/custom/Satellite_Client_Composes/'
+        f'Satellite_Client_RHEL{rhel_ver}_x86_64/'
+    )
+    # TODO client_repo should be changed to
+    # settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_ver}']
+    # when/if the new dogfood url pattern settles
+    product = sat.cli.make_product({'organization-id': module_org_with_manifest.id})
+    sat.cli.make_repository(
+        {
+            'name': 'client',
+            'product-id': product['id'],
+            'organization-id': module_org_with_manifest.id,
+            'content-type': 'yum',
+            'url': client_repo,
+        }
+    )
+    sat.cli.Product.synchronize(
+        {'id': product['id'], 'organization-id': module_org_with_manifest.id}
+    )
+    custom_sub = sat.api.Subscription(organization=module_org_with_manifest).search(
+        query={'search': f'name={product["name"]}'}
+    )
+    module_provisioning_rhel_content.ak.add_subscriptions(
+        data={'subscription_id': custom_sub[0].id}
+    )
+    return module_provisioning_rhel_content
+
+
+@pytest.fixture(scope='module')
 def module_provisioning_sat(
     request,
     module_target_sat,
@@ -198,6 +239,21 @@ def module_provisioning_sat(
     ).create()
 
     return Box(sat=sat, domain=domain, subnet=subnet, provisioning_type=provisioning_type)
+
+
+@pytest.fixture(scope='module')
+def module_provisioning_sat_pull_provider(module_provisioning_sat):
+    """
+    This fixture enables pull provider rex mode on Satellite set up
+    for PXE provisioning
+    """
+    module_provisioning_sat.sat.set_rex_script_mode_provider('pull-mqtt')
+    result = module_provisioning_sat.sat.execute('systemctl status mosquitto')
+    assert result.status == 0, 'MQTT broker is not running'
+    result = module_provisioning_sat.sat.execute('firewall-cmd --permanent --add-port="1883/tcp"')
+    assert result.status == 0, 'Failed to open mqtt port on capsule'
+    module_provisioning_sat.sat.execute('firewall-cmd --reload')
+    return module_provisioning_sat
 
 
 @pytest.fixture(scope='module')

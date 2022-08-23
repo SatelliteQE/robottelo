@@ -1074,7 +1074,6 @@ class TestPullProviderRex:
             }
         )
         assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
-        result = JobInvocation.info({'id': invocation_command['id']})
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -1170,6 +1169,7 @@ class TestPullProviderRex:
         # assert the file is owned by the effective user
         assert username == result.stdout.strip('\n')
 
+
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.no_containers
@@ -1244,3 +1244,102 @@ class TestPullProviderRex:
         # wait twice the mqtt_resend_interval (set in module_capsule_configured_mqtt)
         sleep(60)
         assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
+    @pytest.mark.on_premises_provisioning
+    @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.no_containers
+    def test_positive_run_job_on_host_provisioned_with_pull_provider(
+        self,
+        request,
+        module_provisioning_sat_pull_provider,
+        provisioning_host,
+        module_org_with_manifest,
+        module_location,
+        module_provisioning_client_repo,
+        module_lce_library,
+        module_default_org_view,
+    ):
+        """Set up mqtt client on provisioned hosts, run rex job against it
+
+        :id: 4129a8da-ec2e-41ec-b8f1-d56b4aad1577
+
+        :expectedresults: Verify the job was successfully ran against the host provisioned to mqtt
+
+        :CaseImportance: Critical
+
+        :bz: 2127934, 2127940
+
+        :parametrized: yes
+        """
+        host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
+        sat = module_provisioning_sat_pull_provider.sat
+
+        host = sat.api.Host(
+            hostgroup=module_provisioning_client_repo.hostgroup,
+            organization=module_org_with_manifest,
+            location=module_location,
+            content_facet_attributes={
+                'content_view_id': module_default_org_view.id,
+                'lifecycle_environment_id': module_lce_library.id,
+            },
+            name=gen_string('alpha').lower(),
+            mac=host_mac_addr,
+            operatingsystem=module_provisioning_client_repo.os,
+            subnet=module_provisioning_sat_pull_provider.subnet,
+            host_parameters_attributes=[
+                {
+                    'name': 'remote_execution_connect_by_ip',
+                    'value': 'true',
+                    'parameter_type': 'boolean',
+                },
+                {
+                    'name': 'enable-remote-execution-pull',
+                    'value': 'true',
+                    'parameter_type': 'boolean',
+                },
+            ],
+            build=True,  # put the host in build mode
+        ).create(create_missing=False)
+
+        # Clean up the host to free IP leases on Satellite.
+        # broker should do that as a part of the teardown, putting here just to make sure.
+        request.addfinalizer(host.delete)
+
+        # Start the VM, do not ensure that we can connect to SSHD
+        provisioning_host.power_control(ensure=False)
+
+        # Host should do call back to the Satellite reporting
+        # the result of the installation. Wait until Satellite reports that the host is installed.
+        wait_for(
+            lambda: host.read().build_status_label != 'Pending installation',
+            timeout=1500,
+            delay=10,
+        )
+        host = host.read()
+        assert host.build_status_label == 'Installed'
+
+        # Change the hostname of the host as we know it already.
+        # In the current infra environment we do not support
+        # addressing hosts using FQDNs, falling back to IP.
+        provisioning_host.hostname = host.ip
+        # Host is not blank anymore
+        provisioning_host.blank = False
+
+        # check ygg client
+        result = provisioning_host.execute('yggdrasil status')
+        assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
+        result = provisioning_host.execute('systemctl status yggdrasild')
+        assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
+
+        # run script template
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': 'command=ls',
+                'search-query': f"name ~ {host.name}",
+            }
+        )
+        assert_job_invocation_result(invocation_command['id'], host.name)
+
