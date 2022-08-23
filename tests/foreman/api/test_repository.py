@@ -75,18 +75,6 @@ def repo(repo_options):
     return entities.Repository(**repo_options).create()
 
 
-@pytest.fixture
-def http_proxy(module_org):
-    """Create a new HTTP proxy."""
-    return entities.HTTPProxy(
-        name=gen_string('alpha', 15),
-        url=settings.http_proxy.auth_proxy_url,
-        username=settings.http_proxy.username,
-        password=settings.http_proxy.password,
-        organization=[module_org.id],
-    ).create()
-
-
 class TestRepository:
     """Tests for ``katello/api/v2/repositories``."""
 
@@ -110,89 +98,6 @@ class TestRepository:
         :CaseImportance: Critical
         """
         assert repo_options['name'] == repo.name
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_positive_assign_http_proxy_to_repository(self, module_org, module_product, http_proxy):
-        """Assign http_proxy to Repositories and perform repository sync.
-
-        :id: 5b3b992e-02d3-4b16-95ed-21f1588c7741
-
-        :expectedresults: HTTP Proxy can be assigned to repository and sync operation performed
-            successfully.
-
-        :Assignee: jpathan
-
-        :CaseImportance: High
-        """
-        repo_options = {
-            'http_proxy_policy': 'use_selected_http_proxy',
-            'http_proxy_id': http_proxy.id,
-        }
-        repo = entities.Repository(**repo_options).create()
-
-        assert repo.http_proxy_policy == repo_options['http_proxy_policy']
-        assert repo.http_proxy_id == http_proxy.id
-        repo.sync()
-        assert repo.read().content_counts['rpm'] >= 1
-
-        # Use global_default_http_proxy
-        repo_options['http_proxy_policy'] = 'global_default_http_proxy'
-        repo_2 = entities.Repository(**repo_options).create()
-        assert repo_2.http_proxy_policy == 'global_default_http_proxy'
-
-        # Update to selected_http_proxy
-        repo_2.http_proxy_policy = 'none'
-        repo_2.update(['http_proxy_policy'])
-        assert repo_2.http_proxy_policy == 'none'
-
-    @pytest.mark.skip_if_open("BZ:2042473")
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    def test_positive_sync_redhat_repo_using_http_proxy(self, module_manifest_org):
-        """Assign http_proxy to Redhat repository and perform repository sync.
-
-        :id: 38df5479-9127-49f3-a30e-26b33655971a
-
-        :expectedresults: HTTP Proxy can be assigned to redhat repository and sync operation
-            performed successfully.
-
-        :Assignee: jpathan
-
-        :BZ: 2011303, 2042473
-
-        :CaseImportance: Critical
-        """
-        http_proxy = entities.HTTPProxy(
-            name=gen_string('alpha', 15),
-            url=settings.http_proxy.auth_proxy_url,
-            username=settings.http_proxy.username,
-            password=settings.http_proxy.password,
-            organization=[module_manifest_org.id],
-        ).create()
-
-        rh_repo_id = enable_rhrepo_and_fetchid(
-            basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=module_manifest_org.id,
-            product=constants.PRDS['rhae'],
-            repo=constants.REPOS['rhae2']['name'],
-            reposet=constants.REPOSET['rhae2'],
-            releasever=None,
-        )
-        rh_repo = entities.Repository(
-            id=rh_repo_id,
-            http_proxy_policy='use_selected_http_proxy',
-            http_proxy_id=http_proxy.id,
-            download_policy='immediate',
-        ).update()
-        assert rh_repo.http_proxy_policy == 'use_selected_http_proxy'
-        assert rh_repo.http_proxy_id == http_proxy.id
-        assert rh_repo.download_policy == 'immediate'
-        rh_repo.sync()
-        assert rh_repo.read().content_counts['rpm'] >= 1
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
