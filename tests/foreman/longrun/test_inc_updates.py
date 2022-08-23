@@ -24,6 +24,8 @@ from nailgun import entities
 
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import wait_for_tasks
+from robottelo.cli import factory as cli_factory
+from robottelo.cli.contentview import ContentView
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -223,3 +225,65 @@ def test_positive_noapply_api(module_manifest_org, module_cv, custom_repo, host,
     # Re-read the content view to get the latest versions
     module_cv = module_cv.read()
     assert len(module_cv.version) > len(cv_versions)
+
+
+@pytest.mark.tier3
+def test_positive_incremental_update_time(module_manifest_org):
+    """Incremental update shouldn't take a long time
+
+    :id: a9cdcc58-2d10-42cf-8e24-f7bec3b79d6b
+
+    :expectedresults: Incremental update takes a short amount of time
+
+    :BZ: 2117760, 1829266
+    """
+    # rhel 7
+    rhel7_repo_id = enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=module_manifest_org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhel7']['name'],
+        reposet=REPOSET['rhel7'],
+        releasever=REPOS['rhel7']['releasever'],
+    )
+    rhel7_repo = entities.Repository(id=rhel7_repo_id).read()
+    assert rhel7_repo.sync(timeout=3000)['result'] == 'success'
+    # rhel tools
+    rhst7_repo_id = enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=module_manifest_org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7_610']['name'],
+        reposet=REPOSET['rhst7_610'],
+        releasever=None,
+    )
+    rhst7_repo = entities.Repository(id=rhst7_repo_id).read()
+    assert rhst7_repo.sync()['result'] == 'success'
+    # rhscl
+    rhscl7_repo_id = enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=module_manifest_org.id,
+        product=PRDS['rhscl'],
+        repo=REPOS['rhscl7']['name'],
+        reposet=REPOSET['rhscl7'],
+        releasever=REPOS['rhscl7']['releasever'],
+    )
+    rhscl7_repo = entities.Repository(id=rhscl7_repo_id).read()
+    assert rhscl7_repo.sync()['result'] == 'success'
+    cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
+    rhel_repos = [rhst7_repo_id, rhscl7_repo_id, rhel7_repo_id]
+    for repos in rhel_repos:
+        ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_manifest_org.id,
+                'repository-id': repos,
+            }
+        )
+    ContentView.publish({'id': cv['id']})
+    content_view = ContentView.info({'id': cv['id']})
+    cvv = content_view['versions'][0]
+    ContentView.version_incremental_update(
+        {'content-view-version-id': cvv['id'], 'errata-ids': 'RHSA-2022:4866'}
+    )
+    ContentView.publish({'id': cv['id']})
