@@ -287,8 +287,6 @@ def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Defa
         Host.delete({'name': guest_name})
     register_system(get_system(hypervisor_type), org=org)
     ret, stdout = runcmd(command)
-    print(ret)
-    print(stdout)
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError(f"Failed to deploy configure by {command}")
     if debug:
