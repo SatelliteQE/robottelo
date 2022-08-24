@@ -287,6 +287,8 @@ def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Defa
         Host.delete({'name': guest_name})
     register_system(get_system(hypervisor_type), org=org)
     ret, stdout = runcmd(command)
+    print(ret)
+    print(stdout)
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError(f"Failed to deploy configure by {command}")
     if debug:
@@ -314,6 +316,26 @@ def deploy_configure_by_script(
         raise VirtWhoError(f"Failed to deploy configure by {script_filename}")
     if debug:
         return deploy_validation(hypervisor_type)
+
+
+def deploy_configure_by_command_check(command):
+    """Deploy and run virt-who servcie by the hammer command to check deploy log.
+
+    :param str command: get the command by UI/CLI/API, it should be like:
+        `hammer virt-who-config deploy --id 1 --organization-id 1`
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
+    :param str org: Organization Label
+    """
+    virtwho_cleanup()
+    try:
+        ret, stdout = runcmd(command)
+    except Exception:
+        raise VirtWhoError(f"Failed to deploy configure by {command}")
+    else:
+        if ret != 0 or 'Finished successfully' not in stdout:
+            raise VirtWhoError(f"Failed to deploy configure by {command}")
+        else:
+            return 'Finished successfully'
 
 
 def restart_virtwho_service():
