@@ -28,6 +28,7 @@ from navmazing import NavigationTriesExceeded
 
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
+from robottelo.api.utils import upload_manifest
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
@@ -1281,3 +1282,40 @@ def test_positive_sync_third_party_repo(session, module_org):
         )
         result = session.repository.synchronize(product.name, repo_name)
         assert result['result'] == 'success'
+
+
+@pytest.mark.tier2
+def test_positive_able_to_disable_and_enable_rhel_repos(session, target_sat):
+    """Upstream repo name changes shouldn't negatively affect a user's ability
+    to enable or disable a repo
+
+    :id: 205a1c05-2ac8-4c60-8d09-016bbcfdf538
+
+    :expectedresult: User is able to enable and disabled repos without issues
+
+    :bz: 1973329
+
+    :customerscenario: true
+
+    :SubComponent: Pulp
+    """
+    org = entities.Organization().create()
+    with manifests.clone() as manifest:
+        upload_manifest(org.id, manifest.content)
+    # rhel7
+    rhel7_repo = target_sat.cli_factory.RHELRepository()
+    # enable rhel7 repo
+    rhel7_repo.create(org.id, synchronize=False)
+    repository_name = rhel7_repo.data['repository']
+    with session:
+        session.organization.select(org.name)
+        session.redhatrepository.disable(repository_name)
+        assert not session.redhatrepository.search(
+            f'name = "{repository_name}"', category='Enabled'
+        )
+        session.redhatrepository.enable(
+            rhel7_repo.data['repository-set'],
+            rhel7_repo.data['arch'],
+            version=rhel7_repo.data['releasever'],
+        )
+        assert session.redhatrepository.search(f'name = "{repository_name}"', category='Enabled')
