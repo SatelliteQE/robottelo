@@ -16,12 +16,9 @@ from robottelo.constants import HAMMER_SESSIONS
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.hosts import ContentHost
-from robottelo.rhsso_utils import create_mapper
-from robottelo.rhsso_utils import set_the_redirect_uri
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
-from robottelo.utils.sso import sso_host
 
 
 @pytest.fixture(scope='session')
@@ -318,13 +315,13 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
 def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth, module_target_sat):
     """register the satellite with RH-SSO Server for single sign-on"""
     client_id = sso_host.get_rhsso_client_id(module_target_sat)
-    create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
+    sso_host.create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
     audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
     audience_mapper['config']['included.client.audience'] = audience_mapper['config'][
         'included.client.audience'
     ].format(rhsso_host=module_target_sat.hostname)
-    create_mapper(audience_mapper, client_id)
-    set_the_redirect_uri(module_target_sat)
+    sso_host.create_mapper(audience_mapper, client_id)
+    sso_host.set_the_redirect_uri(module_target_sat)
 
 
 def enroll_idm_and_configure_external_auth(sat):
