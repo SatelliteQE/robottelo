@@ -2165,6 +2165,45 @@ def test_positive_read_details_page_from_new_ui(session, module_host_template):
 
 @pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
+def test_rex_new_ui(session, target_sat, rex_contenthost):
+    """Run remote execution using the new host details page
+
+    :id: ee625595-4995-43b2-9e6d-633c9b33ff93
+
+    :steps:
+        1. Navigate to Overview tab
+        2. Schedule a job
+        3. Wait for the job to finish
+        4. Job is visible in Recent jobs card
+
+    :expectedresults: Remote execution succeeded and the job is visible on Recent jobs card on
+        Overview tab
+
+    :CaseLevel: System
+    """
+    hostname = rex_contenthost.hostname
+    job_args = {
+        'job_category': 'Commands',
+        'job_template': 'Run Command - Script Default',
+        'template_content.command': 'ls',
+    }
+    with session:
+        session.location.select(loc_name=DEFAULT_LOC)
+        session.host_new.schedule_job(hostname, job_args)
+        task_result = wait_for_tasks(
+            search_query=(f'Remote action: Run ls on {hostname}'),
+            search_rate=2,
+            max_tries=30,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        recent_jobs = session.host_new.get_details(hostname, "overview.recent_jobs")['overview']
+        assert "Run ls" == recent_jobs['recent_jobs']['finished']['table'][0][0]
+        assert "succeeded" == recent_jobs['recent_jobs']['finished']['table'][0][2]
+
+
+@pytest.mark.tier4
+@pytest.mark.rhel_ver_match('8')
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
