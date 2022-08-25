@@ -19,19 +19,17 @@ SATELLITE_VERSION = "6.12"
 SATELLITE_OS_VERSION = "8"
 
 LOCALES = (
-    'ca',
+    'cs_CZ',
     'de',
     'en',
     'en_GB',
     'es',
     'fr',
-    'gl',
     'it',
     'ja',
     'ko',
     'pt_BR',
     'ru',
-    'sv_SE',
     'zh_CN',
     'zh_TW',
 )
