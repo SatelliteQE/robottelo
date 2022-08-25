@@ -1,19 +1,32 @@
 import json
 import random
-from contextlib import contextmanager
+from functools import cached_property
 from functools import lru_cache
 
+from box import Box
 from broker.hosts import Host
 from fauxfactory import gen_string
-from pexpect import pxssh
 
 from robottelo.config import settings
 from robottelo.constants import KEY_CLOAK_CLI
-from robottelo.constants import RHSSO_NEW_GROUP
-from robottelo.constants import RHSSO_NEW_USER
-from robottelo.constants import RHSSO_RESET_PASSWORD
-from robottelo.constants import RHSSO_USER_UPDATE
 from robottelo.datafactory import valid_emails_list
+
+RHSSO_NEW_USER = Box(
+    email="test_user@example.com",
+    emailVerified="true",
+    enabled="true",
+    firstName="first_name",
+    lastName="last_name",
+    username="random_name",
+)
+
+RHSSO_USER_UPDATE = Box(realm="realm_name", userId="user_id")
+
+RHSSO_NEW_GROUP = Box(
+    name="group_name",
+)
+
+RHSSO_RESET_PASSWORD = Box(temporary="false", type="password", value="")
 
 
 class SSOHost(Host):
@@ -48,6 +61,7 @@ class SSOHost(Host):
                 break
         return client_id
 
+    @lru_cache
     def get_rhsso_user_details(self, username):
         """Getter method to receive the user id"""
         result = self.execute(
@@ -56,6 +70,7 @@ class SSOHost(Host):
         result_json = json.loads(f'[{{{result}')
         return result_json[0]
 
+    @lru_cache
     def get_rhsso_groups_details(self, group_name):
         """Getter method to receive the group id"""
         result = self.execute(
@@ -82,29 +97,32 @@ class SSOHost(Host):
 
     def create_new_rhsso_user(self, username=None):
         """create new user in RHSSO instance and set the password"""
+        update_data_user = RHSSO_NEW_USER.copy()
+        update_data_pass = RHSSO_RESET_PASSWORD.copy()
         if not username:
             username = gen_string('alphanumeric')
-        RHSSO_NEW_USER['username'] = username
-        RHSSO_NEW_USER['email'] = random.choice(valid_emails_list())
+        update_data_user.username = username
+        update_data_user.email = random.choice(valid_emails_list())
         RHSSO_RESET_PASSWORD['value'] = settings.rhsso.rhsso_password
-        self.upload_rhsso_entity(RHSSO_NEW_USER, "create_user")
-        self.upload_rhsso_entity(RHSSO_RESET_PASSWORD, "reset_password")
+        self.upload_rhsso_entity(update_data_pass, "create_user")
+        self.upload_rhsso_entity(update_data_pass, "reset_password")
         self.execute(f"{KEY_CLOAK_CLI} create users -r {settings.rhsso.realm} -f create_user")
-        user_details = self.get_rhsso_user_details(RHSSO_NEW_USER['username'])
+        user_details = self.get_rhsso_user_details(update_data_user.username)
         self.execute(
             "{} update -r {} users/{}/reset-password -f {}".format(
                 KEY_CLOAK_CLI, settings.rhsso.realm, user_details['id'], "reset_password"
             )
         )
-        return RHSSO_NEW_USER
+        return update_data_user
 
     def update_rhsso_user(self, username, group_name=None):
+        update_data_user = RHSSO_USER_UPDATE.copy()
         user_details = self.get_rhsso_user_details(username)
-        RHSSO_USER_UPDATE['realm'] = f"{settings.rhsso.realm}"
-        RHSSO_USER_UPDATE['userId'] = f"{user_details['id']}"
+        update_data_user.realm = settings.rhsso.realm
+        update_data_user.userId = f"{user_details['id']}"
         if group_name:
             group_details = self.get_rhsso_groups_details(group_name=group_name)
-            RHSSO_USER_UPDATE['groupId'] = f"{group_details['id']}"
+            update_data_user['groupId'] = f"{group_details['id']}"
             self.upload_rhsso_entity(RHSSO_USER_UPDATE, "update_user")
             group_path = f"users/{user_details['id']}/groups/{group_details['id']}"
             self.execute(
@@ -118,10 +136,11 @@ class SSOHost(Host):
 
     def create_group(self, group_name=None):
         """Create the RHSSO group"""
+        update_user_group = RHSSO_NEW_GROUP.copy()
         if not group_name:
             group_name = gen_string('alphanumeric')
-        RHSSO_NEW_GROUP['name'] = group_name
-        self.upload_rhsso_entity(RHSSO_NEW_GROUP, "create_group")
+        update_user_group.name = group_name
+        self.upload_rhsso_entity(update_user_group, "create_group")
         result = self.execute(
             f"{KEY_CLOAK_CLI} create groups -r {settings.rhsso.realm} -f create_group"
         )
@@ -144,25 +163,29 @@ class SSOHost(Host):
         )
         self.execute(update_cmd)
 
-    def get_oidc_token_endpoint(self):
+    @cached_property
+    def oidc_token_endpoint(self):
         """getter oidc token endpoint"""
         return (
             f"https://{settings.rhsso.host_name}/auth/realms/"
             f"{settings.rhsso.realm}/protocol/openid-connect/token"
         )
 
+    @lru_cache
     def get_oidc_client_id(self):
         """getter for the oidc client_id"""
         return f"{settings.server.hostname}-foreman-openidc"
 
-    def get_oidc_authorization_endpoint(self):
+    @cached_property
+    def oidc_authorization_endpoint(self):
         """getter for the oidc authorization endpoint"""
         return (
             f"https://{settings.rhsso.host_name}/auth/realms/"
             f"{settings.rhsso.realm}/protocol/openid-connect/auth"
         )
 
-    def get_two_factor_token_rh_sso_url(self):
+    @lru_cache
+    def two_factor_token_rh_sso_url(self):
         """getter for the two factor token rh_sso url"""
         return (
             f"https://{settings.rhsso.host_name}/auth/realms/"
@@ -171,24 +194,12 @@ class SSOHost(Host):
             "redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=openid"
         )
 
-    @contextmanager
-    def open_pxssh_session(
-        ssh_key=settings.server.ssh_key,
-        hostname=settings.server.get('hostname', None),
-        username=settings.server.ssh_username,
-    ):
-        ssh_options = {'IdentityAgent': ssh_key}
-        ssh_session = pxssh.pxssh(options=ssh_options)
-        ssh_session.login(hostname, username, sync_multiplier=5)
-        yield ssh_session
-        ssh_session.logout()
-
-    def set_the_redirect_uri(self):
+    def set_the_redirect_uri(self, sat_obj):
         client_config = {
             "redirectUris": [
                 "urn:ietf:wg:oauth:2.0:oob",
-                f"https://{settings.server.hostname}/users/extlogin/redirect_uri",
-                f"https://{settings.server.hostname}/users/extlogin",
+                f"https://{sat_obj.hostname}/users/extlogin/redirect_uri",
+                f"https://{sat_obj.hostname}/users/extlogin",
             ]
         }
         self.update_client_configuration(client_config)

@@ -1685,23 +1685,6 @@ AUDIENCE_MAPPER = {
     "protocolMapper": "oidc-audience-mapper",
 }
 
-RHSSO_NEW_USER = {
-    "email": "test_user@example.com",
-    "emailVerified": "true",
-    "enabled": "true",
-    "firstName": "first_name",
-    "lastName": "last_name",
-    "username": "random_name",
-}
-
-RHSSO_USER_UPDATE = {'realm': "realm_name", "userId": "user_id"}
-
-RHSSO_NEW_GROUP = {
-    "name": "group_name",
-}
-
-RHSSO_RESET_PASSWORD = {"temporary": "false", "type": "password", "value": ""}
-
 FOREMAN_ANSIBLE_MODULES = [
     "activation_key",
     "architecture",

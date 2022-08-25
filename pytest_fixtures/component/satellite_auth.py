@@ -24,6 +24,12 @@ from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.sso import sso_host
 
 
+@pytest.fixture(scope='session')
+def default_sso_host():
+    """returns default sso host"""
+    return sso_host
+
+
 @pytest.fixture()
 def ldap_cleanup():
     """this is an extra step taken to clean any existing ldap source"""
