@@ -1237,7 +1237,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def register_to_cdn(self):
+    def register_to_cdn(self, auto_attach=False):
         """Subscribe satellite to CDN"""
         self.remove_katello_ca()
         major_version = self.os_version.major
@@ -1248,6 +1248,7 @@ class ContentHost(Host, ContentHostMixins):
             username=settings.subscription.rhn_username,
             password=settings.subscription.rhn_password,
             releasever=release_version,
+            auto_attach=auto_attach,
         )
         if cmd_result.status != 0:
             raise ContentHostError(
