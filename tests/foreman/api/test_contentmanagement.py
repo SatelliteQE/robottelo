@@ -1191,6 +1191,7 @@ class TestCapsuleContentManagement:
             )
             assert result.status == 0
 
+    @pytest.mark.skip_if_open("BZ:2121583")
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_collection_repo(
@@ -1219,6 +1220,8 @@ class TestCapsuleContentManagement:
         :parametrized: yes
 
         :CaseLevel: Integration
+
+        :BZ: 2121583
         """
         requirements = '''
         ---
