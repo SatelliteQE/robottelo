@@ -2157,9 +2157,10 @@ def test_positive_read_details_page_from_new_ui(session, module_host_template):
         )
         assert session.host_new.search(host_name)[0]['Name'] == host_name
         values = session.host_new.get_details(host_name, widget_names='overview')
-        assert values['overview']['HostStatusCard']['status'] == 'All statuses OK'
+        assert values['overview']['host_status']['status'] == 'All statuses OK'
         assert values['overview']['details']['details']['mac_address'] == module_host_template.mac
-        assert values['overview']['details']['details']['host_owner'] == values['current_user']
+        user = session.host_new.get_details(host_name, widget_names='current_user')['current_user']
+        assert values['overview']['details']['details']['host_owner'] == user
         assert values['overview']['details']['details']['comment'] == 'Host with fake data'
 
 
