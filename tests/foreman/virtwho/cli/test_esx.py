@@ -437,6 +437,8 @@ class TestVirtWhoConfigforEsx:
         :CaseImportance: High
 
         :BZ: 1870816,1959136
+
+        :customerscenario: true
         """
         # check the hypervisor password contains single quotes
         form_data['hypervisor-password'] = "Tes't"
