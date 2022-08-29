@@ -317,7 +317,7 @@ def deploy_configure_by_script(
 
 
 def deploy_configure_by_command_check(command):
-    """Deploy and run virt-who servcie by the hammer command to check deploy log.
+    """Deploy and run virt-who service by the hammer command to check deploy log.
 
     :param str command: get the command by UI/CLI/API, it should be like:
         `hammer virt-who-config deploy --id 1 --organization-id 1`
