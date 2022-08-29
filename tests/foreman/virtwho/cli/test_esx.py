@@ -27,6 +27,7 @@ from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.virtwho_utils import create_http_proxy
 from robottelo.virtwho_utils import deploy_configure_by_command
+from robottelo.virtwho_utils import deploy_configure_by_command_check
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import ETC_VIRTWHO_CONFIG
 from robottelo.virtwho_utils import get_configure_command
@@ -418,5 +419,57 @@ class TestVirtWhoConfigforEsx:
             'general-information'
         ]['status']
         assert virt_who_instance == 'OK'
+        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
+        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
+
+    @pytest.mark.tier2
+    def test_positive_deploy_configure_hypervisor_password_with_special_characters(
+        self, default_org, form_data, target_sat
+    ):
+        """Verify " hammer virt-who-config deploy hypervisor with special characters"
+
+        :id: 9892a94e-ff4b-44dd-87eb-1289d4a965be
+
+        :expectedresults: Config can be created and deployed without any error
+
+        :CaseLevel: Integration
+
+        :CaseImportance: High
+
+        :BZ: 1870816,1959136
+
+        :customerscenario: true
+        """
+        # check the hypervisor password contains single quotes
+        form_data['hypervisor-password'] = "Tes't"
+        virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
+        assert virtwho_config['status'] == 'No Report Yet'
+        virtwho_config['id']
+        command = get_configure_command(virtwho_config['id'], default_org.name)
+        deploy_status = deploy_configure_by_command_check(command)
+        assert deploy_status == 'Finished successfully'
+        config_file = get_configure_file(virtwho_config['id'])
+        assert get_configure_option('rhsm_hostname', config_file) == target_sat.hostname
+        assert (
+            get_configure_option('username', config_file)
+            == settings.virtwho.esx.hypervisor_username
+        )
+        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
+        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
+
+        # check the hypervisor password contains backtick
+        form_data['hypervisor-password'] = r"my\`password"
+        virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
+        assert virtwho_config['status'] == 'No Report Yet'
+        virtwho_config['id']
+        command = get_configure_command(virtwho_config['id'], default_org.name)
+        deploy_status = deploy_configure_by_command_check(command)
+        assert deploy_status == 'Finished successfully'
+        config_file = get_configure_file(virtwho_config['id'])
+        assert get_configure_option('rhsm_hostname', config_file) == target_sat.hostname
+        assert (
+            get_configure_option('username', config_file)
+            == settings.virtwho.esx.hypervisor_username
+        )
         target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
