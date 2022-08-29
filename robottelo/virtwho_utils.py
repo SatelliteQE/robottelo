@@ -316,6 +316,26 @@ def deploy_configure_by_script(
         return deploy_validation(hypervisor_type)
 
 
+def deploy_configure_by_command_check(command):
+    """Deploy and run virt-who service by the hammer command to check deploy log.
+
+    :param str command: get the command by UI/CLI/API, it should be like:
+        `hammer virt-who-config deploy --id 1 --organization-id 1`
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
+    :param str org: Organization Label
+    """
+    virtwho_cleanup()
+    try:
+        ret, stdout = runcmd(command)
+    except Exception:
+        raise VirtWhoError(f"Failed to deploy configure by {command}")
+    else:
+        if ret != 0 or 'Finished successfully' not in stdout:
+            raise VirtWhoError(f"Failed to deploy configure by {command}")
+        else:
+            return 'Finished successfully'
+
+
 def restart_virtwho_service():
     """
     Do the following:
