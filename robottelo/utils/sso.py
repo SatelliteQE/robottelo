@@ -153,9 +153,9 @@ class SSOHost(Host):
             f"{KEY_CLOAK_CLI} delete -r {settings.rhsso.realm} groups/{group_details['id']}"
         )
 
-    def update_client_configuration(self, json_content):
+    def update_client_configuration(self, json_content, sat_obj):
         """Update the client configuration"""
-        client_id = self.get_rhsso_client_id()
+        client_id = self.get_rhsso_client_id(sat_obj)
         self.upload_rhsso_entity(json_content, "update_client_info")
         update_cmd = (
             f"{KEY_CLOAK_CLI} update clients/{client_id}"
