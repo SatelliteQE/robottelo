@@ -744,8 +744,6 @@ class TestVirtwhoConfigforEsx:
 
         :CaseLevel: Integration
 
-        :customerscenario: true
-
         :CaseImportance: Medium
 
         :BZ: 1834897
