@@ -428,7 +428,7 @@ class TestVirtWhoConfigforEsx:
     ):
         """Verify " hammer virt-who-config deploy hypervisor with special characters"
 
-        :id: 654f869e-182b-4951-bc4e-8761d666a449
+        :id: 9892a94e-ff4b-44dd-87eb-1289d4a965be
 
         :expectedresults: Config can be created and deployed without any error
 
