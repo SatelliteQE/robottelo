@@ -403,7 +403,6 @@ class TestVirtWhoConfigforEsx:
 
         :BZ: 1834897
 
-        :customerscenario: true
         """
         command = get_configure_command(virtwho_config.id, default_org.name)
         deploy_configure_by_command(
