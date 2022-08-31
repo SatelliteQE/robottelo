@@ -428,7 +428,7 @@ class TestVirtWhoConfigforEsx:
     ):
         """Verify " hammer virt-who-config deploy hypervisor with special characters"
 
-        :id: 9892a94e-ff4b-44dd-87eb-1289d4a965be
+        :id: 654f869e-182b-4951-bc4e-8761d666a449
 
         :expectedresults: Config can be created and deployed without any error
 
@@ -444,7 +444,6 @@ class TestVirtWhoConfigforEsx:
         form_data['hypervisor-password'] = "Tes't"
         virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
         assert virtwho_config['status'] == 'No Report Yet'
-        virtwho_config['id']
         command = get_configure_command(virtwho_config['id'], default_org.name)
         deploy_status = deploy_configure_by_command_check(command)
         assert deploy_status == 'Finished successfully'
@@ -461,7 +460,6 @@ class TestVirtWhoConfigforEsx:
         form_data['hypervisor-password'] = r"my\`password"
         virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
         assert virtwho_config['status'] == 'No Report Yet'
-        virtwho_config['id']
         command = get_configure_command(virtwho_config['id'], default_org.name)
         deploy_status = deploy_configure_by_command_check(command)
         assert deploy_status == 'Finished successfully'
