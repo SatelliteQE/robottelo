@@ -248,37 +248,21 @@ def test_single_sign_on_ldap_ad_server(
 
     :steps: Assert single sign-on session user is directed to satellite instead of login page
 
-    :expectedresults: After single sign on, user should be redirected from /extlogin to /users page
-        using curl. It should navigate to user's profile page.(verify using url only)
+    :expectedresults: After single sign on, user should be redirected from /extlogin to /hosts page
+        using curl. It should navigate to hosts page. (verify using url only)
+
+    :BZ: 1941997
 
     """
-    # register the satellite with AD for single sign-on and update external auth
-    try:
-        # enable the foreman-ipa-authentication feature
-        target_sat.execute('satellite-installer --foreman-ipa-authentication=true', timeout=800000)
-        target_sat.execute('systemctl restart gssproxy.service')
-        target_sat.execute('systemctl enable gssproxy.service')
-
-        # restart the deamon and httpd services
-        httpd_service_content = (
-            '.include /lib/systemd/system/httpd.service\n[Service]' '\nEnvironment=GSS_USE_PROXY=1'
-        )
-        target_sat.execute(f'echo "{httpd_service_content}" > /etc/systemd/system/httpd.service')
-        target_sat.execute('systemctl daemon-reload && systemctl restart httpd.service')
-
-        # create the kerberos ticket for authentication
-        target_sat.execute(f'echo {settings.ldap.password} | kinit {settings.ldap.username}')
-        if is_open('BZ:1941997'):
-            curl_command = f'curl -k -u : --negotiate {target_sat.url}/users/extlogin'
-        else:
-            curl_command = f'curl -k -u : --negotiate {target_sat.url}/users/extlogin/'
-        result = target_sat.execute(curl_command)
-        assert 'redirected' in result
-        assert f'{target_sat.url}/hosts' in result
-    finally:
-        # resetting the settings to default for external auth
-        target_sat.execute('satellite-installer --foreman-ipa-authentication=false', timeout=800000)
-        target_sat.execute('satellite-maintain service restart', timeout=300000)
+    # create the kerberos ticket for authentication
+    target_sat.execute(f'echo {settings.ldap.password} | kinit {settings.ldap.username}')
+    if is_open('BZ:1941997'):
+        curl_command = f'curl -k -u : --negotiate {target_sat.url}/users/extlogin'
+    else:
+        curl_command = f'curl -k -u : --negotiate {target_sat.url}/users/extlogin/'
+    result = target_sat.execute(curl_command)
+    assert 'redirected' in result.stdout
+    assert f'{target_sat.url}/hosts' in result.stdout
 
 
 def test_single_sign_on_using_rhsso(

@@ -14,6 +14,7 @@ from robottelo.constants import GROUP_MEMBERSHIP_MAPPER
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import gen_string
+from robottelo.helpers import InstallerCommand
 from robottelo.hosts import ContentHost
 from robottelo.rhsso_utils import create_mapper
 from robottelo.rhsso_utils import get_rhsso_client_id
@@ -428,14 +429,15 @@ def enroll_ad_and_configure_external_auth(request, ad_data, target_sat):
     target_sat.execute('chattr +i /etc/resolv.conf')
 
     # join the realm
-    target_sat.execute(f'echo {settings.ldap.password} | realm join -v {realm}')
+    target_sat.execute(
+        f'echo {settings.ldap.password} | realm join -v {realm} --membership-software=samba'
+    )
     target_sat.execute('touch /etc/ipa/default.conf')
     target_sat.execute(f'echo "{default_content}" > /etc/ipa/default.conf')
     target_sat.execute(f'echo "{keytab_content}" > /etc/net-keytab.conf')
 
     # gather the apache id
-    result = str(target_sat.execute('id -u apache')).strip()
-    id_apache = result
+    id_apache = str(target_sat.execute('id -u apache')).strip()
     http_conf_content = (
         f'[service/HTTP]\nmechs = krb5\ncred_store = keytab:/etc/krb5.keytab'
         f'\ncred_store = ccache:/var/lib/gssproxy/clients/krb5cc_%U'
@@ -451,3 +453,33 @@ def enroll_ad_and_configure_external_auth(request, ad_data, target_sat):
     target_sat.execute(f'echo {settings.ldap.password} | {token_command}')
     target_sat.execute('chown root.apache /etc/httpd/conf/http.keytab')
     target_sat.execute('chmod 640 /etc/httpd/conf/http.keytab')
+
+    # enable the foreman-ipa-authentication feature
+    result = target_sat.install(InstallerCommand('foreman-ipa-authentication true'))
+    assert result.status == 0
+
+    # add foreman ad_gp_map_service (BZ#2117523)
+    line_number = int(
+        target_sat.execute(
+            "awk -v search='domain/' '$0~search{print NR; exit}' /etc/sssd/sssd.conf"
+        ).stdout
+    )
+    target_sat.execute(
+        f'sed -i "{line_number + 1}i ad_gpo_map_service = +foreman" /etc/sssd/sssd.conf'
+    )
+    target_sat.execute('systemctl restart sssd.service')
+
+    # unset GssapiLocalName (BZ#1787630)
+    target_sat.execute(
+        'sed -i -e "s/GssapiLocalName.*On/GssapiLocalName Off/g" '
+        '/etc/httpd/conf.d/05-foreman-ssl.d/auth_gssapi.conf'
+    )
+    target_sat.execute('systemctl restart gssproxy.service')
+    target_sat.execute('systemctl enable gssproxy.service')
+
+    # restart the deamon and httpd services
+    httpd_service_content = (
+        '.include /lib/systemd/system/httpd.service\n[Service]' '\nEnvironment=GSS_USE_PROXY=1'
+    )
+    target_sat.execute(f'echo "{httpd_service_content}" > /etc/systemd/system/httpd.service')
+    target_sat.execute('systemctl daemon-reload && systemctl restart httpd.service')
