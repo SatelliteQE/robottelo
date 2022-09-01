@@ -974,6 +974,7 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert len(caps_files) == packages_count
 
+    @pytest.mark.skip_if_open("BZ:2122780")
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):
@@ -985,7 +986,7 @@ class TestCapsuleContentManagement:
 
         :expectedresults: capsule pub url is accessible
 
-        :BZ: 1463810
+        :BZ: 1463810, 2122780
 
         :CaseLevel: System
         """

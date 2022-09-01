@@ -1353,14 +1353,6 @@ class Capsule(ContentHost, CapsuleMixins):
         if result.status:
             raise CapsuleHostError(f'The satellite-capsule package was not found\n{result.stdout}')
 
-        # Update Satellite's http proxy except list
-        result = self.satellite.cli.Settings.list({'search': 'http_proxy_except_list'})[0]
-        if result['value'] == '[]':
-            except_list = f'[{self.hostname}]'
-        else:
-            except_list = result['value'][:-1] + f', {self.hostname}]'
-        self.satellite.cli.Settings.set({'name': 'http_proxy_except_list', 'value': except_list})
-
         # Generate certificate, copy it to Capsule, run installer, check it succeeds
         installer = self.satellite.capsule_certs_generate(self, **installer_kwargs)
         self.satellite.session.remote_copy(installer.opts['certs-tar-file'], self)
