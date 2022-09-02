@@ -20,7 +20,6 @@ import pytest
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_url
-from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.constants import REPO_TYPE
@@ -28,7 +27,7 @@ from robottelo.constants import REPO_TYPE
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_create_update_delete(session, module_org, module_location):
+def test_positive_create_update_delete(module_org, module_location, target_sat):
     """Create new http-proxy with attributes, update and delete it.
 
     :id: 0c7cdf3d-778f-427a-9a2f-42ad7c23aa15
@@ -47,7 +46,7 @@ def test_positive_create_update_delete(session, module_org, module_location):
     password = gen_string('alpha', 15)
     username = gen_string('alpha', 15)
 
-    with session:
+    with target_sat.ui_session() as session:
         session.http_proxy.create(
             {
                 'http_proxy.name': http_proxy_name,
@@ -70,12 +69,12 @@ def test_positive_create_update_delete(session, module_org, module_location):
         assert session.http_proxy.search(updated_proxy_name)[0]['Name'] == updated_proxy_name
         # Delete http_proxy
         session.http_proxy.delete(updated_proxy_name)
-        assert not entities.HTTPProxy().search(query={'search': f'name={updated_proxy_name}'})
+        assert not target_sat.api.HTTPProxy().search(query={'search': f'name={updated_proxy_name}'})
 
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_assign_http_proxy_to_products_repositories(session, module_org, module_location):
+def test_positive_assign_http_proxy_to_products_repositories(module_org, module_location, target_sat):
     """Assign HTTP Proxy to Products and Repositories.
 
     :id: 2b803f9c-8d5d-4467-8eba-18244ebc0201
@@ -86,13 +85,13 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
     :CaseImportance: Critical
     """
     # create HTTP proxies
-    http_proxy_a = entities.HTTPProxy(
+    http_proxy_a = target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.un_auth_proxy_url,
         organization=[module_org.id],
         location=[module_location.id],
     ).create()
-    http_proxy_b = entities.HTTPProxy(
+    http_proxy_b = target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.auth_proxy_url,
         username=settings.http_proxy.username,
@@ -101,14 +100,14 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
         location=[module_location.id],
     ).create()
     # Create products
-    product_a = entities.Product(
+    product_a = target_sat.api.Product(
         organization=module_org.id,
     ).create()
-    product_b = entities.Product(
+    product_b = target_sat.api.Product(
         organization=module_org.id,
     ).create()
     # Create repositories from UI.
-    with session:
+    with target_sat.ui_session() as session:
         repo_a1_name = gen_string('alpha')
         session.repository.create(
             product_a.name,
@@ -189,7 +188,7 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
 @pytest.mark.tier1
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
-def test_set_default_http_proxy(session, module_org, module_location, setting_update):
+def test_set_default_http_proxy(module_org, module_location, setting_update, target_sat):
     """Setting "Default HTTP proxy" to "no global default".
 
     :id: e93733e1-5c05-4b7f-89e4-253b9ce55a5a
@@ -214,14 +213,14 @@ def test_set_default_http_proxy(session, module_org, module_location, setting_up
 
     property_name = setting_update.name
 
-    http_proxy_a = entities.HTTPProxy(
+    http_proxy_a = target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.un_auth_proxy_url,
         organization=[module_org.id],
         location=[module_location.id],
     ).create()
 
-    with session:
+    with target_sat.ui_session() as session:
         session.settings.update(
             f'name = {property_name}', f'{http_proxy_a.name} ({http_proxy_a.url})'
         )
@@ -237,7 +236,7 @@ def test_set_default_http_proxy(session, module_org, module_location, setting_up
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
 def test_check_http_proxy_value_repository_details(
-    session, function_org, function_location, function_product, setting_update
+    function_org, function_location, function_product, setting_update, target_sat
 ):
 
     """Deleted Global Http Proxy is reflected in repository details page".
@@ -267,14 +266,14 @@ def test_check_http_proxy_value_repository_details(
 
     property_name = setting_update.name
     repo_name = gen_string('alpha')
-    http_proxy_a = entities.HTTPProxy(
+    http_proxy_a = target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.un_auth_proxy_url,
         organization=[function_org.id],
         location=[function_location.id],
     ).create()
 
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.select(org_name=function_org.name)
         session.location.select(loc_name=function_location.name)
         session.settings.update(
@@ -326,4 +325,32 @@ def test_http_proxy_containing_special_characters():
     :CaseAutomation: NotAutomated
 
     :CaseImportance: High
+    """
+
+
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.run_in_one_thread
+@pytest.mark.parametrize(
+    'function_http_proxy', ['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'], indirect=True
+)
+def test_positive_end_to_end(function_http_proxy, target_sat, module_manifest_org):
+    """End-to-end test for HTTP Proxy related scenarios.
+
+    :id: 38df5479-9127-49f3-a30e-26b33655971a
+
+    :steps:
+        1. Set Http proxy settings for Satellite.
+        2. Enable and sync redhat repository.
+        3. Assign Http Proxy to custom repository and perform repo sync.
+
+    :expectedresults: HTTP Proxy works with other satellite components.
+
+    :Assignee: jpathan
+
+    :BZ: 2011303, 2042473
+
+    :parametrized: yes
+
+    :CaseImportance: Critical
     """
