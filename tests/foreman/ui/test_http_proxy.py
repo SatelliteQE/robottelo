@@ -331,20 +331,17 @@ def test_http_proxy_containing_special_characters():
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+@pytest.mark.usefixtures('allow_repo_discovery')
 @pytest.mark.parametrize(
     'function_http_proxy', ['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'], indirect=True
 )
-def test_positive_end_to_end(function_http_proxy, target_sat, module_manifest_org):
-    """End-to-end test for HTTP Proxy related scenarios.
+def test_positive_repo_discovery(function_http_proxy, module_target_sat, module_org):
+    """Create repository via repo discovery under new product
 
     :id: 38df5479-9127-49f3-a30e-26b33655971a
 
-    :steps:
-        1. Set Http proxy settings for Satellite.
-        2. Enable and sync redhat repository.
-        3. Assign Http Proxy to custom repository and perform repo sync.
-
-    :expectedresults: HTTP Proxy works with other satellite components.
+    :expectedresults: Repository is discovered and created
 
     :Assignee: jpathan
 
@@ -354,3 +351,50 @@ def test_positive_end_to_end(function_http_proxy, target_sat, module_manifest_or
 
     :CaseImportance: Critical
     """
+    product_name = gen_string('alpha')
+    repo_name = 'fakerepo01'
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        # test scenario for yum type repo discovery.
+        session.product.discover_repo(
+            {
+                'repo_type': 'Yum Repositories',
+                'url': settings.repos.repo_discovery.url,
+                'discovered_repos.repos': repo_name,
+                'create_repo.product_type': 'New Product',
+                'create_repo.product_content.product_name': product_name,
+            }
+        )
+        assert session.product.search(product_name)[0]['Name'] == product_name
+        assert repo_name in session.repository.search(product_name, repo_name)[0]['Name']
+        # test scenario for docker type repo discovery.
+        session.organization.select(org_name=module_org.name)
+        session.product.discover_repo(
+            {
+                'repo_type': 'docker',
+                'url': settings.repos.repo_discovery.url,
+                'discovered_repos.repos': repo_name,
+                'create_repo.product_type': 'New Product',
+                'create_repo.product_content.product_name': product_name,
+            }
+        )
+        assert session.product.search(product_name)[0]['Name'] == product_name
+        assert repo_name in session.repository.search(product_name, repo_name)[0]['Name']
+
+        @pytest.mark.tier3
+        @pytest.mark.parametrize(
+            'repo_options',
+            **datafactory.parametrized(
+                {
+                    'large_repo': {
+                        'content_type': 'docker',
+                        'docker_upstream_name': constants.DOCKER_REPO_UPSTREAM_NAME,
+                        'name': gen_string('alphanumeric', 10),
+                        'url': constants.RH_CONTAINER_REGISTRY_HUB,
+                        'upstream_username': settings.subscription.rhn_username,
+                        'upstream_password': settings.subscription.rhn_password,
+                    }
+                }
+            ),
+            indirect=True,
+        )

@@ -32,7 +32,7 @@ from robottelo.config import settings
     indirect=True,
     ids=['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'],
 )
-def test_positive_end_to_end(function_http_proxy, target_sat, module_manifest_org):
+def test_positive_end_to_end(function_http_proxy, module_target_sat, module_manifest_org):
     """End-to-end test for HTTP Proxy related scenarios.
 
     :id: 38df5479-9127-49f3-a30e-26b33655971a
@@ -68,7 +68,7 @@ def test_positive_end_to_end(function_http_proxy, target_sat, module_manifest_or
         reposet=constants.REPOSET['rhae2'],
         releasever=None,
     )
-    rh_repo = target_sat.api.Repository(
+    rh_repo = module_target_sat.api.Repository(
         id=rh_repo_id,
         http_proxy_policy=http_proxy_policy,
         http_proxy_id=http_proxy_id,
@@ -85,7 +85,7 @@ def test_positive_end_to_end(function_http_proxy, target_sat, module_manifest_or
         'http_proxy_policy': http_proxy_policy,
         'http_proxy_id': http_proxy_id,
     }
-    repo = target_sat.api.Repository(**repo_options).create()
+    repo = module_target_sat.api.Repository(**repo_options).create()
 
     assert repo.http_proxy_policy == http_proxy_policy
     assert repo.http_proxy_id == http_proxy_id
@@ -94,7 +94,7 @@ def test_positive_end_to_end(function_http_proxy, target_sat, module_manifest_or
 
     # Use global_default_http_proxy
     repo_options['http_proxy_policy'] = 'global_default_http_proxy'
-    repo_2 = target_sat.api.Repository(**repo_options).create()
+    repo_2 = module_target_sat.api.Repository(**repo_options).create()
     assert repo_2.http_proxy_policy == 'global_default_http_proxy'
 
     # Update to selected_http_proxy
