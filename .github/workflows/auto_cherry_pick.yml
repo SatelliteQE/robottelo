@@ -7,37 +7,18 @@ on:
       - closed
 
 jobs:
-  branch-matrix:
-    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
-    name: Generate a branch matrix to apply cherrypicks
-    runs-on: ubuntu-latest
-    outputs:
-      branches: ${{ steps.set-matrix.outputs.branches }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - id: set-matrix
-        run: echo "::set-output name=branches::$(git branch -rl --sort=-authordate 'origin/6.*.z' --format='%(refname:lstrip=-1)' | head -n2 | jq -cnR '[inputs | select(length>0)]')"
   auto_cherry_picking:
+    name: Auto Cherry Pick to previous branch
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
-    name: Auto Cherry picking to branches
     needs: branch-matrix
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        to_branch: ${{ fromJson(needs.branch-matrix.outputs.branches) }}
     steps:
-      - name: Checkout Robottelo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-        if: matrix.to_branch != github.base_ref
-      - name: Cherry pick into ${{ matrix.to_branch }}
+      - name: Cherry pick into 6.10.z
         uses: jyejare/github-cherry-pick-action@main
         with:
-          branch: ${{ matrix.to_branch }}
+          branch: 6.10.z
           labels: |
             Auto_Cherry_Picked
-        # skipping PRs remote target_branch from cherrypicking into itself
-        if: matrix.to_branch != github.base_ref
