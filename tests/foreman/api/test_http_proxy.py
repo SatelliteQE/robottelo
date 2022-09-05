@@ -104,7 +104,7 @@ def test_positive_end_to_end(function_http_proxy, module_target_sat, module_mani
 
     # test scenario for yum type repo discovery.
     repo_name = 'fakerepo01'
-    yum_repo = target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
+    yum_repo = module_target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
         data={
             "id": module_manifest_org.id,
             "url": settings.repos.repo_discovery.url,
@@ -115,7 +115,7 @@ def test_positive_end_to_end(function_http_proxy, module_target_sat, module_mani
     assert yum_repo['output'][0] == f'{settings.repos.repo_discovery.url}/{repo_name}/'
 
     # test scenario for docker type repo discovery.
-    yum_repo = target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
+    yum_repo = module_target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
         data={
             "id": module_manifest_org.id,
             "url": 'quay.io',

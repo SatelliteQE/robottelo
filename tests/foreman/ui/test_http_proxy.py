@@ -22,6 +22,7 @@ from fauxfactory import gen_string
 from fauxfactory import gen_url
 
 from robottelo.config import settings
+from robottelo.constants import DOCKER_REPO_UPSTREAM_NAME
 from robottelo.constants import REPO_TYPE
 
 
@@ -74,7 +75,9 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_assign_http_proxy_to_products_repositories(module_org, module_location, target_sat):
+def test_positive_assign_http_proxy_to_products_repositories(
+    module_org, module_location, target_sat
+):
     """Assign HTTP Proxy to Products and Repositories.
 
     :id: 2b803f9c-8d5d-4467-8eba-18244ebc0201
@@ -334,14 +337,17 @@ def test_http_proxy_containing_special_characters():
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
 @pytest.mark.parametrize(
-    'function_http_proxy', ['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'], indirect=True
+    'function_http_proxy',
+    [None, True, False],
+    indirect=True,
+    ids=['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'],
 )
 def test_positive_repo_discovery(function_http_proxy, module_target_sat, module_org):
     """Create repository via repo discovery under new product
 
-    :id: 38df5479-9127-49f3-a30e-26b33655971a
+    :id: fd385552-8cbb-49f7-8557-cc4e6ac7e79a
 
-    :expectedresults: Repository is discovered and created
+    :expectedresults: Repository is discovered and created.
 
     :Assignee: jpathan
 
@@ -368,33 +374,21 @@ def test_positive_repo_discovery(function_http_proxy, module_target_sat, module_
         assert session.product.search(product_name)[0]['Name'] == product_name
         assert repo_name in session.repository.search(product_name, repo_name)[0]['Name']
         # test scenario for docker type repo discovery.
-        session.organization.select(org_name=module_org.name)
+        product_name = gen_string('alpha')
         session.product.discover_repo(
             {
-                'repo_type': 'docker',
-                'url': settings.repos.repo_discovery.url,
-                'discovered_repos.repos': repo_name,
+                'repo_type': 'Container Images',
                 'create_repo.product_type': 'New Product',
                 'create_repo.product_content.product_name': product_name,
+                'registry_search': DOCKER_REPO_UPSTREAM_NAME,
+                'name': gen_string('alphanumeric', 10),
+                'username': settings.subscription.rhn_username,
+                'password': settings.subscription.rhn_password,
+                'discovered_repos.repos': DOCKER_REPO_UPSTREAM_NAME,
             }
         )
         assert session.product.search(product_name)[0]['Name'] == product_name
-        assert repo_name in session.repository.search(product_name, repo_name)[0]['Name']
-
-        @pytest.mark.tier3
-        @pytest.mark.parametrize(
-            'repo_options',
-            **datafactory.parametrized(
-                {
-                    'large_repo': {
-                        'content_type': 'docker',
-                        'docker_upstream_name': constants.DOCKER_REPO_UPSTREAM_NAME,
-                        'name': gen_string('alphanumeric', 10),
-                        'url': constants.RH_CONTAINER_REGISTRY_HUB,
-                        'upstream_username': settings.subscription.rhn_username,
-                        'upstream_password': settings.subscription.rhn_password,
-                    }
-                }
-            ),
-            indirect=True,
+        assert (
+            DOCKER_REPO_UPSTREAM_NAME
+            in session.repository.search(product_name, DOCKER_REPO_UPSTREAM_NAME)[0]['Name']
         )
