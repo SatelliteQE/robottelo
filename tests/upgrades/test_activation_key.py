@@ -94,7 +94,7 @@ class TestActivationKey:
             3. Delete activation key.
 
         :expectedresults: Activation key's entities should be same after upgrade and activation
-        key update and delettarge should work.
+        key update and delete should work.
         """
         pre_test_name = dependent_scenario_name
         org = target_sat.api.Organization().search(query={'search': f'name={pre_test_name}_org'})
