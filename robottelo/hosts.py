@@ -1174,7 +1174,7 @@ class ContentHost(Host, ContentHostMixins):
 
         :param host: IP address or hostname of the provisioned host
         :returns: None
-        :raises: : `ProvisioningCheckError` if the host is not pingable
+        :raises: : `HostPingFailed` if the host is not pingable
         """
         result = self.execute(
             f'for i in {{1..60}}; do ping -c1 {host} && exit 0; sleep 20; done; exit 1'

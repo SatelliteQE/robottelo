@@ -57,7 +57,7 @@ def test_negative_create_with_url(target_sat):
     with pytest.raises(CLIFactoryError, match='Could not create the proxy:'):
         target_sat.cli_factory.make_proxy(
             {
-                'url': 'http://{}:{}'.format(gen_string('alpha', 6), gen_string('numeric', 4)),
+                'url': f"http://{gen_string('alpha', 6)}:{gen_string('numeric', 4)}",
             }
         )
 
@@ -119,7 +119,7 @@ def test_positive_update_name(request, target_sat):
     """
     proxy = _make_proxy(request, target_sat, options={'name': gen_alphanumeric()})
     for new_name in valid_data_list().values():
-        newport = target_sat.get_available_capsule_port
+        newport = target_sat.available_capsule_port
         with target_sat.default_url_on_new_port(9090, newport) as url:
             Proxy.update({'id': proxy['id'], 'name': new_name, 'url': url})
             proxy = Proxy.info({'id': proxy['id']})
@@ -145,7 +145,7 @@ def test_positive_refresh_features_by_id(request, target_sat):
     # test to claim it. Thus we want to manage the tunnel manually.
 
     # get an available port for our fake capsule
-    port = target_sat.get_available_capsule_port
+    port = target_sat.available_capsule_port
     with target_sat.default_url_on_new_port(9090, port) as url:
         proxy = _make_proxy(request, target_sat, options={'url': url})
         Proxy.refresh_features({'id': proxy['id']})
@@ -170,7 +170,7 @@ def test_positive_refresh_features_by_name(request, target_sat):
     # test to claim it. Thus we want to manage the tunnel manually.
 
     # get an available port for our fake capsule
-    port = target_sat.get_available_capsule_port
+    port = target_sat.available_capsule_port
     with target_sat.default_url_on_new_port(9090, port) as url:
         proxy = _make_proxy(request, target_sat, options={'url': url})
         Proxy.refresh_features({'id': proxy['name']})
@@ -189,7 +189,7 @@ def test_positive_import_puppet_classes(session_puppet_enabled_sat, puppet_proxy
 
     """
     with session_puppet_enabled_sat as puppet_sat:
-        port = puppet_sat.get_available_capsule_port
+        port = puppet_sat.available_capsule_port
         with puppet_sat.default_url_on_new_port(9090, port) as url:
             proxy = puppet_sat.cli_factory.make_proxy({'url': url})
             Proxy.import_classes({'id': proxy['id']})
