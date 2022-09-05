@@ -1,0 +1,30 @@
+MANIFEST:
+  MANIFESTER_DIRECTORY: ""
+  GOLDEN_TICKET:
+    # Value of SAT_VERSION setting should be in the form "sat-X.Y", e.g. "sat-6.11"
+    SAT_VERSION: ""
+    OFFLINE_TOKEN: ""
+    # Manifests with simple content access enabled should not use a quantity higher than 1 for any subscription
+    # unless doing so is required for a test.
+    SUBSCRIPTION_DATA:
+      # NAME should be an exact match of the subscription name as listed on the Customer Portal
+      - NAME: ""
+        QUANTITY:
+      - NAME: ""
+        QUANTITY:
+    SIMPLE_CONTENT_ACCESS: "enabled"
+    URL:
+      TOKEN_REQUEST: "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token"
+      ALLOCATIONS: "https://api.access.redhat.com/management/v1/allocations"
+  ENTITLEMENT:
+    SAT_VERSION: ""
+    OFFLINE_TOKEN: ""
+    SUBSCRIPTION_DATA:
+      - NAME: ""
+        QUANTITY:
+      - NAME: ""
+        QUANTITY:
+    SIMPLE_CONTENT_ACCESS: "disabled"
+    URL:
+      TOKEN_REQUEST: "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token"
+      ALLOCATIONS: "https://api.access.redhat.com/management/v1/allocations/"

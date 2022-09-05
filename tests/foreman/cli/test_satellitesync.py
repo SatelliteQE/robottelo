@@ -167,6 +167,10 @@ class TestRepositoryExport:
             present on satellite machine
 
         :CaseLevel: System
+
+        :BZ: 1944733
+
+        :customerscenario: true
         """
         # Create custom product and repository
         cv_name = gen_string('alpha')
@@ -433,7 +437,10 @@ def _create_cv(cv_name, repo, module_org, publish=True):
     :param publish: Publishes the CV if True else doesnt
     :return: The directory of CV and Content View ID
     """
-    content_view = make_content_view({'name': cv_name, 'organization-id': module_org.id})
+    description = gen_string('alpha')
+    content_view = make_content_view(
+        {'name': cv_name, 'description': description, 'organization-id': module_org.id}
+    )
     ContentView.add_repository(
         {
             'id': content_view['id'],
@@ -569,10 +576,15 @@ class TestContentViewSync:
         :CaseImportance: High
 
         :CaseLevel: System
+
+        :BZ: 1832858
+
+        :customerscenario: true
         """
         export_prod_name = import_prod_name = class_export_entities['exporting_prod_name']
         export_repo_name = import_repo_name = class_export_entities['exporting_repo_name']
         export_cvv_id = class_export_entities['exporting_cvv_id']
+        export_cv_description = class_export_entities['exporting_cv']['description']
         import_cv_name = class_export_entities['exporting_cv_name']
         # check packages
         exported_packages = Package.list({'content-view-version-id': export_cvv_id})
@@ -594,9 +606,11 @@ class TestContentViewSync:
         assert result.stdout != ''
         # Import files and verify content
         ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
-        importing_cvv = ContentView.info(
+        importing_cv = ContentView.info(
             {'name': import_cv_name, 'organization-id': importing_org['id']}
-        )['versions']
+        )
+        importing_cvv = importing_cv['versions']
+        assert importing_cv['description'] == export_cv_description
         assert len(importing_cvv) >= 1
         imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
         assert len(imported_packages)
@@ -917,9 +931,11 @@ class TestContentViewSync:
             1. CV version redhat contents has been exported to directory
             2. All The exported redhat contents has been imported in org/satellite
 
-        :BZ: 1655239
+        :BZ: 1655239, 2040870
 
         :CaseAutomation: Automated
+
+        :customerscenario: true
 
         :CaseComponent: ContentViews
 
@@ -935,15 +951,15 @@ class TestContentViewSync:
         RepositorySet.enable(
             {
                 'basearch': 'x86_64',
-                'name': REPOSET['rhva6'],
+                'name': REPOSET['kickstart']['rhel7'],
                 'organization-id': function_org.id,
                 'product': PRDS['rhel'],
-                'releasever': '6Server',
+                'releasever': '7.9',
             }
         )
         repo = Repository.info(
             {
-                'name': REPOS['rhva6']['name'],
+                'name': REPOS['kickstart']['rhel7']['name'],
                 'organization-id': function_org.id,
                 'product': PRDS['rhel'],
             }
@@ -1380,6 +1396,10 @@ class TestContentViewSync:
 
         :expectedresults:  Imported cv should have the files present in the cv of
             the imported system
+
+        :BZ: 1995827
+
+        :customerscenario: true
         """
         # setup custom repo
         cv_name = import_cv_name = gen_string('alpha')

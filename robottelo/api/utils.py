@@ -5,7 +5,6 @@ from contextlib import contextmanager
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
-from inflector import Inflector
 from nailgun import entities
 from nailgun import entity_mixins
 from nailgun.client import request
@@ -180,7 +179,7 @@ def one_to_one_names(name):
 
     Example of usage::
 
-        >>> one_to_many_names('person') == {'person_name', 'person_id'}
+        >>> one_to_one_names('person') == {'person_name', 'person_id'}
         True
 
     :param name: A field name.
@@ -188,21 +187,6 @@ def one_to_one_names(name):
 
     """
     return {name + '_name', name + '_id'}
-
-
-def one_to_many_names(name):
-    """Generate the names Satellite might use for a one to many field.
-
-    Example of usage::
-
-        >>> one_to_many_names('person') == {'person', 'person_ids', 'people'}
-        True
-
-    :param name: A field name.
-    :returns: A set including both ``name`` and variations on ``name``.
-
-    """
-    return {name, name + '_ids', Inflector().pluralize(name)}
 
 
 def configure_provisioning(org=None, loc=None, compute=False, os=None):
@@ -877,9 +861,9 @@ def update_rhsso_settings_in_satellite(revert=False, sat=None):
     rhhso_settings = {
         'authorize_login_delegation': True,
         'authorize_login_delegation_auth_source_user_autocreate': 'External',
-        'login_delegation_logout_url': f'https://{settings.server.hostname}/users/extlogout',
+        'login_delegation_logout_url': f'https://{sat.hostname}/users/extlogout',
         'oidc_algorithm': 'RS256',
-        'oidc_audience': [f'{settings.server.hostname}-foreman-openidc'],
+        'oidc_audience': [f'{sat.hostname}-foreman-openidc'],
         'oidc_issuer': f'{settings.rhsso.host_url}/auth/realms/{settings.rhsso.realm}',
         'oidc_jwks_url': f'{settings.rhsso.host_url}/auth/realms'
         f'/{settings.rhsso.realm}/protocol/openid-connect/certs',

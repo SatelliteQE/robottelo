@@ -9,10 +9,12 @@ from robottelo.api.utils import update_rhsso_settings_in_satellite
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import AUDIENCE_MAPPER
+from robottelo.constants import CERT_PATH
 from robottelo.constants import GROUP_MEMBERSHIP_MAPPER
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import gen_string
+from robottelo.helpers import InstallerCommand
 from robottelo.hosts import ContentHost
 from robottelo.rhsso_utils import create_mapper
 from robottelo.rhsso_utils import get_rhsso_client_id
@@ -269,6 +271,20 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
         'yum -y --disableplugin=foreman-protector install '
         'mod_auth_openidc keycloak-httpd-client-install'
     )
+    if module_target_sat.os_version.major == '8':
+        # if target directory not given it is installing in /usr/local/lib64
+        module_target_sat.execute(
+            'python3 -m pip install lxml -t /usr/lib64/python3.6/site-packages'
+        )
+    module_target_sat.execute(
+        f'openssl s_client -connect {settings.rhsso.host_name} -showcerts </dev/null 2>/dev/null| '
+        f'sed "/BEGIN CERTIFICATE/,/END CERTIFICATE/!d" > {CERT_PATH}/rh-sso.crt'
+    )
+    module_target_sat.execute(
+        f'sshpass -p "{settings.rhsso.rhsso_password}" scp -o "StrictHostKeyChecking no" '
+        f'root@{settings.rhsso.host_name}:/root/ca_certs/*.crt {CERT_PATH}'
+    )
+    module_target_sat.execute('update-ca-trust')
     module_target_sat.execute(
         f'echo {settings.rhsso.rhsso_password} | keycloak-httpd-client-install --app-name foreman-openidc \
                 --keycloak-server-url {settings.rhsso.host_url} \
@@ -277,6 +293,7 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
                 --keycloak-admin-realm master \
                 --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'
     )
+
     module_target_sat.execute(
         f'satellite-installer --foreman-keycloak true '
         f"--foreman-keycloak-app-name 'foreman-openidc' "
@@ -294,9 +311,9 @@ def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth, module_targ
     audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
     audience_mapper['config']['included.client.audience'] = audience_mapper['config'][
         'included.client.audience'
-    ].format(rhsso_host=module_target_sat)
+    ].format(rhsso_host=module_target_sat.hostname)
     create_mapper(audience_mapper, client_id)
-    set_the_redirect_uri()
+    set_the_redirect_uri(module_target_sat)
 
 
 def enroll_idm_and_configure_external_auth(sat):
@@ -359,7 +376,7 @@ def configure_realm(session_target_sat):
 
 
 @pytest.fixture(scope="module")
-def rhsso_setting_setup(module_target_sat, request):
+def rhsso_setting_setup(module_target_sat):
     """Update the RHSSO setting and revert it in cleanup"""
     update_rhsso_settings_in_satellite(sat=module_target_sat)
     yield
@@ -367,7 +384,7 @@ def rhsso_setting_setup(module_target_sat, request):
 
 
 @pytest.fixture(scope="module")
-def rhsso_setting_setup_with_timeout(module_target_sat, rhsso_setting_setup, request):
+def rhsso_setting_setup_with_timeout(module_target_sat, rhsso_setting_setup):
     """Update the RHSSO setting with timeout setting and revert it in cleanup"""
     setting_entity = module_target_sat.api.Setting().search(query={'search': 'name=idle_timeout'})[
         0
@@ -412,14 +429,15 @@ def enroll_ad_and_configure_external_auth(request, ad_data, target_sat):
     target_sat.execute('chattr +i /etc/resolv.conf')
 
     # join the realm
-    target_sat.execute(f'echo {settings.ldap.password} | realm join -v {realm}')
+    target_sat.execute(
+        f'echo {settings.ldap.password} | realm join -v {realm} --membership-software=samba'
+    )
     target_sat.execute('touch /etc/ipa/default.conf')
     target_sat.execute(f'echo "{default_content}" > /etc/ipa/default.conf')
     target_sat.execute(f'echo "{keytab_content}" > /etc/net-keytab.conf')
 
     # gather the apache id
-    result = str(target_sat.execute('id -u apache')).strip()
-    id_apache = result
+    id_apache = str(target_sat.execute('id -u apache')).strip()
     http_conf_content = (
         f'[service/HTTP]\nmechs = krb5\ncred_store = keytab:/etc/krb5.keytab'
         f'\ncred_store = ccache:/var/lib/gssproxy/clients/krb5cc_%U'
@@ -435,3 +453,33 @@ def enroll_ad_and_configure_external_auth(request, ad_data, target_sat):
     target_sat.execute(f'echo {settings.ldap.password} | {token_command}')
     target_sat.execute('chown root.apache /etc/httpd/conf/http.keytab')
     target_sat.execute('chmod 640 /etc/httpd/conf/http.keytab')
+
+    # enable the foreman-ipa-authentication feature
+    result = target_sat.install(InstallerCommand('foreman-ipa-authentication true'))
+    assert result.status == 0
+
+    # add foreman ad_gp_map_service (BZ#2117523)
+    line_number = int(
+        target_sat.execute(
+            "awk -v search='domain/' '$0~search{print NR; exit}' /etc/sssd/sssd.conf"
+        ).stdout
+    )
+    target_sat.execute(
+        f'sed -i "{line_number + 1}i ad_gpo_map_service = +foreman" /etc/sssd/sssd.conf'
+    )
+    target_sat.execute('systemctl restart sssd.service')
+
+    # unset GssapiLocalName (BZ#1787630)
+    target_sat.execute(
+        'sed -i -e "s/GssapiLocalName.*On/GssapiLocalName Off/g" '
+        '/etc/httpd/conf.d/05-foreman-ssl.d/auth_gssapi.conf'
+    )
+    target_sat.execute('systemctl restart gssproxy.service')
+    target_sat.execute('systemctl enable gssproxy.service')
+
+    # restart the deamon and httpd services
+    httpd_service_content = (
+        '.include /lib/systemd/system/httpd.service\n[Service]' '\nEnvironment=GSS_USE_PROXY=1'
+    )
+    target_sat.execute(f'echo "{httpd_service_content}" > /etc/systemd/system/httpd.service')
+    target_sat.execute('systemctl daemon-reload && systemctl restart httpd.service')

@@ -38,9 +38,12 @@ from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import DEFAULT_CV
+from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_8_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_8_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_WEEKDAY
@@ -2131,14 +2134,6 @@ def test_positive_gce_cloudinit_provision_end_to_end(
 
 
 # ------------------------------ NEW HOST UI DETAILS ----------------------------
-@pytest.fixture(scope='function')
-def enable_new_host_details_ui(target_sat, setting_update):
-    setting_update.value = 'true'
-    setting_update.update({'value'})
-    assert target_sat.api.Setting().search(query={'search': 'name=host_details_ui'})[0].value
-    yield
-
-
 @pytest.mark.tier4
 def test_positive_read_details_page_from_new_ui(session, host_ui_options):
     """Create new Host and read all its content through details page
@@ -2153,38 +2148,133 @@ def test_positive_read_details_page_from_new_ui(session, host_ui_options):
         values, host_name = host_ui_options
         session.host_new.create(values)
         assert session.host_new.search(host_name)[0]['Name'] == host_name
-        values = session.host_new.get_details(host_name)
-        assert values['Overview']['HostStatusCard']['status'] == 'All Statuses are OK'
-        assert (
-            values['Overview']['DetailsCard']['details']['mac_address'] == module_host_template.mac
-        )
-        assert values['Overview']['DetailsCard']['details']['host_owner'] == values['current_user']
-        assert values['Overview']['DetailsCard']['details']['comment'] == 'Host with fake data'
+        values = session.host_new.get_details(host_name, widget_names='overview')
+        assert values['overview']['HostStatusCard']['status'] == 'All statuses OK'
+        assert values['overview']['details']['details']['mac_address'] == module_host_template.mac
+        assert values['overview']['details']['details']['host_owner'] == values['current_user']
+        assert values['overview']['details']['details']['comment'] == 'Host with fake data'
 
 
 @pytest.mark.tier4
-@pytest.mark.stubbed
-def test_positive_update_delete_package():
-    """Update a package on host using the new Content tab
+@pytest.mark.rhel_ver_match('8')
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': 'rhel8',
+            'SatelliteToolsRepository': {},
+            'YumRepository': {'url': settings.repos.yum_3.url},
+        }
+    ],
+    ids=['yum3'],
+    indirect=True,
+)
+def test_positive_update_delete_package(
+    session,
+    target_sat,
+    rhel_contenthost,
+    module_repos_collection_with_manifest,
+):
+    """Update a package on a host using the new Content tab
 
     :id: ffc19a40-85f4-4894-a18b-f6d88b2ce377
 
     :steps:
-        1. Install a package on a registered host.
-        2. Navigate to the Content tab.
-        3. Check if the package is in an upgradable state.
-        4. Select package and upgrade via rex.
-        5. Delete the package
+        1. Navigate to the Content tab.
+        2. Install a package on a registered host.
+        3. Downgrade package version
+        4. Check if the package is in an upgradable state.
+        5. Select package and upgrade via rex.
+        6. Delete the package
 
     :expectedresults: The package is updated and deleted
 
     """
+    client = rhel_contenthost
+    client.add_rex_key(target_sat)
+    module_repos_collection_with_manifest.setup_virtual_machine(client, target_sat)
+    with session:
+        session.location.select(loc_name=DEFAULT_LOC)
+        # install package
+        session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
+        task_result = wait_for_tasks(
+            search_query=(f'Install package(s) {FAKE_8_CUSTOM_PACKAGE_NAME} on {client.hostname}'),
+            search_rate=4,
+            max_tries=60,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
+        assert len(packages['table']) == 1
+        assert packages['table'][0]['Package'] == FAKE_8_CUSTOM_PACKAGE_NAME
+        assert 'Up-to date' in packages['table'][0]['Status']
+        result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
+        assert result.status == 0
+
+        # downgrade package version
+        client.run(f'yum -y downgrade {FAKE_8_CUSTOM_PACKAGE_NAME}')
+        result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE_NAME}')
+        assert result.status == 0
+
+        # this should reload page to update packages table
+        session.host_new.get_details(client.hostname, widget_names='overview')
+
+        # filter packages
+        packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
+        assert len(packages['table']) == 1
+        assert packages['table'][0]['Package'] == FAKE_8_CUSTOM_PACKAGE_NAME
+        assert 'Upgradable' in packages['table'][0]['Status']
+
+        # update package
+        session.host_new.apply_package_action(
+            client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME, "Upgrade via remote execution"
+        )
+        task_result = wait_for_tasks(
+            search_query=(f'Update package(s) {FAKE_8_CUSTOM_PACKAGE_NAME} on {client.hostname}'),
+            search_rate=2,
+            max_tries=60,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
+        assert 'Up-to date' in packages['table'][0]['Status']
+
+        # remove package
+        session.host_new.apply_package_action(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME, "Remove")
+        task_result = wait_for_tasks(
+            search_query=(f'Remove package(s) {FAKE_8_CUSTOM_PACKAGE_NAME} on {client.hostname}'),
+            search_rate=2,
+            max_tries=60,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
+        assert 'table' not in packages.keys()
+        result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
+        assert result.status != 0
 
 
 @pytest.mark.tier4
-@pytest.mark.stubbed
-def test_positive_apply_erratum():
-    """Apply an erratum on host using the new Errata tab
+@pytest.mark.rhel_ver_match('8')
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': 'rhel8',
+            'SatelliteToolsRepository': {},
+            'YumRepository': {'url': settings.repos.yum_3.url},
+        }
+    ],
+    ids=['yum3'],
+    indirect=True,
+)
+def test_positive_apply_erratum(
+    session,
+    target_sat,
+    rhel_contenthost,
+    module_repos_collection_with_manifest,
+):
+    """Apply an erratum on a host using the new Errata tab
 
     :id: 328e629a-f261-4dc1-ad6f-def27e2fcf07
 
@@ -2201,11 +2291,68 @@ def test_positive_apply_erratum():
     :expectedresults: The erratum is applied
 
     """
+    # install package
+    client = rhel_contenthost
+    client.add_rex_key(target_sat)
+    module_repos_collection_with_manifest.setup_virtual_machine(client, target_sat)
+    errata_id = settings.repos.yum_3.errata[25]
+    client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
+    result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
+    assert result.status == 0
+    with session:
+        session.location.select(loc_name=DEFAULT_LOC)
+        assert session.host_new.search(client.hostname)[0]['Name'] == client.hostname
+        # read widget on overview page
+        values = session.host_new.get_details(client.hostname, widget_names='overview')['overview']
+        assert values['installable_errata']['security_advisory'] == '1 security advisory'
+        assert values['installable_errata']['enhancements'] == '1 enhancement'
+        # read errata tab
+        values = session.host_new.get_details(client.hostname, widget_names='content.errata')
+        assert len(values['content']['errata']['table']) == 2
+        # filter just security erratum
+        erratas = session.host_new.get_errata_by_type(client.hostname, 'Security')
+        assert len(erratas['content']['errata']['table']) == 1
+        assert erratas['content']['errata']['table'][0]['Errata'] == errata_id
+        # apply errata
+        session.host_new.apply_erratas(client.hostname, f"errata_id == {errata_id}")
+        task_result = wait_for_tasks(
+            search_query=(
+                f'"Install errata errata_id == {errata_id.lower()} on {client.hostname}"'
+            ),
+            search_rate=2,
+            max_tries=60,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        # verify
+        values = session.host_new.get_details(client.hostname, widget_names='content.errata')
+        assert 'table' not in values['content']['errata'].keys()
+        result = client.run(
+            'yum update --assumeno --security | grep "No packages needed for security"'
+        )
+        assert result.status == 1
 
 
 @pytest.mark.tier4
-@pytest.mark.stubbed
-def test_positive_crud_module_streams():
+@pytest.mark.rhel_ver_match('8')
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': 'rhel8',
+            'SatelliteToolsRepository': {},
+            'YumRepository': {'url': settings.repos.module_stream_1.url},
+        }
+    ],
+    ids=['module_stream_1'],
+    indirect=True,
+)
+def test_positive_crud_module_streams(
+    session,
+    target_sat,
+    rhel_contenthost,
+    module_repos_collection_with_manifest,
+):
     """CRUD test for the Module streams new UI tab
 
     :id: 9800a006-49cc-4c0a-aed8-6a32c4bf0eab
@@ -2215,14 +2362,73 @@ def test_positive_crud_module_streams():
 
     :steps:
         1. Create Yum Repository which contains module-streams as URL
-        2. Initialize synchronization
-        3. Module-Stream Get
-        4. Update the Module-Stream
-        5. Delete the Module-Stream
+        2. Enable Module stream
+        3. Install Module stream
+        4. Delete the Module stream
+        5. Reset the Module stream
 
-    :expectedresults: Yum repository with modules is synced, updated, deleted.
+    :expectedresults: Module streams can be enabled, installed, removed and reset using the new UI.
 
     """
+    module_name = 'duck'
+    client = rhel_contenthost
+    client.add_rex_key(target_sat)
+    module_repos_collection_with_manifest.setup_virtual_machine(client, target_sat)
+    with session:
+        session.location.select(loc_name=DEFAULT_LOC)
+        streams = session.host_new.get_module_streams(client.hostname, module_name)
+        assert streams[0]['Name'] == module_name
+        assert streams[0]['State'] == 'Default'
+
+        # enable module stream
+        session.host_new.apply_module_streams_action(client.hostname, module_name, "Enable")
+        task_result = wait_for_tasks(
+            search_query=(f'Module enable {module_name} on {client.hostname}'),
+            search_rate=5,
+            max_tries=60,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        streams = session.host_new.get_module_streams(client.hostname, module_name)
+        assert streams[0]['State'] == 'Enabled'
+        assert streams[0]['Installation status'] == 'Not installed'
+
+        # install
+        session.host_new.apply_module_streams_action(client.hostname, module_name, "Install")
+        task_result = wait_for_tasks(
+            search_query=(f'Module install {module_name} on {client.hostname}'),
+            search_rate=5,
+            max_tries=60,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        streams = session.host_new.get_module_streams(client.hostname, module_name)
+        assert streams[0]['Installation status'] == 'Up-to-date'
+
+        # remove
+        session.host_new.apply_module_streams_action(client.hostname, module_name, "Remove")
+        task_result = wait_for_tasks(
+            search_query=(f'Module remove {module_name} on {client.hostname}'),
+            search_rate=5,
+            max_tries=60,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        streams = session.host_new.get_module_streams(client.hostname, module_name)
+        assert streams[0]['State'] == 'Enabled'
+        assert streams[0]['Installation status'] == 'Not installed'
+
+        session.host_new.apply_module_streams_action(client.hostname, module_name, "Reset")
+        task_result = wait_for_tasks(
+            search_query=(f'Module reset {module_name} on {client.hostname}'),
+            search_rate=5,
+            max_tries=60,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        streams = session.host_new.get_module_streams(client.hostname, module_name)
+        assert streams[0]['State'] == 'Default'
+        assert streams[0]['Installation status'] == 'Not installed'
 
 
 # ------------------------------ PUPPET ENABLED SAT TESTS ----------------------------
@@ -2448,3 +2654,117 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
         assert host_parameters
         assert param_name in host_parameters
         assert host_parameters[param_name] == param_value
+
+
+class TestHostAnsible:
+    """Tests for Ansible portion of Hosts"""
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier2
+    def test_positive_host_role_information(self):
+        """Assign Ansible Role to a Host and an attached Host group and verify that the information
+        in the new UI is displayed correctly
+
+        :id: 7da913ef-3b43-4bfa-9a45-d895431c8b56
+
+        :caseComponent: Ansible
+
+        :assignee: sbible
+
+        :CaseLevel: System
+
+        :Steps:
+            1. Register a RHEL host to Satellite.
+            2. Import all roles available by default.
+            3. Create a host group and assign one of the Ansible roles to the host group.
+            4. Assign the host to the host group.
+            5. Assign one role to the RHEL host.
+            6. Navigate to the new UI for the given Host.
+            7. Select the 'Ansible' tab, then the 'Inventory' sub-tab.
+
+        :expectedresults: Roles assigned directly to the Host are visible on the subtab, and
+            roles assigned to the Host Group are visible by clicking the "view all assigned
+            roles" link
+
+        """
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier2
+    def test_positive_role_variable_information(self):
+        """Create and assign variables to an Ansible Role and verify that the information in
+        the new UI is displayed correctly
+
+        :id: 4ab2813a-6b83-4907-b104-0473465814f5
+
+        :caseComponent: Ansible
+
+        :assignee: sbible
+
+        :CaseLevel: System
+
+        :Steps:
+            1. Register a RHEL host to Satellite.
+            2. Import all roles available by default.
+            3. Create a host group and assign one of the Ansible roles to the host group.
+            4. Assign the host to the host group.
+            5. Assign one roles to the RHEL host.
+            6. Create a variable and associate it with the role assigned to the Host.
+            7. Create a variable and associate it with the role assigned to the Hostgroup.
+            8. Navigate to the new UI for the given Host.
+            9. Select the 'Ansible' tab, then the 'Variables' sub-tab.
+
+        :expectedresults: The variables information for the given Host is visible.
+
+        """
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier2
+    def test_positive_assign_role_in_new_ui(self):
+        """Using the new Host UI, assign a role to a Host
+
+        :id: 044f38b4-cff2-4ddc-b93c-7e9f2826d00d
+
+        :caseComponent: Ansible
+
+        :assignee: sbible
+
+        :CaseLevel: System
+
+        :Steps:
+            1. Register a RHEL host to Satellite.
+            2. Import all roles available by default.
+            3. Navigate to the new UI for the given Host.
+            4. Select the 'Ansible' tab
+            5. Click the 'Assign Ansible Roles' button.
+            6. Using the popup, assign a role to the Host.
+
+        :expectedresults: The Role is successfully assigned to the Host, and shows up on the UI
+
+        """
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier2
+    def test_positive_remove_role_in_new_ui(self):
+        """Using the new Host UI, remove the role(s) of a Host
+
+        :id: d6de5130-45f6-4349-b490-fbde2aed082c
+
+        :caseComponent: Ansible
+
+        :assignee: sbible
+
+        :CaseLevel: System
+
+        :Steps:
+            1. Register a RHEL host to Satellite.
+            2. Import all roles available by default.
+            3. Assign a role to the host.
+            4. Navigate to the new UI for the given Host.
+            5. Select the 'Ansible' tab
+            6. Click the 'Edit Ansible roles' button.
+            7. Using the popup, remove the assigned role from the Host.
+
+        :expectedresults: The Role is successfully removed from the Host, and no longer shows
+            up on the UI
+
+        """

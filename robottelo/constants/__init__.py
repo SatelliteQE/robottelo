@@ -19,19 +19,17 @@ SATELLITE_VERSION = "6.12"
 SATELLITE_OS_VERSION = "8"
 
 LOCALES = (
-    'ca',
+    'cs_CZ',
     'de',
     'en',
     'en_GB',
     'es',
     'fr',
-    'gl',
     'it',
     'ja',
     'ko',
     'pt_BR',
     'ru',
-    'sv_SE',
     'zh_CN',
     'zh_TW',
 )
@@ -803,6 +801,9 @@ PERMISSIONS = {
         'destroy_vm_compute_resources',
         'power_vm_compute_resources',
         'view_foreman_rh_cloud',
+        'import_ansible_playbooks',
+        'dispatch_cloud_requests',
+        'control_organization_insights',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
@@ -959,6 +960,12 @@ PERMISSIONS = {
     ],
     'Image': ['view_images', 'create_images', 'edit_images', 'destroy_images'],
     'InsightsHit': ['view_insights_hits'],
+    'Katello::AlternateContentSource': [
+        'create_alternate_content_sources',
+        'edit_alternate_content_sources',
+        'destroy_alternate_content_sources',
+        'view_alternate_content_sources',
+    ],
     'KeyPair': ["view_keypairs", "destroy_keypairs"],
     'Location': [
         'view_locations',
@@ -999,7 +1006,6 @@ PERMISSIONS = {
     ],
     'Realm': ['view_realms', 'create_realms', 'edit_realms', 'destroy_realms'],
     'RemoteExecutionFeature': ['edit_remote_execution_features'],
-    'Report': ['view_reports', 'destroy_reports', 'upload_reports'],
     'ReportTemplate': [
         'edit_report_templates',
         'destroy_report_templates',

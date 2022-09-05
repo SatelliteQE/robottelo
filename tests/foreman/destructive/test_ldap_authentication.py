@@ -48,10 +48,7 @@ def set_certificate_in_satellite(server_type, sat, hostname=None):
     if server_type == 'IPA':
         certfile = 'ipa.crt'
         idm_cert_path_url = os.path.join(settings.ipa.hostname, 'ipa/config/ca.crt')
-        sat.get(
-            remote_path=idm_cert_path_url,
-            local_path=CERT_PATH + certfile,
-        )
+        sat.download_file(file_url=idm_cert_path_url, local_path=CERT_PATH, file_name=certfile)
     elif server_type == 'AD':
         certfile = 'satqe-QE-SAT6-AD-CA.cer'
         assert hostname is not None
@@ -251,37 +248,21 @@ def test_single_sign_on_ldap_ad_server(
 
     :steps: Assert single sign-on session user is directed to satellite instead of login page
 
-    :expectedresults: After single sign on, user should be redirected from /extlogin to /users page
-        using curl. It should navigate to user's profile page.(verify using url only)
+    :expectedresults: After single sign on, user should be redirected from /extlogin to /hosts page
+        using curl. It should navigate to hosts page. (verify using url only)
+
+    :BZ: 1941997
 
     """
-    # register the satellite with AD for single sign-on and update external auth
-    try:
-        # enable the foreman-ipa-authentication feature
-        target_sat.execute('satellite-installer --foreman-ipa-authentication=true', timeout=800000)
-        target_sat.execute('systemctl restart gssproxy.service')
-        target_sat.execute('systemctl enable gssproxy.service')
-
-        # restart the deamon and httpd services
-        httpd_service_content = (
-            '.include /lib/systemd/system/httpd.service\n[Service]' '\nEnvironment=GSS_USE_PROXY=1'
-        )
-        target_sat.execute(f'echo "{httpd_service_content}" > /etc/systemd/system/httpd.service')
-        target_sat.execute('systemctl daemon-reload && systemctl restart httpd.service')
-
-        # create the kerberos ticket for authentication
-        target_sat.execute(f'echo {settings.ldap.password} | kinit {settings.ldap.username}')
-        if is_open('BZ:1941997'):
-            curl_command = f'curl -k -u : --negotiate {target_sat.url}/users/extlogin'
-        else:
-            curl_command = f'curl -k -u : --negotiate {target_sat.url}/users/extlogin/'
-        result = target_sat.execute(curl_command)
-        assert 'redirected' in result
-        assert f'{target_sat.url}/hosts' in result
-    finally:
-        # resetting the settings to default for external auth
-        target_sat.execute('satellite-installer --foreman-ipa-authentication=false', timeout=800000)
-        target_sat.execute('satellite-maintain service restart', timeout=300000)
+    # create the kerberos ticket for authentication
+    target_sat.execute(f'echo {settings.ldap.password} | kinit {settings.ldap.username}')
+    if is_open('BZ:1941997'):
+        curl_command = f'curl -k -u : --negotiate {target_sat.url}/users/extlogin'
+    else:
+        curl_command = f'curl -k -u : --negotiate {target_sat.url}/users/extlogin/'
+    result = target_sat.execute(curl_command)
+    assert 'redirected' in result.stdout
+    assert f'{target_sat.url}/hosts' in result.stdout
 
 
 def test_single_sign_on_using_rhsso(
@@ -383,7 +364,7 @@ def test_external_new_user_login_and_check_count_rhsso(
     :expectedresults: New User created in RHSSO server should able to get log-in
         and correct count shown for external users
     """
-    client_id = get_rhsso_client_id()
+    client_id = get_rhsso_client_id(module_target_sat)
     user_details = create_new_rhsso_user(client_id)
     login_details = {
         'username': user_details['username'],
@@ -431,7 +412,7 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
 
     :expectedresults: external rhsso user should not able to login with same username as internal
     """
-    client_id = get_rhsso_client_id()
+    client_id = get_rhsso_client_id(module_target_sat)
     username = gen_string('alpha')
     module_target_sat.api.User(
         admin=True,
@@ -477,6 +458,7 @@ def test_user_permissions_rhsso_user_after_group_delete(
         group deletion.
 
     """
+    get_rhsso_client_id(module_target_sat)
     username = settings.rhsso.rhsso_user
     location_name = gen_string('alpha')
     login_details = {
@@ -543,6 +525,7 @@ def test_user_permissions_rhsso_user_multiple_group(
     :expectedresults: external rhsso user have highest level of permissions from among the
         multiple groups.
     """
+    get_rhsso_client_id(module_target_sat)
     username = settings.rhsso.rhsso_user
     location_name = gen_string('alpha')
     login_details = {
@@ -554,7 +537,7 @@ def test_user_permissions_rhsso_user_multiple_group(
     create_role_permissions(katello_role, user_permissions)
 
     group_names = ['sat_users', 'sat_admins']
-    arguments = [{'role': katello_role}, {'admin': 1}]
+    arguments = [{'roles': katello_role.name}, {'admin': 1}]
     external_auth_source = module_target_sat.cli.ExternalAuthSource.info({'name': "External"})
     for group_name, argument in zip(group_names, arguments):
         # adding/creating rhsso groups

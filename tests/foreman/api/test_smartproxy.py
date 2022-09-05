@@ -21,7 +21,6 @@ from fauxfactory import gen_url
 from nailgun import entities
 from requests import HTTPError
 
-from robottelo.api.utils import one_to_many_names
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.helpers import default_url_on_new_port
@@ -282,7 +281,7 @@ def test_positive_update_loc(module_proxy_attrs):
     :CaseLevel: Component
 
     """
-    names = one_to_many_names('location')
+    names = {'location', 'location_ids', 'locations'}
     assert len(names & module_proxy_attrs) >= 1, f'None of {names} are in {module_proxy_attrs}'
 
 
@@ -302,5 +301,5 @@ def test_positive_update_org(module_proxy_attrs):
     :CaseLevel: Component
 
     """
-    names = one_to_many_names('organization')
+    names = {'organization', 'organization_ids', 'organizations'}
     assert len(names & module_proxy_attrs) >= 1, f'None of {names} are in {module_proxy_attrs}'

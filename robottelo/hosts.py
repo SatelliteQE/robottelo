@@ -5,6 +5,7 @@ from functools import cached_property
 from pathlib import Path
 from pathlib import PurePath
 from tempfile import NamedTemporaryFile
+from urllib.parse import urlencode
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
@@ -33,12 +34,14 @@ from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import SATELLITE_VERSION
+from robottelo.errors import DownloadFileError
 from robottelo.helpers import InstallerCommand
 from robottelo.host_helpers import CapsuleMixins
 from robottelo.host_helpers import ContentHostMixins
 from robottelo.host_helpers import SatelliteMixins
 from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
+
 
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
@@ -250,6 +253,29 @@ class ContentHost(Host, ContentHostMixins):
             except TimedOutError:
                 raise ContentHostError('Unable to connect to host that should be running')
 
+    def download_file(self, file_url, local_path=None, file_name=None):
+        """Downloads file from given fileurl to directory specified by local_path by given filename
+        on satellite.
+
+        If remote directory is not specified it downloads file to /tmp/.
+
+        :param str file_url: The complete server file path from where the
+            file will be downloaded.
+        :param str local_path: Name of directory where file will be saved. If not
+            provided file will be saved in /tmp/ directory.
+        :param str file_name: New name of the Downloaded file else its given from file_url
+
+        :returns: Returns list containing complete file path and name of downloaded file.
+        """
+        file_name = PurePath(file_name or file_url).name
+        local_path = PurePath(local_path or '/tmp') / file_name
+
+        # download on server
+        result = self.execute(f'wget -O {local_path} {file_url}')
+        if result.status != 0:
+            raise DownloadFileError(f'Unable to download {file_name}: {result.stderr}')
+        return local_path, file_name
+
     def download_install_rpm(self, repo_url, package_name):
         """Downloads and installs custom rpm on the broker virtual machine.
 
@@ -263,20 +289,6 @@ class ContentHost(Host, ContentHostMixins):
         result = self.execute(f'rpm -i {package_name}.rpm')
         if result.status != 0:
             raise ContentHostError(f'Failed to install {package_name} rpm.')
-
-    def download_repos(self, repo_name, version):
-        """Downloads the satellite or capsule repos on the machine
-        :param repo_name: satellite or capsule repo_name
-        :param vesion: rhel version
-        """
-        repo_location = (
-            f'{settings.repos.ohsnap_repo_host}/api/releases/'
-            f'{self.satellite.version}/el{version}/{repo_name}/repo_file'
-        )
-        if repo_name in ('satellite', 'capsule'):
-            self.execute(f'curl -o /etc/yum.repos.d/{repo_name}.repo {repo_location}')
-        else:
-            raise ValueError("Invalid repo_name, must be of value satellite or capsule")
 
     def enable_repo(self, repo, force=False):
         """Enables specified Red Hat repository on the broker virtual machine.
@@ -468,6 +480,113 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise ContentHostError('Failed to install the cockpit')
 
+    def register(
+        self,
+        target,
+        org,
+        loc,
+        activation_keys,
+        setup_insights=False,
+        setup_remote_execution=True,
+        setup_remote_execution_pull=False,
+        lifecycle_environment=None,
+        operating_system=None,
+        packages=None,
+        repo=None,
+        repo_gpg_key_url=None,
+        remote_execution_interface=None,
+        update_packages=False,
+        ignore_subman_errors=True,
+        force=True,
+        insecure=True,
+        username=settings.server.admin_username,
+        password=settings.server.admin_password,
+    ):
+        """Registers content host to the Satellite or Capsule server
+        using a global registration template.
+
+        :param target: Satellite or Capusle hostname to register to, required.
+        :param org: Organization to register content host for, required.
+        :param loc: Location to register content host for, required.
+        :param activation_keys: Activation key name to register content host
+            with, required.
+        :param setup_insights: Install and register Insights client, requires OS repo.
+        :param setup_remote_execution: Copy remote execution SSH key.
+        :param setup_remote_execution_pull: Deploy pull provider client on host
+        :param lifecycle_environment: Lifecycle environment.
+        :param operating_system: Operating system.
+        :param packages: A list of packages to install on the host when registered.
+        :param repo: Repository to be added before the registration is performed, supply url.
+        :param repo_gpg_key_url: Public key to verify the package signatures, supply url.
+        :param remote_execution_interface: Identifier of the host interface for remote execution.
+        :param update_packages: Update all packages on the host.
+        :param ignore_subman_errors: Ignore subscription manager errors.
+        :param force: Register the content host even if it's already registered.
+        :param insecure: Don't verify server authenticity.
+        :param username: Satellite admin username
+        :param password: Satellite admin password
+        :return: SSHCommandResult instance filled with the result of the
+            registration.
+        """
+        insights = (
+            # requires OS repo enabled for host
+            f'&setup_insights={str(setup_insights).lower()}'
+            if setup_insights is not None
+            else ''
+        )
+        rex = (
+            f'&setup_remote_execution={str(setup_remote_execution).lower()}'
+            if setup_remote_execution is not None
+            else ''
+        )
+        rex_pull = (
+            # requires Satellite Client repo enabled for host
+            f'&setup_remote_execution_pull={str(setup_remote_execution_pull).lower()}'
+            if setup_remote_execution_pull is not None
+            else ''
+        )
+        lce = (
+            f'&lifecycle_environment_id={lifecycle_environment.id}'
+            if lifecycle_environment is not None
+            else ''
+        )
+        os = f'&operating_system_id={operating_system.id}' if operating_system is not None else ''
+        pkgs = f'&packages={"+".join(packages)}' if packages is not None else ''
+        rex_iface = (
+            f'&remote_execution_interface={remote_execution_interface}'
+            if remote_execution_interface is not None
+            else ''
+        )
+        rp = f'&{urlencode({"repo": repo })}' if repo is not None else ''
+        gpg = (
+            f'&{urlencode({"repo_gpg_key_url": repo_gpg_key_url })}'
+            if repo_gpg_key_url is not None
+            else ''
+        )
+        cmd = (
+            'curl -sS '
+            f'-u {username}:{password} '
+            f'{"--insecure " if insecure else ""}'
+            f"'https://{target.hostname}:9090/register?"
+            f'activation_keys={activation_keys}'
+            f'&organization_id={org.id}'
+            f'&location_id={loc.id}'
+            f'{insights}'
+            f'{rex}'
+            f'&update_packages={"true" if update_packages else "false"}'
+            f'{rex_pull}'
+            f'{rex_iface}'
+            f'{lce}'
+            f'{os}'
+            f'{pkgs}'
+            f'{"&ignore_subman_errors=true" if ignore_subman_errors else ""}'
+            f'{"&force=true" if force else ""}'
+            f'{rp}'
+            f'{gpg}'
+            "' | bash"
+        )
+        return self.execute(cmd)
+
     def register_contenthost(
         self,
         org='Default_Organization',
@@ -545,7 +664,6 @@ class ContentHost(Host, ContentHostMixins):
     def get(self, remote_path, local_path=None):
         """Get a remote file from the broker virtual machine."""
         self.session.sftp_read(source=remote_path, destination=local_path)
-        return local_path
 
     def put(self, local_path, remote_path=None):
         """Put a local file to the broker virtual machine.
@@ -1207,25 +1325,6 @@ class Capsule(ContentHost, CapsuleMixins):
         """Get capsule features"""
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
-    def register_to_dogfood(self, ak_type='satellite'):
-        dogfood_canonical_hostname = settings.repos.dogfood_repo_host.partition('//')[2]
-        # get hostname of dogfood machine
-        dig_result = self.execute(f'dig +short {dogfood_canonical_hostname}')
-        # the host name finishes with a dot, so last character is removed
-        dogfood_hostname = dig_result.stdout.split()[0][:-1]
-        dogfood = Satellite(dogfood_hostname)
-        self.install_katello_ca(satellite=dogfood)
-        # satellite version consist from x.y.z, we need only x.y
-        sat_release = '.'.join(self.version.split('.')[:2])
-        cmd_result = self.register_contenthost(
-            org=f'{settings.subscription.dogfood_org}',
-            activation_key=f'{ak_type}-{sat_release}-qa-rhel{self.os_version.major}',
-        )
-        if cmd_result.status != 0:
-            raise CapsuleHostError(
-                f'Error during registration, command output: {cmd_result.stdout}'
-            )
-
     def capsule_setup(self, sat_host=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
@@ -1254,14 +1353,6 @@ class Capsule(ContentHost, CapsuleMixins):
         if result.status:
             raise CapsuleHostError(f'The satellite-capsule package was not found\n{result.stdout}')
 
-        # Update Satellite's http proxy except list
-        result = self.satellite.cli.Settings.list({'search': 'http_proxy_except_list'})[0]
-        if result['value'] == '[]':
-            except_list = f'[{self.hostname}]'
-        else:
-            except_list = result['value'][:-1] + f', {self.hostname}]'
-        self.satellite.cli.Settings.set({'name': 'http_proxy_except_list', 'value': except_list})
-
         # Generate certificate, copy it to Capsule, run installer, check it succeeds
         installer = self.satellite.capsule_certs_generate(self, **installer_kwargs)
         self.satellite.session.remote_copy(installer.opts['certs-tar-file'], self)
@@ -1281,6 +1372,22 @@ class Capsule(ContentHost, CapsuleMixins):
             raise CapsuleHostError(
                 f'A core service is not running at capsule host\n{result.stdout}'
             )
+
+    def enable_mqtt(self):
+        installer_opts = {
+            'foreman-proxy-templates': 'true',
+            'foreman-proxy-registration': 'true',
+            'foreman-proxy-plugin-remote-execution-script-mode': 'pull-mqtt',
+        }
+        enable_mqtt_command = InstallerCommand(
+            installer_opts=installer_opts,
+        )
+        result = self.execute(
+            enable_mqtt_command.get_command(),
+            timeout='20m',
+        )
+        if result.status != 0:
+            raise SatelliteHostError(f'Failed to enable pull provider: {result.stdout}')
 
 
 class Satellite(Capsule, SatelliteMixins):
@@ -1382,6 +1489,13 @@ class Satellite(Capsule, SatelliteMixins):
             hostname=self.hostname,
             login=login,
         )
+
+    @property
+    def satellite(self):
+        """Use self when no other Satellite is set to avoid unecessary/incorrect instances"""
+        if not self._satellite:
+            return self
+        return self._satellite
 
     @cached_property
     def is_upstream(self):

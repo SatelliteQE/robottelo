@@ -215,7 +215,8 @@ class TestSatelliteContentManagement:
         packages = entities.Package(repository=repo).search(query={'per_page': '1000'})
         repo.remove_content(data={'ids': [package.id for package in packages]})
 
-        repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
+        with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
+            repo.upload_content(files={'content': handle})
 
         repo = repo.read()
         assert repo.content_counts['rpm'] == 1
@@ -359,7 +360,8 @@ class TestCapsuleContentManagement:
         cv = entities.ContentView(organization=function_org, repository=[repo]).create()
 
         # Upload custom content into the repo
-        repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
+        with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
+            repo.upload_content(files={'content': handle})
 
         assert repo.read().content_counts['rpm'] == 1
 
@@ -524,7 +526,8 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Upload custom content into the repo
-        repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
+        with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
+            repo.upload_content(files={'content': handle})
 
         assert repo.read().content_counts['rpm'] == 1
 
@@ -542,7 +545,8 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Upload more content to the repository
-        repo.upload_content(files={'content': DataFile.SRPM_TO_UPLOAD.read_bytes()})
+        with open(DataFile.SRPM_TO_UPLOAD, 'rb') as handle:
+            repo.upload_content(files={'content': handle})
 
         assert repo.read().content_counts['rpm'] == 2
 
@@ -694,7 +698,8 @@ class TestCapsuleContentManagement:
         assert lce_revision_capsule == new_lce_revision_capsule
 
         # Update a repository with 1 new rpm
-        repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
+        with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
+            repo.upload_content(files={'content': handle})
 
         # Publish and promote the repository
         repo = repo.read()
@@ -969,6 +974,7 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert len(caps_files) == packages_count
 
+    @pytest.mark.skip_if_open("BZ:2122780")
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):
@@ -980,7 +986,7 @@ class TestCapsuleContentManagement:
 
         :expectedresults: capsule pub url is accessible
 
-        :BZ: 1463810
+        :BZ: 1463810, 2122780
 
         :CaseLevel: System
         """
@@ -1186,6 +1192,7 @@ class TestCapsuleContentManagement:
             )
             assert result.status == 0
 
+    @pytest.mark.skip_if_open("BZ:2121583")
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_collection_repo(
@@ -1214,6 +1221,8 @@ class TestCapsuleContentManagement:
         :parametrized: yes
 
         :CaseLevel: Integration
+
+        :BZ: 2121583
         """
         requirements = '''
         ---
@@ -1313,7 +1322,8 @@ class TestCapsuleContentManagement:
         repo.sync()
 
         # Upload one more iso file
-        repo.upload_content(files={'content': DataFile.FAKE_FILE_NEW_NAME.read_bytes()})
+        with open(DataFile.FAKE_FILE_NEW_NAME, 'rb') as handle:
+            repo.upload_content(files={'content': handle})
 
         # Associate LCE with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(

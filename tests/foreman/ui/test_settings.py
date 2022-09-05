@@ -24,6 +24,7 @@ from fauxfactory import gen_url
 from nailgun import entities
 
 from robottelo.cli.user import User
+from robottelo.config import settings
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import gen_string
 
@@ -199,9 +200,9 @@ def test_positive_register_hostname_and_cvs_dependencies_update(session, setting
 
 @pytest.mark.tier3
 @pytest.mark.parametrize('setting_update', ['login_text'], indirect=True)
-def test_positive_update_login_page_footer_text_with_long_string(session, setting_update):
-    """Testing to update parameter "Login_page_footer_text with long length
-    string under General tab
+def test_positive_update_login_page_footer_text(session, setting_update):
+    """Testing to update parameter Login_page_footer_text with long length
+    string & empty string under General tab
 
     :id: b1a51594-43e6-49d8-918b-9bc306f3a1a2
 
@@ -211,6 +212,8 @@ def test_positive_update_login_page_footer_text_with_long_string(session, settin
         2. Click on general tab
         3. Input long length string into login page footer field
         4. Assert value from login page
+        5. Input empty string into the login page footer field
+        6. Assert empty value from login page
 
     :parametrized: yes
 
@@ -222,10 +225,19 @@ def test_positive_update_login_page_footer_text_with_long_string(session, settin
     """
     property_name = setting_update.name
     login_text_data = gen_string('alpha', 270)
+    empty_str = ""
     with session:
         session.settings.update(f"name={property_name}", f"{login_text_data}")
         result = session.login.logout()
         assert result["login_text"] == login_text_data
+        login_details = {
+            'username': settings.server.admin_username,
+            'password': settings.server.admin_password,
+        }
+        session.login.login(login_details)
+        session.settings.update(f"name={property_name}", f"{empty_str}")
+        result = session.login.logout()
+        assert not result["login_text"]
 
 
 @pytest.mark.tier3
@@ -334,6 +346,7 @@ def test_negative_update_email_delivery_method_smtp():
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
+@pytest.mark.skip_if_open("BZ:2080324")
 def test_positive_update_email_delivery_method_sendmail(session, target_sat):
     """Updating Sendmail params on Email tab
 
@@ -353,6 +366,8 @@ def test_positive_update_email_delivery_method_sendmail(session, target_sat):
             accordingly
 
     :expectedresults: Email is sent through Sendmail
+
+    :BZ: 2080324
 
     :CaseImportance: Critical
 
@@ -374,7 +389,7 @@ def test_positive_update_email_delivery_method_sendmail(session, target_sat):
     mail_config_new_params = {
         "delivery_method": "Sendmail",
         "email_reply_address": f"root@{target_sat.hostname}",
-        "email_subject_prefix": [gen_string('alpha')],
+        "email_subject_prefix": gen_string('alpha'),
         "sendmail_location": "/usr/sbin/sendmail",
         "send_welcome_email": "Yes",
     }
@@ -385,7 +400,7 @@ def test_positive_update_email_delivery_method_sendmail(session, target_sat):
             for mail_content, mail_content_value in mail_config_new_params.items():
                 session.settings.update(mail_content, mail_content_value)
             test_mail_response = session.settings.send_test_mail(property_name)[0]
-            assert test_mail_response == "Success alert: Email was sent successfully"
+            assert "Email was sent successfully" in test_mail_response
             assert target_sat.execute(command).status == 0
         finally:
             for key, value in mail_config_default_param.items():

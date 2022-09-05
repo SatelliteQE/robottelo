@@ -1,4 +1,5 @@
 """Global Configurations for py.test runner"""
+import pytest
 
 pytest_plugins = [
     # Plugins
@@ -14,6 +15,7 @@ pytest_plugins = [
     'pytest_plugins.settings_skip',
     'pytest_plugins.rerun_rp.rerun_rp',
     'pytest_plugins.fspath_plugins',
+    'pytest_plugins.fixture_collection',
     # Fixtures
     'pytest_fixtures.core.broker',
     'pytest_fixtures.core.contenthosts',
@@ -54,3 +56,15 @@ pytest_plugins = [
     'pytest_fixtures.component.templatesync',
     'pytest_fixtures.component.user_role',
 ]
+
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    # execute all other hooks to obtain the report object
+    outcome = yield
+    rep = outcome.get_result()
+
+    # set a report attribute for each phase of a call, which can
+    # be "setup", "call", "teardown"
+
+    setattr(item, "rep_" + rep.when, rep)

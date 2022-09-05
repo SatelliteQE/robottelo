@@ -75,18 +75,6 @@ def repo(repo_options):
     return entities.Repository(**repo_options).create()
 
 
-@pytest.fixture
-def http_proxy(module_org):
-    """Create a new HTTP proxy."""
-    return entities.HTTPProxy(
-        name=gen_string('alpha', 15),
-        url=settings.http_proxy.auth_proxy_url,
-        username=settings.http_proxy.username,
-        password=settings.http_proxy.password,
-        organization=[module_org.id],
-    ).create()
-
-
 class TestRepository:
     """Tests for ``katello/api/v2/repositories``."""
 
@@ -110,89 +98,6 @@ class TestRepository:
         :CaseImportance: Critical
         """
         assert repo_options['name'] == repo.name
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_positive_assign_http_proxy_to_repository(self, module_org, module_product, http_proxy):
-        """Assign http_proxy to Repositories and perform repository sync.
-
-        :id: 5b3b992e-02d3-4b16-95ed-21f1588c7741
-
-        :expectedresults: HTTP Proxy can be assigned to repository and sync operation performed
-            successfully.
-
-        :Assignee: jpathan
-
-        :CaseImportance: High
-        """
-        repo_options = {
-            'http_proxy_policy': 'use_selected_http_proxy',
-            'http_proxy_id': http_proxy.id,
-        }
-        repo = entities.Repository(**repo_options).create()
-
-        assert repo.http_proxy_policy == repo_options['http_proxy_policy']
-        assert repo.http_proxy_id == http_proxy.id
-        repo.sync()
-        assert repo.read().content_counts['rpm'] >= 1
-
-        # Use global_default_http_proxy
-        repo_options['http_proxy_policy'] = 'global_default_http_proxy'
-        repo_2 = entities.Repository(**repo_options).create()
-        assert repo_2.http_proxy_policy == 'global_default_http_proxy'
-
-        # Update to selected_http_proxy
-        repo_2.http_proxy_policy = 'none'
-        repo_2.update(['http_proxy_policy'])
-        assert repo_2.http_proxy_policy == 'none'
-
-    @pytest.mark.skip_if_open("BZ:2042473")
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    def test_positive_sync_redhat_repo_using_http_proxy(self, module_manifest_org):
-        """Assign http_proxy to Redhat repository and perform repository sync.
-
-        :id: 38df5479-9127-49f3-a30e-26b33655971a
-
-        :expectedresults: HTTP Proxy can be assigned to redhat repository and sync operation
-            performed successfully.
-
-        :Assignee: jpathan
-
-        :BZ: 2011303, 2042473
-
-        :CaseImportance: Critical
-        """
-        http_proxy = entities.HTTPProxy(
-            name=gen_string('alpha', 15),
-            url=settings.http_proxy.auth_proxy_url,
-            username=settings.http_proxy.username,
-            password=settings.http_proxy.password,
-            organization=[module_manifest_org.id],
-        ).create()
-
-        rh_repo_id = enable_rhrepo_and_fetchid(
-            basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=module_manifest_org.id,
-            product=constants.PRDS['rhae'],
-            repo=constants.REPOS['rhae2']['name'],
-            reposet=constants.REPOSET['rhae2'],
-            releasever=None,
-        )
-        rh_repo = entities.Repository(
-            id=rh_repo_id,
-            http_proxy_policy='use_selected_http_proxy',
-            http_proxy_id=http_proxy.id,
-            download_policy='immediate',
-        ).update()
-        assert rh_repo.http_proxy_policy == 'use_selected_http_proxy'
-        assert rh_repo.http_proxy_id == http_proxy.id
-        assert rh_repo.download_policy == 'immediate'
-        rh_repo.sync()
-        assert rh_repo.read().content_counts['rpm'] >= 1
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -1424,6 +1329,66 @@ class TestRepositorySync:
                 f'grep "{correlation_id}" /var/log/messages | grep "Canceling task"'
             )
             assert result.status == 0
+
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized([{'content_type': 'yum', 'url': repo_constants.CUSTOM_RPM_SHA}]),
+        indirect=True,
+    )
+    def test_positive_sync_sha_repo(self, repo, target_sat):
+        """Sync a 'sha' repo successfully
+
+        :id: b842a21d-639a-48aa-baf3-9244d8bc1415
+
+        :parametrized: yes
+
+        :customerscenario: true
+
+        :BZ: 2024889
+
+        :SubComponent: Candlepin
+        """
+        sync_result = repo.sync()
+        assert sync_result['result'] == 'success'
+        result = target_sat.execute(
+            'grep "Artifact() got an unexpected keyword argument" /var/log/messages'
+        )
+        assert result.status == 1
+
+    @pytest.mark.tier2
+    def test_positive_sync_repo_null_contents_changed(self, module_manifest_org, target_sat):
+        """test for null contents_changed parameter on actions::katello::repository::sync.
+
+        :id: f3923940-e097-4da3-aba7-b14dbcda857b
+
+        :expectedresults: After syncing a repo and running that null contents_changed
+            command, 0 rows should be returned(empty string)
+
+        :CaseImportance: High
+
+        :customerscenario: true
+
+        :BZ: 2089580
+
+        :CaseAutomation: Automated
+        """
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_manifest_org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhst7']['name'],
+            reposet=constants.REPOSET['rhst7'],
+            releasever=None,
+        )
+        target_sat.api.Repository(id=repo_id).sync()
+        prod_log_out = target_sat.execute(
+            'sudo -u postgres psql -d foreman -c "select class,execution_plan_uuid,input '
+            'from dynflow_actions where input LIKE \'%"contents_changed":null%\''
+            ' AND class = \'Actions::Katello::Repository::Sync\';"'
+        )
+        assert prod_log_out.status == 0
+        assert "(0 rows)" in prod_log_out.stdout
 
 
 class TestDockerRepository:

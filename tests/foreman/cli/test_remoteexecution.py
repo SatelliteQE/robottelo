@@ -51,24 +51,6 @@ from robottelo.logging import logger
 
 
 @pytest.fixture()
-def fixture_vmsetup(request, module_org, target_sat):
-    """Create VM and register content host"""
-    if '_count' in request.param.keys():
-        with Broker(
-            nick=request.param['nick'],
-            host_classes={'host': ContentHost},
-            _count=request.param['_count'],
-        ) as clients:
-            for client in clients:
-                client.configure_rex(satellite=target_sat, org=module_org)
-            yield clients
-    else:
-        with Broker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
-            client.configure_rex(satellite=target_sat, org=module_org)
-            yield client
-
-
-@pytest.fixture()
 def fixture_sca_vmsetup(request, module_gt_manifest_org, target_sat):
     """Create VM and register content host to Simple Content Access organization"""
     if '_count' in request.param.keys():
@@ -98,6 +80,38 @@ def fixture_enable_receptor_repos(request, target_sat):
 def infra_host(request, target_sat, module_capsule_configured):
     infra_hosts = {'target_sat': target_sat, 'capsule_configured': module_capsule_configured}
     yield infra_hosts[request.param]
+
+
+def assert_job_invocation_result(invocation_command_id, client_hostname, expected_result='success'):
+    """Asserts the job invocation finished with the expected result and fetches job output when error
+    occurs. Result is one of: success, pending, error, warning"""
+    result = JobInvocation.info({'id': invocation_command_id})
+    try:
+        assert result[expected_result] == '1'
+    except AssertionError:
+        raise AssertionError(
+            'host output: {}'.format(
+                ' '.join(
+                    JobInvocation.get_output({'id': invocation_command_id, 'host': client_hostname})
+                )
+            )
+        )
+
+
+def assert_job_invocation_status(invocation_command_id, client_hostname, status):
+    """Asserts the job invocation status and fetches job output when error occurs.
+    Status is one of: queued, stopped, running, paused"""
+    result = JobInvocation.info({'id': invocation_command_id})
+    try:
+        assert result['status'] == status
+    except AssertionError:
+        raise AssertionError(
+            'host output: {}'.format(
+                ' '.join(
+                    JobInvocation.get_output({'id': invocation_command_id, 'host': client_hostname})
+                )
+            )
+        )
 
 
 class TestRemoteExecution:
@@ -130,19 +144,7 @@ class TestRemoteExecution:
                 'search-query': f"name ~ {client.hostname}",
             }
         )
-        result = JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': client.hostname}
-                    )
-                )
-            )
-            raise AssertionError(result)
-
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
         task = Task.list_tasks({'search': command})[0]
         search = Task.list_tasks({'search': f'id={task["id"]}'})
         assert search[0]['action'] == task['action']
@@ -174,16 +176,7 @@ class TestRemoteExecution:
                 'search-query': f"name ~ {client.hostname}",
             }
         )
-        result = JobInvocation.info({'id': make_user_job['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output({'id': make_user_job['id'], 'host': client.hostname})
-                )
-            )
-            raise AssertionError(result)
+        assert_job_invocation_result(make_user_job['id'], client.hostname)
         # create a file as new user
         invocation_command = make_job_invocation(
             {
@@ -193,18 +186,7 @@ class TestRemoteExecution:
                 'effective-user': f'{username}',
             }
         )
-        result = JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': client.hostname}
-                    )
-                )
-            )
-            raise AssertionError(result)
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
         # check the file owner
         result = client.execute(
             f'''stat -c '%U' /home/{username}/{filename}''',
@@ -240,21 +222,11 @@ class TestRemoteExecution:
         invocation_command = make_job_invocation(
             {'job-template': template_name, 'search-query': f'name ~ {client.hostname}'}
         )
-        result = JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': client.hostname}
-                    )
-                )
-            )
-            raise AssertionError(result)
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.rhel_ver_list([8])
     def test_positive_run_default_job_template_multiple_hosts_by_ip(
         self, registered_hosts, module_org
     ):
@@ -336,18 +308,7 @@ class TestRemoteExecution:
                 'search-query': f'name ~ {client.hostname}',
             }
         )
-        result = JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': client.hostname}
-                    )
-                )
-            )
-            raise AssertionError(result)
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
         result = client.run(f'rpm -q {" ".join(packages)}')
         assert result.status == 0
 
@@ -373,20 +334,8 @@ class TestRemoteExecution:
                 'max-iteration': 2,  # just two runs
             }
         )
-
         result = JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert result['status'] == 'queued'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': client.hostname}
-                    )
-                )
-            )
-            raise AssertionError(result)
-
+        assert_job_invocation_status(invocation_command['id'], client.hostname, 'queued')
         sleep(150)
         rec_logic = RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
@@ -430,18 +379,7 @@ class TestRemoteExecution:
             invocation_info = JobInvocation.info({'id': invocation_command['id']})
             pending_state = invocation_info['pending']
             sleep(30)
-        invocation_info = JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert invocation_info['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': client.hostname}
-                    )
-                )
-            )
-            raise AssertionError(result)
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -557,16 +495,7 @@ class TestAnsibleREX:
                 'search-query': f"name ~ {client.hostname}",
             }
         )
-        result = JobInvocation.info({'id': make_user_job['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output({'id': make_user_job['id'], 'host': client.hostname})
-                )
-            )
-            raise AssertionError(result)
+        assert_job_invocation_result(make_user_job['id'], client.hostname)
         # create a file as new user
         invocation_command = make_job_invocation(
             {
@@ -576,18 +505,7 @@ class TestAnsibleREX:
                 'effective-user': f'{username}',
             }
         )
-        result = JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': client.hostname}
-                    )
-                )
-            )
-            raise AssertionError(result)
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
         # check the file owner
         result = client.execute(
             f'''stat -c '%U' /home/{username}/{filename}''',
@@ -630,17 +548,7 @@ class TestAnsibleREX:
             }
         )
         result = JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert result['status'] == 'queued'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': client.hostname}
-                    )
-                )
-            )
-            raise AssertionError(result)
+        assert_job_invocation_status(invocation_command['id'], client.hostname, 'queued')
         sleep(150)
         rec_logic = RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
@@ -767,18 +675,7 @@ class TestAnsibleREX:
                 'search-query': f'name ~ {client.hostname}',
             }
         )
-        result = JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': client.hostname}
-                    )
-                )
-            )
-            raise AssertionError(result)
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
         result = client.run(f'rpm -q {" ".join(packages)}')
         assert result.status == 0
 
@@ -791,18 +688,7 @@ class TestAnsibleREX:
                 'search-query': f"name ~ {client.hostname}",
             }
         )
-        result = JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': client.hostname}
-                    )
-                )
-            )
-            raise AssertionError(result)
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
         result = client.execute(f'systemctl status {service}')
         assert result.status == 3
 
@@ -814,18 +700,7 @@ class TestAnsibleREX:
                 'search-query': f'name ~ {client.hostname}',
             }
         )
-        result = JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': client.hostname}
-                    )
-                )
-            )
-            raise AssertionError(result)
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
         result = client.execute(f'systemctl status {service}')
         assert result.status == 0
 
@@ -870,6 +745,7 @@ class TestAnsibleREX:
             }
         )
         client = fixture_sca_vmsetup
+        client.execute('subscription-manager refresh')
         client.execute(f'subscription-manager repos --enable {REPOS["rhae2"]["id"]}')
         client.execute('yum -y install ansible')
         collection_job = make_job_invocation(
@@ -1019,3 +895,159 @@ class TestRexUsers:
         )
         result = JobInvocation.info({'id': invocation_command['id']})
         assert result['success'] == '1'
+
+
+class TestPullProviderRex:
+    """Tests related to remote execution via pull provider (mqtt)"""
+
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
+    @pytest.mark.rhel_ver_match('[^6].*')
+    def test_positive_run_job_on_host_converted_to_pull_provider(
+        self,
+        module_org,
+        smart_proxy_location,
+        module_ak_with_cv,
+        module_capsule_configured_mqtt,
+        rhel_contenthost,
+    ):
+        """Run custom template on host converted to mqtt
+
+        :id: 9ad68172-de7b-4578-a3ae-49b6ff461691
+
+        :expectedresults: Verify the job was successfully ran against the host converted to mqtt
+
+        :CaseImportance: Critical
+
+        :parametrized: yes
+        """
+        result = rhel_contenthost.execute(
+            f'curl -o /etc/pki/ca-trust/source/anchors/satellite-sat-engineering-ca.crt \
+                    {settings.repos["DOGFOOD_REPO_HOST"]}/pub/katello-server-ca.crt \
+                    && update-ca-trust'
+        )
+        assert result.status == 0, 'Failed to download certificate'
+        client_repo = (
+            f'{settings.repos["DOGFOOD_REPO_HOST"].replace("http", "https")}/pulp/content/'
+            'Satellite_Engineering/QA/Satellite_Client/custom/Satellite_Client_Composes/'
+            f'Satellite_Client_RHEL{rhel_contenthost.os_version.major}_x86_64/'
+        )
+        # TODO client_repo should be changed to
+        # settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
+        # when/if the new dogfood url pattern settles
+
+        # register host with rex, enable client repo, install katello-agent
+        result = rhel_contenthost.register(
+            module_capsule_configured_mqtt,
+            module_org,
+            smart_proxy_location,
+            module_ak_with_cv.name,
+            packages=['katello-agent'],
+            repo=client_repo,
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+        # install conversion script (SAT-1670)
+        result = rhel_contenthost.execute('yum install -y katello-pull-transport-migrate')
+        assert result.status == 0, 'Failed to install katello-pull-transport-migrate'
+        # check mqtt client is running
+        result = rhel_contenthost.execute('yggdrasil status')
+        assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
+        result = rhel_contenthost.execute('systemctl status yggdrasild')
+        assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
+        # run script provider rex command
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': 'command=ls',
+                'search-query': f"name ~ {rhel_contenthost.hostname}",
+            }
+        )
+        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+        # check katello-agent runs along ygdrassil (SAT-1671)
+        result = rhel_contenthost.execute('systemctl status goferd')
+        assert result.status == 0, 'Failed to start goferd on client'
+
+        # run Ansible rex command to prove ssh provider works, remove katello-agent
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Package Action - Ansible Default',
+                'inputs': 'state=absent, name=katello-agent',
+                'search-query': f"name ~ {rhel_contenthost.hostname}",
+            }
+        )
+        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+
+        # check katello-agent removal did not influence ygdrassil (SAT-1672)
+        result = rhel_contenthost.execute('yggdrasil status')
+        assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
+        result = rhel_contenthost.execute('systemctl status yggdrasild')
+        assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': 'command=ls',
+                'search-query': f"name ~ {rhel_contenthost.hostname}",
+            }
+        )
+        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+        result = JobInvocation.info({'id': invocation_command['id']})
+
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
+    @pytest.mark.rhel_ver_match('[^6].*')
+    def test_positive_run_job_on_host_registered_to_pull_provider(
+        self,
+        module_org,
+        smart_proxy_location,
+        module_ak_with_cv,
+        module_capsule_configured_mqtt,
+        rhel_contenthost,
+    ):
+        """Run custom template on host registered to mqtt
+
+        :id: 759ad51d-eea7-4d7b-b6ee-60af2b814464
+
+        :expectedresults: Verify the job was successfully ran against the host registered to mqtt
+
+        :CaseImportance: Critical
+
+        :parametrized: yes
+        """
+        result = rhel_contenthost.execute(
+            f'curl -o /etc/pki/ca-trust/source/anchors/satellite-sat-engineering-ca.crt \
+                    {settings.repos["DOGFOOD_REPO_HOST"]}/pub/katello-server-ca.crt \
+                    && update-ca-trust'
+        )
+        assert result.status == 0, 'Failed to download certificate'
+        client_repo = (
+            f'{settings.repos["DOGFOOD_REPO_HOST"].replace("http", "https")}/pulp/content/'
+            'Satellite_Engineering/QA/Satellite_Client/custom/Satellite_Client_Composes/'
+            f'Satellite_Client_RHEL{rhel_contenthost.os_version.major}_x86_64/'
+        )
+        # TODO client_repo should be changed to
+        # settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
+        # when/if the new dogfood url pattern settles
+
+        # register host with pull provider rex (SAT-1677)
+        result = rhel_contenthost.register(
+            module_capsule_configured_mqtt,
+            module_org,
+            smart_proxy_location,
+            module_ak_with_cv.name,
+            setup_remote_execution_pull=True,
+            repo=client_repo,
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        # check mqtt client is running
+        result = rhel_contenthost.execute('yggdrasil status')
+        assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
+        # run script provider rex command
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Service Action - Script Default',
+                'inputs': 'action=status, service=yggdrasild',
+                'search-query': f"name ~ {rhel_contenthost.hostname}",
+            }
+        )
+        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)

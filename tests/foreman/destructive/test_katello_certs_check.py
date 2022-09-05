@@ -82,10 +82,9 @@ def test_positive_update_katello_certs(cert_setup_destructive_teardown):
 @pytest.mark.parametrize(
     'certs_vm_setup',
     [
-        {'nick': 'rhel7', 'target_memory': '20GiB', 'target_cores': 4},
         {'nick': 'rhel8', 'target_memory': '20GiB', 'target_cores': 4},
     ],
-    ids=['rhel7', 'rhel8'],
+    ids=['rhel8'],
     indirect=True,
 )
 def test_positive_install_sat_with_katello_certs(certs_vm_setup):
@@ -117,6 +116,7 @@ def test_positive_install_sat_with_katello_certs(certs_vm_setup):
     result = rhel_vm.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
     for repo in getattr(constants, f"OHSNAP_RHEL{version}_REPOS"):
         rhel_vm.enable_repo(repo, force=True)
+    # What is the purpose of this?
     rhel_vm.execute(
         f'yum -y localinstall {settings.repos.dogfood_repo_host}'
         f'/pub/katello-ca-consumer-latest.noarch.rpm'
