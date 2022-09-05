@@ -110,7 +110,7 @@ class SystemInfo:
     """Things that needs access to satellite shell for gaining satellite system configuration"""
 
     @property
-    def get_available_capsule_port(self):
+    def available_capsule_port(self):
         """returns a list of unused ports dedicated for fake capsules on satellite.
 
         This calls an ss command on the server prompting for a port range. ss

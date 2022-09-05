@@ -14,11 +14,11 @@ from robottelo.constants import GROUP_MEMBERSHIP_MAPPER
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import gen_string
-from robottelo.helpers import InstallerCommand
 from robottelo.hosts import ContentHost
 from robottelo.rhsso_utils import create_mapper
 from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import set_the_redirect_uri
+from robottelo.utils.installer import InstallerCommand
 
 
 @pytest.fixture()
