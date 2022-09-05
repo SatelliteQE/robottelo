@@ -24,7 +24,7 @@ from robottelo.constants import DataFile
 
 @pytest.fixture(scope='module')
 def template_data():
-    return DataFile.PARTITION_SCRIPT_DATA_FILE.read_bytes()
+    return DataFile.PARTITION_SCRIPT_DATA_FILE.read_text()
 
 
 @pytest.mark.tier2
