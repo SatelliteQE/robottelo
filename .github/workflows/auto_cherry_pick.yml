@@ -7,37 +7,34 @@ on:
       - closed
 
 jobs:
-  branch-matrix:
+  previous-branch:
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
-    name: Generate a branch matrix to apply cherrypicks
+    name: Calculate previous branch name
     runs-on: ubuntu-latest
     outputs:
-      branches: ${{ steps.set-matrix.outputs.branches }}
+      previous_branch: ${{ steps.set-branch.outputs.previous_branch }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - id: set-matrix
-        run: echo "::set-output name=branches::$(git branch -rl --sort=-authordate 'origin/6.*.z' --format='%(refname:lstrip=-1)' | head -n2 | jq -cnR '[inputs | select(length>0)]')"
-  auto_cherry_picking:
+      - id: set-branch
+        run: echo "::set-output name=previous_branch::$(if [ $GITHUB_BASE_REF  == 'master' ]; then echo $(git branch -rl --sort=-authordate 'origin/6.*.z' --format='%(refname:lstrip=-1)' | head -n1 | jq -cnR '[inputs | select(length>0)]'); else echo ['"6.'$(($(echo $GITHUB_BASE_REF | cut -d. -f2) - 1))'.z"']; fi)"
+
+  auto-cherry-pick:
+    name: Auto Cherry Pick to previous branch
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
-    name: Auto Cherry picking to branches
-    needs: branch-matrix
+    needs: previous-branch
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        to_branch: ${{ fromJson(needs.branch-matrix.outputs.branches) }}
+        to_branch: ${{ fromJson(needs.previous-branch.outputs.previous_branch) }}
     steps:
-      - name: Checkout Robottelo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-        if: matrix.to_branch != github.base_ref
       - name: Cherry pick into ${{ matrix.to_branch }}
         uses: jyejare/github-cherry-pick-action@main
         with:
           branch: ${{ matrix.to_branch }}
           labels: |
             Auto_Cherry_Picked
-        # skipping PRs remote target_branch from cherrypicking into itself
-        if: matrix.to_branch != github.base_ref
