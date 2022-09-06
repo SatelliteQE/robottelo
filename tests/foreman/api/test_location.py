@@ -24,7 +24,6 @@ from random import randint
 import pytest
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
-from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.constants import DEFAULT_LOC
@@ -68,25 +67,27 @@ class TestLocation:
         target_sat.cli.Proxy.delete({'id': proxy2['id']})
 
     @pytest.fixture
-    def make_orgs(self):
+    def make_orgs(self, target_sat):
         """Create two organizations"""
-        return dict(org=entities.Organization().create(), org2=entities.Organization().create())
+        return dict(
+            org=target_sat.api.Organization().create(), org2=target_sat.api.Organization().create()
+        )
 
     @pytest.fixture
-    def make_entities(self):
+    def make_entities(self, target_sat):
         """Set up reusable entities for tests."""
         return dict(
-            domain=entities.Domain().create(),
-            subnet=entities.Subnet().create(),
-            host_group=entities.HostGroup().create(),
-            template=entities.ProvisioningTemplate().create(),
-            test_cr=entities.LibvirtComputeResource().create(),
-            new_user=entities.User().create(),
+            domain=target_sat.api.Domain().create(),
+            subnet=target_sat.api.Subnet().create(),
+            host_group=target_sat.api.HostGroup().create(),
+            template=target_sat.api.ProvisioningTemplate().create(),
+            test_cr=target_sat.api.LibvirtComputeResource().create(),
+            new_user=target_sat.api.User().create(),
         )
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_loc_data_list()))
-    def test_positive_create_with_name(self, name):
+    def test_positive_create_with_name(self, name, target_sat):
         """Create new locations using different inputs as a name
 
         :id: 90bb90a3-120f-4ea6-89a9-62757be42486
@@ -98,11 +99,11 @@ class TestLocation:
 
         :parametrized: yes
         """
-        location = entities.Location(name=name).create()
+        location = target_sat.api.Location(name=name).create()
         assert location.name == name
 
     @pytest.mark.tier1
-    def test_positive_create_and_delete_with_comma_separated_name(self):
+    def test_positive_create_and_delete_with_comma_separated_name(self, target_sat):
         """Create new location using name that has comma inside, delete location
 
         :id: 3131e99d-b278-462e-a650-a5a4f4e0a2f1
@@ -110,14 +111,14 @@ class TestLocation:
         :expectedresults: Location created successfully and has expected name
         """
         name = '{}, {}'.format(gen_string('alpha'), gen_string('alpha'))
-        location = entities.Location(name=name).create()
+        location = target_sat.api.Location(name=name).create()
         assert location.name == name
         location.delete()
         with pytest.raises(HTTPError):
             location.read()
 
     @pytest.mark.tier2
-    def test_positive_create_and_update_with_org(self, make_orgs):
+    def test_positive_create_and_update_with_org(self, make_orgs, target_sat):
         """Create new location with assigned organization to it
 
         :id: 5032a93f-4b37-4c19-b6d3-26e3a868d0f1
@@ -127,7 +128,7 @@ class TestLocation:
 
         :CaseLevel: Integration
         """
-        location = entities.Location(organization=[make_orgs['org']]).create()
+        location = target_sat.api.Location(organization=[make_orgs['org']]).create()
         assert location.organization[0].id == make_orgs['org'].id
         assert location.organization[0].read().title == make_orgs['org'].title
 
@@ -138,7 +139,7 @@ class TestLocation:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_name(self, name):
+    def test_negative_create_with_name(self, name, target_sat):
         """Attempt to create new location using invalid names only
 
         :id: 320e6bca-5645-423b-b86a-2b6f35c8dae3
@@ -150,10 +151,10 @@ class TestLocation:
         :parametrized: yes
         """
         with pytest.raises(HTTPError):
-            entities.Location(name=name).create()
+            target_sat.api.Location(name=name).create()
 
     @pytest.mark.tier1
-    def test_negative_create_with_same_name(self):
+    def test_negative_create_with_same_name(self, target_sat):
         """Attempt to create new location using name of existing entity
 
         :id: bc09acb3-9ecf-4d23-b3ef-94f24e16e6db
@@ -163,13 +164,13 @@ class TestLocation:
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        location = entities.Location(name=name).create()
+        location = target_sat.api.Location(name=name).create()
         assert location.name == name
         with pytest.raises(HTTPError):
-            entities.Location(name=name).create()
+            target_sat.api.Location(name=name).create()
 
     @pytest.mark.tier1
-    def test_negative_create_with_domain(self):
+    def test_negative_create_with_domain(self, target_sat):
         """Attempt to create new location using non-existent domain identifier
 
         :id: 5449532d-7959-4547-ba05-9e194eea495d
@@ -178,11 +179,11 @@ class TestLocation:
 
         """
         with pytest.raises(HTTPError):
-            entities.Location(domain=[gen_integer(10000, 99999)]).create()
+            target_sat.api.Location(domain=[gen_integer(10000, 99999)]).create()
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(valid_loc_data_list()))
-    def test_positive_update_name(self, new_name):
+    def test_positive_update_name(self, new_name, target_sat):
         """Update location with new name
 
         :id: 73ff6dab-e12a-4f7d-9c1f-6984fc076329
@@ -193,12 +194,12 @@ class TestLocation:
 
         :parametrized: yes
         """
-        location = entities.Location().create()
+        location = target_sat.api.Location().create()
         location.name = new_name
         assert location.update(['name']).name == new_name
 
     @pytest.mark.tier2
-    def test_positive_update_entities(self, make_entities):
+    def test_positive_update_entities(self, make_entities, target_sat):
         """Update location with new domain
 
         :id: 1016dfb9-8103-45f1-8738-0579fa9754c1
@@ -208,7 +209,7 @@ class TestLocation:
 
         :CaseLevel: Integration
         """
-        location = entities.Location().create()
+        location = target_sat.api.Location().create()
 
         location.domain = [make_entities["domain"]]
         location.subnet = [make_entities["subnet"]]
@@ -237,7 +238,7 @@ class TestLocation:
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier2
-    def test_positive_create_update_and_remove_capsule(self, make_proxies):
+    def test_positive_create_update_and_remove_capsule(self, make_proxies, target_sat):
         """Update location with new capsule
 
         :id: 2786146f-f466-4ed8-918a-5f46806558e2
@@ -254,10 +255,10 @@ class TestLocation:
         proxy_id_1 = make_proxies['proxy1']['id']
         proxy_id_2 = make_proxies['proxy2']['id']
 
-        proxy = entities.SmartProxy(id=proxy_id_1).read()
-        location = entities.Location(smart_proxy=[proxy]).create()
+        proxy = target_sat.api.SmartProxy(id=proxy_id_1).read()
+        location = target_sat.api.Location(smart_proxy=[proxy]).create()
 
-        new_proxy = entities.SmartProxy(id=proxy_id_2).read()
+        new_proxy = target_sat.api.SmartProxy(id=proxy_id_2).read()
         location.smart_proxy = [new_proxy]
         location = location.update(['smart_proxy'])
         assert location.smart_proxy[0].id == new_proxy.id
@@ -268,7 +269,7 @@ class TestLocation:
         assert len(location.smart_proxy) == 0
 
     @pytest.mark.tier2
-    def test_negative_update_domain(self):
+    def test_negative_update_domain(self, target_sat):
         """Try to update existing location with incorrect domain. Use
         domain id
 
@@ -278,14 +279,14 @@ class TestLocation:
 
         :CaseLevel: Integration
         """
-        location = entities.Location(domain=[entities.Domain().create()]).create()
-        domain = entities.Domain().create()
+        location = target_sat.api.Location(domain=[target_sat.api.Domain().create()]).create()
+        domain = target_sat.api.Domain().create()
         location.domain[0].id = gen_integer(10000, 99999)
         with pytest.raises(HTTPError):
             assert location.update(['domain']).domain[0].id != domain.id
 
     @pytest.mark.tier1
-    def test_default_loc_id_check(self):
+    def test_default_loc_id_check(self, target_sat):
         """test to check the default_location id
 
         :id: 3c89d63b-d5fb-4f05-9efb-f560f0194c85
@@ -295,11 +296,13 @@ class TestLocation:
         :expectedresults: The default_location ID remain 2.
 
         """
-        default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
+        default_loc_id = (
+            target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
+        )
         assert default_loc_id == 2
 
     @pytest.mark.tier1
-    def test_positive_get_location_by_name(self, make_entities):
+    def test_positive_get_location_by_name(self, make_entities, target_sat):
         """test to search location by name
 
         :id: 9721bd0c-df51-11eb-9353-b0a460e02491
@@ -315,6 +318,6 @@ class TestLocation:
         :CaseImportance: High
         """
         name = gen_string('alphanumeric')
-        entities.Location(name=name).create()
-        loc_name = entities.Location().search(query={'search': f'name="{name}"'})[0].name
+        target_sat.api.Location(name=name).create()
+        loc_name = target_sat.api.Location().search(query={'search': f'name="{name}"'})[0].name
         assert loc_name == name
