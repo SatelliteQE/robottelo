@@ -24,9 +24,9 @@ from fauxfactory import gen_string
 from wait_for import wait_for
 
 from robottelo.config import robottelo_tmp_dir
-from robottelo.rh_cloud_utils import get_local_file_data
-from robottelo.rh_cloud_utils import get_report_data
-from robottelo.rh_cloud_utils import get_report_metadata
+from robottelo.utils.io import get_local_file_data
+from robottelo.utils.io import get_report_data
+from robottelo.utils.io import get_report_metadata
 
 generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
 
