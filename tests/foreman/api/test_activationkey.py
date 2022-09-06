@@ -25,7 +25,6 @@ from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import upload_manifest
 from robottelo.config import get_credentials
@@ -438,7 +437,7 @@ def test_positive_remove_user():
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_fetch_product_content(module_org):
+def test_positive_fetch_product_content(module_org, session_entitlement_manifest):
     """Associate RH & custom product with AK and fetch AK's product content
 
     :id: 424f3dfb-0112-464b-b633-e8c9bce6e0f1
@@ -452,7 +451,7 @@ def test_positive_fetch_product_content(module_org):
 
     :CaseImportance: Critical
     """
-    with manifests.clone() as manifest:
+    with session_entitlement_manifest as manifest:
         upload_manifest(module_org.id, manifest.content)
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
