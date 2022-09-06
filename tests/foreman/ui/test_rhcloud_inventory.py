@@ -24,9 +24,9 @@ from airgun.session import Session
 from wait_for import wait_for
 
 from robottelo.constants import DEFAULT_LOC
-from robottelo.rh_cloud_utils import get_local_file_data
-from robottelo.rh_cloud_utils import get_remote_report_checksum
-from robottelo.rh_cloud_utils import get_report_data
+from robottelo.utils.io import get_local_file_data
+from robottelo.utils.io import get_remote_report_checksum
+from robottelo.utils.io import get_report_data
 
 
 def common_assertion(report_path, inventory_data, org, satellite):
