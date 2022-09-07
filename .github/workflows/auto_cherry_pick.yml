@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
       - id: set-matrix
-        run: echo "::set-output name=branches::$(git branch -rl --sort=-authordate 'origin/6.*.z' --format='%(refname:lstrip=-1)' | head -n2 | jq -cnR '[inputs | select(length>0)]')"
+        run: echo "::set-output name=branches::$(if [ $GITHUB_HEAD_REF  == 'master' ]; then echo $(git branch -rl --sort=-authordate 'origin/6.*.z' --format='%(refname:lstrip=-1)' | head -n1 | jq -cnR '[inputs | select(length>0)]'); else echo 'origin/6.'$(($(echo $GITHUB_HEAD_REF | cut -d. -f2) - 1))'.z'; fi)"
   auto_cherry_picking:
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
     name: Auto Cherry picking to branches
