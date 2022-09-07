@@ -29,8 +29,8 @@ from wait_for import TimedOutError
 from wait_for import wait_for
 
 from robottelo.cli.factory import configure_env_for_provision
+from robottelo.config import user_nailgun_config
 from robottelo.datafactory import valid_data_list
-from robottelo.helpers import get_nailgun_config
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.logging import logger
 from robottelo.utils.issue_handlers import is_open
@@ -377,7 +377,7 @@ class TestLibvirtHostDiscovery:
 
         :CaseImportance: Critical
         """
-        cfg = get_nailgun_config()
+        cfg = user_nailgun_config()
         if _module_user:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
@@ -388,13 +388,13 @@ class TestLibvirtHostDiscovery:
             with LibvirtGuest() as pxe_host:
                 discovered_host = _assert_discovered_host(pxe_host, shell, user_config=cfg)
                 # Provision just discovered host
-                discovered_host.hostgroup = entities.HostGroup(
+                discovered_host.hostgroup = target_sat.api.HostGroup(
                     cfg, id=provisioning_env['hostgroup']['id']
                 ).read()
                 discovered_host.root_pass = gen_string('alphanumeric')
                 discovered_host.update(['hostgroup', 'root_pass'])
                 # Assertions
-                provisioned_host = entities.Host(cfg).search(
+                provisioned_host = target_sat.api.Host(cfg).search(
                     query={
                         'search': 'name={}.{}'.format(
                             discovered_host.name, provisioning_env['domain']['name']
@@ -409,7 +409,7 @@ class TestLibvirtHostDiscovery:
                 assert (
                     provisioned_host.operatingsystem.read().title == provisioning_env['os']['title']
                 )
-                assert not entities.DiscoveredHost(cfg).search(
+                assert not target_sat.api.DiscoveredHost(cfg).search(
                     query={'search': f'name={discovered_host.name}'}
                 )
 
@@ -442,7 +442,7 @@ class TestLibvirtHostDiscovery:
 
         :CaseImportance: Critical
         """
-        cfg = get_nailgun_config()
+        cfg = user_nailgun_config()
         if _module_user:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
@@ -453,17 +453,17 @@ class TestLibvirtHostDiscovery:
             with LibvirtGuest() as pxe_host:
                 discovered_host = _assert_discovered_host(pxe_host, shell, user_config=cfg)
                 # Provision just discovered host
-                discovered_host.hostgroup = entities.HostGroup(
+                discovered_host.hostgroup = target_sat.api.HostGroup(
                     cfg, id=provisioning_env['hostgroup']['id']
                 ).read()
 
                 # create a discovery rule that will match hosts MAC address
-                entities.DiscoveryRule(
+                target_sat.api.DiscoveryRule(
                     name=gen_string('alphanumeric'),
                     search_=f"mac = {discovered_host.mac}",
                     organization=[module_org],
                     location=[module_location],
-                    hostgroup=entities.HostGroup(
+                    hostgroup=target_sat.api.HostGroup(
                         cfg, id=provisioning_env['hostgroup']['id']
                     ).read(),
                 ).create()
@@ -471,7 +471,7 @@ class TestLibvirtHostDiscovery:
                 discovered_host.auto_provision()
 
                 # Assertions
-                provisioned_host = entities.Host(cfg).search(
+                provisioned_host = target_sat.api.Host(cfg).search(
                     query={
                         'search': 'name={}.{}'.format(
                             discovered_host.name, provisioning_env['domain']['name']
@@ -486,7 +486,7 @@ class TestLibvirtHostDiscovery:
                 assert (
                     provisioned_host.operatingsystem.read().title == provisioning_env['os']['title']
                 )
-                assert not entities.DiscoveredHost(cfg).search(
+                assert not target_sat.api.DiscoveredHost(cfg).search(
                     query={'search': f'name={discovered_host.name}'}
                 )
 
@@ -554,7 +554,7 @@ class TestLibvirtHostDiscovery:
 
         :CaseImportance: Medium
         """
-        cfg = get_nailgun_config()
+        cfg = user_nailgun_config()
         if _module_user:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
@@ -608,7 +608,7 @@ class TestLibvirtHostDiscovery:
 
         :CaseImportance: Medium
         """
-        cfg = get_nailgun_config()
+        cfg = user_nailgun_config()
         if _module_user:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
@@ -624,7 +624,7 @@ class TestLibvirtHostDiscovery:
                 # reboot_all method leads to general /discovered_hosts/ path, so it doesn't matter
                 # what DiscoveredHost object we execute this on
                 try:
-                    entities.DiscoveredHost().reboot_all()
+                    target_sat.api.DiscoveredHost().reboot_all()
                 except simplejson.errors.JSONDecodeError as e:
                     if is_open('BZ:1893349'):
                         pass

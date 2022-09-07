@@ -23,7 +23,8 @@ from nailgun import entity_mixins
 from wait_for import TimedOutError
 from wait_for import wait_for
 
-from robottelo.helpers import get_nailgun_config
+from robottelo.config import get_credentials
+from robottelo.config import user_nailgun_config
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.logging import logger
 
@@ -249,7 +250,8 @@ def test_positive_provision_pxe_host_dhcp_change(discovery_settings, provisionin
     # Same time, calculating dhcp confs new `to` range
     new_dhcp_conf_to = subnet.to[: subnet.to.rfind('.') + 1] + str(int(old_sub_to_4o) - 10)
 
-    cfg = get_nailgun_config()
+    cfg = user_nailgun_config()
+    cfg.auth = get_credentials()
     with target_sat.session.shell() as shell:
         shell.send('foreman-tail')
         try:
