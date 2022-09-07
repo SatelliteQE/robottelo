@@ -30,8 +30,8 @@ from nailgun import entities
 from nailgun.entity_fields import OneToManyField
 from requests.exceptions import HTTPError
 
+from robottelo.config import user_nailgun_config
 from robottelo.constants import PERMISSIONS
-from robottelo.helpers import get_nailgun_config
 from robottelo.utils.datafactory import parametrized
 
 
@@ -196,11 +196,10 @@ class TestUserRole:
     """Give a user various permissions and see if they are enforced."""
 
     @pytest.fixture(autouse=True)
-    def create_user(self, class_org, class_location):
+    def create_user(self, target_sat, class_org, class_location):
         """Create a set of credentials and a user."""
-        self.cfg = get_nailgun_config()
-        self.cfg.auth = (gen_alphanumeric(), gen_alphanumeric())  # user, pass
-        self.user = entities.User(
+        self.cfg = user_nailgun_config(gen_alphanumeric(), gen_alphanumeric())
+        self.user = target_sat.api.User(
             login=self.cfg.auth[0],
             password=self.cfg.auth[1],
             organization=[class_org],

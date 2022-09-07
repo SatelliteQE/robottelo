@@ -29,10 +29,10 @@ from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import upload_manifest
 from robottelo.config import get_credentials
+from robottelo.config import user_nailgun_config
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.helpers import get_nailgun_config
 from robottelo.utils.datafactory import filtered_datapoint
 from robottelo.utils.datafactory import invalid_names_list
 from robottelo.utils.datafactory import parametrized
@@ -412,7 +412,7 @@ def test_positive_delete(name):
 
 
 @pytest.mark.tier2
-def test_positive_remove_user():
+def test_positive_remove_user(target_sat):
     """Delete any user who has previously created an activation key
     and check that activation key still exists
 
@@ -423,13 +423,12 @@ def test_positive_remove_user():
     :BZ: 1291271
     """
     password = gen_string('alpha')
-    user = entities.User(password=password, login=gen_string('alpha'), admin=True).create()
-    cfg = get_nailgun_config()
-    cfg.auth = (user.login, password)
-    ak = entities.ActivationKey(cfg).create()
+    user = target_sat.api.User(password=password, login=gen_string('alpha'), admin=True).create()
+    user_cfg = user_nailgun_config(user.login, password)
+    ak = target_sat.api.ActivationKey(server_config=user_cfg).create()
     user.delete()
     try:
-        entities.ActivationKey(id=ak.id).read()
+        target_sat.api.ActivationKey(id=ak.id).read()
     except HTTPError:
         pytest.fail("Activation Key can't be read")
 

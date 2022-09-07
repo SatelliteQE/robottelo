@@ -24,7 +24,7 @@ from nailgun import entities
 from nailgun import entity_fields
 
 from robottelo.config import get_credentials
-from robottelo.helpers import get_nailgun_config
+from robottelo.config import user_nailgun_config
 from robottelo.logging import logger
 from robottelo.utils.datafactory import parametrized
 
@@ -202,8 +202,7 @@ class TestEntity:
         :BZ: 1122257
 
         """
-        server_cfg = get_nailgun_config()
-        server_cfg.auth = ()
+        server_cfg = user_nailgun_config()
         return_code = entity_cls(server_cfg).create_raw(create_missing=False).status_code
         assert http.client.UNAUTHORIZED == return_code
 

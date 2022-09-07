@@ -5,6 +5,7 @@ from urllib.parse import urlunsplit
 
 from dynaconf import LazySettings
 from dynaconf.validator import ValidationError
+from nailgun.config import ServerConfig
 
 from robottelo.config.validators import VALIDATORS
 from robottelo.logging import logger
@@ -88,6 +89,20 @@ def get_url():
         hostname = f"{hostname}:{port}"
 
     return urlunsplit((scheme, hostname, '', '', ''))
+
+
+def user_nailgun_config(username=None, password=None):
+    """Return a NailGun configuration file constructed from default values.
+
+    :param user: The ```nailgun.entities.User``` object of an user with additional passwd
+        property/attribute
+
+    :return: ``nailgun.config.ServerConfig`` object, populated from user parameter object else
+        with values from ``robottelo.config.settings``
+
+    """
+    creds = (username, password)
+    return ServerConfig(get_url(), creds, verify=False)
 
 
 def setting_is_set(option):
