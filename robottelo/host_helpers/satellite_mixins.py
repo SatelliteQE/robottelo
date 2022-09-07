@@ -118,9 +118,11 @@ class SystemInfo:
         returns a list of ports which have a PID assigned (a list of ports
         which are already used). This function then substracts unavailable ports
         from the other ones and returns one of available ones randomly.
+
         :param port_pool: A list of ports used for fake capsules (for RHEL7+: don't
             forget to set a correct selinux context before otherwise you'll get
             Connection Refused error)
+
         :return: Random available port from interval <9091, 9190>.
         :rtype: int
         """
@@ -165,8 +167,10 @@ class SystemInfo:
     @contextlib.contextmanager
     def default_url_on_new_port(self, oldport, newport):
         """Creates context where the default capsule is forwarded on a new port
+
         :param int oldport: Port to be forwarded.
-        :param int newport: New port to be used to forward `oldport`.
+        :param int newport: New port to be used to forward `oldport`
+
         :return: A string containing the new capsule URL with port.
         :rtype: str
         """

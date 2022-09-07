@@ -1,6 +1,4 @@
 """Tests for module ``robottelo.helpers``."""
-from unittest import mock
-
 import pytest
 
 from robottelo.utils import slugify_component

@@ -30,7 +30,7 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
 from robottelo.config import settings
-from robottelo.helpers import get_nailgun_config
+from robottelo.config import user_nailgun_config
 from robottelo.utils.datafactory import invalid_names_list
 from robottelo.utils.datafactory import valid_data_list
 
@@ -150,7 +150,7 @@ class TestProvisioningTemplate:
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    def test_positive_end_to_end_crud(self, module_org, module_location, module_user):
+    def test_positive_end_to_end_crud(self, module_org, module_location, module_user, target_sat):
         """Create a new provisioning template with several attributes, update them,
         clone the provisioning template and then delete it
 
@@ -161,13 +161,12 @@ class TestProvisioningTemplate:
 
         :CaseImportance: Critical
         """
-        cfg = get_nailgun_config()
-        cfg.auth = (module_user[1], module_user[2])
+        cfg = user_nailgun_config(module_user[1], module_user[2])
         name = gen_string('alpha')
         new_name = gen_string('alpha')
-        template_kind = choice(entities.TemplateKind().search())
+        template_kind = choice(target_sat.api.TemplateKind().search())
 
-        template = entities.ProvisioningTemplate(
+        template = target_sat.api.ProvisioningTemplate(
             name=name,
             organization=[module_org],
             location=[module_location],
@@ -184,10 +183,10 @@ class TestProvisioningTemplate:
 
         # negative create
         with pytest.raises(HTTPError) as e1:
-            entities.ProvisioningTemplate(name=gen_choice(invalid_names_list())).create()
+            target_sat.api.ProvisioningTemplate(name=gen_choice(invalid_names_list())).create()
         assert e1.value.response.status_code == 422
 
-        invalid = entities.ProvisioningTemplate(snippet=False)
+        invalid = target_sat.api.ProvisioningTemplate(snippet=False)
         invalid.create_missing()
         invalid.template_kind = None
         invalid.template_kind_name = gen_string('alpha')
@@ -197,7 +196,9 @@ class TestProvisioningTemplate:
 
         # update
         assert template.template_kind.id == template_kind.id, "Template kind id doesn't match"
-        updated = entities.ProvisioningTemplate(cfg, id=template.id, name=new_name).update(['name'])
+        updated = target_sat.api.ProvisioningTemplate(cfg, id=template.id, name=new_name).update(
+            ['name']
+        )
         assert updated.name == new_name, "The Provisioning template wasn't properly renamed"
         # clone
 
@@ -209,10 +210,10 @@ class TestProvisioningTemplate:
         }
 
         dupe_name = gen_choice(list(valid_data_list().values()))
-        dupe_json = entities.ProvisioningTemplate(
+        dupe_json = target_sat.api.ProvisioningTemplate(
             id=template.clone(data={'name': dupe_name})['id']
         ).read_json()
-        dupe_template = entities.ProvisioningTemplate(id=dupe_json['id'])
+        dupe_template = target_sat.api.ProvisioningTemplate(id=dupe_json['id'])
         dupe_json = {key: value for key, value in dupe_json.items() if key not in unique_keys}
         assert template_origin == dupe_json
 

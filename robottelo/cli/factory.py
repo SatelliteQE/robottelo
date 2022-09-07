@@ -519,6 +519,7 @@ def make_product_wait(options=None, wait_for=5):
             raise err
     return product
 
+
 @cacheable
 def make_repository(options=None):
     """Creates a Repository
