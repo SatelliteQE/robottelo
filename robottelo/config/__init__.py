@@ -1,3 +1,4 @@
+import epdb
 import logging
 import os
 from pathlib import Path
@@ -174,3 +175,5 @@ def configure_airgun():
 
 
 configure_airgun()
+
+epdb.serve(port=9000)
