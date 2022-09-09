@@ -35,6 +35,7 @@ jobs:
       - name: Cherry pick into ${{ matrix.to_branch }}
         uses: jyejare/github-cherry-pick-action@main
         with:
+          token: ${{ secrets.CHERRYPICK_PAT }}
           branch: ${{ matrix.to_branch }}
           labels: |
             Auto_Cherry_Picked
