@@ -19,6 +19,7 @@ from robottelo.rhsso_utils import create_mapper
 from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import set_the_redirect_uri
 from robottelo.utils.installer import InstallerCommand
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture()
@@ -271,11 +272,8 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
         'yum -y --disableplugin=foreman-protector install '
         'mod_auth_openidc keycloak-httpd-client-install'
     )
-    if module_target_sat.os_version.major == '8':
-        # if target directory not given it is installing in /usr/local/lib64
-        module_target_sat.execute(
-            'python3 -m pip install lxml -t /usr/lib64/python3.6/site-packages'
-        )
+    # if target directory not given it is installing in /usr/local/lib64
+    module_target_sat.execute('python3 -m pip install lxml -t /usr/lib64/python3.6/site-packages')
     module_target_sat.execute(
         f'openssl s_client -connect {settings.rhsso.host_name} -showcerts </dev/null 2>/dev/null| '
         f'sed "/BEGIN CERTIFICATE/,/END CERTIFICATE/!d" > {CERT_PATH}/rh-sso.crt'
@@ -293,6 +291,11 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
                 --keycloak-admin-realm master \
                 --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'
     )
+    if is_open('BZ:2113905'):
+        module_target_sat.execute(
+            r"sed -i -e '$aapache::default_mods:\n  - authn_core' "
+            "/etc/foreman-installer/custom-hiera.yaml"
+        )
 
     module_target_sat.execute(
         f'satellite-installer --foreman-keycloak true '
