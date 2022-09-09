@@ -17,7 +17,7 @@ jobs:
         python-version: [3.9]
     steps:
       - name: Checkout Robottelo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set Up Python-${{ matrix.python-version }}
         uses: actions/setup-python@v4
