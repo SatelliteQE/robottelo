@@ -27,12 +27,12 @@ from robottelo.config import settings
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize(
-    'function_http_proxy',
+    'setup_http_proxy',
     [None, True, False],
     indirect=True,
     ids=['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'],
 )
-def test_positive_end_to_end(function_http_proxy, module_target_sat, module_manifest_org):
+def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifest_org):
     """End-to-end test for HTTP Proxy related scenarios.
 
     :id: 38df5479-9127-49f3-a30e-26b33655971a
@@ -56,7 +56,7 @@ def test_positive_end_to_end(function_http_proxy, module_target_sat, module_mani
 
     :CaseImportance: Critical
     """
-    http_proxy, http_proxy_type = function_http_proxy
+    http_proxy, http_proxy_type = setup_http_proxy
     http_proxy_id = http_proxy.id if http_proxy_type is not None else None
     http_proxy_policy = 'use_selected_http_proxy' if http_proxy_type is not None else 'none'
     # Assign http_proxy to Redhat repository and perform repository sync.
