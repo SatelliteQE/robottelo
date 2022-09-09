@@ -38,3 +38,4 @@ jobs:
           branch: ${{ matrix.to_branch }}
           labels: |
             Auto_Cherry_Picked
+            ${{ matrix.to_branch }}
