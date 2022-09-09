@@ -3,6 +3,7 @@ import socket
 
 import pytest
 from box import Box
+from broker import Broker
 from nailgun import entities
 
 from robottelo.api.utils import update_rhsso_settings_in_satellite
@@ -11,6 +12,8 @@ from robottelo.config import settings
 from robottelo.constants import AUDIENCE_MAPPER
 from robottelo.constants import CERT_PATH
 from robottelo.constants import GROUP_MEMBERSHIP_MAPPER
+from robottelo.constants import HAMMER_CONFIG
+from robottelo.constants import HAMMER_SESSIONS
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import gen_string
@@ -328,35 +331,49 @@ def enroll_idm_and_configure_external_auth(sat):
     if result.status != 0:
         raise CLIReturnCodeError(result.status, result.stderr, 'Failed to install ipa client')
     ipa_host.execute(f'echo {settings.ipa.password} | kinit admin')
-    output = ipa_host.execute(f'ipa host-find {sat.hostname}')
-    if output.status != 0:
-        result = ipa_host.execute(f'ipa host-add --random {sat.hostname}')
-        for line in result.stdout.splitlines():
-            if 'Random password' in line:
-                _, password = line.split(': ', 2)
-                break
-        ipa_host.execute(f'ipa service-add HTTP/{sat.hostname}')
-        _, domain = settings.ipa.hostname.split('.', 1)
-        result = sat.execute(
-            f"ipa-client-install --password '{password}' "
-            f'--domain {domain} '
-            f'--server {settings.ipa.hostname} '
-            f'--realm {domain.upper()} -U'
-        )
-        if result.status not in [0, 3]:
-            raise CLIReturnCodeError(result.status, result.stderr, 'Failed to enable ipa client')
+    result = ipa_host.execute(f'ipa host-find {sat.hostname}')
+    if result.status == 0:
+        disenroll_idm(sat)
+    result = ipa_host.execute(f'ipa host-add --random {sat.hostname}')
+    for line in result.stdout.splitlines():
+        if 'Random password' in line:
+            _, password = line.split(': ', 2)
+            break
+    ipa_host.execute(f'ipa service-add HTTP/{sat.hostname}')
+    _, domain = settings.ipa.hostname.split('.', 1)
+    result = sat.execute(
+        f"ipa-client-install --password '{password}' "
+        f'--domain {domain} '
+        f'--server {settings.ipa.hostname} '
+        f'--realm {domain.upper()} -U'
+    )
+    if result.status not in [0, 3]:
+        raise CLIReturnCodeError(result.status, result.stderr, 'Failed to enable ipa client')
+    result = sat.install(InstallerCommand('foreman-ipa-authentication true'))
+    assert result.status == 0, 'Installer failed to enable IPA authentication.'
+    sat.cli.Service.restart()
+
+
+def disenroll_idm(sat):
+    ipa_host = ContentHost(settings.ipa.hostname)
+    ipa_host.execute(f'ipa service-del HTTP/{sat.hostname}')
+    ipa_host.execute(f'ipa host-del {sat.hostname}')
 
 
 @pytest.mark.external_auth
 @pytest.fixture(scope='module')
 def module_enroll_idm_and_configure_external_auth(module_target_sat):
     enroll_idm_and_configure_external_auth(module_target_sat)
+    yield
+    disenroll_idm(module_target_sat)
 
 
 @pytest.mark.external_auth
 @pytest.fixture
 def func_enroll_idm_and_configure_external_auth(target_sat):
     enroll_idm_and_configure_external_auth(target_sat)
+    yield
+    disenroll_idm(target_sat)
 
 
 @pytest.fixture(scope='module')
@@ -399,11 +416,9 @@ def rhsso_setting_setup_with_timeout(module_target_sat, rhsso_setting_setup):
     setting_entity.update({'value'})
 
 
-@pytest.mark.external_auth
-@pytest.fixture
-def enroll_ad_and_configure_external_auth(request, ad_data, target_sat):
+def enroll_ad_and_configure_external_auth(request, ad_data, sat):
     """Enroll Satellite Server to an AD Server."""
-    auth_type = request.param.lower()
+    auth_type = getattr(request, 'param', 'AD_2016')
     ad_data = ad_data('2019') if '2019' in auth_type else ad_data()
     packages = (
         'sssd adcli realmd ipa-python-compat krb5-workstation '
@@ -419,28 +434,26 @@ def enroll_ad_and_configure_external_auth(request, ad_data, target_sat):
     )
 
     # install the required packages
-    target_sat.execute(f'yum -y --disableplugin=foreman-protector install {packages}')
+    sat.execute(f'yum -y --disableplugin=foreman-protector install {packages}')
 
     # update the AD name server
-    target_sat.execute('chattr -i /etc/resolv.conf')
+    sat.execute('chattr -i /etc/resolv.conf')
     line_number = str(
-        target_sat.execute(
-            "awk -v search='nameserver' '$0~search{print NR; exit}' /etc/resolv.conf"
-        )
+        sat.execute("awk -v search='nameserver' '$0~search{print NR; exit}' /etc/resolv.conf")
     ).strip()
-    target_sat.execute(f'sed -i "{line_number}i nameserver {ad_data.nameserver}" /etc/resolv.conf')
-    target_sat.execute('chattr +i /etc/resolv.conf')
+    sat.execute(f'sed -i "{line_number}i nameserver {ad_data.nameserver}" /etc/resolv.conf')
+    sat.execute('chattr +i /etc/resolv.conf')
 
     # join the realm
-    target_sat.execute(
+    sat.execute(
         f'echo {settings.ldap.password} | realm join -v {realm} --membership-software=samba'
     )
-    target_sat.execute('touch /etc/ipa/default.conf')
-    target_sat.execute(f'echo "{default_content}" > /etc/ipa/default.conf')
-    target_sat.execute(f'echo "{keytab_content}" > /etc/net-keytab.conf')
+    sat.execute('touch /etc/ipa/default.conf')
+    sat.execute(f'echo "{default_content}" > /etc/ipa/default.conf')
+    sat.execute(f'echo "{keytab_content}" > /etc/net-keytab.conf')
 
     # gather the apache id
-    id_apache = str(target_sat.execute('id -u apache')).strip()
+    id_apache = str(sat.execute('id -u apache')).strip()
     http_conf_content = (
         f'[service/HTTP]\nmechs = krb5\ncred_store = keytab:/etc/krb5.keytab'
         f'\ncred_store = ccache:/var/lib/gssproxy/clients/krb5cc_%U'
@@ -448,41 +461,93 @@ def enroll_ad_and_configure_external_auth(request, ad_data, target_sat):
     )
 
     # register the satellite as client for external auth
-    target_sat.execute(f'echo "{http_conf_content}" > /etc/gssproxy/00-http.conf')
+    sat.execute(f'echo "{http_conf_content}" > /etc/gssproxy/00-http.conf')
     token_command = (
         'KRB5_KTNAME=FILE:/etc/httpd/conf/http.keytab net ads keytab add HTTP '
         '-U administrator -d3 -s /etc/net-keytab.conf'
     )
-    target_sat.execute(f'echo {settings.ldap.password} | {token_command}')
-    target_sat.execute('chown root.apache /etc/httpd/conf/http.keytab')
-    target_sat.execute('chmod 640 /etc/httpd/conf/http.keytab')
+    sat.execute(f'echo {settings.ldap.password} | {token_command}')
+    sat.execute('chown root.apache /etc/httpd/conf/http.keytab')
+    sat.execute('chmod 640 /etc/httpd/conf/http.keytab')
 
     # enable the foreman-ipa-authentication feature
-    result = target_sat.install(InstallerCommand('foreman-ipa-authentication true'))
+    result = sat.install(InstallerCommand('foreman-ipa-authentication true'))
     assert result.status == 0
 
     # add foreman ad_gp_map_service (BZ#2117523)
     line_number = int(
-        target_sat.execute(
+        sat.execute(
             "awk -v search='domain/' '$0~search{print NR; exit}' /etc/sssd/sssd.conf"
         ).stdout
     )
-    target_sat.execute(
-        f'sed -i "{line_number + 1}i ad_gpo_map_service = +foreman" /etc/sssd/sssd.conf'
-    )
-    target_sat.execute('systemctl restart sssd.service')
+    sat.execute(f'sed -i "{line_number + 1}i ad_gpo_map_service = +foreman" /etc/sssd/sssd.conf')
+    sat.execute('systemctl restart sssd.service')
 
     # unset GssapiLocalName (BZ#1787630)
-    target_sat.execute(
+    sat.execute(
         'sed -i -e "s/GssapiLocalName.*On/GssapiLocalName Off/g" '
         '/etc/httpd/conf.d/05-foreman-ssl.d/auth_gssapi.conf'
     )
-    target_sat.execute('systemctl restart gssproxy.service')
-    target_sat.execute('systemctl enable gssproxy.service')
+    sat.execute('systemctl restart gssproxy.service')
+    sat.execute('systemctl enable gssproxy.service')
 
     # restart the deamon and httpd services
     httpd_service_content = (
         '.include /lib/systemd/system/httpd.service\n[Service]' '\nEnvironment=GSS_USE_PROXY=1'
     )
-    target_sat.execute(f'echo "{httpd_service_content}" > /etc/systemd/system/httpd.service')
-    target_sat.execute('systemctl daemon-reload && systemctl restart httpd.service')
+    sat.execute(f'echo "{httpd_service_content}" > /etc/systemd/system/httpd.service')
+    sat.execute('systemctl daemon-reload && systemctl restart httpd.service')
+
+
+@pytest.mark.external_auth
+@pytest.fixture(scope='module')
+def module_enroll_ad_and_configure_external_auth(request, ad_data, module_target_sat):
+    enroll_ad_and_configure_external_auth(request, ad_data, module_target_sat)
+
+
+@pytest.mark.external_auth
+@pytest.fixture
+def func_enroll_ad_and_configure_external_auth(request, ad_data, target_sat):
+    enroll_ad_and_configure_external_auth(request, ad_data, target_sat)
+
+
+@pytest.mark.external_auth
+@pytest.fixture
+def configure_hammer_negotiate(parametrized_enrolled_sat):
+    """Configures hammer to use sessions and negotitate auth."""
+    parametrized_enrolled_sat.execute(f'mv {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
+    cfg = ':foreman:\n  :default_auth_type: Negotiate_Auth\n  :use_sessions: true\n'
+    parametrized_enrolled_sat.execute(f"echo '{cfg}' > {HAMMER_CONFIG}")
+    yield
+    parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
+
+
+@pytest.fixture
+def sessions_tear_down(parametrized_enrolled_sat):
+    """Destroy Kerberos and hammer sessions on teardown."""
+    yield
+    parametrized_enrolled_sat.execute('kdestroy')
+    parametrized_enrolled_sat.execute(
+        f'rm -f {HAMMER_SESSIONS}/https_{parametrized_enrolled_sat.hostname}'
+    )
+
+
+@pytest.fixture(scope='module', params=['IDM', 'AD'])
+def parametrized_enrolled_sat(
+    request,
+    satellite_factory,
+    ad_data,
+):
+    """Yields a Satellite enrolled into [IDM, AD] as parameter."""
+    new_sat = satellite_factory()
+    new_sat.register_to_cdn()
+    if 'IDM' in request.param:
+        enroll_idm_and_configure_external_auth(new_sat)
+        yield new_sat
+        disenroll_idm(new_sat)
+    else:
+        enroll_ad_and_configure_external_auth(request, ad_data, new_sat)
+        yield new_sat
+    new_sat.unregister()
+    new_sat.teardown()
+    Broker(hosts=[new_sat]).checkin()
