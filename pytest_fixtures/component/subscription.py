@@ -25,6 +25,19 @@ def module_subscribe_satellite(module_target_sat):
     module_target_sat.unregister()
 
 
+@pytest.fixture(scope='class')
+def class_subscribe_satellite(class_target_sat):
+    """Subscribe Satellite to CDN"""
+    class_target_sat.register_to_cdn()
+    # Enable extras repo if os_version is RHEL7
+    if class_target_sat.os_version.major < 8:
+        class_target_sat.enable_repo(
+            f'rhel-{class_target_sat.os_version.major}-server-extras-rpms', force=True
+        )
+    yield class_target_sat
+    class_target_sat.unregister()
+
+
 @pytest.fixture
 def subscribe_satellite(target_sat):
     """Subscribe Satellite to CDN"""

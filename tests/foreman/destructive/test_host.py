@@ -8,7 +8,7 @@
 
 :CaseComponent: Hosts
 
-:Assignee: tstrych
+:Assignee: pdragun
 
 :TestType: Functional
 
@@ -27,9 +27,8 @@ class TestHostCockpit:
 
     @pytest.mark.upgrade
     @pytest.mark.rhel_ver_match('[^6].*')
-    @pytest.mark.usefixtures('install_cockpit_plugin')
     @pytest.mark.tier2
-    def test_positive_cockpit(self, cockpit_host, class_target_sat, class_org):
+    def test_positive_cockpit(self, cockpit_host, class_cockpit_sat, class_org):
         """Install cockpit plugin and test whether webconsole button and cockpit integration works.
         also verify if cockpit service is restarted after the service restart.
 
@@ -54,10 +53,10 @@ class TestHostCockpit:
 
         :parametrized: yes
         """
-        with class_target_sat.ui_session() as session:
+        with class_cockpit_sat.ui_session() as session:
             session.organization.select(org_name=class_org.name)
             session.location.select(loc_name='Any Location')
-            kill_process = class_target_sat.execute('pkill -f cockpit-ws')
+            kill_process = class_cockpit_sat.execute('pkill -f cockpit-ws')
             assert kill_process.status == 0
             # Verify if getting 503 error
             with pytest.raises(NoSuchElementException):
@@ -65,11 +64,11 @@ class TestHostCockpit:
             title = session.browser.title
             assert "503 Service Unavailable" in title
 
-            service_list = class_target_sat.cli.Service.list()
+            service_list = class_cockpit_sat.cli.Service.list()
             assert service_list.status == 0
             assert "foreman-cockpit.service" in service_list.stdout
 
-            service_restart = class_target_sat.cli.Service.restart()
+            service_restart = class_cockpit_sat.cli.Service.restart()
             assert service_restart.status == 0
             session.browser.switch_to_window(session.browser.window_handles[0])
             session.browser.close_window(session.browser.window_handles[-1])
