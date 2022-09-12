@@ -33,6 +33,7 @@ pytest_plugins = [
     'pytest_fixtures.component.domain',
     'pytest_fixtures.component.host',
     'pytest_fixtures.component.hostgroup',
+    'pytest_fixtures.component.http_proxy',
     'pytest_fixtures.component.katello_certs_check',
     'pytest_fixtures.component.lce',
     'pytest_fixtures.component.maintain',
