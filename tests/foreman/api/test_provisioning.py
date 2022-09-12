@@ -117,7 +117,7 @@ def test_rhel_pxe_provisioning(
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
     template_id = (
-        sat.api.JobTemplate().search(query={'search': 'name="Run Command - SSH Default"'})[0].id
+        sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
     )
     job = sat.api.JobInvocation().run(
         data={
