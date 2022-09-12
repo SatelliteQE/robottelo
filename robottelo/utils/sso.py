@@ -201,7 +201,7 @@ class SSOHost(Host):
                 f"https://{sat_obj.hostname}/users/extlogin",
             ]
         }
-        self.update_client_configuration(sat_obj, client_config)
+        self.update_client_configuration(client_config, sat_obj)
 
 
 sso_host = SSOHost()
