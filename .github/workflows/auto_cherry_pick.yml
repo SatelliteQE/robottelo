@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
       - id: set-branch
-        run: echo "::set-output name=previous_branch::$(if [ $GITHUB_BASE_REF  == 'master' ]; then echo $(git branch -rl --sort=-authordate 'origin/6.*.z' --format='%(refname:lstrip=-1)' | head -n1 | jq -cnR '[inputs | select(length>0)]'); else echo ['"6.'$(($(echo $GITHUB_BASE_REF | cut -d. -f2) - 1))'.z"']; fi)"
+        run: echo "::set-output name=previous_branch::$(if [ $GITHUB_BASE_REF  == 'master' ]; then echo $(git branch -rl 'origin/6.*.z' --format='%(refname:lstrip=-1)' | sort --version-sort | tail -n1 | jq -cnR '[inputs | select(length>0)]'); else echo ['"6.'$(($(echo $GITHUB_BASE_REF | cut -d. -f2) - 1))'.z"']; fi)"
 
   auto-cherry-pick:
     name: Auto Cherry Pick to previous branch
