@@ -34,7 +34,6 @@ class SSOHost(Host):
         kwargs['hostname'] = kwargs.get('hostname', settings.rhsso.host_name)
         super().__init__(**kwargs)
 
-    @lru_cache
     def get_rhsso_client_id(self, sat_obj):
         """Getter method for fetching the client id and can be used other functions"""
         client_name = f'{sat_obj.hostname}-foreman-openidc'
