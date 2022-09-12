@@ -21,7 +21,7 @@ from nailgun import entities
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_locationi, host_ui_options):
+def test_positive_end_to_end(session, module_org, module_location, host_ui_options):
 
     """Perform end to end testing for hardware model component
 
