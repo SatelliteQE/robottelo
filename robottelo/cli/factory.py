@@ -873,11 +873,7 @@ def make_fake_host(options=None):
     if not options.get('operatingsystem') and not options.get('operatingsystem-id'):
         try:
             options['operatingsystem-id'] = OperatingSys.list(
-                {
-                    'search': 'name="RedHat" AND major="{}" OR major="{}"'.format(
-                        constants.RHEL_6_MAJOR_VERSION, constants.RHEL_7_MAJOR_VERSION
-                    )
-                }
+                {'search': 'name="RedHat" AND (major="7" OR major="8")'}
             )[0]['id']
         except IndexError:
             options['operatingsystem-id'] = make_os(
