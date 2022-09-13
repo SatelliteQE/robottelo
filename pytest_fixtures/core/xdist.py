@@ -1,5 +1,4 @@
 """Fixtures specific to or relating to pytest's xdist plugin"""
-import epdb
 import random
 
 import pytest
@@ -51,4 +50,3 @@ def align_to_satellite(worker_id, satellite_factory):
     if on_demand_sat and settings.server.auto_checkin:
         on_demand_sat.teardown()
         Broker(hosts=[on_demand_sat]).checkin()
-    epdb.serve(port=9000)

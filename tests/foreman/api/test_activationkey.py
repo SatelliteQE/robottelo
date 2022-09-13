@@ -451,7 +451,6 @@ def test_positive_fetch_product_content(module_org, session_entitlement_manifest
 
     :CaseImportance: Critical
     """
-    import epdb; epdb.serve()
     upload_manifest(module_org.id, session_entitlement_manifest.content)
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
