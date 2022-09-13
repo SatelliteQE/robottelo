@@ -28,7 +28,6 @@ from requests.exceptions import HTTPError
 from robottelo import manifests
 from robottelo.api.utils import apply_package_filter
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CUSTOM_RPM_SHA_512_FEED_COUNT
@@ -63,7 +62,7 @@ def class_published_cv(class_cv):
 
 @pytest.fixture(scope='class')
 def class_promoted_cv(class_published_cv, module_lce):
-    promote(class_published_cv.version[0], module_lce.id)
+    class_published_cv.version[0].promote(data=module_lce.id)
     return class_published_cv.read()
 
 
@@ -136,7 +135,7 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        promote(class_published_cloned_cv.read().version[0], module_lce.id)
+        class_published_cloned_cv.read().version[0].promote(data=module_lce.id)
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
@@ -155,7 +154,7 @@ class TestContentView:
         :CaseImportance: Medium
         """
         le_clone = entities.LifecycleEnvironment(organization=module_org).create()
-        promote(class_published_cloned_cv.read().version[0], le_clone.id)
+        class_published_cloned_cv.read().version[0].promote(data=le_clone.id)
 
     @pytest.mark.tier2
     def test_positive_add_custom_content(self, module_product, module_org):
@@ -485,7 +484,7 @@ class TestContentViewPublishPromote:
         # Promote the content view version.
         for _ in range(REPEAT):
             lce = entities.LifecycleEnvironment(organization=module_org).create()
-            promote(content_view.version[0], lce.id)
+            content_view.version[0].promote(data=lce.id)
 
         # Everything's done - check some content view attributes...
         content_view = content_view.read()
@@ -576,7 +575,7 @@ class TestContentViewPublishPromote:
         ).create()
         self.add_content_views_to_composite(composite_cv, module_org, random.randint(2, 3))
         composite_cv.publish()
-        promote(composite_cv.read().version[0], module_lce.id)
+        composite_cv.read().version[0].promote(data=module_lce.id)
         composite_cv = composite_cv.read()
         assert len(composite_cv.version) == 1
         assert len(composite_cv.version[0].read().environment) == 2
@@ -608,7 +607,7 @@ class TestContentViewPublishPromote:
         envs_amount = random.randint(2, 3)
         for _ in range(envs_amount):
             lce = entities.LifecycleEnvironment(organization=module_org).create()
-            promote(composite_cv.version[0], lce.id)
+            composite_cv.version[0].promote(data=lce.id)
         composite_cv = composite_cv.read()
         assert len(composite_cv.version) == 1
         assert len(composite_cv.version[0].read().environment) == envs_amount + 1
@@ -641,7 +640,7 @@ class TestContentViewPublishPromote:
         assert len(lce_list) == 1
         # Trying to re-promote 'Library' environment from latest version to
         # first one
-        promote(content_view.version[0], lce_list[0].id, force=True)
+        content_view.version[0].promote(data=lce_list[0].id, force=True)
         content_view = content_view.read()
         content_view.version.sort(key=lambda version: version.id)
         # Verify that, according to our plan, first version contains one
@@ -969,7 +968,12 @@ class TestContentViewRedHatContent:
         content_view.repository = [self.repo]
         content_view = content_view.update(['repository'])
         content_view.publish()
-        promote(content_view.read().version[0], module_lce.id)
+        content_view.read().version[0].promote(
+            data={
+                'environment_ids': module_lce.id,
+                'force': False,
+            }
+        )
         assert len(content_view.read().version[0].read().environment) == 2
 
     @pytest.mark.upgrade
@@ -992,7 +996,7 @@ class TestContentViewRedHatContent:
             content_view=content_view, inclusion='true', name=gen_string('alphanumeric')
         ).create()
         content_view.publish()
-        promote(content_view.read().version[0], module_lce.id)
+        content_view.read().version[0].promote(data={'environment_ids': module_lce.id})
         assert len(content_view.read().version[0].read().environment) == 2
 
 
@@ -1046,7 +1050,7 @@ def test_positive_admin_user_actions(content_view, function_role, module_org, mo
     content_view = content_view.read()
     assert len(content_view.version) == 1
     # Promote the content view version.
-    promote(content_view.version[0], module_lce.id)
+    content_view.version[0].promote(data={'environment_ids': module_lce.id})
     # Check Delete functionality
     content_view = entities.ContentView(organization=module_org).create()
     content_view = entities.ContentView(cfg, id=content_view.id).read()
@@ -1187,7 +1191,7 @@ def test_negative_readonly_user_actions(function_role, content_view, module_org,
     content_view = entities.ContentView(cfg, id=content_view.id).read()
     assert len(content_view.version), 1
     with pytest.raises(HTTPError):
-        promote(content_view.version[0], module_lce.id)
+        content_view.read().version[0].promote(data={'environment_ids': module_lce.id})
     # Check that we cannot create a Product
     with pytest.raises(HTTPError):
         entities.Product(cfg).create()
@@ -1335,7 +1339,9 @@ class TestOstreeContentView:
         content_view.repository = [self.ostree_repo]
         content_view = content_view.update(['repository'])
         content_view.publish()
-        promote(content_view.read().version[0], module_lce.id)
+        content_view.read().version[0].promote(
+            data={'environment_ids': module_lce.id, 'force': False}
+        )
         assert len(content_view.read().version[0].read().environment) == 2
 
     @pytest.mark.tier2
@@ -1357,7 +1363,9 @@ class TestOstreeContentView:
         assert len(content_view.repository) == 3
         content_view.publish()
         assert len(content_view.read().version) == 1
-        promote(content_view.read().version[0], module_lce.id)
+        content_view.read().version[0].promote(
+            data={'environment_ids': module_lce.id, 'force': False}
+        )
         assert len(content_view.read().version[0].read().environment) == 2
 
 
@@ -1440,7 +1448,9 @@ class TestContentViewRedHatOstreeContent:
         content_view.repository = [self.repo]
         content_view = content_view.update(['repository'])
         content_view.publish()
-        promote(content_view.read().version[0], module_lce.id)
+        content_view.read().version[0].promote(
+            data={'environment_ids': module_lce.id, 'force': False}
+        )
         assert len(content_view.read().version[0].read().environment) == 2
 
     @pytest.mark.tier2
@@ -1474,5 +1484,7 @@ class TestContentViewRedHatOstreeContent:
         content_view = content_view.update(['repository'])
         assert len(content_view.repository) == 2
         content_view.publish()
-        promote(content_view.read().version[0], module_lce.id)
+        content_view.read().version[0].promote(
+            data={'environment_ids': module_lce.id, 'force': False}
+        )
         assert len(content_view.read().version[0].read().environment) == 2

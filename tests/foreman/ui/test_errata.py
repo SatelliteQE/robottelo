@@ -22,7 +22,6 @@ from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import FAKE_10_YUM_BUGFIX_ERRATUM
@@ -567,7 +566,7 @@ def test_positive_filter_by_environment(
         content_view_version = content_view.version[-1].read()
         lce = content_view_version.environment[-1].read()
         new_lce = entities.LifecycleEnvironment(organization=module_org, prior=lce).create()
-        promote(content_view_version, new_lce.id)
+        content_view_version.promote(data={'environment_ids': new_lce.id})
         host = entities.Host().search(query={'search': f'name={clients[0].hostname}'})[0].read()
         host.content_facet_attributes = {
             'content_view_id': content_view.id,
@@ -639,7 +638,7 @@ def test_positive_content_host_previous_env(
     content_view_version = content_view.version[-1].read()
     lce = content_view_version.environment[-1].read()
     new_lce = entities.LifecycleEnvironment(organization=module_org, prior=lce).create()
-    promote(content_view_version, new_lce.id)
+    content_view_version.promote(data={'environment_ids': new_lce.id})
     host = entities.Host().search(query={'search': f'name={hostname}'})[0].read()
     host.content_facet_attributes = {
         'content_view_id': content_view.id,
@@ -940,7 +939,7 @@ def test_positive_filtered_errata_status_installable_param(
         content_view.publish()
         content_view = content_view.read()
         content_view_version = content_view.version[-1]
-        promote(content_view_version, lce.id)
+        content_view_version.promote(data={'environment_ids': lce.id})
         with session:
             session.organization.select(org_name=org.name)
             session.location.select(loc_name=DEFAULT_LOC)

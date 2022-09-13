@@ -30,7 +30,6 @@ from nailgun import entities
 from robottelo import constants
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import get_credentials
 from robottelo.config import get_url
@@ -1125,7 +1124,7 @@ class TestEndToEnd:
         assert len(content_view.version) == 1
         cv_version = content_view.version[0].read()
         assert len(cv_version.environment) == 1
-        promote(cv_version, le1.id)
+        cv_version.promote(data={'environment_ids': le1.id})
         # check that content view exists in lifecycle
         content_view = content_view.read()
         assert len(content_view.version) == 1

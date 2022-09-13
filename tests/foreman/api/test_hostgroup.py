@@ -26,7 +26,6 @@ from nailgun import entity_fields
 from requests.exceptions import HTTPError
 
 from robottelo.api.utils import one_to_one_names
-from robottelo.api.utils import promote
 from robottelo.config import get_credentials
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
@@ -82,7 +81,7 @@ class TestHostGroup:
         lc_env = session_puppet_enabled_sat.api.LifecycleEnvironment(
             name=gen_string('alpha'), organization=org
         ).create()
-        promote(content_view.version[0], lc_env.id)
+        content_view.version[0].promote(data={'environment_ids': lc_env.id, 'force': False})
         content_view = content_view.read()
         assert len(content_view.version) == 1
 
@@ -175,7 +174,7 @@ class TestHostGroup:
         content_view = entities.ContentView(organization=module_org).create()
         content_view.publish()
         content_view = content_view.read()
-        promote(content_view.version[0], environment_id=lce.id)
+        content_view.version[0].promote(data={'environment_ids': lce.id, 'force': False})
         entities.Host(
             hostgroup=hostgroup,
             location=module_location,
@@ -283,7 +282,7 @@ class TestHostGroup:
         lce = session_puppet_enabled_sat.api.LifecycleEnvironment(
             organization=module_puppet_org
         ).create()
-        promote(content_view.version[0], lce.id)
+        content_view.version[0].promote(data={'environment_ids': lce.id, 'force': False})
         hostgroup = session_puppet_enabled_sat.api.HostGroup(
             architecture=arch,
             content_source=proxy,
@@ -342,7 +341,7 @@ class TestHostGroup:
         new_media = session_puppet_enabled_sat.api.Media(
             operatingsystem=[os], location=[new_loc], organization=[new_org]
         ).create()
-        promote(new_cv.version[0], new_lce.id)
+        new_cv.version[0].promote(data={'environment_ids': new_lce.id, 'force': False})
 
         # update itself
         hostgroup.organization = [new_org]

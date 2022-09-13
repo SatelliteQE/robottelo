@@ -23,7 +23,6 @@ import pytest
 from nailgun import entities
 
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
@@ -198,7 +197,7 @@ def test_positive_noapply_api(module_manifest_org, module_cv, custom_repo, host,
     # Promote CV to new LCE
     versions = sorted(module_cv.read().version, key=lambda ver: ver.id)
     cvv = versions[-1].read()
-    promote(cvv, dev_lce.id)
+    cvv.promote(data={'environment_ids': dev_lce.id})
     # Read CV to pick up LCE ID and next_version
     module_cv = module_cv.read()
 
