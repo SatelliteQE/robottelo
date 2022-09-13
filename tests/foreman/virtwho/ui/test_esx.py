@@ -733,6 +733,54 @@ class TestVirtwhoConfigforEsx:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
+    def test_positive_deploy_configure_hypervisor_password_with_special_characters(
+        self, default_org, form_data, target_sat, session
+    ):
+        """Verify " hammer virt-who-config deploy hypervisor with special characters"
+        :id: 654f869e-182b-4951-bc4e-8761d666a449
+        :expectedresults: Config can be created and deployed without any error
+        :CaseLevel: Integration
+        :CaseImportance: High
+        :BZ: 1870816,1959136
+        :customerscenario: true
+        """
+        name = gen_string('alpha')
+        form_data['name'] = name
+        with session:
+            # check the hypervisor password contains single quotes
+            form_data['hypervisor_content.password'] = "Tes't"
+            session.virtwho_configure.create(form_data)
+            values = session.virtwho_configure.read(name)
+            command = values['deploy']['command']
+            config_id = get_configure_id(name)
+            deploy_status = deploy_configure_by_command_check(command)
+            assert deploy_status == 'Finished successfully'
+            config_file = get_configure_file(config_id)
+            assert get_configure_option('rhsm_hostname', config_file) == target_sat.hostname
+            assert (
+                get_configure_option('username', config_file)
+                == settings.virtwho.esx.hypervisor_username
+            )
+            session.virtwho_configure.delete(name)
+            assert not session.virtwho_configure.search(name)
+            # check the hypervisor password contains backtick
+            form_data['hypervisor_content.password'] = "my`password"
+            session.virtwho_configure.create(form_data)
+            values = session.virtwho_configure.read(name)
+            command = values['deploy']['command']
+            config_id = get_configure_id(name)
+            deploy_status = deploy_configure_by_command_check(command)
+            assert deploy_status == 'Finished successfully'
+            config_file = get_configure_file(config_id)
+            assert get_configure_option('rhsm_hostname', config_file) == target_sat.hostname
+            assert (
+                get_configure_option('username', config_file)
+                == settings.virtwho.esx.hypervisor_username
+            )
+            session.virtwho_configure.delete(name)
+            assert not session.virtwho_configure.search(name)
+
+    @pytest.mark.tier2
     def test_positive_remove_env_option(self, default_org, form_data, target_sat, session):
         """remove option 'env=' from the virt-who configuration file and without any error
 
