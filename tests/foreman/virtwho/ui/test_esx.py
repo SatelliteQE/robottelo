@@ -738,11 +738,17 @@ class TestVirtwhoConfigforEsx:
         self, default_org, form_data, target_sat, session
     ):
         """Verify " hammer virt-who-config deploy hypervisor with special characters"
+
         :id: 654f869e-182b-4951-bc4e-8761d666a449
+
         :expectedresults: Config can be created and deployed without any error
+
         :CaseLevel: Integration
+
         :CaseImportance: High
+
         :BZ: 1870816,1959136
+
         :customerscenario: true
         """
         name = gen_string('alpha')
@@ -784,13 +790,19 @@ class TestVirtwhoConfigforEsx:
     @pytest.mark.tier2
     def test_positive_remove_env_option(self, default_org, form_data, target_sat, session):
         """remove option 'env=' from the virt-who configuration file and without any error
+
         :id: 4503985c-8cf5-455c-855f-73dc7645ffe9
+
         :expectedresults:
             the option "env=" should be removed from etc/virt-who.d/virt-who.conf
             /var/log/messages should not display warning message
+
         :CaseLevel: Integration
+
         :CaseImportance: Medium
+
         :BZ: 1834897
+
         :customerscenario: true
         """
         name = gen_string('alpha')
