@@ -150,7 +150,7 @@ class TestVirtwhoConfigforNutanix:
                 assert get_configure_option('hypervisor_id', config_file) == value
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
-
+@pytest.mark.tier2
     def test_positive_prism_central_deploy_configure_by_id(self, default_org, session, form_data):
         """Verify configure created and deployed with id on nutanix prism central mode
 
