@@ -391,11 +391,17 @@ class TestVirtWhoConfigforEsx:
         self, default_org, form_data, target_sat
     ):
         """Verify " hammer virt-who-config deploy hypervisor with special characters"
+
         :id: 3a79d65a-e206-4693-a5ba-59f6c44c984e
+
         :expectedresults: Config can be created and deployed without any error
+
         :CaseLevel: Integration
+
         :CaseImportance: High
+
         :BZ: 1870816,1959136
+
         :customerscenario: true
         """
         # check the hypervisor password contains single quotes
