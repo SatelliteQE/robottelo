@@ -56,6 +56,18 @@ API_PATHS = {
         '/katello/api/activation_keys/:id/releases',
         '/katello/api/activation_keys/:id/remove_subscriptions',
     ),
+    'alternate_content_sources': (
+        '/katello/api/alternate_content_sources',
+        '/katello/api/alternate_content_sources/:id',
+        '/katello/api/alternate_content_sources',
+        '/katello/api/alternate_content_sources/:id',
+        '/katello/api/alternate_content_sources/:id',
+        '/katello/api/alternate_content_sources/:id/refresh',
+    ),
+    'alternate_content_sources_bulk_actions': (
+        '/katello/api/alternate_content_sources/bulk/destroy',
+        '/katello/api/alternate_content_sources/bulk/refresh',
+    ),
     'ansible_collections': (
         '/katello/api/ansible_collections',
         '/katello/api/ansible_collections/compare',
@@ -69,6 +81,10 @@ API_PATHS = {
     'ansible_override_values': (
         '/ansible/api/ansible_override_values',
         '/ansible/api/ansible_override_values/:id',
+    ),
+    'ansible_playbooks': (
+        '/ansible/api/ansible_playbooks/fetch',
+        '/ansible/api/ansible_playbooks/sync',
     ),
     'ansible_roles': (
         '/ansible/api/ansible_roles',
@@ -268,6 +284,7 @@ API_PATHS = {
         '/katello/api/content_views/:id',
         '/katello/api/content_views/:id',
         '/katello/api/content_views/:id',
+        '/katello/api/content_views/:id/bulk_delete_versions',
         '/katello/api/content_views/:id/copy',
         '/katello/api/content_views/:id/environments/:environment_id',
         '/katello/api/content_views/:id/publish',
@@ -450,6 +467,7 @@ API_PATHS = {
         '/api/hosts/bulk/installable_errata',
         '/api/hosts/bulk/available_incremental_updates',
         '/api/hosts/bulk/content_overrides',
+        '/api/hosts/bulk/change_content_source',
         '/api/hosts/bulk/destroy',
         '/api/hosts/bulk/environment_content_view',
         '/api/hosts/bulk/install_content',
@@ -714,6 +732,7 @@ API_PATHS = {
         '/katello/api/organizations/:organization_id/simple_content_access/eligible',
         '/katello/api/organizations/:organization_id/simple_content_access/enable',
         '/katello/api/organizations/:organization_id/simple_content_access/disable',
+        '/katello/api/organizations/:organization_id/simple_content_access/status',
     ),
     'registration': ('/api/register', '/api/register'),
     'registration_commands': ('/api/registration_commands',),
@@ -783,6 +802,7 @@ API_PATHS = {
         '/api/smart_proxies/:id',
         '/api/smart_proxies/:id',
         '/api/smart_proxies/:id',
+        '/api/smart_proxies/:id/import_subnets',
         '/api/smart_proxies/:id/refresh',
     ),
     'smart_proxy_hosts': (
