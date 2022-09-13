@@ -28,15 +28,14 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
+from nailgun.entity_mixins import call_entity_method_with_timeout
 from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 
 from robottelo import constants
 from robottelo import datafactory
 from robottelo import manifests
-from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import DataFile
@@ -2059,7 +2058,7 @@ class TestSRPMRepository:
             len(entities.Srpms().search(query={'content_view_version_id': cv.version[0].id})) >= 3
         )
 
-        promote(cv.version[0], env.id)
+        cv.version[0].promote(data={'environment_ids': env.id, 'force': False})
         assert len(entities.Srpms().search(query={'environment_id': env.id})) == 3
 
 

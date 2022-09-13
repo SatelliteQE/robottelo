@@ -22,7 +22,6 @@ from fauxfactory import gen_url
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.api.utils import promote
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.datafactory import generate_strings_list
@@ -89,7 +88,7 @@ def content_view_publish_promote(content_view_with_repo, module_lce):
     cv.publish()
 
     cvv = cv.read().version[0].read()
-    promote(cvv, module_lce.id)
+    cvv.promote(data={'environment_ids': module_lce.id, 'force': False})
 
     return cv.read()
 
@@ -612,7 +611,7 @@ class TestDockerContentView:
         cvv = content_view.version[0].read()
         assert len(cvv.environment) == 1
 
-        promote(cvv, lce.id)
+        cvv.promote(data={'environment_ids': lce.id, 'force': False})
         assert len(cvv.read().environment) == 2
 
     @pytest.mark.tier2
@@ -638,7 +637,7 @@ class TestDockerContentView:
 
         for i in range(1, randint(3, 6)):
             lce = entities.LifecycleEnvironment(organization=module_org).create()
-            promote(cvv, lce.id)
+            cvv.promote(data={'environment_ids': lce.id, 'force': False})
             assert len(cvv.read().environment) == i + 1
 
     @pytest.mark.tier2
@@ -671,7 +670,7 @@ class TestDockerContentView:
         comp_cvv = comp_content_view.read().version[0]
         assert len(comp_cvv.read().environment) == 1
 
-        promote(comp_cvv, lce.id)
+        comp_cvv.promote(data={'environment_ids': lce.id, 'force': False})
         assert len(comp_cvv.read().environment) == 2
 
     @pytest.mark.upgrade
@@ -706,7 +705,7 @@ class TestDockerContentView:
 
         for i in range(1, randint(3, 6)):
             lce = entities.LifecycleEnvironment(organization=module_org).create()
-            promote(comp_cvv, lce.id)
+            comp_cvv.promote(data={'environment_ids': lce.id, 'force': False})
             assert len(comp_cvv.read().environment) == i + 1
 
     @pytest.mark.tier2
@@ -737,7 +736,7 @@ class TestDockerContentView:
         content_view.publish()
         cvv = content_view.read().version[0]
         lce = entities.LifecycleEnvironment(organization=module_org).create()
-        promote(cvv, lce.id)
+        cvv.promote(data={'environment_ids': lce.id, 'force': False})
         lce.registry_name_pattern = new_pattern
         lce = lce.update(['registry_name_pattern'])
         repos = entities.Repository(organization=module_org).search(
@@ -775,7 +774,7 @@ class TestDockerContentView:
         lce = entities.LifecycleEnvironment(organization=module_org).create()
         lce.registry_name_pattern = new_pattern
         lce = lce.update(['registry_name_pattern'])
-        promote(cvv, lce.id)
+        cvv.promote(data={'environment_ids': lce.id, 'force': False})
         prod.name = new_prod_name
         prod.update(['name'])
         repos = entities.Repository(organization=module_org).search(
@@ -787,7 +786,7 @@ class TestDockerContentView:
 
         content_view.publish()
         cvv = content_view.read().version[-1]
-        promote(cvv, lce.id)
+        cvv.promote(data={'environment_ids': lce.id, 'force': False})
         repos = entities.Repository(organization=module_org).search(
             query={'environment_id': lce.id}
         )
@@ -825,7 +824,7 @@ class TestDockerContentView:
         lce = entities.LifecycleEnvironment(organization=module_org).create()
         lce.registry_name_pattern = new_pattern
         lce = lce.update(['registry_name_pattern'])
-        promote(cvv, lce.id)
+        cvv.promote(data={'environment_ids': lce.id, 'force': False})
         repo.name = new_repo_name
         repo.update(['name'])
         repos = entities.Repository(organization=module_org).search(
@@ -837,7 +836,7 @@ class TestDockerContentView:
 
         content_view.publish()
         cvv = content_view.read().version[-1]
-        promote(cvv, lce.id)
+        cvv.promote(data={'environment_ids': lce.id, 'force': False})
         repos = entities.Repository(organization=module_org).search(
             query={'environment_id': lce.id}
         )
@@ -873,7 +872,7 @@ class TestDockerContentView:
         content_view.publish()
         cvv = content_view.read().version[0]
         with pytest.raises(HTTPError):
-            promote(cvv, lce.id)
+            cvv.promote(data={'environment_ids': lce.id, 'force': False})
 
     @pytest.mark.tier2
     def test_negative_promote_and_set_non_unique_name_pattern(self, module_org):
@@ -901,7 +900,7 @@ class TestDockerContentView:
         content_view.publish()
         cvv = content_view.read().version[0]
         lce = entities.LifecycleEnvironment(organization=module_org).create()
-        promote(cvv, lce.id)
+        cvv.promote(data={'environment_ids': lce.id, 'force': False})
         with pytest.raises(HTTPError):
             lce.registry_name_pattern = new_pattern
             lce.update(['registry_name_pattern'])
@@ -979,7 +978,7 @@ class TestDockerActivationKey:
 
         comp_content_view.publish()
         comp_cvv = comp_content_view.read().version[0].read()
-        promote(comp_cvv, module_lce.id)
+        comp_cvv.promote(data={'environment_ids': module_lce.id, 'force': False})
 
         ak = entities.ActivationKey(
             content_view=comp_content_view, environment=module_lce, organization=module_org
@@ -1007,7 +1006,7 @@ class TestDockerActivationKey:
 
         comp_content_view.publish()
         comp_cvv = comp_content_view.read().version[0].read()
-        promote(comp_cvv, module_lce.id)
+        comp_cvv.promote(data={'environment_ids': module_lce.id, 'force': False})
 
         ak = entities.ActivationKey(
             content_view=comp_content_view, environment=module_lce, organization=module_org

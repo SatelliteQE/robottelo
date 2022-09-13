@@ -25,7 +25,6 @@ from nailgun import entities
 from robottelo import constants
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.factory import setup_org_for_a_custom_repo
@@ -459,7 +458,7 @@ def setup_content_rhel6():
     ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
-    promote(cvv, lce.id)
+    cvv.promote(data={'environment_ids': lce.id, 'force': False})
 
     ak = entities.ActivationKey(content_view=cv, organization=org, environment=lce).create()
 
@@ -596,7 +595,7 @@ def test_positive_get_diff_for_cv_envs():
         )
     new_env = entities.LifecycleEnvironment(organization=org, prior=env).create()
     cvvs = content_view.read().version[-2:]
-    promote(cvvs[-1], new_env.id)
+    cvvs[-1].promote(data={'environment_ids': new_env.id, 'force': False})
     result = entities.Errata().compare(
         data={'content_view_version_ids': [cvv.id for cvv in cvvs], 'per_page': '9999'}
     )
@@ -687,7 +686,7 @@ def test_positive_incremental_update_required(
     module_cv = module_cv.read()
     CV1V = module_cv.version[-1].read()
     # Must promote a CV version into a new Environment before we can add errata
-    promote(CV1V, module_lce.id)
+    CV1V.promote(data={'environment_ids': module_lce.id, 'force': False})
     module_cv = module_cv.read()
     # Call nailgun to make the API POST to ensure an incremental update is required
     response = entities.Host().bulk_available_incremental_updates(

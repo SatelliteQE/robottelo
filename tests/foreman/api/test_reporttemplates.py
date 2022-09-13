@@ -25,7 +25,6 @@ from wait_for import wait_for
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
@@ -63,7 +62,7 @@ def setup_content():
     ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
-    promote(cvv, lce.id)
+    cvv.promote(data={'environment_ids': lce.id, 'force': False})
     ak = entities.ActivationKey(
         content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
     ).create()

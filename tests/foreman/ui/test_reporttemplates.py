@@ -29,7 +29,6 @@ from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import robottelo_tmp_dir
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -66,7 +65,7 @@ def setup_content(module_org):
     ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
-    promote(cvv, lce.id)
+    cvv.promote(data={'environment_ids': lce.id})
     ak = entities.ActivationKey(
         content_view=cv, organization=module_org, environment=lce, auto_attach=True
     ).create()
