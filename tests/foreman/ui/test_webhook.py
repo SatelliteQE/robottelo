@@ -30,6 +30,12 @@ def test_positive_end_to_end(session):
     :expectedresults: All expected CRUD actions finished successfully
 
     :CaseImportance: Critical
+
+    :BZ: 2112093
+
+    :customerscenario: true
+
+    :CaseAutomation: Automated
     """
     hook_name = gen_string('alpha')
     subscribe_to = 'Host Created'
@@ -50,6 +56,8 @@ def test_positive_end_to_end(session):
                 'general.template': template,
                 'general.http_method': http_method,
                 'general.enabled': False,
+                'credentials.capsule_auth': True,
+                'credentials.verify_ssl': False,
             }
         )
         values = session.webhook.read(hook_name)
@@ -59,6 +67,8 @@ def test_positive_end_to_end(session):
         assert values['general']['template'] == template
         assert values['general']['http_method'] == http_method
         assert values['general']['enabled'] is False
+        assert values['credentials']['capsule_auth'] is True
+        assert values['credentials']['verify_ssl'] is False
         session.webhook.update(
             hook_name,
             {

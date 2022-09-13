@@ -20,17 +20,14 @@ import pytest
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_url
-from nailgun import entities
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.http_proxy import HttpProxy
-from robottelo.cli.settings import Settings
 from robottelo.config import settings
 
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_create_update_delete(module_org, module_location):
+def test_positive_create_update_delete(module_org, module_location, target_sat):
     """Create new http-proxy with attributes, update and delete it.
 
     :id: 6045010f-b43b-46f0-b80f-21505fa021c8
@@ -58,7 +55,7 @@ def test_positive_create_update_delete(module_org, module_location):
     updated_username = gen_string('alpha', 15)
 
     # Create
-    http_proxy = HttpProxy.create(
+    http_proxy = target_sat.cli.HttpProxy.create(
         {
             'name': name,
             'url': url,
@@ -73,7 +70,7 @@ def test_positive_create_update_delete(module_org, module_location):
     assert http_proxy['username'] == username
 
     # Update
-    HttpProxy.update(
+    target_sat.cli.HttpProxy.update(
         {
             'name': name,
             'new-name': updated_name,
@@ -82,15 +79,15 @@ def test_positive_create_update_delete(module_org, module_location):
             'password': updated_password,
         }
     )
-    updated_http_proxy = HttpProxy.info({'id': http_proxy['id']})
+    updated_http_proxy = target_sat.cli.HttpProxy.info({'id': http_proxy['id']})
     assert updated_http_proxy['name'] == updated_name
     assert updated_http_proxy['url'] == updated_url
     assert updated_http_proxy['username'] == updated_username
 
     # Delete
-    HttpProxy.delete({'id': updated_http_proxy['id']})
+    target_sat.cli.HttpProxy.delete({'id': updated_http_proxy['id']})
     with pytest.raises(CLIReturnCodeError):
-        HttpProxy.info({'id': updated_http_proxy['id']})
+        target_sat.cli.HttpProxy.info({'id': updated_http_proxy['id']})
 
 
 @pytest.mark.tier3
@@ -129,7 +126,7 @@ def test_insights_client_registration_with_http_proxy():
 @pytest.mark.run_in_one_thread
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.skipif((not settings.http_proxy.UN_AUTH_PROXY_URL), reason='Missing un_auth_proxy_url')
-def test_positive_set_content_default_http_proxy(block_fake_repo_access):
+def test_positive_set_content_default_http_proxy(block_fake_repo_access, target_sat):
     """An http proxy can be set to be the global default for repositories.
 
     :id: c12868eb-98f1-4763-a168-281ac44d9ff5
@@ -145,16 +142,16 @@ def test_positive_set_content_default_http_proxy(block_fake_repo_access):
     :CaseImportance: High
 
     """
-    org = entities.Organization().create()
+    org = target_sat.api.Organization().create()
     proxy_name = gen_string('alpha', 15)
     proxy_url = settings.http_proxy.un_auth_proxy_url
-    product = entities.Product(organization=org).create()
-    rpm_repo = entities.Repository(
+    product = target_sat.api.Product(organization=org).create()
+    rpm_repo = target_sat.api.Repository(
         product=product, content_type='yum', url=settings.repos.yum_1.url
     ).create()
 
     # Create un-auth HTTP proxy
-    http_proxy = HttpProxy.create(
+    http_proxy = target_sat.cli.HttpProxy.create(
         {
             'name': proxy_name,
             'url': proxy_url,
@@ -164,7 +161,7 @@ def test_positive_set_content_default_http_proxy(block_fake_repo_access):
     assert http_proxy['name'] == proxy_name
     assert http_proxy['url'] == proxy_url
     # Set the proxy to be the global default
-    proxy_settings = Settings.set(
+    proxy_settings = target_sat.cli.Settings.set(
         {
             'name': 'content_default_http_proxy',
             'value': proxy_name,

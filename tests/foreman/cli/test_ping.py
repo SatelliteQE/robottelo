@@ -22,7 +22,8 @@ pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
 
 
 @pytest.mark.build_sanity
-def test_positive_ping(target_sat):
+@pytest.mark.parametrize('switch_user', [False, True], ids=['root', 'non-root'])
+def test_positive_ping(target_sat, switch_user):
     """hammer ping return code
 
     :id: dfa3ab4f-a64f-4a96-8c7f-d940df22b8bf
@@ -33,9 +34,16 @@ def test_positive_ping(target_sat):
            != 0
 
     :expectedresults: hammer ping returns a right return code
+
+    :parametrized: yes
+
+    :BZ: 2122176, 2115775
+
+    :customerscenario: true
     """
-    result = target_sat.execute('hammer ping')
+    result = target_sat.execute(f"su - {'postgres' if switch_user else 'root'} -c 'hammer ping'")
     assert result.stderr[1].decode() == ''
+    assert result.status == 0
 
     status_count = 0
     ok_count = 0

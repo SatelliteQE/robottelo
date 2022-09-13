@@ -28,6 +28,7 @@ from robottelo.virtwho_utils import add_configure_option
 from robottelo.virtwho_utils import create_http_proxy
 from robottelo.virtwho_utils import delete_configure_option
 from robottelo.virtwho_utils import deploy_configure_by_command
+from robottelo.virtwho_utils import deploy_configure_by_command_check
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import ETC_VIRTWHO_CONFIG
 from robottelo.virtwho_utils import get_configure_command
@@ -783,19 +784,13 @@ class TestVirtwhoConfigforEsx:
     @pytest.mark.tier2
     def test_positive_remove_env_option(self, default_org, form_data, target_sat, session):
         """remove option 'env=' from the virt-who configuration file and without any error
-
         :id: 4503985c-8cf5-455c-855f-73dc7645ffe9
-
         :expectedresults:
             the option "env=" should be removed from etc/virt-who.d/virt-who.conf
             /var/log/messages should not display warning message
-
         :CaseLevel: Integration
-
         :CaseImportance: Medium
-
         :BZ: 1834897
-
         :customerscenario: true
         """
         name = gen_string('alpha')

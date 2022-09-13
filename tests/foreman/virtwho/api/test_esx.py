@@ -22,6 +22,7 @@ from fauxfactory import gen_string
 from robottelo.config import settings
 from robottelo.virtwho_utils import create_http_proxy
 from robottelo.virtwho_utils import deploy_configure_by_command
+from robottelo.virtwho_utils import deploy_configure_by_command_check
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import ETC_VIRTWHO_CONFIG
 from robottelo.virtwho_utils import get_configure_command
@@ -390,17 +391,11 @@ class TestVirtWhoConfigforEsx:
         self, default_org, form_data, target_sat
     ):
         """Verify " hammer virt-who-config deploy hypervisor with special characters"
-
         :id: 3a79d65a-e206-4693-a5ba-59f6c44c984e
-
         :expectedresults: Config can be created and deployed without any error
-
         :CaseLevel: Integration
-
         :CaseImportance: High
-
         :BZ: 1870816,1959136
-
         :customerscenario: true
         """
         # check the hypervisor password contains single quotes
@@ -432,6 +427,10 @@ class TestVirtWhoConfigforEsx:
         assert (
             get_configure_option('username', config_file)
             == settings.virtwho.esx.hypervisor_username
+        )
+        virtwho_config.delete()
+        assert not target_sat.api.VirtWhoConfig().search(
+            query={'search': f"name={form_data['name']}"}
         )
 
     @pytest.mark.tier2
