@@ -20,7 +20,7 @@ from fauxfactory import gen_url
 
 from robottelo import constants
 from robottelo import manifests
-from robottelo import ssh
+from robottelo.utils import ssh
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError

@@ -25,7 +25,7 @@ from fauxfactory import gen_url
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
 
-from robottelo import ssh
+from robottelo.utils import ssh
 from robottelo.api.utils import create_role_permissions
 from robottelo.config import settings
 from robottelo.constants import CERT_PATH
