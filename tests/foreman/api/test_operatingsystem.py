@@ -30,9 +30,9 @@ from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 
 from robottelo.constants import OPERATING_SYSTEMS
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 from robottelo.utils.issue_handlers import is_open
 
 

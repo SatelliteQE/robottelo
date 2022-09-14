@@ -30,9 +30,9 @@ from robottelo.cli.factory import make_domain
 from robottelo.cli.factory import make_subnet
 from robottelo.cli.subnet import Subnet
 from robottelo.constants import SUBNET_IPAM_TYPES
-from robottelo.datafactory import filtered_datapoint
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import filtered_datapoint
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 
 @filtered_datapoint

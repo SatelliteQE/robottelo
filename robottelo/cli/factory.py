@@ -67,8 +67,8 @@ from robottelo.cli.usergroup import UserGroup
 from robottelo.cli.usergroup import UserGroupExternal
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
-from robottelo.datafactory import valid_cron_expressions
 from robottelo.logging import logger
+from robottelo.utils.datafactory import valid_cron_expressions
 from robottelo.utils.decorators import cacheable
 
 

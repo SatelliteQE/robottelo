@@ -28,6 +28,7 @@ from robottelo.config import settings
 from robottelo.constants import CERT_PATH
 from robottelo.constants import HAMMER_SESSIONS
 from robottelo.constants import LDAP_ATTR
+from robottelo.constants import PERMISSIONS
 from robottelo.datafactory import gen_string
 from robottelo.rhsso_utils import create_group
 from robottelo.rhsso_utils import create_new_rhsso_user
@@ -35,6 +36,8 @@ from robottelo.rhsso_utils import delete_rhsso_group
 from robottelo.rhsso_utils import delete_rhsso_user
 from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import update_rhsso_user
+from robottelo.utils.datafactory import gen_string
+from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.destructive, pytest.mark.run_in_one_thread]
 

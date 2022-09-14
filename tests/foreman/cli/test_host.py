@@ -56,10 +56,10 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import SM_OVERALL_STATUS
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import valid_data_list
-from robottelo.datafactory import valid_hosts_list
 from robottelo.hosts import ContentHostError
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import valid_hosts_list
 
 
 @pytest.fixture(scope="module")

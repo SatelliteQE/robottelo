@@ -31,9 +31,9 @@ from robottelo.config import settings
 from robottelo.constants import CERT_PATH
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import PERMISSIONS
-from robottelo.datafactory import gen_string
 from robottelo.rhsso_utils import delete_rhsso_group
 from robottelo.rhsso_utils import run_command
+from robottelo.utils.datafactory import gen_string
 
 
 pytestmark = [pytest.mark.run_in_one_thread]

@@ -23,7 +23,7 @@ from airgun.session import Session
 from fauxfactory import gen_string
 
 from robottelo.config import settings
-from robottelo.datafactory import valid_emails_list
+from robottelo.utils.datafactory import valid_emails_list
 from robottelo.virtwho_utils import add_configure_option
 from robottelo.virtwho_utils import create_http_proxy
 from robottelo.virtwho_utils import delete_configure_option
