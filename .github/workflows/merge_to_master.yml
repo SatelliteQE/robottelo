@@ -4,7 +4,7 @@ name: update_robottelo_image
 on:
   push:
     branches:
-      - master
+      - 6.11.z
 
 env:
     PYCURL_SSL_LIBRARY: openssl
