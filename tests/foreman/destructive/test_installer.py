@@ -97,19 +97,20 @@ def test_installer_inventory_plugin_update(target_sat):
 
     """
     target_sat.create_custom_repos(rhel7=settings.repos.rhel7_os)
-    installer_obj = InstallerCommand(
-        'enable-foreman-plugin-rh-cloud',
-        foreman_proxy_plugin_remote_execution_ssh_install_key=['true'],
+    installer_cmd = target_sat.install(
+        InstallerCommand(
+            'enable-foreman-plugin-rh-cloud',
+            foreman_proxy_plugin_remote_execution_script_install_key=['true'],
+        )
     )
-    command_output = target_sat.execute(installer_obj.get_command())
-    assert 'Success!' in command_output.stdout
-    installer_obj = InstallerCommand(
-        help='|grep "\'foreman_plugin_rh_cloud\' puppet module (default: true)"'
+    assert 'Success!' in installer_cmd.stdout
+    verify_rhcloud_flag = target_sat.install(
+        InstallerCommand(help='|grep "\'foreman_plugin_rh_cloud\' puppet module (default: true)"')
     )
-    updated_cloud_flags = target_sat.execute(installer_obj.get_command())
-    assert 'true' in updated_cloud_flags.stdout
-    installer_obj = InstallerCommand(
-        help='|grep -A1 "foreman-proxy-plugin-remote-execution-ssh-install-key"'
+    assert 'true' in verify_rhcloud_flag.stdout
+    verify_proxy_plugin_flag = target_sat.install(
+        InstallerCommand(
+            **{'full-help': '| grep -A1 foreman-proxy-plugin-remote-execution-script-install-key'}
+        )
     )
-    update_proxy_plugin_output = target_sat.execute(installer_obj.get_command())
-    assert 'true' in update_proxy_plugin_output.stdout
+    assert '(current: true)' in verify_proxy_plugin_flag.stdout
