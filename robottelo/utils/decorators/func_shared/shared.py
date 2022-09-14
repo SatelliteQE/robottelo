@@ -8,7 +8,7 @@ Note: Shared function store it's data as json. The results of the decorated
 Usage::
 
 
-    from robottelo.decorators.func_shared.shared import shared
+    from robottelo.utils.decorators.func_shared.shared import shared
 
     @shared
     def module_level_shared(*args, **kwargs):
@@ -98,11 +98,11 @@ from nailgun.entities import Entity
 
 from robottelo.config import setting_is_set
 from robottelo.config import settings
-from robottelo.decorators.func_shared import file_storage
-from robottelo.decorators.func_shared import redis_storage
-from robottelo.decorators.func_shared.file_storage import FileStorageHandler
-from robottelo.decorators.func_shared.redis_storage import RedisStorageHandler
 from robottelo.logging import logger
+from robottelo.utils.decorators.func_shared import file_storage
+from robottelo.utils.decorators.func_shared import redis_storage
+from robottelo.utils.decorators.func_shared.file_storage import FileStorageHandler
+from robottelo.utils.decorators.func_shared.redis_storage import RedisStorageHandler
 
 
 _storage_handlers = {'file': FileStorageHandler, 'redis': RedisStorageHandler}

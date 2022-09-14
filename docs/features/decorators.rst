@@ -19,7 +19,7 @@ cacheable
 
 ``cacheable`` makes an optional object cache available. This is used when creating factory objects for CLI tests. For example::
 
-    from robottelo.decorators import cacheable
+    from robottelo.utils.decorators import cacheable
 
     @cacheable
     def make_role(options=None):
