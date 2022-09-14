@@ -34,8 +34,7 @@ from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import SATELLITE_VERSION
-from robottelo.errors import DownloadFileError
-from robottelo.errors import HostPingFailed
+from robottelo.exceptions import DownloadFileError
 from robottelo.host_helpers import CapsuleMixins
 from robottelo.host_helpers import ContentHostMixins
 from robottelo.host_helpers import SatelliteMixins
