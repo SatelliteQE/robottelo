@@ -163,19 +163,25 @@ def katello_host_tools_tracer_host(rex_contenthost, target_sat):
 
 
 @pytest.fixture
-def container_contenthost(rhel7_contenthost, target_sat):
+def container_contenthost(request, target_sat):
     """Fixture that installs docker on the content host"""
-    rhel7_contenthost.install_katello_ca(target_sat)
-    repos = {
-        'server': settings.repos.rhel7_os,
-        'optional': settings.repos.rhel7_optional,
-        'extras': settings.repos.rhel7_extras,
+    request.param = {
+        "rhel_version": "7",
+        "distro": "rhel",
+        "no_containers": True,
     }
-    rhel7_contenthost.create_custom_repos(**repos)
-    for service in constants.CONTAINER_CLIENTS:
-        rhel7_contenthost.execute(f'yum -y install {service}')
-        rhel7_contenthost.execute(f'systemctl start {service}')
-    return rhel7_contenthost
+    with Broker(**host_conf(request), host_class=ContentHost) as host:
+        host.install_katello_ca(target_sat)
+        repos = {
+            'server': settings.repos.rhel7_os,
+            'optional': settings.repos.rhel7_optional,
+            'extras': settings.repos.rhel7_extras,
+        }
+        host.create_custom_repos(**repos)
+        for service in constants.CONTAINER_CLIENTS:
+            host.execute(f'yum -y install {service}')
+            host.execute(f'systemctl start {service}')
+        yield host
 
 
 @pytest.fixture
