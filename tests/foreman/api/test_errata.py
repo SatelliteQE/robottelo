@@ -501,7 +501,7 @@ def test_positive_get_count_for_host(setup_content_rhel6, rhel6_contenthost, tar
     rhel6_contenthost.register_contenthost(org_label, ak_name)
     assert rhel6_contenthost.subscribed
     pool_id = rhel6_contenthost.subscription_manager_get_pool(sub_list=sub_list)
-    pool_list = [pool_id[0][0], pool_id[1][0], pool_id[2][0]]
+    pool_list = [pool_id[0][0]]
     rhel6_contenthost.subscription_manager_attach_pool(pool_list=pool_list)
     rhel6_contenthost.install_katello_host_tools()
     rhel6_contenthost.enable_repo(constants.REPOS['rhva6']['id'])
@@ -542,7 +542,7 @@ def test_positive_get_applicable_for_host(setup_content_rhel6, rhel6_contenthost
     rhel6_contenthost.register_contenthost(org_label, ak_name)
     assert rhel6_contenthost.subscribed
     pool_id = rhel6_contenthost.subscription_manager_get_pool(sub_list=setup_content_rhel6[2])
-    pool_list = [pool_id[0][0], pool_id[1][0], pool_id[2][0]]
+    pool_list = [pool_id[0][0]]
     rhel6_contenthost.subscription_manager_attach_pool(pool_list=pool_list)
     rhel6_contenthost.install_katello_host_tools()
     rhel6_contenthost.enable_repo(constants.REPOS['rhva6']['id'])
@@ -938,6 +938,7 @@ def test_apply_modular_errata_using_default_content_view(
     assert result.status == 0
     # Check that there is now two errata applicable
     errata = _fetch_available_errata(module_manifest_org, host, 2)
+    Host.errata_recalculate({'host-id': rhel8_contenthost.nailgun_host.id})
     assert len(errata) == 2
     # Assert that errata package is required
     assert constants.FAKE_3_CUSTOM_PACKAGE in errata[0]['module_streams'][0]['packages']
