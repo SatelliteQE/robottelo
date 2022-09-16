@@ -25,6 +25,8 @@ jobs:
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
     needs: previous-branch
     runs-on: ubuntu-latest
+    env:
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
     strategy:
       matrix:
         to_branch: ${{ fromJson(needs.previous-branch.outputs.previous_branch) }}
@@ -35,6 +37,7 @@ jobs:
       - name: Cherry pick into ${{ matrix.to_branch }}
         uses: jyejare/github-cherry-pick-action@main
         with:
+          author: ${{ env.PR_AUTHOR }} <${{ env.PR_AUTHOR }}@users.noreply.github.com>
           token: ${{ secrets.CHERRYPICK_PAT }}
           branch: ${{ matrix.to_branch }}
           labels: |
