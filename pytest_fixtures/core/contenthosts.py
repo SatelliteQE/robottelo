@@ -183,7 +183,7 @@ def centos_host(request, version):
     request.param = {
         "rhel_version": version.split('.')[0],
         "distro": "centos",
-        "use_containers": False,
+        "no_containers": True,
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         yield host
@@ -194,7 +194,17 @@ def oracle_host(request, version):
     request.param = {
         "rhel_version": version.split('.')[0],
         "distro": "oracle",
-        "use_containers": False,
+        "no_containers": True,
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
+        yield host
+
+
+@pytest.fixture
+def sat_ready_rhel(request):
+    request.param = {"rhel_version": request.param, "no_containers": True}
+    deploy_args = host_conf(request)
+    deploy_args['target_cores'] = 6
+    deploy_args['target_memory'] = '20GiB'
+    with Broker(**deploy_args, host_class=ContentHost) as host:
         yield host
