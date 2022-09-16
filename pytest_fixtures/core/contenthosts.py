@@ -135,7 +135,7 @@ def cockpit_host(class_target_sat, class_org, rhel_contenthost):
 
 @pytest.fixture
 def rex_contenthost(request, module_org, target_sat):
-    request.param['use_containers'] = False
+    request.param['no_containers'] = True
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         # Register content host to Satellite and install katello-host-tools on the host
         repo = settings.repos['SATCLIENT_REPO'][f'RHEL{host.os_version.major}']
@@ -183,7 +183,7 @@ def centos_host(request, version):
     request.param = {
         "rhel_version": version.split('.')[0],
         "distro": "centos",
-        "use_containers": False,
+        "no_containers": True,
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         yield host
@@ -194,7 +194,17 @@ def oracle_host(request, version):
     request.param = {
         "rhel_version": version.split('.')[0],
         "distro": "oracle",
-        "use_containers": False,
+        "no_containers": True,
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
+        yield host
+
+
+@pytest.fixture
+def sat_ready_rhel(request):
+    request.param = {"rhel_version": request.param, "no_containers": True}
+    deploy_args = host_conf(request)
+    deploy_args['target_cores'] = 6
+    deploy_args['target_memory'] = '20GiB'
+    with Broker(**deploy_args, host_class=ContentHost) as host:
         yield host
