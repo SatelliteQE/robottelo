@@ -183,7 +183,7 @@ def centos_host(request, version):
     request.param = {
         "rhel_version": version.split('.')[0],
         "distro": "centos",
-        "use_containers": False,
+        "no_containers": True,
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         yield host
@@ -194,7 +194,7 @@ def oracle_host(request, version):
     request.param = {
         "rhel_version": version.split('.')[0],
         "distro": "oracle",
-        "use_containers": False,
+        "no_containers": True,
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         yield host
