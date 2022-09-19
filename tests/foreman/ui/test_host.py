@@ -2190,8 +2190,8 @@ def test_rex_new_ui(session, target_sat, rex_contenthost):
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         recent_jobs = session.host_new.get_details(hostname, "overview.recent_jobs")['overview']
-        assert "Run ls" == recent_jobs['recent_jobs']['finished']['table'][0][0]
-        assert "succeeded" == recent_jobs['recent_jobs']['finished']['table'][0][2]
+        assert "Run ls" == recent_jobs['recent_jobs']['finished']['table'][0]['column0']
+        assert "succeeded" == recent_jobs['recent_jobs']['finished']['table'][0]['column2']
 
 
 @pytest.mark.tier4
