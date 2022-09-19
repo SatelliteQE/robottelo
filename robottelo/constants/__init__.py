@@ -322,6 +322,7 @@ REPOS = {
         'distro_repository': True,
         'key': 'rhel',
         'version': '7.7',
+        'basearch': 'x86_64',
     },
     'rhel6': {
         'id': 'rhel-6-server-rpms',
@@ -510,6 +511,7 @@ REPOS = {
         'id': 'rhel-8-for-x86_64-appstream-rpms',
         'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream RPMs 8',
         'releasever': '8',
+        'basearch': 'x86_64',
         'version': '8',
         'reposet': REPOSET['rhel8_aps'],
         'product': PRDS['rhel8'],
