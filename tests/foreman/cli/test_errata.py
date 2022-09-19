@@ -54,7 +54,6 @@ from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
@@ -195,7 +194,7 @@ def custom_repo(module_org, module_lce, module_cv, module_ak_cv_lce):
 def hosts(request):
     """Deploy hosts via broker."""
     num_hosts = getattr(request, 'param', 2)
-    with Broker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=num_hosts) as hosts:
+    with Broker(nick='rhel7', host_class=ContentHost, _count=num_hosts) as hosts:
         if type(hosts) is not list or len(hosts) != num_hosts:
             pytest.fail('Failed to provision the expected number of hosts.')
         yield hosts
@@ -381,6 +380,7 @@ def cv_filter_cleanup(filter_id, cv, org, lce):
 @pytest.mark.parametrize(
     'filter_by_org', ('id', 'name', 'title'), ids=('org_id', 'org_name', 'org_title')
 )
+@pytest.mark.no_containers
 def test_positive_install_by_host_collection_and_org(
     module_org, host_collection, errata_hosts, filter_by_hc, filter_by_org, target_sat
 ):
@@ -593,6 +593,7 @@ def test_positive_list_affected_chosts(module_org, errata_hosts):
 
 
 @pytest.mark.tier3
+@pytest.mark.no_containers
 def test_install_errata_to_one_host(module_org, errata_hosts, host_collection, target_sat):
     """Install an erratum to one of the hosts in a host collection.
 
@@ -1360,6 +1361,7 @@ def chost(module_manifest_org, rhel7_contenthost_module, new_module_ak, target_s
 
 
 @pytest.mark.tier2
+@pytest.mark.no_containers
 def test_apply_errata_using_default_content_view(errata_host, target_sat):
     """Updating an applicable errata on a host attached to the default content view
      causes the errata to not be applicable.
@@ -1409,6 +1411,7 @@ def test_apply_errata_using_default_content_view(errata_host, target_sat):
 
 
 @pytest.mark.tier2
+@pytest.mark.no_containers
 def test_update_applicable_package_using_default_content_view(errata_host):
     """Updating an applicable package on a host attached to the default content view causes the
     package to not be applicable or installable.
@@ -1485,6 +1488,7 @@ def test_update_applicable_package_using_default_content_view(errata_host):
 
 
 @pytest.mark.tier2
+@pytest.mark.no_containers
 def test_downgrade_applicable_package_using_default_content_view(errata_host, target_sat):
     """Downgrading a package on a host attached to the default content view
     causes the package to become applicable and installable.
@@ -1602,6 +1606,7 @@ def test_install_applicable_package_to_registerd_host(chost):
 
 
 @pytest.mark.tier2
+@pytest.mark.no_containers
 def test_downgrading_package_shows_errata_from_library(errata_host, module_manifest_org):
     """Downgrading a package on a host attached to the default content view
     causes the package to become applicable and installable.

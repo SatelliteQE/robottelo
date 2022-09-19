@@ -123,9 +123,7 @@ def lce(org):
 @pytest.fixture
 def erratatype_vm(module_repos_collection_with_setup, target_sat):
     """Virtual machine client using module_repos_collection_with_setup for subscription"""
-    with Broker(
-        nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}
-    ) as client:
+    with Broker(nick=module_repos_collection_with_setup.distro, host_class=ContentHost) as client:
         module_repos_collection_with_setup.setup_virtual_machine(client)
         yield client
 
@@ -163,6 +161,7 @@ def vm(module_repos_collection_with_setup, rhel7_contenthost, target_sat):
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_end_to_end(
     session, module_org, module_repos_collection_with_setup, vm, target_sat, setting_update
 ):
@@ -286,7 +285,7 @@ def test_content_host_errata_page_pagination(session, org, lce, target_sat):
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    with Broker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
+    with Broker(nick=repos_collection.distro, host_class=ContentHost) as client:
         client.add_rex_key(satellite=target_sat)
         # Add repo and install packages that need errata
         repos_collection.setup_virtual_machine(client)
@@ -456,7 +455,7 @@ def test_positive_apply_for_all_hosts(
     :CaseLevel: System
     """
     with Broker(
-        nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}, _count=2
+        nick=module_repos_collection_with_setup.distro, host_class=ContentHost, _count=2
     ) as clients:
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(
@@ -555,7 +554,7 @@ def test_positive_filter_by_environment(
     :CaseLevel: System
     """
     with Broker(
-        nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}, _count=2
+        nick=module_repos_collection_with_setup.distro, host_class=ContentHost, _count=2
     ) as clients:
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(
@@ -924,7 +923,7 @@ def test_positive_filtered_errata_status_installable_param(
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    with Broker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
+    with Broker(nick=repos_collection.distro, host_class=ContentHost) as client:
         repos_collection.setup_virtual_machine(client)
         assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
         # Adding content view filter and content view filter rule to exclude errata for the
@@ -1025,7 +1024,7 @@ def test_content_host_errata_search_commands(
     :BZ: 1707335
     """
     with Broker(
-        nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}, _count=2
+        nick=module_repos_collection_with_setup.distro, host_class=ContentHost, _count=2
     ) as clients:
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(client)

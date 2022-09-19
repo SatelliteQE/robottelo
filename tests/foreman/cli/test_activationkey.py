@@ -46,7 +46,6 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
@@ -620,7 +619,7 @@ def test_positive_usage_limit(module_org, target_sat):
             'max-hosts': '1',
         }
     )
-    with Broker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=2) as clients:
+    with Broker(nick='rhel7', host_class=ContentHost, _count=2) as clients:
         vm1, vm2 = clients
         vm1.install_katello_ca(target_sat)
         vm1.register_contenthost(module_org.label, new_ak['name'])

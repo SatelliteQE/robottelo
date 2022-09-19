@@ -443,11 +443,7 @@ class CLIFactory:
         if not options.get('operatingsystem') and not options.get('operatingsystem-id'):
             try:
                 options['operatingsystem-id'] = self._satellite.cli.OperatingSys.list(
-                    {
-                        'search': 'name="RedHat" AND major="{}" OR major="{}"'.format(
-                            constants.RHEL_6_MAJOR_VERSION, constants.RHEL_7_MAJOR_VERSION
-                        )
-                    }
+                    {'search': 'name="RedHat" AND (major="7" OR major="8")'}
                 )[0]['id']
             except IndexError:
                 options['operatingsystem-id'] = self.make_os(

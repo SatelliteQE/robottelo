@@ -25,9 +25,7 @@ def align_to_satellite(worker_id, satellite_factory):
 
     # attempt to add potential satellites from the broker inventory file
     if settings.server.inventory_filter:
-        hosts = Broker(host_classes={'host': Satellite}).from_inventory(
-            filter=settings.server.inventory_filter
-        )
+        hosts = Broker(host_class=Satellite).from_inventory(filter=settings.server.inventory_filter)
         settings.server.hostnames += [host.hostname for host in hosts]
 
     # attempt to align a worker to a satellite

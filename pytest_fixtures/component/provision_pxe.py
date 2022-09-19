@@ -118,9 +118,7 @@ def module_provisioning_rhel_content(
         ],
     ).create()
 
-    return Box(
-        hostgroup=hostgroup,
-    )
+    return Box(hostgroup=hostgroup, os=os)
 
 
 @pytest.fixture(scope='module')
@@ -211,7 +209,7 @@ def provisioning_host(module_ssh_key_file):
     cd_iso = ""  # TODO: Make this an optional fixture parameter
     with Broker(
         workflow="deploy-configure-pxe-provisioning-host-rhv",
-        host_classes={'host': ContentHost},
+        host_class=ContentHost,
         target_vlan_id=vlan_id,
         target_vm_firmware=vm_firmware,
         target_vm_cd_iso=cd_iso,

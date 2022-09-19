@@ -122,6 +122,7 @@ def module_host_template(module_org, module_location):
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_positive_end_to_end(session, default_location, module_repos_collection_with_manifest, vm):
     """Create all entities required for content host, set up host, register it
     as a content host, read content host details, install package and errata.
@@ -216,6 +217,7 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_positive_end_to_end_bulk_update(session, default_location, vm, target_sat):
     """Create VM, set up VM as host, register it as a content host,
     read content host details, install a package ( e.g. walrus-0.71) and
@@ -302,6 +304,7 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm, target_s
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_positive_search_by_subscription_status(session, default_location, vm):
     """Register host into the system and search for it afterwards by
     subscription status
@@ -353,6 +356,7 @@ def test_positive_search_by_subscription_status(session, default_location, vm):
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_positive_toggle_subscription_status(session, default_location, vm):
     """Register host into the system, assert subscription status valid,
     toggle status off and on again using CLI and assert status is updated in web UI.
@@ -410,6 +414,7 @@ def test_positive_toggle_subscription_status(session, default_location, vm):
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_negative_install_package(session, default_location, vm):
     """Attempt to install non-existent package to a host remotely
 
@@ -450,6 +455,7 @@ def test_negative_install_package(session, default_location, vm):
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_positive_remove_package(session, default_location, vm):
     """Remove a package from a host remotely
 
@@ -488,6 +494,7 @@ def test_positive_remove_package(session, default_location, vm):
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_positive_upgrade_package(session, default_location, vm):
     """Upgrade a host package remotely
 
@@ -527,6 +534,7 @@ def test_positive_upgrade_package(session, default_location, vm):
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_positive_install_package_group(session, default_location, vm):
     """Install a package group to a host remotely
 
@@ -567,6 +575,7 @@ def test_positive_install_package_group(session, default_location, vm):
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_positive_remove_package_group(session, default_location, vm):
     """Remove a package group from a host remotely
 

@@ -492,7 +492,7 @@ def test_positive_generate_entitlements_report(setup_content, target_sat):
 
     :CaseImportance: High
     """
-    with Broker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
+    with Broker(nick='rhel7', host_class=ContentHost) as vm:
         ak, org = setup_content
         vm.install_katello_ca(target_sat)
         vm.register_contenthost(org.label, ak.name)
@@ -531,7 +531,7 @@ def test_positive_schedule_entitlements_report(setup_content, target_sat):
 
     :CaseImportance: High
     """
-    with Broker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
+    with Broker(nick='rhel7', host_class=ContentHost) as vm:
         ak, org = setup_content
         vm.install_katello_ca(target_sat)
         vm.register_contenthost(org.label, ak.name)

@@ -4,7 +4,7 @@ name: update_robottelo_image
 on:
   push:
     branches:
-      - master
+      - 6.11.z
 
 env:
     PYCURL_SSL_LIBRARY: openssl
@@ -19,7 +19,7 @@ jobs:
         python-version: [3.8, 3.9]
     steps:
       - name: Checkout Robottelo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set Up Python-${{ matrix.python-version }}
         uses: actions/setup-python@v2
@@ -68,7 +68,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Get image tag
         id: image_tag
