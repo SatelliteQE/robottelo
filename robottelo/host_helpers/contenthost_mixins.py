@@ -40,32 +40,33 @@ class VersionedContent:
             'cbrhel': constants.OSCAP_PROFILE[f'cbrhel{self._v_major}'],
         }
 
-    def dogfood_repofile(self, sat_ver=None, product=None, snap=''):
+    def dogfood_repofile(self, product=None, release=None, snap=''):
         from robottelo.config import settings
 
         if not product:
             if self.__class__.__name__ == 'ContentHost':
-                product = 'tools'
+                product = 'client'
+                release = release or 'Client'
             else:
                 product = self.__class__.__name__.lower()
-        if not sat_ver:
-            sat_ver = self.satellite.version
-        sat_ver = sat_ver.split('.')
-
-        if len(sat_ver) == 2:
-            sat_ver.append('0')
-        sat_ver = '.'.join(sat_ver[:3])  # keep only major.minor.patch
+        if not release:
+            release = self.satellite.version
+        if str(release).lower != 'client':
+            release = release.split('.')
+            if len(release) == 2:
+                release.append('0')
+            release = '.'.join(release[:3])  # keep only major.minor.patch
         snap = snap or settings.server.version.get("snap")
 
         return (
             f'{settings.repos.ohsnap_repo_host}/api/releases/'
-            f'{sat_ver}{"/" + snap if snap else ""}/el{self._v_major}/{product}/repo_file'
+            f'{release}{"/" + snap if snap else ""}/el{self._v_major}/{product}/repo_file'
         )
 
-    def download_repofile(self, sat_ver=None, product=None, snap=''):
+    def download_repofile(self, product=None, release=None, snap=''):
         """Downloads the tools, capsule, or satellite repos on the machine"""
         self.execute(
-            f'curl -o /etc/yum.repos.d/dogfood.repo {self.dogfood_repofile(sat_ver, product, snap)}'
+            f'curl -o /etc/yum.repos.d/dogfood.repo {self.dogfood_repofile(product, release, snap)}'
         )
 
     def enable_tools_repo(self, organization_id):
