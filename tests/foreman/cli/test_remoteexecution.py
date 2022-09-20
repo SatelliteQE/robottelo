@@ -899,11 +899,12 @@ class TestRexUsers:
 
 
 class TestAsyncSSHProviderRex:
-    """Tests related to remote execution via pull provider (mqtt)"""
+    """Tests related to remote execution via async ssh provider"""
 
+    @pytest.mark.no_containers
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.rhel_ver_match('[^6].*')
     def test_positive_run_job_on_host_registered_to_async_ssh_provider(
         self,
         module_org,
