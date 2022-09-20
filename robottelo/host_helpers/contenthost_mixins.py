@@ -40,7 +40,7 @@ class VersionedContent:
             'cbrhel': constants.OSCAP_PROFILE[f'cbrhel{self._v_major}'],
         }
 
-    def dogfood_repofile(self, sat_ver=None, product=None):
+    def dogfood_repofile(self, sat_ver=None, product=None, snap=''):
         from robottelo.config import settings
 
         if not product:
@@ -56,16 +56,17 @@ class VersionedContent:
         if len(sat_ver) == 2:
             sat_ver.append('0')
         sat_ver = '.'.join(sat_ver[:3])  # keep only major.minor.patch
-        # TODO: make URL containing also snap number
+        snap = snap or settings.server.version.get("snap")
+
         return (
             f'{settings.repos.ohsnap_repo_host}/api/releases/'
-            f'{sat_ver}/el{self._v_major}/{product}/repo_file'
+            f'{sat_ver}{"/" + snap if snap else ""}/el{self._v_major}/{product}/repo_file'
         )
 
-    def download_repofile(self, sat_ver=None, product=None):
+    def download_repofile(self, sat_ver=None, product=None, snap=''):
         """Downloads the tools, capsule, or satellite repos on the machine"""
         self.execute(
-            f'curl -o /etc/yum.repos.d/dogfood.repo {self.dogfood_repofile(sat_ver, product)}'
+            f'curl -o /etc/yum.repos.d/dogfood.repo {self.dogfood_repofile(sat_ver, product, snap)}'
         )
 
     def enable_tools_repo(self, organization_id):
