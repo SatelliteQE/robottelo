@@ -97,14 +97,6 @@ def run_remote_command_on_content_host(command, vm_module_streams):
     return result
 
 
-@pytest.fixture(scope='module')
-def module_host_template(module_org, module_location):
-    host_template = entities.Host(organization=module_org, location=module_location)
-    host_template.create_missing()
-    host_template.name = None
-    return host_template
-
-
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -1763,6 +1755,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
             }
         )
     with session(url=start_url):
+        session.location.select(module_host_template.location.name)
         # Search for all the hosts by os. This uses pagination to get more than one page.
         all_fake_hosts_found = session.contenthost.search(
             f'os = {module_host_template.operatingsystem.name}'
