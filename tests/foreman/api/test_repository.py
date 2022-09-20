@@ -2227,7 +2227,7 @@ class TestSRPMRepositoryIgnoreContent:
         """
         repo.sync()
         repo = repo.read()
-        assert repo.content_counts['srpm'] == 4
+        assert repo.content_counts['srpm'] == 2
 
     @pytest.mark.tier2
     @pytest.mark.skip('Uses deprecated SRPM repository')
