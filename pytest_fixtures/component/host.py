@@ -52,6 +52,15 @@ def setup_rhst_repo():
     return {'ak': ak, 'cv': cv, 'lce': lce, 'org': org, 'repo_name': repo_name}
 
 
+@pytest.fixture(scope='module')
+def module_host_template(module_org, smart_proxy_location, module_target_sat):
+    host_template = module_target_sat.api.Host(
+        organization=module_org, location=smart_proxy_location, build=True
+    )
+    host_template.create_missing()
+    return host_template
+
+
 @pytest.fixture
 def host_ui_options(module_host_template):
     os_name = (
