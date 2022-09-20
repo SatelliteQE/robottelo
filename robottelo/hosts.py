@@ -1416,6 +1416,22 @@ class Capsule(ContentHost, CapsuleMixins):
         if result.status != 0:
             raise SatelliteHostError(f'Failed to enable pull provider: {result.stdout}')
 
+    def enable_async_ssh(self):
+        installer_opts = {
+            'foreman-proxy-templates': 'true',
+            'foreman-proxy-registration': 'true',
+            'foreman-proxy-plugin-remote-execution-script-mode': 'ssh-async',
+        }
+        enable_mqtt_command = InstallerCommand(
+            installer_opts=installer_opts,
+        )
+        result = self.execute(
+            enable_mqtt_command.get_command(),
+            timeout='20m',
+        )
+        if result.status != 0:
+            raise SatelliteHostError(f'Failed to enable pull provider: {result.stdout}')
+
 
 class Satellite(Capsule, SatelliteMixins):
     def __init__(self, hostname=None, **kwargs):

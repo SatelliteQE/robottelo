@@ -211,3 +211,11 @@ def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
 
     _ = [cap.teardown() for cap in cap_hosts.out]
     Broker(hosts=cap_hosts.out).checkin()
+
+
+@pytest.fixture(scope='module')
+def module_capsule_configured_async_ssh(module_capsule_configured):
+    """Configure the capsule instance with the satellite from settings.server.hostname,
+    enable MQTT broker"""
+    module_capsule_configured.enable_async_ssh()
+    yield module_capsule_configured
