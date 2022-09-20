@@ -49,7 +49,6 @@ class VersionedContent:
             else:
                 product = self.__class__.__name__.lower()
         if not sat_ver:
-            # this may be also available from self.satellite.version
             sat_ver = self.satellite.version
         sat_ver = sat_ver.split('.')
 
