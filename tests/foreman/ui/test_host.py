@@ -101,15 +101,6 @@ def module_global_params(module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_host_template(module_org, smart_proxy_location, module_target_sat):
-    host_template = module_target_sat.api.Host(
-        organization=module_org, location=smart_proxy_location
-    )
-    host_template.create_missing()
-    return host_template
-
-
-@pytest.fixture(scope='module')
 def module_libvirt_resource(module_org, smart_proxy_location, module_target_sat):
     # Search if Libvirt compute-resource already exists
     # If so, just update its relevant fields otherwise,
@@ -270,9 +261,7 @@ def remove_vm_on_delete(target_sat, setting_update):
 
 
 @pytest.mark.tier2
-def test_positive_end_to_end(
-    session, module_org, module_location, module_global_params, target_sat, host_ui_options
-):
+def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_options):
     """Create a new Host with parameters, config group. Check host presence on
         the dashboard. Update name with 'new' prefix and delete.
 
@@ -285,7 +274,7 @@ def test_positive_end_to_end(
 
     :CaseLevel: System
     """
-    values, host_name = host_ui_options
+    api_values, host_name = host_ui_options
     global_params = [
         global_param.to_json_dict(lambda attr, field: attr in ['name', 'value'])
         for global_param in module_global_params
@@ -304,16 +293,16 @@ def test_positive_end_to_end(
             global_param['overridden'] = True
         else:
             global_param['overridden'] = False
-    new_name = 'new{}'.format(gen_string("alpha").lower())
-    new_host_name = '{}.{}'.format(new_name, values['interfaces.interface.domain'])
+    new_name = f"new{gen_string('alpha').lower()}"
+    new_host_name = f"{new_name}.{api_values['interfaces.interface.domain']}"
     with session:
-        values.update(
+        api_values.update(
             {
                 'parameters.host_params': host_parameters,
                 'parameters.global_params': [overridden_global_parameter],
             }
         )
-        session.host.create(values)
+        session.host.create(api_values)
         assert session.host.search(host_name)[0]['Name'] == host_name
         values = session.host.read(host_name, widget_names=['parameters'])
         assert _get_set_from_list_of_dict(
@@ -326,10 +315,7 @@ def test_positive_end_to_end(
         # check host presence on the dashboard
         dashboard_values = session.dashboard.read('NewHosts')['hosts']
         displayed_host = [row for row in dashboard_values if row['Host'] == host_name][0]
-        os_name = '{} {}'.format(
-            module_host_template.operatingsystem.name, module_host_template.operatingsystem.major
-        )
-        assert os_name in displayed_host['Operating System']
+        assert api_values['operating_system.operating_system'] in displayed_host['Operating System']
         assert displayed_host['Installed'] == 'N/A'
         # update
         session.host.update(host_name, {'host.name': new_name})
@@ -341,7 +327,7 @@ def test_positive_end_to_end(
 
 
 @pytest.mark.tier4
-def test_positive_read_from_details_page(session, target_sat, module_host_template):
+def test_positive_read_from_details_page(session, module_host_template):
     """Create new Host and read all its content through details page
 
     :id: ffba5d40-918c-440e-afbb-6b910db3a8fb
@@ -351,29 +337,30 @@ def test_positive_read_from_details_page(session, target_sat, module_host_templa
     :CaseLevel: System
     """
 
-    host = module_host_template.create()
-    os_name = (
-        f'{module_host_template.operatingsystem.name} {module_host_template.operatingsystem.major}'
-    )
-    interface = target_sat.api.Interface(host=host, primary=False).create()
-    host.update(interface.identifier)
+    template = module_host_template
+    host = template.create()
+    os_name = f'{template.operatingsystem.name} {template.operatingsystem.major}'
     host_name = host.name
     with session:
         assert session.host.search(host_name)[0]['Name'] == host_name
         values = session.host.get_details(host_name)
         assert values['properties']['properties_table']['Status'] == 'OK'
         assert 'Pending installation' in values['properties']['properties_table']['Build']
-        assert values['properties']['properties_table']['Domain'] == host.domain.name
+        assert values['properties']['properties_table']['Domain'] == template.domain.name
         assert values['properties']['properties_table']['MAC Address'] == host.mac
-        assert values['properties']['properties_table']['Architecture'] == host.architecture.name
+        assert (
+            values['properties']['properties_table']['Architecture'] == template.architecture.name
+        )
         assert values['properties']['properties_table']['Operating System'] == os_name
-        assert values['properties']['properties_table']['Location'] == host.location.name
-        assert values['properties']['properties_table']['Organization'] == host.organization.name
-        assert values['properties']['properties_table']['Owner'] == values['current_user']
+        assert values['properties']['properties_table']['Location'] == template.location.name
+        assert (
+            values['properties']['properties_table']['Organization'] == template.organization.name
+        )
+        assert 'Admin User' in values['properties']['properties_table']['Owner']
 
 
 @pytest.mark.tier4
-def test_positive_read_from_edit_page(session, module_host_template, target_sat):
+def test_positive_read_from_edit_page(session, host_ui_options):
     """Create new Host and read all its content through edit page
 
     :id: 758fcab3-b363-4bfc-8f5d-173098a7e72d
@@ -382,31 +369,39 @@ def test_positive_read_from_edit_page(session, module_host_template, target_sat)
 
     :CaseLevel: System
     """
-    host = module_host_template.create()
-    os_name = (
-        f'{module_host_template.operatingsystem.name} {module_host_template.operatingsystem.major}'
-    )
-    interface = target_sat.api.Interface(host=host, primary=False).create()
-    host.update(interface.identifier)
-    host_name = host.name
+    api_values, host_name = host_ui_options
     with session:
+        session.location.select(api_values['host.location'])
+        session.host.create(api_values)
         assert session.host.search(host_name)[0]['Name'] == host_name
         values = session.host.read(host_name)
         assert values['host']['name'] == host_name.partition('.')[0]
-        assert values['host']['organization'] == host.organization.name
-        assert values['host']['location'] == host.location.name
+        assert values['host']['organization'] == api_values['host.organization']
+        assert values['host']['location'] == api_values['host.location']
         assert values['host']['lce'] == ENVIRONMENT
         assert values['host']['content_view'] == DEFAULT_CV
-        assert values['operating_system']['architecture'] == host.architecture.name
-        assert values['operating_system']['operating_system'] == os_name
+        assert (
+            values['operating_system']['architecture']
+            == api_values['operating_system.architecture']
+        )
+        assert (
+            values['operating_system']['operating_system']
+            == api_values['operating_system.operating_system']
+        )
         assert values['operating_system']['media_type'] == 'All Media'
-        assert values['operating_system']['media'] == host.medium.name
-        assert values['operating_system']['ptable'] == host.ptable.name
-        assert values['interfaces']['interfaces_list'][0]['Identifier'] == interface.identifier
+        assert values['operating_system']['media'] == api_values['operating_system.media']
+        assert values['operating_system']['ptable'] == api_values['operating_system.ptable']
+        assert (
+            values['interfaces']['interfaces_list'][0]['Identifier']
+            == api_values['interfaces.interface.device_identifier']
+        )
         assert values['interfaces']['interfaces_list'][0]['Type'] == 'Interface physical'
-        assert values['interfaces']['interfaces_list'][0]['MAC Address'] == host.mac
+        assert (
+            values['interfaces']['interfaces_list'][0]['MAC Address']
+            == api_values['interfaces.interface.mac']
+        )
         assert values['interfaces']['interfaces_list'][0]['FQDN'] == host_name
-        assert values['additional_information']['owned_by'] == values['current_user']
+        assert session._user in values['additional_information']['owned_by']
         assert values['additional_information']['enabled'] is True
 
 
@@ -614,6 +609,7 @@ def test_negative_delete_primary_interface(session, host_ui_options):
     values, host_name = host_ui_options
     interface_id = values['interfaces.interface.device_identifier']
     with session:
+        session.location.select(values['host.location'])
         session.host.create(values)
         with pytest.raises(DisabledWidgetError) as context:
             session.host.delete_interface(host_name, interface_id)
@@ -1088,9 +1084,7 @@ def test_positive_search_by_org(session, smart_proxy_location, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_validate_inherited_cv_lce(
-    session, module_host_template, target_sat, default_smart_proxy
-):
+def test_positive_validate_inherited_cv_lce(session, module_org, target_sat, module_host_template):
     """Create a host with hostgroup specified via CLI. Make sure host
     inherited hostgroup's lifecycle environment, content view and both
     fields are properly reflected via WebUI.
@@ -2151,12 +2145,16 @@ def test_positive_read_details_page_from_new_ui(session, host_ui_options):
     :CaseLevel: System
     """
     with session:
-        values, host_name = host_ui_options
-        session.host_new.create(values)
+        api_values, host_name = host_ui_options
+        session.location.select(api_values['host.location'])
+        session.host_new.create(api_values)
         assert session.host_new.search(host_name)[0]['Name'] == host_name
         values = session.host_new.get_details(host_name, widget_names='overview')
         assert values['overview']['host_status']['status'] == 'All statuses OK'
-        assert values['overview']['details']['details']['mac_address'] == module_host_template.mac
+        assert (
+            values['overview']['details']['details']['mac_address']
+            == api_values['interfaces.interface.mac']
+        )
         user = session.host_new.get_details(host_name, widget_names='current_user')['current_user']
         assert values['overview']['details']['details']['host_owner'] == user
         assert values['overview']['details']['details']['comment'] == 'Host with fake data'
@@ -2550,7 +2548,6 @@ def test_positive_create_with_puppet_class(
     module_env_search,
     module_import_puppet_module,
     module_puppet_enabled_proxy_with_loc,
-    host_ui_options,
 ):
     """Create new Host with puppet class assigned to it
 
@@ -2565,17 +2562,35 @@ def test_positive_create_with_puppet_class(
         organization=module_puppet_org, location=module_puppet_loc
     )
     host_template.create_missing()
-
+    host_name = f'{host_template.name}.{host_template.domain.name}'
+    os_name = f'{host_template.operatingsystem.name} {host_template.operatingsystem.major}'
+    values = {
+        'host.name': host_template.name,
+        'host.organization': host_template.organization.name,
+        'host.location': host_template.location.name,
+        'host.lce': ENVIRONMENT,
+        'host.content_view': DEFAULT_CV,
+        'operating_system.architecture': host_template.architecture.name,
+        'operating_system.operating_system': os_name,
+        'operating_system.media_type': 'All Media',
+        'operating_system.media': host_template.medium.name,
+        'operating_system.ptable': host_template.ptable.name,
+        'operating_system.root_password': host_template.root_pass,
+        'interfaces.interface.interface_type': 'Interface',
+        'interfaces.interface.device_identifier': gen_string('alpha'),
+        'interfaces.interface.mac': host_template.mac,
+        'interfaces.interface.domain': host_template.domain.name,
+        'interfaces.interface.primary': True,
+        'interfaces.interface.interface_additional_data.virtual_nic': False,
+        'parameters.global_params': None,
+        'parameters.host_params': None,
+        'additional_information.comment': 'Host with fake data',
+        'host.puppet_environment': module_env_search.name,
+        'puppet_enc.classes.assigned': [module_import_puppet_module['puppet_class']],
+    }
     with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name='Any Location')
-        values, host_name = host_ui_options
-        values.update(
-            {
-                'host.puppet_environment': module_env_search.name,
-                'puppet_enc.classes.assigned': [module_import_puppet_module['puppet_class']],
-            },
-        )
         session.host.create(values)
         assert session.host.search(host_name)[0]['Name'] == host_name
         values = session.host.read(host_name, widget_names='puppet_enc')
