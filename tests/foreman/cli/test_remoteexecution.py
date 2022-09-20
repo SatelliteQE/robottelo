@@ -903,6 +903,7 @@ class TestPullProviderRex:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
     def test_positive_run_job_on_host_converted_to_pull_provider(
         self,
@@ -996,6 +997,7 @@ class TestPullProviderRex:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
     def test_positive_run_job_on_host_registered_to_pull_provider(
         self,
