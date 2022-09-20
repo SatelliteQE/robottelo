@@ -41,7 +41,7 @@ def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_org, modu
     with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         # Check that created puppet class can be found in UI
-        assert session.puppetclass.search(name)[0]['Class name'] == name
+        assert session.puppetclass.search(name)[0]['Name'] == name
         # Read puppet class values and check that they are expected
         pc_values = session.puppetclass.read(name)
         assert pc_values['puppet_class']['name'] == name
