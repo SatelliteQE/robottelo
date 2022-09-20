@@ -150,6 +150,9 @@ def centos(
     major = version.split('.')[0]
     if major == '8':
         centos_host.execute("yum update -y centos-*")
+    result = centos_host.execute('yum install -y kernel')
+    assert result.status == 0
+    centos_host.power_control(state='reboot')
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
     repo = create_repo(target_sat, module_org, repo_url)
     cv = update_cv(target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo])
@@ -206,7 +209,7 @@ def oracle(
 @pytest.fixture(scope='module')
 def version(request):
     """Version of converted OS"""
-    return settings.content_host.get(request.param).vm.release
+    return settings.content_host.get(request.param).vm.deploy_rhel_version
 
 
 @pytest.mark.parametrize(
@@ -252,7 +255,7 @@ def test_convert2rhel_oracle(target_sat, oracle, activation_key_rhel, version):
     )
     # wait for job to complete
     wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
+        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1500
     )
     result = target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
@@ -308,7 +311,7 @@ def test_convert2rhel_centos(target_sat, centos, activation_key_rhel, version):
     )
     # wait for job to complete
     wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
+        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1500
     )
     result = target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
