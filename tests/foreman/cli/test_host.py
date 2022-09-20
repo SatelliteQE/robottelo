@@ -1815,7 +1815,7 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
 @pytest.mark.cli_katello_host_tools
 @pytest.mark.tier3
 def test_positive_install_package_via_rex(
-    module_org, katello_host_tools_host, target_sat, setup_custom_repo
+    module_org, rex_contenthost, target_sat, setup_custom_repo
 ):
     """Install a package to a host remotely using remote execution,
     install package using Katello SSH job template, host package list is used to verify that
@@ -1828,7 +1828,7 @@ def test_positive_install_package_via_rex(
 
     :parametrized: yes
     """
-    client = katello_host_tools_host
+    client = rex_contenthost
     host_info = Host.info({'name': client.hostname})
     client.configure_rex(satellite=target_sat, org=module_org, register=False)
     # Apply errata to the host collection using job invocation

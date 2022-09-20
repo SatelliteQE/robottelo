@@ -17,7 +17,7 @@ def pytest_generate_tests(metafunc):
     content_host_fixture = ''.join([i for i in TARGET_FIXTURES if i in metafunc.fixturenames])
     if content_host_fixture in metafunc.fixturenames:
         function_marks = getattr(metafunc.function, 'pytestmark', [])
-        no_containers = 'no_containers' in function_marks
+        no_containers = any('no_containers' == mark.name for mark in function_marks)
         # process eventual rhel_version_list markers
         matchers = [i.args for i in function_marks if i.name == 'rhel_ver_list']
         list_params = []
