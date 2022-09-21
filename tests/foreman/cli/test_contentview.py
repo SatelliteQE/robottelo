@@ -1892,7 +1892,7 @@ class TestContentView:
         # Ensure that version 1 is in  composite content view components
         components = ContentView.component_list({'composite-content-view-id': composite_cv['id']})
         assert len(components) == 1
-        component_id = components[0]['id']
+        component_id = components[0]['content-view-id']
         assert components[0]['version-id'] == f'{version_1_id} (Latest)'
         assert components[0]['current-version'] == '1.0'
         # Publish the content view a second time
@@ -1907,7 +1907,7 @@ class TestContentView:
         components = ContentView.component_list({'composite-content-view-id': composite_cv['id']})
         assert len(components) == 1
         # Ensure that this is the same component that is updated
-        assert component_id == components[0]['id']
+        assert component_id == components[0]['content-view-id']
         assert components[0]['version-id'] == f'{version_2_id} (Latest)'
         assert components[0]['current-version'] == '2.0'
 
