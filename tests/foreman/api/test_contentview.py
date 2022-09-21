@@ -62,7 +62,7 @@ def class_published_cv(class_cv):
 
 @pytest.fixture(scope='class')
 def class_promoted_cv(class_published_cv, module_lce):
-    class_published_cv.version[0].promote(data=module_lce.id)
+    class_published_cv.version[0].promote(data={'environment_ids': module_lce.id})
     return class_published_cv.read()
 
 
@@ -135,7 +135,7 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        class_published_cloned_cv.read().version[0].promote(data=module_lce.id)
+        class_published_cloned_cv.read().version[0].promote(data={'environment_ids': module_lce.id})
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
@@ -154,7 +154,7 @@ class TestContentView:
         :CaseImportance: Medium
         """
         le_clone = entities.LifecycleEnvironment(organization=module_org).create()
-        class_published_cloned_cv.read().version[0].promote(data=le_clone.id)
+        class_published_cloned_cv.read().version[0].promote(data={'environment_ids': le_clone.id})
 
     @pytest.mark.tier2
     def test_positive_add_custom_content(self, module_product, module_org):
@@ -484,7 +484,7 @@ class TestContentViewPublishPromote:
         # Promote the content view version.
         for _ in range(REPEAT):
             lce = entities.LifecycleEnvironment(organization=module_org).create()
-            content_view.version[0].promote(data=lce.id)
+            content_view.version[0].promote(data={'environment_ids': lce.id})
 
         # Everything's done - check some content view attributes...
         content_view = content_view.read()
@@ -575,7 +575,7 @@ class TestContentViewPublishPromote:
         ).create()
         self.add_content_views_to_composite(composite_cv, module_org, random.randint(2, 3))
         composite_cv.publish()
-        composite_cv.read().version[0].promote(data=module_lce.id)
+        composite_cv.read().version[0].promote(data={'environment_ids': module_lce.id})
         composite_cv = composite_cv.read()
         assert len(composite_cv.version) == 1
         assert len(composite_cv.version[0].read().environment) == 2
@@ -607,7 +607,7 @@ class TestContentViewPublishPromote:
         envs_amount = random.randint(2, 3)
         for _ in range(envs_amount):
             lce = entities.LifecycleEnvironment(organization=module_org).create()
-            composite_cv.version[0].promote(data=lce.id)
+            composite_cv.version[0].promote(data={'environment_ids': lce.id})
         composite_cv = composite_cv.read()
         assert len(composite_cv.version) == 1
         assert len(composite_cv.version[0].read().environment) == envs_amount + 1
@@ -640,7 +640,7 @@ class TestContentViewPublishPromote:
         assert len(lce_list) == 1
         # Trying to re-promote 'Library' environment from latest version to
         # first one
-        content_view.version[0].promote(data=lce_list[0].id, force=True)
+        content_view.version[0].promote(data={'environment_ids': lce_list[0].id, 'force': True})
         content_view = content_view.read()
         content_view.version.sort(key=lambda version: version.id)
         # Verify that, according to our plan, first version contains one
