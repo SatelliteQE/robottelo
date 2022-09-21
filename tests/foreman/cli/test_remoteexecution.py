@@ -172,7 +172,7 @@ class TestRemoteExecution:
         make_user_job = make_job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': f"command='useradd -m {username}'",
+                'inputs': f"command=useradd -m {username}",
                 'search-query': f"name ~ {client.hostname}",
             }
         )
@@ -181,7 +181,7 @@ class TestRemoteExecution:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': f"command='touch /home/{username}/{filename}'",
+                'inputs': f"command=touch /home/{username}/{filename}",
                 'search-query': f"name ~ {client.hostname}",
                 'effective-user': f'{username}',
             }
@@ -242,7 +242,7 @@ class TestRemoteExecution:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': 'command="ls"',
+                'inputs': 'command=ls',
                 'search-query': f'name ~ {clients[0].hostname} or name ~ {clients[1].hostname}',
             }
         )
@@ -328,7 +328,7 @@ class TestRemoteExecution:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': 'command="ls"',
+                'inputs': 'command=ls',
                 'search-query': f"name ~ {client.hostname}",
                 'cron-line': '* * * * *',  # every minute
                 'max-iteration': 2,  # just two runs
@@ -368,7 +368,7 @@ class TestRemoteExecution:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': 'command="ls"',
+                'inputs': 'command=ls',
                 'start-at': plan_time,
                 'search-query': f"name ~ {client.hostname}",
             }
@@ -491,7 +491,7 @@ class TestAnsibleREX:
         make_user_job = make_job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
-                'inputs': f"command='useradd -m {username}'",
+                'inputs': f"command=useradd -m {username}",
                 'search-query': f"name ~ {client.hostname}",
             }
         )
@@ -500,7 +500,7 @@ class TestAnsibleREX:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
-                'inputs': f"command='touch /home/{username}/{filename}'",
+                'inputs': f"command=touch /home/{username}/{filename}",
                 'search-query': f"name ~ {client.hostname}",
                 'effective-user': f'{username}',
             }
@@ -541,7 +541,7 @@ class TestAnsibleREX:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
-                'inputs': 'command="ls"',
+                'inputs': 'command=ls',
                 'search-query': f"name ~ {client.hostname}",
                 'cron-line': '* * * * *',  # every minute
                 'max-iteration': 2,  # just two runs
@@ -585,7 +585,7 @@ class TestAnsibleREX:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
-                'inputs': 'command="ls"',
+                'inputs': 'command=ls',
                 'search-query': f'name ~ {clients[0].hostname} or name ~ {clients[1].hostname}',
                 'concurrency-level': 2,
             }
