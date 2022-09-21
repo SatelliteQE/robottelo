@@ -2571,18 +2571,18 @@ def test_positive_search_composite(session):
 @pytest.mark.tier3
 def test_positive_publish_with_repo_with_disabled_http(session, module_org):
     """Attempt to publish content view with repository that set
-    'publish via http' to False
+    'Unprotected' to False
 
     :id: 36ccb083-3433-4b54-911a-856e3dc85f39
 
     :customerscenario: true
 
     :steps:
-        1.  Create a repo with 'publish via http' set to true, url set to
+        1.  Create a repo with 'Unprotected' set to true, url set to
             some upstream repo
         2.  Sync the repo
         3.  Create a content view
-        4.  Set 'publish via http' to false
+        4.  Set 'Unprotected' to false
         5.  Add this repo to the content view
         6.  Publish the content view
 
@@ -2606,7 +2606,7 @@ def test_positive_publish_with_repo_with_disabled_http(session, module_org):
         session.contentview.create({'name': cv_name})
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
         # Update repository publishing method
-        session.repository.update(product_name, repo_name, {'repo_content.publish_via_http': False})
+        session.repository.update(product_name, repo_name, {'repo_content.unprotected': False})
         session.contentview.add_yum_repo(cv_name, repo_name)
         # Publish content view
         result = session.contentview.publish(cv_name)
