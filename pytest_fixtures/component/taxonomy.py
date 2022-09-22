@@ -77,18 +77,16 @@ def module_org_with_manifest(module_org):
 
 
 @pytest.fixture(scope='module')
-def module_entitlement_manifest_org(module_target_sat, module_entitlement_manifest):
+def module_entitlement_manifest_org(module_org, module_entitlement_manifest):
     """Creates an organization and uploads an entitlement mode manifest generated with manifester"""
-    org = module_target_sat.api.Organization().create()
-    upload_manifest(org.id, module_entitlement_manifest.content)
+    upload_manifest(module_org.id, module_entitlement_manifest.content)
     return org
 
 
 @pytest.fixture(scope='module')
-def module_sca_manifest_org(module_target_sat, module_sca_manifest):
+def module_sca_manifest_org(module_org, module_sca_manifest):
     """Creates an organization and uploads an SCA mode manifest generated with manifester"""
-    org = module_target_sat.api.Organization().create()
-    upload_manifest(org.id, module_sca_manifest.content)
+    upload_manifest(module_org.id, module_sca_manifest.content)
     return org
 
 
