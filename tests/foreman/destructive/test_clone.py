@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import pytest
-import requests
 
 from robottelo import constants
 from robottelo.config import settings
@@ -47,6 +46,7 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
     :parametrized: yes
     """
     rhel_version = sat_ready_rhel._v_major
+    sat_version = target_sat.version
 
     # SATELLITE PART - SOURCE SERVER
     # Enabling and starting services
@@ -90,13 +90,7 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
     # Disabling repositories
     assert sat_ready_rhel.execute('subscription-manager repos --disable=*').status == 0
     # Getting satellite maintenace repo
-    res = requests.get(
-        f'{settings.repos.ohsnap_repo_host}/api/releases/{target_sat.version}/'
-        f'el{rhel_version}/satellite/repo_file'
-    )
-    escaped = res.text.replace('$', '\\$')
-    assert sat_ready_rhel.execute(f'echo "{escaped}" > /etc/yum.repos.d/satellite.repo').status == 0
-    assert sat_ready_rhel.execute('ls /etc/yum.repos.d/satellite.repo').status == 0
+    sat_ready_rhel.download_repofile(product='satellite', release=sat_version)
     # Enabling repositories
     for repo in getattr(constants, f"OHSNAP_RHEL{rhel_version}_REPOS"):
         sat_ready_rhel.enable_repo(repo, force=True)
