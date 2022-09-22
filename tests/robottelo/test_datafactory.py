@@ -100,10 +100,10 @@ class TestReturnTypes:
         12. :meth:`robottelo.utils.datafactory.valid_names_list`
         13. :meth:`robottelo.utils.datafactory.valid_org_names_list`
         14. :meth:`robottelo.utils.datafactory.valid_usernames_list`
-        15. :meth:`robottelo.datafactory.invalid_id_list`
-        16. :meth:`robottelo.datafactory.invalid_interfaces_list`
-        17. :meth:`robottelo.datafactory.valid_interfaces_list`
-        18. :meth:`robottelo.datafactory.valid_cron_expressions`
+        15. :meth:`robottelo.utils.datafactory.invalid_id_list`
+        16. :meth:`robottelo.utils.datafactory.invalid_interfaces_list`
+        17. :meth:`robottelo.utils.datafactory.valid_interfaces_list`
+        18. :meth:`robottelo.utils.datafactory.valid_cron_expressions`
 
         """
         for item in itertools.chain(

@@ -19,10 +19,10 @@ from fauxfactory import gen_ipaddr
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.utils import ssh
 from robottelo.api.utils import configure_provisioning
 from robottelo.api.utils import create_discovered_host
 from robottelo.libvirt_discovery import LibvirtGuest
+from robottelo.utils import ssh
 
 pytestmark = [pytest.mark.run_in_one_thread]
 

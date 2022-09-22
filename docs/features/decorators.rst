@@ -9,7 +9,7 @@ Modules
 -------
 
 Robottelo decorators are located under
-:doc:`decorator package </autoapi/robottelo/decorators/index>`. Most of them are used to
+:doc:`decorator package </autoapi/robottelo/utils/decorators/index>`. Most of them are used to
 control if a test must be skipped or executed accordingly with specific
 configurations.
 

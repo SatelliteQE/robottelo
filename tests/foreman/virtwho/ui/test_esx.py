@@ -24,21 +24,21 @@ from fauxfactory import gen_string
 
 from robottelo.config import settings
 from robottelo.utils.datafactory import valid_emails_list
-from robottelo.utils.virtwho_utils import add_configure_option
-from robottelo.utils.virtwho_utils import create_http_proxy
-from robottelo.utils.virtwho_utils import delete_configure_option
-from robottelo.utils.virtwho_utils import deploy_configure_by_command
-from robottelo.utils.virtwho_utils import deploy_configure_by_command_check
-from robottelo.utils.virtwho_utils import deploy_configure_by_script
-from robottelo.utils.virtwho_utils import ETC_VIRTWHO_CONFIG
-from robottelo.utils.virtwho_utils import get_configure_command
-from robottelo.utils.virtwho_utils import get_configure_file
-from robottelo.utils.virtwho_utils import get_configure_id
-from robottelo.utils.virtwho_utils import get_configure_option
-from robottelo.utils.virtwho_utils import get_virtwho_status
-from robottelo.utils.virtwho_utils import restart_virtwho_service
-from robottelo.utils.virtwho_utils import update_configure_option
-from robottelo.utils.virtwho_utils import get_guest_info
+from robottelo.utils.virtwho import add_configure_option
+from robottelo.utils.virtwho import create_http_proxy
+from robottelo.utils.virtwho import delete_configure_option
+from robottelo.utils.virtwho import deploy_configure_by_command
+from robottelo.utils.virtwho import deploy_configure_by_command_check
+from robottelo.utils.virtwho import deploy_configure_by_script
+from robottelo.utils.virtwho import ETC_VIRTWHO_CONFIG
+from robottelo.utils.virtwho import get_configure_command
+from robottelo.utils.virtwho import get_configure_file
+from robottelo.utils.virtwho import get_configure_id
+from robottelo.utils.virtwho import get_configure_option
+from robottelo.utils.virtwho import get_guest_info
+from robottelo.utils.virtwho import get_virtwho_status
+from robottelo.utils.virtwho import restart_virtwho_service
+from robottelo.utils.virtwho import update_configure_option
 
 
 @pytest.fixture()
@@ -75,7 +75,7 @@ class TestVirtwhoConfigforEsx:
             1. Config can be created and deployed by command
             2. No error msg in /var/log/rhsm/rhsm.log
             3. Report is sent to satellite
-            4. Virtual sku can be generated and attache.d
+            4. Virtual sku can be generated and attached
             5. Config can be deleted
 
         :CaseLevel: Integration

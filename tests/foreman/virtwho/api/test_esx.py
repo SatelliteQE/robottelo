@@ -20,14 +20,14 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo.config import settings
-from robottelo.utils.virtwho_utils import create_http_proxy
-from robottelo.utils.virtwho_utils import deploy_configure_by_command
-from robottelo.utils.virtwho_utils import deploy_configure_by_command_check
-from robottelo.utils.virtwho_utils import deploy_configure_by_script
-from robottelo.utils.virtwho_utils import ETC_VIRTWHO_CONFIG
-from robottelo.utils.virtwho_utils import get_configure_command
-from robottelo.utils.virtwho_utils import get_configure_file
-from robottelo.utils.virtwho_utils import get_configure_option
+from robottelo.utils.virtwho import create_http_proxy
+from robottelo.utils.virtwho import deploy_configure_by_command
+from robottelo.utils.virtwho import deploy_configure_by_command_check
+from robottelo.utils.virtwho import deploy_configure_by_script
+from robottelo.utils.virtwho import ETC_VIRTWHO_CONFIG
+from robottelo.utils.virtwho import get_configure_command
+from robottelo.utils.virtwho import get_configure_file
+from robottelo.utils.virtwho import get_configure_option
 
 
 @pytest.fixture()
