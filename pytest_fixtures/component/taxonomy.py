@@ -80,14 +80,14 @@ def module_org_with_manifest(module_org):
 def module_entitlement_manifest_org(module_org, module_entitlement_manifest):
     """Creates an organization and uploads an entitlement mode manifest generated with manifester"""
     upload_manifest(module_org.id, module_entitlement_manifest.content)
-    return org
+    return module_org
 
 
 @pytest.fixture(scope='module')
 def module_sca_manifest_org(module_org, module_sca_manifest):
     """Creates an organization and uploads an SCA mode manifest generated with manifester"""
     upload_manifest(module_org.id, module_sca_manifest.content)
-    return org
+    return module_org
 
 
 @pytest.fixture(scope='module')
