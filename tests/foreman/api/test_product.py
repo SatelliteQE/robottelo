@@ -97,7 +97,7 @@ def test_positive_create_with_gpg(module_org):
     :CaseLevel: Integration
     """
     gpg_key = entities.GPGKey(
-        content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
+        content=DataFile.VALID_GPG_KEY_FILE.read_text(),
         organization=module_org,
     ).create()
     product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
@@ -227,14 +227,14 @@ def test_positive_update_gpg(module_org):
     """
     # Create a product and make it point to a GPG key.
     gpg_key_1 = entities.GPGKey(
-        content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
+        content=DataFile.VALID_GPG_KEY_FILE.read_text(),
         organization=module_org,
     ).create()
     product = entities.Product(gpg_key=gpg_key_1, organization=module_org).create()
 
     # Update the product and make it point to a new GPG key.
     gpg_key_2 = entities.GPGKey(
-        content=DataFile.VALID_GPG_KEY_BETA_FILE.read_bytes(),
+        content=DataFile.VALID_GPG_KEY_BETA_FILE.read_text(),
         organization=module_org,
     ).create()
     product.gpg_key = gpg_key_2

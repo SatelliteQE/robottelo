@@ -210,7 +210,7 @@ def test_positive_delete(module_org, module_product):
 
     :CaseImportance: Critical
     """
-    key_content = DataFile.ZOO_CUSTOM_GPG_KEY.read_bytes()
+    key_content = DataFile.ZOO_CUSTOM_GPG_KEY.read_text()
     gpgkey = entities.GPGKey(content=key_content, organization=module_org).create()
     # Creates new repository with GPGKey
     repo = entities.Repository(

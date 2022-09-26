@@ -26,7 +26,7 @@ from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 
-key_content = DataFile.VALID_GPG_KEY_FILE.read_bytes()
+key_content = DataFile.VALID_GPG_KEY_FILE.read_text()
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
@@ -145,7 +145,7 @@ def test_positive_update_content(module_org):
     """
     gpg_key = entities.GPGKey(
         organization=module_org,
-        content=DataFile.VALID_GPG_KEY_BETA_FILE.read_bytes(),
+        content=DataFile.VALID_GPG_KEY_BETA_FILE.read_text(),
     ).create()
     gpg_key.content = key_content
     gpg_key = gpg_key.update(['content'])
