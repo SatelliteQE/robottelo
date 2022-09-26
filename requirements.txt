@@ -4,7 +4,7 @@
 broker==0.2.7
 cryptography==37.0.4
 deepdiff==5.8.1
-dynaconf[vault]==3.1.8
+dynaconf[vault]==3.1.11
 fauxfactory==3.1.0
 hvac<1.0.0  # hvac 1.0.0 breaks Dynaconf. #807
 jinja2==3.1.2
