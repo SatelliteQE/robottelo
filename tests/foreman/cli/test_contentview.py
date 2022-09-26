@@ -53,10 +53,10 @@ from robottelo.datafactory import valid_names_list
 
 
 @pytest.fixture(scope='module')
-def module_rhel_content(module_manifest_org):
+def module_rhel_content(module_entitlement_manifest_org):
     """Returns RH repo after syncing it"""
     product = entities.Product(
-        name=constants.PRDS['rhel'], organization=module_manifest_org
+        name=constants.PRDS['rhel'], organization=module_entitlement_manifest_org
     ).search()[0]
     reposet = entities.RepositorySet(name=constants.REPOSET['rhva6'], product=product).search()[0]
     data = {'basearch': 'x86_64', 'releasever': '6Server', 'product_id': product.id}
@@ -65,14 +65,14 @@ def module_rhel_content(module_manifest_org):
     repo = Repository.info(
         {
             'name': constants.REPOS['rhva6']['name'],
-            'organization-id': module_manifest_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'product': product.name,
         }
     )
     Repository.synchronize(
         {
             'name': constants.REPOS['rhva6']['name'],
-            'organization-id': module_manifest_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'product': product.name,
         }
     )
@@ -909,7 +909,7 @@ class TestContentView:
     @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier1
-    def test_positive_add_rh_repo_by_id(self, module_manifest_org, module_rhel_content):
+    def test_positive_add_rh_repo_by_id(self, module_entitlement_manifest_org, module_rhel_content):
         """Associate Red Hat content to a content view
 
         :id: b31a85c3-aa56-461b-9e3a-f7754c742573
@@ -923,12 +923,14 @@ class TestContentView:
         :CaseImportance: Critical
         """
         # Create CV
-        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view(
+            {'organization-id': module_entitlement_manifest_org.id}
+        )
         # Associate repo to CV
         ContentView.add_repository(
             {
                 'id': new_cv['id'],
-                'organization-id': module_manifest_org.id,
+                'organization-id': module_entitlement_manifest_org.id,
                 'repository-id': module_rhel_content['id'],
             }
         )
@@ -940,7 +942,7 @@ class TestContentView:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_add_rh_repo_by_id_and_create_filter(
-        self, module_manifest_org, module_rhel_content
+        self, module_entitlement_manifest_org, module_rhel_content
     ):
         """Associate Red Hat content to a content view and create filter
 
@@ -960,12 +962,14 @@ class TestContentView:
         :BZ: 1359665
         """
         # Create CV
-        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view(
+            {'organization-id': module_entitlement_manifest_org.id}
+        )
         # Associate repo to CV
         ContentView.add_repository(
             {
                 'id': new_cv['id'],
-                'organization-id': module_manifest_org.id,
+                'organization-id': module_entitlement_manifest_org.id,
                 'repository-id': module_rhel_content['id'],
             }
         )
@@ -1146,7 +1150,9 @@ class TestContentView:
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier2
-    def test_positive_promote_rh_content(self, module_manifest_org, module_rhel_content):
+    def test_positive_promote_rh_content(
+        self, module_entitlement_manifest_org, module_rhel_content
+    ):
         """attempt to promote a content view containing RH content
 
         :id: 53b3661b-b40f-466e-a742-bc4b8c1f6cd8
@@ -1160,13 +1166,17 @@ class TestContentView:
         :CaseLevel: Integration
         """
         # Create CV
-        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view(
+            {'organization-id': module_entitlement_manifest_org.id}
+        )
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': module_rhel_content['id']})
         # Publish a new version of CV
         ContentView.publish({'id': new_cv['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
-        env1 = cli_factory.make_lifecycle_environment({'organization-id': module_manifest_org.id})
+        env1 = cli_factory.make_lifecycle_environment(
+            {'organization-id': module_entitlement_manifest_org.id}
+        )
         # Promote the Published version of CV to the next env
         ContentView.version_promote(
             {'id': new_cv['versions'][0]['id'], 'to-lifecycle-environment-id': env1['id']}
@@ -1177,7 +1187,9 @@ class TestContentView:
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
-    def test_positive_promote_rh_and_custom_content(self, module_manifest_org, module_rhel_content):
+    def test_positive_promote_rh_and_custom_content(
+        self, module_entitlement_manifest_org, module_rhel_content
+    ):
         """attempt to promote a content view containing RH content and
         custom content using filters
 
@@ -1194,15 +1206,17 @@ class TestContentView:
         # Create custom repo
         new_repo = cli_factory.make_repository(
             {
-                'product-id': cli_factory.make_product({'organization-id': module_manifest_org.id})[
-                    'id'
-                ]
+                'product-id': cli_factory.make_product(
+                    {'organization-id': module_entitlement_manifest_org.id}
+                )['id']
             }
         )
         # Sync custom repo
         Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view(
+            {'organization-id': module_entitlement_manifest_org.id}
+        )
         # Associate repos with CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': module_rhel_content['id']})
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
@@ -1219,7 +1233,9 @@ class TestContentView:
         # Publish a new version of CV
         ContentView.publish({'id': new_cv['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
-        env1 = cli_factory.make_lifecycle_environment({'organization-id': module_manifest_org.id})
+        env1 = cli_factory.make_lifecycle_environment(
+            {'organization-id': module_entitlement_manifest_org.id}
+        )
         # Promote the Published version of CV to the next env
         ContentView.version_promote(
             {'id': new_cv['versions'][0]['id'], 'to-lifecycle-environment-id': env1['id']}
@@ -1382,7 +1398,9 @@ class TestContentView:
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier2
-    def test_positive_publish_rh_content(self, module_manifest_org, module_rhel_content):
+    def test_positive_publish_rh_content(
+        self, module_entitlement_manifest_org, module_rhel_content
+    ):
         """attempt to publish a content view containing RH content
 
         :id: d4323759-d869-4d62-ab2e-f1ea3dbb38ba
@@ -1396,7 +1414,9 @@ class TestContentView:
         :CaseLevel: Integration
         """
         # Create CV
-        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view(
+            {'organization-id': module_entitlement_manifest_org.id}
+        )
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': module_rhel_content['id']})
         # Publish a new version of CV
@@ -1409,7 +1429,9 @@ class TestContentView:
     @pytest.mark.run_in_one_thread
     @pytest.mark.pit_server
     @pytest.mark.tier3
-    def test_positive_publish_rh_and_custom_content(self, module_manifest_org, module_rhel_content):
+    def test_positive_publish_rh_and_custom_content(
+        self, module_entitlement_manifest_org, module_rhel_content
+    ):
         """attempt to publish  a content view containing a RH and custom
         repos and has filters
 
@@ -1426,15 +1448,17 @@ class TestContentView:
         # Create custom repo
         new_repo = cli_factory.make_repository(
             {
-                'product-id': cli_factory.make_product({'organization-id': module_manifest_org.id})[
-                    'id'
-                ]
+                'product-id': cli_factory.make_product(
+                    {'organization-id': module_entitlement_manifest_org.id}
+                )['id']
             }
         )
         # Sync custom repo
         Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view(
+            {'organization-id': module_entitlement_manifest_org.id}
+        )
         # Associate repos with CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': module_rhel_content['id']})
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
@@ -1606,7 +1630,7 @@ class TestContentView:
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier2
     def test_positive_republish_after_rh_content_removed(
-        self, module_manifest_org, module_rhel_content
+        self, module_entitlement_manifest_org, module_rhel_content
     ):
         """Attempt to re-publish content view after all RH associated content
         was removed from that CV
@@ -1626,12 +1650,14 @@ class TestContentView:
 
         :CaseImportance: Medium
         """
-        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view(
+            {'organization-id': module_entitlement_manifest_org.id}
+        )
         # Associate repo to CV
         ContentView.add_repository(
             {
                 'id': new_cv['id'],
-                'organization-id': module_manifest_org.id,
+                'organization-id': module_entitlement_manifest_org.id,
                 'repository-id': module_rhel_content['id'],
             }
         )
@@ -1945,7 +1971,7 @@ class TestContentView:
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
     def test_positive_subscribe_chost_by_id_using_rh_content(
-        self, module_manifest_org, module_rhel_content
+        self, module_entitlement_manifest_org, module_rhel_content
     ):
         """Attempt to subscribe content host to content view that has
         Red Hat repository assigned to it
@@ -1959,12 +1985,16 @@ class TestContentView:
 
         :CaseImportance: Medium
         """
-        env = cli_factory.make_lifecycle_environment({'organization-id': module_manifest_org.id})
-        content_view = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
+        env = cli_factory.make_lifecycle_environment(
+            {'organization-id': module_entitlement_manifest_org.id}
+        )
+        content_view = cli_factory.make_content_view(
+            {'organization-id': module_entitlement_manifest_org.id}
+        )
         ContentView.add_repository(
             {
                 'id': content_view['id'],
-                'organization-id': module_manifest_org.id,
+                'organization-id': module_entitlement_manifest_org.id,
                 'repository-id': module_rhel_content['id'],
             }
         )
@@ -1981,7 +2011,7 @@ class TestContentView:
                 'content-view-id': content_view['id'],
                 'lifecycle-environment-id': env['id'],
                 'name': gen_alphanumeric(),
-                'organization-id': module_manifest_org.id,
+                'organization-id': module_entitlement_manifest_org.id,
             }
         )
         content_view = ContentView.info({'id': content_view['id']})
@@ -1991,7 +2021,7 @@ class TestContentView:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_subscribe_chost_by_id_using_rh_content_and_filters(
-        self, module_manifest_org, module_rhel_content
+        self, module_entitlement_manifest_org, module_rhel_content
     ):
         """Attempt to subscribe content host to filtered content view
         that has Red Hat repository assigned to it
@@ -2007,12 +2037,16 @@ class TestContentView:
 
         :CaseImportance: Low
         """
-        env = cli_factory.make_lifecycle_environment({'organization-id': module_manifest_org.id})
-        content_view = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
+        env = cli_factory.make_lifecycle_environment(
+            {'organization-id': module_entitlement_manifest_org.id}
+        )
+        content_view = cli_factory.make_content_view(
+            {'organization-id': module_entitlement_manifest_org.id}
+        )
         ContentView.add_repository(
             {
                 'id': content_view['id'],
-                'organization-id': module_manifest_org.id,
+                'organization-id': module_entitlement_manifest_org.id,
                 'repository-id': module_rhel_content['id'],
             }
         )
@@ -2050,7 +2084,7 @@ class TestContentView:
                 'content-view-id': content_view['id'],
                 'lifecycle-environment-id': env['id'],
                 'name': gen_alphanumeric(),
-                'organization-id': module_manifest_org.id,
+                'organization-id': module_entitlement_manifest_org.id,
             }
         )
         content_view = ContentView.info({'id': content_view['id']})
