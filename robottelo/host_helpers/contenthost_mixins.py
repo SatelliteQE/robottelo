@@ -89,6 +89,26 @@ class VersionedContent:
             releasever=None,
         )
 
+    def create_repo(self, rpm_name, repo_path, post_upgrade=False, other_rpm=None):
+        """Creates a custom yum repository, that will be synced to satellite
+        and later to capsule from satellite
+        :param: str rpm_name : rpm name, required to create a repository.
+        :param: str repo_path: Name of the repository path
+        :param: bool post_upgrade: For Pre-upgrade, post_upgrade value will be False
+        :param: str other_rpm: If we want to clean a specific rpm and update with
+        latest then we pass other rpm.
+        """
+        if post_upgrade:
+            self.execute(f'wget {rpm_name} -P {repo_path}')
+            self.execute(f'rm -rf {repo_path + other_rpm}')
+            self.execute(f'createrepo --update {repo_path}')
+        else:
+            self.execute(f'rm -rf {repo_path}')
+            self.execute(f'mkdir {repo_path}')
+            self.execute(f'wget {rpm_name} -P {repo_path}')
+            # Renaming custom rpm to preRepoSync.rpm
+            self.execute(f'createrepo --database {repo_path}')
+
 
 class SystemFacts:
     """Helpers mixin that enables getting/setting subscription-manager facts on a host"""
