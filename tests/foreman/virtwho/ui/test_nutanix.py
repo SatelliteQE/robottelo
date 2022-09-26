@@ -152,7 +152,8 @@ class TestVirtwhoConfigforNutanix:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_prism_central_deploy_configure_by_id(self, default_org, session, form_data):
+    @pytest.mark.parametrize('deploy_type', ['id', 'script'])
+    def test_positive_prism_central_deploy_configure_by_id_script(self, default_org, session, form_data， deploy_type):
         """Verify configure created and deployed with id on nutanix prism central mode
 
         :id: 74fb3b05-2f88-4ebf-8d0d-4973ee8536d8
@@ -175,55 +176,16 @@ class TestVirtwhoConfigforNutanix:
         with session:
             session.virtwho_configure.create(form_data)
             values = session.virtwho_configure.read(name)
-            command = values['deploy']['command']
-            hypervisor_name, guest_name = deploy_configure_by_command(
-                command, form_data['hypervisor_type'], debug=True, org=default_org.label
-            )
-            # Check the option "prism_central=true" should be set in etc/virt-who.d/virt-who.conf
-            config_id = get_configure_id(name)
-            config_file = get_configure_file(config_id)
-            assert get_configure_option("prism_central", config_file) == 'true'
-            assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
-            hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-            vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
-            vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
-            session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
-            assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
-            session.contenthost.add_subscription(guest_name, vdc_virtual)
-            assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
-
-    @pytest.mark.tier2
-    def test_positive_prism_central_deploy_configure_by_script(
-        self, default_org, session, form_data
-    ):
-        """Verify configure created and deployed with script on nutanix prism central mode.
-
-        :id: e4fe02f8-91f2-4802-8cd8-0c4a95d3d924
-
-        :expectedresults:
-            1. Config can be created and deployed by script
-            2. No error msg in /var/log/rhsm/rhsm.log
-            3. Report is sent to satellite
-            4. The prism_central has been set true in /etc/virt-who.d/vir-who.conf file
-            5. Virtual sku can be generated and attached
-            6. Config can be deleted
-
-        :CaseLevel: Integration
-
-        :CaseImportance: High
-        """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        form_data['hypervisor_content.prism_flavor'] = "Prism Central"
-        with session:
-            session.virtwho_configure.create(form_data)
-            values = session.virtwho_configure.read(name)
-            script = values['deploy']['script']
-            hypervisor_name, guest_name = deploy_configure_by_script(
-                script, form_data['hypervisor_type'], debug=True, org=default_org.label
-            )
+            if deploy_type == "id":
+                command = values['deploy']['command']
+                hypervisor_name, guest_name = deploy_configure_by_command(
+                    command, form_data['hypervisor_type'], debug=True, org=default_org.label
+                )
+            elif deploy_type == "script":
+                script = values['deploy']['script']
+                hypervisor_name, guest_name = deploy_configure_by_script(
+                    script, form_data['hypervisor_type'], debug=True, org=default_org.label
+                )
             # Check the option "prism_central=true" should be set in etc/virt-who.d/virt-who.conf
             config_id = get_configure_id(name)
             config_file = get_configure_file(config_id)
