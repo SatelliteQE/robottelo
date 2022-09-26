@@ -153,7 +153,9 @@ class TestVirtwhoConfigforNutanix:
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('deploy_type', ['id', 'script'])
-    def test_positive_prism_central_deploy_configure_by_id_script(self, default_org, session, form_data, deploy_type):
+    def test_positive_prism_central_deploy_configure_by_id_script(
+        self, default_org, session, form_data, deploy_type
+    ):
         """Verify configure created and deployed with id on nutanix prism central mode
 
         :id: 74fb3b05-2f88-4ebf-8d0d-4973ee8536d8
