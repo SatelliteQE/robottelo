@@ -39,7 +39,6 @@ from robottelo.virtwho_utils import get_guest_info
 from robottelo.virtwho_utils import get_virtwho_status
 from robottelo.virtwho_utils import restart_virtwho_service
 from robottelo.virtwho_utils import update_configure_option
-from robottelo.virtwho_utils import virtwho_cleanup
 
 
 @pytest.fixture()
@@ -56,17 +55,16 @@ def form_data():
     return form
 
 
+@pytest.fixture()
+def setup_method(form_data):
+    guest_name, guest_uuid = get_guest_info(form_data['hypervisor_type'])
+    if Host.list({'search': guest_name}):
+        Host.delete({'name': guest_name})
+
+
 class TestVirtwhoConfigforEsx:
     @pytest.mark.tier2
-    def setup_method(self):
-        """Set up a clean env for tests."""
-        virtwho_cleanup()
-        guest_name, guest_uuid = get_guest_info(settings.virtwho.esx.hypervisor_type)
-        if Host.list({'search': guest_name}):
-            Host.delete({'name': guest_name})
-
-    @pytest.mark.tier2
-    def test_positive_deploy_configure_by_id(self, default_org, session, form_data):
+    def test_positive_deploy_configure_by_id(self, default_org, session, form_data, setup_method):
         """Verify configure created and deployed with id.
 
         :id: 44f93ec8-a59a-42a4-ab30-edc554b022b2
@@ -103,7 +101,9 @@ class TestVirtwhoConfigforEsx:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_script(self, default_org, session, form_data):
+    def test_positive_deploy_configure_by_script(
+        self, default_org, session, form_data, setup_method
+    ):
         """Verify configure created and deployed with script.
 
         :id: d64332fb-a6e0-4864-9f8b-2406223fcdcc
@@ -140,7 +140,7 @@ class TestVirtwhoConfigforEsx:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_debug_option(self, default_org, session, form_data):
+    def test_positive_debug_option(self, default_org, session, form_data, setup_method):
         """Verify debug checkbox and the value changes of VIRTWHO_DEBUG
 
         :id: adb435c4-d02b-47b6-89f5-dce9a4ff7939
@@ -174,7 +174,7 @@ class TestVirtwhoConfigforEsx:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_interval_option(self, default_org, session, form_data):
+    def test_positive_interval_option(self, default_org, session, form_data, setup_method):
         """Verify interval dropdown options and the value changes of VIRTWHO_INTERVAL.
 
         :id: 731f8361-38d4-40b9-9530-8d785d61eaab
@@ -215,7 +215,7 @@ class TestVirtwhoConfigforEsx:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_hypervisor_id_option(self, default_org, session, form_data):
+    def test_positive_hypervisor_id_option(self, default_org, session, form_data, setup_method):
         """Verify Hypervisor ID dropdown options.
 
         :id: cc494bd9-51d9-452a-bfa9-5cdcafef5197
@@ -249,7 +249,7 @@ class TestVirtwhoConfigforEsx:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_filtering_option(self, default_org, session, form_data):
+    def test_positive_filtering_option(self, default_org, session, form_data, setup_method):
         """Verify Filtering dropdown options.
 
         :id: e17dda14-79cd-4cd2-8f29-60970b24a905
@@ -301,7 +301,7 @@ class TestVirtwhoConfigforEsx:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_proxy_option(self, default_org, session, form_data):
+    def test_positive_proxy_option(self, default_org, session, form_data, setup_method):
         """Verify 'HTTP Proxy' and 'Ignore Proxy' options.
 
         :id: 6659d577-0135-4bf0-81af-14b930011536
@@ -381,7 +381,7 @@ class TestVirtwhoConfigforEsx:
                 assert sorted(assigned_permissions) == sorted(role_filters)
 
     @pytest.mark.tier2
-    def test_positive_virtwho_configs_widget(self, default_org, session, form_data):
+    def test_positive_virtwho_configs_widget(self, default_org, session, form_data, setup_method):
         """Check if Virt-who Configurations Status Widget is working in the Dashboard UI
 
         :id: 5d61ce00-a640-4823-89d4-7b1d02b50ea6
@@ -433,7 +433,7 @@ class TestVirtwhoConfigforEsx:
             session.organization.select("Default Organization")
 
     @pytest.mark.tier2
-    def test_positive_delete_configure(self, default_org, session, form_data):
+    def test_positive_delete_configure(self, default_org, session, form_data, setup_method):
         """Verify when a config is deleted the associated user is deleted.
 
         :id: 0e66dcf6-dc64-4fb2-b8a9-518f5adfa800
@@ -464,7 +464,9 @@ class TestVirtwhoConfigforEsx:
             assert get_virtwho_status() == 'logerror'
 
     @pytest.mark.tier2
-    def test_positive_virtwho_reporter_role(self, default_org, session, test_name, form_data):
+    def test_positive_virtwho_reporter_role(
+        self, default_org, session, test_name, form_data, setup_method
+    ):
         """Verify the virt-who reporter role can TRULY work.
 
         :id: cd235ab0-d89c-464b-98d6-9d090ac40d8f
@@ -518,7 +520,9 @@ class TestVirtwhoConfigforEsx:
             assert not session.user.search(username)
 
     @pytest.mark.tier2
-    def test_positive_virtwho_viewer_role(self, default_org, session, test_name, form_data):
+    def test_positive_virtwho_viewer_role(
+        self, default_org, session, test_name, form_data, setup_method
+    ):
         """Verify the virt-who viewer role can TRULY work.
 
         :id: bf3be2e4-3853-41cc-9b3e-c8677f0b8c5f
@@ -578,7 +582,9 @@ class TestVirtwhoConfigforEsx:
             assert not session.user.search(username)
 
     @pytest.mark.tier2
-    def test_positive_virtwho_manager_role(self, default_org, session, test_name, form_data):
+    def test_positive_virtwho_manager_role(
+        self, default_org, session, test_name, form_data, setup_method
+    ):
         """Verify the virt-who manager role can TRULY work.
 
         :id: a72023fb-7b23-4582-9adc-c5227dc7859c
@@ -638,7 +644,7 @@ class TestVirtwhoConfigforEsx:
             assert not session.user.search(username)
 
     @pytest.mark.tier2
-    def test_positive_overview_label_name(self, default_org, form_data, session):
+    def test_positive_overview_label_name(self, default_org, form_data, session, setup_method):
         """Verify the label name on virt-who config Overview Page.
 
         :id: 21df8175-bb41-422e-a263-8677bc3a9565
@@ -702,7 +708,7 @@ class TestVirtwhoConfigforEsx:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_last_checkin_status(self, default_org, form_data, session):
+    def test_positive_last_checkin_status(self, default_org, form_data, session, setup_method):
         """Verify the Last Checkin status on Content Hosts Page.
 
         :id: 7448d482-d05c-4727-8980-176586e9e4a7
