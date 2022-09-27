@@ -245,7 +245,10 @@ class TestVirtWhoConfigforNutanix:
         :CaseImportance: Medium
         """
         value = 'central'
-        target_sat.cli.VirtWhoConfig.update({'id': virtwho_config['id'], 'prism-flavor': value})
+        result = target_sat.cli.VirtWhoConfig.update(
+            {'id': virtwho_config['id'], 'prism-flavor': value}
+        )
+        assert result[0]['message'] == f"Virt Who configuration [{virtwho_config['name']}] updated"
         result = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config['id']})
         assert result['general-information']['ahv-prism-flavor'] == value
         config_file = get_configure_file(virtwho_config['id'])
