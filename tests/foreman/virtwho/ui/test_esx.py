@@ -22,7 +22,6 @@ import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 
-from robottelo.cli.host import Host
 from robottelo.config import settings
 from robottelo.datafactory import valid_emails_list
 from robottelo.virtwho_utils import add_configure_option
@@ -56,10 +55,10 @@ def form_data():
 
 
 @pytest.fixture()
-def setup_method(form_data):
+def setup_method(form_data, target_sat):
     guest_name, guest_uuid = get_guest_info(form_data['hypervisor_type'])
-    if Host.list({'search': guest_name}):
-        Host.delete({'name': guest_name})
+    if target_sat.cli.Host.list({'search': guest_name}):
+        target_sat.cli.Host.delete({'name': guest_name})
 
 
 class TestVirtwhoConfigforEsx:
