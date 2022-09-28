@@ -55,7 +55,7 @@ def test_positive_end_to_end(session, module_org):
     product_label = gen_string('alpha')
     product_description = gen_string('alpha')
     gpg_key = entities.GPGKey(
-        content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
+        content=DataFile.VALID_GPG_KEY_FILE.read_text(),
         organization=module_org,
     ).create()
     sync_plan = entities.SyncPlan(organization=module_org).create()
@@ -141,7 +141,7 @@ def test_positive_product_create_with_create_sync_plan(session, module_org):
     product_name = gen_string('alpha')
     product_description = gen_string('alpha')
     gpg_key = entities.GPGKey(
-        content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
+        content=DataFile.VALID_GPG_KEY_FILE.read_text(),
         organization=module_org,
     ).create()
     plan_name = gen_string('alpha')
