@@ -52,7 +52,7 @@ class SSOHost(Host):
         )
 
         result = self.execute(f'{KEY_CLOAK_CLI} get clients --fields id,clientId')
-        result_json = json.loads(f'{result}')
+        result_json = json.loads(result.stdout)
         client_id = None
         for client in result_json:
             if client_name in client['clientId']:
@@ -66,17 +66,16 @@ class SSOHost(Host):
         result = self.execute(
             f"{KEY_CLOAK_CLI} get users -r {settings.rhsso.realm} -q username={username}"
         )
-        result_json = json.loads(f'[{{{result}')
+        result_json = json.loads(result.stdout)
         return result_json[0]
 
     @lru_cache
     def get_rhsso_groups_details(self, group_name):
         """Getter method to receive the group id"""
-        result = self.execute(
-            f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm} -q group_name={group_name}"
-        )
-        result_json = json.loads(f'[{{{result}')
-        return result_json[0]
+        result = self.execute(f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm}")
+        group_list = json.loads(result)
+        query_group = [group for group in group_list if group['name'] == group_name]
+        return query_group[0]
 
     def upload_rhsso_entity(self, json_content, entity_name):
         """Helper method upload the entity json request as file on RHSSO Server"""
@@ -94,16 +93,16 @@ class SSOHost(Host):
             )
         )
 
-    def create_new_rhsso_user(self, username=None):
+    def create_new_rhsso_user(self, client_id, username=None):
         """create new user in RHSSO instance and set the password"""
         update_data_user = RHSSO_NEW_USER.copy()
         update_data_pass = RHSSO_RESET_PASSWORD.copy()
         if not username:
             username = gen_string('alphanumeric')
         update_data_user.username = username
-        update_data_user.email = random.choice(valid_emails_list())
-        RHSSO_RESET_PASSWORD['value'] = settings.rhsso.rhsso_password
-        self.upload_rhsso_entity(update_data_pass, "create_user")
+        update_data_user.email = username + random.choice(valid_emails_list())
+        update_data_pass.value = settings.rhsso.rhsso_password
+        self.upload_rhsso_entity(update_data_user, "create_user")
         self.upload_rhsso_entity(update_data_pass, "reset_password")
         self.execute(f"{KEY_CLOAK_CLI} create users -r {settings.rhsso.realm} -f create_user")
         user_details = self.get_rhsso_user_details(update_data_user.username)

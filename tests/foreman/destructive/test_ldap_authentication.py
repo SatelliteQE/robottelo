@@ -28,7 +28,12 @@ from robottelo.config import settings
 from robottelo.constants import CERT_PATH
 from robottelo.constants import HAMMER_SESSIONS
 from robottelo.constants import LDAP_ATTR
+<<<<<<< HEAD
 from robottelo.utils.datafactory import gen_string
+=======
+from robottelo.datafactory import gen_string
+from robottelo.utils.sso import sso_host
+>>>>>>> updated tests to use default_sso_host
 
 pytestmark = [pytest.mark.destructive, pytest.mark.run_in_one_thread]
 
@@ -328,8 +333,8 @@ def test_session_expire_rhsso_idle_timeout(
 
 
 def test_external_new_user_login_and_check_count_rhsso(
-    enable_external_auth_rhsso,
     rhsso_setting_setup,
+    enable_external_auth_rhsso,
     external_user_count,
     module_target_sat,
     default_sso_host,
