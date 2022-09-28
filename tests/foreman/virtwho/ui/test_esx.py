@@ -56,9 +56,10 @@ def form_data():
 
 @pytest.fixture(autouse=True)
 def clean_host(form_data, target_sat):
-    guest_name, guest_uuid = get_guest_info(form_data['hypervisor_type'])
-    if target_sat.cli.Host.list({'search': guest_name}):
-        target_sat.cli.Host.delete({'name': guest_name})
+    guest_name, _ = get_guest_info(form_data['hypervisor_type'])
+    results = target_sat.api.Host().search(query={'search': guest_name})
+    if results:
+        target_sat.api.Host(id=results[0].read_json()['id']).delete()
 
 
 @pytest.mark.usefixtures('clean_host')
