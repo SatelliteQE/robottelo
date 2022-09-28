@@ -22,7 +22,6 @@ from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import FAKE_10_YUM_BUGFIX_ERRATUM
@@ -121,9 +120,7 @@ def lce(org):
 @pytest.fixture
 def erratatype_vm(module_repos_collection_with_setup, target_sat):
     """Virtual machine client using module_repos_collection_with_setup for subscription"""
-    with Broker(
-        nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}
-    ) as client:
+    with Broker(nick=module_repos_collection_with_setup.distro, host_class=ContentHost) as client:
         module_repos_collection_with_setup.setup_virtual_machine(client)
         yield client
 
@@ -161,6 +158,7 @@ def vm(module_repos_collection_with_setup, rhel7_contenthost, target_sat):
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_end_to_end(
     session, module_org, module_repos_collection_with_setup, vm, target_sat, setting_update
 ):
@@ -284,7 +282,7 @@ def test_content_host_errata_page_pagination(session, org, lce, target_sat):
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    with Broker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
+    with Broker(nick=repos_collection.distro, host_class=ContentHost) as client:
         client.add_rex_key(satellite=target_sat)
         # Add repo and install packages that need errata
         repos_collection.setup_virtual_machine(client)
@@ -454,7 +452,7 @@ def test_positive_apply_for_all_hosts(
     :CaseLevel: System
     """
     with Broker(
-        nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}, _count=2
+        nick=module_repos_collection_with_setup.distro, host_class=ContentHost, _count=2
     ) as clients:
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(
@@ -553,7 +551,7 @@ def test_positive_filter_by_environment(
     :CaseLevel: System
     """
     with Broker(
-        nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}, _count=2
+        nick=module_repos_collection_with_setup.distro, host_class=ContentHost, _count=2
     ) as clients:
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(
@@ -567,7 +565,7 @@ def test_positive_filter_by_environment(
         content_view_version = content_view.version[-1].read()
         lce = content_view_version.environment[-1].read()
         new_lce = entities.LifecycleEnvironment(organization=module_org, prior=lce).create()
-        promote(content_view_version, new_lce.id)
+        content_view_version.promote(data={'environment_ids': new_lce.id})
         host = entities.Host().search(query={'search': f'name={clients[0].hostname}'})[0].read()
         host.content_facet_attributes = {
             'content_view_id': content_view.id,
@@ -639,7 +637,7 @@ def test_positive_content_host_previous_env(
     content_view_version = content_view.version[-1].read()
     lce = content_view_version.environment[-1].read()
     new_lce = entities.LifecycleEnvironment(organization=module_org, prior=lce).create()
-    promote(content_view_version, new_lce.id)
+    content_view_version.promote(data={'environment_ids': new_lce.id})
     host = entities.Host().search(query={'search': f'name={hostname}'})[0].read()
     host.content_facet_attributes = {
         'content_view_id': content_view.id,
@@ -922,7 +920,7 @@ def test_positive_filtered_errata_status_installable_param(
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    with Broker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
+    with Broker(nick=repos_collection.distro, host_class=ContentHost) as client:
         repos_collection.setup_virtual_machine(client)
         assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
         # Adding content view filter and content view filter rule to exclude errata for the
@@ -940,7 +938,7 @@ def test_positive_filtered_errata_status_installable_param(
         content_view.publish()
         content_view = content_view.read()
         content_view_version = content_view.version[-1]
-        promote(content_view_version, lce.id)
+        content_view_version.promote(data={'environment_ids': lce.id})
         with session:
             session.organization.select(org_name=org.name)
             session.location.select(loc_name=DEFAULT_LOC)
@@ -1023,7 +1021,7 @@ def test_content_host_errata_search_commands(
     :BZ: 1707335
     """
     with Broker(
-        nick=module_repos_collection_with_setup.distro, host_classes={'host': ContentHost}, _count=2
+        nick=module_repos_collection_with_setup.distro, host_class=ContentHost, _count=2
     ) as clients:
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(client)

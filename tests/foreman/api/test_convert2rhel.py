@@ -18,7 +18,6 @@ import pytest
 import requests
 
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
@@ -60,7 +59,7 @@ def update_cv(sat, cv, lce, repos):
     cv = sat.api.ContentView(id=cv.id, repository=repos).update(["repository"])
     cv.publish()
     cv = cv.read()
-    promote(cv.version[-1], environment_id=lce.id)
+    cv.version[-1].promote(data={'environment_ids': lce.id, 'force': False})
     return cv
 
 
@@ -207,7 +206,7 @@ def oracle(
 @pytest.fixture(scope='module')
 def version(request):
     """Version of converted OS"""
-    return settings.content_host.deploy_kwargs.get(request.param).release
+    return settings.content_host.get(request.param).vm.release
 
 
 @pytest.mark.parametrize(

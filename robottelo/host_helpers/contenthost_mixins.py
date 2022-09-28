@@ -40,27 +40,34 @@ class VersionedContent:
             'cbrhel': constants.OSCAP_PROFILE[f'cbrhel{self._v_major}'],
         }
 
-    @cached_property
-    def dogfood_repofile(self):
+    def dogfood_repofile(self, product=None, release=None, snap=''):
         from robottelo.config import settings
 
-        if self.__class__.__name__ == 'ContentHost':
-            product = 'tools'
-        else:
-            product = self.__class__.__name__.lower()
-        # this may be also available from self.satellite.version
-        split_ver = self.satellite.version.split('.')
-        if len(split_ver) == 2:
-            split_ver.append('0')
-        sat_ver = '.'.join(split_ver[:3])  # keep only major.minor.patch
+        if not product:
+            if self.__class__.__name__ == 'ContentHost':
+                product = 'client'
+                release = release or 'Client'
+            else:
+                product = self.__class__.__name__.lower()
+        if not release:
+            release = self.satellite.version
+        if str(release).lower != 'client':
+            release = release.split('.')
+            if len(release) == 2:
+                release.append('0')
+            release = '.'.join(release[:3])  # keep only major.minor.patch
+        snap = snap or settings.server.version.get("snap")
+
         return (
             f'{settings.repos.ohsnap_repo_host}/api/releases/'
-            f'{sat_ver}/el{self._v_major}/{product}/repo_file'
+            f'{release}{"/" + snap if snap else ""}/el{self._v_major}/{product}/repo_file'
         )
 
-    def download_repofile(self):
+    def download_repofile(self, product=None, release=None, snap=''):
         """Downloads the tools, capsule, or satellite repos on the machine"""
-        self.execute(f'curl -o /etc/yum.repos.d/dogfood.repo {self.dogfood_repofile}')
+        self.execute(
+            f'curl -o /etc/yum.repos.d/dogfood.repo {self.dogfood_repofile(product, release, snap)}'
+        )
 
     def enable_tools_repo(self, organization_id):
         return utils.enable_rhrepo_and_fetchid(

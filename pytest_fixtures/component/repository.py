@@ -2,10 +2,9 @@
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+from nailgun.entity_mixins import call_entity_method_with_timeout
 
-from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -59,7 +58,7 @@ def module_rhst_repo(module_target_sat, module_org_with_manifest, module_promote
     )
     cv.publish()
     cv = cv.read()
-    promote(cv.version[-1], environment_id=module_lce.id)
+    cv.version[-1].promote(data={'environment_ids': module_lce.id})
     return REPOS['rhst7']['id']
 
 

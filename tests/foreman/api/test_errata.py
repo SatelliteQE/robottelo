@@ -25,7 +25,6 @@ from nailgun import entities
 from robottelo import constants
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.factory import setup_org_for_a_custom_repo
@@ -166,6 +165,7 @@ def _fetch_available_errata(module_org, host, expected_amount, timeout=120):
 @pytest.mark.upgrade
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.no_containers
 def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_sat, content_hosts):
     """Install errata in a host-collection
 
@@ -218,6 +218,7 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_
 
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.no_containers
 def test_positive_install_in_host(
     module_org, activation_key, custom_repo, rhel_contenthost, target_sat
 ):
@@ -267,6 +268,7 @@ def test_positive_install_in_host(
 
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.no_containers
 def test_positive_install_multiple_in_host(
     module_org, activation_key, custom_repo, rhel_contenthost, target_sat
 ):
@@ -459,7 +461,7 @@ def setup_content_rhel6():
     ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
-    promote(cvv, lce.id)
+    cvv.promote(data={'environment_ids': lce.id, 'force': False})
 
     ak = entities.ActivationKey(content_view=cv, organization=org, environment=lce).create()
 
@@ -596,7 +598,7 @@ def test_positive_get_diff_for_cv_envs():
         )
     new_env = entities.LifecycleEnvironment(organization=org, prior=env).create()
     cvvs = content_view.read().version[-2:]
-    promote(cvvs[-1], new_env.id)
+    cvvs[-1].promote(data={'environment_ids': new_env.id, 'force': False})
     result = entities.Errata().compare(
         data={'content_view_version_ids': [cvv.id for cvv in cvvs], 'per_page': '9999'}
     )
@@ -687,7 +689,7 @@ def test_positive_incremental_update_required(
     module_cv = module_cv.read()
     CV1V = module_cv.version[-1].read()
     # Must promote a CV version into a new Environment before we can add errata
-    promote(CV1V, module_lce.id)
+    CV1V.promote(data={'environment_ids': module_lce.id, 'force': False})
     module_cv = module_cv.read()
     # Call nailgun to make the API POST to ensure an incremental update is required
     response = entities.Host().bulk_available_incremental_updates(
@@ -732,6 +734,7 @@ def _validate_swid_tags_installed(module_org, vm, module_name):
     [{'YumRepository': {'url': settings.repos.swid_tag.url, 'distro': 'rhel8'}}],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_errata_installation_with_swidtags(
     module_org, module_lce, module_repos_collection_with_manifest, rhel8_contenthost, target_sat
 ):

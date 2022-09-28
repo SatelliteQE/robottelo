@@ -26,6 +26,7 @@ from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
 
+from robottelo import constants
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import wait_for_tasks
@@ -34,7 +35,9 @@ from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DataFile
 from robottelo.constants import DOWNLOAD_POLICIES
 from robottelo.constants import INVALID_URL
+from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE
+from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.constants.repos import CUSTOM_3RD_PARTY_REPO
@@ -1281,3 +1284,71 @@ def test_positive_sync_third_party_repo(session, module_org):
         )
         result = session.repository.synchronize(product.name, repo_name)
         assert result['result'] == 'success'
+
+
+@pytest.mark.tier2
+def test_positive_able_to_disable_and_enable_rhel_repos(
+    session, module_org_with_manifest, target_sat
+):
+    """Upstream repo name changes shouldn't negatively affect a user's ability
+    to enable or disable a repo
+
+    :id: 205a1c05-2ac8-4c60-8d09-016bbcfdf538
+
+    :expectedresults: User is able to enable and disable repos without issues.
+
+    :BZ: 1973329
+
+    :customerscenario: true
+
+    :CaseAutomation: Automated
+    """
+    # rhel7
+    rhel7_repo = target_sat.cli_factory.RHELRepository()
+    # enable rhel7 repo
+    rhel7_repo.create(module_org_with_manifest.id, synchronize=False)
+    rhel7_repo_name = rhel7_repo.data['repository']
+    # reable rhel8_baseos repo
+    target_sat.cli.RepositorySet.enable(
+        {
+            'basearch': constants.DEFAULT_ARCHITECTURE,
+            'name': REPOSET['rhel8_bos'],
+            'organization-id': module_org_with_manifest.id,
+            'product': PRDS['rhel8'],
+            'releasever': REPOS['rhel8_bos']['releasever'],
+        }
+    )
+    rhel8_bos_info = target_sat.cli.RepositorySet.info(
+        {
+            'name': REPOSET['rhel8_bos'],
+            'organization-id': module_org_with_manifest.id,
+            'product': PRDS['rhel8'],
+        }
+    )
+    rhel8_repo_set_name = rhel8_bos_info['enabled-repositories'][0]['name']
+    rhel8_repo_name = rhel8_bos_info['name']
+    with session:
+        # disable and re-enable rhel7
+        session.redhatrepository.disable(rhel7_repo_name)
+        assert not session.redhatrepository.search(
+            f'name = "{rhel7_repo_name}"', category='Enabled'
+        )
+        session.redhatrepository.enable(
+            rhel7_repo.data['repository-set'],
+            rhel7_repo.data['arch'],
+            version=rhel7_repo.data['releasever'],
+        )
+        assert session.redhatrepository.search(f'name = "{rhel7_repo_name}"', category='Enabled')
+        # disable and re-enable rhel8_bos
+        session.redhatrepository.disable(rhel8_repo_set_name)
+        assert not session.redhatrepository.search(
+            f'name = "{rhel8_repo_set_name}"', category='Enabled'
+        )
+        session.redhatrepository.enable(
+            rhel8_repo_name,
+            constants.DEFAULT_ARCHITECTURE,
+            version=REPOS['rhel8_bos']['version'],
+        )
+        assert session.redhatrepository.search(
+            f'name = "{rhel8_repo_set_name}"', category='Enabled'
+        )

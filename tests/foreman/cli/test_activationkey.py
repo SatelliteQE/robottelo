@@ -619,7 +619,7 @@ def test_positive_usage_limit(module_org, target_sat):
             'max-hosts': '1',
         }
     )
-    with Broker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as clients:
+    with Broker(nick='rhel7', host_class=ContentHost, _count=2) as clients:
         vm1, vm2 = clients
         vm1.install_katello_ca(target_sat)
         vm1.register_contenthost(module_org.label, new_ak['name'])

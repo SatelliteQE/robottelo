@@ -21,8 +21,8 @@ from fauxfactory import gen_string
 from wait_for import wait_for
 
 from robottelo import constants
+from robottelo.api.utils import enable_sync_redhat_repo
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.logging import logger
 
 
@@ -65,19 +65,29 @@ def fixture_setup_rhc_satellite(request, module_target_sat, module_rhc_org):
         module_target_sat.cli.Subscription.upload(
             {'file': manifests_path, 'organization-id': module_rhc_org.id}
         )
+        # Enable and sync required repos
+        repo1_id = enable_sync_redhat_repo(constants.REPOS['rhel8_aps'], module_rhc_org.id)
+        repo2_id = enable_sync_redhat_repo(constants.REPOS['rhel7'], module_rhc_org.id)
+        # Add repos to Content view
+        content_view = module_target_sat.api.ContentView(
+            organization=module_rhc_org, repository=[repo1_id, repo2_id]
+        ).create()
+        content_view.publish()
         # Create Activation key
         ak = module_target_sat.api.ActivationKey(
             name=settings.rh_cloud.activation_key or gen_string('alpha'),
-            content_view=module_rhc_org.default_content_view,
+            content_view=content_view,
             organization=module_rhc_org,
             environment=module_target_sat.api.LifecycleEnvironment(id=module_rhc_org.library.id),
             auto_attach=True,
         ).create()
         default_subscription = module_target_sat.api.Subscription(
             organization=module_rhc_org
-        ).search(query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'})[0]
+        ).search(query={'search': f'name="{constants.DEFAULT_SUBSCRIPTION_NAME}"'})[0]
         ak.add_subscriptions(data={'quantity': 10, 'subscription_id': default_subscription.id})
-        logger.debug(f"Activation key: {ak} \n Organization: {module_rhc_org}")
+        logger.debug(
+            f"Activation key: {ak} \n CV: {content_view} \n Organization: {module_rhc_org}"
+        )
 
 
 @pytest.mark.tier3

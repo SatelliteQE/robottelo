@@ -23,11 +23,10 @@ from datetime import datetime
 import pytest
 from nailgun import client
 from nailgun import entities
+from nailgun.entity_mixins import call_entity_method_with_timeout
 
 from robottelo import constants
-from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import DataFile
 from robottelo.constants.repos import ANSIBLE_GALAXY
@@ -434,7 +433,7 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 1
 
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -468,7 +467,7 @@ class TestCapsuleContentManagement:
 
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -538,7 +537,7 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 1
 
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
@@ -556,7 +555,7 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 2
 
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
@@ -636,7 +635,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -685,7 +684,7 @@ class TestCapsuleContentManagement:
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         # Promote new content view version to lifecycle environment
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -707,7 +706,7 @@ class TestCapsuleContentManagement:
         cv = cv.read()
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -847,7 +846,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -927,7 +926,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -955,7 +954,7 @@ class TestCapsuleContentManagement:
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -1058,7 +1057,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        promote(cvv, lce.id)
+        cvv.promote(data={'environment_ids': lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -1115,6 +1114,8 @@ class TestCapsuleContentManagement:
         :parametrized: yes
 
         :CaseLevel: Integration
+
+        :BZ: 2125244
         """
         upstream_names = [
             'quay/busybox',  # schema 1
@@ -1149,7 +1150,7 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
@@ -1341,7 +1342,7 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 

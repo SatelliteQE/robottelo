@@ -45,7 +45,7 @@ def test_positive_connection_option(organization_ak_setup, rhcloud_sat_host, dis
     :CaseImportance: Critical
     """
     org, activation_key = organization_ak_setup
-    with Broker(nick=distro, host_classes={'host': ContentHost}) as vm:
+    with Broker(nick=distro, host_class=ContentHost) as vm:
         vm.configure_rhai_client(rhcloud_sat_host, activation_key.name, org.label, distro)
         result = vm.run('insights-client --test-connection')
         assert result.status == 0, (

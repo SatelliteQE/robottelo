@@ -5,16 +5,19 @@ from inspect import isfunction
 from robottelo.config import settings
 
 
+TARGET_FIXTURES = [
+    'rhel_contenthost',
+    'content_hosts',
+    'module_provisioning_rhel_content',
+    'rex_contenthost',
+]
+
+
 def pytest_generate_tests(metafunc):
-    content_host_fixture = ''.join(
-        [
-            i
-            for i in ['rhel_contenthost', 'content_hosts', 'module_provisioning_rhel_content']
-            if i in metafunc.fixturenames
-        ]
-    )
+    content_host_fixture = ''.join([i for i in TARGET_FIXTURES if i in metafunc.fixturenames])
     if content_host_fixture in metafunc.fixturenames:
         function_marks = getattr(metafunc.function, 'pytestmark', [])
+        no_containers = any('no_containers' == mark.name for mark in function_marks)
         # process eventual rhel_version_list markers
         matchers = [i.args for i in function_marks if i.name == 'rhel_ver_list']
         list_params = []
@@ -41,7 +44,7 @@ def pytest_generate_tests(metafunc):
         filtered_versions = set(list_params + match_params)
         # default to all supported versions if no filters were found
         for ver in filtered_versions or settings.supportability.content_hosts.rhel.versions:
-            rhel_params.append(dict(rhel_version=ver))
+            rhel_params.append(dict(rhel_version=ver, no_containers=no_containers))
         if rhel_params:
             rhel_params.sort(key=lambda r: str(r['rhel_version']))
             metafunc.parametrize(
@@ -77,3 +80,12 @@ def pytest_collection_modifyitems(session, items, config):
                 client_property = ('ClientOS', str(settings.content_host.default_rhel_version))
             item.user_properties.append(client_property)
             item.add_marker('content_host')
+
+
+def pytest_addoption(parser):
+    """Add CLI options related to Host-related mark collection"""
+    parser.addoption(
+        '--no-containers',
+        action='store_true',
+        help='Disable container hosts from being used in favor of VMs',
+    )

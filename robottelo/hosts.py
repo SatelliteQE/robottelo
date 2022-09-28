@@ -166,7 +166,7 @@ class ContentHost(Host, ContentHostMixins):
 
     @property
     def ip_addr(self):
-        ipv4, ipv6 = self.execute('hostname -I').stdout.split()
+        ipv4, *ipv6 = self.execute('hostname -I').stdout.split()
         return ipv4
 
     @cached_property
@@ -208,7 +208,7 @@ class ContentHost(Host, ContentHostMixins):
                 self.nailgun_host.delete()
             self.unregister()
         # Strip most unnecessary attributes from our instance for checkin
-        keep_keys = set(self.to_dict()) | {'release', '_prov_inst'}
+        keep_keys = set(self.to_dict()) | {'release', '_prov_inst', '_cont_inst_p'}
         self.__dict__ = {k: v for k, v in self.__dict__.items() if k in keep_keys}
         self.__class__ = Host
 
@@ -397,10 +397,16 @@ class ContentHost(Host, ContentHostMixins):
         result = self.execute('yum install -y katello-agent')
         if result.status != 0:
             raise ContentHostError(f'Failed to install katello-agent: {result.stdout}')
-        try:
-            wait_for(lambda: self.execute('service goferd status').status == 0)
-        except TimedOutError:
-            raise ContentHostError('katello-agent is not running')
+        if getattr(self, '_cont_inst', None):
+            # We're running in a container, goferd won't be running as a service
+            # so let's run it in the foreground, then detach from the exec
+            self._cont_inst.exec_run('goferd -f', detach=True)
+        else:
+            # We're in a traditional VM, so goferd should be running after katello-agent install
+            try:
+                wait_for(lambda: self.execute('service goferd status').status == 0)
+            except TimedOutError:
+                raise ContentHostError('katello-agent is not running')
 
     def install_katello_host_tools(self):
         """Installs Katello host tools on the broker virtual machine

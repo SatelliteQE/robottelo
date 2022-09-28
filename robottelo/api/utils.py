@@ -8,6 +8,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from nailgun import entity_mixins
 from nailgun.client import request
+from nailgun.entity_mixins import call_entity_method_with_timeout
 from requests import HTTPError
 
 from robottelo import ssh
@@ -19,25 +20,6 @@ from robottelo.constants import DEFAULT_PXE_TEMPLATE
 from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import REPO_TYPE
 from robottelo.errors import ImproperlyConfigured
-
-
-def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):
-    """Call Entity callable with a custom timeout
-
-    :param entity_callable, the entity method object to call
-    :param timeout: the time to wait for the method call to finish
-    :param kwargs: the kwargs to pass to the entity callable
-
-    Usage:
-        call_entity_method_with_timeout(
-            entities.Repository(id=repo_id).sync, timeout=1500)
-    """
-    original_task_timeout = entity_mixins.TASK_TIMEOUT
-    entity_mixins.TASK_TIMEOUT = timeout
-    try:
-        entity_callable(**kwargs)
-    finally:
-        entity_mixins.TASK_TIMEOUT = original_task_timeout
 
 
 def enable_rhrepo_and_fetchid(
@@ -77,22 +59,6 @@ def enable_rhrepo_and_fetchid(
             raise
     result = entities.Repository(name=repo).search(query={'organization_id': org_id})
     return result[0].id
-
-
-def promote(content_view_version, environment_id, force=False):
-    """Call ``content_view_version.promote(…)``.
-
-    :param content_view_version: A ``nailgun.entities.ContentViewVersion``
-        object.
-    :param environment_id: An environment ID.
-    :param force: Whether to force the promotion or not. Only needed if
-        promoting to a lifecycle environment that is not the next in order
-        of sequence.
-    :returns: Whatever ``nailgun.entities.ContentViewVersion.promote`` returns.
-
-    """
-    data = {'environment_ids': [environment_id], 'force': True if force else False}
-    return content_view_version.promote(data=data)
 
 
 def upload_manifest(organization_id, manifest):
@@ -170,7 +136,7 @@ def cv_publish_promote(name=None, env_name=None, repo_id=None, org_id=None):
     # Publish content view
     content_view.publish()
     # Promote the content view version.
-    promote(content_view.read().version[0], lce.id)
+    content_view.read().version[0].promote(data={'environment_ids': lce.id})
     return content_view.read()
 
 
@@ -231,7 +197,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         content_view = content_view.update(['repository'])
         content_view.publish()
         content_view = content_view.read()
-        promote(content_view.version[0], lc_env.id)
+        content_view.read().version[0].promote(data={'environment_ids': lc_env.id})
     finally:
         entity_mixins.TASK_TIMEOUT = old_task_timeout
     # Search for existing organization puppet environment, otherwise create a

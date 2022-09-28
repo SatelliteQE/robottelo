@@ -42,7 +42,7 @@ def rhev():
         version='4.0',
         verify=False,
     )
-    rhev.cluster_id = rhev.rhv_api.get_cluster(rhev.datacenter).id
+    rhev.cluster_id = rhev.rhv_api.get_cluster(rhev.cluster).id
     rhev.storage_id = rhev.rhv_api.get_storage_domain(rhev.storage_domain).id
     if is_open('BZ:1685949'):
         dc = rhev.rhv_api._data_centers_service.list(search=f'name={rhev.datacenter}')[0]

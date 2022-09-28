@@ -21,7 +21,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DataFile
@@ -114,7 +113,7 @@ def test_positive_promote_valid_environment(module_lce_cv, module_org):
     # environments (i.e. 'Library')
     assert len(version.environment) == 1
     # Promote it to the next 'in sequence' lifecycle environment
-    promote(version, module_lce_cv[0].id)
+    version.promote(data={'environment_ids': module_lce_cv[0].id, 'force': False})
     # Assert that content view version is found in 2 lifecycle
     # environments.
     version = version.read()
@@ -142,7 +141,7 @@ def test_positive_promote_out_of_sequence_environment(module_org, module_lce_cv)
     assert len(cv.version) == 1
     version = cv.version[0].read()
     # The immediate lifecycle is lce1, not lce2
-    promote(version, module_lce_cv[1].id, force=True)
+    version.promote(data={'environment_ids': module_lce_cv[1].id, 'force': True})
     # Assert that content view version is found in 2 lifecycle
     # environments.
     version = version.read()
@@ -163,7 +162,7 @@ def test_negative_promote_valid_environment(module_lce_cv):
     """
     lce1, _, default_cvv = module_lce_cv
     with pytest.raises(HTTPError):
-        promote(default_cvv, lce1.id)
+        default_cvv.promote(data={'environment_ids': lce1.id, 'force': False})
 
 
 @pytest.mark.tier2
@@ -188,7 +187,7 @@ def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org)
     version = cv.version[0].read()
     # The immediate lifecycle is lce1, not lce2
     with pytest.raises(HTTPError):
-        promote(version, module_lce_cv[1].id)
+        version.promote(data={'environment_ids': module_lce_cv[1].id, 'force': False})
 
 
 # Tests for content view version promotion.
@@ -211,7 +210,7 @@ def test_positive_delete(module_org, module_product):
 
     :CaseImportance: Critical
     """
-    key_content = DataFile.ZOO_CUSTOM_GPG_KEY.read_bytes()
+    key_content = DataFile.ZOO_CUSTOM_GPG_KEY.read_text()
     gpgkey = entities.GPGKey(content=key_content, organization=module_org).create()
     # Creates new repository with GPGKey
     repo = entities.Repository(
@@ -262,7 +261,7 @@ def test_positive_delete_non_default(module_org):
     assert len(content_view.version) == 1
     assert len(content_view.version[0].read().environment) == 1
     lce = entities.LifecycleEnvironment(organization=module_org).create()
-    promote(content_view.version[0], lce.id)
+    content_view.version[0].promote(data={'environment_ids': lce.id, 'force': False})
     cvv = content_view.version[0].read()
     assert len(cvv.environment) == 2
     # Delete the content-view version from selected environments
@@ -435,7 +434,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org):
     assert lce_library.name == ENVIRONMENT
     # promote content view version to DEV and QE lifecycle environments
     for lce in [lce_dev, lce_qe]:
-        promote(content_view_version, lce.id)
+        content_view_version.promote(data={'environment_ids': lce.id, 'force': False})
     assert {lce_library.id, lce_dev.id, lce_qe.id} == {
         lce.id for lce in content_view_version.read().environment
     }
@@ -494,7 +493,7 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
     assert lce_library.name == ENVIRONMENT
     # promote content view version to DEV QE PROD lifecycle environments
     for lce in [lce_dev, lce_qe, lce_prod]:
-        promote(content_view_version, lce.id)
+        content_view_version.promote(data={'environment_ids': lce.id, 'force': False})
     assert {lce_library.id, lce_dev.id, lce_qe.id, lce_prod.id} == {
         lce.id for lce in content_view_version.read().environment
     }
@@ -561,7 +560,7 @@ def test_positive_remove_cv_version_from_env(module_org):
     # promote content view version to DEV QE STAGE PROD lifecycle
     # environments
     for lce in [lce_dev, lce_qe, lce_stage, lce_prod]:
-        promote(content_view_version, lce.id)
+        content_view_version.promote(data={'environment_ids': lce.id, 'force': False})
     assert {lce_library.id, lce_dev.id, lce_qe.id, lce_stage.id, lce_prod.id} == {
         lce.id for lce in content_view_version.read().environment
     }
@@ -573,7 +572,7 @@ def test_positive_remove_cv_version_from_env(module_org):
         lce.id for lce in content_view_version.read().environment
     }
     # promote content view version to PROD environment again
-    promote(content_view_version, lce_prod.id)
+    content_view_version.promote(data={'environment_ids': lce_prod.id, 'force': False})
     assert {lce_library.id, lce_dev.id, lce_qe.id, lce_stage.id, lce_prod.id} == {
         lce.id for lce in content_view_version.read().environment
     }
@@ -630,7 +629,7 @@ def test_positive_remove_cv_version_from_multi_env(module_org):
     # promote content view version to DEV QE STAGE PROD lifecycle
     # environments
     for lce in [lce_dev, lce_qe, lce_stage, lce_prod]:
-        promote(content_view_version, lce.id)
+        content_view_version.promote(data={'environment_ids': lce.id, 'force': False})
     assert {lce_library.id, lce_dev.id, lce_qe.id, lce_stage.id, lce_prod.id} == {
         lce.id for lce in content_view_version.read().environment
     }
@@ -698,7 +697,7 @@ def test_positive_delete_cv_promoted_to_multi_env(module_org):
     # promote content view version to DEV QE STAGE PROD lifecycle
     # environments
     for lce in [lce_dev, lce_qe, lce_stage, lce_prod]:
-        promote(content_view_version, lce.id)
+        content_view_version.promote(data={'environment_ids': lce.id, 'force': False})
     content_view_version = content_view_version.read()
     assert {lce_library.id, lce_dev.id, lce_qe.id, lce_stage.id, lce_prod.id} == {
         lce.id for lce in content_view_version.environment
