@@ -424,7 +424,7 @@ class TestRepository:
         """
         gpg_key = entities.GPGKey(
             organization=module_org,
-            content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
+            content=DataFile.VALID_GPG_KEY_FILE.read_text(),
         ).create()
         repo = entities.Repository(product=module_product, gpg_key=gpg_key).create()
         # Verify that the given GPG key ID is used.
@@ -784,14 +784,14 @@ class TestRepository:
         # Create a repo and make it point to a GPG key.
         gpg_key_1 = entities.GPGKey(
             organization=module_org,
-            content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
+            content=DataFile.VALID_GPG_KEY_FILE.read_text(),
         ).create()
         repo = entities.Repository(product=module_product, gpg_key=gpg_key_1).create()
 
         # Update the repo and make it point to a new GPG key.
         gpg_key_2 = entities.GPGKey(
             organization=module_org,
-            content=DataFile.VALID_GPG_KEY_BETA_FILE.read_bytes(),
+            content=DataFile.VALID_GPG_KEY_BETA_FILE.read_text(),
         ).create()
 
         repo.gpg_key = gpg_key_2
