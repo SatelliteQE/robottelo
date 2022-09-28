@@ -21,7 +21,13 @@ def host_conf(request):
     _rhelver = f"{distro}{params.get('rhel_version', settings.content_host.default_rhel_version)}"
     # check to see if no-containers is passed as an argument to pytest
     deploy_kwargs = {}
-    if not request.config.getoption('no-containers', None) and not params.get('no_containers'):
+    if not any(
+        [
+            request.config.getoption('no_containers'),
+            params.get('no_containers'),
+            request.node.get_closest_marker('no_containers'),
+        ]
+    ):
         deploy_kwargs = settings.content_host.get(_rhelver).get('container', {})
     # if we're not using containers or a container isn't available, use a VM
     if not deploy_kwargs:
