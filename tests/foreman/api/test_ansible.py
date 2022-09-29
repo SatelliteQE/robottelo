@@ -59,3 +59,29 @@ def test_fetch_and_sync_ansible_playbooks(target_sat):
     )
     assert task_details[0].result == 'success'
     assert len(task_details[0].output['result']['created']) == playbooks_count
+
+
+def test_positive_assign_ansible_role(target_sat):
+    """
+    Test API for assigning an Ansible Role to a host
+
+    :id: 95d0213e-a5a9-4671-8a9e-89a77fc67f39
+
+    :steps:
+        1. Create a Host
+        2. Import a roles into satellite
+        3. Assign that role to a host
+        4. Assert that the role was assigned to the host successfully
+
+    :expectedresults:
+        1. Host should be assigned the proper role.
+
+    :CaseAutomation: Automated
+    """
+    SELECTED_ROLE = 'RedHatInsights.insights-client'
+    host = target_sat.api.Host().create()
+    id = target_sat.internal_capsule.id
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': id, 'role_names': [SELECTED_ROLE]})
+    host.assign_ansible_roles(data={'ansible_role_ids': [1]})
+    host_roles = host.list_ansible_roles()
+    assert host_roles[0]['name'] == SELECTED_ROLE
