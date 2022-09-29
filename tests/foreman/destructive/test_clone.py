@@ -28,8 +28,8 @@ pytestmark = pytest.mark.destructive
 
 @pytest.mark.parametrize("sat_ready_rhel", [8], indirect=True)
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
-@pytest.mark.parametrize('skip_pulp_content', [True, False], ids=['skip_pulp', 'no_skip_pulp'])
-def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pulp_content):
+@pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
+def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pulp):
     """Make an online/offline backup with/without pulp data of Satellite and clone it (restore it).
 
     :id: 5b9182d5-6789-4d2c-bcc3-6641b96ab277
@@ -57,12 +57,12 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
     backup_result = target_sat.cli.Backup.run_backup(
         backup_dir='/var/backup',
         backup_type=backup_type,
-        options={'assumeyes': True, 'plaintext': True, 'skip-pulp-content': skip_pulp_content},
+        options={'assumeyes': True, 'plaintext': True, 'skip-pulp': skip_pulp},
     )
     assert backup_result.status == 0
     sat_backup_dir = backup_result.stdout.strip().split()[-2]
 
-    if skip_pulp_content:
+    if skip_pulp:
         # Copying satellite pulp data to target RHEL
         assert sat_ready_rhel.execute('mkdir -p /var/lib/pulp').status == 0
         assert (
