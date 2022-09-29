@@ -57,7 +57,7 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
     backup_result = target_sat.cli.Backup.run_backup(
         backup_dir='/var/backup',
         backup_type=backup_type,
-        options={'assumeyes': True, 'plaintext': True, 'skip-pulp': skip_pulp},
+        options={'assumeyes': True, 'plaintext': True, 'skip-pulp-content': skip_pulp},
     )
     assert backup_result.status == 0
     sat_backup_dir = backup_result.stdout.strip().split()[-2]
