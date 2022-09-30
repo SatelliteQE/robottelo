@@ -7,13 +7,17 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.hosts import Capsule
 from robottelo.hosts import Satellite
+from robottelo.logging import logger
 
 
 def _resolve_deploy_args(args_dict):
+    # TODO: https://github.com/rochacbruno/dynaconf/issues/690
+    args_dict = args_dict.copy().to_dict()
     for key, val in args_dict.items():
         if isinstance(val, str) and val.startswith('this.'):
             # Args transformed into small letters and existing capital args removed
             args_dict[key.lower()] = settings.get(args_dict.pop(key).replace('this.', ''))
+    return args_dict
 
 
 @pytest.fixture(scope='session')
@@ -63,6 +67,10 @@ def class_target_sat(request, _default_sat, satellite_factory):
 def satellite_factory():
     if settings.server.get('deploy_arguments'):
         _resolve_deploy_args(settings.server.deploy_arguments)
+        logger.debug(f'Original deploy arguments for sat: {settings.server.deploy_arguments}')
+        resolved = _resolve_deploy_args(settings.server.deploy_arguments)
+        settings.server.deploy_arguments = resolved
+        logger.debug(f'Resolved deploy arguments for sat: {settings.server.deploy_arguments}')
 
     def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
         if settings.server.deploy_arguments:
@@ -83,7 +91,10 @@ def satellite_factory():
 @pytest.fixture(scope='session')
 def capsule_factory():
     if settings.capsule.get('deploy_arguments'):
-        _resolve_deploy_args(settings.capsule.deploy_arguments)
+        logger.debug(f'Original deploy arguments for cap: {settings.capsule.deploy_arguments}')
+        resolved = _resolve_deploy_args(settings.capsule.deploy_arguments)
+        settings.capsule.deploy_arguments = resolved
+        logger.debug(f'Resolved deploy arguments for cap: {settings.capsule.deploy_arguments}')
 
     def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
         if settings.capsule.deploy_arguments:
