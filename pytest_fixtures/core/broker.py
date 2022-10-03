@@ -74,7 +74,7 @@ def satellite_factory():
     if settings.server.get('deploy_arguments'):
         logger.debug(f'Original deploy arguments for sat: {settings.server.deploy_arguments}')
         resolved = _resolve_deploy_args(settings.server.deploy_arguments)
-        settings.set("server.deploy_arguments", resolved)
+        settings.set('server.deploy_arguments', resolved)
         logger.debug(f'Resolved deploy arguments for sat: {settings.server.deploy_arguments}')
 
     def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
@@ -99,7 +99,7 @@ def capsule_factory():
     if settings.capsule.get('deploy_arguments'):
         logger.debug(f'Original deploy arguments for cap: {settings.capsule.deploy_arguments}')
         resolved = _resolve_deploy_args(settings.capsule.deploy_arguments)
-        settings.set("capsule.deploy_arguments", resolved)
+        settings.set('capsule.deploy_arguments', resolved)
         logger.debug(f'Resolved deploy arguments for cap: {settings.capsule.deploy_arguments}')
 
     def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
