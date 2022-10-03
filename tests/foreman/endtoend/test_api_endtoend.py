@@ -412,6 +412,7 @@ API_PATHS = {
         '/api/hosts/:host_id/subscriptions/add_subscriptions',
         '/api/hosts/:host_id/subscriptions/auto_attach',
         '/api/hosts/:host_id/subscriptions/available_release_versions',
+        '/api/hosts/:host_id/subscriptions/enabled_repositories',
         '/api/hosts/:host_id/subscriptions/content_override',
         '/api/hosts/:host_id/subscriptions/product_content',
         '/api/hosts/subscriptions',
