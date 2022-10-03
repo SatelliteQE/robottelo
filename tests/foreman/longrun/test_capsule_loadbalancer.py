@@ -206,7 +206,7 @@ def test_remote_execution_on_client():
     :id: e911acb4-e153-11ea-9a77-4ceb42ab8dbc
 
     :Steps:
-        1. Enable foreman-proxy-plugin-remote-execution-ssh on capsules
+        1. Enable foreman-proxy-plugin-remote-execution-script on capsules
         2. Create ansible role and remote job, attach to the host(here client) and run the job
 
     :expectedresults:
