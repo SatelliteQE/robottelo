@@ -301,7 +301,6 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
             r"sed -i -e '$aapache::default_mods:\n  - authn_core' "
             "/etc/foreman-installer/custom-hiera.yaml"
         )
-
     module_target_sat.execute(
         f'satellite-installer --foreman-keycloak true '
         f"--foreman-keycloak-app-name 'foreman-openidc' "
