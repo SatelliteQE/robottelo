@@ -187,3 +187,24 @@ def module_capsule_configured_mqtt(module_capsule_configured):
     assert result.status == 0, 'Failed to open mqtt port on capsule'
     module_capsule_configured.execute('firewall-cmd --reload')
     yield module_capsule_configured
+
+
+@pytest.fixture(scope='module')
+def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
+    """A fixture that spins 2 capsule for loadbalancer
+    :return: List of capsules
+    """
+    if settings.capsule.get('deploy_arguments'):
+        resolved = _resolve_deploy_args(settings.capsule.deploy_arguments)
+        settings.capsule.deploy_arguments = resolved
+        broker_args.update(settings.capsule.deploy_arguments)
+        timeout = (1200 + delay) * retry_limit
+        hosts = Broker(
+            host_class=Capsule,
+            workflow=settings.capsule.deploy_workflow,
+            _count=2,
+            **broker_args,
+        )
+        cap_hosts = wait_for(hosts.checkout, timeout=timeout, delay=delay)
+
+    return cap_hosts

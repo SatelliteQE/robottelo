@@ -24,7 +24,6 @@ tenacity==8.1.0
 testimony==2.2.0
 wait-for==1.2.0
 wrapanapi==3.5.12
-pytest-dependency==0.5.1
 
 # Get airgun, nailgun and upgrade from master
 git+https://github.com/SatelliteQE/airgun.git@master#egg=airgun
