@@ -106,7 +106,7 @@ def test_positive_install_sat_with_katello_certs(certs_vm_setup):
     """
     cert_data, rhel_vm = certs_vm_setup
     version = rhel_vm.os_version.major
-    rhel_vm.download_repos(repo_name='satellite', version=version)
+    rhel_vm.download_repofile(product='satellite', release=settings.server.version.release)
     rhel_vm.register_contenthost(
         org=None,
         lce=None,

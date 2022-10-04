@@ -107,8 +107,10 @@ def try_from_cache(issue, data=None):
     """
     try:
         # issue must be passed in `data` argument or already fetched in pytest
+        if not data and not len(pytest.issue_data[issue]['data']):
+            raise ValueError
         return data or pytest.issue_data[issue]['data']
-    except (KeyError, AttributeError):  # pragma: no cover
+    except (KeyError, AttributeError, ValueError):  # pragma: no cover
         # If not then call BZ API again
         return get_single_bz(str(issue).partition(':')[-1])
 
