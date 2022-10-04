@@ -792,7 +792,6 @@ class ContentHost(Host, ContentHostMixins):
         result = self.execute('yum install puppet-agent -y')
         if result.status != 0:
             raise ContentHostError('Failed to install the puppet-agent rpm')
-        self.execute('export PATH=/opt/puppetlabs/bin:$PATH')
 
         cert_name = self.hostname
         puppet_conf = (
@@ -815,13 +814,13 @@ class ContentHost(Host, ContentHostMixins):
         # This particular puppet run on client would populate a cert on
         # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
-        self.execute('puppet agent -t')
+        self.execute('/opt/puppetlabs/bin/puppet agent -t')
         proxy_host = Host(proxy_hostname)
         proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
         # This particular puppet run would create the host entity under
         # 'All Hosts' and let's redirect stderr to /dev/null as errors at
         #  this stage can be ignored.
-        result = self.execute('puppet agent -t 2> /dev/null')
+        result = self.execute('/opt/puppetlabs/bin/puppet agent -t 2> /dev/null')
         if result.status:
             raise ContentHostError('Failed to configure puppet on the content host')
 
