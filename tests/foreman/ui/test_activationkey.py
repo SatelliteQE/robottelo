@@ -30,7 +30,6 @@ from robottelo.api.utils import create_sync_custom_repo
 from robottelo.api.utils import cv_publish_promote
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import enable_sync_redhat_repo
-from robottelo.api.utils import upload_manifest
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.config import settings
 from robottelo.datafactory import parametrized
@@ -428,7 +427,7 @@ def test_positive_update_cv(session, module_org, cv2_name):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_update_rh_product(function_entitlement_manifest, session):
+def test_positive_update_rh_product(function_entitlement_manifest_org, session):
     """Update Content View in an Activation key
 
     :id: 9b0ac209-45de-4cc4-97e8-e191f3f37239
@@ -462,8 +461,7 @@ def test_positive_update_rh_product(function_entitlement_manifest, session):
         'basearch': 'i386',
         'releasever': constants.DEFAULT_RELEASE_VERSION,
     }
-    org = entities.Organization().create()
-    upload_manifest(org.id, function_entitlement_manifest.content)
+    org = function_entitlement_manifest_org
     repo1_id = enable_sync_redhat_repo(rh_repo1, org.id)
     cv_publish_promote(cv1_name, env1_name, repo1_id, org.id)
     repo2_id = enable_sync_redhat_repo(rh_repo2, org.id)
@@ -486,7 +484,7 @@ def test_positive_update_rh_product(function_entitlement_manifest, session):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_add_rh_product(function_entitlement_manifest, session):
+def test_positive_add_rh_product(function_entitlement_manifest_org, session):
     """Test that RH product can be associated to Activation Keys
 
     :id: d805341b-6d2f-4e16-8cb4-902de00b9a6c
@@ -505,10 +503,7 @@ def test_positive_add_rh_product(function_entitlement_manifest, session):
         'basearch': constants.DEFAULT_ARCHITECTURE,
         'releasever': constants.DEFAULT_RELEASE_VERSION,
     }
-    # Create new org to import manifest
-    org = entities.Organization().create()
-    # Upload manifest
-    upload_manifest(org.id, function_entitlement_manifest.content)
+    org = function_entitlement_manifest_org
     # Helper function to create and promote CV to next environment
     repo_id = enable_sync_redhat_repo(rh_repo, org.id)
     cv_publish_promote(cv_name, env_name, repo_id, org.id)
@@ -557,7 +552,7 @@ def test_positive_add_custom_product(session, module_org):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_add_rh_and_custom_products(function_entitlement_manifest, session):
+def test_positive_add_rh_and_custom_products(function_entitlement_manifest_org, session):
     """Test that RH/Custom product can be associated to Activation keys
 
     :id: 3d8876fa-1412-47ca-a7a4-bce2e8baf3bc
@@ -582,10 +577,9 @@ def test_positive_add_rh_and_custom_products(function_entitlement_manifest, sess
     }
     custom_product_name = gen_string('alpha')
     repo_name = gen_string('alpha')
-    org = entities.Organization().create()
+    org = function_entitlement_manifest_org
     product = entities.Product(name=custom_product_name, organization=org).create()
     repo = entities.Repository(name=repo_name, product=product).create()
-    upload_manifest(org.id, function_entitlement_manifest.content)
     rhel_repo_id = enable_rhrepo_and_fetchid(
         basearch=rh_repo['basearch'],
         org_id=org.id,
@@ -620,7 +614,7 @@ def test_positive_add_rh_and_custom_products(function_entitlement_manifest, sess
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_fetch_product_content(function_entitlement_manifest, session):
+def test_positive_fetch_product_content(function_entitlement_manifest_org, session):
     """Associate RH & custom product with AK and fetch AK's product content
 
     :id: 4c37fb12-ea2a-404e-b7cc-a2735e8dedb6
@@ -632,8 +626,7 @@ def test_positive_fetch_product_content(function_entitlement_manifest, session):
 
     :CaseLevel: Integration
     """
-    org = entities.Organization().create()
-    upload_manifest(org.id, function_entitlement_manifest.content)
+    org = function_entitlement_manifest_org
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
@@ -1077,7 +1070,7 @@ def test_positive_host_associations(session, target_sat):
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_service_level_subscription_with_custom_product(
-    session, function_entitlement_manifest, rhel7_contenthost, target_sat
+    session, function_entitlement_manifest_org, rhel7_contenthost, target_sat
 ):
     """Subscribe a host to activation key with Premium service level and with
     custom product
@@ -1108,8 +1101,7 @@ def test_positive_service_level_subscription_with_custom_product(
 
     :CaseLevel: System
     """
-    org = entities.Organization().create()
-    upload_manifest(org.id, function_entitlement_manifest.content)
+    org = function_entitlement_manifest_org
     entities_ids = setup_org_for_a_custom_repo(
         {'url': settings.repos.yum_1.url, 'organization-id': org.id}
     )
@@ -1147,7 +1139,7 @@ def test_positive_service_level_subscription_with_custom_product(
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_delete_manifest(session, function_entitlement_manifest):
+def test_positive_delete_manifest(session, function_entitlement_manifest_org):
     """Check if deleting a manifest removes it from Activation key
 
     :id: 512d8e41-b937-451e-a9c6-840457d3d7d4
@@ -1162,9 +1154,7 @@ def test_positive_delete_manifest(session, function_entitlement_manifest):
 
     :CaseLevel: Integration
     """
-    # Upload manifest
-    org = entities.Organization().create()
-    upload_manifest(org.id, function_entitlement_manifest.content)
+    org = function_entitlement_manifest_org
     # Create activation key
     activation_key = entities.ActivationKey(organization=org).create()
     # Associate a manifest to the activation key
