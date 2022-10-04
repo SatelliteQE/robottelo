@@ -20,7 +20,6 @@ from pathlib import PurePath
 
 import pytest
 
-from robottelo.cli.capsule import Capsule as ContentCapsule
 from robottelo.config import settings
 from robottelo.utils.installer import InstallerCommand
 
@@ -79,16 +78,25 @@ def setup_capsules(module_org, get_hosts_from_broker, module_target_sat, content
         install_cmd.opts.update(**extra_installer_var)
         result = capsule.install(install_cmd)
         assert result.status == 0
-        ContentCapsule.content_add_lifecycle_environment(
-            {
-                'id': capsule.nailgun_capsule.id,
-                'organization-id': module_org.id,
-                'environment': content_for_client['client_lce'].name,
-            }
+        for i in module_target_sat.cli.Capsule.list():
+            if i['name'] == capsule.hostname:
+                capsule_id = i['id']
+
+        result = module_target_sat.execute(
+            f"hammer capsule content "
+            f"add-lifecycle-environment "
+            f"--id {capsule_id}  --lifecycle-environment "
+            f"{content_for_client['client_lce'].name}   "
+            f"--organization-id {module_org.id}"
         )
-        ContentCapsule.content_synchronize(
-            {'id': capsule.nailgun_capsule.id, 'organization-id': module_org.id}
+        assert result.status == 0
+
+        result = module_target_sat.execute(
+            f"hammer capsule content synchronize --id  "
+            f"{capsule_id}  --organization-id  {module_org.id}"
         )
+        assert result.status == 0
+
     yield {
         'capsule_1': get_hosts_from_broker["capsules"][0],
         'capsule_2': get_hosts_from_broker["capsules"][1],
