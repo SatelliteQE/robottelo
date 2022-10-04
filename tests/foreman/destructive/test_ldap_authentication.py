@@ -266,7 +266,7 @@ def test_single_sign_on_ldap_ad_server(
 
 
 def test_single_sign_on_using_rhsso(
-    module_subscribe_satellite, rhsso_setting_setup, enable_external_auth_rhsso, module_target_sat
+    enable_external_auth_rhsso, rhsso_setting_setup, module_target_sat
 ):
     """Verify the single sign-on functionality with external authentication RH-SSO
 
@@ -319,7 +319,10 @@ def test_external_logout_rhsso(enable_external_auth_rhsso, rhsso_setting_setup, 
 
 
 def test_session_expire_rhsso_idle_timeout(
-    enable_external_auth_rhsso, rhsso_setting_setup_with_timeout, module_target_sat
+    enable_external_auth_rhsso,
+    rhsso_setting_setup,
+    rhsso_setting_setup_with_timeout,
+    module_target_sat,
 ):
     """Verify the idle session expiration timeout with external authentication RH-SSO
 
@@ -338,14 +341,17 @@ def test_session_expire_rhsso_idle_timeout(
         session.rhsso_login.login(
             {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.rhsso_password}
         )
-        sleep(360)
+        sleep(60)
         with pytest.raises(NavigationTriesExceeded) as error:
             session.task.read_all(widget_names='current_user')['current_user']
         assert error.typename == 'NavigationTriesExceeded'
 
 
 def test_external_new_user_login_and_check_count_rhsso(
-    enable_external_auth_rhsso, external_user_count, rhsso_setting_setup, module_target_sat
+    enable_external_auth_rhsso,
+    rhsso_setting_setup,
+    external_user_count,
+    module_target_sat,
 ):
     """Verify the external new user login and verify the external user count
 
@@ -386,7 +392,6 @@ def test_external_new_user_login_and_check_count_rhsso(
         assert error.typename == 'NavigationTriesExceeded'
 
 
-@pytest.mark.skip_if_open("BZ:1873439")
 def test_login_failure_rhsso_user_if_internal_user_exist(
     enable_external_auth_rhsso,
     rhsso_setting_setup,

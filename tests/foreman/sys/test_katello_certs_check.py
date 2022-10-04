@@ -36,7 +36,7 @@ class TestKatelloCertsCheck:
         (
             {
                 'check': 'Checking CA bundle against the certificate file',
-                'message': 'error 26 at 0 depth lookup:unsupported certificate purpose',
+                'message': 'error 26 at 0 depth lookup: unsupported certificate purpose',
             },
             'certs/invalid.crt',
             'certs/invalid.key',
