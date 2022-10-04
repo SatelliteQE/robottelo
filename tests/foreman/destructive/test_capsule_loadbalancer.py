@@ -150,7 +150,7 @@ def loadbalancer_setup(
 def test_loadbalancer_register_client_using_ak_to_ha_proxy(loadbalancer_setup, rhel7_contenthost):
     """Register the client using ak to the capsule
 
-    :id: 7318c380-e149-11ea-9b17-4ceb42ab8dbc
+    :id: bd3c2e50-18e2-4be7-8a7f-c32472e17c61
 
     :Steps:
         1. run `subscription-manager register --org=Your_Organization \
