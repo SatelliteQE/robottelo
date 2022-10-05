@@ -23,7 +23,7 @@ from robottelo.utils.issue_handlers import is_open
 
 @pytest.fixture(scope='session')
 def default_sso_host():
-    """returns default sso host"""
+    """Returns default sso host"""
     return sso_host
 
 

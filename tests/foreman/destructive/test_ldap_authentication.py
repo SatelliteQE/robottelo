@@ -333,8 +333,8 @@ def test_session_expire_rhsso_idle_timeout(
 
 
 def test_external_new_user_login_and_check_count_rhsso(
-    rhsso_setting_setup,
     enable_external_auth_rhsso,
+    rhsso_setting_setup,
     external_user_count,
     module_target_sat,
     default_sso_host,
