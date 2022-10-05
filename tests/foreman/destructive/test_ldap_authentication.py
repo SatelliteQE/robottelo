@@ -28,12 +28,7 @@ from robottelo.config import settings
 from robottelo.constants import CERT_PATH
 from robottelo.constants import HAMMER_SESSIONS
 from robottelo.constants import LDAP_ATTR
-<<<<<<< HEAD
 from robottelo.utils.datafactory import gen_string
-=======
-from robottelo.datafactory import gen_string
-from robottelo.utils.sso import sso_host
->>>>>>> updated tests to use default_sso_host
 
 pytestmark = [pytest.mark.destructive, pytest.mark.run_in_one_thread]
 
