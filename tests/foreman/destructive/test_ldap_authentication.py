@@ -23,13 +23,11 @@ import pyotp
 import pytest
 from navmazing import NavigationTriesExceeded
 
-from robottelo.api.utils import create_role_permissions
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import CERT_PATH
 from robottelo.constants import HAMMER_SESSIONS
 from robottelo.constants import LDAP_ATTR
-from robottelo.constants import PERMISSIONS
 from robottelo.datafactory import gen_string
 from robottelo.rhsso_utils import create_group
 from robottelo.rhsso_utils import create_new_rhsso_user
@@ -524,9 +522,13 @@ def test_user_permissions_rhsso_user_multiple_group(
         'username': username,
         'password': settings.rhsso.rhsso_password,
     }
-    user_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
     katello_role = module_target_sat.api.Role().create()
-    create_role_permissions(katello_role, user_permissions)
+    module_target_sat.api.Filter(
+        role=katello_role,
+        permission=module_target_sat.api.Permission().search(
+            query={'search': 'resource_type="Katello::ActivationKey"'}
+        ),
+    ).create()
 
     group_names = ['sat_users', 'sat_admins']
     arguments = [{'roles': katello_role.name}, {'admin': 1}]
