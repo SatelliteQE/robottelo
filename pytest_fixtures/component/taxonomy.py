@@ -90,6 +90,20 @@ def module_sca_manifest_org(module_org, module_sca_manifest):
     return module_org
 
 
+@pytest.fixture(scope='function')
+def function_entitlement_manifest_org(function_org, function_entitlement_manifest):
+    """Creates an organization and uploads an entitlement mode manifest generated with manifester"""
+    upload_manifest(function_org.id, function_entitlement_manifest.content)
+    return function_org
+
+
+@pytest.fixture(scope='function')
+def function_sca_manifest_org(function_org, function_sca_manifest):
+    """Creates an organization and uploads an SCA mode manifest generated with manifester"""
+    upload_manifest(function_org.id, function_sca_manifest.content)
+    return function_org
+
+
 @pytest.fixture(scope='module')
 def module_gt_manifest_org(module_target_sat):
     """Creates a new org and loads GT manifest in the new org"""
@@ -132,6 +146,22 @@ def module_entitlement_manifest():
 
 @pytest.fixture(scope='module')
 def module_sca_manifest():
+    """Yields a manifest in Simple Content Access mode with subscriptions determined by the
+    `manifest_category.golden_ticket` setting in manifester_settings.yaml."""
+    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+        yield manifest
+
+
+@pytest.fixture(scope='function')
+def function_entitlement_manifest():
+    """Yields a manifest in entitlement mode with subscriptions determined by the
+    `manifest_category.robottelo_automation` setting in manifester_settings.yaml."""
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
+        yield manifest
+
+
+@pytest.fixture(scope='function')
+def function_sca_manifest():
     """Yields a manifest in Simple Content Access mode with subscriptions determined by the
     `manifest_category.golden_ticket` setting in manifester_settings.yaml."""
     with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
