@@ -505,6 +505,7 @@ REPOS = {
         'product': PRDS['rhel8'],
         'distro': 'rhel8',
         'key': 'rhel8_bos',
+        'basearch': 'x86_64',
     },
     'rhel8_aps': {
         'id': 'rhel-8-for-x86_64-appstream-rpms',
