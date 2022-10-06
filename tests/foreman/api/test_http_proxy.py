@@ -21,6 +21,7 @@ import pytest
 from robottelo import constants
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import enable_sync_redhat_repo
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.hosts import ContentHostError
@@ -139,7 +140,7 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
     ids=['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'],
 )
 @pytest.mark.tier3
-def test_positive_auto_attach(setup_http_proxy, module_target_sat, function_org, rhel7_contenthost):
+def test_positive_auto_attach(setup_http_proxy, module_target_sat, function_org, rhel8_contenthost):
     """Attempt to auto attach a subscription to content host
 
     :id: cce888b5-e023-4ee2-bffe-efa9260224ee
@@ -147,7 +148,7 @@ def test_positive_auto_attach(setup_http_proxy, module_target_sat, function_org,
     :customerscenario: true
 
     :expectedresults: host successfully subscribed, subscription
-        repository enabled, and repository package installed
+        repository enabled, and repository package installed.
 
     :Assignee: jpathan
 
@@ -161,17 +162,9 @@ def test_positive_auto_attach(setup_http_proxy, module_target_sat, function_org,
         upload_manifest(function_org.id, manifest.content)
     lce = module_target_sat.api.LifecycleEnvironment(organization=function_org).create()
     content_view = module_target_sat.api.ContentView(organization=function_org).create()
-    rh_repo_id = enable_rhrepo_and_fetchid(
-        basearch=constants.DEFAULT_ARCHITECTURE,
-        org_id=function_org.id,
-        product=constants.PRDS['rhel'],
-        repo=constants.REPOS['rhst7']['name'],
-        reposet=constants.REPOSET['rhst7'],
-        releasever=None,
-    )
+    rh_repo_id = enable_sync_redhat_repo(constants.REPOS['rhel8_bos'], function_org.id)
     rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
-    rh_repo.sync()
-    assert rh_repo.read().content_counts['rpm'] >= 1
+    assert rh_repo.content_counts['rpm'] >= 1
     cv = module_target_sat.api.ContentView(id=content_view.id, repository=[rh_repo]).update(
         ["repository"]
     )
@@ -189,28 +182,27 @@ def test_positive_auto_attach(setup_http_proxy, module_target_sat, function_org,
         auto_attach=False,
     ).create()
     activation_key.add_subscriptions(data={'subscription_id': subscription[0].id})
-    rhel7_contenthost.install_katello_ca(module_target_sat)
-    rhel7_contenthost.register_contenthost(
+    rhel8_contenthost.install_katello_ca(module_target_sat)
+    rhel8_contenthost.register_contenthost(
         org=function_org.name, activation_key=activation_key.name
     )
-    assert rhel7_contenthost.subscribed
+    assert rhel8_contenthost.subscribed
     # To Do: Use api
     module_target_sat.cli.Host.subscription_register(
         {
             'organization-id': function_org.id,
             'content-view-id': content_view.id,
             'lifecycle-environment-id': lce.id,
-            'name': rhel7_contenthost.hostname,
+            'name': rhel8_contenthost.hostname,
         }
     )
     host = module_target_sat.api.Host().search(
-        query={'search': f'name={rhel7_contenthost.hostname}'}
+        query={'search': f'name={rhel8_contenthost.hostname}'}
     )[0]
     # To Do: Use api
     module_target_sat.cli.Host.subscription_auto_attach({'host-id': host.id})
-    rhel7_contenthost.enable_repo(constants.REPOS['rhst7']['id'])
-    # ensure that katello agent can be installed
+    rhel8_contenthost.enable_repo(constants.REPOS['rhst7']['id'])
     try:
-        rhel7_contenthost.install_katello_agent()
+        rhel8_contenthost.execute('yum install -y zsh')
     except ContentHostError:
         pytest.fail('ContentHostError raised unexpectedly!')
