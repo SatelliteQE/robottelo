@@ -73,7 +73,7 @@ class SSOHost(Host):
     def get_rhsso_groups_details(self, group_name):
         """Getter method to receive the group id"""
         result = self.execute(f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm}")
-        group_list = json.loads(result)
+        group_list = json.loads(result.stdout)
         query_group = [group for group in group_list if group['name'] == group_name]
         return query_group[0]
 
