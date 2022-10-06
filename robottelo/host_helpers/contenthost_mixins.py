@@ -43,15 +43,16 @@ class VersionedContent:
     def dogfood_repofile(self, product=None, release=None, snap=''):
         from robottelo.config import settings
 
+        v_major = str(self._v_major)
         if not product:
             if self.__class__.__name__ == 'ContentHost':
                 product = 'client'
                 release = release or 'Client'
             else:
                 product = self.__class__.__name__.lower()
-        if not release:
-            release = self.satellite.version
-        if str(release).lower != 'client':
+        release = self.satellite.version if not release else str(release)
+
+        if release.lower != 'client':
             release = release.split('.')
             if len(release) == 2:
                 release.append('0')
@@ -59,7 +60,7 @@ class VersionedContent:
         snap = str(snap or settings.server.version.get("snap"))
         return (
             f'{settings.repos.ohsnap_repo_host}/api/releases/'
-            f'{release}{"/" + snap if snap else ""}/el{self._v_major}/{product}/repo_file'
+            f'{release}{"/" + snap if snap else ""}/el{v_major}/{product}/repo_file'
         )
 
     def download_repofile(self, product=None, release=None, snap=''):
