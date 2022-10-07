@@ -1086,14 +1086,11 @@ class ContentHost(Host):
     def register_to_cdn(self):
         """Subscribe Satellite/Capsule/ContentHost to CDN"""
         self.remove_katello_ca()
-        major_version = self.os_version.major
-        release_version = f'{major_version}Server' if major_version < 8 else f'{major_version}'
         cmd_result = self.register_contenthost(
             org=None,
             lce=None,
             username=settings.subscription.rhn_username,
             password=settings.subscription.rhn_password,
-            releasever=release_version,
         )
         if cmd_result.status != 0:
             raise ContentHostError(
