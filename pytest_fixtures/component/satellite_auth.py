@@ -438,9 +438,11 @@ def enroll_ad_and_configure_external_auth(request, ad_data, sat):
 
     # update the AD name server
     sat.execute('chattr -i /etc/resolv.conf')
-    line_number = str(
-        sat.execute("awk -v search='nameserver' '$0~search{print NR; exit}' /etc/resolv.conf")
-    ).strip()
+    line_number = int(
+        sat.execute(
+            "awk -v search='nameserver' '$0~search{print NR; exit}' /etc/resolv.conf"
+        ).stdout
+    )
     sat.execute(f'sed -i "{line_number}i nameserver {ad_data.nameserver}" /etc/resolv.conf')
     sat.execute('chattr +i /etc/resolv.conf')
 
