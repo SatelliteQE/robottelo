@@ -196,7 +196,7 @@ def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
     """
     if settings.capsule.get('deploy_arguments'):
         resolved = _resolve_deploy_args(settings.capsule.deploy_arguments)
-        settings.capsule.deploy_arguments = resolved
+        settings.set('capsule.deploy_arguments', resolved)
         broker_args.update(settings.capsule.deploy_arguments)
         timeout = (1200 + delay) * retry_limit
         hosts = Broker(
@@ -207,4 +207,7 @@ def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
         )
         cap_hosts = wait_for(hosts.checkout, timeout=timeout, delay=delay)
 
-    return cap_hosts
+    yield cap_hosts.out
+
+    _ = [cap.teardown() for cap in cap_hosts.out]
+    Broker(hosts=cap_hosts.out).checkin()

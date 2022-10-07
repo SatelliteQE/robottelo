@@ -16,13 +16,11 @@
 
 :Upstream: No
 """
-from pathlib import PurePath
-
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import DataFile
 from robottelo.utils.installer import InstallerCommand
-
 
 pytestmark = [pytest.mark.no_containers, pytest.mark.destructive]
 
@@ -32,7 +30,6 @@ def get_hosts_from_broker(rhel7_contenthost_module, module_lb_capsule):
     """Get hosts from broker.
     :return: Capsules and haproxy(rhel7) host
     """
-    module_lb_capsule = module_lb_capsule.out
     return {
         'rhel7': rhel7_contenthost_module,
         'capsules': [module_lb_capsule[0], module_lb_capsule[1]],
@@ -117,9 +114,9 @@ def setup_haproxy(
     haproxy.register_contenthost(module_org.label, haproxy_ak.name)
     result = haproxy.execute('yum install haproxy policycoreutils-python -y')
     assert result.status == 0
-    haproxy.execute('rm -r /etc/haproxy/haproxy.cfg')
+    haproxy.execute('rm -f /etc/haproxy/haproxy.cfg')
     haproxy.session.sftp_write(
-        source=PurePath('tests/foreman/data').joinpath('haproxy.cfg'),
+        source=DataFile.DATA_DIR.joinpath('haproxy.cfg'),
         destination='/etc/haproxy/haproxy.cfg',
     )
     haproxy.execute(
@@ -130,7 +127,7 @@ def setup_haproxy(
     haproxy.execute('systemctl restart haproxy.service')
     haproxy.execute('mkdir /var/lib/haproxy/dev')
     haproxy.session.sftp_write(
-        source=PurePath('tests/foreman/data').joinpath('99-haproxy.conf'),
+        source=DataFile.DATA_DIR.joinpath('99-haproxy.conf'),
         destination='/etc/rsyslog.d/99-haproxy.conf',
     )
     haproxy.execute('setenforce permissive')
