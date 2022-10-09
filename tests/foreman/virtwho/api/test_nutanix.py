@@ -48,7 +48,10 @@ def form_data(default_org, target_sat):
 
 @pytest.fixture()
 def virtwho_config(form_data, target_sat):
-    return target_sat.api.VirtWhoConfig(**form_data).create()
+    virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
+    yield virtwho_config
+    virtwho_config.delete()
+    assert not target_sat.api.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
 
 class TestVirtWhoConfigforNutanix:
@@ -103,10 +106,6 @@ class TestVirtWhoConfigforNutanix:
             )
             result = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_script(
@@ -164,8 +163,6 @@ class TestVirtWhoConfigforNutanix:
             )
             result = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
-        virtwho_config.delete()
-        target_sat.api.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
@@ -193,10 +190,6 @@ class TestVirtWhoConfigforNutanix:
                 command, form_data['hypervisor_type'], org=default_org.label
             )
             assert get_configure_option('hypervisor_id', config_file) == value
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('deploy_type', ['id', 'script'])
@@ -266,10 +259,6 @@ class TestVirtWhoConfigforNutanix:
             )
             result = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_prism_central_prism_central_option(
@@ -294,7 +283,3 @@ class TestVirtWhoConfigforNutanix:
         command = get_configure_command(virtwho_config.id, default_org.name)
         deploy_configure_by_command(command, form_data['hypervisor_type'], org=default_org.label)
         assert get_configure_option("prism_central", config_file) == 'true'
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
