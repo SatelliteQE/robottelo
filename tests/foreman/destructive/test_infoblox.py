@@ -68,6 +68,7 @@ def test_plugin_installation(target_sat, command_args, command_opts, rpm_command
     :BZ: 1994490, 2000237
     """
     target_sat.download_repofile()
+    target_sat.register_to_cdn()
     installer_obj = InstallerCommand(command_args, **command_opts)
     command_output = target_sat.execute(installer_obj.get_command())
     epdb.serve(port=9000)
