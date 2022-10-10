@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import epdb
 import pytest
 
 from robottelo.utils.installer import InstallerCommand
@@ -69,6 +70,7 @@ def test_plugin_installation(target_sat, command_args, command_opts, rpm_command
     target_sat.download_repofile()
     installer_obj = InstallerCommand(command_args, **command_opts)
     command_output = target_sat.execute(installer_obj.get_command())
+    epdb.serve(port=9000)
     assert 'Success!' in command_output.stdout
     rpm_result = target_sat.execute(rpm_command)
     assert rpm_result.status == 0
