@@ -1,4 +1,5 @@
 """A collection of mixins for robottelo.hosts classes"""
+import epdb
 import json
 from functools import cached_property
 from tempfile import NamedTemporaryFile
@@ -58,6 +59,7 @@ class VersionedContent:
                 release.append('0')
             release = '.'.join(release[:3])  # keep only major.minor.patch
         snap = str(snap or settings.server.version.get("snap"))
+        epdb.serve()
         return (
             f'{settings.repos.ohsnap_repo_host}/api/releases/'
             f'{release}{"/" + snap if snap else ""}/el{v_major}/{product}/repo_file'
