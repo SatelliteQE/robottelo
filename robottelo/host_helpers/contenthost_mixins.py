@@ -56,8 +56,8 @@ class VersionedContent:
             if len(release) == 2:
                 release.append('0')
             release = '.'.join(release[:3])  # keep only major.minor.patch
-        snap = snap or settings.server.version.get("snap")
-
+        snap = str(snap or settings.server.version.get("snap"))
+        
         return (
             f'{settings.repos.ohsnap_repo_host}/api/releases/'
             f'{release}{"/" + snap if snap else ""}/el{self._v_major}/{product}/repo_file'
