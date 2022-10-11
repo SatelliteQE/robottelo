@@ -83,23 +83,27 @@ class TestVirtWhoConfigforNutanix:
         hosts = [
             (
                 hypervisor_name,
-                f'product_id={settings.virtwho.sku.vdc_physical} and type=NORMAL',
+                settings.virtwho.sku.vdc_physical,
+                'NORMAL',
             ),
             (
                 guest_name,
-                f'product_id={settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED',
+                settings.virtwho.sku.vdc_virtual,
+                'STACK_DERIVED',
             ),
         ]
-        for hostname, sku in hosts:
-            host = target_sat.cli.Host.list({'search': hostname})[0]
-            subscriptions = target_sat.cli.Subscription.list(
-                {'organization': default_org.name, 'search': sku}
-            )
-            vdc_id = subscriptions[0]['id']
-            if 'type=STACK_DERIVED' in sku:
-                for item in subscriptions:
-                    if hypervisor_name.lower() in item['type']:
-                        vdc_id = item['id']
+        for hostname, sku, type in hosts:
+            host = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
+            subscriptions = target_sat.api.Organization(id=default_org.id).subscriptions()[
+                'results'
+            ]
+            for item in subscriptions:
+                if item['type'] == type and item['product_id'] == sku:
+                    vdc_id = item['id']
+                    if (
+                        'hypervisor' in item
+                        and hypervisor_name.lower() in item['hypervisor']['name']
+                    ):
                         break
             target_sat.api.HostSubscription(host=host['id']).add_subscriptions(
                 data={'subscriptions': [{'id': vdc_id, 'quantity': 'Automatic'}]}
@@ -140,23 +144,27 @@ class TestVirtWhoConfigforNutanix:
         hosts = [
             (
                 hypervisor_name,
-                f'product_id={settings.virtwho.sku.vdc_physical} and type=NORMAL',
+                settings.virtwho.sku.vdc_physical,
+                'NORMAL',
             ),
             (
                 guest_name,
-                f'product_id={settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED',
+                settings.virtwho.sku.vdc_virtual,
+                'STACK_DERIVED',
             ),
         ]
-        for hostname, sku in hosts:
-            host = target_sat.cli.Host.list({'search': hostname})[0]
-            subscriptions = target_sat.cli.Subscription.list(
-                {'organization': default_org.name, 'search': sku}
-            )
-            vdc_id = subscriptions[0]['id']
-            if 'type=STACK_DERIVED' in sku:
-                for item in subscriptions:
-                    if hypervisor_name.lower() in item['type']:
-                        vdc_id = item['id']
+        for hostname, sku, type in hosts:
+            host = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
+            subscriptions = target_sat.api.Organization(id=default_org.id).subscriptions()[
+                'results'
+            ]
+            for item in subscriptions:
+                if item['type'] == type and item['product_id'] == sku:
+                    vdc_id = item['id']
+                    if (
+                        'hypervisor' in item
+                        and hypervisor_name.lower() in item['hypervisor']['name']
+                    ):
                         break
             target_sat.api.HostSubscription(host=host['id']).add_subscriptions(
                 data={'subscriptions': [{'id': vdc_id, 'quantity': 'Automatic'}]}
@@ -236,23 +244,27 @@ class TestVirtWhoConfigforNutanix:
         hosts = [
             (
                 hypervisor_name,
-                f'product_id={settings.virtwho.sku.vdc_physical} and type=NORMAL',
+                settings.virtwho.sku.vdc_physical,
+                'NORMAL',
             ),
             (
                 guest_name,
-                f'product_id={settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED',
+                settings.virtwho.sku.vdc_virtual,
+                'STACK_DERIVED',
             ),
         ]
-        for hostname, sku in hosts:
-            host = target_sat.cli.Host.list({'search': hostname})[0]
-            subscriptions = target_sat.cli.Subscription.list(
-                {'organization': default_org.name, 'search': sku}
-            )
-            vdc_id = subscriptions[0]['id']
-            if 'type=STACK_DERIVED' in sku:
-                for item in subscriptions:
-                    if hypervisor_name.lower() in item['type']:
-                        vdc_id = item['id']
+        for hostname, sku, type in hosts:
+            host = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
+            subscriptions = target_sat.api.Organization(id=default_org.id).subscriptions()[
+                'results'
+            ]
+            for item in subscriptions:
+                if item['type'] == type and item['product_id'] == sku:
+                    vdc_id = item['id']
+                    if (
+                        'hypervisor' in item
+                        and hypervisor_name.lower() in item['hypervisor']['name']
+                    ):
                         break
             target_sat.api.HostSubscription(host=host['id']).add_subscriptions(
                 data={'subscriptions': [{'id': vdc_id, 'quantity': 'Automatic'}]}
