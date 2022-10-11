@@ -2698,34 +2698,47 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
 class TestHostAnsible:
     """Tests for Ansible portion of Hosts"""
 
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_host_role_information(self):
-        """Assign Ansible Role to a Host and an attached Host group and verify that the information
-        in the new UI is displayed correctly
 
-        :id: 7da913ef-3b43-4bfa-9a45-d895431c8b56
+@pytest.mark.tier2
+def test_positive_host_role_information(target_sat):
+    """Assign Ansible Role to a Host and an attached Host group and verify that the information
+    in the new UI is displayed correctly
 
-        :caseComponent: Ansible
+    :id: 7da913ef-3b43-4bfa-9a45-d895431c8b56
 
-        :assignee: sbible
+    :caseComponent: Ansible
 
-        :CaseLevel: System
+    :assignee: sbible
 
-        :Steps:
-            1. Register a RHEL host to Satellite.
-            2. Import all roles available by default.
-            3. Create a host group and assign one of the Ansible roles to the host group.
-            4. Assign the host to the host group.
-            5. Assign one role to the RHEL host.
-            6. Navigate to the new UI for the given Host.
-            7. Select the 'Ansible' tab, then the 'Inventory' sub-tab.
+    :CaseLevel: System
 
-        :expectedresults: Roles assigned directly to the Host are visible on the subtab, and
-            roles assigned to the Host Group are visible by clicking the "view all assigned
-            roles" link
+    :Steps:
+        1. Register a RHEL host to Satellite.
+        2. Import all roles available by default.
+        3. Create a host group and assign one of the Ansible roles to the host group.
+        4. Assign the host to the host group.
+        5. Assign one role to the RHEL host.
+        6. Navigate to the new UI for the given Host.
+        7. Select the 'Ansible' tab, then the 'Inventory' sub-tab.
 
-        """
+    :expectedresults: Roles assigned directly to the Host are visible on the subtab, and
+        roles assigned to the Host Group are visible by clicking the "view all assigned
+        roles" link
+
+    """
+    SELECTED_ROLE = 'RedHatInsights.insights-client'
+
+    host = target_sat.api.Host().create()
+    id = target_sat.api.SmartProxy(name=target_sat.hostname).search()[0].id
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': id, 'role_names': [SELECTED_ROLE]})
+    host.assign_roles(data={'ansible_role_ids': [1]})
+    host_roles = host.list_roles()
+    assert host_roles[0]['name'] == SELECTED_ROLE
+    with target_sat.ui_session() as session:
+        session.location.select("Any Location")
+        session.organization.select("Any Organization")
+        ansible_roles_table = session.host_new.get_ansible_roles(host.name)
+        assert ansible_roles_table
 
     @pytest.mark.stubbed
     @pytest.mark.tier2
