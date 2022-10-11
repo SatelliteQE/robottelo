@@ -22,7 +22,7 @@ from fauxfactory import gen_url
 
 
 @pytest.mark.tier1
-def test_positive_end_to_end(session):
+def test_positive_end_to_end(session, target_sat):
     """Perform end to end testing for webhooks.
 
     :id: 9d2072e7-c6b6-4ecb-ac84-e73f4cf76fe4
@@ -31,7 +31,7 @@ def test_positive_end_to_end(session):
 
     :CaseImportance: Critical
 
-    :BZ: 2112093
+    :BZ: 2112093, 2131771
 
     :customerscenario: true
 
@@ -42,6 +42,8 @@ def test_positive_end_to_end(session):
     target_url = gen_url(subdomain=gen_string('alpha'), scheme='http')
     template = 'Katello Publish'
     http_method = 'GET'
+    username = gen_string('alpha')
+    password = gen_string('alpha')
     new_hook_name = gen_string('alpha')
     new_subscribe_to = 'Host Destroyed'
     new_target_url = gen_url(subdomain=gen_string('alpha'), scheme='http')
@@ -58,6 +60,8 @@ def test_positive_end_to_end(session):
                 'general.enabled': False,
                 'credentials.capsule_auth': True,
                 'credentials.verify_ssl': False,
+                'credentials.user': username,
+                'credentials.password': password,
             }
         )
         values = session.webhook.read(hook_name)
@@ -69,6 +73,9 @@ def test_positive_end_to_end(session):
         assert values['general']['enabled'] is False
         assert values['credentials']['capsule_auth'] is True
         assert values['credentials']['verify_ssl'] is False
+        assert values['credentials']['user'] == username
+        result = target_sat.execute('echo "Webhook.last.password" | foreman-rake console')
+        assert password in result.stdout
         session.webhook.update(
             hook_name,
             {
