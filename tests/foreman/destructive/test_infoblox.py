@@ -14,17 +14,28 @@
 
 :Upstream: No
 """
-import epdb
 import pytest
 
+from robottelo.hosts import get_sat_rhel_version
 from robottelo.utils.installer import InstallerCommand
+
+if get_sat_rhel_version().base_version == '7':
+    dhcp_isc_package = 'tfm-rubygem-smart_proxy_dhcp_remote_isc'
+    infoblox_package = 'tfm-rubygem-infoblox'
+    infoblox_dhcp_package = 'tfm-rubygem-smart_proxy_dhcp_infoblox'
+    infoblox_dns_package = 'tfm-rubygem-smart_proxy_dns_infoblox'
+else:
+    dhcp_isc_package = 'rubygem-smart_proxy_dhcp_remote_isc'
+    infoblox_package = 'rubygem-infoblox'
+    infoblox_dhcp_package = 'rubygem-smart_proxy_dhcp_infoblox'
+    infoblox_dns_package = 'rubygem-smart_proxy_dns_infoblox'
 
 pytestmark = pytest.mark.destructive
 params = [
     (
         'enable-foreman-proxy-plugin-dhcp-remote-isc',
         {'foreman-proxy-dhcp': 'true'},
-        'rpm -q tfm-rubygem-smart_proxy_dhcp_remote_isc',
+        f'rpm -q {dhcp_isc_package}',
     ),
     (
         'enable-foreman-proxy-plugin-dhcp-infoblox',
@@ -32,7 +43,7 @@ params = [
             'foreman-proxy-plugin-dhcp-infoblox-username': 'fakeusername',
             'foreman-proxy-plugin-dhcp-infoblox-password': 'fakepassword',
         },
-        'echo tfm-rubygem-infoblox tfm-rubygem-smart_proxy_dhcp_infoblox | xargs rpm -q',
+        f'echo {infoblox_package} {infoblox_dhcp_package} | xargs rpm -q',
     ),
     (
         'enable-foreman-proxy-plugin-dns-infoblox',
@@ -41,7 +52,7 @@ params = [
             'foreman-proxy-plugin-dns-infoblox-password': 'fakepassword',
             'foreman-proxy-plugin-dns-infoblox-dns-server': 'infoblox.example.com',
         },
-        'echo tfm-rubygem-infoblox tfm-rubygem-smart_proxy_dns_infoblox | xargs rpm -q',
+        f'echo {infoblox_package} {infoblox_dns_package} | xargs rpm -q',
     ),
 ]
 
@@ -69,7 +80,6 @@ def test_plugin_installation(target_sat, command_args, command_opts, rpm_command
     """
     target_sat.download_repofile()
     target_sat.register_to_cdn()
-    epdb.serve(port=9000)
     installer_obj = InstallerCommand(command_args, **command_opts)
     command_output = target_sat.execute(installer_obj.get_command())
     assert 'Success!' in command_output.stdout
