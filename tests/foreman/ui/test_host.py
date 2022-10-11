@@ -50,6 +50,7 @@ from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import REPO_TYPE
 from robottelo.utils.datafactory import gen_string
+from robottelo.utils.issue_handlers import is_open
 
 
 def _get_set_from_list_of_dict(value):
@@ -2203,12 +2204,12 @@ def test_rex_new_ui(session, target_sat, rex_contenthost):
 
 @pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
+@pytest.mark.no_containers
 @pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
+    'module_repos_collection_with_setup',
     [
         {
             'distro': 'rhel8',
-            'SatelliteToolsRepository': {},
             'YumRepository': {'url': settings.repos.yum_3.url},
         }
     ],
@@ -2219,7 +2220,7 @@ def test_positive_update_delete_package(
     session,
     target_sat,
     rhel_contenthost,
-    module_repos_collection_with_manifest,
+    module_repos_collection_with_setup,
 ):
     """Update a package on a host using the new Content tab
 
@@ -2227,24 +2228,46 @@ def test_positive_update_delete_package(
 
     :steps:
         1. Navigate to the Content tab.
-        2. Install a package on a registered host.
-        3. Downgrade package version
-        4. Check if the package is in an upgradable state.
-        5. Select package and upgrade via rex.
-        6. Delete the package
+        2. Disable repository set
+        3. Package from repository cannot be installed
+        4. Enable repository set
+        5. Install a package on a registered host.
+        6. Downgrade package version
+        7. Check if the package is in an upgradable state.
+        8. Select package and upgrade via rex.
+        9. Delete the package
 
     :expectedresults: The package is updated and deleted
 
     """
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_manifest.setup_virtual_machine(client, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(
+        client, target_sat, install_katello_agent=False
+    )
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
+        if not is_open('BZ:2132680'):
+            product_name = module_repos_collection_with_setup.custom_product.name
+            repos = session.host_new.get_repo_sets(client.hostname, product_name)
+            assert 'Enabled' == repos[0].status
+            session.host_new.override_repo_sets(
+                client.hostname, product_name, "Override to disabled"
+            )
+            assert 'Disnabled' == repos[0].status
+            session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
+            result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
+            assert result.status != 0
+            session.host_new.override_repo_sets(
+                client.hostname, product_name, "Override to enabled"
+            )
+            assert 'Enabled' == repos[0].status
+            # refresh repos on system
+            client.run('subscription-manager repos')
         # install package
         session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         task_result = wait_for_tasks(
-            search_query=(f'Install package(s) {FAKE_8_CUSTOM_PACKAGE_NAME} on {client.hostname}'),
+            search_query=(f'Install package(s) on {client.hostname}'),
             search_rate=4,
             max_tries=60,
         )
@@ -2302,12 +2325,12 @@ def test_positive_update_delete_package(
 
 @pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
+@pytest.mark.no_containers
 @pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
+    'module_repos_collection_with_setup',
     [
         {
             'distro': 'rhel8',
-            'SatelliteToolsRepository': {},
             'YumRepository': {'url': settings.repos.yum_3.url},
         }
     ],
@@ -2318,7 +2341,7 @@ def test_positive_apply_erratum(
     session,
     target_sat,
     rhel_contenthost,
-    module_repos_collection_with_manifest,
+    module_repos_collection_with_setup,
 ):
     """Apply an erratum on a host using the new Errata tab
 
@@ -2340,7 +2363,9 @@ def test_positive_apply_erratum(
     # install package
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_manifest.setup_virtual_machine(client, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(
+        client, target_sat, install_katello_agent=False
+    )
     errata_id = settings.repos.yum_3.errata[25]
     client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
@@ -2363,7 +2388,8 @@ def test_positive_apply_erratum(
         session.host_new.apply_erratas(client.hostname, f"errata_id == {errata_id}")
         task_result = wait_for_tasks(
             search_query=(
-                f'"Install errata errata_id == {errata_id.lower()} on {client.hostname}"'
+                f'"Install errata errata_id == {errata_id.lower()} '
+                f'and type=security on {client.hostname}"'
             ),
             search_rate=2,
             max_tries=60,
@@ -2381,12 +2407,12 @@ def test_positive_apply_erratum(
 
 @pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
+@pytest.mark.no_containers
 @pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
+    'module_repos_collection_with_setup',
     [
         {
             'distro': 'rhel8',
-            'SatelliteToolsRepository': {},
             'YumRepository': {'url': settings.repos.module_stream_1.url},
         }
     ],
@@ -2397,7 +2423,7 @@ def test_positive_crud_module_streams(
     session,
     target_sat,
     rhel_contenthost,
-    module_repos_collection_with_manifest,
+    module_repos_collection_with_setup,
 ):
     """CRUD test for the Module streams new UI tab
 
@@ -2419,7 +2445,9 @@ def test_positive_crud_module_streams(
     module_name = 'duck'
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_manifest.setup_virtual_machine(client, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(
+        client, target_sat, install_katello_agent=False
+    )
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         streams = session.host_new.get_module_streams(client.hostname, module_name)
@@ -2472,6 +2500,8 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update module streams table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['State'] == 'Default'
         assert streams[0]['Installation status'] == 'Not installed'
