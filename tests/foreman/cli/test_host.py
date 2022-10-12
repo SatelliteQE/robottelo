@@ -1568,18 +1568,20 @@ def setup_custom_repo(target_sat, module_org, katello_host_tools_host):
     """Create custom repository content"""
     # get package details
     details = {}
-    if katello_host_tools_host.os_version.major == '6':
+    if katello_host_tools_host.os_version.major == 6:
         custom_repo = 'yum_6'
         details['package'] = FAKE_1_CUSTOM_PACKAGE
         details['new_package'] = FAKE_2_CUSTOM_PACKAGE
         details['package_name'] = FAKE_1_CUSTOM_PACKAGE_NAME
-        details['errata'] = settings.repos.yum_1.errata
+        details['errata'] = settings.repos.yum_6.errata[2]
+        details['security_errata'] = settings.repos.yum_6.errata[2]
     else:
         custom_repo = 'yum_3'
         details['package'] = FAKE_7_CUSTOM_PACKAGE
         details['new_package'] = FAKE_8_CUSTOM_PACKAGE
         details['package_name'] = FAKE_8_CUSTOM_PACKAGE_NAME
-        details['errata'] = settings.repos.yum_3.errata
+        details['errata'] = settings.repos.yum_3.errata[0]
+        details['security_errata'] = settings.repos.yum_3.errata[25]
     prod = target_sat.api.Product(
         organization=module_org, name=f'custom_{gen_string("alpha")}'
     ).create()
@@ -1723,8 +1725,9 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
         timeout=120,
         delay=5,
     )
-    assert len(applicable_packages) == 1
-    assert FAKE_2_CUSTOM_PACKAGE in applicable_packages[0]['filename']
+    assert any(
+        setup_custom_repo["new_package"] in package['filename'] for package in applicable_packages
+    )
     # install package update
     client.run(f'yum install -y {setup_custom_repo["new_package"]}')
     result = client.run(f'rpm -q {setup_custom_repo["new_package"]}')
@@ -1772,6 +1775,7 @@ def test_positive_erratum_applicability(
     host_info = Host.info({'name': client.hostname})
     client.run(f'yum install -y {setup_custom_repo["package"]}')
     result = client.run(f'rpm -q {setup_custom_repo["package"]}')
+    client.subscription_manager_list_repos()
     applicable_errata, _ = wait_for(
         lambda: Host.errata_list({'host-id': host_info['id']}),
         handle_exception=True,
@@ -1783,16 +1787,17 @@ def test_positive_erratum_applicability(
         erratum
         for erratum in applicable_errata
         if erratum['installable'] == 'true'
-        and erratum['erratum-id'] == setup_custom_repo["errata"][0]
+        and erratum['erratum-id'] == setup_custom_repo["security_errata"]
     ]
     # apply the erratum
-    result = client.run(f'yum update -y --advisory {setup_custom_repo["errata"][0]}')
+    result = client.run(f'yum update -y --advisory {setup_custom_repo["security_errata"]}')
     assert result.status == 0
+    client.subscription_manager_list_repos()
     applicable_erratum = Host.errata_list({'host-id': host_info['id']})
     applicable_erratum_ids = [
         errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
     ]
-    assert setup_custom_repo["errata"][0] not in applicable_erratum_ids
+    assert setup_custom_repo["security_errata"] not in applicable_erratum_ids
 
 
 @pytest.mark.cli_katello_host_tools
@@ -1815,7 +1820,7 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
     """
     client = katello_host_tools_host
     host_info = Host.info({'name': client.hostname})
-    client.run(f'yum install -y {setup_custom_repo["package"]}')
+    client.run(f'yum install -y {setup_custom_repo["new_package"]}')
     client.run(f'yum downgrade -y {setup_custom_repo["package_name"]}')
     # Check that host has applicable errata
     host_erratum, _ = wait_for(
@@ -1824,7 +1829,7 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
         timeout=120,
         delay=5,
     )
-    assert host_erratum['erratum-id'] == setup_custom_repo["errata"][25]  # TODO
+    assert host_erratum['erratum-id'] == setup_custom_repo["security_errata"]
     assert host_erratum['installable'] == 'true'
     # Check the erratum becomes available
     result = client.run('yum update --assumeno --security | grep "No packages needed for security"')
@@ -1833,8 +1838,10 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
 
 @pytest.mark.cli_katello_host_tools
 @pytest.mark.tier3
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('[^6].*')
 def test_positive_install_package_via_rex(
-    module_org, rex_contenthost, target_sat, setup_custom_repo
+    module_org, katello_host_tools_host, target_sat, setup_custom_repo
 ):
     """Install a package to a host remotely using remote execution,
     install package using Katello SSH job template, host package list is used to verify that
@@ -1847,7 +1854,7 @@ def test_positive_install_package_via_rex(
 
     :parametrized: yes
     """
-    client = rex_contenthost
+    client = katello_host_tools_host
     host_info = Host.info({'name': client.hostname})
     client.configure_rex(satellite=target_sat, org=module_org, register=False)
     # Apply errata to the host collection using job invocation

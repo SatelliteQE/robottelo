@@ -1289,12 +1289,12 @@ def test_positive_global_registration_end_to_end(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
     # make sure there will be package availabe for update
-    if rhel_contenthost.os_version.major != '6':
-        package = FAKE_7_CUSTOM_PACKAGE
-        repo_url = settings.repos.yum_3['url']
-    else:
+    if rhel_contenthost.os_version.major == '6':
         package = FAKE_1_CUSTOM_PACKAGE
         repo_url = settings.repos.yum_1['url']
+    else:
+        package = FAKE_7_CUSTOM_PACKAGE
+        repo_url = settings.repos.yum_3['url']
     rhel_contenthost.create_custom_repos(fake_yum=repo_url)
     rhel_contenthost.execute(f"yum install -y {package}")
     # run curl
