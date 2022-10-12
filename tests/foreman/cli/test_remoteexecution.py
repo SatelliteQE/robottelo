@@ -226,6 +226,7 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([8])
     def test_positive_run_default_job_template_multiple_hosts_by_ip(
         self, registered_hosts, module_org
@@ -555,6 +556,7 @@ class TestAnsibleREX:
         assert rec_logic['iteration'] == '2'
 
     @pytest.mark.tier3
+    @pytest.mark.no_containers
     def test_positive_run_concurrent_jobs(self, registered_hosts, module_org):
         """Tests Ansible REX concurent jobs without batch trigger
 
