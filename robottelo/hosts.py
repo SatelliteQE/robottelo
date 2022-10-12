@@ -1400,11 +1400,13 @@ class Capsule(ContentHost, CapsuleMixins):
                 f'A core service is not running at capsule host\n{result.stdout}'
             )
 
-    def enable_mqtt(self):
+    def set_rex_script_mode_provider(self, mode='ssh'):
+        """Set provider for remote execution script mode. One of: ssh(default),
+        pull-mqtt, ssh-async"""
         installer_opts = {
             'foreman-proxy-templates': 'true',
             'foreman-proxy-registration': 'true',
-            'foreman-proxy-plugin-remote-execution-script-mode': 'pull-mqtt',
+            'foreman-proxy-plugin-remote-execution-script-mode': mode,
         }
         enable_mqtt_command = InstallerCommand(
             installer_opts=installer_opts,
