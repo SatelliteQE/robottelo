@@ -25,7 +25,6 @@ from fauxfactory import gen_utf8
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo import manifests
 from robottelo.api.utils import apply_package_filter
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
@@ -823,14 +822,13 @@ class TestContentViewRedHatContent:
 
     @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(self, request, module_org, module_cv):
+    def initiate_testclass(self, request, module_org, module_cv, module_entitlement_manifest):
         """Set up organization, product and repositories for tests."""
 
-        with manifests.clone() as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': module_org.id},
-                files={'content': manifest.content},
-            )
+        entities.Subscription().upload(
+            data={'organization_id': module_org.id},
+            files={'content': module_entitlement_manifest.content},
+        )
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_org.id,
@@ -1382,14 +1380,13 @@ class TestContentViewRedHatOstreeContent:
     @pytest.mark.run_in_one_thread
     @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(self, request, module_org):
+    def initiate_testclass(self, request, module_org, module_entitlement_manifest):
         """Set up organization, product and repositories for tests."""
 
-        with manifests.clone() as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': module_org.id},
-                files={'content': manifest.content},
-            )
+        entities.Subscription().upload(
+            data={'organization_id': module_org.id},
+            files={'content': module_entitlement_manifest.content},
+        )
         repo_id = enable_rhrepo_and_fetchid(
             basearch=None,
             org_id=module_org.id,
