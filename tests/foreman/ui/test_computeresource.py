@@ -42,6 +42,7 @@ def rhev_data():
         'username': settings.rhev.username,
         'password': settings.rhev.password,
         'datacenter': settings.rhev.datacenter,
+        'cluster': settings.rhev.cluster,
         'vm_name': settings.rhev.vm_name,
         'image_name': settings.rhev.image_name,
         'image_os': settings.rhev.image_os,
@@ -465,7 +466,7 @@ def test_positive_associate_with_custom_profile(session, rhev_data):
     """
     cr_name = gen_string('alpha')
     cr_profile_data = dict(
-        cluster=rhev_data['datacenter'],
+        cluster=rhev_data['cluster'],
         cores='2',
         sockets='2',
         memory='1024 MB',
@@ -552,7 +553,7 @@ def test_positive_associate_with_custom_profile_with_template(session, rhev_data
     """
     cr_name = gen_string('alpha')
     cr_profile_data = dict(
-        cluster=rhev_data['datacenter'],
+        cluster=rhev_data['cluster'],
         template='{} (base version)'.format(rhev_data['image_name']),
         cores='2',
         memory='1024 MB',
