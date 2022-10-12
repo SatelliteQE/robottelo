@@ -78,7 +78,7 @@ def fixture_enable_receptor_repos(request, target_sat):
 
 @pytest.fixture()
 def infra_host(request, target_sat, module_capsule_configured):
-    infra_hosts = {'target_sat': target_sat, 'capsule_configured': module_capsule_configured}
+    infra_hosts = {'target_sat': target_sat, 'module_capsule_configured': module_capsule_configured}
     yield infra_hosts[request.param]
 
 
