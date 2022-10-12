@@ -1,7 +1,7 @@
 # Version updates managed by dependabot
 
 broker[docker]==0.2.8
-cryptography==38.0.1
+cryptography==38.0.2
 deepdiff==5.8.1
 dynaconf[vault]==3.1.11
 fauxfactory==3.1.0
