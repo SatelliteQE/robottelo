@@ -180,7 +180,7 @@ def module_capsule_configured(module_capsule_host, module_target_sat):
 def module_capsule_configured_mqtt(module_capsule_configured):
     """Configure the capsule instance with the satellite from settings.server.hostname,
     enable MQTT broker"""
-    module_capsule_configured.enable_mqtt()
+    module_capsule_configured.set_rex_script_mode_provider('pull-mqtt')
     result = module_capsule_configured.execute('systemctl status mosquitto')
     assert result.status == 0, 'MQTT broker is not running'
     result = module_capsule_configured.execute('firewall-cmd --permanent --add-port="1883/tcp"')
@@ -211,3 +211,11 @@ def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
 
     _ = [cap.teardown() for cap in cap_hosts.out]
     Broker(hosts=cap_hosts.out).checkin()
+
+
+@pytest.fixture(scope='module')
+def module_capsule_configured_async_ssh(module_capsule_configured):
+    """Configure the capsule instance with the satellite from settings.server.hostname,
+    enable MQTT broker"""
+    module_capsule_configured.set_rex_script_mode_provider('ssh-async')
+    yield module_capsule_configured
