@@ -26,7 +26,6 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
-from nailgun import entities
 from wait_for import wait_for
 
 from robottelo.cli.activationkey import ActivationKey
@@ -67,8 +66,8 @@ def module_default_proxy(module_target_sat):
 
 
 @pytest.fixture(scope="function")
-def function_host():
-    host_template = entities.Host()
+def function_host(target_sat):
+    host_template = target_sat.api.Host()
     host_template.create_missing()
     # using CLI to create host
     host = make_host(
@@ -90,19 +89,19 @@ def function_host():
 
 
 @pytest.fixture(scope="function")
-def function_user(function_host):
+def function_user(target_sat, function_host):
     """
     Returns dict with user object and with password to this user
     """
     user_name = gen_string('alphanumeric')
     user_password = gen_string('alphanumeric')
-    org = entities.Organization().search(
+    org = target_sat.api.Organization().search(
         query={'search': f'name="{function_host["organization"]}"'}
     )[0]
-    location = entities.Location().search(query={'search': f'name="{function_host["location"]}"'})[
-        0
-    ]
-    user = entities.User(
+    location = target_sat.api.Location().search(
+        query={'search': f'name="{function_host["location"]}"'}
+    )[0]
+    user = target_sat.api.User(
         admin=False,
         default_organization=org.id,
         organization=[org.id],
@@ -134,9 +133,9 @@ def tracer_host(katello_host_tools_tracer_host):
     yield katello_host_tools_tracer_host
 
 
-def update_smart_proxy(location, smart_proxy):
+def update_smart_proxy(sat, location, smart_proxy):
     if location.id not in [location.id for location in smart_proxy.location]:
-        smart_proxy.location.append(entities.Location(id=location.id))
+        smart_proxy.location.append(sat.api.Location(id=location.id))
     smart_proxy.update(['location'])
 
 
@@ -304,7 +303,7 @@ def test_positive_search_all_field_sets():
 @pytest.mark.cli_host_create
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_create_and_delete(module_lce_library, module_published_cv):
+def test_positive_create_and_delete(target_sat, module_lce_library, module_published_cv):
     """A host can be created and deleted
 
     :id: 59fcbe50-9c6b-4c3c-87b3-272b4b584fb3
@@ -316,7 +315,7 @@ def test_positive_create_and_delete(module_lce_library, module_published_cv):
     :CaseImportance: Critical
     """
     name = valid_hosts_list()[0]
-    host = entities.Host()
+    host = target_sat.api.Host()
     host.create_missing()
     interface = (
         'type=interface,mac={},identifier=eth0,name={},domain_id={},'
@@ -357,7 +356,7 @@ def test_positive_create_and_delete(module_lce_library, module_published_cv):
 
 @pytest.mark.cli_host_create
 @pytest.mark.tier1
-def test_positive_crud_interface_by_id(default_location, default_org):
+def test_positive_crud_interface_by_id(target_sat, default_location, default_org):
     """New network interface can be added to existing host, listed and removed.
 
     :id: e97dba92-61eb-47ad-a7d7-5f989292b12a
@@ -367,7 +366,7 @@ def test_positive_crud_interface_by_id(default_location, default_org):
 
     :CaseImportance: Critical
     """
-    domain = entities.Domain(location=[default_location], organization=[default_org]).create()
+    domain = target_sat.api.Domain(location=[default_location], organization=[default_org]).create()
 
     mac = gen_mac(multicast=False)
     host = make_fake_host({'domain-id': domain.id})
@@ -387,7 +386,9 @@ def test_positive_crud_interface_by_id(default_location, default_org):
     assert host_interface['mac-address'] == mac
     assert len(HostInterface.list({'host-id': host['id']})) == number_of_interfaces + 1
 
-    new_domain = entities.Domain(location=[default_location], organization=[default_org]).create()
+    new_domain = target_sat.api.Domain(
+        location=[default_location], organization=[default_org]
+    ).create()
     new_mac = gen_mac(multicast=False)
     HostInterface.update(
         {
@@ -732,7 +733,7 @@ def test_positive_list_infrastructure_hosts(
 @pytest.mark.libvirt_discovery
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier1
-def test_positive_create_using_libvirt_without_mac(module_location, module_org):
+def test_positive_create_using_libvirt_without_mac(target_sat, module_location, module_org):
     """Create a libvirt host and not specify a MAC address.
 
     :id: b003faa9-2810-4176-94d2-ea84bed248eb
@@ -741,12 +742,12 @@ def test_positive_create_using_libvirt_without_mac(module_location, module_org):
 
     :CaseImportance: Critical
     """
-    compute_resource = entities.LibvirtComputeResource(
+    compute_resource = target_sat.api.LibvirtComputeResource(
         url=f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system',
         organization=[module_org.id],
         location=[module_location.id],
     ).create()
-    host = entities.Host(organization=module_org.id, location=module_location.id)
+    host = target_sat.api.Host(organization=module_org.id, location=module_location.id)
     host.create_missing()
     result = make_host(
         {
@@ -768,7 +769,9 @@ def test_positive_create_using_libvirt_without_mac(module_location, module_org):
 
 @pytest.mark.cli_host_create
 @pytest.mark.tier2
-def test_positive_create_inherit_lce_cv(module_published_cv, module_lce_library, module_org):
+def test_positive_create_inherit_lce_cv(
+    target_sat, module_published_cv, module_lce_library, module_org
+):
     """Create a host with hostgroup specified. Make sure host inherited
     hostgroup's lifecycle environment and content-view
 
@@ -781,7 +784,7 @@ def test_positive_create_inherit_lce_cv(module_published_cv, module_lce_library,
 
     :BZ: 1391656
     """
-    hostgroup = entities.HostGroup(
+    hostgroup = target_sat.api.HostGroup(
         content_view=module_published_cv,
         lifecycle_environment=module_lce_library,
         organization=[module_org],
@@ -796,7 +799,7 @@ def test_positive_create_inherit_lce_cv(module_published_cv, module_lce_library,
 
 @pytest.mark.cli_host_create
 @pytest.mark.tier3
-def test_positive_create_inherit_nested_hostgroup():
+def test_positive_create_inherit_nested_hostgroup(target_sat):
     """Create two nested host groups with the same name, but different
     parents. Then create host using any from these hostgroups title
 
@@ -810,10 +813,10 @@ def test_positive_create_inherit_nested_hostgroup():
 
     :BZ: 1436162
     """
-    options = entities.Host()
+    options = target_sat.api.Host()
     options.create_missing()
-    lce = entities.LifecycleEnvironment(organization=options.organization).create()
-    content_view = entities.ContentView(organization=options.organization).create()
+    lce = target_sat.api.LifecycleEnvironment(organization=options.organization).create()
+    content_view = target_sat.api.ContentView(organization=options.organization).create()
     content_view.publish()
     content_view.read().version[0].promote(data={'environment_ids': lce.id, 'force': False})
     host_name = gen_string('alpha').lower()
@@ -822,11 +825,11 @@ def test_positive_create_inherit_nested_hostgroup():
     nested_hostgroups = []
     for _ in range(2):
         parent_hg_name = gen_string('alpha')
-        parent_hg = entities.HostGroup(
+        parent_hg = target_sat.api.HostGroup(
             name=parent_hg_name, organization=[options.organization]
         ).create()
         parent_hostgroups.append(parent_hg)
-        nested_hg = entities.HostGroup(
+        nested_hg = target_sat.api.HostGroup(
             architecture=options.architecture,
             content_view=content_view,
             domain=options.domain,
@@ -854,7 +857,7 @@ def test_positive_create_inherit_nested_hostgroup():
 
 @pytest.mark.cli_host_create
 @pytest.mark.tier3
-def test_positive_list_with_nested_hostgroup():
+def test_positive_list_with_nested_hostgroup(target_sat):
     """Create parent and nested host groups. Then create host using nested
     hostgroup and then find created host using list command
 
@@ -869,19 +872,19 @@ def test_positive_list_with_nested_hostgroup():
 
     :CaseLevel: System
     """
-    options = entities.Host()
+    options = target_sat.api.Host()
     options.create_missing()
     host_name = gen_string('alpha').lower()
     parent_hg_name = gen_string('alpha')
     nested_hg_name = gen_string('alpha')
-    lce = entities.LifecycleEnvironment(organization=options.organization).create()
-    content_view = entities.ContentView(organization=options.organization).create()
+    lce = target_sat.api.LifecycleEnvironment(organization=options.organization).create()
+    content_view = target_sat.api.ContentView(organization=options.organization).create()
     content_view.publish()
     content_view.read().version[0].promote(data={'environment_ids': lce.id, 'force': False})
-    parent_hg = entities.HostGroup(
+    parent_hg = target_sat.api.HostGroup(
         name=parent_hg_name, organization=[options.organization]
     ).create()
-    nested_hg = entities.HostGroup(
+    nested_hg = target_sat.api.HostGroup(
         architecture=options.architecture,
         content_view=content_view,
         domain=options.domain,
@@ -941,7 +944,9 @@ def test_negative_create_with_incompatible_pxe_loader():
 # -------------------------- UPDATE SCENARIOS -------------------------
 @pytest.mark.cli_host_update
 @pytest.mark.tier1
-def test_positive_update_parameters_by_name(function_host, module_architecture, module_location):
+def test_positive_update_parameters_by_name(
+    target_sat, function_host, module_architecture, module_location
+):
     """A host can be updated with a new name, mac address, domain,
         location, environment, architecture, operating system and medium.
         Use id to access the host
@@ -961,20 +966,20 @@ def test_positive_update_parameters_by_name(function_host, module_architecture, 
     new_name = valid_hosts_list()[0]
     new_mac = gen_mac(multicast=False)
     new_loc = module_location
-    organization = entities.Organization().search(
+    organization = target_sat.api.Organization().search(
         query={'search': f'name="{function_host["organization"]}"'}
     )[0]
-    new_domain = entities.Domain(location=[new_loc], organization=[organization]).create()
+    new_domain = target_sat.api.Domain(location=[new_loc], organization=[organization]).create()
     p_table_name = function_host['operating-system']['partition-table']
-    p_table = entities.PartitionTable().search(query={'search': f'name="{p_table_name}"'})
-    new_os = entities.OperatingSystem(
+    p_table = target_sat.api.PartitionTable().search(query={'search': f'name="{p_table_name}"'})
+    new_os = target_sat.api.OperatingSystem(
         major=gen_integer(0, 10),
         minor=gen_integer(0, 10),
         name=gen_string('alphanumeric'),
         architecture=[module_architecture.id],
         ptable=[p_table[0].id],
     ).create()
-    new_medium = entities.Media(
+    new_medium = target_sat.api.Media(
         location=[new_loc],
         organization=[organization],
         operatingsystem=[new_os],
@@ -1057,7 +1062,7 @@ def test_negative_update_arch(function_host, module_architecture):
 
 @pytest.mark.tier2
 @pytest.mark.cli_host_update
-def test_negative_update_os(function_host, module_architecture):
+def test_negative_update_os(target_sat, function_host, module_architecture):
     """A host can not be updated with a operating system, which is
     not associated with host's medium
 
@@ -1068,8 +1073,8 @@ def test_negative_update_os(function_host, module_architecture):
     :CaseLevel: Integration
     """
     p_table = function_host['operating-system']['partition-table']
-    p_table = entities.PartitionTable().search(query={'search': f'name="{p_table}"'})[0]
-    new_os = entities.OperatingSystem(
+    p_table = target_sat.api.PartitionTable().search(query={'search': f'name="{p_table}"'})[0]
+    new_os = target_sat.api.OperatingSystem(
         major=gen_integer(0, 10),
         name=gen_string('alphanumeric'),
         architecture=[module_architecture.id],
@@ -1090,7 +1095,7 @@ def test_negative_update_os(function_host, module_architecture):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 @pytest.mark.cli_host_update
-def test_hammer_host_info_output(module_user):
+def test_hammer_host_info_output(target_sat, module_user):
     """Verify re-add of 'owner-id' in `hammer host info` output
 
     :id: 03468516-0ebb-11eb-8ad8-0c7a158cbff4
@@ -1108,7 +1113,9 @@ def test_hammer_host_info_output(module_user):
 
     :BZ: 1779093, 1910314
     """
-    user = entities.User().search(query={'search': f'login={settings.server.admin_username}'})[0]
+    user = target_sat.api.User().search(
+        query={'search': f'login={settings.server.admin_username}'}
+    )[0]
     Host.update({'owner': settings.server.admin_username, 'owner-type': 'User', 'id': '1'})
     result_info = Host.info(options={'id': '1', 'fields': 'Additional info'})
     assert int(result_info['additional-info']['owner-id']) == user.id
@@ -1183,7 +1190,7 @@ def test_negative_add_parameter(function_host):
 
 @pytest.mark.cli_host_parameter
 @pytest.mark.tier2
-def test_negative_view_parameter_by_non_admin_user(function_host, function_user):
+def test_negative_view_parameter_by_non_admin_user(target_sat, function_host, function_user):
     """Attempt to view parameters with non admin user without Parameter
      permissions
 
@@ -1208,7 +1215,7 @@ def test_negative_view_parameter_by_non_admin_user(function_host, function_user)
     Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
     host = Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
-    role = entities.Role(name=gen_string('alphanumeric')).create()
+    role = target_sat.api.Role(name=gen_string('alphanumeric')).create()
     add_role_permissions(
         role.id,
         resource_permissions={
@@ -1225,7 +1232,7 @@ def test_negative_view_parameter_by_non_admin_user(function_host, function_user)
 
 @pytest.mark.cli_host_parameter
 @pytest.mark.tier2
-def test_positive_view_parameter_by_non_admin_user(function_host, function_user):
+def test_positive_view_parameter_by_non_admin_user(target_sat, function_host, function_user):
     """Attempt to view parameters with non admin user that has
     Parameter::vew_params permission
 
@@ -1251,7 +1258,7 @@ def test_positive_view_parameter_by_non_admin_user(function_host, function_user)
     Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
     host = Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
-    role = entities.Role(name=gen_string('alphanumeric')).create()
+    role = target_sat.api.Role(name=gen_string('alphanumeric')).create()
     add_role_permissions(
         role.id,
         resource_permissions={
@@ -1270,7 +1277,7 @@ def test_positive_view_parameter_by_non_admin_user(function_host, function_user)
 
 @pytest.mark.cli_host_parameter
 @pytest.mark.tier2
-def test_negative_edit_parameter_by_non_admin_user(function_host, function_user):
+def test_negative_edit_parameter_by_non_admin_user(target_sat, function_host, function_user):
     """Attempt to edit parameter with non admin user that has
     Parameter::vew_params permission
 
@@ -1296,7 +1303,7 @@ def test_negative_edit_parameter_by_non_admin_user(function_host, function_user)
     Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
     host = Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
-    role = entities.Role(name=gen_string('alphanumeric')).create()
+    role = target_sat.api.Role(name=gen_string('alphanumeric')).create()
     add_role_permissions(
         role.id,
         resource_permissions={
@@ -1601,18 +1608,6 @@ def setup_custom_repo(target_sat, module_org, katello_host_tools_host):
     )
     # refresh repository metadata
     katello_host_tools_host.subscription_manager_list_repos()
-    # get package details
-    details = {}
-    if katello_host_tools_host.os_version.major != '6':
-        details['package'] = FAKE_7_CUSTOM_PACKAGE
-        details['new_package'] = FAKE_8_CUSTOM_PACKAGE
-        details['package_name'] = FAKE_8_CUSTOM_PACKAGE_NAME
-        details['errata'] = settings.repos.yum_3.errata
-    else:
-        details['package'] = FAKE_1_CUSTOM_PACKAGE
-        details['new_package'] = FAKE_2_CUSTOM_PACKAGE
-        details['package_name'] = FAKE_1_CUSTOM_PACKAGE_NAME
-        details['errata'] = settings.repos.yum_1.errata
     return details
 
 
@@ -1822,7 +1817,7 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
         timeout=120,
         delay=5,
     )
-    assert host_erratum['erratum-id'] == setup_custom_repo["errata"][25]  # TODO
+    assert host_erratum['erratum-id'] == setup_custom_repo["errata"][25]
     assert host_erratum['installable'] == 'true'
     # Check the erratum becomes available
     result = client.run('yum update --assumeno --security | grep "No packages needed for security"')
@@ -2582,7 +2577,7 @@ def test_positive_list_scparams(
 
     :CaseLevel: Integration
     """
-    update_smart_proxy(module_puppet_loc, session_puppet_enabled_proxy)
+    update_smart_proxy(session_puppet_enabled_sat, module_puppet_loc, session_puppet_enabled_proxy)
     # Create hostgroup with associated puppet class
     host = session_puppet_enabled_sat.cli_factory.make_fake_host(
         {
@@ -2629,7 +2624,7 @@ def test_positive_create_with_puppet_class_name(
 
     :CaseImportance: Critical
     """
-    update_smart_proxy(module_puppet_loc, session_puppet_enabled_proxy)
+    update_smart_proxy(session_puppet_enabled_sat, module_puppet_loc, session_puppet_enabled_proxy)
     host = session_puppet_enabled_sat.cli_factory.make_fake_host(
         {
             'puppet-class-ids': [module_puppet_classes[0].id],
@@ -2670,7 +2665,7 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
 
     :customerscenario: true
     """
-    update_smart_proxy(module_puppet_loc, session_puppet_enabled_proxy)
+    update_smart_proxy(session_puppet_enabled_sat, module_puppet_loc, session_puppet_enabled_proxy)
     host = session_puppet_enabled_sat.cli_factory.make_fake_host(
         {
             'puppet-class-ids': [module_puppet_classes[0].id],
