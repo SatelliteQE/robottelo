@@ -26,7 +26,7 @@ SSH_PASS = settings.server.ssh_password
 pytestmark = pytest.mark.destructive
 
 
-@pytest.mark.parametrize("sat_ready_rhel", [8], indirect=True)
+@pytest.mark.parametrize("sat_ready_rhel", [7, 8], indirect=True)
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
 @pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
 def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pulp):
