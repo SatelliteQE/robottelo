@@ -9,24 +9,11 @@ from fauxfactory import gen_string
 
 from robottelo.config import settings
 from robottelo.constants import KEY_CLOAK_CLI
+from robottelo.constants import RHSSO_NEW_GROUP
+from robottelo.constants import RHSSO_NEW_USER
+from robottelo.constants import RHSSO_RESET_PASSWORD
+from robottelo.constants import RHSSO_USER_UPDATE
 from robottelo.datafactory import valid_emails_list
-
-RHSSO_NEW_USER = Box(
-    email="test_user@example.com",
-    emailVerified="true",
-    enabled="true",
-    firstName="first_name",
-    lastName="last_name",
-    username="random_name",
-)
-
-RHSSO_USER_UPDATE = Box(realm="realm_name", userId="user_id")
-
-RHSSO_NEW_GROUP = Box(
-    name="group_name",
-)
-
-RHSSO_RESET_PASSWORD = Box(temporary="false", type="password", value="")
 
 
 class SSOHost(Host):
@@ -81,7 +68,6 @@ class SSOHost(Host):
         """Helper method upload the entity json request as file on RHSSO Server"""
         with open(entity_name, "w") as file:
             json.dump(json_content, file)
-        # self.session.sftp_write(hostname=settings.rhsso.host_name).put(entity_name)
         self.session.sftp_write(entity_name)
 
     def create_mapper(self, json_content, client_id):
@@ -95,8 +81,8 @@ class SSOHost(Host):
 
     def create_new_rhsso_user(self, client_id, username=None):
         """create new user in RHSSO instance and set the password"""
-        update_data_user = RHSSO_NEW_USER.copy()
-        update_data_pass = RHSSO_RESET_PASSWORD.copy()
+        update_data_user = Box(RHSSO_NEW_USER)
+        update_data_pass = Box(RHSSO_RESET_PASSWORD)
         if not username:
             username = gen_string('alphanumeric')
         update_data_user.username = username
@@ -114,14 +100,14 @@ class SSOHost(Host):
         return update_data_user
 
     def update_rhsso_user(self, username, group_name=None):
-        update_data_user = RHSSO_USER_UPDATE.copy()
+        update_data_user = Box(RHSSO_USER_UPDATE)
         user_details = self.get_rhsso_user_details(username)
         update_data_user.realm = settings.rhsso.realm
         update_data_user.userId = f"{user_details['id']}"
         if group_name:
             group_details = self.get_rhsso_groups_details(group_name=group_name)
             update_data_user['groupId'] = f"{group_details['id']}"
-            self.upload_rhsso_entity(RHSSO_USER_UPDATE, "update_user")
+            self.upload_rhsso_entity(update_data_user, "update_user")
             group_path = f"users/{user_details['id']}/groups/{group_details['id']}"
             self.execute(
                 f"{KEY_CLOAK_CLI} update -r {settings.rhsso.realm} {group_path} -f update_user"
@@ -134,7 +120,7 @@ class SSOHost(Host):
 
     def create_group(self, group_name=None):
         """Create the RHSSO group"""
-        update_user_group = RHSSO_NEW_GROUP.copy()
+        update_user_group = Box(RHSSO_NEW_GROUP)
         if not group_name:
             group_name = gen_string('alphanumeric')
         update_user_group.name = group_name
@@ -142,7 +128,7 @@ class SSOHost(Host):
         result = self.execute(
             f"{KEY_CLOAK_CLI} create groups -r {settings.rhsso.realm} -f create_group"
         )
-        return result
+        return result.stdout
 
     def delete_rhsso_group(self, group_name):
         """Delete the RHSSO group"""
@@ -169,10 +155,9 @@ class SSOHost(Host):
             f"{settings.rhsso.realm}/protocol/openid-connect/token"
         )
 
-    @lru_cache
-    def get_oidc_client_id(self):
+    def get_oidc_client_id(self, sat_obj):
         """getter for the oidc client_id"""
-        return f"{settings.server.hostname}-foreman-openidc"
+        return f"{sat_obj.hostname}-foreman-openidc"
 
     @cached_property
     def oidc_authorization_endpoint(self):
@@ -182,13 +167,12 @@ class SSOHost(Host):
             f"{settings.rhsso.realm}/protocol/openid-connect/auth"
         )
 
-    @lru_cache
-    def two_factor_token_rh_sso_url(self):
+    def two_factor_token_rh_sso_url(self, sat_obj):
         """getter for the two factor token rh_sso url"""
         return (
             f"https://{settings.rhsso.host_name}/auth/realms/"
             f"{settings.rhsso.realm}/protocol/openid-connect/"
-            f"auth?response_type=code&client_id={settings.server.hostname}-foreman-openidc&"
+            f"auth?response_type=code&client_id={sat_obj.hostname}-foreman-openidc&"
             "redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=openid"
         )
 
