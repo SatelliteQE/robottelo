@@ -28,6 +28,8 @@ from robottelo.utils.io import get_local_file_data
 from robottelo.utils.io import get_remote_report_checksum
 from robottelo.utils.io import get_report_data
 
+pytestmark = [pytest.mark.no_containers]
+
 
 def common_assertion(report_path, inventory_data, org, satellite):
     """Function to perform common assertions"""

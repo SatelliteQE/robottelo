@@ -27,6 +27,8 @@ from robottelo.utils.io import get_remote_report_checksum
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
 
+pytestmark = [pytest.mark.no_containers]
+
 
 @pytest.mark.tier3
 def test_positive_inventory_generate_upload_cli(

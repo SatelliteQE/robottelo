@@ -24,6 +24,8 @@ from wait_for import wait_for
 
 from robottelo.constants import DEFAULT_LOC
 
+pytestmark = [pytest.mark.no_containers]
+
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3

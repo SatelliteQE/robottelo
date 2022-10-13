@@ -29,6 +29,7 @@ from robottelo.utils.io import get_report_data
 from robottelo.utils.io import get_report_metadata
 
 generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
+pytestmark = [pytest.mark.no_containers]
 
 
 def generate_inventory_report(satellite, org):
