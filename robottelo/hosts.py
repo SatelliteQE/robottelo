@@ -1411,6 +1411,13 @@ class Satellite(Capsule, SatelliteMixins):
             login=login,
         )
 
+    @property
+    def satellite(self):
+        """Use self when no other Satellite is set to avoid unecessary/incorrect instances"""
+        if not self._satellite:
+            return self
+        return self._satellite
+
     @cached_property
     def is_upstream(self):
         """Figure out which product distribution is installed on the server.
