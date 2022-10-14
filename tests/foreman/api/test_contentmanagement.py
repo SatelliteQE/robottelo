@@ -16,6 +16,7 @@
 
 :Upstream: No
 """
+import epdb
 import re
 import uuid
 from datetime import datetime
@@ -142,6 +143,7 @@ class TestSatelliteContentManagement:
         rh_repo = entities.Repository(id=rh_repo_id).read()
         rh_repo.sync()
         rh_repo.download_policy = 'immediate'
+        epdb.serve(port=9000)
         rh_repo = rh_repo.update(['download_policy'])
         call_entity_method_with_timeout(rh_repo.sync, timeout=600)
         result = target_sat.execute(
