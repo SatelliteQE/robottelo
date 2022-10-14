@@ -167,7 +167,7 @@ class SSOHost(Host):
             f"{settings.rhsso.realm}/protocol/openid-connect/auth"
         )
 
-    def two_factor_token_rh_sso_url(self, sat_obj):
+    def get_two_factor_token_rh_sso_url(self, sat_obj):
         """getter for the two factor token rh_sso url"""
         return (
             f"https://{settings.rhsso.host_name}/auth/realms/"
