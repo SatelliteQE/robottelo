@@ -4,7 +4,6 @@ broker[docker]==0.2.9
 cryptography==38.0.3
 deepdiff==6.2.1
 dynaconf[vault]==3.1.11
-epdb==0.15.1
 fauxfactory==3.1.0
 jinja2==3.1.2
 manifester==0.0.10
