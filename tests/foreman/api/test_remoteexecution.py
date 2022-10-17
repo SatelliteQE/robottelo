@@ -19,9 +19,9 @@
 import pytest
 
 from robottelo.api.utils import wait_for_tasks
+from robottelo.hosts import get_sat_version
 
-
-CAPSULE_TARGET_VERSION = '6.10.z'
+CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
 
 @pytest.mark.tier4
