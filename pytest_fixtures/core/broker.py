@@ -12,8 +12,7 @@ from robottelo.logging import logger
 
 def _resolve_deploy_args(args_dict):
     # TODO: https://github.com/rochacbruno/dynaconf/issues/690
-    args_dict = args_dict.copy().to_dict()
-    for key, val in args_dict.items():
+    for key, val in args_dict.copy().to_dict().items():
         if isinstance(val, str) and val.startswith('this.'):
             # Args transformed into small letters and existing capital args removed
             args_dict[key.lower()] = settings.get(args_dict.pop(key).replace('this.', ''))
