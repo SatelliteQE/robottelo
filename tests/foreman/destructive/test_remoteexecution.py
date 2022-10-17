@@ -21,8 +21,10 @@ from fauxfactory import gen_string
 from nailgun import client
 from nailgun.entity_mixins import TaskFailedError
 
+from robottelo.config import get_credentials
+from robottelo.hosts import get_sat_version
 
-CAPSULE_TARGET_VERSION = '6.10.z'
+CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
 pytestmark = pytest.mark.destructive
 
@@ -41,7 +43,6 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
 
     :CaseImportance: Medium
     """
-    sat = target_sat.nailgun_host
     template_id = (
         target_sat.api.JobTemplate()
         .search(query={'search': 'name="Capsule Upgrade Playbook"'})[0]
@@ -58,16 +59,20 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
                     'whitelist_options': "repositories-validqqate,repositories-setup",
                 },
                 'targeting_type': "static_query",
-                'search_query': f"name = {sat.name}",
+                'search_query': f"name = {target_sat.hostname}",
             }
         )
     assert 'A sub task failed' in error.value.args[0]
     job = target_sat.api.JobInvocation().search(
-        query={'search': f'host={sat.name},status=failed,description="Capsule Upgrade Playbook"'}
+        query={
+            'search': f'host={target_sat.hostname},'
+            'status=failed,description="Capsule Upgrade Playbook"'
+        }
     )[0]
+    host = target_sat.api.Host().search(query={'search': target_sat.hostname})
     response = client.get(
-        f'{target_sat.url}/api/job_invocations/{job.id}/hosts/{sat.id}',
-        auth=(target_sat.username, target_sat.password),
+        f'{target_sat.url}/api/job_invocations/{job.id}/hosts/{host[0].id}',
+        auth=get_credentials(),
         verify=False,
     )
     assert 'This playbook cannot be executed on a Satellite server.' in response.text
