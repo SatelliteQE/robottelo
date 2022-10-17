@@ -78,11 +78,12 @@ def get_rhsso_user_details(username):
 def get_rhsso_groups_details(group_name):
     """Getter method to receive the group id"""
     result = run_command(
-        cmd=f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm} -q group_name={group_name}",
+        cmd=f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm}",
         hostname=settings.rhsso.host_name,
     )
-    result_json = json.loads(result)
-    return result_json[0]
+    group_list = json.loads(result)
+    query_group = [group for group in group_list if group['name'] == group_name]
+    return query_group[0]
 
 
 def upload_rhsso_entity(json_content, entity_name):

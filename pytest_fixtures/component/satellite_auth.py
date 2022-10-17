@@ -271,7 +271,7 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
         'yum -y --disableplugin=foreman-protector install '
         'mod_auth_openidc keycloak-httpd-client-install'
     )
-    if module_target_sat.os_version.major == '8':
+    if module_target_sat.os_version.major == 8:
         # if target directory not given it is installing in /usr/local/lib64
         module_target_sat.execute(
             'python3 -m pip install lxml -t /usr/lib64/python3.6/site-packages'
