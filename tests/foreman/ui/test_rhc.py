@@ -60,12 +60,13 @@ def fixture_setup_rhc_satellite(request, module_target_sat, module_rhc_org):
     """Create Organization and activation key after successful test execution"""
     yield
     if request.node.rep_call.passed:
-        manifests_path = module_target_sat.download_file(
-            file_url=settings.fake_manifest.url['default']
-        )[0]
-        module_target_sat.cli.Subscription.upload(
-            {'file': manifests_path, 'organization-id': module_rhc_org.id}
-        )
+        if settings.rh_cloud.crc_env == 'prod':
+            manifests_path = module_target_sat.download_file(
+                file_url=settings.fake_manifest.url['default']
+            )[0]
+            module_target_sat.cli.Subscription.upload(
+                {'file': manifests_path, 'organization-id': module_rhc_org.id}
+            )
         # Enable and sync required repos
         repo1_id = enable_sync_redhat_repo(constants.REPOS['rhel8_aps'], module_rhc_org.id)
         repo2_id = enable_sync_redhat_repo(constants.REPOS['rhel7'], module_rhc_org.id)

@@ -334,7 +334,7 @@ def test_positive_health_check_validate_yum_config(sat_maintain):
 
     :BZ: 1669498
 
-    :customercenario: true
+    :customerscenario: true
     """
     file = '/etc/yum.conf'
     yum_exclude = 'exclude=cat*'
