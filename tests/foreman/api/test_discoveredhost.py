@@ -65,8 +65,6 @@ def _assert_discovered_host(host, channel=None, user_config=None):
     retrieved back
     Introduced a delay of 300secs by polling every 10 secs to get expected
     host
-
-    DEPRECATED: Will replace all tests using this function.
     """
     # assert that server receives DHCP discover from hosts PXELinux
     for pattern in [
