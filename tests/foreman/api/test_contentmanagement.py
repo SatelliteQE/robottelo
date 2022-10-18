@@ -1166,7 +1166,7 @@ class TestCapsuleContentManagement:
                 product=module_product,
                 url='https://quay.io',
             ).create()
-            repo.sync(timeout=600)
+            repo.sync(timeout='20m')
             repos.append(repo)
 
         # Create a LCE and associate it with the capsule
