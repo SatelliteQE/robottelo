@@ -199,7 +199,6 @@ class ContentHost(Host, ContentHostMixins):
     def setup(self):
         if not self.blank:
             self.remove_katello_ca()
-            self.execute('subscription-manager clean')
 
     def teardown(self):
         if not self.blank:
