@@ -96,7 +96,7 @@ def setup_capsule(satellite, capsule, registration_args=None, installation_args=
     """
     if not registration_args:
         registration_args = {}
-    file, cmd_args = satellite.capsule_certs_generate(capsule)
+    file, _, cmd_args = satellite.capsule_certs_generate(capsule)
     if installation_args:
         cmd_args.update(installation_args)
     satellite.execute(
@@ -1381,8 +1381,8 @@ class Capsule(ContentHost, CapsuleMixins):
             raise CapsuleHostError(f'The satellite-capsule package was not found\n{result.stdout}')
 
         # Generate certificate, copy it to Capsule, run installer, check it succeeds
-        installer = self.satellite.capsule_certs_generate(self, **installer_kwargs)
-        self.satellite.session.remote_copy(installer.opts['certs-tar-file'], self)
+        certs_tar, _, installer = self.satellite.capsule_certs_generate(self, **installer_kwargs)
+        self.satellite.session.remote_copy(certs_tar, self)
         installer.update(**installer_kwargs)
         result = self.install(installer)
         if result.status:
@@ -1551,17 +1551,18 @@ class Satellite(Capsule, SatelliteMixins):
         )
 
     def capsule_certs_generate(self, capsule, cert_path=None, **extra_kwargs):
-        """Generate capsule certs, returning the cert path and the installer command args"""
-        command = InstallerCommand(
-            command='capsule-certs-generate',
-            foreman_proxy_fqdn=capsule.hostname,
-            certs_tar=cert_path or f'/root/{capsule.hostname}-certs.tar',
-            **extra_kwargs,
+        """Generate capsule certs, returning the cert path, installer command stdout and args"""
+        cert_file_path = cert_path or f'/root/{capsule.hostname}-certs.tar'
+        result = self.install(
+            InstallerCommand(
+                command='capsule-certs-generate',
+                foreman_proxy_fqdn=capsule.hostname,
+                certs_tar=cert_file_path,
+                **extra_kwargs,
+            )
         )
-        result = self.execute(command.get_command())
         install_cmd = InstallerCommand.from_cmd_str(cmd_str=result.stdout)
-        install_cmd.opts['certs-tar-file'] = f'/root/{capsule.hostname}-certs.tar'
-        return install_cmd
+        return cert_file_path, result, install_cmd
 
     def __enter__(self):
         """Satellite objects can be used as a context manager to temporarily force everything
