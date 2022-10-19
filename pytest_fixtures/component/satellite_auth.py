@@ -324,6 +324,8 @@ def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth, module_targ
 
 def enroll_idm_and_configure_external_auth(sat):
     """Enroll the Satellite6 Server to an IDM Server."""
+    if is_open('BZ:2129096'):
+        settings.set('ipa.user', 'foreman_test')
     ipa_host = ContentHost(settings.ipa.hostname)
     result = sat.execute(
         'yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools'
