@@ -207,7 +207,7 @@ def test_rhcloud_inventory_mtu_field():
 
     :BZ: 1893439
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: ManualOnly
     """
 
 
