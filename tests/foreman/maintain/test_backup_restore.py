@@ -311,6 +311,37 @@ def test_negative_backup_incremental_nodir(sat_maintain, setup_backup_tests, bac
     assert NOPREV_MSG in str(result.stderr)
 
 
+def test_negative_backup_maintenance_mode(sat_maintain, setup_backup_tests):
+    """Try to take a backup which would fail and verify maintenance-mode isn't running/ON
+
+    :id: dd53c19c-4ebf-11ed-a3d2-932dbdabb055
+
+    :steps:
+        1. try to create a snapshot backup which would fail
+
+    :expectedresult:
+        1. Verify maintenance-mode isn't running if backup fails
+
+    :BZ: 1908478, 1962842
+
+    :customerscenario: true
+    """
+    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
+    result = sat_maintain.cli.Backup.run_backup(
+        backup_dir=subdir,
+        backup_type='snapshot',
+        options={'assumeyes': True, 'plaintext': True},
+    )
+    logger.info(result.stdout)
+    assert result.status != 0
+    assert "Backup didn't finish. Incomplete backup was removed." in result.stdout
+
+    result = sat_maintain.cli.MaintenanceMode.status()
+    assert result.status == 0
+    assert 'Status of maintenance-mode: Off' in result.stdout
+    assert 'Nftables table: absent' in result.stdout
+
+
 def test_negative_restore_nodir(sat_maintain, setup_backup_tests):
     """Try to run restore with no source dir provided
 
