@@ -29,8 +29,6 @@ from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
 from robottelo.config import get_credentials
 from robottelo.constants import DEFAULT_ORG
 from robottelo.utils.datafactory import filtered_datapoint
@@ -133,7 +131,7 @@ class TestOrganization:
             entities.Organization(name=name).create()
 
     @pytest.mark.tier1
-    def test_negative_check_org_endpoint(self):
+    def test_negative_check_org_endpoint(self, module_entitlement_manifest_org):
         """Check manifest cert is not exposed in api endpoint
 
         :id: 24130e54-cd7a-41de-ac78-6e89aebabe30
@@ -146,9 +144,7 @@ class TestOrganization:
 
         :CaseImportance: High
         """
-        org = entities.Organization().create()
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
+        org = module_entitlement_manifest_org
         orgstring = json.dumps(org.read_json())
         assert 'BEGIN CERTIFICATE' not in orgstring
         assert 'BEGIN RSA PRIVATE KEY' not in orgstring
