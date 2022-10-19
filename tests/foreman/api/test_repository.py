@@ -1349,7 +1349,9 @@ class TestRepositorySync:
         assert result.status == 1
 
     @pytest.mark.tier2
-    def test_positive_sync_repo_null_contents_changed(self, module_entitlement_manifest_org, target_sat):
+    def test_positive_sync_repo_null_contents_changed(
+        self, module_entitlement_manifest_org, target_sat
+    ):
         """test for null contents_changed parameter on actions::katello::repository::sync.
 
         :id: f3923940-e097-4da3-aba7-b14dbcda857b
