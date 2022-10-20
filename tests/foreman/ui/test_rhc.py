@@ -24,6 +24,7 @@ from robottelo import constants
 from robottelo.api.utils import enable_sync_redhat_repo
 from robottelo.config import settings
 from robottelo.logging import logger
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -116,6 +117,13 @@ def test_positive_configure_cloud_connector(
 
     :BZ: 1818076
     """
+    # Delete old satellite hostname if BZ#2130173 is open
+    if is_open('BZ:2130173'):
+        host = module_target_sat.api.Host().search(
+            query={'search': f"! {module_target_sat.hostname}"}
+        )[0]
+        host.delete()
+
     # Copy foreman-proxy user's key to root@localhost user's authorized_keys
     module_target_sat.add_rex_key(satellite=module_target_sat)
 
