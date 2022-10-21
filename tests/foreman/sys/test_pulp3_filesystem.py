@@ -18,6 +18,8 @@
 """
 import pytest
 
+from robottelo.utils.issue_handlers import is_open
+
 
 @pytest.mark.upgrade
 def test_selinux_status(target_sat):
@@ -26,13 +28,18 @@ def test_selinux_status(target_sat):
     :id: 43218070-ac5e-4679-b74a-3e2bcb497a0a
 
     :expectedresults: SELinux is enabled and there are no denials
+
+    :customerscenario: true
+
+    :BZ: 2131031
     """
     # check SELinux is enabled
     result = target_sat.execute('getenforce')
     assert 'Enforcing' in result.stdout
     # check there are no SELinux denials
-    result = target_sat.execute('ausearch --input-logs -m avc -ts today --raw')
-    assert result.status == 1
+    if not is_open('BZ:2131031'):
+        result = target_sat.execute('ausearch --input-logs -m avc -ts today --raw')
+        assert result.status == 1, 'Some SELinux denials were found in journal.'
 
 
 @pytest.mark.upgrade
