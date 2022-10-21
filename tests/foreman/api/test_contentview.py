@@ -820,7 +820,6 @@ class TestContentViewDelete:
 class TestContentViewRedHatContent:
     """Tests for publishing and promoting content views."""
 
-    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.fixture(scope='class', autouse=True)
     def initiate_testclass(self, request, module_org, module_cv, module_entitlement_manifest):
         """Set up organization, product and repositories for tests."""
@@ -1378,7 +1377,6 @@ class TestContentViewRedHatOstreeContent:
     """Tests for publishing and promoting cv with RH ostree contents."""
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.fixture(scope='class', autouse=True)
     def initiate_testclass(self, request, module_org, module_entitlement_manifest):
         """Set up organization, product and repositories for tests."""
