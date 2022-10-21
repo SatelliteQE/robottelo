@@ -194,6 +194,7 @@ def test_positive_create_new_host():
     pass
 
 
+@pytest.mark.tier2
 def test_positive_nested_host_groups(
     session, module_org, module_lce, module_published_cv, module_ak_cv_lce, target_sat
 ):
@@ -253,7 +254,7 @@ def test_positive_nested_host_groups(
             {
                 'host_group.lce': module_lce.name,
                 'host_group.content_view': module_published_cv.name,
-                'host_group.activation_keys': module_ak_cv_lce.name,
+                'activation_keys.activation_keys': module_ak_cv_lce.name,
             },
         )
         child_hostgroup_values = session.hostgroup.read(f'{parent_hg_name}/{child_hg_name}')
@@ -264,3 +265,80 @@ def test_positive_nested_host_groups(
         # Delete nested host group
         session.hostgroup.delete(f'{parent_hg_name}/{child_hg_name}')
         assert not target_sat.api.HostGroup().search(query={'search': f'name={child_hg_name}'})
+
+
+@pytest.mark.skip_if_open('BZ:2122261')
+@pytest.mark.tier2
+def test_positive_clone_host_groups(
+    session, module_org, module_lce, module_published_cv, module_ak_cv_lce, target_sat
+):
+    """Verify create, update and delete operation for clone host-group
+
+    :id: 9f02dcc5-98aa-48bd-8114-edd3a0be65c1
+
+    :Steps:
+        1. Create the host-group.
+        2. Clone the host-group created in step 1
+        3. Update and Delete the cloned host-group.
+
+    :CaseImportance: High
+
+    :expectedresults: Crud operations with cloned host-group should work as expected.
+
+    :BZ: 2122261
+
+    :customerscenario: true
+    """
+    parent_hg_name = gen_string('alpha')
+    clone_hg_name = gen_string('alpha')
+    description = gen_string('alpha')
+    architecture = target_sat.api.Architecture().create()
+    os = target_sat.api.OperatingSystem(architecture=[architecture]).create()
+    os_name = f'{os.name} {os.major}'
+    with session:
+        # Create host-group with lce and content view
+        session.hostgroup.create(
+            {
+                'host_group.name': parent_hg_name,
+                'host_group.description': description,
+                'host_group.lce': module_lce.name,
+                'host_group.content_view': module_published_cv.name,
+                'operating_system.architecture': architecture.name,
+                'operating_system.operating_system': os_name,
+                'activation_keys.activation_keys': module_ak_cv_lce.name,
+            }
+        )
+        assert target_sat.api.HostGroup().search(query={'search': f'name={parent_hg_name}'})
+
+        # Clone host group of name
+        session.hostgroup.clone(
+            parent_hg_name,
+            {
+                'host_group.name': clone_hg_name,
+            },
+        )
+        assert target_sat.api.HostGroup().search(query={'search': f'name={clone_hg_name}'})
+        clone_hostgroup_values = session.hostgroup.read(clone_hg_name)
+        assert module_ak_cv_lce.name in clone_hostgroup_values['host_group']['lce']
+        assert module_published_cv.name in clone_hostgroup_values['host_group']['content_view']
+        assert module_ak_cv_lce.name in clone_hostgroup_values['activation_keys']['activation_keys']
+        assert os_name in clone_hostgroup_values['operating_system']['operating_system']
+        assert architecture.name in clone_hostgroup_values['operating_system']['architecture']
+
+        # Update clone host group
+        session.hostgroup.update(
+            clone_hg_name,
+            {
+                'host_group.lce': ENVIRONMENT,
+                'host_group.content_view': DEFAULT_CV,
+            },
+        )
+        clone_hostgroup_values = session.hostgroup.read(clone_hg_name)
+        assert ENVIRONMENT in clone_hostgroup_values['host_group']['lce']
+        assert DEFAULT_CV in clone_hostgroup_values['host_group']['content_view']
+
+        # Delete parent and clone host group
+        session.hostgroup.delete(parent_hg_name)
+        assert target_sat.api.HostGroup().search(query={'search': f'name={clone_hg_name}'})
+        session.hostgroup.delete(clone_hg_name)
+        assert not target_sat.api.HostGroup().search(query={'search': f'name={clone_hg_name}'})
