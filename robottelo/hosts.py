@@ -183,6 +183,10 @@ class ContentHost(Host, ContentHostMixins):
         return ipv4
 
     @cached_property
+    def arch(self):
+        return self.get_facts().get('lscpu.architecture') or self.execute('uname -m').stdout.strip()
+
+    @cached_property
     def _redhat_release(self):
         """Process redhat-release file for distro and version information"""
         result = self.execute('cat /etc/redhat-release')

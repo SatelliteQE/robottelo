@@ -3,9 +3,14 @@ import json
 from functools import cached_property
 from tempfile import NamedTemporaryFile
 
+import requests
+from box import Box
+
 from robottelo import constants
 from robottelo.api import utils
 from robottelo.config import robottelo_tmp_dir
+from robottelo.errors import InvalidArgumentError
+from robottelo.errors import RepositoryDataNotFound
 
 
 class VersionedContent:
@@ -40,10 +45,14 @@ class VersionedContent:
             'cbrhel': constants.OSCAP_PROFILE[f'cbrhel{self._v_major}'],
         }
 
-    def dogfood_repofile(self, product=None, release=None, snap=''):
+    def _ohsnap_repo_url(self, request_type, product=None, release=None, snap='', os_release=None):
+        """Returns a URL pointing to Ohsnap "repo_file" or "repositories" API endpoint"""
+        if request_type not in ['repo_file', 'repositories']:
+            raise InvalidArgumentError('Type must be one of "repo_file" or "repositories"')
         from robottelo.config import settings
 
-        v_major = str(self._v_major)
+        if not os_release:
+            os_release = str(self._v_major)
         if not product:
             if self.__class__.__name__ == 'ContentHost':
                 product = 'client'
@@ -60,11 +69,38 @@ class VersionedContent:
         snap = str(snap or settings.server.version.get("snap"))
         return (
             f'{settings.repos.ohsnap_repo_host}/api/releases/'
-            f'{release}{"/" + snap if snap else ""}/el{v_major}/{product}/repo_file'
+            f'{release}{"/" + snap if snap else ""}/el{os_release}/{product}/{request_type}'
         )
 
+    def dogfood_repofile(self, product=None, release=None, snap=''):
+        return self._ohsnap_repo_url('repo_file', product, release, snap)
+
+    def dogfood_repository(
+        self, repo=None, arch=None, product=None, release=None, snap='', os_release=None
+    ):
+        """Returns a repository definition based on the arguments provided"""
+        arch = arch or self.arch
+        res = requests.get(
+            self._ohsnap_repo_url('repositories', product, release, snap, os_release)
+        )
+        res.raise_for_status()
+        if not repo:
+            if self.__class__.__name__ == 'ContentHost':
+                repo = 'client'
+            else:
+                repo = self.__class__.__name__.lower()
+        try:
+            repository = next(r for r in res.json() if r['label'] == repo)
+        except StopIteration:
+            raise RepositoryDataNotFound(
+                f'Repository "{repo}" is not provided by the given product'
+            )
+        repository['baseurl'] = repository['baseurl'].replace('$basearch', arch)
+        # Q: Should we use YumRepository class here? `return YumRepository(**repository)`
+        return Box(**repository)
+
     def download_repofile(self, product=None, release=None, snap=''):
-        """Downloads the tools, capsule, or satellite repos on the machine"""
+        """Downloads the tools/client, capsule, or satellite repos on the machine"""
         self.execute(
             f'curl -o /etc/yum.repos.d/dogfood.repo {self.dogfood_repofile(product, release, snap)}'
         )
