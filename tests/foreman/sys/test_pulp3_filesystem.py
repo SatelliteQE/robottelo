@@ -37,7 +37,7 @@ def test_selinux_status(target_sat):
     result = target_sat.execute('getenforce')
     assert 'Enforcing' in result.stdout
     # check there are no SELinux denials
-    if not is_open('BZ:2131031'):
+    if target_sat.os_version.major == 7 or not is_open('BZ:2131031'):
         result = target_sat.execute('ausearch --input-logs -m avc -ts today --raw')
         assert result.status == 1, 'Some SELinux denials were found in journal.'
 
