@@ -31,7 +31,7 @@ def test_positive_delete_by_name(
     module_subscribe_satellite,
     module_enroll_idm_and_configure_external_auth,
     configure_realm,
-    module_fake_proxy,
+    module_capsule_configured,
     module_target_sat,
 ):
     """Realm deletion by realm name
@@ -41,7 +41,10 @@ def test_positive_delete_by_name(
     :expectedresults: Realm is deleted
     """
     realm = module_target_sat.cli_factory.make_realm(
-        {'realm-proxy-id': module_fake_proxy.id, 'realm-type': 'Active Directory'}
+        {
+            'realm-proxy-id': module_capsule_configured.nailgun_capsule.id,
+            'realm-type': 'Active Directory',
+        }
     )
     module_target_sat.cli.Realm.delete({'name': realm['name']})
     with pytest.raises(CLIReturnCodeError):
@@ -52,7 +55,7 @@ def test_positive_delete_by_id(
     module_subscribe_satellite,
     module_enroll_idm_and_configure_external_auth,
     configure_realm,
-    module_fake_proxy,
+    module_capsule_configured,
     module_target_sat,
 ):
     """Realm deletion by realm ID
@@ -62,7 +65,10 @@ def test_positive_delete_by_id(
     :expectedresults: Realm is deleted
     """
     realm = module_target_sat.cli_factory.make_realm(
-        {'realm-proxy-id': module_fake_proxy.id, 'realm-type': 'Active Directory'}
+        {
+            'realm-proxy-id': module_capsule_configured.nailgun_capsule.id,
+            'realm-type': 'Active Directory',
+        }
     )
     module_target_sat.cli.Realm.delete({'id': realm['id']})
     with pytest.raises(CLIReturnCodeError):
@@ -73,7 +79,7 @@ def test_positive_realm_info_name(
     module_subscribe_satellite,
     module_enroll_idm_and_configure_external_auth,
     configure_realm,
-    module_fake_proxy,
+    module_capsule_configured,
     request,
     module_target_sat,
 ):
@@ -86,9 +92,11 @@ def test_positive_realm_info_name(
     realm = module_target_sat.cli_factory.make_realm(
         {
             'name': gen_string('alpha', random.randint(1, 30)),
-            'realm-proxy-id': module_fake_proxy.id,
+            'realm-proxy-id': module_capsule_configured.nailgun_capsule.id,
             'realm-type': 'Red Hat Identity Management',
-            'locations': [loc.read().name for loc in module_fake_proxy.location],
+            'locations': [
+                loc.read().name for loc in module_capsule_configured.nailgun_capsule.location
+            ],
         }
     )
     request.addfinalizer(lambda: module_target_sat.cli.Realm(realm['id']).delete())
@@ -101,7 +109,7 @@ def test_positive_realm_info_id(
     module_subscribe_satellite,
     module_enroll_idm_and_configure_external_auth,
     configure_realm,
-    module_fake_proxy,
+    module_capsule_configured,
     request,
     module_target_sat,
 ):
@@ -114,9 +122,11 @@ def test_positive_realm_info_id(
     realm = module_target_sat.cli_factory.make_realm(
         {
             'name': gen_string('alpha', random.randint(1, 30)),
-            'realm-proxy-id': module_fake_proxy.id,
+            'realm-proxy-id': module_capsule_configured.nailgun_capsule.id,
             'realm-type': 'Red Hat Identity Management',
-            'locations': [loc.read().name for loc in module_fake_proxy.location],
+            'locations': [
+                loc.read().name for loc in module_capsule_configured.nailgun_capsule.location
+            ],
         }
     )
     request.addfinalizer(lambda: module_target_sat.cli.Realm(realm['id']).delete())
@@ -130,7 +140,7 @@ def test_positive_realm_update_name(
     module_subscribe_satellite,
     module_enroll_idm_and_configure_external_auth,
     configure_realm,
-    module_fake_proxy,
+    module_capsule_configured,
     request,
     module_target_sat,
 ):
@@ -145,9 +155,11 @@ def test_positive_realm_update_name(
     realm = module_target_sat.cli_factory.make_realm(
         {
             'name': realm_name,
-            'realm-proxy-id': module_fake_proxy.id,
+            'realm-proxy-id': module_capsule_configured.nailgun_capsule.id,
             'realm-type': 'Red Hat Identity Management',
-            'locations': [loc.read().name for loc in module_fake_proxy.location],
+            'locations': [
+                loc.read().name for loc in module_capsule_configured.nailgun_capsule.location
+            ],
         }
     )
     request.addfinalizer(lambda: module_target_sat.cli.Realm(realm['id']).delete())
@@ -162,7 +174,7 @@ def test_negative_realm_update_invalid_type(
     module_subscribe_satellite,
     module_enroll_idm_and_configure_external_auth,
     configure_realm,
-    module_fake_proxy,
+    module_capsule_configured,
     request,
     module_target_sat,
 ):
@@ -177,9 +189,11 @@ def test_negative_realm_update_invalid_type(
     realm = module_target_sat.cli_factory.make_realm(
         {
             'name': gen_string('alpha', random.randint(1, 30)),
-            'realm-proxy-id': module_fake_proxy.id,
+            'realm-proxy-id': module_capsule_configured.nailgun_capsule.id,
             'realm-type': realm_type,
-            'locations': [loc.read().name for loc in module_fake_proxy.location],
+            'locations': [
+                loc.read().name for loc in module_capsule_configured.nailgun_capsule.location
+            ],
         }
     )
     request.addfinalizer(lambda: module_target_sat.cli.Realm(realm['id']).delete())
