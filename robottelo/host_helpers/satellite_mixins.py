@@ -95,10 +95,12 @@ class ContentInfo:
             reached or calculation was not successful).
         """
         filename = url.split('/')[-1]
-        result = self.execute(f'wget -qO - {url} | tee {filename} | md5sum | awk \'{{print $1}}\'')
+        result = self.execute(f'wget -q --spider {url}')
         if result.status != 0:
-            raise AssertionError(f'Failed to calculate md5 checksum of {filename}')
-        return result.stdout
+            raise AssertionError(f'Failed to get `{filename}` from `{url}`.')
+        return self.execute(
+            f'wget -qO - {url} | tee {filename} | md5sum | awk \'{{print $1}}\''
+        ).stdout
 
 
 class Factories:
