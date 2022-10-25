@@ -1017,12 +1017,15 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8', 'rhel9'])
     def test_positive_sync_kickstart_repo(
-        self, target_sat, module_capsule_configured, module_manifest_org
+        self, target_sat, module_capsule_configured, module_manifest_org, distro
     ):
         """Sync kickstart repository to the capsule.
 
         :id: bc97b53f-f79b-42f7-8014-b0641435bcfc
+
+        :parametrized: yes
 
         :steps:
             1. Sync a kickstart repository to Satellite.
@@ -1037,7 +1040,6 @@ class TestCapsuleContentManagement:
 
         :BZ: 1992329
         """
-        distro = 'rhel8_aps'
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_manifest_org.id,
@@ -1063,7 +1065,7 @@ class TestCapsuleContentManagement:
         # Create a content view with the repository
         cv = entities.ContentView(organization=module_manifest_org, repository=[repo]).create()
         # Sync repository
-        repo.sync(timeout=600)
+        repo.sync(timeout='10m')
         repo = repo.read()
         # Publish new version of the content view
         cv.publish()
@@ -1081,9 +1083,13 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Check for kickstart content on SAT and CAPS
+        tail = (
+            f'rhel/server/7/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/kickstart'
+            if distro == 'rhel7'
+            else f'{distro}/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
+        )
         url_base = (
-            f'pulp/content/{module_manifest_org.label}/{lce.label}/{cv.label}/content/dist/'
-            f'rhel8/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/appstream/kickstart'
+            f'pulp/content/{module_manifest_org.label}/{lce.label}/{cv.label}/content/dist/{tail}'
         )
 
         # Check kickstart specific files
