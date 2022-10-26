@@ -1773,13 +1773,6 @@ def _setup_org_for_a_rh_repo(target_sat, options=None):
         env_id = make_lifecycle_environment({'organization-id': org_id})['id']
     else:
         env_id = options['lifecycle-environment-id']
-    # Clone manifest and upload it
-    with clone() as manifest:
-        target_sat.put(manifest.path, manifest.name)
-    try:
-        Subscription.upload({'file': manifest.name, 'organization-id': org_id})
-    except CLIReturnCodeError as err:
-        raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
     # Enable repo from Repository Set
     try:
         RepositorySet.enable(
