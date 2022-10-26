@@ -196,9 +196,9 @@ class TestProvisioningTemplate:
 
         # update
         assert template.template_kind.id == template_kind.id, "Template kind id doesn't match"
-        updated = target_sat.api.ProvisioningTemplate(cfg, id=template.id, name=new_name).update(
-            ['name']
-        )
+        updated = target_sat.api.ProvisioningTemplate(
+            server_config=cfg, id=template.id, name=new_name
+        ).update(['name'])
         assert updated.name == new_name, "The Provisioning template wasn't properly renamed"
         # clone
 
