@@ -8,7 +8,7 @@
 
 :CaseComponent: LDAP
 
-:Assignee: okhatavk
+:Assignee: vsedmik
 
 :TestType: Functional
 
