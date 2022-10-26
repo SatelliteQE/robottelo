@@ -14,4 +14,4 @@ jobs:
         with:
           mode: exactly
           count: 1
-          labels: "CherryPick, No-CherryPick"
+          labels: "CherryPick, No-CherryPick, Auto_Cherry_Picked"
