@@ -1039,11 +1039,13 @@ def test_positive_admin_user_actions(
     cfg = user_nailgun_config(user_login, user_password)
     # Check that we cannot create random entity due permission restriction
     with pytest.raises(HTTPError):
-        target_sat.api.Domain(cfg).create()
+        target_sat.api.Domain(server_config=cfg).create()
     # Check Read functionality
-    content_view = target_sat.api.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     # Check Modify functionality
-    target_sat.api.ContentView(cfg, id=content_view.id, name=gen_string('alpha')).update(['name'])
+    target_sat.api.ContentView(
+        server_config=cfg, id=content_view.id, name=gen_string('alpha')
+    ).update(['name'])
     # Publish the content view.
     content_view.publish()
     content_view = content_view.read()
@@ -1052,7 +1054,7 @@ def test_positive_admin_user_actions(
     promote(content_view.version[0], module_lce.id)
     # Check Delete functionality
     content_view = target_sat.api.ContentView(organization=module_org).create()
-    content_view = target_sat.api.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     content_view.delete()
     with pytest.raises(HTTPError):
         content_view.read()
@@ -1114,7 +1116,7 @@ def test_positive_readonly_user_actions(target_sat, function_role, content_view,
     cfg = user_nailgun_config(user_login, user_password)
     # Check that we can read content view repository information using user
     # with read only permissions
-    content_view = target_sat.api.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     assert len(content_view.repository) == 1
     assert content_view.repository[0].read().name == yum_repo.name
 
@@ -1172,14 +1174,14 @@ def test_negative_readonly_user_actions(
     cfg = user_nailgun_config(user_login, user_password)
     # Check that we cannot create content view due read-only permission
     with pytest.raises(HTTPError):
-        target_sat.api.ContentView(cfg, organization=module_org).create()
+        target_sat.api.ContentView(server_config=cfg, organization=module_org).create()
     # Check that we can read our content view with custom user
-    content_view = target_sat.api.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     # Check that we cannot modify content view with custom user
     with pytest.raises(HTTPError):
-        target_sat.api.ContentView(cfg, id=content_view.id, name=gen_string('alpha')).update(
-            ['name']
-        )
+        target_sat.api.ContentView(
+            server_config=cfg, id=content_view.id, name=gen_string('alpha')
+        ).update(['name'])
     # Check that we cannot delete content view due read-only permission
     with pytest.raises(HTTPError):
         content_view.delete()
@@ -1189,19 +1191,19 @@ def test_negative_readonly_user_actions(
     # Check that we cannot promote content view
     content_view = target_sat.api.ContentView(id=content_view.id).read()
     content_view.publish()
-    content_view = target_sat.api.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     assert len(content_view.version), 1
     with pytest.raises(HTTPError):
         promote(content_view.version[0], module_lce.id)
     # Check that we cannot create a Product
     with pytest.raises(HTTPError):
-        target_sat.api.Product(cfg).create()
+        target_sat.api.Product(server_config=cfg).create()
     # Check that we cannot create an activation key
     with pytest.raises(HTTPError):
-        target_sat.api.ActivationKey(cfg).create()
+        target_sat.api.ActivationKey(server_config=cfg).create()
     # Check that we cannot create a host collection
     with pytest.raises(HTTPError):
-        target_sat.api.HostCollection(cfg).create()
+        target_sat.api.HostCollection(server_config=cfg).create()
 
 
 @pytest.mark.tier2
@@ -1247,9 +1249,9 @@ def test_negative_non_readonly_user_actions(target_sat, content_view, function_r
     # Check that we cannot read our content view with custom user
     user_cfg = user_nailgun_config(user_login, user_password)
     with pytest.raises(HTTPError):
-        target_sat.api.ContentView(user_cfg, id=content_view.id).read()
+        target_sat.api.ContentView(server_config=user_cfg, id=content_view.id).read()
     # Check that we have permission to remove the entity
-    target_sat.api.ContentView(user_cfg, id=content_view.id).delete()
+    target_sat.api.ContentView(server_config=user_cfg, id=content_view.id).delete()
     with pytest.raises(HTTPError):
         target_sat.api.ContentView(id=content_view.id).read()
 
