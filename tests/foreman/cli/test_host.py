@@ -1864,6 +1864,7 @@ def test_positive_erratum_applicability(katello_host_tools_host, setup_custom_re
     host_info = Host.info({'name': client.hostname})
     client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
+    client.subscription_manager_list_repos()
     assert result.status == 0
     applicable_erratum = Host.errata_list({'host-id': host_info['id']})
     applicable_erratum_ids = [
@@ -1873,6 +1874,7 @@ def test_positive_erratum_applicability(katello_host_tools_host, setup_custom_re
     # apply errata
     result = client.run(f'yum update -y --advisory {settings.repos.yum_6.errata[2]}')
     assert result.status == 0
+    client.subscription_manager_list_repos()
     applicable_erratum = Host.errata_list({'host-id': host_info['id']})
     applicable_erratum_ids = [
         errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
