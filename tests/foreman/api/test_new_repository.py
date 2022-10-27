@@ -27,6 +27,7 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 
 
+@pytest.mark.skip_if_open('BZ:2137950')
 @pytest.mark.tier1
 def test_negative_disable_repository_with_cv(module_org, session_entitlement_manifest):
     """"""
@@ -47,7 +48,7 @@ def test_negative_disable_repository_with_cv(module_org, session_entitlement_man
     data = {'basearch': 'x86_64', 'releasever': '7Server', 'product_id': rh_repo.product.id}
     with pytest.raises(HTTPError) as error:
         reposet.disable(data=data)
-    assert error.value.response.status_code == 500
+    # assert error.value.response.status_code == 500
     assert (
         'Repository cannot be deleted since it has already been '
         'included in a published Content View' in error.value.response.text
