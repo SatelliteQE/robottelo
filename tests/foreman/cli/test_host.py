@@ -16,7 +16,6 @@
 
 :Upstream: No
 """
-import time
 from datetime import datetime
 from datetime import timedelta
 from random import choice
@@ -33,7 +32,6 @@ from wait_for import wait_for
 
 from robottelo import ssh
 from robottelo.api.utils import promote
-from robottelo.api.utils import wait_for_errata_applicability_task
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import add_role_permissions
@@ -1665,21 +1663,19 @@ def test_positive_erratum_applicability(katello_host_tools_client):
     """
     client = katello_host_tools_client['client']
     host_info = katello_host_tools_client['host_info']
-    before_install = int(time.time())
     client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
+    client.subscription_manager_list_repos()
     assert result.status == 0
-    wait_for_errata_applicability_task(int(host_info['id']), before_install)
     applicable_erratum = Host.errata_list({'host-id': host_info['id']})
     applicable_erratum_ids = [
         errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
     ]
     assert settings.repos.yum_6.errata[2] in applicable_erratum_ids
-    before_upgrade = int(time.time())
     # apply errata
     result = client.run(f'yum update -y --advisory {settings.repos.yum_6.errata[2]}')
     assert result.status == 0
-    wait_for_errata_applicability_task(int(host_info['id']), before_upgrade)
+    client.subscription_manager_list_repos()
     applicable_erratum = Host.errata_list({'host-id': host_info['id']})
     applicable_erratum_ids = [
         errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
