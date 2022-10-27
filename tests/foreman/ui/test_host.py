@@ -40,6 +40,7 @@ from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import OSCAP_PERIOD
@@ -1288,8 +1289,14 @@ def test_positive_global_registration_end_to_end(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
     # make sure there will be package availabe for update
-    rhel_contenthost.create_custom_repos(yum_3=settings.repos.yum_3['url'])
-    rhel_contenthost.execute(f"yum install -y {FAKE_7_CUSTOM_PACKAGE}")
+    if rhel_contenthost.os_version.major == '6':
+        package = FAKE_1_CUSTOM_PACKAGE
+        repo_url = settings.repos.yum_1['url']
+    else:
+        package = FAKE_7_CUSTOM_PACKAGE
+        repo_url = settings.repos.yum_3['url']
+    rhel_contenthost.create_custom_repos(fake_yum=repo_url)
+    rhel_contenthost.execute(f"yum install -y {package}")
     # run curl
     result = rhel_contenthost.execute(cmd)
     assert result.status == 0
