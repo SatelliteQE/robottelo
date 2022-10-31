@@ -33,7 +33,6 @@ from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 
 from robottelo import constants
-from robottelo import datafactory
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.constants import DataFile
