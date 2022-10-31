@@ -288,24 +288,27 @@ def test_positive_generate_all_reports_job(target_sat):
 
     :CaseLevel: System
     """
-    target_sat.update_setting('allow_auto_inventory_upload', False)
-    with target_sat.session.shell() as sh:
-        sh.send('foreman-rake console')
-        time.sleep(30)  # sleep to allow time for console to open
-        sh.send(f'ForemanTasks.async_task({generate_report_jobs})')
-        time.sleep(3)  # sleep for the cmd execution
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-    wait_for(
-        lambda: target_sat.api.ForemanTask()
-        .search(query={'search': f'{generate_report_jobs} and started_at >= "{timestamp}"'})[0]
-        .result
-        == 'success',
-        timeout=400,
-        delay=15,
-        silent_failure=True,
-        handle_exception=True,
-    )
-    task_output = target_sat.api.ForemanTask().search(
-        query={'search': f'{generate_report_jobs} and started_at >= {timestamp}'}
-    )
-    assert task_output[0].result == "success"
+    try:
+        target_sat.update_setting('allow_auto_inventory_upload', False)
+        with target_sat.session.shell() as sh:
+            sh.send('foreman-rake console')
+            time.sleep(30)  # sleep to allow time for console to open
+            sh.send(f'ForemanTasks.async_task({generate_report_jobs})')
+            time.sleep(3)  # sleep for the cmd execution
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        wait_for(
+            lambda: target_sat.api.ForemanTask()
+            .search(query={'search': f'{generate_report_jobs} and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        task_output = target_sat.api.ForemanTask().search(
+            query={'search': f'{generate_report_jobs} and started_at >= {timestamp}'}
+        )
+        assert task_output[0].result == "success"
+    finally:
+        target_sat.update_setting('allow_auto_inventory_upload', True)
