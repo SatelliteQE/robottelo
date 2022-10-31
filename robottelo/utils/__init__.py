@@ -10,7 +10,7 @@ from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 from robottelo.constants import Colored
-from robottelo.errors import InvalidVaultURLForOIDC
+from robottelo.exceptions import InvalidVaultURLForOIDC
 
 
 def export_vault_env_vars(filename=None, envdata=None):

@@ -37,9 +37,9 @@ from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.constants import DataFile
 from robottelo.constants import DEFAULT_ORG
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 VALID_GPG_KEY_FILE_PATH = DataFile.VALID_GPG_KEY_FILE
 

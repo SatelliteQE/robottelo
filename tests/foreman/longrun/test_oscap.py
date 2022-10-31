@@ -38,7 +38,7 @@ from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_TARGET_CORES
 from robottelo.constants import OSCAP_TARGET_MEMORY
 from robottelo.constants import OSCAP_WEEKDAY
-from robottelo.errors import ProxyError
+from robottelo.exceptions import ProxyError
 from robottelo.hosts import ContentHost
 
 

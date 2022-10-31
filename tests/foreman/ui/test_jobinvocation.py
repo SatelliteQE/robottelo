@@ -20,7 +20,7 @@ import pytest
 from inflection import camelize
 
 from robottelo.api.utils import update_vm_host_location
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture

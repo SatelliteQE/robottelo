@@ -19,7 +19,7 @@ from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_PXE_TEMPLATE
 from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import REPO_TYPE
-from robottelo.errors import ImproperlyConfigured
+from robottelo.exceptions import ImproperlyConfigured
 
 
 def enable_rhrepo_and_fetchid(

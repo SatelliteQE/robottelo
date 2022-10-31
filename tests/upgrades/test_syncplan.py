@@ -21,7 +21,7 @@ from fauxfactory import gen_choice
 from nailgun import entities
 
 from robottelo.constants import SYNC_INTERVAL
-from robottelo.datafactory import valid_cron_expressions
+from robottelo.utils.datafactory import valid_cron_expressions
 
 
 class TestSyncPlan:

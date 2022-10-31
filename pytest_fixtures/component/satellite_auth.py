@@ -16,11 +16,11 @@ from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import HAMMER_SESSIONS
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
-from robottelo.datafactory import gen_string
 from robottelo.hosts import ContentHost
 from robottelo.rhsso_utils import create_mapper
 from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import set_the_redirect_uri
+from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 

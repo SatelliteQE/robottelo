@@ -24,10 +24,10 @@ import pytest
 from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 
-from robottelo.datafactory import invalid_environments_list
-from robottelo.datafactory import invalid_names_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_environments_list
+from robottelo.utils.datafactory import invalid_environments_list
+from robottelo.utils.datafactory import invalid_names_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_environments_list
 
 
 @pytest.mark.tier1

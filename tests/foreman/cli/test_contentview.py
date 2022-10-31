@@ -46,10 +46,10 @@ from robottelo.config import settings
 from robottelo.constants import DataFile
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
-from robottelo.datafactory import generate_strings_list
-from robottelo.datafactory import invalid_names_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_names_list
+from robottelo.utils.datafactory import generate_strings_list
+from robottelo.utils.datafactory import invalid_names_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_names_list
 
 
 @pytest.fixture(scope='module')

@@ -21,8 +21,8 @@ from fauxfactory import gen_url
 from nailgun import entities
 from requests import HTTPError
 
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 
 pytestmark = [pytest.mark.run_in_one_thread]

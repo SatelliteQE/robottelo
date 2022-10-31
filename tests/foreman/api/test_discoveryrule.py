@@ -23,7 +23,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import valid_data_list
 
 
 @pytest.fixture(scope="module")

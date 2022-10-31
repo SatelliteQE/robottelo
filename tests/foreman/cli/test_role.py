@@ -36,8 +36,8 @@ from robottelo.cli.settings import Settings
 from robottelo.cli.user import User
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import ROLES
-from robottelo.datafactory import generate_strings_list
-from robottelo.datafactory import parametrized
+from robottelo.utils.datafactory import generate_strings_list
+from robottelo.utils.datafactory import parametrized
 
 
 class TestRole:

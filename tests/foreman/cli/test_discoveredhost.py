@@ -26,8 +26,8 @@ from robottelo.cli.factory import make_org
 from robottelo.cli.host import Host
 from robottelo.cli.settings import Settings
 from robottelo.cli.template import Template
-from robottelo.datafactory import gen_string
 from robottelo.libvirt_discovery import LibvirtGuest
+from robottelo.utils.datafactory import gen_string
 
 pytestmark = [pytest.mark.run_in_one_thread]
 

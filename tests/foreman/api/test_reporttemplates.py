@@ -30,9 +30,9 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
 from robottelo.hosts import ContentHost
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 from robottelo.utils.issue_handlers import is_open
 
 
