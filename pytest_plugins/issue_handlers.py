@@ -7,7 +7,7 @@ from datetime import datetime
 import pytest
 
 from robottelo.config import settings
-from robottelo.helpers import slugify_component
+from robottelo.utils import slugify_component
 from robottelo.logging import collection_logger as logger
 from robottelo.utils.issue_handlers import add_workaround
 from robottelo.utils.issue_handlers import bugzilla

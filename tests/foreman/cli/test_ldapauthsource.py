@@ -32,8 +32,8 @@ from robottelo.cli.usergroup import UserGroup
 from robottelo.cli.usergroup import UserGroupExternal
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
-from robottelo.datafactory import generate_strings_list
-from robottelo.datafactory import parametrized
+from robottelo.utils.datafactory import generate_strings_list
+from robottelo.utils.datafactory import parametrized
 
 
 @pytest.fixture()

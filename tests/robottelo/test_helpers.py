@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 
 from robottelo.helpers import get_available_capsule_port
-from robottelo.helpers import slugify_component
+from robottelo.utils import slugify_component
 from robottelo.helpers import Storage
 from robottelo.utils import validate_ssh_pub_key
 

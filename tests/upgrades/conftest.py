@@ -91,8 +91,8 @@ from automation_tools.satellite6.hammer import set_hammer_config
 from fabric.api import env
 
 from robottelo.config import settings
-from robottelo.decorators.func_locker import lock_function
 from robottelo.logging import logger
+from robottelo.utils.decorators.func_locker import lock_function
 
 
 pytest_plugins = 'tests.upgrades.scenario_workers'

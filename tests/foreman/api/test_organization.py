@@ -33,9 +33,9 @@ from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.config import get_credentials
 from robottelo.constants import DEFAULT_ORG
-from robottelo.datafactory import filtered_datapoint
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
+from robottelo.utils.datafactory import filtered_datapoint
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
 
 
 @filtered_datapoint

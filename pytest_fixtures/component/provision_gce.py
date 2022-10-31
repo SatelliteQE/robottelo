@@ -9,7 +9,7 @@ from wrapanapi.systems.google import GoogleCloudSystem
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_PTABLE
-from robottelo.errors import GCECertNotFoundError
+from robottelo.exceptions import GCECertNotFoundError
 
 
 @pytest.fixture(scope='session')

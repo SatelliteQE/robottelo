@@ -25,11 +25,11 @@ from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.datafactory import generate_strings_list
-from robottelo.datafactory import invalid_docker_upstream_names
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_docker_repository_names
-from robottelo.datafactory import valid_docker_upstream_names
+from robottelo.utils.datafactory import generate_strings_list
+from robottelo.utils.datafactory import invalid_docker_upstream_names
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_docker_repository_names
+from robottelo.utils.datafactory import valid_docker_upstream_names
 
 DOCKER_PROVIDER = 'Docker'
 

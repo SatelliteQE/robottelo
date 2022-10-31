@@ -62,7 +62,7 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 VERSION = 'Version 1.0'
 

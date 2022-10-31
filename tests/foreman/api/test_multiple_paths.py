@@ -24,9 +24,9 @@ from nailgun import entities
 from nailgun import entity_fields
 
 from robottelo.config import get_credentials
-from robottelo.datafactory import parametrized
 from robottelo.helpers import get_nailgun_config
 from robottelo.logging import logger
+from robottelo.utils.datafactory import parametrized
 
 
 VALID_ENTITIES = {

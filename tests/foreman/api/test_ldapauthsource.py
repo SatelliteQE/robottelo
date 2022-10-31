@@ -22,7 +22,7 @@ from requests.exceptions import HTTPError
 
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
-from robottelo.datafactory import generate_strings_list
+from robottelo.utils.datafactory import generate_strings_list
 
 
 @pytest.mark.tier3

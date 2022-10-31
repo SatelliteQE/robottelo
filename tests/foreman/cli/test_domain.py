@@ -25,9 +25,9 @@ from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_domain
 from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_org
-from robottelo.datafactory import filtered_datapoint
-from robottelo.datafactory import invalid_id_list
-from robottelo.datafactory import parametrized
+from robottelo.utils.datafactory import filtered_datapoint
+from robottelo.utils.datafactory import invalid_id_list
+from robottelo.utils.datafactory import parametrized
 
 
 @filtered_datapoint

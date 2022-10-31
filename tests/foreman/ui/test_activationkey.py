@@ -35,9 +35,9 @@ from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.config import settings
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
 from robottelo.hosts import ContentHost
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 
 @pytest.mark.tier2

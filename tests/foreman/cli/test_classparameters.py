@@ -18,7 +18,7 @@ import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')

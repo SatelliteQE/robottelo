@@ -30,9 +30,9 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
 from robottelo.config import settings
-from robottelo.datafactory import invalid_names_list
-from robottelo.datafactory import valid_data_list
 from robottelo.helpers import get_nailgun_config
+from robottelo.utils.datafactory import invalid_names_list
+from robottelo.utils.datafactory import valid_data_list
 
 
 @pytest.fixture(scope="module")

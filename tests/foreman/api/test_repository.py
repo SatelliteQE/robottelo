@@ -32,7 +32,6 @@ from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 
 from robottelo import constants
-from robottelo import datafactory
 from robottelo import manifests
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
@@ -41,8 +40,9 @@ from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import DataFile
 from robottelo.constants import repos as repo_constants
-from robottelo.datafactory import parametrized
 from robottelo.logging import logger
+from robottelo.utils import datafactory
+from robottelo.utils.datafactory import parametrized
 
 
 @pytest.fixture

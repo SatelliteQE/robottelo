@@ -35,11 +35,11 @@ from robottelo.cli.factory import make_discoveryrule
 from robottelo.cli.factory import make_hostgroup
 from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_org
-from robottelo.datafactory import filtered_datapoint
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
 from robottelo.logging import logger
+from robottelo.utils.datafactory import filtered_datapoint
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 
 @filtered_datapoint

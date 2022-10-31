@@ -21,10 +21,10 @@ from fauxfactory import gen_url
 from nailgun import entities
 from requests import HTTPError
 
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 
 pytestmark = [pytest.mark.run_in_one_thread]
