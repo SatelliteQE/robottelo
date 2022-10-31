@@ -33,9 +33,8 @@ from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 
 from robottelo import constants
-from robottelo import manifests
+from robottelo import datafactory
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import DataFile
 from robottelo.constants import repos as repo_constants
@@ -1159,7 +1158,7 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.read()
 
-    def test_positive_recreate_pulp_repositories(self, module_org, target_sat):
+    def test_positive_recreate_pulp_repositories(self, module_entitlement_manifest_org, target_sat):
         """Verify that deleted Pulp Repositories can be recreated using the
         command 'foreman-rake katello:correct_repositories COMMIT=true'
 
@@ -1172,11 +1171,9 @@ class TestRepository:
         :expectedresults: foreman-rake katello:correct_repositories COMMIT=true recreates deleted
          repos with no TaskErrors
         """
-        with manifests.clone() as manifest:
-            upload_manifest(module_org.id, manifest.content)
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhel'],
             repo=constants.REPOS['rhst7']['name'],
             reposet=constants.REPOSET['rhst7'],
@@ -1204,8 +1201,7 @@ class TestRepositorySync:
     """Tests for ``/katello/api/repositories/:id/sync``."""
 
     @pytest.mark.tier2
-    @pytest.mark.skip_if_not_set('fake_manifest')
-    def test_positive_sync_rh(self, module_org):
+    def test_positive_sync_rh(self, module_entitlement_manifest_org):
         """Sync RedHat Repository.
 
         :id: d69c44cd-753c-4a75-9fd5-a8ed963b5e04
@@ -1214,11 +1210,9 @@ class TestRepositorySync:
 
         :CaseLevel: Integration
         """
-        with manifests.clone() as manifest:
-            upload_manifest(module_org.id, manifest.content)
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhel'],
             repo=constants.REPOS['rhst7']['name'],
             reposet=constants.REPOSET['rhst7'],
@@ -1260,7 +1254,6 @@ class TestRepositorySync:
 
     @pytest.mark.stubbed
     @pytest.mark.tier2
-    @pytest.mark.skip_if_not_set('fake_manifest')
     def test_positive_sync_rh_app_stream(self):
         """Sync RedHat Appstream Repository.
 
@@ -1274,7 +1267,7 @@ class TestRepositorySync:
         pass
 
     @pytest.mark.tier3
-    def test_positive_bulk_cancel_sync(self, target_sat, module_manifest_org):
+    def test_positive_bulk_cancel_sync(self, target_sat, module_entitlement_manifest_org):
         """Bulk cancel 10+ repository syncs
 
         :id: f9bb1c95-d60f-4c93-b32e-09d58ebce80e
@@ -1294,7 +1287,7 @@ class TestRepositorySync:
         for repo in constants.BULK_REPO_LIST:
             repo_id = enable_rhrepo_and_fetchid(
                 basearch='x86_64',
-                org_id=module_manifest_org.id,
+                org_id=module_entitlement_manifest_org.id,
                 product=repo['product'],
                 repo=repo['name'],
                 reposet=repo['reposet'],
@@ -1356,7 +1349,7 @@ class TestRepositorySync:
         assert result.status == 1
 
     @pytest.mark.tier2
-    def test_positive_sync_repo_null_contents_changed(self, module_manifest_org, target_sat):
+    def test_positive_sync_repo_null_contents_changed(self, module_entitlement_manifest_org, target_sat):
         """test for null contents_changed parameter on actions::katello::repository::sync.
 
         :id: f3923940-e097-4da3-aba7-b14dbcda857b
@@ -1374,7 +1367,7 @@ class TestRepositorySync:
         """
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_manifest_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhel'],
             repo=constants.REPOS['rhst7']['name'],
             reposet=constants.REPOSET['rhst7'],
