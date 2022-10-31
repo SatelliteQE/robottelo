@@ -20,7 +20,7 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.datafactory import valid_domain_names
+from robottelo.utils.datafactory import valid_domain_names
 
 
 @pytest.fixture

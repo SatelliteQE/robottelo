@@ -25,9 +25,9 @@ from robottelo.cli.factory import make_tailoringfile
 from robottelo.cli.scap_tailoring_files import TailoringFiles
 from robottelo.constants import DataFile
 from robottelo.constants import SNIPPET_DATA_FILE
-from robottelo.datafactory import invalid_names_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import invalid_names_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 
 class TestTailoringFiles:

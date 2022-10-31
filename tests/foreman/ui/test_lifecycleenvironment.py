@@ -29,7 +29,7 @@ from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_3_CUSTOM_PACKAGE_NAME
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.mark.upgrade

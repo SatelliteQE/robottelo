@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from robottelo.decorators import func_locker
+from robottelo.utils.decorators import func_locker
 
 _this_module_name_string = 'tests.robottelo.test_func_locker'
 

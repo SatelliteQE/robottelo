@@ -27,8 +27,8 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.constants import WEBHOOK_EVENTS
 from robottelo.constants import WEBHOOK_METHODS
-from robottelo.datafactory import parametrized
 from robottelo.logging import logger
+from robottelo.utils.datafactory import parametrized
 
 
 def _read_log(ch, pattern):

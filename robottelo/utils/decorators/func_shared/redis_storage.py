@@ -3,7 +3,7 @@ try:
 except ImportError:
     redis = None
 
-from robottelo.decorators.func_shared.base import BaseStorageHandler
+from robottelo.utils.decorators.func_shared.base import BaseStorageHandler
 
 REDIS_HOST = 'localhost'
 REDIS_PORT = 6379

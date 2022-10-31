@@ -19,7 +19,7 @@
 import pytest
 from fauxfactory import gen_ipaddr
 
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')

@@ -57,7 +57,7 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 VERSION = 'Version 1.0'
 

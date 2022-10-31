@@ -4,7 +4,7 @@ import tempfile
 from pytest_services.locks import file_lock
 
 from robottelo.config import settings
-from robottelo.decorators.func_shared.base import BaseStorageHandler
+from robottelo.utils.decorators.func_shared.base import BaseStorageHandler
 
 TEMP_ROOT_DIR = 'robottelo'
 TEMP_FUNC_SHARED_DIR = 'shared_functions'

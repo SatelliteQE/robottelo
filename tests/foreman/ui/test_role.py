@@ -25,7 +25,7 @@ from navmazing import NavigationTriesExceeded
 
 from robottelo.constants import PERMISSIONS_UI
 from robottelo.constants import ROLES
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.mark.tier2

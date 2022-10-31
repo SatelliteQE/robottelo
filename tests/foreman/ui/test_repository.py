@@ -42,8 +42,8 @@ from robottelo.constants import REPOSET
 from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.constants.repos import CUSTOM_3RD_PARTY_REPO
 from robottelo.constants.repos import CUSTOM_RPM_SHA
-from robottelo.datafactory import gen_string
 from robottelo.hosts import get_sat_version
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')

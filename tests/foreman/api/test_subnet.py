@@ -27,10 +27,10 @@ import pytest
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.datafactory import gen_string
-from robottelo.datafactory import generate_strings_list
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
+from robottelo.utils.datafactory import gen_string
+from robottelo.utils.datafactory import generate_strings_list
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
 
 
 @pytest.mark.tier1

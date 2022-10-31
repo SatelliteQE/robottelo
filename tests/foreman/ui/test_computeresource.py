@@ -26,7 +26,7 @@ from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_LARGE
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 
 # TODO mark this on the module with a lambda for skip condition

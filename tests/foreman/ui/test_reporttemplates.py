@@ -35,8 +35,8 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.datafactory import gen_string
 from robottelo.ui.utils import create_fake_host
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')

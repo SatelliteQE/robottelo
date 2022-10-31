@@ -37,11 +37,11 @@ from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_RH_REGISTRY_UPSTREAM_NAME
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import REPO_TYPE
-from robottelo.datafactory import invalid_docker_upstream_names
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_docker_repository_names
-from robottelo.datafactory import valid_docker_upstream_names
 from robottelo.logging import logger
+from robottelo.utils.datafactory import invalid_docker_upstream_names
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_docker_repository_names
+from robottelo.utils.datafactory import valid_docker_upstream_names
 
 
 def _repo(product_id, name=None, upstream_name=None, url=None):

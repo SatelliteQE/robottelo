@@ -25,8 +25,8 @@ from robottelo.cli.factory import make_medium
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_os
 from robottelo.cli.medium import Medium
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 OSES = ['Archlinux', 'Debian', 'Gentoo', 'Redhat', 'Solaris', 'Suse', 'Windows']

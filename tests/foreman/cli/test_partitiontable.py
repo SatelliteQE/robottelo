@@ -25,8 +25,8 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_os
 from robottelo.cli.factory import make_partition_table
 from robottelo.cli.partitiontable import PartitionTable
-from robottelo.datafactory import generate_strings_list
-from robottelo.datafactory import parametrized
+from robottelo.utils.datafactory import generate_strings_list
+from robottelo.utils.datafactory import parametrized
 
 
 class TestPartitionTable:

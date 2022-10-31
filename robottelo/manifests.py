@@ -15,7 +15,7 @@ from nailgun import entities
 from robottelo import ssh
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
-from robottelo.decorators.func_locker import lock_function
+from robottelo.utils.decorators.func_locker import lock_function
 
 
 class ManifestCloner:

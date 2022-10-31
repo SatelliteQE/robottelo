@@ -27,8 +27,8 @@ from nailgun import entities
 from robottelo.api.utils import disable_syncplan
 from robottelo.api.utils import wait_for_tasks
 from robottelo.constants import SYNC_INTERVAL
-from robottelo.datafactory import gen_string
-from robottelo.datafactory import valid_cron_expressions
+from robottelo.utils.datafactory import gen_string
+from robottelo.utils.datafactory import valid_cron_expressions
 
 
 def validate_task_status(repo_id, org_id, max_tries=10):

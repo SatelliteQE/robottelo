@@ -66,7 +66,7 @@ Assuming you have ipython installed you will see a console like:
         Auto imported: ['rt', 'nailgun', 'settings', 'robottelo', 'ng', 'entities', 'locators']
 
     In [1]: rt.ssh.command('uname -r')
-    2016-09-16 13:54:57 - robottelo.ssh - DEBUG - Connected to [foreman-server.com]
+    2016-09-16 13:54:57 - robottelo.utils.ssh - DEBUG - Connected to [foreman-server.com]
     Out[1]: result(stdout=['3.10.0-327.el7.x86_64', ''], stderr=(0, ''), status=0)
     In [2]: exit
 

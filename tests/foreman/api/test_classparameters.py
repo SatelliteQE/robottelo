@@ -24,8 +24,8 @@ from fauxfactory import gen_string
 from requests import HTTPError
 
 from robottelo.config import settings
-from robottelo.datafactory import filtered_datapoint
-from robottelo.datafactory import parametrized
+from robottelo.utils.datafactory import filtered_datapoint
+from robottelo.utils.datafactory import parametrized
 
 
 @filtered_datapoint

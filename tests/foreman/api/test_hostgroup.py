@@ -27,9 +27,9 @@ from requests.exceptions import HTTPError
 
 from robottelo.api.utils import one_to_one_names
 from robottelo.config import get_credentials
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_hostgroups_list
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_hostgroups_list
 
 
 @pytest.fixture

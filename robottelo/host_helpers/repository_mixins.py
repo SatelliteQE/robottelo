@@ -8,12 +8,12 @@ import sys
 from robottelo import constants
 from robottelo import manifests
 from robottelo.config import settings
-from robottelo.errors import DistroNotSupportedError
-from robottelo.errors import OnlyOneOSRepositoryAllowed
-from robottelo.errors import ReposContentSetupWasNotPerformed
-from robottelo.errors import RepositoryAlreadyCreated
-from robottelo.errors import RepositoryAlreadyDefinedError
-from robottelo.errors import RepositoryDataNotFound
+from robottelo.exceptions import DistroNotSupportedError
+from robottelo.exceptions import OnlyOneOSRepositoryAllowed
+from robottelo.exceptions import ReposContentSetupWasNotPerformed
+from robottelo.exceptions import RepositoryAlreadyCreated
+from robottelo.exceptions import RepositoryAlreadyDefinedError
+from robottelo.exceptions import RepositoryDataNotFound
 
 
 def initiate_repo_helpers(satellite):

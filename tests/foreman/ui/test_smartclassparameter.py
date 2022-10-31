@@ -23,7 +23,7 @@ import pytest
 import yaml
 
 from robottelo.constants import ENVIRONMENT
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 PM_NAME = 'generic_1'
 

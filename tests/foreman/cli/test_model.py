@@ -22,10 +22,10 @@ from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_model
 from robottelo.cli.model import Model
-from robottelo.datafactory import invalid_id_list
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import invalid_id_list
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 
 class TestModel:

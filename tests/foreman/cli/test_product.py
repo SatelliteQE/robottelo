@@ -37,10 +37,10 @@ from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
-from robottelo.datafactory import valid_labels_list
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import valid_labels_list
 
 
 @pytest.mark.tier1

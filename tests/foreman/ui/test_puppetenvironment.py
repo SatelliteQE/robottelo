@@ -20,7 +20,7 @@ import pytest
 
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.mark.upgrade
