@@ -1096,7 +1096,8 @@ class TestCapsuleContentManagement:
             else f'{distro}/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
         )
         url_base = (
-            f'pulp/content/{module_entitlement_manifest_org.label}/{lce.label}/{cv.label}/content/dist/{tail}'
+            f'pulp/content/{module_entitlement_manifest_org.label}/{lce.label}/{cv.label}/content/'
+            f'dist/{tail}'
         )
 
         # Check kickstart specific files
