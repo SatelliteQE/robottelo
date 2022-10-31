@@ -27,10 +27,10 @@ from robottelo.datafactory import gen_string
 
 @pytest.fixture(scope='module')
 def template_data():
-    return DataFile.OS_TEMPLATE_DATA_FILE.read_bytes()
+    return DataFile.OS_TEMPLATE_DATA_FILE.read_text()
 
 
-@pytest.fixture(scope='function', autouse=False)
+@pytest.fixture()
 def clone_setup(module_org, module_location):
     name = gen_string('alpha')
     content = gen_string('alpha')
@@ -82,7 +82,7 @@ def test_positive_clone(session, clone_setup):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_location, template_data):
+def test_positive_end_to_end(session, module_org, module_location, template_data, target_sat):
     """Perform end to end testing for provisioning template component
 
     :id: b44d4cc8-b78e-47cf-9993-0bb871ac2c96
@@ -95,9 +95,8 @@ def test_positive_end_to_end(session, module_org, module_location, template_data
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    os = entities.OperatingSystem().create()
-    host_group = entities.HostGroup(organization=[module_org], location=[module_location]).create()
-    environment = entities.Environment(
+    os = target_sat.api.OperatingSystem().create()
+    host_group = target_sat.api.HostGroup(
         organization=[module_org], location=[module_location]
     ).create()
     input_name = gen_string('alpha')
@@ -111,7 +110,6 @@ def test_positive_end_to_end(session, module_org, module_location, template_data
             'input_content.description': gen_string('alpha'),
         }
     ]
-    combination = [{'host_group': host_group.name, 'environment': environment.name}]
     with session:
         session.provisioningtemplate.create(
             {
@@ -123,12 +121,12 @@ def test_positive_end_to_end(session, module_org, module_location, template_data
                 'type.snippet': False,
                 'type.template_type': 'iPXE template',
                 'association.applicable_os.assigned': [os.title],
-                'association.hg_environment_combination': combination,
+                'association.valid_hostgroups': [{'host_group': host_group.name}],
                 'organizations.resources.assigned': [module_org.name],
                 'locations.resources.assigned': [module_location.name],
             }
         )
-        assert entities.ProvisioningTemplate().search(query={'search': f'name=={name}'}), (
+        assert target_sat.api.ProvisioningTemplate().search(query={'search': f'name=={name}'}), (
             'Provisioning template {} expected to exist but is not included in the search'
             'results'.format(name)
         )
@@ -143,12 +141,13 @@ def test_positive_end_to_end(session, module_org, module_location, template_data
         assert pt['type']['snippet'] is False
         assert pt['type']['template_type'] == 'iPXE template'
         assert pt['association']['applicable_os']['assigned'][0] == os.title
-        assert pt['association']['hg_environment_combination'][0]['host_group'] == host_group.name
-        assert pt['association']['hg_environment_combination'][0]['environment'] == environment.name
+        assert pt['association']['valid_hostgroups'][0]['host_group'] == host_group.name
         assert pt['locations']['resources']['assigned'][0] == module_location.name
         assert pt['organizations']['resources']['assigned'][0] == module_org.name
         session.provisioningtemplate.update(name, {'template.name': new_name, 'type.snippet': True})
-        updated_pt = entities.ProvisioningTemplate().search(query={'search': f'name=={new_name}'})
+        updated_pt = target_sat.api.ProvisioningTemplate().search(
+            query={'search': f'name=={new_name}'}
+        )
         assert updated_pt, (
             'Provisioning template {} expected to exist but is not included in the search'
             'results'.format(new_name)
@@ -159,7 +158,9 @@ def test_positive_end_to_end(session, module_org, module_location, template_data
             updated_pt.template_kind
         )
         session.provisioningtemplate.delete(new_name)
-        assert not entities.ProvisioningTemplate().search(query={'search': f'name=={new_name}'}), (
+        assert not target_sat.api.ProvisioningTemplate().search(
+            query={'search': f'name=={new_name}'}
+        ), (
             'Provisioning template {} expected to be removed but is included in the search '
             'results'.format(new_name)
         )
