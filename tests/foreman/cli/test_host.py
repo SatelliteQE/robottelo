@@ -1605,18 +1605,6 @@ def setup_custom_repo(target_sat, module_org, katello_host_tools_host):
     )
     # refresh repository metadata
     katello_host_tools_host.subscription_manager_list_repos()
-    # get package details
-    details = {}
-    if katello_host_tools_host.os_version.major != '6':
-        details['package'] = FAKE_7_CUSTOM_PACKAGE
-        details['new_package'] = FAKE_8_CUSTOM_PACKAGE
-        details['package_name'] = FAKE_8_CUSTOM_PACKAGE_NAME
-        details['errata'] = settings.repos.yum_3.errata
-    else:
-        details['package'] = FAKE_1_CUSTOM_PACKAGE
-        details['new_package'] = FAKE_2_CUSTOM_PACKAGE
-        details['package_name'] = FAKE_1_CUSTOM_PACKAGE_NAME
-        details['errata'] = settings.repos.yum_1.errata
     return details
 
 
