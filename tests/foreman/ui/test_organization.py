@@ -24,6 +24,7 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import INSTALL_MEDIUM_URL
 from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.logging import logger
 from robottelo.manifests import original_manifest
 from robottelo.manifests import upload_manifest_locked
 
