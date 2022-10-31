@@ -29,10 +29,10 @@ from wait_for import TimedOutError
 from wait_for import wait_for
 
 from robottelo.cli.factory import configure_env_for_provision
-from robottelo.datafactory import valid_data_list
 from robottelo.helpers import get_nailgun_config
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.logging import logger
+from robottelo.utils.datafactory import valid_data_list
 from robottelo.utils.issue_handlers import is_open
 
 

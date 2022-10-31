@@ -14,7 +14,7 @@ from robottelo.constants import RHSSO_NEW_GROUP
 from robottelo.constants import RHSSO_NEW_USER
 from robottelo.constants import RHSSO_RESET_PASSWORD
 from robottelo.constants import RHSSO_USER_UPDATE
-from robottelo.datafactory import valid_emails_list
+from robottelo.utils.datafactory import valid_emails_list
 
 
 def run_command(cmd, hostname=None, timeout=None):

@@ -24,8 +24,8 @@ from fauxfactory import gen_url
 from nailgun import entities
 
 from robottelo.cli.user import User
-from robottelo.datafactory import filtered_datapoint
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import filtered_datapoint
+from robottelo.utils.datafactory import gen_string
 
 
 @filtered_datapoint

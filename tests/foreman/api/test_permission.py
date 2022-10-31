@@ -31,8 +31,8 @@ from nailgun.entity_fields import OneToManyField
 from requests.exceptions import HTTPError
 
 from robottelo.constants import PERMISSIONS
-from robottelo.datafactory import parametrized
 from robottelo.helpers import get_nailgun_config
+from robottelo.utils.datafactory import parametrized
 
 
 class TestPermission:

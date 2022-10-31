@@ -47,8 +47,8 @@ from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import REPO_TYPE
-from robottelo.datafactory import gen_string
 from robottelo.ui.utils import create_fake_host
+from robottelo.utils.datafactory import gen_string
 
 
 def _get_set_from_list_of_dict(value):

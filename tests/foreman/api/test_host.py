@@ -32,12 +32,12 @@ from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo import datafactory
 from robottelo.api.utils import promote
 from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
+from robottelo.utils import datafactory
 
 
 @pytest.fixture(scope='function')

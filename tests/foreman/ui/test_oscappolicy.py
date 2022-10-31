@@ -21,7 +21,7 @@ from nailgun import entities
 
 from robottelo.api.utils import promote
 from robottelo.constants import OSCAP_PROFILE
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')

@@ -20,7 +20,6 @@ from fauxfactory import gen_url
 
 from robottelo import constants
 from robottelo import manifests
-from robottelo import ssh
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
@@ -68,11 +67,12 @@ from robottelo.cli.usergroup import UserGroup
 from robottelo.cli.usergroup import UserGroupExternal
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
-from robottelo.datafactory import valid_cron_expressions
-from robottelo.decorators import cacheable
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
 from robottelo.logging import logger
+from robottelo.utils import ssh
+from robottelo.utils.datafactory import valid_cron_expressions
+from robottelo.utils.decorators import cacheable
 
 
 ORG_KEYS = ['organization', 'organization-id', 'organization-label']

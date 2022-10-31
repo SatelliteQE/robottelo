@@ -29,10 +29,10 @@ from robottelo.cli.factory import make_partition_table
 from robottelo.cli.factory import make_template
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.constants import DEFAULT_ORG
-from robottelo.datafactory import filtered_datapoint
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import filtered_datapoint
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 
 @filtered_datapoint

@@ -39,10 +39,10 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_SHA_512
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
-from robottelo.datafactory import invalid_names_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
 from robottelo.helpers import get_nailgun_config
+from robottelo.utils.datafactory import invalid_names_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 # Some tests repeatedly publish content views or promote content view versions.
 # How many times should that be done? A higher number means a more interesting

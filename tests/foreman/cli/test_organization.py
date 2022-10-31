@@ -37,11 +37,11 @@ from robottelo.cli.org import Org
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.datafactory import filtered_datapoint
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
-from robottelo.datafactory import valid_org_names_list
+from robottelo.utils.datafactory import filtered_datapoint
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import valid_org_names_list
 
 
 @filtered_datapoint

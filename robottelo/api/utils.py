@@ -20,7 +20,7 @@ from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.errors import ImproperlyConfigured
+from robottelo.exceptions import ImproperlyConfigured
 
 
 def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):

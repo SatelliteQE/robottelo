@@ -26,8 +26,8 @@ from upgrade_tests.helpers.scenarios import rpm2
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.datafactory import gen_string
 from robottelo.upgrade_utility import create_repo
+from robottelo.utils.datafactory import gen_string
 
 
 def cleanup(content_view, repo, product):
