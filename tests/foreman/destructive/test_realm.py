@@ -27,11 +27,21 @@ from robottelo.cli.base import CLIReturnCodeError
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.destructive]
 
 
-def test_positive_delete_by_name(
+@pytest.fixture(scope='module')
+def module_capsule_configured_realm(
     module_subscribe_satellite,
     module_enroll_idm_and_configure_external_auth,
     configure_realm,
-    module_capsule_configured,
+    module_capsule_host,
+    module_target_sat,
+):
+    """Configure the capsule instance after idm is configured on server"""
+    module_capsule_host.capsule_setup(sat_host=module_target_sat)
+    yield module_capsule_host
+
+
+def test_positive_delete_by_name(
+    module_capsule_configured_realm,
     module_target_sat,
 ):
     """Realm deletion by realm name
@@ -42,7 +52,7 @@ def test_positive_delete_by_name(
     """
     realm = module_target_sat.cli_factory.make_realm(
         {
-            'realm-proxy-id': module_capsule_configured.nailgun_capsule.id,
+            'realm-proxy-id': module_capsule_configured_realm.nailgun_capsule.id,
             'realm-type': 'Active Directory',
         }
     )
@@ -52,10 +62,7 @@ def test_positive_delete_by_name(
 
 
 def test_positive_delete_by_id(
-    module_subscribe_satellite,
-    module_enroll_idm_and_configure_external_auth,
-    configure_realm,
-    module_capsule_configured,
+    module_capsule_configured_realm,
     module_target_sat,
 ):
     """Realm deletion by realm ID
@@ -66,7 +73,7 @@ def test_positive_delete_by_id(
     """
     realm = module_target_sat.cli_factory.make_realm(
         {
-            'realm-proxy-id': module_capsule_configured.nailgun_capsule.id,
+            'realm-proxy-id': module_capsule_configured_realm.nailgun_capsule.id,
             'realm-type': 'Active Directory',
         }
     )
@@ -76,10 +83,7 @@ def test_positive_delete_by_id(
 
 
 def test_positive_realm_info_name(
-    module_subscribe_satellite,
-    module_enroll_idm_and_configure_external_auth,
-    configure_realm,
-    module_capsule_configured,
+    module_capsule_configured_realm,
     request,
     module_target_sat,
 ):
@@ -92,10 +96,10 @@ def test_positive_realm_info_name(
     realm = module_target_sat.cli_factory.make_realm(
         {
             'name': gen_string('alpha', random.randint(1, 30)),
-            'realm-proxy-id': module_capsule_configured.nailgun_capsule.id,
+            'realm-proxy-id': module_capsule_configured_realm.nailgun_capsule.id,
             'realm-type': 'Red Hat Identity Management',
             'locations': [
-                loc.read().name for loc in module_capsule_configured.nailgun_capsule.location
+                loc.read().name for loc in module_capsule_configured_realm.nailgun_capsule.location
             ],
         }
     )
@@ -106,10 +110,7 @@ def test_positive_realm_info_name(
 
 
 def test_positive_realm_info_id(
-    module_subscribe_satellite,
-    module_enroll_idm_and_configure_external_auth,
-    configure_realm,
-    module_capsule_configured,
+    module_capsule_configured_realm,
     request,
     module_target_sat,
 ):
@@ -122,10 +123,10 @@ def test_positive_realm_info_id(
     realm = module_target_sat.cli_factory.make_realm(
         {
             'name': gen_string('alpha', random.randint(1, 30)),
-            'realm-proxy-id': module_capsule_configured.nailgun_capsule.id,
+            'realm-proxy-id': module_capsule_configured_realm.nailgun_capsule.id,
             'realm-type': 'Red Hat Identity Management',
             'locations': [
-                loc.read().name for loc in module_capsule_configured.nailgun_capsule.location
+                loc.read().name for loc in module_capsule_configured_realm.nailgun_capsule.location
             ],
         }
     )
@@ -137,10 +138,7 @@ def test_positive_realm_info_id(
 
 
 def test_positive_realm_update_name(
-    module_subscribe_satellite,
-    module_enroll_idm_and_configure_external_auth,
-    configure_realm,
-    module_capsule_configured,
+    module_capsule_configured_realm,
     request,
     module_target_sat,
 ):
@@ -155,10 +153,10 @@ def test_positive_realm_update_name(
     realm = module_target_sat.cli_factory.make_realm(
         {
             'name': realm_name,
-            'realm-proxy-id': module_capsule_configured.nailgun_capsule.id,
+            'realm-proxy-id': module_capsule_configured_realm.nailgun_capsule.id,
             'realm-type': 'Red Hat Identity Management',
             'locations': [
-                loc.read().name for loc in module_capsule_configured.nailgun_capsule.location
+                loc.read().name for loc in module_capsule_configured_realm.nailgun_capsule.location
             ],
         }
     )
@@ -171,10 +169,7 @@ def test_positive_realm_update_name(
 
 
 def test_negative_realm_update_invalid_type(
-    module_subscribe_satellite,
-    module_enroll_idm_and_configure_external_auth,
-    configure_realm,
-    module_capsule_configured,
+    module_capsule_configured_realm,
     request,
     module_target_sat,
 ):
@@ -189,10 +184,10 @@ def test_negative_realm_update_invalid_type(
     realm = module_target_sat.cli_factory.make_realm(
         {
             'name': gen_string('alpha', random.randint(1, 30)),
-            'realm-proxy-id': module_capsule_configured.nailgun_capsule.id,
+            'realm-proxy-id': module_capsule_configured_realm.nailgun_capsule.id,
             'realm-type': realm_type,
             'locations': [
-                loc.read().name for loc in module_capsule_configured.nailgun_capsule.location
+                loc.read().name for loc in module_capsule_configured_realm.nailgun_capsule.location
             ],
         }
     )
