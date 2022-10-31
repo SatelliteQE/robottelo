@@ -275,7 +275,8 @@ def test_positive_generate_all_reports_job(target_sat):
     :id: a9e4bfdb-6d7c-4f8c-ae57-a81442926dd8
 
     :Steps:
-        1. Execute Foreman GenerateAllReportsJob via foreman-rake.
+        1. Disable the Automatic Inventory upload setting.
+        2. Execute Foreman GenerateAllReportsJob via foreman-rake.
 
     :expectedresults: Reports generation works as expected.
 
@@ -287,6 +288,7 @@ def test_positive_generate_all_reports_job(target_sat):
 
     :CaseLevel: System
     """
+    target_sat.update_setting('allow_auto_inventory_upload', False)
     with target_sat.session.shell() as sh:
         sh.send('foreman-rake console')
         time.sleep(30)  # sleep to allow time for console to open
