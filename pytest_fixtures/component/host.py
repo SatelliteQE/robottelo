@@ -58,6 +58,7 @@ def module_host_template(module_org, smart_proxy_location, module_target_sat):
         organization=module_org, location=smart_proxy_location, build=True
     )
     host_template.create_missing()
+    host_template.name = None
     return host_template
 
 
@@ -66,8 +67,9 @@ def host_ui_options(module_host_template):
     os_name = (
         f'{module_host_template.operatingsystem.name} {module_host_template.operatingsystem.major}'
     )
+    name = gen_string('alpha').lower()
     values = {
-        'host.name': module_host_template.name,
+        'host.name': name,
         'host.organization': module_host_template.organization.name,
         'host.location': module_host_template.location.name,
         'host.lce': ENVIRONMENT,
@@ -88,5 +90,5 @@ def host_ui_options(module_host_template):
         'parameters.host_params': None,
         'additional_information.comment': 'Host with fake data',
     }
-    host_name = f'{module_host_template.name}.{module_host_template.domain.name}'
+    host_name = f'{name}.{module_host_template.domain.name}'
     return values, host_name
