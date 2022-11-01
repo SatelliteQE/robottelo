@@ -23,22 +23,22 @@ class Upgrade(Base):
     command_base = 'upgrade'
 
     @classmethod
-    def list_versions(cls, options=None):
+    def list_versions(cls, options=None, env_var=''):
         """Build satellite-maintain upgrade list-versions"""
         cls.command_sub = 'list-versions'
         options = options or {}
-        return cls.sm_execute(cls._construct_command(options))
+        return cls.sm_execute(cls._construct_command(options), env_var=env_var)
 
     @classmethod
-    def check(cls, options=None):
+    def check(cls, options=None, env_var=''):
         """Build satellite-maintain upgrade check"""
         cls.command_sub = 'check'
         options = options or {}
-        return cls.sm_execute(cls._construct_command(options))
+        return cls.sm_execute(cls._construct_command(options), env_var=env_var)
 
     @classmethod
-    def run(cls, options=None):
+    def run(cls, options=None, env_var=''):
         """Build satellite-maintain upgrade run"""
         cls.command_sub = 'run'
         options = options or {}
-        return cls.sm_execute(cls._construct_command(options))
+        return cls.sm_execute(cls._construct_command(options), env_var=env_var)

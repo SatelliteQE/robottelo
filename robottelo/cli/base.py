@@ -255,15 +255,11 @@ class Base:
             return cls._handle_response(response, ignore_stderr=ignore_stderr)
 
     @classmethod
-    def sm_execute(
-        cls,
-        command,
-        hostname=None,
-        timeout=None,
-    ):
+    def sm_execute(cls, command, hostname=None, timeout=None, **kwargs):
         """Executes the satellite-maintain cli commands on the server via ssh"""
+        env_var = kwargs.get('env_var', '')
         client = get_client(hostname=hostname or cls.hostname)
-        result = client.execute(f'satellite-maintain {command}', timeout=timeout)
+        result = client.execute(f'{env_var} satellite-maintain {command}', timeout=timeout)
         return result
 
     @classmethod
