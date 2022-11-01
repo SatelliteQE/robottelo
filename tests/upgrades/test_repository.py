@@ -34,7 +34,6 @@ from robottelo.upgrade_utility import publish_content_view
 
 UPSTREAM_USERNAME = 'rTtest123'
 DOCKER_VM = settings.upgrade.docker_vm
-FILE_PATH = '/var/www/html/pub/custom_repo/'
 _, RPM1_NAME = os.path.split(rpm1)
 _, RPM2_NAME = os.path.split(rpm2)
 
@@ -149,7 +148,7 @@ class TestScenarioCustomRepoCheck:
         lce = target_sat.api.LifecycleEnvironment(organization=org).create()
 
         product = target_sat.api.Product(organization=org).create()
-        target_sat.create_repo(rpm1, FILE_PATH)
+        target_sat.create_custom_html_repo(rpm1)
         repo = target_sat.api.Repository(
             product=product.id, url=f'{target_sat.url}/pub/custom_repo'
         ).create()
@@ -207,7 +206,7 @@ class TestScenarioCustomRepoCheck:
         lce_id = entity_data.get('lce_id')
         repo_name = entity_data.get('repo_name')
 
-        target_sat.create_repo(rpm2, FILE_PATH, post_upgrade=True, other_rpm=rpm1)
+        target_sat.create_custom_html_repo(rpm2, update=True, remove_rpm=rpm1)
         repo = target_sat.api.Repository(name=repo_name).search()[0]
         repo.sync()
 

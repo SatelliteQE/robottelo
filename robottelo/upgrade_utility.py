@@ -1,5 +1,6 @@
 """Common Upgrade test utilities """
 from fabric.api import execute
+from fabric.api import run
 from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
 from upgrade.helpers.docker import docker_execute_command
@@ -59,6 +60,27 @@ def install_or_update_package(client_hostname=None, update=False, package=None):
 
     execute(docker_execute_command, client_hostname, command, **kwargs)[settings.upgrade.docker_vm]
     assert package in check_package_installed(client_hostname=client_hostname, package=package)
+
+
+def create_repo(rpm_name, repo_path, post_upgrade=False, other_rpm=None):
+    """Creates a custom yum repository, that will be synced to satellite
+    and later to capsule from satellite
+    :param: str rpm_name : rpm name, required to create a repository.
+    :param: str repo_path: Name of the repository path
+    :param: bool post_upgrade: For Pre-upgrade, post_upgrade value will be False
+    :param: str other_rpm: If we want to clean a specific rpm and update with
+    latest then we pass other rpm.
+    """
+    if post_upgrade:
+        run(f'wget {rpm_name} -P {repo_path}')
+        run(f'rm -rf {repo_path + other_rpm}')
+        run(f'createrepo --update {repo_path}')
+    else:
+        run(f'rm -rf {repo_path}')
+        run(f'mkdir {repo_path}')
+        run(f'wget {rpm_name} -P {repo_path}')
+        # Renaming custom rpm to preRepoSync.rpm
+        run(f'createrepo --database {repo_path}')
 
 
 def host_status(client_container_name=None):
