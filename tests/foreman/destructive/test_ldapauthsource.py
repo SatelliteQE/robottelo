@@ -23,8 +23,6 @@ import pytest
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
-from robottelo.rhsso_utils import open_pxssh_session
-from robottelo.rhsso_utils import update_client_configuration
 
 
 pytestmark = [pytest.mark.destructive]
@@ -38,17 +36,17 @@ def configure_hammer_session(sat, enable=True):
 
 
 @pytest.fixture()
-def rh_sso_hammer_auth_setup(module_target_sat, request):
+def rh_sso_hammer_auth_setup(module_target_sat, default_sso_host, request):
     """rh_sso hammer setup before running the auth login tests"""
     configure_hammer_session(module_target_sat)
     client_config = {'publicClient': 'true'}
-    update_client_configuration(module_target_sat, client_config)
+    default_sso_host.update_client_configuration(client_config, module_target_sat)
 
     def rh_sso_hammer_auth_cleanup():
         """restore the hammer config backup file and rhsso client settings"""
         module_target_sat.execute(f'mv {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
         client_config = {'publicClient': 'false'}
-        update_client_configuration(module_target_sat, client_config)
+        default_sso_host.update_client_configuration(client_config, module_target_sat)
 
     request.addfinalizer(rh_sso_hammer_auth_cleanup)
 
@@ -147,7 +145,7 @@ def test_rhsso_two_factor_login_using_hammer(
             {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.rhsso_password},
             default_sso_host.get_two_factor_token_rh_sso_url(module_target_sat),
         )
-        with open_pxssh_session() as ssh_session:
+        with module_target_sat.session.shell() as ssh_session:
             ssh_session.sendline(
                 f"echo '{two_factor_code['code']}' | hammer auth login oauth "
                 f'--oidc-token-endpoint {default_sso_host.oidc_token_endpoint} '
