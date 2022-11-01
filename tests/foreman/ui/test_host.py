@@ -338,6 +338,7 @@ def test_positive_read_from_details_page(session, module_host_template):
     """
 
     template = module_host_template
+    template.name = gen_string('alpha').lower()
     host = template.create()
     os_name = f'{template.operatingsystem.name} {template.operatingsystem.major}'
     host_name = host.name
@@ -1084,7 +1085,7 @@ def test_positive_search_by_org(session, smart_proxy_location, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_validate_inherited_cv_lce(session, module_org, target_sat, module_host_template):
+def test_positive_validate_inherited_cv_lce(session, target_sat, module_host_template):
     """Create a host with hostgroup specified via CLI. Make sure host
     inherited hostgroup's lifecycle environment, content view and both
     fields are properly reflected via WebUI.
