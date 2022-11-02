@@ -25,11 +25,11 @@ from fauxfactory import gen_netmask
 from fauxfactory import gen_url
 
 from robottelo import constants
-from robottelo import manifests
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
+from robottelo.utils import clone
 
 
 class CLIFactoryError(Exception):
@@ -702,11 +702,11 @@ class CLIFactory:
         else:
             env_id = options['lifecycle-environment-id']
         # Clone manifest and upload it
-        with manifests.clone() as manifest:
-            self._satellite.put(manifest, manifest.filename)
+        with clone() as manifest:
+            self._satellite.put(manifest.path, manifest.name)
         try:
             self._satellite.cli.Subscription.upload(
-                {'file': manifest.filename, 'organization-id': org_id}
+                {'file': manifest.name, 'organization-id': org_id}
             )
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
@@ -843,12 +843,12 @@ class CLIFactory:
             options['url'] = custom_repo_url
             result = self.setup_org_for_a_custom_repo(options)
             if force_manifest_upload:
-                with manifests.clone() as manifest:
-                    self._satellite.put(manifest, manifest.filename)
+                with clone() as manifest:
+                    self._satellite.put(manifest.path, manifest.name)
                 try:
                     self._satellite.cli.Subscription.upload(
                         {
-                            'file': manifest.filename,
+                            'file': manifest.name,
                             'organization-id': result.get('organization-id'),
                         }
                     )
@@ -1059,7 +1059,7 @@ class CLIFactory:
         if upload_manifest:
             # Upload the organization manifest
             try:
-                manifests.upload_manifest_locked(org_id, manifests.clone(), interface='CLI')
+                self._satellite.upload_manifest(org_id, interface='CLI')
             except CLIReturnCodeError as err:
                 raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
 

@@ -41,7 +41,6 @@ from robottelo.constants import REAL_0_RH_PACKAGE
 from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
 from robottelo.hosts import ContentHost
-from robottelo.manifests import upload_manifest_locked
 
 
 CUSTOM_REPO_URL = settings.repos.yum_9.url
@@ -84,7 +83,7 @@ def _set_setting_value(setting_entity, value):
     setting_entity.update(['value'])
 
 
-def _org():
+def _org(module_target_sat):
     org = entities.Organization().create()
     # adding remote_execution_connect_by_ip=Yes at org level
     entities.Parameter(
@@ -93,7 +92,7 @@ def _org():
         value='Yes',
         organization=org.id,
     ).create()
-    upload_manifest_locked(org.id)
+    module_target_sat.upload_manifest(org.id)
     return org
 
 

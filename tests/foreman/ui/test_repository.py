@@ -27,7 +27,6 @@ from nailgun import entities
 from navmazing import NavigationTriesExceeded
 
 from robottelo import constants
-from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
@@ -728,7 +727,7 @@ def test_positive_reposet_disable(session, target_sat):
     :CaseLevel: Integration
     """
     org = entities.Organization().create()
-    manifests.upload_manifest_locked(org.id)
+    target_sat.upload_manifest(org.id)
     sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro='rhel7', cdn=True)
     repository_name = sat_tools_repo.data['repository']
     with session:
@@ -774,7 +773,7 @@ def test_positive_reposet_disable_after_manifest_deleted(session, target_sat):
     :CaseLevel: Integration
     """
     org = entities.Organization().create()
-    manifests.upload_manifest_locked(org.id)
+    target_sat.upload_manifest(org.id)
     sub = entities.Subscription(organization=org)
     sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro='rhel7', cdn=True)
     repository_name = sat_tools_repo.data['repository']
@@ -857,7 +856,7 @@ def test_positive_delete_rhel_repo(session, module_org, target_sat):
     :BZ: 1152672
     """
 
-    manifests.upload_manifest_locked(module_org.id)
+    target_sat.upload_manifest(module_org.id)
     sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro='rhel7', cdn=True)
     repository_name = sat_tools_repo.data['repository']
     product_name = sat_tools_repo.data['product']
@@ -891,7 +890,7 @@ def test_positive_delete_rhel_repo(session, module_org, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_recommended_repos(session, module_org):
+def test_positive_recommended_repos(session, module_org, target_sat):
     """list recommended repositories using
      On/Off 'Recommended Repositories' toggle.
 
@@ -906,7 +905,7 @@ def test_positive_recommended_repos(session, module_org):
 
     :BZ: 1776108
     """
-    manifests.upload_manifest_locked(module_org.id)
+    target_sat.upload_manifest(module_org.id)
     with session:
         session.organization.select(module_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')

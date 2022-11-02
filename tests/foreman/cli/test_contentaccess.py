@@ -19,7 +19,6 @@ import time
 import pytest
 from nailgun import entities
 
-from robottelo import manifests
 from robottelo.cli.host import Host
 from robottelo.cli.package import Package
 from robottelo.config import settings
@@ -27,6 +26,7 @@ from robottelo.constants import REAL_0_ERRATA_ID
 from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_FILENAME
 from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
 from robottelo.constants import REPOS
+from robottelo.utils import clone
 
 pytestmark = [
     pytest.mark.skipif(
@@ -169,7 +169,7 @@ def test_positive_erratum_installable(vm):
 
 
 @pytest.mark.tier2
-def test_negative_rct_not_shows_golden_ticket_enabled(target_sat):
+def test_negative_rct_not_shows_golden_ticket_enabled(target_sat, default_org):
     """Assert restricted manifest has no Golden Ticket enabled .
 
     :id: 754c1be7-468e-4795-bcf9-258a38f3418b
@@ -184,11 +184,9 @@ def test_negative_rct_not_shows_golden_ticket_enabled(target_sat):
 
     :CaseImportance: High
     """
-    # need a clean org for a new manifest
-    org = entities.Organization().create()
     # upload organization manifest with org environment access disabled
-    manifest = manifests.clone()
-    manifests.upload_manifest_locked(org.id, manifest, interface='CLI')
+    manifest = clone()
+    target_sat.upload_manifest(default_org.id, manifest, interface='CLI')
     result = target_sat.execute(f'rct cat-manifest {manifest.filename}')
     assert result.status == 0
     assert 'Content Access Mode: Simple Content Access' not in result.stdout

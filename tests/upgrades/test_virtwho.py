@@ -20,8 +20,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
 from robottelo.cli.host import Host
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.virt_who_config import VirtWhoConfig
@@ -66,7 +64,9 @@ class TestScenarioPositiveVirtWho:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_create_virt_who_configuration(self, form_data, save_test_data):
+    def test_pre_create_virt_who_configuration(
+        self, form_data, save_test_data, target_sat, function_entitlement_manifest
+    ):
         """Create and deploy virt-who configuration.
 
         :id: preupgrade-a36cbe89-47a2-422f-9881-0f86bea0e24e
@@ -79,13 +79,14 @@ class TestScenarioPositiveVirtWho:
             3. Report is sent to satellite.
             4. Virtual sku can be generated and attached.
         """
-        default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
-        default_loc = entities.Location(id=default_loc_id).read()
-        org = entities.Organization(name=ORG_DATA['name']).create()
+        default_loc_id = (
+            target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
+        )
+        default_loc = target_sat.api.Location(id=default_loc_id).read()
+        org = target_sat.api.Organization(name=ORG_DATA['name']).create()
         default_loc.organization.append(entities.Organization(id=org.id))
         default_loc.update(['organization'])
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
+        target_sat.upload_manifest(org.id, function_entitlement_manifest.content)
         form_data.update({'organization_id': org.id})
         vhd = entities.VirtWhoConfig(**form_data).create()
         assert vhd.status == 'unknown'

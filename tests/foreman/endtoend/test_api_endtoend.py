@@ -28,15 +28,14 @@ from nailgun import client
 from nailgun import entities
 
 from robottelo import constants
-from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import upload_manifest
 from robottelo.config import get_credentials
 from robottelo.config import get_url
 from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.config import user_nailgun_config
 from robottelo.constants.repos import CUSTOM_RPM_REPO
+from robottelo.utils import clone
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -1097,8 +1096,8 @@ class TestEndToEnd:
 
         # step 2.2: Clone and upload manifest
         if fake_manifest_is_set:
-            with manifests.clone() as manifest:
-                upload_manifest(org.id, manifest.content)
+            with clone() as manifest:
+                target_sat.upload_manifest(org.id, manifest.content)
 
         # step 2.3: Create a new lifecycle environment
         le1 = target_sat.api.LifecycleEnvironment(server_config=user_cfg, organization=org).create()

@@ -10,6 +10,9 @@ from robottelo.config import settings
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.logging import logger
+from robottelo.utils import clone
+
+# from robottelo.utils import clone
 
 
 class ContentInfo:
@@ -106,6 +109,41 @@ class ContentInfo:
         return self.execute(
             f'wget -qO - {url} | tee {filename} | md5sum | awk \'{{print $1}}\''
         ).stdout
+
+    def upload_manifest(self, org_id, manifest=None, interface='API', timeout=None):
+        """Upload a manifest using the requested interface.
+
+        :type org_id: int
+        :type manifest: Manifester object or None
+        :type interface: str
+        :type timeout: int
+
+        :returns: the manifest upload result
+
+        """
+        if manifest is None:
+            manifest = clone()
+        if timeout is None:
+            # Set the timeout to 1500 seconds to align with the API timeout.
+            timeout = 1500000
+        if interface == 'CLI':
+            if isinstance(manifest.content, bytes):
+                self.put(f'{manifest.path}', f'{manifest.name}')
+                result = self.cli.Subscription.upload(
+                    {'file': manifest.name, 'organization-id': org_id}, timeout=timeout
+                )
+            else:
+                self.put(manifest, manifest.filename)
+                result = self.cli.Subscription.upload(
+                    {'file': manifest.filename, 'organization-id': org_id}, timeout=timeout
+                )
+        else:
+            if not isinstance(manifest, bytes):
+                manifest = manifest.content
+            result = self.api.Subscription().upload(
+                data={'organization_id': org_id}, files={'content': manifest}
+            )
+        return result
 
 
 class SystemInfo:

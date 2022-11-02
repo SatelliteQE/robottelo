@@ -20,8 +20,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_activation_key
 from robottelo.cli.factory import make_product
@@ -33,15 +31,16 @@ from robottelo.cli.subscription import Subscription
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-
+from robottelo.utils import clone
+from robottelo.utils import original_manifest
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def golden_ticket_host_setup(request, module_org):
-    with manifests.clone(name='golden_ticket') as manifest:
-        upload_manifest(module_org.id, manifest.content)
+def golden_ticket_host_setup(request, module_org, module_target_sat):
+    with clone(name='golden_ticket') as manifest:
+        module_target_sat.upload_manifest(module_org.id, manifest.content)
     new_product = make_product({'organization-id': module_org.id})
     new_repo = make_repository({'product-id': new_product['id']})
     Repository.synchronize({'id': new_repo['id']})
@@ -57,9 +56,9 @@ def golden_ticket_host_setup(request, module_org):
 
 
 @pytest.fixture(scope='function')
-def manifest_clone_upload(function_org):
-    with manifests.clone() as cloned_manifest:
-        upload_manifest(function_org.id, cloned_manifest.content)
+def manifest_clone_upload(function_org, target_sat):
+    with clone() as cloned_manifest:
+        target_sat.upload_manifest(function_org.id, cloned_manifest.content)
         yield
 
 
@@ -144,7 +143,7 @@ def test_positive_manifest_history(function_org, manifest_clone_upload):
 @pytest.mark.skip('Skipping due to manifest refresh issues')
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_manifest_refresh(function_org):
+def test_positive_manifest_refresh(function_org, target_sat):
     """upload manifest and refresh
 
     :id: 579bbbf7-11cf-4d78-a3b1-16d73bd4ca57
@@ -153,7 +152,7 @@ def test_positive_manifest_refresh(function_org):
 
     :CaseImportance: Critical
     """
-    upload_manifest(function_org.id, manifests.original_manifest().content)
+    target_sat.upload_manifest(function_org.id, original_manifest().content)
     Subscription.list({'organization-id': function_org.id}, per_page=False)
     Subscription.refresh_manifest({'organization-id': function_org.id})
     Subscription.delete_manifest({'organization-id': function_org.id})
@@ -203,7 +202,7 @@ def test_positive_delete_manifest_as_another_user(target_sat):
         admin=True, password=user2_password, organization=[org], default_organization=org
     ).create()
     # use the first admin to upload a manifest
-    with manifests.clone() as manifest:
+    with clone() as manifest:
         target_sat.put(manifest, manifest.filename)
     Subscription.with_user(username=user1.login, password=user1_password).upload(
         {'file': manifest.filename, 'organization-id': org.id}

@@ -1975,7 +1975,7 @@ class TestDockerRepository:
 #
 #         :BZ: 1625783
 #         """
-#         with manifests.clone() as manifest:
+#         with clone() as manifest:
 #             upload_manifest(module_org.id, manifest.content)
 #         repo_id = enable_rhrepo_and_fetchid(
 #             org_id=module_org.id,
