@@ -21,7 +21,7 @@ from robottelo.config import settings
 
 
 @pytest.mark.skipif(
-    int(settings.server.version.release.split('.')[1]) != 11
+    str(settings.server.version.release).split('.')[1] != 11
     and settings.server.version.rhel_version > 7,
     reason='Run only on sat6.11el7',
 )
@@ -46,4 +46,4 @@ def test_positive_leapp(target_sat):
     )
 
     result = target_sat.execute('cat /etc/redhat-release')
-    assert result.split()[5][0] == '8'
+    assert result.stdout.split()[6][0] == '8'
