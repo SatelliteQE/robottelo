@@ -1766,6 +1766,8 @@ class Satellite(Capsule, SatelliteMixins):
 
 
 class SSOHost(Host):
+    """Class for RHSSO functions and setup"""
+
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
         kwargs['hostname'] = kwargs.get('hostname', settings.rhsso.host_name)
