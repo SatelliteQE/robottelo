@@ -33,15 +33,16 @@ from robottelo.cli.subscription import Subscription
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.utils import clone
 
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def golden_ticket_host_setup(request, module_org):
-    with manifests.clone(name='golden_ticket') as manifest:
-        upload_manifest(module_org.id, manifest.content)
+def golden_ticket_host_setup(request, module_org, module_target_sat):
+    with clone(name='golden_ticket') as manifest:
+        module_target_sat.upload_manifest(module_org.id, manifest.content)
     new_product = make_product({'organization-id': module_org.id})
     new_repo = make_repository({'product-id': new_product['id']})
     Repository.synchronize({'id': new_repo['id']})
@@ -57,9 +58,9 @@ def golden_ticket_host_setup(request, module_org):
 
 
 @pytest.fixture(scope='function')
-def manifest_clone_upload(function_org):
-    with manifests.clone() as cloned_manifest:
-        upload_manifest(function_org.id, cloned_manifest.content)
+def manifest_clone_upload(function_org, target_sat):
+    with clone() as cloned_manifest:
+        target_sat.upload_manifest(function_org.id, cloned_manifest.content)
         yield
 
 

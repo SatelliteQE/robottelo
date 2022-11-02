@@ -751,7 +751,9 @@ def test_positive_add_custom_product(module_org):
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_redhat_and_custom_products(module_org):
+def test_positive_add_redhat_and_custom_products(
+    module_target_sat, function_entitlement_manifest_org
+):
     """Test if RH/Custom product can be associated to Activation key
 
     :id: 74c77426-18f5-4abb-bca9-a2135f7fcc1f
@@ -790,8 +792,8 @@ def test_positive_add_redhat_and_custom_products(module_org):
             'lifecycle-environment-id': result['lifecycle-environment-id'],
         }
     )
-    repo = Repository.info({'id': result['repository-id']})
-    content = ActivationKey.product_content(
+    repo = module_target_sat.cli.Repository.info({'id': result['repository-id']})
+    content = module_target_sat.cli.ActivationKey.product_content(
         {'id': result['activationkey-id'], 'organization-id': org['id']}
     )
     assert len(content) == 2
@@ -837,7 +839,7 @@ def test_positive_delete_manifest(function_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_delete_subscription(module_manifest_org):
+def test_positive_delete_subscription(function_entitlement_manifest_org, module_target_sat):
     """Check if deleting a subscription removes it from Activation key
 
     :id: bbbe4641-bfb0-48d6-acfc-de4294b18c15
@@ -847,16 +849,17 @@ def test_positive_delete_subscription(module_manifest_org):
 
     :CaseLevel: Integration
     """
-    new_ak = make_activation_key({'organization-id': module_manifest_org.id})
+    new_ak = make_activation_key({'organization-id': function_entitlement_manifest_org.id})
     subscription_result = Subscription.list(
-        {'organization-id': module_manifest_org.id, 'order': 'id desc'}, per_page=False
+        {'organization-id': function_entitlement_manifest_org.id, 'order': 'id desc'},
+        per_page=False,
     )
     result = ActivationKey.add_subscription(
         {'id': new_ak['id'], 'subscription-id': subscription_result[-1]['id']}
     )
     assert 'Subscription added to activation key.' in result
     ak_subs_info = ActivationKey.subscriptions(
-        {'id': new_ak['id'], 'organization-id': module_manifest_org.id}
+        {'id': new_ak['id'], 'organization-id': function_entitlement_manifest_org.id}
     )
     assert subscription_result[-1]['name'] in ak_subs_info
     result = ActivationKey.remove_subscription(
@@ -864,7 +867,7 @@ def test_positive_delete_subscription(module_manifest_org):
     )
     assert 'Subscription removed from activation key.' in result
     ak_subs_info = ActivationKey.subscriptions(
-        {'id': new_ak['id'], 'organization-id': module_manifest_org.id}
+        {'id': new_ak['id'], 'organization-id': function_entitlement_manifest_org.id}
     )
     assert subscription_result[-1]['name'] not in ak_subs_info
 
@@ -1092,7 +1095,7 @@ def test_positive_remove_host_collection_by_name(module_org, host_col):
 
 
 @pytest.mark.tier2
-def test_create_ak_with_syspurpose_set(module_org, module_manifest_org):
+def test_create_ak_with_syspurpose_set(module_entitlement_manifest_org, module_target_sat):
     """Test that an activation key can be created with system purpose values set.
 
     :id: ac8931e5-7089-494a-adac-cee2a8ab57ee
@@ -1114,7 +1117,7 @@ def test_create_ak_with_syspurpose_set(module_org, module_manifest_org):
             'purpose-role': "test-role",
             'purpose-usage': "test-usage",
             'service-level': "Self-Support",
-            'organization-id': module_manifest_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
         }
     )
     assert new_ak['system-purpose']['purpose-addons'] == "test-addon1, test-addon2"
@@ -1130,10 +1133,12 @@ def test_create_ak_with_syspurpose_set(module_org, module_manifest_org):
             'purpose-role': '',
             'purpose-usage': '',
             'service-level': '',
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
         }
     )
-    updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': module_org.id})
+    updated_ak = ActivationKey.info(
+        {'id': new_ak['id'], 'organization-id': module_entitlement_manifest_org.id}
+    )
     assert updated_ak['system-purpose']['purpose-addons'] == ''
     assert updated_ak['system-purpose']['purpose-role'] == ''
     assert updated_ak['system-purpose']['purpose-usage'] == ''

@@ -128,7 +128,6 @@ class TestSubscriptionAutoAttach:
             content_view=content_view,
             organization=org,
             environment=lce,
-            auto_attach=False,
         ).create()
         activation_key.add_subscriptions(data={'subscription_id': subscription[0].id})
         rhel_contenthost.install_katello_ca(target_sat)

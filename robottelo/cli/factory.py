@@ -66,6 +66,7 @@ from robottelo.cli.usergroup import UserGroupExternal
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.logging import logger
+from robottelo.utils import clone
 from robottelo.utils import ssh
 from robottelo.utils.datafactory import valid_cron_expressions
 from robottelo.utils.decorators import cacheable
@@ -1735,7 +1736,7 @@ def setup_org_for_a_custom_repo(options=None):
     }
 
 
-def _setup_org_for_a_rh_repo(options=None):
+def _setup_org_for_a_rh_repo(target_sat, options=None):
     """Sets up Org for the given Red Hat repository by:
 
     1. Checks if organization and lifecycle environment were given, otherwise
@@ -1774,10 +1775,10 @@ def _setup_org_for_a_rh_repo(options=None):
     else:
         env_id = options['lifecycle-environment-id']
     # Clone manifest and upload it
-    with manifests.clone() as manifest:
-        ssh.get_client().put(manifest, manifest.filename)
+    with clone() as manifest:
+        target_sat.put(manifest.path, manifest.name)
     try:
-        Subscription.upload({'file': manifest.filename, 'organization-id': org_id})
+        Subscription.upload({'file': manifest.name, 'organization-id': org_id})
     except CLIReturnCodeError as err:
         raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
     # Enable repo from Repository Set

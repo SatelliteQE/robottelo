@@ -969,7 +969,9 @@ def test_positive_publish_with_rh_content(session):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_publish_composite_with_custom_content(session):
+def test_positive_publish_composite_with_custom_content(
+    session, function_entitlement_manifest_org, target_sat
+):
     """Attempt to publish composite content view containing custom content
 
     :id: 73947204-408e-4e2e-b87f-ba2e52ee50b6
@@ -989,7 +991,7 @@ def test_positive_publish_composite_with_custom_content(session):
     custom_repo2_name = gen_string('alpha')
     custom_repo1_url = settings.repos.yum_0.url
     custom_repo2_url = settings.repos.yum_1.url
-    org = entities.Organization().create()
+    org = function_entitlement_manifest_org
     product = entities.Product(organization=org).create()
     rh7_repo = {
         'name': REPOS['rhst7']['name'],
@@ -1007,8 +1009,6 @@ def test_positive_publish_composite_with_custom_content(session):
     ).create()
     docker_repo1.sync()
     docker_repo2.sync()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
     # Enable and sync RH repository
     enable_sync_redhat_repo(rh7_repo, org.id)
     # Create custom yum repositories

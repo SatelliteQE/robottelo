@@ -949,6 +949,7 @@ class TestContentViewSync:
         manifests.upload_manifest_locked(
             importing_org['id'], interface=manifests.INTERFACE_CLI, timeout=7200000
         )
+        target_sat.upload_manifest(importing_org['id'], interface='CLI', timeout=7200000)
         # set disconnected mode
         Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
         ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
@@ -1062,6 +1063,8 @@ class TestContentViewSync:
         manifests.upload_manifest_locked(
             importing_org['id'], interface=manifests.INTERFACE_CLI, timeout=7200000
         )
+
+        target_sat.upload_manifest(importing_org['id'], interface='CLI', timeout=7200000)
         # set disconnected mode
         Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
         ContentImport.version(
