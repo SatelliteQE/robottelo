@@ -1382,3 +1382,75 @@ class TestCapsuleContentManagement:
             sat_file = target_sat.md5_by_url(f'{sat_repo_url}{file}')
             caps_file = target_sat.md5_by_url(f'{caps_repo_url}{file}')
             assert sat_file == caps_file
+
+    @pytest.mark.tier4
+    @pytest.mark.skip_if_not_set('capsule')
+    def test_positive_sync_CV_to_multiple_LCEs(
+        self, target_sat, module_capsule_configured, module_manifest_org
+    ):
+        """Synchronize a CV to multiple LCEs at the same time.
+        All sync tasks should succeed.
+
+        :id: bd3cbeee-234f-4088-81b3-8f0d6c76e968
+
+        :steps:
+            1. Sync a repository to the Satellite.
+            2. Create two LCEs, assign them to the Capsule.
+            3. Create a Content View, add the repository and publish it.
+            4. Promote the CV to both Capsule's LCEs without waiting for
+               Capsule sync task completion.
+            5. Check all sync tasks finished without errors.
+
+        :expectedresults:
+            1. All capsule syncs succeed.
+
+        :CaseLevel: Integration
+
+        :customerscenario: true
+
+        :BZ: 1830403
+        """
+        # Sync a repository to the Satellite.
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_manifest_org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhel7_extra']['name'],
+            reposet=constants.REPOSET['rhel7_extra'],
+            releasever=None,
+        )
+        repo = target_sat.api.Repository(id=repo_id).read()
+        repo.sync()
+
+        # Create two LCEs, assign them to the Capsule.
+        lce1 = target_sat.api.LifecycleEnvironment(organization=module_manifest_org).create()
+        lce2 = target_sat.api.LifecycleEnvironment(
+            organization=module_manifest_org, prior=lce1
+        ).create()
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': [lce1.id, lce2.id]}
+        )
+        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        # there can and will be LCEs from other tests and orgs, but len() >= 2
+        assert len(result['results']) >= 2
+        assert lce1.id and lce2.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Create a Content View, add the repository and publish it.
+        cv = target_sat.api.ContentView(
+            organization=module_manifest_org, repository=[repo]
+        ).create()
+        cv.publish()
+        cv = cv.read()
+        assert len(cv.version) == 1
+
+        # Promote the CV to both Capsule's LCEs without waiting for Capsule sync task completion.
+        cvv = cv.version[-1].read()
+        cvv.promote(data={'environment_ids': lce1.id})
+        cvv = cvv.read()
+        assert len(cvv.environment) == 2
+        cvv.promote(data={'environment_ids': lce2.id})
+        cvv = cvv.read()
+        assert len(cvv.environment) == 3
+
+        # Check all sync tasks finished without errors.
+        self.wait_for_sync(module_capsule_configured)
