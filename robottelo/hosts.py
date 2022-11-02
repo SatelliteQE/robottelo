@@ -1765,14 +1765,15 @@ class Satellite(Capsule, SatelliteMixins):
         rhel_contenthost.execute('subscription-manager repos --list')
 
 
-class SSOHost(Satellite):
-    def __init__(self, **kwargs):
+class SSOHost(Host):
+    def __init__(self, sat_obj, **kwargs):
+        self.satellite = sat_obj
         kwargs['hostname'] = kwargs.get('hostname', settings.rhsso.host_name)
         super().__init__(**kwargs)
 
-    def get_rhsso_client_id(self, sat_obj):
+    def get_rhsso_client_id(self):
         """getter method for fetching the client id and can be used other functions"""
-        client_name = f'{sat_obj.hostname}-foreman-openidc'
+        client_name = f'{self.satellite.hostname}-foreman-openidc'
         self.execute(
             f'{KEY_CLOAK_CLI} config credentials '
             f'--server {settings.rhsso.host_url.replace("https://", "http://")}/auth '
@@ -1878,9 +1879,9 @@ class SSOHost(Satellite):
             f"{KEY_CLOAK_CLI} delete -r {settings.rhsso.realm} groups/{group_details['id']}"
         )
 
-    def update_client_configuration(self, json_content, sat_obj):
+    def update_client_configuration(self, json_content):
         """Update the client configuration"""
-        client_id = self.get_rhsso_client_id(sat_obj)
+        client_id = self.get_rhsso_client_id(self.satellite)
         self.upload_rhsso_entity(json_content, "update_client_info")
         update_cmd = (
             f"{KEY_CLOAK_CLI} update clients/{client_id}"
@@ -1896,9 +1897,9 @@ class SSOHost(Satellite):
             f"{settings.rhsso.realm}/protocol/openid-connect/token"
         )
 
-    def get_oidc_client_id(self, sat_obj):
+    def get_oidc_client_id(self):
         """getter for the oidc client_id"""
-        return f"{sat_obj.hostname}-foreman-openidc"
+        return f"{self.satellite.hostname}-foreman-openidc"
 
     @cached_property
     def oidc_authorization_endpoint(self):
@@ -1908,24 +1909,24 @@ class SSOHost(Satellite):
             f"{settings.rhsso.realm}/protocol/openid-connect/auth"
         )
 
-    def get_two_factor_token_rh_sso_url(self, sat_obj):
+    def get_two_factor_token_rh_sso_url(self):
         """getter for the two factor token rh_sso url"""
         return (
             f"https://{settings.rhsso.host_name}/auth/realms/"
             f"{settings.rhsso.realm}/protocol/openid-connect/"
-            f"auth?response_type=code&client_id={sat_obj.hostname}-foreman-openidc&"
+            f"auth?response_type=code&client_id={self.satellite.hostname}-foreman-openidc&"
             "redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=openid"
         )
 
-    def set_the_redirect_uri(self, sat_obj):
+    def set_the_redirect_uri(self):
         client_config = {
             "redirectUris": [
                 "urn:ietf:wg:oauth:2.0:oob",
-                f"https://{sat_obj.hostname}/users/extlogin/redirect_uri",
-                f"https://{sat_obj.hostname}/users/extlogin",
+                f"https://{self.satellite.hostname}/users/extlogin/redirect_uri",
+                f"https://{self.satellite.hostname}/users/extlogin",
             ]
         }
-        self.update_client_configuration(client_config, sat_obj)
+        self.update_client_configuration(client_config, self.satellite)
 
 
-sso_host = SSOHost()
+# sso_host = SSOHost()

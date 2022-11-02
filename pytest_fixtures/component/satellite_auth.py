@@ -17,14 +17,15 @@ from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import gen_string
+from robottelo.hosts import SSOHost
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 
 
-@pytest.fixture(scope='session')
-def default_sso_host():
+@pytest.fixture(scope='module')
+def default_sso_host(module_target_sat):
     """Returns default sso host"""
-    return sso_host
+    return SSOHost(module_target_sat)
 
 
 @pytest.fixture()
@@ -311,16 +312,18 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth, module_target_sat):
+def enable_external_auth_rhsso(
+    enroll_configure_rhsso_external_auth, default_sso_host, module_target_sat
+):
     """register the satellite with RH-SSO Server for single sign-on"""
-    client_id = sso_host.get_rhsso_client_id(module_target_sat)
-    sso_host.create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
+    client_id = default_sso_host.get_rhsso_client_id()
+    default_sso_host.create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
     audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
     audience_mapper['config']['included.client.audience'] = audience_mapper['config'][
         'included.client.audience'
     ].format(rhsso_host=module_target_sat.hostname)
-    sso_host.create_mapper(audience_mapper, client_id)
-    sso_host.set_the_redirect_uri(module_target_sat)
+    default_sso_host.create_mapper(audience_mapper, client_id)
+    default_sso_host.set_the_redirect_uri()
 
 
 def enroll_idm_and_configure_external_auth(sat):

@@ -40,7 +40,7 @@ def rh_sso_hammer_auth_setup(module_target_sat, default_sso_host, request):
     """rh_sso hammer setup before running the auth login tests"""
     configure_hammer_session(module_target_sat)
     client_config = {'publicClient': 'true'}
-    default_sso_host.update_client_configuration(client_config, module_target_sat)
+    default_sso_host.update_client_configuration(client_config)
 
     def rh_sso_hammer_auth_cleanup():
         """restore the hammer config backup file and rhsso client settings"""
@@ -69,7 +69,7 @@ def test_rhsso_login_using_hammer(
     result = module_target_sat.cli.AuthLogin.oauth(
         {
             'oidc-token-endpoint': default_sso_host.oidc_token_endpoint,
-            'oidc-client-id': default_sso_host.get_oidc_client_id(module_target_sat),
+            'oidc-client-id': default_sso_host.get_oidc_client_id(),
             'username': settings.rhsso.rhsso_user,
             'password': settings.rhsso.rhsso_password,
         }
@@ -111,7 +111,7 @@ def test_rhsso_timeout_using_hammer(
     result = module_target_sat.cli.AuthLogin.oauth(
         {
             'oidc-token-endpoint': default_sso_host.oidc_token_endpoint,
-            'oidc-client-id': default_sso_host.get_oidc_client_id(module_target_sat),
+            'oidc-client-id': default_sso_host.get_oidc_client_id(),
             'username': settings.rhsso.rhsso_user,
             'password': settings.rhsso.rhsso_password,
         }
@@ -143,14 +143,14 @@ def test_rhsso_two_factor_login_using_hammer(
     with module_target_sat.ui_session(login=False) as rhsso_session:
         two_factor_code = rhsso_session.rhsso_login.get_two_factor_login_code(
             {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.rhsso_password},
-            default_sso_host.get_two_factor_token_rh_sso_url(module_target_sat),
+            default_sso_host.get_two_factor_token_rh_sso_url(),
         )
         with module_target_sat.session.shell() as ssh_session:
             ssh_session.sendline(
                 f"echo '{two_factor_code['code']}' | hammer auth login oauth "
                 f'--oidc-token-endpoint {default_sso_host.oidc_token_endpoint} '
                 f'--oidc-authorization-endpoint {default_sso_host.oidc_authorization_endpoint} '
-                f'--oidc-client-id {default_sso_host.get_oidc_client_id(module_target_sat)} '
+                f'--oidc-client-id {default_sso_host.get_oidc_client_id()} '
                 f"--oidc-redirect-uri 'urn:ietf:wg:oauth:2.0:oob' "
                 f'--two-factor '
             )
