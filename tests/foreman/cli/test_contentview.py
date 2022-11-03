@@ -906,7 +906,6 @@ class TestContentView:
             comp_cv = ContentView.info({'id': comp_cv['id']})
             assert comp_cv['components'][0]['id'] == component_ids
 
-    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier1
     def test_positive_add_rh_repo_by_id(self, module_entitlement_manifest_org, module_rhel_content):
