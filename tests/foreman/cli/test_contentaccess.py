@@ -8,7 +8,7 @@
 
 :CaseAutomation: Automated
 
-:Assignee: spusater
+:Assignee: shwsingh
 
 :TestType: Functional
 
