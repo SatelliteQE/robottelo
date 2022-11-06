@@ -260,6 +260,7 @@ class Base:
         env_var = kwargs.get('env_var', '')
         client = get_client(hostname=hostname or cls.hostname)
         result = client.execute(f'{env_var} satellite-maintain {command}', timeout=timeout)
+        logger.info(result.stdout)
         return result
 
     @classmethod

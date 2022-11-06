@@ -1,4 +1,4 @@
-"""Test class for satellite-maintain upgrade functionality
+"""Test module for satellite-maintain upgrade functionality
 
 :Requirement: foreman-maintain
 
@@ -17,8 +17,6 @@
 :Upstream: No
 """
 import pytest
-
-from robottelo.logging import logger
 
 pytestmark = pytest.mark.destructive
 
@@ -40,15 +38,14 @@ def test_positive_satellite_maintain_upgrade_list(sat_maintain):
     previous_xy_version = '.'.join(
         [xy_version.split('.')[0], str(int(xy_version.split('.')[1]) - 1)]
     )
-    if sat_maintain.version.startswith(f'{xy_version}'):
+    if sat_maintain.version.startswith(xy_version):
         versions = [f'{xy_version}.z']
-    elif sat_maintain.version.startswith(f'{previous_xy_version}'):
-        versions = [f'{previous_xy_version}.z', f'{xy_version}']
+    elif sat_maintain.version.startswith(previous_xy_version):
+        versions = [f'{previous_xy_version}.z', xy_version]
     else:
         versions = ['Unsupported Satellite/Capsule version']
 
     result = sat_maintain.cli.Upgrade.list_versions()
-    logger.info(result.stdout)
     assert result.status == 0
     assert 'FAIL' not in result.stdout
     for ver in versions:
@@ -67,9 +64,9 @@ def test_positive_repositories_validate(sat_maintain):
     :steps:
         1. Run satellite-maintain upgrade check.
 
-    :BZ: 1632111
-
     :expectedresults: repositories-validate check should be skipped.
+
+    :BZ: 1632111
     """
     xy_version = '.'.join(sat_maintain.version.split('.')[:2])
     skip_message = 'Your system is subscribed using custom activation key'
@@ -81,7 +78,6 @@ def test_positive_repositories_validate(sat_maintain):
         },
         env_var='EXTERNAL_SAT_ORG=Sat6-CI EXTERNAL_SAT_ACTIVATION_KEY=Ext_AK',
     )
-    logger.info(result.stdout)
     assert 'SKIPPED' in result.stdout
     assert 'FAIL' not in result.stdout
     assert skip_message in result.stdout
@@ -100,11 +96,11 @@ def test_positive_self_update_for_zstream(sat_maintain):
         1. Run satellite-maintain upgrade check/run command.
         2. Run satellite-maintain upgrade check/run command with disable-self-upgrade option.
 
-    :BZ: 1649329
-
     :expectedresults:
         1. Update satellite-maintain package to latest version and gives message to re-run command.
         2. If disable-self-upgrade option is used then it should skip self-upgrade step for zstream
+
+    :BZ: 1649329
 
     :CaseAutomation: ManualOnly
     """
@@ -124,13 +120,13 @@ def test_positive_self_upgrade_for_ystream(sat_maintain):
         2. Run satellite-maintain self-upgrade command with --maintenance-repo-label flag
         3. Run satellite-maintain self-upgrade command with MAINTENANCE_REPO_LABEL env var
 
-    :BZ: 2026415
-
     :expectedresults:
         1. Update satellite-maintain packages to latest versions,
          from next version maintenance repo from CDN
         2. If --maintenance-repo-label flag and MAINTENANCE_REPO_LABEL env var is used,
          then it should use local yum repo
+
+    :BZ: 2026415
 
     :CaseAutomation: ManualOnly
     """
@@ -143,21 +139,21 @@ def test_positive_check_presence_satellite_or_satellite_capsule(sat_maintain):
 
     :id: 1011ff01-6dfb-422f-92c5-995d38bc163e
 
+    :parametrized: yes
+
     :steps:
         1. Run satellite-maintain upgrade list-versions/check/run command.
         2. Run satellite-maintain upgrade list-versions/check/run command,
             after removing satellite and satellite-capsule packages.
-
-    :BZ: 1886031
 
     :expectedresults:
         1. If those packages are removed, then it should give error, like
             "Error: Important rpm package satellite/satellite-capsule is not installed!
              Install satellite/satellite-capsule rpm to ensure system consistency."
 
-    :CaseAutomation: ManualOnly
-
-    :parametrized: yes
+    :BZ: 1886031
 
     :customerscenario: true
+
+    :CaseAutomation: ManualOnly
     """

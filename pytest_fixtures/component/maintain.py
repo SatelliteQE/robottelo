@@ -7,25 +7,22 @@ from robottelo.hosts import Satellite
 
 
 @pytest.fixture(scope='session')
-def sat_maintain(request, session_satellite_host, session_capsule_configured):
+def sat_maintain(request, session_target_sat, session_capsule_configured):
     if settings.remotedb.server:
         yield Satellite(settings.remotedb.server)
     else:
-        hosts = {'satellite': session_satellite_host, 'capsule': session_capsule_configured}
+        hosts = {'satellite': session_target_sat, 'capsule': session_capsule_configured}
         yield hosts[request.param]
 
 
 @pytest.fixture
 def setup_backup_tests(request, sat_maintain):
     """Teardown for backup/restore tests"""
-    result = sat_maintain.execute('rm -rf /tmp/backup-*')
-    assert result.status == 0
+    assert sat_maintain.execute('rm -rf /tmp/backup-*').status == 0
 
-    def teardown_backup_tests():
-        result = sat_maintain.execute('rm -rf /tmp/backup-*')
-        assert result.status == 0
-
-    request.addfinalizer(teardown_backup_tests)
+    @request.addfinalizer
+    def _finalize():
+        assert sat_maintain.execute('rm -rf /tmp/backup-*').status == 0
 
 
 @pytest.fixture(scope='module')
