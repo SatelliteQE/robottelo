@@ -64,3 +64,13 @@ jobs:
       - name: Analysis (git diff)
         if: failure()
         run: git diff
+
+  # This needed for to create the gh issue in case of failed auto0-cherry-pick
+  add-assignees:
+    name: Add author to assignee
+    if: "!contains(github.event.pull_request.labels.*.name, 'Auto_Cherry_Picked')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kentaro-m/auto-assign-action@v1.2.4
+        with:
+          configuration-path: '.github/auto_assign.yml'
