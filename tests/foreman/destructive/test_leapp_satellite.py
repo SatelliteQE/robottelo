@@ -43,7 +43,7 @@ def test_positive_leapp(target_sat):
     # Getting original RHEL version so we can increment it later in the test
     orig_rhel_ver = target_sat.os_version.major
     Broker().execute(job_template="satellite-leapp-upgrade", target_vm=target_sat.name)
-
+    # Recreate the session object within a Satellite object after upgrading
     target_sat.connect()
     # Get RHEL version after upgrading
     result = target_sat.execute('cat /etc/redhat-release | grep -Po "\\d"')
