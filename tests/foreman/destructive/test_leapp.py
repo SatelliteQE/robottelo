@@ -1,12 +1,12 @@
-"""Tests for leapp upgrade
+"""Tests for leapp upgrade of Satellite
 
 :CaseAutomation: Automated
 
 :CaseLevel: Component
 
-:CaseComponent: LEAPP
+:CaseComponent: Upgrade
 
-:Assignee: shwsingh
+:Assignee: lpramuk
 
 :TestType: Functional
 
@@ -40,10 +40,15 @@ def test_positive_leapp(target_sat):
 
     :parametrized: no
     """
-
+    # Getting original RHEL version so we can increment it later in the test
+    orig_rhel_ver = target_sat.os_version.major
     Broker().execute(
-        job_template="satellite-leapp-upgrade", target_vm=target_sat.name, AnsibleTower="testing"
+        job_template="satellite-leapp-upgrade",
+        target_vm=target_sat.name,
     )
 
-    result = target_sat.execute('cat /etc/redhat-release')
-    assert result.stdout.split()[6][0] == '8'
+    target_sat.connect()
+    # Get RHEL version after upgrading
+    result = target_sat.execute('cat /etc/redhat-release | grep -Po "\\d"')
+    # Check if RHEL was upgraded
+    assert result.stdout[0] == str(orig_rhel_ver + 1), 'RHEL was not upgraded'
