@@ -40,23 +40,28 @@ jobs:
           labels: |
             Auto_Cherry_Picked
             ${{ matrix.to_branch }}
+          assignees: ${{ github.event.pull_request.assignee.login }}
 
   create-issue:
     runs-on: ubuntu-latest
     if: ${{ always() && contains(join(needs.*.result, ','), 'failure') }}
-    needs: auto-cherry-pick
+    needs: [previous-branch, auto-cherry-pick]
+    env:
+      to_branch: ${{ fromJson(needs.previous-branch.outputs.previous_branch) }}
     steps:
       - name: Create Issue on Failed Auto Cherrypick
         uses: dacbd/create-issue-action@main
         with:
           token: ${{ secrets.CHERRYPICK_PAT }}
-          title: "[Failed-AutoCherryPick] - ${{ github.event.pull_request.title }}"
+          title: ${{ github.event.pull_request.title }}
           body: |
             #### Auto-Cherry-Pick WorkFlow Failure:
             - [Failed Cherrypick Action](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
             - [Parent Pull Request](https://github.com/${{ github.repository }}/pull/${{ github.event.number }})
-          labels: Failed_AutoCherryPick
-          assignees: "${{ github.event.pull_request.user.login }}"
+          labels: |
+            Failed_AutoCherryPick
+            ${{ env.to_branch }}
+          assignees: ${{ github.event.pull_request.assignee.login }}
 
   google-chat-notification:
     runs-on: ubuntu-latest
@@ -66,6 +71,6 @@ jobs:
       - name: Google Chat Notification - Robottelo
         uses: Co-qn/google-chat-notification@releases/v1
         with:
-          name: "[Failed-AutoCherryPick] - ${{ github.event.pull_request.title }}"
+          name: ${{ github.event.pull_request.title }}
           url: ${{ secrets.GCHAT_REVIEWERS_WEBHOOK }}
           status: failure
