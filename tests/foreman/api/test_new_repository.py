@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import pytest
-from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.api.utils import enable_rhrepo_and_fetchid
@@ -74,7 +73,7 @@ def test_negative_disable_repository_with_cv(
 
 
 @pytest.mark.tier1
-def test_positive_update_repository_metadata(module_org):
+def test_positive_update_repository_metadata(module_org, target_sat):
     """Update a Repositories url and check that the rpm content counts are different.
         This process will modify the publication of a repo(metadata).
 
@@ -92,13 +91,13 @@ def test_positive_update_repository_metadata(module_org):
 
     :CaseAutomation: Automated
     """
-    product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(
+    product = target_sat.api.Product(organization=module_org).create()
+    repo = target_sat.api.Repository(
         content_type='yum', product=product, url=settings.repos.module_stream_1.url
     ).create()
     repo.sync()
     repo1 = (
-        entities.Repository(name=repo.name)
+        target_sat.api.Repository(name=repo.name)
         .search(query={'organization_id': module_org.id})[0]
         .content_counts['rpm']
     )
@@ -106,7 +105,7 @@ def test_positive_update_repository_metadata(module_org):
     repo.update(['url'])
     repo.sync()
     repo2 = (
-        entities.Repository(name=repo.name)
+        target_sat.api.Repository(name=repo.name)
         .search(query={'organization_id': module_org.id})[0]
         .content_counts['rpm']
     )
