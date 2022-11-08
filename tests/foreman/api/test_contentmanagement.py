@@ -1138,6 +1138,8 @@ class TestCapsuleContentManagement:
         :CaseLevel: Integration
 
         :BZ: 2125244
+
+        :customerscenario: true
         """
         upstream_names = [
             'quay/busybox',  # schema 1
