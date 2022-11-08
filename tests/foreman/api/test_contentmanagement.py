@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentManagement
 
-:Assignee: ltran
+:Assignee: vsedmik
 
 :TestType: Functional
 
@@ -155,11 +155,11 @@ class TestSatelliteContentManagement:
 
     @pytest.mark.parametrize(
         'distro',
-        {
+        [
             f'rhel{ver}'
             for ver in settings.supportability.content_hosts.rhel.versions
             if isinstance(ver, int)
-        },
+        ],
     )
     def test_positive_sync_kickstart_check_os(self, module_manifest_org, distro):
         """Sync rhel KS repo and assert that OS was created
