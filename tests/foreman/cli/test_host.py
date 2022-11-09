@@ -1988,6 +1988,7 @@ def test_positive_attach(
         {
             'host-id': host['id'],
             'subscription-id': default_subscription.id,
+            'quantity': 2,
         }
     )
     host_subscription_client.enable_repo(module_rhst_repo)
@@ -2034,6 +2035,7 @@ def test_positive_attach_with_lce(
         {
             'host-id': host['id'],
             'subscription-id': default_subscription.id,
+            'quantity': 2,
         }
     )
     host_subscription_client.enable_repo(module_rhst_repo)
