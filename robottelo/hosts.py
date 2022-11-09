@@ -1824,7 +1824,7 @@ class SSOHost(Host):
             f'{settings.rhsso.realm} -f {"mapper_file"}'
         )
 
-    def create_new_rhsso_user(self, client_id, username=None):
+    def create_new_rhsso_user(self, username=None):
         """create new user in RHSSO instance and set the password"""
         update_data_user = Box(RHSSO_NEW_USER)
         update_data_pass = Box(RHSSO_RESET_PASSWORD)

@@ -407,9 +407,7 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
         login=username,
         password=settings.rhsso.rhsso_password,
     ).create()
-    external_rhsso_user = default_sso_host.create_new_rhsso_user(
-        default_sso_host.get_rhsso_client_id(), username=username
-    )
+    external_rhsso_user = default_sso_host.create_new_rhsso_user(username=username)
     login_details = {
         'username': external_rhsso_user['username'],
         'password': settings.rhsso.rhsso_password,
