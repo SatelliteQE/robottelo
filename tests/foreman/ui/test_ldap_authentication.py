@@ -30,8 +30,6 @@ from robottelo.config import settings
 from robottelo.constants import CERT_PATH
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import PERMISSIONS
-from robottelo.rhsso_utils import delete_rhsso_group
-from robottelo.rhsso_utils import run_command
 from robottelo.utils import ssh
 from robottelo.utils.datafactory import gen_string
 
@@ -109,11 +107,11 @@ def groups_teardown():
 
 
 @pytest.fixture()
-def rhsso_groups_teardown():
+def rhsso_groups_teardown(default_sso_host):
     """Teardown the rhsso groups"""
     yield
     for group_name in ('sat_users', 'sat_admins'):
-        delete_rhsso_group(group_name)
+        default_sso_host.delete_rhsso_group(group_name)
 
 
 @pytest.fixture()
@@ -916,8 +914,8 @@ def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, 
 
     :expectedresults: Email is copied to Satellite:
     """
-    run_command(cmd=f'echo {settings.ipa.password} | kinit admin', hostname=settings.ipa.hostname)
-    result = run_command(
+    ssh.command(cmd=f'echo {settings.ipa.password} | kinit admin', hostname=settings.ipa.hostname)
+    result = ssh.command(
         cmd=f"ipa user-find --login {ipa_data['ldap_user_name']}",
         hostname=settings.ipa.hostname,
     )
