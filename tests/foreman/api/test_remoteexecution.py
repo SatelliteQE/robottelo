@@ -60,14 +60,12 @@ def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target
     wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
     result = target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
-
     result = target_sat.execute('satellite-maintain health check')
     assert result.status == 0
     for line in result.stdout:
         assert 'FAIL' not in line
-
     result = target_sat.api.SmartProxy(
         id=target_sat.api.SmartProxy(name=target_sat.hostname).search()[0].id
     ).refresh()
-    feature_list = [feat['name'] for feat in result['features']]
-    assert {'Container_Gateway', 'Dynflow', 'SSH', 'Pulpcore', 'Templates'}.issubset(feature_list)
+    feature_set = {feat['name'] for feat in result['features']}
+    assert {'Ansible', 'Dynflow', 'Script', 'Pulpcore', 'Logs'}.issubset(feature_set)
