@@ -102,7 +102,7 @@ def test_positive_create(module_entitlement_manifest):
 
 
 @pytest.mark.tier1
-def test_positive_refresh(function_entitlement_manifest_org):
+def test_positive_refresh(function_entitlement_manifest_org, request):
     """Upload a manifest and refresh it afterwards.
 
     :id: cd195db6-e81b-42cb-a28d-ec0eb8a53341
@@ -113,6 +113,7 @@ def test_positive_refresh(function_entitlement_manifest_org):
     """
     org = function_entitlement_manifest_org
     sub = entities.Subscription(organization=org)
+    request.addfinalizer(lambda: sub.delete_manifest(data={'organization_id': org.id}))
     sub.refresh_manifest(data={'organization_id': org.id})
     assert sub.search()
 

@@ -821,16 +821,12 @@ class TestContentViewRedHatContent:
     """Tests for publishing and promoting content views."""
 
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(self, request, module_org, module_cv, module_entitlement_manifest):
+    def initiate_testclass(self, request, module_cv, module_entitlement_manifest_org):
         """Set up organization, product and repositories for tests."""
 
-        entities.Subscription().upload(
-            data={'organization_id': module_org.id},
-            files={'content': module_entitlement_manifest.content},
-        )
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=PRDS['rhel'],
             repo=REPOS['rhst7']['name'],
             reposet=REPOSET['rhst7'],
@@ -1378,16 +1374,12 @@ class TestContentViewRedHatOstreeContent:
 
     @pytest.mark.run_in_one_thread
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(self, request, module_org, module_entitlement_manifest):
+    def initiate_testclass(self, request, module_entitlement_manifest_org):
         """Set up organization, product and repositories for tests."""
 
-        entities.Subscription().upload(
-            data={'organization_id': module_org.id},
-            files={'content': module_entitlement_manifest.content},
-        )
         repo_id = enable_rhrepo_and_fetchid(
             basearch=None,
-            org_id=module_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=PRDS['rhah'],
             repo=REPOS['rhaht']['name'],
             reposet=REPOSET['rhaht'],
