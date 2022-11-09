@@ -1824,7 +1824,7 @@ class SSOHost(Host):
             f'{settings.rhsso.realm} -f {"mapper_file"}'
         )
 
-    def create_new_rhsso_user(self, client_id, username=None):
+    def create_new_rhsso_user(self, username=None):
         """create new user in RHSSO instance and set the password"""
         update_data_user = Box(RHSSO_NEW_USER)
         update_data_pass = Box(RHSSO_RESET_PASSWORD)
@@ -1883,7 +1883,7 @@ class SSOHost(Host):
 
     def update_client_configuration(self, json_content):
         """Update the client configuration"""
-        client_id = self.get_rhsso_client_id(self.satellite)
+        client_id = self.get_rhsso_client_id()
         self.upload_rhsso_entity(json_content, "update_client_info")
         update_cmd = (
             f"{KEY_CLOAK_CLI} update clients/{client_id}"
@@ -1928,7 +1928,4 @@ class SSOHost(Host):
                 f"https://{self.satellite.hostname}/users/extlogin",
             ]
         }
-        self.update_client_configuration(client_config, self.satellite)
-
-
-# sso_host = SSOHost()
+        self.update_client_configuration(client_config)
