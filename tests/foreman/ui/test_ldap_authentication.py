@@ -30,14 +30,8 @@ from robottelo.config import settings
 from robottelo.constants import CERT_PATH
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import PERMISSIONS
-<<<<<<< HEAD
-from robottelo.rhsso_utils import delete_rhsso_group
-from robottelo.rhsso_utils import run_command
 from robottelo.utils import ssh
 from robottelo.utils.datafactory import gen_string
-=======
-from robottelo.datafactory import gen_string
->>>>>>> moved sso into hosts.py and fixed tests
 
 
 pytestmark = [pytest.mark.run_in_one_thread]

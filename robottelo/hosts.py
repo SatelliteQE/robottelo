@@ -45,12 +45,12 @@ from robottelo.constants import RHSSO_USER_UPDATE
 from robottelo.constants import SATELLITE_VERSION
 from robottelo.exceptions import DownloadFileError
 from robottelo.exceptions import HostPingFailed
-from robottelo.utils.datafactory import valid_emails_list
 from robottelo.host_helpers import CapsuleMixins
 from robottelo.host_helpers import ContentHostMixins
 from robottelo.host_helpers import SatelliteMixins
 from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
+from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
 
 
@@ -1824,7 +1824,7 @@ class SSOHost(Host):
             f'{settings.rhsso.realm} -f {"mapper_file"}'
         )
 
-    def create_new_rhsso_user(self, username=None):
+    def create_new_rhsso_user(self, client_id, username=None):
         """create new user in RHSSO instance and set the password"""
         update_data_user = Box(RHSSO_NEW_USER)
         update_data_pass = Box(RHSSO_RESET_PASSWORD)
