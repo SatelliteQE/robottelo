@@ -30,7 +30,7 @@ from robottelo.constants import HAMMER_SESSIONS
 from robottelo.constants import LDAP_ATTR
 from robottelo.utils.datafactory import gen_string
 
-# pytestmark = [pytest.mark.destructive, pytest.mark.run_in_one_thread]
+pytestmark = [pytest.mark.destructive, pytest.mark.run_in_one_thread]
 
 EXTERNAL_GROUP_NAME = 'foobargroup'
 
