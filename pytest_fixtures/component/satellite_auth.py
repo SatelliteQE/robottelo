@@ -16,8 +16,8 @@ from robottelo.constants import HAMMER_SESSIONS
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.hosts import ContentHost
-from robottelo.utils.datafactory import gen_string
 from robottelo.hosts import SSOHost
+from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 
