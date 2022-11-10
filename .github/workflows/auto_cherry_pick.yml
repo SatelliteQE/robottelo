@@ -50,7 +50,7 @@ jobs:
     if: ${{ always() && contains(join(needs.*.result, ','), 'failure') }}
     needs: [previous-branch, auto-cherry-pick]
     env:
-      to-branch: ${{ fromJson(needs.previous-branch.outputs.previous_branch) }}
+      to_branch: ${{ fromJson(needs.previous-branch.outputs.previous_branch) }}
     steps:
       - name: Create Issue on Failed Auto Cherrypick
         uses: dacbd/create-issue-action@main
