@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
       - id: set-branch
-        run: echo "::set-output name=previous_branch::$(if [ $GITHUB_BASE_REF  == 'master' ]; then echo $(git branch -rl 'origin/6.*.z' --format='%(refname:lstrip=-1)' | sort --version-sort | tail -n1 | jq -cnR '[inputs | select(length>0)]'); else echo ['"6.'$(($(echo $GITHUB_BASE_REF | cut -d. -f2) - 1))'.z"']; fi)"
+        run: echo "previous_branch=$(if [ $GITHUB_BASE_REF  == 'master' ]; then echo $(git branch -rl 'origin/6.*.z' --format='%(refname:lstrip=-1)' | sort --version-sort | tail -n1); else echo '6.'$(($(echo $GITHUB_BASE_REF | cut -d. -f2) - 1))'.z'; fi)" >> $GITHUB_OUTPUT
 
   auto-cherry-pick:
     name: Auto Cherry Pick to previous branch
@@ -27,43 +27,40 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-    strategy:
-      matrix:
-        to_branch: ${{ fromJson(needs.previous-branch.outputs.previous_branch) }}
+      TO_BRANCH: ${{ needs.previous-branch.outputs.previous_branch }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Cherry pick into ${{ matrix.to_branch }}
+      - name: Cherry pick into ${{ env.TO_BRANCH }}
         uses: jyejare/github-cherry-pick-action@main
         with:
           author: ${{ env.PR_AUTHOR }} <${{ env.PR_AUTHOR }}@users.noreply.github.com>
           token: ${{ secrets.CHERRYPICK_PAT }}
-          branch: ${{ matrix.to_branch }}
+          branch: ${{ env.TO_BRANCH }}
           labels: |
             Auto_Cherry_Picked
-            ${{ matrix.to_branch }}
+            ${{ env.TO_BRANCH }}
           assignees: "${{ github.event.pull_request.assignee.login }}"
 
   create-issue:
+    name: Create Github issue on cherrypick failure
     runs-on: ubuntu-latest
     if: ${{ always() && contains(join(needs.*.result, ','), 'failure') }}
     needs: [previous-branch, auto-cherry-pick]
     env:
-      to_branch: ${{ fromJson(needs.previous-branch.outputs.previous_branch) }}
+      TO_BRANCH: ${{ needs.previous-branch.outputs.previous_branch }}
     steps:
-      - name: Create Issue on Failed Auto Cherrypick
-        uses: dacbd/create-issue-action@main
+      - uses: dacbd/create-issue-action@main
         with:
           token: ${{ secrets.CHERRYPICK_PAT }}
           title: "[Failed-AutoCherryPick] - ${{ github.event.pull_request.title }}"
           body: |
             #### Auto-Cherry-Pick WorkFlow Failure:
+            - To Branch: ${{ env.TO_BRANCH }}
             - [Failed Cherrypick Action](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
             - [Parent Pull Request](https://github.com/${{ github.repository }}/pull/${{ github.event.number }})
-          labels: |
-            Failed_AutoCherryPick
-            ${{ env.to_branch }}
+          labels: Failed_AutoCherryPick,${{ env.TO_BRANCH }}
           assignees: "${{ github.event.pull_request.assignee.login }}"
 
   google-chat-notification:
