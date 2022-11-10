@@ -37,12 +37,13 @@ def test_positive_leapp(target_sat):
 
     :expectedresult:
         1. Rhel version of the satellite has been updated
-
-    :parametrized: no
     """
     # Getting original RHEL version so we can increment it later in the test
     orig_rhel_ver = target_sat.os_version.major
-    Broker().execute(job_template="satellite-leapp-upgrade", target_vm=target_sat.name)
+    Broker().execute(
+        job_template="satellite-leapp-upgrade",
+        target_vm=target_sat.name,
+    )
     # Recreate the session object within a Satellite object after upgrading
     target_sat.connect()
     # Get RHEL version after upgrading
