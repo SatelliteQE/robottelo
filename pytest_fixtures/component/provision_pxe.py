@@ -23,7 +23,7 @@ def module_provisioning_capsule(module_target_sat, module_location):
     return capsule.update(['location'])
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def module_provisioning_rhel_content(
     request,
     module_provisioning_sat,
@@ -32,6 +32,7 @@ def module_provisioning_rhel_content(
     module_lce_library,
     module_default_org_view,
     module_location,
+    provisioning_host,
     default_architecture,
     default_partitiontable,
 ):
@@ -85,8 +86,7 @@ def module_provisioning_rhel_content(
     ).create()
 
     host_root_pass = settings.provisioning.host_root_password
-    pxe_loader = "PXELinux BIOS"  # TODO: Make this a fixture parameter
-
+    pxe_loader = 'PXELinux BIOS' if provisioning_host.vm_firmware == 'bios' else 'Grub2 UEFI'
     hostgroup = sat.api.HostGroup(
         organization=[module_sca_manifest_org],
         location=[module_location],
@@ -115,9 +115,7 @@ def module_provisioning_rhel_content(
             },
         ],
     ).create()
-
-    # also return ksrepo because it is not returned in hostgroup
-    return Box(hostgroup=hostgroup, os=os, ksrepo=ksrepo)
+    return Box(hostgroup=hostgroup, os=os, ksrepo=ksrepo, pxe=pxe_loader)
 
 
 @pytest.fixture(scope='module')
@@ -218,6 +216,6 @@ def provisioning_host(module_ssh_key_file, request):
         target_memory='6GiB',
         auth=module_ssh_key_file,
     ) as prov_host:
-        yield prov_host
+        yield Box(prov_host=prov_host, vm_firmware=vm_firmware)
         # Set host as non-blank to run teardown of the host
         prov_host.blank = getattr(prov_host, 'blank', False)
