@@ -17,12 +17,12 @@
 import pytest
 from broker import Broker
 
-from robottelo.config import settings
+from robottelo.hosts import get_sat_rhel_version
+from robottelo.hosts import get_sat_version
 
 
 @pytest.mark.skipif(
-    str(settings.server.version.release).split('.')[1] != 11
-    and settings.server.version.rhel_version > 7,
+    not (get_sat_version() != 11 and get_sat_rhel_version() > 7),
     reason='Run only on sat6.11el7',
 )
 def test_positive_leapp(target_sat):

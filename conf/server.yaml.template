@@ -6,7 +6,7 @@ SERVER:
   VERSION:
     # The full release version (6.9.2)
     # Populate with satellite version
-    RELEASE: ''
+    RELEASE:
     # The snap version currently testing (if applicable)
     # SNAP:
     # The source of Satellite packages. Can be one of:
