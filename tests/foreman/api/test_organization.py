@@ -144,8 +144,7 @@ class TestOrganization:
 
         :CaseImportance: High
         """
-        org = module_entitlement_manifest_org
-        orgstring = json.dumps(org.read_json())
+        orgstring = json.dumps(module_entitlement_manifest_org.read_json())
         assert 'BEGIN CERTIFICATE' not in orgstring
         assert 'BEGIN RSA PRIVATE KEY' not in orgstring
 
