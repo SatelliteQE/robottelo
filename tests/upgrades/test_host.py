@@ -23,8 +23,6 @@ import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
-from upgrade_tests.helpers.scenarios import create_dict
-from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
 
 from robottelo.config import settings
@@ -67,7 +65,9 @@ class TestScenarioPositiveGCEHostComputeResource:
                 entities.Host(id=host[0].id).delete()
 
     @pytest.mark.pre_upgrade
-    def test_pre_create_gce_cr_and_host(self, arch_os_domain, function_org, gce_cert):
+    def test_pre_create_gce_cr_and_host(
+        self, arch_os_domain, function_org, gce_cert, save_test_data
+    ):
         """Create GCE Compute Resource
 
         :id: preupgrade-ef82143d-efef-49b2-9702-93d67ef6804c
@@ -102,20 +102,20 @@ class TestScenarioPositiveGCEHostComputeResource:
             username='gceautou',
             uuid=LATEST_RHEL7_GCE_IMG_UUID,
         ).create()
-        create_dict(
+        save_test_data(
             {
-                self.__class__.__name__: {
-                    'org': function_org.name,
-                    'loc': loc.name,
-                    'cr_name': cr_name,
-                }
+                'org': function_org.name,
+                'loc': loc.name,
+                'cr_name': cr_name,
             }
         )
         assert gce_cr.name == cr_name
         assert gce_img.name == 'autoupgrade_gce_img'
 
     @pytest.mark.post_upgrade(depend_on=test_pre_create_gce_cr_and_host)
-    def test_post_create_gce_cr_and_host(self, target_sat, arch_os_domain, delete_host):
+    def test_post_create_gce_cr_and_host(
+        self, target_sat, arch_os_domain, delete_host, pre_upgrade_data
+    ):
         """Host provisioned using preupgrade GCE CR
 
         :id: postupgrade-ef82143d-efef-49b2-9702-93d67ef6804c
@@ -133,12 +133,11 @@ class TestScenarioPositiveGCEHostComputeResource:
         arch, os, domain_name = arch_os_domain
         hostname = gen_string('alpha')
         self.__class__.fullhost = f'{hostname}.{domain_name}'.lower()
-        preentities = get_entity_data(self.__class__.__name__)
         gce_cr = entities.GCEComputeResource().search(
-            query={'search': f'name={preentities["cr_name"]}'}
+            query={'search': f'name={pre_upgrade_data["cr_name"]}'}
         )[0]
-        org = entities.Organization().search(query={'search': f'name={preentities["org"]}'})[0]
-        loc = entities.Location().search(query={'search': f'name={preentities["loc"]}'})[0]
+        org = entities.Organization().search(query={'search': f'name={pre_upgrade_data["org"]}'})[0]
+        loc = entities.Location().search(query={'search': f'name={pre_upgrade_data["loc"]}'})[0]
         compute_attrs = {
             'machine_type': 'g1-small',
             'network': 'default',
