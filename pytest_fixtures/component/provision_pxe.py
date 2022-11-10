@@ -13,6 +13,7 @@ from robottelo import constants
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
+from robottelo.constants import PXE_LOADER_MAP
 from robottelo.hosts import ContentHost
 
 
