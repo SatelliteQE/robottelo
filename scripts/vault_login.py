@@ -5,7 +5,6 @@ import os
 import re
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 from robottelo.constants import Colored
@@ -43,7 +42,6 @@ def _vault_login(root_path, envdata):
         f"{Colored.WHITELIGHT}Warning! The browser is about to open for vault OIDC login, "
         "close the tab once the sign-in is done!"
     )
-    time.sleep(5)
     if _vault_command(command="vault login -method=oidc").returncode == 0:
         _vault_command(command="vault token renew -i 10h")
         print(f"{Colored.GREEN}Success! Vault OIDC Logged-In and extended for 10 hours!")
