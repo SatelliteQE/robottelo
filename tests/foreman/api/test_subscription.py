@@ -256,6 +256,7 @@ def test_positive_subscription_status_disabled(
 
 
 @pytest.mark.tier2
+@pytest.mark.e2e
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 def test_sca_end_to_end(

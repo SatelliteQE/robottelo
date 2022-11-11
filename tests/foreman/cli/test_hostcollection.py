@@ -54,6 +54,7 @@ def _make_fake_host_helper(module_org):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
+@pytest.mark.e2e
 def test_positive_end_to_end(module_org):
     """Check if host collection can be created with name and description,
     content host can be added and removed, host collection can be listed,

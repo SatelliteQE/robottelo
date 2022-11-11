@@ -171,6 +171,7 @@ def test_positive_report_help():
 
 
 @pytest.mark.tier1
+@pytest.mark.e2e
 def test_positive_end_to_end_crud_and_list():
     """CRUD test + list test for report templates
 

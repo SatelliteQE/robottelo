@@ -1050,6 +1050,7 @@ class TestEndToEnd:
 
     @pytest.mark.skip_if_not_set('libvirt')
     @pytest.mark.tier4
+    @pytest.mark.e2e
     @pytest.mark.upgrade
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
