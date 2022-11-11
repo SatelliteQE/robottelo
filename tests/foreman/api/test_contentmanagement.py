@@ -103,7 +103,7 @@ class TestSatelliteContentManagement:
         assert response, f"Repository {repo} failed to sync."
 
     @pytest.mark.tier4
-    def test_positive_sync_kickstart_repo(self, module_manifest_org, target_sat):
+    def test_positive_sync_kickstart_repo(self, module_entitlement_manifest_org, target_sat):
         """No encoding gzip errors on kickstart repositories
         sync.
 
@@ -134,7 +134,7 @@ class TestSatelliteContentManagement:
         distro = 'rhel8'
         rh_repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_manifest_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
             reposet=constants.REPOSET['kickstart'][distro],
             repo=constants.REPOS['kickstart'][distro]['name'],
@@ -162,7 +162,7 @@ class TestSatelliteContentManagement:
             if isinstance(ver, int)
         ],
     )
-    def test_positive_sync_kickstart_check_os(self, module_manifest_org, distro):
+    def test_positive_sync_kickstart_check_os(self, module_entitlement_manifest_org, distro):
         """Sync rhel KS repo and assert that OS was created
 
         :id: f84bcf1b-717e-40e7-82ee-000eead45249
@@ -179,7 +179,7 @@ class TestSatelliteContentManagement:
         """
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_manifest_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
             reposet=constants.REPOSET['kickstart'][distro],
             repo=constants.REPOS['kickstart'][distro]['name'],
@@ -745,8 +745,10 @@ class TestCapsuleContentManagement:
         assert sat_files == caps_files
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_iso_library_sync(self, module_capsule_configured, module_manifest_org):
+    @pytest.mark.skip_if_not_set('capsule', 'clients')
+    def test_positive_iso_library_sync(
+        self, module_capsule_configured, module_entitlement_manifest_org
+    ):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
         to capsule automatically
 
@@ -763,7 +765,7 @@ class TestCapsuleContentManagement:
         # Enable & sync RH repository with ISOs
         rh_repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_manifest_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhsc'],
             repo=constants.REPOS['rhsc7_iso']['name'],
             reposet=constants.REPOSET['rhsc7_iso'],
@@ -772,7 +774,7 @@ class TestCapsuleContentManagement:
         rh_repo = entities.Repository(id=rh_repo_id).read()
         call_entity_method_with_timeout(rh_repo.sync, timeout=2500)
         # Find "Library" lifecycle env for specific organization
-        lce = entities.LifecycleEnvironment(organization=module_manifest_org).search(
+        lce = entities.LifecycleEnvironment(organization=module_entitlement_manifest_org).search(
             query={'search': f'name={constants.ENVIRONMENT}'}
         )[0]
 
@@ -786,7 +788,9 @@ class TestCapsuleContentManagement:
         assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create a content view with the repository
-        cv = entities.ContentView(organization=module_manifest_org, repository=[rh_repo]).create()
+        cv = entities.ContentView(
+            organization=module_entitlement_manifest_org, repository=[rh_repo]
+        ).create()
         # Publish new version of the content view
         cv.publish()
         cv = cv.read()
@@ -801,8 +805,9 @@ class TestCapsuleContentManagement:
 
         # Verify all the ISOs are present on capsule
         caps_path = (
-            f'{module_capsule_configured.url}/pulp/content/{module_manifest_org.label}/{lce.label}'
-            f'/{cv.label}/content/dist/rhel/server/7/7Server/x86_64/sat-capsule/6.4/iso/'
+            f'{module_capsule_configured.url}/pulp/content/{module_entitlement_manifest_org.label}'
+            f'/{lce.label}/{cv.label}/content/dist/rhel/server/7/7Server/x86_64/sat-capsule/6.4/'
+            'iso/'
         )
         caps_isos = get_repo_files_by_url(caps_path, extension='iso')
         assert len(caps_isos) == 4
@@ -1016,10 +1021,10 @@ class TestCapsuleContentManagement:
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'clients')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8', 'rhel9'])
     def test_positive_sync_kickstart_repo(
-        self, target_sat, module_capsule_configured, module_manifest_org, distro
+        self, target_sat, module_capsule_configured, module_entitlement_manifest_org, distro
     ):
         """Sync kickstart repository to the capsule.
 
@@ -1042,14 +1047,14 @@ class TestCapsuleContentManagement:
         """
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_manifest_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
             reposet=constants.REPOSET['kickstart'][distro],
             repo=constants.REPOS['kickstart'][distro]['name'],
             releasever=constants.REPOS['kickstart'][distro]['version'],
         )
         repo = entities.Repository(id=repo_id).read()
-        lce = entities.LifecycleEnvironment(organization=module_manifest_org).create()
+        lce = entities.LifecycleEnvironment(organization=module_entitlement_manifest_org).create()
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': lce.id}
@@ -1063,7 +1068,9 @@ class TestCapsuleContentManagement:
         self.update_capsule_download_policy(module_capsule_configured, 'on_demand')
 
         # Create a content view with the repository
-        cv = entities.ContentView(organization=module_manifest_org, repository=[repo]).create()
+        cv = entities.ContentView(
+            organization=module_entitlement_manifest_org, repository=[repo]
+        ).create()
         # Sync repository
         repo.sync(timeout='10m')
         repo = repo.read()
@@ -1089,7 +1096,8 @@ class TestCapsuleContentManagement:
             else f'{distro}/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
         )
         url_base = (
-            f'pulp/content/{module_manifest_org.label}/{lce.label}/{cv.label}/content/dist/{tail}'
+            f'pulp/content/{module_entitlement_manifest_org.label}/{lce.label}/{cv.label}/content/'
+            f'dist/{tail}'
         )
 
         # Check kickstart specific files

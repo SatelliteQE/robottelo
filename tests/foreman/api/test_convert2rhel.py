@@ -99,7 +99,7 @@ def activation_key_rhel(target_sat, module_org, module_lce, module_promoted_cv, 
 
 
 @pytest.fixture(scope='module')
-def enable_rhel_subscriptions(module_target_sat, module_org_with_manifest, version):
+def enable_rhel_subscriptions(module_target_sat, module_entitlement_manifest_org, version):
     """Enable and sync RHEL rpms repos"""
     major = version.split('.')[0]
     minor = ""
@@ -114,7 +114,7 @@ def enable_rhel_subscriptions(module_target_sat, module_org_with_manifest, versi
     for name in repo_names:
         rh_repo_id = enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_org_with_manifest.id,
+            org_id=module_entitlement_manifest_org.id,
             product=REPOS[name]['product'],
             repo=REPOS[name]['name'] + minor,
             reposet=REPOS[name]['reposet'],
