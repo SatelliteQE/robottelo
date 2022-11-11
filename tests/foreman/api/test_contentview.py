@@ -25,7 +25,6 @@ from fauxfactory import gen_utf8
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo import manifests
 from robottelo.api.utils import apply_package_filter
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
@@ -821,19 +820,13 @@ class TestContentViewDelete:
 class TestContentViewRedHatContent:
     """Tests for publishing and promoting content views."""
 
-    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(self, request, module_org, module_cv):
+    def initiate_testclass(self, request, module_cv, module_entitlement_manifest_org):
         """Set up organization, product and repositories for tests."""
 
-        with manifests.clone() as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': module_org.id},
-                files={'content': manifest.content},
-            )
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=PRDS['rhel'],
             repo=REPOS['rhst7']['name'],
             reposet=REPOSET['rhst7'],
@@ -1380,19 +1373,13 @@ class TestContentViewRedHatOstreeContent:
     """Tests for publishing and promoting cv with RH ostree contents."""
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(self, request, module_org):
+    def initiate_testclass(self, request, module_entitlement_manifest_org):
         """Set up organization, product and repositories for tests."""
 
-        with manifests.clone() as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': module_org.id},
-                files={'content': manifest.content},
-            )
         repo_id = enable_rhrepo_and_fetchid(
             basearch=None,
-            org_id=module_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=PRDS['rhah'],
             repo=REPOS['rhaht']['name'],
             reposet=REPOSET['rhaht'],

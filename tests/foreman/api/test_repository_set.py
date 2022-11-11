@@ -22,8 +22,6 @@ https://theforeman.org/plugins/katello/3.16/api/apidoc/v2/repository_sets.html
 import pytest
 from nailgun import entities
 
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
 from robottelo.constants import PRDS
 from robottelo.constants import REPOSET
 
@@ -36,23 +34,11 @@ RELEASE = '6Server'
 
 
 @pytest.fixture
-def org():
-    """Create organization."""
-    return entities.Organization().create()
-
-
-@pytest.fixture
-def manifest_org(org):
-    """Upload manifest to organization."""
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
-    return org
-
-
-@pytest.fixture
-def product(manifest_org):
+def product(function_entitlement_manifest_org):
     """Find and return the product matching PRODUCT_NAME."""
-    return entities.Product(name=PRODUCT_NAME, organization=manifest_org).search()[0]
+    return entities.Product(
+        name=PRODUCT_NAME, organization=function_entitlement_manifest_org
+    ).search()[0]
 
 
 @pytest.fixture

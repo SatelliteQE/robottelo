@@ -31,7 +31,6 @@ from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo import manifests
 from robottelo.api.utils import disable_syncplan
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import wait_for_tasks
@@ -808,7 +807,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
-def test_positive_synchronize_rh_product_past_sync_date(request):
+def test_positive_synchronize_rh_product_past_sync_date(request, function_entitlement_manifest_org):
     """Create a sync plan with past datetime as a sync date, add a
     RH product and verify the product gets synchronized on the next sync
     occurrence
@@ -825,11 +824,7 @@ def test_positive_synchronize_rh_product_past_sync_date(request):
     """
     interval = 60 * 60  # 'hourly' sync interval in seconds
     delay = 2 * 60
-    org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        entities.Subscription().upload(
-            data={'organization_id': org.id}, files={'content': manifest.content}
-        )
+    org = function_entitlement_manifest_org
     repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
@@ -880,7 +875,9 @@ def test_positive_synchronize_rh_product_past_sync_date(request):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_rh_product_future_sync_date(request):
+def test_positive_synchronize_rh_product_future_sync_date(
+    request, function_entitlement_manifest_org
+):
     """Create a sync plan with sync date in a future and sync one RH
     product with it automatically.
 
@@ -891,11 +888,7 @@ def test_positive_synchronize_rh_product_future_sync_date(request):
     :CaseLevel: System
     """
     delay = 2 * 60  # delay for sync date in seconds
-    org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        entities.Subscription().upload(
-            data={'organization_id': org.id}, files={'content': manifest.content}
-        )
+    org = function_entitlement_manifest_org
     repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,

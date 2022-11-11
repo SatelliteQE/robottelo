@@ -22,15 +22,16 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 """
 import pytest
 from fauxfactory import gen_string
+from manifester import Manifester
 from nailgun import entities
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 
-from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.subscription import Subscription
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -41,12 +42,10 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def rh_repo(module_org):
-    with manifests.clone(name='golden_ticket') as manifest:
-        upload_manifest(module_org.id, manifest.content)
+def rh_repo(module_sca_manifest_org):
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
-        org_id=module_org.id,
+        org_id=module_sca_manifest_org.id,
         product=PRDS['rhel'],
         repo=REPOS['rhst7']['name'],
         reposet=REPOSET['rhst7'],
@@ -58,31 +57,38 @@ def rh_repo(module_org):
 
 
 @pytest.fixture(scope='module')
-def custom_repo(rh_repo, module_org):
+def custom_repo(rh_repo, module_sca_manifest_org):
     custom_repo = entities.Repository(
-        product=entities.Product(organization=module_org).create(),
+        product=entities.Product(organization=module_sca_manifest_org).create(),
     ).create()
     custom_repo.sync()
     return custom_repo
 
 
 @pytest.fixture(scope='module')
-def module_ak(module_org, rh_repo, custom_repo):
+def module_ak(module_sca_manifest_org, rh_repo, custom_repo):
     """rh_repo and custom_repo are included here to ensure their execution before the AK"""
     module_ak = entities.ActivationKey(
-        content_view=module_org.default_content_view,
+        content_view=module_sca_manifest_org.default_content_view,
         max_hosts=100,
-        organization=module_org,
-        environment=entities.LifecycleEnvironment(id=module_org.library.id),
+        organization=module_sca_manifest_org,
+        environment=entities.LifecycleEnvironment(id=module_sca_manifest_org.library.id),
         auto_attach=True,
     ).create()
     return module_ak
 
 
-@pytest.mark.skip_if_not_set('fake_manifest')
+@pytest.fixture(scope='function')
+def duplicate_manifest():
+    """Provides a function-scoped manifest that can be used alongside function_entitlement_manifest
+    when two manifests are required in a single test"""
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
+        yield manifest
+
+
 @pytest.mark.tier1
 @pytest.mark.pit_server
-def test_positive_create():
+def test_positive_create(module_entitlement_manifest):
     """Upload a manifest.
 
     :id: 6faf9d96-9b45-4bdc-afa9-ec3fbae83d41
@@ -92,14 +98,11 @@ def test_positive_create():
     :CaseImportance: Critical
     """
     org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
+    upload_manifest(org.id, module_entitlement_manifest.content)
 
 
-@pytest.mark.skip('Skipping due to manifest refresh issues')
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier1
-def test_positive_refresh(request):
+def test_positive_refresh(function_entitlement_manifest_org, request):
     """Upload a manifest and refresh it afterwards.
 
     :id: cd195db6-e81b-42cb-a28d-ec0eb8a53341
@@ -108,19 +111,15 @@ def test_positive_refresh(request):
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
+    org = function_entitlement_manifest_org
     sub = entities.Subscription(organization=org)
-    with manifests.original_manifest() as manifest:
-        upload_manifest(org.id, manifest.content)
     request.addfinalizer(lambda: sub.delete_manifest(data={'organization_id': org.id}))
     sub.refresh_manifest(data={'organization_id': org.id})
     assert sub.search()
 
 
-@pytest.mark.skip('Skipping due to manifest refresh issues')
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier1
-def test_positive_create_after_refresh(function_org):
+def test_positive_create_after_refresh(function_entitlement_manifest_org, duplicate_manifest):
     """Upload a manifest,refresh it and upload a new manifest to an other
      organization.
 
@@ -134,22 +133,20 @@ def test_positive_create_after_refresh(function_org):
 
     :CaseImportance: Critical
     """
-    org_sub = entities.Subscription(organization=function_org)
+    org_sub = entities.Subscription(organization=function_entitlement_manifest_org)
     new_org = entities.Organization().create()
     new_org_sub = entities.Subscription(organization=new_org)
-    upload_manifest(function_org.id, manifests.original_manifest().content)
     try:
-        org_sub.refresh_manifest(data={'organization_id': function_org.id})
+        org_sub.refresh_manifest(data={'organization_id': function_entitlement_manifest_org.id})
         assert org_sub.search()
-        upload_manifest(new_org.id, manifests.clone().content)
+        upload_manifest(new_org.id, duplicate_manifest.content)
         assert new_org_sub.search()
     finally:
-        org_sub.delete_manifest(data={'organization_id': function_org.id})
+        org_sub.delete_manifest(data={'organization_id': function_entitlement_manifest_org.id})
 
 
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier1
-def test_positive_delete(function_org):
+def test_positive_delete(function_entitlement_manifest_org):
     """Delete an Uploaded manifest.
 
     :id: 4c21c7c9-2b26-4a65-a304-b978d5ba34fc
@@ -158,17 +155,14 @@ def test_positive_delete(function_org):
 
     :CaseImportance: Critical
     """
-    sub = entities.Subscription(organization=function_org)
-    with manifests.clone() as manifest:
-        upload_manifest(function_org.id, manifest.content)
+    sub = entities.Subscription(organization=function_entitlement_manifest_org)
     assert sub.search()
-    sub.delete_manifest(data={'organization_id': function_org.id})
+    sub.delete_manifest(data={'organization_id': function_entitlement_manifest_org.id})
     assert len(sub.search()) == 0
 
 
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_negative_upload():
+def test_negative_upload(function_entitlement_manifest):
     """Upload the same manifest to two organizations.
 
     :id: 60ca078d-cfaf-402e-b0db-34d8901449fe
@@ -177,7 +171,7 @@ def test_negative_upload():
         organization.
     """
     orgs = [entities.Organization().create() for _ in range(2)]
-    with manifests.clone() as manifest:
+    with function_entitlement_manifest as manifest:
         upload_manifest(orgs[0].id, manifest.content)
         with pytest.raises(TaskFailedError):
             upload_manifest(orgs[1].id, manifest.content)
@@ -185,7 +179,9 @@ def test_negative_upload():
 
 
 @pytest.mark.tier2
-def test_positive_delete_manifest_as_another_user(function_org, target_sat):
+def test_positive_delete_manifest_as_another_user(
+    function_org, function_entitlement_manifest, target_sat
+):
     """Verify that uploaded manifest if visible and deletable
         by a different user than the one who uploaded it
 
@@ -224,7 +220,7 @@ def test_positive_delete_manifest_as_another_user(function_org, target_sat):
         verify=False,
     )
     # use the first admin to upload a manifest
-    with manifests.clone() as manifest:
+    with function_entitlement_manifest as manifest:
         entities.Subscription(sc1, organization=function_org).upload(
             data={'organization_id': function_org.id}, files={'content': manifest.content}
         )
@@ -236,7 +232,9 @@ def test_positive_delete_manifest_as_another_user(function_org, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_subscription_status_disabled(module_ak, rhel_contenthost, module_org, target_sat):
+def test_positive_subscription_status_disabled(
+    module_ak, rhel_contenthost, module_sca_manifest_org, target_sat
+):
     """Verify that Content host Subscription status is set to 'Disabled'
      for a golden ticket manifest
 
@@ -251,7 +249,7 @@ def test_positive_subscription_status_disabled(module_ak, rhel_contenthost, modu
     :CaseImportance: Medium
     """
     rhel_contenthost.install_katello_ca(target_sat)
-    rhel_contenthost.register_contenthost(module_org.label, module_ak.name)
+    rhel_contenthost.register_contenthost(module_sca_manifest_org.label, module_ak.name)
     assert rhel_contenthost.subscribed
     host_content = entities.Host(id=rhel_contenthost.nailgun_host.id).read_raw().content
     assert 'Simple Content Access' in str(host_content)
@@ -260,7 +258,9 @@ def test_positive_subscription_status_disabled(module_ak, rhel_contenthost, modu
 @pytest.mark.tier2
 @pytest.mark.pit_client
 @pytest.mark.pit_server
-def test_sca_end_to_end(module_ak, rhel7_contenthost, module_org, rh_repo, custom_repo, target_sat):
+def test_sca_end_to_end(
+    module_ak, rhel7_contenthost, module_sca_manifest_org, rh_repo, custom_repo, target_sat
+):
     """Perform end to end testing for Simple Content Access Mode
 
     :id: c6c4b68c-a506-46c9-bd1d-22e4c1926ef8
@@ -275,12 +275,12 @@ def test_sca_end_to_end(module_ak, rhel7_contenthost, module_org, rh_repo, custo
     :CaseImportance: Critical
     """
     rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, module_ak.name)
+    rhel7_contenthost.register_contenthost(module_sca_manifest_org.label, module_ak.name)
     assert rhel7_contenthost.subscribed
     # Check to see if Organization is in SCA Mode
-    assert entities.Organization(id=module_org.id).read().simple_content_access is True
+    assert entities.Organization(id=module_sca_manifest_org.id).read().simple_content_access is True
     # Verify that you cannot attach a subscription to an activation key in SCA Mode
-    subscription = entities.Subscription(organization=module_org).search(
+    subscription = entities.Subscription(organization=module_sca_manifest_org).search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     with pytest.raises(HTTPError) as ak_context:
@@ -293,7 +293,7 @@ def test_sca_end_to_end(module_ak, rhel7_contenthost, module_org, rh_repo, custo
         )
     assert 'Simple Content Access' in host_context.value.response.text
     # Create a content view with repos and check to see that the client has access
-    content_view = entities.ContentView(organization=module_org).create()
+    content_view = entities.ContentView(organization=module_sca_manifest_org).create()
     content_view.repository = [rh_repo, custom_repo]
     content_view.update(['repository'])
     content_view.publish()
@@ -311,7 +311,9 @@ def test_sca_end_to_end(module_ak, rhel7_contenthost, module_org, rh_repo, custo
 
 
 @pytest.mark.tier2
-def test_positive_candlepin_events_processed_by_stomp(rhel7_contenthost, function_org, target_sat):
+def test_positive_candlepin_events_processed_by_stomp(
+    rhel7_contenthost, function_entitlement_manifest, function_org, target_sat
+):
     """Verify that Candlepin events are being read and processed by
         attaching subscriptions, validating host subscriptions status,
         and viewing processed and failed Candlepin events
@@ -354,7 +356,7 @@ def test_positive_candlepin_events_processed_by_stomp(rhel7_contenthost, functio
     host_id = host[0].id
     host_content = entities.Host(id=host_id).read_json()
     assert host_content['subscription_status'] == 2
-    with manifests.clone() as manifest:
+    with function_entitlement_manifest as manifest:
         upload_manifest(function_org.id, manifest.content)
     subscription = entities.Subscription(organization=function_org).search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
@@ -369,7 +371,7 @@ def test_positive_candlepin_events_processed_by_stomp(rhel7_contenthost, functio
     assert '0 Failed' in response['message']
 
 
-def test_positive_expired_SCA_cert_handling(module_org, rhel7_contenthost, target_sat):
+def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel7_contenthost, target_sat):
     """Verify that a content host with an expired SCA cert can
         re-register successfully
 
@@ -396,26 +398,26 @@ def test_positive_expired_SCA_cert_handling(module_org, rhel7_contenthost, targe
 
     :CaseImportance: High
     """
-    with manifests.clone(name='golden_ticket') as manifest:
-        upload_manifest(module_org.id, manifest.content)
     ak = entities.ActivationKey(
-        content_view=module_org.default_content_view,
+        content_view=module_sca_manifest_org.default_content_view,
         max_hosts=100,
-        organization=module_org,
-        environment=entities.LifecycleEnvironment(id=module_org.library.id),
+        organization=module_sca_manifest_org,
+        environment=entities.LifecycleEnvironment(id=module_sca_manifest_org.library.id),
         auto_attach=True,
     ).create()
     # registering the content host with no content enabled/synced in the org
     # should create a client SCA cert with no content
     rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(org=module_org.label, activation_key=ak.name)
+    rhel7_contenthost.register_contenthost(
+        org=module_sca_manifest_org.label, activation_key=ak.name
+    )
     assert rhel7_contenthost.subscribed
     rhel7_contenthost.unregister()
     # syncing content with the content host unregistered should invalidate
     # the previous client SCA cert
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
-        org_id=module_org.id,
+        org_id=module_sca_manifest_org.id,
         product=PRDS['rhel'],
         repo=REPOS['rhst7']['name'],
         reposet=REPOSET['rhst7'],
@@ -425,7 +427,7 @@ def test_positive_expired_SCA_cert_handling(module_org, rhel7_contenthost, targe
     rh_repo.sync()
     # re-registering the host should test whether Candlepin gracefully handles
     # registration of a host with an expired SCA cert
-    rhel7_contenthost.register_contenthost(module_org.label, ak.name)
+    rhel7_contenthost.register_contenthost(module_sca_manifest_org.label, ak.name)
     assert rhel7_contenthost.subscribed
 
 
