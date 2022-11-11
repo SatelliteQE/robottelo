@@ -17,9 +17,9 @@ def ohsnap_repo_url(
         raise InvalidArgumentError(
             'Arguments "product", "release" and "os_release" must be provided.'
         )
-    if release.lower != 'client':
+    if release.lower() != 'client':
         if snap:
-            snap = "/" + snap if snap else ""
+            snap = "/" + str(snap) if snap else ""
         else:
             logger.warn(
                 'The snap version was not provided. Snap number will not be used in the URL.'
