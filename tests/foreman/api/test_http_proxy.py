@@ -25,6 +25,7 @@ from robottelo.config import settings
 
 
 @pytest.mark.tier2
+@pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize(
