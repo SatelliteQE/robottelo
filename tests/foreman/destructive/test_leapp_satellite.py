@@ -22,7 +22,7 @@ from robottelo.hosts import get_sat_version
 
 
 @pytest.mark.skipif(
-    not (get_sat_version().minor != 11 and get_sat_rhel_version().major > 7),
+    get_sat_version().minor != 11 and get_sat_rhel_version().major > 7,
     reason='Run only on sat6.11el7',
 )
 def test_positive_leapp(target_sat):
