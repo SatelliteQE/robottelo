@@ -1815,6 +1815,7 @@ class TestRepository:
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
+    @pytest.mark.e2e
     def test_positive_srpm_list_end_to_end(self, repo, target_sat):
         """Create repository,  upload, list and remove an SRPM content
 

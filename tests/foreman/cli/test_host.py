@@ -2305,6 +2305,7 @@ def test_positive_unregister_host_subscription(
 @pytest.mark.pit_server
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
+@pytest.mark.e2e
 def test_syspurpose_end_to_end(
     target_sat,
     module_org,
