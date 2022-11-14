@@ -1130,6 +1130,7 @@ class TestCapsuleContentManagement:
         assert sat_pkgs == caps_pkgs
 
     @pytest.mark.tier4
+    @pytest.mark.e2e
     @pytest.mark.skip_if_not_set('capsule', 'clients')
     def test_positive_sync_container_repo_end_to_end(
         self, target_sat, capsule_configured, container_contenthost, module_org, module_product

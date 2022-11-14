@@ -258,6 +258,7 @@ def test_positive_subscription_status_disabled(module_ak, rhel_contenthost, modu
 
 
 @pytest.mark.tier2
+@pytest.mark.e2e
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 def test_sca_end_to_end(module_ak, rhel7_contenthost, module_org, rh_repo, custom_repo, target_sat):

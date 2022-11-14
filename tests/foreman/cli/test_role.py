@@ -250,6 +250,7 @@ class TestSystemAdmin:
 
     @pytest.mark.upgrade
     @pytest.mark.tier3
+    @pytest.mark.e2e
     def test_system_admin_role_end_to_end(self):
         """Test System admin role with a end to end workflow
 

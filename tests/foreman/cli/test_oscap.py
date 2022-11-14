@@ -709,6 +709,7 @@ class TestOpenScap:
     @pytest.mark.parametrize('deploy', **parametrized(['manual', 'puppet', 'ansible']))
     @pytest.mark.upgrade
     @pytest.mark.tier2
+    @pytest.mark.e2e
     def test_positive_scap_policy_end_to_end(self, deploy, scap_content):
         """List all scap policies and read info using id, name
 
