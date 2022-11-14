@@ -23,10 +23,8 @@ from nailgun import entities
 from requests import HTTPError
 from wait_for import wait_for
 
-from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
-from robottelo.api.utils import upload_manifest
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -38,10 +36,8 @@ from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
-def setup_content():
-    org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
+def setup_content(module_entitlement_manifest_org):
+    org = module_entitlement_manifest_org
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,

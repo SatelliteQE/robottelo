@@ -23,10 +23,8 @@ import pytest
 from nailgun import entities
 
 from robottelo import constants
-from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
-from robottelo.api.utils import upload_manifest
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
@@ -54,18 +52,17 @@ def activation_key(module_org, module_lce):
 
 
 @pytest.fixture(scope='module')
-def rh_repo(module_org, module_lce, module_cv, activation_key):
+def rh_repo(module_entitlement_manifest_org, module_lce, module_cv, activation_key):
     return setup_org_for_a_rh_repo(
         {
             'product': constants.PRDS['rhel'],
             'repository-set': constants.REPOSET['rhst7'],
             'repository': constants.REPOS['rhst7']['name'],
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'content-view-id': module_cv.id,
             'lifecycle-environment-id': module_lce.id,
             'activationkey-id': activation_key.id,
         },
-        force_manifest_upload=True,
     )
 
 
@@ -416,17 +413,14 @@ def test_positive_sorted_issue_date_and_filter_by_cve(module_org, custom_repo, t
 
 
 @pytest.fixture(scope='module')
-def setup_content_rhel6():
+def setup_content_rhel6(module_entitlement_manifest_org):
     """Setup content fot rhel6 content host
     Using `Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)`
     from manifest, SATTOOLS_REPO for host-tools and yum_9 repo as custom repo.
 
     :return: Activation Key, Organization, subscription list
     """
-    org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
-
+    org = module_entitlement_manifest_org
     rh_repo_id_rhva = enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
@@ -826,12 +820,12 @@ def test_errata_installation_with_swidtags(
 
 
 @pytest.fixture(scope='module')
-def rh_repo_module_manifest(module_manifest_org):
+def rh_repo_module_manifest(module_entitlement_manifest_org):
     """Use module manifest org, creates tools repo, syncs and returns RH repo."""
     # enable rhel repo and return its ID
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch=constants.DEFAULT_ARCHITECTURE,
-        org_id=module_manifest_org.id,
+        org_id=module_entitlement_manifest_org.id,
         product=constants.PRDS['rhel8'],
         repo=constants.REPOS['rhst8']['name'],
         reposet=constants.REPOSET['rhst8'],
@@ -844,24 +838,24 @@ def rh_repo_module_manifest(module_manifest_org):
 
 
 @pytest.fixture(scope='module')
-def rhel8_custom_repo_cv(module_manifest_org):
+def rhel8_custom_repo_cv(module_entitlement_manifest_org):
     """Create repo and publish CV so that packages are in Library"""
     return setup_org_for_a_custom_repo(
         {
             'url': settings.repos.module_stream_1.url,
-            'organization-id': module_manifest_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
         }
     )
 
 
 @pytest.fixture(scope='module')
 def rhel8_module_ak(
-    module_manifest_org, default_lce, rh_repo_module_manifest, rhel8_custom_repo_cv
+    module_entitlement_manifest_org, default_lce, rh_repo_module_manifest, rhel8_custom_repo_cv
 ):
     rhel8_module_ak = entities.ActivationKey(
-        content_view=module_manifest_org.default_content_view,
-        environment=entities.LifecycleEnvironment(id=module_manifest_org.library.id),
-        organization=module_manifest_org,
+        content_view=module_entitlement_manifest_org.default_content_view,
+        environment=entities.LifecycleEnvironment(id=module_entitlement_manifest_org.library.id),
+        organization=module_entitlement_manifest_org,
     ).create()
     # Ensure tools repo is enabled in the activation key
     rhel8_module_ak.content_override(
@@ -870,17 +864,17 @@ def rhel8_module_ak(
         }
     )
     # Fetch available subscriptions
-    subs = entities.Subscription(organization=module_manifest_org).search(
+    subs = entities.Subscription(organization=module_entitlement_manifest_org).search(
         query={'search': f'{constants.DEFAULT_SUBSCRIPTION_NAME}'}
     )
     assert subs
     # Add default subscription to activation key
     rhel8_module_ak.add_subscriptions(data={'subscription_id': subs[0].id})
     # Add custom subscription to activation key
-    product = entities.Product(organization=module_manifest_org).search(
+    product = entities.Product(organization=module_entitlement_manifest_org).search(
         query={'search': "redhat=false"}
     )
-    custom_sub = entities.Subscription(organization=module_manifest_org).search(
+    custom_sub = entities.Subscription(organization=module_entitlement_manifest_org).search(
         query={'search': f"name={product[0].name}"}
     )
     rhel8_module_ak.add_subscriptions(data={'subscription_id': custom_sub[0].id})
@@ -889,7 +883,7 @@ def rhel8_module_ak(
 
 @pytest.mark.tier2
 def test_apply_modular_errata_using_default_content_view(
-    module_manifest_org,
+    module_entitlement_manifest_org,
     default_lce,
     rhel8_contenthost,
     rhel8_module_ak,
@@ -927,12 +921,14 @@ def test_apply_modular_errata_using_default_content_view(
     version = '20180704244205'
 
     rhel8_contenthost.install_katello_ca(target_sat)
-    rhel8_contenthost.register_contenthost(module_manifest_org.label, rhel8_module_ak.name)
+    rhel8_contenthost.register_contenthost(
+        module_entitlement_manifest_org.label, rhel8_module_ak.name
+    )
     assert rhel8_contenthost.subscribed
     host = rhel8_contenthost.nailgun_host
     host = host.read()
     # Assert no errata on host, no packages applicable or installable
-    errata = _fetch_available_errata(module_manifest_org, host, expected_amount=0)
+    errata = _fetch_available_errata(module_entitlement_manifest_org, host, expected_amount=0)
     assert len(errata) == 0
     rhel8_contenthost.install_katello_host_tools()
     # Install older version of module stream to generate the errata
@@ -941,7 +937,7 @@ def test_apply_modular_errata_using_default_content_view(
     )
     assert result.status == 0
     # Check that there is now two errata applicable
-    errata = _fetch_available_errata(module_manifest_org, host, 2)
+    errata = _fetch_available_errata(module_entitlement_manifest_org, host, 2)
     assert len(errata) == 2
     # Assert that errata package is required
     assert constants.FAKE_3_CUSTOM_PACKAGE in errata[0]['module_streams'][0]['packages']
@@ -951,5 +947,5 @@ def test_apply_modular_errata_using_default_content_view(
     )
     assert result.status == 0
     # Check that there is now no errata applicable
-    errata = _fetch_available_errata(module_manifest_org, host, 0)
+    errata = _fetch_available_errata(module_entitlement_manifest_org, host, 0)
     assert len(errata) == 0
