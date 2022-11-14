@@ -89,6 +89,33 @@ class VersionedContent:
             releasever=None,
         )
 
+    def create_custom_html_repo(self, rpm_url, repo_name=None, update=False, remove_rpm=None):
+        """Creates a custom yum repository, that will be published on https
+
+        This could be used to quickly create custom repo on satellite to perform repository sync
+        testing
+
+        :needs: createrepo rpm to be installed on host system
+
+        :param: str rpm_url : rpm url to wget the rpm
+        :param: str repo_name: Name of the repository
+        :param: bool update: update the existing repo by adding new rpm and regenerate repomd
+        :param: str remove_rpm: Remove rpm before updating the existing the repo
+        """
+        repo_name = repo_name or 'custom_repo'
+        file_path = f'/var/www/html/pub/{repo_name}/'
+
+        if update:
+            self.execute(f'wget {rpm_url} -P {file_path}')
+            self.execute(f'rm -rf {file_path + remove_rpm}')
+            self.execute(f'createrepo --update {file_path}')
+        else:
+            self.execute(f'rm -rf {file_path}')
+            self.execute(f'mkdir {file_path}')
+            self.execute(f'wget {rpm_url} -P {file_path}')
+            # Renaming custom rpm to preRepoSync.rpm
+            self.execute(f'createrepo --database {file_path}')
+
 
 class SystemFacts:
     """Helpers mixin that enables getting/setting subscription-manager facts on a host"""
