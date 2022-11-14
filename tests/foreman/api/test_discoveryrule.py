@@ -46,6 +46,7 @@ def module_org(module_org):
 
 
 @pytest.mark.tier1
+@pytest.mark.e2e
 def test_positive_end_to_end_crud(module_org, module_location, module_hostgroup):
     """Create a new discovery rule with several attributes, update them
     and delete the rule itself.

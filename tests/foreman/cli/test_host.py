@@ -2448,6 +2448,7 @@ def test_positive_unregister_host_subscription(module_host_subscription, host_su
 @pytest.mark.pit_server
 @pytest.mark.host_subscription
 @pytest.mark.tier3
+@pytest.mark.e2e
 def test_syspurpose_end_to_end(module_host_subscription, host_subscription_client):
     """Create a host with system purpose values set by activation key.
 

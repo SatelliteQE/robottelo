@@ -150,6 +150,7 @@ class TestProvisioningTemplate:
     """
 
     @pytest.mark.tier1
+    @pytest.mark.e2e
     @pytest.mark.upgrade
     def test_positive_end_to_end_crud(self, module_org, module_location, module_user):
         """Create a new provisioning template with several attributes, update them,
