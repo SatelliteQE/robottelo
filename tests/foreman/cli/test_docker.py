@@ -1250,6 +1250,7 @@ class TestDockerClient:
 
     @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier3
+    @pytest.mark.e2e
     def test_positive_container_admin_end_to_end_search(
         self, module_org, container_contenthost, target_sat
     ):
@@ -1352,6 +1353,7 @@ class TestDockerClient:
 
     @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier3
+    @pytest.mark.e2e
     def test_positive_container_admin_end_to_end_pull(
         self, module_org, container_contenthost, target_sat
     ):

@@ -539,6 +539,7 @@ class TestContentViewSync:
     """
 
     @pytest.mark.tier3
+    @pytest.mark.e2e
     def test_positive_export_import_cv_end_to_end(
         self,
         class_export_entities,

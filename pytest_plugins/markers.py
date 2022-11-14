@@ -13,6 +13,7 @@ def pytest_configure(config):
         "tier5: Tier 5 tests",  # Deprecated component tests
         "destructive: Destructive tests",
         "upgrade: Upgrade tests",
+        "e2e: End to end tests",
         "pit_server: PIT server scenario tests",
         "pit_client: PIT client scenario tests",
         "run_in_one_thread: Sequential tests",
