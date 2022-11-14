@@ -1295,6 +1295,11 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise HostPingFailed(f'Failed to ping host {host}:{result.stdout}')
 
+    def update_host_location(self, location):
+        host = self.nailgun_host.read()
+        host.location = location
+        host.update(['location'])
+
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
