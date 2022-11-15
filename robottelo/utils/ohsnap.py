@@ -7,15 +7,14 @@ from robottelo.exceptions import RepositoryDataNotFound
 from robottelo.logging import logger
 
 
-def ohsnap_repo_url(
-    ohsnap_repo_host, request_type, product=None, release=None, os_release=None, snap=''
-):
+def ohsnap_repo_url(ohsnap_repo_host, request_type, product, release, os_release, snap=''):
     """Returns a URL pointing to Ohsnap "repo_file" or "repositories" API endpoint"""
     if request_type not in ['repo_file', 'repositories']:
         raise InvalidArgumentError('Type must be one of "repo_file" or "repositories"')
-    if not all(arg for arg in [product, release, os_release]):
+    if not all([product, release, os_release]):
         raise InvalidArgumentError(
-            'Arguments "product", "release" and "os_release" must be provided.'
+            'Arguments "product", "release" and "os_release" must be provided and must not be'
+            'None or empty string.'
         )
     if release.lower() != 'client':
         if snap:
@@ -35,12 +34,12 @@ def ohsnap_repo_url(
     )
 
 
-def dogfood_repofile_url(ohsnap_repo_host, product=None, release=None, os_release=None, snap=''):
+def dogfood_repofile_url(ohsnap_repo_host, product, release, os_release, snap=''):
     return ohsnap_repo_url(ohsnap_repo_host, 'repo_file', product, release, os_release, snap)
 
 
 def dogfood_repository(
-    ohsnap_repo_host, repo, arch=None, product=None, release=None, os_release=None, snap=''
+    ohsnap_repo_host, repo, product, release, os_release, snap='', arch=None, repo_check=True
 ):
     """Returns a repository definition based on the arguments provided"""
     arch = arch or constants.DEFAULT_ARCHITECTURE
@@ -53,4 +52,11 @@ def dogfood_repository(
     except StopIteration:
         raise RepositoryDataNotFound(f'Repository "{repo}" is not provided by the given product')
     repository['baseurl'] = repository['baseurl'].replace('$basearch', arch)
+    # If repo check is enabled, check that the repository actually exists on the remote server
+    if repo_check and not requests.get(repository['baseurl']).ok:
+        logger.warn(
+            f'Repository was not found on the URL: {repository["baseurl"]} ; Arguments used: '
+            f'repo={repo}, product={product}, release={release}, os_release={os_release}, '
+            f'snap={snap}'
+        )
     return Box(**repository)
