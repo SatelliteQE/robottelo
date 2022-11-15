@@ -91,3 +91,10 @@ def inventory_settings(rhcloud_sat_host):
     rhcloud_sat_host.update_setting('obfuscate_inventory_ips', ip_setting)
     rhcloud_sat_host.update_setting('exclude_installed_packages', packages_setting)
     rhcloud_sat_host.update_setting('include_parameter_tags', parameter_tags_setting)
+
+
+@pytest.fixture
+def rhcloud_capsule(capsule_host, rhcloud_sat_host):
+    """Configure the capsule instance with the satellite from settings.server.hostname"""
+    capsule_host.capsule_setup(sat_host=rhcloud_sat_host)
+    yield capsule_host
