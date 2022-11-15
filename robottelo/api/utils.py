@@ -864,31 +864,6 @@ def create_org_admin_user(orgs, locs):
     return user
 
 
-def update_rhsso_settings_in_satellite(revert=False, sat=None):
-    """Update or Revert the RH-SSO settings in satellite"""
-    rhhso_settings = {
-        'authorize_login_delegation': True,
-        'authorize_login_delegation_auth_source_user_autocreate': 'External',
-        'login_delegation_logout_url': f'https://{sat.hostname}/users/extlogout',
-        'oidc_algorithm': 'RS256',
-        'oidc_audience': [f'{sat.hostname}-foreman-openidc'],
-        'oidc_issuer': f'{settings.rhsso.host_url}/auth/realms/{settings.rhsso.realm}',
-        'oidc_jwks_url': f'{settings.rhsso.host_url}/auth/realms'
-        f'/{settings.rhsso.realm}/protocol/openid-connect/certs',
-    }
-    if revert:
-        setting_entity = sat.api.Setting().search(
-            query={'search': 'name=authorize_login_delegation'}
-        )[0]
-        setting_entity.value = False
-        setting_entity.update({'value'})
-    else:
-        for setting_name, setting_value in rhhso_settings.items():
-            setting_entity = sat.api.Setting().search(query={'search': f'name={setting_name}'})[0]
-            setting_entity.value = setting_value
-            setting_entity.update({'value'})
-
-
 def disable_syncplan(sync_plan):
     """
     Disable sync plans after a test to reduce distracting task events, logs, and load on Satellite.
