@@ -54,6 +54,24 @@ def pytest_generate_tests(metafunc):
                 indirect=True,
             )
 
+    # satellite-maintain capsule parametrization
+    if 'sat_maintain' in metafunc.fixturenames:
+        function_marks = getattr(metafunc.function, 'pytestmark', [])
+        # Default fixture to run tests on - satellite
+        hosts = ['satellite']
+        for mark in function_marks:
+            if mark.name == 'capsule_only':
+                hosts = ['capsule']
+            elif mark.name == 'include_capsule':
+                hosts += ['capsule']
+        hosts = ['satellite'] if settings.remotedb.server else hosts
+        metafunc.parametrize(
+            'sat_maintain',
+            hosts,
+            ids=hosts,
+            indirect=True,
+        )
+
 
 def pytest_configure(config):
     """Register markers related to testimony tokens"""

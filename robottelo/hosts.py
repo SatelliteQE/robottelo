@@ -1,3 +1,4 @@
+import importlib
 import json
 import random
 import re
@@ -27,6 +28,7 @@ from wrapanapi.entities.vm import VmState
 
 from robottelo import constants
 from robottelo.api.utils import update_provisioning_template
+from robottelo.cli.base import Base
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import configure_airgun
 from robottelo.config import configure_nailgun
@@ -1160,7 +1162,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def register_to_cdn(self):
+    def register_to_cdn(self, pool_ids=[settings.subscription.rhn_poolid]):
         """Subscribe satellite to CDN"""
         self.remove_katello_ca()
         cmd_result = self.register_contenthost(
@@ -1173,7 +1175,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError(
                 f'Error during registration, command output: {cmd_result.stdout}'
             )
-        cmd_result = self.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
+        cmd_result = self.subscription_manager_attach_pool(pool_ids)[0]
         if cmd_result.status != 0:
             raise ContentHostError(
                 f'Error during pool attachment, command output: {cmd_result.stdout}'
@@ -1338,6 +1340,31 @@ class Capsule(ContentHost, CapsuleMixins):
                 f'A core service is not running at capsule host\n{result.stdout}'
             )
 
+    @property
+    def cli(self):
+        """Import only satellite-maintain robottelo cli entities and wrap them under self.cli"""
+        self._cli = type('cli', (), {'_configured': False})
+        if self._cli._configured:
+            return self._cli
+
+        for file in Path('robottelo/cli/').iterdir():
+            if (
+                file.suffix == '.py'
+                and not file.name.startswith('_')
+                and file.name.startswith('sm_')
+            ):
+                cli_module = importlib.import_module(f'robottelo.cli.{file.stem}')
+                for name, obj in cli_module.__dict__.items():
+                    try:
+                        if Base in obj.mro():
+                            # create a copy of the class and set our hostname as a class attribute
+                            new_cls = type(name, (obj,), {'hostname': self.hostname})
+                            setattr(self._cli, name, new_cls)
+                    except AttributeError:
+                        # not everything has an mro method, we don't care about them
+                        pass
+        return self._cli
+
 
 class Satellite(Capsule, SatelliteMixins):
     def __init__(self, hostname=None, **kwargs):
@@ -1395,9 +1422,6 @@ class Satellite(Capsule, SatelliteMixins):
             self._cli = type('cli', (), {'_configured': False})
         if self._cli._configured:
             return self._cli
-
-        import importlib
-        from robottelo.cli.base import Base
 
         for file in Path('robottelo/cli/').iterdir():
             if file.suffix == '.py' and not file.name.startswith('_'):
