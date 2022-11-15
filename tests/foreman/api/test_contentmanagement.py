@@ -127,8 +127,6 @@ class TestSatelliteContentManagement:
 
         :CaseComponent: Pulp
 
-        :Assignee: ltran
-
         :BZ: 1687801
         """
         distro = 'rhel8'
@@ -1024,7 +1022,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.skip_if_not_set('capsule', 'clients')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8', 'rhel9'])
     def test_positive_sync_kickstart_repo(
-        self, target_sat, module_capsule_configured, module_entitlement_manifest_org, distro
+        self, target_sat, module_capsule_configured, function_entitlement_manifest_org, distro
     ):
         """Sync kickstart repository to the capsule.
 
@@ -1047,14 +1045,14 @@ class TestCapsuleContentManagement:
         """
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_entitlement_manifest_org.id,
+            org_id=function_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
             reposet=constants.REPOSET['kickstart'][distro],
             repo=constants.REPOS['kickstart'][distro]['name'],
             releasever=constants.REPOS['kickstart'][distro]['version'],
         )
         repo = entities.Repository(id=repo_id).read()
-        lce = entities.LifecycleEnvironment(organization=module_entitlement_manifest_org).create()
+        lce = entities.LifecycleEnvironment(organization=function_entitlement_manifest_org).create()
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': lce.id}
@@ -1069,7 +1067,7 @@ class TestCapsuleContentManagement:
 
         # Create a content view with the repository
         cv = entities.ContentView(
-            organization=module_entitlement_manifest_org, repository=[repo]
+            organization=function_entitlement_manifest_org, repository=[repo]
         ).create()
         # Sync repository
         repo.sync(timeout='10m')
@@ -1096,8 +1094,8 @@ class TestCapsuleContentManagement:
             else f'{distro}/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
         )
         url_base = (
-            f'pulp/content/{module_entitlement_manifest_org.label}/{lce.label}/{cv.label}/content/'
-            f'dist/{tail}'
+            f'pulp/content/{function_entitlement_manifest_org.label}/{lce.label}/{cv.label}/'
+            f'content/dist/{tail}'
         )
 
         # Check kickstart specific files
