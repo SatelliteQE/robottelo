@@ -1,37 +1,31 @@
 # Satellite-maintain fixtures
 import pytest
-from broker import Broker
 
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.hosts import Satellite
 
 
-@pytest.fixture(scope='module')
-def sat_maintain(satellite_factory):
+@pytest.fixture(scope='session')
+def sat_maintain(request, session_target_sat, session_capsule_configured):
     if settings.remotedb.server:
         yield Satellite(settings.remotedb.server)
     else:
-        sat = satellite_factory()
-        yield sat
-        sat.teardown()
-        Broker(hosts=[sat]).checkin()
+        hosts = {'satellite': session_target_sat, 'capsule': session_capsule_configured}
+        yield hosts[request.param]
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def setup_backup_tests(request, sat_maintain):
     """Teardown for backup/restore tests"""
-    result = sat_maintain.execute('rm -rf /tmp/backup-*')
-    assert result.status == 0
+    assert sat_maintain.execute('rm -rf /tmp/backup-*').status == 0
 
-    def teardown_backup_tests():
-        result = sat_maintain.execute('rm -rf /tmp/backup-*')
-        assert result.status == 0
-
-    request.addfinalizer(teardown_backup_tests)
+    @request.addfinalizer
+    def _finalize():
+        assert sat_maintain.execute('rm -rf /tmp/backup-*').status == 0
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def module_synced_repos(sat_maintain):
     org = sat_maintain.api.Organization().create()
     manifests_path = sat_maintain.download_file(file_url=settings.fake_manifest.url['default'])[0]
