@@ -22,6 +22,7 @@ import pytest
 from airgun.session import Session
 from wait_for import wait_for
 
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_RHEL8
@@ -498,3 +499,55 @@ def test_insights_tab_on_host_details_page(
                 assert recommendation['label'] == 'Moderate'
                 assert dnf_issue in recommendation['text']
                 assert len(insights_recommendations) == int(result['Recommendations'])
+
+
+@pytest.mark.no_containers
+def test_insights_registration_with_capsule(
+    rhcloud_capsule, organization_ak_setup, rhcloud_sat_host, rhel7_contenthost, default_os
+):
+    """Registering host with insights having traffic going through
+        external capsule.
+
+    :id: 9db1d307-664c-4d4a-89de-da986224f071
+
+    :customerscenario: true
+
+    :steps:
+        1. Integrate a capsule with satellite.
+        2. open the global registration form and select the same capsule.
+        3. Overide Insights and Rex parameters.
+        4. check host is registered successfully with selected capsule.
+        5. Test insights client connection & reporting status.
+
+    :expectedresults: Host is successfully registered with capsule host,
+             having remote execution and insights.
+
+    :BZ: 2110222, 2112386
+    """
+    org, ak = organization_ak_setup
+    capsule = rhcloud_sat_host.api.SmartProxy(name=rhcloud_capsule.hostname).search()[0]
+    org.smart_proxy.append(capsule)
+    org.update(['smart_proxy'])
+
+    with Session(hostname=rhcloud_sat_host.hostname) as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        cmd = session.host.get_register_command(
+            {
+                'general.operating_system': default_os.title,
+                'general.orgnization': org.name,
+                'general.capsule': rhcloud_capsule.hostname,
+                'advanced.activation_keys': ak.name,
+                'general.insecure': True,
+                'advanced.setup_insights': 'Yes (override)',
+                'advanced.setup_rex': 'Yes (override)',
+            }
+        )
+        # TODO: Make this test parametirzed for all rhel versions after verifying BZ:2129254
+        rhel7_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
+        assert rhel7_contenthost.execute('yum install -y insights-client').status == 0
+        rhel7_contenthost.execute(cmd)
+        assert rhel7_contenthost.subscribed
+        assert rhel7_contenthost.execute('insights-client --test-connection').status == 0
+        values = session.host.get_details(rhel7_contenthost.hostname)
+        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
