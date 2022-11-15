@@ -45,6 +45,9 @@ class VersionedContent:
         }
 
     def _dogfood_helper(self, product, release, snap, repo=None):
+        """Function to return repository related attributes
+        based on the input and the host object
+        """
         v_major = str(self._v_major)
         if not product:
             if self.__class__.__name__ == 'ContentHost':
@@ -77,7 +80,7 @@ class VersionedContent:
         """Returns a repository definition based on the arguments provided"""
         product, release, snap, v_major, repo = self._dogfood_helper(product, release, snap, repo)
         return dogfood_repository(
-            settings.repos.ohsnap_repo_host, repo, self.arch, product, release, v_major, snap
+            settings.repos.ohsnap_repo_host, repo, product, release, v_major, snap, self.arch
         )
 
     def enable_tools_repo(self, organization_id):
