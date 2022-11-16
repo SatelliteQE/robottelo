@@ -20,6 +20,19 @@ jobs:
       - id: set-branch
         run: echo "previous_branch=$(if [ $GITHUB_BASE_REF  == 'master' ]; then echo $(git branch -rl 'origin/6.*.z' --format='%(refname:lstrip=-1)' | sort --version-sort | tail -n1); else echo '6.'$(($(echo $GITHUB_BASE_REF | cut -d. -f2) - 1))'.z'; fi)" >> $GITHUB_OUTPUT
 
+  find-the-last-prt-comment:
+    name: Find & Save last PRT comment for auto-cherry-pick PR's
+    runs-on: ubuntu-latest
+    outputs:
+      prt_comment: ${{steps.fc.outputs.comment-body}}
+    steps:
+      - name: Find Comment
+        uses: peter-evans/find-comment@v2
+        id: fc
+        with:
+          issue-number: ${{ github.event.number }}
+          body-includes: "trigger: test-robottelo"
+
   auto-cherry-pick:
     name: Auto Cherry Pick to previous branch
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
@@ -28,12 +41,15 @@ jobs:
     env:
       PR_AUTHOR: ${{ github.event.pull_request.user.login }}
       TO_BRANCH: ${{ needs.previous-branch.outputs.previous_branch }}
+    outputs:
+      pr_number: ${{steps.issue.outputs.number}}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Cherry pick into ${{ env.TO_BRANCH }}
         uses: jyejare/github-cherry-pick-action@main
+        id: issue
         with:
           author: ${{ env.PR_AUTHOR }} <${{ env.PR_AUTHOR }}@users.noreply.github.com>
           token: ${{ secrets.CHERRYPICK_PAT }}
@@ -43,6 +59,16 @@ jobs:
             ${{ env.TO_BRANCH }}
           assignees: "${{ github.event.pull_request.assignee.login }}"
 
+  add-prt-comment:
+    name: Add PRT comment to Auto_Cherry_Picked PR's
+    runs-on: ubuntu-latest
+    needs: [ auto-cherry-pick, find-the-last-prt-comment ]
+    steps:
+      - uses: mshick/add-pr-comment@v2
+        with:
+          issue: ${{ needs.auto-cherry-pick.outputs.pr_number }}
+          message: ${{needs.find-the-last-prt-comment.outputs.prt_comment}}
+
   create-issue:
     name: Create Github issue on cherrypick failure
     runs-on: ubuntu-latest
@@ -50,6 +76,8 @@ jobs:
     needs: [previous-branch, auto-cherry-pick]
     env:
       TO_BRANCH: ${{ needs.previous-branch.outputs.previous_branch }}
+    outputs:
+      pr_number: ${{steps.issue.outputs.number}}
     steps:
       - uses: dacbd/create-issue-action@main
         with:
