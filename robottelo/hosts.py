@@ -1269,7 +1269,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def register_to_cdn(self):
+    def register_to_cdn(self, pool_ids=[settings.subscription.rhn_poolid]):
         """Subscribe satellite to CDN"""
         self.remove_katello_ca()
         cmd_result = self.register_contenthost(
@@ -1282,7 +1282,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError(
                 f'Error during registration, command output: {cmd_result.stdout}'
             )
-        cmd_result = self.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
+        cmd_result = self.subscription_manager_attach_pool(pool_ids)[0]
         if cmd_result.status != 0:
             raise ContentHostError(
                 f'Error during pool attachment, command output: {cmd_result.stdout}'

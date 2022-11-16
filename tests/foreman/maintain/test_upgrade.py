@@ -122,9 +122,9 @@ def test_positive_self_upgrade_for_ystream(sat_maintain):
 
     :expectedresults:
         1. Update satellite-maintain packages to latest versions,
-         from next version maintenance repo from CDN
+            from next version maintenance repo from CDN
         2. If --maintenance-repo-label flag and MAINTENANCE_REPO_LABEL env var is used,
-         then it should use local yum repo
+            then it should use local yum repo
 
     :BZ: 2026415
 
