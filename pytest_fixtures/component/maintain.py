@@ -11,6 +11,7 @@ def sat_maintain(request, session_target_sat, session_capsule_configured):
     if settings.remotedb.server:
         yield Satellite(settings.remotedb.server)
     else:
+        session_target_sat.register_to_cdn()
         hosts = {'satellite': session_target_sat, 'capsule': session_capsule_configured}
         yield hosts[request.param]
 
