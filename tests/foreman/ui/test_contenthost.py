@@ -8,7 +8,7 @@
 
 :CaseComponent: Hosts-Content
 
-:Assignee: swadeley
+:Assignee: shwsingh
 
 :TestType: Functional
 
