@@ -8,7 +8,7 @@
 
 :CaseAutomation: Automated
 
-:Assignee: swadeley
+:Assignee: shwsingh
 
 :TestType: Functional
 
