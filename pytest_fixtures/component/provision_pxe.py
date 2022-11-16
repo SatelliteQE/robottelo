@@ -12,6 +12,7 @@ from packaging.version import Version
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
+from robottelo.utils import ohsnap
 
 
 @pytest.fixture(scope='module')
@@ -138,14 +139,13 @@ def module_provisioning_client_repo(
     sat = module_provisioning_sat.sat
     rhel_ver = request.param['rhel_version']
     # add sat client repo
-    client_repo = (
-        f'{settings.repos["DOGFOOD_REPO_HOST"].replace("http", "https")}/pulp/content/'
-        'Satellite_Engineering/QA/Satellite_Client/custom/Satellite_Client_Composes/'
-        f'Satellite_Client_RHEL{rhel_ver}_x86_64/'
+    client_repo = ohsnap.dogfood_repository(
+        settings.repos.ohsnap_repo_host,
+        product='client',
+        repo='client',
+        release='Client',
+        os_release=rhel_ver,
     )
-    # TODO client_repo should be changed to
-    # settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_ver}']
-    # when/if the new dogfood url pattern settles
     product = sat.cli.make_product({'organization-id': module_org_with_manifest.id})
     sat.cli.make_repository(
         {
@@ -377,3 +377,26 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat):
         target_boot_scenario='pxeless_pre',
     ).execute()
     Broker(workflow='remove-disk-image', remove_disk_image_name=image_name).execute()
+
+
+@pytest.fixture(scope="module")
+def module_provisioning_host(module_ssh_key_file, request):
+    """Fixture to check out blank VM"""
+    vlan_id = settings.provisioning.vlan_id
+    vm_firmware = 'bios' if not hasattr(request, 'param') else request.param
+    cd_iso = (
+        ""  # TODO: Make this an optional fixture parameter (update vm_firmware when adding this)
+    )
+    with Broker(
+        workflow="deploy-configure-pxe-provisioning-host-rhv",
+        host_class=ContentHost,
+        target_vlan_id=vlan_id,
+        target_vm_firmware=vm_firmware,
+        target_vm_cd_iso=cd_iso,
+        blank=True,
+        target_memory='6GiB',
+        auth=module_ssh_key_file,
+    ) as prov_host:
+        yield Box(prov_host=prov_host, vm_firmware=vm_firmware)
+        # Set host as non-blank to run teardown of the host
+        prov_host.blank = getattr(prov_host, 'blank', False)

@@ -1169,7 +1169,6 @@ class TestPullProviderRex:
         # assert the file is owned by the effective user
         assert username == result.stdout.strip('\n')
 
-
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.no_containers
@@ -1248,13 +1247,14 @@ class TestPullProviderRex:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.on_premises_provisioning
-    @pytest.mark.rhel_ver_match('[^6].*')
+    # @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.rhel_ver_match('8')
     @pytest.mark.no_containers
     def test_positive_run_job_on_host_provisioned_with_pull_provider(
         self,
         request,
         module_provisioning_sat_pull_provider,
-        provisioning_host,
+        module_provisioning_host,
         module_org_with_manifest,
         module_location,
         module_provisioning_client_repo,
@@ -1273,7 +1273,7 @@ class TestPullProviderRex:
 
         :parametrized: yes
         """
-        host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
+        host_mac_addr = module_provisioning_host._broker_args['provisioning_nic_mac_addr']
         sat = module_provisioning_sat_pull_provider.sat
 
         host = sat.api.Host(
@@ -1308,7 +1308,7 @@ class TestPullProviderRex:
         request.addfinalizer(host.delete)
 
         # Start the VM, do not ensure that we can connect to SSHD
-        provisioning_host.power_control(ensure=False)
+        module_provisioning_host.power_control(ensure=False)
 
         # Host should do call back to the Satellite reporting
         # the result of the installation. Wait until Satellite reports that the host is installed.
@@ -1323,14 +1323,14 @@ class TestPullProviderRex:
         # Change the hostname of the host as we know it already.
         # In the current infra environment we do not support
         # addressing hosts using FQDNs, falling back to IP.
-        provisioning_host.hostname = host.ip
+        module_provisioning_host.hostname = host.ip
         # Host is not blank anymore
-        provisioning_host.blank = False
+        module_provisioning_host.blank = False
 
         # check ygg client
-        result = provisioning_host.execute('yggdrasil status')
+        result = module_provisioning_host.execute('yggdrasil status')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
-        result = provisioning_host.execute('systemctl status yggdrasild')
+        result = module_provisioning_host.execute('systemctl status yggdrasild')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
 
         # run script template
@@ -1342,4 +1342,3 @@ class TestPullProviderRex:
             }
         )
         assert_job_invocation_result(invocation_command['id'], host.name)
-
