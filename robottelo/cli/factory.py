@@ -1856,13 +1856,16 @@ def _setup_org_for_a_rh_repo(target_sat, options=None):
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to associate activation-key with CV\n{err.msg}')
     # Add subscription to activation-key
-    activationkey_add_subscription_to_repo(
-        {
-            'organization-id': org_id,
-            'activationkey-id': activationkey_id,
-            'subscription': options.get('subscription', constants.DEFAULT_SUBSCRIPTION_NAME),
-        }
-    )
+    if constants.DEFAULT_SUBSCRIPTION_NAME not in ActivationKey.subscriptions(
+        {'id': activationkey_id, 'organization-id': org_id}
+    ):
+        activationkey_add_subscription_to_repo(
+            {
+                'organization-id': org_id,
+                'activationkey-id': activationkey_id,
+                'subscription': options.get('subscription', constants.DEFAULT_SUBSCRIPTION_NAME),
+            }
+        )
     return {
         'activationkey-id': activationkey_id,
         'content-view-id': cv_id,
