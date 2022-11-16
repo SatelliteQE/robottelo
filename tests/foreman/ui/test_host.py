@@ -1518,6 +1518,7 @@ def test_global_registration_with_capsule_host(
 
 @pytest.mark.tier2
 @pytest.mark.usefixtures('enable_capsule_for_registration')
+@pytest.mark.no_containers
 def test_global_registration_with_gpg_repo_and_default_package(
     session, module_activation_key, default_os, default_smart_proxy, rhel7_contenthost
 ):
