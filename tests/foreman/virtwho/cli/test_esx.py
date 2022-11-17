@@ -471,3 +471,46 @@ class TestVirtWhoConfigforEsx:
         )
         target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
+
+    @pytest.mark.tier2
+    def test_positive_remove_env_option(self, default_org, form_data, virtwho_config, target_sat):
+        """remove option 'env=' from the virt-who configuration file and without any error
+
+        :id: 509add77-dce7-4ba4-b9e5-2a5818c39731
+
+        :expectedresults:
+            the option "env=" should be removed from etc/virt-who.d/virt-who.conf
+            /var/log/messages should not display warning message
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+
+        :BZ: 1834897
+
+        :customerscenario: true
+        """
+        command = get_configure_command(virtwho_config['id'], default_org.name)
+        deploy_configure_by_command(
+            command, form_data['hypervisor-type'], debug=True, org=default_org.label
+        )
+        virt_who_instance = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config['id']})[
+            'general-information'
+        ]['status']
+        assert virt_who_instance == 'OK'
+        # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
+        option = "env"
+        config_file = get_configure_file(virtwho_config['id'])
+        env_error = (
+            f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
+        )
+        try:
+            get_configure_option({option}, {config_file})
+        except Exception as VirtWhoError:
+            assert env_error == str(VirtWhoError)
+        # Check /var/log/messages should not display warning message
+        env_warning = f"Ignoring unknown configuration option \"{option}\""
+        result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
+        assert result.status == 1
+        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
+        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
