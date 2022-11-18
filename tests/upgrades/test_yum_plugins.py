@@ -20,9 +20,7 @@ import pytest
 from fabric.api import execute
 from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
-from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import dockerize
-from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
 
 from robottelo.api.utils import attach_custom_product_subscription
@@ -111,7 +109,7 @@ class TestScenarioYumPluginsCount:
         return [entities.Repository(id=repo_id) for repo_id in [repo1_id, repo2_id]]
 
     @pytest.mark.pre_upgrade
-    def test_pre_scenario_yum_plugins_count(self, default_org):
+    def test_pre_scenario_yum_plugins_count(self, default_org, save_test_data):
         """Create content host and register with Satellite.
 
         :id: preupgrade-45241ada-c2c4-409e-a6e2-92c2cf0ac16c
@@ -164,13 +162,10 @@ class TestScenarioYumPluginsCount:
         install_or_update_package(client_hostname=client_container_id, package='katello-agent')
         run_goferd(client_hostname=client_container_id)
 
-        scenario_dict = {
-            self.__class__.__name__: {'rhel_client': rhel7_client, 'cv_id': content_view.id}
-        }
-        create_dict(scenario_dict)
+        save_test_data({'rhel_client': rhel7_client, 'cv_id': content_view.id})
 
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_yum_plugins_count)
-    def test_post_scenario_yum_plugins_count(self, default_org):
+    def test_post_scenario_yum_plugins_count(self, default_org, pre_upgrade_data):
         """Upgrade katello agent on pre-upgrade content host registered
         with Satellite.
 
@@ -188,11 +183,10 @@ class TestScenarioYumPluginsCount:
             1. Loaded yum plugins should not load more than two times.
         """
 
-        entity_data = get_entity_data(self.__class__.__name__)
-        client = entity_data.get('rhel_client')
+        client = pre_upgrade_data.get('rhel_client')
         client_container_id = list(client.values())[0]
         client_container_name = list(client.keys())[0]
-        cv = entities.ContentView(id=entity_data.get('cv_id')).read()
+        cv = entities.ContentView(id=pre_upgrade_data.get('cv_id')).read()
         product = entities.Product(organization=default_org).create()
 
         tools_repo = self._create_custom_tools_repos(product)

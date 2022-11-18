@@ -20,9 +20,7 @@ import pytest
 from fabric.api import execute
 from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
-from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import dockerize
-from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
 
 from robottelo.api.utils import call_entity_method_with_timeout
@@ -106,7 +104,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_scenario_generate_errata_for_client(self):
+    def test_pre_scenario_generate_errata_for_client(self, save_test_data):
         """Create product and repo from which the errata will be generated for the
         Satellite client or content host.
 
@@ -187,19 +185,18 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         )
         errata_ids = [errata.errata_id for errata in erratum_list]
         assert sorted(errata_ids) == sorted(settings.repos.yum_9.errata)
-        scenario_dict = {
-            self.__class__.__name__: {
+        save_test_data(
+            {
                 'rhel_client': rhel7_client,
                 'activation_key': ak.name,
                 'custom_repo_id': custom_yum_repo.id,
                 'product_id': product.id,
                 'conten_view_id': content_view.id,
             }
-        }
-        create_dict(scenario_dict)
+        )
 
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_generate_errata_for_client)
-    def test_post_scenario_errata_count_installation(self):
+    def test_post_scenario_errata_count_installation(self, pre_upgrade_data):
         """Post-upgrade scenario that installs the package on pre-upgrade
         client remotely and then verifies if the package installed.
 
@@ -219,16 +216,15 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             1. errata count, erratum list should same after satellite upgrade
             2. Installation of errata should be pass successfully
         """
-        entity_data = get_entity_data(self.__class__.__name__)
-        client = entity_data.get('rhel_client')
+        client = pre_upgrade_data.get('rhel_client')
         client_container_id = list(client.values())[0]
-        custom_repo_id = entity_data.get('custom_repo_id')
-        product_id = entity_data.get('product_id')
-        conten_view_id = entity_data.get('conten_view_id')
+        custom_repo_id = pre_upgrade_data.get('custom_repo_id')
+        product_id = pre_upgrade_data.get('product_id')
+        conten_view_id = pre_upgrade_data.get('conten_view_id')
         product = entities.Product(id=product_id).read()
         content_view = entities.ContentView(id=conten_view_id).read()
         custom_yum_repo = entities.Repository(id=custom_repo_id).read()
-        activation_key = entity_data.get('activation_key')
+        activation_key = pre_upgrade_data.get('activation_key')
         host = entities.Host().search(query={'search': f'activation_key={activation_key}'})[0]
 
         installable_errata_count = host.content_facet_attributes['errata_counts']['total']
@@ -287,7 +283,7 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
 
     @pytest.mark.pre_upgrade
     def test_pre_scenario_generate_errata_with_previous_version_katello_agent_client(
-        self, default_org
+        self, default_org, save_test_data
     ):
         """Create product and repo from which the errata will be generated for the
         Satellite client or content host.
@@ -384,20 +380,21 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
         )
         errata_ids = [errata.errata_id for errata in erratum_list]
         assert sorted(errata_ids) == sorted(settings.repos.yum_9.errata)
-        scenario_dict = {
-            self.__class__.__name__: {
+        save_test_data(
+            {
                 'rhel_client': rhel7_client,
                 'activation_key': ak.name,
                 'custom_repo_id': custom_yum_repo.id,
                 'product_id': product.id,
             }
-        }
-        create_dict(scenario_dict)
+        )
 
     @pytest.mark.post_upgrade(
         depend_on=test_pre_scenario_generate_errata_with_previous_version_katello_agent_client
     )
-    def test_post_scenario_generate_errata_with_previous_version_katello_agent_client(self):
+    def test_post_scenario_generate_errata_with_previous_version_katello_agent_client(
+        self, pre_upgrade_data
+    ):
         """Post-upgrade scenario that installs the package on pre-upgraded client
         remotely and then verifies if the package installed and errata counts.
 
@@ -419,12 +416,11 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
                 is 0.
         """
 
-        entity_data = get_entity_data(self.__class__.__name__)
-        client = entity_data.get('rhel_client')
+        client = pre_upgrade_data.get('rhel_client')
         client_container_id = list(client.values())[0]
-        custom_repo_id = entity_data.get('custom_repo_id')
+        custom_repo_id = pre_upgrade_data.get('custom_repo_id')
         custom_yum_repo = entities.Repository(id=custom_repo_id).read()
-        activation_key = entity_data.get('activation_key')
+        activation_key = pre_upgrade_data.get('activation_key')
         host = entities.Host().search(query={'search': f'activation_key={activation_key}'})[0]
 
         installable_errata_count = host.content_facet_attributes['errata_counts']['total']
