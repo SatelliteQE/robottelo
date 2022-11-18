@@ -257,7 +257,7 @@ class Base:
     @classmethod
     def sm_execute(cls, command, hostname=None, timeout=None, **kwargs):
         """Executes the satellite-maintain cli commands on the server via ssh"""
-        env_var = kwargs.get('env_var', '')
+        env_var = kwargs.get('env_var') or ''
         client = get_client(hostname=hostname or cls.hostname)
         result = client.execute(f'{env_var} satellite-maintain {command}', timeout=timeout)
         return result
