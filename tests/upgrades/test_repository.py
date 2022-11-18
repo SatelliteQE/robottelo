@@ -21,8 +21,6 @@ import os
 import pytest
 from broker import Broker
 from fabric.api import run
-from upgrade_tests.helpers.scenarios import create_dict
-from upgrade_tests.helpers.scenarios import get_entity_data
 from upgrade_tests.helpers.scenarios import rpm1
 from upgrade_tests.helpers.scenarios import rpm2
 
@@ -52,7 +50,7 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_repository_scenario_upstream_authorization(self, target_sat):
+    def test_pre_repository_scenario_upstream_authorization(self, target_sat, save_test_data):
         """Create a custom repository and set the upstream username on it.
 
         :id: preupgrade-11c5ceee-bfe0-4ce9-8f7b-67a835baf522
@@ -77,11 +75,10 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
         result = run(f"echo '{rake_repo}{rake_username}{rake_repo_save}'|foreman-rake console")
         assert 'true' in result
 
-        global_dict = {self.__class__.__name__: {'repo_id': custom_repo}}
-        create_dict(global_dict)
+        save_test_data({'repo_id': custom_repo})
 
     @pytest.mark.post_upgrade(depend_on=test_pre_repository_scenario_upstream_authorization)
-    def test_post_repository_scenario_upstream_authorization(self):
+    def test_post_repository_scenario_upstream_authorization(self, pre_upgrade_data):
         """Verify upstream username for pre-upgrade created repository.
 
         :id: postupgrade-11c5ceee-bfe0-4ce9-8f7b-67a835baf522
@@ -98,8 +95,7 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
         :customerscenario: true
         """
 
-        repo_id = get_entity_data(self.__class__.__name__)['repo_id']
-        rake_repo = f'repo = Katello::RootRepository.find_by_id({repo_id})'
+        rake_repo = f"repo = Katello::RootRepository.find_by_id({pre_upgrade_data['repo_id']})"
         rake_username = '; repo.root.upstream_username'
         result = run(f"echo '{rake_repo}{rake_username}'|foreman-rake console")
         assert UPSTREAM_USERNAME not in result
@@ -126,7 +122,7 @@ class TestScenarioCustomRepoCheck:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_scenario_custom_repo_check(self, target_sat):
+    def test_pre_scenario_custom_repo_check(self, target_sat, save_test_data):
         """This is pre-upgrade scenario test to verify if we can create a
          custom repository and consume it via content host.
 
@@ -174,18 +170,17 @@ class TestScenarioCustomRepoCheck:
         result = rhel7_client.execute(f"yum install -y {RPM1_NAME.split('-')[0]}")
         assert result.status == 0
 
-        scenario_dict = {
-            self.__class__.__name__: {
+        save_test_data(
+            {
                 'rhel_client': rhel7_client.hostname,
                 'content_view_name': content_view.name,
                 'lce_id': lce.id,
                 'repo_name': repo.name,
             }
-        }
-        create_dict(scenario_dict)
+        )
 
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_custom_repo_check)
-    def test_post_scenario_custom_repo_check(self, target_sat):
+    def test_post_scenario_custom_repo_check(self, target_sat, pre_upgrade_data):
         """This is post-upgrade scenario test to verify if we can alter the
         created custom repository and satellite will be able to sync back
         the repo.
@@ -198,14 +193,13 @@ class TestScenarioCustomRepoCheck:
             3. Try to install new package on client.
 
 
-        :expectedresults: Content host should able to pull the new rpm.
+        :expectedresults: Content host should be able to pull the new rpm.
 
         """
-        entity_data = get_entity_data(self.__class__.__name__)
-        client_hostname = entity_data.get('rhel_client')
-        content_view_name = entity_data.get('content_view_name')
-        lce_id = entity_data.get('lce_id')
-        repo_name = entity_data.get('repo_name')
+        client_hostname = pre_upgrade_data.get('rhel_client')
+        content_view_name = pre_upgrade_data.get('content_view_name')
+        lce_id = pre_upgrade_data.get('lce_id')
+        repo_name = pre_upgrade_data.get('repo_name')
 
         target_sat.create_custom_html_repo(rpm2, update=True, remove_rpm=rpm1)
         repo = target_sat.api.Repository(name=repo_name).search()[0]
