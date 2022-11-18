@@ -19,8 +19,6 @@
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from upgrade_tests.helpers.scenarios import create_dict
-from upgrade_tests.helpers.scenarios import get_entity_data
 
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
@@ -68,7 +66,7 @@ class TestScenarioPositiveVirtWho:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_create_virt_who_configuration(self, form_data):
+    def test_pre_create_virt_who_configuration(self, form_data, save_test_data):
         """Create and deploy virt-who configuration.
 
         :id: preupgrade-a36cbe89-47a2-422f-9881-0f86bea0e24e
@@ -122,16 +120,15 @@ class TestScenarioPositiveVirtWho:
             )
             assert result['subscription_status_label'] == 'Fully entitled'
 
-        scenario_dict = {
-            self.__class__.__name__: {
+        save_test_data(
+            {
                 'hypervisor_name': hypervisor_name,
                 'guest_name': guest_name,
             }
-        }
-        create_dict(scenario_dict)
+        )
 
     @pytest.mark.post_upgrade(depend_on=test_pre_create_virt_who_configuration)
-    def test_post_crud_virt_who_configuration(self, form_data):
+    def test_post_crud_virt_who_configuration(self, form_data, pre_upgrade_data):
         """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
 
         :id: postupgrade-d7ae7b2b-3291-48c8-b412-cb54e444c7a4
@@ -161,9 +158,8 @@ class TestScenarioPositiveVirtWho:
         assert VirtWhoConfig.info({'id': vhd_cli['id']})['general-information']['status'] == 'OK'
 
         # Vefify the connection of the guest on Content host
-        entity_data = get_entity_data(self.__class__.__name__)
-        hypervisor_name = entity_data.get('hypervisor_name')
-        guest_name = entity_data.get('guest_name')
+        hypervisor_name = pre_upgrade_data.get('hypervisor_name')
+        guest_name = pre_upgrade_data.get('guest_name')
         hosts = [hypervisor_name, guest_name]
         for hostname in hosts:
             result = (

@@ -17,8 +17,6 @@
 :Upstream: No
 """
 import pytest
-from upgrade_tests.helpers.scenarios import create_dict
-from upgrade_tests.helpers.scenarios import get_entity_data
 
 
 class TestScenarioDBseedHostMismatch:
@@ -41,7 +39,7 @@ class TestScenarioDBseedHostMismatch:
 
     @pytest.mark.pre_upgrade
     def test_pre_db_seed_host_mismatch(
-        self, target_sat, function_org, function_location, rhel7_contenthost_module
+        self, target_sat, function_org, function_location, rhel7_contenthost_module, save_test_data
     ):
         """
         :id: preupgrade-28861b9f-8abd-4efc-bfd5-40b7e825a941
@@ -77,18 +75,16 @@ class TestScenarioDBseedHostMismatch:
         assert 'true' in result.stdout
         assert rhel7_contenthost_module.nailgun_host.location.id == function_location.id
 
-        global_dict = {
-            self.__class__.__name__: {
+        save_test_data(
+            {
                 'client_name': rhel7_contenthost_module.hostname,
                 'organization_id': function_org.id,
                 'location_id': function_location.id,
             }
-        }
-
-        create_dict(global_dict)
+        )
 
     @pytest.mark.post_upgrade(depend_on=test_pre_db_seed_host_mismatch)
-    def test_post_db_seed_host_mismatch(self, target_sat):
+    def test_post_db_seed_host_mismatch(self, target_sat, pre_upgrade_data):
         """
         :id: postupgrade-28861b9f-8abd-4efc-bfd5-40b7e825a941
 
@@ -102,10 +98,9 @@ class TestScenarioDBseedHostMismatch:
 
         :customerscenario: true
         """
-        data = get_entity_data(self.__class__.__name__)
-        chostname = data['client_name']
-        org_id = data['organization_id']
-        loc_id = data['location_id']
+        chostname = pre_upgrade_data['client_name']
+        org_id = pre_upgrade_data['organization_id']
+        loc_id = pre_upgrade_data['location_id']
         chost = target_sat.api.Host().search(query={'search': chostname})
 
         assert org_id == chost[0].organization.id
