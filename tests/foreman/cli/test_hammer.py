@@ -12,28 +12,25 @@
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :Upstream: No
 """
 import io
 import json
 import re
+import time
 
 import pytest
-from fauxfactory import gen_string
 
 from robottelo.cli import hammer
-from robottelo.cli.admin import Admin
-from robottelo.cli.defaults import Defaults
-from robottelo.cli.factory import make_org
-from robottelo.cli.factory import make_product
 from robottelo.constants import DataFile
+from robottelo.logging import logger
 
 
-HAMMER_COMMANDS = json.loads(DataFile.HAMMER_COMMANDS_JSON.read_bytes())
+HAMMER_COMMANDS = json.loads(DataFile.HAMMER_COMMANDS_JSON.read_text())
 
-pytestmark = [pytest.mark.tier1]
+pytestmark = [pytest.mark.tier1, pytest.mark.upgrade, pytest.mark.e2e]
 
 
 def fetch_command_info(command):
@@ -82,15 +79,12 @@ def format_commands_diff(commands_diff):
     return output_value
 
 
-@pytest.mark.upgrade
 def test_positive_all_options(target_sat):
     """check all provided options for every hammer command
 
     :id: 1203ab9f-896d-4039-a166-9e2d36925b5b
 
     :expectedresults: All expected options are present
-
-    :CaseImportance: Critical
     """
     differences = {}
     raw_output = target_sat.execute('hammer full-help').stdout
@@ -130,9 +124,7 @@ def test_positive_all_options(target_sat):
         pytest.fail(format_commands_diff(differences))
 
 
-@pytest.mark.upgrade
-@pytest.mark.run_in_one_thread
-def test_positive_disable_hammer_defaults(target_sat):
+def test_positive_disable_hammer_defaults(request, function_product, target_sat):
     """Verify hammer disable defaults command.
 
     :id: d0b65f36-b91f-4f2f-aaf8-8afda3e23708
@@ -144,33 +136,31 @@ def test_positive_disable_hammer_defaults(target_sat):
 
     :expectedresults: Hammer --no-use-defaults product list should fail.
 
-    :CaseImportance: Critical
-
     :BZ: 1640644, 1368173
     """
-    default_org = make_org()
-    default_product_name = gen_string('alpha')
-    make_product({'name': default_product_name, 'organization-id': default_org['id']})
-    try:
-        Defaults.add({'param-name': 'organization_id', 'param-value': default_org['id']})
-        # list templates for BZ#1368173
-        result = target_sat.execute('hammer job-template list')
-        assert result.status == 0
-        # Verify --organization-id is not required to pass if defaults are set
-        result = target_sat.execute('hammer product list')
-        assert result.status == 0
-        # Verify product list fail without using defaults
-        result = target_sat.execute('hammer --no-use-defaults product list')
-        assert result.status != 0
-        assert default_product_name not in result.stdout
-        # Verify --organization-id is not required to pass if defaults are set
-        result = target_sat.execute('hammer --use-defaults product list')
-        assert result.status == 0
-        assert default_product_name in result.stdout
-    finally:
-        Defaults.delete({'param-name': 'organization_id'})
+    target_sat.cli.Defaults.add(
+        {'param-name': 'organization_id', 'param-value': function_product.organization.id}
+    )
+    # list templates for BZ#1368173
+    result = target_sat.execute('hammer job-template list')
+    assert result.status == 0
+    # Verify --organization-id is not required to pass if defaults are set
+    result = target_sat.execute('hammer product list')
+    assert result.status == 0
+    # Verify product list fail without using defaults
+    result = target_sat.execute('hammer --no-use-defaults product list')
+    assert result.status != 0
+    assert function_product.name not in result.stdout
+    # Verify --organization-id is not required to pass if defaults are set
+    result = target_sat.execute('hammer --use-defaults product list')
+    assert result.status == 0
+    assert function_product.name in result.stdout
+
+    @request.addfinalizer
+    def _finalize():
+        target_sat.cli.Defaults.delete({'param-name': 'organization_id'})
         result = target_sat.execute('hammer defaults list')
-        assert default_org['id'] not in result.stdout
+        assert str(function_product.organization.id) not in result.stdout
 
 
 def test_positive_check_debug_log_levels(target_sat):
@@ -186,14 +176,42 @@ def test_positive_check_debug_log_levels(target_sat):
 
     :BZ: 1760773
     """
-    Admin.logging({'all': True, 'level-debug': True})
+    target_sat.cli.Admin.logging({'all': True, 'level-debug': True})
     # Verify value of `log4j.logger.org.candlepin` as `DEBUG`
     result = target_sat.execute('grep DEBUG /etc/candlepin/candlepin.conf')
     assert result.status == 0
     assert 'log4j.logger.org.candlepin = DEBUG' in result.stdout
 
-    Admin.logging({"all": True, "level-production": True})
+    target_sat.cli.Admin.logging({"all": True, "level-production": True})
     # Verify value of `log4j.logger.org.candlepin` as `WARN`
     result = target_sat.execute('grep WARN /etc/candlepin/candlepin.conf')
     assert result.status == 0
     assert 'log4j.logger.org.candlepin = WARN' in result.stdout
+
+
+def test_positive_hammer_shell(target_sat):
+    """Verify that hammer shell runs a command when input is provided via interactive/bash
+
+    :id: 4e5db106-65ca-11ed-9054-07f7387bd580
+
+    :steps:
+        1. Run any command in hammer shell
+
+    :expectedresults: hammer shell should run a command
+
+    :BZ: 2053843
+    """
+    command = 'user list --organization-id 1 --fields login'
+    # Verify hammer shell runs a command with interactive input
+    with target_sat.session.shell() as sh:
+        sh.send('hammer shell')
+        time.sleep(5)
+        sh.send(command)
+        time.sleep(5)
+    logger.info(sh.result)
+    assert 'admin' in sh.result.stdout
+
+    # Verify hammer shell runs a command with bash input
+    result = target_sat.execute(f'echo "{command}" | hammer shell')
+    assert 'admin' in result.stdout
+    assert 'stty: invalid argument' not in result.stdout
