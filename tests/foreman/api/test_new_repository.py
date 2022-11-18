@@ -28,9 +28,7 @@ from robottelo.constants import REPOSET
 
 @pytest.mark.skip_if_open('BZ:2137950')
 @pytest.mark.tier1
-def test_negative_disable_repository_with_cv(
-    module_org, module_entitlement_manifest_org, target_sat
-):
+def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, target_sat):
     """Attempt to disable a Repository that is published in a Content View
 
     :id: e521a7a4-2502-4fe2-b297-a13fc99e679b
@@ -49,7 +47,7 @@ def test_negative_disable_repository_with_cv(
     """
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
-        org_id=module_org.id,
+        org_id=module_entitlement_manifest_org.id,
         product=PRDS['rhel'],
         repo=REPOS['rhst7']['name'],
         reposet=REPOSET['rhst7'],
@@ -57,7 +55,9 @@ def test_negative_disable_repository_with_cv(
     )
     rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
-    cv = target_sat.api.ContentView(organization=module_org, repository=[rh_repo_id]).create()
+    cv = target_sat.api.ContentView(
+        organization=module_entitlement_manifest_org, repository=[rh_repo_id]
+    ).create()
     cv.publish()
     reposet = target_sat.api.RepositorySet(name=REPOSET['rhst7'], product=rh_repo.product).search()[
         0
