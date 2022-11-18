@@ -266,6 +266,7 @@ def test_positive_install_in_host(
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_list([7, 8, 9])
 @pytest.mark.no_containers
+@pytest.mark.e2e
 def test_positive_install_multiple_in_host(
     module_org, activation_key, custom_repo, rhel_contenthost, target_sat
 ):
@@ -608,7 +609,6 @@ def test_positive_get_diff_for_cv_envs():
     assert {cvv.id for cvv in cvvs} == set(both_cvvs_errata['comparison'])
 
 
-@pytest.mark.skip_if_open("BZ:2013093")
 @pytest.mark.tier3
 def test_positive_incremental_update_required(
     module_org,

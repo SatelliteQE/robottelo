@@ -31,6 +31,7 @@ generate_report_jobs = 'ForemanInventoryUpload::Async::GenerateAllReportsJob'
 
 
 @pytest.mark.tier3
+@pytest.mark.e2e
 def test_positive_inventory_generate_upload_cli(
     organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
 ):
