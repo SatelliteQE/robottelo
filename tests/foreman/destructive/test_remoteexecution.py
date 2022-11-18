@@ -78,8 +78,11 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
     assert 'This playbook cannot be executed on a Satellite server.' in response.text
 
 
-@pytest.mark.rhel_ver_list([7])
-def test_positive_use_alternate_directory(rex_contenthost, target_sat):
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([8])
+def test_positive_use_alternate_directory(
+    rhel_contenthost, target_sat, default_org, default_location
+):
     """Use alternate working directory on client to execute rex jobs
 
     :id: a0181f18-d3dc-4bd9-a2a6-430c2a49809e
@@ -90,7 +93,17 @@ def test_positive_use_alternate_directory(rex_contenthost, target_sat):
 
     :parametrized: yes
     """
-    client = rex_contenthost
+    client = rhel_contenthost
+    ak = target_sat.cli_factory.make_activation_key(
+        {
+            'lifecycle-environment': 'Library',
+            'content-view': 'Default Organization View',
+            'organization-id': default_org.id,
+            'auto-attach': False,
+        }
+    )
+    result = client.register(target_sat, default_org, default_location, ak.name, port=None)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     testdir = gen_string('alpha')
     result = client.run(f'mkdir /{testdir}')
     assert result.status == 0
