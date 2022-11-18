@@ -524,6 +524,7 @@ class ContentHost(Host, ContentHostMixins):
         insecure=True,
         username=settings.server.admin_username,
         password=settings.server.admin_password,
+        port='9090',
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
@@ -548,6 +549,7 @@ class ContentHost(Host, ContentHostMixins):
         :param insecure: Don't verify server authenticity.
         :param username: Satellite admin username
         :param password: Satellite admin password
+        :param port: Capsule port, if unset template is pulled straight from Satellite
         :return: SSHCommandResult instance filled with the result of the
             registration.
         """
@@ -586,11 +588,12 @@ class ContentHost(Host, ContentHostMixins):
             if repo_gpg_key_url is not None
             else ''
         )
+        port = f':{port}' if port is not None else ''
         cmd = (
             'curl -sS '
             f'-u {username}:{password} '
             f'{"--insecure " if insecure else ""}'
-            f"'https://{target.hostname}:9090/register?"
+            f"'https://{target.hostname}{port}/register?"
             f'activation_keys={activation_keys}'
             f'&organization_id={org.id}'
             f'&location_id={loc.id}'
