@@ -1,7 +1,6 @@
 import pytest
-from fauxfactory import gen_string
 
-from robottelo.cli.proxy import CapsuleTunnelError
+from robottelo.config import settings
 
 
 @pytest.fixture(scope='session')
@@ -22,13 +21,13 @@ def import_puppet_classes(default_smart_proxy):
 @pytest.fixture(scope='module')
 def module_fake_proxy(request, module_target_sat):
     """Create a Proxy and register the cleanup function"""
-    args = {'name': gen_string(str_type='alpha')}
-    newport = module_target_sat.available_capsule_port
-    try:
-        with module_target_sat.default_url_on_new_port(9090, newport) as url:
-            args['url'] = url
-            proxy = module_target_sat.api.SmartProxy(**args).create()
-            yield proxy
-            module_target_sat.cli.Proxy.delete({'id': proxy.id})
-    except CapsuleTunnelError as err:
-        pytest.fail(f'Failed to create ssh tunnel: {err}')
+    port_pool_range = settings.fake_capsules.port_range
+    if module_target_sat.execute(f'semanage port -l | grep {port_pool_range}').status != 0:
+        module_target_sat.execute(f'semanage port -a -t websm_port_t -p tcp {port_pool_range}')
+    proxy = module_target_sat.cli_factory.make_proxy()
+
+    @request.addfinalizer
+    def _cleanup():
+        module_target_sat.cli.Proxy.delete({'id': proxy['id']})
+
+    return proxy
