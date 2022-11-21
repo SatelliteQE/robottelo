@@ -10,7 +10,7 @@ on:
 
 
 jobs:
-  add-assignees: # This needed for to create the gh issue in case of failed auto0-cherry-pick
+  add-assignees: # This needed for to create the gh issue in case of failed auto-cherry-pick
     name: Add author to assignee
     if: "!contains(github.event.pull_request.labels.*.name, 'Auto_Cherry_Picked')"
     runs-on: ubuntu-latest
