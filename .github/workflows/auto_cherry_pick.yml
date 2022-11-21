@@ -99,7 +99,7 @@ jobs:
     needs: [auto-cherry-pick, create-issue]
     steps:
       - name: Google Chat Notification - Robottelo
-        uses: omkarkhatavkar/google-chat-notification@main
+        uses: omkarkhatavkar/google-chat-notification@master
         with:
           name: "${{ github.event.pull_request.title }}"
           url: ${{ secrets.GCHAT_REVIEWERS_WEBHOOK }}
