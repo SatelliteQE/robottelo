@@ -707,6 +707,7 @@ class TestAnsibleREX:
         assert result.status == 0
 
     @pytest.mark.tier3
+    @pytest.mark.no_containers
     @pytest.mark.parametrize(
         'fixture_sca_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True
     )
@@ -728,7 +729,6 @@ class TestAnsibleREX:
 
         :Assignee: sbible
         """
-
         # Configure repository to prepare for installing ansible on host
         RepositorySet.enable(
             {
