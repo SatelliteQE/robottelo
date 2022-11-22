@@ -7,6 +7,12 @@ import pytest
 from fauxfactory import gen_string
 
 
+@pytest.fixture(scope='session', autouse=True)
+def align_to_satellite():
+    """Override align_to_satellite used in functional tests"""
+    pass
+
+
 @pytest.fixture(scope='function')
 def dummy_test(request):
     """This should be indirectly parametrized to provide dynamic dummy_tests to exec_test"""
