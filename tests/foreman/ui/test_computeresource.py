@@ -283,7 +283,7 @@ def test_positive_VM_import(session, module_org, module_location, rhev_data):
         .read()
         .id
     )
-    cv = entities.ContentView(organization=[module_org.id]).create()
+    cv = entities.ContentView(organization=module_org).create()
     cv.publish()
 
     # create hostgroup
