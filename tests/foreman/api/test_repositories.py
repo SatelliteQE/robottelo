@@ -131,10 +131,6 @@ def test_positive_epel_repositories_with_mirroring_policy(
         3. Assert content was synced and mirroring policy type is correct
 
     :expectedresults: All Epel repositories with mirroring policy options set should have content
-
-    :CaseImportance: Critical
-
-    :CaseAutomation: Automated
     """
     module_repo.sync()
     repodata = target_sat.api.Repository(name=module_repo.name).search(
