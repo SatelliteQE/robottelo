@@ -19,14 +19,13 @@
 import pytest
 from requests.exceptions import HTTPError
 
+from robottelo import constants
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 
 
-@pytest.mark.skip_if_open('BZ:2137950')
+# @pytest.mark.skip_if_open('BZ:2137950')
 @pytest.mark.tier1
 def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, target_sat):
     """Attempt to disable a Repository that is published in a Content View
@@ -42,11 +41,11 @@ def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, ta
     :expectedresults: A message should be thrown saying you cannot disable the Repo
     """
     rh_repo_id = enable_rhrepo_and_fetchid(
-        basearch='x86_64',
+        basearch=constants.DEFAULT_ARCHITECTURE,
         org_id=module_entitlement_manifest_org.id,
-        product=PRDS['rhel'],
-        repo=REPOS['rhst7']['name'],
-        reposet=REPOSET['rhst7'],
+        product=constants.PRDS['rhel8'],
+        repo=constants.REPOS['rhst8']['name'],
+        reposet=constants.REPOSET['rhst8'],
         releasever=None,
     )
     rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
@@ -55,7 +54,7 @@ def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, ta
         organization=module_entitlement_manifest_org, repository=[rh_repo_id]
     ).create()
     cv.publish()
-    reposet = target_sat.api.RepositorySet(name=REPOSET['rhst7'], product=rh_repo.product).search()[
+    reposet = target_sat.api.RepositorySet(name=REPOSET['rhst8'], product=rh_repo.product).search()[
         0
     ]
     data = {'basearch': 'x86_64', 'releasever': '7Server', 'product_id': rh_repo.product.id}
