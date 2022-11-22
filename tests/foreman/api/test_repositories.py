@@ -22,10 +22,9 @@ from requests.exceptions import HTTPError
 from robottelo import constants
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
-from robottelo.constants import REPOSET
 
 
-# @pytest.mark.skip_if_open('BZ:2137950')
+@pytest.mark.skip_if_open('BZ:2137950')
 @pytest.mark.tier1
 def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, target_sat):
     """Attempt to disable a Repository that is published in a Content View
@@ -54,9 +53,9 @@ def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, ta
         organization=module_entitlement_manifest_org, repository=[rh_repo_id]
     ).create()
     cv.publish()
-    reposet = target_sat.api.RepositorySet(name=REPOSET['rhst8'], product=rh_repo.product).search()[
-        0
-    ]
+    reposet = target_sat.api.RepositorySet(
+        name=constants.REPOSET['rhst8'], product=rh_repo.product
+    ).search()[0]
     data = {'basearch': 'x86_64', 'releasever': '7Server', 'product_id': rh_repo.product.id}
     with pytest.raises(HTTPError) as error:
         reposet.disable(data=data)
