@@ -56,6 +56,9 @@ jobs:
           pytest --collect-only --setup-plan --disable-pytest-warnings -n 2 -m pre_upgrade tests/upgrades/
           pytest --collect-only --setup-plan --disable-pytest-warnings -n 2 -m post_upgrade tests/upgrades/
 
+      - name: Run Robottelo's Tests
+        run: pytest -sv tests/robottelo/
+
       - name: Make Docs
         run: |
           make test-docstrings
