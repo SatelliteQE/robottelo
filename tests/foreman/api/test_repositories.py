@@ -12,7 +12,7 @@
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :Upstream: No
 """
@@ -40,10 +40,6 @@ def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, ta
         4. Attempt to disable the Repository
 
     :expectedresults: A message should be thrown saying you cannot disable the Repo
-
-    :CaseImportance: Critical
-
-    :CaseAutomation: Automated
     """
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
@@ -65,11 +61,11 @@ def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, ta
     data = {'basearch': 'x86_64', 'releasever': '7Server', 'product_id': rh_repo.product.id}
     with pytest.raises(HTTPError) as error:
         reposet.disable(data=data)
-    # assert error.value.response.status_code == 500
-    assert (
-        'Repository cannot be deleted since it has already been '
-        'included in a published Content View' in error.value.response.text
-    )
+        # assert error.value.response.status_code == 500
+        assert (
+            'Repository cannot be deleted since it has already been '
+            'included in a published Content View' in error.value.response.text
+        )
 
 
 @pytest.mark.tier1
@@ -86,17 +82,13 @@ def test_positive_update_repository_metadata(module_org, target_sat):
         4. assert that the rpm counts have changed
 
     :expectedresults: Repository rpm counts are different, confirming metadata was updated
-
-    :CaseImportance: Critical
-
-    :CaseAutomation: Automated
     """
     product = target_sat.api.Product(organization=module_org).create()
     repo = target_sat.api.Repository(
         content_type='yum', product=product, url=settings.repos.module_stream_1.url
     ).create()
     repo.sync()
-    repo1 = (
+    content_counts_before_update = (
         target_sat.api.Repository(name=repo.name)
         .search(query={'organization_id': module_org.id})[0]
         .content_counts['rpm']
@@ -104,9 +96,9 @@ def test_positive_update_repository_metadata(module_org, target_sat):
     repo.url = settings.repos.module_stream_0.url
     repo.update(['url'])
     repo.sync()
-    repo2 = (
+    content_counts_after_update = (
         target_sat.api.Repository(name=repo.name)
         .search(query={'organization_id': module_org.id})[0]
         .content_counts['rpm']
     )
-    assert repo1 != repo2
+    assert content_counts_before_update != content_counts_after_update
