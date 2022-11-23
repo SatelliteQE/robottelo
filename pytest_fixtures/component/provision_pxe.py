@@ -253,7 +253,7 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat):
     yield provisioning_host
     # Remove ISO from host and delete disk image
     Broker(
-        job_template="configure-pxe-boot-rhv",
+        job_template='configure-pxe-boot-rhv',
         target_host=provisioning_host.name,
         target_vlan_id=settings.provisioning.vlan_id,
         target_vm_firmware=provisioning_host._broker_args['target_vm_firmware'],
