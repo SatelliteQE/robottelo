@@ -259,4 +259,4 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat):
         target_vm_firmware=provisioning_host._broker_args['target_vm_firmware'],
         target_boot_scenario='pxeless_pre',
     ).execute()
-    Broker(workflow="remove-disk-image", remove_disk_image_name=image_name).execute()
+    Broker(workflow='remove-disk-image', remove_disk_image_name=image_name).execute()
