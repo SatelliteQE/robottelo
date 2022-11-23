@@ -23,6 +23,7 @@ from urllib.parse import urlparse
 
 import pytest
 from airgun.session import Session
+from fauxfactory import gen_alpha
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from nailgun import entities
@@ -30,7 +31,9 @@ from nailgun import entities
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_fake_host
+from robottelo.cli.factory import make_proxy
 from robottelo.cli.factory import make_virt_who_config
+from robottelo.cli.factory import Proxy
 from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SYSPURPOSE_ATTRIBUTES
@@ -45,6 +48,8 @@ from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
+from robottelo.helpers import default_url_on_new_port
+from robottelo.helpers import get_available_capsule_port
 from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.virtwho import create_fake_hypervisor_content
 
@@ -1734,6 +1739,8 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
     :customerscenario: true
 
     :BZ: 1642549
+
+    :CaseImportance: Medium
     """
     new_per_page_setting = 2
     host_num = new_per_page_setting + 1
@@ -1760,7 +1767,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
         all_fake_hosts_found = session.contenthost.search(
             f'os = {module_host_template.operatingsystem.name}'
         )
-        # Assert dump of fake hosts found includes the higest numbered host created for this test
+        # Assert dump of fake hosts found includes the highest numbered host created for this test
         match = re.search(fr'test-{host_num:0>2}', str(all_fake_hosts_found))
         assert match, 'Highest numbered host not found.'
         # Get all the pagination values
@@ -1771,6 +1778,72 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
         # Assert that total items reported is the number of hosts created for this test
         total_items_found = pagination_values['total_items']
         assert int(total_items_found) >= host_num
+
+
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier3
+def test_content_source_selection_with_multiple_capsules(
+    session, module_host_template, default_location
+):
+    """Create Capsules with numbered names, more than the per-page setting.
+    Check highest numbered Capsule can be selected and that pagination has no effect.
+
+    Need two digits in name to ensure sort order.
+    Adding two random characters to the end of the proxy name in case the test is rerun.
+
+
+    :id: 94317868-2f28-4f94-9cf3-f18a516bd2a5
+
+    :customerscenario: true
+
+    :BZ: 1834921
+
+    :CaseImportance: Medium
+
+
+    Steps:
+        1. Administer -> Settings -> General tab, change the default per page entry to 3.
+        2. Hosts -> Content Hosts -> Edit a host -> Select highest numbered Content Source and
+           click Submit to save the changes.
+        3. Hosts -> Content Hosts -> Edit a host, check that highest numbered Content Source is
+           still selected.
+
+    """
+    new_per_page_setting = 3
+    proxy_num = new_per_page_setting + 1
+    proxy_name = None
+    result = make_fake_host(
+        {
+            'organization-id': module_host_template.organization.id,
+            'architecture-id': module_host_template.architecture.id,
+            'domain-id': module_host_template.domain.id,
+            'location-id': module_host_template.location.id,
+            'medium-id': module_host_template.medium.id,
+            'operatingsystem-id': module_host_template.operatingsystem.id,
+            'partition-table-id': module_host_template.ptable.id,
+        }
+    )
+    host_name = result['name']
+    for count in range(proxy_num):
+        proxy_name = f'test-{count + 1:0>2}-{gen_alpha(2)}'
+        newport = get_available_capsule_port()
+        with default_url_on_new_port(9090, newport) as url:
+            make_proxy({'url': url, 'name': proxy_name})
+            Proxy.update(
+                {
+                    'name': proxy_name,
+                    'locations': [module_host_template.location.name, 'Default Location'],
+                }
+            )
+            Proxy.refresh_features({'name': proxy_name})
+    with session:
+        session.location.select(module_host_template.location.name)
+        session.settings.update("name=entries_per_page", f'{new_per_page_setting}')
+        # Use Edit view, Host tab, to access Content Source menu.
+        session.host.update(host_name, {'host.content_source': proxy_name})
+        fake_proxy_found = session.host.read(host_name, widget_names=['host.content_source'])
+        match = re.search(fr'test-{proxy_name}', str(fake_proxy_found))
+        assert match, 'Highest numbered proxy not found'
 
 
 @pytest.mark.tier3
