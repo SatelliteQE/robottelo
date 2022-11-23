@@ -248,7 +248,7 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat):
         target_vlan_id=settings.provisioning.vlan_id,
         target_vm_firmware=provisioning_host._broker_args['target_vm_firmware'],
         target_vm_cd_iso=image_name,
-        target_boot_scenario="pxeless_pre",
+        target_boot_scenario='pxeless_pre',
     ).execute()
     yield provisioning_host
     # Remove ISO from host and delete disk image
