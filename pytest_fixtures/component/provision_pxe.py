@@ -1,5 +1,6 @@
 import ipaddress
 import os
+import re
 from tempfile import mkstemp
 
 import pytest
@@ -202,7 +203,7 @@ def module_ssh_key_file():
 def provisioning_host(module_ssh_key_file, request):
     """Fixture to check out blank VM"""
     vlan_id = settings.provisioning.vlan_id
-    vm_firmware = 'bios' if not hasattr(request, 'param') else request.param
+    vm_firmware = getattr(request, 'param', 'bios')
     cd_iso = (
         ""  # TODO: Make this an optional fixture parameter (update vm_firmware when adding this)
     )
@@ -219,3 +220,43 @@ def provisioning_host(module_ssh_key_file, request):
         yield Box(prov_host=prov_host, vm_firmware=vm_firmware)
         # Set host as non-blank to run teardown of the host
         prov_host.blank = getattr(prov_host, 'blank', False)
+
+
+@pytest.fixture()
+def pxeless_discovery_host(provisioning_host, module_discovery_sat):
+    """Fixture for returning a pxe-less discovery host for provisioning"""
+    sat = module_discovery_sat.sat
+    image_name = f"{gen_string('alpha')}-{module_discovery_sat.iso}"
+    mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
+    # Remaster and upload discovery image to automatically input values
+    result = sat.execute(
+        'cd /var/www/html/pub && '
+        f'discovery-remaster {module_discovery_sat.iso} '
+        f'"proxy.type=foreman proxy.url=https://{sat.hostname}:443 fdi.pxmac={mac} fdi.pxauto=1"'
+    )
+    pattern = re.compile(r"foreman-discovery-image\S+")
+    fdi = pattern.findall(result.stdout)[0]
+    Broker(
+        workflow='import-disk-image',
+        import_disk_image_name=image_name,
+        import_disk_image_url=(f'https://{sat.hostname}/pub/{fdi}'),
+    ).execute()
+    # Change host to boot from CD ISO
+    Broker(
+        job_template='configure-pxe-boot-rhv',
+        target_host=provisioning_host.name,
+        target_vlan_id=settings.provisioning.vlan_id,
+        target_vm_firmware=provisioning_host._broker_args['target_vm_firmware'],
+        target_vm_cd_iso=image_name,
+        target_boot_scenario='pxeless_pre',
+    ).execute()
+    yield provisioning_host
+    # Remove ISO from host and delete disk image
+    Broker(
+        job_template='configure-pxe-boot-rhv',
+        target_host=provisioning_host.name,
+        target_vlan_id=settings.provisioning.vlan_id,
+        target_vm_firmware=provisioning_host._broker_args['target_vm_firmware'],
+        target_boot_scenario='pxeless_pre',
+    ).execute()
+    Broker(workflow='remove-disk-image', remove_disk_image_name=image_name).execute()
