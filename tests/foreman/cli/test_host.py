@@ -57,6 +57,7 @@ from robottelo.hosts import ContentHostError
 from robottelo.utils.datafactory import invalid_values_list
 from robottelo.utils.datafactory import valid_data_list
 from robottelo.utils.datafactory import valid_hosts_list
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope="module")
@@ -716,14 +717,14 @@ def test_positive_list_infrastructure_hosts(
     Host.update({'name': target_sat.hostname, 'new-organization-id': module_org.id})
     # list satellite hosts
     hosts = Host.list({'search': 'infrastructure_facet.foreman=true'})
-    assert len(hosts) == 1
+    assert len(hosts) == 2 if is_open('BZ:1994685') else len(hosts) == 1
     hostnames = [host['name'] for host in hosts]
     assert rhel7_contenthost.hostname not in hostnames
     assert target_sat.hostname in hostnames
     # list capsule hosts
     hosts = Host.list({'search': 'infrastructure_facet.smart_proxy_id=1'})
     hostnames = [host['name'] for host in hosts]
-    assert len(hosts) == 1
+    assert len(hosts) == 2 if is_open('BZ:1994685') else len(hosts) == 1
     assert rhel7_contenthost.hostname not in hostnames
     assert target_sat.hostname in hostnames
 
