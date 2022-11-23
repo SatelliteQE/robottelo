@@ -171,6 +171,9 @@ def discovered_host_cleanup(target_sat):
 class TestDiscoveredHost:
     """General Discovered Host tests."""
 
+    @pytest.mark.upgrade
+    @pytest.mark.e2e
+    @pytest.mark.on_premises_provisioning
     @pytest.mark.parametrize('provisioning_host', ['bios', 'uefi'], indirect=True)
     @pytest.mark.rhel_ver_match('[^6]')
     @pytest.mark.tier3
@@ -194,7 +197,7 @@ class TestDiscoveredHost:
 
         :CaseImportance: Critical
         """
-        sat = module_discovery_sat
+        sat = module_discovery_sat.sat
         provisioning_host.power_control(ensure=False)
         mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
@@ -217,9 +220,15 @@ class TestDiscoveredHost:
             assert not sat.api.Host().search(query={"search": f'name={host.name}'})
         provisioning_host.blank = True
 
-    @pytest.mark.stubbed
+    @pytest.mark.upgrade
+    @pytest.mark.e2e
+    @pytest.mark.on_premises_provisioning
+    @pytest.mark.parametrize('provisioning_host', ['bios', 'uefi'], indirect=True)
+    @pytest.mark.rhel_ver_match('[^6]')
     @pytest.mark.tier3
-    def test_positive_provision_pxe_less_host(self):
+    def test_positive_provision_pxe_less_host(
+        self, module_discovery_sat, pxeless_discovery_host, module_provisioning_rhel_content
+    ):
         """Provision a pxe-less discovered hosts
 
         :id: 91bb254b-3c30-4608-b1ba-e18bcc22efb5
@@ -235,6 +244,28 @@ class TestDiscoveredHost:
 
         :CaseImportance: Critical
         """
+        sat = module_discovery_sat.sat
+        pxeless_discovery_host.power_control(ensure=False)
+        mac = pxeless_discovery_host._broker_args['provisioning_nic_mac_addr']
+        wait_for(
+            lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
+            timeout=240,
+            delay=20,
+        )
+        discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+        discovered_host.hostgroup = module_provisioning_rhel_content.hostgroup
+        discovered_host.location = module_provisioning_rhel_content.hostgroup.location[0]
+        discovered_host.organization = module_provisioning_rhel_content.hostgroup.organization[0]
+        discovered_host.build = True
+        with sat.session.shell() as shell:
+            shell.send('foreman-tail')
+            host = discovered_host.update(['hostgroup', 'build', 'location', 'organization'])
+            host = sat.api.Host().search(query={"search": f'name={host.name}'})[0]
+            assert host
+            assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
+            host.delete()
+            assert not sat.api.Host().search(query={"search": f'name={host.name}'})
+        pxeless_discovery_host.blank = True
 
     @pytest.mark.stubbed
     @pytest.mark.tier3

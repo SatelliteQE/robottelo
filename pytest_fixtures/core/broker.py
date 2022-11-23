@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 
 import pytest
+from box import Box
 from broker import Broker
 from wait_for import wait_for
 
@@ -276,4 +277,4 @@ def module_discovery_sat(
     discovery_auto.value = 'true'
     discovery_auto.update(['value'])
 
-    return sat
+    return Box(sat=sat, iso=disc_img_name)
