@@ -1159,6 +1159,7 @@ class TestContentViewSync:
 
             1. Export passes with warning and skips the on_demand repo
 
+        :BZ: 1998626
         """
         # Create custom product
         product = make_product({'organization-id': module_org.id, 'name': gen_string('alpha')})
@@ -1323,6 +1324,8 @@ class TestContentViewSync:
         :expectedresults:
 
             1. Export fails with error and no export is created
+
+        :BZ: 1998626, 2067275
         """
 
         # Create custom product
