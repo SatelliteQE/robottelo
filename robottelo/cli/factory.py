@@ -19,7 +19,6 @@ from fauxfactory import gen_string
 from fauxfactory import gen_url
 
 from robottelo import constants
-from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
@@ -66,6 +65,7 @@ from robottelo.cli.usergroup import UserGroupExternal
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.logging import logger
+from robottelo.utils import clone
 from robottelo.utils import ssh
 from robottelo.utils.datafactory import valid_cron_expressions
 from robottelo.utils.decorators import cacheable
@@ -1774,7 +1774,7 @@ def _setup_org_for_a_rh_repo(options=None):
     else:
         env_id = options['lifecycle-environment-id']
     # Clone manifest and upload it
-    with manifests.clone() as manifest:
+    with clone() as manifest:
         ssh.get_client().put(manifest, manifest.filename)
     try:
         Subscription.upload({'file': manifest.filename, 'organization-id': org_id})
@@ -1912,7 +1912,7 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
         options['url'] = custom_repo_url
         result = setup_org_for_a_custom_repo(options)
         if force_manifest_upload:
-            with manifests.clone() as manifest:
+            with clone() as manifest:
                 ssh.get_client().put(manifest, manifest.filename)
             try:
                 Subscription.upload(
@@ -2090,6 +2090,7 @@ def setup_cdn_and_custom_repositories(org_id, repos, download_policy='on_demand'
 
 
 def setup_cdn_and_custom_repos_content(
+    target_sat,
     org_id,
     lce_id=None,
     repos=None,
@@ -2121,7 +2122,7 @@ def setup_cdn_and_custom_repos_content(
     if upload_manifest:
         # Upload the organization manifest
         try:
-            manifests.upload_manifest_locked(org_id, manifests.clone(), interface='CLI')
+            target_sat.upload_manifest(org_id, clone(), interface='CLI')
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
 
