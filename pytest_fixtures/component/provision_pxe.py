@@ -237,7 +237,7 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat):
     pattern = re.compile(r"foreman-discovery-image\S+")
     fdi = pattern.findall(result.stdout)[0]
     Broker(
-        workflow="import-disk-image",
+        workflow='import-disk-image',
         import_disk_image_name=image_name,
         import_disk_image_url=(f'https://{sat.hostname}/pub/{fdi}'),
     ).execute()
