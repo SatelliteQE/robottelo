@@ -1,9 +1,7 @@
 import pytest
 from broker import Broker
-from manifester import Manifester
 
 from robottelo import ssh
-from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 
 
@@ -17,14 +15,15 @@ def rhcloud_sat_host(satellite_factory):
 
 
 @pytest.fixture(scope='module')
-def rhcloud_manifest_org(rhcloud_sat_host):
+def rhcloud_manifest_org(rhcloud_sat_host, module_entitlement_manifest):
     """A module level fixture to get organization with manifest."""
     org = rhcloud_sat_host.api.Organization().create()
-    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
-        ssh.get_client(hostname=rhcloud_sat_host.hostname).put(
-            f'{manifest.path}', f'{manifest.name}'
-        )
-        rhcloud_sat_host.cli.Subscription.upload({'file': manifest.name, 'organization-id': org.id})
+    ssh.get_client(hostname=rhcloud_sat_host.hostname).put(
+        f'{module_entitlement_manifest.path}', f'{module_entitlement_manifest.name}'
+    )
+    rhcloud_sat_host.cli.Subscription.upload(
+        {'file': module_entitlement_manifest.name, 'organization-id': org.id}
+    )
     return org
 
 
@@ -48,7 +47,7 @@ def organization_ak_setup(rhcloud_sat_host, rhcloud_manifest_org):
     default_subscription = subscription.search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
-    ak.add_subscriptions(data={'quantity': 10, 'subscription_id': default_subscription.id})
+    ak.add_subscriptions(data={'quantity': 2, 'subscription_id': default_subscription.id})
     yield rhcloud_manifest_org, ak
     ak.delete()
 
