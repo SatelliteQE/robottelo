@@ -403,6 +403,8 @@ def test_positive_schedule_generation_and_get_mail(
                       The result is compressed.
     :CaseImportance: High
     """
+    # make sure postfix daemon is running
+    target_sat.execute('systemctl start postfix')
     # generate Subscriptions report
     with session:
         session.reporttemplate.schedule(
