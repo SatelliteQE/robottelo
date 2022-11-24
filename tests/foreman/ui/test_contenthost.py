@@ -31,9 +31,8 @@ from nailgun import entities
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_fake_host
-from robottelo.cli.factory import make_proxy
 from robottelo.cli.factory import make_virt_who_config
-from robottelo.cli.factory import Proxy
+from robottelo.cli.proxy import Proxy
 from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SYSPURPOSE_ATTRIBUTES
@@ -48,8 +47,6 @@ from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
-from robottelo.helpers import default_url_on_new_port
-from robottelo.helpers import get_available_capsule_port
 from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.virtwho import create_fake_hypervisor_content
 
@@ -1783,7 +1780,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_content_source_selection_with_multiple_capsules(
-    session, module_host_template, default_location
+    session, module_host_template, default_location, target_sat
 ):
     """Create Capsules with numbered names, more than the per-page setting.
     Check highest numbered Capsule can be selected and that pagination has no effect.
@@ -1826,9 +1823,9 @@ def test_content_source_selection_with_multiple_capsules(
     host_name = result['name']
     for count in range(proxy_num):
         proxy_name = f'test-{count + 1:0>2}-{gen_alpha(2)}'
-        newport = get_available_capsule_port()
-        with default_url_on_new_port(9090, newport) as url:
-            make_proxy({'url': url, 'name': proxy_name})
+        newport = target_sat.available_capsule_port
+        with target_sat.default_url_on_new_port(9090, newport) as url:
+            target_sat.cli_factory.make_proxy({'url': url, 'name': proxy_name})
             Proxy.update(
                 {
                     'name': proxy_name,
