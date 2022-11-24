@@ -136,7 +136,26 @@ def test_positive_generate_report_nofilter():
     entities.Host(name=host_name).create()
     rt = entities.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
     res = rt.generate()
-    assert "Service Level" in res
+    for column_name in [
+        'Name',
+        'Global',
+        'Addons',
+        'Build',
+        'Compliance',
+        'Configuration',
+        'Errata',
+        'Execution',
+        'Insights',
+        'Inventory',
+        'OVAL scan',
+        'Role',
+        'Service level',
+        'Subscription',
+        'System purpose',
+        'Traces',
+        'Usage',
+    ]:
+        assert column_name in res
     assert host_name in res
 
 
@@ -162,7 +181,26 @@ def test_positive_generate_report_filter():
     entities.Host(name=host2_name).create()
     rt = entities.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
     res = rt.generate(data={"input_values": {"hosts": host2_name}})
-    assert "Service Level" in res
+    for column_name in [
+        'Name',
+        'Global',
+        'Addons',
+        'Build',
+        'Compliance',
+        'Configuration',
+        'Errata',
+        'Execution',
+        'Insights',
+        'Inventory',
+        'OVAL scan',
+        'Role',
+        'Service level',
+        'Subscription',
+        'System purpose',
+        'Traces',
+        'Usage',
+    ]:
+        assert column_name in res
     assert host1_name not in res
     assert host2_name in res
 
