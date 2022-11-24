@@ -1600,6 +1600,7 @@ class Satellite(Capsule, SatelliteMixins):
                 command='capsule-certs-generate',
                 foreman_proxy_fqdn=capsule.hostname,
                 certs_tar=cert_file_path,
+                installer_args=['no-colors'],
                 **extra_kwargs,
             )
         )
