@@ -30,31 +30,49 @@ def setup_backup_tests(request, sat_maintain):
 
 
 @pytest.fixture(scope='module')
-def module_synced_repos(sat_maintain):
-    org = sat_maintain.api.Organization().create()
-    manifests_path = sat_maintain.download_file(file_url=settings.fake_manifest.url['default'])[0]
-    sat_maintain.cli.Subscription.upload({'file': manifests_path, 'organization-id': org.id})
+def module_synced_repos(session_target_sat, session_capsule_configured):
+    org = session_target_sat.api.Organization().create()
+    manifests_path = session_target_sat.download_file(
+        file_url=settings.fake_manifest.url['default']
+    )[0]
+    session_target_sat.cli.Subscription.upload({'file': manifests_path, 'organization-id': org.id})
 
     # sync custom repo
-    cust_prod = sat_maintain.api.Product(organization=org).create()
-    cust_repo = sat_maintain.api.Repository(
+    cust_prod = session_target_sat.api.Product(organization=org).create()
+    cust_repo = session_target_sat.api.Repository(
         url=settings.repos.yum_1.url, product=cust_prod
     ).create()
     cust_repo.sync()
 
     # sync RH repo
-    product = sat_maintain.api.Product(name=constants.PRDS['rhae'], organization=org.id).search()[0]
-    r_set = sat_maintain.api.RepositorySet(
+    product = session_target_sat.api.Product(
+        name=constants.PRDS['rhae'], organization=org.id
+    ).search()[0]
+    r_set = session_target_sat.api.RepositorySet(
         name=constants.REPOSET['rhae2'], product=product
     ).search()[0]
     payload = {'basearch': constants.DEFAULT_ARCHITECTURE, 'product_id': product.id}
     r_set.enable(data=payload)
-    result = sat_maintain.api.Repository(name=constants.REPOS['rhae2']['name']).search(
+    result = session_target_sat.api.Repository(name=constants.REPOS['rhae2']['name']).search(
         query={'organization_id': org.id}
     )
     rh_repo_id = result[0].id
-    rh_repo = sat_maintain.api.Repository(id=rh_repo_id).read()
+    rh_repo = session_target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
+
+    # assign the Library LCE to the Capsule
+    lce = session_target_sat.api.LifecycleEnvironment(organization=org).search(
+        query={'search': f'name={constants.ENVIRONMENT}'}
+    )[0]
+    session_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+        data={'environment_id': lce.id}
+    )
+    result = session_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+    assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+    # sync the Capsule
+    sync_status = session_capsule_configured.nailgun_capsule.content_sync()
+    assert sync_status['result'] == 'success'
 
     yield {'custom': cust_repo, 'rh': rh_repo}
 
