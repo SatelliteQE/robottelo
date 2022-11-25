@@ -205,6 +205,8 @@ def test_positive_service_restart_without_hammer_config(missing_hammer_config, s
 
     :expectedresults: Services restart should work even if hammer config/credentials are missing
 
+    :customerscenario: true
+
     :BZ: 1696862
     """
     result = sat_maintain.cli.Service.restart()

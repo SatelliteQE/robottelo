@@ -58,7 +58,7 @@ def test_positive_backup_preserve_directory(
         2. create a backup
         3. check that appropriate files are created in the provided dir
 
-    :expectedresult:
+    :expectedresults:
         1. backup succeeds
         2. expected files are stored in the provided dir
     """
@@ -105,7 +105,7 @@ def test_positive_backup_split_pulp_tar(
         2. check that appropriate files are created
         3. check that pulp_data.tar fits the split size
 
-    :expectedresult:
+    :expectedresults:
         1. backup succeeds
         2. expected files are present in the backup
         3. size of the pulp_data.tar smaller than provided value
@@ -154,7 +154,7 @@ def test_positive_backup_caspule_features(
         1. create a backup
         2. check that appropriate files are created
 
-    :expectedresult:
+    :expectedresults:
         1. backup succeeds
         2. expected files are present in the backup
     """
@@ -195,7 +195,7 @@ def test_positive_backup_all(sat_maintain, setup_backup_tests, module_synced_rep
         1. create an initial backup (for the sake of incremental)
         2. create another backup with all options provided
 
-    :expectedresult:
+    :expectedresults:
         1. both backups succeed
     """
     subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
@@ -239,7 +239,7 @@ def test_positive_backup_offline_logical(sat_maintain, setup_backup_tests, modul
         1. create a backup
         2. check that appropriate files are created
 
-    :expectedresult:
+    :expectedresults:
         1. backup succeeds
         2. files for both, offline and online, backup type are created
     """
@@ -274,7 +274,7 @@ def test_negative_backup_nodir(sat_maintain, setup_backup_tests, module_synced_r
     :steps:
         1. try to create a backup without path provided
 
-    :expectedresult:
+    :expectedresults:
         1. should fail with appropriate error message
     """
     result = sat_maintain.cli.Backup.run_backup(
@@ -297,7 +297,7 @@ def test_negative_backup_incremental_nodir(sat_maintain, setup_backup_tests, bac
     :steps:
         1. try to create an incremental backup with non-existing path provided
 
-    :expectedresult:
+    :expectedresults:
         1. should fail with appropriate error message
     """
     subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
@@ -319,7 +319,7 @@ def test_negative_backup_maintenance_mode(sat_maintain, setup_backup_tests):
     :steps:
         1. try to create a snapshot backup which would fail
 
-    :expectedresult:
+    :expectedresults:
         1. Verify maintenance-mode isn't running if backup fails
 
     :BZ: 1908478, 1962842
@@ -350,7 +350,7 @@ def test_negative_restore_nodir(sat_maintain, setup_backup_tests):
     :steps:
         1. try to run restore with no path argument provided
 
-    :expectedresult:
+    :expectedresults:
         1. should fail with appropriate error message
     """
     result = sat_maintain.cli.Restore.run(
@@ -370,7 +370,7 @@ def test_negative_restore_baddir(sat_maintain, setup_backup_tests):
     :steps:
         1. try to run restore with non-existing path provided
 
-    :expectedresult:
+    :expectedresults:
         1. should fail with appropriate error message
     """
     subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
@@ -403,7 +403,7 @@ def test_positive_backup_restore(
         4. check system health
         5. check the content was restored
 
-    :expectedresult:
+    :expectedresults:
         1. backup succeeds
         2. expected files are present in the backup
         3. restore succeeds
@@ -604,7 +604,7 @@ def test_positive_backup_restore_snapshot():
         4. check system health
         5. check the content was restored
 
-    :expectedresult:
+    :expectedresults:
         1. backup succeeds
         2. expected files are present in the backup
         3. restore succeeds
