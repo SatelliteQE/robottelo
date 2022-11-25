@@ -22,7 +22,7 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo.config import settings
-
+from robottelo.utils.issue_handlers import is_open
 
 upstream_url = {
     'foreman_repo': 'https://yum.theforeman.org/releases/nightly/el8/x86_64/',
@@ -210,7 +210,7 @@ def test_positive_health_check_upstream_repository(sat_maintain, request):
     def _finalize():
         for name, url in upstream_url.items():
             sat_maintain.execute(f'rm -fr /etc/yum.repos.d/{name}.repo')
-        sat_maintain.execute('dnf clean all')
+        sat_maintain.execute('yum clean all')
 
 
 @pytest.mark.include_capsule
@@ -296,12 +296,16 @@ def test_positive_health_check_hotfix_installed(sat_maintain, request):
     assert 'WARNING' not in result.stdout
 
     # Verify check-hotfix-installed with hotfix package.
-    gems_path = '/usr/share/gems/gems/'
+    if not is_open('BZ:2149895'):
+        gems_path = f"""{f"{'/opt/theforeman/tfm/root' if sat_maintain.os_version.major < 8 else ''}" +
+                     '/usr/share/gems/gems/'}"""
+    else:
+        gems_path = '/usr/share/gems/gems/'
     fpath = sat_maintain.execute(f"find {gems_path} -type f -name 'self_upgrade.rb'")
     sat_maintain.execute(f'sed -i "$ a #modifying_file" {fpath.stdout}')
     hotfix_url = f'{settings.robottelo.repos_hosting_url}/hotfix_package/'
     sat_maintain.create_custom_repos(custom_repo=hotfix_url)
-    result = sat_maintain.execute('dnf install -y --disableplugin=foreman-protector hotfix-package')
+    result = sat_maintain.execute('yum install -y --disableplugin=foreman-protector hotfix-package')
     assert result.status == 0
     assert 'FAIL' not in result.stdout
     result = sat_maintain.cli.Health.check(options={'label': 'check-hotfix-installed'})
@@ -312,7 +316,7 @@ def test_positive_health_check_hotfix_installed(sat_maintain, request):
     @request.addfinalizer
     def _finalize():
         sat_maintain.execute('rm -fr /etc/yum.repos.d/custom_repo.repo')
-        sat_maintain.execute('dnf remove -y hotfix-package')
+        sat_maintain.execute('yum remove -y hotfix-package')
         assert sat_maintain.execute(f'sed -i "/#modifying_file/d" {fpath.stdout}').status == 0
 
 
@@ -334,7 +338,7 @@ def test_positive_health_check_validate_yum_config(sat_maintain):
 
     :BZ: 1669498
 
-    :customercenario: true
+    :customerscenario: true
     """
     file = '/etc/yum.conf'
     yum_exclude = 'exclude=cat*'
@@ -367,8 +371,8 @@ def test_positive_health_check_epel_repository(request, sat_maintain):
 
     :expectedresults: check-non-redhat-repository health check should pass.
     """
-    epel_repo = 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm'
-    sat_maintain.execute(f'dnf install -y {epel_repo}')
+    epel_repo = 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'
+    sat_maintain.execute(f'yum install -y {epel_repo}')
     result = sat_maintain.cli.Health.check(options={'label': 'check-non-redhat-repository'})
     assert 'System is subscribed to non Red Hat repositories' in result.stdout
     assert result.status == 1
@@ -376,7 +380,7 @@ def test_positive_health_check_epel_repository(request, sat_maintain):
 
     @request.addfinalizer
     def _finalize():
-        assert sat_maintain.execute('dnf remove -y epel-release').status == 0
+        assert sat_maintain.execute('yum remove -y epel-release').status == 0
 
 
 def test_positive_health_check_old_foreman_tasks(sat_maintain):
@@ -758,7 +762,7 @@ def test_positive_health_check_non_rh_packages(sat_maintain, request):
 
     @request.addfinalizer
     def _finalize():
-        assert sat_maintain.execute('dnf remove -y  walrus').status == 0
+        assert sat_maintain.execute('yum remove -y  walrus').status == 0
         assert sat_maintain.execute('rm -fr /etc/yum.repos.d/custom_repo.repo').status == 0
 
 
