@@ -69,6 +69,7 @@ jobs:
         with:
           issue: ${{ needs.auto-cherry-pick.outputs.pr_number }}
           message: ${{needs.find-the-parent-prt-comment.outputs.prt_comment}}
+          repo-token: ${{ secrets.CHERRYPICK_PAT }}
 
   create-issue:
     name: Create Github issue on cherrypick failure
@@ -104,4 +105,5 @@ jobs:
           name: "${{ github.event.pull_request.title }}"
           url: ${{ secrets.GCHAT_REVIEWERS_WEBHOOK }}
           issue_url: ${{ needs.create-issue.outputs.issue_url }}
+          author: ${{ github.event.pull_request.assignee.login }}
           status: failure
