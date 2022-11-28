@@ -127,7 +127,7 @@ def test_positive_epel_repositories_with_mirroring_policy(
 
     :Steps:
         1. Create a Epel repository with mirroring_policy set
-        2. Sync the Repository and returns its content_counts for rpm
+        2. Sync the Repository and return its content_counts for rpm
         3. Assert content was synced and mirroring policy type is correct
 
     :expectedresults: All Epel repositories with mirroring policy options set should have content
