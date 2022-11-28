@@ -573,7 +573,7 @@ def test_positive_create_with_inherited_params(
         organization=function_org, location=function_location_with_org
     )
     host_template.create_missing()
-    host = target_sat.api.Host().create()
+    host = host_template.create()
     host_name = host.name
     with session:
         session.organization.update(function_org.name, {'parameters.resources': org_param})
