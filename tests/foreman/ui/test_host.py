@@ -2701,7 +2701,7 @@ class TestHostAnsible:
 
 @pytest.mark.tier2
 def test_positive_host_role_information(target_sat):
-    """Assign Ansible Role to a Host and an attached Host group and verify that the information
+    """Assign Ansible Role to a Host and verify that the information
     in the new UI is displayed correctly
 
     :id: 7da913ef-3b43-4bfa-9a45-d895431c8b56
@@ -2715,15 +2715,11 @@ def test_positive_host_role_information(target_sat):
     :Steps:
         1. Register a RHEL host to Satellite.
         2. Import all roles available by default.
-        3. Create a host group and assign one of the Ansible roles to the host group.
-        4. Assign the host to the host group.
-        5. Assign one role to the RHEL host.
-        6. Navigate to the new UI for the given Host.
-        7. Select the 'Ansible' tab, then the 'Inventory' sub-tab.
+        3. Assign one role to the RHEL host.
+        4. Navigate to the new UI for the given Host.
+        5. Select the 'Ansible' tab, then the 'Inventory' sub-tab.
 
-    :expectedresults: Roles assigned directly to the Host are visible on the subtab, and
-        roles assigned to the Host Group are visible by clicking the "view all assigned
-        roles" link
+    :expectedresults: Roles assigned directly to the Host are visible on the subtab.
 
     """
     SELECTED_ROLE = 'RedHatInsights.insights-client'
@@ -2731,14 +2727,16 @@ def test_positive_host_role_information(target_sat):
     host = target_sat.api.Host().create()
     id = target_sat.api.SmartProxy(name=target_sat.hostname).search()[0].id
     target_sat.api.AnsibleRoles().sync(data={'proxy_id': id, 'role_names': [SELECTED_ROLE]})
-    host.assign_roles(data={'ansible_role_ids': [1]})
-    host_roles = host.list_roles()
+    host.assign_ansible_roles(data={'ansible_role_ids': [1]})
+    host_roles = host.list_ansible_roles()
     assert host_roles[0]['name'] == SELECTED_ROLE
     with target_sat.ui_session() as session:
         session.location.select("Any Location")
         session.organization.select("Any Organization")
         ansible_roles_table = session.host_new.get_ansible_roles(host.name)
-        assert ansible_roles_table
+        assert ansible_roles_table[0]["Name"] == SELECTED_ROLE
+        all_assigned_roles_table = session.host_new.get_ansible_roles_modal(host.name)
+        assert all_assigned_roles_table[0]["Name"] == SELECTED_ROLE
 
     @pytest.mark.stubbed
     @pytest.mark.tier2
