@@ -162,6 +162,22 @@ def function_entitlement_manifest():
 
 
 @pytest.fixture(scope='function')
+def duplicate_entitlement_manifest():
+    """Yields a second entitlement manifest that can be used with a function-scoped organization
+    when a test requires two separate manifests."""
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
+        yield manifest
+
+
+@pytest.fixture(scope='function')
+def duplicate_sca_manifest():
+    """Yields a second SCA manifest that can be used with a function-scoped organization
+    when a test requires two separate manifests."""
+    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+        yield manifest
+
+
+@pytest.fixture(scope='function')
 def function_sca_manifest():
     """Yields a manifest in Simple Content Access mode with subscriptions determined by the
     `manifest_category.golden_ticket` setting in manifester_settings.yaml."""
