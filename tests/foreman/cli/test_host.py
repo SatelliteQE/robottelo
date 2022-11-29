@@ -2542,7 +2542,7 @@ def test_positive_host_with_puppet(
 
 
 @pytest.fixture(scope="function")
-def function_proxy(session_puppet_enabled_sat):
+def function_proxy(session_puppet_enabled_sat, puppet_proxy_port_range):
     proxy = session_puppet_enabled_sat.cli_factory.make_proxy()
     yield proxy
     session_puppet_enabled_sat.cli.Proxy.delete({'id': proxy['id']})
