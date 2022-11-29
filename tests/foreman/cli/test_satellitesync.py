@@ -1141,7 +1141,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier2
     def test_positive_export_cv_with_on_demand_repo(
-        self, export_import_cleanup_function, target_sat, module_org
+        self, export_import_cleanup_module, target_sat, module_org
     ):
         """Exporting CV version skips on_demand repo
 
@@ -1229,7 +1229,7 @@ class TestContentViewSync:
     def test_negative_import_same_cv_twice(
         self,
         class_export_entities,
-        export_import_cleanup_function,
+        export_import_cleanup_module,
         config_export_import_settings,
         target_sat,
         module_org,
@@ -1307,7 +1307,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier2
     def test_negative_export_cv_with_on_demand_repo(
-        self, export_import_cleanup_function, target_sat, module_org
+        self, export_import_cleanup_module, target_sat, module_org
     ):
         """Exporting CV version having on_demand repo throws error with "fail-on-missing-content" option set
 
