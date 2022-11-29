@@ -395,6 +395,7 @@ def test_positive_filter_product_list(module_entitlement_manifest_org):
     assert product.name not in (prod.name for prod in rh_products)
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 def test_positive_assign_http_proxy_to_products():
     """Assign http_proxy to Products and check whether http-proxy is

@@ -26,6 +26,7 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 
 
+@pytest.mark.e2e
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_list([8, 9])
