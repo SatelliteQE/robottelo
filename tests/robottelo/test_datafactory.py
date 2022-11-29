@@ -56,7 +56,7 @@ class TestFilteredDataPoint:
             assert len(datafactory.invalid_usernames_list()) == 4
             assert len(datafactory.valid_labels_list()) == 2
             assert len(datafactory.valid_data_list()) == 7
-            assert len(datafactory.valid_emails_list()) == 8
+            assert len(datafactory.valid_emails_list()) == 10
             assert len(datafactory.valid_environments_list()) == 4
             assert len(datafactory.valid_hosts_list()) == 3
             assert len(datafactory.valid_hostgroups_list()) == 7
