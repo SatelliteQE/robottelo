@@ -18,7 +18,21 @@ jobs:
         with:
           fetch-depth: 0
       - id: set-branch
-        run: echo "::set-output name=previous_branch::$(if [ $GITHUB_BASE_REF  == 'master' ]; then echo $(git branch -rl 'origin/6.*.z' --format='%(refname:lstrip=-1)' | sort --version-sort | tail -n1 | jq -cnR '[inputs | select(length>0)]'); else echo ['"6.'$(($(echo $GITHUB_BASE_REF | cut -d. -f2) - 1))'.z"']; fi)"
+        run: echo "previous_branch=$(if [ $GITHUB_BASE_REF  == 'master' ]; then echo $(git branch -rl 'origin/6.*.z' --format='%(refname:lstrip=-1)' | sort --version-sort | tail -n1); else echo '6.'$(($(echo $GITHUB_BASE_REF | cut -d. -f2) - 1))'.z'; fi)" >> $GITHUB_OUTPUT
+
+  find-the-parent-prt-comment:
+    name: Find & Save last PRT comment of Parent PR
+    runs-on: ubuntu-latest
+    outputs:
+      prt_comment: ${{steps.fc.outputs.comment-body}}
+    steps:
+      - name: Find Comment
+        uses: peter-evans/find-comment@v2
+        id: fc
+        with:
+          issue-number: ${{ github.event.number }}
+          body-includes: "trigger: test-robottelo"
+          direction: last
 
   auto-cherry-pick:
     name: Auto Cherry Pick to previous branch
@@ -27,48 +41,69 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-    strategy:
-      matrix:
-        to_branch: ${{ fromJson(needs.previous-branch.outputs.previous_branch) }}
+      TO_BRANCH: ${{ needs.previous-branch.outputs.previous_branch }}
+    outputs:
+      pr_number: ${{steps.issue.outputs.number}}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Cherry pick into ${{ matrix.to_branch }}
+      - name: Cherry pick into ${{ env.TO_BRANCH }}
         uses: jyejare/github-cherry-pick-action@main
+        id: issue
         with:
           author: ${{ env.PR_AUTHOR }} <${{ env.PR_AUTHOR }}@users.noreply.github.com>
           token: ${{ secrets.CHERRYPICK_PAT }}
-          branch: ${{ matrix.to_branch }}
+          branch: ${{ env.TO_BRANCH }}
           labels: |
             Auto_Cherry_Picked
-            ${{ matrix.to_branch }}
+            ${{ env.TO_BRANCH }}
+          assignees: "${{ github.event.pull_request.assignee.login }}"
+
+  add-parent-prt-comment:
+    name: Add Parent PR's PRT comment to Auto_Cherry_Picked PR's
+    runs-on: ubuntu-latest
+    needs: [ auto-cherry-pick, find-the-parent-prt-comment ]
+    steps:
+      - uses: mshick/add-pr-comment@v2
+        with:
+          issue: ${{ needs.auto-cherry-pick.outputs.pr_number }}
+          message: ${{needs.find-the-parent-prt-comment.outputs.prt_comment}}
+          repo-token: ${{ secrets.CHERRYPICK_PAT }}
 
   create-issue:
+    name: Create Github issue on cherrypick failure
     runs-on: ubuntu-latest
     if: ${{ always() && contains(join(needs.*.result, ','), 'failure') }}
-    needs: auto-cherry-pick
+    needs: [previous-branch, auto-cherry-pick]
+    env:
+      TO_BRANCH: ${{ needs.previous-branch.outputs.previous_branch }}
+    outputs:
+      issue_url: ${{steps.create_issue.outputs.html_url}}
     steps:
-      - name: Create Issue on Failed Auto Cherrypick
-        uses: dacbd/create-issue-action@main
+      - uses: dacbd/create-issue-action@main
+        id: create_issue
         with:
           token: ${{ secrets.CHERRYPICK_PAT }}
           title: "[Failed-AutoCherryPick] - ${{ github.event.pull_request.title }}"
           body: |
             #### Auto-Cherry-Pick WorkFlow Failure:
+            - To Branch: ${{ env.TO_BRANCH }}
             - [Failed Cherrypick Action](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
             - [Parent Pull Request](https://github.com/${{ github.repository }}/pull/${{ github.event.number }})
-          labels: Failed_AutoCherryPick
-          assignees: "${{ github.event.pull_request.user.login }}"
+          labels: Failed_AutoCherryPick,${{ env.TO_BRANCH }}
+          assignees: "${{ github.event.pull_request.assignee.login }}"
 
   google-chat-notification:
     runs-on: ubuntu-latest
-    if: ${{ always() && contains(join(needs.*.result, ','), 'failure') }}
-    needs: auto-cherry-pick
+    if: ${{ always() && contains(join(needs.auto-cherry-pick.result, ','), 'failure') }}
+    needs: [auto-cherry-pick, create-issue]
     steps:
       - name: Google Chat Notification - Robottelo
-        uses: Co-qn/google-chat-notification@releases/v1
+        uses: omkarkhatavkar/google-chat-notification@master
         with:
-          name: "[Failed-AutoCherryPick] - ${{ github.event.pull_request.title }}"
+          name: "${{ github.event.pull_request.title }}"
           url: ${{ secrets.GCHAT_REVIEWERS_WEBHOOK }}
+          issue_url: ${{ needs.create-issue.outputs.issue_url }}
+          author: ${{ github.event.pull_request.assignee.login }}
           status: failure

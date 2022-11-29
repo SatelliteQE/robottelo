@@ -20,14 +20,6 @@ import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.discoveredhost import DiscoveredHost
-from robottelo.cli.factory import configure_env_for_provision
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_org
-from robottelo.cli.host import Host
-from robottelo.cli.settings import Settings
-from robottelo.cli.template import Template
-from robottelo.libvirt_discovery import LibvirtGuest
-from robottelo.utils.datafactory import gen_string
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
@@ -48,60 +40,7 @@ def _assertdiscoveredhost(hostname):
         return discovered_host
 
 
-@pytest.mark.skip_if_not_set('vlan_networking')
-@pytest.fixture(scope='class')
-def foreman_discovery(target_sat):
-    """Steps to Configure foreman discovery
-
-    1. Build PXE default template
-    2. Create Organization/Location
-    3. Update Global parameters to set default org and location for
-        discovered hosts.
-    4. Enable auto_provision flag to perform discovery via discovery
-        rules.
-    """
-    # Build PXE default template to get default PXE file
-    Template.build_pxe_default()
-    # let's just modify the timeouts to speed things up
-    target_sat.execute(
-        "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' /var/lib/tftpboot/pxelinux.cfg/default"
-    )
-    target_sat.execute(
-        "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1/' /var/lib/tftpboot/pxelinux.cfg/default"
-    )
-
-    # Create Org and location
-    org = make_org()
-    loc = make_location()
-
-    # Get default settings values
-    default_discovery_loc = Settings.list({'search': 'name=discovery_location'})[0]
-    default_discovery_org = Settings.list({'search': 'name=discovery_organization'})[0]
-    default_discovery_auto = Settings.list({'search': 'name=discovery_auto'})[0]
-
-    # Update default org and location params to place discovered host
-    Settings.set({'name': 'discovery_location', 'value': loc['name']})
-    Settings.set({'name': 'discovery_organization', 'value': org['name']})
-
-    # Enable flag to auto provision discovered hosts via discovery rules
-    Settings.set({'name': 'discovery_auto', 'value': 'true'})
-
-    # Flag which shows whether environment is fully configured for
-    # discovered host provisioning.
-    configured_env = configure_env_for_provision(org=org, loc=loc)
-    yield {
-        'default_discovery_auto': default_discovery_auto,
-        'default_discovery_loc': default_discovery_loc,
-        'default_discovery_org': default_discovery_org,
-        'configured_env': configured_env,
-    }
-    # Restore default global setting's values
-    Settings.set({'name': 'discovery_location', 'value': default_discovery_loc['value']})
-    Settings.set({'name': 'discovery_organization', 'value': default_discovery_org['value']})
-    Settings.set({'name': 'discovery_auto', 'value': default_discovery_auto['value']})
-
-
-@pytest.mark.libvirt_discovery
+@pytest.mark.stubbed
 @pytest.mark.tier3
 def test_positive_pxe_based_discovery():
     """Discover a host via PXE boot by setting "proxy.type=proxy" in
@@ -119,16 +58,11 @@ def test_positive_pxe_based_discovery():
 
     :BZ: 1731112
     """
-    with LibvirtGuest() as pxe_host:
-        hostname = pxe_host.guest_name
-        host = _assertdiscoveredhost(hostname)
-        assert host is not None
 
 
+@pytest.mark.stubbed
 @pytest.mark.tier3
-@pytest.mark.libvirt_discovery
-@pytest.mark.upgrade
-def test_positive_provision_pxeless_bios_syslinux(foreman_discovery):
+def test_positive_provision_pxeless_bios_syslinux():
     """Provision and discover the pxe-less BIOS host from cli using SYSLINUX
     loader
 
@@ -162,50 +96,11 @@ def test_positive_provision_pxeless_bios_syslinux(foreman_discovery):
 
     :BZ: 1731112
     """
-    with LibvirtGuest(boot_iso=True) as pxe_host:
-        hostname = pxe_host.guest_name
-        # fixme: assertion #1
-        discovered_host = _assertdiscoveredhost(hostname)
-        assert discovered_host is not None
-        # Provision just discovered host
-        DiscoveredHost.provision(
-            {
-                'name': discovered_host['name'],
-                'hostgroup': foreman_discovery['configured_env']['hostgroup']['name'],
-                'root-password': gen_string('alphanumeric'),
-            }
-        )
-        # fixme: assertion #2-5
-        provisioned_host = Host.info(
-            {
-                'name': '{}.{}'.format(
-                    discovered_host['name'],
-                    foreman_discovery['configured_env']['domain']['name'],
-                )
-            }
-        )
-        assert (
-            provisioned_host['network']['subnet-ipv4']
-            == foreman_discovery['configured_env']['subnet']['name']
-        )
-        assert (
-            provisioned_host['operating-system']['partition-table']
-            == foreman_discovery['configured_env']['ptable']['name']
-        )
-        assert (
-            provisioned_host['operating-system']['operating-system']
-            == foreman_discovery['configured_env']['os']['title']
-        )
-        # Check that provisioned host is not in the list of discovered
-        # hosts anymore
-        with pytest.raises(CLIReturnCodeError):
-            DiscoveredHost.info({'id': discovered_host['id']})
 
 
+@pytest.mark.stubbed
 @pytest.mark.tier3
-@pytest.mark.libvirt_discovery
-@pytest.mark.upgrade
-def test_positive_provision_pxe_host_with_bios_syslinux(foreman_discovery):
+def test_positive_provision_pxe_host_with_bios_syslinux():
     """Provision the pxe-based BIOS discovered host from cli using SYSLINUX
     loader
 
@@ -252,46 +147,6 @@ def test_positive_provision_pxe_host_with_bios_syslinux(foreman_discovery):
 
     :BZ: 1731112
     """
-    # fixme: assertion #1
-    with LibvirtGuest() as pxe_host:
-        hostname = pxe_host.guest_name
-        # fixme: assertion #2-3
-        # assertion #4
-        discovered_host = _assertdiscoveredhost(hostname)
-        assert discovered_host is not None
-        # Provision just discovered host
-        DiscoveredHost.provision(
-            {
-                'name': discovered_host['name'],
-                'hostgroup': foreman_discovery['configured_env']['hostgroup']['name'],
-                'root-password': gen_string('alphanumeric'),
-            }
-        )
-        # fixme: assertion #5-8
-        provisioned_host = Host.info(
-            {
-                'name': '{}.{}'.format(
-                    discovered_host['name'],
-                    foreman_discovery['configured_env']['domain']['name'],
-                )
-            }
-        )
-        # assertion #8
-        assert (
-            provisioned_host['network']['subnet-ipv4']
-            == foreman_discovery['configured_env']['subnet']['name']
-        )
-        assert (
-            provisioned_host['operating-system']['partition-table']
-            == foreman_discovery['configured_env']['ptable']['name']
-        )
-        assert (
-            provisioned_host['operating-system']['operating-system']
-            == foreman_discovery['configured_env']['os']['title']
-        )
-        # assertion #9
-        with pytest.raises(CLIReturnCodeError):
-            DiscoveredHost.info({'id': discovered_host['id']})
 
 
 @pytest.mark.stubbed
@@ -345,8 +200,8 @@ def test_positive_provision_pxe_host_with_uefi_grub2():
     """
 
 
+@pytest.mark.stubbed
 @pytest.mark.tier3
-@pytest.mark.libvirt_discovery
 def test_positive_delete():
     """Delete the selected discovered host
 
@@ -358,13 +213,6 @@ def test_positive_delete():
 
     :CaseImportance: High
     """
-    with LibvirtGuest() as pxe_host:
-        hostname = pxe_host.guest_name
-        host = _assertdiscoveredhost(hostname)
-        assert host is not None
-    DiscoveredHost.delete({'id': host['id']})
-    with pytest.raises(CLIReturnCodeError):
-        DiscoveredHost.info({'id': host['id']})
 
 
 @pytest.mark.stubbed

@@ -11,7 +11,7 @@ sat6-upgrade requires env.satellite_hostname to be set, this is required for the
 
 :CaseComponent: Hosts-Content
 
-:Assignee: spusater
+:Assignee: shwsingh
 
 :TestType: Functional
 
@@ -25,9 +25,7 @@ import pytest
 from fabric.api import execute
 from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
-from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import dockerize
-from upgrade_tests.helpers.scenarios import get_entity_data
 
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
@@ -162,7 +160,7 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
 
     @pytest.mark.pre_upgrade
     def test_pre_scenario_preclient_package_installation(
-        default_org, pre_upgrade_cv, pre_upgrade_repo, module_ak
+        default_org, pre_upgrade_cv, pre_upgrade_repo, module_ak, save_test_data
     ):
         """Create product and repo, from which a package will be installed
         post upgrade. Create a content host and register it.
@@ -217,10 +215,10 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
         ]
         assert 'goferd' in status
         # Save client info to disk for post-upgrade test
-        create_dict({__name__: rhel7_client})
+        save_test_data({__name__: rhel7_client})
 
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_preclient_package_installation)
-    def test_post_scenario_preclient_package_installation(default_org):
+    def test_post_scenario_preclient_package_installation(default_org, pre_upgrade_data):
         """Post-upgrade install of a package on a client created and registered pre-upgrade.
 
         :id: postupgrade-eedab638-fdc9-41fa-bc81-75dd2790f7be
@@ -229,7 +227,7 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
 
         :expectedresults: The package is installed on client
         """
-        client = get_entity_data(__name__)
+        client = pre_upgrade_data.get(__name__)
         client_name = str(list(client.keys())[0]).lower()
         client_id = entities.Host().search(query={'search': f'name={client_name}'})[0].id
         entities.Host().install_content(

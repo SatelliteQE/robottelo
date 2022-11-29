@@ -6,6 +6,10 @@ from tempfile import NamedTemporaryFile
 from robottelo import constants
 from robottelo.api import utils
 from robottelo.config import robottelo_tmp_dir
+from robottelo.config import settings
+from robottelo.logging import logger
+from robottelo.utils.ohsnap import dogfood_repofile_url
+from robottelo.utils.ohsnap import dogfood_repository
 
 
 class VersionedContent:
@@ -40,9 +44,10 @@ class VersionedContent:
             'cbrhel': constants.OSCAP_PROFILE[f'cbrhel{self._v_major}'],
         }
 
-    def dogfood_repofile(self, product=None, release=None, snap=''):
-        from robottelo.config import settings
-
+    def _dogfood_helper(self, product, release, snap, repo=None):
+        """Function to return repository related attributes
+        based on the input and the host object
+        """
         v_major = str(self._v_major)
         if not product:
             if self.__class__.__name__ == 'ContentHost':
@@ -50,23 +55,32 @@ class VersionedContent:
                 release = release or 'Client'
             else:
                 product = self.__class__.__name__.lower()
+        repo = repo or product  # if repo is not specified, set it to the same as the product is
         release = self.satellite.version if not release else str(release)
-
-        if release.lower != 'client':
-            release = release.split('.')
-            if len(release) == 2:
-                release.append('0')
-            release = '.'.join(release[:3])  # keep only major.minor.patch
+        settings_release = settings.server.version.release.split('.')
+        if len(settings_release) == 2:
+            settings_release.append('0')
+        settings_release = '.'.join(settings_release[:3])  # keep only major.minor.patch
+        if product != 'client' and release != settings_release:
+            logger.warn(
+                'Satellite release in settings differs from the one passed to the function '
+                'or the version of the Satellite object. '
+                f'settings: {settings_release}, parameter: {release}'
+            )
         snap = str(snap or settings.server.version.get("snap"))
-        return (
-            f'{settings.repos.ohsnap_repo_host}/api/releases/'
-            f'{release}{"/" + snap if snap else ""}/el{v_major}/{product}/repo_file'
-        )
+        return product, release, snap, v_major, repo
 
     def download_repofile(self, product=None, release=None, snap=''):
-        """Downloads the tools, capsule, or satellite repos on the machine"""
-        self.execute(
-            f'curl -o /etc/yum.repos.d/dogfood.repo {self.dogfood_repofile(product, release, snap)}'
+        """Downloads the tools/client, capsule, or satellite repos on the machine"""
+        product, release, snap, v_major, _ = self._dogfood_helper(product, release, snap)
+        url = dogfood_repofile_url(settings.repos.ohsnap_repo_host, product, release, v_major, snap)
+        self.execute(f'curl -o /etc/yum.repos.d/dogfood.repo {url}')
+
+    def dogfood_repository(self, repo=None, product=None, release=None, snap=''):
+        """Returns a repository definition based on the arguments provided"""
+        product, release, snap, v_major, repo = self._dogfood_helper(product, release, snap, repo)
+        return dogfood_repository(
+            settings.repos.ohsnap_repo_host, repo, product, release, v_major, snap, self.arch
         )
 
     def enable_tools_repo(self, organization_id):
@@ -88,6 +102,33 @@ class VersionedContent:
             reposet=self.REPOSET['rhel'],
             releasever=None,
         )
+
+    def create_custom_html_repo(self, rpm_url, repo_name=None, update=False, remove_rpm=None):
+        """Creates a custom yum repository, that will be published on https
+
+        This could be used to quickly create custom repo on satellite to perform repository sync
+        testing
+
+        :needs: createrepo rpm to be installed on host system
+
+        :param: str rpm_url : rpm url to wget the rpm
+        :param: str repo_name: Name of the repository
+        :param: bool update: update the existing repo by adding new rpm and regenerate repomd
+        :param: str remove_rpm: Remove rpm before updating the existing the repo
+        """
+        repo_name = repo_name or 'custom_repo'
+        file_path = f'/var/www/html/pub/{repo_name}/'
+
+        if update:
+            self.execute(f'wget {rpm_url} -P {file_path}')
+            self.execute(f'rm -rf {file_path + remove_rpm}')
+            self.execute(f'createrepo --update {file_path}')
+        else:
+            self.execute(f'rm -rf {file_path}')
+            self.execute(f'mkdir {file_path}')
+            self.execute(f'wget {rpm_url} -P {file_path}')
+            # Renaming custom rpm to preRepoSync.rpm
+            self.execute(f'createrepo --database {file_path}')
 
 
 class SystemFacts:

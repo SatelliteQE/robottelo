@@ -192,6 +192,7 @@ class TestIPAAuthSource:
     @pytest.mark.tier2
     @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
     @pytest.mark.upgrade
+    @pytest.mark.e2e
     def test_positive_end_to_end_with_ipa(self, ipa_data, server_name, ldap_tear_down):
         """CRUD LDAP authentication with FreeIPA
 
@@ -384,6 +385,7 @@ class TestOpenLdapAuthSource:
     """Implements OpenLDAP Auth Source tests in CLI"""
 
     @pytest.mark.tier2
+    @pytest.mark.e2e
     @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
     @pytest.mark.upgrade
     def test_positive_end_to_end_with_open_ldap(self, open_ldap_data, server_name):

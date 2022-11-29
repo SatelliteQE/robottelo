@@ -24,8 +24,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
@@ -370,7 +368,7 @@ def test_positive_sync_several_repos(module_org):
 
 
 @pytest.mark.tier2
-def test_positive_filter_product_list():
+def test_positive_filter_product_list(module_entitlement_manifest_org):
     """Filter products based on param 'custom/redhat_only'
 
     :id: e61fb63a-4552-4915-b13d-23ab80138249
@@ -381,12 +379,8 @@ def test_positive_filter_product_list():
 
     :BZ: 1667129
     """
-    org = entities.Organization().create()
+    org = module_entitlement_manifest_org
     product = entities.Product(organization=org).create()
-    # Manifest upload to create RH Product
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
-
     custom_products = entities.Product(organization=org).search(query={'custom': True})
     rh_products = entities.Product(organization=org).search(
         query={'redhat_only': True, 'per_page': 1000}
@@ -401,6 +395,7 @@ def test_positive_filter_product_list():
     assert product.name not in (prod.name for prod in rh_products)
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 def test_positive_assign_http_proxy_to_products():
     """Assign http_proxy to Products and check whether http-proxy is

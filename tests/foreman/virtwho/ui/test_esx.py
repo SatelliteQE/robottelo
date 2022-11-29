@@ -795,3 +795,49 @@ class TestVirtwhoConfigforEsx:
             )
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
+
+    @pytest.mark.tier2
+    def test_positive_remove_env_option(self, default_org, form_data, target_sat, session):
+        """remove option 'env=' from the virt-who configuration file and without any error
+
+        :id: 4503985c-8cf5-455c-855f-73dc7645ffe9
+
+        :expectedresults:
+            the option "env=" should be removed from etc/virt-who.d/virt-who.conf
+            /var/log/messages should not display warning message
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+
+        :BZ: 1834897
+
+        :customerscenario: true
+        """
+        name = gen_string('alpha')
+        form_data['name'] = name
+        with session:
+            session.virtwho_configure.create(form_data)
+            values = session.virtwho_configure.read(name)
+            command = values['deploy']['command']
+            deploy_configure_by_command(
+                command, form_data['hypervisor_type'], debug=True, org=default_org.label
+            )
+            assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+            # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
+            option = "env"
+            config_id = get_configure_id(name)
+            config_file = get_configure_file(config_id)
+            env_error = (
+                f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
+            )
+            try:
+                get_configure_option({option}, {config_file})
+            except Exception as VirtWhoError:
+                assert env_error == str(VirtWhoError)
+            # Check /var/log/messages should not display warning message
+            env_warning = f"Ignoring unknown configuration option \"{option}\""
+            result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
+            assert result.status == 1
+            session.virtwho_configure.delete(name)
+            assert not session.virtwho_configure.search(name)

@@ -644,6 +644,7 @@ def test_install_errata_to_one_host(module_org, errata_hosts, host_collection, t
 
 
 @pytest.mark.tier3
+@pytest.mark.e2e
 def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     request, module_org, module_cv, module_lce, errata_hosts
 ):
