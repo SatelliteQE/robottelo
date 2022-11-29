@@ -13,7 +13,6 @@ from robottelo import constants
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
-from robottelo.constants import PXE_LOADER_MAP
 from robottelo.hosts import ContentHost
 
 
@@ -233,9 +232,11 @@ def provisioning_hostgroup(
 @pytest.fixture
 def pxe_loader(request):
     """Map the appropriate PXE loader to VM bootloader"""
-    return Box(
-        PXE_LOADER_MAP['bios'] if not hasattr(request, 'param') else PXE_LOADER_MAP[request.param]
-    )
+    PXE_LOADER_MAP = {
+        'bios': {'vm_firmware': 'bios', 'pxe_loader': 'PXELinux BIOS'},
+        'uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI'},
+    }
+    return Box(PXE_LOADER_MAP[getattr(request, 'param', 'bios')])
 
 
 @pytest.fixture()

@@ -1414,11 +1414,6 @@ PERMISSIONS_UI = {
     'Usergroup': ['view_usergroups', 'create_usergroups', 'edit_usergroups', 'destroy_usergroups'],
 }
 
-PXE_LOADER_MAP = {
-    'bios': {'vm_firmware': 'bios', 'pxe_loader': 'PXELinux BIOS'},
-    'uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI'},
-}
-
 
 ANY_CONTEXT = {'org': "Any Organization", 'location': "Any Location"}
 
