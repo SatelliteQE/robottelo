@@ -2254,7 +2254,7 @@ def test_positive_update_delete_package(
             session.host_new.override_repo_sets(
                 client.hostname, product_name, "Override to disabled"
             )
-            assert 'Disnabled' == repos[0].status
+            assert 'Disabled' == repos[0].status
             session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
             result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
             assert result.status != 0
