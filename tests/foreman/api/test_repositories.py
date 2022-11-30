@@ -22,6 +22,8 @@ from requests.exceptions import HTTPError
 from robottelo import constants
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
+from robottelo.constants import MIRRORING_POLICIES
+from robottelo.utils.datafactory import parametrized
 
 
 @pytest.mark.skip_if_open('BZ:2137950')
@@ -100,3 +102,39 @@ def test_positive_update_repository_metadata(module_org, target_sat):
         .content_counts['rpm']
     )
     assert content_counts_before_update != content_counts_after_update
+
+
+@pytest.mark.parametrize(
+    'module_repo_options',
+    **parametrized(
+        [
+            {
+                'content_type': 'yum',
+                'mirroring_policy': policy,
+                'url': settings.repos.mock_service_repo.rhel7,
+            }
+            for policy in MIRRORING_POLICIES
+        ]
+    ),
+    indirect=True,
+)
+def test_positive_epel_repositories_with_mirroring_policy(
+    module_org, module_repo_options, module_repo, target_sat
+):
+    """Create an Epel Repository with different mirroring policies set and confirm content exist
+
+    :id: 5c4e0ba4-4486-4eaf-b6ad-62831b7353a4
+
+    :Steps:
+        1. Create a Epel repository with mirroring_policy set
+        2. Sync the Repository and return its content_counts for rpm
+        3. Assert content was synced and mirroring policy type is correct
+
+    :expectedresults: All Epel repositories with mirroring policy options set should have content
+    """
+    module_repo.sync()
+    repodata = target_sat.api.Repository(name=module_repo.name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    assert repodata.content_counts['rpm'] != 0
+    assert module_repo_options['mirroring_policy'] == repodata.mirroring_policy
