@@ -11,6 +11,21 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 
 
+@pytest.fixture(scope='module')
+def module_repo_options(request, module_org, module_product):
+    """Return the options that were passed as indirect parameters."""
+    options = getattr(request, 'param', {}).copy()
+    options['organization'] = module_org
+    options['product'] = module_product
+    return options
+
+
+@pytest.fixture(scope='module')
+def module_repo(module_repo_options, module_target_sat):
+    """Create a new repository."""
+    return module_target_sat.api.Repository(**module_repo_options).create()
+
+
 @pytest.fixture(scope='function')
 def function_product(function_org):
     return entities.Product(organization=function_org).create()
