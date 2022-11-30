@@ -22,7 +22,6 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo.config import settings
-from robottelo.logging import logger
 
 pytestmark = pytest.mark.destructive
 
@@ -70,7 +69,6 @@ def test_positive_backup_preserve_directory(
         backup_type=backup_type,
         options={'assumeyes': True, 'plaintext': True, 'preserve-directory': True},
     )
-    logger.info(result.stdout)
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
@@ -117,7 +115,6 @@ def test_positive_backup_split_pulp_tar(
         backup_type=backup_type,
         options={'assumeyes': True, 'plaintext': True, 'split-pulp-tar': f'{set_size}k'},
     )
-    logger.info(result.stdout)
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
@@ -165,7 +162,6 @@ def test_positive_backup_caspule_features(
         backup_type=backup_type,
         options={'assumeyes': True, 'plaintext': True, 'features': features},
     )
-    logger.info(result.stdout)
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
@@ -205,7 +201,6 @@ def test_positive_backup_all(sat_maintain, setup_backup_tests, module_synced_rep
         backup_type=backup_type,
         options={'assumeyes': True, 'plaintext': True},
     )
-    logger.info(result.stdout)
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
@@ -225,7 +220,6 @@ def test_positive_backup_all(sat_maintain, setup_backup_tests, module_synced_rep
             'features': 'dns,tfp,dhcp,openscap',
         },
     )
-    logger.info(result.stdout)
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
@@ -249,7 +243,6 @@ def test_positive_backup_offline_logical(sat_maintain, setup_backup_tests, modul
         backup_type='offline',
         options={'assumeyes': True, 'plaintext': True, 'include-db-dumps': True},
     )
-    logger.info(result.stdout)
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
@@ -282,7 +275,6 @@ def test_negative_backup_nodir(sat_maintain, setup_backup_tests, module_synced_r
         backup_type='offline',
         options={'assumeyes': True, 'plaintext': True},
     )
-    logger.info(result.stdout)
     assert result.status != 0
     assert NODIR_MSG in str(result.stderr)
 
@@ -306,7 +298,6 @@ def test_negative_backup_incremental_nodir(sat_maintain, setup_backup_tests, bac
         backup_type=backup_type,
         options={'assumeyes': True, 'plaintext': True, 'incremental': subdir},
     )
-    logger.info(result.stdout)
     assert result.status != 0
     assert NOPREV_MSG in str(result.stderr)
 
@@ -332,7 +323,6 @@ def test_negative_backup_maintenance_mode(sat_maintain, setup_backup_tests):
         backup_type='snapshot',
         options={'assumeyes': True, 'plaintext': True},
     )
-    logger.info(result.stdout)
     assert result.status != 0
     assert "Backup didn't finish. Incomplete backup was removed." in result.stdout
 
@@ -357,7 +347,6 @@ def test_negative_restore_nodir(sat_maintain, setup_backup_tests):
         backup_dir='',
         options={'assumeyes': True, 'plaintext': True},
     )
-    logger.info(result.stdout)
     assert result.status != 0
     assert NODIR_MSG in str(result.stderr)
 
@@ -378,7 +367,6 @@ def test_negative_restore_baddir(sat_maintain, setup_backup_tests):
         backup_dir=subdir,
         options={'assumeyes': True, 'plaintext': True},
     )
-    logger.info(result.stdout)
     assert result.status != 0
     assert BADDIR_MSG in str(result.stdout)
 
@@ -416,7 +404,6 @@ def test_positive_backup_restore(
         backup_type=backup_type,
         options={'assumeyes': True, 'plaintext': True, 'skip-pulp-content': skip_pulp},
     )
-    logger.info(result.stdout)
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
@@ -445,8 +432,6 @@ def test_positive_backup_restore(
         backup_dir=backup_dir,
         options={'assumeyes': True, 'plaintext': True},
     )
-
-    logger.info(result.stdout)
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
@@ -454,7 +439,6 @@ def test_positive_backup_restore(
     result = sat_maintain.cli.Health.check(
         options={'whitelist': 'foreman-tasks-not-paused', 'assumeyes': True, 'plaintext': True}
     )
-    logger.info(result.stdout)
     assert result.status == 0
 
     # Check that content is present after restore
@@ -504,7 +488,6 @@ def test_positive_backup_restore_incremental(
         backup_type=backup_type,
         options={'assumeyes': True, 'plaintext': True},
     )
-    logger.info(result.stdout)
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
@@ -523,7 +506,6 @@ def test_positive_backup_restore_incremental(
         backup_type=backup_type,
         options={'assumeyes': True, 'plaintext': True, 'incremental': init_backup_dir},
     )
-    logger.info(result.stdout)
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
@@ -547,14 +529,12 @@ def test_positive_backup_restore_incremental(
         backup_dir=init_backup_dir,
         options={'assumeyes': True, 'plaintext': True},
     )
-    logger.info(result.stdout)
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
     result = sat_maintain.cli.Health.check(
         options={'whitelist': 'foreman-tasks-not-paused', 'assumeyes': True, 'plaintext': True}
     )
-    logger.info(result.stdout)
     assert result.status == 0
 
     # check that the additional content is missing at this point
@@ -566,14 +546,12 @@ def test_positive_backup_restore_incremental(
         backup_dir=inc_backup_dir,
         options={'assumeyes': True, 'plaintext': True},
     )
-    logger.info(result.stdout)
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
     result = sat_maintain.cli.Health.check(
         options={'whitelist': 'foreman-tasks-not-paused', 'assumeyes': True, 'plaintext': True}
     )
-    logger.info(result.stdout)
     assert result.status == 0
 
     # check the initial and additional content was restored
