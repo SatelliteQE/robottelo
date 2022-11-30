@@ -4,7 +4,7 @@
 
 :CaseLevel: Component
 
-:CaseComponent: Upgrade
+:CaseComponent: Upgrades
 
 :Assignee: lpramuk
 
