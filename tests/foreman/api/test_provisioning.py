@@ -22,7 +22,7 @@ from packaging.version import Version
 from wait_for import wait_for
 
 
-@pytest.mark.parametrize('provisioning_host', ['bios', 'uefi'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.on_premises_provisioning
 @pytest.mark.rhel_ver_match('[^6]')
 def test_rhel_pxe_provisioning(
@@ -31,7 +31,9 @@ def test_rhel_pxe_provisioning(
     module_sca_manifest_org,
     module_location,
     provisioning_host,
+    pxe_loader,
     module_provisioning_rhel_content,
+    provisioning_hostgroup,
     module_lce_library,
     module_default_org_view,
 ):
@@ -49,11 +51,11 @@ def test_rhel_pxe_provisioning(
         2. Satellite is able to run REX job on the host
         3. Host is registered to Satellite and subscription status is 'Success'
     """
-    host_mac_addr = provisioning_host.prov_host._broker_args['provisioning_nic_mac_addr']
+    host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
     sat = module_provisioning_sat.sat
 
     host = sat.api.Host(
-        hostgroup=module_provisioning_rhel_content.hostgroup,
+        hostgroup=provisioning_hostgroup,
         organization=module_sca_manifest_org,
         location=module_location,
         content_facet_attributes={
@@ -74,7 +76,7 @@ def test_rhel_pxe_provisioning(
     request.addfinalizer(host.delete)
 
     # Start the VM, do not ensure that we can connect to SSHD
-    provisioning_host.prov_host.power_control(ensure=False)
+    provisioning_host.power_control(ensure=False)
 
     # TODO: Implement Satellite log capturing logic to verify that
     # all the events are captured in the logs.
@@ -92,14 +94,14 @@ def test_rhel_pxe_provisioning(
     # Change the hostname of the host as we know it already.
     # In the current infra environment we do not support
     # addressing hosts using FQDNs, falling back to IP.
-    provisioning_host.prov_host.hostname = host.ip
+    provisioning_host.hostname = host.ip
     # Host is not blank anymore
-    provisioning_host.prov_host.blank = False
+    provisioning_host.blank = False
 
     # Wait for the host to be rebooted and SSH daemon to be started.
     try:
         wait_for(
-            provisioning_host.prov_host.connect,
+            provisioning_host.connect,
             fail_condition=lambda res: res is not None,
             handle_exception=True,
             raise_original=True,
@@ -113,7 +115,7 @@ def test_rhel_pxe_provisioning(
     host_os = host.operatingsystem.read()
     expected_rhel_version = Version(f'{host_os.major}.{host_os.minor}')
     assert (
-        provisioning_host.prov_host.os_version == expected_rhel_version
+        provisioning_host.os_version == expected_rhel_version
     ), 'Different than the expected OS version was installed'
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
@@ -134,4 +136,4 @@ def test_rhel_pxe_provisioning(
 
     # assert that the host is subscribed and consumes
     # subsctiption provided by the activation key
-    assert provisioning_host.prov_host.subscribed, 'Host is not subscribed'
+    assert provisioning_host.subscribed, 'Host is not subscribed'
