@@ -108,6 +108,8 @@ def test_positive_advanced_run_hammer_setup(request, sat_maintain):
         2. Run hammer setup with changed password, it should pass and
            password should be updated in MAINTAIN_HAMMER_YML
 
+    :customerscenario: true
+
     :BZ: 1830355
     """
     default_admin_pass = settings.server.admin_password
