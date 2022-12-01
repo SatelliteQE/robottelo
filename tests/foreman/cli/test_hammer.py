@@ -91,8 +91,7 @@ def test_positive_all_options(target_sat):
     commands = re.split(r'.*\n(?=hammer.*\n^[-]+)', raw_output, flags=re.M)
     commands.pop(0)  # remove "Hammer CLI help" line
     for raw_command in commands:
-        raw_command = raw_command.splitlines()
-        command = raw_command.pop(0).replace(' >', '')
+        command = raw_command.splitlines().pop(0).replace(' >', '')
         output = hammer.parse_help(raw_command)
         command_options = {option['name'] for option in output['options']}
         command_subcommands = {subcommand['name'] for subcommand in output['subcommands']}

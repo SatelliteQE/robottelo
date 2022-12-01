@@ -1704,7 +1704,7 @@
                   "value": null
                 },
                 {
-                  "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+                  "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
                   "name": "order",
                   "shortname": null,
                   "value": "VALUE"
@@ -2430,7 +2430,7 @@
                   "value": null
                 },
                 {
-                  "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+                  "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
                   "name": "order",
                   "shortname": null,
                   "value": "VALUE"
@@ -3036,7 +3036,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -3435,7 +3435,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -3589,7 +3589,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -3895,7 +3895,7 @@
                   "value": null
                 },
                 {
-                  "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+                  "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
                   "name": "order",
                   "shortname": null,
                   "value": "VALUE"
@@ -4412,7 +4412,7 @@
                   "value": null
                 },
                 {
-                  "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+                  "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
                   "name": "order",
                   "shortname": null,
                   "value": "VALUE"
@@ -4698,7 +4698,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -4992,7 +4992,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -6142,7 +6142,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -6594,7 +6594,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -8424,7 +8424,7 @@
                   "value": null
                 },
                 {
-                  "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+                  "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
                   "name": "order",
                   "shortname": null,
                   "value": "VALUE"
@@ -8766,7 +8766,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -10033,7 +10033,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -10463,6 +10463,12 @@
                   "value": null
                 },
                 {
+                  "help": "Export formats. Choose syncable if content is to be imported via repository sync. Choose importable if content is to be imported via hammer content-import. Defaults to importable. Possible value(s): 'syncable', 'importable'",
+                  "name": "format",
+                  "shortname": null,
+                  "value": "ENUM"
+                },
+                {
                   "help": "VALUE/NUMBER Organization name/title/label/id",
                   "name": "organization",
                   "shortname": null,
@@ -10483,6 +10489,85 @@
                 {
                   "help": "VALUE/NUMBER Organization name/title/label/id",
                   "name": "organization-label",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Performs a full export of a repository",
+              "name": "repository",
+              "options": [
+                {
+                  "help": "Do not wait for the task",
+                  "name": "async",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Split the exported content into archives no greater than the specified size in gigabytes.",
+                  "name": "chunk-size-gb",
+                  "shortname": null,
+                  "value": "NUMBER"
+                },
+                {
+                  "help": "Export formats. Choose syncable if content is to be imported via repository sync. Choose importable if content is to be imported via hammer content-import. Defaults to importable. Possible value(s): 'syncable', 'importable'",
+                  "name": "format",
+                  "shortname": null,
+                  "value": "ENUM"
+                },
+                {
+                  "help": "Repository id",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "NUMBER"
+                },
+                {
+                  "help": "Filter repositories by name.",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER                    Name/Id of associated product",
+                  "name": "product",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER                    Name/Id of associated product",
+                  "name": "product-id",
                   "shortname": null,
                   "value": null
                 },
@@ -10534,6 +10619,12 @@
                   "name": "fail-on-missing-content",
                   "shortname": null,
                   "value": null
+                },
+                {
+                  "help": "Export formats. Choose syncable if content is to be imported via repository sync. Choose importable if content is to be imported via hammer content-import. Defaults to importable. Possible value(s): 'syncable', 'importable'",
+                  "name": "format",
+                  "shortname": null,
+                  "value": "ENUM"
                 },
                 {
                   "help": "Content view version id",
@@ -10593,6 +10684,31 @@
               "subcommands": []
             }
           ]
+        },
+        {
+          "description": "Generates listing file on each directory of a syncable export. This command only needs to be used if the export was performed asynchronously or if the listing files were lost. Assumes the syncable export directory is accessible on disk",
+          "name": "generate-listing",
+          "options": [
+            {
+              "help": "Generate listing files based on specified export history",
+              "name": "id",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Generate listing files for a syncable export task",
+              "name": "task-id",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
         },
         {
           "description": "Writes export metadata to disk for use by the importing Katello. This command only needs to be used if the export was performed asynchronously or if the metadata was lost",
@@ -10699,6 +10815,85 @@
               "subcommands": []
             },
             {
+              "description": "Performs an incremental export of a repository",
+              "name": "repository",
+              "options": [
+                {
+                  "help": "Do not wait for the task",
+                  "name": "async",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Split the exported content into archives no greater than the specified size in gigabytes.",
+                  "name": "chunk-size-gb",
+                  "shortname": null,
+                  "value": "NUMBER"
+                },
+                {
+                  "help": "Export history id used for incremental export. If not provided the most recent export history will be used.",
+                  "name": "from-history-id",
+                  "shortname": null,
+                  "value": "NUMBER"
+                },
+                {
+                  "help": "Repository id",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "NUMBER"
+                },
+                {
+                  "help": "Filter repositories by name.",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER                    Name/Id of associated product",
+                  "name": "product",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER                    Name/Id of associated product",
+                  "name": "product-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
               "description": "Performs an incremental export of a content view version",
               "name": "version",
               "options": [
@@ -10761,12 +10956,6 @@
                   "name": "lifecycle-environment-id",
                   "shortname": null,
                   "value": null
-                },
-                {
-                  "help": "Name to search by",
-                  "name": "name",
-                  "shortname": null,
-                  "value": "VALUE"
                 },
                 {
                   "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
@@ -11095,6 +11284,61 @@
             },
             {
               "help": "Print help ------------------------|-----|---------|----- | ALL | DEFAULT | THIN ------------------------|-----|---------|----- | x   | x       | x | x   | x       | | x   | x       | view version    | x   | x       | view version id | x   | x       | at              | x   | x       | at              | x   | x       | ------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string integer integer integer string",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Imports a repository",
+          "name": "repository",
+          "options": [
+            {
+              "help": "Do not wait for the task",
+              "name": "async",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Location of the metadata.json file. This is not required if the metadata.json file is already in the archive directory.",
+              "name": "metadata-file",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER Organization name/title/label/id",
+              "name": "organization",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Organization name/title/label/id",
+              "name": "organization-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Organization name/title/label/id",
+              "name": "organization-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Organization name/title/label/id",
+              "name": "organization-label",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Directory containing the exported Content View Version",
+              "name": "path",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -13242,6 +13486,18 @@
               "value": "BOOLEAN"
             },
             {
+              "help": "Include content views generated by imports/exports. Defaults to false",
+              "name": "include-generated",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
+              "help": "Label of the content view",
+              "name": "label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
               "help": "VALUE/NUMBER      Environment name/id",
               "name": "lifecycle-environment",
               "shortname": null,
@@ -13326,7 +13582,7 @@
               "value": "LIST"
             },
             {
-              "help": "Print help ----------------|-----|---------|----- | ALL | DEFAULT | THIN ----------------|-----|---------|----- view id | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | published  | x   | x       | ids  | x   | x       | ----------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string boolean string string integer",
+              "help": "Print help ----------------|-----|---------|----- | ALL | DEFAULT | THIN ----------------|-----|---------|----- view id | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | published  | x   | x       | ids  | x   | x       | ----------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string boolean integer string string integer",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -14955,8 +15211,792 @@
     {
       "description": "Manipulate discovered hosts.",
       "name": "discovery",
-      "options": [],
-      "subcommands": []
+      "options": [
+        {
+          "help": "Print help",
+          "name": "help",
+          "shortname": "h",
+          "value": null
+        }
+      ],
+      "subcommands": [
+        {
+          "description": "Auto provision a host",
+          "name": "auto-provision",
+          "options": [
+            {
+              "help": "Auto provision all discovered hosts",
+              "name": "all",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Delete a discovered host",
+          "name": "delete",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "List all fact values",
+          "name": "facts",
+          "options": [
+            {
+              "help": "Show specified fields or predefined field sets only. (See below)",
+              "name": "fields",
+              "shortname": null,
+              "value": "LIST"
+            },
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
+              "name": "order",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Page number, starting at 1",
+              "name": "page",
+              "shortname": null,
+              "value": "NUMBER"
+            },
+            {
+              "help": "Number of results per page to return, 'all' to return all results",
+              "name": "per-page",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Filter results",
+              "name": "search",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Print help -------|-----|-------- | ALL | DEFAULT -------|-----|-------- | x   | x | x   | x -------|-----|-------- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string host.hostgroup      string integer string integer string string integer string datetime string string string",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Show a discovered host",
+          "name": "info",
+          "options": [
+            {
+              "help": "Show specified fields or predefined field sets only. (See below)",
+              "name": "fields",
+              "shortname": null,
+              "value": "LIST"
+            },
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Print help -------------|-----|---------|----- | ALL | DEFAULT | THIN -------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | | x   | x       | count   | x   | x       | size   | x   | x       | | x   | x       | report  | x   | x       | | x   | x       | | x   | x       | | x   | x       | | x   | x       | -------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "List all discovered hosts",
+          "name": "list",
+          "options": [
+            {
+              "help": "Show specified fields or predefined field sets only. (See below)",
+              "name": "fields",
+              "shortname": null,
+              "value": "LIST"
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Sort results",
+              "name": "order",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Paginate results",
+              "name": "page",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Number of entries per request",
+              "name": "per-page",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Filter results",
+              "name": "search",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | | x   | x       | count  | x   | x       | size  | x   | x       | | x   | x       | report | x   | x       | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Provision a discovered host",
+          "name": "provision",
+          "options": [
+            {
+              "help": "VALUE/NUMBER        Required if host is managed and value is not inherited from host group",
+              "name": "architecture",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER        Required if host is managed and value is not inherited from host group",
+              "name": "architecture-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "",
+              "name": "ask-root-password",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
+              "help": "",
+              "name": "build",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
+              "help": "",
+              "name": "capabilities",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER              Required if host is managed and value is not inherited from host group",
+              "name": "domain",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER              Required if host is managed and value is not inherited from host group",
+              "name": "domain-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "",
+              "name": "enabled",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
+              "help": "VALUE/NUMBER     ",
+              "name": "hostgroup",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     ",
+              "name": "hostgroup-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     ",
+              "name": "hostgroup-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER                ",
+              "name": "image",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER                ",
+              "name": "image-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Interface parameters Can be specified multiple times.",
+              "name": "interface",
+              "shortname": null,
+              "value": "KEY_VALUE_LIST"
+            },
+            {
+              "help": "Not required if using a subnet with DHCP Capsule",
+              "name": "ip",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Not required if it's a virtual machine",
+              "name": "mac",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "",
+              "name": "managed",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
+              "help": "Required if not imaged based provisioning and host is managed and value is not inherited from host group",
+              "name": "medium",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Required if not imaged based provisioning and host is managed and value is not inherited from host group",
+              "name": "medium-id",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER                ",
+              "name": "model",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER                ",
+              "name": "model-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "",
+              "name": "name",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "",
+              "name": "new-name",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER     Required if host is managed and value is not inherited from host group",
+              "name": "operatingsystem",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Required if host is managed and value is not inherited from host group",
+              "name": "operatingsystem-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "",
+              "name": "overwrite",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
+              "help": "",
+              "name": "owner-id",
+              "shortname": null,
+              "value": "NUMBER"
+            },
+            {
+              "help": "Host's owner type Possible value(s): 'User', 'Usergroup'",
+              "name": "owner-type",
+              "shortname": null,
+              "value": "ENUM"
+            },
+            {
+              "help": "Host parameters",
+              "name": "parameters",
+              "shortname": null,
+              "value": "KEY_VALUE_LIST"
+            },
+            {
+              "help": "VALUE/NUMBER     Name/Id of associated partition table",
+              "name": "partition-table",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Name/Id of associated partition table",
+              "name": "partition-table-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "UUID to track orchestration tasks status, GET /api/orchestration/:UUID/tasks",
+              "name": "progress-report-id",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Possible value(s): 'build', 'image'",
+              "name": "provision-method",
+              "shortname": null,
+              "value": "ENUM"
+            },
+            {
+              "help": "DHCP filename option (Grub2 or PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
+              "name": "pxe-loader",
+              "shortname": null,
+              "value": "ENUM"
+            },
+            {
+              "help": "",
+              "name": "root-password",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "",
+              "name": "sp-subnet-id",
+              "shortname": null,
+              "value": "NUMBER"
+            },
+            {
+              "help": "VALUE/NUMBER              Required if host is managed and value is not inherited from host group",
+              "name": "subnet",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER              Required if host is managed and value is not inherited from host group",
+              "name": "subnet-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Reboot a host",
+          "name": "reboot",
+          "options": [
+            {
+              "help": "Reboot all discovered hosts",
+              "name": "all",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Refresh the facts of a host",
+          "name": "refresh-facts",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        }
+      ]
     },
     {
       "description": "Manipulate discovered rules.",
@@ -15005,7 +16045,7 @@
               "value": "VALUE"
             },
             {
-              "help": "",
+              "help": "Enables to limit maximum amount of provisioned hosts per rule",
               "name": "hosts-limit",
               "shortname": null,
               "value": "VALUE"
@@ -15045,12 +16085,6 @@
               "name": "location-titles",
               "shortname": null,
               "value": "LIST"
-            },
-            {
-              "help": "Enables to limit maximum amount of provisioned hosts per rule",
-              "name": "max-count",
-              "shortname": null,
-              "value": "NUMBER"
             },
             {
               "help": "Represents rule name shown to the users",
@@ -15357,7 +16391,7 @@
               "value": "VALUE"
             },
             {
-              "help": "",
+              "help": "Enables to limit maximum amount of provisioned hosts per rule",
               "name": "hosts-limit",
               "shortname": null,
               "value": "VALUE"
@@ -15403,12 +16437,6 @@
               "name": "location-titles",
               "shortname": null,
               "value": "LIST"
-            },
-            {
-              "help": "Enables to limit maximum amount of provisioned hosts per rule",
-              "name": "max-count",
-              "shortname": null,
-              "value": "NUMBER"
             },
             {
               "help": "Represents rule name shown to the users",
@@ -16334,7 +17362,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -16998,7 +18026,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -17371,7 +18399,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -17742,7 +18770,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -18187,7 +19215,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -18463,7 +19491,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -18893,7 +19921,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -20030,7 +21058,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -20897,7 +21925,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -20945,7 +21973,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help -----------------------|-----|---------|----- | ALL | DEFAULT | THIN -----------------------|-----|---------|----- | x   | x       | x | x   | x       | x system       | x   | x       | group             | x   | x       | | x   | x       | | x   | x       | status          | x   | x       | | x   |         | | x   |         | information | x   |         | view           | x   | x       | environment  | x   | x       | | x   |         | | x   |         | | x   |         | status           | x   | x       | -----------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string Values: mismatched, matched, not_specified string string string date string string boolean boot_time Values: true, false Values: built, pending, token_expired, build_failed text string integer string string integer datetime integer string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string integer string string boolean string integer string infrastructure_facet.foreman infrastructure_facet.smart_proxy_id integer string datetime string job_invocation.id                    string job_invocation.result                Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string reported.boot_time reported.cores reported.disks_total reported.ram reported.sockets reported.virtual                     Values: true, false text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied                       integer status.enabled                       Values: true, false status.failed                        integer status.failed_restarts               integer status.interesting                   Values: true, false status.pending                       integer status.restarted                     integer status.skipped                       integer string subnet.name                          text string subnet6.name                         text string string Values: valid, partial, invalid, unknown, disabled, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string string text Values: mismatched, matched, not_specified user.firstname                       string user.lastname                        string user.login                           string user.mail                            string string usergroup.name                       string string",
+              "help": "Print help -----------------------|-----|---------|----- | ALL | DEFAULT | THIN -----------------------|-----|---------|----- | x   | x       | x | x   | x       | x system       | x   | x       | group             | x   | x       | | x   | x       | | x   | x       | status          | x   | x       | | x   |         | | x   |         | information | x   |         | view           | x   | x       | environment  | x   | x       | | x   |         | | x   |         | | x   |         | status           | x   | x       | -----------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string Values: mismatched, matched, not_specified string string string date string string boolean boot_time Values: true, false Values: built, pending, token_expired, build_failed text string integer string string integer datetime integer string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string integer string string boolean string integer string infrastructure_facet.foreman infrastructure_facet.smart_proxy_id integer string datetime string job_invocation.id                    string job_invocation.result                Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string reported.boot_time reported.cores reported.disks_total reported.ram reported.sockets reported.virtual                     Values: true, false string string text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied                       integer status.enabled                       Values: true, false status.failed                        integer status.failed_restarts               integer status.interesting                   Values: true, false status.pending                       integer status.restarted                     integer status.skipped                       integer string subnet.name                          text string subnet6.name                         text string string Values: valid, partial, invalid, unknown, disabled, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string string text Values: mismatched, matched, not_specified user.firstname                       string user.lastname                        string user.login                           string user.mail                            string string usergroup.name                       string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -21506,7 +22534,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -23167,7 +24195,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -23221,7 +24249,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   |         | | x   |         | | x   |         | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string Values: mismatched, matched, not_specified string string string date string string boolean boot_time Values: true, false Values: built, pending, token_expired, build_failed text string integer string string integer datetime integer string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string integer string string boolean string integer string infrastructure_facet.foreman infrastructure_facet.smart_proxy_id integer string datetime string job_invocation.id                    string job_invocation.result                Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string reported.boot_time reported.cores reported.disks_total reported.ram reported.sockets reported.virtual                     Values: true, false text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied                       integer status.enabled                       Values: true, false status.failed                        integer status.failed_restarts               integer status.interesting                   Values: true, false status.pending                       integer status.restarted                     integer status.skipped                       integer string subnet.name                          text string subnet6.name                         text string string Values: valid, partial, invalid, unknown, disabled, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string string text Values: mismatched, matched, not_specified user.firstname                       string user.lastname                        string user.login                           string user.mail                            string string usergroup.name                       string string",
+              "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   |         | | x   |         | | x   |         | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string Values: mismatched, matched, not_specified string string string date string string boolean boot_time Values: true, false Values: built, pending, token_expired, build_failed text string integer string string integer datetime integer string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string integer string string boolean string integer string infrastructure_facet.foreman infrastructure_facet.smart_proxy_id integer string datetime string job_invocation.id                    string job_invocation.result                Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string reported.boot_time reported.cores reported.disks_total reported.ram reported.sockets reported.virtual                     Values: true, false string string text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied                       integer status.enabled                       Values: true, false status.failed                        integer status.failed_restarts               integer status.interesting                   Values: true, false status.pending                       integer status.restarted                     integer status.skipped                       integer string subnet.name                          text string subnet6.name                         text string string Values: valid, partial, invalid, unknown, disabled, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string string text Values: mismatched, matched, not_specified user.firstname                       string user.lastname                        string user.login                           string user.mail                            string string usergroup.name                       string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -23883,10 +24911,10 @@
               "value": null
             },
             {
-              "help": "Whether or not the host collection may have unlimited hosts",
+              "help": "Set hosts max to unlimited",
               "name": "unlimited-hosts",
               "shortname": null,
-              "value": "BOOLEAN"
+              "value": null
             },
             {
               "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
@@ -24906,7 +25934,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -25743,7 +26771,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -26399,7 +27427,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -27088,7 +28116,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -27521,6 +28549,12 @@
               "value": "BOOLEAN"
             },
             {
+              "help": "Filter only environments containing this label",
+              "name": "label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
               "help": "Set true if you want to see only library environments Possible value(s): 'true', 'false'",
               "name": "library",
               "shortname": null,
@@ -27581,7 +28615,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Print help -------|-----|---------|----- | ALL | DEFAULT | THIN -------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | -------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string integer string integer",
+              "help": "Print help -------|-----|---------|----- | ALL | DEFAULT | THIN -------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | -------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string integer string string integer",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -28583,7 +29617,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -29456,7 +30490,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -29841,7 +30875,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -30299,7 +31333,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -31168,7 +32202,7 @@
               "value": "VALUE"
             },
             {
-              "help": "CDN configuration type. One of redhat_cdn.",
+              "help": "CDN configuration type. One of redhat_cdn, network_sync, export_sync.",
               "name": "type",
               "shortname": null,
               "value": "VALUE"
@@ -33001,7 +34035,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -34421,7 +35455,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -35038,7 +36072,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -35086,7 +36120,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help -----------------------|-----|---------|----- | ALL | DEFAULT | THIN -----------------------|-----|---------|----- | x   | x       | x | x   | x       | x system       | x   | x       | group             | x   | x       | | x   | x       | | x   | x       | status          | x   | x       | | x   |         | | x   |         | information | x   |         | view           | x   | x       | environment  | x   | x       | | x   |         | | x   |         | | x   |         | status           | x   | x       | -----------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string Values: mismatched, matched, not_specified string string string date string string boolean boot_time Values: true, false Values: built, pending, token_expired, build_failed text string integer string string integer datetime integer string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string integer string string boolean string integer string infrastructure_facet.foreman infrastructure_facet.smart_proxy_id integer string datetime string job_invocation.id                    string job_invocation.result                Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string reported.boot_time reported.cores reported.disks_total reported.ram reported.sockets reported.virtual                     Values: true, false text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied                       integer status.enabled                       Values: true, false status.failed                        integer status.failed_restarts               integer status.interesting                   Values: true, false status.pending                       integer status.restarted                     integer status.skipped                       integer string subnet.name                          text string subnet6.name                         text string string Values: valid, partial, invalid, unknown, disabled, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string string text Values: mismatched, matched, not_specified user.firstname                       string user.lastname                        string user.login                           string user.mail                            string string usergroup.name                       string string",
+              "help": "Print help -----------------------|-----|---------|----- | ALL | DEFAULT | THIN -----------------------|-----|---------|----- | x   | x       | x | x   | x       | x system       | x   | x       | group             | x   | x       | | x   | x       | | x   | x       | status          | x   | x       | | x   |         | | x   |         | information | x   |         | view           | x   | x       | environment  | x   | x       | | x   |         | | x   |         | | x   |         | status           | x   | x       | -----------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string Values: mismatched, matched, not_specified string string string date string string boolean boot_time Values: true, false Values: built, pending, token_expired, build_failed text string integer string string integer datetime integer string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string integer string string boolean string integer string infrastructure_facet.foreman infrastructure_facet.smart_proxy_id integer string datetime string job_invocation.id                    string job_invocation.result                Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string reported.boot_time reported.cores reported.disks_total reported.ram reported.sockets reported.virtual                     Values: true, false string string text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied                       integer status.enabled                       Values: true, false status.failed                        integer status.failed_restarts               integer status.interesting                   Values: true, false status.pending                       integer status.restarted                     integer status.skipped                       integer string subnet.name                          text string subnet6.name                         text string string Values: valid, partial, invalid, unknown, disabled, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string string text Values: mismatched, matched, not_specified user.firstname                       string user.lastname                        string user.login                           string user.mail                            string string usergroup.name                       string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -35190,7 +36224,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -36905,7 +37939,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -37405,7 +38439,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -37766,7 +38800,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -38190,7 +39224,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -38884,7 +39918,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -39678,7 +40712,7 @@
               "value": null
             },
             {
-              "help": "Print help ----------------------------------------------|-----|---------|----- | ALL | DEFAULT | THIN ----------------------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | | x   | x       | hat repository                            | x   | x       | type                                  | x   | x       | type                                 | x   | x       | on sync                                | x   | x       | | x   | x       | via http                              | x   | x       | at                                  | x   | x       | path                                 | x   | x       | policy                               | x   | x       | repository name                      | x   | x       | image tags filter                   | x   | x       | repository name                     | x   | x       | content units                       | x   | x       | proxy/id                                 | x   | x       | proxy/name                               | x   | x       | proxy/http proxy policy                  | x   | x       | Product/id                                    | x   | x       | Product/name                                  | x   | x       | key/id                                    | x   | x       | key/name                                  | x   | x       | Sync/status                                   | x   | x       | Sync/last sync date                           | x   | x       | | x   | x       | | x   | x       | counts/packages                       | x   | x       | counts/source rpms                    | x   | x       | counts/package groups                 | x   | x       | counts/errata                         | x   | x       | counts/container image manifest lists | x   | x       | counts/container image manifests      | x   | x       | counts/container image tags           | x   | x       | counts/files                          | x   | x       | counts/module streams                 | x   | x       | ----------------------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "help": "Print help ----------------------------------------------|-----|---------|----- | ALL | DEFAULT | THIN ----------------------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | | x   | x       | hat repository                            | x   | x       | type                                  | x   | x       | type                                 | x   | x       | policy                              | x   | x       | | x   | x       | via http                              | x   | x       | at                                  | x   | x       | path                                 | x   | x       | policy                               | x   | x       | repository name                      | x   | x       | image tags filter                   | x   | x       | repository name                     | x   | x       | content units                       | x   | x       | proxy/id                                 | x   | x       | proxy/name                               | x   | x       | proxy/http proxy policy                  | x   | x       | Product/id                                    | x   | x       | Product/name                                  | x   | x       | key/id                                    | x   | x       | key/name                                  | x   | x       | Sync/status                                   | x   | x       | Sync/last sync date                           | x   | x       | | x   | x       | | x   | x       | counts/packages                       | x   | x       | counts/source rpms                    | x   | x       | counts/package groups                 | x   | x       | counts/errata                         | x   | x       | counts/container image manifest lists | x   | x       | counts/container image manifests      | x   | x       | counts/container image tags           | x   | x       | counts/files                          | x   | x       | counts/module streams                 | x   | x       | ----------------------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -39914,6 +40948,67 @@
             },
             {
               "help": "Print help -------------|-----|---------|----- | ALL | DEFAULT | THIN -------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | type | x   | x       | | x   | x       | -------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string integer text string boolean string string string string string string string integer string Values: true, false",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Reclaim space from an On Demand repository",
+          "name": "reclaim-space",
+          "options": [
+            {
+              "help": "Do not wait for the task",
+              "name": "async",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Repository id",
+              "name": "id",
+              "shortname": null,
+              "value": "NUMBER"
+            },
+            {
+              "help": "Repository name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/id to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/id to search by",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/id to search by",
+              "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "name": "product",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "name": "product-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -40611,6 +41706,18 @@
               "value": "VALUE"
             },
             {
+              "help": "VALUE/NUMBER                 Name/id of the repository within the set to disable",
+              "name": "repository",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER                 Name/id of the repository within the set to disable",
+              "name": "repository-id",
+              "shortname": null,
+              "value": null
+            },
+            {
               "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
@@ -41226,7 +42333,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -41372,7 +42479,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -41867,7 +42974,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -42051,7 +43158,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -42211,7 +43318,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -43198,7 +44305,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -44559,7 +45666,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -44768,7 +45875,7 @@
               "value": "NUMBER"
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -45892,7 +46999,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -46434,7 +47541,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -46836,7 +47943,7 @@
                   "value": null
                 },
                 {
-                  "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+                  "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
                   "name": "order",
                   "shortname": null,
                   "value": "VALUE"
@@ -47378,7 +48485,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -48103,7 +49210,7 @@
                   "value": null
                 },
                 {
-                  "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+                  "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
                   "name": "order",
                   "shortname": null,
                   "value": "VALUE"
@@ -49245,7 +50352,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -49989,7 +51096,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -50251,7 +51358,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Possible value(s): 'actions.katello.content_view.promote_succeeded', 'actions.katello.content_view.publish_succeeded', 'actions.katello.repository.sync_succeeded', 'actions.remote_execution.run_host_job_ansible_configure_cloud_connector_succeeded', 'actions.remote_execution.run_host_job_ansible_enable_web_console_succeeded', 'actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_succeeded', 'actions.remote_execution.run_host_job_ansible_run_host_succeeded', 'actions.remote_execution.run_host_job_ansible_run_insights_plan_succeeded', 'actions.remote_execution.run_host_job_ansible_run_playbook_succeeded', 'actions.remote_execution.run_host_job_foreman_openscap_run_oval_scans_succeeded', 'actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_remove_succeeded', 'actions.remote_execution.run_host_job_katello_group_update_succeeded', 'actions.remote_execution.run_host_job_katello_host_tracer_resolve_succeeded', 'actions.remote_execution.run_host_job_katello_module_stream_action_succeeded', 'actions.remote_execution.run_host_job_katello_package_install_succeeded', 'actions.remote_execution.run_host_job_katello_package_remove_succeeded', 'actions.remote_execution.run_host_job_katello_package_update_succeeded', 'actions.remote_execution.run_host_job_katello_service_restart_succeeded', 'actions.remote_execution.run_host_job_leapp_preupgrade_succeeded', 'actions.remote_execution.run_host_job_leapp_remediation_plan_succeeded', 'actions.remote_execution.run_host_job_leapp_upgrade_succeeded', 'actions.remote_execution.run_host_job_puppet_run_host_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_remediate_hosts_succeeded', 'actions.remote_execution.run_host_job_succeeded', 'build_entered', 'build_exited', 'content_view_created', 'content_view_destroyed', 'content_view_updated', 'domain_created', 'domain_destroyed', 'domain_updated', 'host_created', 'host_destroyed', 'host_updated', 'hostgroup_created', 'hostgroup_destroyed', 'hostgroup_updated', 'model_created', 'model_destroyed', 'model_updated', 'status_changed', 'subnet_created', 'subnet_destroyed', 'subnet_updated', 'user_created', 'user_destroyed', 'user_updated'",
+              "help": "Possible value(s): 'actions.katello.content_view.promote_succeeded', 'actions.katello.content_view.publish_succeeded', 'actions.katello.repository.sync_succeeded', 'actions.remote_execution.run_host_job_ansible_configure_cloud_connector_succeeded', 'actions.remote_execution.run_host_job_ansible_enable_web_console_succeeded', 'actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_succeeded', 'actions.remote_execution.run_host_job_ansible_run_host_succeeded', 'actions.remote_execution.run_host_job_ansible_run_insights_plan_succeeded', 'actions.remote_execution.run_host_job_ansible_run_playbook_succeeded', 'actions.remote_execution.run_host_job_foreman_openscap_run_oval_scans_succeeded', 'actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_remove_succeeded', 'actions.remote_execution.run_host_job_katello_group_update_succeeded', 'actions.remote_execution.run_host_job_katello_host_tracer_resolve_succeeded', 'actions.remote_execution.run_host_job_katello_module_stream_action_succeeded', 'actions.remote_execution.run_host_job_katello_package_install_succeeded', 'actions.remote_execution.run_host_job_katello_package_remove_succeeded', 'actions.remote_execution.run_host_job_katello_package_update_succeeded', 'actions.remote_execution.run_host_job_katello_service_restart_succeeded', 'actions.remote_execution.run_host_job_leapp_preupgrade_succeeded', 'actions.remote_execution.run_host_job_leapp_remediation_plan_succeeded', 'actions.remote_execution.run_host_job_leapp_upgrade_succeeded', 'actions.remote_execution.run_host_job_puppet_run_host_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_connector_run_playbook_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_remediate_hosts_succeeded', 'actions.remote_execution.run_host_job_succeeded', 'build_entered', 'build_exited', 'content_view_created', 'content_view_destroyed', 'content_view_updated', 'domain_created', 'domain_destroyed', 'domain_updated', 'host_created', 'host_destroyed', 'host_updated', 'hostgroup_created', 'hostgroup_destroyed', 'hostgroup_updated', 'model_created', 'model_destroyed', 'model_updated', 'status_changed', 'subnet_created', 'subnet_destroyed', 'subnet_updated', 'user_created', 'user_destroyed', 'user_updated'",
               "name": "event",
               "shortname": null,
               "value": "ENUM"
@@ -50518,7 +51625,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
@@ -50579,7 +51686,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Possible value(s): 'actions.katello.content_view.promote_succeeded', 'actions.katello.content_view.publish_succeeded', 'actions.katello.repository.sync_succeeded', 'actions.remote_execution.run_host_job_ansible_configure_cloud_connector_succeeded', 'actions.remote_execution.run_host_job_ansible_enable_web_console_succeeded', 'actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_succeeded', 'actions.remote_execution.run_host_job_ansible_run_host_succeeded', 'actions.remote_execution.run_host_job_ansible_run_insights_plan_succeeded', 'actions.remote_execution.run_host_job_ansible_run_playbook_succeeded', 'actions.remote_execution.run_host_job_foreman_openscap_run_oval_scans_succeeded', 'actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_remove_succeeded', 'actions.remote_execution.run_host_job_katello_group_update_succeeded', 'actions.remote_execution.run_host_job_katello_host_tracer_resolve_succeeded', 'actions.remote_execution.run_host_job_katello_module_stream_action_succeeded', 'actions.remote_execution.run_host_job_katello_package_install_succeeded', 'actions.remote_execution.run_host_job_katello_package_remove_succeeded', 'actions.remote_execution.run_host_job_katello_package_update_succeeded', 'actions.remote_execution.run_host_job_katello_service_restart_succeeded', 'actions.remote_execution.run_host_job_leapp_preupgrade_succeeded', 'actions.remote_execution.run_host_job_leapp_remediation_plan_succeeded', 'actions.remote_execution.run_host_job_leapp_upgrade_succeeded', 'actions.remote_execution.run_host_job_puppet_run_host_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_remediate_hosts_succeeded', 'actions.remote_execution.run_host_job_succeeded', 'build_entered', 'build_exited', 'content_view_created', 'content_view_destroyed', 'content_view_updated', 'domain_created', 'domain_destroyed', 'domain_updated', 'host_created', 'host_destroyed', 'host_updated', 'hostgroup_created', 'hostgroup_destroyed', 'hostgroup_updated', 'model_created', 'model_destroyed', 'model_updated', 'status_changed', 'subnet_created', 'subnet_destroyed', 'subnet_updated', 'user_created', 'user_destroyed', 'user_updated'",
+              "help": "Possible value(s): 'actions.katello.content_view.promote_succeeded', 'actions.katello.content_view.publish_succeeded', 'actions.katello.repository.sync_succeeded', 'actions.remote_execution.run_host_job_ansible_configure_cloud_connector_succeeded', 'actions.remote_execution.run_host_job_ansible_enable_web_console_succeeded', 'actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_succeeded', 'actions.remote_execution.run_host_job_ansible_run_host_succeeded', 'actions.remote_execution.run_host_job_ansible_run_insights_plan_succeeded', 'actions.remote_execution.run_host_job_ansible_run_playbook_succeeded', 'actions.remote_execution.run_host_job_foreman_openscap_run_oval_scans_succeeded', 'actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_remove_succeeded', 'actions.remote_execution.run_host_job_katello_group_update_succeeded', 'actions.remote_execution.run_host_job_katello_host_tracer_resolve_succeeded', 'actions.remote_execution.run_host_job_katello_module_stream_action_succeeded', 'actions.remote_execution.run_host_job_katello_package_install_succeeded', 'actions.remote_execution.run_host_job_katello_package_remove_succeeded', 'actions.remote_execution.run_host_job_katello_package_update_succeeded', 'actions.remote_execution.run_host_job_katello_service_restart_succeeded', 'actions.remote_execution.run_host_job_leapp_preupgrade_succeeded', 'actions.remote_execution.run_host_job_leapp_remediation_plan_succeeded', 'actions.remote_execution.run_host_job_leapp_upgrade_succeeded', 'actions.remote_execution.run_host_job_puppet_run_host_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_connector_run_playbook_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_remediate_hosts_succeeded', 'actions.remote_execution.run_host_job_succeeded', 'build_entered', 'build_exited', 'content_view_created', 'content_view_destroyed', 'content_view_updated', 'domain_created', 'domain_destroyed', 'domain_updated', 'host_created', 'host_destroyed', 'host_updated', 'hostgroup_created', 'hostgroup_destroyed', 'hostgroup_updated', 'model_created', 'model_destroyed', 'model_updated', 'status_changed', 'subnet_created', 'subnet_destroyed', 'subnet_updated', 'user_created', 'user_destroyed', 'user_updated'",
               "name": "event",
               "shortname": null,
               "value": "ENUM"
@@ -51254,7 +52361,7 @@
               "value": null
             },
             {
-              "help": "Sort and order by a searchable field, e.g. 'id DESC'",
+              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
