@@ -31,49 +31,57 @@ class ContentExport(Base):
     command_requires_org = True
 
     @classmethod
-    def list(cls, options=None):
+    def list(cls, output_format='json', options=None):
         """
         List previous exports
         """
         cls.command_sub = 'list'
-        return cls.execute(cls._construct_command(options), output_format='json')
+        return cls.execute(cls._construct_command(options), output_format=output_format)
 
     @classmethod
-    def completeLibrary(cls, options, timeout=None):
+    def completeLibrary(cls, options, output_format='json', timeout=None):
         """
         Make full library export
         """
         cls.command_sub = 'complete library'
-        return cls.execute(cls._construct_command(options), output_format='json', timeout=timeout)
+        return cls.execute(
+            cls._construct_command(options), output_format=output_format, timeout=timeout
+        )
 
     @classmethod
-    def completeVersion(cls, options, timeout=None):
+    def completeVersion(cls, options, output_format='json', timeout=None):
         """
         Make full CV version export
         """
         cls.command_sub = 'complete version'
-        return cls.execute(cls._construct_command(options), output_format='json', timeout=timeout)
+        return cls.execute(
+            cls._construct_command(options), output_format=output_format, timeout=timeout
+        )
 
     @classmethod
-    def incrementalLibrary(cls, options, timeout=None):
+    def incrementalLibrary(cls, options, output_format='json', timeout=None):
         """
         Make make incremental library export
         """
         cls.command_sub = 'incremental library'
-        return cls.execute(cls._construct_command(options), output_format='json', timeout=timeout)
+        return cls.execute(
+            cls._construct_command(options), output_format=output_format, timeout=timeout
+        )
 
     @classmethod
-    def incrementalVersion(cls, options, timeout=None):
+    def incrementalVersion(cls, options, output_format='json', timeout=None):
         """
         Make make incremental CV version export
         """
         cls.command_sub = 'incremental version'
-        return cls.execute(cls._construct_command(options), output_format='json', timeout=timeout)
+        return cls.execute(
+            cls._construct_command(options), output_format=output_format, timeout=timeout
+        )
 
     @classmethod
-    def generateMetadata(cls, options):
+    def generateMetadata(cls, options, output_format='json'):
         """
         Generates export metadata
         """
         cls.command_sub = 'generate-metadata'
-        return cls.execute(cls._construct_command(options), output_format='json')
+        return cls.execute(cls._construct_command(options), output_format=output_format)
