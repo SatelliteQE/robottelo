@@ -44,9 +44,17 @@ def fixture_enable_rhc_repos(module_target_sat):
 @pytest.fixture(scope='module')
 def module_rhc_org(module_target_sat):
     """Module level fixture for creating organization"""
-    org = module_target_sat.api.Organization(
-        name=settings.rh_cloud.organization or gen_string('alpha')
-    ).create()
+    if settings.rh_cloud.crc_env == 'prod':
+        org = module_target_sat.api.Organization(
+            name=settings.rh_cloud.organization or gen_string('alpha')
+        ).create()
+    else:
+        org = (
+            module_target_sat.api.Organization()
+            .search(query={'search': f'name="{settings.rh_cloud.organization}"'})[0]
+            .read()
+        )
+
     # adding remote_execution_connect_by_ip=Yes at org level
     module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
