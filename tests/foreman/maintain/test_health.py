@@ -539,6 +539,8 @@ def test_positive_health_check_postgresql_checkpoint_segments(sat_maintain):
 
     :BZ: 1894149, 1899322
 
+    :customerscenario: true
+
     :expectedresults: check-postgresql-checkpoint-segments health check should pass.
 
     :CaseImportance: High
@@ -665,6 +667,8 @@ def test_positive_remove_job_file(sat_maintain):
 
     :CaseImportance: Medium
 
+    :customerscenario: true
+
     :BZ: 1827219, 1762302
     """
     # Verify pre-upgrade checks don't include disk-performance check
@@ -690,6 +694,8 @@ def test_positive_health_check_corrupted_roles(sat_maintain, request):
                       roles by splitting filters as per updated values.
 
     :CaseImportance: Medium
+
+    :customerscenario: true
 
     :BZ: 1703041, 1908846
     """
@@ -747,6 +753,8 @@ def test_positive_health_check_non_rh_packages(sat_maintain, request):
 
     :expectedresults: check-non-rh-packages health check should pass.
 
+    :customerscenario: true
+
     :CaseImportance: High
     """
     sat_maintain.create_custom_repos(custom_repo=settings.repos.yum_0.url)
@@ -792,6 +800,8 @@ def test_positive_health_check_available_space_postgresql12():
 
     :CaseImportance: High
 
+    :customerscenario: true
+
     :CaseAutomation: ManualOnly
     """
 
@@ -810,6 +820,8 @@ def test_positive_health_check_duplicate_permissions(sat_maintain):
     :expectedresults: Verify if the check passes and removes duplicate permissions.
 
     :CaseImportance: High
+
+    :customerscenario: true
 
     :BZ: 1849110, 1884024
     """
