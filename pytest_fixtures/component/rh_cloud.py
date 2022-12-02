@@ -1,7 +1,6 @@
 import pytest
 from broker import Broker
 
-from robottelo import ssh
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 
 
@@ -18,7 +17,7 @@ def rhcloud_sat_host(satellite_factory):
 def rhcloud_manifest_org(rhcloud_sat_host, module_entitlement_manifest):
     """A module level fixture to get organization with manifest."""
     org = rhcloud_sat_host.api.Organization().create()
-    ssh.get_client(hostname=rhcloud_sat_host.hostname).put(
+    rhcloud_sat_host.put(
         f'{module_entitlement_manifest.path}', f'{module_entitlement_manifest.name}'
     )
     rhcloud_sat_host.cli.Subscription.upload(
