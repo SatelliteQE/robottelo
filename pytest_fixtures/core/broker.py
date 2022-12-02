@@ -193,7 +193,6 @@ def session_capsule_configured(session_capsule_host, session_target_sat):
 
 @pytest.fixture(scope='module')
 def module_discovery_sat(
-    module_provisioning_rhel_content,
     module_provisioning_sat,
     module_sca_manifest_org,
     module_location,
