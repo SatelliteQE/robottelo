@@ -32,6 +32,7 @@ BAD_CREDS_MSG = "Unable to authenticate user admin"
 pytestmark = pytest.mark.destructive
 
 
+@pytest.mark.e2e
 def test_positive_rename_satellite(module_org, module_product, module_target_sat):
     """run katello-change-hostname on Satellite server
 

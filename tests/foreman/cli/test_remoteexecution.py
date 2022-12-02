@@ -195,6 +195,7 @@ class TestRemoteExecution:
         assert username == result.stdout.strip('\n')
 
     @pytest.mark.tier3
+    @pytest.mark.e2e
     @pytest.mark.rhel_ver_match('[^6].*')
     def test_positive_run_custom_job_template_by_ip(self, rex_contenthost, module_org, target_sat):
         """Run custom template on host connected by ip
@@ -610,6 +611,7 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.e2e
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_match('[^6].*')
     @pytest.mark.skipif(
@@ -905,6 +907,7 @@ class TestAsyncSSHProviderRex:
 
     @pytest.mark.no_containers
     @pytest.mark.tier3
+    @pytest.mark.e2e
     @pytest.mark.upgrade
     @pytest.mark.rhel_ver_match('[^6].*')
     def test_positive_run_job_on_host_registered_to_async_ssh_provider(
@@ -1046,6 +1049,7 @@ class TestPullProviderRex:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.e2e
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
     def test_positive_run_job_on_host_registered_to_pull_provider(
