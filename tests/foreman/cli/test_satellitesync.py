@@ -1135,10 +1135,96 @@ class TestContentViewSync:
             assert exported_repo['content-counts'][item] == imported_repo['content-counts'][item]
 
     @pytest.mark.tier2
+    def test_positive_export_cv_with_on_demand_repo(
+        self, export_import_cleanup_module, target_sat, module_org
+    ):
+        """Exporting CV version skips on_demand repo
+
+        :id: c366ace5-1fde-4ae7-9e84-afe58c06c0ca
+
+        :steps:
+
+            1. Create product
+            2. Create repos with immediate and on_demand download policy
+            3. Sync the repositories
+            4. Create CV with above product and publish
+            5. Attempt to export CV version contents
+
+        :expectedresults:
+
+            1. Export passes with warning and skips the on_demand repo
+
+        :BZ: 1998626
+        """
+        # Create custom product
+        product = make_product({'organization-id': module_org.id, 'name': gen_string('alpha')})
+
+        # Create repositories
+        repo_ondemand = make_repository(
+            {
+                'download-policy': 'on_demand',
+                'organization-id': module_org.id,
+                'product-id': product['id'],
+            }
+        )
+        repo_immediate = make_repository(
+            {
+                'download-policy': 'immediate',
+                'organization-id': module_org.id,
+                'product-id': product['id'],
+            }
+        )
+
+        # Sync repositories
+        Repository.synchronize({'id': repo_ondemand['id']})
+        Repository.synchronize({'id': repo_immediate['id']})
+
+        # Create cv and publish
+        cv = make_content_view({'name': gen_string('alpha'), 'organization-id': module_org.id})
+        ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_org.id,
+                'repository-id': repo_ondemand['id'],
+            }
+        )
+        ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_org.id,
+                'repository-id': repo_immediate['id'],
+            }
+        )
+        ContentView.publish({'id': cv['id']})
+
+        # Verify export directory is empty
+        assert validate_filepath(target_sat, module_org) == ''
+
+        # Export Content View version
+        result = ContentExport.completeVersion(
+            {'id': cv['id'], 'organization-id': module_org.id},
+            output_format='base',  # json output can't be parsed - BZ#1998626
+        )
+
+        # Warning is shown
+        assert (
+            """NOTE: Unable to fully export this version because it contains repositories """
+            """without the 'immediate' download policy. Update the download policy and sync """
+            """affected repositories. Once synced republish the content view and export the """
+            """generated version."""
+        ) in result
+        assert repo_ondemand['name'] in result  # on_demand repo is listed as skipped
+        assert repo_immediate['name'] not in result  # immediate repo is not listed
+
+        # Export is generated
+        assert "Generated" in result
+        assert validate_filepath(target_sat, module_org) != ''
+
+    @pytest.mark.tier2
     def test_negative_import_same_cv_twice(
         self,
         class_export_entities,
-        export_import_cleanup_function,
+        export_import_cleanup_module,
         config_export_import_settings,
         target_sat,
         module_org,
@@ -1214,52 +1300,84 @@ class TestContentViewSync:
             '--metadata-file option'
         ) in error.value.message
 
-    @pytest.mark.skip_if_open("BZ:1998626")
-    @pytest.mark.skip_if_open("BZ:2067275")
     @pytest.mark.tier2
     def test_negative_export_cv_with_on_demand_repo(
-        self, export_import_cleanup_function, module_org
+        self, export_import_cleanup_module, target_sat, module_org
     ):
-        """Exporting CV version having on_demand repo throws error
+        """Exporting CV version having on_demand repo throws error with "fail-on-missing-content" option set
 
         :id: f8b86d0e-e1a7-4e19-bb82-6de7d16c6676
 
         :steps:
 
-            1. Create product and on-demand repository with custom contents
-            2. Sync the repository
-            3. Create CV with above product and publish
-            4. Attempt to export CV version contents to a directory
+            1. Create product
+            2. Create repos with immediate and on_demand download policy
+            3. Sync the repositories
+            4. Create CV with above product and publish
+            5. Attempt to export CV version contents
 
         :expectedresults:
 
-            1. Export fails with error '"message": "NOTE: Unable to fully
-                export this version because it contains repositories without the
-                'immediate' download policy. Update the download policy and sync
-                affected repositories. Once synced, republish the content view and
-                export the generated version."'
+            1. Export fails with error and no export is created
+
+        :BZ: 1998626, 2067275
         """
-        exporting_prod = gen_string('alpha')
-        product = make_product({'organization-id': module_org.id, 'name': exporting_prod})
-        exporting_repo = gen_string('alpha')
-        repo = make_repository(
-            {'name': exporting_repo, 'download-policy': 'on_demand', 'product-id': product['id']}
+
+        # Create custom product
+        product = make_product({'organization-id': module_org.id, 'name': gen_string('alpha')})
+
+        # Create repositories
+        repo_ondemand = make_repository(
+            {
+                'download-policy': 'on_demand',
+                'organization-id': module_org.id,
+                'product-id': product['id'],
+            }
         )
-        Repository.synchronize({'id': repo['id']})
-        exporting_cv = gen_string('alpha')
-        cv_dict, exporting_cvv_id = _create_cv(exporting_cv, repo, module_org)
-        cv_name = cv_dict['name']
-        cv_version = cv_dict['versions'][0]['version']
+        repo_immediate = make_repository(
+            {
+                'download-policy': 'immediate',
+                'organization-id': module_org.id,
+                'product-id': product['id'],
+            }
+        )
+
+        # Sync repositories
+        Repository.synchronize({'id': repo_ondemand['id']})
+        Repository.synchronize({'id': repo_immediate['id']})
+
+        # Create cv and publish
+        cv = make_content_view({'name': gen_string('alpha'), 'organization-id': module_org.id})
+        ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_org.id,
+                'repository-id': repo_ondemand['id'],
+            }
+        )
+        ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_org.id,
+                'repository-id': repo_immediate['id'],
+            }
+        )
+        ContentView.publish({'id': cv['id']})
+
+        # Verify export directory is empty
+        assert validate_filepath(target_sat, module_org) == ''
+
+        # Export Content View version
         with pytest.raises(CLIReturnCodeError) as error:
             ContentExport.completeVersion(
-                {'id': exporting_cvv_id, 'organization-id': module_org.id}
+                {'id': cv['id'], 'organization-id': module_org.id, 'fail-on-missing-content': True},
+                output_format='base',  # json output can't be parsed - BZ#1998626
             )
-            ContentExport.completeVersion({'id': repo.id, 'organization-id': module_org.id})
-        assert (
-            'Could not export the content view:\n  '
-            f'''Error: Ensure the content view version '{cv_name} {cv_version}' '''
-            'has at least one repository.'
-        ) in error.value.message
+            # Error is raised
+            assert error.status != 0
+
+        # Export is not generated
+        assert validate_filepath(target_sat, module_org) == ''
 
     @pytest.mark.tier2
     def test_positive_create_custom_major_minor_cv_version(self):
