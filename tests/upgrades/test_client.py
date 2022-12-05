@@ -23,21 +23,15 @@ import time
 
 import pytest
 from fabric.api import execute
-from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
 from upgrade_tests.helpers.scenarios import dockerize
 
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
-from robottelo.constants import PRDS
 from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
 
 
 # host machine for containers
@@ -45,40 +39,9 @@ docker_vm = settings.upgrade.docker_vm
 
 
 @pytest.fixture(scope='module')
-def module_product(default_org):
-    return entities.Product(organization=default_org).create()
-
-
-@pytest.fixture(scope='module')
-def module_lce_library(default_org):
-    """Returns the Library lifecycle environment from chosen organization"""
-    return (
-        entities.LifecycleEnvironment()
-        .search(query={'search': f'name={ENVIRONMENT} and organization_id={default_org.id}'})[0]
-        .read()
-    )
-
-
-@pytest.fixture(scope='module')
-def sat6tools_repo(default_org):
-    """Enable Sat tools repository"""
-    sat6tools_repo_id = enable_rhrepo_and_fetchid(
-        basearch=DEFAULT_ARCHITECTURE,
-        org_id=default_org.id,
-        product=PRDS['rhel'],
-        repo=REPOS['rhst7']['name'],
-        reposet=REPOSET['rhst7'],
-        releasever=None,
-    )
-    sat6tools_repo = entities.Repository(id=sat6tools_repo_id).read()
-    assert sat6tools_repo.sync()['result'] == 'success'
-    return sat6tools_repo
-
-
-@pytest.fixture(scope='module')
-def pre_upgrade_repo(default_org, module_product):
+def pre_upgrade_repo(module_product, module_target_sat):
     """Enable custom errata repository"""
-    pre_upgrade_repo = entities.Repository(
+    pre_upgrade_repo = module_target_sat.api.Repository(
         url=settings.repos.yum_0.url, product=module_product
     ).create()
     assert pre_upgrade_repo.sync()['result'] == 'success'
@@ -86,9 +49,9 @@ def pre_upgrade_repo(default_org, module_product):
 
 
 @pytest.fixture(scope='module')
-def post_upgrade_repo(default_org, module_product):
+def post_upgrade_repo(module_product, module_target_sat):
     """Enable custom errata repository"""
-    post_upgrade_repo = entities.Repository(
+    post_upgrade_repo = module_target_sat.api.Repository(
         url=settings.repos.yum_9.url, product=module_product
     ).create()
     assert post_upgrade_repo.sync()['result'] == 'success'
@@ -96,9 +59,9 @@ def post_upgrade_repo(default_org, module_product):
 
 
 @pytest.fixture(scope='module')
-def pre_upgrade_cv(default_org, pre_upgrade_repo):
+def pre_upgrade_cv(default_org, pre_upgrade_repo, module_target_sat):
     """Create and publish repo"""
-    pre_upgrade_cv = entities.ContentView(
+    pre_upgrade_cv = module_target_sat.api.ContentView(
         organization=default_org, repository=[pre_upgrade_repo.id]
     ).create()
     pre_upgrade_cv.publish()
@@ -107,9 +70,9 @@ def pre_upgrade_cv(default_org, pre_upgrade_repo):
 
 
 @pytest.fixture(scope='module')
-def post_upgrade_cv(default_org, post_upgrade_repo):
+def post_upgrade_cv(default_org, post_upgrade_repo, module_target_sat):
     """Create and publish repo"""
-    post_upgrade_cv = entities.ContentView(
+    post_upgrade_cv = module_target_sat.api.ContentView(
         organization=default_org, repository=[post_upgrade_repo.id]
     ).create()
     post_upgrade_cv.publish()
@@ -118,15 +81,15 @@ def post_upgrade_cv(default_org, post_upgrade_repo):
 
 
 @pytest.fixture(scope='module')
-def module_ak(default_org, module_lce_library, pre_upgrade_repo, module_product):
+def module_ak(default_org, module_lce_library, pre_upgrade_repo, module_product, module_target_sat):
     """Create a module AK in Library LCE"""
-    ak = entities.ActivationKey(
+    ak = module_target_sat.api.ActivationKey(
         content_view=DEFAULT_CV,
         environment=module_lce_library,
         organization=default_org,
     ).create()
     # Fetch available subscriptions
-    subs = entities.Subscription(organization=default_org).search()
+    subs = module_target_sat.api.Subscription(organization=default_org).search()
     assert len(subs) > 0
     # Add default subscription to activation key
     sub_found = False
@@ -140,7 +103,9 @@ def module_ak(default_org, module_lce_library, pre_upgrade_repo, module_product)
         data={'content_overrides': [{'content_label': REPOS['rhst7']['id'], 'value': '1'}]}
     )
     # Add custom subscription to activation key
-    custom_sub = entities.Subscription().search(query={'search': f'name={module_product.name}'})
+    custom_sub = module_target_sat.api.Subscription().search(
+        query={'search': f'name={module_product.name}'}
+    )
     ak.add_subscriptions(data={'subscription_id': custom_sub[0].id})
     return ak
 
@@ -218,7 +183,9 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
         save_test_data({__name__: rhel7_client})
 
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_preclient_package_installation)
-    def test_post_scenario_preclient_package_installation(default_org, pre_upgrade_data):
+    def test_post_scenario_preclient_package_installation(
+        default_org, module_target_sat, pre_upgrade_data
+    ):
         """Post-upgrade install of a package on a client created and registered pre-upgrade.
 
         :id: postupgrade-eedab638-fdc9-41fa-bc81-75dd2790f7be
@@ -229,8 +196,10 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
         """
         client = pre_upgrade_data.get(__name__)
         client_name = str(list(client.keys())[0]).lower()
-        client_id = entities.Host().search(query={'search': f'name={client_name}'})[0].id
-        entities.Host().install_content(
+        client_id = (
+            module_target_sat.api.Host().search(query={'search': f'name={client_name}'})[0].id
+        )
+        module_target_sat.api.Host().install_content(
             data={
                 'organization_id': default_org.id,
                 'included': {'ids': [client_id]},
@@ -263,7 +232,7 @@ class TestScenarioUpgradeNewClientAndPackageInstallation:
 
     @pytest.mark.post_upgrade
     def test_post_scenario_postclient_package_installation(
-        default_org, post_upgrade_repo, module_ak, module_lce
+        default_org, post_upgrade_repo, module_ak, module_target_sat, module_lce
     ):
         """Post-upgrade test that creates a client, installs a package on
         the post-upgrade created client and then verifies the package is installed.
@@ -316,8 +285,10 @@ class TestScenarioUpgradeNewClientAndPackageInstallation:
             docker_vm
         ]
         assert 'goferd' in status
-        client_id = entities.Host().search(query={'search': f'name={client_name}'})[0].id
-        entities.Host().install_content(
+        client_id = (
+            module_target_sat.api.Host().search(query={'search': f'name={client_name}'})[0].id
+        )
+        module_target_sat.api.Host().install_content(
             data={
                 'organization_id': default_org.id,
                 'included': {'ids': [client_id]},
