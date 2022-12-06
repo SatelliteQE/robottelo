@@ -332,7 +332,8 @@ def test_positive_export_report():
 @pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_generate_report_sanitized():
-    """Generate report template where there are values in comma outputted which might brake CSV format
+    """Generate report template where there are values in comma outputted which might
+    break CSV format
 
     :id: a4b577db-144e-4961-a42e-e93887464986
 
