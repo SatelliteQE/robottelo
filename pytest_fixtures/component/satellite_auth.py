@@ -290,7 +290,8 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
     )
     module_target_sat.execute('update-ca-trust')
     module_target_sat.execute(
-        f'echo {settings.rhsso.rhsso_password} | keycloak-httpd-client-install --app-name foreman-openidc \
+        f'echo {settings.rhsso.rhsso_password} | keycloak-httpd-client-install \
+                --app-name foreman-openidc \
                 --keycloak-server-url {settings.rhsso.host_url} \
                 --keycloak-admin-username "admin" \
                 --keycloak-realm "{settings.rhsso.realm}" \

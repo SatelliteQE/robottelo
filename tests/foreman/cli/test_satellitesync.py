@@ -1310,7 +1310,8 @@ class TestContentViewSync:
     def test_negative_export_cv_with_on_demand_repo(
         self, export_import_cleanup_module, target_sat, module_org
     ):
-        """Exporting CV version having on_demand repo throws error with "fail-on-missing-content" option set
+        """Exporting CV version having on_demand repo throws error
+        with "fail-on-missing-content" option set
 
         :id: f8b86d0e-e1a7-4e19-bb82-6de7d16c6676
 
