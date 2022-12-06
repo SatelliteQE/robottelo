@@ -57,7 +57,8 @@ class TestSyncPlan:
 
     @pytest.mark.pre_upgrade
     def test_pre_disabled_sync_plan_logic(self, request):
-        """Pre-upgrade scenario that creates a sync plan with both disabled and enabled recurring logic.
+        """Pre-upgrade scenario that creates a sync plan with both disabled and
+        enabled recurring logic.
 
         :id: preupgrade-c75bd43d-d868-461a-9fc3-a1fc7dccc77a
 

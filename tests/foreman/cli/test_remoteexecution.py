@@ -83,8 +83,8 @@ def infra_host(request, target_sat, module_capsule_configured):
 
 
 def assert_job_invocation_result(invocation_command_id, client_hostname, expected_result='success'):
-    """Asserts the job invocation finished with the expected result and fetches job output when error
-    occurs. Result is one of: success, pending, error, warning"""
+    """Asserts the job invocation finished with the expected result and fetches job output
+    when error occurs. Result is one of: success, pending, error, warning"""
     result = JobInvocation.info({'id': invocation_command_id})
     try:
         assert result[expected_result] == '1'

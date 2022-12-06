@@ -500,8 +500,9 @@ class TestCapsuleContentManagement:
     def test_positive_sync_updated_repo(
         self, target_sat, module_capsule_configured, function_org, function_product, function_lce
     ):
-        """Sync a custom repo with no upstream url but uploaded content to the Capsule via promoted CV,
-        update content of the repo, publish and promote the CV again, resync the Capsule.
+        """Sync a custom repo with no upstream url but uploaded content to the Capsule via
+        promoted CV, update content of the repo, publish and promote the CV again, resync
+        the Capsule.
 
         :id: ddbecc80-17d9-47f6-979e-111ebd74cb90
 

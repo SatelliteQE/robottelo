@@ -1280,9 +1280,8 @@ SATELLITE_SERVICES = {
 
 
 def extract_help(filter='params'):
-    """Generator function to extract satellite installer params and sections from lines of help text.
-    In general lst is cmd.stdout, e.g., a list of strings representing host
-    stdout
+    """Generator function to extract satellite installer params and sections from lines
+    of help text. In general lst is cmd.stdout, e.g., a list of strings representing host stdout.
 
     :param string filter: Filter `sections` or `params` in full help, default is params
     :return: generator with params or sections depends on filter parameter
