@@ -2,11 +2,11 @@
 
 repos:
 - repo: https://github.com/asottile/reorder_python_imports
-  rev: v2.6.0
+  rev: v3.9.0
   hooks:
   - id: reorder-python-imports
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.0.1
+  rev: v4.4.0
   hooks:
   - id: trailing-whitespace
     exclude: tests/foreman/data/
@@ -14,12 +14,12 @@ repos:
   - id: check-yaml
   - id: debug-statements
 - repo: https://github.com/asottile/pyupgrade
-  rev: v2.29.0
+  rev: v3.3.0
   hooks:
   - id: pyupgrade
     args: [--py38-plus]
 - repo: https://github.com/psf/black
-  rev: 22.3.0
+  rev: 22.10.0
   hooks:
   - id: black
 - repo: https://gitlab.com/pycqa/flake8
