@@ -83,7 +83,8 @@ class TestActivationKey:
 
     @pytest.mark.post_upgrade(depend_on=test_pre_create_activation_key)
     def test_post_crud_activation_key(self, dependent_scenario_name):
-        """After Upgrade, Activation keys entities remain the same and all their functionality works.
+        """After Upgrade, Activation keys entities remain the same and
+        all their functionality works.
 
         :id: postupgrade-a7443b54-eb2e-497b-8a50-92abeae01496
 

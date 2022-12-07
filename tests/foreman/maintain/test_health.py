@@ -297,7 +297,8 @@ def test_positive_health_check_hotfix_installed(sat_maintain, request):
 
     # Verify check-hotfix-installed with hotfix package.
     if not is_open('BZ:2149895'):
-        gems_path = f"""{f"{'/opt/theforeman/tfm/root' if sat_maintain.os_version.major < 8 else ''}" +
+        gems_path = f"""
+                    {f"{'/opt/theforeman/tfm/root' if sat_maintain.os_version.major < 8 else ''}" +
                      '/usr/share/gems/gems/'}"""
     else:
         gems_path = '/usr/share/gems/gems/'
