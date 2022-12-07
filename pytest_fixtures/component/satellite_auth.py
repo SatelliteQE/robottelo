@@ -366,22 +366,20 @@ def func_enroll_idm_and_configure_external_auth(target_sat):
 
 
 @pytest.fixture(scope='module')
-def configure_realm(session_target_sat):
+def configure_realm(module_target_sat):
     """Configure realm"""
     realm = settings.upgrade.vm_domain.upper()
-    session_target_sat.execute(f'curl -o /root/freeipa.keytab {settings.ipa.keytab_url}')
-    session_target_sat.execute('mv /root/freeipa.keytab /etc/foreman-proxy')
-    session_target_sat.execute(
-        'chown foreman-proxy:foreman-proxy /etc/foreman-proxy/freeipa.keytab'
-    )
-    session_target_sat.execute(
+    module_target_sat.execute(f'curl -o /root/freeipa.keytab {settings.ipa.keytab_url}')
+    module_target_sat.execute('mv /root/freeipa.keytab /etc/foreman-proxy')
+    module_target_sat.execute('chown foreman-proxy:foreman-proxy /etc/foreman-proxy/freeipa.keytab')
+    module_target_sat.execute(
         'satellite-installer --foreman-proxy-realm true '
         f'--foreman-proxy-realm-principal realm-proxy@{realm} '
         f'--foreman-proxy-dhcp-nameservers {socket.gethostbyname(settings.ipa.hostname)}'
     )
-    session_target_sat.execute('cp /etc/ipa/ca.crt /etc/pki/ca-trust/source/anchors/ipa.crt')
-    session_target_sat.execute('update-ca-trust enable ; update-ca-trust')
-    session_target_sat.execute('service foreman-proxy restart')
+    module_target_sat.execute('cp /etc/ipa/ca.crt /etc/pki/ca-trust/source/anchors/ipa.crt')
+    module_target_sat.execute('update-ca-trust enable ; update-ca-trust')
+    module_target_sat.execute('service foreman-proxy restart')
 
 
 @pytest.fixture(scope="module")
