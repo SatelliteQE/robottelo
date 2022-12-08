@@ -27,9 +27,7 @@ import yaml
 from lxml import etree
 from nailgun import entities
 
-from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import upload_manifest
 from robottelo.config import robottelo_tmp_dir
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
@@ -40,12 +38,11 @@ from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def setup_content(module_org):
-    with manifests.clone() as manifest:
-        upload_manifest(module_org.id, manifest.content)
+def setup_content(module_entitlement_manifest_org):
+    org = module_entitlement_manifest_org
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
-        org_id=module_org.id,
+        org_id=org.id,
         product=PRDS['rhel'],
         repo=REPOS['rhst7']['name'],
         reposet=REPOSET['rhst7'],
@@ -53,27 +50,27 @@ def setup_content(module_org):
     )
     rh_repo = entities.Repository(id=rh_repo_id).read()
     rh_repo.sync()
-    custom_product = entities.Product(organization=module_org).create()
+    custom_product = entities.Product(organization=org).create()
     custom_repo = entities.Repository(
         name=gen_string('alphanumeric').upper(), product=custom_product
     ).create()
     custom_repo.sync()
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
     cv = entities.ContentView(
-        organization=module_org,
+        organization=org,
         repository=[rh_repo_id, custom_repo.id],
     ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
     cvv.promote(data={'environment_ids': lce.id})
     ak = entities.ActivationKey(
-        content_view=cv, organization=module_org, environment=lce, auto_attach=True
+        content_view=cv, organization=org, environment=lce, auto_attach=True
     ).create()
-    subscription = entities.Subscription(organization=module_org).search(
+    subscription = entities.Subscription(organization=org).search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
-    return module_org, ak
+    return org, ak
 
 
 @pytest.mark.tier3

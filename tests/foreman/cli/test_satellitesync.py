@@ -23,7 +23,6 @@ from random import randint
 import pytest
 from fauxfactory import gen_string
 
-from robottelo import manifests
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.content_export import ContentExport
 from robottelo.cli.content_import import ContentImport
@@ -47,6 +46,7 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import ANSIBLE_GALAXY
+from robottelo.utils import clone
 
 EXPORT_DIR = '/var/lib/pulp/exports/'
 IMPORT_DIR = '/var/lib/pulp/imports/'
@@ -301,7 +301,7 @@ class TestRepositoryExport:
         """
         # Enable RH repository
         cv_name = gen_string('alpha')
-        with manifests.clone() as manifest:
+        with clone() as manifest:
             target_sat.put(manifest, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': module_org.id})
         RepositorySet.enable(
@@ -360,7 +360,7 @@ class TestRepositoryExport:
         """
         # Enable RH repository
         cv_name = gen_string('alpha')
-        with manifests.clone() as manifest:
+        with clone() as manifest:
             target_sat.put(manifest, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': function_org.id})
         RepositorySet.enable(
@@ -465,7 +465,7 @@ def _enable_rhel_content(sat_obj, module_org, repo_name, releasever=None, produc
     :param bool sync: Syncs contents to repository if true else doesnt
     :return: Repository cli object
     """
-    with manifests.clone() as manifest:
+    with clone() as manifest:
         sat_obj.put(manifest, manifest.filename)
     Subscription.upload({'file': manifest.filename, 'organization-id': module_org.id})
     RepositorySet.enable(
@@ -946,7 +946,7 @@ class TestContentViewSync:
         """
         # Setup rhel repo
         cv_name = gen_string('alpha')
-        with manifests.clone() as manifest:
+        with clone() as manifest:
             target_sat.put(manifest, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': function_org.id})
         RepositorySet.enable(
@@ -996,7 +996,7 @@ class TestContentViewSync:
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
-        manifests.upload_manifest_locked(importing_org['id'], interface='CLI', timeout=7200000)
+        target_sat.upload_manifest(importing_org['id'], interface='CLI', timeout=7200000)
         # set disconnected mode
         Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
         ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
@@ -1062,7 +1062,7 @@ class TestContentViewSync:
         """
         cv_name = gen_string('alpha')
 
-        with manifests.clone() as manifest:
+        with clone() as manifest:
             target_sat.put(manifest, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': function_org.id})
         RepositorySet.enable(
@@ -1110,7 +1110,7 @@ class TestContentViewSync:
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import and verify content
-        manifests.upload_manifest_locked(importing_org['id'], interface='CLI', timeout=7200000)
+        target_sat.upload_manifest(importing_org['id'], interface='CLI', timeout=7200000)
         # set disconnected mode
         Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
         ContentImport.version(
@@ -1665,7 +1665,7 @@ class TestContentViewSync:
         """
         # Setup rhel repo
         cv_name = gen_string('alpha')
-        with manifests.clone() as manifest:
+        with clone() as manifest:
             target_sat.put(manifest, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': function_org.id})
         RepositorySet.enable(

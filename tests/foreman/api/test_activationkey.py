@@ -26,7 +26,6 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import upload_manifest
 from robottelo.config import get_credentials
 from robottelo.config import user_nailgun_config
 from robottelo.constants import PRDS
@@ -436,21 +435,21 @@ def test_positive_remove_user(target_sat):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_fetch_product_content(module_org, session_entitlement_manifest):
+def test_positive_fetch_product_content(
+    module_org, session_entitlement_manifest, module_target_sat
+):
     """Associate RH & custom product with AK and fetch AK's product content
 
-    :id: 424f3dfb-0112-464b-b633-e8c9bce6e0f1
+    :id: 481a29fc-d8ae-423f-a980-911be9247187
 
     :expectedresults: Both Red Hat and custom product subscriptions are
         assigned as Activation Key's product content
-
-    :BZ: 1426386
 
     :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
-    upload_manifest(module_org.id, session_entitlement_manifest.content)
+    module_target_sat.upload_manifest(module_org.id, session_entitlement_manifest.content)
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=module_org.id,
@@ -459,18 +458,18 @@ def test_positive_fetch_product_content(module_org, session_entitlement_manifest
         reposet=REPOSET['rhst7'],
         releasever=None,
     )
-    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
-    custom_repo = entities.Repository(
-        product=entities.Product(organization=module_org).create()
+    custom_repo = module_target_sat.api.Repository(
+        product=module_target_sat.api.Product(organization=module_org).create()
     ).create()
     custom_repo.sync()
-    cv = entities.ContentView(
+    cv = module_target_sat.api.ContentView(
         organization=module_org, repository=[rh_repo_id, custom_repo.id]
     ).create()
     cv.publish()
-    ak = entities.ActivationKey(content_view=cv, organization=module_org).create()
-    org_subscriptions = entities.Subscription(organization=module_org).search()
+    ak = module_target_sat.api.ActivationKey(content_view=cv, organization=module_org).create()
+    org_subscriptions = module_target_sat.api.Subscription(organization=module_org).search()
     for subscription in org_subscriptions:
         provided_products_ids = [prod.id for prod in subscription.read().provided_product]
         if (

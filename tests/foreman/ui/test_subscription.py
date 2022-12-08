@@ -24,10 +24,8 @@ from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import upload_manifest
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -36,15 +34,14 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
+from robottelo.utils import clone
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_manifest')]
 
 
 @pytest.fixture(scope='module')
-def golden_ticket_host_setup():
-    org = entities.Organization().create()
-    with manifests.clone(name='golden_ticket') as manifest:
-        upload_manifest(org.id, manifest.content)
+def golden_ticket_host_setup(function_entitlement_manifest_org):
+    org = function_entitlement_manifest_org
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
@@ -109,7 +106,7 @@ def test_positive_end_to_end(session, target_sat):
     ]
     org = entities.Organization().create()
     _, temporary_local_manifest_path = mkstemp(prefix='manifest-', suffix='.zip')
-    with manifests.clone() as manifest:
+    with clone() as manifest:
         with open(temporary_local_manifest_path, 'wb') as file_handler:
             file_handler.write(manifest.content.read())
     with session:
@@ -194,7 +191,9 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_access_with_non_admin_user_with_manifest(test_name):
+def test_positive_access_with_non_admin_user_with_manifest(
+    test_name, function_entitlement_manifest_org
+):
     """Access subscription page with user that has only view_subscriptions and view organizations
     permission and organization that has a manifest uploaded.
 
@@ -211,8 +210,7 @@ def test_positive_access_with_non_admin_user_with_manifest(test_name):
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
-    manifests.upload_manifest_locked(org.id)
+    org = function_entitlement_manifest_org
     role = entities.Role(organization=[org]).create()
     create_role_permissions(
         role,
@@ -234,7 +232,7 @@ def test_positive_access_with_non_admin_user_with_manifest(test_name):
 
 
 @pytest.mark.tier2
-def test_positive_access_manifest_as_another_admin_user(test_name):
+def test_positive_access_manifest_as_another_admin_user(test_name, target_sat):
     """Other admin users should be able to access and manage a manifest
     uploaded by a different admin.
 
@@ -261,7 +259,7 @@ def test_positive_access_manifest_as_another_admin_user(test_name):
     ).create()
     # use the first admin to upload a manifest
     with Session(test_name, user=user1.login, password=user1_password) as session:
-        manifests.upload_manifest_locked(org.id)
+        target_sat.upload_manifest(org.id)
         assert session.subscription.has_manifest
         # store subscriptions that have "Red Hat" in the name for later
         rh_subs = session.subscription.search("Red Hat")
@@ -455,7 +453,7 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
     }
     org = entities.Organization().create()
     _, temporary_local_manifest_path = mkstemp(prefix='manifest-', suffix='.zip')
-    with manifests.clone() as manifest:
+    with clone() as manifest:
         with open(temporary_local_manifest_path, 'wb') as file_handler:
             file_handler.write(manifest.content.read())
 
@@ -510,7 +508,9 @@ def test_positive_subscription_status_disabled_golden_ticket(
 
 
 @pytest.mark.tier2
-def test_positive_candlepin_events_processed_by_STOMP(session, rhel7_contenthost, target_sat):
+def test_positive_candlepin_events_processed_by_STOMP(
+    session, rhel7_contenthost, target_sat, function_entitlement_manifest_org
+):
     """Verify that Candlepin events are being read and processed by
        attaching subscriptions, validating host subscriptions status,
        and viewing processed and failed Candlepin events
@@ -535,7 +535,7 @@ def test_positive_candlepin_events_processed_by_STOMP(session, rhel7_contenthost
 
     :CaseImportance: High
     """
-    org = entities.Organization().create()
+    org = function_entitlement_manifest_org
     repo = entities.Repository(product=entities.Product(organization=org).create()).create()
     repo.sync()
     ak = entities.ActivationKey(
@@ -552,8 +552,6 @@ def test_positive_candlepin_events_processed_by_STOMP(session, rhel7_contenthost
             'details'
         ]
         assert 'Unentitled' in host['subscription_status']
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
         session.contenthost.add_subscription(rhel7_contenthost.hostname, DEFAULT_SUBSCRIPTION_NAME)
         session.browser.refresh()
         updated_sub_status = session.contenthost.read(

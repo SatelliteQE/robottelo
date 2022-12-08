@@ -32,11 +32,9 @@ from navmazing import NavigationTriesExceeded
 from productmd.common import parse_nvra
 
 from robottelo import constants
-from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import create_sync_custom_repo
 from robottelo.api.utils import enable_sync_redhat_repo
-from robottelo.api.utils import upload_manifest
 from robottelo.cli.contentview import ContentView
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
@@ -245,7 +243,7 @@ def test_positive_repo_count_for_composite_cv(session, module_org):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_create_composite(session, module_prod, module_org):
+def test_positive_create_composite(session, module_prod, module_entitlement_manifest_org):
     """Create a composite content views
 
     :id: 550f1970-5cbd-4571-bb7b-17e97639b715
@@ -258,6 +256,7 @@ def test_positive_create_composite(session, module_prod, module_org):
 
     :CaseImportance: High
     """
+    org = module_entitlement_manifest_org
     cv_name1 = gen_string('alpha')
     cv_name2 = gen_string('alpha')
     composite_name = gen_string('alpha')
@@ -272,12 +271,10 @@ def test_positive_create_composite(session, module_prod, module_org):
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
 
-    with manifests.clone() as manifest:
-        upload_manifest(module_org.id, manifest.content)
-    enable_sync_redhat_repo(rh_repo, module_org.id)
+    enable_sync_redhat_repo(rh_repo, org.id)
     docker_repo.sync()
     with session:
-        session.organization.select(module_org.name)
+        session.organization.select(org.name)
         # Create content views
         for cv_name in (cv_name1, cv_name2):
             session.contentview.create({'name': cv_name})
@@ -300,7 +297,7 @@ def test_positive_create_composite(session, module_prod, module_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_add_rh_content(session):
+def test_positive_add_rh_content(session, function_entitlement_manifest_org):
     """Add Red Hat content to a content view
 
     :id: c370fd79-0c0d-4685-99cb-848556c786c1
@@ -322,9 +319,7 @@ def test_positive_add_rh_content(session):
         'releasever': None,
     }
     # Create new org to import manifest
-    org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
+    org = function_entitlement_manifest_org
     enable_sync_redhat_repo(rh_repo, org.id)
     with session:
         # Create content-view
@@ -926,7 +921,7 @@ def test_positive_publish_with_custom_content(session, module_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_publish_with_rh_content(session):
+def test_positive_publish_with_rh_content(session, function_entitlement_manifest_org):
     """Attempt to publish a content view containing RH content
 
     :id: bd24dc13-b6c4-4a9b-acb2-cd6df30f436c
@@ -947,9 +942,7 @@ def test_positive_publish_with_rh_content(session):
         'basearch': 'x86_64',
         'releasever': None,
     }
-    org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
+    org = function_entitlement_manifest_org
     enable_sync_redhat_repo(rh_repo, org.id)
     with session:
         session.organization.select(org.name)
@@ -966,7 +959,7 @@ def test_positive_publish_with_rh_content(session):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_publish_composite_with_custom_content(session):
+def test_positive_publish_composite_with_custom_content(session, function_entitlement_manifest_org):
     """Attempt to publish composite content view containing custom content
 
     :id: 73947204-408e-4e2e-b87f-ba2e52ee50b6
@@ -986,7 +979,7 @@ def test_positive_publish_composite_with_custom_content(session):
     custom_repo2_name = gen_string('alpha')
     custom_repo1_url = settings.repos.yum_0.url
     custom_repo2_url = settings.repos.yum_1.url
-    org = entities.Organization().create()
+    org = function_entitlement_manifest_org
     product = entities.Product(organization=org).create()
     rh7_repo = {
         'name': REPOS['rhst7']['name'],
@@ -1004,8 +997,6 @@ def test_positive_publish_composite_with_custom_content(session):
     ).create()
     docker_repo1.sync()
     docker_repo2.sync()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
     # Enable and sync RH repository
     enable_sync_redhat_repo(rh7_repo, org.id)
     # Create custom yum repositories
@@ -1157,7 +1148,7 @@ def test_positive_promote_with_custom_content(session, module_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_promote_with_rh_content(session):
+def test_positive_promote_with_rh_content(session, function_entitlement_manifest_org):
     """Attempt to promote a content view containing RH content
 
     :id: 82f71639-3580-49fd-bd5a-8dba568b98d1
@@ -1178,9 +1169,7 @@ def test_positive_promote_with_rh_content(session):
         'basearch': 'x86_64',
         'releasever': None,
     }
-    org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
+    org = function_entitlement_manifest_org
     enable_sync_redhat_repo(rh_repo, org.id)
     lce = entities.LifecycleEnvironment(organization=org).create()
     with session:
@@ -1198,7 +1187,7 @@ def test_positive_promote_with_rh_content(session):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_promote_composite_with_custom_content(session):
+def test_positive_promote_composite_with_custom_content(session, function_entitlement_manifest_org):
     """Attempt to promote composite content view containing custom content
 
     :id: 35efbd83-d32e-4831-9d5b-1adb15289f54
@@ -1220,7 +1209,7 @@ def test_positive_promote_composite_with_custom_content(session):
     custom_repo2_name = gen_string('alpha')
     custom_repo1_url = settings.repos.yum_0.url
     custom_repo2_url = settings.repos.yum_1.url
-    org = entities.Organization().create()
+    org = function_entitlement_manifest_org
     product = entities.Product(organization=org).create()
     rh7_repo = {
         'name': REPOS['rhst7']['name'],
@@ -1229,8 +1218,6 @@ def test_positive_promote_composite_with_custom_content(session):
         'basearch': 'x86_64',
         'releasever': None,
     }
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
     # create a life cycle environment
     lce = entities.LifecycleEnvironment(organization=org).create()
     # Enable and sync RH repository
@@ -2734,7 +2721,9 @@ def test_positive_delete_with_kickstart_repo_and_host_group(
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_rh_mixed_content_end_to_end(session, module_prod, module_org):
+def test_positive_rh_mixed_content_end_to_end(
+    session, module_prod, module_entitlement_manifest_org
+):
     """Create a CV with docker repo as well as RH yum contents and publish and promote
     them to next environment. Remove promoted version afterwards
 
@@ -2760,10 +2749,9 @@ def test_positive_rh_mixed_content_end_to_end(session, module_prod, module_org):
         'basearch': 'x86_64',
         'releasever': None,
     }
-    manifests.upload_manifest_locked(module_org.id)
-    enable_sync_redhat_repo(rh_st_repo, module_org.id)
+    enable_sync_redhat_repo(rh_st_repo, module_entitlement_manifest_org.id)
     docker_repo.sync()
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    lce = entities.LifecycleEnvironment(organization=module_entitlement_manifest_org).create()
     with session:
         session.organization.select(module_org.name)
         session.contentview.create({'name': cv_name})
@@ -3694,7 +3682,7 @@ def test_positive_inc_update_should_not_fail(session, module_org):
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 def test_positive_no_duplicate_key_violate_unique_constraint_using_filters(
-    session, module_org, target_sat
+    session, module_entitlement_manifest_org, target_sat
 ):
     """Ensure that there's no duplicate key issues when filtering packages
 
@@ -3747,9 +3735,7 @@ def test_positive_no_duplicate_key_violate_unique_constraint_using_filters(
         'katello-host-tools',
         'katello-host-tools-fact-plugin',
     ]
-    with manifests.clone() as manifest:
-        upload_manifest(module_org.id, manifest.content)
-    enable_sync_redhat_repo(rh_repo, module_org.id)
+    enable_sync_redhat_repo(rh_repo, module_entitlement_manifest_org.id)
     with session:
         session.contentview.create({'name': cv})
         session.contentview.add_yum_repo(cv, rh_repo['name'])

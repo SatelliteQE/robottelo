@@ -23,7 +23,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import manifests
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
 from robottelo.cli.product import Product
@@ -32,6 +31,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 from robottelo.logging import logger
+from robottelo.utils import clone
 
 
 def cut_lines(start_line, end_line, source_file, out_file, host):
@@ -159,7 +159,7 @@ def test_positive_logging_from_candlepin(module_org, target_sat):
     # get the number of lines in the source log before the test
     line_count_start = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
     # command for this test
-    with manifests.clone() as manifest:
+    with clone() as manifest:
         with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
             content_file.write(manifest.content.read())
             content_file.seek(0)

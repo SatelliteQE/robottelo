@@ -6,7 +6,6 @@ import inspect
 import sys
 
 from robottelo import constants
-from robottelo import manifests
 from robottelo.config import settings
 from robottelo.exceptions import DistroNotSupportedError
 from robottelo.exceptions import OnlyOneOSRepositoryAllowed
@@ -660,7 +659,7 @@ class RepositoryCollection:
         if self.need_subscription:
             # upload manifest only when needed
             if upload_manifest and not self.organization_has_manifest(org_id):
-                manifests.upload_manifest_locked(org_id, interface='CLI')
+                self.satellite.upload_manifest(org_id, interface='CLI')
             if not rh_subscriptions:
                 # add the default subscription if no subscription provided
                 rh_subscriptions = [constants.DEFAULT_SUBSCRIPTION_NAME]
