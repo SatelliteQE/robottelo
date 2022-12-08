@@ -51,4 +51,4 @@ def test_positive_leapp(target_sat):
     assert result.stdout[0] == str(orig_rhel_ver + 1), 'RHEL was not upgraded'
     # Check satellite's health
     sat_health = target_sat.execute('satellite-maintain health check')
-    assert sat_health.status != 0, 'Satellite health check failed'
+    assert sat_health.status == 0, 'Satellite health check failed'
