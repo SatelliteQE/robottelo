@@ -20,7 +20,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
@@ -43,9 +42,9 @@ def module_custom_product(module_org):
 
 
 @pytest.fixture(scope='module')
-def module_org_with_manifest():
+def module_org_with_manifest(module_target_sat):
     org = entities.Organization().create()
-    manifests.upload_manifest_locked(org.id)
+    module_target_sat.upload_manifest(org.id)
     return org
 
 

@@ -24,7 +24,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import manifests
 from robottelo.api.utils import disable_syncplan
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.base import CLIReturnCodeError
@@ -42,6 +41,7 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.logging import logger
+from robottelo.utils import clone
 from robottelo.utils.datafactory import filtered_datapoint
 from robottelo.utils.datafactory import invalid_values_list
 from robottelo.utils.datafactory import parametrized
@@ -602,7 +602,7 @@ def test_positive_synchronize_rh_product_past_sync_date(target_sat, request):
     interval = 60 * 60  # 'hourly' sync interval in seconds
     delay = 2 * 60
     org = make_org()
-    with manifests.clone() as manifest:
+    with clone() as manifest:
         target_sat.put(manifest, manifest.filename)
     Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
     RepositorySet.enable(
@@ -672,7 +672,7 @@ def test_positive_synchronize_rh_product_future_sync_date(target_sat, request):
     delay = (cron_multiple) * 60  # delay for sync date in seconds
     guardtime = 180  # do not start test less than 2 mins before the next sync event
     org = make_org()
-    with manifests.clone() as manifest:
+    with clone() as manifest:
         target_sat.put(manifest, manifest.filename)
     Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
     RepositorySet.enable(

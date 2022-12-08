@@ -24,8 +24,6 @@ from broker import Broker
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
@@ -751,7 +749,7 @@ def test_positive_add_custom_product(module_org):
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_redhat_and_custom_products(module_org):
+def test_positive_add_redhat_and_custom_products(module_org, module_target_sat):
     """Test if RH/Custom product can be associated to Activation key
 
     :id: 74c77426-18f5-4abb-bca9-a2135f7fcc1f
@@ -790,8 +788,8 @@ def test_positive_add_redhat_and_custom_products(module_org):
             'lifecycle-environment-id': result['lifecycle-environment-id'],
         }
     )
-    repo = Repository.info({'id': result['repository-id']})
-    content = ActivationKey.product_content(
+    repo = module_target_sat.cli.Repository.info({'id': result['repository-id']})
+    content = module_target_sat.cli.ActivationKey.product_content(
         {'id': result['activationkey-id'], 'organization-id': org['id']}
     )
     assert len(content) == 2
@@ -799,7 +797,7 @@ def test_positive_add_redhat_and_custom_products(module_org):
 
 
 @pytest.mark.tier2
-def test_positive_delete_manifest(function_org):
+def test_positive_delete_manifest(function_entitlement_manifest_org, target_sat):
     """Check if deleting a manifest removes it from Activation key
 
     :id: 8256ac6d-3f60-4668-897d-2e88d29532d3
@@ -816,20 +814,21 @@ def test_positive_delete_manifest(function_org):
 
     :CaseAutomation: Automated
     """
-    with manifests.clone() as manifest:
-        upload_manifest(function_org.id, manifest.content)
-    new_ak = make_activation_key({'organization-id': function_org.id})
-    ak_subs = ActivationKey.subscriptions({'id': new_ak['id'], 'organization-id': function_org.id})
-    subscription_result = Subscription.list(
-        {'organization-id': function_org.id, 'order': 'id desc'}, per_page=False
+    org = function_entitlement_manifest_org
+    new_ak = make_activation_key({'organization-id': org.id})
+    ak_subs = target_sat.cli.ActivationKey.subscriptions(
+        {'id': new_ak['id'], 'organization-id': org.id}
     )
-    result = ActivationKey.add_subscription(
+    subscription_result = Subscription.list(
+        {'organization-id': org.id, 'order': 'id desc'}, per_page=False
+    )
+    result = target_sat.cli.ActivationKey.add_subscription(
         {'id': new_ak['id'], 'subscription-id': subscription_result[-1]['id']}
     )
     assert 'Subscription added to activation key.' in result
-    Subscription.delete_manifest({'organization-id': function_org.id})
-    ak_subs_info = ActivationKey.subscriptions(
-        {'id': new_ak['id'], 'organization-id': function_org.id}
+    Subscription.delete_manifest({'organization-id': org.id})
+    ak_subs_info = target_sat.cli.ActivationKey.subscriptions(
+        {'id': new_ak['id'], 'organization-id': org.id}
     )
     assert len(ak_subs) == len(ak_subs_info)
 
@@ -837,7 +836,7 @@ def test_positive_delete_manifest(function_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_delete_subscription(module_manifest_org):
+def test_positive_delete_subscription(module_manifest_org, module_target_sat):
     """Check if deleting a subscription removes it from Activation key
 
     :id: bbbe4641-bfb0-48d6-acfc-de4294b18c15
@@ -851,19 +850,19 @@ def test_positive_delete_subscription(module_manifest_org):
     subscription_result = Subscription.list(
         {'organization-id': module_manifest_org.id, 'order': 'id desc'}, per_page=False
     )
-    result = ActivationKey.add_subscription(
+    result = module_target_sat.cli.ActivationKey.add_subscription(
         {'id': new_ak['id'], 'subscription-id': subscription_result[-1]['id']}
     )
     assert 'Subscription added to activation key.' in result
-    ak_subs_info = ActivationKey.subscriptions(
+    ak_subs_info = module_target_sat.cli.ActivationKey.subscriptions(
         {'id': new_ak['id'], 'organization-id': module_manifest_org.id}
     )
     assert subscription_result[-1]['name'] in ak_subs_info
-    result = ActivationKey.remove_subscription(
+    result = module_target_sat.cli.ActivationKey.remove_subscription(
         {'id': new_ak['id'], 'subscription-id': subscription_result[-1]['id']}
     )
     assert 'Subscription removed from activation key.' in result
-    ak_subs_info = ActivationKey.subscriptions(
+    ak_subs_info = module_target_sat.cli.ActivationKey.subscriptions(
         {'id': new_ak['id'], 'organization-id': module_manifest_org.id}
     )
     assert subscription_result[-1]['name'] not in ak_subs_info
@@ -936,7 +935,7 @@ def test_positive_update_aks_to_chost_in_one_command(module_org):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_list_by_name(module_org, name):
+def test_positive_list_by_name(module_org, name, module_target_sat):
     """List Activation key for all variations of Activation key name
 
     :id: 644b70d9-86c1-4e26-b38e-6aafab3efa34
@@ -948,13 +947,15 @@ def test_positive_list_by_name(module_org, name):
     :parametrized: yes
     """
     make_activation_key({'organization-id': module_org.id, 'name': name})
-    result = ActivationKey.list({'name': name, 'organization-id': module_org.id})
+    result = module_target_sat.cli.ActivationKey.list(
+        {'name': name, 'organization-id': module_org.id}
+    )
     assert len(result) == 1
     assert result[0]['name'] == name
 
 
 @pytest.mark.tier1
-def test_positive_list_by_cv_id(module_org):
+def test_positive_list_by_cv_id(module_org, module_target_sat):
     """List Activation key for provided Content View ID
 
     :id: 4d9aad38-cd6e-41cb-99a0-9a593cf22655
@@ -965,13 +966,15 @@ def test_positive_list_by_cv_id(module_org):
     """
     cv = make_content_view({'organization-id': module_org.id})
     make_activation_key({'organization-id': module_org.id, 'content-view-id': cv['id']})
-    result = ActivationKey.list({'content-view-id': cv['id'], 'organization-id': module_org.id})
+    result = module_target_sat.cli.ActivationKey.list(
+        {'content-view-id': cv['id'], 'organization-id': module_org.id}
+    )
     assert len(result) == 1
     assert result[0]['content-view'] == cv['name']
 
 
 @pytest.mark.tier1
-def test_positive_create_using_old_name(module_org):
+def test_positive_create_using_old_name(module_org, module_target_sat):
     """Create activation key, rename it and create another with the
     initial name
 
@@ -984,17 +987,17 @@ def test_positive_create_using_old_name(module_org):
     name = gen_string('utf8')
     activation_key = make_activation_key({'organization-id': module_org.id, 'name': name})
     new_name = gen_string('utf8')
-    ActivationKey.update(
+    module_target_sat.cli.ActivationKey.update(
         {'id': activation_key['id'], 'new-name': new_name, 'organization-id': module_org.id}
     )
-    activation_key = ActivationKey.info({'id': activation_key['id']})
+    activation_key = module_target_sat.cli.ActivationKey.info({'id': activation_key['id']})
     assert activation_key['name'] == new_name
     new_activation_key = make_activation_key({'name': name, 'organization-id': module_org.id})
     assert new_activation_key['name'] == name
 
 
 @pytest.mark.tier2
-def test_positive_remove_host_collection_by_id(module_org):
+def test_positive_remove_host_collection_by_id(module_org, module_target_sat):
     """Test that hosts associated to Activation Keys can be removed
     using id of that host collection
 
@@ -1021,14 +1024,14 @@ def test_positive_remove_host_collection_by_id(module_org):
     new_host_col = make_host_collection(
         {'name': gen_string('alpha'), 'organization-id': module_org.id}
     )
-    ActivationKey.add_host_collection(
+    module_target_sat.cli.ActivationKey.add_host_collection(
         {
             'host-collection-id': new_host_col['id'],
             'name': activation_key['name'],
             'organization': module_org.name,
         }
     )
-    activation_key = ActivationKey.info({'id': activation_key['id']})
+    activation_key = module_target_sat.cli.ActivationKey.info({'id': activation_key['id']})
     assert len(activation_key['host-collections']) == 1
     ActivationKey.remove_host_collection(
         {
@@ -1037,13 +1040,13 @@ def test_positive_remove_host_collection_by_id(module_org):
             'organization': module_org.name,
         }
     )
-    activation_key = ActivationKey.info({'id': activation_key['id']})
+    activation_key = module_target_sat.cli.ActivationKey.info({'id': activation_key['id']})
     assert len(activation_key['host-collections']) == 0
 
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('host_col', **parametrized(valid_data_list()))
-def test_positive_remove_host_collection_by_name(module_org, host_col):
+def test_positive_remove_host_collection_by_name(module_org, host_col, module_target_sat):
     """Test that hosts associated to Activation Keys can be removed
     using name of that host collection
 
@@ -1070,29 +1073,29 @@ def test_positive_remove_host_collection_by_name(module_org, host_col):
     new_host_col = make_host_collection({'name': host_col, 'organization-id': module_org.id})
     # Assert that name matches data passed
     assert new_host_col['name'] == host_col
-    ActivationKey.add_host_collection(
+    module_target_sat.cli.ActivationKey.add_host_collection(
         {
             'host-collection': new_host_col['name'],
             'name': activation_key['name'],
             'organization-id': module_org.id,
         }
     )
-    activation_key = ActivationKey.info({'id': activation_key['id']})
+    activation_key = module_target_sat.cli.ActivationKey.info({'id': activation_key['id']})
     assert len(activation_key['host-collections']) == 1
     assert activation_key['host-collections'][0]['name'] == host_col
-    ActivationKey.remove_host_collection(
+    module_target_sat.cli.ActivationKey.remove_host_collection(
         {
             'host-collection': new_host_col['name'],
             'name': activation_key['name'],
             'organization-id': module_org.id,
         }
     )
-    activation_key = ActivationKey.info({'id': activation_key['id']})
+    activation_key = module_target_sat.cli.ActivationKey.info({'id': activation_key['id']})
     assert len(activation_key['host-collections']) == 0
 
 
 @pytest.mark.tier2
-def test_create_ak_with_syspurpose_set(module_org, module_manifest_org):
+def test_create_ak_with_syspurpose_set(module_org, module_manifest_org, module_target_sat):
     """Test that an activation key can be created with system purpose values set.
 
     :id: ac8931e5-7089-494a-adac-cee2a8ab57ee
@@ -1123,7 +1126,7 @@ def test_create_ak_with_syspurpose_set(module_org, module_manifest_org):
     if not is_open('BZ:1789028'):
         assert new_ak['system-purpose']['service-level'] == "Self-Support"
     # Check that system purpose values can be deleted.
-    ActivationKey.update(
+    module_target_sat.cli.ActivationKey.update(
         {
             'id': new_ak['id'],
             'purpose-addons': '',
@@ -1133,14 +1136,16 @@ def test_create_ak_with_syspurpose_set(module_org, module_manifest_org):
             'organization-id': module_org.id,
         }
     )
-    updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': module_org.id})
+    updated_ak = module_target_sat.cli.ActivationKey.info(
+        {'id': new_ak['id'], 'organization-id': module_org.id}
+    )
     assert updated_ak['system-purpose']['purpose-addons'] == ''
     assert updated_ak['system-purpose']['purpose-role'] == ''
     assert updated_ak['system-purpose']['purpose-usage'] == ''
 
 
 @pytest.mark.tier2
-def test_update_ak_with_syspurpose_values(module_org, module_manifest_org):
+def test_update_ak_with_syspurpose_values(module_org, module_manifest_org, module_target_sat):
     """Test that system purpose values can be added to an existing activation key
     and can then be changed.
 
@@ -1168,7 +1173,7 @@ def test_update_ak_with_syspurpose_values(module_org, module_manifest_org):
     assert new_ak['system-purpose']['purpose-usage'] == ''
 
     # Check that system purpose values can be added to an AK.
-    ActivationKey.update(
+    module_target_sat.cli.ActivationKey.update(
         {
             'id': new_ak['id'],
             'purpose-addons': "test-addon1, test-addon2",
@@ -1178,13 +1183,15 @@ def test_update_ak_with_syspurpose_values(module_org, module_manifest_org):
             'organization-id': module_manifest_org.id,
         }
     )
-    updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': module_manifest_org.id})
+    updated_ak = module_target_sat.cli.ActivationKey.info(
+        {'id': new_ak['id'], 'organization-id': module_manifest_org.id}
+    )
     assert updated_ak['system-purpose']['purpose-addons'] == "test-addon1, test-addon2"
     assert updated_ak['system-purpose']['purpose-role'] == "test-role1"
     assert updated_ak['system-purpose']['purpose-usage'] == "test-usage1"
     assert updated_ak['system-purpose']['service-level'] == "Self-Support"
     # Check that system purpose values can be updated
-    ActivationKey.update(
+    module_target_sat.cli.ActivationKey.update(
         {
             'id': new_ak['id'],
             'purpose-addons': "test-addon3, test-addon4",
@@ -1194,7 +1201,9 @@ def test_update_ak_with_syspurpose_values(module_org, module_manifest_org):
             'organization-id': module_manifest_org.id,
         }
     )
-    updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': module_manifest_org.id})
+    updated_ak = module_target_sat.cli.ActivationKey.info(
+        {'id': new_ak['id'], 'organization-id': module_manifest_org.id}
+    )
     assert updated_ak['system-purpose']['purpose-addons'] == "test-addon3, test-addon4"
     assert updated_ak['system-purpose']['purpose-role'] == "test-role2"
     assert updated_ak['system-purpose']['purpose-usage'] == "test-usage2"
@@ -1204,7 +1213,7 @@ def test_update_ak_with_syspurpose_values(module_org, module_manifest_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_add_subscription_by_id(module_org, target_sat):
+def test_positive_add_subscription_by_id(module_entitlement_manifest_org, module_target_sat):
     """Test that subscription can be added to activation key
 
     :id: b884be1c-b35d-440a-9a9d-c854c83e10a7
@@ -1223,13 +1232,12 @@ def test_positive_add_subscription_by_id(module_org, target_sat):
 
     :BZ: 1463685
     """
-    with manifests.clone() as manifest:
-        target_sat.put(manifest, manifest.filename)
-    org_id = make_org()['id']
+    org_id = module_entitlement_manifest_org.id
     ackey_id = make_activation_key({'organization-id': org_id})['id']
-    Subscription.upload({'file': manifest.filename, 'organization-id': org_id})
-    subs_id = Subscription.list({'organization-id': org_id}, per_page=False)
-    result = ActivationKey.add_subscription({'id': ackey_id, 'subscription-id': subs_id[0]['id']})
+    subs_id = module_target_sat.cli.Subscription.list({'organization-id': org_id}, per_page=False)
+    result = module_target_sat.cli.ActivationKey.add_subscription(
+        {'id': ackey_id, 'subscription-id': subs_id[0]['id']}
+    )
     assert 'Subscription added to activation key.' in result
 
 

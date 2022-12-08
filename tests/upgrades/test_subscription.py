@@ -25,7 +25,6 @@ from upgrade_tests.helpers.scenarios import dockerize
 from upgrade_tests.helpers.scenarios import upload_manifest
 from wait_for import wait_for
 
-from robottelo import manifests
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.upgrade_utility import host_location_update
@@ -113,7 +112,7 @@ class TestSubscriptionAutoAttach:
         container_name = f"{request.node.name}_docker_client"
         org = entities.Organization(name=request.node.name + "_org").create()
         loc = entities.Location(name=request.node.name + "_loc", organization=[org]).create()
-        manifests.upload_manifest_locked(org.id, interface='API')
+        target_sat.upload_manifest(org.id, interface='API')
         act_key = entities.ActivationKey(
             auto_attach=False,
             organization=org.id,
