@@ -87,6 +87,9 @@ def pytest_collection_modifyitems(session, items, config):
     deselected = []
     logger.info('Processing test items to add testimony token markers')
     for item in items:
+        item.user_properties.append(
+            ("start_time", datetime.datetime.utcnow().strftime(FMT_XUNIT_TIME))
+        )
         if item.nodeid.startswith('tests/robottelo/') and 'test_junit' not in item.nodeid:
             # Unit test, no testimony markers
             continue
@@ -119,9 +122,6 @@ def pytest_collection_modifyitems(session, items, config):
         item.user_properties.append(("BaseOS", rhel_version))
         item.user_properties.append(("SatelliteVersion", sat_version))
         item.user_properties.append(("SnapVersion", snap_version))
-        item.user_properties.append(
-            ("start_time", datetime.datetime.utcnow().strftime(FMT_XUNIT_TIME))
-        )
 
         # exit early if no filters were passed
         if importance or component or assignee:
