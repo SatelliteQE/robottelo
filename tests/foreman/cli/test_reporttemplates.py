@@ -63,7 +63,7 @@ from robottelo.constants import REPORT_TEMPLATE_FILE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.hosts import ContentHost
-from robottelo.utils import clone
+from robottelo.utils.manifest import clone
 
 
 @pytest.fixture(scope='module')

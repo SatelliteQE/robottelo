@@ -10,9 +10,7 @@ from robottelo.config import settings
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.logging import logger
-from robottelo.utils import clone
-
-# from robottelo.utils import clone
+from robottelo.utils.manifest import clone
 
 
 class ContentInfo:

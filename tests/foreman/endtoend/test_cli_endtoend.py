@@ -40,7 +40,7 @@ from robottelo.cli.user import User
 from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-from robottelo.utils import clone
+from robottelo.utils.manifest import clone
 
 
 @pytest.fixture(scope='module')

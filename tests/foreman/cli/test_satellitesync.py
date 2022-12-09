@@ -46,7 +46,7 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import ANSIBLE_GALAXY
-from robottelo.utils import clone
+from robottelo.utils.manifest import clone
 
 EXPORT_DIR = '/var/lib/pulp/exports/'
 IMPORT_DIR = '/var/lib/pulp/imports/'

@@ -65,10 +65,10 @@ from robottelo.cli.usergroup import UserGroupExternal
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.logging import logger
-from robottelo.utils import clone
 from robottelo.utils import ssh
 from robottelo.utils.datafactory import valid_cron_expressions
 from robottelo.utils.decorators import cacheable
+from robottelo.utils.manifest import clone
 
 
 ORG_KEYS = ['organization', 'organization-id', 'organization-label']

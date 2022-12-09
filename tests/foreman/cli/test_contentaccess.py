@@ -26,7 +26,7 @@ from robottelo.constants import REAL_0_ERRATA_ID
 from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_FILENAME
 from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
 from robottelo.constants import REPOS
-from robottelo.utils import clone
+from robottelo.utils.manifest import clone
 
 pytestmark = [
     pytest.mark.skipif(

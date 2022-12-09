@@ -5,7 +5,7 @@ from manifester import Manifester
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
-from robottelo.utils import clone
+from robottelo.utils.manifest import clone
 
 
 @pytest.fixture(scope='session')

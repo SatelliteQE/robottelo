@@ -31,8 +31,8 @@ from robottelo.cli.subscription import Subscription
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.utils import clone
-from robottelo.utils import original_manifest
+from robottelo.utils.manifest import clone
+from robottelo.utils.manifest import original_manifest
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
