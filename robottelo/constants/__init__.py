@@ -15,7 +15,7 @@ class Colored(Box):
 
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.12"
+SATELLITE_VERSION = "6.13"
 SATELLITE_OS_VERSION = "8"
 
 LOCALES = (
