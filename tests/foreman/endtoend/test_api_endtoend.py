@@ -35,8 +35,8 @@ from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.config import user_nailgun_config
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-from robottelo.utils import clone
 from robottelo.utils.issue_handlers import is_open
+from robottelo.utils.manifest import clone
 
 
 API_PATHS = {

@@ -2,7 +2,7 @@
 import pytest
 
 from robottelo.cli.repository import Repository
-from robottelo.utils import clone
+from robottelo.utils.manifest import clone
 
 
 @pytest.fixture(scope='module')

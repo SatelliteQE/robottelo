@@ -34,7 +34,7 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
-from robottelo.utils import clone
+from robottelo.utils.manifest import clone
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_manifest')]
 

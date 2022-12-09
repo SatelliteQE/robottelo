@@ -31,7 +31,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 from robottelo.logging import logger
-from robottelo.utils import clone
+from robottelo.utils.manifest import clone
 
 
 def cut_lines(start_line, end_line, source_file, out_file, host):
