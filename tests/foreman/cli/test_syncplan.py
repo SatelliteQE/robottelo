@@ -41,11 +41,11 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.logging import logger
-from robottelo.utils import clone
 from robottelo.utils.datafactory import filtered_datapoint
 from robottelo.utils.datafactory import invalid_values_list
 from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.manifest import clone
 
 SYNC_DATE_FMT = '%Y-%m-%d %H:%M:%S'
 
