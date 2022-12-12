@@ -2,7 +2,7 @@
 
 broker[docker]==0.2.9
 cryptography==38.0.4
-deepdiff==6.2.1
+deepdiff==6.2.2
 dynaconf[vault]==3.1.11
 fauxfactory==3.1.0
 jinja2==3.1.2
