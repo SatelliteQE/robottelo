@@ -45,7 +45,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import ANSIBLE_GALAXY
-from robottelo.utils.manifest import clone
 
 EXPORT_DIR = '/var/lib/pulp/exports/'
 IMPORT_DIR = '/var/lib/pulp/imports/'
@@ -994,7 +993,12 @@ class TestContentViewSync:
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
-        target_sat.upload_manifest(importing_org['id'], duplicate_entitlement_manifest.content, interface='CLI', timeout=7200000)
+        target_sat.upload_manifest(
+            importing_org['id'],
+            duplicate_entitlement_manifest.content,
+            interface='CLI',
+            timeout=7200000,
+        )
         # set disconnected mode
         Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
         ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
@@ -1111,7 +1115,12 @@ class TestContentViewSync:
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import and verify content
-        upload_manifest(importing_org['id'], duplicate_entitlement_manifest.content, interface='CLI', timeout=7200000)
+        target_sat.upload_manifest(
+            importing_org['id'],
+            duplicate_entitlement_manifest.content,
+            interface='CLI',
+            timeout=7200000,
+        )
         # set disconnected mode
         Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
         ContentImport.version(

@@ -22,7 +22,6 @@ from robottelo.cli.product import Product
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.constants import PRDS
 from robottelo.constants import REPOSET
-from robottelo.utils.manifest import clone
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.tier1]
 

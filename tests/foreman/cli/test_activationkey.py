@@ -749,7 +749,9 @@ def test_positive_add_custom_product(module_org):
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_redhat_and_custom_products(module_target_sat, function_entitlement_manifest_org):
+def test_positive_add_redhat_and_custom_products(
+    module_target_sat, function_entitlement_manifest_org
+):
     """Test if RH/Custom product can be associated to Activation key
 
     :id: 74c77426-18f5-4abb-bca9-a2135f7fcc1f

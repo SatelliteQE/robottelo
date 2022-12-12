@@ -26,10 +26,8 @@ from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
-from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.logging import logger
-from robottelo.utils.manifest import clone
 
 
 def cut_lines(start_line, end_line, source_file, out_file, host):

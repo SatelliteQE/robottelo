@@ -21,13 +21,11 @@ from nailgun import entities
 
 from robottelo.cli.host import Host
 from robottelo.cli.package import Package
-from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.constants import REAL_0_ERRATA_ID
 from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_FILENAME
 from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
 from robottelo.constants import REPOS
-from robottelo.utils.manifest import clone
 
 pytestmark = [
     pytest.mark.skipif(
@@ -170,7 +168,9 @@ def test_positive_erratum_installable(vm):
 
 
 @pytest.mark.tier2
-def test_negative_rct_not_shows_golden_ticket_enabled(target_sat, function_org, function_entitlement_manifest):
+def test_negative_rct_not_shows_golden_ticket_enabled(
+    target_sat, function_org, function_entitlement_manifest
+):
     """Assert restricted manifest has no Golden Ticket enabled .
 
     :id: 754c1be7-468e-4795-bcf9-258a38f3418b
