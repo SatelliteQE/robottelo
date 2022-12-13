@@ -1,0 +1,9 @@
+FLAVORS:
+  # 6 CPU, 24 GB RAM, 100 GB disk
+  DEFAULT: satqe-ssd.standard.std
+  # 16 CPU, 32 GB RAM, 160 GB disk
+  LARGE: satqe-ssd.standard.xxxl
+  # 6 CPU, 24 GB RAM, 500 GB disk
+  UPGRADE: satqe-ssd.upgrade.std
+  # 8 CPU, 32 GB RAM, 500 GB disk
+  CUSTOM_DB: satqe-ssd.customerdb.std
