@@ -20,6 +20,7 @@ import pytest
 
 from robottelo.api.utils import wait_for_tasks
 from robottelo.hosts import get_sat_version
+from robottelo.utils.issue_handlers import is_open
 
 CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
@@ -36,14 +37,16 @@ def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target
 
     :expectedresults: Capsule is upgraded successfully
 
+    :bz: 2152951
+
     :CaseImportance: Medium
     """
-    template_id = (
-        target_sat.api.JobTemplate()
-        .search(query={'search': 'name="Capsule Upgrade Playbook"'})[0]
-        .id
+    template_name = (
+        "Smart Proxy Upgrade Playbook" if is_open("BZ:2152951") else "Capsule Upgrade Playbook"
     )
-
+    template_id = (
+        target_sat.api.JobTemplate().search(query={'search': f'name="{template_name}"'})[0].id
+    )
     module_capsule_configured.add_rex_key(satellite=target_sat)
     job = target_sat.api.JobInvocation().run(
         synchronous=False,

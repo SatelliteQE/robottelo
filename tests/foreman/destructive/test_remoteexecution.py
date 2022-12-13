@@ -23,6 +23,7 @@ from nailgun.entity_mixins import TaskFailedError
 
 from robottelo.config import get_credentials
 from robottelo.hosts import get_sat_version
+from robottelo.utils.issue_handlers import is_open
 
 CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
@@ -41,14 +42,16 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
 
     :expectedresults: Should fail
 
+    :bz: 2152951
+
     :CaseImportance: Medium
     """
-    template_id = (
-        target_sat.api.JobTemplate()
-        .search(query={'search': 'name="Capsule Upgrade Playbook"'})[0]
-        .id
+    template_name = (
+        "Smart Proxy Upgrade Playbook" if is_open("BZ:2152951") else "Capsule Upgrade Playbook"
     )
-
+    template_id = (
+        target_sat.api.JobTemplate().search(query={'search': f'name="{template_name}"'})[0].id
+    )
     target_sat.add_rex_key(satellite=target_sat)
     with pytest.raises(TaskFailedError) as error:
         target_sat.api.JobInvocation().run(
