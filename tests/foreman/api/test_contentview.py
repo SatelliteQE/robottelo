@@ -1173,7 +1173,7 @@ def test_negative_readonly_user_actions(
     with pytest.raises(HTTPError):
         target_sat.api.ContentView(server_config=cfg, organization=module_org).create()
     # Check that we can read our content view with custom user
-    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id)
     # Check that we cannot modify content view with custom user
     with pytest.raises(HTTPError):
         target_sat.api.ContentView(
@@ -1186,11 +1186,12 @@ def test_negative_readonly_user_actions(
     with pytest.raises(HTTPError):
         content_view.publish()
     # Check that we cannot promote content view
-    content_view = target_sat.api.ContentView(id=content_view.id).read()
+    content_view = target_sat.api.ContentView(id=content_view.id)
     content_view.publish()
     content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     assert len(content_view.version), 1
     with pytest.raises(HTTPError):
+        content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id)
         content_view.read().version[0].promote(data={'environment_ids': module_lce.id})
     # Check that we cannot create a Product
     with pytest.raises(HTTPError):
