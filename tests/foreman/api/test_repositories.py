@@ -17,11 +17,22 @@
 :Upstream: No
 """
 import pytest
+<<<<<<< HEAD
 from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
 from requests.exceptions import HTTPError
 
 from robottelo import constants
+=======
+from manifester import Manifester
+from requests.exceptions import HTTPError
+
+from robottelo import constants
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import upload_manifest
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.subscription import Subscription
+>>>>>>> a6ac698a7 (added test for expired manifest)
 from robottelo.config import settings
 from robottelo.constants import MIRRORING_POLICIES
 from robottelo.utils.datafactory import parametrized
@@ -190,3 +201,28 @@ def test_positive_sync_kickstart_repo(self, module_entitlement_manifest_org, tar
     rh_repo = rh_repo.read()
     assert rh_repo.content_counts['package_group'] > 0
     assert rh_repo.content_counts['rpm'] > 0
+
+
+def test_negative_uplaod_expired_manifest(module_org, target_sat):
+    """Upload an expired manifest and attempt to refresh it
+
+    :id: d6e652d8-5f46-4d15-9191-d842466d45d0
+
+    :Steps:
+        1. Upload a manifest
+        2. Delete the Subscription Allocation on RHSM
+        3. Attempt to refresh the manifest
+
+    :expectedresults: Manifest refresh should fail and return error message
+    """
+    manifester = Manifester(manifest_category=settings.manifest.entitlement)
+    manifest = manifester.get_manifest()
+    manifester.delete_subscription_allocation()
+    upload_manifest(module_org.id, manifest.content)
+    with pytest.raises(CLIReturnCodeError) as error:
+        Subscription.refresh_manifest({'organization-id': module_org.id})
+    assert (
+        'The Subscription Allocation providing the imported manifest has been removed. '
+        'Please create a new Subscription Allocation and import the new manifest'
+        in error.value.stderr
+    )
