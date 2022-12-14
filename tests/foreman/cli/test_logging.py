@@ -156,7 +156,7 @@ def test_positive_logging_from_candlepin(module_org, module_entitlement_manifest
     line_count_start = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
     # command for this test
     with module_entitlement_manifest as manifest:
-        target_sat.upload_manifest(module_org.id, manifest.content, interface='CLI')
+        target_sat.upload_manifest(module_org.id, manifest, interface='CLI')
     # get the number of lines in the source log after the test
     line_count_end = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
     # get the log lines of interest, put them in test_logfile

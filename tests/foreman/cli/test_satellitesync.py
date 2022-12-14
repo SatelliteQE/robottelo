@@ -995,7 +995,7 @@ class TestContentViewSync:
         assert result.stdout != ''
         target_sat.upload_manifest(
             importing_org['id'],
-            duplicate_entitlement_manifest.content,
+            duplicate_entitlement_manifest,
             interface='CLI',
             timeout=7200000,
         )
@@ -1117,7 +1117,7 @@ class TestContentViewSync:
         # Import and verify content
         target_sat.upload_manifest(
             importing_org['id'],
-            duplicate_entitlement_manifest.content,
+            duplicate_entitlement_manifest,
             interface='CLI',
             timeout=7200000,
         )

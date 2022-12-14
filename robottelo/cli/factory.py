@@ -1735,7 +1735,7 @@ def setup_org_for_a_custom_repo(options=None):
     }
 
 
-def _setup_org_for_a_rh_repo(target_sat, options=None):
+def _setup_org_for_a_rh_repo(options=None):
     """Sets up Org for the given Red Hat repository by:
 
     1. Checks if organization and lifecycle environment were given, otherwise

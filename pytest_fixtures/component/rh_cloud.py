@@ -17,12 +17,7 @@ def rhcloud_sat_host(satellite_factory):
 def rhcloud_manifest_org(rhcloud_sat_host, module_entitlement_manifest):
     """A module level fixture to get organization with manifest."""
     org = rhcloud_sat_host.api.Organization().create()
-    rhcloud_sat_host.put(
-        f'{module_entitlement_manifest.path}', f'{module_entitlement_manifest.name}'
-    )
-    rhcloud_sat_host.cli.Subscription.upload(
-        {'file': module_entitlement_manifest.name, 'organization-id': org.id}
-    )
+    rhcloud_sat_host.upload_manifest(org.id, module_entitlement_manifest.content)
     return org
 
 
