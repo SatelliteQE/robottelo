@@ -42,7 +42,7 @@ def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target
     :CaseImportance: Medium
     """
     template_name = (
-        "Smart Proxy Upgrade Playbook" if is_open("BZ:2152951") else "Capsule Upgrade Playbook"
+        'Smart Proxy Upgrade Playbook' if is_open('BZ:2152951') else 'Capsule Upgrade Playbook'
     )
     template_id = (
         target_sat.api.JobTemplate().search(query={'search': f'name="{template_name}"'})[0].id

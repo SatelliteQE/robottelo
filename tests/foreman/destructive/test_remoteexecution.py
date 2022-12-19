@@ -47,7 +47,7 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
     :CaseImportance: Medium
     """
     template_name = (
-        "Smart Proxy Upgrade Playbook" if is_open("BZ:2152951") else "Capsule Upgrade Playbook"
+        'Smart Proxy Upgrade Playbook' if is_open('BZ:2152951') else 'Capsule Upgrade Playbook'
     )
     template_id = (
         target_sat.api.JobTemplate().search(query={'search': f'name="{template_name}"'})[0].id
