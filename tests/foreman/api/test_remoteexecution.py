@@ -37,7 +37,7 @@ def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target
 
     :expectedresults: Capsule is upgraded successfully
 
-    :bz: 2152951
+    :BZ: 2152951
 
     :CaseImportance: Medium
     """
