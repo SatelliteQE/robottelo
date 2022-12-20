@@ -84,7 +84,7 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([8])
 def test_positive_use_alternate_directory(
-    rhel_contenthost, target_sat, default_org, default_location
+    target_sat, rhel_contenthost, default_org, default_location
 ):
     """Use alternate working directory on client to execute rex jobs
 
@@ -105,7 +105,7 @@ def test_positive_use_alternate_directory(
             'auto-attach': False,
         }
     )
-    result = client.register(target_sat, default_org, default_location, ak.name, port=None)
+    result = client.register(default_org, default_location, ak.name, satellite=target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     testdir = gen_string('alpha')
     result = client.run(f'mkdir /{testdir}')
