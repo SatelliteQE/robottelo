@@ -72,9 +72,8 @@ def register_host(sat, act_key, module_org, module_loc, host, ubi=None):
         location=module_loc,
         insecure=True,
         repo=ubi,
-    ).create()['registration_command']
-    result = host.execute(command)
-    assert result.status == 0
+    ).create()
+    assert host.execute(command).status == 0
 
 
 @pytest.fixture(scope='module')
