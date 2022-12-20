@@ -505,10 +505,11 @@ class ContentHost(Host, ContentHostMixins):
 
     def register(
         self,
-        target,
         org,
         loc,
         activation_keys,
+        satellite=None,
+        target=satellite,
         setup_insights=False,
         setup_remote_execution=True,
         setup_remote_execution_pull=False,
@@ -519,12 +520,12 @@ class ContentHost(Host, ContentHostMixins):
         repo_gpg_key_url=None,
         remote_execution_interface=None,
         update_packages=False,
-        ignore_subman_errors=True,
-        force=True,
+        ignore_subman_errors=False,
+        force=False,
         insecure=True,
         username=settings.server.admin_username,
         password=settings.server.admin_password,
-        port='9090',
+        hostgroup=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
@@ -549,69 +550,47 @@ class ContentHost(Host, ContentHostMixins):
         :param insecure: Don't verify server authenticity.
         :param username: Satellite admin username
         :param password: Satellite admin password
+        :param hostgroup: hostgroup to register with
         :param port: Capsule port, if unset template is pulled straight from Satellite
         :return: SSHCommandResult instance filled with the result of the
             registration.
         """
-        insights = (
-            # requires OS repo enabled for host
-            f'&setup_insights={str(setup_insights).lower()}'
-            if setup_insights is not None
-            else ''
-        )
-        rex = (
-            f'&setup_remote_execution={str(setup_remote_execution).lower()}'
-            if setup_remote_execution is not None
-            else ''
-        )
-        rex_pull = (
-            # requires Satellite Client repo enabled for host
-            f'&setup_remote_execution_pull={str(setup_remote_execution_pull).lower()}'
-            if setup_remote_execution_pull is not None
-            else ''
-        )
-        lce = (
-            f'&lifecycle_environment_id={lifecycle_environment.id}'
-            if lifecycle_environment is not None
-            else ''
-        )
-        os = f'&operating_system_id={operating_system.id}' if operating_system is not None else ''
-        pkgs = f'&packages={"+".join(packages)}' if packages is not None else ''
-        rex_iface = (
-            f'&remote_execution_interface={remote_execution_interface}'
-            if remote_execution_interface is not None
-            else ''
-        )
-        rp = f'&{urlencode({"repo": repo })}' if repo is not None else ''
-        gpg = (
-            f'&{urlencode({"repo_gpg_key_url": repo_gpg_key_url })}'
-            if repo_gpg_key_url is not None
-            else ''
-        )
-        port = f':{port}' if port is not None else ''
-        cmd = (
-            'curl -sS '
-            f'-u {username}:{password} '
-            f'{"--insecure " if insecure else ""}'
-            f"'https://{target.hostname}{port}/register?"
-            f'activation_keys={activation_keys}'
-            f'&organization_id={org.id}'
-            f'&location_id={loc.id}'
-            f'{insights}'
-            f'{rex}'
-            f'&update_packages={"true" if update_packages else "false"}'
-            f'{rex_pull}'
-            f'{rex_iface}'
-            f'{lce}'
-            f'{os}'
-            f'{pkgs}'
-            f'{"&ignore_subman_errors=true" if ignore_subman_errors else ""}'
-            f'{"&force=true" if force else ""}'
-            f'{rp}'
-            f'{gpg}'
-            "' | bash"
-        )
-        return self.execute(cmd)
+        options = {
+            'activation-keys': activation_keys,
+            'organization-id': org.id,
+            'location-id': loc.id,
+            'insecure': str(insecure).lower(),
+            'update-packages': str(update_packages).lower(),
+        }
+        if target.__class__.__name__ == 'Capsule':
+            options['smart-proxy'] = target.hostname
+        if lifecycle_environment is not None:
+            options['lifecycle_environment_id'] = lifecycle_environment.id
+        if operating_system is not None:
+            options['operatingsystem-id'] = operating_system.id
+        if hostgroup is not None:
+            options['hostgroup-id'] = hostgroup.id
+        if packages is not None:
+            options['packages'] = '+'.join(packages)
+        if repo is not None:
+            options['repo'] = urlencode({'repo': repo})
+        if setup_insights is not None:
+            options['setup-insights'] = str(setup_insights).lower()
+        if setup_remote_execution is not None:
+            options['setup-remote-execution'] = str(setup_remote_execution).lower()
+        if setup_remote_execution_pull is not None:
+            options['setup-remote-execution-pull'] = str(setup_remote_execution_pull).lower()
+        if remote_execution_interface is not None:
+            options['remote-execution-interface'] = remote_execution_interface
+        if repo_gpg_key_url is not None:
+            options['repo-gpg-key-url'] = repo_gpg_key_url
+        if ignore_subman_errors:
+            options['ignore-subman-errors'] = str(ignore_subman_errors).lower()
+        if force:
+            options['force'] = str(force).lower()
+
+        cmd = satellite.cli.HostRegistration.generate_command(options)
+        return self.execute(cmd.strip('\n'))
 
     def register_contenthost(
         self,

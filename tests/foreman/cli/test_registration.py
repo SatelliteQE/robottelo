@@ -6,6 +6,10 @@
 
 :CaseComponent: Registration
 
+:CaseAutomation: Automated
+
+:CaseImportance: Critical
+
 :Assignee: sbible
 
 :TestType: Functional
@@ -16,8 +20,53 @@ import pytest
 
 from robottelo.config import settings
 
+pytestmark = pytest.mark.tier1
 
-@pytest.mark.tier1
+
+@pytest.mark.e2e
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('[^6].*')
+def test_host_registration_end_to_end(
+    module_org,
+    module_location,
+    module_ak_with_synced_repo,
+    module_target_sat,
+    module_capsule_configured,
+    rhel_contenthost,
+):
+    """Verify content host registration with global registration
+
+    :id: b6cd60ba-8069-11ed-ac61-83315855d126
+
+    :steps:
+        1. Register host with global registration template to Satellite and Capsule
+
+    :expectedresults: Host registered successfully
+    """
+    result = rhel_contenthost.register(
+        module_org, module_location, module_ak_with_synced_repo.name, satellite=module_target_sat
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    # Update module_capsule_configured to include module_org/module_location
+    module_target_sat.cli.Capsule.update(
+        {
+            'name': module_capsule_configured.hostname,
+            'organization-ids': module_org.id,
+            'location-ids': module_location.id,
+        }
+    )
+    result = rhel_contenthost.register(
+        module_org,
+        module_location,
+        module_ak_with_synced_repo.name,
+        target=module_capsule_configured,
+        satellite=module_target_sat,
+        force=True,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+
 def test_upgrade_katello_ca_consumer_rpm(
     module_org, module_location, target_sat, rhel7_contenthost
 ):
@@ -35,8 +84,6 @@ def test_upgrade_katello_ca_consumer_rpm(
         5. Install new RPM and assert no change in server URL
 
     :expectedresults: Server URL is still Satellite host name not Red Hat CDN
-
-    :CaseAutomation: Automated
 
     :CaseImportance: High
 
