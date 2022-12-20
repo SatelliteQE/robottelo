@@ -8,10 +8,6 @@ on:
       - ready_for_review
     branches-ignore:
       - master
-  issue_comment:
-    types:
-      - created
-      - deleted
   pull_request_review:
     types:
       - submitted
@@ -34,15 +30,13 @@ jobs:
           direction: last
 
       - name: Fail automerge if PRT was not initiated
-        if: steps.find-prt-comment.outputs.comment-body == ""
+        if: steps.find-prt-comment.outputs.comment-body == ''
         run: |
           echo "::error PRT comment not added the PR"
 
       - name: Wait for PRT checks to get initiated
         run: |
-          if [ "${{ github.event_name }}" == "issue_comment" ]; then
-            echo "Waiting for 5 min, PRT to be initiated." && sleep 300
-          fi
+          echo "Waiting for 5 min, PRT to be initiated." && sleep 320
 
       - id: automerge
         name: Auto merge of cherry-picked PRs.
