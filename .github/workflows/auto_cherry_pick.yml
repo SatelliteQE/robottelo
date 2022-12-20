@@ -63,7 +63,7 @@ jobs:
         if: ${{ always() && steps.cherrypick.outcome == 'success' }}
         uses: mshick/add-pr-comment@v2
         with:
-          issue: ${{ steps.cherrypick.outputs.pr_number }}
+          issue: ${{ steps.cherrypick.outputs.number }}
           message: ${{ needs.find-the-parent-prt-comment.outputs.prt_comment }}
           repo-token: ${{ secrets.CHERRYPICK_PAT }}
 
@@ -74,7 +74,7 @@ jobs:
           github-token: ${{ secrets.CHERRYPICK_PAT }}
           script: |
             github.rest.issues.addLabels({
-              issue_number: ${{ steps.cherrypick.outputs.pr_number }},
+              issue_number: ${{ steps.cherrypick.outputs.number }},
               owner: context.repo.owner,
               repo: context.repo.repo,
               labels: ["AutoMerge_Cherry_Picked"]
