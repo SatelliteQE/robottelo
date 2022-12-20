@@ -66,6 +66,8 @@ tests/foreman/pytest.ini
 # For pytest --bz-cache generated file
 **/bz_cache.json
 
+**/settings_cache-*.json
+
 # For `coverage xml` generated file.
 **/coverage.xml
 

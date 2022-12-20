@@ -5,9 +5,9 @@ SERVER:
   #  - replace.with.satellite.hostname
   VERSION:
     # The full release version (6.9.2)
-    # RELEASE: populate with satellite version
+    RELEASE: 6.9.2
     # The snap version currently testing (if applicable)
-    # SNAP:
+    SNAP: 1.0
     # The source of Satellite packages. Can be one of:
     # internal, ga, beta
     SOURCE: "internal"

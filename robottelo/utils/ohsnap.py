@@ -1,5 +1,7 @@
+"""Utility module to communicate with Ohsnap API"""
 import requests
 from box import Box
+from packaging.version import Version
 
 from robottelo import constants
 from robottelo.exceptions import InvalidArgumentError
@@ -30,7 +32,7 @@ def ohsnap_repo_url(ohsnap_repo_host, request_type, product, release, os_release
 
     return (
         f'{ohsnap_repo_host}/api/releases/'
-        f'{release}{snap}/el{os_release}/{product}/{request_type}'
+        f'{release}{snap}/el{Version(str(os_release)).major}/{product}/{request_type}'
     )
 
 
