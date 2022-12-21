@@ -163,18 +163,35 @@ class ContentHost(Host, ContentHostMixins):
     @property
     def nailgun_host(self):
         """If this host is subscribed, provide access to its nailgun object"""
-        if self.subscribed:
+        if self.identity.get('registered_to') == self.satellite.hostname:
             try:
                 host_list = self.satellite.api.Host().search(query={'search': self.hostname})[0]
             except Exception as err:
                 logger.error(f'Failed to get nailgun host for {self.hostname}: {err}')
                 host_list = None
             return host_list
+        else:
+            logger.warning(f'Host {self.hostname} not registered to {self.satellite.hostname}')
 
     @property
     def subscribed(self):
         """Boolean representation of a content host's subscription status"""
         return 'Status: Unknown' not in self.execute('subscription-manager status').stdout
+
+    @property
+    def identity(self):
+        """A Dictionary containing RHSM identity attributes of the host"""
+        id_output = self.execute('subscription-manager identity').stdout
+        id_dict = {}
+        if id_output:
+            id_dict = {
+                i.split(':')[0].replace(' ', '_'): i.split(': ')[1]
+                for i in id_output.split('\n')[:-1]
+            }
+            regged_to = self.subscription_config['server']['hostname']
+            if regged_to:
+                id_dict['registered_to'] = regged_to
+        return id_dict
 
     @property
     def ip_addr(self):
