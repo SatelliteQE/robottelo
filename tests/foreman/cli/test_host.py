@@ -1808,13 +1808,14 @@ def test_positive_erratum_applicability(
                 if errata['installable'] == 'true'
             ],
             handle_exception=True,
-            fail_condition=True,
             timeout=300,
             delay=5,
         )
     except TimedOutError:
-        assert False, f"timed out waiting for erratum \"{setup_custom_repo['security_errata']}\""
-        " to disappear from the list"
+        raise TimedOutError(
+            f"Timed out waiting for erratum \"{setup_custom_repo['security_errata']}\""
+            " to disappear from the list"
+        )
 
 
 @pytest.mark.cli_katello_host_tools
