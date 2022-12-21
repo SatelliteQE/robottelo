@@ -22,7 +22,7 @@ def ohsnap_repo_url(ohsnap_repo_host, request_type, product, release, os_release
         if snap:
             snap = "/" + str(snap) if snap else ""
         else:
-            logger.warn(
+            logger.warning(
                 'The snap version was not provided. Snap number will not be used in the URL.'
             )
         release = release.split('.')
@@ -56,7 +56,7 @@ def dogfood_repository(
     repository['baseurl'] = repository['baseurl'].replace('$basearch', arch)
     # If repo check is enabled, check that the repository actually exists on the remote server
     if repo_check and not requests.get(repository['baseurl']).ok:
-        logger.warn(
+        logger.warning(
             f'Repository was not found on the URL: {repository["baseurl"]} ; Arguments used: '
             f'repo={repo}, product={product}, release={release}, os_release={os_release}, '
             f'snap={snap}'

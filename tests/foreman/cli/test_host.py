@@ -26,6 +26,7 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
+from wait_for import TimedOutError
 from wait_for import wait_for
 
 from robottelo.cli.activationkey import ActivationKey
@@ -1787,11 +1788,23 @@ def test_positive_erratum_applicability(
     result = client.run(f'yum update -y --advisory {setup_custom_repo["security_errata"]}')
     assert result.status == 0
     client.subscription_manager_list_repos()
-    applicable_erratum = Host.errata_list({'host-id': host_info['id']})
-    applicable_erratum_ids = [
-        errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
-    ]
-    assert setup_custom_repo["security_errata"] not in applicable_erratum_ids
+    # verify that the applied erratum is not present in the list of installable errata
+    try:
+        applicable_erratum, _ = wait_for(
+            lambda: setup_custom_repo["security_errata"]
+            in [
+                errata['erratum-id']
+                for errata in Host.errata_list({'host-id': host_info['id']})
+                if errata['installable'] == 'true'
+            ],
+            handle_exception=True,
+            fail_condition=True,
+            timeout=300,
+            delay=5,
+        )
+    except TimedOutError:
+        assert False, f"timed out waiting for erratum \"{setup_custom_repo['security_errata']}\""
+        " to disappear from the list"
 
 
 @pytest.mark.cli_katello_host_tools
