@@ -1571,8 +1571,18 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
 
 
 @pytest.fixture(scope="function")
-def setup_custom_repo(target_sat, module_org, katello_host_tools_host):
+def setup_custom_repo(target_sat, module_org, katello_host_tools_host, request):
     """Create custom repository content"""
+
+    def restore_sca_setting():
+        """Restore the original SCA setting for module_org"""
+        module_org.sca_enable() if sca_enabled else module_org.sca_disable()
+
+    if module_org.sca_eligible().get('simple_content_access_eligible', False):
+        sca_enabled = module_org.simple_content_access
+        module_org.sca_disable()
+        request.addfinalizer(restore_sca_setting)
+
     # get package details
     details = {}
     if katello_host_tools_host.os_version.major == 6:
@@ -1798,13 +1808,14 @@ def test_positive_erratum_applicability(
                 if errata['installable'] == 'true'
             ],
             handle_exception=True,
-            fail_condition=True,
             timeout=300,
             delay=5,
         )
     except TimedOutError:
-        assert False, f"timed out waiting for erratum \"{setup_custom_repo['security_errata']}\""
-        " to disappear from the list"
+        raise TimedOutError(
+            f"Timed out waiting for erratum \"{setup_custom_repo['security_errata']}\""
+            " to disappear from the list"
+        )
 
 
 @pytest.mark.cli_katello_host_tools

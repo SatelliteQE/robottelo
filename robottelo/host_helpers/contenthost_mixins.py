@@ -61,7 +61,7 @@ class VersionedContent:
             settings_release.append('0')
         settings_release = '.'.join(settings_release[:3])  # keep only major.minor.patch
         if product != 'client' and release != settings_release:
-            logger.warn(
+            logger.warning(
                 'Satellite release in settings differs from the one passed to the function '
                 'or the version of the Satellite object. '
                 f'settings: {settings_release}, parameter: {release}'
