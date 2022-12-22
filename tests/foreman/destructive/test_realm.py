@@ -88,10 +88,10 @@ def test_positive_realm_info_name(
             'name': gen_string('alpha', random.randint(1, 30)),
             'realm-proxy-id': module_fake_proxy.id,
             'realm-type': 'Red Hat Identity Management',
-            'locations': [loc.read().name for loc in module_fake_proxy.location],
+            'locations': module_fake_proxy.locations.to_list(),
         }
     )
-    request.addfinalizer(lambda: module_target_sat.cli.Realm(realm['id']).delete())
+    request.addfinalizer(lambda: module_target_sat.cli.Realm.delete({'id': realm['id']}))
     info = module_target_sat.cli.Realm.info({'name': realm['name']})
     for key in info.keys():
         assert info[key] == realm[key]
@@ -116,10 +116,10 @@ def test_positive_realm_info_id(
             'name': gen_string('alpha', random.randint(1, 30)),
             'realm-proxy-id': module_fake_proxy.id,
             'realm-type': 'Red Hat Identity Management',
-            'locations': [loc.read().name for loc in module_fake_proxy.location],
+            'locations': module_fake_proxy.locations.to_list(),
         }
     )
-    request.addfinalizer(lambda: module_target_sat.cli.Realm(realm['id']).delete())
+    request.addfinalizer(lambda: module_target_sat.cli.Realm.delete({'id': realm['id']}))
     info = module_target_sat.cli.Realm.info({'id': realm['id']})
     for key in info.keys():
         assert info[key] == realm[key]
@@ -147,10 +147,10 @@ def test_positive_realm_update_name(
             'name': realm_name,
             'realm-proxy-id': module_fake_proxy.id,
             'realm-type': 'Red Hat Identity Management',
-            'locations': [loc.read().name for loc in module_fake_proxy.location],
+            'locations': module_fake_proxy.locations.to_list(),
         }
     )
-    request.addfinalizer(lambda: module_target_sat.cli.Realm(realm['id']).delete())
+    request.addfinalizer(lambda: module_target_sat.cli.Realm.delete({'id': realm['id']}))
     assert realm['name'] == realm_name
     up = module_target_sat.cli.Realm.update({'id': realm['id'], 'new-name': new_realm_name})
     assert up[0]['message'] == f'Realm [{new_realm_name}] updated.'
@@ -179,9 +179,9 @@ def test_negative_realm_update_invalid_type(
             'name': gen_string('alpha', random.randint(1, 30)),
             'realm-proxy-id': module_fake_proxy.id,
             'realm-type': realm_type,
-            'locations': [loc.read().name for loc in module_fake_proxy.location],
+            'locations': module_fake_proxy.locations.to_list(),
         }
     )
-    request.addfinalizer(lambda: module_target_sat.cli.Realm(realm['id']).delete())
+    request.addfinalizer(lambda: module_target_sat.cli.Realm.delete({'id': realm['id']}))
     with pytest.raises(CLIReturnCodeError):
         module_target_sat.cli.Realm.update({'id': realm['id'], 'realm-type': new_realm_type})
