@@ -18,6 +18,12 @@ class Colored(Box):
 SATELLITE_VERSION = "6.14"
 SATELLITE_OS_VERSION = "8"
 
+# Default system ports
+HTTPS_PORT = '443'
+
+# Client port for HTTP traffic for Satellite & Capsule
+CLIENT_PORT = HTTPS_PORT
+
 LOCALES = (
     'cs_CZ',
     'de',
