@@ -1,15 +1,16 @@
 import importlib
+import io
 import json
 import random
 import re
 import time
+from configparser import ConfigParser
 from contextlib import contextmanager
 from functools import cached_property
 from functools import lru_cache
 from pathlib import Path
 from pathlib import PurePath
 from tempfile import NamedTemporaryFile
-from urllib.parse import urlencode
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
@@ -363,6 +364,14 @@ class ContentHost(Host, ContentHostMixins):
             result.append(self.execute(f'subscription-manager attach --pool={pool}'))
         return result
 
+    @property
+    def subscription_config(self):
+        "Returns subscription config for the host as ConfigParser object"
+        config = self.execute('cat /etc/rhsm/rhsm.conf').stdout
+        cp = ConfigParser()
+        cp.read_file(io.StringIO(config))
+        return cp
+
     def create_custom_repos(self, **kwargs):
         """Create custom repofiles.
         Each ``kwargs`` item will result in one repository file created. Where
@@ -509,7 +518,7 @@ class ContentHost(Host, ContentHostMixins):
         loc,
         activation_keys,
         satellite=None,
-        target=satellite,
+        target=None,
         setup_insights=False,
         setup_remote_execution=True,
         setup_remote_execution_pull=False,
@@ -523,18 +532,16 @@ class ContentHost(Host, ContentHostMixins):
         ignore_subman_errors=False,
         force=False,
         insecure=True,
-        username=settings.server.admin_username,
-        password=settings.server.admin_password,
         hostgroup=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
 
         :param target: Satellite or Capusle hostname to register to, required.
+        :param satellite: Satellite object, used for running hammer CLI when target is smart_proxy.
         :param org: Organization to register content host for, required.
         :param loc: Location to register content host for, required.
-        :param activation_keys: Activation key name to register content host
-            with, required.
+        :param activation_keys: Activation key name to register content host with, required.
         :param setup_insights: Install and register Insights client, requires OS repo.
         :param setup_remote_execution: Copy remote execution SSH key.
         :param setup_remote_execution_pull: Deploy pull provider client on host
@@ -548,12 +555,8 @@ class ContentHost(Host, ContentHostMixins):
         :param ignore_subman_errors: Ignore subscription manager errors.
         :param force: Register the content host even if it's already registered.
         :param insecure: Don't verify server authenticity.
-        :param username: Satellite admin username
-        :param password: Satellite admin password
         :param hostgroup: hostgroup to register with
-        :param port: Capsule port, if unset template is pulled straight from Satellite
-        :return: SSHCommandResult instance filled with the result of the
-            registration.
+        :return: SSHCommandResult instance filled with the result of the registration
         """
         options = {
             'activation-keys': activation_keys,
@@ -564,6 +567,9 @@ class ContentHost(Host, ContentHostMixins):
         }
         if target.__class__.__name__ == 'Capsule':
             options['smart-proxy'] = target.hostname
+        elif target is not None and target.__class__.__name__ not in ['Capsule', 'Satellite']:
+            raise ValueError('Global registration method can be used with Satellite/Capsule only')
+
         if lifecycle_environment is not None:
             options['lifecycle_environment_id'] = lifecycle_environment.id
         if operating_system is not None:
@@ -573,7 +579,7 @@ class ContentHost(Host, ContentHostMixins):
         if packages is not None:
             options['packages'] = '+'.join(packages)
         if repo is not None:
-            options['repo'] = urlencode({'repo': repo})
+            options['repo'] = repo
         if setup_insights is not None:
             options['setup-insights'] = str(setup_insights).lower()
         if setup_remote_execution is not None:
@@ -1294,9 +1300,11 @@ class Capsule(ContentHost, CapsuleMixins):
 
     @property
     def nailgun_capsule(self):
-        from nailgun.entities import Capsule as NailgunCapsule
+        return self.satellite.api.Capsule().search(query={'search': f'name={self.hostname}'})[0]
 
-        return NailgunCapsule().search(query={'search': f'name={self.hostname}'})[0]
+    @property
+    def nailgun_smart_proxy(self):
+        return self.satellite.api.SmartProxy().search(query={'search': f'name={self.hostname}'})[0]
 
     @cached_property
     def is_upstream(self):
@@ -1448,8 +1456,6 @@ class Capsule(ContentHost, CapsuleMixins):
 
 class Satellite(Capsule, SatelliteMixins):
     def __init__(self, hostname=None, **kwargs):
-        from robottelo.config import settings
-
         hostname = hostname or settings.server.hostname  # instance attr set by broker.Host
         self.port = kwargs.get('port', settings.server.port)
         super().__init__(hostname=hostname, **kwargs)
@@ -1516,11 +1522,6 @@ class Satellite(Capsule, SatelliteMixins):
                         # not everything has an mro method, we don't care about them
                         pass
         return self._cli
-
-    @property
-    def internal_capsule(self):
-        capsule_list = self.api.SmartProxy().search(query={'search': f'name={self.hostname}'})
-        return None if not capsule_list else capsule_list[0]
 
     def ui_session(self, testname=None, user=None, password=None, url=None, login=True):
         """Initialize an airgun Session object and store it as self.ui_session"""

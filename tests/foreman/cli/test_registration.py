@@ -19,13 +19,14 @@
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import CLIENT_PORT
+from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.tier1
 
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[^6].*')
 def test_host_registration_end_to_end(
     module_org,
     module_location,
@@ -42,11 +43,23 @@ def test_host_registration_end_to_end(
         1. Register host with global registration template to Satellite and Capsule
 
     :expectedresults: Host registered successfully
+
+    :BZ: 2156926
+
+    :customerscenario: true
     """
     result = rhel_contenthost.register(
         module_org, module_location, module_ak_with_synced_repo.name, satellite=module_target_sat
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    if is_open('BZ:2156926') and rhel_contenthost.os_version.major == 6:
+        assert result.status == 1, f'Failed to register host: {result.stderr}'
+    else:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    # Verify server.hostname and server.port from subscription-manager config
+    assert module_target_sat.hostname == rhel_contenthost.subscription_config['server']['hostname']
+    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
 
     # Update module_capsule_configured to include module_org/module_location
     module_target_sat.cli.Capsule.update(
@@ -64,7 +77,17 @@ def test_host_registration_end_to_end(
         satellite=module_target_sat,
         force=True,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if is_open('BZ:2156926') and rhel_contenthost.os_version.major == 6:
+        assert result.status == 1, f'Failed to register host: {result.stderr}'
+    else:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    # Verify server.hostname and server.port from subscription-manager config
+    assert (
+        module_capsule_configured.hostname
+        == rhel_contenthost.subscription_config['server']['hostname']
+    )
+    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
 
 
 def test_upgrade_katello_ca_consumer_rpm(
@@ -101,9 +124,9 @@ def test_upgrade_katello_ca_consumer_rpm(
         f'rpm -Uvh "http://{target_sat.hostname}/pub/{consumer_cert_name}-1.0-1.noarch.rpm"'
     )
     # Check server URL is not Red Hat CDN's "subscription.rhsm.redhat.com"
-    result = vm.execute('grep ^hostname /etc/rhsm/rhsm.conf')
-    assert 'subscription.rhsm.redhat.com' not in result.stdout
-    assert target_sat.hostname in result.stdout
+    assert 'subscription.rhsm.redhat.com' != vm.subscription_config['server']['hostname']
+    assert target_sat.hostname == vm.subscription_config['server']['hostname']
+
     # Get consumer cert source file
     assert vm.execute(f'curl -O "http://{target_sat.hostname}/pub/{consumer_cert_src}"')
     # Install repo for build tools
@@ -122,9 +145,9 @@ def test_upgrade_katello_ca_consumer_rpm(
     # Install new rpmbuild/RPMS/noarch/katello-ca-consumer-*-2.noarch.rpm
     assert vm.execute(f'yum install -y rpmbuild/RPMS/noarch/{new_consumer_cert_rpm}')
     # Check server URL is not Red Hat CDN's "subscription.rhsm.redhat.com"
-    result = vm.execute('grep ^hostname /etc/rhsm/rhsm.conf')
-    assert 'subscription.rhsm.redhat.com' not in result.stdout
-    assert target_sat.hostname in result.stdout
+    assert 'subscription.rhsm.redhat.com' != vm.subscription_config['server']['hostname']
+    assert target_sat.hostname == vm.subscription_config['server']['hostname']
+
     # Register as final check
     vm.register_contenthost(module_org.label)
     result = vm.execute('subscription-manager identity')

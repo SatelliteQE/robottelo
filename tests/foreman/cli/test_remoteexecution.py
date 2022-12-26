@@ -933,6 +933,14 @@ class TestAsyncSSHProviderRex:
 
         :parametrized: yes
         """
+        # Update module_capsule_configured_async_ssh to include module_org/smart_proxy_location
+        module_target_sat.cli.Capsule.update(
+            {
+                'name': module_capsule_configured_async_ssh.hostname,
+                'organization-ids': module_org.id,
+                'location-ids': smart_proxy_location.id,
+            }
+        )
         result = rhel_contenthost.register(
             module_org,
             smart_proxy_location,
@@ -985,6 +993,14 @@ class TestPullProviderRex:
             repo='client',
             release='Client',
             os_release=rhel_contenthost.os_version.major,
+        )
+        # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
+        module_target_sat.cli.Capsule.update(
+            {
+                'name': module_capsule_configured_mqtt.hostname,
+                'organization-ids': module_org.id,
+                'location-ids': smart_proxy_location.id,
+            }
         )
         # register host with rex, enable client repo, install katello-agent
         result = rhel_contenthost.register(
@@ -1074,6 +1090,14 @@ class TestPullProviderRex:
             repo='client',
             release='Client',
             os_release=rhel_contenthost.os_version.major,
+        )
+        # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
+        module_target_sat.cli.Capsule.update(
+            {
+                'name': module_capsule_configured_mqtt.hostname,
+                'organization-ids': module_org.id,
+                'location-ids': smart_proxy_location.id,
+            }
         )
         # register host with pull provider rex (SAT-1677)
         result = rhel_contenthost.register(
