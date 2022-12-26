@@ -19,7 +19,7 @@ from robottelo.hosts import ContentHost
 @pytest.fixture(scope='module')
 def module_provisioning_capsule(module_target_sat, module_location):
     """Assigns the `module_location` to Satellite's internal capsule and returns it"""
-    capsule = module_target_sat.internal_capsule
+    capsule = module_target_sat.nailgun_smart_proxy
     capsule.location = [module_location]
     return capsule.update(['location'])
 
