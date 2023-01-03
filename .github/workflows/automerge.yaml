@@ -11,9 +11,14 @@ on:
   pull_request_review:
     types:
       - submitted
+    branches-ignore:
+      - master
   check_suite:
     types:
       - completed
+    branches-ignore:
+      - master
+
 
 jobs:
   automerge:
@@ -36,7 +41,7 @@ jobs:
 
       - name: Wait for PRT checks to get initiated
         run: |
-          echo "Waiting for 5 min, PRT to be initiated." && sleep 320
+          echo "Waiting for ~ 10 mins, PRT to be initiated." && sleep 600
 
       - id: automerge
         name: Auto merge of cherry-picked PRs.
@@ -47,6 +52,7 @@ jobs:
           MERGE_METHOD: "squash"
           MERGE_RETRIES: 5
           MERGE_RETRY_SLEEP: 900000
+          BASE_BRANCHES: "master" # avoid automerge branch
 
       - name: Auto Merge Status
         run: |
