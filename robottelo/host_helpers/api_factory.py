@@ -2,6 +2,8 @@
 It is not meant to be used directly, but as part of a robottelo.hosts.Satellite instance
 example: my_satellite.api_factory.api_method()
 """
+from contextlib import contextmanager
+
 from fauxfactory import gen_string
 
 from robottelo.config import settings
@@ -33,3 +35,27 @@ class APIFactory:
                 password=settings.http_proxy.password,
                 organization=[org.id],
             ).create()
+
+    @contextmanager
+    def satellite_setting(self, key_val: str):
+        """Context Manager to update the satellite setting and revert on exit
+
+        :param key_val: The setting name and value in format `setting_name=new_value`
+        """
+        try:
+            name, value = key_val.split('=')
+            try:
+                setting = self._satellite.api.Setting().search(
+                    query={'search': f'name={name.strip()}'}
+                )[0]
+            except IndexError:
+                raise KeyError(f'The setting {name} in not available in satellite.')
+            old_value = setting.value
+            setting.value = value.strip()
+            setting.update({'value'})
+            yield
+        except Exception:
+            raise
+        finally:
+            setting.value = old_value
+            setting.update({'value'})
