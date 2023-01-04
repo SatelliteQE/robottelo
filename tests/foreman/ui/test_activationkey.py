@@ -693,7 +693,10 @@ def test_positive_access_non_admin_user(session, test_name):
     envs_condition = ' or '.join(['environment = ' + s for s in envs_list])
     entities.Filter(
         organization=[org],
-        permission=entities.Permission(name='view_activation_keys').search(),
+        permission=entities.Permission().search(
+            filters={'name': 'view_activation_keys'},
+            query={'search': 'resource_type="Katello::ActivationKey"'},
+        ),
         role=role,
         search=f'name ~ {ak_name} and ({envs_condition})',
     ).create()
