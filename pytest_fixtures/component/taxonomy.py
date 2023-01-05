@@ -79,6 +79,7 @@ def module_org_with_manifest(module_org, module_target_sat):
 def module_entitlement_manifest_org(module_org, module_entitlement_manifest, module_target_sat):
     """Creates an organization and uploads an entitlement mode manifest generated with manifester"""
     module_target_sat.upload_manifest(module_org.id, module_entitlement_manifest.content)
+    module_org.sca_disable()
     return module_org
 
 
@@ -89,10 +90,11 @@ def module_sca_manifest_org(module_org, module_sca_manifest, module_target_sat):
     return module_org
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_entitlement_manifest_org(function_org, function_entitlement_manifest, target_sat):
     """Creates an organization and uploads an entitlement mode manifest generated with manifester"""
     target_sat.upload_manifest(function_org.id, function_entitlement_manifest.content)
+    function_org.sca_disable()
     return function_org
 
 
