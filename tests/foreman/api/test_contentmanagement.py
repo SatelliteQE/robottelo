@@ -33,6 +33,7 @@ from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.content_info import get_repomd
 from robottelo.content_info import get_repomd_revision
+from robottelo.utils.issue_handlers import is_open
 
 
 def get_published_repo_url(capsule, org, prod, repo, lce=None, cv=None):
@@ -1145,7 +1146,7 @@ class TestCapsuleContentManagement:
 
         :CaseLevel: Integration
 
-        :BZ: 2125244
+        :BZ: 2125244, 2148813
 
         :customerscenario: true
         """
@@ -1224,6 +1225,26 @@ class TestCapsuleContentManagement:
                 f'{con_client} logout {module_capsule_configured.hostname}'
             )
             assert result.status == 0
+
+        # Inspect the images with skopeo (BZ#2148813)
+        if not is_open('BZ:2148813'):
+            result = module_capsule_configured.execute('yum -y install skopeo')
+            assert result.status == 0
+
+            target_sat.api.LifecycleEnvironment(
+                id=function_lce.id, registry_unauthenticated_pull='true'
+            ).update(['registry_unauthenticated_pull'])
+
+            skopeo_cmd = 'skopeo --debug inspect docker://'
+            for path in repo_paths:
+                result = module_capsule_configured.execute(
+                    f'{skopeo_cmd}{target_sat.hostname}/{path}:latest'
+                )
+                assert result.status == 0
+                result = module_capsule_configured.execute(
+                    f'{skopeo_cmd}{module_capsule_configured.hostname}/{path}:latest'
+                )
+                assert result.status == 0
 
     @pytest.mark.skip_if_open("BZ:2121583")
     @pytest.mark.tier4
