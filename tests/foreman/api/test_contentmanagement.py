@@ -33,7 +33,6 @@ from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.content_info import get_repomd
 from robottelo.content_info import get_repomd_revision
-from robottelo.utils.issue_handlers import is_open
 
 
 def get_published_repo_url(capsule, org, prod, repo, lce=None, cv=None):
