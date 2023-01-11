@@ -151,7 +151,7 @@ class NotRestorableException(Exception):
 @shared
 def simple_shared_counter_with_exception_not_restored(index=0):
     """Raise exception that should not be restorable"""
-    raise NotRestorableException('error', 'I am not restorable')
+    raise NotRestorableException(msg='error', details='I am not restorable')
 
 
 class TestFuncShared:
