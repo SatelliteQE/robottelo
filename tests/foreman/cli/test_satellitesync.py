@@ -980,7 +980,8 @@ class TestContentViewSync:
         assert validate_filepath(target_sat, function_entitlement_manifest_org) == ''
         # Export cv
         export = ContentExport.completeVersion(
-            {'id': cvv['id'], 'organization-id': function_entitlement_manifest_org.id}
+            {'id': cvv['id'], 'organization-id': function_entitlement_manifest_org.id},
+            timeout=7200000,
         )
         import_path = move_pulp_archive(
             target_sat, function_entitlement_manifest_org, export['message']
@@ -989,21 +990,24 @@ class TestContentViewSync:
         assert len(exported_packages)
 
         # importing portion
-        importing_org = make_org()
+        importing_org = target_sat.api.Organization().create()
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         target_sat.upload_manifest(
-            importing_org['id'],
+            importing_org.id,
             duplicate_entitlement_manifest,
             interface='CLI',
             timeout=7200000,
         )
+        importing_org.sca_disable()
         # set disconnected mode
         Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
-        ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
+        ContentImport.version(
+            {'organization-id': importing_org.id, 'path': import_path}, timeout=7200000
+        )
         # Import file and verify content
-        importing_cvv = ContentView.info({'name': cv_name, 'organization-id': importing_org['id']})[
+        importing_cvv = ContentView.info({'name': cv_name, 'organization-id': importing_org.id})[
             'versions'
         ]
         assert len(importing_cvv) >= 1
@@ -1021,7 +1025,7 @@ class TestContentViewSync:
             {
                 'name': repo['name'],
                 'product': repo['product']['name'],
-                'organization-id': importing_org['id'],
+                'organization-id': importing_org.id,
             }
         )
         for item in ['packages', 'source-rpms', 'package-groups', 'errata', 'module-streams']:
@@ -1110,23 +1114,24 @@ class TestContentViewSync:
         exported_packages = Package.list({'content-view-version-id': cvv['id']})
         assert len(exported_packages)
         # importing portion
-        importing_org = make_org()
+        importing_org = target_sat.api.Organization().create()
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import and verify content
         target_sat.upload_manifest(
-            importing_org['id'],
+            importing_org.id,
             duplicate_entitlement_manifest,
             interface='CLI',
             timeout=7200000,
         )
+        importing_org.sca_disable()
         # set disconnected mode
         Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
         ContentImport.version(
-            {'organization-id': importing_org['id'], 'path': import_path}, timeout=7200000
+            {'organization-id': importing_org.id, 'path': import_path}, timeout=7200000
         )
-        importing_cvv = ContentView.info({'name': cv_name, 'organization-id': importing_org['id']})[
+        importing_cvv = ContentView.info({'name': cv_name, 'organization-id': importing_org.id})[
             'versions'
         ]
         assert len(importing_cvv) >= 1
@@ -1144,7 +1149,7 @@ class TestContentViewSync:
             {
                 'name': repo['name'],
                 'product': repo['product']['name'],
-                'organization-id': importing_org['id'],
+                'organization-id': importing_org.id,
             }
         )
         for item in ['packages', 'source-rpms', 'package-groups', 'errata', 'module-streams']:

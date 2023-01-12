@@ -1606,7 +1606,7 @@ def test_positive_subscription_quantity_attached(function_org, rhel7_contenthost
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
             'repository': REPOS['rhst7']['name'],
-            'organization-id': org['id'],
+            'organization-id': org.id,
         },
         force_use_cdn=True,
     )

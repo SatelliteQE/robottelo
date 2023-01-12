@@ -102,6 +102,7 @@ def module_extra_rhel_entitlement_manifest_org(
     org.sca_disable()
     return org
 
+
 @pytest.fixture
 def function_entitlement_manifest_org(function_org, function_entitlement_manifest, target_sat):
     """Creates an organization and uploads an entitlement mode manifest generated with manifester"""
