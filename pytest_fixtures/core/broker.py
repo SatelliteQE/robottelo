@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 
 import pytest
+from box import Box
 from broker import Broker
 from wait_for import wait_for
 
@@ -193,7 +194,6 @@ def session_capsule_configured(session_capsule_host, session_target_sat):
 
 @pytest.fixture(scope='module')
 def module_discovery_sat(
-    module_provisioning_rhel_content,
     module_provisioning_sat,
     module_sca_manifest_org,
     module_location,
@@ -231,4 +231,4 @@ def module_discovery_sat(
     discovery_auto.value = 'true'
     discovery_auto.update(['value'])
 
-    return sat
+    return Box(sat=sat, iso=disc_img_name)
