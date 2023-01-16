@@ -6,7 +6,7 @@
 
 :CaseComponent: Dynflow
 
-:Assignee: lhellebr
+:Team: Endeavour
 
 :Requirement: Dynflow
 

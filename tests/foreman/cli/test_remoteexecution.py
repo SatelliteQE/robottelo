@@ -8,7 +8,7 @@
 
 :CaseComponent: RemoteExecution
 
-:Assignee: pondrejk
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -394,7 +394,7 @@ class TestRemoteExecution:
 
         :CaseComponent: RHCloud-CloudConnector
 
-        :Assignee: lhellebr
+        :Team: Platform
 
         :id: 811c7747-bec6-1a2d-8e5c-b5045d3fbc0d
 
@@ -730,7 +730,7 @@ class TestAnsibleREX:
 
         :CaseComponent: Ansible
 
-        :Assignee: sbible
+        :Team: Rocket
         """
 
         # Configure repository to prepare for installing ansible on host

@@ -13,7 +13,7 @@ http://theforeman.org/api/apidoc/v2/1.15.html
 
 :CaseComponent: Networking
 
-:Assignee: rdrazny
+:Team: Rocket
 
 :TestType: Functional
 

@@ -10,7 +10,7 @@
 
 :CaseImportance: Critical
 
-:Assignee: sbible
+:Team: Rocket
 
 :TestType: Functional
 

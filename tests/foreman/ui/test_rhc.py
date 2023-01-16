@@ -8,7 +8,7 @@
 
 :CaseComponent: RHCloud-CloudConnector
 
-:Assignee: jpathan
+:Team: Platform
 
 :TestType: Functional
 

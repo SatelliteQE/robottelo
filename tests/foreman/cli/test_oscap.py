@@ -6,7 +6,7 @@
 
 :CaseComponent: SCAPPlugin
 
-:Assignee: jpathan
+:Team: Rocket
 
 :TestType: Functional
 
