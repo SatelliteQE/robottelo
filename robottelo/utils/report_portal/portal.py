@@ -140,9 +140,9 @@ class ReportPortal:
             params['filter.in.issueType'] = ','.join(
                 [ReportPortal.defect_types[t] for t in test_args['defect_types']]
             )
-        if test_args.get('user'):
-            params['filter.has.attributeKey'] = 'assignee'
-            params['filter.has.attributeValue'] = test_args['user']
+        if test_args.get('team'):
+            params['filter.has.attributeKey'] = 'team'
+            params['filter.has.attributeValue'] = test_args['team']
 
         # send HTTP request to RP API, retrieve the paginated results and join them together
         page = 1
