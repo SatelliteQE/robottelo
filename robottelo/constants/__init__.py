@@ -15,7 +15,7 @@ class Colored(Box):
 
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.12"
+SATELLITE_VERSION = "6.14"
 SATELLITE_OS_VERSION = "8"
 
 LOCALES = (
@@ -245,7 +245,6 @@ OHSNAP_RHEL7_REPOS = (
 OHSNAP_RHEL8_REPOS = (
     'rhel-8-for-x86_64-baseos-rpms',
     'rhel-8-for-x86_64-appstream-rpms',
-    'ansible-2.9-for-rhel-8-x86_64-rpms',
 )
 
 INSTALL_RHEL7_STEPS = 'yum -y install satellite'
@@ -506,6 +505,7 @@ REPOS = {
         'product': PRDS['rhel8'],
         'distro': 'rhel8',
         'key': 'rhel8_bos',
+        'basearch': 'x86_64',
     },
     'rhel8_aps': {
         'id': 'rhel-8-for-x86_64-appstream-rpms',
@@ -1633,6 +1633,11 @@ VMWARE_CONSTANTS = {
 }
 
 HAMMER_CONFIG = "~/.hammer/cli.modules.d/foreman.yml"
+HAMMER_SESSIONS = "~/.hammer/sessions"
+
+SATELLITE_ANSWER_FILE = "/etc/foreman-installer/scenarios.d/satellite-answers.yaml"
+MAINTAIN_HAMMER_YML = "/etc/foreman-maintain/foreman-maintain-hammer.yml"
+SATELLITE_MAINTAIN_YML = "/etc/foreman-maintain/foreman_maintain.yml"
 
 FOREMAN_TEMPLATE_IMPORT_URL = 'https://github.com/SatelliteQE/foreman_templates.git'
 FOREMAN_TEMPLATE_IMPORT_API_URL = 'http://api.github.com/repos/SatelliteQE/foreman_templates'

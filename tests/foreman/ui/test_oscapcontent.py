@@ -23,7 +23,7 @@ import pytest
 from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 from robottelo.constants import DataFile
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')

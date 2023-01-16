@@ -8,7 +8,7 @@
 
 :CaseComponent: Authentication
 
-:Assignee: okhatavk
+:Assignee: vsedmik
 
 :TestType: Functional
 

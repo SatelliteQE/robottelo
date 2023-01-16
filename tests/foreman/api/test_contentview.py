@@ -25,10 +25,10 @@ from fauxfactory import gen_utf8
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo import manifests
 from robottelo.api.utils import apply_package_filter
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
+from robottelo.config import user_nailgun_config
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CUSTOM_RPM_SHA_512_FEED_COUNT
 from robottelo.constants import FILTER_ERRATA_TYPE
@@ -38,10 +38,9 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_SHA_512
 from robottelo.constants.repos import FEDORA_OSTREE_REPO
-from robottelo.datafactory import invalid_names_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
-from robottelo.helpers import get_nailgun_config
+from robottelo.utils.datafactory import invalid_names_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 # Some tests repeatedly publish content views or promote content view versions.
 # How many times should that be done? A higher number means a more interesting
@@ -821,19 +820,13 @@ class TestContentViewDelete:
 class TestContentViewRedHatContent:
     """Tests for publishing and promoting content views."""
 
-    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(self, request, module_org, module_cv):
+    def initiate_testclass(self, request, module_cv, module_entitlement_manifest_org):
         """Set up organization, product and repositories for tests."""
 
-        with manifests.clone() as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': module_org.id},
-                files={'content': manifest.content},
-            )
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=PRDS['rhel'],
             repo=REPOS['rhst7']['name'],
             reposet=REPOSET['rhst7'],
@@ -1001,7 +994,9 @@ class TestContentViewRedHatContent:
 
 
 @pytest.mark.tier2
-def test_positive_admin_user_actions(content_view, function_role, module_org, module_lce):
+def test_positive_admin_user_actions(
+    target_sat, content_view, function_role, module_org, module_lce
+):
     """Attempt to manage content views
 
     :id: 75b638af-d132-4b5e-b034-a373565c72b4
@@ -1025,26 +1020,29 @@ def test_positive_admin_user_actions(content_view, function_role, module_org, mo
     user_password = gen_string('alphanumeric')
     # create a role with all content views permissions
     for res_type in ['Katello::ContentView', 'Katello::KTEnvironment']:
-        permission = entities.Permission().search(query={'search': f'resource_type="{res_type}"'})
-        entities.Filter(
+        permission = target_sat.api.Permission().search(
+            query={'search': f'resource_type="{res_type}"'}
+        )
+        target_sat.api.Filter(
             organization=[module_org], permission=permission, role=function_role
         ).create()
     # create a user and assign the above created role
-    entities.User(
+    target_sat.api.User(
         organization=[module_org],
         role=[function_role],
         login=user_login,
         password=user_password,
     ).create()
-    cfg = get_nailgun_config()
-    cfg.auth = (user_login, user_password)
+    cfg = user_nailgun_config(user_login, user_password)
     # Check that we cannot create random entity due permission restriction
     with pytest.raises(HTTPError):
-        entities.Domain(cfg).create()
+        target_sat.api.Domain(server_config=cfg).create()
     # Check Read functionality
-    content_view = entities.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     # Check Modify functionality
-    entities.ContentView(cfg, id=content_view.id, name=gen_string('alpha')).update(['name'])
+    target_sat.api.ContentView(
+        server_config=cfg, id=content_view.id, name=gen_string('alpha')
+    ).update(['name'])
     # Publish the content view.
     content_view.publish()
     content_view = content_view.read()
@@ -1052,15 +1050,15 @@ def test_positive_admin_user_actions(content_view, function_role, module_org, mo
     # Promote the content view version.
     content_view.version[0].promote(data={'environment_ids': module_lce.id})
     # Check Delete functionality
-    content_view = entities.ContentView(organization=module_org).create()
-    content_view = entities.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(organization=module_org).create()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     content_view.delete()
     with pytest.raises(HTTPError):
         content_view.read()
 
 
 @pytest.mark.tier2
-def test_positive_readonly_user_actions(function_role, content_view, module_org):
+def test_positive_readonly_user_actions(target_sat, function_role, content_view, module_org):
     """Attempt to view content views
 
     :id: cdfd6e51-cd46-4afa-807c-98b2195fcf0e
@@ -1081,48 +1079,49 @@ def test_positive_readonly_user_actions(function_role, content_view, module_org)
     user_login = gen_string('alpha')
     user_password = gen_string('alphanumeric')
     # create a role with content views read only permissions
-    entities.Filter(
+    target_sat.api.Filter(
         organization=[module_org],
-        permission=entities.Permission().search(
+        permission=target_sat.api.Permission().search(
             filters={'name': 'view_content_views'},
             query={'search': 'resource_type="Katello::ContentView"'},
         ),
         role=function_role,
     ).create()
     # create read only products permissions and assign it to our role
-    entities.Filter(
+    target_sat.api.Filter(
         organization=[module_org],
-        permission=entities.Permission().search(
+        permission=target_sat.api.Permission().search(
             filters={'name': 'view_products'},
             query={'search': 'resource_type="Katello::Product"'},
         ),
         role=function_role,
     ).create()
     # create a user and assign the above created role
-    entities.User(
+    target_sat.api.User(
         organization=[module_org],
         role=[function_role],
         login=user_login,
         password=user_password,
     ).create()
     # add repository to the created content view
-    product = entities.Product(organization=module_org).create()
-    yum_repo = entities.Repository(product=product).create()
+    product = target_sat.api.Product(organization=module_org).create()
+    yum_repo = target_sat.api.Repository(product=product).create()
     yum_repo.sync()
     content_view.repository = [yum_repo]
     content_view = content_view.update(['repository'])
     assert len(content_view.repository) == 1
-    cfg = get_nailgun_config()
-    cfg.auth = (user_login, user_password)
+    cfg = user_nailgun_config(user_login, user_password)
     # Check that we can read content view repository information using user
     # with read only permissions
-    content_view = entities.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     assert len(content_view.repository) == 1
     assert content_view.repository[0].read().name == yum_repo.name
 
 
 @pytest.mark.tier2
-def test_negative_readonly_user_actions(function_role, content_view, module_org, module_lce):
+def test_negative_readonly_user_actions(
+    target_sat, function_role, content_view, module_org, module_lce
+):
     """Attempt to manage content views
 
     :id: 8c8cc3a2-a356-4645-9517-ca5bce836969
@@ -1146,7 +1145,7 @@ def test_negative_readonly_user_actions(function_role, content_view, module_org,
     user_login = gen_string('alpha')
     user_password = gen_string('alphanumeric')
     # create a role with content views read only permissions
-    entities.Filter(
+    target_sat.api.Filter(
         organization=[module_org],
         permission=entities.Permission().search(
             filters={'name': 'view_content_views'},
@@ -1155,7 +1154,7 @@ def test_negative_readonly_user_actions(function_role, content_view, module_org,
         role=function_role,
     ).create()
     # create environment permissions and assign it to our role
-    entities.Filter(
+    target_sat.api.Filter(
         organization=[module_org],
         permission=entities.Permission().search(
             query={'search': 'resource_type="Katello::KTEnvironment"'}
@@ -1163,22 +1162,23 @@ def test_negative_readonly_user_actions(function_role, content_view, module_org,
         role=function_role,
     ).create()
     # create a user and assign the above created role
-    entities.User(
+    target_sat.api.User(
         organization=[module_org],
         role=[function_role],
         login=user_login,
         password=user_password,
     ).create()
-    cfg = get_nailgun_config()
-    cfg.auth = (user_login, user_password)
+    cfg = user_nailgun_config(user_login, user_password)
     # Check that we cannot create content view due read-only permission
     with pytest.raises(HTTPError):
-        entities.ContentView(cfg, organization=module_org).create()
+        target_sat.api.ContentView(server_config=cfg, organization=module_org).create()
     # Check that we can read our content view with custom user
-    content_view = entities.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     # Check that we cannot modify content view with custom user
     with pytest.raises(HTTPError):
-        entities.ContentView(cfg, id=content_view.id, name=gen_string('alpha')).update(['name'])
+        target_sat.api.ContentView(
+            server_config=cfg, id=content_view.id, name=gen_string('alpha')
+        ).update(['name'])
     # Check that we cannot delete content view due read-only permission
     with pytest.raises(HTTPError):
         content_view.delete()
@@ -1186,25 +1186,25 @@ def test_negative_readonly_user_actions(function_role, content_view, module_org,
     with pytest.raises(HTTPError):
         content_view.publish()
     # Check that we cannot promote content view
-    content_view = entities.ContentView(id=content_view.id).read()
+    content_view = target_sat.api.ContentView(id=content_view.id).read()
     content_view.publish()
-    content_view = entities.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     assert len(content_view.version), 1
     with pytest.raises(HTTPError):
         content_view.read().version[0].promote(data={'environment_ids': module_lce.id})
     # Check that we cannot create a Product
     with pytest.raises(HTTPError):
-        entities.Product(cfg).create()
+        target_sat.api.Product(server_config=cfg).create()
     # Check that we cannot create an activation key
     with pytest.raises(HTTPError):
-        entities.ActivationKey(cfg).create()
+        target_sat.api.ActivationKey(server_config=cfg).create()
     # Check that we cannot create a host collection
     with pytest.raises(HTTPError):
-        entities.HostCollection(cfg).create()
+        target_sat.api.HostCollection(server_config=cfg).create()
 
 
 @pytest.mark.tier2
-def test_negative_non_readonly_user_actions(content_view, function_role, module_org):
+def test_negative_non_readonly_user_actions(target_sat, content_view, function_role, module_org):
     """Attempt to view content views
 
     :id: b0a53c38-72f1-4731-881e-192134df6ef3
@@ -1223,7 +1223,7 @@ def test_negative_non_readonly_user_actions(content_view, function_role, module_
     user_password = gen_string('alphanumeric')
     # create a role with all content views permissions except
     # view_content_views
-    cv_permissions_entities = entities.Permission().search(
+    cv_permissions_entities = target_sat.api.Permission().search(
         query={'search': 'resource_type="Katello::ContentView"'}
     )
     user_cv_permissions = list(PERMISSIONS['Katello::ContentView'])
@@ -1231,27 +1231,26 @@ def test_negative_non_readonly_user_actions(content_view, function_role, module_
     user_cv_permissions_entities = [
         entity for entity in cv_permissions_entities if entity.name in user_cv_permissions
     ]
-    entities.Filter(
+    target_sat.api.Filter(
         organization=[module_org],
         permission=user_cv_permissions_entities,
         role=function_role,
     ).create()
     # create a user and assign the above created role
-    entities.User(
+    target_sat.api.User(
         organization=[module_org],
         role=[function_role],
         login=user_login,
         password=user_password,
     ).create()
-    cfg = get_nailgun_config()
-    cfg.auth = (user_login, user_password)
     # Check that we cannot read our content view with custom user
+    user_cfg = user_nailgun_config(user_login, user_password)
     with pytest.raises(HTTPError):
-        entities.ContentView(cfg, id=content_view.id).read()
+        target_sat.api.ContentView(server_config=user_cfg, id=content_view.id).read()
     # Check that we have permission to remove the entity
-    entities.ContentView(cfg, id=content_view.id).delete()
+    target_sat.api.ContentView(server_config=user_cfg, id=content_view.id).delete()
     with pytest.raises(HTTPError):
-        entities.ContentView(id=content_view.id).read()
+        target_sat.api.ContentView(id=content_view.id).read()
 
 
 @pytest.mark.skip_if_open("BZ:1625783")
@@ -1374,19 +1373,13 @@ class TestContentViewRedHatOstreeContent:
     """Tests for publishing and promoting cv with RH ostree contents."""
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(self, request, module_org):
+    def initiate_testclass(self, request, module_entitlement_manifest_org):
         """Set up organization, product and repositories for tests."""
 
-        with manifests.clone() as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': module_org.id},
-                files={'content': manifest.content},
-            )
         repo_id = enable_rhrepo_and_fetchid(
             basearch=None,
-            org_id=module_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=PRDS['rhah'],
             repo=REPOS['rhaht']['name'],
             reposet=REPOSET['rhaht'],

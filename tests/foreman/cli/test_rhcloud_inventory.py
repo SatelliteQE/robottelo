@@ -16,6 +16,7 @@
 
 :Upstream: No
 """
+import time
 from datetime import datetime
 
 import pytest
@@ -26,9 +27,11 @@ from robottelo.utils.io import get_local_file_data
 from robottelo.utils.io import get_remote_report_checksum
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
+generate_report_jobs = 'ForemanInventoryUpload::Async::GenerateAllReportsJob'
 
 
 @pytest.mark.tier3
+@pytest.mark.e2e
 def test_positive_inventory_generate_upload_cli(
     organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
 ):
@@ -264,3 +267,49 @@ def test_rhcloud_external_links():
 
     :CaseLevel: System
     """
+
+
+@pytest.mark.tier3
+def test_positive_generate_all_reports_job(target_sat):
+    """Generate all reports job via foreman-rake console:
+
+    :id: a9e4bfdb-6d7c-4f8c-ae57-a81442926dd8
+
+    :Steps:
+        1. Disable the Automatic Inventory upload setting.
+        2. Execute Foreman GenerateAllReportsJob via foreman-rake.
+
+    :expectedresults: Reports generation works as expected.
+
+    :BZ: 2110163
+
+    :customerscenario: true
+
+    :CaseAutomation: Automated
+
+    :CaseLevel: System
+    """
+    try:
+        target_sat.update_setting('allow_auto_inventory_upload', False)
+        with target_sat.session.shell() as sh:
+            sh.send('foreman-rake console')
+            time.sleep(30)  # sleep to allow time for console to open
+            sh.send(f'ForemanTasks.async_task({generate_report_jobs})')
+            time.sleep(3)  # sleep for the cmd execution
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        wait_for(
+            lambda: target_sat.api.ForemanTask()
+            .search(query={'search': f'{generate_report_jobs} and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        task_output = target_sat.api.ForemanTask().search(
+            query={'search': f'{generate_report_jobs} and started_at >= {timestamp}'}
+        )
+        assert task_output[0].result == "success"
+    finally:
+        target_sat.update_setting('allow_auto_inventory_upload', True)

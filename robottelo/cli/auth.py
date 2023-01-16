@@ -54,3 +54,9 @@ class AuthLogin(Base):
         """Supports for both with/without 2fa"""
         cls.command_sub = 'oauth'
         return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def negotiate(cls, options=None):
+        """Kerberos ticket based auth"""
+        cls.command_sub = 'negotiate'
+        return cls.execute(cls._construct_command(options), output_format='csv')

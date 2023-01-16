@@ -24,8 +24,8 @@ from broker import Broker
 from wait_for import wait_for
 
 from robottelo.api.utils import update_vm_host_location
-from robottelo.datafactory import gen_string
 from robottelo.hosts import ContentHost
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture

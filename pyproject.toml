@@ -17,5 +17,4 @@ exclude = '''
 
 [tool.pytest.ini_options]
 junit_logging = 'all'
-rp_ignore_errors = 'True'
 addopts = '--show-capture=no'

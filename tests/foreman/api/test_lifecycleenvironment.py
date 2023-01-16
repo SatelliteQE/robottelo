@@ -26,9 +26,9 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.constants import ENVIRONMENT
-from robottelo.datafactory import invalid_names_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import invalid_names_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 
 @pytest.fixture(scope='module')

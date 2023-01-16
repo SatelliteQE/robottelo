@@ -3,7 +3,7 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import ENVIRONMENT
-from robottelo.helpers import InstallerCommand
+from robottelo.utils.installer import InstallerCommand
 
 
 common_opts = {

@@ -16,7 +16,12 @@
 
 :Upstream: No
 """
+import json
+from datetime import datetime
+
 import pytest
+
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.mark.upgrade
@@ -26,13 +31,18 @@ def test_selinux_status(target_sat):
     :id: 43218070-ac5e-4679-b74a-3e2bcb497a0a
 
     :expectedresults: SELinux is enabled and there are no denials
+
+    :customerscenario: true
+
+    :BZ: 2131031
     """
     # check SELinux is enabled
     result = target_sat.execute('getenforce')
     assert 'Enforcing' in result.stdout
     # check there are no SELinux denials
-    result = target_sat.execute('ausearch --input-logs -m avc -ts today --raw')
-    assert result.status == 1
+    if not is_open('BZ:2131031'):
+        result = target_sat.execute('ausearch --input-logs -m avc -ts today --raw')
+        assert result.status == 1, 'Some SELinux denials were found in journal.'
 
 
 @pytest.mark.upgrade
@@ -96,3 +106,39 @@ def test_pulp_workers_status(target_sat):
     output = target_sat.execute('systemctl status pulpcore-worker* | grep Active')
     result = output.stdout.rstrip().splitlines()
     assert all('Active: active (running)' in r for r in result)
+
+
+@pytest.mark.tier1
+def test_pulp_status(target_sat):
+    """Test pulp status via pulp-cli.
+
+    :id: aa7fda5a-cfa1-4fa1-8714-8d5a2e2f89d9
+
+    :steps:
+        1. Run pulp status command and parse the output.
+
+    :expectedresults:
+        1. Pulp-cli is installed and configured to work properly.
+        2. The pulp components are alive according to provided status.
+    """
+    result = target_sat.execute('pulp status')
+    now = datetime.utcnow()
+    assert not result.status
+    status = json.loads(result.stdout)
+    assert status['database_connection']['connected']
+    assert status['redis_connection']['connected']
+
+    workers_beats = [
+        datetime.strptime(worker['last_heartbeat'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        for worker in status['online_workers']
+    ]
+    assert all(
+        (now - beat).seconds < 20 for beat in workers_beats
+    ), 'Some pulp workers seem to me dead!'
+    apps_beats = [
+        datetime.strptime(app['last_heartbeat'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        for app in status['online_content_apps']
+    ]
+    assert all(
+        (now - beat).seconds < 20 for beat in apps_beats
+    ), 'Some content apps seem to me dead!'

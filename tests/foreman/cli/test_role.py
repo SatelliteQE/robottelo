@@ -36,8 +36,8 @@ from robottelo.cli.settings import Settings
 from robottelo.cli.user import User
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import ROLES
-from robottelo.datafactory import generate_strings_list
-from robottelo.datafactory import parametrized
+from robottelo.utils.datafactory import generate_strings_list
+from robottelo.utils.datafactory import parametrized
 
 
 class TestRole:
@@ -250,6 +250,7 @@ class TestSystemAdmin:
 
     @pytest.mark.upgrade
     @pytest.mark.tier3
+    @pytest.mark.e2e
     def test_system_admin_role_end_to_end(self):
         """Test System admin role with a end to end workflow
 

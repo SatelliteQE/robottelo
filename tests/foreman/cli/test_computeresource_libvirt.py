@@ -46,7 +46,7 @@ from robottelo.cli.factory import make_location
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import LIBVIRT_RESOURCE_URL
-from robottelo.datafactory import parametrized
+from robottelo.utils.datafactory import parametrized
 
 
 def valid_name_desc_data():

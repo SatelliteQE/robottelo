@@ -23,7 +23,6 @@ from robottelo.cli.host import Host
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import VMWARE_CONSTANTS
-from robottelo.helpers import host_provisioning_check
 
 
 @pytest.fixture(scope="module")
@@ -93,7 +92,7 @@ def tear_down(provisioning):
 @pytest.mark.on_premises_provisioning
 @pytest.mark.vlan_networking
 @pytest.mark.tier3
-def test_positive_provision_rhev_with_host_group(rhev, provisioning, tear_down):
+def test_positive_provision_rhev_with_host_group(rhev, provisioning, target_sat, tear_down):
     """Provision a host on RHEV compute resource with
     the help of hostgroup.
 
@@ -170,13 +169,15 @@ def test_positive_provision_rhev_with_host_group(rhev, provisioning, tear_down):
     # Assert of Satellite mac address for VM and Mac of VM created is same
     assert host_info.get('network').get('mac') == rhv_vm.get_nics()[0].mac.address
     # Start to run a ping check if network was established on VM
-    host_provisioning_check(ip_addr=host_ip)
+    target_sat.ping_host(host=host_ip)
 
 
 @pytest.mark.on_premises_provisioning
 @pytest.mark.vlan_networking
 @pytest.mark.tier3
-def test_positive_provision_vmware_with_host_group(vmware, provisioning, tear_down, vmware_cr):
+def test_positive_provision_vmware_with_host_group(
+    vmware, provisioning, tear_down, vmware_cr, target_sat
+):
     """Provision a host on vmware compute resource with
     the help of hostgroup.
 
@@ -247,14 +248,14 @@ def test_positive_provision_vmware_with_host_group(vmware, provisioning, tear_do
     host_info = Host.info({'name': hostname})
     host_ip = host_info.get('network').get('ipv4-address')
     # Start to run a ping check if network was established on VM
-    host_provisioning_check(ip_addr=host_ip)
+    target_sat.ping_host(host=host_ip)
 
 
 @pytest.mark.on_premises_provisioning
 @pytest.mark.vlan_networking
 @pytest.mark.tier3
 def test_positive_provision_vmware_with_host_group_bootdisk(
-    vmware, provisioning, tear_down, vmware_cr
+    vmware, provisioning, tear_down, vmware_cr, target_sat
 ):
     """Provision a bootdisk based host on VMWare compute resource.
 
@@ -322,4 +323,4 @@ def test_positive_provision_vmware_with_host_group_bootdisk(
     host_info = Host.info({'name': hostname})
     host_ip = host_info.get('network').get('ipv4-address')
     # Start to run a ping check if network was established on VM
-    host_provisioning_check(ip_addr=host_ip)
+    target_sat.ping_host(host=host_ip)

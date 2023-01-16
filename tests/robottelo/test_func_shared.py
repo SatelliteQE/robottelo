@@ -6,15 +6,15 @@ import pytest
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 
-from robottelo.decorators.func_shared.file_storage import get_temp_dir
-from robottelo.decorators.func_shared.file_storage import TEMP_FUNC_SHARED_DIR
-from robottelo.decorators.func_shared.file_storage import TEMP_ROOT_DIR
-from robottelo.decorators.func_shared.shared import _NAMESPACE_SCOPE_KEY_TYPE
-from robottelo.decorators.func_shared.shared import _set_configured
-from robottelo.decorators.func_shared.shared import enable_shared_function
-from robottelo.decorators.func_shared.shared import set_default_scope
-from robottelo.decorators.func_shared.shared import shared
-from robottelo.decorators.func_shared.shared import SharedFunctionException
+from robottelo.utils.decorators.func_shared.file_storage import get_temp_dir
+from robottelo.utils.decorators.func_shared.file_storage import TEMP_FUNC_SHARED_DIR
+from robottelo.utils.decorators.func_shared.file_storage import TEMP_ROOT_DIR
+from robottelo.utils.decorators.func_shared.shared import _NAMESPACE_SCOPE_KEY_TYPE
+from robottelo.utils.decorators.func_shared.shared import _set_configured
+from robottelo.utils.decorators.func_shared.shared import enable_shared_function
+from robottelo.utils.decorators.func_shared.shared import set_default_scope
+from robottelo.utils.decorators.func_shared.shared import shared
+from robottelo.utils.decorators.func_shared.shared import SharedFunctionException
 
 DEFAULT_POOL_SIZE = 8
 SIMPLE_TIMEOUT_VALUE = 3
@@ -151,7 +151,7 @@ class NotRestorableException(Exception):
 @shared
 def simple_shared_counter_with_exception_not_restored(index=0):
     """Raise exception that should not be restorable"""
-    raise NotRestorableException('error', 'I am not restorable')
+    raise NotRestorableException(msg='error', details='I am not restorable')
 
 
 class TestFuncShared:

@@ -62,7 +62,7 @@ def parse_help(output):
     )
     subcommand_regex = re.compile(r'^ (?P<name>[\w-]+)?(, [\w-]+)?\s+(?P<description>.*)$')
 
-    for line in output:
+    for line in output.splitlines():
         if len(line.strip()) == 0:
             continue
         if line.startswith('Subcommands:'):

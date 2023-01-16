@@ -18,8 +18,6 @@
 """
 import pytest
 from nailgun import entities
-from upgrade_tests.helpers.scenarios import create_dict
-from upgrade_tests.helpers.scenarios import get_entity_data
 
 from robottelo.config import settings
 from robottelo.hosts import Capsule
@@ -67,7 +65,7 @@ class TestScenarioREXCapsule:
     @pytest.mark.pre_upgrade
     @pytest.mark.no_containers
     def test_pre_scenario_remoteexecution_external_capsule(
-        self, request, default_location, rhel7_contenthost
+        self, request, default_location, rhel7_contenthost, save_test_data
     ):
         """Run REX job on client registered with external capsule
 
@@ -112,11 +110,10 @@ class TestScenarioREXCapsule:
             }
         )
         assert job['output']['success_count'] == 1
-        global_dict = {self.__class__.__name__: {'client_name': rhel7_contenthost.hostname}}
-        create_dict(global_dict)
+        save_test_data({'client_name': rhel7_contenthost.hostname})
 
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_remoteexecution_external_capsule)
-    def test_post_scenario_remoteexecution_external_capsule(self):
+    def test_post_scenario_remoteexecution_external_capsule(self, pre_upgrade_data):
         """Run a REX job on pre-upgrade created client registered
         with external capsule.
 
@@ -128,13 +125,12 @@ class TestScenarioREXCapsule:
         :expectedresults:
             1. The job should successfully executed on pre-upgrade created client.
         """
-        client_name = get_entity_data(self.__class__.__name__)['client_name']
         job = entities.JobInvocation().run(
             data={
                 'job_template_id': 89,
                 'inputs': {'command': 'ls'},
                 'targeting_type': 'static_query',
-                'search_query': f'name = {client_name}',
+                'search_query': f"name = {pre_upgrade_data['client_name']}",
             }
         )
         assert job['output']['success_count'] == 1
@@ -167,7 +163,13 @@ class TestScenarioREXSatellite:
 
     @pytest.mark.pre_upgrade
     def test_pre_scenario_remoteexecution_satellite(
-        self, request, compute_resource_setup, default_location, rhel7_contenthost, target_sat
+        self,
+        request,
+        compute_resource_setup,
+        default_location,
+        rhel7_contenthost,
+        target_sat,
+        save_test_data,
     ):
         """Run REX job on client registered with Satellite
 
@@ -209,11 +211,10 @@ class TestScenarioREXSatellite:
             }
         )
         assert job['output']['success_count'] == 1
-        global_dict = {self.__class__.__name__: {'client_name': rhel7_contenthost.hostname}}
-        create_dict(global_dict)
+        save_test_data({'client_name': rhel7_contenthost.hostname})
 
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_remoteexecution_satellite)
-    def test_post_scenario_remoteexecution_satellite(self):
+    def test_post_scenario_remoteexecution_satellite(self, pre_upgrade_data):
         """Run a REX job on pre-upgrade created client registered
         with Satellite.
 
@@ -225,13 +226,12 @@ class TestScenarioREXSatellite:
         :expectedresults:
             1. The job should successfully executed on pre-upgrade created client.
         """
-        client_name = get_entity_data(self.__class__.__name__)['client_name']
         job = entities.JobInvocation().run(
             data={
                 'job_template_id': 89,
                 'inputs': {'command': 'ls'},
                 'targeting_type': 'static_query',
-                'search_query': f'name = {client_name}',
+                'search_query': f"name = {pre_upgrade_data['client_name']}",
             }
         )
         assert job['output']['success_count'] == 1

@@ -19,7 +19,6 @@ import pytest
 from broker import Broker
 from fauxfactory import gen_alpha
 
-from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import Base
 from robottelo.cli.base import CLIReturnCodeError
@@ -64,13 +63,14 @@ from robottelo.constants import REPORT_TEMPLATE_FILE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.hosts import ContentHost
+from robottelo.utils.manifest import clone
 
 
 @pytest.fixture(scope='module')
 def local_org(module_target_sat):
     """Create org with CLI factory and upload cloned manifest"""
     org = make_org()
-    with manifests.clone() as manifest:
+    with clone() as manifest:
         module_target_sat.put(manifest, manifest.filename)
     return org
 
@@ -171,6 +171,7 @@ def test_positive_report_help():
 
 
 @pytest.mark.tier1
+@pytest.mark.e2e
 def test_positive_end_to_end_crud_and_list():
     """CRUD test + list test for report templates
 

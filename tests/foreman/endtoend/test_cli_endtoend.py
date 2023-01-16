@@ -21,7 +21,6 @@ from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_ipaddr
 
 from robottelo import constants
-from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contentview import ContentView
@@ -41,6 +40,7 @@ from robottelo.cli.user import User
 from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants.repos import CUSTOM_RPM_REPO
+from robottelo.utils.manifest import clone
 
 
 @pytest.fixture(scope='module')
@@ -90,6 +90,7 @@ def test_positive_cli_find_admin_user():
 
 @pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.tier4
+@pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_cli_end_to_end(fake_manifest_is_set, target_sat, rhel7_contenthost):
@@ -133,7 +134,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, target_sat, rhel7_content
 
     # step 2.2: Clone and upload manifest
     if fake_manifest_is_set:
-        with manifests.clone() as manifest:
+        with clone() as manifest:
             target_sat.put(manifest, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
 

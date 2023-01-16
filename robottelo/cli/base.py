@@ -7,7 +7,7 @@ from robottelo import ssh
 from robottelo.cli import hammer
 from robottelo.config import settings
 from robottelo.logging import logger
-from robottelo.ssh import get_client
+from robottelo.utils.ssh import get_client
 
 
 class CLIError(Exception):
@@ -79,7 +79,7 @@ class Base:
 
         Check for a non-zero return code or any stderr contents.
 
-        :param response: a result object, returned by :mod:`robottelo.ssh.command`.
+        :param response: a result object, returned by :mod:`robottelo.utils.ssh.command`.
         :param ignore_stderr: indicates whether to throw a warning in logs if
             ``stderr`` is not empty.
         :returns: contents of ``stdout``.
@@ -255,15 +255,11 @@ class Base:
             return cls._handle_response(response, ignore_stderr=ignore_stderr)
 
     @classmethod
-    def sm_execute(
-        cls,
-        command,
-        hostname=None,
-        timeout=None,
-    ):
+    def sm_execute(cls, command, hostname=None, timeout=None, **kwargs):
         """Executes the satellite-maintain cli commands on the server via ssh"""
+        env_var = kwargs.get('env_var') or ''
         client = get_client(hostname=hostname or cls.hostname)
-        result = client.execute(f'satellite-maintain {command}', timeout=timeout)
+        result = client.execute(f'{env_var} satellite-maintain {command}', timeout=timeout)
         return result
 
     @classmethod

@@ -21,8 +21,11 @@ from fauxfactory import gen_string
 from nailgun import client
 from nailgun.entity_mixins import TaskFailedError
 
+from robottelo.config import get_credentials
+from robottelo.hosts import get_sat_version
+from robottelo.utils.issue_handlers import is_open
 
-CAPSULE_TARGET_VERSION = '6.10.z'
+CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
 pytestmark = pytest.mark.destructive
 
@@ -39,15 +42,16 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
 
     :expectedresults: Should fail
 
+    :BZ: 2152951
+
     :CaseImportance: Medium
     """
-    sat = target_sat.nailgun_host
-    template_id = (
-        target_sat.api.JobTemplate()
-        .search(query={'search': 'name="Capsule Upgrade Playbook"'})[0]
-        .id
+    template_name = (
+        'Smart Proxy Upgrade Playbook' if is_open('BZ:2152951') else 'Capsule Upgrade Playbook'
     )
-
+    template_id = (
+        target_sat.api.JobTemplate().search(query={'search': f'name="{template_name}"'})[0].id
+    )
     target_sat.add_rex_key(satellite=target_sat)
     with pytest.raises(TaskFailedError) as error:
         target_sat.api.JobInvocation().run(
@@ -58,23 +62,30 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
                     'whitelist_options': "repositories-validqqate,repositories-setup",
                 },
                 'targeting_type': "static_query",
-                'search_query': f"name = {sat.name}",
+                'search_query': f"name = {target_sat.hostname}",
             }
         )
     assert 'A sub task failed' in error.value.args[0]
     job = target_sat.api.JobInvocation().search(
-        query={'search': f'host={sat.name},status=failed,description="Capsule Upgrade Playbook"'}
+        query={
+            'search': f'host={target_sat.hostname},'
+            'status=failed,description="Capsule Upgrade Playbook"'
+        }
     )[0]
+    host = target_sat.api.Host().search(query={'search': target_sat.hostname})
     response = client.get(
-        f'{target_sat.url}/api/job_invocations/{job.id}/hosts/{sat.id}',
-        auth=(target_sat.username, target_sat.password),
+        f'{target_sat.url}/api/job_invocations/{job.id}/hosts/{host[0].id}',
+        auth=get_credentials(),
         verify=False,
     )
     assert 'This playbook cannot be executed on a Satellite server.' in response.text
 
 
-@pytest.mark.rhel_ver_list([7])
-def test_positive_use_alternate_directory(rex_contenthost, target_sat):
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([8])
+def test_positive_use_alternate_directory(
+    rhel_contenthost, target_sat, default_org, default_location
+):
     """Use alternate working directory on client to execute rex jobs
 
     :id: a0181f18-d3dc-4bd9-a2a6-430c2a49809e
@@ -85,7 +96,17 @@ def test_positive_use_alternate_directory(rex_contenthost, target_sat):
 
     :parametrized: yes
     """
-    client = rex_contenthost
+    client = rhel_contenthost
+    ak = target_sat.cli_factory.make_activation_key(
+        {
+            'lifecycle-environment': 'Library',
+            'content-view': 'Default Organization View',
+            'organization-id': default_org.id,
+            'auto-attach': False,
+        }
+    )
+    result = client.register(target_sat, default_org, default_location, ak.name, port=None)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     testdir = gen_string('alpha')
     result = client.run(f'mkdir /{testdir}')
     assert result.status == 0

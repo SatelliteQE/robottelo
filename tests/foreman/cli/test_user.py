@@ -42,11 +42,11 @@ from robottelo.cli.org import Org
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import LOCALES
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
-from robottelo.datafactory import valid_emails_list
-from robottelo.datafactory import valid_usernames_list
 from robottelo.utils import gen_ssh_keypairs
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import valid_emails_list
+from robottelo.utils.datafactory import valid_usernames_list
 
 
 class TestUser:

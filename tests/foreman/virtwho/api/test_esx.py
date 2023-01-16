@@ -20,14 +20,14 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo.config import settings
-from robottelo.virtwho_utils import create_http_proxy
-from robottelo.virtwho_utils import deploy_configure_by_command
-from robottelo.virtwho_utils import deploy_configure_by_command_check
-from robottelo.virtwho_utils import deploy_configure_by_script
-from robottelo.virtwho_utils import ETC_VIRTWHO_CONFIG
-from robottelo.virtwho_utils import get_configure_command
-from robottelo.virtwho_utils import get_configure_file
-from robottelo.virtwho_utils import get_configure_option
+from robottelo.utils.virtwho import create_http_proxy
+from robottelo.utils.virtwho import deploy_configure_by_command
+from robottelo.utils.virtwho import deploy_configure_by_command_check
+from robottelo.utils.virtwho import deploy_configure_by_script
+from robottelo.utils.virtwho import ETC_VIRTWHO_CONFIG
+from robottelo.utils.virtwho import get_configure_command
+from robottelo.utils.virtwho import get_configure_file
+from robottelo.utils.virtwho import get_configure_option
 
 
 @pytest.fixture()
@@ -434,6 +434,54 @@ class TestVirtWhoConfigforEsx:
             get_configure_option('username', config_file)
             == settings.virtwho.esx.hypervisor_username
         )
+        virtwho_config.delete()
+        assert not target_sat.api.VirtWhoConfig().search(
+            query={'search': f"name={form_data['name']}"}
+        )
+
+    @pytest.mark.tier2
+    def test_positive_remove_env_option(self, default_org, form_data, virtwho_config, target_sat):
+        """remove option 'env=' from the virt-who configuration file and without any error
+
+        :id: 981b6828-a7ed-46d9-9c6c-9fb22af4011e
+
+        :expectedresults:
+            the option "env=" should be removed from etc/virt-who.d/virt-who.conf
+            /var/log/messages should not display warning message
+
+        :CaseLevel: Integration
+
+        :customerscenario: true
+
+        :CaseImportance: Medium
+
+        :BZ: 1834897
+
+        """
+        command = get_configure_command(virtwho_config.id, default_org.name)
+        deploy_configure_by_command(
+            command, form_data['hypervisor_type'], debug=True, org=default_org.label
+        )
+        virt_who_instance = (
+            target_sat.api.VirtWhoConfig()
+            .search(query={'search': f'name={virtwho_config.name}'})[0]
+            .status
+        )
+        assert virt_who_instance == 'ok'
+        # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
+        option = "env"
+        config_file = get_configure_file(virtwho_config.id)
+        env_error = (
+            f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
+        )
+        try:
+            get_configure_option({option}, {config_file})
+        except Exception as VirtWhoError:
+            assert env_error == str(VirtWhoError)
+        # Check /var/log/messages should not display warning message
+        env_warning = f"Ignoring unknown configuration option \"{option}\""
+        result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
+        assert result.status == 1
         virtwho_config.delete()
         assert not target_sat.api.VirtWhoConfig().search(
             query={'search': f"name={form_data['name']}"}

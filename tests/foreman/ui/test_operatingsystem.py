@@ -21,7 +21,7 @@ from nailgun import entities
 
 from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import HASH_TYPE
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
