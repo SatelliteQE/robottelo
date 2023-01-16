@@ -711,9 +711,12 @@ def test_positive_delete_cv_promoted_to_multi_env(module_org):
         content_view.read()
 
 
-@pytest.mark.stubbed
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([7, 8, 9])
 @pytest.mark.tier3
-def test_positive_remove_cv_version_from_env_with_host_registered():
+def test_positive_remove_cv_version_from_env_with_host_registered(
+    target_sat, default_org, rhel7_contenthost
+):
     """Remove promoted content view version from environment that is used
     in association of an Activation key and content-host registration.
 
@@ -747,6 +750,63 @@ def test_positive_remove_cv_version_from_env_with_host_registered():
 
     :CaseLevel: System
     """
+    # Create a content view cv1
+    cv1 = entities.ContentView(organization=default_org).create()
+    # Add a yum repo to the content view
+    product = entities.Product(organization=default_org).create()
+    yum_repo = entities.Repository(
+        url=settings.repos.yum_1.url, product=product, content_type='yum'
+    ).create()
+    yum_repo.sync()
+    # add the yum repo to content view
+    cv1.repository = [yum_repo]
+    cv1 = cv1.update(['repository'])
+    # Publish the content view
+    cv1.publish()
+    # Promote the content view to multiple environment Library -> DEV -> QE
+    lce_lib = entities.LifecycleEnvironment(organization=default_org).create()
+    lce_dev = entities.LifecycleEnvironment(organization=default_org, prior=lce_lib).create()
+    lce_qe = entities.LifecycleEnvironment(organization=default_org, prior=lce_dev).create()
+    cv1 = cv1.read()
+    cv1.version[0].promote(data={'environment_ids': lce_qe.id, 'force': True})
+    # Create an Activation key with the QE environment
+    ak_lce = entities.ActivationKey(
+        organization=default_org, environment=lce_qe, content_view=cv1
+    ).create()
+    # assert created ak is associate with lce qe
+    assert ak_lce.environment.id == lce_qe.id
+
+    # Register a content-host using the Activation key
+    rhel7_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
+    rhel7_contenthost.install_katello_ca(target_sat)
+    rhel7_contenthost.execute(
+        f'subscription-manager register --activationkey={ak_lce.name} \
+        --org="{default_org.label}" --force'
+    )
+    assert rhel7_contenthost.subscribed
+    result = rhel7_contenthost.execute('yum install -y tree')
+    assert result.status == 0
+
+    # assert - content-host exists
+    host = entities.Host().search(query={"search": f'name={rhel7_contenthost.hostname}'})[0]
+    assert host.name == rhel7_contenthost.hostname
+
+    # Remove the content view cv1 version from QE environment. Note: prior to removing,
+    # replace the current QE environment of cv1 by DEV
+    # and content view cv1 for Content-host and for Activation key.
+    cv1.environment = [lce_dev]
+    cv1.version[0].promote(data={'environment_ids': lce_dev.id, 'force': True})
+    ak_updated = entities.ActivationKey(
+        id=ak_lce.id, organization=default_org, environment=lce_dev, content_view=cv1
+    ).update(['environment'])
+    rhel7_contenthost.unregister()
+    rhel7_contenthost.execute(
+        f'subscription-manager register --activationkey={ak_updated.name} \
+        --org="{default_org.label}" --force'
+    )
+    rhel7_contenthost.execute('subscription-manager refresh')
+    # Remove content view version from QE environment
+    cv1.delete_from_environment(lce_qe.id)
 
 
 @pytest.mark.upgrade
