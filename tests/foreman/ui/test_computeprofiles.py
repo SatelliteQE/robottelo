@@ -8,7 +8,7 @@
 
 :CaseComponent: ComputeResources
 
-:Assignee: lhellebr
+:Team: Rocket
 
 :TestType: Functional
 

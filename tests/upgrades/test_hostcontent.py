@@ -8,7 +8,7 @@
 
 :CaseComponent: Host-Content
 
-:Assignee: shwsingh
+:Team: Phoenix
 
 :TestType: Functional
 

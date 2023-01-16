@@ -6,7 +6,7 @@
 
 :CaseComponent: DiscoveryImage
 
-:Assignee: gsulliva
+:Team: Rocket
 
 :TestType: Functional
 

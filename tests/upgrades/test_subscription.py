@@ -8,7 +8,7 @@
 
 :CaseComponent: SubscriptionManagement
 
-:Assignee: chiggins
+:Team: Phoenix
 
 :TestType: Functional
 

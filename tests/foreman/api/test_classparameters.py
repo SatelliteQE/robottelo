@@ -8,7 +8,7 @@
 
 :CaseComponent: Puppet
 
-:Assignee: vsedmik
+:Team: Rocket
 
 :TestType: Functional
 

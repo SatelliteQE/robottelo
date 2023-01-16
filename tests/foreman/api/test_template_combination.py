@@ -8,7 +8,7 @@
 
 :CaseComponent: ProvisioningTemplates
 
-:Assignee: sganar
+:Team: Rocket
 
 :TestType: Functional
 

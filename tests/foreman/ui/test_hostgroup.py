@@ -8,7 +8,7 @@
 
 :CaseLevel: Integration
 
-:Assignee: okhatavk
+:Team: Endeavour
 
 :TestType: Functional
 

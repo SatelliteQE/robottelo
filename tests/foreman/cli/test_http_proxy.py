@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:Assignee: jpathan
+:Team: Phoenix
 
 :TestType: Functional
 

@@ -8,7 +8,7 @@
 
 :CaseComponent: ErrataManagement
 
-:Assignee: addubey
+:Team: Phoenix
 
 :TestType: Functional
 

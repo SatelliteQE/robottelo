@@ -8,7 +8,7 @@
 
 :CaseComponent: Repositories
 
-:Assignee: chiggins
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -2069,7 +2069,7 @@ class TestSRPMRepositoryIgnoreContent:
 
     :customerscenario: true
 
-    :Assignee: ltran
+    :Team: Phoenix
 
     :BZ: 1673215
     """
@@ -2329,7 +2329,7 @@ class TestTokenAuthContainerRepository:
 
     :CaseComponent: ContainerManagement-Content
 
-    :Assignee: addubey
+    :Team: Phoenix
     """
 
     @pytest.mark.tier2

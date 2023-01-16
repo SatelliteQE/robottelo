@@ -12,7 +12,7 @@
 
 :CaseComponent: AnsibleCollection
 
-:Assignee: gsulliva
+:Team: Platform
 
 :Upstream: No
 """

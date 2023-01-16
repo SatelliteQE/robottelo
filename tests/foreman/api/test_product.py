@@ -11,7 +11,7 @@ http://<sat6>/apidoc/v2/products.html
 
 :CaseComponent: ContentManagement
 
-:Assignee: ltran
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -406,7 +406,7 @@ def test_positive_assign_http_proxy_to_products():
     :expectedresults: HTTP Proxy is assigned to all repos present
         in Products and sync operation uses assigned http-proxy.
 
-    :Assignee: jpathan
+    :Team: Phoenix
 
     :CaseImportance: Critical
     """

@@ -24,7 +24,7 @@ def test_positive_katello_reimport(target_sat):
 
     :CaseComponent: ContentManagement
 
-    :Assignee: ltran
+    :Team: Phoenix
 
     :id: b4119265-1bf0-4b0b-8b96-43f68af39708
 

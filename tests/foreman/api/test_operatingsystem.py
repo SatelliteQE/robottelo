@@ -14,7 +14,7 @@ References for the relevant paths can be found on your Satellite:
 
 :CaseComponent: ContentManagement
 
-:Assignee: ltran
+:Team: Phoenix
 
 :TestType: Functional
 

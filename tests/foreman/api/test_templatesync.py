@@ -8,7 +8,7 @@
 
 :CaseComponent: TemplatesPlugin
 
-:Assignee: ogajduse
+:Team: Endeavour
 
 :TestType: Functional
 

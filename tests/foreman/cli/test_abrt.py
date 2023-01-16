@@ -8,7 +8,7 @@
 
 :CaseComponent: Infrastructure
 
-:Assignee: lpramuk
+:Team: Platform
 
 :TestType: Functional
 

@@ -8,7 +8,7 @@
 
 :CaseComponent: Hosts
 
-:Assignee: pdragun
+:Team: Endeavour
 
 :TestType: Functional
 

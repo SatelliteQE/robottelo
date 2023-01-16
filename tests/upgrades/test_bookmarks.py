@@ -8,7 +8,7 @@
 
 :CaseComponent: Search
 
-:Assignee: jhenner
+:Team: Endeavour
 
 :TestType: Functional
 

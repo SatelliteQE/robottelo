@@ -8,7 +8,7 @@
 
 :CaseComponent: Pulp
 
-:Assignee: ltran
+:Team: Phoenix
 
 :TestType: Functional
 

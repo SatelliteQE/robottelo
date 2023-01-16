@@ -8,7 +8,7 @@
 
 :CaseComponent: InterSatelliteSync
 
-:Assignee: rmynar
+:Team: Phoenix
 
 :TestType: Functional
 

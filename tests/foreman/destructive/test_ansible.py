@@ -8,7 +8,7 @@
 
 :CaseComponent: Ansible
 
-:Assignee: sbible
+:Team: Rocket
 
 :TestType: Functional
 

@@ -12,7 +12,7 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 :CaseComponent: ComputeResources-libvirt
 
-:Assignee: lhellebr
+:Team: Rocket
 
 :TestType: Functional
 

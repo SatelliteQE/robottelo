@@ -68,13 +68,16 @@ from betelgeuse import default_config
 DEFAULT_APPROVERS_VALUE = '${POLARION_USERNAME}:approved'
 DEFAULT_STATUS_VALUE = 'approved'
 DEFAULT_SUBTYPE2_VALUE = '-'
-TESTCASE_CUSTOM_FIELDS = default_config.TESTCASE_CUSTOM_FIELDS + ('customerscenario',)
+TESTCASE_CUSTOM_FIELDS = default_config.TESTCASE_CUSTOM_FIELDS + ('customerscenario',) + ('team',)
+REQUIREMENT_CUSTOM_FIELDS = default_config.REQUIREMENT_CUSTOM_FIELDS + ('team',)
 TRANSFORM_CUSTOMERSCENARIO_VALUE = default_config._transform_to_lower
 DEFAULT_CUSTOMERSCENARIO_VALUE = 'false'
+DEFAULT_REQUIREMENT_TEAM_VALUE = None
+TRANSFORM_REQUIREMENT_TEAM_VALUE = default_config._transform_to_lower
 EOF
 
 set -x
-betelgeuse requirement "${TESTS_DIRECTORY}" "${POLARION_PROJECT}" "requirement.xml"
+betelgeuse --config-module "betelgeuse_config" requirement "${TESTS_DIRECTORY}" "${POLARION_PROJECT}" "requirement.xml"
 curl -f -k -u "${POLARION_USERNAME}:${POLARION_PASSWORD}" -F file=@requirement.xml "${POLARION_URL}import/requirement"
 
 betelgeuse --config-module "betelgeuse_config" test-case \

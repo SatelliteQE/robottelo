@@ -1,5 +1,6 @@
 # Version updates managed by dependabot
 
+betelgeuse==1.10.0
 broker[docker]==0.2.12
 cryptography==39.0.0
 deepdiff==6.2.3

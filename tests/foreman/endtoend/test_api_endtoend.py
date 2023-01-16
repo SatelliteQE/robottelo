@@ -8,7 +8,7 @@
 
 :CaseComponent: API
 
-:Assignee: gtalreja
+:Team: Endeavour
 
 :TestType: Functional
 

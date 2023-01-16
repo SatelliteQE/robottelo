@@ -8,7 +8,7 @@
 
 :CaseAutomation: Automated
 
-:Assignee: shwsingh
+:Team: Phoenix
 
 :TestType: Functional
 

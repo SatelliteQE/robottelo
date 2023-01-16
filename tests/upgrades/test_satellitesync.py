@@ -8,7 +8,7 @@
 
 :CaseComponent: InterSatelliteSync
 
-:Assignee: ltran
+:Team: Phoenix
 
 :TestType: Functional
 

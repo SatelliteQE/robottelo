@@ -5,7 +5,7 @@
 
 :CaseComponent: ComputeResources-EC2
 
-:Assignee: lhellebr
+:Team: Rocket
 
 :TestType: Functional
 

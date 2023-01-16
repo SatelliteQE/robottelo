@@ -8,7 +8,7 @@
 
 :CaseComponent: Convert2rhel
 
-:Assignee: shwsingh
+:Team: Rocket
 
 :TestType: Functional
 

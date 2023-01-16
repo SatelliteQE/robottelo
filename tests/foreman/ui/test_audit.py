@@ -8,7 +8,7 @@
 
 :CaseComponent: AuditLog
 
-:Assignee: sbible
+:Team: Endeavour
 
 :TestType: Functional
 

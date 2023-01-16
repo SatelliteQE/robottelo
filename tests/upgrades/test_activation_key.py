@@ -8,7 +8,7 @@
 
 :CaseComponent: ActivationKeys
 
-:Assignee: chiggins
+:Team: Phoenix
 
 :TestType: Functional
 

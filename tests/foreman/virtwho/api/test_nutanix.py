@@ -8,7 +8,7 @@
 
 :CaseComponent: Virt-whoConfigurePlugin
 
-:Assignee: yanpliu
+:Team: Phoenix
 
 :TestType: Functional
 

@@ -12,7 +12,7 @@ http://<satellite-host>/apidoc/v2/permissions.html
 
 :CaseComponent: UsersRoles
 
-:Assignee: dsynk
+:Team: Endeavour
 
 :TestType: Functional
 

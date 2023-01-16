@@ -8,7 +8,7 @@
 
 :CaseComponent: LDAP
 
-:Assignee: vsedmik
+:Team: Endeavour
 
 :TestType: Functional
 

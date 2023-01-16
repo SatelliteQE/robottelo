@@ -8,7 +8,7 @@
 
 :CaseComponent: Hammer
 
-:Assignee: gtalreja
+:Team: Endeavour
 
 :TestType: Functional
 

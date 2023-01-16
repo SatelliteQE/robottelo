@@ -8,7 +8,7 @@
 
 :CaseComponent: Networking
 
-:Assignee: rdrazny
+:Team: Rocket
 
 :TestType: Functional
 

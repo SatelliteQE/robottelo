@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentManagement
 
-:Assignee: ltran
+:Team: Phoenix
 
 :TestType: Functional
 

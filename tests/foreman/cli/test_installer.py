@@ -8,7 +8,7 @@
 
 :CaseComponent: Installer
 
-:Assignee: rmynar
+:Team: Platform
 
 :TestType: Functional
 

@@ -12,7 +12,7 @@ http://theforeman.org/api/apidoc/v2/environments.html
 
 :CaseComponent: Puppet
 
-:Assignee: vsedmik
+:Team: Rocket
 
 :TestType: Functional
 

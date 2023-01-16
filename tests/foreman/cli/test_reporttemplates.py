@@ -7,7 +7,7 @@
 
 :CaseComponent: Reporting
 
-:Assignee: lhellebr
+:Team: Phoenix
 
 :TestType: Functional
 

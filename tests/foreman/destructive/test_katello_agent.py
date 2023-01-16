@@ -8,7 +8,7 @@
 
 :CaseComponent: Katello-agent
 
-:Assignee: gtalreja
+:Team: Phoenix
 
 :TestType: Functional
 

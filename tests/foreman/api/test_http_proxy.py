@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:Assignee: jpathan
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -50,7 +50,7 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
 
     :expectedresults: HTTP Proxy works with other satellite components.
 
-    :Assignee: jpathan
+    :Team: Phoenix
 
     :BZ: 2011303, 2042473, 2046337
 
@@ -151,7 +151,7 @@ def test_positive_auto_attach_with_http_proxy(
     :expectedresults: host successfully subscribed, subscription
         repository enabled, and repository package installed.
 
-    :Assignee: jpathan
+    :Team: Phoenix
 
     :BZ: 2046337
 

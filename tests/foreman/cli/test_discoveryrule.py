@@ -8,7 +8,7 @@
 
 :CaseComponent: DiscoveryPlugin
 
-:Assignee: gsulliva
+:Team: Rocket
 
 :TestType: Functional
 

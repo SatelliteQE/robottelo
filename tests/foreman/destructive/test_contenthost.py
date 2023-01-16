@@ -8,7 +8,7 @@
 
 :CaseComponent: Hosts-Content
 
-:Assignee: shwsingh
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -40,7 +40,7 @@ def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
 
     :CaseComponent: Infrastructure
 
-    :Assignee: lpramuk
+    :Team: Platform
 
     :parametrized: yes
     """

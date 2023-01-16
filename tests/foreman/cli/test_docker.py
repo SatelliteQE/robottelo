@@ -107,7 +107,7 @@ class TestDockerManifest:
 
     :CaseComponent: Repositories
 
-    :Assignee: chiggins
+    :Team: Phoenix
     """
 
     @pytest.mark.tier2
@@ -145,7 +145,7 @@ class TestDockerRepository:
 
     :CaseComponent: Repositories
 
-    :Assignee: chiggins
+    :Team: Phoenix
     """
 
     @pytest.mark.tier1
@@ -400,7 +400,7 @@ class TestDockerContentView:
 
     :CaseComponent: ContentViews
 
-    :Assignee: ltran
+    :Team: Phoenix
 
     :CaseLevel: Integration
     """
@@ -1016,7 +1016,7 @@ class TestDockerActivationKey:
 
     :CaseComponent: ActivationKeys
 
-    :Assignee: chiggins
+    :Team: Phoenix
 
     :CaseLevel: Integration
     """
@@ -1190,7 +1190,7 @@ class TestDockerClient:
 
     :CaseComponent: ContentManagement
 
-    :Assignee: ltran
+    :Team: Phoenix
 
     :CaseLevel: System
 

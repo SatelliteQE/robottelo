@@ -8,7 +8,7 @@
 
 :CaseComponent: Fact
 
-:Assignee: rmynar
+:Team: Rocket
 
 :TestType: Functional
 

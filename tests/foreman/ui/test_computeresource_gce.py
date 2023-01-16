@@ -8,7 +8,7 @@
 
 :CaseComponent: ComputeResources-GCE
 
-:Assignee: addubey
+:Team: Rocket
 
 :TestType: Functional
 
