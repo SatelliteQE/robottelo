@@ -84,7 +84,7 @@ Out [5]:
    {'key': 'upgrade', 'value': 'None'},
    {'key': 'endpoint', 'value': 'ui'},
    {'key': 'importance', 'value': 'High'},
-   {'key': 'assignee', 'value': 'sganar'},
+   {'key': 'team', 'value': 'rocket'},
    {'key': 'BaseOS', 'value': '7.9'},
    {'key': 'component', 'value': 'UsersRoles'}],
    ......
