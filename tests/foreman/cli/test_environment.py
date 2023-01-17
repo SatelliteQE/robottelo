@@ -24,9 +24,9 @@ from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
-from robottelo.datafactory import invalid_id_list
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
+from robottelo.utils.datafactory import invalid_id_list
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
 
 
 @pytest.fixture(scope='module')

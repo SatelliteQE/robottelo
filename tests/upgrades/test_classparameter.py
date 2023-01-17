@@ -20,8 +20,6 @@ import json
 
 import pytest
 from nailgun import entities
-from upgrade_tests.helpers.scenarios import create_dict
-from upgrade_tests.helpers.scenarios import get_entity_data
 
 
 def _valid_sc_parameters_data():
@@ -54,7 +52,7 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
     """
 
     @pytest.fixture(scope="class")
-    def _setup_scenario(self, target_sat):
+    def _setup_scenario(self, target_sat, save_test_data):
         """Import some parametrized puppet classes. This is required to make
         sure that we have smart class variable available.
         Read all available smart class parameters for imported puppet class to
@@ -69,14 +67,13 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
         self.sc_params_list = entities.SmartClassParameters().search(
             query={'search': f'puppetclass="{self.puppet_class.name}"', 'per_page': 1000}
         )
-        scenario_ents = {self.__class__.__name__: {'puppet_class': self.puppet_class.name}}
-        create_dict(scenario_ents)
+        save_test_data({'puppet_class': self.puppet_class.name})
 
     @pytest.fixture(scope="class")
-    def _clean_scenario(self, request, class_target_sat):
+    def _clean_scenario(self, request, class_target_sat, pre_upgrade_data):
         @request.addfinalizer
         def _cleanup():
-            puppet_class = get_entity_data(self.__class__.__name__)['puppet_class']
+            puppet_class = pre_upgrade_data.get('puppet_class')
             class_target_sat.delete_puppet_class(puppet_class)
 
     def _validate_value(self, data, sc_param):

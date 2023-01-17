@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentManagement
 
-:Assignee: ltran
+:Assignee: vsedmik
 
 :TestType: Functional
 
@@ -33,7 +33,24 @@ from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.content_info import get_repomd
 from robottelo.content_info import get_repomd_revision
-from robottelo.helpers import form_repo_url
+from robottelo.utils.issue_handlers import is_open
+
+
+def get_published_repo_url(capsule, org, prod, repo, lce=None, cv=None):
+    """Forms url of a repo or CV published on a Satellite or Capsule.
+
+    :param object capsule: Capsule or Satellite object providing its url
+    :param str org: organization label
+    :param str prod: product label
+    :param str repo: repository label
+    :param str lce: lifecycle environment label
+    :param str cv: content view label
+    :return: url of the specific repo or CV
+    """
+    if lce and cv:
+        return f'{capsule.url}/pulp/content/{org}/{lce}/{cv}/custom/{prod}/{repo}/'
+    else:
+        return f'{capsule.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'
 
 
 class TestSatelliteContentManagement:
@@ -86,7 +103,7 @@ class TestSatelliteContentManagement:
         assert response, f"Repository {repo} failed to sync."
 
     @pytest.mark.tier4
-    def test_positive_sync_kickstart_repo(self, module_manifest_org, target_sat):
+    def test_positive_sync_kickstart_repo(self, module_entitlement_manifest_org, target_sat):
         """No encoding gzip errors on kickstart repositories
         sync.
 
@@ -110,14 +127,12 @@ class TestSatelliteContentManagement:
 
         :CaseComponent: Pulp
 
-        :Assignee: ltran
-
         :BZ: 1687801
         """
         distro = 'rhel8'
         rh_repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_manifest_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
             reposet=constants.REPOSET['kickstart'][distro],
             repo=constants.REPOS['kickstart'][distro]['name'],
@@ -139,13 +154,13 @@ class TestSatelliteContentManagement:
 
     @pytest.mark.parametrize(
         'distro',
-        {
+        [
             f'rhel{ver}'
             for ver in settings.supportability.content_hosts.rhel.versions
             if isinstance(ver, int)
-        },
+        ],
     )
-    def test_positive_sync_kickstart_check_os(self, module_manifest_org, distro):
+    def test_positive_sync_kickstart_check_os(self, module_entitlement_manifest_org, distro):
         """Sync rhel KS repo and assert that OS was created
 
         :id: f84bcf1b-717e-40e7-82ee-000eead45249
@@ -162,7 +177,7 @@ class TestSatelliteContentManagement:
         """
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_manifest_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
             reposet=constants.REPOSET['kickstart'][distro],
             repo=constants.REPOS['kickstart'][distro]['name'],
@@ -373,7 +388,7 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Verify the RPM published on Capsule
-        caps_repo_url = form_repo_url(
+        caps_repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             lce=function_lce_library.label,
@@ -441,7 +456,7 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Verify repodata's checksum type is sha256, not sha1 on capsule
-        repo_url = form_repo_url(
+        repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             prod=function_product.label,
@@ -486,8 +501,9 @@ class TestCapsuleContentManagement:
     def test_positive_sync_updated_repo(
         self, target_sat, module_capsule_configured, function_org, function_product, function_lce
     ):
-        """Sync a custom repo with no upstream url but uploaded content to the Capsule via promoted CV,
-        update content of the repo, publish and promote the CV again, resync the Capsule.
+        """Sync a custom repo with no upstream url but uploaded content to the Capsule via
+        promoted CV, update content of the repo, publish and promote the CV again, resync
+        the Capsule.
 
         :id: ddbecc80-17d9-47f6-979e-111ebd74cb90
 
@@ -562,7 +578,7 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Check the content is synced on the Capsule side properly
-        sat_repo_url = form_repo_url(
+        sat_repo_url = get_published_repo_url(
             target_sat,
             org=function_org.label,
             lce=function_lce.label,
@@ -570,7 +586,7 @@ class TestCapsuleContentManagement:
             prod=function_product.label,
             repo=repo.label,
         )
-        caps_repo_url = form_repo_url(
+        caps_repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             lce=function_lce.label,
@@ -649,7 +665,7 @@ class TestCapsuleContentManagement:
 
         # Assert that the content published on the capsule is exactly the
         # same as in repository on satellite
-        sat_repo_url = form_repo_url(
+        sat_repo_url = get_published_repo_url(
             target_sat,
             org=function_org.label,
             lce=function_lce.label,
@@ -657,7 +673,7 @@ class TestCapsuleContentManagement:
             prod=function_product.label,
             repo=repo.label,
         )
-        caps_repo_url = form_repo_url(
+        caps_repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             lce=function_lce.label,
@@ -728,8 +744,10 @@ class TestCapsuleContentManagement:
         assert sat_files == caps_files
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_iso_library_sync(self, module_capsule_configured, module_manifest_org):
+    @pytest.mark.skip_if_not_set('capsule', 'clients')
+    def test_positive_iso_library_sync(
+        self, module_capsule_configured, module_entitlement_manifest_org
+    ):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
         to capsule automatically
 
@@ -746,7 +764,7 @@ class TestCapsuleContentManagement:
         # Enable & sync RH repository with ISOs
         rh_repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_manifest_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhsc'],
             repo=constants.REPOS['rhsc7_iso']['name'],
             reposet=constants.REPOSET['rhsc7_iso'],
@@ -755,7 +773,7 @@ class TestCapsuleContentManagement:
         rh_repo = entities.Repository(id=rh_repo_id).read()
         call_entity_method_with_timeout(rh_repo.sync, timeout=2500)
         # Find "Library" lifecycle env for specific organization
-        lce = entities.LifecycleEnvironment(organization=module_manifest_org).search(
+        lce = entities.LifecycleEnvironment(organization=module_entitlement_manifest_org).search(
             query={'search': f'name={constants.ENVIRONMENT}'}
         )[0]
 
@@ -769,7 +787,9 @@ class TestCapsuleContentManagement:
         assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create a content view with the repository
-        cv = entities.ContentView(organization=module_manifest_org, repository=[rh_repo]).create()
+        cv = entities.ContentView(
+            organization=module_entitlement_manifest_org, repository=[rh_repo]
+        ).create()
         # Publish new version of the content view
         cv.publish()
         cv = cv.read()
@@ -784,8 +804,9 @@ class TestCapsuleContentManagement:
 
         # Verify all the ISOs are present on capsule
         caps_path = (
-            f'{module_capsule_configured.url}/pulp/content/{module_manifest_org.label}/{lce.label}'
-            f'/{cv.label}/content/dist/rhel/server/7/7Server/x86_64/sat-capsule/6.4/iso/'
+            f'{module_capsule_configured.url}/pulp/content/{module_entitlement_manifest_org.label}'
+            f'/{lce.label}/{cv.label}/content/dist/rhel/server/7/7Server/x86_64/sat-capsule/6.4/'
+            'iso/'
         )
         caps_isos = get_repo_files_by_url(caps_path, extension='iso')
         assert len(caps_isos) == 4
@@ -854,7 +875,7 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Verify packages on Capsule match the source
-        caps_repo_url = form_repo_url(
+        caps_repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             lce=function_lce.label,
@@ -962,7 +983,7 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Verify the count of RPMs published on Capsule
-        caps_repo_url = form_repo_url(
+        caps_repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             lce=function_lce.label,
@@ -1000,13 +1021,16 @@ class TestCapsuleContentManagement:
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'clients')
+    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8', 'rhel9'])
     def test_positive_sync_kickstart_repo(
-        self, target_sat, module_capsule_configured, module_manifest_org
+        self, target_sat, module_capsule_configured, function_entitlement_manifest_org, distro
     ):
         """Sync kickstart repository to the capsule.
 
         :id: bc97b53f-f79b-42f7-8014-b0641435bcfc
+
+        :parametrized: yes
 
         :steps:
             1. Sync a kickstart repository to Satellite.
@@ -1021,17 +1045,16 @@ class TestCapsuleContentManagement:
 
         :BZ: 1992329
         """
-        distro = 'rhel8_aps'
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_manifest_org.id,
+            org_id=function_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
             reposet=constants.REPOSET['kickstart'][distro],
             repo=constants.REPOS['kickstart'][distro]['name'],
             releasever=constants.REPOS['kickstart'][distro]['version'],
         )
         repo = entities.Repository(id=repo_id).read()
-        lce = entities.LifecycleEnvironment(organization=module_manifest_org).create()
+        lce = entities.LifecycleEnvironment(organization=function_entitlement_manifest_org).create()
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': lce.id}
@@ -1045,9 +1068,11 @@ class TestCapsuleContentManagement:
         self.update_capsule_download_policy(module_capsule_configured, 'on_demand')
 
         # Create a content view with the repository
-        cv = entities.ContentView(organization=module_manifest_org, repository=[repo]).create()
+        cv = entities.ContentView(
+            organization=function_entitlement_manifest_org, repository=[repo]
+        ).create()
         # Sync repository
-        repo.sync(timeout=600)
+        repo.sync(timeout='10m')
         repo = repo.read()
         # Publish new version of the content view
         cv.publish()
@@ -1065,9 +1090,14 @@ class TestCapsuleContentManagement:
         self.wait_for_sync(module_capsule_configured)
 
         # Check for kickstart content on SAT and CAPS
+        tail = (
+            f'rhel/server/7/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/kickstart'
+            if distro == 'rhel7'
+            else f'{distro}/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
+        )
         url_base = (
-            f'pulp/content/{module_manifest_org.label}/{lce.label}/{cv.label}/content/dist/'
-            f'rhel8/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/appstream/kickstart'
+            f'pulp/content/{function_entitlement_manifest_org.label}/{lce.label}/{cv.label}/'
+            f'content/dist/{tail}'
         )
 
         # Check kickstart specific files
@@ -1085,6 +1115,7 @@ class TestCapsuleContentManagement:
         assert sat_pkgs == caps_pkgs
 
     @pytest.mark.tier4
+    @pytest.mark.e2e
     @pytest.mark.skip_if_not_set('capsule', 'clients')
     def test_positive_sync_container_repo_end_to_end(
         self,
@@ -1115,7 +1146,9 @@ class TestCapsuleContentManagement:
 
         :CaseLevel: Integration
 
-        :BZ: 2125244
+        :BZ: 2125244, 2148813
+
+        :customerscenario: true
         """
         upstream_names = [
             'quay/busybox',  # schema 1
@@ -1131,7 +1164,7 @@ class TestCapsuleContentManagement:
                 product=function_product,
                 url='https://quay.io',
             ).create()
-            repo.sync(timeout=600)
+            repo.sync(timeout='20m')
             repos.append(repo)
 
         # Associate LCE with the capsule
@@ -1192,6 +1225,26 @@ class TestCapsuleContentManagement:
                 f'{con_client} logout {module_capsule_configured.hostname}'
             )
             assert result.status == 0
+
+        # Inspect the images with skopeo (BZ#2148813)
+        if not is_open('BZ:2148813'):
+            result = module_capsule_configured.execute('yum -y install skopeo')
+            assert result.status == 0
+
+            target_sat.api.LifecycleEnvironment(
+                id=function_lce.id, registry_unauthenticated_pull='true'
+            ).update(['registry_unauthenticated_pull'])
+
+            skopeo_cmd = 'skopeo --debug inspect docker://'
+            for path in repo_paths:
+                result = module_capsule_configured.execute(
+                    f'{skopeo_cmd}{target_sat.hostname}/{path}:latest'
+                )
+                assert result.status == 0
+                result = module_capsule_configured.execute(
+                    f'{skopeo_cmd}{module_capsule_configured.hostname}/{path}:latest'
+                )
+                assert result.status == 0
 
     @pytest.mark.skip_if_open("BZ:2121583")
     @pytest.mark.tier4
@@ -1353,7 +1406,7 @@ class TestCapsuleContentManagement:
         assert sync_status['result'] == 'success'
 
         # Check for content on SAT and CAPS
-        sat_repo_url = form_repo_url(
+        sat_repo_url = get_published_repo_url(
             target_sat,
             org=function_org.label,
             lce=function_lce.label,
@@ -1361,7 +1414,7 @@ class TestCapsuleContentManagement:
             prod=function_product.label,
             repo=repo.label,
         )
-        caps_repo_url = form_repo_url(
+        caps_repo_url = get_published_repo_url(
             module_capsule_configured,
             org=function_org.label,
             lce=function_lce.label,
@@ -1379,3 +1432,75 @@ class TestCapsuleContentManagement:
             sat_file = target_sat.md5_by_url(f'{sat_repo_url}{file}')
             caps_file = target_sat.md5_by_url(f'{caps_repo_url}{file}')
             assert sat_file == caps_file
+
+    @pytest.mark.tier4
+    @pytest.mark.skip_if_not_set('capsule')
+    def test_positive_sync_CV_to_multiple_LCEs(
+        self, target_sat, module_capsule_configured, module_manifest_org
+    ):
+        """Synchronize a CV to multiple LCEs at the same time.
+        All sync tasks should succeed.
+
+        :id: bd3cbeee-234f-4088-81b3-8f0d6c76e968
+
+        :steps:
+            1. Sync a repository to the Satellite.
+            2. Create two LCEs, assign them to the Capsule.
+            3. Create a Content View, add the repository and publish it.
+            4. Promote the CV to both Capsule's LCEs without waiting for
+               Capsule sync task completion.
+            5. Check all sync tasks finished without errors.
+
+        :expectedresults:
+            1. All capsule syncs succeed.
+
+        :CaseLevel: Integration
+
+        :customerscenario: true
+
+        :BZ: 1830403
+        """
+        # Sync a repository to the Satellite.
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_manifest_org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhel7_extra']['name'],
+            reposet=constants.REPOSET['rhel7_extra'],
+            releasever=None,
+        )
+        repo = target_sat.api.Repository(id=repo_id).read()
+        repo.sync()
+
+        # Create two LCEs, assign them to the Capsule.
+        lce1 = target_sat.api.LifecycleEnvironment(organization=module_manifest_org).create()
+        lce2 = target_sat.api.LifecycleEnvironment(
+            organization=module_manifest_org, prior=lce1
+        ).create()
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': [lce1.id, lce2.id]}
+        )
+        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        # there can and will be LCEs from other tests and orgs, but len() >= 2
+        assert len(result['results']) >= 2
+        assert lce1.id and lce2.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Create a Content View, add the repository and publish it.
+        cv = target_sat.api.ContentView(
+            organization=module_manifest_org, repository=[repo]
+        ).create()
+        cv.publish()
+        cv = cv.read()
+        assert len(cv.version) == 1
+
+        # Promote the CV to both Capsule's LCEs without waiting for Capsule sync task completion.
+        cvv = cv.version[-1].read()
+        cvv.promote(data={'environment_ids': lce1.id})
+        cvv = cvv.read()
+        assert len(cvv.environment) == 2
+        cvv.promote(data={'environment_ids': lce2.id})
+        cvv = cvv.read()
+        assert len(cvv.environment) == 3
+
+        # Check all sync tasks finished without errors.
+        self.wait_for_sync(module_capsule_configured)

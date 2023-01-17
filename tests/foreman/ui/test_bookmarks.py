@@ -23,8 +23,8 @@ from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
 
+from robottelo.config import user_nailgun_config
 from robottelo.constants import BOOKMARK_ENTITIES
-from robottelo.helpers import get_nailgun_config
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -140,7 +140,7 @@ def test_positive_create_bookmark_public(session, ui_entity, default_viewer_role
 
 @pytest.mark.tier2
 def test_positive_update_bookmark_public(
-    session, ui_entity, default_viewer_role, ui_user, test_name
+    session, ui_entity, default_viewer_role, ui_user, test_name, target_sat
 ):
     """Update and save a bookmark public state
 
@@ -182,11 +182,13 @@ def test_positive_update_bookmark_public(
     """
     public_name = gen_string('alphanumeric')
     nonpublic_name = gen_string('alphanumeric')
-    cfg = get_nailgun_config()
-    cfg.auth = (ui_user.login, ui_user.password)
+    cfg = user_nailgun_config(ui_user.login, ui_user.password)
     for name in (public_name, nonpublic_name):
-        entities.Bookmark(
-            cfg, name=name, controller=ui_entity['controller'], public=name == public_name
+        target_sat.api.Bookmark(
+            server_config=cfg,
+            name=name,
+            controller=ui_entity['controller'],
+            public=name == public_name,
         ).create()
     with Session(
         test_name, default_viewer_role.login, default_viewer_role.password

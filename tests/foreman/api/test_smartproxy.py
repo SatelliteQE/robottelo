@@ -17,14 +17,12 @@
 :Upstream: No
 """
 import pytest
+from fauxfactory import gen_string
 from fauxfactory import gen_url
-from nailgun import entities
 from requests import HTTPError
 
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
-from robottelo.helpers import default_url_on_new_port
-from robottelo.helpers import get_available_capsule_port
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 
 pytestmark = [pytest.mark.run_in_one_thread]
@@ -37,7 +35,7 @@ def module_proxy_attrs(module_target_sat):
     Every Satellite has a built-in smart proxy, so searching for an
     existing smart proxy should always succeed.
     """
-    smart_proxy = entities.SmartProxy().search(
+    smart_proxy = module_target_sat.api.SmartProxy().search(
         query={'search': f'url = {module_target_sat.url}:9090'}
     )
     # Check that proxy is found and unpack it from the list
@@ -59,7 +57,7 @@ def _create_smart_proxy(request, target_sat, **kwargs):
 
 @pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
-def test_negative_create_with_url():
+def test_negative_create_with_url(target_sat):
     """Proxy creation with random URL
 
     :id: e48a6260-97e0-4234-a69c-77bbbcde85d6
@@ -71,7 +69,7 @@ def test_negative_create_with_url():
     """
     # Create a random proxy
     with pytest.raises(HTTPError) as context:
-        entities.SmartProxy(url=gen_url(scheme='https')).create()
+        target_sat.api.SmartProxy(url=gen_url(scheme='https')).create()
     assert 'Unable to communicate' in context.value.response.text
 
 
@@ -90,8 +88,8 @@ def test_positive_create_with_name(request, target_sat, name):
     :Parametrized: Yes
 
     """
-    new_port = get_available_capsule_port()
-    with default_url_on_new_port(9090, new_port) as url:
+    new_port = target_sat.available_capsule_port
+    with target_sat.default_url_on_new_port(9090, new_port) as url:
         proxy = _create_smart_proxy(request, target_sat, name=name, url=url)
         assert proxy.name == name
 
@@ -99,7 +97,7 @@ def test_positive_create_with_name(request, target_sat, name):
 @pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_delete():
+def test_positive_delete(target_sat):
     """Proxy deletion
 
     :id: 872bf12e-736d-43d1-87cf-2923966b59d0
@@ -110,9 +108,9 @@ def test_positive_delete():
 
     :BZ: 1398695
     """
-    new_port = get_available_capsule_port()
-    with default_url_on_new_port(9090, new_port) as url:
-        proxy = entities.SmartProxy(url=url).create()
+    new_port = target_sat.available_capsule_port
+    with target_sat.default_url_on_new_port(9090, new_port) as url:
+        proxy = target_sat.api.SmartProxy(url=url).create()
         proxy.delete()
     with pytest.raises(HTTPError):
         proxy.read()
@@ -130,8 +128,8 @@ def test_positive_update_name(request, target_sat):
     :CaseLevel: Component
 
     """
-    new_port = get_available_capsule_port()
-    with default_url_on_new_port(9090, new_port) as url:
+    new_port = target_sat.available_capsule_port
+    with target_sat.default_url_on_new_port(9090, new_port) as url:
         proxy = _create_smart_proxy(request, target_sat, url=url)
         for new_name in valid_data_list():
             proxy.name = new_name
@@ -152,12 +150,12 @@ def test_positive_update_url(request, target_sat):
 
     """
     # Create fake capsule
-    port = get_available_capsule_port()
-    with default_url_on_new_port(9090, port) as url:
+    port = target_sat.available_capsule_port
+    with target_sat.default_url_on_new_port(9090, port) as url:
         proxy = _create_smart_proxy(request, target_sat, url=url)
     # Open another tunnel to update url
-    new_port = get_available_capsule_port()
-    with default_url_on_new_port(9090, new_port) as url:
+    new_port = target_sat.available_capsule_port
+    with target_sat.default_url_on_new_port(9090, new_port) as url:
         proxy.url = url
         proxy = proxy.update(['url'])
         assert proxy.url == url
@@ -175,9 +173,9 @@ def test_positive_update_organization(request, target_sat):
     :CaseLevel: Component
 
     """
-    organizations = [entities.Organization().create() for _ in range(2)]
-    newport = get_available_capsule_port()
-    with default_url_on_new_port(9090, newport) as url:
+    organizations = [target_sat.api.Organization().create() for _ in range(2)]
+    newport = target_sat.available_capsule_port
+    with target_sat.default_url_on_new_port(9090, newport) as url:
         proxy = _create_smart_proxy(request, target_sat, url=url)
         proxy.organization = organizations
         proxy = proxy.update(['organization'])
@@ -196,9 +194,9 @@ def test_positive_update_location(request, target_sat):
     :CaseLevel: Component
 
     """
-    locations = [entities.Location().create() for _ in range(2)]
-    new_port = get_available_capsule_port()
-    with default_url_on_new_port(9090, new_port) as url:
+    locations = [target_sat.api.Location().create() for _ in range(2)]
+    new_port = target_sat.available_capsule_port
+    with target_sat.default_url_on_new_port(9090, new_port) as url:
         proxy = _create_smart_proxy(request, target_sat, url=url)
         proxy.location = locations
         proxy = proxy.update(['location'])
@@ -223,8 +221,8 @@ def test_positive_refresh_features(request, target_sat):
     # test to claim it. Thus we want to manage the tunnel manually.
 
     # get an available port for our fake capsule
-    new_port = get_available_capsule_port()
-    with default_url_on_new_port(9090, new_port) as url:
+    new_port = target_sat.available_capsule_port
+    with target_sat.default_url_on_new_port(9090, new_port) as url:
         proxy = _create_smart_proxy(request, target_sat, url=url)
         proxy.refresh()
 
@@ -242,10 +240,10 @@ def test_positive_import_puppet_classes(session_puppet_enabled_sat, puppet_proxy
 
     :BZ: 1398695
     """
-    with session_puppet_enabled_sat:
-        new_port = get_available_capsule_port()
-        with default_url_on_new_port(9090, new_port) as url:
-            proxy = entities.SmartProxy(url=url).create()
+    with session_puppet_enabled_sat as puppet_sat:
+        new_port = puppet_sat.available_capsule_port
+        with puppet_sat.default_url_on_new_port(9090, new_port) as url:
+            proxy = puppet_sat.api.SmartProxy(url=url).create()
             result = proxy.import_puppetclasses()
             assert (
                 "Successfully updated environment and puppetclasses from "
@@ -253,7 +251,7 @@ def test_positive_import_puppet_classes(session_puppet_enabled_sat, puppet_proxy
             ) in result['message'] or "No changes to your environments detected" in result[
                 'message'
             ]
-        entities.SmartProxy(id=proxy.id).delete()
+        puppet_sat.api.SmartProxy(id=proxy.id).delete()
 
 
 """Tests to see if the server returns the attributes it should.
@@ -303,3 +301,24 @@ def test_positive_update_org(module_proxy_attrs):
     """
     names = {'organization', 'organization_ids', 'organizations'}
     assert len(names & module_proxy_attrs) >= 1, f'None of {names} are in {module_proxy_attrs}'
+
+
+@pytest.mark.skip_if_not_set('fake_capsules')
+@pytest.mark.tier1
+def test_positive_search_nondefault_proxy(request, target_sat):
+    """Search non-default proxy with id!=1
+
+    :id: caf51662-6b4e-11ed-baba-2b9d7b368002
+
+    :expectedresults: Non-default proxy can be searched
+
+    :BZ: 2077824
+
+    :customerscenario: true
+    """
+    with target_sat.default_url_on_new_port(9090, target_sat.available_capsule_port) as url:
+        proxy = _create_smart_proxy(request, target_sat, name=gen_string('alpha'), url=url)
+    capsules = target_sat.api.Capsule().search(query={'search': 'id != 1'})
+    assert len(capsules) == 1
+    assert capsules[0].url == proxy.url
+    assert capsules[0].name == proxy.name

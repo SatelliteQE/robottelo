@@ -48,6 +48,7 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.hosts import ContentHost
 from robottelo.logging import logger
+from robottelo.utils import ohsnap
 
 
 @pytest.fixture()
@@ -78,13 +79,13 @@ def fixture_enable_receptor_repos(request, target_sat):
 
 @pytest.fixture()
 def infra_host(request, target_sat, module_capsule_configured):
-    infra_hosts = {'target_sat': target_sat, 'capsule_configured': module_capsule_configured}
+    infra_hosts = {'target_sat': target_sat, 'module_capsule_configured': module_capsule_configured}
     yield infra_hosts[request.param]
 
 
 def assert_job_invocation_result(invocation_command_id, client_hostname, expected_result='success'):
-    """Asserts the job invocation finished with the expected result and fetches job output when error
-    occurs. Result is one of: success, pending, error, warning"""
+    """Asserts the job invocation finished with the expected result and fetches job output
+    when error occurs. Result is one of: success, pending, error, warning"""
     result = JobInvocation.info({'id': invocation_command_id})
     try:
         assert result[expected_result] == '1'
@@ -172,7 +173,7 @@ class TestRemoteExecution:
         make_user_job = make_job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': f"command='useradd -m {username}'",
+                'inputs': f"command=useradd -m {username}",
                 'search-query': f"name ~ {client.hostname}",
             }
         )
@@ -181,7 +182,7 @@ class TestRemoteExecution:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': f"command='touch /home/{username}/{filename}'",
+                'inputs': f"command=touch /home/{username}/{filename}",
                 'search-query': f"name ~ {client.hostname}",
                 'effective-user': f'{username}',
             }
@@ -195,6 +196,7 @@ class TestRemoteExecution:
         assert username == result.stdout.strip('\n')
 
     @pytest.mark.tier3
+    @pytest.mark.e2e
     @pytest.mark.rhel_ver_match('[^6].*')
     def test_positive_run_custom_job_template_by_ip(self, rex_contenthost, module_org, target_sat):
         """Run custom template on host connected by ip
@@ -226,6 +228,7 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([8])
     def test_positive_run_default_job_template_multiple_hosts_by_ip(
         self, registered_hosts, module_org
@@ -242,7 +245,7 @@ class TestRemoteExecution:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': 'command="ls"',
+                'inputs': 'command=ls',
                 'search-query': f'name ~ {clients[0].hostname} or name ~ {clients[1].hostname}',
             }
         )
@@ -328,7 +331,7 @@ class TestRemoteExecution:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': 'command="ls"',
+                'inputs': 'command=ls',
                 'search-query': f"name ~ {client.hostname}",
                 'cron-line': '* * * * *',  # every minute
                 'max-iteration': 2,  # just two runs
@@ -368,7 +371,7 @@ class TestRemoteExecution:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': 'command="ls"',
+                'inputs': 'command=ls',
                 'start-at': plan_time,
                 'search-query': f"name ~ {client.hostname}",
             }
@@ -491,7 +494,7 @@ class TestAnsibleREX:
         make_user_job = make_job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
-                'inputs': f"command='useradd -m {username}'",
+                'inputs': f"command=useradd -m {username}",
                 'search-query': f"name ~ {client.hostname}",
             }
         )
@@ -500,7 +503,7 @@ class TestAnsibleREX:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
-                'inputs': f"command='touch /home/{username}/{filename}'",
+                'inputs': f"command=touch /home/{username}/{filename}",
                 'search-query': f"name ~ {client.hostname}",
                 'effective-user': f'{username}',
             }
@@ -541,7 +544,7 @@ class TestAnsibleREX:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
-                'inputs': 'command="ls"',
+                'inputs': 'command=ls',
                 'search-query': f"name ~ {client.hostname}",
                 'cron-line': '* * * * *',  # every minute
                 'max-iteration': 2,  # just two runs
@@ -555,6 +558,7 @@ class TestAnsibleREX:
         assert rec_logic['iteration'] == '2'
 
     @pytest.mark.tier3
+    @pytest.mark.no_containers
     def test_positive_run_concurrent_jobs(self, registered_hosts, module_org):
         """Tests Ansible REX concurent jobs without batch trigger
 
@@ -585,7 +589,7 @@ class TestAnsibleREX:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
-                'inputs': 'command="ls"',
+                'inputs': 'command=ls',
                 'search-query': f'name ~ {clients[0].hostname} or name ~ {clients[1].hostname}',
                 'concurrency-level': 2,
             }
@@ -608,6 +612,7 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.e2e
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_match('[^6].*')
     @pytest.mark.skipif(
@@ -898,6 +903,64 @@ class TestRexUsers:
         assert result['success'] == '1'
 
 
+class TestAsyncSSHProviderRex:
+    """Tests related to remote execution via async ssh provider"""
+
+    @pytest.mark.no_containers
+    @pytest.mark.tier3
+    @pytest.mark.e2e
+    @pytest.mark.upgrade
+    @pytest.mark.rhel_ver_match('[^6].*')
+    def test_positive_run_job_on_host_registered_to_async_ssh_provider(
+        self,
+        module_org,
+        smart_proxy_location,
+        module_ak_with_cv,
+        module_target_sat,
+        module_capsule_configured_async_ssh,
+        rhel_contenthost,
+    ):
+        """Run custom template on host registered to async ssh provider
+
+        :id: 382dd6b8-eee5-4a95-8510-b3f8cc540c01
+
+        :expectedresults: Verify the job was successfully ran against the host registered to
+            capsule with ssh-async provider enabled
+
+        :CaseImportance: Critical
+
+        :bz: 2128209
+
+        :parametrized: yes
+        """
+        # Update module_capsule_configured_async_ssh to include module_org/smart_proxy_location
+        module_target_sat.cli.Capsule.update(
+            {
+                'name': module_capsule_configured_async_ssh.hostname,
+                'organization-ids': module_org.id,
+                'location-ids': smart_proxy_location.id,
+            }
+        )
+        result = rhel_contenthost.register(
+            module_org,
+            smart_proxy_location,
+            module_ak_with_cv.name,
+            target=module_capsule_configured_async_ssh,
+            satellite=module_target_sat,
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        # run script provider rex command, longer-running command is needed to
+        # verify the connection is not shut down too soon
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': 'command=echo start; sleep 10; echo done',
+                'search-query': f"name ~ {rhel_contenthost.hostname}",
+            }
+        )
+        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+
+
 class TestPullProviderRex:
     """Tests related to remote execution via pull provider (mqtt)"""
 
@@ -910,6 +973,7 @@ class TestPullProviderRex:
         module_org,
         smart_proxy_location,
         module_ak_with_cv,
+        module_target_sat,
         module_capsule_configured_mqtt,
         rhel_contenthost,
     ):
@@ -923,29 +987,30 @@ class TestPullProviderRex:
 
         :parametrized: yes
         """
-        result = rhel_contenthost.execute(
-            f'curl -o /etc/pki/ca-trust/source/anchors/satellite-sat-engineering-ca.crt \
-                    {settings.repos["DOGFOOD_REPO_HOST"]}/pub/katello-server-ca.crt \
-                    && update-ca-trust'
+        client_repo = ohsnap.dogfood_repository(
+            settings.repos.ohsnap_repo_host,
+            product='client',
+            repo='client',
+            release='Client',
+            os_release=rhel_contenthost.os_version.major,
         )
-        assert result.status == 0, 'Failed to download certificate'
-        client_repo = (
-            f'{settings.repos["DOGFOOD_REPO_HOST"].replace("http", "https")}/pulp/content/'
-            'Satellite_Engineering/QA/Satellite_Client/custom/Satellite_Client_Composes/'
-            f'Satellite_Client_RHEL{rhel_contenthost.os_version.major}_x86_64/'
+        # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
+        module_target_sat.cli.Capsule.update(
+            {
+                'name': module_capsule_configured_mqtt.hostname,
+                'organization-ids': module_org.id,
+                'location-ids': smart_proxy_location.id,
+            }
         )
-        # TODO client_repo should be changed to
-        # settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
-        # when/if the new dogfood url pattern settles
-
         # register host with rex, enable client repo, install katello-agent
         result = rhel_contenthost.register(
-            module_capsule_configured_mqtt,
             module_org,
             smart_proxy_location,
             module_ak_with_cv.name,
+            target=module_capsule_configured_mqtt,
+            satellite=module_target_sat,
             packages=['katello-agent'],
-            repo=client_repo,
+            repo=client_repo.baseurl,
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
 
@@ -997,11 +1062,13 @@ class TestPullProviderRex:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.e2e
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
     def test_positive_run_job_on_host_registered_to_pull_provider(
         self,
         module_org,
+        module_target_sat,
         smart_proxy_location,
         module_ak_with_cv,
         module_capsule_configured_mqtt,
@@ -1017,30 +1084,32 @@ class TestPullProviderRex:
 
         :parametrized: yes
         """
-        result = rhel_contenthost.execute(
-            f'curl -o /etc/pki/ca-trust/source/anchors/satellite-sat-engineering-ca.crt \
-                    {settings.repos["DOGFOOD_REPO_HOST"]}/pub/katello-server-ca.crt \
-                    && update-ca-trust'
+        client_repo = ohsnap.dogfood_repository(
+            settings.repos.ohsnap_repo_host,
+            product='client',
+            repo='client',
+            release='Client',
+            os_release=rhel_contenthost.os_version.major,
         )
-        assert result.status == 0, 'Failed to download certificate'
-        client_repo = (
-            f'{settings.repos["DOGFOOD_REPO_HOST"].replace("http", "https")}/pulp/content/'
-            'Satellite_Engineering/QA/Satellite_Client/custom/Satellite_Client_Composes/'
-            f'Satellite_Client_RHEL{rhel_contenthost.os_version.major}_x86_64/'
+        # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
+        module_target_sat.cli.Capsule.update(
+            {
+                'name': module_capsule_configured_mqtt.hostname,
+                'organization-ids': module_org.id,
+                'location-ids': smart_proxy_location.id,
+            }
         )
-        # TODO client_repo should be changed to
-        # settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
-        # when/if the new dogfood url pattern settles
-
         # register host with pull provider rex (SAT-1677)
         result = rhel_contenthost.register(
-            module_capsule_configured_mqtt,
             module_org,
             smart_proxy_location,
             module_ak_with_cv.name,
+            target=module_capsule_configured_mqtt,
+            satellite=module_target_sat,
             setup_remote_execution_pull=True,
-            repo=client_repo,
+            repo=client_repo.baseurl,
         )
+
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         # check mqtt client is running
         result = rhel_contenthost.execute('yggdrasil status')

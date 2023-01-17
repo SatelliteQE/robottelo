@@ -106,7 +106,7 @@ def test_positive_install_sat_with_katello_certs(certs_vm_setup):
     """
     cert_data, rhel_vm = certs_vm_setup
     version = rhel_vm.os_version.major
-    rhel_vm.download_repos(repo_name='satellite', version=version)
+    rhel_vm.download_repofile(product='satellite', release=settings.server.version.release)
     rhel_vm.register_contenthost(
         org=None,
         lce=None,
@@ -116,11 +116,6 @@ def test_positive_install_sat_with_katello_certs(certs_vm_setup):
     result = rhel_vm.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
     for repo in getattr(constants, f"OHSNAP_RHEL{version}_REPOS"):
         rhel_vm.enable_repo(repo, force=True)
-    # What is the purpose of this?
-    rhel_vm.execute(
-        f'yum -y localinstall {settings.repos.dogfood_repo_host}'
-        f'/pub/katello-ca-consumer-latest.noarch.rpm'
-    )
     rhel_vm.execute('yum -y update')
     result = rhel_vm.execute(getattr(constants, f"INSTALL_RHEL{version}_STEPS"))
     assert result.status == 0

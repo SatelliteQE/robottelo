@@ -24,8 +24,8 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_job_template
 from robottelo.cli.job_template import JobTemplate
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
 
 TEMPLATE_FILE = 'template_file.txt'
 TEMPLATE_FILE_EMPTY = 'template_file_empty.txt'

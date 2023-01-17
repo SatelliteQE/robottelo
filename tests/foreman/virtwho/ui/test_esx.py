@@ -23,22 +23,22 @@ from airgun.session import Session
 from fauxfactory import gen_string
 
 from robottelo.config import settings
-from robottelo.datafactory import valid_emails_list
-from robottelo.virtwho_utils import add_configure_option
-from robottelo.virtwho_utils import create_http_proxy
-from robottelo.virtwho_utils import delete_configure_option
-from robottelo.virtwho_utils import deploy_configure_by_command
-from robottelo.virtwho_utils import deploy_configure_by_command_check
-from robottelo.virtwho_utils import deploy_configure_by_script
-from robottelo.virtwho_utils import ETC_VIRTWHO_CONFIG
-from robottelo.virtwho_utils import get_configure_command
-from robottelo.virtwho_utils import get_configure_file
-from robottelo.virtwho_utils import get_configure_id
-from robottelo.virtwho_utils import get_configure_option
-from robottelo.virtwho_utils import get_guest_info
-from robottelo.virtwho_utils import get_virtwho_status
-from robottelo.virtwho_utils import restart_virtwho_service
-from robottelo.virtwho_utils import update_configure_option
+from robottelo.utils.datafactory import valid_emails_list
+from robottelo.utils.virtwho import add_configure_option
+from robottelo.utils.virtwho import create_http_proxy
+from robottelo.utils.virtwho import delete_configure_option
+from robottelo.utils.virtwho import deploy_configure_by_command
+from robottelo.utils.virtwho import deploy_configure_by_command_check
+from robottelo.utils.virtwho import deploy_configure_by_script
+from robottelo.utils.virtwho import ETC_VIRTWHO_CONFIG
+from robottelo.utils.virtwho import get_configure_command
+from robottelo.utils.virtwho import get_configure_file
+from robottelo.utils.virtwho import get_configure_id
+from robottelo.utils.virtwho import get_configure_option
+from robottelo.utils.virtwho import get_guest_info
+from robottelo.utils.virtwho import get_virtwho_status
+from robottelo.utils.virtwho import restart_virtwho_service
+from robottelo.utils.virtwho import update_configure_option
 
 
 @pytest.fixture()
@@ -793,5 +793,51 @@ class TestVirtwhoConfigforEsx:
                 get_configure_option('username', config_file)
                 == settings.virtwho.esx.hypervisor_username
             )
+            session.virtwho_configure.delete(name)
+            assert not session.virtwho_configure.search(name)
+
+    @pytest.mark.tier2
+    def test_positive_remove_env_option(self, default_org, form_data, target_sat, session):
+        """remove option 'env=' from the virt-who configuration file and without any error
+
+        :id: 4503985c-8cf5-455c-855f-73dc7645ffe9
+
+        :expectedresults:
+            the option "env=" should be removed from etc/virt-who.d/virt-who.conf
+            /var/log/messages should not display warning message
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+
+        :BZ: 1834897
+
+        :customerscenario: true
+        """
+        name = gen_string('alpha')
+        form_data['name'] = name
+        with session:
+            session.virtwho_configure.create(form_data)
+            values = session.virtwho_configure.read(name)
+            command = values['deploy']['command']
+            deploy_configure_by_command(
+                command, form_data['hypervisor_type'], debug=True, org=default_org.label
+            )
+            assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+            # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
+            option = "env"
+            config_id = get_configure_id(name)
+            config_file = get_configure_file(config_id)
+            env_error = (
+                f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
+            )
+            try:
+                get_configure_option({option}, {config_file})
+            except Exception as VirtWhoError:
+                assert env_error == str(VirtWhoError)
+            # Check /var/log/messages should not display warning message
+            env_warning = f"Ignoring unknown configuration option \"{option}\""
+            result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
+            assert result.status == 1
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)

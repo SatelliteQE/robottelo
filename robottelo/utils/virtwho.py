@@ -282,6 +282,9 @@ def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Defa
     :param str org: Organization Label
     """
     virtwho_cleanup()
+    guest_name, guest_uuid = get_guest_info(hypervisor_type)
+    if Host.list({'search': guest_name}):
+        Host.delete({'name': guest_name})
     register_system(get_system(hypervisor_type), org=org)
     ret, stdout = runcmd(command)
     if ret != 0 or 'Finished successfully' not in stdout:

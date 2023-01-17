@@ -9,8 +9,8 @@ import sys
 
 
 def skip_data(app, what, name, obj, skip, options):
-    """Skip double generating docs for robottelo.decorators.func_shared.shared"""
-    if what == 'function' and name == 'robottelo.decorators.func_shared.shared':
+    """Skip double generating docs for robottelo.utils.decorators.func_shared.shared"""
+    if what == 'function' and name == 'robottelo.utils.decorators.func_shared.shared':
         return True
     return None
 

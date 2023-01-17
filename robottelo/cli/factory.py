@@ -19,8 +19,6 @@ from fauxfactory import gen_string
 from fauxfactory import gen_url
 
 from robottelo import constants
-from robottelo import manifests
-from robottelo import ssh
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
@@ -48,8 +46,6 @@ from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.org import Org
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
-from robottelo.cli.proxy import CapsuleTunnelError
-from robottelo.cli.proxy import Proxy
 from robottelo.cli.realm import Realm
 from robottelo.cli.report_template import ReportTemplate
 from robottelo.cli.repository import Repository
@@ -68,11 +64,11 @@ from robottelo.cli.usergroup import UserGroup
 from robottelo.cli.usergroup import UserGroupExternal
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
-from robottelo.datafactory import valid_cron_expressions
-from robottelo.decorators import cacheable
-from robottelo.helpers import default_url_on_new_port
-from robottelo.helpers import get_available_capsule_port
 from robottelo.logging import logger
+from robottelo.utils import ssh
+from robottelo.utils.datafactory import valid_cron_expressions
+from robottelo.utils.decorators import cacheable
+from robottelo.utils.manifest import clone
 
 
 ORG_KEYS = ['organization', 'organization-id', 'organization-label']
@@ -521,28 +517,6 @@ def make_product_wait(options=None, wait_for=5):
         if not product:
             raise err
     return product
-
-
-@cacheable
-def make_proxy(options=None):
-    """Creates a Proxy
-
-    :param options: Check options using `hammer proxy create --help` on satellite.
-
-    :returns Proxy object
-    """
-    args = {'name': gen_alphanumeric()}
-
-    if options is None or 'url' not in options:
-        newport = get_available_capsule_port()
-        try:
-            with default_url_on_new_port(9090, newport) as url:
-                args['url'] = url
-                return create_object(Proxy, args, options)
-        except CapsuleTunnelError as err:
-            raise CLIFactoryError(f'Failed to create ssh tunnel: {err}')
-    args['url'] = options['url']
-    return create_object(Proxy, args, options)
 
 
 @cacheable
@@ -1761,7 +1735,7 @@ def setup_org_for_a_custom_repo(options=None):
     }
 
 
-def _setup_org_for_a_rh_repo(options=None):
+def _setup_org_for_a_rh_repo(target_sat, options=None):
     """Sets up Org for the given Red Hat repository by:
 
     1. Checks if organization and lifecycle environment were given, otherwise
@@ -1800,10 +1774,10 @@ def _setup_org_for_a_rh_repo(options=None):
     else:
         env_id = options['lifecycle-environment-id']
     # Clone manifest and upload it
-    with manifests.clone() as manifest:
-        ssh.get_client().put(manifest, manifest.filename)
+    with clone() as manifest:
+        target_sat.put(manifest.path, manifest.name)
     try:
-        Subscription.upload({'file': manifest.filename, 'organization-id': org_id})
+        Subscription.upload({'file': manifest.name, 'organization-id': org_id})
     except CLIReturnCodeError as err:
         raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
     # Enable repo from Repository Set
@@ -1918,6 +1892,7 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
         organization even if downstream custom repo is used instead of CDN.
         Useful when test relies on organization with manifest (e.g. uses some
         other RH repo afterwards). Defaults to False.
+
     :return: a dict with entity ids (see ``_setup_org_for_a_rh_repo`` and
         ``setup_org_for_a_custom_repo``).
     """
@@ -1938,7 +1913,7 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
         options['url'] = custom_repo_url
         result = setup_org_for_a_custom_repo(options)
         if force_manifest_upload:
-            with manifests.clone() as manifest:
+            with clone() as manifest:
                 ssh.get_client().put(manifest, manifest.filename)
             try:
                 Subscription.upload(
@@ -1955,189 +1930,6 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
                 }
             )
         return result
-
-
-def configure_env_for_provision(org=None, loc=None):
-    """Create and configure org, loc, product, repo, env. Update proxy,
-    domain, subnet, compute resource, provision templates and medium with
-    previously created entities and create a hostgroup using all mentioned
-    entities.
-
-    :param org: Default Organization that should be used in both host
-        discovering and host provisioning procedures
-    :param loc: Default Location that should be used in both host
-        discovering and host provisioning procedures
-    :return: List of created entities that can be re-used further in
-        provisioning or validation procedure (e.g. hostgroup or subnet)
-    """
-    # Create new organization and location in case they were not passed
-    if org is None:
-        org = make_org()
-    if loc is None:
-        loc = make_location()
-
-    # Get a Library Lifecycle environment and the default CV for the org
-    lce = LifecycleEnvironment.info({'name': 'Library', 'organization-id': org['id']})
-    cv = ContentView.info({'name': 'Default Organization View', 'organization-id': org['id']})
-
-    # Create puppet environment and associate organization and location
-    env = make_environment({'location-ids': loc['id'], 'organization-ids': org['id']})
-
-    # get default capsule and associate location
-    puppet_proxy = Proxy.info({'id': Proxy.list({'search': settings.server.hostname})[0]['id']})
-    Proxy.update(
-        {
-            'id': puppet_proxy['id'],
-            'locations': list(set(puppet_proxy.get('locations') or []) | {loc['name']}),
-        }
-    )
-
-    # Network
-    # Search for existing domain or create new otherwise. Associate org,
-    # location and dns to it
-    _, _, domain_name = settings.server.hostname.partition('.')
-    domain = Domain.list({'search': f'name={domain_name}'})
-    if len(domain) == 1:
-        domain = Domain.info({'id': domain[0]['id']})
-        Domain.update(
-            {
-                'name': domain_name,
-                'locations': list(set(domain.get('locations') or []) | {loc['name']}),
-                'organizations': list(set(domain.get('organizations') or []) | {org['name']}),
-                'dns-id': puppet_proxy['id'],
-            }
-        )
-    else:
-        # Create new domain
-        domain = make_domain(
-            {
-                'name': domain_name,
-                'location-ids': loc['id'],
-                'organization-ids': org['id'],
-                'dns-id': puppet_proxy['id'],
-            }
-        )
-    # Search if subnet is defined with given network. If so, just update its
-    # relevant fields otherwise create new subnet
-    network = settings.vlan_networking.subnet
-    subnet = Subnet.list({'search': f'network={network}'})
-    if len(subnet) >= 1:
-        subnet = Subnet.info({'id': subnet[0]['id']})
-        Subnet.update(
-            {
-                'name': subnet['name'],
-                'domains': list(set(subnet.get('domains') or []) | {domain['name']}),
-                'locations': list(set(subnet.get('locations') or []) | {loc['name']}),
-                'organizations': list(set(subnet.get('organizations') or []) | {org['name']}),
-                'dhcp-id': puppet_proxy['id'],
-                'dns-id': puppet_proxy['id'],
-                'tftp-id': puppet_proxy['id'],
-            }
-        )
-    else:
-        # Create new subnet
-        subnet = make_subnet(
-            {
-                'name': gen_string('alpha'),
-                'network': network,
-                'mask': settings.vlan_networking.netmask,
-                'domain-ids': domain['id'],
-                'location-ids': loc['id'],
-                'organization-ids': org['id'],
-                'dhcp-id': puppet_proxy['id'],
-                'dns-id': puppet_proxy['id'],
-                'tftp-id': puppet_proxy['id'],
-            }
-        )
-
-    # Get the Partition table entity
-    ptable = PartitionTable.info({'name': constants.DEFAULT_PTABLE})
-
-    # Get the OS entity
-    os = OperatingSys.list({'search': 'name="RedHat" AND (major="6" OR major="7")'})[0]
-
-    # Get proper Provisioning templates and update with OS, Org, Location
-    provisioning_template = Template.info({'name': constants.DEFAULT_TEMPLATE})
-    pxe_template = Template.info({'name': constants.DEFAULT_PXE_TEMPLATE})
-    for template in provisioning_template, pxe_template:
-        if os['title'] not in template['operating-systems']:
-            Template.update(
-                {
-                    'id': template['id'],
-                    'locations': list(set(template.get('locations') or []) | {loc['name']}),
-                    'operatingsystems': list(
-                        set(template.get('operating-systems') or []) | {os['title']}
-                    ),
-                    'organizations': list(set(template.get('organizations') or []) | {org['name']}),
-                }
-            )
-
-    # Get the architecture entity
-    arch = Architecture.list({'search': f'name={constants.DEFAULT_ARCHITECTURE}'})[0]
-
-    os = OperatingSys.info({'id': os['id']})
-    # Get the media and update its location
-    medium = Medium.list({'search': f'path={settings.repos.rhel7_os}'})
-    if medium:
-        media = Medium.info({'id': medium[0]['id']})
-        Medium.update(
-            {
-                'id': media['id'],
-                'operatingsystems': list(set(media.get('operating-systems') or []) | {os['title']}),
-                'locations': list(set(media.get('locations') or []) | {loc['name']}),
-                'organizations': list(set(media.get('organizations') or []) | {org['name']}),
-            }
-        )
-    else:
-        media = make_medium(
-            {
-                'location-ids': loc['id'],
-                'operatingsystem-ids': os['id'],
-                'organization-ids': org['id'],
-                'path': settings.repos.rhel7_os,
-            }
-        )
-
-    # Update the OS with found arch, ptable, templates and media
-    OperatingSys.update(
-        {
-            'id': os['id'],
-            'architectures': list(set(os.get('architectures') or []) | {arch['name']}),
-            'media': list(set(os.get('installation-media') or []) | {media['name']}),
-            'partition-tables': list(set(os.get('partition-tables') or []) | {ptable['name']}),
-        }
-    )
-    for template in (provisioning_template, pxe_template):
-        if '{} ({})'.format(template['name'], template['type']) not in os['templates']:
-            OperatingSys.update(
-                {
-                    'id': os['id'],
-                    'provisioning-templates': list(set(os['templates']) | {template['name']}),
-                }
-            )
-
-    # Create new hostgroup using proper entities
-    hostgroup = make_hostgroup(
-        {
-            'location-ids': loc['id'],
-            'environment-id': env['id'],
-            'lifecycle-environment-id': lce['id'],
-            'puppet-proxy-id': puppet_proxy['id'],
-            'puppet-ca-proxy-id': puppet_proxy['id'],
-            'content-view-id': cv['id'],
-            'domain-id': domain['id'],
-            'subnet-id': subnet['id'],
-            'organization-ids': org['id'],
-            'architecture-id': arch['id'],
-            'partition-table-id': ptable['id'],
-            'medium-id': media['id'],
-            'operatingsystem-id': os['id'],
-            'root-password': gen_string('alphanumeric'),
-            'content-source-id': puppet_proxy['id'],
-        }
-    )
-
-    return {'hostgroup': hostgroup, 'subnet': subnet, 'domain': domain, 'ptable': ptable, 'os': os}
 
 
 def _get_capsule_vm_distro_repos(distro):
@@ -2299,6 +2091,7 @@ def setup_cdn_and_custom_repositories(org_id, repos, download_policy='on_demand'
 
 
 def setup_cdn_and_custom_repos_content(
+    target_sat,
     org_id,
     lce_id=None,
     repos=None,
@@ -2309,6 +2102,7 @@ def setup_cdn_and_custom_repos_content(
 ):
     """Setup cdn and custom repositories, content view and activations key
 
+    :param target_sat: sat object
     :param int org_id: The organization id
     :param int lce_id: the lifecycle environment id
     :param list repos: a list of dict repositories options
@@ -2330,7 +2124,7 @@ def setup_cdn_and_custom_repos_content(
     if upload_manifest:
         # Upload the organization manifest
         try:
-            manifests.upload_manifest_locked(org_id, manifests.clone(), interface='CLI')
+            target_sat.upload_manifest(org_id, clone(), interface='CLI')
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
 

@@ -37,11 +37,11 @@ from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_RH_REGISTRY_UPSTREAM_NAME
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import REPO_TYPE
-from robottelo.datafactory import invalid_docker_upstream_names
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_docker_repository_names
-from robottelo.datafactory import valid_docker_upstream_names
 from robottelo.logging import logger
+from robottelo.utils.datafactory import invalid_docker_upstream_names
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_docker_repository_names
+from robottelo.utils.datafactory import valid_docker_upstream_names
 
 
 def _repo(product_id, name=None, upstream_name=None, url=None):
@@ -1250,6 +1250,7 @@ class TestDockerClient:
 
     @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier3
+    @pytest.mark.e2e
     def test_positive_container_admin_end_to_end_search(
         self, module_org, container_contenthost, target_sat
     ):
@@ -1352,6 +1353,7 @@ class TestDockerClient:
 
     @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier3
+    @pytest.mark.e2e
     def test_positive_container_admin_end_to_end_pull(
         self, module_org, container_contenthost, target_sat
     ):

@@ -94,7 +94,7 @@ def test_positive_enable_disable_logic(target_sat, capsule_configured):
     assert 'failed to load one or more features (Puppet)' in result.stdout
 
     # Enable puppet on Satellite and check it succeeded.
-    target_sat.download_repofile()
+    target_sat.register_to_cdn()
     result = target_sat.execute(enable_satellite_cmd.get_command(), timeout='20m')
     assert result.status == 0
     assert 'Success!' in result.stdout
@@ -133,7 +133,7 @@ def test_positive_enable_disable_logic(target_sat, capsule_configured):
     assert_puppet_status(target_sat, expected=False)
 
 
-@pytest.mark.rhel_ver_match('[^9]')
+@pytest.mark.rhel_ver_match('[7,8]')
 def test_positive_install_configure(session_puppet_enabled_sat, rhel_contenthost):
     """Test that puppet-agent can be installed from the sat-client repo
     and configured to report back to the Satellite.
@@ -149,13 +149,23 @@ def test_positive_install_configure(session_puppet_enabled_sat, rhel_contenthost
            installs puppet-agent, configures it, runs it to create the puppet cert,
            signs in on the Satellite side and reruns it.
         2. Assert that Config report was created at the Satellite for the content host.
+        3. Assert that Facts were reported for the content host.
 
     :expectedresults:
         1. Configuration passes without errors.
         2. Config report is created.
+        3. Facts are acquired.
+
+    :customerscenario: true
+
+    :BZ: 2126891
     """
     rhel_contenthost.configure_puppet(proxy_hostname=session_puppet_enabled_sat.hostname)
-    result = session_puppet_enabled_sat.cli.ConfigReport.list(
-        {'search': f'host={rhel_contenthost.hostname},origin=Puppet'}
+    reports = session_puppet_enabled_sat.cli.ConfigReport.list(
+        {'search': f'host~{rhel_contenthost.hostname},origin=Puppet'}
     )
-    assert len(result)
+    assert len(reports)
+    facts = session_puppet_enabled_sat.cli.Fact.list(
+        {'search': f'host~{rhel_contenthost.hostname}'}
+    )
+    assert len(facts)

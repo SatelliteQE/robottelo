@@ -1,17 +1,17 @@
-"""Unit tests for :mod:`robottelo.decorators`."""
+"""Unit tests for :mod:`robottelo.utils.decorators`."""
 from unittest import mock
 
 import pytest
 
-from robottelo import decorators
+from robottelo.utils import decorators
 
 
 class TestCacheable:
-    """Tests for :func:`robottelo.decorators.cacheable`."""
+    """Tests for :func:`robottelo.utils.decorators.cacheable`."""
 
     @pytest.fixture(scope="function")
     def make_foo(self):
-        mocked_object_cache_patcher = mock.patch.dict('robottelo.decorators.OBJECT_CACHE')
+        mocked_object_cache_patcher = mock.patch.dict('robottelo.utils.decorators.OBJECT_CACHE')
         mocked_object_cache_patcher.start()
 
         # decorators.cacheable uses the function name as the key, removing make_

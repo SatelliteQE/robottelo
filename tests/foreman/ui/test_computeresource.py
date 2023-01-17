@@ -26,7 +26,7 @@ from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_LARGE
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 
 # TODO mark this on the module with a lambda for skip condition
@@ -42,6 +42,7 @@ def rhev_data():
         'username': settings.rhev.username,
         'password': settings.rhev.password,
         'datacenter': settings.rhev.datacenter,
+        'cluster': settings.rhev.cluster,
         'vm_name': settings.rhev.vm_name,
         'image_name': settings.rhev.image_name,
         'image_os': settings.rhev.image_os,
@@ -282,7 +283,7 @@ def test_positive_VM_import(session, module_org, module_location, rhev_data):
         .read()
         .id
     )
-    cv = entities.ContentView(organization=[module_org.id]).create()
+    cv = entities.ContentView(organization=module_org).create()
     cv.publish()
 
     # create hostgroup
@@ -465,7 +466,7 @@ def test_positive_associate_with_custom_profile(session, rhev_data):
     """
     cr_name = gen_string('alpha')
     cr_profile_data = dict(
-        cluster=rhev_data['datacenter'],
+        cluster=rhev_data['cluster'],
         cores='2',
         sockets='2',
         memory='1024 MB',
@@ -552,7 +553,7 @@ def test_positive_associate_with_custom_profile_with_template(session, rhev_data
     """
     cr_name = gen_string('alpha')
     cr_profile_data = dict(
-        cluster=rhev_data['datacenter'],
+        cluster=rhev_data['cluster'],
         template='{} (base version)'.format(rhev_data['image_name']),
         cores='2',
         memory='1024 MB',

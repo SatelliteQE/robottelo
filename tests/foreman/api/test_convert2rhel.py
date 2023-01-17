@@ -72,9 +72,8 @@ def register_host(sat, act_key, module_org, module_loc, host, ubi=None):
         location=module_loc,
         insecure=True,
         repo=ubi,
-    ).create()['registration_command']
-    result = host.execute(command)
-    assert result.status == 0
+    ).create()
+    assert host.execute(command).status == 0
 
 
 @pytest.fixture(scope='module')
@@ -98,7 +97,7 @@ def activation_key_rhel(target_sat, module_org, module_lce, module_promoted_cv, 
 
 
 @pytest.fixture(scope='module')
-def enable_rhel_subscriptions(module_target_sat, module_org_with_manifest, version):
+def enable_rhel_subscriptions(module_target_sat, module_entitlement_manifest_org, version):
     """Enable and sync RHEL rpms repos"""
     major = version.split('.')[0]
     minor = ""
@@ -113,7 +112,7 @@ def enable_rhel_subscriptions(module_target_sat, module_org_with_manifest, versi
     for name in repo_names:
         rh_repo_id = enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_org_with_manifest.id,
+            org_id=module_entitlement_manifest_org.id,
             product=REPOS[name]['product'],
             repo=REPOS[name]['name'] + minor,
             reposet=REPOS[name]['reposet'],

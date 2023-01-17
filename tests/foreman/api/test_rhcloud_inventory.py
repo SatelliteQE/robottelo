@@ -64,6 +64,7 @@ def common_assertion(report_path):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
+@pytest.mark.e2e
 def test_rhcloud_inventory_api_e2e(
     inventory_settings, organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
 ):
@@ -207,7 +208,7 @@ def test_rhcloud_inventory_mtu_field():
 
     :BZ: 1893439
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: ManualOnly
     """
 
 

@@ -22,10 +22,10 @@ import pytest
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.datafactory import filtered_datapoint
-from robottelo.datafactory import generate_strings_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import filtered_datapoint
+from robottelo.utils.datafactory import generate_strings_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 
 @filtered_datapoint

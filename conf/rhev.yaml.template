@@ -10,9 +10,10 @@ RHEV:
   DATACENTER:
   # Name of VM that should be used
   VM_NAME:
+  # RHEVM cluster, e.g. Default
+  CLUSTER:
   # VM storage domain name
   STORAGE_DOMAIN:
-
   # RHEV Compute resource image data
   # Operating system of the image
   IMAGE_OS:
@@ -28,6 +29,8 @@ RHEV:
   IMAGE_UUID:
   # Interface used for some tests; not required to work with provisioning, not required to be in VLAN
   INTERFACE:
+  # VLAN network prefix: network_name = <NETWORK_PREFIX><VLAN_ID>
+  NETWORK_PREFIX:
   # RHV CA cert for adding RHV as compute resource
   CA_CERT: |
     ---BEGIN CERT---

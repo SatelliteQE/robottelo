@@ -76,12 +76,12 @@ from robottelo.constants.repos import FAKE_5_YUM_REPO
 from robottelo.constants.repos import FAKE_YUM_DRPM_REPO
 from robottelo.constants.repos import FAKE_YUM_MD5_REPO
 from robottelo.constants.repos import FAKE_YUM_SRPM_REPO
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
-from robottelo.datafactory import valid_docker_repository_names
-from robottelo.datafactory import valid_http_credentials
 from robottelo.logging import logger
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import valid_docker_repository_names
+from robottelo.utils.datafactory import valid_http_credentials
 
 # from robottelo.constants.repos import FEDORA_OSTREE_REPO
 
@@ -1815,6 +1815,7 @@ class TestRepository:
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
+    @pytest.mark.e2e
     def test_positive_srpm_list_end_to_end(self, repo, target_sat):
         """Create repository,  upload, list and remove an SRPM content
 

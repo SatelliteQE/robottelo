@@ -9,7 +9,7 @@ Introduction
 ------------
 
 Robottelo uses ssh extensively to access remote servers.
-Functions from ``robottello.ssh`` make ssh access easier and are
+Functions from ``robottello.utils.ssh`` make ssh access easier and are
 explained on next sections.
 
 Main Functions
@@ -28,7 +28,7 @@ The function returns a result object containing the attributes: stdout, stderr, 
 The following code was executed to generate the example of first section of
 this document::
 
-    >>> from robottelo import ssh
+    >>> from robottelo.utils import ssh
     >>> print(ssh.command('cat /etc/redhat-release'))
     Red Hat Enterprise Linux Server release 7.2 (Maipo)
 

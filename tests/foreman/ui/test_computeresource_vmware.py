@@ -32,7 +32,7 @@ from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_LARGE
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import VMWARE_CONSTANTS
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 pytestmark = [pytest.mark.skip_if_not_set('vmware')]
 

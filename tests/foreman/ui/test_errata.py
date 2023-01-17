@@ -41,7 +41,6 @@ from robottelo.constants import REAL_0_RH_PACKAGE
 from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
 from robottelo.hosts import ContentHost
-from robottelo.manifests import upload_manifest_locked
 
 
 CUSTOM_REPO_URL = settings.repos.yum_9.url
@@ -84,7 +83,7 @@ def _set_setting_value(setting_entity, value):
     setting_entity.update(['value'])
 
 
-def _org():
+def _org(module_target_sat):
     org = entities.Organization().create()
     # adding remote_execution_connect_by_ip=Yes at org level
     entities.Parameter(
@@ -93,7 +92,7 @@ def _org():
         value='Yes',
         organization=org.id,
     ).create()
-    upload_manifest_locked(org.id)
+    module_target_sat.upload_manifest(org.id)
     return org
 
 
@@ -197,14 +196,13 @@ def test_end_to_end(
         'module_stream_packages': [],
     }
     assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE)
-    value = 'has type = security'
     with session:
         property_value = 'Yes'
         session.settings.update(f'name = {setting_update.name}', property_value)  # BZ 2029192
         # Check selection box function for BZ#1688636
         session.location.select(loc_name=DEFAULT_LOC)
-        assert session.errata.search(value, applicable=True)[0]['Errata ID']
-        assert session.errata.search(value, installable=True)[0]['Errata ID']
+        assert session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=True)[0]['Errata ID']
+        assert session.errata.search(CUSTOM_REPO_ERRATA_ID, installable=True)[0]['Errata ID']
         # Check all tabs of Errata Details page
         errata = session.errata.read(CUSTOM_REPO_ERRATA_ID)
         # We ignore issued date and updated date in ERRATA_DETAILS, so we don't perform an
@@ -273,6 +271,7 @@ def test_content_host_errata_page_pagination(session, org, lce, target_sat):
 
     :CaseLevel: System
     """
+
     pkgs = ' '.join(FAKE_3_YUM_OUTDATED_PACKAGES)
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel7',
@@ -291,7 +290,6 @@ def test_content_host_errata_page_pagination(session, org, lce, target_sat):
             # Go to content host's Errata tab and read the page's pagination widgets
             session.organization.select(org_name=org.name)
             session.location.select(loc_name=DEFAULT_LOC)
-
             page_values = session.contenthost.read(
                 client.hostname, widget_names=['errata.pagination']
             )
@@ -481,11 +479,9 @@ def test_positive_apply_for_all_hosts(
     'module_repos_collection_with_setup',
     [
         {
-            'distro': 'rhel7',
+            'distro': 'rhel6',
             'VirtualizationAgentsRepository': {'cdn': True, 'distro': 'rhel6'},
             'YumRepository': {'url': CUSTOM_REPO_URL},
-            'SatelliteToolsRepository': {},
-            'RHELAnsibleEngineRepository': {'cdn': True},
         }
     ],
     indirect=True,

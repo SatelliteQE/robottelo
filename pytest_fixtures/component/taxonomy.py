@@ -2,11 +2,10 @@
 import pytest
 from manifester import Manifester
 
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
+from robottelo.utils.manifest import clone
 
 
 @pytest.fixture(scope='session')
@@ -63,39 +62,55 @@ def function_location_with_org(target_sat, function_org):
 @pytest.fixture(scope='module')
 def module_manifest_org(module_target_sat):
     org = module_target_sat.api.Organization().create()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
+    with clone() as manifest:
+        module_target_sat.upload_manifest(org.id, manifest.content)
     return org
 
 
 @pytest.fixture(scope='module')
-def module_org_with_manifest(module_org):
+def module_org_with_manifest(module_org, module_target_sat):
     """Upload manifest to organization."""
-    with manifests.clone() as manifest:
-        upload_manifest(module_org.id, manifest.content)
+    with clone() as manifest:
+        module_target_sat.upload_manifest(module_org.id, manifest.content)
     return module_org
 
 
 @pytest.fixture(scope='module')
-def module_entitlement_manifest_org(module_org, module_entitlement_manifest):
+def module_entitlement_manifest_org(module_org, module_entitlement_manifest, module_target_sat):
     """Creates an organization and uploads an entitlement mode manifest generated with manifester"""
-    upload_manifest(module_org.id, module_entitlement_manifest.content)
+    module_target_sat.upload_manifest(module_org.id, module_entitlement_manifest.content)
+    module_org.sca_disable()
     return module_org
 
 
 @pytest.fixture(scope='module')
-def module_sca_manifest_org(module_org, module_sca_manifest):
+def module_sca_manifest_org(module_org, module_sca_manifest, module_target_sat):
     """Creates an organization and uploads an SCA mode manifest generated with manifester"""
-    upload_manifest(module_org.id, module_sca_manifest.content)
+    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
     return module_org
+
+
+@pytest.fixture
+def function_entitlement_manifest_org(function_org, function_entitlement_manifest, target_sat):
+    """Creates an organization and uploads an entitlement mode manifest generated with manifester"""
+    target_sat.upload_manifest(function_org.id, function_entitlement_manifest.content)
+    function_org.sca_disable()
+    return function_org
+
+
+@pytest.fixture
+def function_sca_manifest_org(function_org, function_sca_manifest, target_sat):
+    """Creates an organization and uploads an SCA mode manifest generated with manifester"""
+    target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
+    return function_org
 
 
 @pytest.fixture(scope='module')
 def module_gt_manifest_org(module_target_sat):
     """Creates a new org and loads GT manifest in the new org"""
     org = module_target_sat.api.Organization().create()
-    manifest = manifests.clone(org_environment_access=True, name='golden_ticket')
-    manifests.upload_manifest_locked(org.id, manifest, interface='CLI')
+    manifest = clone(org_environment_access=True, name='golden_ticket')
+    module_target_sat.upload_manifest(org.id, manifest.content, interface='CLI')
     org.manifest_filename = manifest.filename
     return org
 
@@ -132,6 +147,22 @@ def module_entitlement_manifest():
 
 @pytest.fixture(scope='module')
 def module_sca_manifest():
+    """Yields a manifest in Simple Content Access mode with subscriptions determined by the
+    `manifest_category.golden_ticket` setting in manifester_settings.yaml."""
+    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+        yield manifest
+
+
+@pytest.fixture(scope='function')
+def function_entitlement_manifest():
+    """Yields a manifest in entitlement mode with subscriptions determined by the
+    `manifest_category.robottelo_automation` setting in manifester_settings.yaml."""
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
+        yield manifest
+
+
+@pytest.fixture(scope='function')
+def function_sca_manifest():
     """Yields a manifest in Simple Content Access mode with subscriptions determined by the
     `manifest_category.golden_ticket` setting in manifester_settings.yaml."""
     with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:

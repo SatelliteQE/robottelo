@@ -1,4 +1,4 @@
-"""Tests for module ``robottelo.ssh``."""
+"""Tests for module ``robottelo.utils.ssh``."""
 from unittest import mock
 
 from robottelo import ssh
@@ -87,7 +87,7 @@ class MockSSHClient:
 
 
 class TestSSH:
-    """Tests for module ``robottelo.ssh``."""
+    """Tests for module ``robottelo.utils.ssh``."""
 
     @mock.patch('robottelo.config.settings')
     def test_command(self, settings):
