@@ -29,16 +29,15 @@ from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    org = entities.Organization().create()
+def module_org(module_entitlement_manifest_org):
     # adding remote_execution_connect_by_ip=Yes at org level
     entities.Parameter(
         name='remote_execution_connect_by_ip',
         parameter_type='boolean',
         value='Yes',
-        organization=org.id,
+        organization=module_entitlement_manifest_org.id,
     ).create()
-    return org
+    return module_entitlement_manifest_org
 
 
 @pytest.fixture(scope='module')
@@ -56,7 +55,7 @@ def module_repos_collection(module_org, module_lce, module_target_sat):
             module_target_sat.cli_factory.YumRepository(url=settings.repos.yum_6.url),
         ],
     )
-    repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
+    repos_collection.setup_content(module_org.id, module_lce.id)
     return repos_collection
 
 
