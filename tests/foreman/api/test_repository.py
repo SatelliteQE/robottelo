@@ -1524,7 +1524,7 @@ class TestDockerRepository:
         :BZ: 1867287
         """
         repo = entities.Repository(**repo_options_custom_product).create()
-        repo.sync()
+        repo.sync(timeout=600)
         assert repo.read().content_counts['docker_manifest'] >= 1
         assert repo.product.delete()
 
