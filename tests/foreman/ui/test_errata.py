@@ -83,27 +83,26 @@ def _set_setting_value(setting_entity, value):
     setting_entity.update(['value'])
 
 
-def _org(module_target_sat):
-    org = entities.Organization().create()
-    # adding remote_execution_connect_by_ip=Yes at org level
-    entities.Parameter(
+@pytest.fixture(scope='module')
+def module_org(module_target_sat, module_entitlement_manifest_org):
+    module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         parameter_type='boolean',
         value='Yes',
-        organization=org.id,
+        organization=module_entitlement_manifest_org.id,
     ).create()
-    module_target_sat.upload_manifest(org.id)
-    return org
-
-
-@pytest.fixture(scope='module')
-def module_org():
-    return _org()
+    return module_entitlement_manifest_org
 
 
 @pytest.fixture
-def org():
-    return _org()
+def org(target_sat, function_entitlement_manifest_org):
+    target_sat.api.Parameter(
+        name='remote_execution_connect_by_ip',
+        parameter_type='boolean',
+        value='Yes',
+        organization=function_entitlement_manifest_org.id,
+    ).create()
+    return function_entitlement_manifest_org
 
 
 @pytest.fixture(scope='module')
@@ -281,7 +280,7 @@ def test_content_host_errata_page_pagination(session, org, lce, target_sat):
             target_sat.cli_factory.YumRepository(url=settings.repos.yum_3.url),
         ],
     )
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    repos_collection.setup_content(org.id, lce.id)
     with Broker(nick=repos_collection.distro, host_class=ContentHost) as client:
         client.add_rex_key(satellite=target_sat)
         # Add repo and install packages that need errata
@@ -876,7 +875,11 @@ def test_positive_show_count_on_content_host_details_page(session, module_org, e
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.parametrize('setting_update', ['errata_status_installable'], indirect=True)
 def test_positive_filtered_errata_status_installable_param(
-    session, errata_status_installable, target_sat, setting_update
+    session,
+    function_entitlement_manifest_org,
+    errata_status_installable,
+    target_sat,
+    setting_update,
 ):
     """Filter errata for specific content view and verify that host that
     was registered using that content view has different states in
@@ -904,7 +907,7 @@ def test_positive_filtered_errata_status_installable_param(
 
     :CaseLevel: System
     """
-    org = entities.Organization().create()
+    org = function_entitlement_manifest_org
     lce = entities.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel7',
@@ -916,7 +919,7 @@ def test_positive_filtered_errata_status_installable_param(
             target_sat.cli_factory.YumRepository(url=CUSTOM_REPO_URL),
         ],
     )
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    repos_collection.setup_content(org.id, lce.id)
     with Broker(nick=repos_collection.distro, host_class=ContentHost) as client:
         repos_collection.setup_virtual_machine(client)
         assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
