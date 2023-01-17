@@ -27,8 +27,8 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.constants import WEBHOOK_EVENTS
 from robottelo.constants import WEBHOOK_METHODS
-from robottelo.datafactory import parametrized
 from robottelo.logging import logger
+from robottelo.utils.datafactory import parametrized
 
 
 def _read_log(ch, pattern):
@@ -124,6 +124,7 @@ class TestWebhook:
         assert hook.http_method == method
 
     @pytest.mark.tier1
+    @pytest.mark.e2e
     def test_positive_end_to_end(self):
         """Create a new webhook.
 

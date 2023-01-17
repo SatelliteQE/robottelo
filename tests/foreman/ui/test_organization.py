@@ -25,15 +25,13 @@ from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import INSTALL_MEDIUM_URL
 from robottelo.constants import LIBVIRT_RESOURCE_URL
 from robottelo.logging import logger
-from robottelo.manifests import original_manifest
-from robottelo.manifests import upload_manifest_locked
 
 CUSTOM_REPO_ERRATA_ID = settings.repos.yum_0.errata[0]
 
 
 @pytest.fixture(scope='module')
 def module_repos_col(module_org, module_lce, module_target_sat, request):
-    upload_manifest_locked(org_id=module_org.id)
+    module_target_sat.upload_manifest(org_id=module_org.id)
     repos_collection = module_target_sat.cli_factory.RepositoryCollection(
         repositories=[
             # As Satellite Tools may be added as custom repo and to have a "Fully entitled" host,
@@ -257,7 +255,7 @@ def test_positive_update_compresource(session):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_delete_with_manifest_lces(session):
+def test_positive_delete_with_manifest_lces(session, target_sat):
     """Create Organization with valid values and upload manifest.
     Then try to delete that organization.
 
@@ -270,7 +268,7 @@ def test_positive_delete_with_manifest_lces(session):
     :CaseImportance: Critical
     """
     org = entities.Organization().create()
-    upload_manifest_locked(org.id)
+    target_sat.upload_manifest(org.id)
     with session:
         session.organization.select(org.name)
         session.lifecycleenvironment.create({'name': 'DEV'})
@@ -286,7 +284,7 @@ def test_positive_delete_with_manifest_lces(session):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_download_debug_cert_after_refresh(session):
+def test_positive_download_debug_cert_after_refresh(session, target_sat):
     """Create organization with valid manifest. Download debug
     certificate for that organization and refresh added manifest for few
     times in a row
@@ -301,7 +299,7 @@ def test_positive_download_debug_cert_after_refresh(session):
     """
     org = entities.Organization().create()
     try:
-        upload_manifest_locked(org.id, original_manifest())
+        target_sat.upload_manifest(org.id)
         with session:
             session.organization.select(org.name)
             for _ in range(3):

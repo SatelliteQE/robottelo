@@ -22,7 +22,7 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import CONTENT_CREDENTIALS_TYPES
 from robottelo.constants import DataFile
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 empty_message = "You currently don't have any Products associated with this Content Credential."
 

@@ -19,7 +19,6 @@
 import pytest
 from fauxfactory import gen_string
 
-from robottelo.api.utils import satellite_setting
 from robottelo.config import settings
 from robottelo.constants import AZURERM_FILE_URI
 from robottelo.constants import AZURERM_PLATFORM_DEFAULT
@@ -30,19 +29,17 @@ pytestmark = [pytest.mark.skip_if_not_set('azurerm')]
 
 
 @pytest.fixture(scope='module')
-def module_azure_cp_attrs(
-    module_azurerm_cr_puppet, module_azurerm_finishimg_puppet, session_puppet_enabled_sat
-):
+def module_azure_cp_attrs(module_azurerm_cr, module_azurerm_custom_finishimg, sat_azure):
     """Create compute attributes on COMPUTE_PROFILE_SMALL"""
 
-    nw_id = module_azurerm_cr_puppet.available_networks()['results'][-1]['id']
-    return session_puppet_enabled_sat.api.ComputeAttribute(
+    nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+    return sat_azure.api.ComputeAttribute(
         compute_profile=COMPUTE_PROFILE_SMALL,
-        compute_resource=module_azurerm_cr_puppet,
+        compute_resource=module_azurerm_cr,
         vm_attrs={
             "resource_group": settings.azurerm.resource_group,
             "vm_size": AZURERM_VM_SIZE_DEFAULT,
-            "username": module_azurerm_finishimg_puppet.username,
+            "username": module_azurerm_custom_finishimg.username,
             "password": settings.azurerm.password,
             "platform": AZURERM_PLATFORM_DEFAULT,
             "script_command": "touch /var/tmp/text.txt",
@@ -57,44 +54,39 @@ def module_azure_cp_attrs(
 
 @pytest.fixture(scope='module')
 def module_azure_hg(
-    session_puppet_enabled_sat,
-    module_azurerm_cr_puppet,
+    sat_azure,
+    module_azurerm_cr,
     module_azure_cp_attrs,
-    session_puppet_default_architecture,
-    session_puppet_default_os,
-    module_puppet_environment,
-    session_puppet_enabled_proxy,
-    module_puppet_domain,
-    module_puppet_loc,
-    module_puppet_org,
+    sat_azure_default_architecture,
+    sat_azure_default_os,
+    sat_azure_org,
+    sat_azure_loc,
+    sat_azure_domain,
 ):
     """Create hostgroup"""
 
-    return session_puppet_enabled_sat.api.HostGroup(
-        architecture=session_puppet_default_architecture,
-        compute_resource=module_azurerm_cr_puppet,
+    return sat_azure.api.HostGroup(
+        architecture=sat_azure_default_architecture,
+        compute_resource=module_azurerm_cr,
         compute_profile=COMPUTE_PROFILE_SMALL,
-        domain=module_puppet_domain,
-        location=[module_puppet_loc],
-        environment=module_puppet_environment,
-        puppet_proxy=session_puppet_enabled_proxy,
-        puppet_ca_proxy=session_puppet_enabled_proxy,
-        content_source=session_puppet_enabled_proxy,
-        operatingsystem=session_puppet_default_os,
-        organization=[module_puppet_org],
+        domain=sat_azure_domain,
+        location=[sat_azure_loc],
+        operatingsystem=sat_azure_default_os,
+        organization=[sat_azure_org],
     ).create()
 
 
 @pytest.mark.tier4
+@pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
 def test_positive_end_to_end_azurerm_ft_host_provision(
     session,
-    session_puppet_enabled_sat,
+    sat_azure,
     azurermclient,
-    module_azurerm_finishimg_puppet,
-    module_azurerm_cr_puppet,
-    module_puppet_domain,
-    module_puppet_org,
-    module_puppet_loc,
+    module_azurerm_custom_finishimg,
+    module_azurerm_cr,
+    sat_azure_domain,
+    sat_azure_org,
+    sat_azure_loc,
     module_azure_hg,
 ):
 
@@ -112,18 +104,16 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
     :BZ: 1850934
     """
     hostname = f'test-{gen_string("alpha")}'
-    fqdn = f'{hostname}.{module_puppet_domain.name}'.lower()
-    finishimg_image = module_azurerm_finishimg_puppet.name
+    fqdn = f'{hostname}.{sat_azure_domain.name}'.lower()
+    finishimg_image = module_azurerm_custom_finishimg.name
 
-    with session_puppet_enabled_sat.ui_session() as session:
-        session.organization.select(org_name=module_puppet_org.name)
-        session.location.select(loc_name=module_puppet_loc.name)
+    with sat_azure.ui_session() as session:
+        session.organization.select(org_name=sat_azure_org.name)
+        session.location.select(loc_name=sat_azure_loc.name)
 
         # Provision Host
         try:
-            with session_puppet_enabled_sat.skip_yum_update_during_provisioning(
-                template='Kickstart default finish'
-            ):
+            with sat_azure.skip_yum_update_during_provisioning(template='Kickstart default finish'):
                 session.host.create(
                     {
                         'host.name': hostname,
@@ -149,7 +139,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                 assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
 
                 # Host Delete
-                with satellite_setting('destroy_vm_on_host_delete=True'):
+                with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
                     session.host.delete(fqdn)
                 assert not session.host.search(fqdn)
 
@@ -157,9 +147,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                 assert not azurecloud_vm.exists
 
         except Exception as error:
-            azure_vm = session_puppet_enabled_sat.api.Host().search(
-                query={'search': f'name={fqdn}'}
-            )
+            azure_vm = sat_azure.api.Host().search(query={'search': f'name={fqdn}'})
             if azure_vm:
                 azure_vm[0].delete(synchronous=False)
             azurecloud_vm = azurermclient.get_vm(name=hostname.lower())
@@ -170,16 +158,19 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
+@pytest.mark.parametrize(
+    'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
+)
 def test_positive_azurerm_host_provision_ud(
     session,
-    session_puppet_enabled_sat,
+    sat_azure,
     azurermclient,
-    module_azurerm_cloudimg_puppet,
-    module_azurerm_cr_puppet,
-    module_puppet_domain,
-    session_puppet_default_os,
-    module_puppet_org,
-    module_puppet_loc,
+    module_azurerm_cloudimg,
+    module_azurerm_cr,
+    sat_azure_domain,
+    sat_azure_default_os,
+    sat_azure_org,
+    sat_azure_loc,
     module_azure_hg,
 ):
 
@@ -198,15 +189,15 @@ def test_positive_azurerm_host_provision_ud(
     """
 
     hostname = f'test-{gen_string("alpha")}'
-    fqdn = f'{hostname}.{module_puppet_domain.name}'.lower()
-    cloudimg_image = module_azurerm_cloudimg_puppet.name
+    fqdn = f'{hostname}.{sat_azure_domain.name}'.lower()
+    cloudimg_image = module_azurerm_cloudimg.name
 
-    with session_puppet_enabled_sat.ui_session() as session:
-        session.organization.select(org_name=module_puppet_org.name)
-        session.location.select(loc_name=module_puppet_loc.name)
+    with sat_azure.ui_session() as session:
+        session.organization.select(org_name=sat_azure_org.name)
+        session.location.select(loc_name=sat_azure_loc.name)
         # Provision Host
         try:
-            with session_puppet_enabled_sat.skip_yum_update_during_provisioning(
+            with sat_azure.skip_yum_update_during_provisioning(
                 template='Kickstart default user data'
             ):
                 session.host.create(
@@ -236,9 +227,7 @@ def test_positive_azurerm_host_provision_ud(
                 assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
 
         finally:
-            azure_vm = session_puppet_enabled_sat.api.Host().search(
-                query={'search': f'name={fqdn}'}
-            )
+            azure_vm = sat_azure.api.Host().search(query={'search': f'name={fqdn}'})
             if azure_vm:
-                with satellite_setting('destroy_vm_on_host_delete=True'):
+                with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
                     azure_vm[0].delete(synchronous=False)

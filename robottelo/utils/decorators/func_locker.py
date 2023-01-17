@@ -3,7 +3,7 @@
 Usage::
 
 
-    from robottelo.decorators.func_locker import (
+    from robottelo.utils.decorators.func_locker import (
         locking_function,
         lock_function,
      )

@@ -28,9 +28,7 @@ from nailgun import client
 from nailgun import entities
 
 from robottelo import constants
-from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import upload_manifest
 from robottelo.config import get_credentials
 from robottelo.config import get_url
 from robottelo.config import setting_is_set
@@ -38,6 +36,7 @@ from robottelo.config import settings
 from robottelo.config import user_nailgun_config
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.utils.issue_handlers import is_open
+from robottelo.utils.manifest import clone
 
 
 API_PATHS = {
@@ -1050,6 +1049,7 @@ class TestEndToEnd:
 
     @pytest.mark.skip_if_not_set('libvirt')
     @pytest.mark.tier4
+    @pytest.mark.e2e
     @pytest.mark.upgrade
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -1091,24 +1091,24 @@ class TestEndToEnd:
         target_sat.api.User(admin=True, login=login, password=password).create()
 
         # step 2.1: Create a new organization
-        server_config = user_nailgun_config(login, password)
-        org = target_sat.api.Organization(server_config).create()
+        user_cfg = user_nailgun_config(login, password)
+        org = target_sat.api.Organization(server_config=user_cfg).create()
 
         # step 2.2: Clone and upload manifest
         if fake_manifest_is_set:
-            with manifests.clone() as manifest:
-                upload_manifest(org.id, manifest.content)
+            with clone() as manifest:
+                target_sat.upload_manifest(org.id, manifest.content)
 
         # step 2.3: Create a new lifecycle environment
-        le1 = target_sat.api.LifecycleEnvironment(server_config, organization=org).create()
+        le1 = target_sat.api.LifecycleEnvironment(server_config=user_cfg, organization=org).create()
 
         # step 2.4: Create a custom product
-        prod = target_sat.api.Product(server_config, organization=org).create()
+        prod = target_sat.api.Product(server_config=user_cfg, organization=org).create()
         repositories = []
 
         # step 2.5: Create custom YUM repository
         custom_repo = target_sat.api.Repository(
-            server_config, product=prod, content_type='yum', url=CUSTOM_RPM_REPO
+            server_config=user_cfg, product=prod, content_type='yum', url=CUSTOM_RPM_REPO
         ).create()
         repositories.append(custom_repo)
 
@@ -1130,7 +1130,7 @@ class TestEndToEnd:
             repo.sync()
 
         # step 2.8: Create content view
-        content_view = target_sat.api.ContentView(server_config, organization=org).create()
+        content_view = target_sat.api.ContentView(server_config=user_cfg, organization=org).create()
 
         # step 2.9: Associate the YUM and Red Hat repositories to new content view
         content_view.repository = repositories
@@ -1187,18 +1187,18 @@ class TestEndToEnd:
 
         # step 2.14: Create a new libvirt compute resource
         target_sat.api.LibvirtComputeResource(
-            server_config,
+            server_config=user_cfg,
             url=f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system',
         ).create()
 
         # step 2.15: Create a new subnet
-        subnet = target_sat.api.Subnet(server_config).create()
+        subnet = target_sat.api.Subnet(server_config=user_cfg).create()
 
         # step 2.16: Create a new domain
-        domain = target_sat.api.Domain(server_config).create()
+        domain = target_sat.api.Domain(server_config=user_cfg).create()
 
         # step 2.17: Create a new hostgroup and associate previous entities to it
-        target_sat.api.HostGroup(server_config, domain=domain, subnet=subnet).create()
+        target_sat.api.HostGroup(server_config=user_cfg, domain=domain, subnet=subnet).create()
 
         # step 2.18: Provision a client
         # TODO this isn't provisioning through satellite as intended

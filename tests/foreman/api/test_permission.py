@@ -32,7 +32,7 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import user_nailgun_config
 from robottelo.constants import PERMISSIONS
-from robottelo.datafactory import parametrized
+from robottelo.utils.datafactory import parametrized
 
 
 class TestPermission:

@@ -10,7 +10,7 @@ from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 from robottelo.constants import Colored
-from robottelo.errors import InvalidVaultURLForOIDC
+from robottelo.exceptions import InvalidVaultURLForOIDC
 
 
 def export_vault_env_vars(filename=None, envdata=None):
@@ -48,7 +48,6 @@ def gen_ssh_keypairs():
 
 def validate_ssh_pub_key(key):
     """Validates if a string is in valid ssh pub key format
-
     :param key: A string containing a ssh public key encoded in base64
     :return: Boolean
     """
@@ -68,12 +67,10 @@ def validate_ssh_pub_key(key):
 
 def slugify_component(string, keep_hyphens=True):
     """Make component name a slug
-
-    Arguments:
+       Arguments:
         string {str} -- Component name e.g: ActivationKeys
         keep_hyphens {bool} -- Keep hyphens or replace with underscores
-
-    Returns:
+    return:
         str -- component slug e.g: activationkeys
     """
     string = string.replace(" and ", "&")

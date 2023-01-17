@@ -185,7 +185,10 @@ def test_positive_update_bookmark_public(
     cfg = user_nailgun_config(ui_user.login, ui_user.password)
     for name in (public_name, nonpublic_name):
         target_sat.api.Bookmark(
-            cfg, name=name, controller=ui_entity['controller'], public=name == public_name
+            server_config=cfg,
+            name=name,
+            controller=ui_entity['controller'],
+            public=name == public_name,
         ).create()
     with Session(
         test_name, default_viewer_role.login, default_viewer_role.password

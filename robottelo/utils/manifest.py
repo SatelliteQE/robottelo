@@ -1,4 +1,3 @@
-"""Manifest clonning tools.."""
 import io
 import json
 import time
@@ -6,20 +5,17 @@ import uuid
 import zipfile
 
 import requests
-from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import padding
-from nailgun import entities
 
-from robottelo import ssh
-from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
-from robottelo.decorators.func_locker import lock_function
 
 
+# Manifest Cloning
 class ManifestCloner:
-    """Manifest clonning utility class."""
+    """Manifest cloning utility class."""
 
     def __init__(self, template=None, private_key=None, signing_key=None):
         self.template = template
@@ -34,11 +30,11 @@ class ManifestCloner:
         if self.signing_key is None:
             self.signing_key = requests.get(settings.fake_manifest.key_url, verify=False).content
         if self.private_key is None:
-            self.private_key = serialization.load_pem_private_key(
-                self.signing_key, password=None, backend=default_backend()
+            self.private_key = crypto_serialization.load_pem_private_key(
+                self.signing_key, password=None, backend=crypto_default_backend()
             )
 
-    def clone(self, org_environment_access=False, name='default'):
+    def manifest_clone(self, org_environment_access=False, name='default'):
         """Clones a RedHat-manifest file.
 
         Change the consumer ``uuid`` and sign the new manifest with
@@ -135,7 +131,7 @@ class Manifest:
         self.filename = filename
 
         if self._content is None:
-            self._content = _manifest_cloner.clone(
+            self._content = _manifest_cloner.manifest_clone(
                 org_environment_access=org_environment_access, name=name
             )
         if self.filename is None:
@@ -171,6 +167,7 @@ def clone(org_environment_access=False, name='default'):
         with clone() as manifest:
             # my fancy stuff
     """
+
     return Manifest(org_environment_access=org_environment_access, name=name)
 
 
@@ -179,70 +176,6 @@ def original_manifest(name='default'):
 
     :param name: key name of the fake_manifests.url dict defined in
         robottelo.properties
-
-    Make sure to remove the manifest after its usage otherwiser the Satellite 6
-    server will not accept it anymore on any other organization.
-
-    Is hightly recommended to use this with the ``with`` statement to make that
-    the content of the manifest (file-like object) is closed properly::
-
-        with original_manifest() as manifest:
-            # my fancy stuff
     """
+
     return Manifest(_manifest_cloner.original(name=name))
-
-
-@lock_function
-def upload_manifest_locked(org_id, manifest=None, interface='API', timeout=None):
-    """Upload a manifest with locking, using the requested interface.
-
-    :type org_id: int
-    :type manifest: robottelo.manifests.Manifest
-    :type interface: str
-    :type timeout: int
-
-    :returns: the upload result
-
-    Note: The manifest uploading is strictly locked only when using this
-        function
-
-    Usage::
-
-        # for API interface
-        manifest = manifests.clone()
-        upload_manifest_locked(org_id, manifest, interface='API')
-
-        # for CLI interface
-        manifest = manifests.clone()
-        upload_manifest_locked(org_id, manifest, interface='CLI')
-
-        # or in one line with default interface
-        result = upload_manifest_locked(org_id, manifests.clone())
-        subscription_id = result[id']
-    """
-
-    if interface not in ['API', 'CLI']:
-        raise ValueError(f'upload manifest with interface "{interface}" not supported')
-    if manifest is None:
-        manifest = clone()
-    if timeout is None:
-        # Set the timeout to 1500 seconds to align with the API timeout.
-        # And as we are in locked state, other functions/tests can try to upload the manifest in
-        # other processes and we do not want to be interrupted by the default configuration
-        # ssh_client timeout.
-        timeout = 1500000
-    if interface == 'API':
-        with manifest:
-            result = entities.Subscription().upload(
-                data={'organization_id': org_id}, files={'content': manifest.content}
-            )
-    else:
-        # interface is INTERFACE_CLI
-        with manifest:
-            ssh.get_client().put(manifest, manifest.filename)
-
-        result = Subscription.upload(
-            {'file': manifest.filename, 'organization-id': org_id}, timeout=timeout
-        )
-
-    return result

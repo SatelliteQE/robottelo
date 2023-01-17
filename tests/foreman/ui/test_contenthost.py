@@ -8,7 +8,7 @@
 
 :CaseComponent: Hosts-Content
 
-:Assignee: spusater
+:Assignee: shwsingh
 
 :TestType: Functional
 
@@ -46,7 +46,7 @@ from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
 from robottelo.utils.issue_handlers import is_open
-from robottelo.virtwho_utils import create_fake_hypervisor_content
+from robottelo.utils.virtwho import create_fake_hypervisor_content
 
 if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
     pytest.skip('skipping tests due to missing settings', allow_module_level=True)
@@ -95,14 +95,6 @@ def run_remote_command_on_content_host(command, vm_module_streams):
     result = vm_module_streams.run(command)
     assert result.status == 0
     return result
-
-
-@pytest.fixture(scope='module')
-def module_host_template(module_org, module_location):
-    host_template = entities.Host(organization=module_org, location=module_location)
-    host_template.create_missing()
-    host_template.name = None
-    return host_template
 
 
 @pytest.mark.tier3
@@ -1763,6 +1755,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
             }
         )
     with session(url=start_url):
+        session.location.select(module_host_template.location.name)
         # Search for all the hosts by os. This uses pagination to get more than one page.
         all_fake_hosts_found = session.contenthost.search(
             f'os = {module_host_template.operatingsystem.name}'

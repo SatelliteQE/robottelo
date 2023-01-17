@@ -32,9 +32,9 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import enable_sync_redhat_repo
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.config import settings
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
 from robottelo.hosts import ContentHost
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 
 @pytest.mark.tier2
@@ -693,7 +693,10 @@ def test_positive_access_non_admin_user(session, test_name):
     envs_condition = ' or '.join(['environment = ' + s for s in envs_list])
     entities.Filter(
         organization=[org],
-        permission=entities.Permission(name='view_activation_keys').search(),
+        permission=entities.Permission().search(
+            filters={'name': 'view_activation_keys'},
+            query={'search': 'resource_type="Katello::ActivationKey"'},
+        ),
         role=role,
         search=f'name ~ {ak_name} and ({envs_condition})',
     ).create()
@@ -958,7 +961,7 @@ def test_negative_usage_limit(session, module_org, target_sat):
         result = vm2.register_contenthost(module_org.label, name)
         assert not vm2.subscribed
         assert len(result.stderr)
-        assert f'Max Hosts ({hosts_limit}) reached for activation key' in result.stderr
+        assert f'Max Hosts ({hosts_limit}) reached for activation key' in str(result.stderr)
 
 
 @pytest.mark.skip_if_not_set('clients')
@@ -1058,6 +1061,7 @@ def test_positive_host_associations(session, target_sat):
         assert vm2.subscribed
         with session:
             session.organization.select(org.name)
+            session.location.select(constants.DEFAULT_LOC)
             ak1 = session.activationkey.read(ak1.name, widget_names='content_hosts')
             assert len(ak1['content_hosts']['table']) == 1
             assert ak1['content_hosts']['table'][0]['Name'] == vm1.hostname

@@ -25,7 +25,6 @@ from fauxfactory import gen_utf8
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo import manifests
 from robottelo.api.utils import apply_package_filter
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
@@ -39,9 +38,9 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_SHA_512
 from robottelo.constants.repos import FEDORA_OSTREE_REPO
-from robottelo.datafactory import invalid_names_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import invalid_names_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 # Some tests repeatedly publish content views or promote content view versions.
 # How many times should that be done? A higher number means a more interesting
@@ -821,19 +820,13 @@ class TestContentViewDelete:
 class TestContentViewRedHatContent:
     """Tests for publishing and promoting content views."""
 
-    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(self, request, module_org, module_cv):
+    def initiate_testclass(self, request, module_cv, module_entitlement_manifest_org):
         """Set up organization, product and repositories for tests."""
 
-        with manifests.clone() as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': module_org.id},
-                files={'content': manifest.content},
-            )
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=PRDS['rhel'],
             repo=REPOS['rhst7']['name'],
             reposet=REPOSET['rhst7'],
@@ -1043,11 +1036,13 @@ def test_positive_admin_user_actions(
     cfg = user_nailgun_config(user_login, user_password)
     # Check that we cannot create random entity due permission restriction
     with pytest.raises(HTTPError):
-        target_sat.api.Domain(cfg).create()
+        target_sat.api.Domain(server_config=cfg).create()
     # Check Read functionality
-    content_view = target_sat.api.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     # Check Modify functionality
-    target_sat.api.ContentView(cfg, id=content_view.id, name=gen_string('alpha')).update(['name'])
+    target_sat.api.ContentView(
+        server_config=cfg, id=content_view.id, name=gen_string('alpha')
+    ).update(['name'])
     # Publish the content view.
     content_view.publish()
     content_view = content_view.read()
@@ -1056,7 +1051,7 @@ def test_positive_admin_user_actions(
     content_view.version[0].promote(data={'environment_ids': module_lce.id})
     # Check Delete functionality
     content_view = target_sat.api.ContentView(organization=module_org).create()
-    content_view = target_sat.api.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     content_view.delete()
     with pytest.raises(HTTPError):
         content_view.read()
@@ -1118,7 +1113,7 @@ def test_positive_readonly_user_actions(target_sat, function_role, content_view,
     cfg = user_nailgun_config(user_login, user_password)
     # Check that we can read content view repository information using user
     # with read only permissions
-    content_view = target_sat.api.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     assert len(content_view.repository) == 1
     assert content_view.repository[0].read().name == yum_repo.name
 
@@ -1176,14 +1171,14 @@ def test_negative_readonly_user_actions(
     cfg = user_nailgun_config(user_login, user_password)
     # Check that we cannot create content view due read-only permission
     with pytest.raises(HTTPError):
-        target_sat.api.ContentView(cfg, organization=module_org).create()
+        target_sat.api.ContentView(server_config=cfg, organization=module_org).create()
     # Check that we can read our content view with custom user
-    content_view = target_sat.api.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     # Check that we cannot modify content view with custom user
     with pytest.raises(HTTPError):
-        target_sat.api.ContentView(cfg, id=content_view.id, name=gen_string('alpha')).update(
-            ['name']
-        )
+        target_sat.api.ContentView(
+            server_config=cfg, id=content_view.id, name=gen_string('alpha')
+        ).update(['name'])
     # Check that we cannot delete content view due read-only permission
     with pytest.raises(HTTPError):
         content_view.delete()
@@ -1193,19 +1188,19 @@ def test_negative_readonly_user_actions(
     # Check that we cannot promote content view
     content_view = target_sat.api.ContentView(id=content_view.id).read()
     content_view.publish()
-    content_view = target_sat.api.ContentView(cfg, id=content_view.id).read()
+    content_view = target_sat.api.ContentView(server_config=cfg, id=content_view.id).read()
     assert len(content_view.version), 1
     with pytest.raises(HTTPError):
         content_view.read().version[0].promote(data={'environment_ids': module_lce.id})
     # Check that we cannot create a Product
     with pytest.raises(HTTPError):
-        target_sat.api.Product(cfg).create()
+        target_sat.api.Product(server_config=cfg).create()
     # Check that we cannot create an activation key
     with pytest.raises(HTTPError):
-        target_sat.api.ActivationKey(cfg).create()
+        target_sat.api.ActivationKey(server_config=cfg).create()
     # Check that we cannot create a host collection
     with pytest.raises(HTTPError):
-        target_sat.api.HostCollection(cfg).create()
+        target_sat.api.HostCollection(server_config=cfg).create()
 
 
 @pytest.mark.tier2
@@ -1251,9 +1246,9 @@ def test_negative_non_readonly_user_actions(target_sat, content_view, function_r
     # Check that we cannot read our content view with custom user
     user_cfg = user_nailgun_config(user_login, user_password)
     with pytest.raises(HTTPError):
-        target_sat.api.ContentView(user_cfg, id=content_view.id).read()
+        target_sat.api.ContentView(server_config=user_cfg, id=content_view.id).read()
     # Check that we have permission to remove the entity
-    target_sat.api.ContentView(user_cfg, id=content_view.id).delete()
+    target_sat.api.ContentView(server_config=user_cfg, id=content_view.id).delete()
     with pytest.raises(HTTPError):
         target_sat.api.ContentView(id=content_view.id).read()
 
@@ -1378,19 +1373,13 @@ class TestContentViewRedHatOstreeContent:
     """Tests for publishing and promoting cv with RH ostree contents."""
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(self, request, module_org):
+    def initiate_testclass(self, request, module_entitlement_manifest_org):
         """Set up organization, product and repositories for tests."""
 
-        with manifests.clone() as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': module_org.id},
-                files={'content': manifest.content},
-            )
         repo_id = enable_rhrepo_and_fetchid(
             basearch=None,
-            org_id=module_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=PRDS['rhah'],
             repo=REPOS['rhaht']['name'],
             reposet=REPOSET['rhaht'],

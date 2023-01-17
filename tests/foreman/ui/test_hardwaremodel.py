@@ -21,7 +21,7 @@ from nailgun import entities
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_location, host_ui_options):
+def test_positive_end_to_end(session, host_ui_options):
 
     """Perform end to end testing for hardware model component
 
@@ -42,6 +42,7 @@ def test_positive_end_to_end(session, module_org, module_location, host_ui_optio
     new_name = gen_string('alpha')
     values, host_name = host_ui_options
     with session:
+        session.location.select(values['host.location'])
         # Create new hardware model
         session.hardwaremodel.create(
             {'name': name, 'hardware_model': model, 'vendor_class': vendor_class, 'info': info}

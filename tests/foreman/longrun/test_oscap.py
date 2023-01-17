@@ -38,7 +38,7 @@ from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_TARGET_CORES
 from robottelo.constants import OSCAP_TARGET_MEMORY
 from robottelo.constants import OSCAP_WEEKDAY
-from robottelo.errors import ProxyError
+from robottelo.exceptions import ProxyError
 from robottelo.hosts import ContentHost
 
 
@@ -133,6 +133,7 @@ def update_scap_content(module_org):
         Scapcontent.update({'title': content['title'], 'organization-ids': organization_ids})
 
 
+@pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.tier4
 @pytest.mark.parametrize('distro', ['rhel6', 'rhel7', 'rhel8'])

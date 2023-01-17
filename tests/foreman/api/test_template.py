@@ -31,8 +31,8 @@ from requests.exceptions import HTTPError
 from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.config import user_nailgun_config
-from robottelo.datafactory import invalid_names_list
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import invalid_names_list
+from robottelo.utils.datafactory import valid_data_list
 
 
 @pytest.fixture(scope="module")
@@ -149,6 +149,7 @@ class TestProvisioningTemplate:
     """
 
     @pytest.mark.tier1
+    @pytest.mark.e2e
     @pytest.mark.upgrade
     def test_positive_end_to_end_crud(self, module_org, module_location, module_user, target_sat):
         """Create a new provisioning template with several attributes, update them,
@@ -196,9 +197,9 @@ class TestProvisioningTemplate:
 
         # update
         assert template.template_kind.id == template_kind.id, "Template kind id doesn't match"
-        updated = target_sat.api.ProvisioningTemplate(cfg, id=template.id, name=new_name).update(
-            ['name']
-        )
+        updated = target_sat.api.ProvisioningTemplate(
+            server_config=cfg, id=template.id, name=new_name
+        ).update(['name'])
         assert updated.name == new_name, "The Provisioning template wasn't properly renamed"
         # clone
 

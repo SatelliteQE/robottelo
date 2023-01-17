@@ -1,0 +1,123 @@
+name: automerge auto-cherry-picked pr's
+on:
+  pull_request_target:
+    types:
+      - labeled
+      - unlabeled
+      - edited
+      - ready_for_review
+    branches-ignore:
+      - master
+  pull_request_review:
+    types:
+      - submitted
+    branches-ignore:
+      - master
+  check_suite:
+    types:
+      - completed
+    branches-ignore:
+      - master
+
+
+jobs:
+  automerge:
+    name: Automerge auto-cherry-picked pr
+    if: contains(github.event.pull_request.labels.*.name, 'AutoMerge_Cherry_Picked')
+    runs-on: ubuntu-latest
+    steps:
+      - id: find-prt-comment
+        name: Find the prt comment
+        uses: peter-evans/find-comment@v2
+        with:
+          issue-number: ${{ github.event.number }}
+          body-includes: "trigger: test-robottelo"
+          direction: last
+
+      - name: Fail automerge if PRT was not initiated
+        if: steps.find-prt-comment.outputs.comment-body == ''
+        run: |
+          echo "::error PRT comment not added the PR"
+
+      - name: Wait for PRT checks to get initiated
+        run: |
+          echo "Waiting for ~ 10 mins, PRT to be initiated." && sleep 600
+
+      - name: Wait for other status checks to Pass
+        id: waitforstatuschecks
+        uses: lewagon/wait-on-check-action@v1.2.0
+        with:
+          ref: ${{ github.head_ref }}
+          repo-token: ${{ secrets.CHERRYPICK_PAT }}
+          wait-interval: 60
+          running-workflow-name: 'Automerge auto-cherry-picked pr'
+          allowed-conclusions: success,skipped
+
+      - name: is PRT check Passed ?
+        run: |
+          api_endpoint="https://api.github.com/repos/${{github.repository}}/statuses/${{ github.head_ref }}"
+
+          function get_status() {
+            curl -s "$api_endpoint"  | jq -r '.[0].state'
+          }
+
+          function get_context() {
+            curl -s "$api_endpoint" | jq -r '.[0].context'
+          }
+
+          statuses_length=$(curl -s $api_endpoint | jq 'length')
+          if [ $statuses_length -eq 0 ]; then
+              echo "PRT failed to start ! Stopping."
+              exit 1
+          fi
+
+          status=$(get_status)
+          context=$(get_context)
+
+          if [ "$context" != "Robottelo-Runner" ]; then
+            echo "::error Failed to get Robottelo-Runner status"
+            exit 1
+          fi
+
+          counter=0
+          echo "Waiting for PRT to complete....."
+          while [ "$status" != "success" ] && [ "$status" != "failure" ]; do
+            if [ $counter -gt 20 ]; then
+              echo "PRT Timeout"
+              exit 1
+            fi
+            sleep 300
+            status=$(get_status)
+            echo "Robottelo-Runner : $status"
+            counter=$((counter+1))
+          done
+
+          if [ "$status" == "success" ]; then
+            echo "PRT Passed Successfully!"
+          else
+            echo "Robottelo-Runner : $status"
+            echo "::error PRT failed"
+            exit 1
+          fi
+
+
+      - id: automerge
+        name: Auto merge of cherry-picked PRs.
+        uses: "pascalgn/automerge-action@v0.15.5"
+        if: steps.waitforstatuschecks.outputs.status == 'success'
+        env:
+          GITHUB_TOKEN: "${{ secrets.CHERRYPICK_PAT }}"
+          MERGE_LABELS: "AutoMerge_Cherry_Picked, Auto_Cherry_Picked"
+          MERGE_METHOD: "squash"
+          MERGE_RETRIES: 5
+          MERGE_RETRY_SLEEP: 900000
+          BASE_BRANCHES: "master" # avoid automerge branch
+
+      - name: Auto Merge Status
+        run: |
+          if [ "${{ steps.automerge.outputs.mergeResult }}" == 'merged' ]; then
+            echo "Pull request ${{ steps.automerge.outputs.pullRequestNumber }} is Auto Merged !"
+          else
+            echo "::error Auto Merge for Pull request failed !"
+            exit 1
+          fi

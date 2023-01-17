@@ -30,7 +30,7 @@ from robottelo.cli.task import Task
 from robottelo.cli.user import User
 from robottelo.cli.usergroup import UserGroup
 from robottelo.cli.usergroup import UserGroupExternal
-from robottelo.datafactory import valid_usernames_list
+from robottelo.utils.datafactory import valid_usernames_list
 
 
 @pytest.fixture(scope='function')

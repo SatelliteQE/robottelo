@@ -26,10 +26,10 @@ from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
-from robottelo.datafactory import valid_usernames_list
+from robottelo.utils.datafactory import invalid_values_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import valid_usernames_list
 
 
 class TestUserGroup:

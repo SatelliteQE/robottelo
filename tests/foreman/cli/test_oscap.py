@@ -34,9 +34,9 @@ from robottelo.constants import OSCAP_DEFAULT_CONTENT
 from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_WEEKDAY
-from robottelo.datafactory import invalid_names_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
+from robottelo.utils.datafactory import invalid_names_list
+from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import valid_data_list
 
 
 class TestOpenScap:
@@ -709,6 +709,7 @@ class TestOpenScap:
     @pytest.mark.parametrize('deploy', **parametrized(['manual', 'ansible']))
     @pytest.mark.upgrade
     @pytest.mark.tier2
+    @pytest.mark.e2e
     def test_positive_scap_policy_end_to_end(self, deploy, scap_content):
         """List all scap policies and read info using id, name
 

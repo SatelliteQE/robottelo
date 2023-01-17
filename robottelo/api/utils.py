@@ -1,6 +1,5 @@
 """Module containing convenience functions for working with the API."""
 import time
-from contextlib import contextmanager
 
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
@@ -19,7 +18,7 @@ from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_PXE_TEMPLATE
 from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import REPO_TYPE
-from robottelo.errors import ImproperlyConfigured
+from robottelo.exceptions import ImproperlyConfigured
 
 
 def enable_rhrepo_and_fetchid(
@@ -59,19 +58,6 @@ def enable_rhrepo_and_fetchid(
             raise
     result = entities.Repository(name=repo).search(query={'organization_id': org_id})
     return result[0].id
-
-
-def upload_manifest(organization_id, manifest):
-    """Call ``nailgun.entities.Subscription.upload``.
-
-    :param organization_id: An organization ID.
-    :param manifest: A file object referencing a Red Hat Satellite 6 manifest.
-    :returns: Whatever ``nailgun.entities.Subscription.upload`` returns.
-
-    """
-    return entities.Subscription().upload(
-        data={'organization_id': organization_id}, files={'content': manifest}
-    )
 
 
 def create_sync_custom_repo(
@@ -708,29 +694,6 @@ class templateupdate:
             self.temp.update(['locked'])
 
 
-@contextmanager
-def satellite_setting(key_val: str):
-    """Context Manager to update the satellite setting and revert on exit
-
-    :param key_val: The setting name and value in format `setting_name=new_value`
-    """
-    try:
-        name, value = key_val.split('=')
-        try:
-            setting = entities.Setting().search(query={'search': f'name={name.strip()}'})[0]
-        except IndexError:
-            raise KeyError(f'The setting {name} in not available in satellite.')
-        old_value = setting.value
-        setting.value = value.strip()
-        setting.update({'value'})
-        yield
-    except Exception:
-        raise
-    finally:
-        setting.value = old_value
-        setting.update({'value'})
-
-
 def update_provisioning_template(name=None, old=None, new=None):
     """Update provisioning template content
 
@@ -820,31 +783,6 @@ def create_org_admin_user(orgs, locs):
     ).create()
     user.passwd = user_passwd
     return user
-
-
-def update_rhsso_settings_in_satellite(revert=False, sat=None):
-    """Update or Revert the RH-SSO settings in satellite"""
-    rhhso_settings = {
-        'authorize_login_delegation': True,
-        'authorize_login_delegation_auth_source_user_autocreate': 'External',
-        'login_delegation_logout_url': f'https://{sat.hostname}/users/extlogout',
-        'oidc_algorithm': 'RS256',
-        'oidc_audience': [f'{sat.hostname}-foreman-openidc'],
-        'oidc_issuer': f'{settings.rhsso.host_url}/auth/realms/{settings.rhsso.realm}',
-        'oidc_jwks_url': f'{settings.rhsso.host_url}/auth/realms'
-        f'/{settings.rhsso.realm}/protocol/openid-connect/certs',
-    }
-    if revert:
-        setting_entity = sat.api.Setting().search(
-            query={'search': 'name=authorize_login_delegation'}
-        )[0]
-        setting_entity.value = False
-        setting_entity.update({'value'})
-    else:
-        for setting_name, setting_value in rhhso_settings.items():
-            setting_entity = sat.api.Setting().search(query={'search': f'name={setting_name}'})[0]
-            setting_entity.value = setting_value
-            setting_entity.update({'value'})
 
 
 def disable_syncplan(sync_plan):

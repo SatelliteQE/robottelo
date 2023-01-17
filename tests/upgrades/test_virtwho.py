@@ -19,21 +19,17 @@
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from upgrade_tests.helpers.scenarios import create_dict
-from upgrade_tests.helpers.scenarios import get_entity_data
 
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
 from robottelo.cli.host import Host
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.utils.issue_handlers import is_open
-from robottelo.virtwho_utils import deploy_configure_by_command
-from robottelo.virtwho_utils import get_configure_command
-from robottelo.virtwho_utils import get_configure_file
-from robottelo.virtwho_utils import get_configure_option
+from robottelo.utils.virtwho import deploy_configure_by_command
+from robottelo.utils.virtwho import get_configure_command
+from robottelo.utils.virtwho import get_configure_file
+from robottelo.utils.virtwho import get_configure_option
 
 
 @pytest.fixture
@@ -68,7 +64,9 @@ class TestScenarioPositiveVirtWho:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_create_virt_who_configuration(self, form_data):
+    def test_pre_create_virt_who_configuration(
+        self, form_data, save_test_data, target_sat, function_entitlement_manifest
+    ):
         """Create and deploy virt-who configuration.
 
         :id: preupgrade-a36cbe89-47a2-422f-9881-0f86bea0e24e
@@ -81,13 +79,14 @@ class TestScenarioPositiveVirtWho:
             3. Report is sent to satellite.
             4. Virtual sku can be generated and attached.
         """
-        default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
-        default_loc = entities.Location(id=default_loc_id).read()
-        org = entities.Organization(name=ORG_DATA['name']).create()
+        default_loc_id = (
+            target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
+        )
+        default_loc = target_sat.api.Location(id=default_loc_id).read()
+        org = target_sat.api.Organization(name=ORG_DATA['name']).create()
         default_loc.organization.append(entities.Organization(id=org.id))
         default_loc.update(['organization'])
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
+        target_sat.upload_manifest(org.id, function_entitlement_manifest.content)
         form_data.update({'organization_id': org.id})
         vhd = entities.VirtWhoConfig(**form_data).create()
         assert vhd.status == 'unknown'
@@ -122,16 +121,15 @@ class TestScenarioPositiveVirtWho:
             )
             assert result['subscription_status_label'] == 'Fully entitled'
 
-        scenario_dict = {
-            self.__class__.__name__: {
+        save_test_data(
+            {
                 'hypervisor_name': hypervisor_name,
                 'guest_name': guest_name,
             }
-        }
-        create_dict(scenario_dict)
+        )
 
     @pytest.mark.post_upgrade(depend_on=test_pre_create_virt_who_configuration)
-    def test_post_crud_virt_who_configuration(self, form_data):
+    def test_post_crud_virt_who_configuration(self, form_data, pre_upgrade_data):
         """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
 
         :id: postupgrade-d7ae7b2b-3291-48c8-b412-cb54e444c7a4
@@ -161,9 +159,8 @@ class TestScenarioPositiveVirtWho:
         assert VirtWhoConfig.info({'id': vhd_cli['id']})['general-information']['status'] == 'OK'
 
         # Vefify the connection of the guest on Content host
-        entity_data = get_entity_data(self.__class__.__name__)
-        hypervisor_name = entity_data.get('hypervisor_name')
-        guest_name = entity_data.get('guest_name')
+        hypervisor_name = pre_upgrade_data.get('hypervisor_name')
+        guest_name = pre_upgrade_data.get('guest_name')
         hosts = [hypervisor_name, guest_name]
         for hostname in hosts:
             result = (

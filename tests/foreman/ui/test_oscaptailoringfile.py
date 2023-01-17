@@ -19,7 +19,7 @@
 import pytest
 from nailgun import entities
 
-from robottelo.datafactory import gen_string
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.mark.tier1

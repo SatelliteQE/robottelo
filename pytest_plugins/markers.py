@@ -13,6 +13,7 @@ def pytest_configure(config):
         "tier5: Tier 5 tests",  # Deprecated component tests
         "destructive: Destructive tests",
         "upgrade: Upgrade tests",
+        "e2e: End to end tests",
         "pit_server: PIT server scenario tests",
         "pit_client: PIT client scenario tests",
         "run_in_one_thread: Sequential tests",
@@ -20,6 +21,8 @@ def pytest_configure(config):
         "rhel_ver_list: Filter rhel_contenthost versions by list",
         "rhel_ver_match: Filter rhel_contenthost versions by regexp",
         "no_containers: Disable container hosts from being used in favor of VMs",
+        "include_capsule: For satellite-maintain tests to run on Satellite and Capsule both",
+        "capsule_only: For satellite-maintain tests to run only on Capsules",
     ]
     markers.extend(module_markers())
     for marker in markers:

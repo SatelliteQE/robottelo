@@ -1,4 +1,5 @@
 import contextlib
+import io
 import random
 import re
 
@@ -10,6 +11,7 @@ from robottelo.config import settings
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.logging import logger
+from robottelo.utils.manifest import clone
 
 
 class ContentInfo:
@@ -100,10 +102,47 @@ class ContentInfo:
             reached or calculation was not successful).
         """
         filename = url.split('/')[-1]
-        result = self.execute(f'wget -qO - {url} | tee {filename} | md5sum | awk \'{{print $1}}\'')
+        result = self.execute(f'wget -q --spider {url}')
         if result.status != 0:
-            raise AssertionError(f'Failed to calculate md5 checksum of {filename}')
-        return result.stdout
+            raise AssertionError(f'Failed to get `{filename}` from `{url}`.')
+        return self.execute(
+            f'wget -qO - {url} | tee {filename} | md5sum | awk \'{{print $1}}\''
+        ).stdout
+
+    def upload_manifest(self, org_id, manifest=None, interface='API', timeout=None):
+        """Upload a manifest using the requested interface.
+
+        :type org_id: int
+        :type manifest: Manifester object or None
+        :type interface: str
+        :type timeout: int
+
+        :returns: the manifest upload result
+
+        """
+        if manifest is None:
+            manifest = clone()
+        if timeout is None:
+            # Set the timeout to 1500 seconds to align with the API timeout.
+            timeout = 1500000
+        if interface == 'CLI':
+            if isinstance(manifest.content, io.BytesIO):
+                self.put(f'{manifest.path}', f'{manifest.name}')
+                result = self.cli.Subscription.upload(
+                    {'file': manifest.name, 'organization-id': org_id}, timeout=timeout
+                )
+            else:
+                self.put(manifest, manifest.filename)
+                result = self.cli.Subscription.upload(
+                    {'file': manifest.filename, 'organization-id': org_id}, timeout=timeout
+                )
+        else:
+            if not isinstance(manifest, io.BytesIO):
+                manifest = manifest.content
+            result = self.api.Subscription().upload(
+                data={'organization_id': org_id}, files={'content': manifest}
+            )
+        return result
 
 
 class SystemInfo:

@@ -1,15 +1,21 @@
+import importlib
+import io
+import json
+import random
 import re
 import time
+from configparser import ConfigParser
 from contextlib import contextmanager
 from functools import cached_property
+from functools import lru_cache
 from pathlib import Path
 from pathlib import PurePath
 from tempfile import NamedTemporaryFile
-from urllib.parse import urlencode
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
 import requests
+from box import Box
 from broker import Broker
 from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
@@ -24,6 +30,7 @@ from wrapanapi.entities.vm import VmState
 
 from robottelo import constants
 from robottelo.api.utils import update_provisioning_template
+from robottelo.cli.base import Base
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import configure_airgun
 from robottelo.config import configure_nailgun
@@ -33,14 +40,20 @@ from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
 from robottelo.constants import HAMMER_CONFIG
+from robottelo.constants import KEY_CLOAK_CLI
+from robottelo.constants import RHSSO_NEW_GROUP
+from robottelo.constants import RHSSO_NEW_USER
+from robottelo.constants import RHSSO_RESET_PASSWORD
+from robottelo.constants import RHSSO_USER_UPDATE
 from robottelo.constants import SATELLITE_VERSION
-from robottelo.errors import DownloadFileError
-from robottelo.errors import HostPingFailed
+from robottelo.exceptions import DownloadFileError
+from robottelo.exceptions import HostPingFailed
 from robottelo.host_helpers import CapsuleMixins
 from robottelo.host_helpers import ContentHostMixins
 from robottelo.host_helpers import SatelliteMixins
 from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
+from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
 
 
@@ -96,7 +109,7 @@ def setup_capsule(satellite, capsule, registration_args=None, installation_args=
     """
     if not registration_args:
         registration_args = {}
-    file, cmd_args = satellite.capsule_certs_generate(capsule)
+    file, _, cmd_args = satellite.capsule_certs_generate(capsule)
     if installation_args:
         cmd_args.update(installation_args)
     satellite.execute(
@@ -171,6 +184,10 @@ class ContentHost(Host, ContentHostMixins):
         return ipv4
 
     @cached_property
+    def arch(self):
+        return self.get_facts().get('lscpu.architecture') or self.execute('uname -m').stdout.strip()
+
+    @cached_property
     def _redhat_release(self):
         """Process redhat-release file for distro and version information"""
         result = self.execute('cat /etc/redhat-release')
@@ -201,7 +218,6 @@ class ContentHost(Host, ContentHostMixins):
     def setup(self):
         if not self.blank:
             self.remove_katello_ca()
-            self.execute('subscription-manager clean')
 
     def teardown(self):
         if not self.blank:
@@ -209,7 +225,7 @@ class ContentHost(Host, ContentHostMixins):
                 self.nailgun_host.delete()
             self.unregister()
         # Strip most unnecessary attributes from our instance for checkin
-        keep_keys = set(self.to_dict()) | {'release', '_prov_inst', '_cont_inst_p'}
+        keep_keys = set(self.to_dict()) | {'release', '_prov_inst', '_cont_inst'}
         self.__dict__ = {k: v for k, v in self.__dict__.items() if k in keep_keys}
         self.__class__ = Host
 
@@ -347,6 +363,14 @@ class ContentHost(Host, ContentHostMixins):
         for pool in pool_list:
             result.append(self.execute(f'subscription-manager attach --pool={pool}'))
         return result
+
+    @property
+    def subscription_config(self):
+        "Returns subscription config for the host as ConfigParser object"
+        config = self.execute('cat /etc/rhsm/rhsm.conf').stdout
+        cp = ConfigParser()
+        cp.read_file(io.StringIO(config))
+        return cp
 
     def create_custom_repos(self, **kwargs):
         """Create custom repofiles.
@@ -490,10 +514,11 @@ class ContentHost(Host, ContentHostMixins):
 
     def register(
         self,
-        target,
         org,
         loc,
         activation_keys,
+        satellite=None,
+        target=None,
         setup_insights=False,
         setup_remote_execution=True,
         setup_remote_execution_pull=False,
@@ -504,20 +529,19 @@ class ContentHost(Host, ContentHostMixins):
         repo_gpg_key_url=None,
         remote_execution_interface=None,
         update_packages=False,
-        ignore_subman_errors=True,
-        force=True,
+        ignore_subman_errors=False,
+        force=False,
         insecure=True,
-        username=settings.server.admin_username,
-        password=settings.server.admin_password,
+        hostgroup=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
 
         :param target: Satellite or Capusle hostname to register to, required.
+        :param satellite: Satellite object, used for running hammer CLI when target is smart_proxy.
         :param org: Organization to register content host for, required.
         :param loc: Location to register content host for, required.
-        :param activation_keys: Activation key name to register content host
-            with, required.
+        :param activation_keys: Activation key name to register content host with, required.
         :param setup_insights: Install and register Insights client, requires OS repo.
         :param setup_remote_execution: Copy remote execution SSH key.
         :param setup_remote_execution_pull: Deploy pull provider client on host
@@ -531,69 +555,48 @@ class ContentHost(Host, ContentHostMixins):
         :param ignore_subman_errors: Ignore subscription manager errors.
         :param force: Register the content host even if it's already registered.
         :param insecure: Don't verify server authenticity.
-        :param username: Satellite admin username
-        :param password: Satellite admin password
-        :return: SSHCommandResult instance filled with the result of the
-            registration.
+        :param hostgroup: hostgroup to register with
+        :return: SSHCommandResult instance filled with the result of the registration
         """
-        insights = (
-            # requires OS repo enabled for host
-            f'&setup_insights={str(setup_insights).lower()}'
-            if setup_insights is not None
-            else ''
-        )
-        rex = (
-            f'&setup_remote_execution={str(setup_remote_execution).lower()}'
-            if setup_remote_execution is not None
-            else ''
-        )
-        rex_pull = (
-            # requires Satellite Client repo enabled for host
-            f'&setup_remote_execution_pull={str(setup_remote_execution_pull).lower()}'
-            if setup_remote_execution_pull is not None
-            else ''
-        )
-        lce = (
-            f'&lifecycle_environment_id={lifecycle_environment.id}'
-            if lifecycle_environment is not None
-            else ''
-        )
-        os = f'&operating_system_id={operating_system.id}' if operating_system is not None else ''
-        pkgs = f'&packages={"+".join(packages)}' if packages is not None else ''
-        rex_iface = (
-            f'&remote_execution_interface={remote_execution_interface}'
-            if remote_execution_interface is not None
-            else ''
-        )
-        rp = f'&{urlencode({"repo": repo })}' if repo is not None else ''
-        gpg = (
-            f'&{urlencode({"repo_gpg_key_url": repo_gpg_key_url })}'
-            if repo_gpg_key_url is not None
-            else ''
-        )
-        cmd = (
-            'curl -sS '
-            f'-u {username}:{password} '
-            f'{"--insecure " if insecure else ""}'
-            f"'https://{target.hostname}:9090/register?"
-            f'activation_keys={activation_keys}'
-            f'&organization_id={org.id}'
-            f'&location_id={loc.id}'
-            f'{insights}'
-            f'{rex}'
-            f'&update_packages={"true" if update_packages else "false"}'
-            f'{rex_pull}'
-            f'{rex_iface}'
-            f'{lce}'
-            f'{os}'
-            f'{pkgs}'
-            f'{"&ignore_subman_errors=true" if ignore_subman_errors else ""}'
-            f'{"&force=true" if force else ""}'
-            f'{rp}'
-            f'{gpg}'
-            "' | bash"
-        )
-        return self.execute(cmd)
+        options = {
+            'activation-keys': activation_keys,
+            'organization-id': org.id,
+            'location-id': loc.id,
+            'insecure': str(insecure).lower(),
+            'update-packages': str(update_packages).lower(),
+        }
+        if target.__class__.__name__ == 'Capsule':
+            options['smart-proxy'] = target.hostname
+        elif target is not None and target.__class__.__name__ not in ['Capsule', 'Satellite']:
+            raise ValueError('Global registration method can be used with Satellite/Capsule only')
+
+        if lifecycle_environment is not None:
+            options['lifecycle_environment_id'] = lifecycle_environment.id
+        if operating_system is not None:
+            options['operatingsystem-id'] = operating_system.id
+        if hostgroup is not None:
+            options['hostgroup-id'] = hostgroup.id
+        if packages is not None:
+            options['packages'] = '+'.join(packages)
+        if repo is not None:
+            options['repo'] = repo
+        if setup_insights is not None:
+            options['setup-insights'] = str(setup_insights).lower()
+        if setup_remote_execution is not None:
+            options['setup-remote-execution'] = str(setup_remote_execution).lower()
+        if setup_remote_execution_pull is not None:
+            options['setup-remote-execution-pull'] = str(setup_remote_execution_pull).lower()
+        if remote_execution_interface is not None:
+            options['remote-execution-interface'] = remote_execution_interface
+        if repo_gpg_key_url is not None:
+            options['repo-gpg-key-url'] = repo_gpg_key_url
+        if ignore_subman_errors:
+            options['ignore-subman-errors'] = str(ignore_subman_errors).lower()
+        if force:
+            options['force'] = str(force).lower()
+
+        cmd = satellite.cli.HostRegistration.generate_command(options)
+        return self.execute(cmd.strip('\n'))
 
     def register_contenthost(
         self,
@@ -688,7 +691,7 @@ class ContentHost(Host, ContentHostMixins):
         If local_path is a manifest object, write its contents to a temporary file
         then continue with the upload.
         """
-        if 'manifests.Manifest' in str(local_path):
+        if 'utils.Manifest' in str(local_path):
             with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
                 content_file.write(local_path.content.read())
                 content_file.flush()
@@ -1254,7 +1257,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def register_to_cdn(self):
+    def register_to_cdn(self, pool_ids=[settings.subscription.rhn_poolid]):
         """Subscribe satellite to CDN"""
         self.remove_katello_ca()
         cmd_result = self.register_contenthost(
@@ -1267,7 +1270,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError(
                 f'Error during registration, command output: {cmd_result.stdout}'
             )
-        cmd_result = self.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
+        cmd_result = self.subscription_manager_attach_pool(pool_ids)[0]
         if cmd_result.status != 0:
             raise ContentHostError(
                 f'Error during pool attachment, command output: {cmd_result.stdout}'
@@ -1286,15 +1289,22 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise HostPingFailed(f'Failed to ping host {host}:{result.stdout}')
 
+    def update_host_location(self, location):
+        host = self.nailgun_host.read()
+        host.location = location
+        host.update(['location'])
+
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
 
     @property
     def nailgun_capsule(self):
-        from nailgun.entities import Capsule as NailgunCapsule
+        return self.satellite.api.Capsule().search(query={'search': f'name={self.hostname}'})[0]
 
-        return NailgunCapsule().search(query={'search': f'name={self.hostname}'})[0]
+    @property
+    def nailgun_smart_proxy(self):
+        return self.satellite.api.SmartProxy().search(query={'search': f'name={self.hostname}'})[0]
 
     @cached_property
     def is_upstream(self):
@@ -1381,8 +1391,8 @@ class Capsule(ContentHost, CapsuleMixins):
             raise CapsuleHostError(f'The satellite-capsule package was not found\n{result.stdout}')
 
         # Generate certificate, copy it to Capsule, run installer, check it succeeds
-        installer = self.satellite.capsule_certs_generate(self, **installer_kwargs)
-        self.satellite.session.remote_copy(installer.opts['certs-tar-file'], self)
+        certs_tar, _, installer = self.satellite.capsule_certs_generate(self, **installer_kwargs)
+        self.satellite.session.remote_copy(certs_tar, self)
         installer.update(**installer_kwargs)
         result = self.install(installer)
         if result.status:
@@ -1400,11 +1410,13 @@ class Capsule(ContentHost, CapsuleMixins):
                 f'A core service is not running at capsule host\n{result.stdout}'
             )
 
-    def enable_mqtt(self):
+    def set_rex_script_mode_provider(self, mode='ssh'):
+        """Set provider for remote execution script mode. One of: ssh(default),
+        pull-mqtt, ssh-async"""
         installer_opts = {
             'foreman-proxy-templates': 'true',
             'foreman-proxy-registration': 'true',
-            'foreman-proxy-plugin-remote-execution-script-mode': 'pull-mqtt',
+            'foreman-proxy-plugin-remote-execution-script-mode': mode,
         }
         enable_mqtt_command = InstallerCommand(
             installer_opts=installer_opts,
@@ -1416,11 +1428,34 @@ class Capsule(ContentHost, CapsuleMixins):
         if result.status != 0:
             raise SatelliteHostError(f'Failed to enable pull provider: {result.stdout}')
 
+    @property
+    def cli(self):
+        """Import only satellite-maintain robottelo cli entities and wrap them under self.cli"""
+        self._cli = type('cli', (), {'_configured': False})
+        if self._cli._configured:
+            return self._cli
+
+        for file in Path('robottelo/cli/').iterdir():
+            if (
+                file.suffix == '.py'
+                and not file.name.startswith('_')
+                and file.name.startswith('sm_')
+            ):
+                cli_module = importlib.import_module(f'robottelo.cli.{file.stem}')
+                for name, obj in cli_module.__dict__.items():
+                    try:
+                        if Base in obj.mro():
+                            # create a copy of the class and set our hostname as a class attribute
+                            new_cls = type(name, (obj,), {'hostname': self.hostname})
+                            setattr(self._cli, name, new_cls)
+                    except AttributeError:
+                        # not everything has an mro method, we don't care about them
+                        pass
+        return self._cli
+
 
 class Satellite(Capsule, SatelliteMixins):
     def __init__(self, hostname=None, **kwargs):
-        from robottelo.config import settings
-
         hostname = hostname or settings.server.hostname  # instance attr set by broker.Host
         self.port = kwargs.get('port', settings.server.port)
         super().__init__(hostname=hostname, **kwargs)
@@ -1474,9 +1509,6 @@ class Satellite(Capsule, SatelliteMixins):
         if self._cli._configured:
             return self._cli
 
-        import importlib
-        from robottelo.cli.base import Base
-
         for file in Path('robottelo/cli/').iterdir():
             if file.suffix == '.py' and not file.name.startswith('_'):
                 cli_module = importlib.import_module(f'robottelo.cli.{file.stem}')
@@ -1490,11 +1522,6 @@ class Satellite(Capsule, SatelliteMixins):
                         # not everything has an mro method, we don't care about them
                         pass
         return self._cli
-
-    @property
-    def internal_capsule(self):
-        capsule_list = self.api.SmartProxy().search(query={'search': f'name={self.hostname}'})
-        return None if not capsule_list else capsule_list[0]
 
     def ui_session(self, testname=None, user=None, password=None, url=None, login=True):
         """Initialize an airgun Session object and store it as self.ui_session"""
@@ -1549,17 +1576,19 @@ class Satellite(Capsule, SatelliteMixins):
         )
 
     def capsule_certs_generate(self, capsule, cert_path=None, **extra_kwargs):
-        """Generate capsule certs, returning the cert path and the installer command args"""
-        command = InstallerCommand(
-            command='capsule-certs-generate',
-            foreman_proxy_fqdn=capsule.hostname,
-            certs_tar=cert_path or f'/root/{capsule.hostname}-certs.tar',
-            **extra_kwargs,
+        """Generate capsule certs, returning the cert path, installer command stdout and args"""
+        cert_file_path = cert_path or f'/root/{capsule.hostname}-certs.tar'
+        result = self.install(
+            InstallerCommand(
+                command='capsule-certs-generate',
+                foreman_proxy_fqdn=capsule.hostname,
+                certs_tar=cert_file_path,
+                installer_args=['no-colors'],
+                **extra_kwargs,
+            )
         )
-        result = self.execute(command.get_command())
         install_cmd = InstallerCommand.from_cmd_str(cmd_str=result.stdout)
-        install_cmd.opts['certs-tar-file'] = f'/root/{capsule.hostname}-certs.tar'
-        return install_cmd
+        return cert_file_path, result, install_cmd
 
     def __enter__(self):
         """Satellite objects can be used as a context manager to temporarily force everything
@@ -1751,3 +1780,169 @@ class Satellite(Capsule, SatelliteMixins):
         )
         # refresh repository metadata on the host
         rhel_contenthost.execute('subscription-manager repos --list')
+
+
+class SSOHost(Host):
+    """Class for RHSSO functions and setup"""
+
+    def __init__(self, sat_obj, **kwargs):
+        self.satellite = sat_obj
+        kwargs['hostname'] = kwargs.get('hostname', settings.rhsso.host_name)
+        super().__init__(**kwargs)
+
+    def get_rhsso_client_id(self):
+        """getter method for fetching the client id and can be used other functions"""
+        client_name = f'{self.satellite.hostname}-foreman-openidc'
+        self.execute(
+            f'{KEY_CLOAK_CLI} config credentials '
+            f'--server {settings.rhsso.host_url.replace("https://", "http://")}/auth '
+            f'--realm {settings.rhsso.realm} '
+            f'--user {settings.rhsso.rhsso_user} '
+            f'--password {settings.rhsso.rhsso_password}'
+        )
+
+        result = self.execute(f'{KEY_CLOAK_CLI} get clients --fields id,clientId')
+        result_json = json.loads(result.stdout)
+        client_id = None
+        for client in result_json:
+            if client_name in client['clientId']:
+                client_id = client['id']
+                break
+        return client_id
+
+    @lru_cache
+    def get_rhsso_user_details(self, username):
+        """Getter method to receive the user id"""
+        result = self.execute(
+            f"{KEY_CLOAK_CLI} get users -r {settings.rhsso.realm} -q username={username}"
+        )
+        result_json = json.loads(result.stdout)
+        return result_json[0]
+
+    @lru_cache
+    def get_rhsso_groups_details(self, group_name):
+        """Getter method to receive the group id"""
+        result = self.execute(f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm}")
+        group_list = json.loads(result.stdout)
+        query_group = [group for group in group_list if group['name'] == group_name]
+        return query_group[0]
+
+    def upload_rhsso_entity(self, json_content, entity_name):
+        """Helper method upload the entity json request as file on RHSSO Server"""
+        with open(entity_name, "w") as file:
+            json.dump(json_content, file)
+        self.session.sftp_write(entity_name)
+
+    def create_mapper(self, json_content, client_id):
+        """Helper method to create the RH-SSO Client Mapper"""
+        self.upload_rhsso_entity(json_content, "mapper_file")
+        self.execute(
+            f'{KEY_CLOAK_CLI} create clients/{client_id}/protocol-mappers/models -r '
+            f'{settings.rhsso.realm} -f {"mapper_file"}'
+        )
+
+    def create_new_rhsso_user(self, username=None):
+        """create new user in RHSSO instance and set the password"""
+        update_data_user = Box(RHSSO_NEW_USER)
+        update_data_pass = Box(RHSSO_RESET_PASSWORD)
+        if not username:
+            username = gen_string('alphanumeric')
+        update_data_user.username = username
+        update_data_user.email = username + random.choice(valid_emails_list())
+        update_data_pass.value = settings.rhsso.rhsso_password
+        self.upload_rhsso_entity(update_data_user, "create_user")
+        self.upload_rhsso_entity(update_data_pass, "reset_password")
+        self.execute(f"{KEY_CLOAK_CLI} create users -r {settings.rhsso.realm} -f create_user")
+        user_details = self.get_rhsso_user_details(update_data_user.username)
+        self.execute(
+            f'{KEY_CLOAK_CLI} update -r {settings.rhsso.realm} '
+            f'users/{user_details["id"]}/reset-password -f {"reset_password"}'
+        )
+        return update_data_user
+
+    def update_rhsso_user(self, username, group_name=None):
+        update_data_user = Box(RHSSO_USER_UPDATE)
+        user_details = self.get_rhsso_user_details(username)
+        update_data_user.realm = settings.rhsso.realm
+        update_data_user.userId = f"{user_details['id']}"
+        if group_name:
+            group_details = self.get_rhsso_groups_details(group_name=group_name)
+            update_data_user['groupId'] = f"{group_details['id']}"
+            self.upload_rhsso_entity(update_data_user, "update_user")
+            group_path = f"users/{user_details['id']}/groups/{group_details['id']}"
+            self.execute(
+                f"{KEY_CLOAK_CLI} update -r {settings.rhsso.realm} {group_path} -f update_user"
+            )
+
+    def delete_rhsso_user(self, username):
+        """Delete the RHSSO user"""
+        user_details = self.get_rhsso_user_details(username)
+        self.execute(f"{KEY_CLOAK_CLI} delete -r {settings.rhsso.realm} users/{user_details['id']}")
+
+    def create_group(self, group_name=None):
+        """Create the RHSSO group"""
+        update_user_group = Box(RHSSO_NEW_GROUP)
+        if not group_name:
+            group_name = gen_string('alphanumeric')
+        update_user_group.name = group_name
+        self.upload_rhsso_entity(update_user_group, "create_group")
+        result = self.execute(
+            f"{KEY_CLOAK_CLI} create groups -r {settings.rhsso.realm} -f create_group"
+        )
+        return result.stdout
+
+    def delete_rhsso_group(self, group_name):
+        """Delete the RHSSO group"""
+        group_details = self.get_rhsso_groups_details(group_name)
+        self.execute(
+            f"{KEY_CLOAK_CLI} delete -r {settings.rhsso.realm} groups/{group_details['id']}"
+        )
+
+    def update_client_configuration(self, json_content):
+        """Update the client configuration"""
+        client_id = self.get_rhsso_client_id()
+        self.upload_rhsso_entity(json_content, "update_client_info")
+        update_cmd = (
+            f"{KEY_CLOAK_CLI} update clients/{client_id}"
+            "-f update_client_info -s enabled=true --merge"
+        )
+        self.execute(update_cmd)
+
+    @cached_property
+    def oidc_token_endpoint(self):
+        """getter oidc token endpoint"""
+        return (
+            f"https://{settings.rhsso.host_name}/auth/realms/"
+            f"{settings.rhsso.realm}/protocol/openid-connect/token"
+        )
+
+    def get_oidc_client_id(self):
+        """getter for the oidc client_id"""
+        return f"{self.satellite.hostname}-foreman-openidc"
+
+    @cached_property
+    def oidc_authorization_endpoint(self):
+        """getter for the oidc authorization endpoint"""
+        return (
+            f"https://{settings.rhsso.host_name}/auth/realms/"
+            f"{settings.rhsso.realm}/protocol/openid-connect/auth"
+        )
+
+    def get_two_factor_token_rh_sso_url(self):
+        """getter for the two factor token rh_sso url"""
+        return (
+            f"https://{settings.rhsso.host_name}/auth/realms/"
+            f"{settings.rhsso.realm}/protocol/openid-connect/"
+            f"auth?response_type=code&client_id={self.satellite.hostname}-foreman-openidc&"
+            "redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=openid"
+        )
+
+    def set_the_redirect_uri(self):
+        client_config = {
+            "redirectUris": [
+                "urn:ietf:wg:oauth:2.0:oob",
+                f"https://{self.satellite.hostname}/users/extlogin/redirect_uri",
+                f"https://{self.satellite.hostname}/users/extlogin",
+            ]
+        }
+        self.update_client_configuration(client_config)
