@@ -71,7 +71,7 @@ def setup_capsules(
         install_cmd.opts.update(**extra_installer_var)
         result = capsule.install(install_cmd)
         assert result.status == 0
-
+        capsule._satellite = module_target_sat
         for i in module_target_sat.cli.Capsule.list():
             if i['name'] == capsule.hostname:
                 capsule_id = i['id']

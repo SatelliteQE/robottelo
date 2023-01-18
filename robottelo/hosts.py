@@ -12,9 +12,11 @@ from pathlib import Path
 from pathlib import PurePath
 from tempfile import NamedTemporaryFile
 from urllib.parse import urljoin
+from urllib.parse import urlparse
 from urllib.parse import urlunsplit
 
 import requests
+import yaml
 from box import Box
 from broker import Broker
 from broker.hosts import Host
@@ -562,7 +564,6 @@ class ContentHost(Host, ContentHostMixins):
         org,
         loc,
         activation_keys,
-        satellite=None,
         target=None,
         setup_insights=False,
         setup_remote_execution=True,
@@ -640,7 +641,7 @@ class ContentHost(Host, ContentHostMixins):
         if force:
             options['force'] = str(force).lower()
 
-        cmd = satellite.cli.HostRegistration.generate_command(options)
+        cmd = target.satellite.cli.HostRegistration.generate_command(options)
         return self.execute(cmd.strip('\n'))
 
     def register_contenthost(
@@ -1351,6 +1352,21 @@ class Capsule(ContentHost, CapsuleMixins):
     def nailgun_smart_proxy(self):
         return self.satellite.api.SmartProxy().search(query={'search': f'name={self.hostname}'})[0]
 
+    @property
+    def satellite(self):
+        if not self._satellite:
+            try:
+                # get the Capsule answer file
+                data = self.sftp_read(constants.CAPSULE_ANSWER_FILE, return_data=True)
+                answers = Box(yaml.load(data, yaml.FullLoader))
+                self._satellite = Satellite(
+                    hostname=urlparse(answers.foreman_proxy.foreman_base_url).netloc
+                )
+            except Exception:
+                # assign the default Sat instance in case we are not able to get it
+                self._satellite = Satellite()
+        return self._satellite
+
     @cached_property
     def is_upstream(self):
         """Figure out which product distribution is installed on the server.
@@ -1644,10 +1660,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def is_remote_db(self):
         return (
-            self.execute(
-                'grep "db_manage: false" /etc/foreman-installer/scenarios.d/satellite-answers.yaml'
-            ).status
-            == 0
+            self.execute(f'grep "db_manage: false" {constants.SATELLITE_ANSWER_FILE}').status == 0
         )
 
     def capsule_certs_generate(self, capsule, cert_path=None, **extra_kwargs):
