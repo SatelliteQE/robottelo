@@ -24,6 +24,7 @@ from robottelo.cli.fact import Fact
 
 pytestmark = [pytest.mark.tier1]
 
+@pytest.mark.skip_if_open
 @pytest.mark.skip
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
@@ -34,9 +35,12 @@ def test_positive_list_by_name(fact):
 
     :id: 83794d97-d21b-4482-9522-9b41053e595f
 
+
     :expectedresults: Fact List is displayed
 
     :parametrized: yes
+
+    BZ:2161294
     """
     facts = Fact().list(options={'search': f'fact={fact}'})
     assert facts[0]['fact'] == fact
