@@ -1,5 +1,4 @@
 import contextlib
-import io
 import random
 import re
 
@@ -126,7 +125,7 @@ class ContentInfo:
             # Set the timeout to 1500 seconds to align with the API timeout.
             timeout = 1500000
         if interface == 'CLI':
-            if isinstance(manifest.content, io.BytesIO):
+            if isinstance(manifest.content, bytes):
                 self.put(f'{manifest.path}', f'{manifest.name}')
                 result = self.cli.Subscription.upload(
                     {'file': manifest.name, 'organization-id': org_id}, timeout=timeout
@@ -137,7 +136,7 @@ class ContentInfo:
                     {'file': manifest.filename, 'organization-id': org_id}, timeout=timeout
                 )
         else:
-            if not isinstance(manifest, io.BytesIO):
+            if not isinstance(manifest, bytes):
                 manifest = manifest.content
             result = self.api.Subscription().upload(
                 data={'organization_id': org_id}, files={'content': manifest}
