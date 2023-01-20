@@ -174,11 +174,16 @@ class TestDiscoveredHost:
     @pytest.mark.upgrade
     @pytest.mark.e2e
     @pytest.mark.on_premises_provisioning
-    @pytest.mark.parametrize('provisioning_host', ['bios', 'uefi'], indirect=True)
+    @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
     @pytest.mark.rhel_ver_match('[^6]')
     @pytest.mark.tier3
     def test_positive_provision_pxe_host(
-        self, module_provisioning_rhel_content, module_discovery_sat, provisioning_host
+        self,
+        module_provisioning_rhel_content,
+        module_discovery_sat,
+        provisioning_host,
+        provisioning_hostgroup,
+        pxe_loader,
     ):
         """Provision a pxe-based discovered host
 
@@ -206,9 +211,9 @@ class TestDiscoveredHost:
             delay=20,
         )
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
-        discovered_host.hostgroup = module_provisioning_rhel_content.hostgroup
-        discovered_host.location = module_provisioning_rhel_content.hostgroup.location[0]
-        discovered_host.organization = module_provisioning_rhel_content.hostgroup.organization[0]
+        discovered_host.hostgroup = provisioning_hostgroup
+        discovered_host.location = provisioning_hostgroup.location[0]
+        discovered_host.organization = provisioning_hostgroup.organization[0]
         discovered_host.build = True
         with sat.session.shell() as shell:
             shell.send('foreman-tail')
@@ -223,11 +228,15 @@ class TestDiscoveredHost:
     @pytest.mark.upgrade
     @pytest.mark.e2e
     @pytest.mark.on_premises_provisioning
-    @pytest.mark.parametrize('provisioning_host', ['bios', 'uefi'], indirect=True)
+    @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
     @pytest.mark.rhel_ver_match('[^6]')
     @pytest.mark.tier3
     def test_positive_provision_pxe_less_host(
-        self, module_discovery_sat, pxeless_discovery_host, module_provisioning_rhel_content
+        self,
+        module_discovery_sat,
+        pxeless_discovery_host,
+        module_provisioning_rhel_content,
+        provisioning_hostgroup,
     ):
         """Provision a pxe-less discovered hosts
 
@@ -253,9 +262,9 @@ class TestDiscoveredHost:
             delay=20,
         )
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
-        discovered_host.hostgroup = module_provisioning_rhel_content.hostgroup
-        discovered_host.location = module_provisioning_rhel_content.hostgroup.location[0]
-        discovered_host.organization = module_provisioning_rhel_content.hostgroup.organization[0]
+        discovered_host.hostgroup = provisioning_hostgroup
+        discovered_host.location = provisioning_hostgroup.location[0]
+        discovered_host.organization = provisioning_hostgroup.organization[0]
         discovered_host.build = True
         with sat.session.shell() as shell:
             shell.send('foreman-tail')
