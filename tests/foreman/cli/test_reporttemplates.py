@@ -108,13 +108,11 @@ def local_ak(module_entitlement_manifest_org, local_environment, local_content_v
 
 @pytest.fixture(scope='module')
 def local_subscription(module_entitlement_manifest_org, local_ak):
-    subscription = next(
-        sub
-        for sub in Subscription.list(
-            {'organization-id': module_entitlement_manifest_org.id}, per_page=False
-        )
-        if sub['name'] == DEFAULT_SUBSCRIPTION_NAME
-    )
+    for subscription in Subscription.list(
+        {'organization-id': module_entitlement_manifest_org.id}, per_page=False
+    ):
+        if subscription['name'] == DEFAULT_SUBSCRIPTION_NAME:
+            break
     ActivationKey.add_subscription({'id': local_ak['id'], 'subscription-id': subscription['id']})
 
     return subscription
