@@ -61,7 +61,7 @@ def get_default_env(module_org):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_name(module_entitlement_manifest_org, name):
+def test_positive_create_with_name(module_target_sat, module_entitlement_manifest_org, name):
     """Create Activation key for all variations of Activation key
     name
 
@@ -73,7 +73,7 @@ def test_positive_create_with_name(module_entitlement_manifest_org, name):
 
     :parametrized: yes
     """
-    new_ak = make_activation_key(
+    new_ak = module_target_sat.cli.make_activation_key(
         {'organization-id': module_entitlement_manifest_org.id, 'name': name}
     )
     assert new_ak['name'] == name
