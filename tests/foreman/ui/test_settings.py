@@ -394,7 +394,8 @@ def test_positive_update_email_delivery_method_sendmail(session, target_sat):
         "send_welcome_email": "Yes",
     }
     command = "grep " + f'{mail_config_new_params["email_subject_prefix"]}' + " /var/mail/root"
-
+    if target_sat.execute('systemctl status postfix').status != 0:
+        target_sat.execute('systemctl restart postfix')
     with session:
         try:
             for mail_content, mail_content_value in mail_config_new_params.items():
