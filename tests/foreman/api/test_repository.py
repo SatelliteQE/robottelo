@@ -1495,7 +1495,7 @@ class TestDockerRepository:
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
-        'repo_options',
+        'repo_options_custom_product',
         **datafactory.parametrized(
             {
                 constants.CONTAINER_UPSTREAM_NAME: {
@@ -1508,7 +1508,7 @@ class TestDockerRepository:
         ),
         indirect=True,
     )
-    def test_positive_delete_product_with_synced_repo(self, repo, repo_options_custom_product):
+    def test_positive_delete_product_with_synced_repo(self, repo_options_custom_product):
         """Create and sync a Docker-type repository, delete the product.
 
         :id: c3d33836-54df-484d-97e1-f9fc9e22d23c
@@ -1523,7 +1523,8 @@ class TestDockerRepository:
 
         :BZ: 1867287
         """
-        repo.sync()
+        repo = entities.Repository(**repo_options_custom_product).create()
+        repo.sync(timeout=600)
         assert repo.read().content_counts['docker_manifest'] >= 1
         assert repo.product.delete()
 
