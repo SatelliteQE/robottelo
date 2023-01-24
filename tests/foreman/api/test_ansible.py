@@ -86,6 +86,8 @@ def test_positive_ansible_job_on_host(target_sat, module_org, rhel_contenthost):
         2. Job execution must be successful.
 
     :CaseAutomation: Automated
+
+    :CaseImportance: Critical
     """
     SELECTED_ROLE = 'RedHatInsights.insights-client'
     if rhel_contenthost.os_version.major <= 7:

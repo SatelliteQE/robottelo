@@ -139,6 +139,8 @@ def test_positive_config_report_ansible(session, target_sat, module_org, rhel_co
     :expectedresults:
         1. Host should be assigned the proper role.
         2. Job report should be created.
+
+    :CaseImportance: Critical
     """
     SELECTED_ROLE = 'RedHatInsights.insights-client'
     if rhel_contenthost.os_version.major <= 7:
