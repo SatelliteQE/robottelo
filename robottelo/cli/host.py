@@ -60,6 +60,12 @@ class Host(Base):
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
+    def ansible_roles_remove(cls, options=None):
+        """Remove ansible roles"""
+        cls.command_sub = 'ansible-roles remove'
+        return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
     def disassociate(cls, options):
         """Disassociate the host from a CR."""
         cls.command_sub = 'disassociate'
