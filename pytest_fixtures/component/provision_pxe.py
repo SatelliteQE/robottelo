@@ -30,7 +30,6 @@ def module_provisioning_rhel_content(
     module_provisioning_sat,
     module_sca_manifest_org,
     module_lce_library,
-    module_default_org_view,
 ):
     """
     This fixture sets up kickstart repositories for a specific RHEL version
@@ -38,14 +37,17 @@ def module_provisioning_rhel_content(
     """
     sat = module_provisioning_sat.sat
     rhel_ver = request.param['rhel_version']
-    repo_names = [f'rhel{rhel_ver}']
-    if int(rhel_ver) > 7:
+    repo_names = []
+    if int(rhel_ver) <= 7:
+        repo_names.append(f'rhel{rhel_ver}')
+    else:
+        repo_names.append(f'rhel{rhel_ver}_bos')
         repo_names.append(f'rhel{rhel_ver}_aps')
-
     rh_repos = []
     tasks = []
+    content_view = sat.api.ContentView(organization=module_sca_manifest_org).create()
     for name in repo_names:
-        rh_repo_id = enable_rhrepo_and_fetchid(
+        rh_kickstart_repo_id = enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
             org_id=module_sca_manifest_org.id,
             product=constants.REPOS['kickstart'][name]['product'],
@@ -53,11 +55,24 @@ def module_provisioning_rhel_content(
             reposet=constants.REPOS['kickstart'][name]['reposet'],
             releasever=constants.REPOS['kickstart'][name]['version'],
         )
+
+        rh_repo_id = enable_rhrepo_and_fetchid(
+            basearch=constants.DEFAULT_ARCHITECTURE,
+            org_id=module_sca_manifest_org.id,
+            product=constants.REPOS[name]['product'],
+            repo=constants.REPOS[name]['name'],
+            reposet=constants.REPOS[name]['reposet'],
+            releasever=constants.REPOS[name]['releasever'],
+        )
+
         # Sync step because repo is not synced by default
-        rh_repo = sat.api.Repository(id=rh_repo_id).read()
-        task = rh_repo.sync(synchronous=False)
-        tasks.append(task)
-        rh_repos.append(rh_repo)
+        for repo_id in [rh_kickstart_repo_id, rh_repo_id]:
+            rh_repo = sat.api.Repository(id=repo_id).read()
+            task = rh_repo.sync(synchronous=False)
+            tasks.append(task)
+            rh_repos.append(rh_repo)
+            content_view.repository.append(rh_repo)
+            content_view.update(['repository'])
     for task in tasks:
         wait_for_tasks(
             search_query=(f'id = {task["id"]}'),
@@ -65,8 +80,11 @@ def module_provisioning_rhel_content(
         )
         task_status = sat.api.ForemanTask(id=task['id']).poll()
         assert task_status['result'] == 'success'
-
-    rhel_xy = Version(constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version'])
+    rhel_xy = Version(
+        constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version']
+        if rhel_ver == 7
+        else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos']['version']
+    )
     o_systems = sat.api.OperatingSystem().search(
         query={'search': f'family=Redhat and major={rhel_xy.major} and minor={rhel_xy.minor}'}
     )
@@ -74,14 +92,23 @@ def module_provisioning_rhel_content(
     os = o_systems[0].read()
     # return only the first kickstart repo - RHEL X KS or RHEL X BaseOS KS
     ksrepo = rh_repos[0]
-
+    publish = content_view.publish()
+    task_status = wait_for_tasks(
+        search_query=(f'Actions::Katello::ContentView::Publish and id = {publish["id"]}'),
+        search_rate=15,
+        max_tries=10,
+    )
+    assert task_status[0].result == 'success'
+    content_view = sat.api.ContentView(
+        organization=module_sca_manifest_org, name=content_view.name
+    ).search()[0]
     ak = sat.api.ActivationKey(
         organization=module_sca_manifest_org,
-        content_view=module_default_org_view,
+        content_view=content_view,
         environment=module_lce_library,
     ).create()
 
-    return Box(os=os, ak=ak, ksrepo=ksrepo)
+    return Box(os=os, ak=ak, ksrepo=ksrepo, cv=content_view)
 
 
 @pytest.fixture(scope='module')
@@ -164,7 +191,7 @@ def module_ssh_key_file():
     return layout
 
 
-@pytest.fixture()
+@pytest.fixture
 def provisioning_host(module_ssh_key_file, pxe_loader):
     """Fixture to check out blank VM"""
     vlan_id = settings.provisioning.vlan_id
@@ -195,7 +222,6 @@ def provisioning_hostgroup(
     module_provisioning_rhel_content,
     module_lce_library,
     default_partitiontable,
-    module_default_org_view,
     module_provisioning_capsule,
     pxe_loader,
 ):
@@ -205,7 +231,7 @@ def provisioning_hostgroup(
         architecture=default_architecture,
         domain=module_provisioning_sat.domain,
         content_source=module_provisioning_capsule.id,
-        content_view=module_default_org_view,
+        content_view=module_provisioning_rhel_content.cv,
         kickstart_repository=module_provisioning_rhel_content.ksrepo,
         lifecycle_environment=module_lce_library,
         root_pass=settings.provisioning.host_root_password,
@@ -239,7 +265,7 @@ def pxe_loader(request):
     return Box(PXE_LOADER_MAP[getattr(request, 'param', 'bios')])
 
 
-@pytest.fixture()
+@pytest.fixture
 def pxeless_discovery_host(provisioning_host, module_discovery_sat):
     """Fixture for returning a pxe-less discovery host for provisioning"""
     sat = module_discovery_sat.sat
