@@ -30,8 +30,7 @@ CUSTOM_REPO_ERRATA_ID = settings.repos.yum_0.errata[0]
 
 
 @pytest.fixture(scope='module')
-def module_repos_col(module_org, module_lce, module_target_sat, request):
-    module_target_sat.upload_manifest(org_id=module_org.id)
+def module_repos_col(module_entitlement_manifest_org, module_lce, module_target_sat, request):
     repos_collection = module_target_sat.cli_factory.RepositoryCollection(
         repositories=[
             # As Satellite Tools may be added as custom repo and to have a "Fully entitled" host,
@@ -39,15 +38,15 @@ def module_repos_col(module_org, module_lce, module_target_sat, request):
             module_target_sat.cli_factory.YumRepository(url=settings.repos.yum_0.url),
         ],
     )
-    repos_collection.setup_content(module_org.id, module_lce.id)
+    repos_collection.setup_content(module_entitlement_manifest_org.id, module_lce.id)
     yield repos_collection
 
     @request.addfinalizer
     def _cleanup():
         try:
-            module_target_sat.api.Subscription(organization=module_org).delete_manifest(
-                data={'organization_id': module_org.id}
-            )
+            module_target_sat.api.Subscription(
+                organization=module_entitlement_manifest_org
+            ).delete_manifest(data={'organization_id': module_entitlement_manifest_org.id})
         except Exception:
             logger.exception('Exception cleaning manifest:')
 
@@ -256,7 +255,7 @@ def test_positive_update_compresource(session):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_delete_with_manifest_lces(session, target_sat):
+def test_positive_delete_with_manifest_lces(session, target_sat, function_entitlement_manifest_org):
     """Create Organization with valid values and upload manifest.
     Then try to delete that organization.
 
@@ -268,8 +267,7 @@ def test_positive_delete_with_manifest_lces(session, target_sat):
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
-    target_sat.upload_manifest(org.id)
+    org = function_entitlement_manifest_org
     with session:
         session.organization.select(org.name)
         session.lifecycleenvironment.create({'name': 'DEV'})
@@ -281,11 +279,11 @@ def test_positive_delete_with_manifest_lces(session, target_sat):
         assert not session.organization.search(org.name)
 
 
-@pytest.mark.skip('Skipping due to manifest refresh issues')
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_download_debug_cert_after_refresh(session, target_sat):
+def test_positive_download_debug_cert_after_refresh(
+    session, target_sat, function_entitlement_manifest_org
+):
     """Create organization with valid manifest. Download debug
     certificate for that organization and refresh added manifest for few
     times in a row
@@ -298,9 +296,8 @@ def test_positive_download_debug_cert_after_refresh(session, target_sat):
 
     :CaseImportance: High
     """
-    org = entities.Organization().create()
+    org = function_entitlement_manifest_org
     try:
-        target_sat.upload_manifest(org.id)
         with session:
             session.organization.select(org.name)
             for _ in range(3):
