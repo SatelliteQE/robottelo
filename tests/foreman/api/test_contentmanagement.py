@@ -129,7 +129,7 @@ class TestSatelliteContentManagement:
 
         :BZ: 1687801
         """
-        distro = 'rhel8'
+        distro = 'rhel8_bos'
         rh_repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
@@ -155,7 +155,7 @@ class TestSatelliteContentManagement:
     @pytest.mark.parametrize(
         'distro',
         [
-            f'rhel{ver}'
+            ver
             for ver in settings.supportability.content_hosts.rhel.versions
             if isinstance(ver, int)
         ],
@@ -175,6 +175,7 @@ class TestSatelliteContentManagement:
             1. OS with corresponding version was created.
 
         """
+        distro = f'rhel{distro} + "_bos"' if distro > 7 else f'rhel{distro}'
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
@@ -1022,7 +1023,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients')
-    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8', 'rhel9'])
+    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
     def test_positive_sync_kickstart_repo(
         self, target_sat, module_capsule_configured, function_entitlement_manifest_org, distro
     ):
