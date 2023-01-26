@@ -29,7 +29,6 @@ from requests.exceptions import HTTPError
 
 from robottelo import constants
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import upload_manifest
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.subscription import Subscription
 >>>>>>> a6ac698a7 (added test for expired manifest)
@@ -203,7 +202,7 @@ def test_positive_sync_kickstart_repo(self, module_entitlement_manifest_org, tar
     assert rh_repo.content_counts['rpm'] > 0
 
 
-def test_negative_uplaod_expired_manifest(module_org, target_sat):
+def test_negative_upload_expired_manifest(module_org, target_sat):
     """Upload an expired manifest and attempt to refresh it
 
     :id: d6e652d8-5f46-4d15-9191-d842466d45d0
@@ -218,7 +217,7 @@ def test_negative_uplaod_expired_manifest(module_org, target_sat):
     manifester = Manifester(manifest_category=settings.manifest.entitlement)
     manifest = manifester.get_manifest()
     manifester.delete_subscription_allocation()
-    upload_manifest(module_org.id, manifest.content)
+    target_sat.upload_manifest(module_org.id, manifest.content)
     with pytest.raises(CLIReturnCodeError) as error:
         Subscription.refresh_manifest({'organization-id': module_org.id})
     assert (
