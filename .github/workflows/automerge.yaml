@@ -58,11 +58,11 @@ jobs:
           api_endpoint="https://api.github.com/repos/${{github.repository}}/statuses/${{ github.head_ref }}"
 
           function get_status() {
-            curl -s "$api_endpoint"  | jq -r '.[0].state'
+            curl -s "$api_endpoint"  | jq '[.[] | .state] | .[0]'
           }
 
           function get_context() {
-            curl -s "$api_endpoint" | jq -r '.[0].context'
+            curl -s "$api_endpoint" | jq '[.[] | .context] | .[0]'
           }
 
           statuses_length=$(curl -s $api_endpoint | jq 'length')
