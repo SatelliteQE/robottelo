@@ -43,9 +43,68 @@ jobs:
         run: |
           echo "Waiting for ~ 10 mins, PRT to be initiated." && sleep 600
 
+      - name: Wait for other status checks to Pass
+        id: waitforstatuschecks
+        uses: lewagon/wait-on-check-action@v1.2.0
+        with:
+          ref: ${{ github.head_ref }}
+          repo-token: ${{ secrets.CHERRYPICK_PAT }}
+          wait-interval: 60
+          running-workflow-name: 'Automerge auto-cherry-picked pr'
+          allowed-conclusions: success,skipped
+
+      - name: is PRT check Passed ?
+        run: |
+          api_endpoint="https://api.github.com/repos/${{github.repository}}/statuses/${{ github.head_ref }}"
+
+          function get_status() {
+            curl -s "$api_endpoint"  | jq '[.[] | .state] | .[0]'
+          }
+
+          function get_context() {
+            curl -s "$api_endpoint" | jq '[.[] | .context] | .[0]'
+          }
+
+          statuses_length=$(curl -s $api_endpoint | jq 'length')
+          if [ $statuses_length -eq 0 ]; then
+              echo "PRT failed to start ! Stopping."
+              exit 1
+          fi
+
+          status=$(get_status)
+          context=$(get_context)
+
+          if [ "$context" != "Robottelo-Runner" ]; then
+            echo "::error Failed to get Robottelo-Runner status"
+            exit 1
+          fi
+
+          counter=0
+          echo "Waiting for PRT to complete....."
+          while [ "$status" != "success" ] && [ "$status" != "failure" ]; do
+            if [ $counter -gt 20 ]; then
+              echo "PRT Timeout"
+              exit 1
+            fi
+            sleep 300
+            status=$(get_status)
+            echo "Robottelo-Runner : $status"
+            counter=$((counter+1))
+          done
+
+          if [ "$status" == "success" ]; then
+            echo "PRT Passed Successfully!"
+          else
+            echo "Robottelo-Runner : $status"
+            echo "::error PRT failed"
+            exit 1
+          fi
+
+
       - id: automerge
         name: Auto merge of cherry-picked PRs.
         uses: "pascalgn/automerge-action@v0.15.5"
+        if: steps.waitforstatuschecks.outputs.status == 'success'
         env:
           GITHUB_TOKEN: "${{ secrets.CHERRYPICK_PAT }}"
           MERGE_LABELS: "AutoMerge_Cherry_Picked, Auto_Cherry_Picked"
@@ -59,4 +118,6 @@ jobs:
           if [ "${{ steps.automerge.outputs.mergeResult }}" == 'merged' ]; then
             echo "Pull request ${{ steps.automerge.outputs.pullRequestNumber }} is Auto Merged !"
           else
-            echo "::error Auto Merge of Pull request ${{ steps.automerge.outputs.pullRequestNumber }} is ${{steps.automerge.outputs.mergeResult}} !"
+            echo "::error Auto Merge for Pull request failed !"
+            exit 1
+          fi
