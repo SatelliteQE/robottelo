@@ -25,7 +25,6 @@ from robottelo.cli.fact import Fact
 pytestmark = [pytest.mark.tier1]
 
 @pytest.mark.skip_if_open('BZ:2161294')
-@pytest.mark.skip
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'fact', ['uptime', 'os::family', 'uptime_seconds', 'memorysize', 'ipaddress']
