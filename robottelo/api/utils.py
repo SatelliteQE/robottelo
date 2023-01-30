@@ -455,7 +455,9 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
         entities.Filter(permission=permissions_entities, role=role, search=search).create()
 
 
-def wait_for_tasks(search_query, search_rate=1, max_tries=10, poll_rate=None, poll_timeout=None):
+def wait_for_tasks(
+    search_query, search_rate=1, max_tries=10, poll_rate=None, poll_timeout=None, must_succeed=True
+):
     """Search for tasks by specified search query and poll them to ensure that
     task has finished.
 
@@ -467,6 +469,7 @@ def wait_for_tasks(search_query, search_rate=1, max_tries=10, poll_rate=None, po
             ``nailgun.entities.ForemanTask.poll()`` method.
     :param poll_timeout: Maximum number of seconds to wait until timing out.
             Parameter for ``nailgun.entities.ForemanTask.poll()`` method.
+    :param must_succeed: Assert success result on finished task.
     :return: List of ``nailgun.entities.ForemanTasks`` entities.
     :raises: ``AssertionError``. If not tasks were found until timeout.
     """
@@ -474,7 +477,7 @@ def wait_for_tasks(search_query, search_rate=1, max_tries=10, poll_rate=None, po
         tasks = entities.ForemanTask().search(query={'search': search_query})
         if len(tasks) > 0:
             for task in tasks:
-                task.poll(poll_rate=poll_rate, timeout=poll_timeout)
+                task.poll(poll_rate=poll_rate, timeout=poll_timeout, must_succeed=must_succeed)
             break
         else:
             time.sleep(search_rate)
