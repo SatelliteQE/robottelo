@@ -9,6 +9,7 @@ from robottelo.logging import DEFAULT_DATE_FORMAT
 from robottelo.logging import logger
 from robottelo.logging import robottelo_log_dir
 from robottelo.logging import robottelo_log_file
+from robottelo.logging import logging_yaml
 
 try:
     from pytest_reportportal import RPLogger
@@ -55,8 +56,11 @@ def configure_logging(request, worker_id):
             worker_handler.setFormatter(worker_formatter)
             worker_handler.setLevel(worker_log_level)
             logger.addHandler(worker_handler)
-
-            broker_log_setup('debug', robottelo_log_dir.joinpath(f'robottelo_{worker_id}.log'))
+            broker_log_setup(
+                level=logging_yaml.broker.level,
+                file_level=logging_yaml.broker.fileLevel,
+                path=robottelo_log_dir.joinpath(f'robottelo_{worker_id}.log'),
+            )
 
             if use_rp_logger:
                 rp_handler = RPLogHandler(request.node.config.py_test_service)

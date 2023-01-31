@@ -58,7 +58,11 @@ def configure_third_party_logging():
 
 
 configure_third_party_logging()
-broker_log_setup(logging_yaml.robottelo.fileLevel, str(robottelo_log_file))
+broker_log_setup(
+    level=logging_yaml.robottelo.level,
+    file_level=logging_yaml.robottelo.fileLevel,
+    path=str(robottelo_log_file),
+)
 manifester_log_setup(logging_yaml.robottelo.fileLevel, str(robottelo_log_file))
 
 
