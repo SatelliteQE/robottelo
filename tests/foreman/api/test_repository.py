@@ -122,8 +122,6 @@ class TestRepository:
         :expectedresults: HTTP Proxy can be assigned to repository and sync operation performed
             successfully.
 
-        :Assignee: jpathan
-
         :CaseImportance: High
         """
         repo_options = {
@@ -157,8 +155,6 @@ class TestRepository:
 
         :expectedresults: HTTP Proxy can be assigned to redhat repository and sync operation
             performed successfully.
-
-        :Assignee: jpathan
 
         :BZ: 2011303, 2042473
 

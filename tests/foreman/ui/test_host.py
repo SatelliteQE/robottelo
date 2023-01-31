@@ -2466,4 +2466,3 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
         assert host_parameters
         assert param_name in host_parameters
         assert host_parameters[param_name] == param_value
-

@@ -324,7 +324,6 @@ def test_http_proxy_containing_special_characters():
             finished successfully.
 
     :CaseAutomation: NotAutomated
-    
+
     :CaseImportance: High
     """
-
