@@ -8,7 +8,7 @@
 
 :CaseComponent: Capsule
 
-:Assignee: akjha
+:Team: Endeavour
 
 :TestType: Functional
 
