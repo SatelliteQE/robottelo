@@ -73,9 +73,7 @@ def module_gce_compute(module_org, module_location, gce_cert):
     gce_cr = entities.GCEComputeResource(
         name=gen_string('alphanumeric'),
         provider='GCE',
-        email=gce_cert['client_email'],
         key_path=settings.gce.cert_path,
-        project=gce_cert['project_id'],
         zone=settings.gce.zone,
         organization=[module_org],
         location=[module_location],
@@ -90,9 +88,7 @@ def module_gce_compute_puppet(
     gce_cr = session_puppet_enabled_sat.api.GCEComputeResource(
         name=gen_string('alphanumeric'),
         provider='GCE',
-        email=gce_cert_puppet['client_email'],
         key_path=settings.gce.cert_path,
-        project=gce_cert_puppet['project_id'],
         zone=settings.gce.zone,
         organization=[module_puppet_org],
         location=[module_puppet_loc],
