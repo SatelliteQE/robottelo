@@ -1283,7 +1283,7 @@ def test_positive_verify_files_with_pxegrub_uefi_secureboot():
 
     :CaseComponent: TFTP
 
-    :Assignee: rdrazny
+    :Team: Rocket
 
     :CaseLevel: Integration
     """
@@ -1319,7 +1319,7 @@ def test_positive_verify_files_with_pxegrub2_uefi():
 
     :CaseComponent: TFTP
 
-    :Assignee: rdrazny
+    :Team: Rocket
 
     :CaseLevel: Integration
     """
@@ -1357,7 +1357,7 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
 
     :CaseComponent: TFTP
 
-    :Assignee: rdrazny
+    :Team: Rocket
     """
 
 
