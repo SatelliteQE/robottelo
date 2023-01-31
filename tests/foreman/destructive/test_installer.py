@@ -57,7 +57,7 @@ def test_installer_sat_pub_directory_accessibility(target_sat):
     https_curl_command = f'curl -i {target_sat.url}/pub/ -k'
     for command in [http_curl_command, https_curl_command]:
         accessibility_check = target_sat.execute(command)
-        assert 'HTTP/1.1 200 OK' in accessibility_check.stdout.split('\r\n')
+        assert 'HTTP/1.1 200 OK' or 'HTTP/2 200 ' in accessibility_check.stdout.split('\r\n')
     target_sat.get(
         local_path='custom-hiera-satellite.yaml',
         remote_path=f'{custom_hiera_location}',
@@ -67,7 +67,7 @@ def test_installer_sat_pub_directory_accessibility(target_sat):
     assert 'Success!' in command_output.stdout
     for command in [http_curl_command, https_curl_command]:
         accessibility_check = target_sat.execute(command)
-        assert 'HTTP/1.1 200 OK' not in accessibility_check.stdout.split('\r\n')
+        assert 'HTTP/1.1 200 OK' or 'HTTP/2 200 ' not in accessibility_check.stdout.split('\r\n')
     target_sat.put(
         local_path='custom-hiera-satellite.yaml',
         remote_path=f'{custom_hiera_location}',

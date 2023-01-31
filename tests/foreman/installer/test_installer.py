@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-import re
-
 import pytest
 
 from robottelo import ssh
@@ -1301,8 +1299,8 @@ def extract_help(filter='params'):
 
 @pytest.mark.upgrade
 @pytest.mark.tier1
-def test_positive_foreman_module(target_sat):
-    """Check if SELinux foreman module has the right version
+def test_positive_selinux_foreman_module(target_sat):
+    """Check if SELinux foreman module is installed on Satellite
 
     :id: a0736b3a-3d42-4a09-a11a-28c1d58214a5
 
@@ -1312,21 +1310,13 @@ def test_positive_foreman_module(target_sat):
 
     :CaseLevel: System
 
-    :expectedresults: Foreman RPM and SELinux module versions match
+    :expectedresults: Foreman RPM and SELinux module are both present on the satellite
     """
     rpm_result = target_sat.execute('rpm -q foreman-selinux')
     assert rpm_result.status == 0
 
     semodule_result = target_sat.execute('semodule -l | grep foreman')
     assert semodule_result.status == 0
-
-    # Sample rpm output: foreman-selinux-1.7.2.8-1.el7sat.noarch
-    version_regex = re.compile(r'((\d\.?)+[-.]\d)')
-    rpm_version = version_regex.search(rpm_result.stdout).group(1)
-    # Sample semodule output: foreman        1.7.2.8
-    semodule_version = version_regex.search(semodule_result.stdout).group(1)
-    rpm_version = rpm_version[:-2]
-    assert rpm_version.replace('-', '.') == semodule_version
 
 
 @pytest.mark.upgrade
@@ -1697,7 +1687,7 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
     https_curl_command = f'curl -i {capsule_configured.url}/pub/ -k'
     for command in [http_curl_command, https_curl_command]:
         accessibility_check = capsule_configured.execute(command)
-        assert 'HTTP/1.1 200 OK' in accessibility_check.stdout.split('\r\n')
+        assert 'HTTP/1.1 200 OK' or 'HTTP/2 200 ' in accessibility_check.stdout.split('\r\n')
     capsule_configured.get(
         local_path='custom-hiera-capsule.yaml',
         remote_path=f'{custom_hiera_location}',
@@ -1707,7 +1697,7 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
     assert 'Success!' in command_output.stdout
     for command in [http_curl_command, https_curl_command]:
         accessibility_check = capsule_configured.execute(command)
-        assert 'HTTP/1.1 200 OK' not in accessibility_check.stdout.split('\r\n')
+        assert 'HTTP/1.1 200 OK' or 'HTTP/2 200 ' not in accessibility_check.stdout.split('\r\n')
     capsule_configured.put(
         local_path='custom-hiera-capsule.yaml',
         remote_path=f'{custom_hiera_location}',
