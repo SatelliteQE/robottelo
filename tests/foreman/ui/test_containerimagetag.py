@@ -8,7 +8,7 @@
 
 :CaseComponent: ContainerManagement-Content
 
-:Assignee: addubey
+:Team: Phoenix
 
 :TestType: Functional
 
