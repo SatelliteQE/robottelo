@@ -81,6 +81,7 @@ def test_positive_assign_ansible_role(target_sat):
     :CaseAutomation: Automated
     """
         
+    SELECTED_ROLE = 'RedHatInsights.insights-client'
     host = target_sat.api.Host().create()
     id = target_sat.internal_capsule.id
     target_sat.api.AnsibleRoles().sync(data={'proxy_id': id, 'role_names': [SELECTED_ROLE]})
@@ -112,8 +113,6 @@ def test_positive_ansible_job_on_host(target_sat, module_org, rhel_contenthost):
 
     :CaseAutomation: Automated
     """
-    
-    SELECTED_ROLE = 'RedHatInsights.insights-client'
 
     if rhel_contenthost.os_version.major <= 7:
         rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
