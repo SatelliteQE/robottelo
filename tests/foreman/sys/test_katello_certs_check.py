@@ -8,7 +8,7 @@
 
 :CaseComponent: Certificates
 
-:Assignee: okhatavk
+:Team: Platform
 
 :TestType: Functional
 

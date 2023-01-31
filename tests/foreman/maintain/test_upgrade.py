@@ -8,7 +8,7 @@
 
 :CaseComponent: ForemanMaintain
 
-:Assignee: gtalreja
+:Team: Platform
 
 :TestType: Functional
 

@@ -8,7 +8,7 @@
 
 :CaseComponent: satellite-change-hostname
 
-:Assignee: pondrejk
+:Team: Platform
 
 :TestType: Functional
 
