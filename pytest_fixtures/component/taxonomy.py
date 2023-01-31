@@ -160,7 +160,7 @@ def module_entitlement_manifest():
 
 @pytest.fixture(scope='module')
 def module_extra_rhel_entitlement_manifest():
-    """Yields a manifest in entitlementmode with subscriptions determined by the
+    """Yields a manifest in entitlement mode with subscriptions determined by the
     'manifest_category.extra_rhel_entitlement` setting in conf/manifest.yaml."""
     with Manifester(manifest_category=settings.manifest.extra_rhel_entitlement) as manifest:
         yield manifest

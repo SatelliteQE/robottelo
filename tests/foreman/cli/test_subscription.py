@@ -124,13 +124,10 @@ def test_positive_manifest_history(function_entitlement_manifest_org):
 
     :CaseImportance: Medium
     """
-    Subscription.list({'organization-id': function_entitlement_manifest_org.id}, per_page=None)
-    history = Subscription.manifest_history(
-        {'organization-id': function_entitlement_manifest_org.id}
-    )
-    assert f'{function_entitlement_manifest_org.name} file imported successfully.' in ''.join(
-        history
-    )
+    org = function_entitlement_manifest_org
+    Subscription.list({'organization-id': org.id}, per_page=None)
+    history = Subscription.manifest_history({'organization-id': org.id})
+    assert f'{org.name} file imported successfully.' in ''.join(history)
 
 
 @pytest.mark.tier1
