@@ -180,9 +180,7 @@ class TestGCEComputeResourceTestCases:
         compresource = entities.GCEComputeResource(
             name=cr_name,
             provider='GCE',
-            email=gce_cert['client_email'],
             key_path=settings.gce.cert_path,
-            project=gce_cert['project_id'],
             zone=settings.gce.zone,
             organization=[module_org],
             location=[module_location],
