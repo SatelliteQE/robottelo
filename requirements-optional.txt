@@ -3,12 +3,12 @@ codecov==2.1.12
 flake8==6.0.0
 pytest-cov==3.0.0
 redis==4.4.2
-pre-commit==2.21.0
+pre-commit==3.0.2
 
 
 # For generating documentation.
 sphinx==6.1.3
-sphinx-autoapi==2.0.0
+sphinx-autoapi==2.0.1
 
 # For 'manage' interactive shell
 manage>=0.1.13
