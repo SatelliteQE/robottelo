@@ -7,9 +7,9 @@ from xdist import is_xdist_worker
 from robottelo.logging import broker_log_setup
 from robottelo.logging import DEFAULT_DATE_FORMAT
 from robottelo.logging import logger
+from robottelo.logging import logging_yaml
 from robottelo.logging import robottelo_log_dir
 from robottelo.logging import robottelo_log_file
-from robottelo.logging import logging_yaml
 
 try:
     from pytest_reportportal import RPLogger
