@@ -2762,7 +2762,7 @@ class TestHostAnsible:
 
         :caseComponent: Ansible
 
-        :assignee: sbible
+        :Team: Rocket
 
         :CaseLevel: System
 
@@ -2791,7 +2791,7 @@ class TestHostAnsible:
 
         :caseComponent: Ansible
 
-        :assignee: sbible
+        :Team: Rocket
 
         :CaseLevel: System
 
@@ -2819,7 +2819,7 @@ class TestHostAnsible:
 
         :caseComponent: Ansible
 
-        :assignee: sbible
+        :Team: Rocket
 
         :CaseLevel: System
 
@@ -2844,7 +2844,7 @@ class TestHostAnsible:
 
         :caseComponent: Ansible
 
-        :assignee: sbible
+        :Team: Rocket
 
         :CaseLevel: System
 

@@ -136,7 +136,7 @@ def test_positive_schedule_recurring_host_job(self):
 
     :caseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
 
     :Steps:
         1. Register a RHEL host to Satellite.
@@ -163,7 +163,7 @@ def test_positive_schedule_recurring_hostgroup_job(self):
 
     :caseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
 
     :Steps:
         1. Register a RHEL host to Satellite.

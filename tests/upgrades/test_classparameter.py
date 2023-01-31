@@ -8,7 +8,7 @@
 
 :CaseComponent: Parameters
 
-:Assignee: pondrejk
+:Team: Rocket
 
 :TestType: Functional
 

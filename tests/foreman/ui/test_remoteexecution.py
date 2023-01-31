@@ -304,7 +304,7 @@ def test_positive_ansible_job_check_mode(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -329,7 +329,7 @@ def test_positive_ansible_config_report_failed_tasks_errors(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -355,7 +355,7 @@ def test_positive_ansible_config_report_changes_notice(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -378,7 +378,7 @@ def test_positive_ansible_variables_imported_with_roles(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -401,7 +401,7 @@ def test_positive_roles_import_in_background(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -425,7 +425,7 @@ def test_positive_ansible_roles_ignore_list(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -451,7 +451,7 @@ def test_positive_ansible_variables_installed_with_collection(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -479,7 +479,7 @@ def test_positive_install_ansible_collection_via_job_invocation(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -506,7 +506,7 @@ def test_positive_set_ansible_role_order_per_host(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -535,7 +535,7 @@ def test_positive_set_ansible_role_order_per_hostgroup(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -563,5 +563,5 @@ def test_positive_matcher_field_highlight(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
