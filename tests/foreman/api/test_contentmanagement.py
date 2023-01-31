@@ -324,7 +324,7 @@ class TestCapsuleContentManagement:
 
         :CaseComponent: RHCloud-Insights
 
-        :Assignee: addubey
+        :Team: Platform
 
         :customerscenario: true
 
