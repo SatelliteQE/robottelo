@@ -12,7 +12,7 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :CaseComponent: SubscriptionManagement
 
-:Assignee: chiggins
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -391,7 +391,7 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel7_conte
 
     :CustomerScenario: true
 
-    :Assignee: dsynk
+    :Team: Phoenix
 
     :BZ: 1949353
 

@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:Assignee: jpathan
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -324,6 +324,7 @@ def test_http_proxy_containing_special_characters():
             finished successfully.
 
     :CaseAutomation: NotAutomated
-
+    
     :CaseImportance: High
     """
+
