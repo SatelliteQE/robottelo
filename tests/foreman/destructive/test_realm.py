@@ -8,7 +8,7 @@
 
 :CaseComponent: Realm
 
-:Assignee: pondrejk
+:Team: Rocket
 
 :TestType: Functional
 

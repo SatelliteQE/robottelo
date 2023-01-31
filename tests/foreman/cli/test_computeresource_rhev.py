@@ -7,7 +7,7 @@
 
 :CaseComponent: ComputeResources-RHEV
 
-:Assignee: lhellebr
+:Team: Rocket
 
 :TestType: Functional
 
@@ -398,7 +398,7 @@ def test_positive_provision_rhev_with_host_group(
 
     :CaseComponent: ComputeResources-RHEV
 
-    :Assignee: lhellebr
+    :Team: Rocket
 
     :id: 97908521-3f4d-4207-93a3-23588b5a0a53
 
@@ -561,7 +561,7 @@ def test_positive_provision_rhev_image_based_and_disassociate(
 
     :CaseComponent: ComputeResources-RHEV
 
-    :Assignee: lhellebr
+    :Team: Rocket
 
     :id: ba78858f-5cff-462e-a35d-f5aa4d11db52
 

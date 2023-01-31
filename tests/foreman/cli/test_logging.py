@@ -8,7 +8,7 @@
 
 :CaseComponent: Logging
 
-:Assignee: shwsingh
+:Team: Rocket
 
 :TestType: Functional
 

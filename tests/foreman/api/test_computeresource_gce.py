@@ -11,7 +11,7 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 :CaseComponent: ComputeResources-GCE
 
-:Assignee: addubey
+:Team: Rocket
 
 :TestType: Functional
 
