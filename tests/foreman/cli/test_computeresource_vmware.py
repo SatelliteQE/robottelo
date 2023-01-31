@@ -5,7 +5,7 @@
 
 :CaseComponent: ComputeResources-VMWare
 
-:Assignee: lhellebr
+:Team: Rocket
 
 :TestType: Functional
 

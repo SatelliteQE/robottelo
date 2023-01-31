@@ -8,7 +8,7 @@
 
 :CaseComponent: Settings
 
-:Assignee: shwsingh
+:Team: Rocket
 
 :TestType: Functional
 
@@ -111,8 +111,6 @@ def test_positive_httpd_proxy_url_update(session, setting_update):
     :expectedresults: http_proxy_url updated successfully.
 
     :BZ: 1677282
-
-    :Assignee: jpathan
 
     :CaseImportance: Medium
 

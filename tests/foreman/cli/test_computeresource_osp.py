@@ -7,7 +7,7 @@
 
 :CaseComponent: ComputeResources-OpenStack
 
-:Assignee: sganar
+:Team: Rocket
 
 :TestType: Functional
 
