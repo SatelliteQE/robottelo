@@ -8,7 +8,7 @@
 
 :CaseComponent: UsersRoles
 
-:Assignee: sganar
+:Team: Endeavour
 
 :TestType: Functional
 

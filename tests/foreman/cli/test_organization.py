@@ -8,7 +8,7 @@
 
 :CaseComponent: OrganizationsLocations
 
-:Assignee: shwsingh
+:Team: Endeavour
 
 :TestType: Functional
 
