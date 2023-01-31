@@ -8,7 +8,7 @@
 
 :CaseComponent: TasksPlugin
 
-:Assignee: pondrejk
+:Team: Endeavour
 
 :TestType: Functional
 
