@@ -125,3 +125,4 @@ def test_positive_run_custom_job_template_by_ip(
         )
         status = session.jobinvocation.read(entity_name=job_description, host_name=hostname)
         assert status['overview']['hosts_table'][0]['Status'] == 'success'
+

@@ -8,7 +8,7 @@
 
 :CaseComponent: ComputeResources-Azure
 
-:Assignee: jyejare
+:Team: Rocket
 
 :TestType: Functional
 

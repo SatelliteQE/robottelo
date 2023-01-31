@@ -849,7 +849,7 @@ class TestAnsibleREX:
 
         :CaseComponent: Ansible
 
-        :Assignee: sbible
+        :Team: Rocket
         """
 
         # Configure repository to prepare for installing ansible on host

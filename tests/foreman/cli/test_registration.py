@@ -6,7 +6,11 @@
 
 :CaseComponent: Registration
 
-:Assignee: sbible
+:CaseAutomation: Automated
+
+:CaseImportance: Critical
+
+:Team: Rocket
 
 :TestType: Functional
 

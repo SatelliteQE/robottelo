@@ -8,7 +8,7 @@
 
 :CaseComponent: Settings
 
-:Assignee: shwsingh
+:Team: Rocket
 
 :TestType: Functional
 
