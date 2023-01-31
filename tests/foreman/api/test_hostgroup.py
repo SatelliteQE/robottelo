@@ -8,7 +8,7 @@
 
 :CaseComponent: HostGroup
 
-:Assignee: okhatavk
+:Team: Endeavour
 
 :TestType: Functional
 
