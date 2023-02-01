@@ -38,6 +38,27 @@ def module_os_with_minor():
 @pytest.mark.e2e
 @pytest.mark.no_containers
 def test_positive_end_to_end_crud(module_org, module_location, module_os, target_sat):
+    """Create a new provisioning template with several attributes, list, update them,
+       clone the provisioning template and then delete it
+
+    :id: 5f2e487c-07a5-423d-98ce-92ef1ad3b08d
+
+    :steps:
+        1. Create a provisioning template with several attributes.
+        2. Assert if all attributes are associated with the created template.
+        3. List the template.
+        4. Update the template and assert if it is properly updated.
+        5. Clone the template.
+        6. Assert if the cloned template contains all the attributes of parent template.
+        7. Delete the template.
+
+    :expectedresults: Template is created with all the given attributes, listed, updated,
+                      cloned and deleted.
+
+    :CaseImportance: High
+
+    :CaseAutomation: Automated
+    """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     cloned_template_name = gen_string('alpha')
