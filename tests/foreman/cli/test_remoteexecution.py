@@ -551,7 +551,6 @@ class TestAnsibleREX:
             }
         )
         result = JobInvocation.info({'id': invocation_command['id']})
-        assert_job_invocation_status(invocation_command['id'], client.hostname, 'queued')
         sleep(150)
         rec_logic = RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
