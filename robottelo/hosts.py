@@ -1754,9 +1754,6 @@ class Satellite(Capsule, SatelliteMixins):
             )
             task_status = self.api.ForemanTask(id=task['id']).poll()
             assert task_status['result'] == 'success'
-        subs = self.api.Subscription(organization=module_org, name=prod.name).search()
-        assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
-        subscription = subs[0]
 
         # register contenthost
         rhel_contenthost.install_katello_ca(self)
@@ -1770,16 +1767,23 @@ class Satellite(Capsule, SatelliteMixins):
             f'Failed to register the host: {rhel_contenthost.hostname}:'
             f'rc: {register.status}: {register.stderr}'
         )
+
         # attach product subscriptions to contenthost
-        rhel_contenthost.nailgun_host.bulk_add_subscriptions(
-            data={
-                "organization_id": module_org.id,
-                "included": {"ids": [rhel_contenthost.nailgun_host.id]},
-                "subscriptions": [{"id": subscription.id, "quantity": 1}],
-            }
-        )
-        # refresh repository metadata on the host
-        rhel_contenthost.execute('subscription-manager repos --list')
+        # this part is not needed if org is in SCA mode
+        if entities.Organization(id=module_org.id).read().simple_content_access is False:
+            subs = self.api.Subscription(organization=module_org, name=prod.name).search()
+            assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
+            subscription = subs[0]
+
+            rhel_contenthost.nailgun_host.bulk_add_subscriptions(
+                data={
+                    "organization_id": module_org.id,
+                    "included": {"ids": [rhel_contenthost.nailgun_host.id]},
+                    "subscriptions": [{"id": subscription.id, "quantity": 1}],
+                }
+            )
+            # refresh repository metadata on the host
+            rhel_contenthost.execute('subscription-manager repos --list')
 
 
 class SSOHost(Host):
