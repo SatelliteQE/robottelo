@@ -23,7 +23,7 @@ on:
 jobs:
   automerge:
     name: Automerge auto-cherry-picked pr
-    if: contains(github.event.pull_request.labels.*.name, 'AutoMerge_Cherry_Picked')
+    if: contains(github.event.pull_request.labels.*.name, 'AutoMerge_Cherry_Picked') && contains(github.event.pull_request.labels.*.name, 'Auto_Cherry_Picked')
     runs-on: ubuntu-latest
     steps:
       - id: find-prt-comment
