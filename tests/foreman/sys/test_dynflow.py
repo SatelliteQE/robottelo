@@ -36,6 +36,5 @@ def test_positive_setup_dynflow(target_sat):
         "grep -q ' of 6 busy' ; do sleep 0.5 ; done",
     ]
     # if thread count is not respected or the process is not running, this should timeout
-    res = target_sat.execute(' && '.join(commands))
-    assert res.status == 0
+    assert target_sat.execute(' && '.join(commands)).status == 0
     target_sat.execute("systemctl stop 'dynflow-sidekiq@test'; rm /etc/foreman/dynflow/test.yml")
