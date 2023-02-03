@@ -38,7 +38,6 @@ from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.settings import Settings
-from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DEFAULT_CV
@@ -46,7 +45,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import ANSIBLE_GALAXY
-from robottelo.utils.manifest import clone
 
 EXPORT_DIR = '/var/lib/pulp/exports/'
 IMPORT_DIR = '/var/lib/pulp/imports/'
@@ -284,11 +282,10 @@ class TestRepositoryExport:
         # Verify export directory is not empty
         assert validate_filepath(target_sat, function_org) != ''
 
-    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_complete_version_rh_repo(
-        self, target_sat, export_import_cleanup_module, module_org
+        self, target_sat, export_import_cleanup_module, module_entitlement_manifest_org
     ):
         """Export RedHat repo via complete version
 
@@ -301,14 +298,11 @@ class TestRepositoryExport:
         """
         # Enable RH repository
         cv_name = gen_string('alpha')
-        with clone() as manifest:
-            target_sat.put(manifest, manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': module_org.id})
         RepositorySet.enable(
             {
                 'basearch': 'x86_64',
                 'name': REPOSET['rhva6'],
-                'organization-id': module_org.id,
+                'organization-id': module_entitlement_manifest_org.id,
                 'product': PRDS['rhel'],
                 'releasever': '6Server',
             }
@@ -316,7 +310,7 @@ class TestRepositoryExport:
         repo = Repository.info(
             {
                 'name': REPOS['rhva6']['name'],
-                'organization-id': module_org.id,
+                'organization-id': module_entitlement_manifest_org.id,
                 'product': PRDS['rhel'],
             }
         )
@@ -324,11 +318,13 @@ class TestRepositoryExport:
         Repository.update({'download-policy': 'immediate', 'id': repo['id']})
         Repository.synchronize({'id': repo['id']})
         # Create cv and publish
-        cv = make_content_view({'name': cv_name, 'organization-id': module_org.id})
+        cv = make_content_view(
+            {'name': cv_name, 'organization-id': module_entitlement_manifest_org.id}
+        )
         ContentView.add_repository(
             {
                 'id': cv['id'],
-                'organization-id': module_org.id,
+                'organization-id': module_entitlement_manifest_org.id,
                 'repository-id': repo['id'],
             }
         )
@@ -337,17 +333,18 @@ class TestRepositoryExport:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert validate_filepath(target_sat, module_org) == ''
+        assert validate_filepath(target_sat, module_entitlement_manifest_org) == ''
         # Export content view
-        ContentExport.completeVersion({'id': cvv['id'], 'organization-id': module_org.id})
+        ContentExport.completeVersion(
+            {'id': cvv['id'], 'organization-id': module_entitlement_manifest_org.id}
+        )
         # Verify export directory is not empty
-        assert validate_filepath(target_sat, module_org) != ''
+        assert validate_filepath(target_sat, module_entitlement_manifest_org) != ''
 
-    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_complete_library_rh_repo(
-        self, export_import_cleanup_function, function_org, target_sat
+        self, export_import_cleanup_function, function_entitlement_manifest_org, target_sat
     ):
         """Export RedHat repo via complete library
 
@@ -360,14 +357,11 @@ class TestRepositoryExport:
         """
         # Enable RH repository
         cv_name = gen_string('alpha')
-        with clone() as manifest:
-            target_sat.put(manifest, manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': function_org.id})
         RepositorySet.enable(
             {
                 'basearch': 'x86_64',
                 'name': REPOSET['rhva6'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
                 'product': PRDS['rhel'],
                 'releasever': '6Server',
             }
@@ -375,7 +369,7 @@ class TestRepositoryExport:
         repo = Repository.info(
             {
                 'name': REPOS['rhva6']['name'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
                 'product': PRDS['rhel'],
             }
         )
@@ -383,21 +377,23 @@ class TestRepositoryExport:
         Repository.update({'download-policy': 'immediate', 'id': repo['id']})
         Repository.synchronize({'id': repo['id']}, timeout=7200000)
         # Create cv and publish
-        cv = make_content_view({'name': cv_name, 'organization-id': function_org.id})
+        cv = make_content_view(
+            {'name': cv_name, 'organization-id': function_entitlement_manifest_org.id}
+        )
         ContentView.add_repository(
             {
                 'id': cv['id'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
                 'repository-id': repo['id'],
             }
         )
         ContentView.publish({'id': cv['id']})
         # Verify export directory is empty
-        assert validate_filepath(target_sat, function_org) == ''
+        assert validate_filepath(target_sat, function_entitlement_manifest_org) == ''
         # Export content view
-        ContentExport.completeLibrary({'organization-id': function_org.id})
+        ContentExport.completeLibrary({'organization-id': function_entitlement_manifest_org.id})
         # Verify export directory is not empty
-        assert validate_filepath(target_sat, function_org) != ''
+        assert validate_filepath(target_sat, function_entitlement_manifest_org) != ''
 
 
 @pytest.fixture(scope='class')
@@ -457,7 +453,9 @@ def _create_cv(cv_name, repo, module_org, publish=True):
     return content_view, cvv_id
 
 
-def _enable_rhel_content(sat_obj, module_org, repo_name, releasever=None, product=None, sync=True):
+def _enable_rhel_content(
+    sat_obj, module_entitlement_manifest_org, repo_name, releasever=None, product=None, sync=True
+):
     """Enable and/or Synchronize rhel content
 
     :param organization: The organization directory into which the rhel
@@ -465,14 +463,11 @@ def _enable_rhel_content(sat_obj, module_org, repo_name, releasever=None, produc
     :param bool sync: Syncs contents to repository if true else doesnt
     :return: Repository cli object
     """
-    with clone() as manifest:
-        sat_obj.put(manifest, manifest.filename)
-    Subscription.upload({'file': manifest.filename, 'organization-id': module_org.id})
     RepositorySet.enable(
         {
             'basearch': 'x86_64',
             'name': REPOSET[repo_name],
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'product': PRDS[product],
             'releasever': releasever,
         }
@@ -480,7 +475,7 @@ def _enable_rhel_content(sat_obj, module_org, repo_name, releasever=None, produc
     repo = Repository.info(
         {
             'name': REPOS[repo_name]['name'],
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'product': PRDS[product],
         }
     )
@@ -492,7 +487,7 @@ def _enable_rhel_content(sat_obj, module_org, repo_name, releasever=None, produc
     repo = Repository.info(
         {
             'name': REPOS[repo_name]['name'],
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'product': PRDS[product],
         }
     )
@@ -912,7 +907,8 @@ class TestContentViewSync:
         self,
         export_import_cleanup_function,
         config_export_import_settings,
-        function_org,
+        function_entitlement_manifest_org,
+        duplicate_entitlement_manifest,
         target_sat,
     ):
         """Export CV version redhat contents in directory and Import them
@@ -946,14 +942,11 @@ class TestContentViewSync:
         """
         # Setup rhel repo
         cv_name = gen_string('alpha')
-        with clone() as manifest:
-            target_sat.put(manifest, manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': function_org.id})
         RepositorySet.enable(
             {
                 'basearch': 'x86_64',
                 'name': REPOSET['kickstart']['rhel7'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
                 'product': PRDS['rhel'],
                 'releasever': '7.9',
             }
@@ -961,7 +954,7 @@ class TestContentViewSync:
         repo = Repository.info(
             {
                 'name': REPOS['kickstart']['rhel7']['name'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
                 'product': PRDS['rhel'],
             }
         )
@@ -969,11 +962,13 @@ class TestContentViewSync:
         Repository.update({'download-policy': 'immediate', 'id': repo['id']})
         Repository.synchronize({'id': repo['id']}, timeout=7200000)
         # Create cv and publish
-        cv = make_content_view({'name': cv_name, 'organization-id': function_org.id})
+        cv = make_content_view(
+            {'name': cv_name, 'organization-id': function_entitlement_manifest_org.id}
+        )
         ContentView.add_repository(
             {
                 'id': cv['id'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
                 'repository-id': repo['id'],
             }
         )
@@ -982,26 +977,37 @@ class TestContentViewSync:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert validate_filepath(target_sat, function_org) == ''
+        assert validate_filepath(target_sat, function_entitlement_manifest_org) == ''
         # Export cv
         export = ContentExport.completeVersion(
-            {'id': cvv['id'], 'organization-id': function_org.id}
+            {'id': cvv['id'], 'organization-id': function_entitlement_manifest_org.id},
+            timeout=7200000,
         )
-        import_path = move_pulp_archive(target_sat, function_org, export['message'])
+        import_path = move_pulp_archive(
+            target_sat, function_entitlement_manifest_org, export['message']
+        )
         exported_packages = Package.list({'content-view-version-id': cvv['id']})
         assert len(exported_packages)
 
         # importing portion
-        importing_org = make_org()
+        importing_org = target_sat.api.Organization().create()
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
-        target_sat.upload_manifest(importing_org['id'], interface='CLI', timeout=7200000)
+        target_sat.upload_manifest(
+            importing_org.id,
+            duplicate_entitlement_manifest,
+            interface='CLI',
+            timeout=7200000,
+        )
+        importing_org.sca_disable()
         # set disconnected mode
         Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
-        ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
+        ContentImport.version(
+            {'organization-id': importing_org.id, 'path': import_path}, timeout=7200000
+        )
         # Import file and verify content
-        importing_cvv = ContentView.info({'name': cv_name, 'organization-id': importing_org['id']})[
+        importing_cvv = ContentView.info({'name': cv_name, 'organization-id': importing_org.id})[
             'versions'
         ]
         assert len(importing_cvv) >= 1
@@ -1012,14 +1018,14 @@ class TestContentViewSync:
             {
                 'name': repo['name'],
                 'product': repo['product']['name'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
             }
         )
         imported_repo = Repository.info(
             {
                 'name': repo['name'],
                 'product': repo['product']['name'],
-                'organization-id': importing_org['id'],
+                'organization-id': importing_org.id,
             }
         )
         for item in ['packages', 'source-rpms', 'package-groups', 'errata', 'module-streams']:
@@ -1031,7 +1037,8 @@ class TestContentViewSync:
         export_import_cleanup_function,
         config_export_import_settings,
         target_sat,
-        function_org,
+        function_entitlement_manifest_org,
+        duplicate_entitlement_manifest,
     ):
         """Export CV version redhat contents in directory and Import them
 
@@ -1062,14 +1069,11 @@ class TestContentViewSync:
         """
         cv_name = gen_string('alpha')
 
-        with clone() as manifest:
-            target_sat.put(manifest, manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': function_org.id})
         RepositorySet.enable(
             {
                 'basearch': 'x86_64',
                 'name': REPOSET['rhscl7'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
                 'product': PRDS['rhscl'],
                 'releasever': '7Server',
             }
@@ -1077,7 +1081,7 @@ class TestContentViewSync:
         repo = Repository.info(
             {
                 'name': REPOS['rhscl7']['name'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
                 'product': PRDS['rhscl'],
             }
         )
@@ -1085,11 +1089,13 @@ class TestContentViewSync:
         Repository.update({'download-policy': 'immediate', 'id': repo['id']})
         Repository.synchronize({'id': repo['id']}, timeout=7200000)
         # Create cv and publish
-        cv = make_content_view({'name': cv_name, 'organization-id': function_org.id})
+        cv = make_content_view(
+            {'name': cv_name, 'organization-id': function_entitlement_manifest_org.id}
+        )
         ContentView.add_repository(
             {
                 'id': cv['id'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
                 'repository-id': repo['id'],
             }
         )
@@ -1099,24 +1105,33 @@ class TestContentViewSync:
         cvv = cv['versions'][0]
         # Export cv
         export = ContentExport.completeVersion(
-            {'id': cvv['id'], 'organization-id': function_org.id}, timeout=7200000
+            {'id': cvv['id'], 'organization-id': function_entitlement_manifest_org.id},
+            timeout=7200000,
         )
-        import_path = move_pulp_archive(target_sat, function_org, export['message'])
+        import_path = move_pulp_archive(
+            target_sat, function_entitlement_manifest_org, export['message']
+        )
         exported_packages = Package.list({'content-view-version-id': cvv['id']})
         assert len(exported_packages)
         # importing portion
-        importing_org = make_org()
+        importing_org = target_sat.api.Organization().create()
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import and verify content
-        target_sat.upload_manifest(importing_org['id'], interface='CLI', timeout=7200000)
+        target_sat.upload_manifest(
+            importing_org.id,
+            duplicate_entitlement_manifest,
+            interface='CLI',
+            timeout=7200000,
+        )
+        importing_org.sca_disable()
         # set disconnected mode
         Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
         ContentImport.version(
-            {'organization-id': importing_org['id'], 'path': import_path}, timeout=7200000
+            {'organization-id': importing_org.id, 'path': import_path}, timeout=7200000
         )
-        importing_cvv = ContentView.info({'name': cv_name, 'organization-id': importing_org['id']})[
+        importing_cvv = ContentView.info({'name': cv_name, 'organization-id': importing_org.id})[
             'versions'
         ]
         assert len(importing_cvv) >= 1
@@ -1127,14 +1142,14 @@ class TestContentViewSync:
             {
                 'name': repo['name'],
                 'product': repo['product']['name'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
             }
         )
         imported_repo = Repository.info(
             {
                 'name': repo['name'],
                 'product': repo['product']['name'],
-                'organization-id': importing_org['id'],
+                'organization-id': importing_org.id,
             }
         )
         for item in ['packages', 'source-rpms', 'package-groups', 'errata', 'module-streams']:
@@ -1635,13 +1650,12 @@ class TestContentViewSync:
         assert len(import_product['content']) == 1
         assert import_product['content'][0]['content-type'] == "ansible_collection"
 
-    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier3
     def test_negative_import_redhat_cv_without_manifest(
         self,
         export_import_cleanup_function,
         config_export_import_settings,
-        function_org,
+        function_entitlement_manifest_org,
         target_sat,
     ):
         """Redhat content can't be imported into satellite/organization without manifest
@@ -1665,14 +1679,11 @@ class TestContentViewSync:
         """
         # Setup rhel repo
         cv_name = gen_string('alpha')
-        with clone() as manifest:
-            target_sat.put(manifest, manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': function_org.id})
         RepositorySet.enable(
             {
                 'basearch': 'x86_64',
                 'name': REPOSET['rhva6'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
                 'product': PRDS['rhel'],
                 'releasever': '6Server',
             }
@@ -1680,7 +1691,7 @@ class TestContentViewSync:
         repo = Repository.info(
             {
                 'name': REPOS['rhva6']['name'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
                 'product': PRDS['rhel'],
             }
         )
@@ -1688,11 +1699,13 @@ class TestContentViewSync:
         Repository.update({'download-policy': 'immediate', 'id': repo['id']})
         Repository.synchronize({'id': repo['id']}, timeout=7200000)
         # Create cv and publish
-        cv = make_content_view({'name': cv_name, 'organization-id': function_org.id})
+        cv = make_content_view(
+            {'name': cv_name, 'organization-id': function_entitlement_manifest_org.id}
+        )
         ContentView.add_repository(
             {
                 'id': cv['id'],
-                'organization-id': function_org.id,
+                'organization-id': function_entitlement_manifest_org.id,
                 'repository-id': repo['id'],
             }
         )
@@ -1701,12 +1714,14 @@ class TestContentViewSync:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert validate_filepath(target_sat, function_org) == ''
+        assert validate_filepath(target_sat, function_entitlement_manifest_org) == ''
         # Export cv
         export = ContentExport.completeVersion(
-            {'id': cvv['id'], 'organization-id': function_org.id}
+            {'id': cvv['id'], 'organization-id': function_entitlement_manifest_org.id}
         )
-        import_path = move_pulp_archive(target_sat, function_org, export['message'])
+        import_path = move_pulp_archive(
+            target_sat, function_entitlement_manifest_org, export['message']
+        )
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
