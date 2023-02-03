@@ -18,49 +18,47 @@
 """
 import pytest
 
-from robottelo.cli.factory import make_org
 from robottelo.cli.product import Product
 from robottelo.cli.repository_set import RepositorySet
-from robottelo.cli.subscription import Subscription
 from robottelo.constants import PRDS
 from robottelo.constants import REPOSET
-from robottelo.utils.manifest import clone
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.tier1]
 
 
 @pytest.fixture
-def params(manifest_org):
+def params(function_entitlement_manifest_org):
     PRODUCT_NAME = PRDS['rhel']
     REPOSET_NAME = REPOSET['rhva6']
     ARCH = 'x86_64'
     ARCH_2 = 'i386'
     RELEASE = '6Server'
+    manifest_org = function_entitlement_manifest_org
 
-    product_id = Product.info({'name': PRODUCT_NAME, 'organization-id': manifest_org['id']})['id']
+    product_id = Product.info({'name': PRODUCT_NAME, 'organization-id': manifest_org.id})['id']
     reposet_id = RepositorySet.info(
-        {'name': REPOSET_NAME, 'organization-id': manifest_org['id'], 'product-id': product_id}
+        {'name': REPOSET_NAME, 'organization-id': manifest_org.id, 'product-id': product_id}
     )['id']
 
     avail = {
         'id': {
             'name': REPOSET_NAME,
-            'organization-id': manifest_org['id'],
+            'organization-id': manifest_org.id,
             'product': PRODUCT_NAME,
         },
         'ids': {
             'id': reposet_id,
-            'organization-id': manifest_org['id'],
+            'organization-id': manifest_org.id,
             'product-id': product_id,
         },
         'label': {
             'name': REPOSET_NAME,
-            'organization-label': manifest_org['label'],
+            'organization-label': manifest_org.label,
             'product': PRODUCT_NAME,
         },
         'name': {
             'name': REPOSET_NAME,
-            'organization': manifest_org['name'],
+            'organization': manifest_org.name,
             'product': PRODUCT_NAME,
         },
     }
@@ -69,35 +67,35 @@ def params(manifest_org):
         'arch_2': {
             'basearch': ARCH_2,
             'name': REPOSET_NAME,
-            'organization-id': manifest_org['id'],
+            'organization-id': manifest_org.id,
             'product': PRODUCT_NAME,
             'releasever': RELEASE,
         },
         'id': {
             'basearch': ARCH,
             'name': REPOSET_NAME,
-            'organization-id': manifest_org['id'],
+            'organization-id': manifest_org.id,
             'product': PRODUCT_NAME,
             'releasever': RELEASE,
         },
         'ids': {
             'basearch': ARCH,
             'id': reposet_id,
-            'organization-id': manifest_org['id'],
+            'organization-id': manifest_org.id,
             'product-id': product_id,
             'releasever': RELEASE,
         },
         'label': {
             'basearch': ARCH,
             'name': REPOSET_NAME,
-            'organization-label': manifest_org['label'],
+            'organization-label': manifest_org.label,
             'product': PRODUCT_NAME,
             'releasever': RELEASE,
         },
         'name': {
             'basearch': ARCH,
             'name': REPOSET_NAME,
-            'organization': manifest_org['name'],
+            'organization': manifest_org.name,
             'product': PRODUCT_NAME,
             'releasever': RELEASE,
         },
@@ -109,21 +107,6 @@ def params(manifest_org):
     }
 
     return {'enable': enable, 'avail': avail, 'match': match}
-
-
-@pytest.fixture
-def org():
-    """Create and return an organization."""
-    return make_org()
-
-
-@pytest.fixture
-def manifest_org(org, target_sat):
-    """Upload a manifest to the organization."""
-    with clone() as manifest:
-        target_sat.put(manifest, manifest.filename)
-    Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
-    return org
 
 
 def match_repos(repos, match_params):

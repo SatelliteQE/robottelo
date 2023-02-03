@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import re
-from tempfile import NamedTemporaryFile
 
 import pytest
 from fauxfactory import gen_string
@@ -27,11 +26,8 @@ from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
-from robottelo.cli.subscription import Subscription
-from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 from robottelo.logging import logger
-from robottelo.utils.manifest import clone
 
 
 def cut_lines(start_line, end_line, source_file, out_file, host):
@@ -141,7 +137,7 @@ def test_positive_logging_from_foreman_proxy(target_sat):
 
 
 @pytest.mark.tier4
-def test_positive_logging_from_candlepin(module_org, target_sat):
+def test_positive_logging_from_candlepin(module_org, module_entitlement_manifest, target_sat):
     """Check logging after manifest upload.
 
     :id: 8c06e501-52d7-4baf-903e-7de9caffb066
@@ -159,12 +155,8 @@ def test_positive_logging_from_candlepin(module_org, target_sat):
     # get the number of lines in the source log before the test
     line_count_start = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
     # command for this test
-    with clone() as manifest:
-        with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
-            content_file.write(manifest.content.read())
-            content_file.seek(0)
-            target_sat.put(local_path=content_file.name, remote_path=manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': module_org.id})
+    with module_entitlement_manifest as manifest:
+        target_sat.upload_manifest(module_org.id, manifest, interface='CLI')
     # get the number of lines in the source log after the test
     line_count_end = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
     # get the log lines of interest, put them in test_logfile

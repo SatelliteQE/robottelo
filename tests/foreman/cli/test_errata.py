@@ -160,29 +160,28 @@ def products_with_repos(orgs):
 
 
 @pytest.fixture(scope='module')
-def rh_repo(module_org, module_lce, module_cv, module_ak_cv_lce):
+def rh_repo(module_entitlement_manifest_org, module_lce, module_cv, module_ak_cv_lce):
     """Add a subscription for the Satellite Tools repo to activation key."""
     setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
             'repository': REPOS['rhst7']['name'],
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'content-view-id': module_cv.id,
             'lifecycle-environment-id': module_lce.id,
             'activationkey-id': module_ak_cv_lce.id,
         },
-        force_manifest_upload=True,
     )
 
 
 @pytest.fixture(scope='module')
-def custom_repo(module_org, module_lce, module_cv, module_ak_cv_lce):
+def custom_repo(module_entitlement_manifest_org, module_lce, module_cv, module_ak_cv_lce):
     """Create custom repo and add a subscription to activation key."""
     setup_org_for_a_custom_repo(
         {
             'url': REPO_WITH_ERRATA['url'],
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'content-view-id': module_cv.id,
             'lifecycle-environment-id': module_lce.id,
             'activationkey-id': module_ak_cv_lce.id,
@@ -201,11 +200,18 @@ def hosts(request):
 
 
 @pytest.fixture(scope='module')
-def register_hosts(hosts, module_org, module_ak_cv_lce, rh_repo, custom_repo, module_target_sat):
+def register_hosts(
+    hosts,
+    module_entitlement_manifest_org,
+    module_ak_cv_lce,
+    rh_repo,
+    custom_repo,
+    module_target_sat,
+):
     """Register hosts to Satellite and install katello-agent rpm."""
     for host in hosts:
         host.install_katello_ca(module_target_sat)
-        host.register_contenthost(module_org.name, module_ak_cv_lce.name)
+        host.register_contenthost(module_entitlement_manifest_org.name, module_ak_cv_lce.name)
         host.enable_repo(REPOS['rhst7']['id'])
         host.install_katello_agent()
     return hosts
@@ -232,14 +238,14 @@ def errata_hosts(register_hosts):
 
 
 @pytest.fixture(scope='module')
-def host_collection(module_org, module_ak_cv_lce, register_hosts):
+def host_collection(module_entitlement_manifest_org, module_ak_cv_lce, register_hosts):
     """Create and setup host collection."""
-    host_collection = make_host_collection({'organization-id': module_org.id})
+    host_collection = make_host_collection({'organization-id': module_entitlement_manifest_org.id})
     host_ids = [Host.info({'name': host.hostname})['id'] for host in register_hosts]
     HostCollection.add_host(
         {
             'id': host_collection['id'],
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'host-ids': host_ids,
         }
     )
@@ -247,7 +253,7 @@ def host_collection(module_org, module_ak_cv_lce, register_hosts):
         {
             'id': module_ak_cv_lce.id,
             'host-collection-id': host_collection['id'],
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
         }
     )
     return host_collection
@@ -382,7 +388,12 @@ def cv_filter_cleanup(filter_id, cv, org, lce):
 )
 @pytest.mark.no_containers
 def test_positive_install_by_host_collection_and_org(
-    module_org, host_collection, errata_hosts, filter_by_hc, filter_by_org, target_sat
+    module_entitlement_manifest_org,
+    host_collection,
+    errata_hosts,
+    filter_by_hc,
+    filter_by_org,
+    target_sat,
 ):
     """Use host collection id or name and org id, name, or label to install an update on the host
     collection.
@@ -418,13 +429,13 @@ def test_positive_install_by_host_collection_and_org(
 
     if filter_by_org == "id":
         organization_key = 'organization-id'
-        organization_value = module_org.id
+        organization_value = module_entitlement_manifest_org.id
     elif filter_by_org == "name":
         organization_key = 'organization'
-        organization_value = module_org.name
+        organization_value = module_entitlement_manifest_org.name
     elif filter_by_org == "title":
         organization_key = 'organization-title'
-        organization_value = module_org.title
+        organization_value = module_entitlement_manifest_org.title
 
     JobInvocation.create(
         {
@@ -440,7 +451,9 @@ def test_positive_install_by_host_collection_and_org(
 
 
 @pytest.mark.tier3
-def test_negative_install_by_hc_id_without_errata_info(module_org, host_collection, errata_hosts):
+def test_negative_install_by_hc_id_without_errata_info(
+    module_entitlement_manifest_org, host_collection, errata_hosts
+):
     """Attempt to install an erratum on a host collection by host collection id but no errata info
     specified.
 
@@ -459,12 +472,17 @@ def test_negative_install_by_hc_id_without_errata_info(module_org, host_collecti
     """
     with pytest.raises(CLIReturnCodeError, match="Error: Option '--errata' is required"):
         HostCollection.erratum_install(
-            {'id': host_collection['id'], 'organization-id': module_org.id}
+            {
+                'id': host_collection['id'],
+                'organization-id': module_entitlement_manifest_org.id,
+            }
         )
 
 
 @pytest.mark.tier3
-def test_negative_install_by_hc_name_without_errata_info(module_org, host_collection, errata_hosts):
+def test_negative_install_by_hc_name_without_errata_info(
+    module_entitlement_manifest_org, host_collection, errata_hosts
+):
     """Attempt to install an erratum on a host collection by host collection name but no errata
     info specified.
 
@@ -483,12 +501,15 @@ def test_negative_install_by_hc_name_without_errata_info(module_org, host_collec
     """
     with pytest.raises(CLIReturnCodeError, match="Error: Option '--errata' is required"):
         HostCollection.erratum_install(
-            {'name': host_collection['name'], 'organization-id': module_org.id}
+            {
+                'name': host_collection['name'],
+                'organization-id': module_entitlement_manifest_org.id,
+            }
         )
 
 
 @pytest.mark.tier3
-def test_negative_install_without_hc_info(module_org, host_collection):
+def test_negative_install_without_hc_info(module_entitlement_manifest_org, host_collection):
     """Attempt to install an erratum on a host collection without specifying host collection info.
     This test only works with two or more host collections (BZ#1928281).
     We have the one from the fixture, just need to create one more at the start of the test.
@@ -508,15 +529,20 @@ def test_negative_install_without_hc_info(module_org, host_collection):
 
     :CaseLevel: System
     """
-    make_host_collection({'organization-id': module_org.id})
+    make_host_collection({'organization-id': module_entitlement_manifest_org.id})
     with pytest.raises(CLIReturnCodeError):
         HostCollection.erratum_install(
-            {'organization-id': module_org.id, 'errata': [REPO_WITH_ERRATA['errata'][0]['id']]}
+            {
+                'organization-id': module_entitlement_manifest_org.id,
+                'errata': [REPO_WITH_ERRATA['errata'][0]['id']],
+            }
         )
 
 
 @pytest.mark.tier3
-def test_negative_install_by_hc_id_without_org_info(module_org, host_collection):
+def test_negative_install_by_hc_id_without_org_info(
+    module_entitlement_manifest_org, host_collection
+):
     """Attempt to install an erratum on a host collection by host collection id but without
     specifying any org info.
 
@@ -539,7 +565,9 @@ def test_negative_install_by_hc_id_without_org_info(module_org, host_collection)
 
 
 @pytest.mark.tier3
-def test_negative_install_by_hc_name_without_org_info(module_org, host_collection):
+def test_negative_install_by_hc_name_without_org_info(
+    module_entitlement_manifest_org, host_collection
+):
     """Attempt to install an erratum on a host collection by host collection name but without
     specifying any org info.
 
@@ -563,7 +591,7 @@ def test_negative_install_by_hc_name_without_org_info(module_org, host_collectio
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_list_affected_chosts(module_org, errata_hosts):
+def test_positive_list_affected_chosts(module_entitlement_manifest_org, errata_hosts):
     """View a list of affected content hosts for an erratum.
 
     :id: 3b592253-52c0-4165-9a48-ba55287e9ee9
@@ -581,7 +609,7 @@ def test_positive_list_affected_chosts(module_org, errata_hosts):
     result = Host.list(
         {
             'search': f'applicable_errata = {REPO_WITH_ERRATA["errata"][0]["id"]}',
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'fields': 'Name',
         }
     )
@@ -594,7 +622,9 @@ def test_positive_list_affected_chosts(module_org, errata_hosts):
 
 @pytest.mark.tier3
 @pytest.mark.no_containers
-def test_install_errata_to_one_host(module_org, errata_hosts, host_collection, target_sat):
+def test_install_errata_to_one_host(
+    module_entitlement_manifest_org, errata_hosts, host_collection, target_sat
+):
     """Install an erratum to one of the hosts in a host collection.
 
     :id: bfcee2de-3448-497e-a696-fcd30cea9d33
@@ -646,7 +676,7 @@ def test_install_errata_to_one_host(module_org, errata_hosts, host_collection, t
 @pytest.mark.tier3
 @pytest.mark.e2e
 def test_positive_list_affected_chosts_by_erratum_restrict_flag(
-    request, module_org, module_cv, module_lce, errata_hosts
+    request, module_entitlement_manifest_org, module_cv, module_lce, errata_hosts
 ):
     """View a list of affected content hosts for an erratum filtered
     with restrict flags. Applicability is calculated using the Library,
@@ -693,7 +723,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         'errata-restrict-installable': 1,
         'content-view-id': module_cv.id,
         'lifecycle-environment-id': module_lce.id,
-        'organization-id': module_org.id,
+        'organization-id': module_entitlement_manifest_org.id,
         'per-page': PER_PAGE_LARGE,
     }
     errata_ids = get_errata_ids(param)
@@ -705,7 +735,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         'errata-restrict-installable': 0,
         'content-view-id': module_cv.id,
         'lifecycle-environment-id': module_lce.id,
-        'organization-id': module_org.id,
+        'organization-id': module_entitlement_manifest_org.id,
         'per-page': PER_PAGE_LARGE,
     }
     errata_ids = get_errata_ids(param)
@@ -716,7 +746,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     # Check list of applicable errata
     param = {
         'errata-restrict-applicable': 1,
-        'organization-id': module_org.id,
+        'organization-id': module_entitlement_manifest_org.id,
         'per-page': PER_PAGE_LARGE,
     }
     errata_ids = get_errata_ids(param)
@@ -725,7 +755,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     # Check search of errata is not affected by applicable=0 restrict flag
     param = {
         'errata-restrict-applicable': 0,
-        'organization-id': module_org.id,
+        'organization-id': module_entitlement_manifest_org.id,
         'per-page': PER_PAGE_LARGE,
     }
     errata_ids = get_errata_ids(param)
@@ -740,7 +770,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
             'content-view-id': module_cv.id,
             'name': 'erratum_restrict_test',
             'description': 'Hide the installable errata',
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'type': 'rpm',
             'inclusion': 'false',
         }
@@ -748,7 +778,12 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
 
     @request.addfinalizer
     def cleanup():
-        cv_filter_cleanup(cv_filter['filter-id'], module_cv, module_org, module_lce)
+        cv_filter_cleanup(
+            cv_filter['filter-id'],
+            module_cv,
+            module_entitlement_manifest_org,
+            module_lce,
+        )
 
     # Make rule to hide the RPM that creates the need for the installable erratum
     make_content_view_filter_rule(
@@ -760,14 +795,14 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     )
 
     # Publish and promote a new version with the filter
-    cv_publish_promote(module_cv, module_org, module_lce)
+    cv_publish_promote(module_cv, module_entitlement_manifest_org, module_lce)
 
     # Check that the installable erratum is no longer present in the list
     param = {
         'errata-restrict-installable': 0,
         'content-view-id': module_cv.id,
         'lifecycle-environment-id': module_lce.id,
-        'organization-id': module_org.id,
+        'organization-id': module_entitlement_manifest_org.id,
         'per-page': PER_PAGE_LARGE,
     }
     errata_ids = get_errata_ids(param)
@@ -776,7 +811,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     # Check errata still applicable
     param = {
         'errata-restrict-applicable': 1,
-        'organization-id': module_org.id,
+        'organization-id': module_entitlement_manifest_org.id,
         'per-page': PER_PAGE_LARGE,
     }
     errata_ids = get_errata_ids(param)
@@ -785,7 +820,12 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
 
 @pytest.mark.tier3
 def test_host_errata_search_commands(
-    request, module_org, module_cv, module_lce, host_collection, errata_hosts
+    request,
+    module_entitlement_manifest_org,
+    module_cv,
+    module_lce,
+    host_collection,
+    errata_hosts,
 ):
     """View a list of affected hosts for security (RHSA) and bugfix (RHBA) errata,
     filtered with errata status and applicable flags. Applicability is calculated using the
@@ -840,7 +880,7 @@ def test_host_errata_search_commands(
     result = Host.list(
         {
             'search': 'errata_status = errata_needed',
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'per-page': PER_PAGE_LARGE,
         }
     )
@@ -852,7 +892,7 @@ def test_host_errata_search_commands(
     result = Host.list(
         {
             'search': 'errata_status = security_needed',
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'per-page': PER_PAGE_LARGE,
         }
     )
@@ -864,7 +904,7 @@ def test_host_errata_search_commands(
     result = Host.list(
         {
             'search': f'applicable_errata = {errata[1]["id"]}',
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'per-page': PER_PAGE_LARGE,
         }
     )
@@ -876,7 +916,7 @@ def test_host_errata_search_commands(
     result = Host.list(
         {
             'search': f'applicable_errata = {errata[0]["id"]}',
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'per-page': PER_PAGE_LARGE,
         }
     )
@@ -888,7 +928,7 @@ def test_host_errata_search_commands(
     result = Host.list(
         {
             'search': f'applicable_rpms = {errata[1]["new_package"]}',
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'per-page': PER_PAGE_LARGE,
         }
     )
@@ -900,7 +940,7 @@ def test_host_errata_search_commands(
     result = Host.list(
         {
             'search': f'applicable_rpms = {errata[0]["new_package"]}',
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'per-page': PER_PAGE_LARGE,
         }
     )
@@ -915,7 +955,7 @@ def test_host_errata_search_commands(
             'content-view-id': module_cv.id,
             'name': 'erratum_search_test',
             'description': 'Hide the installable errata',
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'type': 'rpm',
             'inclusion': 'false',
         }
@@ -923,7 +963,12 @@ def test_host_errata_search_commands(
 
     @request.addfinalizer
     def cleanup():
-        cv_filter_cleanup(cv_filter['filter-id'], module_cv, module_org, module_lce)
+        cv_filter_cleanup(
+            cv_filter['filter-id'],
+            module_cv,
+            module_entitlement_manifest_org,
+            module_lce,
+        )
 
     # Make rule to exclude the specified bugfix package
     make_content_view_filter_rule(
@@ -935,14 +980,14 @@ def test_host_errata_search_commands(
     )
 
     # Publish and promote a new version with the filter
-    cv_publish_promote(module_cv, module_org, module_lce)
+    cv_publish_promote(module_cv, module_entitlement_manifest_org, module_lce)
 
     # Step 8: Run tests again. Applicable should still be true, installable should now be false.
     # Search for hosts that require the bugfix package.
     result = Host.list(
         {
             'search': f'applicable_rpms = {errata[1]["new_package"]}',
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'per-page': PER_PAGE_LARGE,
         }
     )
@@ -954,7 +999,7 @@ def test_host_errata_search_commands(
     result = Host.list(
         {
             'search': f'installable_errata = {errata[1]["id"]}',
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'per-page': PER_PAGE_LARGE,
         }
     )
@@ -971,7 +1016,7 @@ def test_host_errata_search_commands(
     ids=('org_id', 'org_name', 'org_label', 'no_org_filter'),
 )
 def test_positive_list_filter_by_org_sort_by_date(
-    module_org, rh_repo, custom_repo, filter_by_org, sort_by_date
+    module_entitlement_manifest_org, rh_repo, custom_repo, filter_by_org, sort_by_date
 ):
     """Filter by organization and sort by date.
 
@@ -987,7 +1032,11 @@ def test_positive_list_filter_by_org_sort_by_date(
 
     :expectedresults: Errata are filtered by org and sorted by date.
     """
-    filter_sort_errata(module_org, sort_by_date=sort_by_date, filter_by_org=filter_by_org)
+    filter_sort_errata(
+        module_entitlement_manifest_org,
+        sort_by_date=sort_by_date,
+        filter_by_org=filter_by_org,
+    )
 
 
 @pytest.mark.tier3
@@ -1111,7 +1160,7 @@ def test_positive_list_filter_by_org(products_with_repos, filter_by_org):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_positive_list_filter_by_cve(module_org, rh_repo):
+def test_positive_list_filter_by_cve(module_entitlement_manifest_org, rh_repo):
     """Filter errata by CVE
 
     :id: 7791137c-95a7-4518-a56b-766a5680c5fb
@@ -1126,7 +1175,7 @@ def test_positive_list_filter_by_cve(module_org, rh_repo):
     RepositorySet.enable(
         {
             'name': REPOSET['rhva6'],
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'product': PRDS['rhel'],
             'releasever': '6Server',
             'basearch': 'x86_64',
@@ -1135,14 +1184,14 @@ def test_positive_list_filter_by_cve(module_org, rh_repo):
     Repository.synchronize(
         {
             'name': REPOS['rhva6']['name'],
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'product': PRDS['rhel'],
         }
     )
     repository_info = Repository.info(
         {
             'name': REPOS['rhva6']['name'],
-            'organization-id': module_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'product': PRDS['rhel'],
         }
     )
@@ -1260,7 +1309,7 @@ def test_positive_user_permission(products_with_repos):
 
 
 @pytest.mark.tier3
-def test_positive_check_errata_dates(module_org):
+def test_positive_check_errata_dates(module_entitlement_manifest_org):
     """Check for errata dates in `hammer erratum list`
 
     :id: b19286ae-bdb4-4319-87d0-5d3ff06c5f38
@@ -1273,7 +1322,7 @@ def test_positive_check_errata_dates(module_org):
 
     :BZ: 1695163
     """
-    product = entities.Product(organization=module_org).create()
+    product = entities.Product(organization=module_entitlement_manifest_org).create()
     repo = make_repository(
         {'content-type': 'yum', 'product-id': product.id, 'url': REPO_WITH_ERRATA['url']}
     )
@@ -1295,12 +1344,12 @@ def test_positive_check_errata_dates(module_org):
 
 
 @pytest.fixture(scope='module')
-def rh_repo_module_manifest(module_manifest_org):
+def rh_repo_module_manifest(module_entitlement_manifest_org):
     """Use module manifest org, creates RH tools repo, syncs and returns RH repo."""
     # enable rhel repo and return its ID
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
-        org_id=module_manifest_org.id,
+        org_id=module_entitlement_manifest_org.id,
         product=PRDS['rhel'],
         repo=REPOS['rhst7']['name'],
         reposet=REPOSET['rhst7'],
@@ -1318,18 +1367,18 @@ def rh_repo_module_manifest(module_manifest_org):
 
 
 @pytest.fixture(scope='module')
-def new_module_ak(module_manifest_org, rh_repo_module_manifest, default_lce):
+def new_module_ak(module_entitlement_manifest_org, rh_repo_module_manifest, default_lce):
     new_module_ak = entities.ActivationKey(
-        content_view=module_manifest_org.default_content_view,
-        environment=entities.LifecycleEnvironment(id=module_manifest_org.library.id),
-        organization=module_manifest_org,
+        content_view=module_entitlement_manifest_org.default_content_view,
+        environment=entities.LifecycleEnvironment(id=module_entitlement_manifest_org.library.id),
+        organization=module_entitlement_manifest_org,
     ).create()
     # Ensure tools repo is enabled in the activation key
     new_module_ak.content_override(
         data={'content_overrides': [{'content_label': REPOS['rhst7']['id'], 'value': '1'}]}
     )
     # Fetch available subscriptions
-    subs = entities.Subscription(organization=module_manifest_org).search(
+    subs = entities.Subscription(organization=module_entitlement_manifest_org).search(
         query={'search': f'{DEFAULT_SUBSCRIPTION_NAME}'}
     )
     assert subs
@@ -1339,12 +1388,16 @@ def new_module_ak(module_manifest_org, rh_repo_module_manifest, default_lce):
 
 
 @pytest.fixture
-def errata_host(module_manifest_org, rhel7_contenthost_module, new_module_ak, target_sat):
+def errata_host(
+    module_entitlement_manifest_org, rhel7_contenthost_module, new_module_ak, target_sat
+):
     """A RHEL77 Content Host that has applicable errata and registered to Library"""
     # python-psutil is obsoleted by python2-psutil, so get older python2-psutil for errata test
     rhel7_contenthost_module.run(f'rpm -Uvh {settings.repos.epel_repo.url}/{PSUTIL_RPM}')
     rhel7_contenthost_module.install_katello_ca(target_sat)
-    rhel7_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
+    rhel7_contenthost_module.register_contenthost(
+        module_entitlement_manifest_org.label, new_module_ak.name
+    )
     assert rhel7_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
     rhel7_contenthost_module.install_katello_host_tools()
     rhel7_contenthost_module.add_rex_key(satellite=target_sat)
@@ -1352,10 +1405,12 @@ def errata_host(module_manifest_org, rhel7_contenthost_module, new_module_ak, ta
 
 
 @pytest.fixture
-def chost(module_manifest_org, rhel7_contenthost_module, new_module_ak, target_sat):
+def chost(module_entitlement_manifest_org, rhel7_contenthost_module, new_module_ak, target_sat):
     """A RHEL77 Content Host registered to Library that does not have applicable errata"""
     rhel7_contenthost_module.install_katello_ca(target_sat)
-    rhel7_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
+    rhel7_contenthost_module.register_contenthost(
+        module_entitlement_manifest_org.label, new_module_ak.name
+    )
     assert rhel7_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
     rhel7_contenthost_module.install_katello_host_tools()
     return rhel7_contenthost_module
@@ -1608,7 +1663,9 @@ def test_install_applicable_package_to_registerd_host(chost):
 
 @pytest.mark.tier2
 @pytest.mark.no_containers
-def test_downgrading_package_shows_errata_from_library(errata_host, module_manifest_org):
+def test_downgrading_package_shows_errata_from_library(
+    errata_host, module_entitlement_manifest_org
+):
     """Downgrading a package on a host attached to the default content view
     causes the package to become applicable and installable.
 
@@ -1658,7 +1715,7 @@ def test_downgrading_package_shows_errata_from_library(errata_host, module_manif
     # check that errata is applicable
     param = {
         'errata-restrict-applicable': 1,
-        'organization-id': module_manifest_org.id,
+        'organization-id': module_entitlement_manifest_org.id,
         'per-page': PER_PAGE_LARGE,
     }
     errata_ids = get_errata_ids(param)
@@ -1667,7 +1724,7 @@ def test_downgrading_package_shows_errata_from_library(errata_host, module_manif
 
 @pytest.mark.skip_if_open('BZ:1785146')
 @pytest.mark.tier2
-def test_errata_list_by_contentview_filter(module_org):
+def test_errata_list_by_contentview_filter(module_entitlement_manifest_org):
     """Hammer command to list errata should take filter ID into consideration.
 
     :id: e9355a92-8354-4853-a806-d388ed32d73e
@@ -1687,15 +1744,24 @@ def test_errata_list_by_contentview_filter(module_org):
 
     :BZ: 1785146
     """
-    product = entities.Product(organization=module_org).create()
+    product = entities.Product(organization=module_entitlement_manifest_org).create()
     repo = make_repository(
         {'content-type': 'yum', 'product-id': product.id, 'url': REPO_WITH_ERRATA['url']}
     )
     Repository.synchronize({'id': repo['id']})
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
-    cv = entities.ContentView(organization=module_org, repository=[repo['id']]).create()
-    cv_publish_promote(cv, module_org, lce)
-    errata_count = len(Erratum.list({'organization-id': module_org.id, 'content-view-id': cv.id}))
+    lce = entities.LifecycleEnvironment(organization=module_entitlement_manifest_org).create()
+    cv = entities.ContentView(
+        organization=module_entitlement_manifest_org, repository=[repo['id']]
+    ).create()
+    cv_publish_promote(cv, module_entitlement_manifest_org, lce)
+    errata_count = len(
+        Erratum.list(
+            {
+                'organization-id': module_entitlement_manifest_org.id,
+                'content-view-id': cv.id,
+            }
+        )
+    )
     cvf = entities.ErratumContentViewFilter(content_view=cv, inclusion=True).create()
     errata_id = entities.Errata().search(
         query={'search': f'errata_id="{settings.repos.yum_9.errata[0]}"'}
@@ -1706,7 +1772,7 @@ def test_errata_list_by_contentview_filter(module_org):
     errata_count_cvf = len(
         Erratum.list(
             {
-                'organization-id': module_org.id,
+                'organization-id': module_entitlement_manifest_org.id,
                 'content-view-id': cv.id,
                 'content-view-version-id': cv_version_info.id,
                 'content-view-filter-id': cvf.id,

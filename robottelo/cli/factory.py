@@ -1735,7 +1735,7 @@ def setup_org_for_a_custom_repo(options=None):
     }
 
 
-def _setup_org_for_a_rh_repo(target_sat, options=None):
+def _setup_org_for_a_rh_repo(options=None):
     """Sets up Org for the given Red Hat repository by:
 
     1. Checks if organization and lifecycle environment were given, otherwise
@@ -1773,13 +1773,6 @@ def _setup_org_for_a_rh_repo(target_sat, options=None):
         env_id = make_lifecycle_environment({'organization-id': org_id})['id']
     else:
         env_id = options['lifecycle-environment-id']
-    # Clone manifest and upload it
-    with clone() as manifest:
-        target_sat.put(manifest.path, manifest.name)
-    try:
-        Subscription.upload({'file': manifest.name, 'organization-id': org_id})
-    except CLIReturnCodeError as err:
-        raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
     # Enable repo from Repository Set
     try:
         RepositorySet.enable(
@@ -1863,13 +1856,16 @@ def _setup_org_for_a_rh_repo(target_sat, options=None):
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to associate activation-key with CV\n{err.msg}')
     # Add subscription to activation-key
-    activationkey_add_subscription_to_repo(
-        {
-            'organization-id': org_id,
-            'activationkey-id': activationkey_id,
-            'subscription': options.get('subscription', constants.DEFAULT_SUBSCRIPTION_NAME),
-        }
-    )
+    if constants.DEFAULT_SUBSCRIPTION_NAME not in ActivationKey.subscriptions(
+        {'id': activationkey_id, 'organization-id': org_id}
+    ):
+        activationkey_add_subscription_to_repo(
+            {
+                'organization-id': org_id,
+                'activationkey-id': activationkey_id,
+                'subscription': options.get('subscription', constants.DEFAULT_SUBSCRIPTION_NAME),
+            }
+        )
     return {
         'activationkey-id': activationkey_id,
         'content-view-id': cv_id,

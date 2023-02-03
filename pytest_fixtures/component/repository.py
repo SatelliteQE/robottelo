@@ -37,12 +37,12 @@ def module_product(module_org, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def rh_repo_gt_manifest(module_gt_manifest_org):
+def rh_repo_gt_manifest(module_sca_manifest_org):
     """Use GT manifest org, creates RH tools repo, syncs and returns RH repo."""
     # enable rhel repo and return its ID
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
-        org_id=module_gt_manifest_org.id,
+        org_id=module_sca_manifest_org.id,
         product=PRDS['rhel'],
         repo=REPOS['rhst7']['name'],
         reposet=REPOSET['rhst7'],
