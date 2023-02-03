@@ -28,14 +28,12 @@ from robottelo.api.utils import disable_syncplan
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
 from robottelo.cli.factory import make_sync_plan
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
-from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -45,7 +43,6 @@ from robottelo.utils.datafactory import filtered_datapoint
 from robottelo.utils.datafactory import invalid_values_list
 from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_data_list
-from robottelo.utils.manifest import clone
 
 SYNC_DATE_FMT = '%Y-%m-%d %H:%M:%S'
 
@@ -586,7 +583,9 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_rh_product_past_sync_date(target_sat, request):
+def test_positive_synchronize_rh_product_past_sync_date(
+    target_sat, function_entitlement_manifest_org, request
+):
     """Create a sync plan with past datetime as a sync date, add a
     RH product and verify the product gets synchronized on the next sync
     occurrence
@@ -601,34 +600,31 @@ def test_positive_synchronize_rh_product_past_sync_date(target_sat, request):
     """
     interval = 60 * 60  # 'hourly' sync interval in seconds
     delay = 2 * 60
-    org = make_org()
-    with clone() as manifest:
-        target_sat.put(manifest, manifest.filename)
-    Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
+    org = function_entitlement_manifest_org
     RepositorySet.enable(
         {
             'name': REPOSET['rhva6'],
-            'organization-id': org['id'],
+            'organization-id': org.id,
             'product': PRDS['rhel'],
             'releasever': '6Server',
             'basearch': 'x86_64',
         }
     )
-    product = Product.info({'name': PRDS['rhel'], 'organization-id': org['id']})
+    product = Product.info({'name': PRDS['rhel'], 'organization-id': org.id})
     repo = Repository.info(
-        {'name': REPOS['rhva6']['name'], 'product': product['name'], 'organization-id': org['id']}
+        {'name': REPOS['rhva6']['name'], 'product': product['name'], 'organization-id': org.id}
     )
     new_sync_plan = make_sync_plan(
         {
             'enabled': 'true',
             'interval': 'hourly',
-            'organization-id': org['id'],
+            'organization-id': org.id,
             'sync-date': (datetime.utcnow() - timedelta(seconds=interval - delay)).strftime(
                 SYNC_DATE_FMT
             ),
         }
     )
-    sync_plan = entities.SyncPlan(organization=org['id'], id=new_sync_plan['id']).read()
+    sync_plan = entities.SyncPlan(organization=org.id, id=new_sync_plan['id']).read()
     request.addfinalizer(lambda: disable_syncplan(sync_plan))
     # Associate sync plan with product
     Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
@@ -640,7 +636,7 @@ def test_positive_synchronize_rh_product_past_sync_date(target_sat, request):
     sleep(delay / 4)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], org['id'], max_tries=1)
+        validate_task_status(repo['id'], org.id, max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
@@ -649,14 +645,16 @@ def test_positive_synchronize_rh_product_past_sync_date(target_sat, request):
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
-    validate_task_status(repo['id'], org['id'])
+    validate_task_status(repo['id'], org.id)
     validate_repo_content(repo, ['errata', 'packages'])
 
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_rh_product_future_sync_date(target_sat, request):
+def test_positive_synchronize_rh_product_future_sync_date(
+    target_sat, function_entitlement_manifest_org, request
+):
     """Create a sync plan with sync date in a future and sync one RH
     product with it automatically.
 
@@ -671,22 +669,19 @@ def test_positive_synchronize_rh_product_future_sync_date(target_sat, request):
     cron_multiple = 5  # sync event is on every multiple of this value, starting from 00 mins
     delay = (cron_multiple) * 60  # delay for sync date in seconds
     guardtime = 180  # do not start test less than 2 mins before the next sync event
-    org = make_org()
-    with clone() as manifest:
-        target_sat.put(manifest, manifest.filename)
-    Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
+    org = function_entitlement_manifest_org
     RepositorySet.enable(
         {
             'name': REPOSET['rhva6'],
-            'organization-id': org['id'],
+            'organization-id': org.id,
             'product': PRDS['rhel'],
             'releasever': '6Server',
             'basearch': 'x86_64',
         }
     )
-    product = Product.info({'name': PRDS['rhel'], 'organization-id': org['id']})
+    product = Product.info({'name': PRDS['rhel'], 'organization-id': org.id})
     repo = Repository.info(
-        {'name': REPOS['rhva6']['name'], 'product': product['name'], 'organization-id': org['id']}
+        {'name': REPOS['rhva6']['name'], 'product': product['name'], 'organization-id': org.id}
     )
     # if < 3 mins before the target event rather wait 3 mins for the next test window
     if int(datetime.utcnow().strftime('%M')) % (cron_multiple) > int(guardtime / 60):
@@ -694,18 +689,18 @@ def test_positive_synchronize_rh_product_future_sync_date(target_sat, request):
     new_sync_plan = make_sync_plan(
         {
             'enabled': 'true',
-            'organization-id': org['id'],
+            'organization-id': org.id,
             'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay)).strftime(
                 SYNC_DATE_FMT
             ),
             'cron-expression': [f'*/{cron_multiple} * * * *'],
         }
     )
-    sync_plan = entities.SyncPlan(organization=org['id'], id=new_sync_plan['id']).read()
+    sync_plan = entities.SyncPlan(organization=org.id, id=new_sync_plan['id']).read()
     request.addfinalizer(lambda: disable_syncplan(sync_plan))
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], org['id'], max_tries=1)
+        validate_task_status(repo['id'], org.id, max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Associate sync plan with product
     Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
@@ -717,7 +712,7 @@ def test_positive_synchronize_rh_product_future_sync_date(target_sat, request):
     sleep(delay / 5)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], org['id'], max_tries=1)
+        validate_task_status(repo['id'], org.id, max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
@@ -726,7 +721,7 @@ def test_positive_synchronize_rh_product_future_sync_date(target_sat, request):
     )
     sleep(delay * 4 / 5)
     # Verify product was synced successfully
-    validate_task_status(repo['id'], org['id'])
+    validate_task_status(repo['id'], org.id)
     validate_repo_content(repo, ['errata', 'packages'])
 
 

@@ -31,7 +31,6 @@ from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_filter
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_medium
-from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_os
 from robottelo.cli.factory import make_partition_table
 from robottelo.cli.factory import make_product
@@ -54,6 +53,7 @@ from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
@@ -63,35 +63,25 @@ from robottelo.constants import REPORT_TEMPLATE_FILE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.hosts import ContentHost
-from robottelo.utils.manifest import clone
 
 
 @pytest.fixture(scope='module')
-def local_org(module_target_sat):
-    """Create org with CLI factory and upload cloned manifest"""
-    org = make_org()
-    with clone() as manifest:
-        module_target_sat.put(manifest, manifest.filename)
-    return org
-
-
-@pytest.fixture(scope='module')
-def local_environment(local_org):
+def local_environment(module_entitlement_manifest_org):
     """Create a lifecycle environment with CLI factory"""
-    return make_lifecycle_environment({'organization-id': local_org['id']})
+    return make_lifecycle_environment({'organization-id': module_entitlement_manifest_org.id})
 
 
 @pytest.fixture(scope='module')
-def local_content_view(local_org):
+def local_content_view(module_entitlement_manifest_org):
     """Create content view, repository, and product"""
-    new_product = make_product({'organization-id': local_org['id']})
+    new_product = make_product({'organization-id': module_entitlement_manifest_org.id})
     new_repo = make_repository({'product-id': new_product['id']})
     Repository.synchronize({'id': new_repo['id']})
-    content_view = make_content_view({'organization-id': local_org['id']})
+    content_view = make_content_view({'organization-id': module_entitlement_manifest_org.id})
     ContentView.add_repository(
         {
             'id': content_view['id'],
-            'organization-id': local_org['id'],
+            'organization-id': module_entitlement_manifest_org.id,
             'repository-id': new_repo['id'],
         }
     )
@@ -100,7 +90,7 @@ def local_content_view(local_org):
 
 
 @pytest.fixture(scope='module')
-def local_ak(local_org, local_environment, local_content_view):
+def local_ak(module_entitlement_manifest_org, local_environment, local_content_view):
     """Promote a content view version and create an activation key with CLI Factory"""
     cvv = ContentView.info({'id': local_content_view['id']})['versions'][0]
     ContentView.version_promote(
@@ -110,15 +100,19 @@ def local_ak(local_org, local_environment, local_content_view):
         {
             'lifecycle-environment-id': local_environment['id'],
             'content-view': local_content_view['name'],
-            'organization-id': local_org['id'],
+            'organization-id': module_entitlement_manifest_org.id,
             'auto-attach': False,
         }
     )
 
 
 @pytest.fixture(scope='module')
-def local_subscription(local_org, local_ak):
-    subscription = Subscription.list({'organization-id': local_org['id']}, per_page=False)[0]
+def local_subscription(module_entitlement_manifest_org, local_ak):
+    for subscription in Subscription.list(
+        {'organization-id': module_entitlement_manifest_org.id}, per_page=False
+    ):
+        if subscription['name'] == DEFAULT_SUBSCRIPTION_NAME:
+            break
     ActivationKey.add_subscription({'id': local_ak['id'], 'subscription-id': subscription['id']})
 
     return subscription
@@ -753,7 +747,7 @@ def test_positive_generate_ansible_template():
 
 @pytest.mark.tier3
 def test_positive_generate_entitlements_report_multiple_formats(
-    local_org, local_ak, local_subscription, rhel7_contenthost, target_sat
+    module_entitlement_manifest_org, local_ak, local_subscription, rhel7_contenthost, target_sat
 ):
     """Generate an report using the Subscription - Entitlement Report template
     in html, yaml, and csv format.
@@ -777,11 +771,11 @@ def test_positive_generate_entitlements_report_multiple_formats(
     """
     client = rhel7_contenthost
     client.install_katello_ca(target_sat)
-    client.register_contenthost(local_org['label'], local_ak['name'])
+    client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
     assert client.subscribed
     result_html = ReportTemplate.generate(
         {
-            'organization': local_org['name'],
+            'organization': module_entitlement_manifest_org.name,
             'name': 'Subscription - Entitlement Report',
             'report-format': 'html',
             'inputs': 'Days from Now=no limit',
@@ -791,7 +785,7 @@ def test_positive_generate_entitlements_report_multiple_formats(
     assert local_subscription['name'] in result_html
     result_yaml = ReportTemplate.generate(
         {
-            'organization': local_org['name'],
+            'organization': module_entitlement_manifest_org.name,
             'name': 'Subscription - Entitlement Report',
             'report-format': 'yaml',
             'inputs': 'Days from Now=no limit',
@@ -804,7 +798,7 @@ def test_positive_generate_entitlements_report_multiple_formats(
             assert local_subscription['name'] in entry
     result_csv = ReportTemplate.generate(
         {
-            'organization': local_org['name'],
+            'organization': module_entitlement_manifest_org.name,
             'name': 'Subscription - Entitlement Report',
             'report-format': 'csv',
             'inputs': 'Days from Now=no limit',
@@ -813,12 +807,12 @@ def test_positive_generate_entitlements_report_multiple_formats(
     assert client.hostname in result_csv
     assert local_subscription['name'] in result_csv
     # BZ 1830289
-    assert 'Subscription Quantity' in result_csv
+    assert 'Subscription Total Quantity' in result_csv
 
 
 @pytest.mark.tier3
 def test_positive_schedule_entitlements_report(
-    local_org, local_ak, local_subscription, rhel7_contenthost, target_sat
+    module_entitlement_manifest_org, local_ak, local_subscription, rhel7_contenthost, target_sat
 ):
     """Schedule an report using the Subscription - Entitlement Report template in csv format.
 
@@ -839,12 +833,12 @@ def test_positive_schedule_entitlements_report(
     """
     client = rhel7_contenthost
     client.install_katello_ca(target_sat)
-    client.register_contenthost(local_org['label'], local_ak['name'])
+    client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
     assert client.subscribed
     scheduled_csv = ReportTemplate.schedule(
         {
             'name': 'Subscription - Entitlement Report',
-            'organization': local_org['name'],
+            'organization': module_entitlement_manifest_org.name,
             'report-format': 'csv',
             'inputs': 'Days from Now=no limit',
         }
@@ -861,7 +855,7 @@ def test_positive_schedule_entitlements_report(
 
 @pytest.mark.tier3
 def test_positive_generate_hostpkgcompare(
-    local_org, local_ak, local_content_view, local_environment, target_sat
+    module_entitlement_manifest_org, local_ak, local_content_view, local_environment, target_sat
 ):
     """Generate 'Host - compare content hosts packages' report
 
@@ -887,7 +881,7 @@ def test_positive_generate_hostpkgcompare(
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
             'repository': REPOS['rhst7']['name'],
-            'organization-id': local_org['id'],
+            'organization-id': module_entitlement_manifest_org.id,
             'content-view-id': local_content_view['id'],
             'lifecycle-environment-id': local_environment['id'],
             'activationkey-id': local_ak['id'],
@@ -896,7 +890,7 @@ def test_positive_generate_hostpkgcompare(
     setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_6.url,
-            'organization-id': local_org['id'],
+            'organization-id': module_entitlement_manifest_org.id,
             'content-view-id': local_content_view['id'],
             'lifecycle-environment-id': local_environment['id'],
             'activationkey-id': local_ak['id'],
@@ -909,7 +903,7 @@ def test_positive_generate_hostpkgcompare(
             # Create RHEL hosts via broker and register content host
             client.install_katello_ca(target_sat)
             # Register content host, install katello-agent
-            client.register_contenthost(local_org['label'], local_ak['name'])
+            client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
             assert client.subscribed
             clients.append(client)
             client.enable_repo(REPOS['rhst7']['id'])

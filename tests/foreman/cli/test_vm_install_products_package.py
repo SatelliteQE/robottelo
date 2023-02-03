@@ -20,7 +20,6 @@ import pytest
 from broker import Broker
 
 from robottelo.cli.factory import make_lifecycle_environment
-from robottelo.cli.factory import make_org
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
@@ -30,13 +29,8 @@ from robottelo.hosts import ContentHost
 
 
 @pytest.fixture
-def org():
-    return make_org()
-
-
-@pytest.fixture
-def lce(org):
-    return make_lifecycle_environment({'organization-id': org['id']})
+def lce(function_entitlement_manifest_org):
+    return make_lifecycle_environment({'organization-id': function_entitlement_manifest_org.id})
 
 
 @pytest.mark.tier4
@@ -57,7 +51,7 @@ def lce(org):
     ],
     indirect=True,
 )
-def test_vm_install_package(repos_collection, org, lce, distro, cdn):
+def test_vm_install_package(repos_collection, function_entitlement_manifest_org, lce, distro, cdn):
     """Install a package with all supported distros and cdn / non-cdn variants
 
     :id: b2a6065a-69f6-4805-a28b-eaaa812e0f4b
@@ -69,7 +63,7 @@ def test_vm_install_package(repos_collection, org, lce, distro, cdn):
     if distro == 'rhel6':
         pytest.skip('rhel6 skipped until ELS subscriptions are in manifest.')
     # Create repos, content view, and activation key.
-    repos_collection.setup_content(org['id'], lce['id'], upload_manifest=True)
+    repos_collection.setup_content(function_entitlement_manifest_org.id, lce['id'])
     with Broker(nick=distro, host_class=ContentHost) as host:
         # install katello-agent
         repos_collection.setup_virtual_machine(
