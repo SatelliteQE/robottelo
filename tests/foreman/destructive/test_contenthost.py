@@ -45,6 +45,7 @@ def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
     :parametrized: yes
     """
     org = target_sat.api.Organization().create()
+    org.sca_disable()
     # adding remote_execution_connect_by_ip=Yes at org level
     target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
@@ -65,7 +66,6 @@ def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
     assert result.status == 0
     assert target_sat.cli.Service.stop(options={'only': 'foreman'}).status == 0
     assert target_sat.cli.Service.status(options={'only': 'foreman'}).status == 1
-    assert result.status == 1
     result = rhel7_contenthost.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')
     assert result.status == 0
     assert target_sat.cli.Service.start(options={'only': 'foreman'}).status == 0
