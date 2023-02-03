@@ -22,15 +22,18 @@ from packaging.version import Version
 from wait_for import wait_for
 
 
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.on_premises_provisioning
 @pytest.mark.rhel_ver_match('[^6]')
 def test_rhel_pxe_provisioning(
     request,
     module_provisioning_sat,
-    module_org_with_manifest,
+    module_sca_manifest_org,
     module_location,
     provisioning_host,
+    pxe_loader,
     module_provisioning_rhel_content,
+    provisioning_hostgroup,
     module_lce_library,
     module_default_org_view,
 ):
@@ -52,8 +55,8 @@ def test_rhel_pxe_provisioning(
     sat = module_provisioning_sat.sat
 
     host = sat.api.Host(
-        hostgroup=module_provisioning_rhel_content.hostgroup,
-        organization=module_org_with_manifest,
+        hostgroup=provisioning_hostgroup,
+        organization=module_sca_manifest_org,
         location=module_location,
         content_facet_attributes={
             'content_view_id': module_default_org_view.id,
