@@ -8,7 +8,7 @@
 
 :CaseComponent: Webhooks
 
-:Assignee: gsulliva
+:Team: Endeavour
 
 :TestType: Functional
 

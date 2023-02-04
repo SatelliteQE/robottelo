@@ -6,7 +6,7 @@
 
 :CaseComponent: DHCPDNS
 
-:Assignee: dsynk
+:Team: Rocket
 
 :TestType: Functional
 

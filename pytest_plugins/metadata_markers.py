@@ -24,8 +24,8 @@ def pytest_addoption(parser):
         help='Comma separated list of component names to include in test collection',
     )
     parser.addoption(
-        '--assignee',
-        help='Comma separated list of assignees to include in test collection',
+        '--team',
+        help='Comma separated list of teams to include in test collection',
     )
 
 
@@ -34,7 +34,7 @@ def pytest_configure(config):
     for marker in [
         'importance: CaseImportance testimony token, use --importance to filter',
         'component: Component testimony token, use --component to filter',
-        'assignee: Assignee testimony token, use --assignee to filter',
+        'team: Team testimony token, use --team to filter',
     ]:
         config.addinivalue_line("markers", marker)
 
@@ -51,9 +51,9 @@ importance_regex = re.compile(
     re.IGNORECASE,
 )
 
-assignee_regex = re.compile(
-    # To match :Assignee: jsmith
-    r'\s*:Assignee:\s*(?P<assignee>\S*)',
+team_regex = re.compile(
+    # To match :Team: Rocket
+    r'\s*:Team:\s*(?P<team>\S*)',
     re.IGNORECASE,
 )
 
@@ -81,7 +81,7 @@ def pytest_collection_modifyitems(session, items, config):
     # config.getoption(default) doesn't work like you think it does, hence or ''
     importance = [i for i in (config.getoption('importance') or '').split(',') if i != '']
     component = [c for c in (config.getoption('component') or '').split(',') if c != '']
-    assignee = [a for a in (config.getoption('assignee') or '').split(',') if a != '']
+    team = [a for a in (config.getoption('team') or '').split(',') if a != '']
 
     selected = []
     deselected = []
@@ -94,7 +94,7 @@ def pytest_collection_modifyitems(session, items, config):
             # Unit test, no testimony markers
             continue
 
-        # apply the marks for importance, component, and assignee
+        # apply the marks for importance, component, and team
         # Find matches from docstrings starting at smallest scope
         item_docstrings = [
             d
@@ -111,9 +111,9 @@ def pytest_collection_modifyitems(session, items, config):
             doc_importance = importance_regex.findall(docstring)
             if doc_importance and 'importance' not in item_mark_names:
                 item.add_marker(pytest.mark.importance(doc_importance[0]))
-            doc_assignee = assignee_regex.findall(docstring)
-            if doc_assignee and 'assignee' not in item_mark_names:
-                item.add_marker(pytest.mark.assignee(doc_assignee[0]))
+            doc_team = team_regex.findall(docstring)
+            if doc_team and 'team' not in item_mark_names:
+                item.add_marker(pytest.mark.team(doc_team[0]))
 
         # add markers as user_properties so they are recorded in XML properties of the report
         # pytest-ibutsu will include user_properties dict in testresult metadata
@@ -124,10 +124,10 @@ def pytest_collection_modifyitems(session, items, config):
         item.user_properties.append(("SnapVersion", snap_version))
 
         # exit early if no filters were passed
-        if importance or component or assignee:
+        if importance or component or team:
             # Filter test collection based on CLI options for filtering
             # filters should be applied together
-            # such that --component Repository --importance Critical --assignee jsmith
+            # such that --component Repository --importance Critical --team rocket
             # only collects tests which have all three of these marks
 
             # https://github.com/pytest-dev/pytest/issues/1373  Will make this way easier
@@ -148,11 +148,11 @@ def pytest_collection_modifyitems(session, items, config):
                 )
                 deselected.append(item)
                 continue
-            assignee_marker = item.get_closest_marker('assignee').args[0]
-            if assignee and assignee_marker not in assignee:
+            team_marker = item.get_closest_marker('team').args[0]
+            if team and team_marker not in team:
                 logger.debug(
-                    f'Deselected test {item.nodeid} due to "--assignee {assignee}",'
-                    f'test has assignee mark: {assignee_marker}'
+                    f'Deselected test {item.nodeid} due to "--team {team}",'
+                    f'test has team mark: {team_marker}'
                 )
                 deselected.append(item)
                 continue
