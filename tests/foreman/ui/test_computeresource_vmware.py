@@ -6,7 +6,7 @@
 
 :CaseComponent: ComputeResources-VMWare
 
-:Assignee: lhellebr
+:Team: Rocket
 
 :CaseLevel: Acceptance
 

@@ -8,7 +8,7 @@
 
 :CaseComponent: Branding
 
-:Assignee: chiggins
+:Team: Platform
 
 :TestType: Functional
 

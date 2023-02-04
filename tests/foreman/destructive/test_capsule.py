@@ -8,7 +8,7 @@
 
 :CaseComponent: Capsule
 
-:Assignee: vsedmik
+:Team: Endeavour
 
 :TestType: Functional
 

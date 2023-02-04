@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentManagement
 
-:Assignee: vsedmik
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -288,7 +288,7 @@ class TestCapsuleContentManagement:
 
     :CaseComponent: Capsule-Content
 
-    :Assignee: vsedmik
+    :Team: Phoenix
     """
 
     def update_capsule_download_policy(self, module_capsule_configured, download_policy):
@@ -325,7 +325,7 @@ class TestCapsuleContentManagement:
 
         :CaseComponent: RHCloud-Insights
 
-        :Assignee: addubey
+        :Team: Platform
 
         :customerscenario: true
 

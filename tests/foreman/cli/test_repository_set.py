@@ -8,7 +8,7 @@
 
 :CaseComponent: Repositories
 
-:Assignee: chiggins
+:Team: Phoenix
 
 :TestType: Functional
 
