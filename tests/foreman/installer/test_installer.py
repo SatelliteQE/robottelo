@@ -8,7 +8,7 @@
 
 :CaseComponent: Installer
 
-:Assignee: gtalreja
+:Team: Platform
 
 :TestType: Functional
 

@@ -12,7 +12,7 @@ API reference for sync plans can be found on your Satellite:
 
 :CaseComponent: SyncPlans
 
-:Assignee: sbible
+:Team: Phoenix
 
 :TestType: Functional
 

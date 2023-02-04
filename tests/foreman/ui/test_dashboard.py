@@ -8,7 +8,7 @@
 
 :CaseComponent: Dashboard
 
-:Assignee: ogajduse
+:Team: Endeavour
 
 :TestType: Functional
 

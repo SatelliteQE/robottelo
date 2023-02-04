@@ -8,7 +8,7 @@
 
 :CaseComponent: SyncPlans
 
-:Assignee: sbible
+:Team: Phoenix
 
 :TestType: Functional
 

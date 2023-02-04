@@ -8,7 +8,7 @@
 
 :CaseComponent: Repositories
 
-:Assignee: chiggins
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -122,8 +122,6 @@ class TestRepository:
         :expectedresults: HTTP Proxy can be assigned to repository and sync operation performed
             successfully.
 
-        :Assignee: jpathan
-
         :CaseImportance: High
         """
         repo_options = {
@@ -157,8 +155,6 @@ class TestRepository:
 
         :expectedresults: HTTP Proxy can be assigned to redhat repository and sync operation
             performed successfully.
-
-        :Assignee: jpathan
 
         :BZ: 2011303, 2042473
 
@@ -2164,7 +2160,7 @@ class TestSRPMRepositoryIgnoreContent:
 
     :customerscenario: true
 
-    :Assignee: ltran
+    :Team: Phoenix
 
     :BZ: 1673215
     """
@@ -2424,7 +2420,7 @@ class TestTokenAuthContainerRepository:
 
     :CaseComponent: ContainerManagement-Content
 
-    :Assignee: addubey
+    :Team: Phoenix
     """
 
     @pytest.mark.tier2

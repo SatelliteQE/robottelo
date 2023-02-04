@@ -8,7 +8,7 @@
 
 :CaseComponent: UsersRoles
 
-:Assignee: dsynk
+:Team: Endeavour
 
 :TestType: Functional
 

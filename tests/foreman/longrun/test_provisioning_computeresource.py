@@ -3,7 +3,7 @@
 
 :CaseComponent: ComputeResources
 
-:Assignee: lhellebr
+:Team: Rocket
 
 :TestType: Functional
 
@@ -100,7 +100,7 @@ def test_positive_provision_rhev_with_host_group(rhev, provisioning, target_sat,
 
     :CaseComponent: ComputeResources-RHEV
 
-    :Assignee: lhellebr
+    :Team: Rocket
 
     :id: ba78868f-5cff-462f-a55d-f6aa4d11db52
 
@@ -185,7 +185,7 @@ def test_positive_provision_vmware_with_host_group(
 
     :CaseComponent: ComputeResources-VMWare
 
-    :Assignee: lhellebr
+    :Team: Rocket
 
     :customerscenario: true
 

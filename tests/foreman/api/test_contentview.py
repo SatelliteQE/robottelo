@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentViews
 
-:Assignee: ltran
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -241,7 +241,7 @@ class TestContentView:
 
         :CaseComponent: Pulp
 
-        :Assignee: ltran
+        :Team: Phoenix
 
         :CaseImportance: Medium
 
@@ -661,7 +661,7 @@ class TestContentViewPublishPromote:
 
         :CaseComponent: Pulp
 
-        :Assignee: ltran
+        :Team: Phoenix
 
         :CaseImportance: Medium
 
