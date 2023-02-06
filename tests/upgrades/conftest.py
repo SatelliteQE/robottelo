@@ -160,6 +160,13 @@ def get_entity_data(scenario_name):
     return entity_data
 
 
+def get_all_entity_data():
+    """Fetches the dictionary of entities"""
+    with open('scenario_entities') as pref:
+        entity_data = json.load(pref)
+    return entity_data
+
+
 def _read_test_data(test_node_id):
     """Read the saved data of test at node id"""
     try:
@@ -223,6 +230,16 @@ def pre_upgrade_data(request):
     data = [_read_test_data(test_node_id) for test_node_id in depend_on_node_ids]
     if len(data) == 1:
         data = data[0]
+    return data
+
+
+@pytest.fixture(scope='class')
+def class_pre_upgrade_data(request):
+    data = {
+        key: value
+        for key, value in get_all_entity_data().items()
+        if key.startswith(f"tests/upgrades/{request.node.parent.name}::{request.node.name}")
+    }
     return data
 
 
