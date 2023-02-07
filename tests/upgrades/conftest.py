@@ -88,6 +88,7 @@ import os
 
 import pytest
 from automation_tools.satellite6.hammer import set_hammer_config
+from box import Box
 from fabric.api import env
 
 from robottelo.config import settings
@@ -161,7 +162,17 @@ def get_entity_data(scenario_name):
 
 
 def get_all_entity_data():
-    """Fetches the dictionary of entities"""
+    """Retrieves a dictionary containing data for entities in all scenarios.
+
+    Reads the contents of the 'scenario_entities' file using the JSON format,
+    and returns the resulting dictionary of entity data.
+
+    Returns:
+    -------
+    dict:
+        A dictionary containing information on entities in all scenarios,
+        with scenario_name as keys and corresponding attribute data as values.
+    """
     with open('scenario_entities') as pref:
         entity_data = json.load(pref)
     return entity_data
@@ -230,17 +241,32 @@ def pre_upgrade_data(request):
     data = [_read_test_data(test_node_id) for test_node_id in depend_on_node_ids]
     if len(data) == 1:
         data = data[0]
-    return data
+    return Box(data)
 
 
 @pytest.fixture(scope='class')
 def class_pre_upgrade_data(request):
+    """Returns a dictionary of entity data for a specific upgrade test classes.
+
+    Filters the output of get_all_entity_data() to include only entities that
+    match the test class name and the name of the test function currently being run.
+
+    Args:
+    -----
+    request (pytest.FixtureRequest): A pytest FixtureRequest object containing
+    information about the current test.
+
+    Returns:
+    -------
+    Box: A Box object containing information on entities in the upgrade test class,
+    with entity IDs as keys and corresponding attribute data as values.
+    """
     data = {
         key: value
         for key, value in get_all_entity_data().items()
-        if key.startswith(f"tests/upgrades/{request.node.parent.name}::{request.node.name}")
+        if f"{request.node.parent.name}::{request.node.name}" in key
     }
-    return data
+    return Box(data)
 
 
 def pytest_configure(config):

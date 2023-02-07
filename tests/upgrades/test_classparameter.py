@@ -20,21 +20,6 @@ import json
 
 import pytest
 
-from robottelo.utils.installer import InstallerCommand
-
-common_opts = {
-    'foreman-proxy-puppetca': 'true',
-    'foreman-proxy-content-puppet': 'true',
-    'foreman-proxy-puppet': 'true',
-    'puppet-server': 'true',
-    'puppet-server-foreman-ssl-ca': '/etc/pki/katello/puppet/puppet_client_ca.crt',
-    'puppet-server-foreman-ssl-cert': '/etc/pki/katello/puppet/puppet_client.crt',
-    'puppet-server-foreman-ssl-key': '/etc/pki/katello/puppet/puppet_client.key',
-    # Options for puppetbootstrap test
-    'foreman-proxy-templates': 'true',
-    'foreman-proxy-http': 'true',
-}
-
 
 def _valid_sc_parameters_data():
     """Returns a list of valid smart class parameter types and values"""
@@ -72,17 +57,6 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
         Read all available smart class parameters for imported puppet class to
         be able to work with unique entity for each specific test.
         """
-        enable_satellite_cmd = InstallerCommand(
-            installer_args=[
-                'enable-foreman-plugin-puppet',
-                'enable-foreman-cli-puppet',
-                'enable-puppet',
-            ],
-            installer_opts=common_opts,
-        )
-        result = class_target_sat.execute(enable_satellite_cmd.get_command(), timeout='20m')
-        assert result.status == 0
-        class_target_sat.execute('hammer -r')
         self.org = class_target_sat.api.Organization().create()
         repo = 'api_test_classparameters'
         env_name = class_target_sat.create_custom_environment(repo=repo)
@@ -92,13 +66,17 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
         self.sc_params_list = class_target_sat.api.SmartClassParameters().search(
             query={'search': f'puppetclass="{self.puppet_class.name}"', 'per_page': 1000}
         )
-        return {'puppet_class': self.puppet_class.name}
+        return {
+            'puppet_class': self.puppet_class.name,
+        }
 
     @pytest.fixture(scope="class")
-    def _clean_scenario(self, request, class_target_sat, class_pre_upgrade_data):
+    def _clean_scenario(self, request, class_pre_upgrade_data, class_target_sat):
         @request.addfinalizer
         def _cleanup():
-            puppet_class = list(class_pre_upgrade_data.values())[0].get('puppet_class')
+            puppet_class = getattr(
+                class_pre_upgrade_data, next(iter(class_pre_upgrade_data))
+            ).puppet_class
             class_target_sat.delete_puppet_class(puppet_class)
 
     def _validate_value(self, data, sc_param):
@@ -154,7 +132,7 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
     @pytest.mark.post_upgrade(depend_on=test_pre_puppet_class_parameter_data_and_type)
     @pytest.mark.parametrize('count', list(range(1, 10)))
     def test_post_puppet_class_parameter_data_and_type(
-        self, class_target_sat, count, _clean_scenario
+        self, count, _clean_scenario, class_pre_upgrade_data, class_target_sat
     ):
         """Puppet Class Parameters value and type is intact post upgrade
 
@@ -167,7 +145,6 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
         :expectedresults: The puppet class parameters data and type should be
             intact post upgrade
         """
-
         data = _valid_sc_parameters_data()[count - 1]
         sc_param = class_target_sat.api.SmartClassParameters().search(
             query={'search': f'parameter="api_classparameters_scp_00{count}"'}
