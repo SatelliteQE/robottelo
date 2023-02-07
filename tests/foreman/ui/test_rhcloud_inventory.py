@@ -16,6 +16,7 @@
 
 :Upstream: No
 """
+import epdb
 from datetime import datetime
 from datetime import timedelta
 
@@ -155,6 +156,7 @@ def test_obfuscate_host_names(
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
     with Session(hostname=rhcloud_sat_host.hostname) as session:
+        epdb.serve(port=9000)
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Enable obfuscate_hostnames setting on inventory page.
