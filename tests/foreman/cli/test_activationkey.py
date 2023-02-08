@@ -73,7 +73,7 @@ def test_positive_create_with_name(module_target_sat, module_entitlement_manifes
 
     :parametrized: yes
     """
-    new_ak = make_activation_key(
+    new_ak = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_entitlement_manifest_org.id, 'name': name}
     )
     assert new_ak['name'] == name
