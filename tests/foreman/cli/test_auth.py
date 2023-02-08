@@ -8,7 +8,7 @@
 
 :CaseComponent: Authentication
 
-:Assignee: vsedmik
+:Team: Endeavour
 
 :TestType: Functional
 

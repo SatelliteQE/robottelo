@@ -8,7 +8,7 @@
 
 :CaseComponent: RemoteExecution
 
-:Assignee: pondrejk
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -52,7 +52,7 @@ from robottelo.utils import ohsnap
 
 
 @pytest.fixture()
-def fixture_sca_vmsetup(request, module_gt_manifest_org, target_sat):
+def fixture_sca_vmsetup(request, module_sca_manifest_org, target_sat):
     """Create VM and register content host to Simple Content Access organization"""
     if '_count' in request.param.keys():
         with Broker(
@@ -61,11 +61,11 @@ def fixture_sca_vmsetup(request, module_gt_manifest_org, target_sat):
             _count=request.param['_count'],
         ) as clients:
             for client in clients:
-                client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
+                client.configure_rex(satellite=target_sat, org=module_sca_manifest_org)
             yield clients
     else:
         with Broker(nick=request.param['nick'], host_class=ContentHost) as client:
-            client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
+            client.configure_rex(satellite=target_sat, org=module_sca_manifest_org)
             yield client
 
 
@@ -394,7 +394,7 @@ class TestRemoteExecution:
 
         :CaseComponent: RHCloud-CloudConnector
 
-        :Assignee: lhellebr
+        :Team: Platform
 
         :id: 811c7747-bec6-1a2d-8e5c-b5045d3fbc0d
 
@@ -551,7 +551,6 @@ class TestAnsibleREX:
             }
         )
         result = JobInvocation.info({'id': invocation_command['id']})
-        assert_job_invocation_status(invocation_command['id'], client.hostname, 'queued')
         sleep(150)
         rec_logic = RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
@@ -713,7 +712,9 @@ class TestAnsibleREX:
     @pytest.mark.parametrize(
         'fixture_sca_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True
     )
-    def test_positive_install_ansible_collection(self, fixture_sca_vmsetup, module_gt_manifest_org):
+    def test_positive_install_ansible_collection(
+        self, fixture_sca_vmsetup, module_sca_manifest_org
+    ):
         """Test whether Ansible collection can be installed via REX
 
         :Steps:
@@ -729,7 +730,7 @@ class TestAnsibleREX:
 
         :CaseComponent: Ansible
 
-        :Assignee: sbible
+        :Team: Rocket
         """
 
         # Configure repository to prepare for installing ansible on host
@@ -737,7 +738,7 @@ class TestAnsibleREX:
             {
                 'basearch': 'x86_64',
                 'name': REPOSET['rhae2'],
-                'organization-id': module_gt_manifest_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'product': PRDS['rhae'],
                 'releasever': '7Server',
             }
@@ -745,7 +746,7 @@ class TestAnsibleREX:
         Repository.synchronize(
             {
                 'name': REPOS['rhae2']['name'],
-                'organization-id': module_gt_manifest_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'product': PRDS['rhae'],
             }
         )

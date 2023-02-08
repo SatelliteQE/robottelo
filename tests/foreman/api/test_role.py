@@ -12,7 +12,7 @@ http://theforeman.org/api/apidoc/v2/roles.html
 
 :CaseComponent: UsersRoles
 
-:Assignee: sganar
+:Team: Endeavour
 
 :TestType: Functional
 

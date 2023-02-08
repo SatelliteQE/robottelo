@@ -4,7 +4,7 @@
 
 :CaseComponent: DiscoveryImage
 
-:Assignee: gsulliva
+:Team: Rocket
 
 :CaseAutomation: Automated
 

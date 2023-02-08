@@ -10,7 +10,7 @@ Satellite 6.8
 
 :CaseComponent: ContentCredentials
 
-:Assignee: spusater
+:Team: Phoenix
 
 :TestType: Functional
 
