@@ -928,6 +928,36 @@
               "value": null
             },
             {
+              "help": "Whether or not to show all results",
+              "name": "full-result",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
+              "help": "Sort field and order, eg. 'id DESC'",
+              "name": "order",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            { 
+             "help": "Page number, starting at 1",
+              "name": "page",
+              "shortname": null,
+              "value": "NUMBER"
+            },
+            {
+              "help": "Number of results per page to return",
+              "name": "per-page",
+              "shortname": null,
+              "value": "NUMBER"
+            },
+            {
+              "help": "Search string",
+              "name": "search",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
               "help": "Print help -----------------|-----|---------|----- | ALL | DEFAULT | THIN -----------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | key          | x   | x       | | x   | x       | enabled? | x   | x       | | x   | x       | -----------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
@@ -23612,6 +23642,36 @@
                 {
                   "help": "Name/id of the host",
                   "name": "host-id",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Whether or not to show all results",
+                  "name": "full-result",
+                  "shortname": null,
+                  "value": "BOOLEAN"
+                },
+                {
+                  "help": "Sort field and order, eg. 'id DESC'",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                { 
+                 "help": "Page number, starting at 1",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "NUMBER"
+                },
+                {
+                  "help": "Number of results per page to return",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "NUMBER"
+                },
+                {
+                  "help": "Search string",
+                  "name": "search",
                   "shortname": null,
                   "value": "VALUE"
                 },
