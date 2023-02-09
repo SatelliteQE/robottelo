@@ -3,7 +3,6 @@ import socket
 
 import pytest
 from box import Box
-from broker import Broker
 from nailgun import entities
 
 from robottelo.cli.base import CLIReturnCodeError
@@ -557,24 +556,3 @@ def sessions_tear_down(parametrized_enrolled_sat):
     parametrized_enrolled_sat.execute(
         f'rm -f {HAMMER_SESSIONS}/https_{parametrized_enrolled_sat.hostname}'
     )
-
-
-@pytest.fixture(scope='module', params=['IDM', 'AD'])
-def parametrized_enrolled_sat(
-    request,
-    satellite_factory,
-    ad_data,
-):
-    """Yields a Satellite enrolled into [IDM, AD] as parameter."""
-    new_sat = satellite_factory()
-    new_sat.register_to_cdn()
-    if 'IDM' in request.param:
-        enroll_idm_and_configure_external_auth(new_sat)
-        yield new_sat
-        disenroll_idm(new_sat)
-    else:
-        enroll_ad_and_configure_external_auth(request, ad_data, new_sat)
-        yield new_sat
-    new_sat.unregister()
-    new_sat.teardown()
-    Broker(hosts=[new_sat]).checkin()
