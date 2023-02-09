@@ -892,6 +892,12 @@
               "value": "LIST"
             },
             {
+              "help": "Whether or not to show all results",
+              "name": "full-result",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
               "help": "Id of the activation key",
               "name": "id",
               "shortname": null,
@@ -900,6 +906,12 @@
             {
               "help": "Activation key name to search by",
               "name": "name",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Sort field and order, eg. 'id DESC'",
+              "name": "order",
               "shortname": null,
               "value": "VALUE"
             },
@@ -926,6 +938,24 @@
               "name": "organization-label",
               "shortname": null,
               "value": null
+            },
+            {
+              "help": "Page number, starting at 1",
+              "name": "page",
+              "shortname": null,
+              "value": "NUMBER"
+            },
+            {
+              "help": "Number of results per page to return",
+              "name": "per-page",
+              "shortname": null,
+              "value": "NUMBER"
+            },
+            {
+              "help": "Search string",
+              "name": "search",
+              "shortname": null,
+              "value": "VALUE"
             },
             {
               "help": "Print help -----------------|-----|---------|----- | ALL | DEFAULT | THIN -----------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | key          | x   | x       | | x   | x       | enabled? | x   | x       | | x   | x       | -----------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
@@ -1420,11 +1450,11 @@
       ],
       "subcommands": [
         {
-          "description": "Create an ACS",
+          "description": "Create an alternate content source to download content from during repository syncing.  Note: alternate content sources are global and affect ALL sync actions on their capsules regardless of organization.",
           "name": "create",
           "options": [
             {
-              "help": "The Alternate Content Source type Possible value(s): 'custom'",
+              "help": "The Alternate Content Source type Possible value(s): 'custom', 'simplified', 'rhui'",
               "name": "alternate-content-source-type",
               "shortname": null,
               "value": "ENUM"
@@ -1448,22 +1478,16 @@
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER       Name/id of a HTTP Proxy",
-              "name": "http-proxy",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER       Name/id of a HTTP Proxy",
-              "name": "http-proxy-id",
-              "shortname": null,
-              "value": null
-            },
-            {
               "help": "Name of the alternate content source",
               "name": "name",
               "shortname": null,
               "value": "VALUE"
+            },
+            {
+              "help": "Ids of products to copy repository information from into a Simplified Alternate Content Source. Products must include at least one repository of the chosen content type.",
+              "name": "product-ids",
+              "shortname": null,
+              "value": "LIST"
             },
             {
               "help": "Names/ids of capsules to associate",
@@ -1520,6 +1544,12 @@
               "value": "VALUE"
             },
             {
+              "help": "If the capsules' assigned HTTP Proxies should be used",
+              "name": "use-http-proxies",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
               "help": "If SSL should be verified for the upstream URL",
               "name": "verify-ssl",
               "shortname": null,
@@ -1535,7 +1565,7 @@
           "subcommands": []
         },
         {
-          "description": "Destroy an alternate content source",
+          "description": "Destroy an alternate content source.",
           "name": "delete",
           "options": [
             {
@@ -1560,7 +1590,7 @@
           "subcommands": []
         },
         {
-          "description": "Show an alternate content source",
+          "description": "Show an alternate content source.",
           "name": "info",
           "options": [
             {
@@ -1591,7 +1621,7 @@
           "subcommands": []
         },
         {
-          "description": "List of alternate_content_sources",
+          "description": "List alternate content sources.",
           "name": "list",
           "options": [
             {
@@ -1605,6 +1635,12 @@
               "name": "full-result",
               "shortname": null,
               "value": "BOOLEAN"
+            },
+            {
+              "help": "Name of the alternate content source",
+              "name": "name",
+              "shortname": null,
+              "value": "VALUE"
             },
             {
               "help": "Sort field and order, eg. 'id DESC'",
@@ -1631,7 +1667,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Print help -------|-----|---------|----- | ALL | DEFAULT | THIN -------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | -------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string text string string integer string string",
+              "help": "Print help -------|-----|---------|----- | ALL | DEFAULT | THIN -------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | -------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string text string string integer string integer string string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -1640,7 +1676,7 @@
           "subcommands": []
         },
         {
-          "description": "Refresh an alternate content source",
+          "description": "Refresh an alternate content source. Refreshing, like repository syncing, is required before using an alternate content source.",
           "name": "refresh",
           "options": [
             {
@@ -1671,15 +1707,9 @@
           "subcommands": []
         },
         {
-          "description": "Update an alternate content source",
+          "description": "Update an alternate content source.",
           "name": "update",
           "options": [
-            {
-              "help": "The Alternate Content Source type Possible value(s): 'custom'",
-              "name": "alternate-content-source-type",
-              "shortname": null,
-              "value": "ENUM"
-            },
             {
               "help": "Base URL for finding alternate content",
               "name": "base-url",
@@ -1687,28 +1717,10 @@
               "value": "VALUE"
             },
             {
-              "help": "The content type for the Alternate Content Source Possible value(s): 'file', 'yum'",
-              "name": "content-type",
-              "shortname": null,
-              "value": "ENUM"
-            },
-            {
               "help": "Description for the alternate content source",
               "name": "description",
               "shortname": null,
               "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER       Name/id of a HTTP Proxy",
-              "name": "http-proxy",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER       Name/id of a HTTP Proxy",
-              "name": "http-proxy-id",
-              "shortname": null,
-              "value": null
             },
             {
               "help": "Alternate content source id",
@@ -1727,6 +1739,18 @@
               "name": "new-name",
               "shortname": null,
               "value": "VALUE"
+            },
+            {
+              "help": "Names/ids of products to copy repository information from into a Simplified Alternate Content Source. Products must include at least one repository of the chosen content type.",
+              "name": "products",
+              "shortname": null,
+              "value": "LIST"
+            },
+            {
+              "help": "Names/ids of products to copy repository information from into a Simplified Alternate Content Source. Products must include at least one repository of the chosen content type.",
+              "name": "product-ids",
+              "shortname": null,
+              "value": "LIST"
             },
             {
               "help": "Names/ids of capsules to associate",
@@ -1783,6 +1807,12 @@
               "value": "VALUE"
             },
             {
+              "help": "If the capsules' assigned HTTP Proxies should be used",
+              "name": "use-http-proxies",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
               "help": "If SSL should be verified for the upstream URL",
               "name": "verify-ssl",
               "shortname": null,
@@ -1811,6 +1841,215 @@
         }
       ],
       "subcommands": [
+        {
+          "description": "Ansible Inventory",
+          "name": "inventory",
+          "options": [
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": [
+            {
+              "description": "Show Ansible inventory for hostgroups",
+              "name": "hostgroups",
+              "options": [
+                {
+                  "help": "Full response as json",
+                  "name": "as-json",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Names/titles/ids of hostgroups included in inventory",
+                  "name": "hostgroups",
+                  "shortname": null,
+                  "value": "LIST"
+                },
+                {
+                  "help": "Names/titles/ids of hostgroups included in inventory",
+                  "name": "hostgroup-ids",
+                  "shortname": null,
+                  "value": "LIST"
+                },
+                {
+                  "help": "Names/titles/ids of hostgroups included in inventory",
+                  "name": "hostgroup-titles",
+                  "shortname": null,
+                  "value": "LIST"
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Show Ansible inventory for hosts",
+              "name": "hosts",
+              "options": [
+                {
+                  "help": "Full response as json",
+                  "name": "as-json",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Names/ids of hosts included in inventory",
+                  "name": "hosts",
+                  "shortname": null,
+                  "value": "LIST"
+                },
+                {
+                  "help": "Names/ids of hosts included in inventory",
+                  "name": "host-ids",
+                  "shortname": null,
+                  "value": "LIST"
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Schedule generating of Ansible Inventory report",
+              "name": "schedule",
+              "options": [
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Report format, defaults to 'json' Possible value(s): 'csv', 'json', 'yaml', 'html'",
+                  "name": "report-format",
+                  "shortname": null,
+                  "value": "ENUM"
+                },
+                {
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            }
+          ]
+        },
         {
           "description": "Manage ansible roles",
           "name": "roles",
@@ -6280,6 +6519,18 @@
               "value": "VALUE"
             },
             {
+              "help": "VALUE/NUMBER          Name/id of the HTTP Proxy to use with alternate content sources",
+              "name": "http-proxy",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER          Name/id of the HTTP Proxy to use with alternate content sources",
+              "name": "http-proxy-id",
+              "shortname": null,
+              "value": null
+            },
+            {
               "help": "VALUE/NUMBER     Set the current location context for the request",
               "name": "location",
               "shortname": null,
@@ -6728,6 +6979,18 @@
               "name": "download-policy",
               "shortname": null,
               "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER          Name/id of the HTTP Proxy to use with alternate content sources",
+              "name": "http-proxy",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER          Name/id of the HTTP Proxy to use with alternate content sources",
+              "name": "http-proxy-id",
+              "shortname": null,
+              "value": null
             },
             {
               "help": "",
@@ -7260,7 +7523,7 @@
                   "value": null
                 },
                 {
-                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --interface: GCE: --interface: Libvirt: --interface: compute_type                            Possible values: bridge, network compute_bridge                          Name of interface according to type compute_model                           Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 compute_network Libvirt instance network, e.g. default OpenStack: --interface: oVirt: --interface: compute_name          Compute name, e.g. eth0 compute_network       Select one of available networks for a cluster, must be an ID or a name compute_interface     Interface type compute_vnic_profile  Vnic Profile Rackspace: --interface: VMware: --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3 VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID or Network Name from VMware AzureRM: --interface: compute_network     Select one of available Azure Subnets, must be an ID compute_public_ip   Public IP (None, Static, Dynamic) compute_private_ip  Static Private IP (expressed as true or false)",
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --interface: Libvirt: --interface: compute_type                            Possible values: bridge, network compute_bridge                          Name of interface according to type compute_model                           Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 compute_network Libvirt instance network, e.g. default OpenStack: --interface: oVirt: --interface: compute_name          Compute name, e.g. eth0 compute_network       Select one of available networks for a cluster, must be an ID or a name compute_interface     Interface type compute_vnic_profile  Vnic Profile Rackspace: --interface: VMware: --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3 VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID or Network Name from VMware AzureRM: --interface: compute_network     Select one of available Azure Subnets, must be an ID compute_public_ip   Public IP (None, Static, Dynamic) compute_private_ip  Static Private IP (expressed as true or false) GCE: --interface:",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -7339,7 +7602,7 @@
                   "value": "KEY_VALUE_LIST"
                 },
                 {
-                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --volume: GCE: --volume: size_gb             Volume size in GB, integer value Libvirt: --volume: \u001b[1mpool_name\u001b[0m                    One of available storage pools \u001b[1mcapacity\u001b[0m                     String value, e.g. 10G allocation Initial allocation, e.g. 0G format_type                  Possible values: raw, qcow2 OpenStack: --volume: oVirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID or name of storage domain bootable            Boolean, set 1 for bootable, only one volume can be bootable preallocate         Boolean, set 1 to preallocate wipe_after_delete   Boolean, set 1 to wipe disk after delete interface           Disk interface name, must be ide, virto or virto_scsi Rackspace: --volume: VMware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware mode                persistent/independent_persistent/independent_nonpersistent size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false controller_key      Associated SCSI controller key AzureRM: --volume: disk_size_gb        Volume Size in GB (integer value) data_disk_caching   Data Disk Caching (None, ReadOnly, ReadWrite)",
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --volume: Libvirt: --volume: \u001b[1mpool_name\u001b[0m                    One of available storage pools \u001b[1mcapacity\u001b[0m                     String value, e.g. 10G allocation Initial allocation, e.g. 0G format_type                  Possible values: raw, qcow2 OpenStack: --volume: oVirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID or name of storage domain bootable            Boolean, set 1 for bootable, only one volume can be bootable preallocate         Boolean, set 1 to preallocate wipe_after_delete   Boolean, set 1 to wipe disk after delete interface           Disk interface name, must be ide, virto or virto_scsi Rackspace: --volume: VMware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware mode                persistent/independent_persistent/independent_nonpersistent size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false controller_key      Associated SCSI controller key AzureRM: --volume: disk_size_gb        Volume Size in GB (integer value) data_disk_caching   Data Disk Caching (None, ReadOnly, ReadWrite) GCE: --volume: size_gb             Volume size in GB, integer value",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -7430,7 +7693,7 @@
                   "value": "KEY_VALUE_LIST"
                 },
                 {
-                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --volume: --interface: --compute-attributes: availability_zone flavor_id groups security_group_ids managed_ip GCE: --volume: size_gb             Volume size in GB, integer value --interface: --compute-attributes: machine_type network associate_external_ip Libvirt: --volume: \u001b[1mpool_name\u001b[0m                    One of available storage pools \u001b[1mcapacity\u001b[0m                     String value, e.g. 10G allocation Initial allocation, e.g. 0G format_type                  Possible values: raw, qcow2 --interface: compute_type                            Possible values: bridge, network compute_bridge                          Name of interface according to type compute_model                           Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 compute_network Libvirt instance network, e.g. default --compute-attributes: \u001b[1mcpus\u001b[0m                Number of CPUs \u001b[1mmemory\u001b[0m              String, amount of memory, value in bytes cpu_mode            Possible values: default, host-model, host-passthrough boot_order          Device names to specify the boot order OpenStack: --volume: --interface: --compute-attributes: availability_zone boot_from_volume flavor_ref image_ref tenant_id security_groups network oVirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID or name of storage domain bootable            Boolean, set 1 for bootable, only one volume can be bootable preallocate         Boolean, set 1 to preallocate wipe_after_delete   Boolean, set 1 to wipe disk after delete interface           Disk interface name, must be ide, virto or virto_scsi --interface: compute_name          Compute name, e.g. eth0 compute_network       Select one of available networks for a cluster, must be an ID or a name compute_interface     Interface type compute_vnic_profile  Vnic Profile --compute-attributes: cluster             ID or name of cluster to use template            Hardware profile to use cores               Integer value, number of cores sockets             Integer value, number of sockets memory              Amount of memory, integer value in bytes ha                  Boolean, set 1 to high availability display_type        Possible values: VNC, SPICE keyboard_layout     Possible values: ar, de-ch, es, fo, fr-ca, hu, ja, mk, no, pt-br, sv, da, en-gb, et, fr, fr-ch, is, lt, nl, pl, ru, th, de, en-us, fi, fr-be, hr, it, lv, nl-be, pt, sl, tr. Not usable if display type is SPICE. Rackspace: --volume: --interface: --compute-attributes: flavor_id VMware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware mode                persistent/independent_persistent/independent_nonpersistent size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false controller_key      Associated SCSI controller key --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3 VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID or Network Name from VMware --compute-attributes: \u001b[1mcluster\u001b[0m              Cluster ID from VMware \u001b[1mcorespersocket\u001b[0m       Number of cores per socket (applicable to hardware versions < 10 only) \u001b[1mcpus\u001b[0m                 CPU count \u001b[1mmemory_mb\u001b[0m            Integer number, amount of memory in MB \u001b[1mpath\u001b[0m                 Path to folder \u001b[1mresource_pool\u001b[0m        Resource Pool ID from VMware firmware             automatic/bios/efi guest_id             Guest OS ID form VMware hardware_version     Hardware version ID from VMware memoryHotAddEnabled  Must be a 1 or 0, lets you add memory resources while the machine is on cpuHotAddEnabled     Must be a 1 or 0, lets you add CPU resources while the machine is on add_cdrom            Must be a 1 or 0, Add a CD-ROM drive to the virtual machine annotation           Annotation Notes scsi_controllers     List with SCSI controllers definitions type - ID of the controller from VMware key  - Key of the controller (e.g. 1000) boot_order           Device names to specify the boot order AzureRM: --volume: disk_size_gb        Volume Size in GB (integer value) data_disk_caching   Data Disk Caching (None, ReadOnly, ReadWrite) --interface: compute_network     Select one of available Azure Subnets, must be an ID compute_public_ip   Public IP (None, Static, Dynamic) compute_private_ip  Static Private IP (expressed as true or false) --compute-attributes: resource_group      Existing Azure Resource Group of user vm_size             VM Size, eg. Standard_A0 etc. username            The Admin username password            The Admin password platform            OS type eg. Linux ssh_key_data        SSH key for passwordless authentication os_disk_caching     OS disk caching premium_os_disk     Premium OS Disk, Boolean as 0 or 1 script_command      Custom Script Command script_uris         Comma seperated file URIs",
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --volume: --interface: --compute-attributes: availability_zone flavor_id groups security_group_ids managed_ip Libvirt: --volume: \u001b[1mpool_name\u001b[0m                    One of available storage pools \u001b[1mcapacity\u001b[0m                     String value, e.g. 10G allocation Initial allocation, e.g. 0G format_type                  Possible values: raw, qcow2 --interface: compute_type                            Possible values: bridge, network compute_bridge                          Name of interface according to type compute_model                           Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 compute_network Libvirt instance network, e.g. default --compute-attributes: \u001b[1mcpus\u001b[0m                Number of CPUs \u001b[1mmemory\u001b[0m              String, amount of memory, value in bytes cpu_mode            Possible values: default, host-model, host-passthrough boot_order          Device names to specify the boot order OpenStack: --volume: --interface: --compute-attributes: availability_zone boot_from_volume flavor_ref image_ref tenant_id security_groups network oVirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID or name of storage domain bootable            Boolean, set 1 for bootable, only one volume can be bootable preallocate         Boolean, set 1 to preallocate wipe_after_delete   Boolean, set 1 to wipe disk after delete interface           Disk interface name, must be ide, virto or virto_scsi --interface: compute_name          Compute name, e.g. eth0 compute_network       Select one of available networks for a cluster, must be an ID or a name compute_interface     Interface type compute_vnic_profile  Vnic Profile --compute-attributes: cluster             ID or name of cluster to use template            Hardware profile to use cores               Integer value, number of cores sockets             Integer value, number of sockets memory              Amount of memory, integer value in bytes ha                  Boolean, set 1 to high availability display_type        Possible values: VNC, SPICE keyboard_layout     Possible values: ar, de-ch, es, fo, fr-ca, hu, ja, mk, no, pt-br, sv, da, en-gb, et, fr, fr-ch, is, lt, nl, pl, ru, th, de, en-us, fi, fr-be, hr, it, lv, nl-be, pt, sl, tr. Not usable if display type is SPICE. Rackspace: --volume: --interface: --compute-attributes: flavor_id VMware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware mode                persistent/independent_persistent/independent_nonpersistent size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false controller_key      Associated SCSI controller key --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3 VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID or Network Name from VMware --compute-attributes: \u001b[1mcluster\u001b[0m              Cluster ID from VMware \u001b[1mcorespersocket\u001b[0m       Number of cores per socket (applicable to hardware versions < 10 only) \u001b[1mcpus\u001b[0m                 CPU count \u001b[1mmemory_mb\u001b[0m            Integer number, amount of memory in MB \u001b[1mpath\u001b[0m                 Path to folder \u001b[1mresource_pool\u001b[0m        Resource Pool ID from VMware firmware             automatic/bios/efi guest_id             Guest OS ID form VMware hardware_version     Hardware version ID from VMware memoryHotAddEnabled  Must be a 1 or 0, lets you add memory resources while the machine is on cpuHotAddEnabled     Must be a 1 or 0, lets you add CPU resources while the machine is on add_cdrom            Must be a 1 or 0, Add a CD-ROM drive to the virtual machine annotation           Annotation Notes scsi_controllers     List with SCSI controllers definitions type - ID of the controller from VMware key  - Key of the controller (e.g. 1000) boot_order           Device names to specify the boot order AzureRM: --volume: disk_size_gb        Volume Size in GB (integer value) data_disk_caching   Data Disk Caching (None, ReadOnly, ReadWrite) --interface: compute_network     Select one of available Azure Subnets, must be an ID compute_public_ip   Public IP (None, Static, Dynamic) compute_private_ip  Static Private IP (expressed as true or false) --compute-attributes: resource_group      Existing Azure Resource Group of user vm_size             VM Size, eg. Standard_A0 etc. username            The Admin username password            The Admin password platform            OS type eg. Linux ssh_key_data        SSH key for passwordless authentication os_disk_caching     OS disk caching premium_os_disk     Premium OS Disk, Boolean as 0 or 1 script_command      Custom Script Command script_uris         Comma seperated file URIs GCE: --volume: size_gb             Volume size in GB, integer value --interface: --compute-attributes: machine_type network associate_external_ip",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -7679,7 +7942,7 @@
                   "value": "KEY_VALUE_LIST"
                 },
                 {
-                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --volume: --interface: --compute-attributes: availability_zone flavor_id groups security_group_ids managed_ip GCE: --volume: size_gb             Volume size in GB, integer value --interface: --compute-attributes: machine_type network associate_external_ip Libvirt: --volume: \u001b[1mpool_name\u001b[0m                    One of available storage pools \u001b[1mcapacity\u001b[0m                     String value, e.g. 10G allocation Initial allocation, e.g. 0G format_type                  Possible values: raw, qcow2 --interface: compute_type                            Possible values: bridge, network compute_bridge                          Name of interface according to type compute_model                           Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 compute_network Libvirt instance network, e.g. default --compute-attributes: \u001b[1mcpus\u001b[0m                Number of CPUs \u001b[1mmemory\u001b[0m              String, amount of memory, value in bytes cpu_mode            Possible values: default, host-model, host-passthrough boot_order          Device names to specify the boot order OpenStack: --volume: --interface: --compute-attributes: availability_zone boot_from_volume flavor_ref image_ref tenant_id security_groups network oVirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID or name of storage domain bootable            Boolean, set 1 for bootable, only one volume can be bootable preallocate         Boolean, set 1 to preallocate wipe_after_delete   Boolean, set 1 to wipe disk after delete interface           Disk interface name, must be ide, virto or virto_scsi --interface: compute_name          Compute name, e.g. eth0 compute_network       Select one of available networks for a cluster, must be an ID or a name compute_interface     Interface type compute_vnic_profile  Vnic Profile --compute-attributes: cluster             ID or name of cluster to use template            Hardware profile to use cores               Integer value, number of cores sockets             Integer value, number of sockets memory              Amount of memory, integer value in bytes ha                  Boolean, set 1 to high availability display_type        Possible values: VNC, SPICE keyboard_layout     Possible values: ar, de-ch, es, fo, fr-ca, hu, ja, mk, no, pt-br, sv, da, en-gb, et, fr, fr-ch, is, lt, nl, pl, ru, th, de, en-us, fi, fr-be, hr, it, lv, nl-be, pt, sl, tr. Not usable if display type is SPICE. Rackspace: --volume: --interface: --compute-attributes: flavor_id VMware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware mode                persistent/independent_persistent/independent_nonpersistent size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false controller_key      Associated SCSI controller key --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3 VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID or Network Name from VMware --compute-attributes: \u001b[1mcluster\u001b[0m              Cluster ID from VMware \u001b[1mcorespersocket\u001b[0m       Number of cores per socket (applicable to hardware versions < 10 only) \u001b[1mcpus\u001b[0m                 CPU count \u001b[1mmemory_mb\u001b[0m            Integer number, amount of memory in MB \u001b[1mpath\u001b[0m                 Path to folder \u001b[1mresource_pool\u001b[0m        Resource Pool ID from VMware firmware             automatic/bios/efi guest_id             Guest OS ID form VMware hardware_version     Hardware version ID from VMware memoryHotAddEnabled  Must be a 1 or 0, lets you add memory resources while the machine is on cpuHotAddEnabled     Must be a 1 or 0, lets you add CPU resources while the machine is on add_cdrom            Must be a 1 or 0, Add a CD-ROM drive to the virtual machine annotation           Annotation Notes scsi_controllers     List with SCSI controllers definitions type - ID of the controller from VMware key  - Key of the controller (e.g. 1000) boot_order           Device names to specify the boot order AzureRM: --volume: disk_size_gb        Volume Size in GB (integer value) data_disk_caching   Data Disk Caching (None, ReadOnly, ReadWrite) --interface: compute_network     Select one of available Azure Subnets, must be an ID compute_public_ip   Public IP (None, Static, Dynamic) compute_private_ip  Static Private IP (expressed as true or false) --compute-attributes: resource_group      Existing Azure Resource Group of user vm_size             VM Size, eg. Standard_A0 etc. username            The Admin username password            The Admin password platform            OS type eg. Linux ssh_key_data        SSH key for passwordless authentication os_disk_caching     OS disk caching premium_os_disk     Premium OS Disk, Boolean as 0 or 1 script_command      Custom Script Command script_uris         Comma seperated file URIs",
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --volume: --interface: --compute-attributes: availability_zone flavor_id groups security_group_ids managed_ip Libvirt: --volume: \u001b[1mpool_name\u001b[0m                    One of available storage pools \u001b[1mcapacity\u001b[0m                     String value, e.g. 10G allocation Initial allocation, e.g. 0G format_type                  Possible values: raw, qcow2 --interface: compute_type                            Possible values: bridge, network compute_bridge                          Name of interface according to type compute_model                           Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 compute_network Libvirt instance network, e.g. default --compute-attributes: \u001b[1mcpus\u001b[0m                Number of CPUs \u001b[1mmemory\u001b[0m              String, amount of memory, value in bytes cpu_mode            Possible values: default, host-model, host-passthrough boot_order          Device names to specify the boot order OpenStack: --volume: --interface: --compute-attributes: availability_zone boot_from_volume flavor_ref image_ref tenant_id security_groups network oVirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID or name of storage domain bootable            Boolean, set 1 for bootable, only one volume can be bootable preallocate         Boolean, set 1 to preallocate wipe_after_delete   Boolean, set 1 to wipe disk after delete interface           Disk interface name, must be ide, virto or virto_scsi --interface: compute_name          Compute name, e.g. eth0 compute_network       Select one of available networks for a cluster, must be an ID or a name compute_interface     Interface type compute_vnic_profile  Vnic Profile --compute-attributes: cluster             ID or name of cluster to use template            Hardware profile to use cores               Integer value, number of cores sockets             Integer value, number of sockets memory              Amount of memory, integer value in bytes ha                  Boolean, set 1 to high availability display_type        Possible values: VNC, SPICE keyboard_layout     Possible values: ar, de-ch, es, fo, fr-ca, hu, ja, mk, no, pt-br, sv, da, en-gb, et, fr, fr-ch, is, lt, nl, pl, ru, th, de, en-us, fi, fr-be, hr, it, lv, nl-be, pt, sl, tr. Not usable if display type is SPICE. Rackspace: --volume: --interface: --compute-attributes: flavor_id VMware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware mode                persistent/independent_persistent/independent_nonpersistent size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false controller_key      Associated SCSI controller key --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3 VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID or Network Name from VMware --compute-attributes: \u001b[1mcluster\u001b[0m              Cluster ID from VMware \u001b[1mcorespersocket\u001b[0m       Number of cores per socket (applicable to hardware versions < 10 only) \u001b[1mcpus\u001b[0m                 CPU count \u001b[1mmemory_mb\u001b[0m            Integer number, amount of memory in MB \u001b[1mpath\u001b[0m                 Path to folder \u001b[1mresource_pool\u001b[0m        Resource Pool ID from VMware firmware             automatic/bios/efi guest_id             Guest OS ID form VMware hardware_version     Hardware version ID from VMware memoryHotAddEnabled  Must be a 1 or 0, lets you add memory resources while the machine is on cpuHotAddEnabled     Must be a 1 or 0, lets you add CPU resources while the machine is on add_cdrom            Must be a 1 or 0, Add a CD-ROM drive to the virtual machine annotation           Annotation Notes scsi_controllers     List with SCSI controllers definitions type - ID of the controller from VMware key  - Key of the controller (e.g. 1000) boot_order           Device names to specify the boot order AzureRM: --volume: disk_size_gb        Volume Size in GB (integer value) data_disk_caching   Data Disk Caching (None, ReadOnly, ReadWrite) --interface: compute_network     Select one of available Azure Subnets, must be an ID compute_public_ip   Public IP (None, Static, Dynamic) compute_private_ip  Static Private IP (expressed as true or false) --compute-attributes: resource_group      Existing Azure Resource Group of user vm_size             VM Size, eg. Standard_A0 etc. username            The Admin username password            The Admin password platform            OS type eg. Linux ssh_key_data        SSH key for passwordless authentication os_disk_caching     OS disk caching premium_os_disk     Premium OS Disk, Boolean as 0 or 1 script_command      Custom Script Command script_uris         Comma seperated file URIs GCE: --volume: size_gb             Volume size in GB, integer value --interface: --compute-attributes: machine_type network associate_external_ip",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -7764,7 +8027,7 @@
                   "value": null
                 },
                 {
-                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --interface: GCE: --interface: Libvirt: --interface: compute_type                            Possible values: bridge, network compute_bridge                          Name of interface according to type compute_model                           Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 compute_network Libvirt instance network, e.g. default OpenStack: --interface: oVirt: --interface: compute_name          Compute name, e.g. eth0 compute_network       Select one of available networks for a cluster, must be an ID or a name compute_interface     Interface type compute_vnic_profile  Vnic Profile Rackspace: --interface: VMware: --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3 VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID or Network Name from VMware AzureRM: --interface: compute_network     Select one of available Azure Subnets, must be an ID compute_public_ip   Public IP (None, Static, Dynamic) compute_private_ip  Static Private IP (expressed as true or false)",
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --interface: Libvirt: --interface: compute_type                            Possible values: bridge, network compute_bridge                          Name of interface according to type compute_model                           Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 compute_network Libvirt instance network, e.g. default OpenStack: --interface: oVirt: --interface: compute_name          Compute name, e.g. eth0 compute_network       Select one of available networks for a cluster, must be an ID or a name compute_interface     Interface type compute_vnic_profile  Vnic Profile Rackspace: --interface: VMware: --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3 VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID or Network Name from VMware AzureRM: --interface: compute_network     Select one of available Azure Subnets, must be an ID compute_public_ip   Public IP (None, Static, Dynamic) compute_private_ip  Static Private IP (expressed as true or false) GCE: --interface:",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -7849,7 +8112,7 @@
                   "value": "NUMBER"
                 },
                 {
-                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --volume: GCE: --volume: size_gb             Volume size in GB, integer value Libvirt: --volume: \u001b[1mpool_name\u001b[0m                    One of available storage pools \u001b[1mcapacity\u001b[0m                     String value, e.g. 10G allocation Initial allocation, e.g. 0G format_type                  Possible values: raw, qcow2 OpenStack: --volume: oVirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID or name of storage domain bootable            Boolean, set 1 for bootable, only one volume can be bootable preallocate         Boolean, set 1 to preallocate wipe_after_delete   Boolean, set 1 to wipe disk after delete interface           Disk interface name, must be ide, virto or virto_scsi Rackspace: --volume: VMware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware mode                persistent/independent_persistent/independent_nonpersistent size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false controller_key      Associated SCSI controller key AzureRM: --volume: disk_size_gb        Volume Size in GB (integer value) data_disk_caching   Data Disk Caching (None, ReadOnly, ReadWrite)",
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --volume: Libvirt: --volume: \u001b[1mpool_name\u001b[0m                    One of available storage pools \u001b[1mcapacity\u001b[0m                     String value, e.g. 10G allocation Initial allocation, e.g. 0G format_type                  Possible values: raw, qcow2 OpenStack: --volume: oVirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID or name of storage domain bootable            Boolean, set 1 for bootable, only one volume can be bootable preallocate         Boolean, set 1 to preallocate wipe_after_delete   Boolean, set 1 to wipe disk after delete interface           Disk interface name, must be ide, virto or virto_scsi Rackspace: --volume: VMware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware mode                persistent/independent_persistent/independent_nonpersistent size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false controller_key      Associated SCSI controller key AzureRM: --volume: disk_size_gb        Volume Size in GB (integer value) data_disk_caching   Data Disk Caching (None, ReadOnly, ReadWrite) GCE: --volume: size_gb             Volume size in GB, integer value",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -8054,13 +8317,13 @@
               "value": "VALUE"
             },
             {
-              "help": "Email for GCE only",
+              "help": "Deprecated, email is automatically loaded from the JSON file. For GCE only",
               "name": "email",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Certificate path for GCE only",
+              "help": "Certificate path, for GCE only",
               "name": "key-path",
               "shortname": null,
               "value": "VALUE"
@@ -8162,7 +8425,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Project project for GCE only",
+              "help": "Deprecated, project is automatically loaded from the JSON file. For GCE only",
               "name": "project",
               "shortname": null,
               "value": "VALUE"
@@ -8180,7 +8443,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Providers include Libvirt, Ovirt, EC2, Vmware, Openstack, GCE, AzureRm",
+              "help": "Providers include Libvirt, Ovirt, EC2, Vmware, Openstack, AzureRm, GCE",
               "name": "provider",
               "shortname": null,
               "value": "VALUE"
@@ -8246,7 +8509,7 @@
               "value": "VALUE"
             },
             {
-              "help": "For GCE only",
+              "help": "Zone, for GCE only",
               "name": "zone",
               "shortname": null,
               "value": "VALUE"
@@ -9724,7 +9987,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Email for GCE only",
+              "help": "Deprecated, email is automatically loaded from the JSON file. For GCE only",
               "name": "email",
               "shortname": null,
               "value": "VALUE"
@@ -9736,7 +9999,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Certificate path for GCE only",
+              "help": "Certificate path, for GCE only",
               "name": "key-path",
               "shortname": null,
               "value": "VALUE"
@@ -9844,7 +10107,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Project project for GCE only",
+              "help": "Deprecated, project is automatically loaded from the JSON file. For GCE only",
               "name": "project",
               "shortname": null,
               "value": "VALUE"
@@ -9862,7 +10125,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Providers include Libvirt, Ovirt, EC2, Vmware, Openstack, GCE, AzureRm",
+              "help": "Providers include Libvirt, Ovirt, EC2, Vmware, Openstack, AzureRm, GCE",
               "name": "provider",
               "shortname": null,
               "value": "VALUE"
@@ -9928,7 +10191,7 @@
               "value": "VALUE"
             },
             {
-              "help": "For GCE only",
+              "help": "Zone, for GCE only",
               "name": "zone",
               "shortname": null,
               "value": "VALUE"
@@ -10007,7 +10270,7 @@
                   "value": null
                 },
                 {
-                  "help": "Virtual machine id, for gce use virtual machine name",
+                  "help": "",
                   "name": "vm-id",
                   "shortname": null,
                   "value": "VALUE"
@@ -10080,7 +10343,7 @@
                   "value": null
                 },
                 {
-                  "help": "Virtual machine id, for gce use virtual machine name",
+                  "help": "",
                   "name": "vm-id",
                   "shortname": null,
                   "value": "VALUE"
@@ -10147,7 +10410,7 @@
                   "value": null
                 },
                 {
-                  "help": "Virtual machine id, for gce use virtual machine name",
+                  "help": "",
                   "name": "vm-id",
                   "shortname": null,
                   "value": "VALUE"
@@ -12976,7 +13239,7 @@
                   "value": "LIST"
                 },
                 {
-                  "help": "Type of filter (e.g. rpm, package_group, erratum, erratum_id, erratum_date, docker, modulemd)",
+                  "help": "Type of filter (e.g. deb, rpm, package_group, erratum, erratum_id, erratum_date, docker, modulemd)",
                   "name": "type",
                   "shortname": null,
                   "value": "VALUE"
@@ -13189,7 +13452,7 @@
                   "value": "LIST"
                 },
                 {
-                  "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- id   | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | | x   | x       | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string Values: rpm, package_group, erratum, docker, modulemd Values: include, exclude string",
+                  "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- id   | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | | x   | x       | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string Values: rpm, deb, package_group, erratum, docker, modulemd Values: include, exclude string",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -13365,7 +13628,7 @@
                       "value": "LIST"
                     },
                     {
-                      "help": "Package, package group, or docker tag names",
+                      "help": "Deb, package, package group, or docker tag names",
                       "name": "name",
                       "shortname": null,
                       "value": "LIST"
@@ -15546,6 +15809,12 @@
             {
               "help": "Return deb packages that are applicable to one or more hosts (defaults to true if host_id is specified)",
               "name": "packages-restrict-applicable",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
+              "help": "Return only the latest version of each package",
+              "name": "packages-restrict-latest",
               "shortname": null,
               "value": "BOOLEAN"
             },
@@ -18332,7 +18601,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Print help ----------|-----|-------- | ALL | DEFAULT ----------|-----|-------- | x   | x id | x   | x | x   | x | x   | x | x   | x | x   | x ----------|-----|-------- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string string date Values: true, false string string boolean string string string string string date",
+              "help": "Print help ----------|-----|-------- | ALL | DEFAULT ----------|-----|-------- | x   | x id | x   | x | x   | x | x   | x | x   | x | x   | x ----------|-----|-------- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string integer string string string date Values: true, false string string boolean string string string string string date",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -20101,6 +20370,49 @@
           ],
           "subcommands": [
             {
+              "description": "Associate an Ansible role",
+              "name": "add",
+              "options": [
+                {
+                  "help": "VALUE/NUMBER Name/Id of associated ansible role",
+                  "name": "ansible-role",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Name/Id of associated ansible role",
+                  "name": "ansible-role-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Associate the Ansible role even if it already is associated indirectly",
+                  "name": "force",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Host name",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
               "description": "Assigns Ansible roles to a host",
               "name": "assign",
               "options": [
@@ -20232,7 +20544,7 @@
                   "value": null
                 },
                 {
-                  "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x at | x   | x       | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "help": "Print help ------------------|-----|---------|----- | ALL | DEFAULT | THIN ------------------|-----|---------|----- | x   | x       | x | x   | x       | x at       | x   | x       | | x   | x       | assigned | x   | x       | ------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -20291,6 +20603,43 @@
                   "name": "organization-title",
                   "shortname": null,
                   "value": null
+                },
+                {
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Disassociate an Ansible role",
+              "name": "remove",
+              "options": [
+                {
+                  "help": "VALUE/NUMBER Name/Id of associated ansible role",
+                  "name": "ansible-role",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Name/Id of associated ansible role",
+                  "name": "ansible-role-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Host name",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "VALUE"
                 },
                 {
                   "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
@@ -20916,7 +21265,7 @@
               "value": "KEY_VALUE_LIST"
             },
             {
-              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string parameters accept format defined by its schema (bold are required; <> contains acceptable type; [] contains acceptable value): \"\u001b[1mname\u001b[0m=<string>\\,\u001b[1mvalue\u001b[0m=<string>\\,parameter_type=[string|boolean|integer|real|array|hash|yaml|json]\\,hidden_value=[true|false|1|0], ... \" \"product_id=<string>\\,product_name=<string>\\,arch=<string>\\,version=<string>, ... \" mac ip Possible values: interface, bmc, bond, bridge name subnet_id domain_id identifier true/false true/false, each managed hosts needs to have one primary interface. true/false true/false virtual=true: tag                 VLAN tag, this attribute has precedence over the subnet VLAN ID. Only for virtual interfaces. attached_to         Identifier of the interface to which this interface belongs, e.g. eth1. type=bond: mode                Possible values: balance-rr, active-backup, balance-xor, broadcast, 802.3ad, balance-tlb, balance-alb attached_devices    Identifiers of slave interfaces, e.g. [eth1,eth2] bond_options type=bmc: provider            always IPMI username password \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --volume: --interface: --compute-attributes: availability_zone flavor_id groups security_group_ids managed_ip GCE: --volume: size_gb             Volume size in GB, integer value --interface: --compute-attributes: machine_type network associate_external_ip Libvirt: --volume: \u001b[1mpool_name\u001b[0m                    One of available storage pools \u001b[1mcapacity\u001b[0m                     String value, e.g. 10G allocation Initial allocation, e.g. 0G format_type                  Possible values: raw, qcow2 --interface: compute_type                            Possible values: bridge, network compute_bridge                          Name of interface according to type compute_model                           Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 compute_network Libvirt instance network, e.g. default --compute-attributes: \u001b[1mcpus\u001b[0m                Number of CPUs \u001b[1mmemory\u001b[0m              String, amount of memory, value in bytes cpu_mode            Possible values: default, host-model, host-passthrough boot_order          Device names to specify the boot order start               Boolean (expressed as 0 or 1), whether to start the machine or not OpenStack: --volume: --interface: --compute-attributes: availability_zone boot_from_volume flavor_ref image_ref tenant_id security_groups network oVirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID or name of storage domain bootable            Boolean, set 1 for bootable, only one volume can be bootable preallocate         Boolean, set 1 to preallocate wipe_after_delete   Boolean, set 1 to wipe disk after delete interface           Disk interface name, must be ide, virto or virto_scsi --interface: compute_name          Compute name, e.g. eth0 compute_network       Select one of available networks for a cluster, must be an ID or a name compute_interface     Interface type compute_vnic_profile  Vnic Profile --compute-attributes: cluster             ID or name of cluster to use template            Hardware profile to use cores               Integer value, number of cores sockets             Integer value, number of sockets memory              Amount of memory, integer value in bytes ha                  Boolean, set 1 to high availability display_type        Possible values: VNC, SPICE keyboard_layout     Possible values: ar, de-ch, es, fo, fr-ca, hu, ja, mk, no, pt-br, sv, da, en-gb, et, fr, fr-ch, is, lt, nl, pl, ru, th, de, en-us, fi, fr-be, hr, it, lv, nl-be, pt, sl, tr. Not usable if display type is SPICE. start               Boolean, set 1 to start the vm Rackspace: --volume: --interface: --compute-attributes: flavor_id VMware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware mode                persistent/independent_persistent/independent_nonpersistent size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false controller_key      Associated SCSI controller key --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3 VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID or Network Name from VMware --compute-attributes: \u001b[1mcluster\u001b[0m              Cluster ID from VMware \u001b[1mcorespersocket\u001b[0m       Number of cores per socket (applicable to hardware versions < 10 only) \u001b[1mcpus\u001b[0m                 CPU count \u001b[1mmemory_mb\u001b[0m            Integer number, amount of memory in MB \u001b[1mpath\u001b[0m                 Path to folder \u001b[1mresource_pool\u001b[0m        Resource Pool ID from VMware firmware             automatic/bios/efi guest_id             Guest OS ID form VMware hardware_version     Hardware version ID from VMware memoryHotAddEnabled  Must be a 1 or 0, lets you add memory resources while the machine is on cpuHotAddEnabled     Must be a 1 or 0, lets you add CPU resources while the machine is on add_cdrom            Must be a 1 or 0, Add a CD-ROM drive to the virtual machine annotation           Annotation Notes scsi_controllers     List with SCSI controllers definitions type - ID of the controller from VMware key  - Key of the controller (e.g. 1000) boot_order           Device names to specify the boot order start                Must be a 1 or 0, whether to start the machine or not AzureRM: --volume: disk_size_gb        Volume Size in GB (integer value) data_disk_caching   Data Disk Caching (None, ReadOnly, ReadWrite) --interface: compute_network     Select one of available Azure Subnets, must be an ID compute_public_ip   Public IP (None, Static, Dynamic) compute_private_ip  Static Private IP (expressed as true or false) --compute-attributes: resource_group      Existing Azure Resource Group of user vm_size             VM Size, eg. Standard_A0 etc. username            The Admin username password            The Admin password platform            OS type eg. Linux ssh_key_data        SSH key for passwordless authentication os_disk_caching     OS disk caching premium_os_disk     Premium OS Disk, Boolean as 0 or 1 script_command      Custom Script Command script_uris         Comma seperated file URIs",
+              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string parameters accept format defined by its schema (bold are required; <> contains acceptable type; [] contains acceptable value): \"\u001b[1mname\u001b[0m=<string>\\,\u001b[1mvalue\u001b[0m=<string>\\,parameter_type=[string|boolean|integer|real|array|hash|yaml|json]\\,hidden_value=[true|false|1|0], ... \" \"product_id=<string>\\,product_name=<string>\\,arch=<string>\\,version=<string>, ... \" mac ip Possible values: interface, bmc, bond, bridge name subnet_id domain_id identifier true/false true/false, each managed hosts needs to have one primary interface. true/false true/false virtual=true: tag                 VLAN tag, this attribute has precedence over the subnet VLAN ID. Only for virtual interfaces. attached_to         Identifier of the interface to which this interface belongs, e.g. eth1. type=bond: mode                Possible values: balance-rr, active-backup, balance-xor, broadcast, 802.3ad, balance-tlb, balance-alb attached_devices    Identifiers of slave interfaces, e.g. [eth1,eth2] bond_options type=bmc: provider            always IPMI username password \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --volume: --interface: --compute-attributes: availability_zone flavor_id groups security_group_ids managed_ip Libvirt: --volume: \u001b[1mpool_name\u001b[0m                    One of available storage pools \u001b[1mcapacity\u001b[0m                     String value, e.g. 10G allocation Initial allocation, e.g. 0G format_type                  Possible values: raw, qcow2 --interface: compute_type                            Possible values: bridge, network compute_bridge                          Name of interface according to type compute_model                           Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 compute_network Libvirt instance network, e.g. default --compute-attributes: \u001b[1mcpus\u001b[0m                Number of CPUs \u001b[1mmemory\u001b[0m              String, amount of memory, value in bytes cpu_mode            Possible values: default, host-model, host-passthrough boot_order          Device names to specify the boot order start               Boolean (expressed as 0 or 1), whether to start the machine or not OpenStack: --volume: --interface: --compute-attributes: availability_zone boot_from_volume flavor_ref image_ref tenant_id security_groups network oVirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID or name of storage domain bootable            Boolean, set 1 for bootable, only one volume can be bootable preallocate         Boolean, set 1 to preallocate wipe_after_delete   Boolean, set 1 to wipe disk after delete interface           Disk interface name, must be ide, virto or virto_scsi --interface: compute_name          Compute name, e.g. eth0 compute_network       Select one of available networks for a cluster, must be an ID or a name compute_interface     Interface type compute_vnic_profile  Vnic Profile --compute-attributes: cluster             ID or name of cluster to use template            Hardware profile to use cores               Integer value, number of cores sockets             Integer value, number of sockets memory              Amount of memory, integer value in bytes ha                  Boolean, set 1 to high availability display_type        Possible values: VNC, SPICE keyboard_layout     Possible values: ar, de-ch, es, fo, fr-ca, hu, ja, mk, no, pt-br, sv, da, en-gb, et, fr, fr-ch, is, lt, nl, pl, ru, th, de, en-us, fi, fr-be, hr, it, lv, nl-be, pt, sl, tr. Not usable if display type is SPICE. start               Boolean, set 1 to start the vm Rackspace: --volume: --interface: --compute-attributes: flavor_id VMware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware mode                persistent/independent_persistent/independent_nonpersistent size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false controller_key      Associated SCSI controller key --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3 VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID or Network Name from VMware --compute-attributes: \u001b[1mcluster\u001b[0m              Cluster ID from VMware \u001b[1mcorespersocket\u001b[0m       Number of cores per socket (applicable to hardware versions < 10 only) \u001b[1mcpus\u001b[0m                 CPU count \u001b[1mmemory_mb\u001b[0m            Integer number, amount of memory in MB \u001b[1mpath\u001b[0m                 Path to folder \u001b[1mresource_pool\u001b[0m        Resource Pool ID from VMware firmware             automatic/bios/efi guest_id             Guest OS ID form VMware hardware_version     Hardware version ID from VMware memoryHotAddEnabled  Must be a 1 or 0, lets you add memory resources while the machine is on cpuHotAddEnabled     Must be a 1 or 0, lets you add CPU resources while the machine is on add_cdrom            Must be a 1 or 0, Add a CD-ROM drive to the virtual machine annotation           Annotation Notes scsi_controllers     List with SCSI controllers definitions type - ID of the controller from VMware key  - Key of the controller (e.g. 1000) boot_order           Device names to specify the boot order start                Must be a 1 or 0, whether to start the machine or not AzureRM: --volume: disk_size_gb        Volume Size in GB (integer value) data_disk_caching   Data Disk Caching (None, ReadOnly, ReadWrite) --interface: compute_network     Select one of available Azure Subnets, must be an ID compute_public_ip   Public IP (None, Static, Dynamic) compute_private_ip  Static Private IP (expressed as true or false) --compute-attributes: resource_group      Existing Azure Resource Group of user vm_size             VM Size, eg. Standard_A0 etc. username            The Admin username password            The Admin password platform            OS type eg. Linux ssh_key_data        SSH key for passwordless authentication os_disk_caching     OS disk caching premium_os_disk     Premium OS Disk, Boolean as 0 or 1 script_command      Custom Script Command script_uris         Comma seperated file URIs GCE: --volume: size_gb             Volume size in GB, integer value --interface: --compute-attributes: machine_type network associate_external_ip",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -22463,7 +22812,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help -----------------------|-----|---------|----- | ALL | DEFAULT | THIN -----------------------|-----|---------|----- | x   | x       | x | x   | x       | x system       | x   | x       | group             | x   | x       | | x   | x       | | x   | x       | status          | x   | x       | | x   |         | | x   |         | information | x   |         | view           | x   | x       | environment  | x   | x       | | x   |         | | x   |         | | x   |         | status           | x   | x       | -----------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string Values: mismatched, matched, not_specified string string string date string string boolean boot_time Values: true, false Values: built, pending, token_expired, build_failed text string integer string string integer datetime integer string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string integer string string boolean string integer string infrastructure_facet.foreman infrastructure_facet.smart_proxy_id integer string datetime string job_invocation.id                    string job_invocation.result                Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string reported.boot_time reported.cores reported.disks_total reported.ram reported.sockets reported.virtual                     Values: true, false string string text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied                       integer status.enabled                       Values: true, false status.failed                        integer status.failed_restarts               integer status.interesting                   Values: true, false status.pending                       integer status.restarted                     integer status.skipped                       integer string subnet.name                          text string subnet6.name                         text string string Values: valid, partial, invalid, unknown, disabled, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string string text Values: mismatched, matched, not_specified user.firstname                       string user.lastname                        string user.login                           string user.mail                            string string usergroup.name                       string string",
+              "help": "Print help -----------------------|-----|---------|----- | ALL | DEFAULT | THIN -----------------------|-----|---------|----- | x   | x       | x | x   | x       | x system       | x   | x       | group             | x   | x       | | x   | x       | | x   | x       | status          | x   | x       | | x   |         | | x   |         | information | x   |         | view           | x   | x       | environment  | x   | x       | | x   |         | | x   |         | | x   |         | status           | x   | x       | -----------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string Values: mismatched, matched, not_specified string string string date string string boolean boot_time Values: true, false Values: built, pending, token_expired, build_failed text string integer string string integer datetime integer string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string infrastructure_facet.foreman infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string datetime string string job_invocation.id                    string job_invocation.result                Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string reported.boot_time reported.cores reported.disks_total reported.kernel_version reported.ram reported.sockets reported.virtual                     Values: true, false string string text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied                       integer status.enabled                       Values: true, false status.failed                        integer status.failed_restarts               integer status.interesting                   Values: true, false status.pending                       integer status.restarted                     integer status.skipped                       integer string subnet.name                          text string subnet6.name                         text string string Values: valid, partial, invalid, unknown, disabled, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string string text Values: mismatched, matched, not_specified user.firstname                       string user.lastname                        string user.login                           string user.mail                            string string usergroup.name                       string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -23604,6 +23953,12 @@
                   "value": "LIST"
                 },
                 {
+                  "help": "Whether or not to show all results",
+                  "name": "full-result",
+                  "shortname": null,
+                  "value": "BOOLEAN"
+                },
+                {
                   "help": "Name/id of the host",
                   "name": "host",
                   "shortname": null,
@@ -23612,6 +23967,30 @@
                 {
                   "help": "Name/id of the host",
                   "name": "host-id",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Sort field and order, eg. 'id DESC'",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Page number, starting at 1",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "NUMBER"
+                },
+                {
+                  "help": "Number of results per page to return",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "NUMBER"
+                },
+                {
+                  "help": "Search string",
+                  "name": "search",
                   "shortname": null,
                   "value": "VALUE"
                 },
@@ -24370,7 +24749,7 @@
               "value": "KEY_VALUE_LIST"
             },
             {
-              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string parameters accept format defined by its schema (bold are required; <> contains acceptable type; [] contains acceptable value): \"name=<string>\\,value=<string>\\,parameter_type=[string|boolean|integer|real|array|hash|yaml|json]\\,hidden_value=[true|false|1|0], ... \" \"product_id=<string>\\,product_name=<string>\\,arch=<string>\\,version=<string>, ... \" mac ip Possible values: interface, bmc, bond, bridge name subnet_id domain_id identifier true/false true/false, each managed hosts needs to have one primary interface. true/false true/false virtual=true: tag                 VLAN tag, this attribute has precedence over the subnet VLAN ID. Only for virtual interfaces. attached_to         Identifier of the interface to which this interface belongs, e.g. eth1. type=bond: mode                Possible values: balance-rr, active-backup, balance-xor, broadcast, 802.3ad, balance-tlb, balance-alb attached_devices    Identifiers of slave interfaces, e.g. [eth1,eth2] bond_options type=bmc: provider            always IPMI username password \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --volume: --interface: --compute-attributes: availability_zone flavor_id groups security_group_ids managed_ip GCE: --volume: size_gb             Volume size in GB, integer value --interface: --compute-attributes: machine_type network associate_external_ip Libvirt: --volume: \u001b[1mpool_name\u001b[0m                    One of available storage pools \u001b[1mcapacity\u001b[0m                     String value, e.g. 10G allocation Initial allocation, e.g. 0G format_type                  Possible values: raw, qcow2 --interface: compute_type                            Possible values: bridge, network compute_bridge                          Name of interface according to type compute_model                           Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 compute_network Libvirt instance network, e.g. default --compute-attributes: \u001b[1mcpus\u001b[0m                Number of CPUs \u001b[1mmemory\u001b[0m              String, amount of memory, value in bytes cpu_mode            Possible values: default, host-model, host-passthrough boot_order          Device names to specify the boot order start               Boolean (expressed as 0 or 1), whether to start the machine or not OpenStack: --volume: --interface: --compute-attributes: availability_zone boot_from_volume flavor_ref image_ref tenant_id security_groups network oVirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID or name of storage domain bootable            Boolean, set 1 for bootable, only one volume can be bootable preallocate         Boolean, set 1 to preallocate wipe_after_delete   Boolean, set 1 to wipe disk after delete interface           Disk interface name, must be ide, virto or virto_scsi --interface: compute_name          Compute name, e.g. eth0 compute_network       Select one of available networks for a cluster, must be an ID or a name compute_interface     Interface type compute_vnic_profile  Vnic Profile --compute-attributes: cluster             ID or name of cluster to use template            Hardware profile to use cores               Integer value, number of cores sockets             Integer value, number of sockets memory              Amount of memory, integer value in bytes ha                  Boolean, set 1 to high availability display_type        Possible values: VNC, SPICE keyboard_layout     Possible values: ar, de-ch, es, fo, fr-ca, hu, ja, mk, no, pt-br, sv, da, en-gb, et, fr, fr-ch, is, lt, nl, pl, ru, th, de, en-us, fi, fr-be, hr, it, lv, nl-be, pt, sl, tr. Not usable if display type is SPICE. start               Boolean, set 1 to start the vm Rackspace: --volume: --interface: --compute-attributes: flavor_id VMware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware mode                persistent/independent_persistent/independent_nonpersistent size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false controller_key      Associated SCSI controller key --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3 VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID or Network Name from VMware --compute-attributes: \u001b[1mcluster\u001b[0m              Cluster ID from VMware \u001b[1mcorespersocket\u001b[0m       Number of cores per socket (applicable to hardware versions < 10 only) \u001b[1mcpus\u001b[0m                 CPU count \u001b[1mmemory_mb\u001b[0m            Integer number, amount of memory in MB \u001b[1mpath\u001b[0m                 Path to folder \u001b[1mresource_pool\u001b[0m        Resource Pool ID from VMware firmware             automatic/bios/efi guest_id             Guest OS ID form VMware hardware_version     Hardware version ID from VMware memoryHotAddEnabled  Must be a 1 or 0, lets you add memory resources while the machine is on cpuHotAddEnabled     Must be a 1 or 0, lets you add CPU resources while the machine is on add_cdrom            Must be a 1 or 0, Add a CD-ROM drive to the virtual machine annotation           Annotation Notes scsi_controllers     List with SCSI controllers definitions type - ID of the controller from VMware key  - Key of the controller (e.g. 1000) boot_order           Device names to specify the boot order start                Must be a 1 or 0, whether to start the machine or not AzureRM: --volume: disk_size_gb        Volume Size in GB (integer value) data_disk_caching   Data Disk Caching (None, ReadOnly, ReadWrite) --interface: compute_network     Select one of available Azure Subnets, must be an ID compute_public_ip   Public IP (None, Static, Dynamic) compute_private_ip  Static Private IP (expressed as true or false) --compute-attributes: resource_group      Existing Azure Resource Group of user vm_size             VM Size, eg. Standard_A0 etc. username            The Admin username password            The Admin password platform            OS type eg. Linux ssh_key_data        SSH key for passwordless authentication os_disk_caching     OS disk caching premium_os_disk     Premium OS Disk, Boolean as 0 or 1 script_command      Custom Script Command script_uris         Comma seperated file URIs",
+              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string parameters accept format defined by its schema (bold are required; <> contains acceptable type; [] contains acceptable value): \"name=<string>\\,value=<string>\\,parameter_type=[string|boolean|integer|real|array|hash|yaml|json]\\,hidden_value=[true|false|1|0], ... \" \"product_id=<string>\\,product_name=<string>\\,arch=<string>\\,version=<string>, ... \" mac ip Possible values: interface, bmc, bond, bridge name subnet_id domain_id identifier true/false true/false, each managed hosts needs to have one primary interface. true/false true/false virtual=true: tag                 VLAN tag, this attribute has precedence over the subnet VLAN ID. Only for virtual interfaces. attached_to         Identifier of the interface to which this interface belongs, e.g. eth1. type=bond: mode                Possible values: balance-rr, active-backup, balance-xor, broadcast, 802.3ad, balance-tlb, balance-alb attached_devices    Identifiers of slave interfaces, e.g. [eth1,eth2] bond_options type=bmc: provider            always IPMI username password \u001b[1mNOTE:\u001b[0m Bold attributes are required. EC2: --volume: --interface: --compute-attributes: availability_zone flavor_id groups security_group_ids managed_ip Libvirt: --volume: \u001b[1mpool_name\u001b[0m                    One of available storage pools \u001b[1mcapacity\u001b[0m                     String value, e.g. 10G allocation Initial allocation, e.g. 0G format_type                  Possible values: raw, qcow2 --interface: compute_type                            Possible values: bridge, network compute_bridge                          Name of interface according to type compute_model                           Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 compute_network Libvirt instance network, e.g. default --compute-attributes: \u001b[1mcpus\u001b[0m                Number of CPUs \u001b[1mmemory\u001b[0m              String, amount of memory, value in bytes cpu_mode            Possible values: default, host-model, host-passthrough boot_order          Device names to specify the boot order start               Boolean (expressed as 0 or 1), whether to start the machine or not OpenStack: --volume: --interface: --compute-attributes: availability_zone boot_from_volume flavor_ref image_ref tenant_id security_groups network oVirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID or name of storage domain bootable            Boolean, set 1 for bootable, only one volume can be bootable preallocate         Boolean, set 1 to preallocate wipe_after_delete   Boolean, set 1 to wipe disk after delete interface           Disk interface name, must be ide, virto or virto_scsi --interface: compute_name          Compute name, e.g. eth0 compute_network       Select one of available networks for a cluster, must be an ID or a name compute_interface     Interface type compute_vnic_profile  Vnic Profile --compute-attributes: cluster             ID or name of cluster to use template            Hardware profile to use cores               Integer value, number of cores sockets             Integer value, number of sockets memory              Amount of memory, integer value in bytes ha                  Boolean, set 1 to high availability display_type        Possible values: VNC, SPICE keyboard_layout     Possible values: ar, de-ch, es, fo, fr-ca, hu, ja, mk, no, pt-br, sv, da, en-gb, et, fr, fr-ch, is, lt, nl, pl, ru, th, de, en-us, fi, fr-be, hr, it, lv, nl-be, pt, sl, tr. Not usable if display type is SPICE. start               Boolean, set 1 to start the vm Rackspace: --volume: --interface: --compute-attributes: flavor_id VMware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware mode                persistent/independent_persistent/independent_nonpersistent size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false controller_key      Associated SCSI controller key --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3 VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID or Network Name from VMware --compute-attributes: \u001b[1mcluster\u001b[0m              Cluster ID from VMware \u001b[1mcorespersocket\u001b[0m       Number of cores per socket (applicable to hardware versions < 10 only) \u001b[1mcpus\u001b[0m                 CPU count \u001b[1mmemory_mb\u001b[0m            Integer number, amount of memory in MB \u001b[1mpath\u001b[0m                 Path to folder \u001b[1mresource_pool\u001b[0m        Resource Pool ID from VMware firmware             automatic/bios/efi guest_id             Guest OS ID form VMware hardware_version     Hardware version ID from VMware memoryHotAddEnabled  Must be a 1 or 0, lets you add memory resources while the machine is on cpuHotAddEnabled     Must be a 1 or 0, lets you add CPU resources while the machine is on add_cdrom            Must be a 1 or 0, Add a CD-ROM drive to the virtual machine annotation           Annotation Notes scsi_controllers     List with SCSI controllers definitions type - ID of the controller from VMware key  - Key of the controller (e.g. 1000) boot_order           Device names to specify the boot order start                Must be a 1 or 0, whether to start the machine or not AzureRM: --volume: disk_size_gb        Volume Size in GB (integer value) data_disk_caching   Data Disk Caching (None, ReadOnly, ReadWrite) --interface: compute_network     Select one of available Azure Subnets, must be an ID compute_public_ip   Public IP (None, Static, Dynamic) compute_private_ip  Static Private IP (expressed as true or false) --compute-attributes: resource_group      Existing Azure Resource Group of user vm_size             VM Size, eg. Standard_A0 etc. username            The Admin username password            The Admin password platform            OS type eg. Linux ssh_key_data        SSH key for passwordless authentication os_disk_caching     OS disk caching premium_os_disk     Premium OS Disk, Boolean as 0 or 1 script_command      Custom Script Command script_uris         Comma seperated file URIs GCE: --volume: size_gb             Volume size in GB, integer value --interface: --compute-attributes: machine_type network associate_external_ip",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -24818,7 +25197,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   |         | | x   |         | | x   |         | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string Values: mismatched, matched, not_specified string string string date string string boolean boot_time Values: true, false Values: built, pending, token_expired, build_failed text string integer string string integer datetime integer string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string integer string string boolean string integer string infrastructure_facet.foreman infrastructure_facet.smart_proxy_id integer string datetime string job_invocation.id                    string job_invocation.result                Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string reported.boot_time reported.cores reported.disks_total reported.ram reported.sockets reported.virtual                     Values: true, false string string text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied                       integer status.enabled                       Values: true, false status.failed                        integer status.failed_restarts               integer status.interesting                   Values: true, false status.pending                       integer status.restarted                     integer status.skipped                       integer string subnet.name                          text string subnet6.name                         text string string Values: valid, partial, invalid, unknown, disabled, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string string text Values: mismatched, matched, not_specified user.firstname                       string user.lastname                        string user.login                           string user.mail                            string string usergroup.name                       string string",
+              "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   |         | | x   |         | | x   |         | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string Values: mismatched, matched, not_specified string string string date string string boolean boot_time Values: true, false Values: built, pending, token_expired, build_failed text string integer string string integer datetime integer string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string infrastructure_facet.foreman infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string datetime string string job_invocation.id                    string job_invocation.result                Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string reported.boot_time reported.cores reported.disks_total reported.kernel_version reported.ram reported.sockets reported.virtual                     Values: true, false string string text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied                       integer status.enabled                       Values: true, false status.failed                        integer status.failed_restarts               integer status.interesting                   Values: true, false status.pending                       integer status.restarted                     integer status.skipped                       integer string subnet.name                          text string subnet6.name                         text string string Values: valid, partial, invalid, unknown, disabled, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string string text Values: mismatched, matched, not_specified user.firstname                       string user.lastname                        string user.login                           string user.mail                            string string usergroup.name                       string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -25639,7 +26018,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Repository URL / details, for example for Debian OS family: 'deb deb.example.com/ buster 1.0', for Red Hat OS family: 'yum.theforeman.org/client/latest/el8/x86_64/'",
+              "help": "Repository URL / details, for example for Debian OS family: 'deb deb.example.com/ buster 1.0', for Red Hat and SUSE OS family: 'yum.theforeman.org/client/latest/el8/x86_64/'",
               "name": "repo",
               "shortname": null,
               "value": "VALUE"
@@ -25721,6 +26100,55 @@
             }
           ],
           "subcommands": [
+            {
+              "description": "Associate an Ansible role",
+              "name": "add",
+              "options": [
+                {
+                  "help": "VALUE/NUMBER Name/Id of associated ansible role",
+                  "name": "ansible-role",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Name/Id of associated ansible role",
+                  "name": "ansible-role-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Associate the Ansible role even if it already is associated indirectly",
+                  "name": "force",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Hostgroup name",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Hostgroup title",
+                  "name": "title",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
             {
               "description": "Assigns Ansible roles to a hostgroup",
               "name": "assign",
@@ -25865,7 +26293,7 @@
                   "value": "VALUE"
                 },
                 {
-                  "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x at | x   | x       | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "help": "Print help ------------------|-----|---------|----- | ALL | DEFAULT | THIN ------------------|-----|---------|----- | x   | x       | x | x   | x       | x at       | x   | x       | | x   | x       | assigned | x   | x       | ------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -25924,6 +26352,49 @@
                   "name": "organization-title",
                   "shortname": null,
                   "value": null
+                },
+                {
+                  "help": "Hostgroup title",
+                  "name": "title",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Disassociate an Ansible role",
+              "name": "remove",
+              "options": [
+                {
+                  "help": "VALUE/NUMBER Name/Id of associated ansible role",
+                  "name": "ansible-role",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Name/Id of associated ansible role",
+                  "name": "ansible-role-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Hostgroup name",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "VALUE"
                 },
                 {
                   "help": "Hostgroup title",
@@ -26551,7 +27022,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Print help -----------------|-----|---------|----- | ALL | DEFAULT | THIN -----------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | x system | x   | x       | | x   | x       | -----------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string integer string string integer string string string integer string string integer string string string string string string string",
+              "help": "Print help -----------------|-----|---------|----- | ALL | DEFAULT | THIN -----------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | x system | x   | x       | | x   | x       | -----------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string integer string string integer string string string integer string string integer string string string string string string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -32886,6 +33357,12 @@
               "value": "LIST"
             },
             {
+              "help": "List of resources types that will be automatically associated",
+              "name": "ignore-types",
+              "shortname": null,
+              "value": "LIST"
+            },
+            {
               "help": "",
               "name": "label",
               "shortname": null,
@@ -33004,6 +33481,12 @@
               "name": "realm-ids",
               "shortname": null,
               "value": "LIST"
+            },
+            {
+              "help": "Whether to turn on Simple Content Access for the organization.",
+              "name": "simple-content-access",
+              "shortname": null,
+              "value": "BOOLEAN"
             },
             {
               "help": "Capsule names/ids",
@@ -33895,6 +34378,12 @@
               "name": "id",
               "shortname": null,
               "value": "VALUE"
+            },
+            {
+              "help": "List of resources types that will be automatically associated",
+              "name": "ignore-types",
+              "shortname": null,
+              "value": "LIST"
             },
             {
               "help": "Organization label to search by",
@@ -35996,7 +36485,7 @@
           "subcommands": []
         },
         {
-          "description": "Import a provisioning template",
+          "description": "Import a partition table",
           "name": "import",
           "options": [
             {
@@ -36889,7 +37378,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help -----------------------|-----|---------|----- | ALL | DEFAULT | THIN -----------------------|-----|---------|----- | x   | x       | x | x   | x       | x system       | x   | x       | group             | x   | x       | | x   | x       | | x   | x       | status          | x   | x       | | x   |         | | x   |         | information | x   |         | view           | x   | x       | environment  | x   | x       | | x   |         | | x   |         | | x   |         | status           | x   | x       | -----------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string Values: mismatched, matched, not_specified string string string date string string boolean boot_time Values: true, false Values: built, pending, token_expired, build_failed text string integer string string integer datetime integer string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string integer string string boolean string integer string infrastructure_facet.foreman infrastructure_facet.smart_proxy_id integer string datetime string job_invocation.id                    string job_invocation.result                Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string reported.boot_time reported.cores reported.disks_total reported.ram reported.sockets reported.virtual                     Values: true, false string string text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied                       integer status.enabled                       Values: true, false status.failed                        integer status.failed_restarts               integer status.interesting                   Values: true, false status.pending                       integer status.restarted                     integer status.skipped                       integer string subnet.name                          text string subnet6.name                         text string string Values: valid, partial, invalid, unknown, disabled, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string string text Values: mismatched, matched, not_specified user.firstname                       string user.lastname                        string user.login                           string user.mail                            string string usergroup.name                       string string",
+              "help": "Print help -----------------------|-----|---------|----- | ALL | DEFAULT | THIN -----------------------|-----|---------|----- | x   | x       | x | x   | x       | x system       | x   | x       | group             | x   | x       | | x   | x       | | x   | x       | status          | x   | x       | | x   |         | | x   |         | information | x   |         | view           | x   | x       | environment  | x   | x       | | x   |         | | x   |         | | x   |         | status           | x   | x       | -----------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string Values: mismatched, matched, not_specified string string string date string string boolean boot_time Values: true, false Values: built, pending, token_expired, build_failed text string integer string string integer datetime integer string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string infrastructure_facet.foreman infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string datetime string string job_invocation.id                    string job_invocation.result                Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string reported.boot_time reported.cores reported.disks_total reported.kernel_version reported.ram reported.sockets reported.virtual                     Values: true, false string string text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied                       integer status.enabled                       Values: true, false status.failed                        integer status.failed_restarts               integer status.interesting                   Values: true, false status.pending                       integer status.restarted                     integer status.skipped                       integer string subnet.name                          text string subnet6.name                         text string string Values: valid, partial, invalid, unknown, disabled, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string string text Values: mismatched, matched, not_specified user.firstname                       string user.lastname                        string user.login                           string user.mail                            string string usergroup.name                       string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -38441,6 +38930,18 @@
               "value": "VALUE"
             },
             {
+              "help": "VALUE/NUMBER          Name/id of the HTTP Proxy to use with alternate content sources",
+              "name": "http-proxy",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER          Name/id of the HTTP Proxy to use with alternate content sources",
+              "name": "http-proxy-id",
+              "shortname": null,
+              "value": null
+            },
+            {
               "help": "VALUE/NUMBER     Set the current location context for the request",
               "name": "location",
               "shortname": null,
@@ -38889,6 +39390,18 @@
               "name": "download-policy",
               "shortname": null,
               "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER          Name/id of the HTTP Proxy to use with alternate content sources",
+              "name": "http-proxy",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER          Name/id of the HTTP Proxy to use with alternate content sources",
+              "name": "http-proxy-id",
+              "shortname": null,
+              "value": null
             },
             {
               "help": "",
@@ -42118,7 +42631,7 @@
               "value": null
             },
             {
-              "help": "Force sync even if no upstream changes are detected. Only used with yum repositories.",
+              "help": "Force sync even if no upstream changes are detected. Only used with yum or deb repositories.",
               "name": "skip-metadata-check",
               "shortname": null,
               "value": "BOOLEAN"
@@ -43516,7 +44029,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Print help --------|-----|---------|----- | ALL | DEFAULT | THIN --------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | --------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string Values: true, false text integer string string",
+              "help": "Print help --------|-----|---------|----- | ALL | DEFAULT | THIN --------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | --------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string Values: true, false text integer Values: true, false string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -44355,7 +44868,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x name   | x   | x       | | x   | x       | | x   | x       | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string text integer string",
+              "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x name   | x   | x       | | x   | x       | | x   | x       | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string description integer string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -49420,7 +49933,7 @@
               "value": "VALUE"
             },
             {
-              "help": "User's preferred locale Possible value(s): 'cs_CZ', 'de', 'en', 'en_GB', 'es', 'fr', 'it', 'ja', 'ko', 'pt_BR', 'ru', 'zh_CN', 'zh_TW'",
+              "help": "User's preferred locale Possible value(s): 'ca', 'cs_CZ', 'de', 'en', 'en_GB', 'es', 'fr', 'it', 'ja', 'ka', 'ko', 'pl', 'pt_BR', 'ru', 'zh_CN', 'zh_TW'",
               "name": "locale",
               "shortname": null,
               "value": "ENUM"
@@ -49534,7 +50047,7 @@
               "value": "LIST"
             },
             {
-              "help": "User's timezone Possible value(s): 'International Date Line West', 'American Samoa', 'Midway Island', 'Hawaii', 'Alaska', 'Pacific Time (US & Canada)', 'Tijuana', 'Arizona', 'Chihuahua', 'Mazatlan', 'Mountain Time (US & Canada)', 'Central America', 'Central Time (US & Canada)', 'Guadalajara', 'Mexico City', 'Monterrey', 'Saskatchewan', 'Bogota', 'Eastern Time (US & Canada)', 'Indiana (East)', 'Lima', 'Quito', 'Atlantic Time (Canada)', 'Caracas', 'Georgetown', 'La Paz', 'Puerto Rico', 'Santiago', 'Newfoundland', 'Brasilia', 'Buenos Aires', 'Greenland', 'Montevideo', 'Mid-Atlantic', 'Azores', 'Cape Verde Is.', 'Casablanca', 'Dublin', 'Edinburgh', 'Lisbon', 'London', 'Monrovia', 'UTC', 'Amsterdam', 'Belgrade', 'Berlin', 'Bern', 'Bratislava', 'Brussels', 'Budapest', 'Copenhagen', 'Ljubljana', 'Madrid', 'Paris', 'Prague', 'Rome', 'Sarajevo', 'Skopje', 'Stockholm', 'Vienna', 'Warsaw', 'West Central Africa', 'Zagreb', 'Zurich', 'Athens', 'Bucharest', 'Cairo', 'Harare', 'Helsinki', 'Jerusalem', 'Kaliningrad', 'Kyiv', 'Pretoria', 'Riga', 'Sofia', 'Tallinn', 'Vilnius', 'Baghdad', 'Istanbul', 'Kuwait', 'Minsk', 'Moscow', 'Nairobi', 'Riyadh', 'St. Petersburg', 'Volgograd', 'Tehran', 'Abu Dhabi', 'Baku', 'Muscat', 'Samara', 'Tbilisi', 'Yerevan', 'Kabul', 'Ekaterinburg', 'Islamabad', 'Karachi', 'Tashkent', 'Chennai', 'Kolkata', 'Mumbai', 'New Delhi', 'Sri Jayawardenepura', 'Kathmandu', 'Almaty', 'Astana', 'Dhaka', 'Urumqi', 'Rangoon', 'Bangkok', 'Hanoi', 'Jakarta', 'Krasnoyarsk', 'Novosibirsk', 'Beijing', 'Chongqing', 'Hong Kong', 'Irkutsk', 'Kuala Lumpur', 'Perth', 'Singapore', 'Taipei', 'Ulaanbaatar', 'Osaka', 'Sapporo', 'Seoul', 'Tokyo', 'Yakutsk', 'Adelaide', 'Darwin', 'Brisbane', 'Canberra', 'Guam', 'Hobart', 'Melbourne', 'Port Moresby', 'Sydney', 'Vladivostok', 'Magadan', 'New Caledonia', 'Solomon Is.', 'Srednekolymsk', 'Auckland', 'Fiji', 'Kamchatka', 'Marshall Is.', 'Wellington', 'Chatham Is.', 'Nuku'alofa', 'Samoa', 'Tokelau Is.'",
+              "help": "User's timezone Possible value(s): 'International Date Line West', 'American Samoa', 'Midway Island', 'Hawaii', 'Alaska', 'Pacific Time (US & Canada)', 'Tijuana', 'Arizona', 'Mazatlan', 'Mountain Time (US & Canada)', 'Central America', 'Central Time (US & Canada)', 'Chihuahua', 'Guadalajara', 'Mexico City', 'Monterrey', 'Saskatchewan', 'Bogota', 'Eastern Time (US & Canada)', 'Indiana (East)', 'Lima', 'Quito', 'Atlantic Time (Canada)', 'Caracas', 'Georgetown', 'La Paz', 'Puerto Rico', 'Santiago', 'Newfoundland', 'Brasilia', 'Buenos Aires', 'Greenland', 'Montevideo', 'Mid-Atlantic', 'Azores', 'Cape Verde Is.', 'Casablanca', 'Dublin', 'Edinburgh', 'Lisbon', 'London', 'Monrovia', 'UTC', 'Amsterdam', 'Belgrade', 'Berlin', 'Bern', 'Bratislava', 'Brussels', 'Budapest', 'Copenhagen', 'Ljubljana', 'Madrid', 'Paris', 'Prague', 'Rome', 'Sarajevo', 'Skopje', 'Stockholm', 'Vienna', 'Warsaw', 'West Central Africa', 'Zagreb', 'Zurich', 'Athens', 'Bucharest', 'Cairo', 'Harare', 'Helsinki', 'Jerusalem', 'Kaliningrad', 'Kyiv', 'Pretoria', 'Riga', 'Sofia', 'Tallinn', 'Vilnius', 'Baghdad', 'Istanbul', 'Kuwait', 'Minsk', 'Moscow', 'Nairobi', 'Riyadh', 'St. Petersburg', 'Volgograd', 'Tehran', 'Abu Dhabi', 'Baku', 'Muscat', 'Samara', 'Tbilisi', 'Yerevan', 'Kabul', 'Ekaterinburg', 'Islamabad', 'Karachi', 'Tashkent', 'Chennai', 'Kolkata', 'Mumbai', 'New Delhi', 'Sri Jayawardenepura', 'Kathmandu', 'Almaty', 'Astana', 'Dhaka', 'Urumqi', 'Rangoon', 'Bangkok', 'Hanoi', 'Jakarta', 'Krasnoyarsk', 'Novosibirsk', 'Beijing', 'Chongqing', 'Hong Kong', 'Irkutsk', 'Kuala Lumpur', 'Perth', 'Singapore', 'Taipei', 'Ulaanbaatar', 'Osaka', 'Sapporo', 'Seoul', 'Tokyo', 'Yakutsk', 'Adelaide', 'Darwin', 'Brisbane', 'Canberra', 'Guam', 'Hobart', 'Melbourne', 'Port Moresby', 'Sydney', 'Vladivostok', 'Magadan', 'New Caledonia', 'Solomon Is.', 'Srednekolymsk', 'Auckland', 'Fiji', 'Kamchatka', 'Marshall Is.', 'Wellington', 'Chatham Is.', 'Nuku'alofa', 'Samoa', 'Tokelau Is.'",
               "name": "timezone",
               "shortname": null,
               "value": "ENUM"
@@ -50507,6 +51020,397 @@
           ]
         },
         {
+          "description": "Managing table preferences",
+          "name": "table-preference",
+          "options": [
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": [
+            {
+              "description": "Creates a table preference for a given table",
+              "name": "create",
+              "options": [
+                {
+                  "help": "List of user selected columns",
+                  "name": "columns",
+                  "shortname": null,
+                  "value": "LIST"
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Name of the table",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Login/id of the user",
+                  "name": "user",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Login/id of the user",
+                  "name": "user-id",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Delete a table preference for a given table",
+              "name": "delete",
+              "options": [
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Name of the table",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Login/id of the user",
+                  "name": "user",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Login/id of the user",
+                  "name": "user-id",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Table preference details of a given table",
+              "name": "info",
+              "options": [
+                {
+                  "help": "Show specified fields or predefined field sets only. (See below)",
+                  "name": "fields",
+                  "shortname": null,
+                  "value": "LIST"
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Name of the table",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Login/id of the user",
+                  "name": "user",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Login/id of the user",
+                  "name": "user-id",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Print help -----------|-----|---------|----- | ALL | DEFAULT | THIN -----------|-----|---------|----- | x   | x       | x | x   | x       | | x   | x       | at | x   | x       | at | x   | x       | -----------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "List of table preferences for a user",
+              "name": "list",
+              "options": [
+                {
+                  "help": "Show specified fields or predefined field sets only. (See below)",
+                  "name": "fields",
+                  "shortname": null,
+                  "value": "LIST"
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Page number, starting at 1",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "NUMBER"
+                },
+                {
+                  "help": "Number of results per page to return, 'all' to return all results",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Filter results",
+                  "name": "search",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Login/id of the user",
+                  "name": "user",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Login/id of the user",
+                  "name": "user-id",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Print help --------|-----|---------|----- | ALL | DEFAULT | THIN --------|-----|---------|----- | x   | x       | x | x   | x       | | x   | x       | --------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Updates a table preference for a given table",
+              "name": "update",
+              "options": [
+                {
+                  "help": "List of user selected columns",
+                  "name": "columns",
+                  "shortname": null,
+                  "value": "LIST"
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER     Set the current location context for the request",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Name of the table",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER Set the current organization context for the request",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Login/id of the user",
+                  "name": "user",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Login/id of the user",
+                  "name": "user-id",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            }
+          ]
+        },
+        {
           "description": "Update a user",
           "name": "update",
           "options": [
@@ -50595,7 +51499,7 @@
               "value": "VALUE"
             },
             {
-              "help": "User's preferred locale Possible value(s): 'cs_CZ', 'de', 'en', 'en_GB', 'es', 'fr', 'it', 'ja', 'ko', 'pt_BR', 'ru', 'zh_CN', 'zh_TW'",
+              "help": "User's preferred locale Possible value(s): 'ca', 'cs_CZ', 'de', 'en', 'en_GB', 'es', 'fr', 'it', 'ja', 'ka', 'ko', 'pl', 'pt_BR', 'ru', 'zh_CN', 'zh_TW'",
               "name": "locale",
               "shortname": null,
               "value": "ENUM"
@@ -50715,7 +51619,7 @@
               "value": "LIST"
             },
             {
-              "help": "User's timezone Possible value(s): 'International Date Line West', 'American Samoa', 'Midway Island', 'Hawaii', 'Alaska', 'Pacific Time (US & Canada)', 'Tijuana', 'Arizona', 'Chihuahua', 'Mazatlan', 'Mountain Time (US & Canada)', 'Central America', 'Central Time (US & Canada)', 'Guadalajara', 'Mexico City', 'Monterrey', 'Saskatchewan', 'Bogota', 'Eastern Time (US & Canada)', 'Indiana (East)', 'Lima', 'Quito', 'Atlantic Time (Canada)', 'Caracas', 'Georgetown', 'La Paz', 'Puerto Rico', 'Santiago', 'Newfoundland', 'Brasilia', 'Buenos Aires', 'Greenland', 'Montevideo', 'Mid-Atlantic', 'Azores', 'Cape Verde Is.', 'Casablanca', 'Dublin', 'Edinburgh', 'Lisbon', 'London', 'Monrovia', 'UTC', 'Amsterdam', 'Belgrade', 'Berlin', 'Bern', 'Bratislava', 'Brussels', 'Budapest', 'Copenhagen', 'Ljubljana', 'Madrid', 'Paris', 'Prague', 'Rome', 'Sarajevo', 'Skopje', 'Stockholm', 'Vienna', 'Warsaw', 'West Central Africa', 'Zagreb', 'Zurich', 'Athens', 'Bucharest', 'Cairo', 'Harare', 'Helsinki', 'Jerusalem', 'Kaliningrad', 'Kyiv', 'Pretoria', 'Riga', 'Sofia', 'Tallinn', 'Vilnius', 'Baghdad', 'Istanbul', 'Kuwait', 'Minsk', 'Moscow', 'Nairobi', 'Riyadh', 'St. Petersburg', 'Volgograd', 'Tehran', 'Abu Dhabi', 'Baku', 'Muscat', 'Samara', 'Tbilisi', 'Yerevan', 'Kabul', 'Ekaterinburg', 'Islamabad', 'Karachi', 'Tashkent', 'Chennai', 'Kolkata', 'Mumbai', 'New Delhi', 'Sri Jayawardenepura', 'Kathmandu', 'Almaty', 'Astana', 'Dhaka', 'Urumqi', 'Rangoon', 'Bangkok', 'Hanoi', 'Jakarta', 'Krasnoyarsk', 'Novosibirsk', 'Beijing', 'Chongqing', 'Hong Kong', 'Irkutsk', 'Kuala Lumpur', 'Perth', 'Singapore', 'Taipei', 'Ulaanbaatar', 'Osaka', 'Sapporo', 'Seoul', 'Tokyo', 'Yakutsk', 'Adelaide', 'Darwin', 'Brisbane', 'Canberra', 'Guam', 'Hobart', 'Melbourne', 'Port Moresby', 'Sydney', 'Vladivostok', 'Magadan', 'New Caledonia', 'Solomon Is.', 'Srednekolymsk', 'Auckland', 'Fiji', 'Kamchatka', 'Marshall Is.', 'Wellington', 'Chatham Is.', 'Nuku'alofa', 'Samoa', 'Tokelau Is.'",
+              "help": "User's timezone Possible value(s): 'International Date Line West', 'American Samoa', 'Midway Island', 'Hawaii', 'Alaska', 'Pacific Time (US & Canada)', 'Tijuana', 'Arizona', 'Mazatlan', 'Mountain Time (US & Canada)', 'Central America', 'Central Time (US & Canada)', 'Chihuahua', 'Guadalajara', 'Mexico City', 'Monterrey', 'Saskatchewan', 'Bogota', 'Eastern Time (US & Canada)', 'Indiana (East)', 'Lima', 'Quito', 'Atlantic Time (Canada)', 'Caracas', 'Georgetown', 'La Paz', 'Puerto Rico', 'Santiago', 'Newfoundland', 'Brasilia', 'Buenos Aires', 'Greenland', 'Montevideo', 'Mid-Atlantic', 'Azores', 'Cape Verde Is.', 'Casablanca', 'Dublin', 'Edinburgh', 'Lisbon', 'London', 'Monrovia', 'UTC', 'Amsterdam', 'Belgrade', 'Berlin', 'Bern', 'Bratislava', 'Brussels', 'Budapest', 'Copenhagen', 'Ljubljana', 'Madrid', 'Paris', 'Prague', 'Rome', 'Sarajevo', 'Skopje', 'Stockholm', 'Vienna', 'Warsaw', 'West Central Africa', 'Zagreb', 'Zurich', 'Athens', 'Bucharest', 'Cairo', 'Harare', 'Helsinki', 'Jerusalem', 'Kaliningrad', 'Kyiv', 'Pretoria', 'Riga', 'Sofia', 'Tallinn', 'Vilnius', 'Baghdad', 'Istanbul', 'Kuwait', 'Minsk', 'Moscow', 'Nairobi', 'Riyadh', 'St. Petersburg', 'Volgograd', 'Tehran', 'Abu Dhabi', 'Baku', 'Muscat', 'Samara', 'Tbilisi', 'Yerevan', 'Kabul', 'Ekaterinburg', 'Islamabad', 'Karachi', 'Tashkent', 'Chennai', 'Kolkata', 'Mumbai', 'New Delhi', 'Sri Jayawardenepura', 'Kathmandu', 'Almaty', 'Astana', 'Dhaka', 'Urumqi', 'Rangoon', 'Bangkok', 'Hanoi', 'Jakarta', 'Krasnoyarsk', 'Novosibirsk', 'Beijing', 'Chongqing', 'Hong Kong', 'Irkutsk', 'Kuala Lumpur', 'Perth', 'Singapore', 'Taipei', 'Ulaanbaatar', 'Osaka', 'Sapporo', 'Seoul', 'Tokyo', 'Yakutsk', 'Adelaide', 'Darwin', 'Brisbane', 'Canberra', 'Guam', 'Hobart', 'Melbourne', 'Port Moresby', 'Sydney', 'Vladivostok', 'Magadan', 'New Caledonia', 'Solomon Is.', 'Srednekolymsk', 'Auckland', 'Fiji', 'Kamchatka', 'Marshall Is.', 'Wellington', 'Chatham Is.', 'Nuku'alofa', 'Samoa', 'Tokelau Is.'",
               "name": "timezone",
               "shortname": null,
               "value": "ENUM"
@@ -52608,6 +53512,12 @@
               "value": "VALUE"
             },
             {
+              "help": "",
+              "name": "http-headers",
+              "shortname": null,
+              "value": "KEY_VALUE_LIST"
+            },
+            {
               "help": "Possible value(s): 'POST', 'GET', 'PUT', 'DELETE', 'PATCH'",
               "name": "http-method",
               "shortname": null,
@@ -52666,6 +53576,12 @@
               "name": "proxy-authorization",
               "shortname": null,
               "value": "BOOLEAN"
+            },
+            {
+              "help": "File containing X509 Certification Authorities concatenated in PEM format",
+              "name": "ssl-ca-certs",
+              "shortname": null,
+              "value": "FILE"
             },
             {
               "help": "",
@@ -52826,7 +53742,7 @@
               "value": null
             },
             {
-              "help": "Print help -------------------------------|------------|-----|---------|----- | ADDITIONAL | ALL | DEFAULT | THIN -------------------------------|------------|-----|---------|----- |            | x   | x       | x |            | x   | x       | x url                     |            | x   | x       | |            | x   | x       | |            | x   | x       | method                    |            | x   | x       | content type              |            | x   | x       | template               |            | x   | x       | | x          | x   |         | ssl                     | x          | x   |         | authorization            | x          | x   |         | certification authorities | x          | x   |         | headers/                  | x          | x   |         | at                     |            | x   | x       | at                     |            | x   | x       | -------------------------------|------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "help": "Print help -------------------------------|------------|-----|---------|----- | ADDITIONAL | ALL | DEFAULT | THIN -------------------------------|------------|-----|---------|----- |            | x   | x       | x |            | x   | x       | x url                     |            | x   | x       | |            | x   | x       | |            | x   | x       | method                    |            | x   | x       | content type              |            | x   | x       | template               |            | x   | x       | |            | x   | x       | ssl                     |            | x   | x       | authorization            |            | x   | x       | certification authorities | x          | x   |         | headers/                  |            | x   | x       | at                     |            | x   | x       | at                     |            | x   | x       | -------------------------------|------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -52936,6 +53852,12 @@
               "value": "VALUE"
             },
             {
+              "help": "",
+              "name": "http-headers",
+              "shortname": null,
+              "value": "KEY_VALUE_LIST"
+            },
+            {
               "help": "Possible value(s): 'POST', 'GET', 'PUT', 'DELETE', 'PATCH'",
               "name": "http-method",
               "shortname": null,
@@ -53006,6 +53928,12 @@
               "name": "proxy-authorization",
               "shortname": null,
               "value": "BOOLEAN"
+            },
+            {
+              "help": "File containing X509 Certification Authorities concatenated in PEM format",
+              "name": "ssl-ca-certs",
+              "shortname": null,
+              "value": "FILE"
             },
             {
               "help": "",
