@@ -653,14 +653,21 @@ class CLIFactory:
                 )
             except CLIReturnCodeError as err:
                 raise CLIFactoryError(f'Failed to associate activation-key with CV\n{err.msg}')
-        # Add subscription to activation-key
-        self.activationkey_add_subscription_to_repo(
-            {
-                'activationkey-id': activationkey_id,
-                'organization-id': org_id,
-                'subscription': custom_product['name'],
-            }
-        )
+
+        # Add custom_product subscription to activation-key, if SCA mode is disabled
+        if (
+            self._satellite.cli.Org.info({'fields': 'Simple content access', 'id': org_id})[
+                'simple-content-access'
+            ]
+            != 'Enabled'
+        ):
+            self.activationkey_add_subscription_to_repo(
+                {
+                    'activationkey-id': activationkey_id,
+                    'organization-id': org_id,
+                    'subscription': custom_product['name'],
+                }
+            )
         return {
             'activationkey-id': activationkey_id,
             'content-view-id': cv_id,
@@ -792,14 +799,23 @@ class CLIFactory:
                 )
             except CLIReturnCodeError as err:
                 raise CLIFactoryError(f'Failed to associate activation-key with CV\n{err.msg}')
-        # Add subscription to activation-key
-        self.activationkey_add_subscription_to_repo(
-            {
-                'organization-id': org_id,
-                'activationkey-id': activationkey_id,
-                'subscription': options.get('subscription', constants.DEFAULT_SUBSCRIPTION_NAME),
-            }
-        )
+
+        # Add default subscription to activation-key, if SCA mode is disabled
+        if (
+            self._satellite.cli.Org.info({'fields': 'Simple content access', 'id': org_id})[
+                'simple-content-access'
+            ]
+            != 'Enabled'
+        ):
+            self.activationkey_add_subscription_to_repo(
+                {
+                    'organization-id': org_id,
+                    'activationkey-id': activationkey_id,
+                    'subscription': options.get(
+                        'subscription', constants.DEFAULT_SUBSCRIPTION_NAME
+                    ),
+                }
+            )
         return {
             'activationkey-id': activationkey_id,
             'content-view-id': cv_id,
@@ -854,14 +870,21 @@ class CLIFactory:
                     )
                 except CLIReturnCodeError as err:
                     raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
-                # attach the default subscription to activation key
-                self.activationkey_add_subscription_to_repo(
-                    {
-                        'activationkey-id': result['activationkey-id'],
-                        'organization-id': result['organization-id'],
-                        'subscription': constants.DEFAULT_SUBSCRIPTION_NAME,
-                    }
-                )
+
+                # Add default subscription to activation-key, if SCA mode is disabled
+                if (
+                    self._satellite.cli.Org.info(
+                        {'fields': 'Simple content access', 'id': result['organization-id']}
+                    )['simple-content-access']
+                    != 'Enabled'
+                ):
+                    self.activationkey_add_subscription_to_repo(
+                        {
+                            'activationkey-id': result['activationkey-id'],
+                            'organization-id': result['organization-id'],
+                            'subscription': constants.DEFAULT_SUBSCRIPTION_NAME,
+                        }
+                    )
             return result
 
     @staticmethod
