@@ -50,16 +50,19 @@ def test_rhel_pxe_provisioning(
         1. Host installs right version of RHEL
         2. Satellite is able to run REX job on the host
         3. Host is registered to Satellite and subscription status is 'Success'
+
+    :BZ: 2105441
+
+    :customerscenario: true
     """
     host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
     sat = module_provisioning_sat.sat
-
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
         organization=module_sca_manifest_org,
         location=module_location,
         content_facet_attributes={
-            'content_view_id': module_default_org_view.id,
+            'content_view_id': module_provisioning_rhel_content.cv.id,
             'lifecycle_environment_id': module_lce_library.id,
         },
         name=gen_string('alpha').lower(),
@@ -74,7 +77,6 @@ def test_rhel_pxe_provisioning(
     # Clean up the host to free IP leases on Satellite.
     # broker should do that as a part of the teardown, putting here just to make sure.
     request.addfinalizer(host.delete)
-
     # Start the VM, do not ensure that we can connect to SSHD
     provisioning_host.power_control(ensure=False)
 
@@ -126,7 +128,7 @@ def test_rhel_pxe_provisioning(
         data={
             'job_template_id': template_id,
             'inputs': {
-                'command': f'grep KATELLO_SERVER={sat.hostname} /usr/bin/katello-rhsm-consumer'
+                'command': f'subscription-manager config | grep "hostname = {sat.hostname}"'
             },
             'search_query': f"name = {host.name}",
             'targeting_type': 'static_query',
