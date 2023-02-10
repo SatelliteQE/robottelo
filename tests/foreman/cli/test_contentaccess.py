@@ -26,7 +26,6 @@ from robottelo.constants import REAL_0_ERRATA_ID
 from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_FILENAME
 from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
 from robottelo.constants import REPOS
-from robottelo.utils.manifest import clone
 
 pytestmark = [
     pytest.mark.skipif(
@@ -37,13 +36,13 @@ pytestmark = [
 
 
 @pytest.fixture(scope='module')
-def module_lce(module_gt_manifest_org):
-    return entities.LifecycleEnvironment(organization=module_gt_manifest_org).create()
+def module_lce(module_sca_manifest_org):
+    return entities.LifecycleEnvironment(organization=module_sca_manifest_org).create()
 
 
 @pytest.fixture(scope="module")
-def rh_repo_cv(module_gt_manifest_org, rh_repo_gt_manifest, module_lce):
-    rh_repo_cv = entities.ContentView(organization=module_gt_manifest_org).create()
+def rh_repo_cv(module_sca_manifest_org, rh_repo_gt_manifest, module_lce):
+    rh_repo_cv = entities.ContentView(organization=module_sca_manifest_org).create()
     # Add CV to AK
     rh_repo_cv.repository = [rh_repo_gt_manifest]
     rh_repo_cv.update(['repository'])
@@ -55,11 +54,11 @@ def rh_repo_cv(module_gt_manifest_org, rh_repo_gt_manifest, module_lce):
 
 
 @pytest.fixture(scope="module")
-def module_ak(rh_repo_cv, module_gt_manifest_org, module_lce):
+def module_ak(rh_repo_cv, module_sca_manifest_org, module_lce):
     module_ak = entities.ActivationKey(
         content_view=rh_repo_cv,
         environment=module_lce,
-        organization=module_gt_manifest_org,
+        organization=module_sca_manifest_org,
     ).create()
     # Ensure tools repo is enabled in the activation key
     module_ak.content_override(
@@ -71,7 +70,7 @@ def module_ak(rh_repo_cv, module_gt_manifest_org, module_lce):
 @pytest.fixture(scope="module")
 def vm(
     rh_repo_gt_manifest,
-    module_gt_manifest_org,
+    module_sca_manifest_org,
     module_ak,
     rhel7_contenthost_module,
     module_target_sat,
@@ -82,7 +81,7 @@ def vm(
         'python2-psutil-5.6.7-1.el7.x86_64.rpm'
     )
     rhel7_contenthost_module.install_katello_ca(module_target_sat)
-    rhel7_contenthost_module.register_contenthost(module_gt_manifest_org.label, module_ak.name)
+    rhel7_contenthost_module.register_contenthost(module_sca_manifest_org.label, module_ak.name)
     host = entities.Host().search(query={'search': f'name={rhel7_contenthost_module.hostname}'})
     host_id = host[0].id
     host_content = entities.Host(id=host_id).read_json()
@@ -169,7 +168,9 @@ def test_positive_erratum_installable(vm):
 
 
 @pytest.mark.tier2
-def test_negative_rct_not_shows_golden_ticket_enabled(target_sat, default_org):
+def test_negative_rct_not_shows_golden_ticket_enabled(
+    target_sat, function_org, function_entitlement_manifest
+):
     """Assert restricted manifest has no Golden Ticket enabled .
 
     :id: 754c1be7-468e-4795-bcf9-258a38f3418b
@@ -185,16 +186,17 @@ def test_negative_rct_not_shows_golden_ticket_enabled(target_sat, default_org):
     :CaseImportance: High
     """
     # upload organization manifest with org environment access disabled
-    manifest = clone()
-    target_sat.upload_manifest(default_org.id, manifest, interface='CLI')
-    result = target_sat.execute(f'rct cat-manifest {manifest.filename}')
+    org = function_org
+    manifest = function_entitlement_manifest
+    target_sat.upload_manifest(org.id, manifest, interface='CLI')
+    result = target_sat.execute(f'rct cat-manifest {manifest.name}')
     assert result.status == 0
     assert 'Content Access Mode: Simple Content Access' not in result.stdout
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_rct_shows_golden_ticket_enabled(module_gt_manifest_org, target_sat):
+def test_positive_rct_shows_golden_ticket_enabled(module_sca_manifest, target_sat):
     """Assert unrestricted manifest has Golden Ticket enabled .
 
     :id: 0c6e2f88-1a86-4417-9248-d7bd20584197
@@ -208,7 +210,9 @@ def test_positive_rct_shows_golden_ticket_enabled(module_gt_manifest_org, target
 
     :CaseImportance: Medium
     """
-    result = target_sat.execute(f'rct cat-manifest {module_gt_manifest_org.manifest_filename}')
+    with module_sca_manifest as manifest:
+        target_sat.put(f'{manifest.path}', f'{manifest.name}')
+    result = target_sat.execute(f'rct cat-manifest {module_sca_manifest.name}')
     assert result.status == 0
     assert 'Content Access Mode: Simple Content Access' in result.stdout
 

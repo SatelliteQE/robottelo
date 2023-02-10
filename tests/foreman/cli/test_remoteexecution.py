@@ -52,7 +52,7 @@ from robottelo.utils import ohsnap
 
 
 @pytest.fixture()
-def fixture_sca_vmsetup(request, module_gt_manifest_org, target_sat):
+def fixture_sca_vmsetup(request, module_sca_manifest_org, target_sat):
     """Create VM and register content host to Simple Content Access organization"""
     if '_count' in request.param.keys():
         with Broker(
@@ -61,11 +61,11 @@ def fixture_sca_vmsetup(request, module_gt_manifest_org, target_sat):
             _count=request.param['_count'],
         ) as clients:
             for client in clients:
-                client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
+                client.configure_rex(satellite=target_sat, org=module_sca_manifest_org)
             yield clients
     else:
         with Broker(nick=request.param['nick'], host_class=ContentHost) as client:
-            client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
+            client.configure_rex(satellite=target_sat, org=module_sca_manifest_org)
             yield client
 
 
@@ -713,7 +713,9 @@ class TestAnsibleREX:
     @pytest.mark.parametrize(
         'fixture_sca_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True
     )
-    def test_positive_install_ansible_collection(self, fixture_sca_vmsetup, module_gt_manifest_org):
+    def test_positive_install_ansible_collection(
+        self, fixture_sca_vmsetup, module_sca_manifest_org
+    ):
         """Test whether Ansible collection can be installed via REX
 
         :Steps:
@@ -737,7 +739,7 @@ class TestAnsibleREX:
             {
                 'basearch': 'x86_64',
                 'name': REPOSET['rhae2'],
-                'organization-id': module_gt_manifest_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'product': PRDS['rhae'],
                 'releasever': '7Server',
             }
@@ -745,7 +747,7 @@ class TestAnsibleREX:
         Repository.synchronize(
             {
                 'name': REPOS['rhae2']['name'],
-                'organization-id': module_gt_manifest_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'product': PRDS['rhae'],
             }
         )
