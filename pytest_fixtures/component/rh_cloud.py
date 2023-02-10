@@ -15,12 +15,9 @@ def rhcloud_sat_host(satellite_factory):
 def rhcloud_manifest_org(rhcloud_sat_host, module_sca_manifest):
     """A module level fixture to get organization with manifest."""
     org = rhcloud_sat_host.api.Organization().create()
-<<<<<<< HEAD
     rhcloud_sat_host.upload_manifest(org.id, module_sca_manifest.content)
-=======
     rhcloud_sat_host.upload_manifest(org.id, module_entitlement_manifest.content)
     org.sca_disable()
->>>>>>> 2be3a579b (Convert UI cloud tests to manifester)
     return org
 
 
