@@ -1075,11 +1075,12 @@ class TestPullProviderRex:
         module_capsule_configured_mqtt,
         rhel_contenthost,
     ):
-        """Run custom template on host registered to mqtt
+        """Run custom template on host registered to mqtt, check effective user setting
 
         :id: 759ad51d-eea7-4d7b-b6ee-60af2b814464
 
-        :expectedresults: Verify the job was successfully ran against the host registered to mqtt
+        :expectedresults: Verify the job was successfully ran against the host registered to mqtt,
+            effective user setting is honored.
 
         :CaseImportance: Critical
 
@@ -1124,6 +1125,33 @@ class TestPullProviderRex:
             }
         )
         assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+        # create user on host
+        username = gen_string('alpha')
+        filename = gen_string('alpha')
+        make_user_job = make_job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': f"command=useradd -m {username}",
+                'search-query': f"name ~ {rhel_contenthost.hostname}",
+            }
+        )
+        assert_job_invocation_result(make_user_job['id'], rhel_contenthost.hostname)
+        # create a file as new user
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': f"command=touch /home/{username}/{filename}",
+                'search-query': f"name ~ {rhel_contenthost.hostname}",
+                'effective-user': f'{username}',
+            }
+        )
+        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+        # check the file owner
+        result = rhel_contenthost.execute(
+            f'''stat -c '%U' /home/{username}/{filename}''',
+        )
+        # assert the file is owned by the effective user
+        assert username == result.stdout.strip('\n')
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
