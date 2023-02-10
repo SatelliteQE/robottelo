@@ -59,6 +59,7 @@ def module_rhc_org(module_target_sat):
     module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         value='Yes',
+        parameter_type='boolean',
         organization=org.id,
     ).create()
     return org
@@ -92,10 +93,6 @@ def fixture_setup_rhc_satellite(request, module_target_sat, module_rhc_org):
             environment=module_target_sat.api.LifecycleEnvironment(id=module_rhc_org.library.id),
             auto_attach=True,
         ).create()
-        default_subscription = module_target_sat.api.Subscription(
-            organization=module_rhc_org
-        ).search(query={'search': f'name="{constants.DEFAULT_SUBSCRIPTION_NAME}"'})[0]
-        ak.add_subscriptions(data={'quantity': 10, 'subscription_id': default_subscription.id})
         logger.debug(
             f"Activation key: {ak} \n CV: {content_view} \n Organization: {module_rhc_org}"
         )
