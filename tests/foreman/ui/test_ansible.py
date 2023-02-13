@@ -16,7 +16,11 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
+
+from robottelo import constants
+from robottelo.config import settings
 
 
 def test_positive_import_all_roles(target_sat):
@@ -115,3 +119,59 @@ def test_positive_create_variable_with_overrides(target_sat):
             }
         )
         assert session.ansiblevariables.search(key)[0]['Name'] == key
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('[^6]')
+def test_positive_config_report_ansible(session, target_sat, module_org, rhel_contenthost):
+    """Test Config Report generation with Ansible Jobs.
+
+    :id: 118e25e5-409e-44ba-b908-217da9722576
+
+    :steps:
+        1. Register a content host with satellite
+        2. Import a role into satellite
+        3. Assign that role to a host
+        4. Assert that the role was assigned to the host successfully
+        5. Run the Ansible playbook associated with that role
+        6. Check if the report is created successfully
+
+    :expectedresults:
+        1. Host should be assigned the proper role.
+        2. Job report should be created.
+    """
+    SELECTED_ROLE = 'RedHatInsights.insights-client'
+    if rhel_contenthost.os_version.major <= 7:
+        rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
+        assert rhel_contenthost.execute('yum install -y insights-client').status == 0
+    rhel_contenthost.install_katello_ca(target_sat)
+    rhel_contenthost.register_contenthost(module_org.label, force=True)
+    assert rhel_contenthost.subscribed
+    rhel_contenthost.add_rex_key(satellite=target_sat)
+    id = target_sat.nailgun_smart_proxy.id
+    target_host = rhel_contenthost.nailgun_host
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': id, 'role_names': [SELECTED_ROLE]})
+    target_host.assign_ansible_roles(data={'ansible_role_ids': [1]})
+    host_roles = target_host.list_ansible_roles()
+    assert host_roles[0]['name'] == SELECTED_ROLE
+    with session:
+        session.organization.select(module_org.name)
+        session.location.select(constants.DEFAULT_LOC)
+        assert session.host.search(target_host.name)[0]['Name'] == rhel_contenthost.hostname
+        session.jobinvocation.run(
+            {
+                'job_category': 'Ansible Playbook',
+                'job_template': 'Ansible Roles - Ansible Default',
+                'search_query': f'name ^ {rhel_contenthost.hostname}',
+            }
+        )
+        session.jobinvocation.wait_job_invocation_state(
+            entity_name='Run ansible roles', host_name=rhel_contenthost.hostname
+        )
+        status = session.jobinvocation.read(
+            entity_name='Run ansible roles', host_name=rhel_contenthost.hostname
+        )
+        assert status['overview']['hosts_table'][0]['Status'] == 'success'
+        session.configreport.search(rhel_contenthost.hostname)
+        session.configreport.delete(rhel_contenthost.hostname)
+        assert len(session.configreport.read()['table']) == 0
