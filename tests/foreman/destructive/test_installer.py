@@ -17,11 +17,24 @@
 :Upstream: No
 """
 import pytest
+from fauxfactory import gen_domain
+from fauxfactory import gen_string
 
 from robottelo.config import settings
 from robottelo.utils.installer import InstallerCommand
 
 pytestmark = pytest.mark.destructive
+
+
+@pytest.fixture
+def set_random_fqdn(target_sat):
+    shortname = gen_string('alpha')
+    new_domain = gen_domain()
+    target_sat.execute(
+        f'echo "search {new_domain}" >> /etc/resolv.conf; hostnamectl set-hostname {shortname}'
+    )
+    yield shortname, new_domain
+    target_sat.execute(f'hostnamectl set-hostname {target_sat.hostname}')
 
 
 def test_installer_sat_pub_directory_accessibility(target_sat):
@@ -114,3 +127,31 @@ def test_installer_inventory_plugin_update(target_sat):
         )
     )
     assert '(current: true)' in verify_proxy_plugin_flag.stdout
+
+
+def test_positive_mismatched_satellite_fqdn(target_sat, set_random_fqdn):
+    """The satellite-installer should display the mismatched FQDN
+
+    :id: 264910ca-23c8-4192-a993-24bc04994a4c
+
+    :steps:
+        1. Set incorrect satellite hostname.
+        2. assert that output of 'facter fqdn' and 'hostname --fqdn' is different.
+        3. Run satellite-installer.
+        4. Assert that satellite-installer command displays mismatched FQDN.
+
+    :expectedresults: The satellite-installer should display the mismatched FQDN.
+    """
+    shortname, new_domain = set_random_fqdn
+    facter_command_output = target_sat.execute('facter fqdn').stdout.strip()
+    hostname_command_output = target_sat.execute('hostname --fqdn').stdout.strip()
+    assert facter_command_output == f'{shortname}.{new_domain}'
+    assert hostname_command_output == shortname
+    assert facter_command_output != hostname_command_output
+    warning_message = (
+        f"Output of 'facter fqdn' "
+        f"({facter_command_output}) is different from 'hostname -f' "
+        f"({hostname_command_output})"
+    )
+    installer_command_output = target_sat.execute('satellite-installer').stderr
+    assert warning_message in str(installer_command_output)
