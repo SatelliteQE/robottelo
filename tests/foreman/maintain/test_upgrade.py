@@ -18,7 +18,19 @@
 """
 import pytest
 
+from robottelo.config import settings
+
 pytestmark = pytest.mark.destructive
+
+
+def last_y_stream_version(release):
+    """Returns the version of the last Y stream
+
+    Example: 6.13.0 -> 6.12
+    """
+    y = release.split('.')[1]
+    y_minus = str(int(y) - 1)
+    return f"{release.split('.')[0]}.{y_minus}"
 
 
 @pytest.mark.include_capsule
@@ -81,6 +93,60 @@ def test_positive_repositories_validate(sat_maintain):
     assert 'SKIPPED' in result.stdout
     assert 'FAIL' not in result.stdout
     assert skip_message in result.stdout
+
+
+@pytest.mark.no_containers
+@pytest.mark.parametrize(
+    'custom_host',
+    [
+        {'deploy_rhel_version': '8', 'deploy_flavor': 'satqe-ssd.disk.xxxl'},
+        {'deploy_rhel_version': '8', 'deploy_flavor': 'satqe-ssd.standard.std'},
+    ],
+    ids=['default', 'medium'],
+    indirect=True,
+)
+def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
+    """Negative test that verifies a satellite with less than
+    tuning profile hardware requirements fails on pre-upgrade check.
+
+    :id: 240bb97e-7353-4397-8d0e-228c3593c8cc
+
+    :steps:
+        1. Check out a RHEL instance with less than tuning requirements
+        2. Install Satellite
+        3. Run pre-upgrade check
+
+    :expectedresults: Pre-upgrade check fails.
+    """
+    profile = request.node.callspec.id
+    sat_version = ".".join(settings.server.version.release.split('.')[0:2])
+    # Register to CDN for RHEL8 repos, download and enable last y stream's ohsnap repos,
+    # and enable the satellite module and install it on the host
+    custom_host.register_to_cdn()
+    last_y_stream = last_y_stream_version(settings.server.version.release)
+    custom_host.download_repofile(product='satellite', release=last_y_stream)
+    custom_host.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
+    # Install without system checks to get around installer checks
+    custom_host.execute(
+        f'satellite-installer --scenario satellite --disable-system-checks --tuning {profile}',
+        timeout='30m',
+    )
+    # Get current Satellite version's repofile
+    custom_host.download_repofile(product='satellite', release=sat_version)
+    # Run satellite-maintain to have it self update to the newest version,
+    # however, this will not actually execute the command after updating
+    custom_host.execute('satellite-maintain upgrade list-versions')
+    # Check that we can upgrade to the new Y stream version
+    result = custom_host.execute('satellite-maintain upgrade list-versions')
+    assert sat_version in result.stdout
+    # Check that the upgrade check fails due to system requirements
+    result = custom_host.execute(
+        f'satellite-maintain upgrade check --target-version {sat_version}', timeout='5m'
+    )
+    assert (
+        f'ERROR: The installer is configured to use the {profile} tuning '
+        'profile and does not meet the requirements.' in result.stdout
+    )
 
 
 @pytest.mark.stubbed
