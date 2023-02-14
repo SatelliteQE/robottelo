@@ -58,11 +58,11 @@ jobs:
           api_endpoint="https://api.github.com/repos/${{github.repository}}/statuses/${{ github.head_ref }}"
 
           function get_status() {
-            curl -s "$api_endpoint"  | jq '[.[] | .state] | .[0]'
+            curl -s "$api_endpoint"  | jq '[.[] | .state] | .[0]' | tr -d '"'
           }
 
           function get_context() {
-            curl -s "$api_endpoint" | jq '[.[] | .context] | .[0]'
+            curl -s "$api_endpoint" | jq '[.[] | .context] | .[0]' | tr -d '"'
           }
 
           statuses_length=$(curl -s $api_endpoint | jq 'length')
@@ -92,12 +92,12 @@ jobs:
             counter=$((counter+1))
           done
 
-          if [ "$status" == "success" ]; then
-            echo "PRT Passed Successfully!"
-          else
+          if [ "$status" != "success" ]; then
             echo "Robottelo-Runner : $status"
             echo "::error PRT failed"
             exit 1
+          else
+           echo "PRT Passed Successfully!"
           fi
 
 
