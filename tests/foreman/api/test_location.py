@@ -213,7 +213,6 @@ class TestLocation:
 
         location.domain = [make_entities["domain"]]
         location.subnet = [make_entities["subnet"]]
-        location.environment = [make_entities["env"]]
         location.hostgroup = [make_entities["host_group"]]
         location.provisioning_template = [make_entities["template"]]
         location.compute_resource = [make_entities["test_cr"]]
@@ -221,7 +220,6 @@ class TestLocation:
 
         assert location.update(['domain']).domain[0].id == make_entities["domain"].id
         assert location.update(['subnet']).subnet[0].id == make_entities["subnet"].id
-        assert location.update(['environment']).environment[0].id == make_entities["env"].id
         assert location.update(['hostgroup']).hostgroup[0].id == make_entities["host_group"].id
         ct_list = [
             ct
