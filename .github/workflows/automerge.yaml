@@ -104,7 +104,6 @@ jobs:
       - id: automerge
         name: Auto merge of cherry-picked PRs.
         uses: "pascalgn/automerge-action@v0.15.5"
-        if: steps.waitforstatuschecks.outputs.status == 'success'
         env:
           GITHUB_TOKEN: "${{ secrets.CHERRYPICK_PAT }}"
           MERGE_LABELS: "AutoMerge_Cherry_Picked, Auto_Cherry_Picked"
