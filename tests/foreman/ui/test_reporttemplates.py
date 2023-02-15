@@ -27,7 +27,6 @@ import yaml
 from lxml import etree
 from nailgun import entities
 
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import robottelo_tmp_dir
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
@@ -38,9 +37,9 @@ from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def setup_content(module_entitlement_manifest_org):
+def setup_content(module_entitlement_manifest_org, module_target_sat):
     org = module_entitlement_manifest_org
-    rh_repo_id = enable_rhrepo_and_fetchid(
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
         product=PRDS['rhel'],

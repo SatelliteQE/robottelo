@@ -21,7 +21,6 @@ from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.ansible import Ansible
 from robottelo.cli.arfreport import Arfreport
 from robottelo.cli.factory import make_hostgroup
@@ -237,7 +236,7 @@ def test_positive_oscap_run_via_ansible(
             }
         )
         job_id = Host.ansible_roles_play({'name': vm.hostname.lower()})[0].get('id')
-        wait_for_tasks(
+        target_sat.wait_for_tasks(
             f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
         )
         try:
@@ -356,7 +355,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
             }
         )
         job_id = Host.ansible_roles_play({'name': vm.hostname.lower()})[0].get('id')
-        wait_for_tasks(
+        target_sat.wait_for_tasks(
             f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
         )
         try:

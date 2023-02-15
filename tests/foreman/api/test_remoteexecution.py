@@ -18,7 +18,6 @@
 """
 import pytest
 
-from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.hosts import get_sat_version
 from robottelo.utils import ohsnap
@@ -62,7 +61,7 @@ def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target
             'search_query': f'name = {module_capsule_configured.hostname}',
         },
     )
-    wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
+    target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
     result = target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
     result = target_sat.execute('satellite-maintain health check')
@@ -149,7 +148,7 @@ def test_negative_time_to_pickup(
             'time_to_pickup': '5',
         },
     )
-    wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
+    module_target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
     result = module_target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
     # stop yggdrasil client on host
@@ -178,7 +177,7 @@ def test_negative_time_to_pickup(
             'time_to_pickup': '10',
         },
     )
-    wait_for_tasks(
+    module_target_sat.wait_for_tasks(
         f'resource_type = JobInvocation and resource_id = {job["id"]}', must_succeed=False
     )
     result = module_target_sat.api.JobInvocation(id=job['id']).read()
@@ -207,7 +206,7 @@ def test_negative_time_to_pickup(
             'search_query': f'name = {rhel_contenthost.hostname}',
         },
     )
-    wait_for_tasks(
+    module_target_sat.wait_for_tasks(
         f'resource_type = JobInvocation and resource_id = {job["id"]}', must_succeed=False
     )
     result = module_target_sat.api.JobInvocation(id=job['id']).read()

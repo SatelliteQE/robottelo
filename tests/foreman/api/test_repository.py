@@ -33,7 +33,6 @@ from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.constants import DataFile
 from robottelo.constants import repos as repo_constants
@@ -1170,7 +1169,7 @@ class TestRepository:
         :expectedresults: foreman-rake katello:correct_repositories COMMIT=true recreates deleted
          repos with no TaskErrors
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhel'],
@@ -1200,7 +1199,7 @@ class TestRepositorySync:
     """Tests for ``/katello/api/repositories/:id/sync``."""
 
     @pytest.mark.tier2
-    def test_positive_sync_rh(self, module_entitlement_manifest_org):
+    def test_positive_sync_rh(self, module_entitlement_manifest_org, target_sat):
         """Sync RedHat Repository.
 
         :id: d69c44cd-753c-4a75-9fd5-a8ed963b5e04
@@ -1209,7 +1208,7 @@ class TestRepositorySync:
 
         :CaseLevel: Integration
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhel'],
@@ -1284,7 +1283,7 @@ class TestRepositorySync:
         """
         repo_ids = []
         for repo in constants.BULK_REPO_LIST:
-            repo_id = enable_rhrepo_and_fetchid(
+            repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
                 basearch='x86_64',
                 org_id=module_entitlement_manifest_org.id,
                 product=repo['product'],
@@ -1366,7 +1365,7 @@ class TestRepositorySync:
 
         :CaseAutomation: Automated
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhel'],

@@ -23,8 +23,6 @@ import pytest
 from nailgun import entities
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
@@ -203,7 +201,7 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_
             'organization_id': module_org.id,
         },
     )['id']
-    wait_for_tasks(
+    target_sat.wait_for_tasks(
         search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
         search_rate=15,
         max_tries=10,
@@ -255,7 +253,7 @@ def test_positive_install_in_host(
             'organization_id': module_org.id,
         },
     )['id']
-    wait_for_tasks(
+    target_sat.wait_for_tasks(
         search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
         search_rate=15,
         max_tries=10,
@@ -311,7 +309,7 @@ def test_positive_install_multiple_in_host(
                 'organization_id': module_org.id,
             },
         )['id']
-        wait_for_tasks(
+        target_sat.wait_for_tasks(
             search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
             search_rate=20,
             max_tries=15,
@@ -413,7 +411,7 @@ def test_positive_sorted_issue_date_and_filter_by_cve(module_org, custom_repo, t
 
 
 @pytest.fixture(scope='module')
-def setup_content_rhel6(module_entitlement_manifest_org):
+def setup_content_rhel6(module_entitlement_manifest_org, module_target_sat):
     """Setup content fot rhel6 content host
     Using `Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)`
     from manifest, SATTOOLS_REPO for host-tools and yum_9 repo as custom repo.
@@ -421,7 +419,7 @@ def setup_content_rhel6(module_entitlement_manifest_org):
     :return: Activation Key, Organization, subscription list
     """
     org = module_entitlement_manifest_org
-    rh_repo_id_rhva = enable_rhrepo_and_fetchid(
+    rh_repo_id_rhva = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
         product=constants.PRDS['rhel'],
@@ -819,10 +817,10 @@ def test_errata_installation_with_swidtags(
 
 
 @pytest.fixture(scope='module')
-def rh_repo_module_manifest(module_entitlement_manifest_org):
+def rh_repo_module_manifest(module_entitlement_manifest_org, module_target_sat):
     """Use module manifest org, creates tools repo, syncs and returns RH repo."""
     # enable rhel repo and return its ID
-    rh_repo_id = enable_rhrepo_and_fetchid(
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=constants.DEFAULT_ARCHITECTURE,
         org_id=module_entitlement_manifest_org.id,
         product=constants.PRDS['rhel8'],

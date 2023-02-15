@@ -25,11 +25,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import constants
-from robottelo.api.utils import create_role_permissions
-from robottelo.api.utils import create_sync_custom_repo
-from robottelo.api.utils import cv_publish_promote
-from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import enable_sync_redhat_repo
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
@@ -115,7 +110,7 @@ def test_positive_end_to_end_register(
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.parametrize('cv_name', **parametrized(valid_data_list('ui')))
-def test_positive_create_with_cv(session, module_org, cv_name):
+def test_positive_create_with_cv(session, module_org, cv_name, target_sat):
     """Create Activation key for all variations of Content Views
 
     :id: 2ad000f1-6c80-46aa-a61b-9ea62cefe91b
@@ -128,8 +123,8 @@ def test_positive_create_with_cv(session, module_org, cv_name):
     """
     name = gen_string('alpha')
     env_name = gen_string('alpha')
-    repo_id = create_sync_custom_repo(module_org.id)
-    cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
+    repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
+    target_sat.api_factory.cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
         session.activationkey.create(
             {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
@@ -141,7 +136,7 @@ def test_positive_create_with_cv(session, module_org, cv_name):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_search_scoped(session, module_org):
+def test_positive_search_scoped(session, module_org, target_sat):
     """Test scoped search for different activation key parameters
 
     :id: 2c2ee1d7-0997-4a89-8f0a-b04e4b6177c0
@@ -160,8 +155,8 @@ def test_positive_search_scoped(session, module_org):
     env_name = gen_string('alpha')
     cv_name = gen_string('alpha')
     description = gen_string('alpha')
-    repo_id = create_sync_custom_repo(module_org.id)
-    cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
+    repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
+    target_sat.api_factory.cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
         session.activationkey.create(
             {
@@ -202,7 +197,7 @@ def test_positive_create_with_host_collection(session, module_org):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_create_with_envs(session, module_org):
+def test_positive_create_with_envs(session, module_org, target_sat):
     """Create Activation key with lifecycle environment
 
     :id: f75e994a-6da1-40a3-9685-f8387388b3f0
@@ -215,9 +210,9 @@ def test_positive_create_with_envs(session, module_org):
     cv_name = gen_string('alpha')
     env_name = gen_string('alphanumeric')
     # Helper function to create and sync custom repository
-    repo_id = create_sync_custom_repo(module_org.id)
+    repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
     # Helper function to create and promote CV to next env
-    cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
+    target_sat.api_factory.cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
         session.activationkey.create(
             {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
@@ -228,7 +223,7 @@ def test_positive_create_with_envs(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_add_host_collection_non_admin(module_org, test_name):
+def test_positive_add_host_collection_non_admin(module_org, test_name, target_sat):
     """Test that host collection can be associated to Activation Keys by
     non-admin user.
 
@@ -251,7 +246,7 @@ def test_positive_add_host_collection_non_admin(module_org, test_name):
     }
     viewer_role = entities.Role().search(query={'search': 'name="Viewer"'})[0]
     roles.append(viewer_role)
-    create_role_permissions(roles[0], user_permissions)
+    target_sat.api_factory.create_role_permissions(roles[0], user_permissions)
     password = gen_string('alphanumeric')
     user = entities.User(
         admin=False, role=roles, password=password, organization=[module_org]
@@ -266,7 +261,7 @@ def test_positive_add_host_collection_non_admin(module_org, test_name):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_remove_host_collection_non_admin(module_org, test_name):
+def test_positive_remove_host_collection_non_admin(module_org, test_name, target_sat):
     """Test that host collection can be removed from Activation Keys by
     non-admin user.
 
@@ -287,7 +282,7 @@ def test_positive_remove_host_collection_non_admin(module_org, test_name):
     }
     viewer_role = entities.Role().search(query={'search': 'name="Viewer"'})[0]
     roles.append(viewer_role)
-    create_role_permissions(roles[0], user_permissions)
+    target_sat.api_factory.create_role_permissions(roles[0], user_permissions)
     password = gen_string('alphanumeric')
     user = entities.User(
         admin=False, role=roles, password=password, organization=[module_org]
@@ -305,7 +300,7 @@ def test_positive_remove_host_collection_non_admin(module_org, test_name):
 
 
 @pytest.mark.tier2
-def test_positive_delete_with_env(session, module_org):
+def test_positive_delete_with_env(session, module_org, target_sat):
     """Create Activation key with environment and delete it
 
     :id: b6019881-3d6e-4b75-89f5-1b62aff3b1ca
@@ -318,8 +313,8 @@ def test_positive_delete_with_env(session, module_org):
     cv_name = gen_string('alpha')
     env_name = gen_string('alpha')
     # Helper function to create and promote CV to next environment
-    repo_id = create_sync_custom_repo(module_org.id)
-    cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
+    repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
+    target_sat.api_factory.cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
         session.activationkey.create({'name': name, 'lce': {env_name: True}})
         assert session.activationkey.search(name)[0]['Name'] == name
@@ -329,7 +324,7 @@ def test_positive_delete_with_env(session, module_org):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_delete_with_cv(session, module_org):
+def test_positive_delete_with_cv(session, module_org, target_sat):
     """Create Activation key with content view and delete it
 
     :id: 7e40e1ed-8314-406b-9451-05f64806a6e6
@@ -342,8 +337,8 @@ def test_positive_delete_with_cv(session, module_org):
     cv_name = gen_string('alpha')
     env_name = gen_string('alpha')
     # Helper function to create and promote CV to next environment
-    repo_id = create_sync_custom_repo(module_org.id)
-    cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
+    repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
+    target_sat.api_factory.cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
         session.activationkey.create(
             {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
@@ -355,7 +350,7 @@ def test_positive_delete_with_cv(session, module_org):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-def test_positive_update_env(session, module_org):
+def test_positive_update_env(session, module_org, target_sat):
     """Update Environment in an Activation key
 
     :id: 895cda6a-bb1e-4b94-a858-95f0be78a17b
@@ -368,8 +363,8 @@ def test_positive_update_env(session, module_org):
     cv_name = gen_string('alpha')
     env_name = gen_string('alphanumeric')
     # Helper function to create and promote CV to next environment
-    repo_id = create_sync_custom_repo(module_org.id)
-    cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
+    repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
+    target_sat.api_factory.cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
         session.activationkey.create({'name': name, 'lce': {constants.ENVIRONMENT: True}})
         assert session.activationkey.search(name)[0]['Name'] == name
@@ -385,7 +380,7 @@ def test_positive_update_env(session, module_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 @pytest.mark.parametrize('cv2_name', **parametrized(valid_data_list('ui')))
-def test_positive_update_cv(session, module_org, cv2_name):
+def test_positive_update_cv(session, module_org, cv2_name, target_sat):
     """Update Content View in an Activation key
 
     :id: 68880ca6-acb9-4a16-aaa0-ced680126732
@@ -406,10 +401,10 @@ def test_positive_update_cv(session, module_org, cv2_name):
     env2_name = gen_string('alpha')
     cv1_name = gen_string('alpha')
     # Helper function to create and promote CV to next environment
-    repo1_id = create_sync_custom_repo(module_org.id)
-    cv_publish_promote(cv1_name, env1_name, repo1_id, module_org.id)
-    repo2_id = create_sync_custom_repo(module_org.id)
-    cv_publish_promote(cv2_name, env2_name, repo2_id, module_org.id)
+    repo1_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
+    target_sat.api_factory.cv_publish_promote(cv1_name, env1_name, repo1_id, module_org.id)
+    repo2_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
+    target_sat.api_factory.cv_publish_promote(cv2_name, env2_name, repo2_id, module_org.id)
     with session:
         session.activationkey.create(
             {'name': name, 'lce': {env1_name: True}, 'content_view': cv1_name}
@@ -427,7 +422,7 @@ def test_positive_update_cv(session, module_org, cv2_name):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_update_rh_product(function_entitlement_manifest_org, session):
+def test_positive_update_rh_product(function_entitlement_manifest_org, session, target_sat):
     """Update Content View in an Activation key
 
     :id: 9b0ac209-45de-4cc4-97e8-e191f3f37239
@@ -462,10 +457,10 @@ def test_positive_update_rh_product(function_entitlement_manifest_org, session):
         'releasever': constants.DEFAULT_RELEASE_VERSION,
     }
     org = function_entitlement_manifest_org
-    repo1_id = enable_sync_redhat_repo(rh_repo1, org.id)
-    cv_publish_promote(cv1_name, env1_name, repo1_id, org.id)
-    repo2_id = enable_sync_redhat_repo(rh_repo2, org.id)
-    cv_publish_promote(cv2_name, env2_name, repo2_id, org.id)
+    repo1_id = target_sat.api_factory.enable_sync_redhat_repo(rh_repo1, org.id)
+    target_sat.api_factory.cv_publish_promote(cv1_name, env1_name, repo1_id, org.id)
+    repo2_id = target_sat.api_factory.enable_sync_redhat_repo(rh_repo2, org.id)
+    target_sat.api_factory.cv_publish_promote(cv2_name, env2_name, repo2_id, org.id)
     with session:
         session.organization.select(org.name)
         session.activationkey.create(
@@ -484,7 +479,7 @@ def test_positive_update_rh_product(function_entitlement_manifest_org, session):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_add_rh_product(function_entitlement_manifest_org, session):
+def test_positive_add_rh_product(function_entitlement_manifest_org, session, target_sat):
     """Test that RH product can be associated to Activation Keys
 
     :id: d805341b-6d2f-4e16-8cb4-902de00b9a6c
@@ -505,8 +500,8 @@ def test_positive_add_rh_product(function_entitlement_manifest_org, session):
     }
     org = function_entitlement_manifest_org
     # Helper function to create and promote CV to next environment
-    repo_id = enable_sync_redhat_repo(rh_repo, org.id)
-    cv_publish_promote(cv_name, env_name, repo_id, org.id)
+    repo_id = target_sat.api_factory.enable_sync_redhat_repo(rh_repo, org.id)
+    target_sat.api_factory.cv_publish_promote(cv_name, env_name, repo_id, org.id)
     with session:
         session.organization.select(org.name)
         session.activationkey.create(
@@ -520,7 +515,7 @@ def test_positive_add_rh_product(function_entitlement_manifest_org, session):
 
 
 @pytest.mark.tier2
-def test_positive_add_custom_product(session, module_org):
+def test_positive_add_custom_product(session, module_org, target_sat):
     """Test that custom product can be associated to Activation Keys
 
     :id: e66db2bf-517a-46ff-ba23-9f9744bef884
@@ -535,8 +530,10 @@ def test_positive_add_custom_product(session, module_org):
     env_name = gen_string('alpha')
     product_name = gen_string('alpha')
     # Helper function to create and promote CV to next environment
-    repo_id = create_sync_custom_repo(org_id=module_org.id, product_name=product_name)
-    cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
+    repo_id = target_sat.api_factory.create_sync_custom_repo(
+        org_id=module_org.id, product_name=product_name
+    )
+    target_sat.api_factory.cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
         session.activationkey.create(
             {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
@@ -552,7 +549,9 @@ def test_positive_add_custom_product(session, module_org):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_add_rh_and_custom_products(function_entitlement_manifest_org, session):
+def test_positive_add_rh_and_custom_products(
+    target_sat, function_entitlement_manifest_org, session
+):
     """Test that RH/Custom product can be associated to Activation keys
 
     :id: 3d8876fa-1412-47ca-a7a4-bce2e8baf3bc
@@ -580,7 +579,7 @@ def test_positive_add_rh_and_custom_products(function_entitlement_manifest_org, 
     org = function_entitlement_manifest_org
     product = entities.Product(name=custom_product_name, organization=org).create()
     repo = entities.Repository(name=repo_name, product=product).create()
-    rhel_repo_id = enable_rhrepo_and_fetchid(
+    rhel_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=rh_repo['basearch'],
         org_id=org.id,
         product=rh_repo['product'],
@@ -614,7 +613,7 @@ def test_positive_add_rh_and_custom_products(function_entitlement_manifest_org, 
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_fetch_product_content(function_entitlement_manifest_org, session):
+def test_positive_fetch_product_content(target_sat, function_entitlement_manifest_org, session):
     """Associate RH & custom product with AK and fetch AK's product content
 
     :id: 4c37fb12-ea2a-404e-b7cc-a2735e8dedb6
@@ -627,7 +626,7 @@ def test_positive_fetch_product_content(function_entitlement_manifest_org, sessi
     :CaseLevel: Integration
     """
     org = function_entitlement_manifest_org
-    rh_repo_id = enable_rhrepo_and_fetchid(
+    rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
         product=constants.PRDS['rhel'],
@@ -910,8 +909,10 @@ def test_positive_delete_with_system(session, rhel6_contenthost, target_sat):
     product_name = gen_string('alpha')
     org = entities.Organization().create()
     # Helper function to create and promote CV to next environment
-    repo_id = create_sync_custom_repo(product_name=product_name, org_id=org.id)
-    cv_publish_promote(cv_name, env_name, repo_id, org.id)
+    repo_id = target_sat.api_factory.create_sync_custom_repo(
+        product_name=product_name, org_id=org.id
+    )
+    target_sat.api_factory.cv_publish_promote(cv_name, env_name, repo_id, org.id)
     with session:
         session.organization.select(org_name=org.name)
         session.activationkey.create(
@@ -987,12 +988,14 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenth
     env_2_name = gen_string('alpha')
     product_1_name = gen_string('alpha')
     product_2_name = gen_string('alpha')
-    repo_1_id = create_sync_custom_repo(org_id=module_org.id, product_name=product_1_name)
-    cv_publish_promote(cv_1_name, env_1_name, repo_1_id, module_org.id)
-    repo_2_id = create_sync_custom_repo(
+    repo_1_id = target_sat.api_factory.create_sync_custom_repo(
+        org_id=module_org.id, product_name=product_1_name
+    )
+    target_sat.api_factory.cv_publish_promote(cv_1_name, env_1_name, repo_1_id, module_org.id)
+    repo_2_id = target_sat.api_factory.create_sync_custom_repo(
         org_id=module_org.id, product_name=product_2_name, repo_url=settings.repos.yum_2.url
     )
-    cv_publish_promote(cv_2_name, env_2_name, repo_2_id, module_org.id)
+    target_sat.api_factory.cv_publish_promote(cv_2_name, env_2_name, repo_2_id, module_org.id)
     with session:
         # Create 2 activation keys
         session.location.select(constants.DEFAULT_LOC)

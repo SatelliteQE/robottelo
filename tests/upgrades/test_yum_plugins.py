@@ -24,7 +24,6 @@ from upgrade.helpers.docker import docker_execute_command
 from upgrade_tests.helpers.scenarios import dockerize
 from wait_for import wait_for
 
-from robottelo.api.utils import attach_custom_product_subscription
 from robottelo.config import settings
 from robottelo.constants import REPOS
 from robottelo.logging import logger
@@ -34,6 +33,18 @@ from robottelo.upgrade_utility import run_goferd
 
 
 DOCKER_VM = settings.upgrade.docker_vm
+
+
+def attach_custom_product_subscription(prod_name=None, host_name=None):
+    """Attach custom product subscription to client host
+    :param str prod_name: custom product name
+    :param str host_name: client host name
+    """
+    host = entities.Host().search(query={'search': f'{host_name}'})[0]
+    product_subscription = entities.Subscription().search(query={'search': f'name={prod_name}'})[0]
+    entities.HostSubscription(host=host.id).add_subscriptions(
+        data={'subscriptions': [{'id': product_subscription.id, 'quantity': 1}]}
+    )
 
 
 class TestScenarioYumPluginsCount:
