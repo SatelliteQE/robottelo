@@ -63,7 +63,7 @@ class TestFilteredDataPoint:
             assert len(datafactory.valid_interfaces_list()) == 3
             assert len(datafactory.valid_names_list()) == 15
             assert len(datafactory.valid_org_names_list()) == 7
-            assert len(datafactory.valid_usernames_list()) == 6
+            assert len(datafactory.valid_usernames_list()) == 5
             assert len(datafactory.valid_cron_expressions()) == 4
             assert len(datafactory.valid_docker_repository_names()) == 7
 
