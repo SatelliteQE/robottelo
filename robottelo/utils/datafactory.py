@@ -428,7 +428,8 @@ def valid_org_names_list():
 @filtered_datapoint
 def valid_usernames_list():
     """Returns a list of valid user names."""
-    return generate_strings_list(exclude_types=['html'], min_length=1, max_length=50)
+    # utf8 excluded due to BZ:2169988
+    return generate_strings_list(exclude_types=['html', 'utf8'], min_length=1, max_length=50)
 
 
 @filtered_datapoint
