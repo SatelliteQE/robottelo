@@ -4,7 +4,6 @@ from functools import cached_property
 from tempfile import NamedTemporaryFile
 
 from robottelo import constants
-from robottelo.api import utils
 from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 from robottelo.logging import logger
@@ -84,7 +83,7 @@ class VersionedContent:
         )
 
     def enable_tools_repo(self, organization_id):
-        return utils.enable_rhrepo_and_fetchid(
+        return self.satellite.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
             org_id=organization_id,
             product=constants.PRDS['rhel'],
@@ -94,7 +93,7 @@ class VersionedContent:
         )
 
     def enable_rhel_repo(self, organization_id):
-        return utils.enable_rhrepo_and_fetchid(
+        return self.satellite.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
             org_id=organization_id,
             product=constants.PRDS['rhel'],
