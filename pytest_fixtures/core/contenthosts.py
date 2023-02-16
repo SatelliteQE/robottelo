@@ -220,3 +220,11 @@ def sat_ready_rhel(request):
     deploy_args['target_memory'] = '20GiB'
     with Broker(**deploy_args, host_class=ContentHost) as host:
         yield host
+
+
+@pytest.fixture(scope="module")
+def sat_upgrade_chost():
+    """A module-level fixture that provides a UBI_8 content host for upgrade scenario testing"""
+    return Broker(
+        container_host=settings.content_host.rhel8.container.container_host, host_class=ContentHost
+    ).checkout()

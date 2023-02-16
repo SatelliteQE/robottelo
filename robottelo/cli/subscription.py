@@ -1,7 +1,7 @@
 """
 Usage::
 
-    hammer sunscription [OPTIONS] SUBCOMMAND [ARG] ...
+    hammer subscription [OPTIONS] SUBCOMMAND [ARG] ...
 
 Parameters::
 
