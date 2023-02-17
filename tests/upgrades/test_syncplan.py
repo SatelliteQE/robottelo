@@ -18,7 +18,6 @@
 """
 import pytest
 from fauxfactory import gen_choice
-from nailgun import entities
 
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.utils.datafactory import valid_cron_expressions
@@ -31,7 +30,7 @@ class TestSyncPlan:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_sync_plan_migration(self, request):
+    def test_pre_sync_plan_migration(self, request, target_sat):
         """Pre-upgrade scenario that creates sync plan and assigns repo to sync plan
 
         :id: preupgrade-badaeec2-d42f-41d5-bd85-4b23d6d5a724
@@ -44,19 +43,21 @@ class TestSyncPlan:
         :expectedresults: Run sync plan create, get, assign and verify it should pass
 
         """
-        org = entities.Organization(name=f'{request.node.name}_org').create()
-        sync_plan = entities.SyncPlan(
+        org = target_sat.api.Organization(name=f'{request.node.name}_org').create()
+        sync_plan = target_sat.api.SyncPlan(
             organization=org, name=f'{request.node.name}_syncplan', interval="hourly"
         ).create()
-        product = entities.Product(organization=org, name=f'{request.node.name}_prod').create()
-        entities.Repository(product=product, name=f'{request.node.name}_repos').create()
+        product = target_sat.api.Product(
+            organization=org, name=f'{request.node.name}_prod'
+        ).create()
+        target_sat.api.Repository(product=product, name=f'{request.node.name}_repos').create()
         sync_plan.add_products(data={'product_ids': [product.id]})
         product.sync()
         product = product.read()
         assert product.sync_plan.id == sync_plan.id
 
     @pytest.mark.pre_upgrade
-    def test_pre_disabled_sync_plan_logic(self, request):
+    def test_pre_disabled_sync_plan_logic(self, request, target_sat):
         """Pre-upgrade scenario that creates a sync plan with both disabled and
         enabled recurring logic.
 
@@ -76,12 +77,14 @@ class TestSyncPlan:
 
         :customerscenario: true
         """
-        org = entities.Organization(name=f'{request.node.name}_org').create()
-        sync_plan = entities.SyncPlan(
+        org = target_sat.api.Organization(name=f'{request.node.name}_org').create()
+        sync_plan = target_sat.api.SyncPlan(
             organization=org, name=f'{request.node.name}_syncplan', interval="weekly"
         ).create()
-        product = entities.Product(organization=org, name=f'{request.node.name}_prod').create()
-        entities.Repository(product=product, name=f'{request.node.name}_repos').create()
+        product = target_sat.api.Product(
+            organization=org, name=f'{request.node.name}_prod'
+        ).create()
+        target_sat.api.Repository(product=product, name=f'{request.node.name}_repos').create()
         sync_plan.add_products(data={'product_ids': [product.id]})
         product.sync()
         product = product.read()
@@ -89,8 +92,8 @@ class TestSyncPlan:
         # Note the recurring logic ID for later assert a new one was created
         old_id = sync_plan.foreman_tasks_recurring_logic.id
         # Cancel the recurring logic
-        entities.RecurringLogic(id=old_id).read()
-        entities.RecurringLogic(id=old_id).cancel()
+        target_sat.api.RecurringLogic(id=old_id).read()
+        target_sat.api.RecurringLogic(id=old_id).cancel()
         # Re-enable the sync plan (it will get a new recurring logic)
         sync_plan.enabled = True
         sync_plan.update(['enabled'])
@@ -100,7 +103,7 @@ class TestSyncPlan:
         assert sync_plan.foreman_tasks_recurring_logic.id != old_id
 
     @pytest.mark.post_upgrade(depend_on=test_pre_sync_plan_migration)
-    def test_post_sync_plan_migration(self, request, dependent_scenario_name):
+    def test_post_sync_plan_migration(self, request, dependent_scenario_name, target_sat):
         """After upgrade, Sync interval update should work on existing sync plan(created before
         upgrade)
 
@@ -111,17 +114,19 @@ class TestSyncPlan:
             2. Check the all available sync_interval type update with pre-created sync_plan
 
         :expectedresults: After upgrade, the sync plan should remain the same with their all
-        entities and sync_interval updated with their all supported sync interval type.
+        target_sat.api and sync_interval updated with their all supported sync interval type.
 
         """
         pre_test_name = dependent_scenario_name
-        org = entities.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[0]
+        org = target_sat.api.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[
+            0
+        ]
         request.addfinalizer(org.delete)
-        product = entities.Product(organization=org.id).search(
+        product = target_sat.api.Product(organization=org.id).search(
             query={'search': f'name="{pre_test_name}_prod"'}
         )[0]
         request.addfinalizer(product.delete)
-        sync_plan = entities.SyncPlan(organization=org.id).search(
+        sync_plan = target_sat.api.SyncPlan(organization=org.id).search(
             query={'search': f'name="{pre_test_name}_syncplan"'}
         )[0]
         request.addfinalizer(sync_plan.delete)
@@ -140,7 +145,7 @@ class TestSyncPlan:
             assert sync_plan.interval == SYNC_INTERVAL[sync_interval]
 
     @pytest.mark.post_upgrade(depend_on=test_pre_disabled_sync_plan_logic)
-    def test_post_disabled_sync_plan_logic(self, request, dependent_scenario_name):
+    def test_post_disabled_sync_plan_logic(self, request, dependent_scenario_name, target_sat):
         """Upgrade proceedes without RecurringLogicCancelledExceptionerror.
         After upgrade, Sync interval should still be enabled.
 
@@ -151,7 +156,7 @@ class TestSyncPlan:
             2. Check the all available sync_interval type update with pre-created sync_plan.
 
         :expectedresults: Update proceedes without any errors. After upgrade, the sync plan
-        should remain the same with all entities.
+        should remain the same with all entities
 
         :BZ: 1887511
 
@@ -159,13 +164,15 @@ class TestSyncPlan:
 
         """
         pre_test_name = dependent_scenario_name
-        org = entities.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[0]
+        org = target_sat.api.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[
+            0
+        ]
         request.addfinalizer(org.delete)
-        product = entities.Product(organization=org.id).search(
+        product = target_sat.api.Product(organization=org.id).search(
             query={'search': f'name="{pre_test_name}_prod"'}
         )[0]
         request.addfinalizer(product.delete)
-        sync_plan = entities.SyncPlan(organization=org.id).search(
+        sync_plan = target_sat.api.SyncPlan(organization=org.id).search(
             query={'search': f'name="{pre_test_name}_syncplan"'}
         )[0]
         request.addfinalizer(sync_plan.delete)
