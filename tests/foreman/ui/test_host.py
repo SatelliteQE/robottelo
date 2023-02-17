@@ -227,17 +227,19 @@ def module_libvirt_hostgroup(
 
 
 @pytest.fixture(scope='module')
-def module_activation_key(module_org_with_manifest, module_target_sat):
+def module_activation_key(module_entitlement_manifest_org, module_target_sat):
     """Create activation key using default CV and library environment."""
     activation_key = module_target_sat.api.ActivationKey(
         auto_attach=True,
-        content_view=module_org_with_manifest.default_content_view.id,
-        environment=module_org_with_manifest.library.id,
-        organization=module_org_with_manifest,
+        content_view=module_entitlement_manifest_org.default_content_view.id,
+        environment=module_entitlement_manifest_org.library.id,
+        organization=module_entitlement_manifest_org,
     ).create()
 
     # Find the 'Red Hat Employee Subscription' and attach it to the activation key.
-    for subs in module_target_sat.api.Subscription(organization=module_org_with_manifest).search():
+    for subs in module_target_sat.api.Subscription(
+        organization=module_entitlement_manifest_org
+    ).search():
         if subs.name == DEFAULT_SUBSCRIPTION_NAME:
             # 'quantity' must be 1, not subscription['quantity']. Greater
             # values produce this error: 'RuntimeError: Error: Only pools
@@ -1179,7 +1181,7 @@ def test_positive_global_registration_form(
                 'general.insecure': True,
                 'general.host_group': hostgroup.name,
                 'general.operating_system': default_os.title,
-                'advanced.activation_keys': module_activation_key.name,
+                'general.activation_keys': module_activation_key.name,
                 'advanced.update_packages': True,
                 'advanced.rex_interface': iface,
             }
@@ -1201,6 +1203,7 @@ def test_positive_global_registration_form(
         assert pair in cmd
 
 
+@pytest.mark.no_containers
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_global_registration_end_to_end(
@@ -1253,7 +1256,7 @@ def test_positive_global_registration_end_to_end(
         cmd = session.host.get_register_command(
             {
                 'general.operating_system': default_os.title,
-                'advanced.activation_keys': module_activation_key.name,
+                'general.activation_keys': module_activation_key.name,
                 'advanced.update_packages': True,
                 'advanced.rex_interface': iface,
                 'general.insecure': True,
@@ -1403,7 +1406,7 @@ def test_global_registration_form_populate(
         )
 
         assert hg_name in cmd['general']['host_group']
-        assert module_ak_with_cv.name in cmd['advanced']['activation_key_helper']
+        assert module_ak_with_cv.name in cmd['general']['activation_key_helper']
         assert module_lce.name in cmd['advanced']['life_cycle_env_helper']
         assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages_helper']
 
@@ -1494,7 +1497,7 @@ def test_global_registration_with_capsule_host(
                 'general.location': module_location.name,
                 'general.operating_system': default_os.title,
                 'general.capsule': capsule_configured.hostname,
-                'advanced.activation_keys': activation_key.name,
+                'general.activation_keys': activation_key.name,
                 'general.insecure': True,
             }
         )
@@ -1543,7 +1546,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
             {
                 'general.operating_system': default_os.title,
                 'general.capsule': default_smart_proxy.name,
-                'advanced.activation_keys': module_activation_key.name,
+                'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
                 'advanced.install_packages': 'mlocate vim',
@@ -1607,7 +1610,7 @@ def test_global_registration_upgrade_subscription_manager(
         cmd = session.host.get_register_command(
             {
                 'general.operating_system': module_os.title,
-                'advanced.activation_keys': module_activation_key.name,
+                'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
                 'advanced.install_packages': 'subscription-manager',
@@ -1618,7 +1621,7 @@ def test_global_registration_upgrade_subscription_manager(
     # run curl
     result = client.execute(cmd)
     assert result.status == 0
-    result = client.execute('yum info subscription-manager | grep "From repo"')
+    result = client.execute('yum repolist')
     assert repo_name in result.stdout
     assert result.status == 0
 
@@ -1652,7 +1655,7 @@ def test_global_re_registration_host_with_force_ignore_error_options(
             {
                 'general.operating_system': default_os.title,
                 'general.capsule': default_smart_proxy.name,
-                'advanced.activation_keys': module_activation_key.name,
+                'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
                 'advanced.ignore_error': True,
@@ -1694,7 +1697,7 @@ def test_global_registration_token_restriction(
             {
                 'general.operating_system': default_os.title,
                 'general.capsule': default_smart_proxy.name,
-                'advanced.activation_keys': module_activation_key.name,
+                'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
             }
         )
