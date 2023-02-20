@@ -20,6 +20,7 @@ pytest_plugins = [
     'pytest_plugins.factory_collection',
     # Fixtures
     'pytest_fixtures.core.broker',
+    'pytest_fixtures.core.sat_cap_factory',
     'pytest_fixtures.core.contenthosts',
     'pytest_fixtures.core.reporting',
     'pytest_fixtures.core.sys',
