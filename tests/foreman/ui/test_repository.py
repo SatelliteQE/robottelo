@@ -1182,7 +1182,7 @@ def test_positive_select_org_in_any_context():
     :BZ: 1860957
 
     :Steps:
-        1. Set "Any Organization" and "Any Location" on top
+        1. Set "Any organization" and "Any location" on top
         2. Click on Content -> "Sync Status"
         3. "Select an Organization" page will come up.
         4. Select organization in dropdown and press Select

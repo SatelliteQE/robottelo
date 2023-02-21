@@ -1445,7 +1445,7 @@ PERMISSIONS_UI = {
 }
 
 
-ANY_CONTEXT = {'org': "Any Organization", 'location': "Any Location"}
+ANY_CONTEXT = {'org': "Any organization", 'location': "Any location"}
 
 SUBNET_IPAM_TYPES = {'dhcp': 'DHCP', 'internal': 'Internal DB', 'none': 'None'}
 
