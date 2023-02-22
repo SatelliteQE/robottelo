@@ -144,6 +144,9 @@ class ContentInfo:
             )
         return result
 
+    def is_sca_mode_enabled(self, org_id):
+        return self.api.Organization(id=org_id).read().simple_content_access
+
 
 class SystemInfo:
     """Things that needs access to satellite shell for gaining satellite system configuration"""

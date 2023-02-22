@@ -1767,9 +1767,8 @@ class Satellite(Capsule, SatelliteMixins):
             f'rc: {register.status}: {register.stderr}'
         )
 
-        # attach product subscriptions to contenthost
-        # Attach subscriptions only if SCA mode is disabled
-        if self.api.Organization(id=module_org.id).read().simple_content_access is False:
+        # Attach product subscriptions to contenthost, only if SCA mode is disabled
+        if self.is_sca_mode_enabled(module_org.id) is False:
             subs = self.api.Subscription(organization=module_org, name=prod.name).search()
             assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
             subscription = subs[0]
