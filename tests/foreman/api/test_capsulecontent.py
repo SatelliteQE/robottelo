@@ -18,7 +18,6 @@ interactions and use capsule.
 :Upstream: No
 """
 import re
-from datetime import datetime
 
 import pytest
 from nailgun import client
@@ -35,23 +34,6 @@ from robottelo.content_info import get_repomd_revision
 from robottelo.utils.issue_handlers import is_open
 
 
-def get_published_repo_url(capsule, org, prod, repo, lce=None, cv=None):
-    """Forms url of a repo or CV published on a Satellite or Capsule.
-
-    :param object capsule: Capsule or Satellite object providing its url
-    :param str org: organization label
-    :param str prod: product label
-    :param str repo: repository label
-    :param str lce: lifecycle environment label
-    :param str cv: content view label
-    :return: url of the specific repo or CV
-    """
-    if lce and cv:
-        return f'{capsule.url}/pulp/content/{org}/{lce}/{cv}/custom/{prod}/{repo}/'
-    else:
-        return f'{capsule.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'
-
-
 @pytest.mark.run_in_one_thread
 class TestCapsuleContentManagement:
     """Content Management related tests, which exercise katello with pulp
@@ -63,22 +45,6 @@ class TestCapsuleContentManagement:
         proxy = entities.SmartProxy(id=module_capsule_configured.nailgun_capsule.id).read()
         proxy.download_policy = download_policy
         proxy.update(['download_policy'])
-
-    def wait_for_sync(self, capsule, timeout=600, start_time=datetime.utcnow()):
-        # Assert that a task to sync lifecycle environment to the capsule
-        # is started (or finished already)
-        sync_status = capsule.nailgun_capsule.content_get_sync()
-        assert (
-            len(sync_status['active_sync_tasks'])
-            or datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC')
-            > start_time
-        )
-
-        # Wait till capsule sync finishes and assert the sync task succeeded
-        for task in sync_status['active_sync_tasks']:
-            entities.ForemanTask(id=task['id']).poll(timeout=timeout)
-        sync_status = capsule.nailgun_capsule.content_get_sync()
-        assert len(sync_status['last_failed_sync_tasks']) == 0
 
     @pytest.mark.tier3
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
@@ -152,11 +118,10 @@ class TestCapsuleContentManagement:
 
         assert len(cv.version) == 1
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Verify the RPM published on Capsule
-        caps_repo_url = get_published_repo_url(
-            module_capsule_configured,
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce_library.label,
             cv=cv.label,
@@ -220,11 +185,10 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Verify repodata's checksum type is sha256, not sha1 on capsule
-        repo_url = get_published_repo_url(
-            module_capsule_configured,
+        repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             prod=function_product.label,
             repo=repo.label,
@@ -254,7 +218,7 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Verify repodata's checksum type has updated to sha1 on capsule
         repomd = get_repomd(repo_url)
@@ -324,7 +288,7 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Upload more content to the repository
         with open(DataFile.SRPM_TO_UPLOAD, 'rb') as handle:
@@ -342,19 +306,17 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Check the content is synced on the Capsule side properly
-        sat_repo_url = get_published_repo_url(
-            target_sat,
+        sat_repo_url = target_sat.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
             prod=function_product.label,
             repo=repo.label,
         )
-        caps_repo_url = get_published_repo_url(
-            module_capsule_configured,
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
@@ -428,20 +390,18 @@ class TestCapsuleContentManagement:
         # repository
         assert repo.content_counts['rpm'] == cvv.package_count
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Assert that the content published on the capsule is exactly the
         # same as in repository on satellite
-        sat_repo_url = get_published_repo_url(
-            target_sat,
+        sat_repo_url = target_sat.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
             prod=function_product.label,
             repo=repo.label,
         )
-        caps_repo_url = get_published_repo_url(
-            module_capsule_configured,
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
@@ -472,7 +432,7 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Assert that the value of repomd revision of repository in
         # lifecycle environment on the capsule has not changed
@@ -502,7 +462,7 @@ class TestCapsuleContentManagement:
         # repository
         assert repo.content_counts['rpm'] == cvv.package_count
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Assert that the content published on the capsule is exactly the
         # same as in the repository
@@ -567,7 +527,7 @@ class TestCapsuleContentManagement:
         sat_isos = get_repo_files_by_url(rh_repo.full_path, extension='iso')
         assert len(sat_isos) == 4
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Verify all the ISOs are present on capsule
         caps_path = (
@@ -639,11 +599,10 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Verify packages on Capsule match the source
-        caps_repo_url = get_published_repo_url(
-            module_capsule_configured,
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
@@ -719,7 +678,7 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Update download policy to 'immediate'
         repo.download_policy = 'immediate'
@@ -747,11 +706,10 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Verify the count of RPMs published on Capsule
-        caps_repo_url = get_published_repo_url(
-            module_capsule_configured,
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
@@ -854,7 +812,7 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Check for kickstart content on SAT and CAPS
         tail = (
@@ -954,7 +912,7 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Pull the images from capsule to the content host
         repo_paths = [
@@ -1073,7 +1031,7 @@ class TestCapsuleContentManagement:
         repo = repo.read()
         assert repo.content_counts['ansible_collection'] == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Configure the content host to fetch collections from capsule
         rhel7_contenthost.install_katello_ca(module_capsule_configured)
@@ -1166,23 +1124,21 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Run one more sync, check for status (BZ#1985122)
         sync_status = module_capsule_configured.nailgun_capsule.content_sync()
         assert sync_status['result'] == 'success'
 
         # Check for content on SAT and CAPS
-        sat_repo_url = get_published_repo_url(
-            target_sat,
+        sat_repo_url = target_sat.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
             prod=function_product.label,
             repo=repo.label,
         )
-        caps_repo_url = get_published_repo_url(
-            module_capsule_configured,
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
@@ -1270,7 +1226,7 @@ class TestCapsuleContentManagement:
         assert len(cvv.environment) == 3
 
         # Check all sync tasks finished without errors.
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
@@ -1316,7 +1272,7 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
 
         timestamp = (datetime.utcnow()).strftime('%Y-%m-%d %H:%M')
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         search_result = target_sat.wait_for_tasks(
             search_query='label = Actions::Katello::CapsuleContent::Sync'
@@ -1341,3 +1297,4 @@ class TestCapsuleContentManagement:
         # Check sync status again, and ensure last_sync_time is still correct
         sync_status = module_capsule_configured.nailgun_capsule.content_get_sync()
         assert sync_status['last_sync_time'] >= timestamp
+
