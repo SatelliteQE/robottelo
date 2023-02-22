@@ -28,7 +28,6 @@ from nailgun import client
 from nailgun import entities
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import get_credentials
 from robottelo.config import get_url
 from robottelo.config import setting_is_set
@@ -324,7 +323,7 @@ API_PATHS = {
         '/api/v2/discovery_rules/:id',
         '/api/v2/discovery_rules/:id',
     ),
-    'disks': ('/bootdisk/api', '/bootdisk/api/generic', '/bootdisk/api/hosts/:host_id'),
+    'disks': ('/api/bootdisk', '/api/bootdisk/generic', '/api/bootdisk/hosts/:host_id'),
     'docker_manifests': (
         '/katello/api/docker_manifests/:id',
         '/katello/api/docker_manifests/compare',
@@ -456,6 +455,8 @@ API_PATHS = {
         '/api/hosts/:id/assign_ansible_roles',
         '/api/hosts/:host_id/host_collections',
         '/api/hosts/:id/policies_enc',
+        '/api/hosts/:id/templates',
+        '/api/hosts/:id/inherited_parameters',
     ),
     'hosts_bulk_actions': (
         '/api/hosts/bulk/add_host_collections',
@@ -769,6 +770,7 @@ API_PATHS = {
         '/katello/api/repositories/:id/verify_checksum',
         '/katello/api/content_types',
         '/katello/api/repositories/:id/reclaim_space',
+        '/katello/api/repositories/compare',
     ),
     'repository_sets': (
         '/katello/api/repository_sets',
@@ -817,7 +819,7 @@ API_PATHS = {
         '/api/users/:user_id/ssh_keys/:id',
         '/api/users/:user_id/ssh_keys/:id',
     ),
-    'subnet_disks': ('/bootdisk/api', '/bootdisk/api/subnets/:subnet_id'),
+    'subnet_disks': ('/api/bootdisk', '/api/bootdisk/subnets/:subnet_id'),
     'subnets': (
         '/api/subnets',
         '/api/subnets',
@@ -899,6 +901,7 @@ API_PATHS = {
         '/api/users',
         '/api/users/:id',
         '/api/users/:id',
+        '/api/users/extlogin',
     ),
     'webhooks': (
         '/api/webhooks',
@@ -1115,7 +1118,7 @@ class TestEndToEnd:
         # step 2.6: Enable a Red Hat repository
         if fake_manifest_is_set:
             rhel_repo = target_sat.api.Repository(
-                id=enable_rhrepo_and_fetchid(
+                id=target_sat.api_factory.enable_rhrepo_and_fetchid(
                     basearch='x86_64',
                     org_id=org.id,
                     product=constants.PRDS['rhel'],

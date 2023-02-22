@@ -24,7 +24,6 @@ from fabric.api import run
 from upgrade_tests.helpers.scenarios import rpm1
 from upgrade_tests.helpers.scenarios import rpm2
 
-from robottelo.api.utils import create_sync_custom_repo
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
 from robottelo.upgrade_utility import publish_content_view
@@ -67,7 +66,7 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
         """
 
         org = target_sat.api.Organization().create()
-        custom_repo = create_sync_custom_repo(org_id=org.id)
+        custom_repo = target_sat.api_factory.create_sync_custom_repo(org_id=org.id)
         rake_repo = f'repo = Katello::Repository.find_by_id({custom_repo})'
         rake_username = f'; repo.root.upstream_username = "{UPSTREAM_USERNAME}"'
         rake_repo_save = '; repo.save!(validate: false)'

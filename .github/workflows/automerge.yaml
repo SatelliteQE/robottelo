@@ -8,11 +8,6 @@ on:
       - ready_for_review
     branches-ignore:
       - master
-  pull_request_review:
-    types:
-      - submitted
-    branches-ignore:
-      - master
   check_suite:
     types:
       - completed
@@ -58,11 +53,11 @@ jobs:
           api_endpoint="https://api.github.com/repos/${{github.repository}}/statuses/${{ github.head_ref }}"
 
           function get_status() {
-            curl -s "$api_endpoint"  | jq '[.[] | .state] | .[0]'
+            curl -s "$api_endpoint"  | jq '[.[] | .state] | .[0]' | tr -d '"'
           }
 
           function get_context() {
-            curl -s "$api_endpoint" | jq '[.[] | .context] | .[0]'
+            curl -s "$api_endpoint" | jq '[.[] | .context] | .[0]' | tr -d '"'
           }
 
           statuses_length=$(curl -s $api_endpoint | jq 'length')
@@ -92,26 +87,24 @@ jobs:
             counter=$((counter+1))
           done
 
-          if [ "$status" == "success" ]; then
-            echo "PRT Passed Successfully!"
-          else
+          if [ "$status" != "success" ]; then
             echo "Robottelo-Runner : $status"
             echo "::error PRT failed"
             exit 1
+          else
+           echo "PRT Passed Successfully!"
           fi
 
 
       - id: automerge
         name: Auto merge of cherry-picked PRs.
         uses: "pascalgn/automerge-action@v0.15.5"
-        if: steps.waitforstatuschecks.outputs.status == 'success'
         env:
           GITHUB_TOKEN: "${{ secrets.CHERRYPICK_PAT }}"
           MERGE_LABELS: "AutoMerge_Cherry_Picked, Auto_Cherry_Picked"
           MERGE_METHOD: "squash"
           MERGE_RETRIES: 5
           MERGE_RETRY_SLEEP: 900000
-          BASE_BRANCHES: "master" # avoid automerge branch
 
       - name: Auto Merge Status
         run: |
