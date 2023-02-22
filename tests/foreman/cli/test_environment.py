@@ -12,7 +12,7 @@
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :Upstream: No
 """
@@ -87,8 +87,6 @@ def test_negative_create_with_name(name, session_puppet_enabled_sat):
     :parametrized: yes
 
     :expectedresults: Environment is not created.
-
-    :CaseImportance: Critical
     """
     with pytest.raises(CLIReturnCodeError):
         session_puppet_enabled_sat.cli.Environment.create({'name': name})
@@ -96,6 +94,7 @@ def test_negative_create_with_name(name, session_puppet_enabled_sat):
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
+@pytest.mark.e2e
 def test_positive_CRUD_with_attributes(
     session_puppet_enabled_sat, module_puppet_org, module_locations
 ):
@@ -110,8 +109,6 @@ def test_positive_CRUD_with_attributes(
         2. Environment can be listed by parameters
         3. Environment can be updated
         4. Environment can be removed
-
-    :CaseImportance: Critical
     """
     # Create with attributes
     env_name = gen_string('alpha')
@@ -196,7 +193,6 @@ def test_negative_update_name(new_name, session_puppet_enabled_sat):
     :parametrized: yes
 
     :expectedresults: Environment is not updated
-
     """
     environment = session_puppet_enabled_sat.cli.Environment.create({'name': gen_string('alpha')})
     with pytest.raises(CLIReturnCodeError):
@@ -219,7 +215,6 @@ def test_positive_sc_params(module_import_puppet_module, session_puppet_enabled_
     :id: 32de4f0e-7b52-411c-a111-9ed472c3fc34
 
     :expectedresults: The command runs without raising an error
-
     """
     # Override one of the sc-params from puppet class
     sc_params_list = session_puppet_enabled_sat.cli.SmartClassParameter.list(
