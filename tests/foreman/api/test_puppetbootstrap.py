@@ -16,10 +16,12 @@
 
 :Upstream: No
 """
+import pytest
 import requests
 from fauxfactory import gen_string
 
 
+@pytest.mark.e2e
 def test_positive_puppet_bootstrap(
     session_puppet_enabled_sat,
     session_puppet_enabled_proxy,
