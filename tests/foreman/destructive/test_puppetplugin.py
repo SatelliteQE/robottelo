@@ -8,7 +8,7 @@
 
 :CaseComponent: Puppet
 
-:Assignee: vsedmik
+:Team: Rocket
 
 :TestType: Functional
 
@@ -34,7 +34,7 @@ puppet_cli_commands = [
 
 err_msg = 'Error: No such sub-command'
 
-pytestmark = pytest.mark.destructive
+pytestmark = [pytest.mark.destructive, pytest.mark.e2e]
 
 
 def assert_puppet_status(server, expected):
@@ -99,9 +99,6 @@ def test_positive_enable_disable_logic(target_sat, capsule_configured):
     assert result.status == 0
     assert 'Success!' in result.stdout
 
-    # workaround for BZ#2039696
-    target_sat.execute('hammer -r')
-
     assert_puppet_status(target_sat, expected=True)
 
     # Enable puppet on Capsule and check it succeeded.
@@ -131,41 +128,3 @@ def test_positive_enable_disable_logic(target_sat, capsule_configured):
     )
     assert result.status == 0
     assert_puppet_status(target_sat, expected=False)
-
-
-@pytest.mark.rhel_ver_match('[7,8]')
-def test_positive_install_configure(session_puppet_enabled_sat, rhel_contenthost):
-    """Test that puppet-agent can be installed from the sat-client repo
-    and configured to report back to the Satellite.
-
-    :id: 07777fbb-4f2e-4fab-ba5a-2b698f9b9f38
-
-    :setup:
-        1. Satellite with enabled puppet plugin.
-        2. Blank RHEL content host.
-
-    :steps:
-        1. Configure puppet on the content host. This creates sat-client repository,
-           installs puppet-agent, configures it, runs it to create the puppet cert,
-           signs in on the Satellite side and reruns it.
-        2. Assert that Config report was created at the Satellite for the content host.
-        3. Assert that Facts were reported for the content host.
-
-    :expectedresults:
-        1. Configuration passes without errors.
-        2. Config report is created.
-        3. Facts are acquired.
-
-    :customerscenario: true
-
-    :BZ: 2126891
-    """
-    rhel_contenthost.configure_puppet(proxy_hostname=session_puppet_enabled_sat.hostname)
-    reports = session_puppet_enabled_sat.cli.ConfigReport.list(
-        {'search': f'host~{rhel_contenthost.hostname},origin=Puppet'}
-    )
-    assert len(reports)
-    facts = session_puppet_enabled_sat.cli.Fact.list(
-        {'search': f'host~{rhel_contenthost.hostname}'}
-    )
-    assert len(facts)

@@ -12,11 +12,11 @@ http://theforeman.org/api/apidoc/v2/environments.html
 
 :CaseComponent: Puppet
 
-:Assignee: vsedmik
+:Team: Rocket
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :Upstream: No
 """
@@ -39,10 +39,7 @@ def test_positive_create_with_name(name, session_puppet_enabled_sat):
 
     :parametrized: yes
 
-    :expectedresults: The environment created successfully and has expected
-        name.
-
-    :CaseImportance: Critical
+    :expectedresults: The environment created successfully and has expected name
     """
     env = session_puppet_enabled_sat.api.Environment(name=name).create()
     assert env.name == name
@@ -56,10 +53,7 @@ def test_positive_create_with_org_and_loc(
 
     :id: de7e4132-5ca7-4b41-9af3-df075d31f8f4
 
-    :expectedresults: The environment created successfully and has expected
-        attributes.
-
-    :CaseImportance: Critical
+    :expectedresults: The environment created successfully and has expected attributes.
     """
     env = session_puppet_enabled_sat.api.Environment(
         name=gen_string('alphanumeric'),
@@ -82,7 +76,6 @@ def test_negative_create_with_too_long_name(name, session_puppet_enabled_sat):
     :parametrized: yes
 
     :expectedresults: The server returns an error.
-
     """
     with pytest.raises(HTTPError):
         session_puppet_enabled_sat.api.Environment(name=name).create()
@@ -98,7 +91,6 @@ def test_negative_create_with_invalid_characters(name, session_puppet_enabled_sa
     :parametrized: yes
 
     :expectedresults: The server returns an error.
-
     """
     with pytest.raises(HTTPError):
         session_puppet_enabled_sat.api.Environment(name=name).create()
@@ -115,7 +107,6 @@ def test_positive_update_name(module_puppet_environment, new_name, session_puppe
     :parametrized: yes
 
     :expectedresults: Environment entity is created and updated properly
-
     """
     env = session_puppet_enabled_sat.api.Environment(
         id=module_puppet_environment.id, name=new_name
@@ -132,10 +123,7 @@ def test_positive_update_and_remove(
 
     :id: 31e43faa-65ee-4757-ac3d-3825eba37ae5
 
-    :expectedresults: Environment entity is updated and removed
-        properly
-
-    :CaseImportance: Critical
+    :expectedresults: Environment entity is updated and removed properly
 
     :CaseLevel: Integration
     """
@@ -170,7 +158,6 @@ def test_negative_update_name(module_puppet_environment, new_name, session_puppe
     :parametrized: yes
 
     :expectedresults: Environment entity is not updated
-
     """
     with pytest.raises(HTTPError):
         session_puppet_enabled_sat.api.Environment(

@@ -6,7 +6,7 @@
 
 :CaseComponent: Upgrades
 
-:Assignee: lpramuk
+:Team: Platform
 
 :TestType: Functional
 

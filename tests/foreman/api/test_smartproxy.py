@@ -8,7 +8,7 @@
 
 :CaseComponent: Capsule
 
-:Assignee: vsedmik
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -23,6 +23,7 @@ from requests import HTTPError
 
 from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.issue_handlers import is_open
 
 
 pytestmark = [pytest.mark.run_in_one_thread]
@@ -87,7 +88,10 @@ def test_positive_create_with_name(request, target_sat, name):
 
     :Parametrized: Yes
 
+    :BZ: 2084661
     """
+    if is_open('BZ:2084661') and 'html' in request.node.name:
+        pytest.skip()
     new_port = target_sat.available_capsule_port
     with target_sat.default_url_on_new_port(9090, new_port) as url:
         proxy = _create_smart_proxy(request, target_sat, name=name, url=url)

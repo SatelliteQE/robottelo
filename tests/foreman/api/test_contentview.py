@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentViews
 
-:Assignee: ltran
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -25,8 +25,6 @@ from fauxfactory import gen_utf8
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.api.utils import apply_package_filter
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.config import user_nailgun_config
 from robottelo.constants import CONTAINER_REGISTRY_HUB
@@ -82,6 +80,29 @@ def class_published_cloned_cv(class_cloned_cv):
 @pytest.fixture
 def content_view(module_org):
     return entities.ContentView(organization=module_org).create()
+
+
+def apply_package_filter(content_view, repo, package, target_sat, inclusion=True):
+    """Apply package filter on content view
+
+    :param content_view: entity content view
+    :param repo: entity repository
+    :param str package: package name to filter
+    :param bool inclusion: True/False based on include or exclude filter
+
+    :return list : list of content view versions
+    """
+    cv_filter = entities.RPMContentViewFilter(
+        content_view=content_view, inclusion=inclusion, repository=[repo]
+    ).create()
+    cv_filter_rule = target_sat.api.ContentViewFilterRule(
+        content_view_filter=cv_filter, name=package
+    ).create()
+    assert cv_filter.id == cv_filter_rule.content_view_filter.id
+    content_view.publish()
+    content_view = content_view.read()
+    content_view_version_info = content_view.version[0].read()
+    return content_view_version_info
 
 
 class TestContentView:
@@ -240,7 +261,7 @@ class TestContentView:
 
         :CaseComponent: Pulp
 
-        :Assignee: ltran
+        :Team: Phoenix
 
         :CaseImportance: Medium
 
@@ -660,7 +681,7 @@ class TestContentViewPublishPromote:
 
         :CaseComponent: Pulp
 
-        :Assignee: ltran
+        :Team: Phoenix
 
         :CaseImportance: Medium
 
@@ -821,10 +842,12 @@ class TestContentViewRedHatContent:
     """Tests for publishing and promoting content views."""
 
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(self, request, module_cv, module_entitlement_manifest_org):
+    def initiate_testclass(
+        self, request, module_cv, module_entitlement_manifest_org, module_target_sat
+    ):
         """Set up organization, product and repositories for tests."""
 
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=PRDS['rhel'],
@@ -1374,10 +1397,10 @@ class TestContentViewRedHatOstreeContent:
 
     @pytest.mark.run_in_one_thread
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(self, request, module_entitlement_manifest_org):
+    def initiate_testclass(self, request, module_entitlement_manifest_org, class_target_sat):
         """Set up organization, product and repositories for tests."""
 
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = class_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=None,
             org_id=module_entitlement_manifest_org.id,
             product=PRDS['rhah'],
@@ -1449,7 +1472,7 @@ class TestContentViewRedHatOstreeContent:
     @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_publish_promote_with_RH_ostree_and_other(
-        self, content_view, module_org, module_lce
+        self, content_view, module_org, module_lce, module_target_sat
     ):
         """Publish & Promote a content view with RH ostree and other contents
 
@@ -1462,7 +1485,7 @@ class TestContentViewRedHatOstreeContent:
 
         :CaseImportance: High
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_org.id,
             product=PRDS['rhel'],

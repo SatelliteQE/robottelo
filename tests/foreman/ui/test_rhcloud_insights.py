@@ -8,7 +8,7 @@
 
 :CaseComponent: RHCloud-Inventory
 
-:Assignee: addubey
+:Team: Platform
 
 :TestType: Functional
 
@@ -536,7 +536,7 @@ def test_insights_registration_with_capsule(
                 'general.operating_system': default_os.title,
                 'general.orgnization': org.name,
                 'general.capsule': rhcloud_capsule.hostname,
-                'advanced.activation_keys': ak.name,
+                'general.activation_keys': ak.name,
                 'general.insecure': True,
                 'advanced.setup_insights': 'Yes (override)',
                 'advanced.setup_rex': 'Yes (override)',

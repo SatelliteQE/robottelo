@@ -8,7 +8,7 @@
 
 :CaseComponent: UsersRoles
 
-:Assignee: sganar
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import pytest
-from nailgun import entities
 
 
 @pytest.mark.stubbed
@@ -162,7 +161,7 @@ class TestRoleAddPermission:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_default_role_added_permission(self):
+    def test_pre_default_role_added_permission(self, target_sat):
         """New permission is added to Default Role
 
         :id: preupgrade-3a350e4a-96b3-4033-b562-3130fc43a4bc
@@ -172,17 +171,17 @@ class TestRoleAddPermission:
         :expectedresults: Permission is added to existing 'Default role'.
 
         """
-        defaultrole = entities.Role().search(query={'search': 'name="Default role"'})[0]
-        subnetfilter = entities.Filter(
-            permission=entities.Permission().search(
+        default_role = target_sat.api.Role().search(query={'search': 'name="Default role"'})[0]
+        subnet_filter = target_sat.api.Filter(
+            permission=target_sat.api.Permission().search(
                 filters={'name': 'view_subnets'}, query={'search': 'resource_type="Subnet"'}
             ),
-            role=defaultrole,
+            role=default_role,
         ).create()
-        assert subnetfilter.id in [filt.id for filt in defaultrole.read().filters]
+        assert subnet_filter.id in [filt.id for filt in default_role.read().filters]
 
     @pytest.mark.post_upgrade(depend_on=test_pre_default_role_added_permission)
-    def test_post_default_role_added_permission(self):
+    def test_post_default_role_added_permission(self, target_sat):
         """The new permission in 'Default role' is intact post upgrade
 
         :id: postupgrade-3a350e4a-96b3-4033-b562-3130fc43a4bc
@@ -190,13 +189,13 @@ class TestRoleAddPermission:
         :expectedresults: The added permission in existing 'Default role' is
             intact post upgrade
         """
-        defaultrole = entities.Role().search(query={'search': 'name="Default role"'})[0]
-        subnetfilt = entities.Filter().search(
-            query={'search': f'role_id={defaultrole.id} and permission="view_subnets"'}
+        default_role = target_sat.api.Role().search(query={'search': 'name="Default role"'})[0]
+        subnet_filter = target_sat.api.Filter().search(
+            query={'search': f'role_id={default_role.id} and permission="view_subnets"'}
         )
-        assert subnetfilt
+        assert subnet_filter
         # Teardown
-        subnetfilt[0].delete()
+        subnet_filter[0].delete()
 
 
 class TestRoleAddPermissionWithFilter:
@@ -216,7 +215,7 @@ class TestRoleAddPermissionWithFilter:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_default_role_added_permission_with_filter(self):
+    def test_pre_default_role_added_permission_with_filter(self, target_sat):
         """New permission with filter is added to Default Role
 
         :id: preupgrade-b287b71c-42fd-4612-a67a-b93d47dbbb33
@@ -227,19 +226,19 @@ class TestRoleAddPermissionWithFilter:
             'Default role'
 
         """
-        defaultrole = entities.Role().search(query={'search': 'name="Default role"'})[0]
-        domainfilter = entities.Filter(
-            permission=entities.Permission().search(
+        default_role = target_sat.api.Role().search(query={'search': 'name="Default role"'})[0]
+        domain_filter = target_sat.api.Filter(
+            permission=target_sat.api.Permission().search(
                 filters={'name': 'view_domains'}, query={'search': 'resource_type="Domain"'}
             ),
             unlimited=False,
-            role=defaultrole,
+            role=default_role,
             search='name ~ a',
         ).create()
-        assert domainfilter.id in [filt.id for filt in defaultrole.read().filters]
+        assert domain_filter.id in [filt.id for filt in default_role.read().filters]
 
     @pytest.mark.post_upgrade(depend_on=test_pre_default_role_added_permission_with_filter)
-    def test_post_default_role_added_permission_with_filter(self):
+    def test_post_default_role_added_permission_with_filter(self, target_sat):
         """The new permission with filter in 'Default role' is intact post
             upgrade
 
@@ -248,11 +247,11 @@ class TestRoleAddPermissionWithFilter:
         :expectedresults: The added permission with filter in existing
             'Default role' is intact post upgrade
         """
-        defaultrole = entities.Role().search(query={'search': 'name="Default role"'})[0]
-        domainfilt = entities.Filter().search(
-            query={'search': f'role_id={defaultrole.id} and permission="view_domains"'}
+        default_role = target_sat.api.Role().search(query={'search': 'name="Default role"'})[0]
+        domain_filter = target_sat.api.Filter().search(
+            query={'search': f'role_id={default_role.id} and permission="view_domains"'}
         )
-        assert domainfilt
-        assert domainfilt[0].search == 'name ~ a'
+        assert domain_filter
+        assert domain_filter[0].search == 'name ~ a'
         # Teardown
-        domainfilt[0].delete()
+        domain_filter[0].delete()

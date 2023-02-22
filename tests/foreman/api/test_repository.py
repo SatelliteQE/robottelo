@@ -8,7 +8,7 @@
 
 :CaseComponent: Repositories
 
-:Assignee: chiggins
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -33,7 +33,6 @@ from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.constants import DataFile
 from robottelo.constants import repos as repo_constants
@@ -1170,7 +1169,7 @@ class TestRepository:
         :expectedresults: foreman-rake katello:correct_repositories COMMIT=true recreates deleted
          repos with no TaskErrors
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhel'],
@@ -1200,7 +1199,7 @@ class TestRepositorySync:
     """Tests for ``/katello/api/repositories/:id/sync``."""
 
     @pytest.mark.tier2
-    def test_positive_sync_rh(self, module_entitlement_manifest_org):
+    def test_positive_sync_rh(self, module_entitlement_manifest_org, target_sat):
         """Sync RedHat Repository.
 
         :id: d69c44cd-753c-4a75-9fd5-a8ed963b5e04
@@ -1209,7 +1208,7 @@ class TestRepositorySync:
 
         :CaseLevel: Integration
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhel'],
@@ -1284,7 +1283,7 @@ class TestRepositorySync:
         """
         repo_ids = []
         for repo in constants.BULK_REPO_LIST:
-            repo_id = enable_rhrepo_and_fetchid(
+            repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
                 basearch='x86_64',
                 org_id=module_entitlement_manifest_org.id,
                 product=repo['product'],
@@ -1366,7 +1365,7 @@ class TestRepositorySync:
 
         :CaseAutomation: Automated
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhel'],
@@ -1495,7 +1494,7 @@ class TestDockerRepository:
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
-        'repo_options',
+        'repo_options_custom_product',
         **datafactory.parametrized(
             {
                 constants.CONTAINER_UPSTREAM_NAME: {
@@ -1508,7 +1507,7 @@ class TestDockerRepository:
         ),
         indirect=True,
     )
-    def test_positive_delete_product_with_synced_repo(self, repo, repo_options_custom_product):
+    def test_positive_delete_product_with_synced_repo(self, repo_options_custom_product):
         """Create and sync a Docker-type repository, delete the product.
 
         :id: c3d33836-54df-484d-97e1-f9fc9e22d23c
@@ -1523,7 +1522,8 @@ class TestDockerRepository:
 
         :BZ: 1867287
         """
-        repo.sync()
+        repo = entities.Repository(**repo_options_custom_product).create()
+        repo.sync(timeout=600)
         assert repo.read().content_counts['docker_manifest'] >= 1
         assert repo.product.delete()
 
@@ -2068,7 +2068,7 @@ class TestSRPMRepositoryIgnoreContent:
 
     :customerscenario: true
 
-    :Assignee: ltran
+    :Team: Phoenix
 
     :BZ: 1673215
     """
@@ -2328,7 +2328,7 @@ class TestTokenAuthContainerRepository:
 
     :CaseComponent: ContainerManagement-Content
 
-    :Assignee: addubey
+    :Team: Phoenix
     """
 
     @pytest.mark.tier2

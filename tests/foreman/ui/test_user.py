@@ -8,7 +8,7 @@
 
 :CaseComponent: UsersRoles
 
-:Assignee: sganar
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -23,7 +23,6 @@ from airgun.session import Session
 from fauxfactory import gen_email
 from fauxfactory import gen_string
 
-from robottelo.api.utils import create_role_permissions
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import ROLES
@@ -311,7 +310,9 @@ def test_positive_create_product_with_limited_user_permission(
     product_description = gen_string('alpha')
     role = target_sat.api.Role().create()
     # Calling Products and Repositoy to get all the permissions in it
-    create_role_permissions(role, {'Katello::Product': PERMISSIONS['Katello::Product']})
+    target_sat.api_factory.create_role_permissions(
+        role, {'Katello::Product': PERMISSIONS['Katello::Product']}
+    )
     target_sat.api.User(
         default_organization=module_org,
         organization=[module_org],

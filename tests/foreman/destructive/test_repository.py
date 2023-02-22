@@ -8,7 +8,7 @@
 
 :CaseComponent: Repositories
 
-:Assignee: chiggins
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -20,8 +20,6 @@ import pytest
 from nailgun.entity_mixins import TaskFailedError
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import wait_for_tasks
 
 pytestmark = pytest.mark.destructive
 
@@ -44,7 +42,7 @@ def test_positive_reboot_recover_sync(target_sat, function_entitlement_manifest_
     :CaseAutomation: Automated
     """
     org = function_entitlement_manifest_org
-    rhel7_extra = enable_rhrepo_and_fetchid(
+    rhel7_extra = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
         product=constants.PRDS['rhel'],
@@ -56,14 +54,14 @@ def test_positive_reboot_recover_sync(target_sat, function_entitlement_manifest_
     sync_task = rhel7_extra.sync(synchronous=False)
     target_sat.power_control(state='reboot', ensure=True)
     try:
-        wait_for_tasks(
+        target_sat.wait_for_tasks(
             search_query=(f'id = {sync_task["id"]}'),
             search_rate=15,
             max_tries=10,
         )
     except TaskFailedError:
         sync_task = rhel7_extra.sync(synchronous=False)
-        wait_for_tasks(
+        target_sat.wait_for_tasks(
             search_query=(f'id = {sync_task["id"]}'),
             search_rate=15,
             max_tries=10,

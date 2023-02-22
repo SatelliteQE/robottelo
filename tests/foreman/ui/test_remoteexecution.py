@@ -8,7 +8,7 @@
 
 :CaseComponent: RemoteExecution
 
-:Assignee: pondrejk
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -23,7 +23,6 @@ import pytest
 from broker import Broker
 from wait_for import wait_for
 
-from robottelo.api.utils import update_vm_host_location
 from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import gen_string
 
@@ -32,7 +31,7 @@ from robottelo.utils.datafactory import gen_string
 def module_vm_client_by_ip(rhel7_contenthost, module_org, smart_proxy_location, target_sat):
     """Setup a VM client to be used in remote execution by ip"""
     rhel7_contenthost.configure_rex(satellite=target_sat, org=module_org)
-    update_vm_host_location(rhel7_contenthost, location_id=smart_proxy_location.id)
+    target_sat.update_vm_host_location(rhel7_contenthost, location_id=smart_proxy_location.id)
     yield rhel7_contenthost
 
 
@@ -171,7 +170,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
         for host in hosts:
             host_names.append(host.hostname)
             host.configure_rex(satellite=target_sat, org=module_org)
-            update_vm_host_location(host, location_id=smart_proxy_location.id)
+            target_sat.update_vm_host_location(host, location_id=smart_proxy_location.id)
         with session:
             session.location.select(smart_proxy_location.name)
             hosts = session.host.search(
@@ -304,7 +303,7 @@ def test_positive_ansible_job_check_mode(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -329,7 +328,7 @@ def test_positive_ansible_config_report_failed_tasks_errors(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -355,7 +354,7 @@ def test_positive_ansible_config_report_changes_notice(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -378,7 +377,7 @@ def test_positive_ansible_variables_imported_with_roles(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -401,7 +400,7 @@ def test_positive_roles_import_in_background(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -425,7 +424,7 @@ def test_positive_ansible_roles_ignore_list(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -451,7 +450,7 @@ def test_positive_ansible_variables_installed_with_collection(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -479,7 +478,7 @@ def test_positive_install_ansible_collection_via_job_invocation(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -506,7 +505,7 @@ def test_positive_set_ansible_role_order_per_host(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -535,7 +534,7 @@ def test_positive_set_ansible_role_order_per_hostgroup(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """
 
 
@@ -563,5 +562,5 @@ def test_positive_matcher_field_highlight(session):
 
     :CaseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
     """

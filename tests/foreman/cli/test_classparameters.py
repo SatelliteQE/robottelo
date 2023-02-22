@@ -8,7 +8,9 @@
 
 :CaseComponent: Puppet
 
-:Assignee: vsedmik
+:CaseImportance: Medium
+
+:Team: Rocket
 
 :TestType: Functional
 
@@ -58,6 +60,7 @@ def module_sc_params(session_puppet_enabled_sat, module_puppet):
 
 
 @pytest.mark.run_in_one_thread
+@pytest.mark.e2e
 @pytest.mark.skipif(
     not settings.robottelo.REPOS_HOSTING_URL, reason="repos_hosting_url is not defined"
 )
@@ -80,8 +83,6 @@ class TestSmartClassParameters:
         :expectedresults: Parameters listed for specific Environment
             (by name and id), Host (name, id), Hostgroup (name, id),
             and puppetclass (name)
-
-        :CaseImportance: Medium
         """
         host = session_puppet_enabled_sat.api.Host(
             organization=module_puppet_org.id,
@@ -135,8 +136,6 @@ class TestSmartClassParameters:
         :expectedresults: Parameters listed for specific Puppet class.
 
         :BZ: 1391556
-
-        :CaseImportance: Medium
         """
         password = gen_string('alpha')
         required_user_permissions = {
@@ -186,8 +185,6 @@ class TestSmartClassParameters:
         :BZ: 1830834
 
         :customerscenario: true
-
-        :CaseImportance: Medium
         """
         sc_param_id = module_sc_params['ids'].pop()
         value = gen_string('alpha')
@@ -217,8 +214,6 @@ class TestSmartClassParameters:
         :BZ: 1830834
 
         :customerscenario: true
-
-        :CaseImportance: Medium
         """
         sc_param_id = module_sc_params['ids'].pop()
         with pytest.raises(CLIReturnCodeError):
@@ -244,8 +239,6 @@ class TestSmartClassParameters:
         :expectedresults: Error raised for default value not in list.
 
         :customerscenario: true
-
-        :CaseImportance: Medium
         """
         value = gen_string('alphanumeric')
         sc_param_id = module_sc_params['ids'].pop()
@@ -284,8 +277,6 @@ class TestSmartClassParameters:
         :customerscenario: true
 
         :BZ: 1830834
-
-        :CaseImportance: Medium
         """
         sc_param_id = module_sc_params['ids'].pop()
         session_puppet_enabled_sat.cli.SmartClassParameter.update(
@@ -320,8 +311,6 @@ class TestSmartClassParameters:
             3.  Attempt to submit the change.
 
         :expectedresults: Error raised for non existing attribute.
-
-        :CaseImportance: Medium
         """
         sc_param_id = module_sc_params['ids'].pop()
         with pytest.raises(CLIReturnCodeError):
@@ -353,8 +342,6 @@ class TestSmartClassParameters:
             6.  Remove the matcher created in step 1
 
         :expectedresults: The matcher has been created successfully.
-
-        :CaseImportance: Medium
         """
         sc_param_id = module_sc_params['ids'].pop()
         value = gen_string('alpha')
@@ -399,8 +386,6 @@ class TestSmartClassParameters:
             4.  Submit the change.
 
         :expectedresults: The matcher has been created successfully.
-
-        :CaseImportance: Medium
         """
         sc_param_id = module_sc_params['ids'].pop()
         session_puppet_enabled_sat.cli.SmartClassParameter.update(

@@ -8,11 +8,11 @@
 
 :CaseComponent: Puppet
 
-:Assignee: vsedmik
+:Team: Rocket
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :Upstream: No
 """
@@ -21,6 +21,8 @@ import random
 import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
+
+pytestmark = pytest.mark.e2e
 
 
 @pytest.fixture(scope='module')
@@ -39,8 +41,6 @@ def test_positive_info(run_puppet_agent, session_puppet_enabled_sat):
     :id: 32646d4b-7101-421a-85e0-777d3c6b71ec
 
     :expectedresults: Puppet Report Info is displayed
-
-    :CaseImportance: Critical
     """
     result = session_puppet_enabled_sat.cli.ConfigReport.list()
     assert len(result) > 0
@@ -58,8 +58,6 @@ def test_positive_delete_by_id(run_puppet_agent, session_puppet_enabled_sat):
     :id: bf918ec9-e2d4-45d0-b913-ab939b5d5e6a
 
     :expectedresults: Puppet Report is deleted
-
-    :CaseImportance: Critical
     """
     result = session_puppet_enabled_sat.cli.ConfigReport.list()
     assert len(result) > 0
@@ -68,3 +66,46 @@ def test_positive_delete_by_id(run_puppet_agent, session_puppet_enabled_sat):
     session_puppet_enabled_sat.cli.ConfigReport.delete({'id': report['id']})
     with pytest.raises(CLIReturnCodeError):
         session_puppet_enabled_sat.cli.ConfigReport.info({'id': report['id']})
+
+
+@pytest.mark.e2e
+@pytest.mark.rhel_ver_match('[7,8]')
+def test_positive_install_configure(request, session_puppet_enabled_sat, rhel_contenthost):
+    """Test that puppet-agent can be installed from the sat-client repo
+    and configured to report back to the Satellite.
+
+    :id: 07777fbb-4f2e-4fab-ba5a-2b698f9b9f38
+
+    :setup:
+        1. Satellite with enabled puppet plugin.
+        2. Blank RHEL content host.
+
+    :steps:
+        1. Configure puppet on the content host. This creates sat-client repository,
+           installs puppet-agent, configures it, runs it to create the puppet cert,
+           signs in on the Satellite side and reruns it.
+        2. Assert that Config report was created at the Satellite for the content host.
+        3. Assert that Facts were reported for the content host.
+
+    :expectedresults:
+        1. Configuration passes without errors.
+        2. Config report is created.
+        3. Facts are acquired.
+
+    :customerscenario: true
+
+    :BZ: 2126891
+    """
+    rhel_contenthost.configure_puppet(proxy_hostname=session_puppet_enabled_sat.hostname)
+    report = session_puppet_enabled_sat.cli.ConfigReport.list(
+        {'search': f'host~{rhel_contenthost.hostname},origin=Puppet'}
+    )
+    assert len(report)
+    facts = session_puppet_enabled_sat.cli.Fact.list(
+        {'search': f'host~{rhel_contenthost.hostname}'}
+    )
+    assert len(facts)
+
+    @request.addfinalizer
+    def _finalize():
+        assert session_puppet_enabled_sat.cli.ConfigReport.delete({'id': report[0]['id']})

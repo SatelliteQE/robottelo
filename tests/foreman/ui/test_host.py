@@ -8,7 +8,7 @@
 
 :CaseComponent: Hosts
 
-:Assignee: pdragun
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -31,9 +31,6 @@ from airgun.session import Session
 from wait_for import wait_for
 
 from robottelo import constants
-from robottelo.api.utils import create_role_permissions
-from robottelo.api.utils import cv_publish_promote
-from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import DEFAULT_CV
@@ -230,17 +227,19 @@ def module_libvirt_hostgroup(
 
 
 @pytest.fixture(scope='module')
-def module_activation_key(module_org_with_manifest, module_target_sat):
+def module_activation_key(module_entitlement_manifest_org, module_target_sat):
     """Create activation key using default CV and library environment."""
     activation_key = module_target_sat.api.ActivationKey(
         auto_attach=True,
-        content_view=module_org_with_manifest.default_content_view.id,
-        environment=module_org_with_manifest.library.id,
-        organization=module_org_with_manifest,
+        content_view=module_entitlement_manifest_org.default_content_view.id,
+        environment=module_entitlement_manifest_org.library.id,
+        organization=module_entitlement_manifest_org,
     ).create()
 
     # Find the 'Red Hat Employee Subscription' and attach it to the activation key.
-    for subs in module_target_sat.api.Subscription(organization=module_org_with_manifest).search():
+    for subs in module_target_sat.api.Subscription(
+        organization=module_entitlement_manifest_org
+    ).search():
         if subs.name == DEFAULT_SUBSCRIPTION_NAME:
             # 'quantity' must be 1, not subscription['quantity']. Greater
             # values produce this error: 'RuntimeError: Error: Only pools
@@ -638,7 +637,9 @@ def test_positive_view_hosts_with_non_admin_user(
     """
     user_password = gen_string('alpha')
     role = target_sat.api.Role(organization=[module_org]).create()
-    create_role_permissions(role, {'Organization': ['view_organizations'], 'Host': ['view_hosts']})
+    target_sat.api_factory.create_role_permissions(
+        role, {'Organization': ['view_organizations'], 'Host': ['view_hosts']}
+    )
     user = target_sat.api.User(
         role=[role],
         admin=False,
@@ -676,7 +677,7 @@ def test_positive_remove_parameter_non_admin_user(
     user_password = gen_string('alpha')
     parameter = {'name': gen_string('alpha'), 'value': gen_string('alpha')}
     role = target_sat.api.Role(organization=[module_org]).create()
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         role,
         {
             'Parameter': PERMISSIONS['Parameter'],
@@ -733,7 +734,7 @@ def test_negative_remove_parameter_non_admin_user(
     user_password = gen_string('alpha')
     parameter = {'name': gen_string('alpha'), 'value': gen_string('alpha')}
     role = target_sat.api.Role(organization=[module_org]).create()
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         role,
         {
             'Parameter': ['view_params'],
@@ -801,7 +802,7 @@ def test_positive_check_permissions_affect_create_procedure(
     filter_hg = target_sat.api.HostGroup(organization=[function_org]).create()
     # Create lifecycle environment permissions and select one specific
     # environment user will have access to
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         function_role,
         {
             'Katello::KTEnvironment': [
@@ -813,7 +814,7 @@ def test_positive_check_permissions_affect_create_procedure(
         search=f'name = {filter_lc_env.name}',
     )
     # Add necessary permissions for content view as we did for lce
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         function_role,
         {
             'Katello::ContentView': [
@@ -826,21 +827,21 @@ def test_positive_check_permissions_affect_create_procedure(
         search=f'name = {filter_cv.name}',
     )
     # Add necessary permissions for hosts as we did for lce
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         function_role,
         {'Host': ['create_hosts', 'view_hosts']},
         # allow access only to the mentioned here host group
         search=f'hostgroup_fullname = {filter_hg.name}',
     )
     # Add necessary permissions for host groups as we did for lce
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         function_role,
         {'Hostgroup': ['view_hostgroups']},
         # allow access only to the mentioned here host group
         search=f'name = {filter_hg.name}',
     )
     # Add permissions for Organization and Location
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         function_role,
         {'Organization': PERMISSIONS['Organization'], 'Location': PERMISSIONS['Location']},
     )
@@ -1102,7 +1103,7 @@ def test_positive_validate_inherited_cv_lce(session, target_sat, module_host_tem
     """
     cv_name = gen_string('alpha')
     lce_name = gen_string('alphanumeric')
-    cv = cv_publish_promote(
+    cv = target_sat.api_factory.cv_publish_promote(
         name=cv_name, env_name=lce_name, org_id=module_host_template.organization.id
     )
     lce = (
@@ -1180,7 +1181,7 @@ def test_positive_global_registration_form(
                 'general.insecure': True,
                 'general.host_group': hostgroup.name,
                 'general.operating_system': default_os.title,
-                'advanced.activation_keys': module_activation_key.name,
+                'general.activation_keys': module_activation_key.name,
                 'advanced.update_packages': True,
                 'advanced.rex_interface': iface,
             }
@@ -1202,6 +1203,7 @@ def test_positive_global_registration_form(
         assert pair in cmd
 
 
+@pytest.mark.no_containers
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_global_registration_end_to_end(
@@ -1254,7 +1256,7 @@ def test_positive_global_registration_end_to_end(
         cmd = session.host.get_register_command(
             {
                 'general.operating_system': default_os.title,
-                'advanced.activation_keys': module_activation_key.name,
+                'general.activation_keys': module_activation_key.name,
                 'advanced.update_packages': True,
                 'advanced.rex_interface': iface,
                 'general.insecure': True,
@@ -1325,7 +1327,7 @@ def test_positive_global_registration_end_to_end(
         .read()
     )
     # make sure that task is finished
-    task_result = wait_for_tasks(
+    task_result = target_sat.wait_for_tasks(
         search_query=(f'id = {result.task.id}'), search_rate=2, max_tries=60
     )
     assert task_result[0].result == 'success'
@@ -1404,7 +1406,7 @@ def test_global_registration_form_populate(
         )
 
         assert hg_name in cmd['general']['host_group']
-        assert module_ak_with_cv.name in cmd['advanced']['activation_key_helper']
+        assert module_ak_with_cv.name in cmd['general']['activation_key_helper']
         assert module_lce.name in cmd['advanced']['life_cycle_env_helper']
         assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages_helper']
 
@@ -1495,7 +1497,7 @@ def test_global_registration_with_capsule_host(
                 'general.location': module_location.name,
                 'general.operating_system': default_os.title,
                 'general.capsule': capsule_configured.hostname,
-                'advanced.activation_keys': activation_key.name,
+                'general.activation_keys': activation_key.name,
                 'general.insecure': True,
             }
         )
@@ -1544,7 +1546,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
             {
                 'general.operating_system': default_os.title,
                 'general.capsule': default_smart_proxy.name,
-                'advanced.activation_keys': module_activation_key.name,
+                'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
                 'advanced.install_packages': 'mlocate vim',
@@ -1608,7 +1610,7 @@ def test_global_registration_upgrade_subscription_manager(
         cmd = session.host.get_register_command(
             {
                 'general.operating_system': module_os.title,
-                'advanced.activation_keys': module_activation_key.name,
+                'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
                 'advanced.install_packages': 'subscription-manager',
@@ -1619,7 +1621,7 @@ def test_global_registration_upgrade_subscription_manager(
     # run curl
     result = client.execute(cmd)
     assert result.status == 0
-    result = client.execute('yum info subscription-manager | grep "From repo"')
+    result = client.execute('yum repolist')
     assert repo_name in result.stdout
     assert result.status == 0
 
@@ -1653,7 +1655,7 @@ def test_global_re_registration_host_with_force_ignore_error_options(
             {
                 'general.operating_system': default_os.title,
                 'general.capsule': default_smart_proxy.name,
-                'advanced.activation_keys': module_activation_key.name,
+                'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
                 'advanced.ignore_error': True,
@@ -1695,7 +1697,7 @@ def test_global_registration_token_restriction(
             {
                 'general.operating_system': default_os.title,
                 'general.capsule': default_smart_proxy.name,
-                'advanced.activation_keys': module_activation_key.name,
+                'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
             }
         )
@@ -2190,7 +2192,7 @@ def test_rex_new_ui(session, target_sat, rex_contenthost):
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         session.host_new.schedule_job(hostname, job_args)
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Remote action: Run ls on {hostname}'),
             search_rate=2,
             max_tries=30,
@@ -2266,7 +2268,7 @@ def test_positive_update_delete_package(
             client.run('subscription-manager repos')
         # install package
         session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Install package(s) on {client.hostname}'),
             search_rate=4,
             max_tries=60,
@@ -2298,7 +2300,7 @@ def test_positive_update_delete_package(
         session.host_new.apply_package_action(
             client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME, "Upgrade via remote execution"
         )
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Update package(s) {FAKE_8_CUSTOM_PACKAGE_NAME} on {client.hostname}'),
             search_rate=2,
             max_tries=60,
@@ -2310,7 +2312,7 @@ def test_positive_update_delete_package(
 
         # remove package
         session.host_new.apply_package_action(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME, "Remove")
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Remove package(s) {FAKE_8_CUSTOM_PACKAGE_NAME} on {client.hostname}'),
             search_rate=2,
             max_tries=60,
@@ -2386,7 +2388,7 @@ def test_positive_apply_erratum(
         assert erratas['content']['errata']['table'][0]['Errata'] == errata_id
         # apply errata
         session.host_new.apply_erratas(client.hostname, f"errata_id == {errata_id}")
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(
                 f'"Install errata errata_id == {errata_id.lower()} '
                 f'and type=security on {client.hostname}"'
@@ -2456,7 +2458,7 @@ def test_positive_crud_module_streams(
 
         # enable module stream
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Enable")
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Module enable {module_name} on {client.hostname}'),
             search_rate=5,
             max_tries=60,
@@ -2469,7 +2471,7 @@ def test_positive_crud_module_streams(
 
         # install
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Install")
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Module install {module_name} on {client.hostname}'),
             search_rate=5,
             max_tries=60,
@@ -2481,7 +2483,7 @@ def test_positive_crud_module_streams(
 
         # remove
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Remove")
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Module remove {module_name} on {client.hostname}'),
             search_rate=5,
             max_tries=60,
@@ -2493,7 +2495,7 @@ def test_positive_crud_module_streams(
         assert streams[0]['Installation status'] == 'Not installed'
 
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Reset")
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Module reset {module_name} on {client.hostname}'),
             search_rate=5,
             max_tries=60,
@@ -2762,7 +2764,7 @@ class TestHostAnsible:
 
         :caseComponent: Ansible
 
-        :assignee: sbible
+        :Team: Rocket
 
         :CaseLevel: System
 
@@ -2791,7 +2793,7 @@ class TestHostAnsible:
 
         :caseComponent: Ansible
 
-        :assignee: sbible
+        :Team: Rocket
 
         :CaseLevel: System
 
@@ -2819,7 +2821,7 @@ class TestHostAnsible:
 
         :caseComponent: Ansible
 
-        :assignee: sbible
+        :Team: Rocket
 
         :CaseLevel: System
 
@@ -2844,7 +2846,7 @@ class TestHostAnsible:
 
         :caseComponent: Ansible
 
-        :assignee: sbible
+        :Team: Rocket
 
         :CaseLevel: System
 

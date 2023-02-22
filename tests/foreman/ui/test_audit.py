@@ -8,7 +8,7 @@
 
 :CaseComponent: AuditLog
 
-:Assignee: sbible
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -18,7 +18,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import create_role_permissions
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import ENVIRONMENT
 
@@ -205,7 +204,7 @@ def test_positive_add_event(session, module_org):
 @pytest.mark.skip_if_open("BZ:1701118")
 @pytest.mark.skip_if_open("BZ:1701132")
 @pytest.mark.tier2
-def test_positive_create_role_filter(session, module_org):
+def test_positive_create_role_filter(session, module_org, target_sat):
     """Update a role with new filter and check that corresponding event
     appeared in the audit log
 
@@ -231,7 +230,7 @@ def test_positive_create_role_filter(session, module_org):
         assert values['action_type'] == 'create'
         assert values['resource_type'] == 'ROLE'
         assert values['resource_name'] == role.name
-        create_role_permissions(
+        target_sat.api_factory.create_role_permissions(
             role, {'Architecture': ['view_architectures', 'edit_architectures']}
         )
         values = session.audit.search('type=filter')

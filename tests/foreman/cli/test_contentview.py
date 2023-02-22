@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentViews
 
-:Assignee: ltran
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -25,7 +25,6 @@ from nailgun import entities
 from wrapanapi.entities.vm import VmState
 
 from robottelo import constants
-from robottelo.api.utils import create_sync_custom_repo
 from robottelo.cli import factory as cli_factory
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
@@ -906,7 +905,6 @@ class TestContentView:
             comp_cv = ContentView.info({'id': comp_cv['id']})
             assert comp_cv['components'][0]['id'] == component_ids
 
-    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier1
     def test_positive_add_rh_repo_by_id(self, module_entitlement_manifest_org, module_rhel_content):
@@ -989,7 +987,7 @@ class TestContentView:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_positive_add_module_stream_filter_rule(self, module_org):
+    def test_positive_add_module_stream_filter_rule(self, module_org, target_sat):
         """Associate module stream content to a content view and create filter rule
 
         :id: 8186a4b2-1c11-11ea-99cf-d46d6dd3b5b2
@@ -1006,7 +1004,7 @@ class TestContentView:
         """
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
-        create_sync_custom_repo(
+        target_sat.api_factory.create_sync_custom_repo(
             module_org.id,
             repo_name=repo_name,
             repo_url=settings.repos.module_stream_1.url,

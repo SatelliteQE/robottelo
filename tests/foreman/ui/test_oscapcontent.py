@@ -8,7 +8,7 @@
 
 :CaseComponent: SCAPPlugin
 
-:Assignee: jpathan
+:Team: Rocket
 
 :TestType: Functional
 
@@ -31,7 +31,7 @@ def oscap_content_path(module_target_sat):
     _, file_name = os.path.split(settings.oscap.content_path)
 
     local_file = robottelo_tmp_dir.joinpath(file_name)
-    module_target_sat.get(remote_path=settings.oscap.content_path, local_path=local_file)
+    module_target_sat.get(remote_path=settings.oscap.content_path, local_path=str(local_file))
     return local_file
 
 

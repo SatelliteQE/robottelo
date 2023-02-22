@@ -8,7 +8,7 @@
 
 :CaseComponent: ComputeResources-libvirt
 
-:Assignee: lhellebr
+:Team: Rocket
 
 :TestType: Functional
 

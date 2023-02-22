@@ -4,6 +4,7 @@ import pytest
 pytest_plugins = [
     # Plugins
     'pytest_plugins.disable_rp_params',
+    'pytest_plugins.external_logging',
     'pytest_plugins.fixture_markers',
     'pytest_plugins.infra_dependent_markers',
     'pytest_plugins.issue_handlers',
@@ -16,8 +17,10 @@ pytest_plugins = [
     'pytest_plugins.rerun_rp.rerun_rp',
     'pytest_plugins.fspath_plugins',
     'pytest_plugins.fixture_collection',
+    'pytest_plugins.factory_collection',
     # Fixtures
     'pytest_fixtures.core.broker',
+    'pytest_fixtures.core.sat_cap_factory',
     'pytest_fixtures.core.contenthosts',
     'pytest_fixtures.core.reporting',
     'pytest_fixtures.core.sys',
@@ -34,6 +37,7 @@ pytest_plugins = [
     'pytest_fixtures.component.host',
     'pytest_fixtures.component.hostgroup',
     'pytest_fixtures.component.http_proxy',
+    'pytest_fixtures.component.katello_agent',
     'pytest_fixtures.component.katello_certs_check',
     'pytest_fixtures.component.lce',
     'pytest_fixtures.component.maintain',

@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentManagement
 
-:Assignee: vsedmik
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -26,7 +26,6 @@ from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.constants import DataFile
 from robottelo.constants.repos import ANSIBLE_GALAXY
@@ -129,8 +128,8 @@ class TestSatelliteContentManagement:
 
         :BZ: 1687801
         """
-        distro = 'rhel8'
-        rh_repo_id = enable_rhrepo_and_fetchid(
+        distro = 'rhel8_bos'
+        rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
@@ -155,12 +154,14 @@ class TestSatelliteContentManagement:
     @pytest.mark.parametrize(
         'distro',
         [
-            f'rhel{ver}'
+            ver
             for ver in settings.supportability.content_hosts.rhel.versions
             if isinstance(ver, int)
         ],
     )
-    def test_positive_sync_kickstart_check_os(self, module_entitlement_manifest_org, distro):
+    def test_positive_sync_kickstart_check_os(
+        self, module_entitlement_manifest_org, distro, target_sat
+    ):
         """Sync rhel KS repo and assert that OS was created
 
         :id: f84bcf1b-717e-40e7-82ee-000eead45249
@@ -175,7 +176,8 @@ class TestSatelliteContentManagement:
             1. OS with corresponding version was created.
 
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        distro = f'rhel{distro} + "_bos"' if distro > 7 else f'rhel{distro}'
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
@@ -288,7 +290,7 @@ class TestCapsuleContentManagement:
 
     :CaseComponent: Capsule-Content
 
-    :Assignee: vsedmik
+    :Team: Phoenix
     """
 
     def update_capsule_download_policy(self, module_capsule_configured, download_policy):
@@ -325,7 +327,7 @@ class TestCapsuleContentManagement:
 
         :CaseComponent: RHCloud-Insights
 
-        :Assignee: addubey
+        :Team: Platform
 
         :customerscenario: true
 
@@ -746,7 +748,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients')
     def test_positive_iso_library_sync(
-        self, module_capsule_configured, module_entitlement_manifest_org
+        self, module_capsule_configured, module_entitlement_manifest_org, module_target_sat
     ):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
         to capsule automatically
@@ -762,7 +764,7 @@ class TestCapsuleContentManagement:
         :CaseLevel: System
         """
         # Enable & sync RH repository with ISOs
-        rh_repo_id = enable_rhrepo_and_fetchid(
+        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhsc'],
@@ -1022,7 +1024,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients')
-    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8', 'rhel9'])
+    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
     def test_positive_sync_kickstart_repo(
         self, target_sat, module_capsule_configured, function_entitlement_manifest_org, distro
     ):
@@ -1045,7 +1047,7 @@ class TestCapsuleContentManagement:
 
         :BZ: 1992329
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=function_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
@@ -1461,7 +1463,7 @@ class TestCapsuleContentManagement:
         :BZ: 1830403
         """
         # Sync a repository to the Satellite.
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_manifest_org.id,
             product=constants.PRDS['rhel'],

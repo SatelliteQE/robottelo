@@ -6,7 +6,7 @@
 
 :CaseComponent: Dynflow
 
-:Assignee: lhellebr
+:Team: Endeavour
 
 :Requirement: Dynflow
 
@@ -29,13 +29,12 @@ def test_positive_setup_dynflow(target_sat):
     """
     commands = [
         'cd /etc/foreman/dynflow/',
-        'cp worker-hosts-queue.yml test.yml',
+        'cp worker-hosts-queue-1.yml test.yml',
         'sed -i s/5/6/ test.yml',
         "systemctl restart 'dynflow-sidekiq@test'",
         "while ! systemctl status 'dynflow-sidekiq@test' -l | "  # no comma here
         "grep -q ' of 6 busy' ; do sleep 0.5 ; done",
     ]
     # if thread count is not respected or the process is not running, this should timeout
-    # how is this a test? Nothing is asserted.
-    target_sat.execute(' && '.join(commands))
+    assert target_sat.execute(' && '.join(commands)).status == 0
     target_sat.execute("systemctl stop 'dynflow-sidekiq@test'; rm /etc/foreman/dynflow/test.yml")

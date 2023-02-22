@@ -8,7 +8,7 @@
 
 :CaseComponent: RemoteExecution
 
-:Assignee: pondrejk
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -19,7 +19,6 @@
 import pytest
 from inflection import camelize
 
-from robottelo.api.utils import update_vm_host_location
 from robottelo.utils.datafactory import gen_string
 
 
@@ -27,7 +26,7 @@ from robottelo.utils.datafactory import gen_string
 def module_rhel_client_by_ip(module_org, smart_proxy_location, rhel7_contenthost, target_sat):
     """Setup a broker rhel client to be used in remote execution by ip"""
     rhel7_contenthost.configure_rex(satellite=target_sat, org=module_org)
-    update_vm_host_location(rhel7_contenthost, location_id=smart_proxy_location.id)
+    target_sat.update_vm_host_location(rhel7_contenthost, location_id=smart_proxy_location.id)
     yield rhel7_contenthost
 
 
@@ -136,7 +135,7 @@ def test_positive_schedule_recurring_host_job(self):
 
     :caseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
 
     :Steps:
         1. Register a RHEL host to Satellite.
@@ -163,7 +162,7 @@ def test_positive_schedule_recurring_hostgroup_job(self):
 
     :caseComponent: Ansible
 
-    :assignee: sbible
+    :Team: Rocket
 
     :Steps:
         1. Register a RHEL host to Satellite.

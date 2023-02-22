@@ -126,7 +126,7 @@ class ContentInfo:
             # Set the timeout to 1500 seconds to align with the API timeout.
             timeout = 1500000
         if interface == 'CLI':
-            if isinstance(manifest.content, io.BytesIO):
+            if isinstance(manifest.content, (bytes, io.BytesIO)):
                 self.put(f'{manifest.path}', f'{manifest.name}')
                 result = self.cli.Subscription.upload(
                     {'file': manifest.name, 'organization-id': org_id}, timeout=timeout
@@ -137,12 +137,15 @@ class ContentInfo:
                     {'file': manifest.filename, 'organization-id': org_id}, timeout=timeout
                 )
         else:
-            if not isinstance(manifest, io.BytesIO):
+            if not isinstance(manifest, (bytes, io.BytesIO)):
                 manifest = manifest.content
             result = self.api.Subscription().upload(
                 data={'organization_id': org_id}, files={'content': manifest}
             )
         return result
+
+    def is_sca_mode_enabled(self, org_id):
+        return self.api.Organization(id=org_id).read().simple_content_access
 
 
 class SystemInfo:

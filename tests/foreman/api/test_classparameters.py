@@ -8,7 +8,9 @@
 
 :CaseComponent: Puppet
 
-:Assignee: vsedmik
+:CaseImportance: Medium
+
+:Team: Rocket
 
 :TestType: Functional
 
@@ -78,6 +80,7 @@ def module_puppet(session_puppet_enabled_sat):
 
 
 @pytest.mark.run_in_one_thread
+@pytest.mark.e2e
 @pytest.mark.skipif(
     not settings.robottelo.repos_hosting_url, reason='repos_hosting_url is not defined'
 )
@@ -97,14 +100,11 @@ class TestSmartClassParameters:
         :parametrized: yes
 
         :steps:
-
             1. Set override to True.
             2. Update the Key Type to any of available.
             3. Set a 'valid' default Value.
 
         :expectedresults: Parameter Updated with a new type successfully.
-
-        :CaseImportance: Medium
         """
         sc_param = module_puppet['sc_params'].pop()
         sc_param.override = True
@@ -133,17 +133,13 @@ class TestSmartClassParameters:
         :parametrized: yes
 
         :steps:
-
             1. Set override to True.
             2. Update the Key Type.
             3. Attempt to set an 'Invalid' default Value.
 
         :expectedresults:
-
             1. Parameter not updated with string type for invalid value.
             2. Error raised for invalid default value.
-
-        :CaseImportance: Medium
         """
         sc_param = module_puppet['sc_params'].pop()
         with pytest.raises(HTTPError) as context:
@@ -163,7 +159,6 @@ class TestSmartClassParameters:
         :id: 92977eb0-92c2-4734-84d9-6fda8ff9d2d8
 
         :steps:
-
             1. Set override to True.
             2. Set some default value, Not empty.
             3. Set 'required' to true.
@@ -171,8 +166,6 @@ class TestSmartClassParameters:
             5. Set some Value for matcher.
 
         :expectedresults: No error raised for non-empty default value
-
-        :CaseImportance: Medium
         """
         sc_param = module_puppet['sc_params'].pop()
         sc_param.parameter_type = 'boolean'
@@ -206,8 +199,6 @@ class TestSmartClassParameters:
             4. Set 'required' to true.
 
         :expectedresults: Error raised for blank matcher value.
-
-        :CaseImportance: Medium
         """
         sc_param = module_puppet['sc_params'].pop()
         sc_param.override = True
@@ -226,7 +217,6 @@ class TestSmartClassParameters:
         :id: 99628b78-3037-4c20-95f0-7ce5455093ac
 
         :steps:
-
             1. Set override to True.
             2. Set default value that doesn't matches the regex of step 3.
             3. Validate this value with regex validator type and rule.
@@ -256,7 +246,6 @@ class TestSmartClassParameters:
         :id: d5df7804-9633-4ef8-a065-10807351d230
 
         :steps:
-
             1. Set override to True.
             2. Set default value that matches the regex of step 3.
             3. Validate this value with regex validator type and rule.
@@ -297,14 +286,11 @@ class TestSmartClassParameters:
         :id: a5e89e86-253f-4254-9ebb-eefb3dc2c2ab
 
         :steps:
-
             1. Set override to True.
             2. Create a matcher with value that doesn't match the list of step
             3. Validate this value with list validator type and rule.
 
         :expectedresults: Error raised for matcher value not in list.
-
-        :CaseImportance: Medium
         """
         sc_param = module_puppet['sc_params'].pop()
         session_puppet_enabled_sat.api.OverrideValue(
@@ -328,14 +314,11 @@ class TestSmartClassParameters:
         :id: 05c1a0bb-ba27-4842-bb6a-8420114cffe7
 
         :steps:
-
             1. Set override to True.
             2. Create a matcher with value that matches the list of step 3.
             3. Validate this value with list validator type and rule.
 
         :expectedresults: Error not raised for matcher value in list.
-
-        :CaseImportance: Medium
         """
         sc_param = module_puppet['sc_params'].pop()
         session_puppet_enabled_sat.api.OverrideValue(
@@ -357,14 +340,11 @@ class TestSmartClassParameters:
         :id: 77b6e90d-e38a-4973-98e3-c698eae5c534
 
         :steps:
-
             1. Set override to True.
             2. Update parameter default type with valid value.
             3. Create a matcher with value that matches the default type.
 
         :expectedresults: Error not raised for matcher value of default type.
-
-        :CaseImportance: Medium
         """
         sc_param = module_puppet['sc_params'].pop()
         sc_param.override = True
@@ -387,7 +367,6 @@ class TestSmartClassParameters:
         :id: e46a12cb-b3ea-42eb-b1bb-b750655b6a4a
 
         :steps:
-
             1. Set override to True.
             2. Update parameter default type with Invalid value.
             3. Create a matcher with value that doesn't matches the default
@@ -395,8 +374,6 @@ class TestSmartClassParameters:
 
         :expectedresults: Error raised for invalid default and matcher value
             both.
-
-        :CaseImportance: Medium
         """
         sc_param = module_puppet['sc_params'].pop()
         session_puppet_enabled_sat.api.OverrideValue(
@@ -429,8 +406,6 @@ class TestSmartClassParameters:
             4. Remove matcher afterwards
 
         :expectedresults: The matcher has been created and removed successfully.
-
-        :CaseImportance: Medium
         """
         sc_param = module_puppet['sc_params'].pop()
         value = gen_string('alpha')
@@ -454,10 +429,7 @@ class TestSmartClassParameters:
 
         :steps: Set parameter type to array/hash.
 
-        :expectedresults: The Merge Overrides, Merge Default checks are enabled
-            to check.
-
-        :CaseImportance: Medium
+        :expectedresults: The Merge Overrides, Merge Default checks are enabled to check.
         """
         sc_param = module_puppet['sc_params'].pop()
         sc_param.override = True
@@ -482,10 +454,7 @@ class TestSmartClassParameters:
 
         :steps: Set parameter type other than array/hash.
 
-        :expectedresults: The Merge Overrides, Merge Default checks are not
-            enabled to check.
-
-        :CaseImportance: Medium
+        :expectedresults: The Merge Overrides, Merge Default checks are not enabled to check.
         """
         sc_param = module_puppet['sc_params'].pop()
         sc_param.override = True
@@ -516,13 +485,10 @@ class TestSmartClassParameters:
         :id: 80bf52df-e678-4384-a4d5-7a88928620ce
 
         :steps:
-
             1. Set parameter type to array.
             2. Set 'merge overrides' to True.
 
         :expectedresults: The Avoid Duplicates is enabled to set to True.
-
-        :CaseImportance: Medium
         """
         sc_param = module_puppet['sc_params'].pop()
         sc_param.override = True
@@ -544,13 +510,8 @@ class TestSmartClassParameters:
         :steps: Set parameter type other than array.
 
         :expectedresults:
-
-            1. The Merge Overrides checkbox is only enabled to check for type
-               hash other than array.
-            2. The Avoid duplicates checkbox not enabled to check for any type
-               than array.
-
-        :CaseImportance: Medium
+            1. Merge Overrides checkbox is only enabled to check for type hash other than array.
+            2. Avoid duplicates checkbox not enabled to check for any type than array.
         """
         sc_param = module_puppet['sc_params'].pop()
         sc_param.override = True
@@ -574,22 +535,15 @@ class TestSmartClassParameters:
         :id: 3ffbf403-dac9-4172-a586-82267765abd8
 
         :steps:
-
-            1. Set the parameter to True and create a matcher for some
-               attribute.
+            1. Set the parameter to True and create a matcher for some attribute.
             2. Delete the attribute.
             3. Recreate the attribute with same name as earlier.
 
         :expectedresults:
-
             1. The matcher for deleted attribute removed from parameter.
-            2. On recreating attribute, the matcher should not reappear in
-               parameter.
-
-        :CaseImportance: Medium
+            2. On recreating attribute, the matcher should not reappear in parameter.
 
         :BZ: 1374253
-
         """
         sc_param = module_puppet['sc_params'].pop()
         hostgroup_name = gen_string('alpha')
