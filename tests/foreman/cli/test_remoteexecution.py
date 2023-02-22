@@ -8,7 +8,7 @@
 
 :CaseComponent: RemoteExecution
 
-:Assignee: pondrejk
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -52,7 +52,7 @@ from robottelo.utils import ohsnap
 
 
 @pytest.fixture()
-def fixture_sca_vmsetup(request, module_gt_manifest_org, target_sat):
+def fixture_sca_vmsetup(request, module_sca_manifest_org, target_sat):
     """Create VM and register content host to Simple Content Access organization"""
     if '_count' in request.param.keys():
         with Broker(
@@ -61,11 +61,11 @@ def fixture_sca_vmsetup(request, module_gt_manifest_org, target_sat):
             _count=request.param['_count'],
         ) as clients:
             for client in clients:
-                client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
+                client.configure_rex(satellite=target_sat, org=module_sca_manifest_org)
             yield clients
     else:
         with Broker(nick=request.param['nick'], host_class=ContentHost) as client:
-            client.configure_rex(satellite=target_sat, org=module_gt_manifest_org)
+            client.configure_rex(satellite=target_sat, org=module_sca_manifest_org)
             yield client
 
 
@@ -394,7 +394,7 @@ class TestRemoteExecution:
 
         :CaseComponent: RHCloud-CloudConnector
 
-        :Assignee: lhellebr
+        :Team: Platform
 
         :id: 811c7747-bec6-1a2d-8e5c-b5045d3fbc0d
 
@@ -551,7 +551,6 @@ class TestAnsibleREX:
             }
         )
         result = JobInvocation.info({'id': invocation_command['id']})
-        assert_job_invocation_status(invocation_command['id'], client.hostname, 'queued')
         sleep(150)
         rec_logic = RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
@@ -713,7 +712,9 @@ class TestAnsibleREX:
     @pytest.mark.parametrize(
         'fixture_sca_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True
     )
-    def test_positive_install_ansible_collection(self, fixture_sca_vmsetup, module_gt_manifest_org):
+    def test_positive_install_ansible_collection(
+        self, fixture_sca_vmsetup, module_sca_manifest_org
+    ):
         """Test whether Ansible collection can be installed via REX
 
         :Steps:
@@ -729,7 +730,7 @@ class TestAnsibleREX:
 
         :CaseComponent: Ansible
 
-        :Assignee: sbible
+        :Team: Rocket
         """
 
         # Configure repository to prepare for installing ansible on host
@@ -737,7 +738,7 @@ class TestAnsibleREX:
             {
                 'basearch': 'x86_64',
                 'name': REPOSET['rhae2'],
-                'organization-id': module_gt_manifest_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'product': PRDS['rhae'],
                 'releasever': '7Server',
             }
@@ -745,7 +746,7 @@ class TestAnsibleREX:
         Repository.synchronize(
             {
                 'name': REPOS['rhae2']['name'],
-                'organization-id': module_gt_manifest_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'product': PRDS['rhae'],
             }
         )
@@ -1018,7 +1019,7 @@ class TestPullProviderRex:
         result = rhel_contenthost.execute('yum install -y katello-pull-transport-migrate')
         assert result.status == 0, 'Failed to install katello-pull-transport-migrate'
         # check mqtt client is running
-        result = rhel_contenthost.execute('yggdrasil status')
+        result = rhel_contenthost.execute('systemctl status yggdrasild')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         result = rhel_contenthost.execute('systemctl status yggdrasild')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
@@ -1046,7 +1047,7 @@ class TestPullProviderRex:
         assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
 
         # check katello-agent removal did not influence ygdrassil (SAT-1672)
-        result = rhel_contenthost.execute('yggdrasil status')
+        result = rhel_contenthost.execute('systemctl status yggdrasild')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         result = rhel_contenthost.execute('systemctl status yggdrasild')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
@@ -1074,11 +1075,12 @@ class TestPullProviderRex:
         module_capsule_configured_mqtt,
         rhel_contenthost,
     ):
-        """Run custom template on host registered to mqtt
+        """Run custom template on host registered to mqtt, check effective user setting
 
         :id: 759ad51d-eea7-4d7b-b6ee-60af2b814464
 
-        :expectedresults: Verify the job was successfully ran against the host registered to mqtt
+        :expectedresults: Verify the job was successfully ran against the host registered to mqtt,
+            effective user setting is honored.
 
         :CaseImportance: Critical
 
@@ -1112,7 +1114,7 @@ class TestPullProviderRex:
 
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         # check mqtt client is running
-        result = rhel_contenthost.execute('yggdrasil status')
+        result = rhel_contenthost.execute('systemctl status yggdrasild')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         # run script provider rex command
         invocation_command = make_job_invocation(
@@ -1122,4 +1124,104 @@ class TestPullProviderRex:
                 'search-query': f"name ~ {rhel_contenthost.hostname}",
             }
         )
+        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+        # create user on host
+        username = gen_string('alpha')
+        filename = gen_string('alpha')
+        make_user_job = make_job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': f"command=useradd -m {username}",
+                'search-query': f"name ~ {rhel_contenthost.hostname}",
+            }
+        )
+        assert_job_invocation_result(make_user_job['id'], rhel_contenthost.hostname)
+        # create a file as new user
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': f"command=touch /home/{username}/{filename}",
+                'search-query': f"name ~ {rhel_contenthost.hostname}",
+                'effective-user': f'{username}',
+            }
+        )
+        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+        # check the file owner
+        result = rhel_contenthost.execute(
+            f'''stat -c '%U' /home/{username}/{filename}''',
+        )
+        # assert the file is owned by the effective user
+        assert username == result.stdout.strip('\n')
+
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_match('[^6].*')
+    def test_positive_run_pull_job_on_offline_host(
+        self,
+        module_org,
+        module_target_sat,
+        smart_proxy_location,
+        module_ak_with_cv,
+        module_capsule_configured_mqtt,
+        rhel_contenthost,
+    ):
+        """Run pull-mqtt job against offline host
+
+        :id: c4914b78-6414-4a13-87b1-5b5cf01702a0
+
+        :expectedresults: Job is resumed when host comes back online
+
+        :CaseImportance: Critical
+
+        :parametrized: yes
+        """
+        client_repo = ohsnap.dogfood_repository(
+            settings.repos.ohsnap_repo_host,
+            product='client',
+            repo='client',
+            release='Client',
+            os_release=rhel_contenthost.os_version.major,
+        )
+        # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
+        module_target_sat.cli.Capsule.update(
+            {
+                'name': module_capsule_configured_mqtt.hostname,
+                'organization-ids': module_org.id,
+                'location-ids': smart_proxy_location.id,
+            }
+        )
+        result = rhel_contenthost.register(
+            module_org,
+            smart_proxy_location,
+            module_ak_with_cv.name,
+            target=module_capsule_configured_mqtt,
+            satellite=module_target_sat,
+            setup_remote_execution_pull=True,
+            repo=client_repo.baseurl,
+        )
+
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        # check mqtt client is running
+        result = rhel_contenthost.execute('systemctl status yggdrasild')
+        assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
+        # stop the client on host
+        result = rhel_contenthost.execute('systemctl stop yggdrasild')
+        assert result.status == 0, f'Failed to stop yggdrasil on client: {result.stderr}'
+        # run script provider rex command
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': 'command=ls',
+                'search-query': f'name ~ {rhel_contenthost.hostname}',
+                'async': True,
+            }
+        )
+        # assert the job is waiting to be picked up by client
+        assert_job_invocation_status(invocation_command['id'], rhel_contenthost.hostname, 'running')
+        # start client on host
+        result = rhel_contenthost.execute('systemctl start yggdrasild')
+        assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
+        # wait twice the mqtt_resend_interval (set in module_capsule_configured_mqtt)
+        sleep(60)
         assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)

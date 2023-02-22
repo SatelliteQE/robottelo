@@ -8,7 +8,7 @@
 
 :CaseComponent: HostGroup
 
-:Assignee: okhatavk
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -25,7 +25,6 @@ from nailgun import entities
 from nailgun import entity_fields
 from requests.exceptions import HTTPError
 
-from robottelo.api.utils import one_to_one_names
 from robottelo.config import get_credentials
 from robottelo.utils.datafactory import invalid_values_list
 from robottelo.utils.datafactory import parametrized
@@ -664,7 +663,7 @@ class TestHostGroupMissingAttr:
     """
 
     @pytest.mark.tier2
-    def test_positive_get_content_source(self, hostgroup):
+    def test_positive_get_content_source(self, hostgroup, module_target_sat):
         """Read a host group. Inspect the server's response.
 
         :id: 9d42f47a-2f08-45ad-97d0-de94f0f1de2f
@@ -676,14 +675,14 @@ class TestHostGroupMissingAttr:
 
         :CaseLevel: Integration
         """
-        names = one_to_one_names('content_source')
+        names = module_target_sat.api_factory.one_to_one_names('content_source')
         hostgroup_attrs = set(hostgroup.read_json().keys())
         assert names.issubset(
             hostgroup_attrs
         ), f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
 
     @pytest.mark.tier2
-    def test_positive_get_cv(self, hostgroup):
+    def test_positive_get_cv(self, hostgroup, module_target_sat):
         """Read a host group. Inspect the server's response.
 
         :id: 7d36f33e-f161-4d2a-9ee4-8eb949ed4cbf
@@ -695,14 +694,14 @@ class TestHostGroupMissingAttr:
 
         :CaseLevel: Integration
         """
-        names = one_to_one_names('content_view')
+        names = module_target_sat.api_factory.one_to_one_names('content_view')
         hostgroup_attrs = set(hostgroup.read_json().keys())
         assert names.issubset(
             hostgroup_attrs
         ), f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
 
     @pytest.mark.tier2
-    def test_positive_get_lce(self, hostgroup):
+    def test_positive_get_lce(self, hostgroup, module_target_sat):
         """Read a host group. Inspect the server's response.
 
         :id: efa17f59-47f9-40c6-821d-c348c4d852ff
@@ -714,7 +713,7 @@ class TestHostGroupMissingAttr:
 
         :CaseLevel: Integration
         """
-        names = one_to_one_names('lifecycle_environment')
+        names = module_target_sat.api_factory.one_to_one_names('lifecycle_environment')
         hostgroup_attrs = set(hostgroup.read_json().keys())
         assert names.issubset(
             hostgroup_attrs

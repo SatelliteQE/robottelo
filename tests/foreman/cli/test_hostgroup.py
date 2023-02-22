@@ -8,7 +8,7 @@
 
 :CaseComponent: HostGroup
 
-:Assignee: okhatavk
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -229,7 +229,7 @@ def test_negative_create_with_content_source(module_org):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-def test_positive_update_hostgroup(
+def test_positive_update_hostgroup_with_puppet(
     request,
     module_puppet_org,
     env,
@@ -256,7 +256,7 @@ def test_positive_update_hostgroup(
             {
                 'content-source-id': puppet_content_source['id'],
                 'organization-ids': module_puppet_org.id,
-                'environment-id': env.id,
+                'puppet-environment-id': env.id,
                 'query-organization-id': module_puppet_org.id,
             }
         )
@@ -284,6 +284,48 @@ def test_positive_update_hostgroup(
         assert hostgroup['content-source']['name'] == new_content_source['name']
         for puppet_class_name in puppet_class_names:
             assert puppet_class_name in hostgroup['puppetclasses']
+
+
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier2
+def test_positive_update_hostgroup(
+    module_target_sat,
+    module_org,
+    content_source,
+):
+    """Update hostgroup's content source and name
+
+    :id: a354a90f-8bc5-4aee-accb-40c5537640ca
+
+    :customerscenario: true
+
+    :BZ: 1260697, 1313056
+
+    :expectedresults: Hostgroup was successfully updated with new content
+        source and name
+
+    :CaseLevel: Integration
+    """
+    hostgroup = make_hostgroup(
+        {
+            'content-source-id': content_source['id'],
+            'organization-ids': module_org.id,
+            'query-organization-id': module_org.id,
+        }
+    )
+    new_content_source = module_target_sat.cli_factory.make_proxy()
+
+    new_name = valid_hostgroups_list()[0]
+    HostGroup.update(
+        {
+            'new-name': new_name,
+            'id': hostgroup['id'],
+            'content-source-id': new_content_source['id'],
+        }
+    )
+    hostgroup = HostGroup.info({'id': hostgroup['id']})
+    assert hostgroup['name'] == new_name
+    assert hostgroup['content-source']['name'] == new_content_source['name']
 
 
 @pytest.mark.tier2

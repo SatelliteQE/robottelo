@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:Assignee: jpathan
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -19,8 +19,6 @@
 import pytest
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import enable_sync_redhat_repo
 from robottelo.config import settings
 
 
@@ -50,7 +48,7 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
 
     :expectedresults: HTTP Proxy works with other satellite components.
 
-    :Assignee: jpathan
+    :Team: Phoenix
 
     :BZ: 2011303, 2042473, 2046337
 
@@ -62,7 +60,7 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
     http_proxy_id = http_proxy.id if http_proxy_type is not None else None
     http_proxy_policy = 'use_selected_http_proxy' if http_proxy_type is not None else 'none'
     # Assign http_proxy to Redhat repository and perform repository sync.
-    rh_repo_id = enable_rhrepo_and_fetchid(
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=constants.DEFAULT_ARCHITECTURE,
         org_id=module_manifest_org.id,
         product=constants.PRDS['rhae'],
@@ -151,7 +149,7 @@ def test_positive_auto_attach_with_http_proxy(
     :expectedresults: host successfully subscribed, subscription
         repository enabled, and repository package installed.
 
-    :Assignee: jpathan
+    :Team: Phoenix
 
     :BZ: 2046337
 
@@ -162,7 +160,9 @@ def test_positive_auto_attach_with_http_proxy(
     org = function_entitlement_manifest_org
     lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
     content_view = module_target_sat.api.ContentView(organization=org).create()
-    rh_repo_id = enable_sync_redhat_repo(constants.REPOS['rhel8_bos'], org.id)
+    rh_repo_id = module_target_sat.api_factory.enable_sync_redhat_repo(
+        constants.REPOS['rhel8_bos'], org.id
+    )
     rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
     assert rh_repo.content_counts['rpm'] >= 1
     content_view = module_target_sat.api.ContentView(

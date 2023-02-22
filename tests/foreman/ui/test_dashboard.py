@@ -8,7 +8,7 @@
 
 :CaseComponent: Dashboard
 
-:Assignee: ogajduse
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -21,7 +21,6 @@ from airgun.session import Session
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 
-from robottelo.api.utils import create_role_permissions
 from robottelo.config import settings
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.utils.datafactory import gen_string
@@ -239,7 +238,7 @@ def test_positive_user_access_with_host_filter(
         None: ['access_dashboard'],
         'Host': ['view_hosts'],
     }
-    create_role_permissions(role, user_permissions)
+    target_sat.api_factory.create_role_permissions(role, user_permissions)
     # create a user and assign the above created role
     entities.User(
         default_organization=org,

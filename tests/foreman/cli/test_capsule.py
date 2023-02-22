@@ -8,7 +8,7 @@
 
 :CaseComponent: Capsule
 
-:Assignee: vsedmik
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -25,6 +25,7 @@ from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.proxy import Proxy
 from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.issue_handlers import is_open
 
 
 pytestmark = [pytest.mark.run_in_one_thread]
@@ -76,8 +77,10 @@ def test_positive_create_with_name(request, target_sat, name):
 
     :Parametrized: Yes
 
-    :BZ: 1398695
+    :BZ: 1398695, 2084661
     """
+    if is_open('BZ:2084661') and 'html' in request.node.name:
+        pytest.skip()
     proxy = _make_proxy(request, target_sat, options={'name': name})
     assert proxy['name'] == name
 
@@ -85,7 +88,7 @@ def test_positive_create_with_name(request, target_sat, name):
 @pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_delete_by_id(name, target_sat):
+def test_positive_delete_by_id(request, name, target_sat):
     """Proxy deletion with the home proxy
 
     :id: 1b6973b1-259d-4866-b36f-c2d5fb154035
@@ -96,8 +99,10 @@ def test_positive_delete_by_id(name, target_sat):
 
     :Parametrized: Yes
 
-    :BZ: 1398695
+    :BZ: 1398695, 2084661
     """
+    if is_open('BZ:2084661') and 'html' in request.node.name:
+        pytest.skip()
     proxy = target_sat.cli_factory.make_proxy({'name': name})
     Proxy.delete({'id': proxy['id']})
     with pytest.raises(CLIReturnCodeError):
@@ -115,10 +120,13 @@ def test_positive_update_name(request, target_sat):
 
     :CaseLevel: Component
 
-    :BZ: 1398695
+    :BZ: 1398695, 2084661
     """
     proxy = _make_proxy(request, target_sat, options={'name': gen_alphanumeric()})
-    for new_name in valid_data_list().values():
+    valid_data = valid_data_list()
+    if is_open('BZ:2084661') and 'html' in request.node.name:
+        del valid_data['html']
+    for new_name in valid_data.values():
         newport = target_sat.available_capsule_port
         with target_sat.default_url_on_new_port(9090, newport) as url:
             Proxy.update({'id': proxy['id'], 'name': new_name, 'url': url})

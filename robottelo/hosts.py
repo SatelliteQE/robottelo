@@ -29,7 +29,6 @@ from wait_for import wait_for
 from wrapanapi.entities.vm import VmState
 
 from robottelo import constants
-from robottelo.api.utils import update_provisioning_template
 from robottelo.cli.base import Base
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import configure_airgun
@@ -1698,9 +1697,9 @@ class Satellite(Capsule, SatelliteMixins):
         """
         old = 'yum -t -y update'
         new = 'echo "Yum update skipped for faster automation testing"'
-        update_provisioning_template(name=template, old=old, new=new)
+        self.satellite.update_provisioning_template(name=template, old=old, new=new)
         yield
-        update_provisioning_template(name=template, old=new, new=old)
+        self.satellite.update_provisioning_template(name=template, old=new, new=old)
 
     def update_setting(self, name, value):
         """changes setting value and returns the setting value before the change."""
@@ -1754,9 +1753,6 @@ class Satellite(Capsule, SatelliteMixins):
             )
             task_status = self.api.ForemanTask(id=task['id']).poll()
             assert task_status['result'] == 'success'
-        subs = self.api.Subscription(organization=module_org, name=prod.name).search()
-        assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
-        subscription = subs[0]
 
         # register contenthost
         rhel_contenthost.install_katello_ca(self)
@@ -1770,16 +1766,23 @@ class Satellite(Capsule, SatelliteMixins):
             f'Failed to register the host: {rhel_contenthost.hostname}:'
             f'rc: {register.status}: {register.stderr}'
         )
+
         # attach product subscriptions to contenthost
-        rhel_contenthost.nailgun_host.bulk_add_subscriptions(
-            data={
-                "organization_id": module_org.id,
-                "included": {"ids": [rhel_contenthost.nailgun_host.id]},
-                "subscriptions": [{"id": subscription.id, "quantity": 1}],
-            }
-        )
-        # refresh repository metadata on the host
-        rhel_contenthost.execute('subscription-manager repos --list')
+        # Attach subscriptions only if SCA mode is disabled
+        if self.api.Organization(id=module_org.id).read().simple_content_access is False:
+            subs = self.api.Subscription(organization=module_org, name=prod.name).search()
+            assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
+            subscription = subs[0]
+
+            rhel_contenthost.nailgun_host.bulk_add_subscriptions(
+                data={
+                    "organization_id": module_org.id,
+                    "included": {"ids": [rhel_contenthost.nailgun_host.id]},
+                    "subscriptions": [{"id": subscription.id, "quantity": 1}],
+                }
+            )
+            # refresh repository metadata on the host
+            rhel_contenthost.execute('subscription-manager repos --list')
 
 
 class SSOHost(Host):

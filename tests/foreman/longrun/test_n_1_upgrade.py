@@ -8,7 +8,7 @@
 
 :CaseComponent: Capsule
 
-:Assignee: lpramuk
+:Team: Endeavour
 
 :TestType: Functional
 

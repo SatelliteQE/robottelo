@@ -8,7 +8,7 @@
 
 :CaseComponent: LifecycleEnvironments
 
-:Assignee: ltran
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -20,7 +20,6 @@ import pytest
 from airgun.session import Session
 from navmazing import NavigationTriesExceeded
 
-from robottelo.api.utils import create_role_permissions
 from robottelo.config import settings
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
@@ -299,7 +298,7 @@ def test_positive_custom_user_view_lce(session, test_name, target_sat):
             'promote_or_remove_content_views_to_environments',
         ],
     }
-    create_role_permissions(role, permissions_types_names)
+    target_sat.api_factory.create_role_permissions(role, permissions_types_names)
     target_sat.api.User(
         default_organization=org,
         organization=[org],

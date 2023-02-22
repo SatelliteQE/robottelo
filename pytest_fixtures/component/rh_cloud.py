@@ -1,9 +1,6 @@
 import pytest
 from broker import Broker
 
-from robottelo.config import settings
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-
 
 @pytest.fixture(scope='module')
 def rhcloud_sat_host(satellite_factory):
@@ -15,13 +12,10 @@ def rhcloud_sat_host(satellite_factory):
 
 
 @pytest.fixture(scope='module')
-def rhcloud_manifest_org(rhcloud_sat_host):
+def rhcloud_manifest_org(rhcloud_sat_host, module_sca_manifest):
     """A module level fixture to get organization with manifest."""
     org = rhcloud_sat_host.api.Organization().create()
-    manifests_path = rhcloud_sat_host.download_file(file_url=settings.fake_manifest.url['default'])[
-        0
-    ]
-    rhcloud_sat_host.cli.Subscription.upload({'file': manifests_path, 'organization-id': org.id})
+    rhcloud_sat_host.upload_manifest(org.id, module_sca_manifest.content)
     return org
 
 
@@ -39,13 +33,6 @@ def organization_ak_setup(rhcloud_sat_host, rhcloud_manifest_org):
         purpose_role='test-role',
         auto_attach=True,
     ).create()
-    subscription = rhcloud_sat_host.api.Subscription(organization=rhcloud_manifest_org)
-    # Disabling due to an issue with manifest refreshes. Is this refresh actually needed?
-    # subscription.refresh_manifest(data={'organization_id': rhcloud_manifest_org.id})
-    default_subscription = subscription.search(
-        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
-    )[0]
-    ak.add_subscriptions(data={'quantity': 10, 'subscription_id': default_subscription.id})
     yield rhcloud_manifest_org, ak
     ak.delete()
 

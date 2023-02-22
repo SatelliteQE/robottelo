@@ -12,7 +12,7 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :CaseComponent: SubscriptionManagement
 
-:Assignee: chiggins
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -28,7 +28,6 @@ from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -41,8 +40,8 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def rh_repo(module_sca_manifest_org):
-    rh_repo_id = enable_rhrepo_and_fetchid(
+def rh_repo(module_sca_manifest_org, module_target_sat):
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=module_sca_manifest_org.id,
         product=PRDS['rhel'],
@@ -392,7 +391,7 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel7_conte
 
     :CustomerScenario: true
 
-    :Assignee: dsynk
+    :Team: Phoenix
 
     :BZ: 1949353
 
@@ -417,7 +416,7 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel7_conte
     rhel7_contenthost.unregister()
     # syncing content with the content host unregistered should invalidate
     # the previous client SCA cert
-    rh_repo_id = enable_rhrepo_and_fetchid(
+    rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=module_sca_manifest_org.id,
         product=PRDS['rhel'],

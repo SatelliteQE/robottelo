@@ -3,7 +3,7 @@
 
 :CaseComponent: ComputeResources
 
-:Assignee: lhellebr
+:Team: Rocket
 
 :TestType: Functional
 
@@ -15,7 +15,6 @@ import pytest
 from fauxfactory import gen_string
 from wrapanapi import VMWareSystem
 
-from robottelo.api.utils import configure_provisioning
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.factory import make_compute_resource
 from robottelo.cli.factory import make_host
@@ -50,14 +49,14 @@ def vmware():
 
 
 @pytest.fixture(scope="module")
-def provisioning(module_org, module_location):
+def provisioning(module_org, module_location, module_target_sat):
     os = None
     if hasattr(settings, 'rhev') and hasattr(settings.rhev, 'image_os') and settings.rhev.image_os:
         os = settings.rhev.image_os
     provisioning = type("", (), {})()
     provisioning.org_name = module_org.name
     provisioning.loc_name = module_location.name
-    provisioning.config_env = configure_provisioning(
+    provisioning.config_env = module_target_sat.api_factory.configure_provisioning(
         compute=True, org=module_org, loc=module_location, os=os
     )
     provisioning.os_name = provisioning.config_env['os']
@@ -100,7 +99,7 @@ def test_positive_provision_rhev_with_host_group(rhev, provisioning, target_sat,
 
     :CaseComponent: ComputeResources-RHEV
 
-    :Assignee: lhellebr
+    :Team: Rocket
 
     :id: ba78868f-5cff-462f-a55d-f6aa4d11db52
 
@@ -185,7 +184,7 @@ def test_positive_provision_vmware_with_host_group(
 
     :CaseComponent: ComputeResources-VMWare
 
-    :Assignee: lhellebr
+    :Team: Rocket
 
     :customerscenario: true
 

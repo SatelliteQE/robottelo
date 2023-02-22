@@ -8,7 +8,7 @@
 
 :CaseComponent: ActivationKeys
 
-:Assignee: chiggins
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -25,7 +25,6 @@ from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import get_credentials
 from robottelo.config import user_nailgun_config
 from robottelo.constants import PRDS
@@ -450,7 +449,7 @@ def test_positive_fetch_product_content(
     :CaseImportance: Critical
     """
     module_target_sat.upload_manifest(module_org.id, session_entitlement_manifest.content)
-    rh_repo_id = enable_rhrepo_and_fetchid(
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=module_org.id,
         product=PRDS['rhel'],

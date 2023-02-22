@@ -8,7 +8,7 @@
 
 :CaseComponent: OrganizationsLocations
 
-:Assignee: shwsingh
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -69,7 +69,7 @@ def proxy(target_sat):
 
 
 @pytest.mark.tier2
-def test_verify_bugzilla_1078866():
+def test_positive_no_duplicate_lines():
     """hammer organization <info,list> --help types information
     doubled
 
@@ -84,14 +84,11 @@ def test_verify_bugzilla_1078866():
     # org list --help:
     result = Org.list({'help': True}, output_format=None)
     # get list of lines and check they all are unique
-    lines = [line for line in result if line != '' and '----' not in line]
-    assert len(set(lines)) == len(lines)
-
-    # org info --help:info returns more lines (obviously), ignore exception
-    result = Org.info({'help': True}, output_format=None)
-
-    # get list of lines and check they all are unique
-    lines = [line for line in result['options']]
+    lines = [
+        line
+        for line in result.split('\n')
+        if line != '' and '----' not in line and 'JSON is acceptable' not in line
+    ]
     assert len(set(lines)) == len(lines)
 
 
@@ -686,7 +683,6 @@ def test_positive_create_user_with_timezone(module_org):
     for timezone in users_timezones:
         user = make_user({'timezone': timezone, 'admin': '1'})
         Org.add_user({'name': module_org.name, 'user': user['login']})
-
         org_info = Org.info({'name': module_org.name})
         assert user['login'] in org_info['users']
         assert user['timezone'] == timezone

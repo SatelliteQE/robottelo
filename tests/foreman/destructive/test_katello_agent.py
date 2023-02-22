@@ -8,7 +8,7 @@
 
 :CaseComponent: Katello-agent
 
-:Assignee: gtalreja
+:Team: Phoenix
 
 :TestType: Functional
 
@@ -20,7 +20,6 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.utils.installer import InstallerCommand
 
 pytestmark = [
     pytest.mark.run_in_one_thread,
@@ -28,36 +27,6 @@ pytestmark = [
     pytest.mark.tier5,
     pytest.mark.upgrade,
 ]
-
-
-@pytest.fixture(scope='module')
-def sat_with_katello_agent(module_target_sat):
-    """Enable katello-agent on module_target_sat"""
-    module_target_sat.register_to_cdn()
-    # Enable katello-agent from satellite-installer
-    result = module_target_sat.install(
-        InstallerCommand('foreman-proxy-content-enable-katello-agent true')
-    )
-    assert result.status == 0
-    # Verify katello-agent is enabled
-    result = module_target_sat.install(
-        InstallerCommand(help='| grep foreman-proxy-content-enable-katello-agent')
-    )
-    assert 'true' in result.stdout
-    yield module_target_sat
-
-
-@pytest.fixture
-def katello_agent_client(sat_with_katello_agent, rhel_contenthost):
-    """Register content host to Satellite and install katello-agent on the host."""
-    org = sat_with_katello_agent.api.Organization().create()
-    client_repo = settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
-    sat_with_katello_agent.register_host_custom_repo(
-        org, rhel_contenthost, [client_repo, settings.repos.yum_1.url]
-    )
-    rhel_contenthost.install_katello_agent()
-    host_info = sat_with_katello_agent.cli.Host.info({'name': rhel_contenthost.hostname})
-    yield {'client': rhel_contenthost, 'host_info': host_info, 'sat': sat_with_katello_agent}
 
 
 @pytest.mark.rhel_ver_match(r'[\d]+')
