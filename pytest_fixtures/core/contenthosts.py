@@ -28,10 +28,10 @@ def host_conf(request):
             request.node.get_closest_marker('no_containers'),
         ]
     ):
-        deploy_kwargs = settings.content_host.get(_rhelver).get('container', {})
+        deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('container', {})
     # if we're not using containers or a container isn't available, use a VM
     if not deploy_kwargs:
-        deploy_kwargs = settings.content_host.get(_rhelver).get('vm', {})
+        deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('vm', {})
     conf.update(deploy_kwargs)
     return conf
 
