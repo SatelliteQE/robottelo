@@ -8,11 +8,6 @@ on:
       - ready_for_review
     branches-ignore:
       - master
-  pull_request_review:
-    types:
-      - submitted
-    branches-ignore:
-      - master
   check_suite:
     types:
       - completed
@@ -110,7 +105,6 @@ jobs:
           MERGE_METHOD: "squash"
           MERGE_RETRIES: 5
           MERGE_RETRY_SLEEP: 900000
-          BASE_BRANCHES: "master" # avoid automerge branch
 
       - name: Auto Merge Status
         run: |
