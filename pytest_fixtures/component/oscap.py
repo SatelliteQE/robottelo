@@ -27,7 +27,7 @@ def tailoring_file_path(session_target_sat):
 def oscap_content_path(session_target_sat):
     """Download scap content from satellite and return local path of it."""
     local_file = robottelo_tmp_dir.joinpath(PurePath(settings.oscap.content_path).name)
-    session_target_sat.get(remote_path=settings.oscap.content_path, local_path=local_file)
+    session_target_sat.get(remote_path=settings.oscap.content_path, local_path=str(local_file))
     return local_file
 
 
