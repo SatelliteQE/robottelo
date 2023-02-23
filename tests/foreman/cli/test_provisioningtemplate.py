@@ -36,7 +36,6 @@ def module_os_with_minor():
 
 
 @pytest.mark.e2e
-@pytest.mark.no_containers
 def test_positive_end_to_end_crud(module_org, module_location, module_os, target_sat):
     """Create a new provisioning template with several attributes, list, update them,
        clone the provisioning template and then delete it
@@ -54,17 +53,13 @@ def test_positive_end_to_end_crud(module_org, module_location, module_os, target
 
     :expectedresults: Template is created with all the given attributes, listed, updated,
                       cloned and deleted.
-
-    :CaseImportance: High
-
-    :CaseAutomation: Automated
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     cloned_template_name = gen_string('alpha')
     template_type = random.choice(constants.TEMPLATE_TYPES)
     # create
-    template = make_template(
+    template = target_sat.cli_factory.make_template(
         {
             'name': name,
             'audit-comment': gen_string('alpha'),
@@ -76,7 +71,6 @@ def test_positive_end_to_end_crud(module_org, module_location, module_os, target
             'location-ids': module_location.id,
         }
     )
-
     assert template['name'] == name
     assert template['locked'] == 'no'
     assert template['type'] == template_type
