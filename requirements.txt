@@ -7,7 +7,7 @@ deepdiff==6.2.3
 dynaconf[vault]==3.1.11
 fauxfactory==3.1.0
 jinja2==3.1.2
-manifester==0.0.11
+manifester==0.0.12
 navmazing==1.1.6
 productmd==1.34
 pyotp==2.8.0
