@@ -8,12 +8,8 @@ from robottelo.utils.installer import InstallerCommand
 
 common_opts = {
     'foreman-proxy-puppetca': 'true',
-    'foreman-proxy-content-puppet': 'true',
     'foreman-proxy-puppet': 'true',
     'puppet-server': 'true',
-    'puppet-server-foreman-ssl-ca': '/etc/pki/katello/puppet/puppet_client_ca.crt',
-    'puppet-server-foreman-ssl-cert': '/etc/pki/katello/puppet/puppet_client.crt',
-    'puppet-server-foreman-ssl-key': '/etc/pki/katello/puppet/puppet_client.key',
     # Options for puppetbootstrap test
     'foreman-proxy-templates': 'true',
     'foreman-proxy-http': 'true',
