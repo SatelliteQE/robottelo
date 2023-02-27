@@ -94,9 +94,6 @@ from robottelo.config import settings
 from robottelo.logging import logger
 from robottelo.utils.decorators.func_locker import lock_function
 
-
-pytest_plugins = 'tests.upgrades.scenario_workers'
-
 pre_upgrade_failed_tests = []
 
 
@@ -281,10 +278,12 @@ def __initiate(config):
         for upgrade_mark in (PRE_UPGRADE_MARK, POST_UPGRADE_MARK)
         if upgrade_mark in config.option.markexpr
     ]:
-        pytest.skip(
-            'options error: pre_upgrade or post_upgrade marks must be selected',
-            allow_module_level=True,
-        )
+        # Raise only if the `tests/upgrades` directory is selected
+        if 'upgrades' in config.args[0]:
+            pytest.fail(
+                f'For upgrade scenarios either {PRE_UPGRADE_MARK} or {POST_UPGRADE_MARK} mark '
+                'must be provided'
+            )
     if PRE_UPGRADE_MARK in config.option.markexpr:
         pre_upgrade_failed_tests = []
         PRE_UPGRADE = True
