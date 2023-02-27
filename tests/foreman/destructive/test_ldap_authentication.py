@@ -26,8 +26,10 @@ from navmazing import NavigationTriesExceeded
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import CERT_PATH
+from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import HAMMER_SESSIONS
 from robottelo.constants import LDAP_ATTR
+from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
 
 pytestmark = [pytest.mark.destructive, pytest.mark.run_in_one_thread]
@@ -44,6 +46,11 @@ NO_SESSION_BUT_KERB_MSG = (
 AUTH_OK = 'Successfully authenticated using negotiate auth, using the KEYRING principal.'
 SESSION_OK = "Session exists, currently logged in as 'current Kerberos user'."
 ACCESS_DENIED = 'Access denied\nMissing one of the required permissions: view_hosts'
+NO_CREDS = 'Credentials are not configured.'  # status when user not logged in and creds not in conf
+USING_CREDS = (
+    'Using configured credentials for user'  # status when user not logged in and creds in conf
+)
+UNABLE_AUTH = 'Unable to authenticate user'  # attempting to do something without being logged in
 
 
 def set_certificate_in_satellite(server_type, sat, hostname=None):
@@ -114,6 +121,19 @@ def rhsso_groups_teardown(module_target_sat, default_sso_host):
     yield
     for group_name in ('sat_users', 'sat_admins'):
         default_sso_host.delete_rhsso_group(group_name)
+
+
+@pytest.mark.external_auth
+@pytest.fixture
+def configure_hammer_session(parametrized_enrolled_sat, enable=True):
+    """Take backup of the hammer config file and enable use_sessions"""
+    parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
+    parametrized_enrolled_sat.execute(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
+    parametrized_enrolled_sat.execute(
+        f"echo '  :use_sessions: {'true' if enable else 'false'}' >> {HAMMER_CONFIG}"
+    )
+    yield
+    parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
 
 
 def generate_otp(secret):
@@ -626,6 +646,7 @@ def test_permissions_external_ldap_mapped_rhsso_group(
 
 def test_negative_negotiate_login_without_ticket(
     parametrized_enrolled_sat,
+    configure_ipa_api,
     configure_hammer_negotiate,
 ):
     """Verify that login nor other hammer commands work without
@@ -662,6 +683,7 @@ def test_negative_negotiate_login_without_ticket(
 def test_positive_negotiate_login_with_ticket(
     request,
     parametrized_enrolled_sat,
+    configure_ipa_api,
     configure_hammer_negotiate,
     sessions_tear_down,
 ):
@@ -707,7 +729,7 @@ def test_positive_negotiate_login_with_ticket(
     assert SESSION_OK in str(result)
 
     # Check the user was created in the Satellite without any permissions
-    user = parametrized_enrolled_sat.api.User().search(query={'search': f'login={user}'})
+    user = parametrized_enrolled_sat.api.User().search(query={'search': f'login={user.lower()}'})
     assert len(user) == 1
     user = user[0].read()
     assert user.auth_source_name == 'External'
@@ -720,10 +742,10 @@ def test_positive_negotiate_login_with_ticket(
     assert ACCESS_DENIED in context.value.message
 
 
-@pytest.mark.skip_if_open("BZ:2122617")
 def test_positive_negotiate_CRUD(
     request,
     parametrized_enrolled_sat,
+    configure_ipa_api,
     configure_hammer_negotiate,
     sessions_tear_down,
 ):
@@ -761,7 +783,7 @@ def test_positive_negotiate_CRUD(
     assert result.status == 0
 
     # Add the permissions for CRUD operations
-    user = parametrized_enrolled_sat.api.User().search(query={'search': f'login={user}'})[0]
+    user = parametrized_enrolled_sat.api.User().search(query={'search': f'login={user.lower()}'})[0]
     role = parametrized_enrolled_sat.api.Role().search(query={'search': 'name="Manager"'})[0]
     user.role = [role]
     user.update(['role'])
@@ -803,6 +825,7 @@ def test_positive_negotiate_CRUD(
 def test_positive_negotiate_logout(
     request,
     parametrized_enrolled_sat,
+    configure_ipa_api,
     configure_hammer_negotiate,
     sessions_tear_down,
 ):
@@ -854,3 +877,202 @@ def test_positive_negotiate_logout(
     with pytest.raises(CLIReturnCodeError) as context:
         parametrized_enrolled_sat.cli.Host.list()
     assert AUTH_FAILED_MSG in context.value.message
+
+
+@pytest.mark.parametrize(
+    'parametrized_enrolled_sat,user_not_exists',
+    [('IDM', settings.ipa.user), ('AD', f'{settings.ldap.username}@{settings.ldap.realm.lower()}')],
+    indirect=True,
+    ids=['IDM', 'AD'],
+)
+def test_positive_autonegotiate(
+    request,
+    parametrized_enrolled_sat,
+    configure_ipa_api,
+    configure_hammer_negotiate,
+    sessions_tear_down,
+    user_not_exists,
+    hammer_logout,
+):
+    """Verify that when logged out, negotiation happens automatically with ticket
+
+    :id: 2f3bd6d3-3fb6-4f53-7ee0-68bd4faebb7f
+
+    :parametrized: yes
+
+    :setup: Kerberized sat with API krb authn and autonegotiation enabled
+
+    :steps:
+        1. Get Kerberos ticket, check for status.
+        2. Attempt to do some API operation.
+
+    :expectedresults:
+        1. Kerberos ticket can be acquired.
+        2. Automatic login occurs on first hammer command, user is created
+
+    """
+    auth_type = request.node.callspec.params['parametrized_enrolled_sat']
+    user = (
+        settings.ipa.user
+        if 'IDM' in auth_type
+        else f'{settings.ldap.username}@{settings.ldap.realm}'
+    )
+    password = settings.ipa.password if 'IDM' in auth_type else settings.ldap.password
+
+    result = parametrized_enrolled_sat.execute(f'echo {password} | kinit {user}')
+    assert result.status == 0
+
+    # Try to do an operation with user not yet added.
+    # Expect the user to get added and access denied.
+    with pytest.raises(CLIReturnCodeError) as exc:
+        result = parametrized_enrolled_sat.cli.Host.list()
+    assert ACCESS_DENIED in exc.value.stderr
+    user = parametrized_enrolled_sat.api.User().search(query={'search': f'login={user.lower()}'})
+    assert len(user) == 1
+    user = user[0].read()
+    assert user.auth_source_name == 'External'
+    assert not user.admin
+    assert len(user.role) == 0
+
+
+@pytest.mark.parametrize(
+    'parametrized_enrolled_sat,user_not_exists',
+    [('IDM', settings.ipa.user), ('AD', f'{settings.ldap.username}@{settings.ldap.realm.lower()}')],
+    indirect=True,
+    ids=['IDM', 'AD'],
+)
+def test_positive_negotiate_manual_with_autonegotiation_disabled(
+    request,
+    parametrized_enrolled_sat,
+    configure_ipa_api,
+    configure_hammer_no_negotiate,
+    configure_hammer_no_creds,
+    configure_hammer_session,
+    sessions_tear_down,
+    user_not_exists,
+    hammer_logout,
+):
+    """Negotiation works manually when autonegotiation is disabled.
+
+    :id: 87ebbb79-c2b8-4fbc-83af-6358b2f0749d
+
+    :parametrized: yes
+
+    :setup: Kerberized sat with API krb authn and autonegotiation enabled
+
+    :steps:
+        1. Get Kerberos ticket, check for status.
+        2. Log in manually using the ticket.
+        3. Attempt to do some API operation.
+
+    :expectedresults:
+        1. Kerberos ticket can be acquired.
+        2. Manual login successful, user is created.
+        3. Session is kept for following Hammer commands.
+
+    """
+    with parametrized_enrolled_sat.omit_credentials():
+        auth_type = request.node.callspec.params['parametrized_enrolled_sat']
+        user = (
+            settings.ipa.user
+            if 'IDM' in auth_type
+            else f'{settings.ldap.username}@{settings.ldap.realm}'
+        )
+        password = settings.ipa.password if 'IDM' in auth_type else settings.ldap.password
+
+        result = parametrized_enrolled_sat.execute(f'echo {password} | kinit {user}')
+        assert result.status == 0
+        result = parametrized_enrolled_sat.execute('klist')
+        assert f'Default principal: {user}' in result.stdout
+        result = parametrized_enrolled_sat.cli.Auth.status()
+        # negotiation disabled so no mention of Kerberos
+        assert NO_CREDS in str(result)
+
+        # Log in and check for status
+        result = parametrized_enrolled_sat.cli.AuthLogin.negotiate()
+        assert AUTH_OK in str(result)
+        result = parametrized_enrolled_sat.cli.Auth.status()
+        assert SESSION_OK in str(result)
+
+        # Check the user was created in the Satellite without any permissions
+        users = parametrized_enrolled_sat.api.User().search(
+            query={'search': f'login={user.lower()}'}
+        )
+        logger.info(f'Users after login: {users}')
+        assert len(users) == 1
+        user = users[0].read()
+        assert user.auth_source_name == 'External'
+        assert not user.admin
+        assert len(user.role) == 0
+
+        # Check permission enforcing works for the new user
+        with pytest.raises(CLIReturnCodeError) as exc:
+            parametrized_enrolled_sat.cli.Host.list()
+        assert ACCESS_DENIED in exc.value.message
+
+
+@pytest.mark.parametrize(
+    'configure_hammer_session',
+    [True, False],
+    indirect=True,
+    ids=['sessions_enabled', 'sessions_disabled'],
+)
+@pytest.mark.parametrize(
+    'parametrized_enrolled_sat,user_not_exists',
+    [('IDM', settings.ipa.user), ('AD', f'{settings.ldap.username}@{settings.ldap.realm.lower()}')],
+    indirect=True,
+    ids=['IDM', 'AD'],
+)
+def test_negative_autonegotiate_with_autonegotiation_disabled(
+    request,
+    parametrized_enrolled_sat,
+    configure_ipa_api,
+    configure_hammer_no_negotiate,
+    configure_hammer_no_creds,
+    configure_hammer_session,
+    sessions_tear_down,
+    user_not_exists,
+    hammer_logout,
+):
+    """Autonegotiation doesn't occur when it's disabled
+
+    :id: 87ebbb79-f5b8-4fbc-83af-6358b2f0749e
+
+    :parametrized: yes
+
+    :setup: Kerberized sat with API krb authn and autonegotiation enabled
+
+    :steps:
+        1. Get Kerberos ticket, check for status.
+        2. Attempt to do some API operation.
+
+    :expectedresults:
+        1. Kerberos ticket can be acquired.
+        2. Autonegotiation doesn't occur
+        3. Action is denied and user not created because the user isn't authenticated.
+
+    """
+    with parametrized_enrolled_sat.omit_credentials():
+        auth_type = request.node.callspec.params['parametrized_enrolled_sat']
+        user = (
+            settings.ipa.user
+            if 'IDM' in auth_type
+            else f'{settings.ldap.username}@{settings.ldap.realm}'
+        )
+        password = settings.ipa.password if 'IDM' in auth_type else settings.ldap.password
+
+        result = parametrized_enrolled_sat.execute(f'echo {password} | kinit {user}')
+        assert result.status == 0
+        result = parametrized_enrolled_sat.execute('klist')
+        assert f'Default principal: {user}' in result.stdout
+        result = parametrized_enrolled_sat.cli.Auth.status()
+        # negotiation disabled so no mention of Kerberos
+        assert NO_CREDS in str(result)
+
+        # Attempt to do something using autonegotiate. It should fail since it is disabled.
+        with pytest.raises(CLIReturnCodeError) as exc:
+            parametrized_enrolled_sat.cli.Host.list()
+        assert UNABLE_AUTH in exc.value.message
+        # User has not been added
+        user = parametrized_enrolled_sat.api.User().search(query={'search': f'login={user}'})
+        assert not user
