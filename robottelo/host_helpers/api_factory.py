@@ -628,12 +628,6 @@ class templateupdate:
         :param entities.ProvisioningTemplate temp: entities.ProvisioningTemplate's object
         """
         self.temp = temp
-        if not isinstance(self.temp, self._satellite.api.ProvisioningTemplate):
-            raise TypeError(
-                'The template should be of type entities.ProvisioningTemplate, {} given'.format(
-                    type(temp)
-                )
-            )
 
     def __enter__(self):
         """Unlocks template for update"""

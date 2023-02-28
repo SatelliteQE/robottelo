@@ -1907,13 +1907,15 @@ def gce_resource_with_image(
         # creating GCE CR from UI
         cr_name = gen_string('alpha')
         vm_user = gen_string('alpha')
+
+        with open(gce_cert['local_path']) as f:
+            json_key_content = f.read()
+
         session.computeresource.create(
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['google'],
-                'provider_content.google_project_id': gce_cert['project_id'],
-                'provider_content.client_email': gce_cert['client_email'],
-                'provider_content.certificate_path': settings.gce.cert_path,
+                'provider_content.json_key': json_key_content,
                 'provider_content.zone.value': settings.gce.zone,
                 'organizations.resources.assigned': [module_org.name],
                 'locations.resources.assigned': [smart_proxy_location.name],
