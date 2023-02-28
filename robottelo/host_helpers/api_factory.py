@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
+from nailgun import entities
 from nailgun import entity_mixins
 from nailgun.entity_mixins import call_entity_method_with_timeout
 from requests import HTTPError
@@ -628,6 +629,13 @@ class TemplateUpdate:
         :param entities.ProvisioningTemplate temp: entities.ProvisioningTemplate's object
         """
         self.temp = temp
+
+        if not isinstance(self.temp, entities.ProvisioningTemplate):
+            raise TypeError(
+                'The template should be of type entities.ProvisioningTemplate, {} given'.format(
+                    type(temp)
+                )
+            )
 
     def __enter__(self):
         """Unlocks template for update"""
