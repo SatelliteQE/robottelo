@@ -598,7 +598,7 @@ class APIFactory:
             .read()
         )
         if old in temp.template:
-            with templateupdate(temp):
+            with Templateupdate(temp):
                 temp.template = temp.template.replace(old, new, 1)
                 update = temp.update(['template'])
             return new in update.template
@@ -619,7 +619,7 @@ class APIFactory:
         assert sync_plan.enabled is False
 
 
-class templateupdate:
+class Templateupdate:
     """Context Manager to unlock lock template for updating"""
 
     def __init__(self, temp):
