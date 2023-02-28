@@ -90,18 +90,13 @@ def module_capsule_configured_mqtt(module_capsule_configured):
     """Configure the capsule instance with the satellite from settings.server.hostname,
     enable MQTT broker"""
     module_capsule_configured.set_rex_script_mode_provider('pull-mqtt')
+    # lower the mqtt_resend_interval interval
+    module_capsule_configured.set_mqtt_resend_interval('30')
     result = module_capsule_configured.execute('systemctl status mosquitto')
     assert result.status == 0, 'MQTT broker is not running'
     result = module_capsule_configured.execute('firewall-cmd --permanent --add-port="1883/tcp"')
     assert result.status == 0, 'Failed to open mqtt port on capsule'
     module_capsule_configured.execute('firewall-cmd --reload')
-    # lower the mqtt_resend_interval interval
-    # TODO use installer command instead once merged downstream
-    module_capsule_configured.execute(
-        "echo ':mqtt_resend_interval: 30' >> /etc/foreman-proxy/settings.d/remote_execution_ssh.yml"
-    )
-    result = module_capsule_configured.cli.Service.restart(options={'only': 'foreman-proxy'})
-    assert result.status == 0, 'foreman-proxy restart unsuccessful'
     yield module_capsule_configured
 
 

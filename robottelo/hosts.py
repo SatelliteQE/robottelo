@@ -1425,6 +1425,22 @@ class Capsule(ContentHost, CapsuleMixins):
         if result.status != 0:
             raise SatelliteHostError(f'Failed to enable pull provider: {result.stdout}')
 
+    def set_mqtt_resend_interval(self, value):
+        """Set the time interval in seconds at which the notification should be
+        re-sent to the mqtt host until the job is picked up or cancelled"""
+        installer_opts = {
+            'foreman-proxy-plugin-remote-execution-script-mqtt-resend-interval': value,
+        }
+        enable_mqtt_command = InstallerCommand(
+            installer_opts=installer_opts,
+        )
+        result = self.execute(
+            enable_mqtt_command.get_command(),
+            timeout='20m',
+        )
+        if result.status != 0:
+            raise SatelliteHostError(f'Failed to change the mqtt resend interval: {result.stdout}')
+
     @property
     def cli(self):
         """Import only satellite-maintain robottelo cli entities and wrap them under self.cli"""
