@@ -16,12 +16,14 @@
 
 :Upstream: No
 """
+import random
 from random import randint
 
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
+from robottelo import constants
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_template
 from robottelo.cli.template import Template
@@ -31,6 +33,73 @@ from robottelo.cli.user import User
 @pytest.fixture(scope='module')
 def module_os_with_minor():
     return entities.OperatingSystem(minor=randint(0, 10)).create()
+
+
+@pytest.mark.e2e
+def test_positive_end_to_end_crud(module_org, module_location, module_os, target_sat):
+    """Create a new provisioning template with several attributes, list, update them,
+       clone the provisioning template and then delete it
+
+    :id: 5f2e487c-07a5-423d-98ce-92ef1ad3b08d
+
+    :steps:
+        1. Create a provisioning template with several attributes.
+        2. Assert if all attributes are associated with the created template.
+        3. List the template.
+        4. Update the template and assert if it is properly updated.
+        5. Clone the template.
+        6. Assert if the cloned template contains all the attributes of parent template.
+        7. Delete the template.
+
+    :expectedresults: Template is created with all the given attributes, listed, updated,
+                      cloned and deleted.
+    """
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    cloned_template_name = gen_string('alpha')
+    template_type = random.choice(constants.TEMPLATE_TYPES)
+    # create
+    template = target_sat.cli_factory.make_template(
+        {
+            'name': name,
+            'audit-comment': gen_string('alpha'),
+            'description': gen_string('alpha'),
+            'locked': 'no',
+            'type': template_type,
+            'operatingsystem-ids': module_os.id,
+            'organization-ids': module_org.id,
+            'location-ids': module_location.id,
+        }
+    )
+    assert template['name'] == name
+    assert template['locked'] == 'no'
+    assert template['type'] == template_type
+    assert module_os.title in template['operating-systems']
+    assert module_org.name in template['organizations']
+    assert module_location.name in template['locations']
+    # list
+    template_list = target_sat.cli.Template.list({'search': f'name={name}'})
+    assert template_list[0]['name'] == name
+    assert template_list[0]['type'] == template_type
+    # update
+    updated_pt = target_sat.cli.Template.update({'id': template['id'], 'name': new_name})
+    template = target_sat.cli.Template.info({'id': updated_pt[0]['id']})
+    assert new_name == template['name'], "The Provisioning template wasn't properly renamed"
+    # clone
+    template_clone = target_sat.cli.Template.clone(
+        {'id': template['id'], 'new-name': cloned_template_name}
+    )
+    new_template = target_sat.cli.Template.info({'id': template_clone[0]['id']})
+    assert new_template['name'] == cloned_template_name
+    assert new_template['locked'] == template['locked']
+    assert new_template['type'] == template['type']
+    assert new_template['operating-systems'] == template['operating-systems']
+    assert new_template['organizations'] == template['organizations']
+    assert new_template['locations'] == template['locations']
+    # delete
+    target_sat.cli.Template.delete({'id': template['id']})
+    with pytest.raises(CLIReturnCodeError):
+        target_sat.cli.Template.info({'id': template['id']})
 
 
 @pytest.mark.tier1
