@@ -17,9 +17,11 @@
 :Upstream: No
 """
 import pytest
+import yaml
 from fauxfactory import gen_string
 
 from robottelo import constants
+from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 
 
@@ -174,6 +176,85 @@ def test_positive_config_report_ansible(session, target_sat, module_org, rhel_co
             entity_name='Run ansible roles', host_name=rhel_contenthost.hostname
         )
         assert status['overview']['hosts_table'][0]['Status'] == 'success'
+        session.configreport.search(rhel_contenthost.hostname)
+        session.configreport.delete(rhel_contenthost.hostname)
+        assert len(session.configreport.read()['table']) == 0
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('9')
+def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_contenthost):
+    """
+    Test Config report generation with Custom Ansible Role
+
+    :id: 3551068a-ccfc-481c-b7ec-8fe2b8a802bf
+
+    :customerscenario: true
+
+    :Steps:
+        1. Register a content host with satellite
+        2. Create a  custom role and import  into satellite
+        3. Assign that role to a host
+        4. Assert that the role was assigned to the host successfully
+        5. Run the Ansible playbook associated with that role
+        6. Check if the report is created successfully
+
+    :expectedresults:
+        1. Config report should be generated for a custom role run.
+
+    :BZ: 2155392
+
+    :CaseAutomation: Automated
+    """
+    SELECTED_ROLE = 'custom_role'
+    playbook = f'{robottelo_tmp_dir}/playbook.yml'
+    data = {
+        'name': 'Copy ssh keys',
+        'copy': {
+            'src': '/var/lib/foreman-proxy/ssh/{{ item }}',
+            'dest': '/root/.ssh',
+            'owner': 'root',
+            "group": 'root',
+            'mode': '0400',
+        },
+        'with_items': ['id_rsa_foreman_proxy.pub', 'id_rsa_foreman_proxy'],
+    }
+    with open(playbook, 'w') as f:
+        yaml.dump(data, f, sort_keys=False, default_flow_style=False)
+    target_sat.execute('mkdir /etc/ansible/roles/custom_role')
+    target_sat.put(playbook, '/etc/ansible/roles/custom_role/playbook.yaml')
+    rhel_contenthost.install_katello_ca(target_sat)
+    rhel_contenthost.register_contenthost(module_org.label, force=True)
+    assert rhel_contenthost.subscribed
+    rhel_contenthost.add_rex_key(satellite=target_sat)
+    proxy_id = target_sat.nailgun_smart_proxy.id
+    target_host = rhel_contenthost.nailgun_host
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]})
+    target_host.assign_ansible_roles(data={'ansible_role_ids': [1]})
+    host_roles = target_host.list_ansible_roles()
+    assert host_roles[0]['name'] == SELECTED_ROLE
+
+    template_id = (
+        target_sat.api.JobTemplate()
+        .search(query={'search': 'name="Ansible Roles - Ansible Default"'})[0]
+        .id
+    )
+    job = target_sat.api.JobInvocation().run(
+        synchronous=False,
+        data={
+            'job_template_id': template_id,
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+        },
+    )
+    target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
+    )
+    result = target_sat.api.JobInvocation(id=job['id']).read()
+    assert result.succeeded == 1
+    with session:
+        session.location.select(constants.DEFAULT_LOC)
+        assert session.host.search(target_host.name)[0]['Name'] == rhel_contenthost.hostname
         session.configreport.search(rhel_contenthost.hostname)
         session.configreport.delete(rhel_contenthost.hostname)
         assert len(session.configreport.read()['table']) == 0
