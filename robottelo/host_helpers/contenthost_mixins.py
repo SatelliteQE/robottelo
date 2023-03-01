@@ -73,15 +73,13 @@ class VersionedContent:
     def download_repofile(self, product=None, release=None, snap=''):
         """Downloads the tools/client, capsule, or satellite repos on the machine"""
         product, release, snap, v_major, _ = self._dogfood_helper(product, release, snap)
-        url = dogfood_repofile_url(settings.repos.ohsnap_repo_host, product, release, v_major, snap)
+        url = dogfood_repofile_url(settings.ohsnap.host, product, release, v_major, snap)
         self.execute(f'curl -o /etc/yum.repos.d/dogfood.repo {url}')
 
     def dogfood_repository(self, repo=None, product=None, release=None, snap=''):
         """Returns a repository definition based on the arguments provided"""
         product, release, snap, v_major, repo = self._dogfood_helper(product, release, snap, repo)
-        return dogfood_repository(
-            settings.repos.ohsnap_repo_host, repo, product, release, v_major, snap, self.arch
-        )
+        return dogfood_repository(settings.ohsnap, repo, product, release, v_major, snap, self.arch)
 
     def enable_tools_repo(self, organization_id):
         return utils.enable_rhrepo_and_fetchid(
