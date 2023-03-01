@@ -10,6 +10,7 @@ from broker import Broker
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
+from robottelo.hosts import Satellite
 
 
 def host_conf(request):
@@ -228,3 +229,14 @@ def sat_upgrade_chost():
     return Broker(
         container_host=settings.content_host.rhel8.container.container_host, host_class=ContentHost
     ).checkout()
+
+
+@pytest.fixture
+def custom_host(request):
+    """A rhel content host that passes custom host config through request.param"""
+    deploy_args = request.param
+    # if 'deploy_rhel_version' is not set, let's default to RHEL 8
+    deploy_args['deploy_rhel_version'] = deploy_args.get('deploy_rhel_version', '8')
+    deploy_args['workflow'] = 'deploy-base-rhel'
+    with Broker(**deploy_args, host_class=Satellite) as host:
+        yield host
