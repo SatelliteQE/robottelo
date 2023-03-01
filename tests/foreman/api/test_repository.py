@@ -151,7 +151,7 @@ class TestRepository:
     def test_positive_sync_redhat_repo_using_http_proxy(self, module_manifest_org):
         """Assign http_proxy to Redhat repository and perform repository sync.
 
-        :id: 38df5479-9127-49f3-a30e-26b33655971a
+        :id: 238bf07b-bab0-4d30-a6ab-be73cbaefc46
 
         :expectedresults: HTTP Proxy can be assigned to redhat repository and sync operation
             performed successfully.
