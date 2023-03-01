@@ -989,7 +989,7 @@ class TestPullProviderRex:
         :parametrized: yes
         """
         client_repo = ohsnap.dogfood_repository(
-            settings.repos.ohsnap_repo_host,
+            settings.ohsnap,
             product='client',
             repo='client',
             release='Client',
@@ -1087,7 +1087,7 @@ class TestPullProviderRex:
         :parametrized: yes
         """
         client_repo = ohsnap.dogfood_repository(
-            settings.repos.ohsnap_repo_host,
+            settings.ohsnap,
             product='client',
             repo='client',
             release='Client',
@@ -1177,7 +1177,7 @@ class TestPullProviderRex:
         :parametrized: yes
         """
         client_repo = ohsnap.dogfood_repository(
-            settings.repos.ohsnap_repo_host,
+            settings.ohsnap,
             product='client',
             repo='client',
             release='Client',
