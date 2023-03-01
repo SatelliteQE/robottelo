@@ -1,0 +1,7 @@
+OHSNAP:
+  HOST: "replace by ohsnap repo host url"
+  REQUEST_RETRY:
+    # how long should we keep retrying to get data (seconds)
+    TIMEOUT: 120
+    # delay between retries (seconds)
+    DELAY: 3
