@@ -222,8 +222,8 @@ class TestDiscoveryRule:
 
         :CaseImportance: Critical
         """
-        available = set(range(1, 1000)) - {Box(r).priority for r in DiscoveryRule.list()}
-        rule_priority = random.sample(available, 1)
+        available = set(range(1, 1000)) - {int(Box(r).priority) for r in DiscoveryRule.list()}
+        rule_priority = random.sample(sorted(available), 1)
         rule = discoveryrule_factory(options={'priority': rule_priority[0]})
         assert rule.priority == str(rule_priority[0])
 
@@ -439,6 +439,7 @@ class TestDiscoveryRule:
     def test_positive_update_hostname(self, discoveryrule_factory):
         """Update discovery rule hostname value
 
+
         :id: 4c123488-92df-42f6-afe3-8a88cd90ffc2
 
         :expectedresults: Rule host name is updated
@@ -477,12 +478,12 @@ class TestDiscoveryRule:
 
         :CaseImportance: Critical
         """
-        available = set(range(1, 1000)) - {Box(r).priority for r in DiscoveryRule.list()}
-        rule_priority = random.sample(available, 1)
+        available = set(range(1, 1000)) - {int(Box(r).priority) for r in DiscoveryRule.list()}
+        rule_priority = random.sample(sorted(available), 1)
         rule = discoveryrule_factory(options={'priority': rule_priority[0]})
         assert rule.priority == str(rule_priority[0])
-        available = set(range(1, 1000)) - {Box(r).priority for r in DiscoveryRule.list()}
-        rule_priority = random.sample(available, 1)
+        available = set(range(1, 1000)) - {int(Box(r).priority) for r in DiscoveryRule.list()}
+        rule_priority = random.sample(sorted(available), 1)
         DiscoveryRule.update({'id': rule.id, 'priority': rule_priority[0]})
         rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert rule.priority == str(rule_priority[0])
