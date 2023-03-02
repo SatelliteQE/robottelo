@@ -234,7 +234,7 @@ def test_positive_image_end_to_end(session, module_vmware_settings, target_sat):
     cr_name = gen_string('alpha')
     image_name = gen_string('alpha')
     new_image_name = gen_string('alpha')
-    target_sat.check_create_os_with_title(module_vmware_settings['image_os'])
+    target_sat.api_factory.check_create_os_with_title(module_vmware_settings['image_os'])
     image_user_data = choice((False, True))
     with session:
         session.computeresource.create(

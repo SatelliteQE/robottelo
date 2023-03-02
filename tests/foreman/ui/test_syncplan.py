@@ -181,7 +181,7 @@ def test_positive_search_scoped(session, request, target_sat):
         sync_date=start_date,
     ).create()
     sync_plan = entities.SyncPlan(organization=org.id, id=sync_plan.id).read()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     with session:
         session.organization.select(org.name)
         for query_type, query_value in [('interval', SYNC_INTERVAL['day']), ('enabled', 'true')]:

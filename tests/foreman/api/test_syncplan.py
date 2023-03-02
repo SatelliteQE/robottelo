@@ -152,7 +152,7 @@ def test_positive_create_enabled_disabled(module_org, enabled, request, target_s
     :CaseImportance: Critical
     """
     sync_plan = entities.SyncPlan(enabled=enabled, organization=module_org).create()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan = sync_plan.read()
     assert sync_plan.enabled == enabled
 
@@ -308,7 +308,7 @@ def test_positive_update_enabled(module_org, enabled, request, target_sat):
     :CaseImportance: Critical
     """
     sync_plan = entities.SyncPlan(enabled=not enabled, organization=module_org).create()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan.enabled = enabled
     sync_plan.update(['enabled'])
     sync_plan = sync_plan.read()
@@ -580,7 +580,7 @@ def test_positive_repeatedly_add_remove(module_org, request, target_sat):
     :BZ: 1199150
     """
     sync_plan = entities.SyncPlan(organization=module_org).create()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     product = entities.Product(organization=module_org).create()
     for _ in range(5):
         sync_plan.add_products(data={'product_ids': [product.id]})
@@ -606,7 +606,7 @@ def test_positive_add_remove_products_custom_cron(module_org, request, target_sa
     sync_plan = entities.SyncPlan(
         organization=module_org, interval='custom cron', cron_expression=cron_expression
     ).create()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     products = [entities.Product(organization=module_org).create() for _ in range(2)]
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     assert len(sync_plan.read().product) == 2
@@ -637,7 +637,7 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org, request,
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, sync_date=datetime.utcnow().replace(second=0)
     ).create()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Verify product was not synced right after it was added to sync plan
     with pytest.raises(AssertionError):
@@ -670,7 +670,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
         interval='hourly',
         sync_date=datetime.utcnow().replace(second=0) - timedelta(seconds=interval - delay),
     ).create()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
     logger.info(
@@ -720,7 +720,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, sync_date=sync_date
     ).create()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
     logger.info(
@@ -778,7 +778,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, sync_date=sync_date
     ).create()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     # Wait quarter of expected time
     logger.info(
@@ -840,7 +840,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
         interval='hourly',
         sync_date=datetime.utcnow() - timedelta(seconds=interval - delay),
     ).create()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Associate sync plan with product
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
@@ -904,7 +904,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     sync_plan = entities.SyncPlan(
         organization=org, enabled=True, interval='hourly', sync_date=sync_date
     ).create()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Create and Associate sync plan with product
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Verify product is not synced and doesn't have any content
@@ -952,7 +952,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org, reques
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, interval='daily', sync_date=start_date
     ).create()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
     logger.info(
@@ -997,7 +997,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, interval='weekly', sync_date=start_date
     ).create()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
     logger.info(

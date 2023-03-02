@@ -236,11 +236,11 @@ def test_positive_list_host_based_on_rule_search_query(
         location=[module_location],
         priority=gen_int32(),
     ).create()
-    discovered_host = target_sat.create_discovered_host(
+    discovered_host = target_sat.api_factory.create_discovered_host(
         ip_address=ip_address, options={'physicalprocessorcount': cpu_count}
     )
     # create an other discovered host with an other cpu count
-    target_sat.create_discovered_host(options={'physicalprocessorcount': cpu_count + 1})
+    target_sat.api_factory.create_discovered_host(options={'physicalprocessorcount': cpu_count + 1})
     provisioned_host_name = '{}.{}'.format(discovered_host['name'], host.domain.read().name)
     with session:
         values = session.discoveryrule.read_all()

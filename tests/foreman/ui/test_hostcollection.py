@@ -67,7 +67,7 @@ def vm_content_hosts(smart_proxy_location, module_repos_collection, module_targe
         for client in clients:
             module_repos_collection.setup_virtual_machine(client, install_katello_agent=False)
             client.add_rex_key(satellite=module_target_sat)
-            module_target_sat.update_vm_host_location(client, smart_proxy_location.id)
+            module_target_sat.api_factory.update_vm_host_location(client, smart_proxy_location.id)
         yield clients
 
 
@@ -81,7 +81,7 @@ def vm_content_hosts_module_stream(
                 client, install_katello_agent=False
             )
             client.add_rex_key(satellite=module_target_sat)
-            module_target_sat.update_vm_host_location(client, smart_proxy_location.id)
+            module_target_sat.api_factory.update_vm_host_location(client, smart_proxy_location.id)
         yield clients
 
 

@@ -248,7 +248,7 @@ def test_positive_update_interval(module_org, test_data, request, target_sat):
         }
     )
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     SyncPlan.update({'id': new_sync_plan['id'], 'interval': test_data['new-interval']})
     result = SyncPlan.info({'id': new_sync_plan['id']})
     assert result['interval'] == test_data['new-interval']
@@ -278,7 +278,7 @@ def test_positive_update_sync_date(module_org, request, target_sat):
         }
     )
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Assert that sync date matches data passed
     assert new_sync_plan['start-date'] == today.strftime("%Y/%m/%d %H:%M:%S")
     # Set sync date 5 days in the future
@@ -325,7 +325,7 @@ def test_positive_info_enabled_field_is_displayed(module_org, request, target_sa
     """
     new_sync_plan = make_sync_plan({'organization-id': module_org.id})
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     result = SyncPlan.info({'id': new_sync_plan['id']})
     assert result.get('enabled') is not None
 
@@ -388,7 +388,7 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org, request,
         }
     )
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     product = make_product({'organization-id': module_org.id})
     repo = make_repository({'product-id': product['id']})
     Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
@@ -426,7 +426,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
         }
     )
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Associate sync plan with product
     Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
@@ -483,7 +483,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
         }
     )
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Verify product is not synced and doesn't have any content
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Associate sync plan with product
@@ -544,7 +544,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
         }
     )
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Verify products have not been synced yet
     logger.info(
         f"Check products {products[0]['name']} and {products[1]['name']}"
@@ -623,7 +623,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
         }
     )
     sync_plan = entities.SyncPlan(organization=org.id, id=new_sync_plan['id']).read()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Associate sync plan with product
     Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
@@ -695,7 +695,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
         }
     )
     sync_plan = entities.SyncPlan(organization=org.id, id=new_sync_plan['id']).read()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
         validate_task_status(repo['id'], org.id, max_tries=1)
@@ -749,7 +749,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org, reques
         }
     )
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Associate sync plan with product
     Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
@@ -800,7 +800,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
         }
     )
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
-    request.addfinalizer(lambda: target_sat.disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Associate sync plan with product
     Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
