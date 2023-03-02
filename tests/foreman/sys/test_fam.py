@@ -39,6 +39,7 @@ def sync_roles(target_sat):
         target_sat.cli.Ansible.roles_delete({'id': role_id})
 
 
+@pytest.mark.pit_server
 @pytest.mark.run_in_one_thread
 def test_positive_ansible_modules_installation(target_sat):
     """Foreman ansible modules installation test
@@ -64,6 +65,7 @@ def test_positive_ansible_modules_installation(target_sat):
     assert FOREMAN_ANSIBLE_MODULES.sort() == installed_modules.sort()
 
 
+@pytest.mark.pit_server
 @pytest.mark.tier1
 def test_positive_import_run_roles(sync_roles, target_sat):
     """Import a FAM role and run the role on the Satellite
