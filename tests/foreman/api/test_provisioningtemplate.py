@@ -22,18 +22,13 @@ http://theforeman.org/api/apidoc/v2/provisioning_templates.html
 from random import choice
 
 import pytest
-from box import Box
 from fauxfactory import gen_choice
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
-from packaging.version import Version
 from requests.exceptions import HTTPError
 
-from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import wait_for_tasks
 from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.config import user_nailgun_config
@@ -146,52 +141,6 @@ def tftpboot(module_org, target_sat):
         if setting.value is None:
             setting.value = ''
         setting.update(fields=['value'] or '')
-
-
-@pytest.fixture(scope="module")
-def module_sync_kickstart_content(
-    request, module_target_sat, module_sca_manifest_org, module_location
-):
-    repo_names = []
-    tasks = []
-    rhel_ver = request.param
-    if int(rhel_ver) <= 7:
-        repo_names.append(f'rhel{rhel_ver}')
-    else:
-        repo_names.append(f'rhel{rhel_ver}_bos')
-    for name in repo_names:
-        rh_kickstart_repo_id = enable_rhrepo_and_fetchid(
-            basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=module_sca_manifest_org.id,
-            product=constants.REPOS['kickstart'][name]['product'],
-            repo=constants.REPOS['kickstart'][name]['name'],
-            reposet=constants.REPOS['kickstart'][name]['reposet'],
-            releasever=constants.REPOS['kickstart'][name]['version'],
-        )
-        rh_repo = module_target_sat.api.Repository(id=rh_kickstart_repo_id).read()
-        task = rh_repo.sync(synchronous=False)
-        tasks.append(task)
-    for task in tasks:
-        wait_for_tasks(
-            search_query=(f'id = {task["id"]}'),
-            poll_timeout=2500,
-        )
-        task_status = module_target_sat.api.ForemanTask(id=task['id']).poll()
-        assert task_status['result'] == 'success'
-    rhel_xy = Version(
-        constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version']
-        if rhel_ver == 7
-        else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos']['version']
-    )
-    o_systems = module_target_sat.api.OperatingSystem().search(
-        query={'search': f'family=Redhat and major={rhel_xy.major} and minor={rhel_xy.minor}'}
-    )
-    assert o_systems, f'Operating system RHEL {rhel_xy} was not found'
-    os = o_systems[0].read()
-    domain = module_target_sat.api.Domain(
-        location=[module_location], organization=[module_sca_manifest_org]
-    ).create()
-    return Box(rhel_ver=rhel_ver, os=os, domain=domain)
 
 
 class TestProvisioningTemplate:
@@ -317,18 +266,8 @@ class TestProvisioningTemplate:
                     f"{target_sat.hostname} {template['kind']}"
                 )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
     def test_positive_provision_template_check_net_interface(
-=======
-    @pytest.mark.parametrize('module_sync_kickstart_content', [7], indirect=True)
-    def test_positive_template_check(
->>>>>>> 207b857de (Add closed loop BZ#2149030 for Provisioning Templates)
-=======
-    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
-    def test_positive_template_check_ipxe(
->>>>>>> eabdd6be4 (add test metadata)
         self,
         module_sync_kickstart_content,
         module_target_sat,
@@ -339,39 +278,16 @@ class TestProvisioningTemplate:
         default_architecture,
         default_partitiontable,
     ):
-<<<<<<< HEAD
-<<<<<<< HEAD
         """Read the Provision template and verify correct network interface is created.
 
         :id: 971c4dd0-548d-411a-9c5a-f351370bb860
 
         :expectedresults: The rendered provision template has correct network interface.
 
-        :CaseImportance: High
-
         :BZ: 2148433
 
         :customerscenario: true
         """
-=======
-
->>>>>>> 207b857de (Add closed loop BZ#2149030 for Provisioning Templates)
-=======
-        """Read the iPXE template and verify 'ks=' parameter is rendered as
-           expected for different rhel hosts.
-
-        :id: 065ef48f-bec5-4535-8be7-d8527fa21563
-
-        :expectedresults: The rendered iPXE template contains the "ks=" parameter
-                          expected for respective rhel hosts.
-
-        :CaseImportance: high
-
-        :BZ: 2149030
-
-        :customerscenario: true
-        """
->>>>>>> eabdd6be4 (add test metadata)
         macaddress = gen_mac(multicast=False)
         capsule = module_target_sat.nailgun_smart_proxy
         host = module_target_sat.api.Host(
@@ -390,13 +306,53 @@ class TestProvisioningTemplate:
                 'lifecycle_environment_id': module_lce_library.id,
             },
         ).create()
-<<<<<<< HEAD
         provision_template = host.read_template(data={'template_kind': 'provision'})
         assert 'ifcfg-$sanitized_real' in str(provision_template)
-=======
+
+    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    def test_positive_template_check_ipxe(
+        self,
+        module_sync_kickstart_content,
+        module_target_sat,
+        module_sca_manifest_org,
+        module_location,
+        module_default_org_view,
+        module_lce_library,
+        default_architecture,
+        default_partitiontable,
+    ):
+        """Read the iPXE template and verify 'ks=' parameter is rendered as
+           expected for different rhel hosts.
+
+        :id: 065ef48f-bec5-4535-8be7-d8527fa21563
+
+        :expectedresults: The rendered iPXE template contains the "ks=" parameter
+                          expected for respective rhel hosts.
+
+        :BZ: 2149030
+
+        :customerscenario: true
+        """
+        macaddress = gen_mac(multicast=False)
+        capsule = module_target_sat.nailgun_smart_proxy
+        host = module_target_sat.api.Host(
+            organization=module_sca_manifest_org,
+            location=module_location,
+            name=gen_string('alpha').lower(),
+            mac=macaddress,
+            operatingsystem=module_sync_kickstart_content.os,
+            architecture=default_architecture,
+            domain=module_sync_kickstart_content.domain,
+            root_pass=settings.provisioning.host_root_password,
+            ptable=default_partitiontable,
+            content_facet_attributes={
+                'content_source_id': capsule.id,
+                'content_view_id': module_default_org_view.id,
+                'lifecycle_environment_id': module_lce_library.id,
+            },
+        ).create()
         ipxe_template = host.read_template(data={'template_kind': 'iPXE'})
         if module_sync_kickstart_content.rhel_ver <= 8:
             assert str(ipxe_template).count('ks=') == 1
         else:
             assert str(ipxe_template).count('inst.ks=') == 1
->>>>>>> 207b857de (Add closed loop BZ#2149030 for Provisioning Templates)
