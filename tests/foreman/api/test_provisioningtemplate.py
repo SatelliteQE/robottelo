@@ -318,12 +318,17 @@ class TestProvisioningTemplate:
                 )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
     def test_positive_provision_template_check_net_interface(
 =======
     @pytest.mark.parametrize('module_sync_kickstart_content', [7], indirect=True)
     def test_positive_template_check(
 >>>>>>> 207b857de (Add closed loop BZ#2149030 for Provisioning Templates)
+=======
+    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    def test_positive_template_check_ipxe(
+>>>>>>> eabdd6be4 (add test metadata)
         self,
         module_sync_kickstart_content,
         module_target_sat,
@@ -334,6 +339,7 @@ class TestProvisioningTemplate:
         default_architecture,
         default_partitiontable,
     ):
+<<<<<<< HEAD
 <<<<<<< HEAD
         """Read the Provision template and verify correct network interface is created.
 
@@ -350,6 +356,22 @@ class TestProvisioningTemplate:
 =======
 
 >>>>>>> 207b857de (Add closed loop BZ#2149030 for Provisioning Templates)
+=======
+        """Read the iPXE template and verify 'ks=' parameter is rendered as
+           expected for different rhel hosts.
+
+        :id: 065ef48f-bec5-4535-8be7-d8527fa21563
+
+        :expectedresults: The rendered iPXE template contains the "ks=" parameter
+                          expected for respective rhel hosts.
+
+        :CaseImportance: high
+
+        :BZ: 2149030
+
+        :customerscenario: true
+        """
+>>>>>>> eabdd6be4 (add test metadata)
         macaddress = gen_mac(multicast=False)
         capsule = module_target_sat.nailgun_smart_proxy
         host = module_target_sat.api.Host(
