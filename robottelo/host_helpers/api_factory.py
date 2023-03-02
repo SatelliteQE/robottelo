@@ -18,6 +18,7 @@ from robottelo.constants import DEFAULT_PXE_TEMPLATE
 from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import REPO_TYPE
 from robottelo.exceptions import ImproperlyConfigured
+from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
 
 
 class APIFactory:
@@ -25,6 +26,7 @@ class APIFactory:
 
     def __init__(self, satellite):
         self._satellite = satellite
+        self.__dict__.update(initiate_repo_helpers(self._satellite))
 
     def make_http_proxy(self, org, http_proxy_type):
         """
@@ -592,17 +594,17 @@ class APIFactory:
 
         :return bool: True/False
         """
-        temp = (
+        self.temp = (
             self._satellite.api.ProvisioningTemplate()
             .search(query={'per_page': '1000', 'search': f'name="{name}"'})[0]
             .read()
         )
-        if old in temp.template:
-            with templateupdate(temp):
-                temp.template = temp.template.replace(old, new, 1)
-                update = temp.update(['template'])
+        if old in self.temp.template:
+            with self.template_update(self.temp):
+                self.temp.template = self.temp.template.replace(old, new, 1)
+                update = self.temp.update(['template'])
             return new in update.template
-        elif new in temp.template:
+        elif new in self.temp.template:
             return True
         else:
             raise ValueError(f'{old} does not exists in template {name}')
@@ -618,31 +620,13 @@ class APIFactory:
         sync_plan = sync_plan.update(['enabled'])
         assert sync_plan.enabled is False
 
-
-class templateupdate:
-    """Context Manager to unlock lock template for updating"""
-
-    def __init__(self, temp):
-        """Context manager that takes entities.ProvisioningTemplate's object
-
-        :param entities.ProvisioningTemplate temp: entities.ProvisioningTemplate's object
-        """
-        self.temp = temp
-        if not isinstance(self.temp, self._satellite.api.ProvisioningTemplate):
-            raise TypeError(
-                'The template should be of type entities.ProvisioningTemplate, {} given'.format(
-                    type(temp)
-                )
-            )
-
-    def __enter__(self):
-        """Unlocks template for update"""
-        if self.temp.locked:
-            self.temp.locked = False
-            self.temp.update(['locked'])
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Locks template after update"""
-        if not self.temp.locked:
-            self.temp.locked = True
-            self.temp.update(['locked'])
+    @contextmanager
+    def template_update(self, temp):
+        template = temp
+        if template.locked:
+            template.locked = False
+            template.update(['locked'])
+        yield
+        if not template.locked:
+            template.locked = True
+            template.update(['locked'])
