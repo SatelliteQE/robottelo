@@ -61,7 +61,7 @@ def provisioning_env(module_target_sat, discovery_org, discovery_location):
 
 @pytest.fixture
 def discovered_host(target_sat):
-    return target_sat.create_discovered_host()
+    return target_sat.api_factory.create_discovered_host()
 
 
 @pytest.fixture(scope='module')
@@ -237,7 +237,7 @@ def test_positive_auto_provision_host_with_rule(
     :CaseImportance: High
     """
     host_ip = gen_ipaddr()
-    discovered_host_name = target_sat.create_discovered_host(ip_address=host_ip)['name']
+    discovered_host_name = target_sat.api_factory.create_discovered_host(ip_address=host_ip)['name']
     domain = module_host_group.domain.read()
     discovery_rule = entities.DiscoveryRule(
         max_count=1,
@@ -296,7 +296,7 @@ def test_positive_update_default_taxonomies(session, discovery_org, discovery_lo
 
     :CaseImportance: High
     """
-    host_names = [target_sat.create_discovered_host()['name'] for _ in range(2)]
+    host_names = [target_sat.api_factory.create_discovered_host()['name'] for _ in range(2)]
     new_org = entities.Organization().create()
     discovery_location.organization.append(new_org)
     discovery_location.update(['organization'])
