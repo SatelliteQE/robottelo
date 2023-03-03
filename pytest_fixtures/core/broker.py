@@ -70,21 +70,34 @@ def class_target_sat(request, _default_sat, satellite_factory):
 
 
 @pytest.fixture(scope='session')
-def satellite_factory():
-    if settings.server.get('deploy_arguments'):
-        logger.debug(f'Original deploy arguments for sat: {settings.server.deploy_arguments}')
-        resolved = _resolve_deploy_args(settings.server.deploy_arguments)
-        settings.set('server.deploy_arguments', resolved)
-        logger.debug(f'Resolved deploy arguments for sat: {settings.server.deploy_arguments}')
+def satellite_factory(request):
+    if 'upgrade' in request.config.option.markexpr:
+        if settings.server.get('upgrade_deploy_arguments'):
+            logger.debug(
+                f'Original upgrade deploy arguments for '
+                f'sat: {settings.server.upgrade_deploy_arguments}'
+            )
+            resolved = _resolve_deploy_args(settings.server.upgrade_deploy_arguments)
+            settings.set('server.upgrade_deploy_arguments', resolved)
+            arguments = settings.server.upgrade_deploy_arguments
+            deploy_workflow = settings.server.upgrade_deploy_arguments.pop('deploy_workflow')
+            logger.debug(f'Resolved upgrade deploy arguments for sat: {arguments}')
+    else:
+        if settings.server.get('deploy_arguments'):
+            logger.debug(f'Original deploy arguments for sat: {settings.server.deploy_arguments}')
+            resolved = _resolve_deploy_args(settings.server.deploy_arguments)
+            settings.set('server.deploy_arguments', resolved)
+            arguments = settings.server.deploy_arguments
+            deploy_workflow = settings.server.deploy_arguments.pop('deploy_workflow')
+            logger.debug(f'Resolved deploy arguments for sat: {arguments}')
 
     def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
-        if settings.server.deploy_arguments:
-            broker_args.update(settings.server.deploy_arguments)
-            logger.debug(f'Updated broker args for sat: {broker_args}')
+        broker_args.update(arguments)
+        logger.debug(f'Updated broker args for sat: {broker_args}')
 
         vmb = Broker(
             host_class=Satellite,
-            workflow=workflow or settings.server.deploy_workflow,
+            workflow=workflow or deploy_workflow,
             **broker_args,
         )
         timeout = (1200 + delay) * retry_limit
