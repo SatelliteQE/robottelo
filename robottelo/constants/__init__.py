@@ -773,7 +773,6 @@ FAKE_0_CUSTOM_PACKAGE_GROUP = [
     'penguin-0.9.1-1.noarch',
     'stork-0.12-2.noarch',
 ]
-
 FAKE_1_YUM_REPO_RPMS = ['bear-4.1-1.noarch.rpm', 'camel-0.1-1.noarch.rpm', 'cat-1.0-1.noarch.rpm']
 FAKE_3_YUM_REPO_RPMS = [
     'ant-7.7.7-1.noarch.rpm',
