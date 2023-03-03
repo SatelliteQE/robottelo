@@ -222,7 +222,6 @@ def check_message_in_rhsm_log(message):
         delay=2,
     )
     logs = get_rhsm_log()
-    print(logs)
     for line in logs.split('\n'):
         if message in line:
             return message
