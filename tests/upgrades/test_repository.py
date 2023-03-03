@@ -16,23 +16,14 @@
 
 :Upstream: No
 """
-import os
-
 import pytest
 from broker import Broker
-from fabric.api import run
-from upgrade_tests.helpers.scenarios import rpm1
-from upgrade_tests.helpers.scenarios import rpm2
 
 from robottelo.config import settings
-from robottelo.hosts import ContentHost
-from robottelo.upgrade_utility import publish_content_view
-
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
 
 UPSTREAM_USERNAME = 'rTtest123'
-DOCKER_VM = settings.upgrade.docker_vm
-_, RPM1_NAME = os.path.split(rpm1)
-_, RPM2_NAME = os.path.split(rpm2)
 
 
 class TestScenarioRepositoryUpstreamAuthorizationCheck:
@@ -70,13 +61,15 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
         rake_repo = f'repo = Katello::Repository.find_by_id({custom_repo})'
         rake_username = f'; repo.root.upstream_username = "{UPSTREAM_USERNAME}"'
         rake_repo_save = '; repo.save!(validate: false)'
-        result = run(f"echo '{rake_repo}{rake_username}{rake_repo_save}'|foreman-rake console")
-        assert 'true' in result
+        result = target_sat.execute(
+            f"echo '{rake_repo}{rake_username}{rake_repo_save}'|foreman-rake console"
+        )
+        assert 'true' in result.stdout
 
         save_test_data({'repo_id': custom_repo})
 
     @pytest.mark.post_upgrade(depend_on=test_pre_repository_scenario_upstream_authorization)
-    def test_post_repository_scenario_upstream_authorization(self, pre_upgrade_data):
+    def test_post_repository_scenario_upstream_authorization(self, target_sat, pre_upgrade_data):
         """Verify upstream username for pre-upgrade created repository.
 
         :id: postupgrade-11c5ceee-bfe0-4ce9-8f7b-67a835baf522
@@ -95,8 +88,8 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
 
         rake_repo = f"repo = Katello::RootRepository.find_by_id({pre_upgrade_data['repo_id']})"
         rake_username = '; repo.root.upstream_username'
-        result = run(f"echo '{rake_repo}{rake_username}'|foreman-rake console")
-        assert UPSTREAM_USERNAME not in result
+        result = target_sat.execute(f"echo '{rake_repo}{rake_username}'|foreman-rake console")
+        assert UPSTREAM_USERNAME not in result.stdout
 
 
 class TestScenarioCustomRepoCheck:
@@ -120,7 +113,7 @@ class TestScenarioCustomRepoCheck:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_scenario_custom_repo_check(self, target_sat, save_test_data):
+    def test_pre_scenario_custom_repo_check(self, target_sat, sat_upgrade_chost, save_test_data):
         """This is pre-upgrade scenario test to verify if we can create a
          custom repository and consume it via content host.
 
@@ -143,34 +136,29 @@ class TestScenarioCustomRepoCheck:
         lce = target_sat.api.LifecycleEnvironment(organization=org).create()
 
         product = target_sat.api.Product(organization=org).create()
-        target_sat.create_custom_html_repo(rpm1)
-        repo = target_sat.api.Repository(
-            product=product.id, url=f'{target_sat.url}/pub/custom_repo'
-        ).create()
+        repo = target_sat.api.Repository(product=product.id, url=settings.repos.yum_1.url).create()
         repo.sync()
-
-        content_view = publish_content_view(org=org, repolist=repo)
+        content_view = target_sat.publish_content_view(org, repo)
         content_view.version[0].promote(data={'environment_ids': lce.id})
-
-        subscription = target_sat.api.Subscription(organization=org).search(
-            query={'search': f'name={product.name}'}
-        )[0]
         ak = target_sat.api.ActivationKey(
             content_view=content_view, organization=org.id, environment=lce
         ).create()
-        ak.add_subscriptions(data={'subscription_id': subscription.id})
-        rhel7_client = Broker(container_host='ubi7:latest', host_class=ContentHost).checkout()
-        rhel7_client.install_katello_ca(target_sat)
-        rhel7_client.register_contenthost(org.label, ak.name)
-        rhid = rhel7_client.execute('subscription-manager identity')
+        if not target_sat.is_sca_mode_enabled(org.id):
+            subscription = target_sat.api.Subscription(organization=org).search(
+                query={'search': f'name={product.name}'}
+            )[0]
+            ak.add_subscriptions(data={'subscription_id': subscription.id})
+        sat_upgrade_chost.install_katello_ca(target_sat)
+        sat_upgrade_chost.register_contenthost(org.label, ak.name)
+        rhid = sat_upgrade_chost.execute('subscription-manager identity')
         assert org.name in rhid.stdout
-        rhel7_client.execute('subscription-manager repos --enable=*;yum clean all')
-        result = rhel7_client.execute(f"yum install -y {RPM1_NAME.split('-')[0]}")
+        sat_upgrade_chost.execute('subscription-manager repos --enable=*;yum clean all')
+        result = sat_upgrade_chost.execute(f'yum install -y {FAKE_0_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0
 
         save_test_data(
             {
-                'rhel_client': rhel7_client.hostname,
+                'rhel_client': sat_upgrade_chost.hostname,
                 'content_view_name': content_view.name,
                 'lce_id': lce.id,
                 'repo_name': repo.name,
@@ -199,7 +187,6 @@ class TestScenarioCustomRepoCheck:
         lce_id = pre_upgrade_data.get('lce_id')
         repo_name = pre_upgrade_data.get('repo_name')
 
-        target_sat.create_custom_html_repo(rpm2, update=True, remove_rpm=rpm1)
         repo = target_sat.api.Repository(name=repo_name).search()[0]
         repo.sync()
 
@@ -212,6 +199,6 @@ class TestScenarioCustomRepoCheck:
             data={'environment_ids': lce_id}
         )
 
-        rhel7_client = Broker().from_inventory(filter=f'hostname={client_hostname}')[0]
-        result = rhel7_client.execute(f"yum install -y {RPM2_NAME.split('-')[0]}")
+        rhel_client = Broker().from_inventory(filter=f'hostname={client_hostname}')[0]
+        result = rhel_client.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0

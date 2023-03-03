@@ -145,7 +145,28 @@ class ContentInfo:
         return result
 
     def is_sca_mode_enabled(self, org_id):
+        """This method checks whether Simple Content Access (SCA) mode is enabled for a
+        given organization.
+
+        :param str org_id: The unique identifier of the organization to check for SCA mode.
+        :returns: A boolean value indicating whether SCA mode is enabled or not.
+        :rtype: bool
+        """
         return self.api.Organization(id=org_id).read().simple_content_access
+
+    def publish_content_view(self, org, repo_list):
+        """This method publishes the content view for a given organization and repository list.
+
+        :param str org: The name of the organization to which the content view belongs
+        :param list or str repo_list:  A list of repositories or a single repository
+
+        :returns: A dictionary containing the details of the published content view.
+        """
+        repo = repo_list if type(repo_list) is list else [repo_list]
+        content_view = self.api.ContentView(organization=org, repository=repo).create()
+        content_view.publish()
+        content_view = content_view.read()
+        return content_view
 
 
 class SystemInfo:
