@@ -268,13 +268,13 @@ class TestVirtWhoConfigforNutanix:
         :id: a169a843-6ec7-4ef1-b471-649304e77cf1268
 
         :expectedresults:
-            enable-ahv-debug option has been set to no
-            ahv_internal_debug bas been set to false in virt-who-config-X.conf
-            warning message exist in log file /var/log/rhsm/rhsm.log
-            ahv_internal_debug option can be updated
-            message Host UUID {system_uuid} found for VM: {guest_uuid} exist in rhsm.log
-            ahv_internal_debug bas been set to true in virt-who-config-X.conf
-            warning message does not exist in log file /var/log/rhsm/rhsm.log
+            1. enable-ahv-debug option has been set to no
+            2. ahv_internal_debug bas been set to false in virt-who-config-X.conf
+            3. warning message exist in log file /var/log/rhsm/rhsm.log
+            4. ahv_internal_debug option can be updated
+            5. message Host UUID {system_uuid} found for VM: {guest_uuid} exist in rhsm.log
+            6. ahv_internal_debug bas been set to true in virt-who-config-X.conf
+            7. warning message does not exist in log file /var/log/rhsm/rhsm.log
         :CaseLevel: Integration
 
         :CaseImportance: Medium
