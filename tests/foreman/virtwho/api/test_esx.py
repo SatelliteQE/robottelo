@@ -177,7 +177,7 @@ class TestVirtWhoConfigforEsx:
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
-        :id: be395108-3944-4a04-bee4-6bac3fa03a19
+        :id: 24bf4c5b-cc7a-40ac-9079-e59c73984081
 
         :expectedresults: debug option can be updated.
 
@@ -205,7 +205,7 @@ class TestVirtWhoConfigforEsx:
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
-        :id: 65f4138b-ca8f-4f1e-805c-1a331b951be5
+        :id: a9e06663-1158-4294-ab4c-daeabbb7b018
 
         :expectedresults: interval option can be updated.
 
@@ -274,7 +274,7 @@ class TestVirtWhoConfigforEsx:
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
-        :id: 1f251d89-5e22-4470-be4c-0aeba84c0273
+        :id: 165b3339-a89f-46ab-b88e-0329ff74906f
 
         :expectedresults: filter and filter_hosts can be updated.
 
@@ -324,7 +324,7 @@ class TestVirtWhoConfigforEsx:
 
         /foreman_virt_who_configure/api/v2/configs/:id""
 
-        :id: e1b00b46-d5e6-40d5-a955-a45a75a5cfad
+        :id: a9a59721-ef42-4ecf-8acc-07375106566d
 
         :expectedresults: http_proxy/https_proxy and no_proxy option can be updated.
 
@@ -369,7 +369,7 @@ class TestVirtWhoConfigforEsx:
 
         api/v2/organizations/:organization_id/configs"
 
-        :id: 5bf34bef-bf68-4557-978d-419bd4df0ba1
+        :id: ae83ef79-3e72-4d81-b3dc-f194e6795e56
 
         :expectedresults: Config can be searched in org list
 
@@ -392,7 +392,7 @@ class TestVirtWhoConfigforEsx:
     ):
         """Verify " hammer virt-who-config deploy hypervisor with special characters"
 
-        :id: 3a79d65a-e206-4693-a5ba-59f6c44c984e
+        :id: abd622ae-8589-4706-baca-666456bf826e
 
         :expectedresults: Config can be created and deployed without any error
 
@@ -443,7 +443,7 @@ class TestVirtWhoConfigforEsx:
     def test_positive_remove_env_option(self, default_org, form_data, virtwho_config, target_sat):
         """remove option 'env=' from the virt-who configuration file and without any error
 
-        :id: 981b6828-a7ed-46d9-9c6c-9fb22af4011e
+        :id: 0674e392-6fa5-4276-8c5a-e3cc1ab6f825
 
         :expectedresults:
             the option "env=" should be removed from etc/virt-who.d/virt-who.conf
