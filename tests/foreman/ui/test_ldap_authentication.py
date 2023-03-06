@@ -487,7 +487,7 @@ def test_positive_update_external_user_roles(
             ldapsession.location.create({'name': location_name})
             location = entities.Location().search(query={'search': f'name="{location_name}"'})[0]
             assert location.name == location_name
-        session.location.select('Any Location')
+        session.location.select('Any location')
         session.user.update(
             ldap_data['ldap_user_name'], {'roles.resources.assigned': [katello_role.name]}
         )
