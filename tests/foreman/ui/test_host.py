@@ -2347,7 +2347,7 @@ def test_positive_create_with_puppet_class(
     }
     with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
-        session.location.select(loc_name='Any location')
+        session.location.select(loc_name=ANY_CONTEXT['location'])
         session.host.create(values)
         assert session.host.search(host_name)[0]['Name'] == host_name
         values = session.host.read(host_name, widget_names='puppet_enc')
