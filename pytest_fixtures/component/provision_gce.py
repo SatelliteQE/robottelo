@@ -3,12 +3,14 @@ import json
 from tempfile import mkstemp
 
 import pytest
+from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
 from wrapanapi.systems.google import GoogleCloudSystem
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_PTABLE
+from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.exceptions import GCECertNotFoundError
 
 
@@ -104,3 +106,118 @@ def session_puppet_default_partition_table(session_puppet_enabled_sat):
         .read()
     )
     return ptable
+
+
+@pytest.fixture
+def gce_template(googleclient):
+    max_rhel7_template = max(
+        img.name for img in googleclient.list_templates(True) if str(img.name).startswith('rhel-7')
+    )
+    return googleclient.get_template(max_rhel7_template, project='rhel-cloud').uuid
+
+
+@pytest.fixture
+def gce_cloudinit_template(googleclient, gce_cert):
+    return googleclient.get_template('customcinit', project=gce_cert['project_id']).uuid
+
+
+@pytest.fixture
+def gce_domain(module_org, smart_proxy_location, gce_cert, target_sat):
+    domain_name = f'{settings.gce.zone}.c.{gce_cert["project_id"]}.internal'
+    domain = target_sat.api.Domain().search(query={'search': f'name={domain_name}'})
+    if domain:
+        domain = domain[0]
+        domain.organization = [module_org]
+        domain.location = [smart_proxy_location]
+        domain.update(['organization', 'location'])
+    if not domain:
+        domain = target_sat.api.Domain(
+            name=domain_name, location=[smart_proxy_location], organization=[module_org]
+        ).create()
+    return domain
+
+
+@pytest.fixture
+def gce_resource_with_image(
+    gce_template,
+    gce_cloudinit_template,
+    gce_cert,
+    default_architecture,
+    default_os,
+    smart_proxy_location,
+    module_org,
+    target_sat,
+):
+    json_key = json.dumps(gce_cert, indent=2)
+    with Session('gce_tests') as session:
+        # Until the CLI and API support is added for GCE,
+        # creating GCE CR from UI
+        cr_name = gen_string('alpha')
+        vm_user = gen_string('alpha')
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'provider': FOREMAN_PROVIDERS['google'],
+                'provider_content.json_key': json_key,
+                'provider_content.zone.value': settings.gce.zone,
+                'organizations.resources.assigned': [module_org.name],
+                'locations.resources.assigned': [smart_proxy_location.name],
+            }
+        )
+    gce_cr = target_sat.api.AbstractComputeResource().search(query={'search': f'name={cr_name}'})[0]
+    # Finish Image
+    target_sat.api.Image(
+        architecture=default_architecture,
+        compute_resource=gce_cr,
+        name='autogce_img',
+        operatingsystem=default_os,
+        username=vm_user,
+        uuid=gce_template,
+    ).create()
+    # Cloud-Init Image
+    target_sat.api.Image(
+        architecture=default_architecture,
+        compute_resource=gce_cr,
+        name='autogce_img_cinit',
+        operatingsystem=default_os,
+        username=vm_user,
+        uuid=gce_cloudinit_template,
+        user_data=True,
+    ).create()
+    return gce_cr
+
+
+@pytest.fixture
+def gce_hostgroup(
+    module_org,
+    smart_proxy_location,
+    default_partition_table,
+    default_architecture,
+    default_os,
+    gce_domain,
+    gce_resource_with_image,
+    module_lce,
+    module_cv_repo,
+    target_sat,
+):
+    return target_sat.api.HostGroup(
+        architecture=default_architecture,
+        compute_resource=gce_resource_with_image,
+        domain=gce_domain,
+        lifecycle_environment=module_lce,
+        content_view=module_cv_repo,
+        location=[smart_proxy_location],
+        operatingsystem=default_os,
+        organization=[module_org],
+        ptable=default_partition_table,
+    ).create()
+
+
+@pytest.fixture
+def remove_vm_on_delete(target_sat, setting_update):
+    setting_update.value = 'true'
+    setting_update.update({'value'})
+    assert (
+        target_sat.api.Setting().search(query={'search': 'name=destroy_vm_on_host_delete'})[0].value
+    )
+    yield

@@ -16,6 +16,7 @@
 
 :Upstream: No
 """
+import json
 import random
 from collections import namedtuple
 
@@ -79,15 +80,14 @@ class TestScenarioPositiveGCEHostComputeResource:
         arch, os, domain_name = arch_os_domain
         cr_name = gen_string('alpha')
         loc = entities.Location().create()
+        json_key = json.dumps(gce_cert, indent=2)
         with Session('gce_upgrade_tests') as session:
             # Compute Resource Create and Assertions
             session.computeresource.create(
                 {
                     'name': cr_name,
                     'provider': FOREMAN_PROVIDERS['google'],
-                    'provider_content.google_project_id': gce_cert['project_id'],
-                    'provider_content.client_email': gce_cert['client_email'],
-                    'provider_content.certificate_path': settings.gce.cert_path,
+                    'provider_content.json_key': json_key,
                     'provider_content.zone.value': settings.gce.zone,
                     'organizations.resources.assigned': [function_org.name],
                     'locations.resources.assigned': [loc.name],
