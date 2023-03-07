@@ -289,6 +289,7 @@ REPOSET = {
     'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7 Server'),
     'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise Linux 7 Server'),
     'rhae2': 'Red Hat Ansible Engine 2.9 RPMs for Red Hat Enterprise Linux 7 Server',
+    'rhae2.9_el8': 'Red Hat Ansible Engine 2.9 for RHEL 8 x86_64 (RPMs)',
     'rhst8': 'Red Hat Satellite Tools 6.9 for RHEL 8 x86_64 (RPMs)',
     'fdrh8': 'Fast Datapath for RHEL 8 x86_64 (RPMs)',
     'kickstart': {
@@ -444,6 +445,17 @@ REPOS = {
         'product': PRDS['rhae'],
         'distro': 'rhel7',
         'key': 'rhae2',
+    },
+    'rhae2.9_el8': {
+        'id': 'ansible-2.9-for-rhel-8-x86_64-rpms',
+        'name': 'Red Hat Ansible Engine 2.9 for RHEL 8 x86_64 RPMs',
+        'version': '2.9',
+        'releasever': None,
+        'arch': 'x86_64',
+        'reposet': REPOSET['rhae2.9_el8'],
+        'product': PRDS['rhae'],
+        'distro': 'rhel8',
+        'key': 'rhae2.9_el8',
     },
     'rhst8': {
         'id': 'satellite-tools-6.9-for-rhel-8-x86_64-rpms',
