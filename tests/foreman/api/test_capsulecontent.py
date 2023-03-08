@@ -1271,3 +1271,76 @@ class TestCapsuleContentManagement:
 
         # Check all sync tasks finished without errors.
         self.wait_for_sync(module_capsule_configured)
+
+    @pytest.mark.tier4
+    @pytest.mark.skip_if_not_set('capsule')
+    def test_positive_capsule_sync_status_persists(
+        self, target_sat, module_capsule_configured, function_org, function_product, function_lce
+    ):
+        """Synchronize a capsule, delete the task in foreman-rake,
+        and then verify that the capsule is still listed as synced
+
+        :id: aa3d7dbb-8cbb-441c-85c2-70e85794c3a9
+
+        :steps:
+            1. Create and Sync a Repo
+            2. Associate lifecycle env with capsule
+            3. Create a CV with the repo
+            4. Publish CV
+            5. Promote to lifecycle env
+            6. Sync Capsule
+            7. Delete the task using foreman-rake console
+            8. Verify the status of capsule is still synced
+
+        :expectedresults:
+            1. Capsule is still listed as synced.
+
+        :customerscenario: true
+
+        :bz: 1956985
+        """
+        repo_url = settings.repos.yum_1.url
+        repo = target_sat.api.Repository(product=function_product, url=repo_url).create()
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce.id}
+        )
+        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+
+        assert len(result['results'])
+        assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
+        repo.sync()
+        cv.publish()
+        cv = cv.read()
+
+        cvv = cv.version[-1].read()
+        cvv.promote(data={'environment_ids': function_lce.id})
+        cvv = cvv.read()
+
+        timestamp = (datetime.utcnow()).strftime('%Y-%m-%d %H:%M')
+        self.wait_for_sync(module_capsule_configured)
+
+        search_result = target_sat.wait_for_tasks(
+            search_query='label = Actions::Katello::CapsuleContent::Sync'
+            f' and organization_id = {function_org.id}'
+            f' and started_at >= "{timestamp}"',
+            search_rate=15,
+            max_tries=5,
+        )
+        # Delete the task using UUID (search_result[0].id)
+        task_result = target_sat.execute(
+            f"""echo "ForemanTasks::Task.find(
+            '{search_result[0].id}').destroy!" | foreman-rake console"""
+        )
+        assert task_result.status == 0
+        # Ensure task record was deleted.
+        task_result = target_sat.execute(
+            f"""echo "ForemanTasks::Task.find('{search_result[0].id}')" | foreman-rake console"""
+        )
+        assert task_result.status == 0
+        assert 'RecordNotFound' in task_result.stdout
+
+        # Check sync status again, and ensure last_sync_time is still correct
+        sync_status = module_capsule_configured.nailgun_capsule.content_get_sync()
+        assert sync_status['last_sync_time'] >= timestamp
