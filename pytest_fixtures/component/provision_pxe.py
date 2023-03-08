@@ -44,6 +44,21 @@ def module_provisioning_rhel_content(
     rh_repos = []
     tasks = []
     content_view = sat.api.ContentView(organization=module_sca_manifest_org).create()
+
+    # Custom Content for Client repo
+    custom_product = sat.api.Product(
+        organization=module_sca_manifest_org, name=f'rhel{rhel_ver}_{gen_string("alpha")}'
+    ).create()
+    client_repo = sat.api.Repository(
+        organization=module_sca_manifest_org,
+        product=custom_product,
+        content_type='yum',
+        url=settings.repos.SATCLIENT_REPO[f'rhel{rhel_ver}'],
+    ).create()
+    task = client_repo.sync(synchronous=False)
+    tasks.append(task)
+    content_view.repository = [client_repo]
+
     for name in repo_names:
         rh_kickstart_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,

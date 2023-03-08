@@ -226,6 +226,41 @@ def sat_ready_rhel(request):
         yield host
 
 
+@pytest.fixture(scope='module', params=[{'rhel_version': 8, 'no_containers': True}])
+def external_puppet_server(request):
+    deploy_args = host_conf(request)
+    deploy_args['target_cores'] = 2
+    deploy_args['target_memory'] = '4GiB'
+    with Broker(**deploy_args, host_class=ContentHost) as host:
+        host.register_to_cdn()
+        # Install puppet packages
+        assert (
+            host.execute(
+                'dnf install -y https://yum.puppet.com/puppet-release-el-8.noarch.rpm'
+            ).status
+            == 0
+        )
+        assert host.execute('dnf install -y puppetserver').status == 0
+        # Source puppet profiles
+        host.execute('. /etc/profile.d/puppet-agent.sh')
+        # Setup Puppet Server CA
+        assert host.execute('puppetserver ca setup').status == 0
+        # Set puppet server as $HOSTNAME
+        assert host.execute('puppet config set server $HOSTNAME').status == 0
+        assert host.hostname in host.execute('puppet config print server').stdout
+        # Enable service and setup firewall for puppetserver
+        assert host.execute('systemctl enable --now puppetserver').status == 0
+        assert host.execute('firewall-cmd --permanent --add-port="8140/tcp"').status == 0
+        assert host.execute('firewall-cmd --reload').status == 0
+        # Install theforeman/motd puppet module
+        puppet_prod_env = '/etc/puppetlabs/code/environments/production'
+        host.execute('puppet module install theforeman/motd')
+        host.execute(f'mkdir -p {puppet_prod_env}/manifests')
+        host.execute(f'echo "include motd" > {puppet_prod_env}/manifests/site.pp')
+
+        yield host
+
+
 @pytest.fixture(scope="module")
 def sat_upgrade_chost():
     """A module-level fixture that provides a UBI_8 content host for upgrade scenario testing"""
