@@ -1099,7 +1099,6 @@ class TestContentViewSync:
             {'id': cvv['id'], 'organization-id': function_entitlement_manifest_org.id},
             timeout=7200000,
         )
-
         import_path = target_sat.move_pulp_archive(
             function_entitlement_manifest_org, export['message']
         )

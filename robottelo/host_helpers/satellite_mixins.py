@@ -1,9 +1,9 @@
 import contextlib
-
 import io
 import os
 import random
 import re
+
 import requests
 
 from robottelo.cli.base import CLIReturnCodeError
