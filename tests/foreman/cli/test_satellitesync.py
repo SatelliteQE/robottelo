@@ -309,14 +309,19 @@ class TestRepositoryExport:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert target_sat.validate_pulp_filepath(module_entitlement_manifest_org, PULP_EXPORT_DIR) == ''
+        assert (
+            target_sat.validate_pulp_filepath(module_entitlement_manifest_org, PULP_EXPORT_DIR)
+            == ''
+        )
         # Export content view
         ContentExport.completeVersion(
             {'id': cvv['id'], 'organization-id': module_entitlement_manifest_org.id}
         )
         # Verify export directory is not empty
-        assert target_sat.validate_pulp_filepath(module_entitlement_manifest_org, PULP_EXPORT_DIR) != ''
-
+        assert (
+            target_sat.validate_pulp_filepath(module_entitlement_manifest_org, PULP_EXPORT_DIR)
+            != ''
+        )
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -366,11 +371,17 @@ class TestRepositoryExport:
         )
         ContentView.publish({'id': cv['id']})
         # Verify export directory is empty
-        assert target_sat.validate_pulp_filepath(function_entitlement_manifest_org, PULP_EXPORT_DIR) == ''
+        assert (
+            target_sat.validate_pulp_filepath(function_entitlement_manifest_org, PULP_EXPORT_DIR)
+            == ''
+        )
         # Export content view
         ContentExport.completeLibrary({'organization-id': function_entitlement_manifest_org.id})
         # Verify export directory is not empty
-        assert target_sat.validate_pulp_filepath(function_entitlement_manifest_org, PULP_EXPORT_DIR) != ''
+        assert (
+            target_sat.validate_pulp_filepath(function_entitlement_manifest_org, PULP_EXPORT_DIR)
+            != ''
+        )
 
 
 @pytest.fixture(scope='class')
@@ -954,13 +965,18 @@ class TestContentViewSync:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert target_sat.validate_pulp_filepath(function_entitlement_manifest_org, PULP_EXPORT_DIR) == ''
+        assert (
+            target_sat.validate_pulp_filepath(function_entitlement_manifest_org, PULP_EXPORT_DIR)
+            == ''
+        )
         # Export cv
         export = ContentExport.completeVersion(
             {'id': cvv['id'], 'organization-id': function_entitlement_manifest_org.id},
             timeout=7200000,
         )
-        import_path = target_sat.move_pulp_archive(function_entitlement_manifest_org, export['message'])
+        import_path = target_sat.move_pulp_archive(
+            function_entitlement_manifest_org, export['message']
+        )
         exported_packages = Package.list({'content-view-version-id': cvv['id']})
         assert len(exported_packages)
 
@@ -1083,7 +1099,10 @@ class TestContentViewSync:
             {'id': cvv['id'], 'organization-id': function_entitlement_manifest_org.id},
             timeout=7200000,
         )
-        import_path = target_sat.move_pulp_archive(function_entitlement_manifest_org, export['message'])
+
+        import_path = target_sat.move_pulp_archive(
+            function_entitlement_manifest_org, export['message']
+        )
         exported_packages = Package.list({'content-view-version-id': cvv['id']})
         assert len(exported_packages)
         # importing portion
@@ -1687,12 +1706,17 @@ class TestContentViewSync:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert target_sat.validate_pulp_filepath(function_entitlement_manifest_org, PULP_EXPORT_DIR) == ''
+        assert (
+            target_sat.validate_pulp_filepath(function_entitlement_manifest_org, PULP_EXPORT_DIR)
+            == ''
+        )
         # Export cv
         export = ContentExport.completeVersion(
             {'id': cvv['id'], 'organization-id': function_entitlement_manifest_org.id}
         )
-        import_path = target_sat.move_pulp_archive(function_entitlement_manifest_org, export['message'])
+        import_path = target_sat.move_pulp_archive(
+            function_entitlement_manifest_org, export['message']
+        )
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
