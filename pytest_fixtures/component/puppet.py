@@ -2,27 +2,10 @@
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import COMMON_INSTALLER_OPTS as common_opts
 from robottelo.constants import ENVIRONMENT
 from robottelo.utils.installer import InstallerCommand
 
-
-common_opts = {
-    'foreman-proxy-puppetca': 'true',
-    'foreman-proxy-puppet': 'true',
-    'puppet-server': 'true',
-    # Options for puppetbootstrap test
-    'foreman-proxy-templates': 'true',
-    'foreman-proxy-http': 'true',
-}
-
-enable_satellite_cmd = InstallerCommand(
-    installer_args=[
-        'enable-foreman-plugin-puppet',
-        'enable-foreman-cli-puppet',
-        'enable-puppet',
-    ],
-    installer_opts=common_opts,
-)
 
 enable_capsule_cmd = InstallerCommand(
     installer_args=[
@@ -35,10 +18,7 @@ enable_capsule_cmd = InstallerCommand(
 @pytest.fixture(scope='session')
 def session_puppet_enabled_sat(session_satellite_host):
     """Satellite with enabled puppet plugin"""
-    result = session_satellite_host.execute(enable_satellite_cmd.get_command(), timeout='20m')
-    assert result.status == 0
-    session_satellite_host.execute('hammer -r')  # workaround for BZ#2039696
-    yield session_satellite_host
+    yield session_satellite_host.enable_puppet()
 
 
 @pytest.fixture(scope='module')

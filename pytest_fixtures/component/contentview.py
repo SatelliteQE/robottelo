@@ -54,29 +54,3 @@ def module_cv_repo(module_org, module_repository, module_lce, module_target_sat)
     content_view = content_view.read()
     content_view.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
     return content_view
-
-
-@pytest.fixture
-def set_importing_org(request, module_target_sat):
-    """
-    Sets same CV, product and repository in importing organization as exporting organization
-    """
-    product_name, repo_name, cv_name, mos = request.param
-    importing_org = module_target_sat.api.Organization().create()
-    importing_prod = module_target_sat.api.Product(
-        organization=importing_org, name=product_name
-    ).create()
-
-    importing_repo = module_target_sat.api.Repository(
-        name=repo_name,
-        mirror_on_sync=mos,
-        download_policy='immediate',
-        product=importing_prod,
-    ).create()
-
-    importing_cv = module_target_sat.api.ContentView(
-        name=cv_name, organization=importing_org
-    ).create()
-    importing_cv.repository = [importing_repo]
-    importing_cv.update(['repository'])
-    yield [importing_cv, importing_org]

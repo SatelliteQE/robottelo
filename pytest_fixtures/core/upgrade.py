@@ -4,7 +4,7 @@ import pytest
 @pytest.fixture(scope="function")
 def dependent_scenario_name(request):
     """
-    This fixture is used to collect the depend test case name.
+    This fixture is used to collect the dependent test case name.
     """
     depend_test_name = [
         mark.kwargs['depend_on'].__name__
