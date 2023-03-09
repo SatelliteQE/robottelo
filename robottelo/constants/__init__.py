@@ -1103,6 +1103,21 @@ CUSTOM_PUPPET_MODULE_REPOS = {
 }
 CUSTOM_PUPPET_MODULE_REPOS_VERSION = '-0.2.0.tar.gz'
 
+PULP_EXPORT_DIR = '/var/lib/pulp/exports/'
+PULP_IMPORT_DIR = '/var/lib/pulp/imports/'
+COMMON_INSTALLER_OPTS = {
+    'foreman-proxy-puppetca': 'true',
+    'foreman-proxy-content-puppet': 'true',
+    'foreman-proxy-puppet': 'true',
+    'puppet-server': 'true',
+    'puppet-server-foreman-ssl-ca': '/etc/pki/katello/puppet/puppet_client_ca.crt',
+    'puppet-server-foreman-ssl-cert': '/etc/pki/katello/puppet/puppet_client.crt',
+    'puppet-server-foreman-ssl-key': '/etc/pki/katello/puppet/puppet_client.key',
+    # Options for puppetbootstrap test
+    'foreman-proxy-templates': 'true',
+    'foreman-proxy-http': 'true',
+}
+
 KICKSTART_CONTENT = [
     'treeinfo',
     'images/pxeboot/initrd.img',
