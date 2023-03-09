@@ -19,7 +19,6 @@
 import pytest
 
 from pytest_fixtures.component.puppet import enable_capsule_cmd
-from pytest_fixtures.component.puppet import enable_satellite_cmd
 from robottelo.hosts import Satellite
 
 puppet_cli_commands = [
@@ -95,9 +94,7 @@ def test_positive_enable_disable_logic(target_sat, capsule_configured):
 
     # Enable puppet on Satellite and check it succeeded.
     target_sat.register_to_cdn()
-    result = target_sat.execute(enable_satellite_cmd.get_command(), timeout='20m')
-    assert result.status == 0
-    assert 'Success!' in result.stdout
+    target_sat.enable_puppet()
 
     assert_puppet_status(target_sat, expected=True)
 

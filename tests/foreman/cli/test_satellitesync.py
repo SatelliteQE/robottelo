@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-import os.path
-import re
 from random import randint
 
 import pytest
@@ -44,12 +42,11 @@ from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import PRDS
+from robottelo.constants import PULP_EXPORT_DIR
+from robottelo.constants import PULP_IMPORT_DIR
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import ANSIBLE_GALAXY
-
-EXPORT_DIR = '/var/lib/pulp/exports/'
-IMPORT_DIR = '/var/lib/pulp/imports/'
 
 
 @pytest.fixture(scope='class')
@@ -70,8 +67,10 @@ def export_import_cleanup_function(target_sat, function_org):
     """Deletes export/import dirs of function org"""
     yield
     # Deletes directories created for export/import test
-    target_sat.execute(f'rm -rf {EXPORT_DIR}/{function_org.name}')
-    target_sat.execute(f'rm -rf {IMPORT_DIR}/{function_org.name}')
+    target_sat.execute(
+        f'rm -rf {PULP_EXPORT_DIR}/{function_org.name} {PULP_IMPORT_DIR}/{function_org.name}',
+        status=0,
+    )
 
 
 @pytest.fixture(scope='function')  # perform the cleanup after each testcase of a module
@@ -79,32 +78,9 @@ def export_import_cleanup_module(target_sat, module_org):
     """Deletes export/import dirs of module_org"""
     yield
     # Deletes directories created for export/import test
-    target_sat.execute(f'rm -rf {EXPORT_DIR}/{module_org.name}')
-    target_sat.execute(f'rm -rf {IMPORT_DIR}/{module_org.name}')
-
-
-def validate_filepath(sat_obj, org):
-    """Checks the existence of certain files in a dir"""
-    result = sat_obj.execute(
-        fr'find {EXPORT_DIR}{org.name} -type f \( -name "*.json" -o -name "*.tar.gz" \)'
+    target_sat.execute(
+        f'rm -rf {PULP_EXPORT_DIR}/{module_org.name} {PULP_IMPORT_DIR}/{module_org.name}'
     )
-    return result.stdout
-
-
-def move_pulp_archive(sat_obj, org, export_message):
-    """
-    Moves exported archive(s) and its metadata into import directory,
-    sets ownership, returns import path
-    """
-    sat_obj.execute(f'mv {EXPORT_DIR}/{org.name} {IMPORT_DIR}')
-    sat_obj.execute(f'chown -R pulp:pulp {IMPORT_DIR}')
-
-    # removes everything before export path,
-    # replaces EXPORT_PATH by IMPORT_PATH,
-    # removes metadata filename
-    import_path = os.path.dirname(re.sub(rf'.*{EXPORT_DIR}', IMPORT_DIR, export_message))
-
-    return import_path
 
 
 @pytest.mark.run_in_one_thread
@@ -149,11 +125,11 @@ class TestRepositoryExport:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert validate_filepath(target_sat, module_org) == ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
         # Export content view
         ContentExport.completeVersion({'id': cvv['id'], 'organization-id': module_org.id})
         # Verify export directory is not empty
-        assert validate_filepath(target_sat, module_org) != ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) != ''
 
     @pytest.mark.tier3
     def test_positive_export_incremental_version_custom_repo(
@@ -197,12 +173,12 @@ class TestRepositoryExport:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert validate_filepath(target_sat, module_org) == ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
         # Export complete first, then incremental
         ContentExport.completeVersion({'id': cvv['id'], 'organization-id': module_org.id})
         ContentExport.incrementalVersion({'id': cvv['id'], 'organization-id': module_org.id})
         # Verify export directory is not empty
-        assert validate_filepath(target_sat, module_org) != ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) != ''
 
     @pytest.mark.tier3
     def test_positive_export_complete_library_custom_repo(
@@ -237,11 +213,11 @@ class TestRepositoryExport:
         )
         ContentView.publish({'id': cv['id']})
         # Verify export directory is empty
-        assert validate_filepath(target_sat, function_org) == ''
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
         # Export content view
         ContentExport.completeLibrary({'organization-id': function_org.id})
         # Verify export directory is not empty
-        assert validate_filepath(target_sat, function_org) != ''
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
 
     @pytest.mark.tier3
     def test_positive_export_incremental_library_custom_repo(
@@ -277,12 +253,12 @@ class TestRepositoryExport:
         )
         ContentView.publish({'id': cv['id']})
         # Verify export directory is empty
-        assert validate_filepath(target_sat, function_org) == ''
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
         # Export complete library, then export incremental
         ContentExport.completeLibrary({'organization-id': function_org.id})
         ContentExport.incrementalLibrary({'organization-id': function_org.id})
         # Verify export directory is not empty
-        assert validate_filepath(target_sat, function_org) != ''
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
 
     @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier3
@@ -337,11 +313,11 @@ class TestRepositoryExport:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert validate_filepath(target_sat, module_org) == ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
         # Export content view
         ContentExport.completeVersion({'id': cvv['id'], 'organization-id': module_org.id})
         # Verify export directory is not empty
-        assert validate_filepath(target_sat, module_org) != ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) != ''
 
     @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier3
@@ -393,11 +369,11 @@ class TestRepositoryExport:
         )
         ContentView.publish({'id': cv['id']})
         # Verify export directory is empty
-        assert validate_filepath(target_sat, function_org) == ''
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
         # Export content view
         ContentExport.completeLibrary({'organization-id': function_org.id})
         # Verify export directory is not empty
-        assert validate_filepath(target_sat, function_org) != ''
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
 
 
 @pytest.fixture(scope='class')
@@ -583,12 +559,12 @@ class TestContentViewSync:
         exported_packages = Package.list({'content-view-version-id': export_cvv_id})
         assert len(exported_packages)
         # Verify export directory is empty
-        assert validate_filepath(target_sat, module_org) == ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
         # Export cv
         export = ContentExport.completeVersion(
             {'id': export_cvv_id, 'organization-id': module_org.id}
         )
-        import_path = move_pulp_archive(target_sat, module_org, export['message'])
+        import_path = target_sat.move_pulp_archive(module_org, export['message'])
 
         # importing portion
         importing_org = make_org()
@@ -696,11 +672,11 @@ class TestContentViewSync:
         cv_packages = Package.list({'content-view-version-id': default_cvv_id})
         assert len(cv_packages)
         # Verify export directory is empty
-        assert validate_filepath(target_sat, function_org) == ''
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
         # Export complete library
         export = ContentExport.completeLibrary({'organization-id': function_org.id})
         # Verify 'export-library' is created and packages are there
-        import_path = move_pulp_archive(target_sat, function_org, export['message'])
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
         export_lib_cv = ContentView.info(
             {
                 'name': export_library,
@@ -797,12 +773,12 @@ class TestContentViewSync:
         export_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         assert len(export_packages) == 1
         # Verify export directory is empty
-        assert validate_filepath(target_sat, module_org) == ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
         # Export cv
         export = ContentExport.completeVersion(
             {'id': exporting_cvv_id, 'organization-id': module_org.id}
         )
-        import_path = move_pulp_archive(target_sat, module_org, export['message'])
+        import_path = target_sat.move_pulp_archive(module_org, export['message'])
 
         # Import section
         importing_org = make_org()
@@ -867,12 +843,12 @@ class TestContentViewSync:
         exported_packages = Package.list({'content-view-version-id': promoted_cvv_id})
         assert len(exported_packages)
         # Verify export directory is empty
-        assert validate_filepath(target_sat, module_org) == ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
         # Export cv
         export = ContentExport.completeVersion(
             {'id': export_cvv_id, 'organization-id': module_org.id}
         )
-        import_path = move_pulp_archive(target_sat, module_org, export['message'])
+        import_path = target_sat.move_pulp_archive(module_org, export['message'])
 
         # importing portion
         importing_org = make_org()
@@ -972,12 +948,13 @@ class TestContentViewSync:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert validate_filepath(target_sat, function_org) == ''
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
         # Export cv
         export = ContentExport.completeVersion(
-            {'id': cvv['id'], 'organization-id': function_org.id}
+            {'id': cvv['id'], 'organization-id': function_org.id},
+            timeout=7200000,
         )
-        import_path = move_pulp_archive(target_sat, function_org, export['message'])
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
         exported_packages = Package.list({'content-view-version-id': cvv['id']})
         assert len(exported_packages)
 
@@ -1091,9 +1068,10 @@ class TestContentViewSync:
         cvv = cv['versions'][0]
         # Export cv
         export = ContentExport.completeVersion(
-            {'id': cvv['id'], 'organization-id': function_org.id}, timeout=7200000
+            {'id': cvv['id'], 'organization-id': function_org.id},
+            timeout=7200000,
         )
-        import_path = move_pulp_archive(target_sat, function_org, export['message'])
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
         exported_packages = Package.list({'content-view-version-id': cvv['id']})
         assert len(exported_packages)
         # importing portion
@@ -1198,7 +1176,7 @@ class TestContentViewSync:
         ContentView.publish({'id': cv['id']})
 
         # Verify export directory is empty
-        assert validate_filepath(target_sat, module_org) == ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
 
         # Export Content View version
         result = ContentExport.completeVersion(
@@ -1218,7 +1196,7 @@ class TestContentViewSync:
 
         # Export is generated
         assert "Generated" in result
-        assert validate_filepath(target_sat, module_org) != ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) != ''
 
     @pytest.mark.tier2
     def test_negative_import_same_cv_twice(
@@ -1250,12 +1228,12 @@ class TestContentViewSync:
         export_cvv_id = class_export_entities['exporting_cvv_id']
         export_cv_name = class_export_entities['exporting_cv_name']
         # Verify export directory is empty
-        assert validate_filepath(target_sat, module_org) == ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
         # Export cv
         export = ContentExport.completeVersion(
             {'id': export_cvv_id, 'organization-id': module_org.id}
         )
-        import_path = move_pulp_archive(target_sat, module_org, export['message'])
+        import_path = target_sat.move_pulp_archive(module_org, export['message'])
 
         # importing portion
         importing_org = make_org()
@@ -1290,7 +1268,7 @@ class TestContentViewSync:
                 displayed
         """
         export_folder = gen_string('alpha')
-        import_path = f'{IMPORT_DIR}{export_folder}'
+        import_path = f'{PULP_IMPORT_DIR}{export_folder}'
         # Import section
         with pytest.raises(CLIReturnCodeError) as error:
             ContentImport.version({'organization-id': module_org.id, 'path': import_path})
@@ -1366,7 +1344,7 @@ class TestContentViewSync:
         ContentView.publish({'id': cv['id']})
 
         # Verify export directory is empty
-        assert validate_filepath(target_sat, module_org) == ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
 
         # Export Content View version
         with pytest.raises(CLIReturnCodeError) as error:
@@ -1378,7 +1356,7 @@ class TestContentViewSync:
             assert error.status != 0
 
         # Export is not generated
-        assert validate_filepath(target_sat, module_org) == ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
 
     @pytest.mark.tier2
     def test_positive_create_custom_major_minor_cv_version(self):
@@ -1484,13 +1462,13 @@ class TestContentViewSync:
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id['id']})
         assert len(exported_packages)
         # Verify export directory is empty
-        assert validate_filepath(target_sat, module_org) == ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
         # Export cv
         ContentExport.completeVersion(
             {'id': exporting_cvv_id['id'], 'organization-id': module_org.id}
         )
         # Verify export directory is not empty
-        assert validate_filepath(target_sat, module_org) != ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) != ''
 
     @pytest.mark.tier3
     def test_postive_import_export_cv_with_file_content(
@@ -1544,12 +1522,12 @@ class TestContentViewSync:
         exported_files = File.list({'content-view-version-id': exporting_cvv_id})
         assert len(exported_files)
         # Verify export directory is empty
-        assert validate_filepath(target_sat, module_org) == ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
         # Export cv
         export = ContentExport.completeVersion(
             {'id': exporting_cvv_id, 'organization-id': module_org.id}
         )
-        import_path = move_pulp_archive(target_sat, module_org, export['message'])
+        import_path = target_sat.move_pulp_archive(module_org, export['message'])
 
         # importing portion
         importing_org = make_org()
@@ -1606,7 +1584,7 @@ class TestContentViewSync:
         Repository.synchronize({'id': ansible_repo['id']})
         # Export library
         export = ContentExport.completeLibrary({'organization-id': function_org.id})
-        import_path = move_pulp_archive(target_sat, function_org, export['message'])
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
 
         # importing portion
         importing_org = make_org()
@@ -1695,12 +1673,12 @@ class TestContentViewSync:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert validate_filepath(target_sat, function_org) == ''
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
         # Export cv
         export = ContentExport.completeVersion(
             {'id': cvv['id'], 'organization-id': function_org.id}
         )
-        import_path = move_pulp_archive(target_sat, function_org, export['message'])
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
         # check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
@@ -1746,12 +1724,12 @@ class TestContentViewSync:
         export_cvv_id = class_export_entities['exporting_cvv_id']
         export_cv_name = class_export_entities['exporting_cv_name']
         # Verify export directory is empty
-        assert validate_filepath(target_sat, module_org) == ''
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
         # Export cv
         export = ContentExport.completeVersion(
             {'id': export_cvv_id, 'organization-id': module_org.id}
         )
-        import_path = move_pulp_archive(target_sat, module_org, export['message'])
+        import_path = target_sat.move_pulp_archive(module_org, export['message'])
         # importing portion
         importing_org = make_org()
         # set disconnected mode
