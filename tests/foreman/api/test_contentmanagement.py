@@ -1234,7 +1234,7 @@ class TestCapsuleContentManagement:
         target_sat.api.LifecycleEnvironment(
             id=function_lce.id, registry_unauthenticated_pull='true'
         ).update(['registry_unauthenticated_pull'])
-        
+
         sleep(20)
 
         skopeo_cmd = 'skopeo --debug inspect docker://'
