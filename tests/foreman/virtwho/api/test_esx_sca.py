@@ -185,12 +185,17 @@ class TestVirtWhoConfigforEsx:
         self, module_sca_manifest_org, form_data, target_sat, filter_type, option_type
     ):
         """Verify filter option by "PUT
+
         /foreman_virt_who_configure/api/v2/configs/:id"
+
         :id: 443d534a-0eb0-42fb-abcf-15081371a5a9
+
         :expectedresults:
             1. filter and filter_hosts can be updated.
             2. create virt-who config with filter and filter_hosts options work well.
+
         :CaseLevel: Integration
+
         :CaseImportance: Medium
         """
         regex = '.*redhat.com'
@@ -436,8 +441,8 @@ class TestVirtWhoConfigforEsx:
         :id: c6b4ae5a-4369-4a1d-9fa5-e17b7a729027
 
         :expectedresults:
-            the option "env=" should be removed from etc/virt-who.d/virt-who.conf
-            /var/log/messages should not display warning message
+            1. the option "env=" should be removed from etc/virt-who.d/virt-who.conf
+            2. /var/log/messages should not display warning message
 
         :CaseLevel: Integration
 
