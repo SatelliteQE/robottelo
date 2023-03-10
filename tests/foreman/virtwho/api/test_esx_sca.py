@@ -12,8 +12,6 @@
 
 :TestType: Functional
 
-:CaseImportance: High
-
 :Upstream: No
 """
 import pytest
@@ -109,8 +107,8 @@ class TestVirtWhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        options = {'true': '1', 'false': '0', '1': '1', '0': '0'}
-        for key, value in sorted(options.items(), key=lambda item: item[0]):
+        options = {'0': '0', '1': '1', 'false': '0', 'true': '1'}
+        for key, value in options.items():
             virtwho_config.debug = key
             virtwho_config.update(['debug'])
             command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
@@ -145,7 +143,7 @@ class TestVirtWhoConfigforEsx:
             '2880': '172800',
             '4320': '259200',
         }
-        for key, value in sorted(options.items(), key=lambda item: int(item[0])):
+        for key, value in options.items():
             virtwho_config.interval = key
             virtwho_config.update(['interval'])
             command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
@@ -170,8 +168,7 @@ class TestVirtWhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        values = ['uuid', 'hostname']
-        for value in values:
+        for value in ['uuid', 'hostname']:
             virtwho_config.hypervisor_id = value
             virtwho_config.update(['hypervisor_id'])
             config_file = get_configure_file(virtwho_config.id)
@@ -182,123 +179,100 @@ class TestVirtWhoConfigforEsx:
             assert get_configure_option('hypervisor_id', config_file) == value
 
     @pytest.mark.tier2
-    def test_positive_filter_option(self, module_sca_manifest_org, form_data, target_sat):
+    @pytest.mark.parametrize('filter_type', ['whitelist', 'blacklist'])
+    @pytest.mark.parametrize('option_type', ['edit', 'create'])
+    def test_positive_filter_option(
+        self, module_sca_manifest_org, form_data, target_sat, filter_type, option_type
+    ):
         """Verify filter option by "PUT
-
         /foreman_virt_who_configure/api/v2/configs/:id"
-
         :id: 443d534a-0eb0-42fb-abcf-15081371a5a9
-
         :expectedresults:
             1. filter and filter_hosts can be updated.
             2. create virt-who config with filter and filter_hosts options work well.
-
         :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
-        virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
         regex = '.*redhat.com'
         whitelist = {'filtering_mode': '1', 'whitelist': regex}
         blacklist = {'filtering_mode': '2', 'blacklist': regex}
-        # esx support filter-host-parents and exclude-host-parents options
-        whitelist['filter_host_parents'] = regex
-        blacklist['exclude_host_parents'] = regex
-        # Update Whitelist and check the result
-        virtwho_config.filtering_mode = whitelist['filtering_mode']
-        virtwho_config.whitelist = whitelist['whitelist']
-        virtwho_config.filter_host_parents = whitelist['filter_host_parents']
-        virtwho_config.update(whitelist.keys())
-        command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
-        deploy_configure_by_command(
-            command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
-        )
-        config_file = get_configure_file(virtwho_config.id)
-        assert get_configure_option('filter_hosts', config_file) == whitelist['whitelist']
-        assert (
-            get_configure_option('filter_host_parents', config_file)
-            == whitelist['filter_host_parents']
-        )
-        result = target_sat.api.VirtWhoConfig().search(
-            query={'search': f'name={virtwho_config.name}'}
-        )[0]
-        assert result.whitelist == regex
-        assert result.filter_host_parents == regex
-
-        # Update Blacklist and check the result
-        virtwho_config.filtering_mode = blacklist['filtering_mode']
-        virtwho_config.blacklist = blacklist['blacklist']
-        virtwho_config.exclude_host_parents = blacklist['exclude_host_parents']
-        virtwho_config.update(blacklist.keys())
-        command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
-        deploy_configure_by_command(
-            command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
-        )
-        config_file = get_configure_file(virtwho_config.id)
-        assert get_configure_option('exclude_hosts', config_file) == blacklist['blacklist']
-        assert (
-            get_configure_option('exclude_host_parents', config_file)
-            == blacklist['exclude_host_parents']
-        )
-        result = target_sat.api.VirtWhoConfig().search(
-            query={'search': f'name={virtwho_config.name}'}
-        )[0]
-        assert result.blacklist == regex
-        assert result.exclude_host_parents == regex
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
-
-        # Create a new virt-who config with filtering-mode whitelist
-        form_data['filtering_mode'] = 1
-        form_data['whitelist'] = regex
-        form_data['filter_host_parents'] = regex
         virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
-        command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
-        deploy_configure_by_command(
-            command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
-        )
-        config_file = get_configure_file(virtwho_config.id)
-        assert get_configure_option('filter_hosts', config_file) == regex
-        assert (
-            get_configure_option('filter_host_parents', config_file)
-            == whitelist['filter_host_parents']
-        )
-        result = target_sat.api.VirtWhoConfig().search(
-            query={'search': f'name={virtwho_config.name}'}
-        )[0]
-        assert result.whitelist == regex
-        assert result.filter_host_parents == regex
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
+        if option_type == "edit":
+            if filter_type == "whitelist":
+                whitelist['filter_host_parents'] = regex
+                virtwho_config.filtering_mode = whitelist['filtering_mode']
+                virtwho_config.whitelist = whitelist['whitelist']
+                virtwho_config.filter_host_parents = whitelist['filter_host_parents']
+                virtwho_config.update(whitelist.keys())
+            elif filter_type == "blacklist":
+                blacklist['exclude_host_parents'] = regex
+                virtwho_config.filtering_mode = blacklist['filtering_mode']
+                virtwho_config.blacklist = blacklist['blacklist']
+                virtwho_config.exclude_host_parents = blacklist['exclude_host_parents']
+                virtwho_config.update(blacklist.keys())
+            command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
+            deploy_configure_by_command(
+                command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+            )
+            config_file = get_configure_file(virtwho_config.id)
+            result = target_sat.api.VirtWhoConfig().search(
+                query={'search': f'name={virtwho_config.name}'}
+            )[0]
+            if filter_type == "whitelist":
+                assert get_configure_option('filter_hosts', config_file) == whitelist['whitelist']
+                assert (
+                    get_configure_option('filter_host_parents', config_file)
+                    == whitelist['filter_host_parents']
+                )
+                assert result.whitelist == regex
+                assert result.filter_host_parents == regex
+            elif filter_type == "blacklist":
+                assert get_configure_option('exclude_hosts', config_file) == blacklist['blacklist']
+                assert (
+                    get_configure_option('exclude_host_parents', config_file)
+                    == blacklist['exclude_host_parents']
+                )
+                assert result.blacklist == regex
+                assert result.exclude_host_parents == regex
+        elif option_type == "create":
+            virtwho_config.delete()
+            assert not target_sat.api.VirtWhoConfig().search(
+                query={'search': f"name={form_data['name']}"}
+            )
+            if filter_type == "whitelist":
+                form_data['filtering_mode'] = 1
+                form_data['whitelist'] = regex
+                form_data['filter_host_parents'] = regex
+            elif filter_type == "blacklist":
+                form_data['filtering_mode'] = 2
+                form_data['blacklist'] = regex
+                form_data['exclude_host_parents'] = regex
+            virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
+            command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
+            deploy_configure_by_command(
+                command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+            )
+            config_file = get_configure_file(virtwho_config.id)
+            result = target_sat.api.VirtWhoConfig().search(
+                query={'search': f'name={virtwho_config.name}'}
+            )[0]
+            if filter_type == "whitelist":
+                assert get_configure_option('filter_hosts', config_file) == regex
+                assert (
+                    get_configure_option('filter_host_parents', config_file)
+                    == whitelist['filter_host_parents']
+                )
+                assert result.whitelist == regex
+                assert result.filter_host_parents == regex
 
-        # Create a new virt-who config with filtering-mode blacklist
-        form_data['filtering_mode'] = 2
-        form_data['blacklist'] = regex
-        form_data['exclude_host_parents'] = regex
-        virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
-        command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
-        deploy_configure_by_command(
-            command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
-        )
-        config_file = get_configure_file(virtwho_config.id)
-        assert get_configure_option('exclude_hosts', config_file) == regex
-        assert (
-            get_configure_option('exclude_host_parents', config_file)
-            == blacklist['exclude_host_parents']
-        )
-        result = target_sat.api.VirtWhoConfig().search(
-            query={'search': f'name={virtwho_config.name}'}
-        )[0]
-        assert result.blacklist == regex
-        assert result.exclude_host_parents == regex
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
+            elif filter_type == "blacklist":
+                assert get_configure_option('exclude_hosts', config_file) == regex
+                assert (
+                    get_configure_option('exclude_host_parents', config_file)
+                    == blacklist['exclude_host_parents']
+                )
+                assert result.blacklist == regex
+                assert result.exclude_host_parents == regex
 
     @pytest.mark.tier2
     def test_positive_proxy_option(self, module_sca_manifest_org, form_data, target_sat):
@@ -404,7 +378,7 @@ class TestVirtWhoConfigforEsx:
     def test_positive_deploy_configure_hypervisor_password_with_special_characters(
         self, module_sca_manifest_org, form_data, target_sat
     ):
-        """Verify " hammer virt-who-config deploy hypervisor with special characters"
+        """Verify "hammer virt-who-config deploy hypervisor with special characters"
 
         :id: 7d957371-ae2e-440d-8e19-22eb34922b36
 
