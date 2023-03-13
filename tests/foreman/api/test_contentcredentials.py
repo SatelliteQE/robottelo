@@ -251,7 +251,7 @@ def test_positive_block_delete_key_in_use(module_org, target_sat):
     # Create new product with gpg, and a single associated repository
     product = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
     repo = target_sat.api.Repository(product=product).create()
-    product = product.update()
+    product.sync()
 
     # Assert the same gpg key is associated with new product and repo
     assert product.gpg_key.id == gpg_key.id
