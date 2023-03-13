@@ -101,8 +101,7 @@ class TestVirtWhoConfigforHyperv:
 
         :CaseImportance: Medium
         """
-        values = ['uuid', 'hostname']
-        for value in values:
+        for value in ['uuid', 'hostname']:
             target_sat.cli.VirtWhoConfig.update(
                 {'id': virtwho_config['id'], 'hypervisor-id': value}
             )
