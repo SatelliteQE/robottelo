@@ -231,8 +231,8 @@ def test_positive_delete(module_org):
         gpg_key.read()
 
 
-@pytest.mark.tier1
-def test_positive_block_delete_key_in_use(module_org):
+@pytest.mark.tier3
+def test_positive_block_delete_key_in_use(module_org, target_sat):
     """Create a GPG key with valid content. Create a new product and
         associated repository, assigning the GPG key to both. Attempt to delete the
         GPG key in use.
@@ -246,12 +246,11 @@ def test_positive_block_delete_key_in_use(module_org):
 
     :CaseImportance: Critical
     """
-    gpg_key = entities.GPGKey(organization=module_org, content=key_content).create()
+    gpg_key = target_sat.api.GPGKey(organization=module_org, content=key_content).create()
     gpg_copy = copy(gpg_key)
     # Create new product with gpg, and a single associated repository
-    product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
-    repo = entities.Repository(product=product).create()
-    product.sync()
+    product = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
+    repo = target_sat.api.Repository(product=product).create()
     product = product.update()
 
     # Assert the same gpg key is associated with new product and repo
@@ -262,7 +261,7 @@ def test_positive_block_delete_key_in_use(module_org):
     # Attempt to delete gpg in use
     with pytest.raises(HTTPError) as e:
         gpg_key.delete()
-    assert len(str(e.value)) > 0
+    assert '500' in str(e.value)
 
     # Assert gpg matches unmodified copy
     assert gpg_key.id == gpg_copy.id
