@@ -990,23 +990,30 @@ def test_negative_generate_hostpkgcompare_nonexistent_host():
 
 @pytest.mark.tier3
 def test_positive_generate_installed_packages_report(
-    module_entitlement_manifest_org, local_ak, local_content_view, local_environment, rhel7_contenthost, target_sat
+    module_entitlement_manifest_org,
+    local_ak,
+    local_content_view,
+    local_environment,
+    rhel7_contenthost,
+    target_sat,
 ):
-    """Generate an report using the 'Host - All Installed Packages' Report template.
+    """Generate an report using the 'Host - All Installed Packages' Report template
 
-    :id: 47cc5528-41d9-4100-b603-e98d2ff097a8
+        :id: 47cc5528-41d9-4100-b603-e98d2ff097a8
 
-    :setup: Installed Satellite with Organization, Activation key,
-            Content View, Content Host, and custom product with installed packages.
-`
-    :steps:
-        1. hammer report-template generate --name 'Host - All Installed Packages' --organization-title '' --report-format '' --inputs 'Hosts filter = hostname'
+        :setup: Installed Satellite with Organization, Activation key,
+                Content View, Content Host, and custom product with installed packages
+    `
+        :steps:
+            1. hammer report-template generate --name 'Host - All Installed Packages'
+              --organization-title '' --report-format '' --inputs 'Hosts filter = hostname'
 
-    :expectedresults: A report is generated containing all installed package information for a host.
+        :expectedresults: A report is generated containing all installed package
+        information for a host
 
-    :BZ: 1826648
+        :BZ: 1826648
 
-    :customerscenario: true
+        :customerscenario: true
     """
     setup_org_for_a_custom_repo(
         {
@@ -1021,9 +1028,7 @@ def test_positive_generate_installed_packages_report(
     client.install_katello_ca(target_sat)
     client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
     assert client.subscribed
-    client.execute(
-        f'yum -y install {FAKE_0_CUSTOM_PACKAGE_NAME} {FAKE_1_CUSTOM_PACKAGE}'
-    )
+    client.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE_NAME} {FAKE_1_CUSTOM_PACKAGE}')
     result_html = ReportTemplate.generate(
         {
             'organization': module_entitlement_manifest_org.name,
@@ -1034,4 +1039,3 @@ def test_positive_generate_installed_packages_report(
     )
     assert client.hostname in result_html
     assert FAKE_1_CUSTOM_PACKAGE in result_html
-    
