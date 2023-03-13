@@ -22,7 +22,7 @@ def _vault_command(command: str):
     vcommand = subprocess.run(command, capture_output=True, shell=True)
     if vcommand.returncode != 0:
         verror = str(vcommand.stderr)
-        if 'vault: command not found' in verror:
+        if vcommand.returncode == 127:
             print(f"{Colored.REDDARK}Error! {HELP_TEXT}")
             sys.exit(1)
         elif 'Error revoking token' in verror:

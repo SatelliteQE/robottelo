@@ -30,13 +30,9 @@ def setup_backup_tests(request, sat_maintain):
 
 
 @pytest.fixture(scope='module')
-def module_synced_repos(session_target_sat, session_capsule_configured):
+def module_synced_repos(session_target_sat, session_capsule_configured, module_sca_manifest):
     org = session_target_sat.api.Organization().create()
-    manifests_path = session_target_sat.download_file(
-        file_url=settings.fake_manifest.url['default']
-    )[0]
-    session_target_sat.cli.Subscription.upload({'file': manifests_path, 'organization-id': org.id})
-
+    session_target_sat.upload_manifest(org.id, module_sca_manifest.content)
     # sync custom repo
     cust_prod = session_target_sat.api.Product(organization=org).create()
     cust_repo = session_target_sat.api.Repository(
