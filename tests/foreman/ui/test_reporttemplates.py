@@ -29,6 +29,10 @@ from nailgun import entities
 
 from robottelo.config import robottelo_tmp_dir
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.cli.factory import setup_org_for_a_custom_repo
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.config import settings
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
@@ -69,7 +73,7 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
-    return org, ak
+    return org, ak, cv , lce
 
 
 @pytest.mark.tier3
@@ -562,3 +566,56 @@ def test_positive_gen_entitlements_reports_multiple_formats(
             tree_result = etree.tostring(tree.getroot(), pretty_print=True, method='html').decode()
         assert client.hostname in tree_result
         assert DEFAULT_SUBSCRIPTION_NAME in tree_result
+
+
+@pytest.mark.tier3
+def test_positive_generate_all_installed_packages_report(
+    session, setup_content, rhel7_contenthost, target_sat
+):
+    """Generate an report using the 'Host - All Installed Packages' Report template.
+
+    :id: 63ab3246-0fc5-48b3-ba56-7becfa0c5a7b
+
+    :setup: Installed Satellite with Organization, Activation key,
+            Content View, Content Host, and custom product with installed packages.
+`
+    :steps:
+        1. Monitor -> Report Templates
+        2. Host - All Installed Packages -> Generate
+        3. Select Date, Output format, and Hosts filter
+
+    :expectedresults: A report is generated containing all installed package information for a host
+
+    :BZ: 1826648
+
+    :customerscenario: true
+    """
+    org, ak, cv, lce = setup_content
+    setup_org_for_a_custom_repo(
+    {
+        'url': settings.repos.yum_6.url,
+        'organization-id': org.id,
+        'content-view-id': cv.id,
+        'lifecycle-environment-id': lce.id,
+        'activationkey-id': ak.id,
+    }
+    )
+    client = rhel7_contenthost
+    client.install_katello_ca(target_sat)
+    client.register_contenthost(org.label, ak.name)
+    assert client.subscribed
+    client.execute(
+        f'yum -y install {FAKE_0_CUSTOM_PACKAGE_NAME} {FAKE_1_CUSTOM_PACKAGE}'
+    )
+    with session:
+        session.location.select('Default Location')
+        result_html = session.reporttemplate.generate(
+            'Host - All Installed Packages', values={'output_format': 'HTML'}
+        )
+    with open(result_html) as html_file:
+        parser = etree.HTMLParser()
+        tree = etree.parse(html_file, parser)
+        tree_result = etree.tostring(tree.getroot(), pretty_print=True, method='html').decode()
+    assert client.hostname in tree_result
+    assert FAKE_1_CUSTOM_PACKAGE in tree_result
+        
