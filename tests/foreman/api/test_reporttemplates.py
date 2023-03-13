@@ -591,3 +591,8 @@ def test_positive_schedule_entitlements_report(setup_content, target_sat):
         )
         assert vm.hostname in data_csv
         assert DEFAULT_SUBSCRIPTION_NAME in data_csv
+
+
+@pytest.mark.tier3
+def test_positive_generate_job_report(setup_content, target_sat):
+    pass
