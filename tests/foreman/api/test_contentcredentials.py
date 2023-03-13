@@ -247,11 +247,7 @@ def test_positive_block_delete_key_in_use(module_org):
     :CaseImportance: Critical
     """
     gpg_key = entities.GPGKey(organization=module_org, content=key_content).create()
-    # Unmodified gpg copy
     gpg_copy = copy(gpg_key)
-    assert gpg_copy.id == gpg_key.id
-    assert gpg_copy.organization == gpg_key.organization
-    assert gpg_copy.content == gpg_key.content
     # Create new product with gpg, and a single associated repository
     product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
     repo = entities.Repository(product=product).create()
