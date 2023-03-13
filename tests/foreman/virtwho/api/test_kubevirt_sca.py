@@ -102,8 +102,7 @@ class TestVirtWhoConfigforKubevirt:
 
         :CaseImportance: Medium
         """
-        values = ['uuid', 'hostname']
-        for value in values:
+        for value in ['uuid', 'hostname']:
             virtwho_config.hypervisor_id = value
             virtwho_config.update(['hypervisor_id'])
             config_file = get_configure_file(virtwho_config.id)
