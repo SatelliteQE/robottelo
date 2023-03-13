@@ -756,7 +756,7 @@ def test_positive_generate_entitlements_report_multiple_formats(
 
     :setup: Installed Satellite with Organization, Activation key,
             Content View, Content Host, and Subscriptions.
-            
+
     :steps:
         1. hammer report-template generate --organization '' --id '' --report-format ''
 
@@ -1002,7 +1002,7 @@ def test_positive_generate_installed_packages_report(
     :steps:
         1. hammer report-template generate --name 'Host - All Installed Packages' --organization-title '' --report-format '' --inputs 'Hosts filter = hostname'
 
-    :expectedresults: A report is generated containing all installed package information for a host
+    :expectedresults: A report is generated containing all installed package information for a host.
 
     :BZ: 1826648
 
