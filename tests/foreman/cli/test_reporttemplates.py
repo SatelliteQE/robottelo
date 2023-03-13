@@ -756,7 +756,7 @@ def test_positive_generate_entitlements_report_multiple_formats(
 
     :setup: Installed Satellite with Organization, Activation key,
             Content View, Content Host, and Subscriptions.
-`
+            
     :steps:
         1. hammer report-template generate --organization '' --id '' --report-format ''
 
