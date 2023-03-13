@@ -260,6 +260,7 @@ class TestVirtwhoConfigforNutanix:
         :CaseImportance: Medium
 
         :BZ: 2141719
+        :customerscenario: true
         """
         name = gen_string('alpha')
         form_data['name'] = name
