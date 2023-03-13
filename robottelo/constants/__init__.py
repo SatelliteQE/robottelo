@@ -289,6 +289,7 @@ REPOSET = {
     'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7 Server'),
     'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise Linux 7 Server'),
     'rhae2': 'Red Hat Ansible Engine 2.9 RPMs for Red Hat Enterprise Linux 7 Server',
+    'rhae2.9_el8': 'Red Hat Ansible Engine 2.9 for RHEL 8 x86_64 (RPMs)',
     'rhst8': 'Red Hat Satellite Tools 6.9 for RHEL 8 x86_64 (RPMs)',
     'fdrh8': 'Fast Datapath for RHEL 8 x86_64 (RPMs)',
     'kickstart': {
@@ -444,6 +445,17 @@ REPOS = {
         'product': PRDS['rhae'],
         'distro': 'rhel7',
         'key': 'rhae2',
+    },
+    'rhae2.9_el8': {
+        'id': 'ansible-2.9-for-rhel-8-x86_64-rpms',
+        'name': 'Red Hat Ansible Engine 2.9 for RHEL 8 x86_64 RPMs',
+        'version': '2.9',
+        'releasever': None,
+        'arch': 'x86_64',
+        'reposet': REPOSET['rhae2.9_el8'],
+        'product': PRDS['rhae'],
+        'distro': 'rhel8',
+        'key': 'rhae2.9_el8',
     },
     'rhst8': {
         'id': 'satellite-tools-6.9-for-rhel-8-x86_64-rpms',
@@ -799,6 +811,21 @@ CUSTOM_PUPPET_MODULE_REPOS = {
     'ui_test_variables': 'robottelo-ui_test_variables',
 }
 CUSTOM_PUPPET_MODULE_REPOS_VERSION = '-0.2.0.tar.gz'
+
+PULP_EXPORT_DIR = '/var/lib/pulp/exports/'
+PULP_IMPORT_DIR = '/var/lib/pulp/imports/'
+COMMON_INSTALLER_OPTS = {
+    'foreman-proxy-puppetca': 'true',
+    'foreman-proxy-content-puppet': 'true',
+    'foreman-proxy-puppet': 'true',
+    'puppet-server': 'true',
+    'puppet-server-foreman-ssl-ca': '/etc/pki/katello/puppet/puppet_client_ca.crt',
+    'puppet-server-foreman-ssl-cert': '/etc/pki/katello/puppet/puppet_client.crt',
+    'puppet-server-foreman-ssl-key': '/etc/pki/katello/puppet/puppet_client.key',
+    # Options for puppetbootstrap test
+    'foreman-proxy-templates': 'true',
+    'foreman-proxy-http': 'true',
+}
 
 KICKSTART_CONTENT = [
     'treeinfo',
@@ -1480,7 +1507,6 @@ OSCAP_WEEKDAY = {
 OSCAP_DEFAULT_CONTENT = {
     'rhel6_content': 'Red Hat rhel6 default content',
     'rhel7_content': 'Red Hat rhel7 default content',
-    'jre_content': 'Red Hat jre default content',
     'rhel8_content': 'Red Hat rhel8 default content',
     'rhel_firefox': 'Red Hat firefox default content',
 }
