@@ -109,8 +109,8 @@ def test_positive_block_delete_key_in_use(module_org, target_sat):
 
     :id: 022555fd-e6f2-4c95-80d7-cae26993ca8f
 
-    :expectedresults: deletion of the gpg key is blocked by raising CLIReturnCodeError 70,
-        the key is not deleted, and remains associated with the product and repository
+    :expectedresults: Block deletion of gpg in use, remains unmodified,
+        and still associated with the product and repository
 
     :BZ: 2052904
 
