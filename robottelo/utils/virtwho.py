@@ -214,6 +214,20 @@ def get_rhsm_log():
     return logs
 
 
+def check_message_in_rhsm_log(message):
+    """Check the message exist in /var/log/rhsm/rhsm.log"""
+    wait_for(
+        lambda: 'Host-to-guest mapping being sent to' in get_rhsm_log(),
+        timeout=10,
+        delay=2,
+    )
+    logs = get_rhsm_log()
+    for line in logs.split('\n'):
+        if message in line:
+            return message
+    return False
+
+
 def _get_hypervisor_mapping(hypervisor_type):
     """Analysing rhsm.log and get to know: what is the hypervisor_name
     for the specific guest.
@@ -254,6 +268,51 @@ def _get_hypervisor_mapping(hypervisor_type):
         return hypervisor_name, guest_name
     else:
         raise VirtWhoError(f"Failed to get the hypervisor_name for guest {guest_name}")
+
+
+def get_hypervisor_ahv_mapping(hypervisor_type):
+    """Analysing rhsm.log and get to know: if ahv guest and host report in rhsm.log.
+    :param str logs: the output of rhsm.log.
+    :param str hypervisor_type: ahv
+    :param str system_uuid: the uuid of the ahv host
+    :raises: VirtWhoError: If message is not found.
+    :return: True or False
+    """
+    wait_for(
+        lambda: 'Successfully logged into the AHV REST server' in get_rhsm_log(),
+        timeout=10,
+        delay=2,
+    )
+    logs = get_rhsm_log()
+    mapping = list()
+    entry = None
+    guest_name, guest_uuid = get_guest_info(hypervisor_type)
+    for line in logs.split('\n'):
+        if not line:
+            continue
+        if line[0].isdigit():
+            if entry:
+                mapping.append(_parse_entry(entry))
+            entry = '{'
+            continue
+        if entry:
+            entry += line
+    else:
+        mapping.append(_parse_entry(entry))
+    mapping = [_ for _ in mapping if _ is not None]
+    # Always check the last json section to get the host_uuid
+    for item in mapping:
+        if 'entities' in item:
+            for item in item['entities']:
+                if 'host_uuid' in item:
+                    system_uuid = item['host_uuid']
+                    break
+    message = f"Host UUID {system_uuid} found for VM: {guest_uuid}"
+    for line in logs.split('\n'):
+        if message in line:
+            return "Host UUID found for VM"
+    else:
+        raise VirtWhoError(f"Failed to get Host UUID {system_uuid} found for VM: {guest_uuid}")
 
 
 def deploy_validation(hypervisor_type):
