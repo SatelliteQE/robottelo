@@ -91,61 +91,6 @@ def test_positive_end_to_end(session, module_org, gpg_content):
 
 
 @pytest.mark.tier2
-def test_positive_block_delete_key_in_use(session, module_org, gpg_content):
-    """Create a new gpg key with valid content. Create a new product, assigning
-       the gpg key, and create an associated repository. Attempt to delete the
-       gpg key in use.
-
-    :id: b79fd3ff-8cdb-4cdd-94e5-76de742ec967
-
-    :expectedresults: deletion of the gpg key is blocked by raising TypeError,
-        the key is not deleted, and remains associated with the product and repository
-
-    :BZ: 2052904
-
-    :CaseLevel: Integration
-    """
-
-    name = gen_string('alpha')
-
-    with session:
-        # Create new gpg key with valid content
-        session.contentcredential.create(
-            {
-                'name': name,
-                'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
-                'content': gpg_content,
-            }
-        )
-        assert session.contentcredential.search(name)[0]['Name'] == name
-        gpg_key = entities.ContentCredential(organization=module_org).search(
-            query={'search': f'name="{name}"'}
-        )[0]
-        # Create new product with the gpg key, and a single associated new repository
-        product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
-        repo = entities.Repository(product=product, url=settings.repos.yum_1.url).create()
-        # Assert the gpg key is associated with the new product and repo
-        values = session.contentcredential.read(gpg_key.name)
-        assert values['details']['name'] == name
-        assert values['details']['content_type'] == CONTENT_CREDENTIALS_TYPES['gpg']
-        assert values['products']['table'][0]['Used as'] == CONTENT_CREDENTIALS_TYPES['gpg']
-        assert values['repositories']['table'][0]['Used as'] == CONTENT_CREDENTIALS_TYPES['gpg']
-
-        # Attempt to delete gpg in use
-        with pytest.raises(TypeError) as e:
-            session.contentcredential.delete(gpg_key.name)
-        assert len(str(e.value)) > 0
-
-        # Assert gpg key is still associated with product and repo, and none have been modified
-        values = session.contentcredential.read(gpg_key.name)
-        assert values['details']['content_type'] == CONTENT_CREDENTIALS_TYPES['gpg']
-        assert values['products']['table'][0]['Name'] == product.name
-        assert values['products']['table'][0]['Used as'] == CONTENT_CREDENTIALS_TYPES['gpg']
-        assert values['repositories']['table'][0]['Name'] == repo.name
-        assert values['repositories']['table'][0]['Used as'] == CONTENT_CREDENTIALS_TYPES['gpg']
-
-
-@pytest.mark.tier2
 def test_positive_search_scoped(session, gpg_content):
     """Search for gpgkey by organization id parameter
 

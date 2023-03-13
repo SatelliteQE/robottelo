@@ -103,7 +103,7 @@ def test_positive_get_info_by_name(module_org):
 
 
 @pytest.mark.tier1
-def test_positive_block_delete_key_in_use(module_org):
+def test_positive_block_delete_key_in_use(module_org, target_sat):
     """Create a product and single associated repository. Create a new gpg key and associate
         it with the product and repository. Attempt to delete the gpg key in use
 
@@ -112,6 +112,9 @@ def test_positive_block_delete_key_in_use(module_org):
     :expectedresults: deletion of the gpg key is blocked by raising CLIReturnCodeError 70,
         the key is not deleted, and remains associated with the product and repository
 
+    :BZ: 2052904
+
+    :CaseImportance: Critical
     """
     name = gen_string('utf8')
     product = make_product({'organization-id': module_org.id})
@@ -119,25 +122,26 @@ def test_positive_block_delete_key_in_use(module_org):
     gpg_key = make_content_credential(
         {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': module_org.id}
     )
+
     # Associate repo with the product, gpg key with product and repo
-    Product.update(
+    target_sat.cli.Product.update(
         {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
-
     # Attempt to delete gpg in use
     with pytest.raises(CLIReturnCodeError) as e:
-        ContentCredential.delete({'name': name, 'organization-id': module_org.id})
+        target_sat.cli.ContentCredential.delete({'name': name, 'organization-id': module_org.id})
     assert 'Cannot delete' in str(e.value)
-
-    # Assert the key still exist
-    result = ContentCredential.exists(
+    # Assert gpg still exist
+    result = target_sat.cli.ContentCredential.exists(
         {'organization-id': module_org.id}, (search_key, gpg_key[search_key])
     )
     assert gpg_key[search_key] == result[search_key]
 
-    # Assert gpg key is still associated with the product and repository
-    product_info = Product.info({'id': product['id'], 'organization-id': module_org.id})
-    repo_info = Repository.info({'id': repo['id']})
+    # Assert gpg is still associated with the product and repository
+    product_info = target_sat.cli.Product.info(
+        {'id': product['id'], 'organization-id': module_org.id}
+    )
+    repo_info = target_sat.cli.Repository.info({'id': repo['id']})
     assert product_info['gpg']['gpg-key-id'] == gpg_key['id']
     assert repo_info['gpg-key']['id'] == gpg_key['id']
 

@@ -16,6 +16,8 @@
 
 :Upstream: No
 """
+from copy import copy
+
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
@@ -227,3 +229,50 @@ def test_positive_delete(module_org):
     gpg_key.delete()
     with pytest.raises(HTTPError):
         gpg_key.read()
+
+
+@pytest.mark.tier1
+def test_positive_block_delete_key_in_use(module_org):
+    """Create a GPG key with valid content. Create a new product and
+        associated repository, assigning the GPG key to both. Attempt to delete the
+        GPG key in use.
+
+    :id: b79fd3ff-8cdb-4cdd-94e5-76de742ec967
+
+    :expectedresults: Blocked deletion of gpg key in use, it remains
+        unmodified, is still associated with product and repo.
+
+    :BZ: 2052904
+
+    :CaseImportance: Critical
+    """
+    gpg_key = entities.GPGKey(organization=module_org, content=key_content).create()
+    # Unmodified gpg copy
+    gpg_copy = copy(gpg_key)
+    assert gpg_copy.id == gpg_key.id
+    assert gpg_copy.organization == gpg_key.organization
+    assert gpg_copy.content == gpg_key.content
+    # Create new product with gpg, and a single associated repository
+    product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
+    repo = entities.Repository(product=product).create()
+    product.sync()
+    product = product.update()
+
+    # Assert the same gpg key is associated with new product and repo
+    assert product.gpg_key.id == gpg_key.id
+    assert repo.gpg_key.id == gpg_key.id
+    assert product.gpg_key.id == repo.gpg_key.id
+
+    # Attempt to delete gpg in use
+    with pytest.raises(HTTPError) as e:
+        gpg_key.delete()
+    assert len(str(e.value)) > 0
+
+    # Assert gpg matches unmodified copy
+    assert gpg_key.id == gpg_copy.id
+    assert gpg_key.organization == gpg_copy.organization
+    assert gpg_key.content == gpg_copy.content
+    # Assert gpg remains associated with product and repo
+    assert product.gpg_key.id == repo.gpg_key.id
+    assert product.gpg_key.id == gpg_key.id
+    assert repo.gpg_key.id == gpg_key.id
