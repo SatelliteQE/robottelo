@@ -22,10 +22,6 @@ from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import ENVIRONMENT
-from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
-from robottelo.constants import FAKE_9_YUM_UPDATED_PACKAGES
 from robottelo.logging import logger
 
 
@@ -33,10 +29,10 @@ class TestScenarioErrataAbstract:
     """This is an Abstract Class whose methods are inherited by others errata
     scenarios"""
 
-    def _create_custom_rhel_n_client_repos(self, target_sat, product, rhel_host):
-        """Install packge on docker content host."""
+    def _create_custom_rhel_n_client_repos(self, target_sat, product, rhel_client):
+        """Create custom RHEL (system) and Satellite Client repos and sync them"""
         repos = []
-        v_major = rhel_host.os_version.major
+        v_major = rhel_client.os_version.major
         rhel_repo_urls = [settings.repos[f'rhel{v_major}_os']]
         if v_major > 7:
             rhel_repo_urls = [rhel_repo_urls[0]['BASEOS'], rhel_repo_urls[0]['APPSTREAM']]
@@ -63,21 +59,24 @@ class TestScenarioErrataAbstract:
             repo.sync(timeout=3000)
         return repos
 
-    def _get_rh_rhel_n_client_repos(self, target_sat, org, rhel_host):
-        """Get list of RHEL (system) and Satellite Client repos
+    def _get_rh_rhel_n_client_repos(self, target_sat, org, rhel_client):
+        """Get list of RHEL (system) and Satellite Client repository IDs
 
-        :return: nailgun.entities.Repository: repository
+        This method assumes that the RHEL and Satellite Client repositories
+        are already created and synced.
+
+        :return: List[int]: repository IDs
         """
-        rhel_repos = ['rhel_bos', 'rhel_aps'] if rhel_host.os_version.major > 7 else ['rhel']
+        rhel_repos = ['rhel_bos', 'rhel_aps'] if rhel_client.os_version.major > 7 else ['rhel']
         rhel_repo_ids = [
             target_sat.api.Repository(organization=org)
-            .search(query={'search': rhel_host.REPOS[repo]['id']})[0]
+            .search(query={'search': rhel_client.REPOS[repo]['id']})[0]
             .id
             for repo in rhel_repos
         ]
         sat_client_repo_id = (
             target_sat.api.Repository(organization=org)
-            .search(query={'search': rhel_host.REPOS[constants.PRODUCT_KEY_SAT_CLIENT]['id']})[0]
+            .search(query={'search': rhel_client.REPOS[constants.PRODUCT_KEY_SAT_CLIENT]['id']})[0]
             .id
         )
 
@@ -134,7 +133,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
 
         sat.update_vm_host_location(rhel_client, loc.id)
         environment = sat.api.LifecycleEnvironment(organization=org).search(
-            query={'search': f'name={ENVIRONMENT}'}
+            query={'search': f'name={constants.ENVIRONMENT}'}
         )[0]
         product = sat.api.Product(organization=org).create()
         custom_yum_repo = sat.api.Repository(
@@ -158,7 +157,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         rhid = rhel_client.execute('subscription-manager identity')
         assert org.name in rhid.stdout
 
-        rhel_client.execute(f'yum -y install {" ".join(FAKE_9_YUM_OUTDATED_PACKAGES)}')
+        rhel_client.execute(f'yum -y install {" ".join(constants.FAKE_9_YUM_OUTDATED_PACKAGES)}')
         host = sat.api.Host().search(query={'search': f'activation_key={ak.name}'})[0]
         installable_errata_count = host.content_facet_attributes['errata_counts']['total']
         assert installable_errata_count > 1
@@ -201,27 +200,14 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         """
         client_hostname = pre_upgrade_data.get('rhel_client')
         custom_repo_id = pre_upgrade_data.get('custom_repo_id')
-        product_id = pre_upgrade_data.get('product_id')
-        content_view_id = pre_upgrade_data.get('content_view_id')
         activation_key = pre_upgrade_data.get('activation_key')
-        synced_repo_ids = pre_upgrade_data.get('synced_repo_ids')
 
         rhel_client = Broker().from_inventory(filter=f'hostname={client_hostname}')[0]
-        product = target_sat.api.Product(id=product_id).read()
-        content_view = target_sat.api.ContentView(id=content_view_id).read()
         custom_yum_repo = target_sat.api.Repository(id=custom_repo_id).read()
-        synced_repos = [target_sat.api.Repository(id=id).read() for id in synced_repo_ids]
-
-        product.sync(timeout=1400)
-        for repo in synced_repos:
-            content_view.repository.append(repo)
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-
         host = target_sat.api.Host().search(query={'search': f'activation_key={activation_key}'})[0]
+
         installable_errata_count = host.content_facet_attributes['errata_counts']['total']
         assert installable_errata_count > 1
-
         erratum_list = target_sat.api.Errata(repository=custom_yum_repo).search(
             query={'order': 'updated ASC', 'per_page': 1000}
         )
@@ -241,7 +227,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             logger=logger,
         )
         rhel_client.execute(
-            f'yum -y install {" ".join(FAKE_9_YUM_UPDATED_PACKAGES)}'
+            f'yum -y install {" ".join(constants.FAKE_9_YUM_UPDATED_PACKAGES)}'
         )  # why do we install packages at the end of the test?
 
 
@@ -290,7 +276,7 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
         sat = katello_agent_client_for_upgrade.sat
         rhel_client = katello_agent_client_for_upgrade.client
         environment = sat.api.LifecycleEnvironment(organization=default_org).search(
-            query={'search': f'name={ENVIRONMENT}'}
+            query={'search': f'name={constants.ENVIRONMENT}'}
         )[0]
 
         product = sat.api.Product(organization=default_org).create()
@@ -299,13 +285,13 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
         ).create()
         product.sync(timeout=1400)
 
-        repos = [*self._get_rh_rhel_n_client_repos(default_org), custom_yum_repo]
+        repos = [*self._get_rh_rhel_n_client_repos(sat, default_org, rhel_client), custom_yum_repo]
         content_view = sat.publish_content_view(default_org, repos)
         custom_sub = sat.api.Subscription(organization=default_org).search(
             query={'search': f'name={product.name}'}
         )[0]
         rh_sub = sat.api.Subscription(organization=default_org).search(
-            query={'search': f'{DEFAULT_SUBSCRIPTION_NAME}'}
+            query={'search': f'{constants.DEFAULT_SUBSCRIPTION_NAME}'}
         )[0]
 
         ak = sat.api.ActivationKey(
@@ -329,7 +315,7 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
         # Update OS to make errata count 0
         rhel_client.execute('yum -y update')
 
-        rhel_client.execute(f'yum -y install {" ".join(FAKE_9_YUM_OUTDATED_PACKAGES)}')
+        rhel_client.execute(f'yum -y install {" ".join(constants.FAKE_9_YUM_OUTDATED_PACKAGES)}')
         host = sat.api.Host().search(query={'search': f'activation_key={ak.name}'})[0]
         # TODO: check that the above host is the same as rhel_client.nailgun_host
 
@@ -399,7 +385,7 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
         for errata in settings.repos.yum_9.errata:
             host.errata_apply(data={'errata_ids': [errata]})
 
-        rhel_client.execute(f'yum -y install {" ".join(FAKE_9_YUM_UPDATED_PACKAGES)}')
+        rhel_client.execute(f'yum -y install {" ".join(constants.FAKE_9_YUM_UPDATED_PACKAGES)}')
         # Do we need to install the packages on the client?
         # The yum_9.errata(s) should already be installed
 
