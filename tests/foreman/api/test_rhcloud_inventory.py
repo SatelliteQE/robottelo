@@ -107,7 +107,8 @@ def test_rhcloud_inventory_api_e2e(
     prefix = 'tfm-' if rhcloud_sat_host.os_version.major < 8 else ''
     package_version = rhcloud_sat_host.run(
         f'rpm -qa --qf "%{{VERSION}}" {prefix}rubygem-foreman_rh_cloud'
-    )
+    ).stdout.strip()
+
     assert json_meta_data['source_metadata']['foreman_rh_cloud_version'] == str(package_version)
     assert json_meta_data['source'] == 'Satellite'
     hostnames = [host['fqdn'] for host in json_data['hosts']]
