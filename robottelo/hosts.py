@@ -71,7 +71,7 @@ def get_sat_version():
     try:
         sat_version = Satellite().version
     except (AuthenticationError, ContentHostError, BoxKeyError):
-        if str(sat_version := settings.server.version.get('release')) == 'stream':
+        if sat_version := str(settings.server.version.get('release')) == 'stream':
             sat_version = str(settings.robottelo.get('satellite_version'))
         if not sat_version:
             sat_version = SATELLITE_VERSION
