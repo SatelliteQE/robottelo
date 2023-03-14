@@ -44,6 +44,10 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
         1. Satellite-clone ran successfully
 
     :parametrized: yes
+
+    :BZ: 2142514
+
+    :customerscenario: true
     """
     rhel_version = sat_ready_rhel._v_major
     sat_version = target_sat.version
@@ -105,6 +109,8 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
         ).status
         == 0
     )
+    # Assert clone won't fail due to BZ
+    assert sat_ready_rhel.execute('satellite-clone --list-tasks').status == 0
     # Run satellite-clone
     assert sat_ready_rhel.execute('satellite-clone -y', timeout='3h').status == 0
     cloned_sat = Satellite(sat_ready_rhel.hostname)
