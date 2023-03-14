@@ -44,7 +44,14 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
         1. Satellite-clone ran successfully
 
     :parametrized: yes
+
+    :BZ: 2142514
+
+    :customerscenario: true
     """
+    ansible_ver = target_sat.execute('ansible --version')
+    assert 'core 2.13' in ansible_ver.stdout
+
     rhel_version = sat_ready_rhel._v_major
     sat_version = target_sat.version
 
