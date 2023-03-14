@@ -42,11 +42,12 @@ LOCALES = (
 
 
 DISTRO_DEFAULT = 'rhel7'
-DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8']
+DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8, rhel9']
 DISTROS_MAJOR_VERSION = {
     'rhel6': 6,
     'rhel7': 7,
     'rhel8': 8,
+    'rhel9': 9,
 }
 MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
 
@@ -233,6 +234,7 @@ MIRRORING_POLICIES = {
 PRODUCT_KEY_RHEL = 'rhel'
 PRODUCT_KEY_SAT_TOOLS = 'rhst'
 PRODUCT_KEY_SAT_CAPSULE = 'rhsc'
+PRODUCT_KEY_SAT_CLIENT = 'rhsclient'
 PRODUCT_KEY_VIRT_AGENTS = 'rhva6'
 PRODUCT_KEY_CLOUD_FORMS_TOOLS = 'rhct6'
 PRODUCT_KEY_ANSIBLE_ENGINE = 'rhae2'
@@ -282,6 +284,9 @@ REPOSET = {
     'rhsc7': 'Red Hat Satellite Capsule 6.9 (for RHEL 7 Server) (RPMs)',
     'rhsc7_iso': 'Red Hat Satellite Capsule 6.4 (for RHEL 7 Server) (ISOs)',
     'rhsc6': 'Red Hat Satellite Capsule 6.9 (for RHEL 6 Server) (RPMs)',
+    'rhsclient7': 'Red Hat Satellite Client 6 for RHEL 7 Server RPMs x86_64',
+    'rhsclient8': 'Red Hat Satellite Client 6 for RHEL 8 x86_64 RPMs',
+    'rhsclient9': 'Red Hat Satellite Client 6 for RHEL 9 x86_64 RPMs',
     'rhst7': 'Red Hat Satellite Tools 6.9 (for RHEL 7 Server) (RPMs)',
     'rhst7_610': 'Red Hat Satellite Tools 6.10 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.9 (for RHEL 6 Server) (RPMs)',
@@ -375,6 +380,33 @@ REPOS = {
         'product': PRDS['rhsc'],
         'distro': 'rhel6',
         'key': 'rhsc',
+    },
+    'rhsclient7': {
+        'id': 'rhel-7-server-satellite-client-6-rpms',
+        'name': ('Red Hat Satellite Client 6 for RHEL 7 Server RPMs x86_64'),
+        'version': '6',
+        'reposet': REPOSET['rhsclient7'],
+        'product': PRDS['rhel'],
+        'distro': 'rhel7',
+        'key': PRODUCT_KEY_SAT_CLIENT,
+    },
+    'rhsclient8': {
+        'id': 'satellite-client-6-for-rhel-8-x86_64-rpms',
+        'name': ('Red Hat Satellite Client 6 for RHEL 8 x86_64 RPMs'),
+        'version': '6',
+        'reposet': REPOSET['rhsclient8'],
+        'product': PRDS['rhel'],
+        'distro': 'rhel8',
+        'key': PRODUCT_KEY_SAT_CLIENT,
+    },
+    'rhsclient9': {
+        'id': 'satellite-client-6-for-rhel-9-x86_64-rpms',
+        'name': ('Red Hat Satellite Client 6 for RHEL 9 x86_64 RPMs'),
+        'version': '6',
+        'reposet': REPOSET['rhsclient9'],
+        'product': PRDS['rhel'],
+        'distro': 'rhel9',
+        'key': PRODUCT_KEY_SAT_CLIENT,
     },
     'rhst7': {
         'id': 'rhel-7-server-satellite-tools-6.9-rpms',
