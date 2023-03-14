@@ -214,7 +214,11 @@ def oracle_host(request, version):
 
 @pytest.fixture
 def sat_ready_rhel(request):
-    request.param = {"rhel_version": request.param, "no_containers": True}
+    request.param = {
+        "rhel_version": request.param,
+        "no_containers": True,
+        "promtail_config_template_file": "config_sat.j2",
+    }
     deploy_args = host_conf(request)
     deploy_args['target_cores'] = 6
     deploy_args['target_memory'] = '20GiB'
