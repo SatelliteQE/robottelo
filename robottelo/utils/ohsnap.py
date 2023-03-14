@@ -21,7 +21,7 @@ def ohsnap_response_hook(r, *args, **kwargs):
     r.raise_for_status()
 
 
-def ohsnap_repo_url(ohsnap_repo_host, request_type, product, release, os_release, snap=''):
+def ohsnap_repo_url(ohsnap, request_type, product, release, os_release, snap=''):
     """Returns a URL pointing to Ohsnap "repo_file" or "repositories" API endpoint"""
     if request_type not in ['repo_file', 'repositories']:
         raise InvalidArgumentError('Type must be one of "repo_file" or "repositories"')
@@ -37,19 +37,41 @@ def ohsnap_repo_url(ohsnap_repo_host, request_type, product, release, os_release
             logger.warning(
                 'The snap version was not provided. Snap number will not be used in the URL.'
             )
-        release = release.split('.')
-        if len(release) == 2:
-            release.append('0')
-        release = '.'.join(release[:3])  # keep only major.minor.patch
+        if len(release.split('.')) == 2:
+            logger.warning(
+                f'.z version component not provided in the release ({release}),'
+                f' fetching the recent z-stream from ohsnap'
+            )
+            res, _ = wait_for(
+                lambda: requests.get(
+                    f'{ohsnap.host}/api/streams',
+                    hooks={'response': ohsnap_response_hook},
+                ),
+                handle_exception=True,
+                raise_original=True,
+                timeout=ohsnap.request_retry.timeout,
+                delay=ohsnap.request_retry.delay,
+            )
+            logger.debug(f'List of releases returned by Ohsnap: {res.json()}')
+            # filter the stream for our release and set it only if it has at least 1 snap
+            if (streams := [stream for stream in res.json() if stream['id'] == release]) and len(
+                streams[0]['release_ids']
+            ) > 0:
+                # get the recent snap id (last in the list)
+                release = streams[0]['release_ids'][-1]
+            else:
+                logger.warning(f'Ohsnap returned no releases for the given stream: {release}')
 
+        release = '.'.join(release.split('.')[:3])  # keep only major.minor.patch
+        logger.debug(f'Release string after processing: {release}')
     return (
-        f'{ohsnap_repo_host}/api/releases/'
+        f'{ohsnap.host}/api/releases/'
         f'{release}{snap}/el{Version(str(os_release)).major}/{product}/{request_type}'
     )
 
 
-def dogfood_repofile_url(ohsnap_repo_host, product, release, os_release, snap=''):
-    return ohsnap_repo_url(ohsnap_repo_host, 'repo_file', product, release, os_release, snap)
+def dogfood_repofile_url(ohsnap, product, release, os_release, snap=''):
+    return ohsnap_repo_url(ohsnap, 'repo_file', product, release, os_release, snap)
 
 
 def dogfood_repository(
@@ -59,7 +81,7 @@ def dogfood_repository(
     arch = arch or constants.DEFAULT_ARCHITECTURE
     res, _ = wait_for(
         lambda: requests.get(
-            ohsnap_repo_url(ohsnap.host, 'repositories', product, release, os_release, snap),
+            ohsnap_repo_url(ohsnap, 'repositories', product, release, os_release, snap),
             hooks={'response': ohsnap_response_hook},
         ),
         handle_exception=True,

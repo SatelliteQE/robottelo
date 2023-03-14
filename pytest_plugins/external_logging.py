@@ -24,4 +24,3 @@ def pytest_cmdline_main(config):
     promtail_var = {'PROMTAIL_ENABLE': "True"}
     for os in [i for i in ch if isinstance(ch[i], dict) and ch[i].get('container')]:
         settings.set(f'content_host.{os}.container.environment', promtail_var)
-
