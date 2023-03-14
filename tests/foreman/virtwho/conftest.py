@@ -1,8 +1,8 @@
 import pytest
 from fauxfactory import gen_string
+from airgun.session import Session
 from requests.exceptions import HTTPError
 
-from airgun.session import Session
 from robottelo.logging import logger
 
 
