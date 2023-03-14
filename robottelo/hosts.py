@@ -71,11 +71,9 @@ def get_sat_version():
     try:
         sat_version = Satellite().version
     except (AuthenticationError, ContentHostError, BoxKeyError):
-        if hasattr(settings.server.version, 'release'):
-            sat_version = str(settings.server.version.release)
-        elif hasattr(settings.robottelo, 'satellite_version'):
-            sat_version = settings.robottelo.satellite_version
-        else:
+        if sat_version := str(settings.server.version.get('release')) == 'stream':
+            sat_version = str(settings.robottelo.get('satellite_version'))
+        if not sat_version:
             sat_version = SATELLITE_VERSION
     return Version('9999' if 'nightly' in sat_version else sat_version)
 
