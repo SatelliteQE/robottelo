@@ -456,3 +456,39 @@ def test_positive_os_restriction_on_repos():
 
     :CaseAutomation: NotAutomated
     """
+
+
+def test_positive_async_endpoint_for_manifest_refresh(
+    target_sat, module_org, session_entitlement_manifest
+):
+    """Verify that manifest refresh is using an async endpoint. Previously this was a single,
+    synchronous endpoint. The endpoint to retrieve manifests is now split into two: an async
+    endpoint to start "exporting" the manifest, and a second endpoint to download the
+    exported manifest.
+
+    :id: c25c5290-44ae-4f56-82cf-d118fefeff86
+
+    :steps:
+        1. Refresh a manifest
+        2. Check the production.log for "Sending GET request to upstream Candlepin"
+
+    :expectedresults: Manifest refresh succeeds with no errors and production.log
+        has new debug message
+
+    :customerscenario: true
+
+    :BZ: 2066323
+    """
+    target_sat.upload_manifest(module_org.id, session_entitlement_manifest.content)
+    sub = entities.Subscription(organization=module_org)
+    # set log level to 'debug' and restart services
+    target_sat.cli.Admin.logging({'all': True, 'level-debug': True})
+    target_sat.execute('satellite-maintain service restart')
+    # refresh manifest and assert new log message to confirm async endpoint
+    sub.refresh_manifest(data={'organization_id': module_org.id})
+    results = target_sat.execute(
+        'grep "Sending GET request to upstream Candlepin" /var/log/foreman/production.log'
+    )
+    assert 'Sending GET request to upstream Candlepin' in str(results)
+    # set log level back to default
+    target_sat.execute('satellite-installer --reset-foreman-logging-level')
