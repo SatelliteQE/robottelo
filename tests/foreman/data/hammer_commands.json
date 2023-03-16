@@ -1612,7 +1612,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Print help ------------------------------|-----|---------|----- | ALL | DEFAULT | THIN ------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | url                      | x   | x       | type                  | x   | x       | content source type | x   | x       | username             | x   | x       | Subpaths/                     | x   | x       | Products/id                   | x   | x       | Products/organization id      | x   | x       | Products/name                 | x   | x       | Products/label                | x   | x       | proxies/id              | x   | x       | proxies/name            | x   | x       | proxies/url             | x   | x       | proxies/download policy | x   | x       | ------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "help": "Print help ------------------------------|-----|---------|----- | ALL | DEFAULT | THIN ------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | url                      | x   | x       | type                  | x   | x       | content source type | x   | x       | username             | x   | x       | ssl                    | x   | x       | ca cert/id                | x   | x       | ca cert/name              | x   | x       | client cert/id            | x   | x       | client cert/name          | x   | x       | client key/id             | x   | x       | client key/name           | x   | x       | Subpaths/                     | x   | x       | Products/id                   | x   | x       | Products/organization id      | x   | x       | Products/name                 | x   | x       | Products/label                | x   | x       | proxies/id              | x   | x       | proxies/name            | x   | x       | proxies/url             | x   | x       | proxies/download policy | x   | x       | ------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -4299,6 +4299,31 @@
             {
               "description": "Provide username and password",
               "name": "basic",
+              "options": [
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                },
+                {
+                  "help": "Password to access the remote system",
+                  "name": "password",
+                  "shortname": "p",
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Username to access the remote system you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+                  "name": "username",
+                  "shortname": "u",
+                  "value": "VALUE"
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Authenticate against external source (IPA/PAM) with credentials",
+              "name": "basic-external",
               "options": [
                 {
                   "help": "Print help",
@@ -11216,7 +11241,7 @@
                   "value": null
                 },
                 {
-                  "help": "Export formats. Choose syncable if content is to be imported via repository sync. Choose importable if content is to be imported via hammer content-import. Defaults to importable. Possible value(s): 'syncable', 'importable'",
+                  "help": "Export formats.Choose syncable if the exported content needs to be in a yum format. This option is only available for yum, file repositories. Choose importable if the importing server uses the same version  and exported content needs to be one of yum, file, ansible_collection, docker repositories. Possible value(s): 'syncable', 'importable'",
                   "name": "format",
                   "shortname": null,
                   "value": "ENUM"
@@ -11271,7 +11296,7 @@
                   "value": "NUMBER"
                 },
                 {
-                  "help": "Export formats. Choose syncable if content is to be imported via repository sync. Choose importable if content is to be imported via hammer content-import. Defaults to importable. Possible value(s): 'syncable', 'importable'",
+                  "help": "Export formats.Choose syncable if the exported content needs to be in a yum format. This option is only available for yum, file repositories. Choose importable if the importing server uses the same version  and exported content needs to be one of yum, file, ansible_collection, docker repositories. Possible value(s): 'syncable', 'importable'",
                   "name": "format",
                   "shortname": null,
                   "value": "ENUM"
@@ -11374,7 +11399,7 @@
                   "value": null
                 },
                 {
-                  "help": "Export formats. Choose syncable if content is to be imported via repository sync. Choose importable if content is to be imported via hammer content-import. Defaults to importable. Possible value(s): 'syncable', 'importable'",
+                  "help": "Export formats.Choose syncable if the exported content needs to be in a yum format. This option is only available for yum, file repositories. Choose importable if the importing server uses the same version  and exported content needs to be one of yum, file, ansible_collection, docker repositories. Possible value(s): 'syncable', 'importable'",
                   "name": "format",
                   "shortname": null,
                   "value": "ENUM"
@@ -11529,6 +11554,12 @@
                   "value": null
                 },
                 {
+                  "help": "Export formats.Choose syncable if the exported content needs to be in a yum format. This option is only available for yum, file repositories. Choose importable if the importing server uses the same version  and exported content needs to be one of yum, file, ansible_collection, docker repositories. Possible value(s): 'syncable', 'importable'",
+                  "name": "format",
+                  "shortname": null,
+                  "value": "ENUM"
+                },
+                {
                   "help": "Export history id used for incremental export. If not provided the most recent export history will be used.",
                   "name": "from-history-id",
                   "shortname": null,
@@ -11582,6 +11613,12 @@
                   "name": "chunk-size-gb",
                   "shortname": null,
                   "value": "NUMBER"
+                },
+                {
+                  "help": "Export formats.Choose syncable if the exported content needs to be in a yum format. This option is only available for yum, file repositories. Choose importable if the importing server uses the same version  and exported content needs to be one of yum, file, ansible_collection, docker repositories. Possible value(s): 'syncable', 'importable'",
+                  "name": "format",
+                  "shortname": null,
+                  "value": "ENUM"
                 },
                 {
                   "help": "Export history id used for incremental export. If not provided the most recent export history will be used.",
@@ -11685,6 +11722,12 @@
                   "name": "fail-on-missing-content",
                   "shortname": null,
                   "value": null
+                },
+                {
+                  "help": "Export formats.Choose syncable if the exported content needs to be in a yum format. This option is only available for yum, file repositories. Choose importable if the importing server uses the same version  and exported content needs to be one of yum, file, ansible_collection, docker repositories. Possible value(s): 'syncable', 'importable'",
+                  "name": "format",
+                  "shortname": null,
+                  "value": "ENUM"
                 },
                 {
                   "help": "Export history id used for incremental export. If not provided the most recent export history will be used.",
@@ -28393,6 +28436,12 @@
               "value": "NUMBER"
             },
             {
+              "help": "Override the global time to pickup interval for this invocation only",
+              "name": "time-to-pickup",
+              "shortname": null,
+              "value": "NUMBER"
+            },
+            {
               "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
@@ -42662,6 +42711,12 @@
           "name": "types",
           "options": [
             {
+              "help": "When set to 'True' repository types that are creatable will be returned",
+              "name": "creatable",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
               "help": "Show specified fields or predefined field sets only. (See below)",
               "name": "fields",
               "shortname": null,
@@ -52789,12 +52844,6 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "The frequency of VM-to-host mapping updates for AHV(in seconds)",
-              "name": "ahv-update-interval",
-              "shortname": null,
-              "value": "NUMBER"
-            },
-            {
               "help": "Hypervisor blacklist, applicable only when filtering mode is set to 2. Wildcards and regular expressions are supported, multiple records must be separated by comma.",
               "name": "blacklist",
               "shortname": null,
@@ -53297,12 +53346,6 @@
               "name": "ahv-internal-debug",
               "shortname": null,
               "value": "BOOLEAN"
-            },
-            {
-              "help": "The frequency of VM-to-host mapping updates for AHV(in seconds)",
-              "name": "ahv-update-interval",
-              "shortname": null,
-              "value": "NUMBER"
             },
             {
               "help": "Hypervisor blacklist, applicable only when filtering mode is set to 2. Wildcards and regular expressions are supported, multiple records must be separated by comma.",
