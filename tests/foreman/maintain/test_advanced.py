@@ -325,7 +325,7 @@ def test_positive_advanced_by_tag_restore_confirmation(sat_maintain):
     assert result.status == 0
 
 
-def test_positive_sync_plan_with_hammer_defaults(request, sat_maintain):
+def test_positive_sync_plan_with_hammer_defaults(request, sat_maintain, module_org):
     """Verify that sync plan is disabled and enabled with hammer defaults set.
 
     :id: b25734c8-470f-4cad-bc56-5c0f75aa7499
@@ -336,12 +336,24 @@ def test_positive_sync_plan_with_hammer_defaults(request, sat_maintain):
         3. Run satellite-maintain advanced procedure run sync-plans-enable
 
     :expectedresults: sync plans should get disabled and enabled.
+
+    :BZ: 2175007, 1997186
+
+    :customerscenario: true
     """
     sat_maintain.cli.Defaults.add({'param-name': 'organization_id', 'param-value': 1})
+
+    sync_plans = []
+    for name in ['plan1', 'plan2']:
+        sync_plans.append(
+            sat_maintain.api.SyncPlan(enabled=True, name=name, organization=module_org).create()
+        )
 
     result = sat_maintain.cli.Advanced.run_sync_plans_disable()
     assert 'FAIL' not in result.stdout
     assert result.status == 0
+
+    sync_plans[0].delete()
 
     result = sat_maintain.cli.Advanced.run_sync_plans_enable()
     assert 'FAIL' not in result.stdout
@@ -350,6 +362,7 @@ def test_positive_sync_plan_with_hammer_defaults(request, sat_maintain):
     @request.addfinalizer
     def _finalize():
         sat_maintain.cli.Defaults.delete({'param-name': 'organization_id'})
+        sync_plans[1].delete()
 
 
 def test_positive_satellite_repositories_setup(sat_maintain):
