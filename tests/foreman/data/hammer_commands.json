@@ -11296,6 +11296,12 @@
                   "value": null
                 },
                 {
+                  "help": "Export formats.Choose syncable if the exported content needs to be in a yum format. This option is only available for yum, file repositories. Choose importable if the importing server uses the same version  and exported content needs to be one of yum, file, ansible_collection, docker repositories. Possible value(s): 'syncable', 'importable'",
+                  "name": "format",
+                  "shortname": null,
+                  "value": "ENUM"
+                },
+                {
                   "help": "Export history id used for incremental export. If not provided the most recent export history will be used.",
                   "name": "from-history-id",
                   "shortname": null,
@@ -11349,6 +11355,12 @@
                   "name": "chunk-size-gb",
                   "shortname": null,
                   "value": "NUMBER"
+                },
+                {
+                  "help": "Export formats.Choose syncable if the exported content needs to be in a yum format. This option is only available for yum, file repositories. Choose importable if the importing server uses the same version  and exported content needs to be one of yum, file, ansible_collection, docker repositories. Possible value(s): 'syncable', 'importable'",
+                  "name": "format",
+                  "shortname": null,
+                  "value": "ENUM"
                 },
                 {
                   "help": "Export history id used for incremental export. If not provided the most recent export history will be used.",
@@ -11452,6 +11464,12 @@
                   "name": "fail-on-missing-content",
                   "shortname": null,
                   "value": null
+                },
+                {
+                  "help": "Export formats.Choose syncable if the exported content needs to be in a yum format. This option is only available for yum, file repositories. Choose importable if the importing server uses the same version  and exported content needs to be one of yum, file, ansible_collection, docker repositories. Possible value(s): 'syncable', 'importable'",
+                  "name": "format",
+                  "shortname": null,
+                  "value": "ENUM"
                 },
                 {
                   "help": "Export history id used for incremental export. If not provided the most recent export history will be used.",
