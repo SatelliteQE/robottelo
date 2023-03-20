@@ -584,7 +584,6 @@ class ContentHost(Host, ContentHostMixins):
         using a global registration template.
 
         :param target: Satellite or Capusle hostname to register to, required.
-        :param satellite: Satellite object, used for running hammer CLI when target is smart_proxy.
         :param org: Organization to register content host for, required.
         :param loc: Location to register content host for, required.
         :param activation_keys: Activation key name to register content host with, required.
@@ -1359,11 +1358,25 @@ class Capsule(ContentHost, CapsuleMixins):
                 # get the Capsule answer file
                 data = self.sftp_read(constants.CAPSULE_ANSWER_FILE, return_data=True)
                 answers = Box(yaml.load(data, yaml.FullLoader))
-                self._satellite = Satellite(
-                    hostname=urlparse(answers.foreman_proxy.foreman_base_url).netloc
+                sat_hostname = urlparse(answers.foreman_proxy.foreman_base_url).netloc
+                # get the Satellite hostname from the answer file
+                hosts = Broker(host_class=Satellite).from_inventory(
+                    filter=f'hostname={sat_hostname}'
                 )
+                if hosts:
+                    self._satellite = hosts[0]
+                else:
+                    logger.debug(
+                        f'No Satellite host found in inventory for {self.hostname}. '
+                        'Satellite object with the same hostname will be created anyway.'
+                    )
+                    self._satellite = Satellite(hostname=sat_hostname)
             except Exception:
                 # assign the default Sat instance in case we are not able to get it
+                logger.debug(
+                    'Unable to get Satellite hostname from Capsule answer file'
+                    'Capsule gets the default Satellite instance assigned.'
+                )
                 self._satellite = Satellite()
         return self._satellite
 
