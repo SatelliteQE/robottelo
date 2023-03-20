@@ -1004,7 +1004,7 @@ class TestPullProviderRex:
             settings.ohsnap,
             product='client',
             repo='client',
-            release='Client',
+            release='client',
             os_release=rhel_contenthost.os_version.major,
         )
         # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
@@ -1101,7 +1101,7 @@ class TestPullProviderRex:
             settings.ohsnap,
             product='client',
             repo='client',
-            release='Client',
+            release='client',
             os_release=rhel_contenthost.os_version.major,
         )
         # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
