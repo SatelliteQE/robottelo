@@ -119,7 +119,7 @@ def get_dogfood_satclient_repos(settings):
             settings,
             repo='client',
             product='client',
-            release='Client',
+            release='client',
             os_release=ver,
         )
     return data
