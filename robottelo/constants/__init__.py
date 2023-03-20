@@ -812,6 +812,17 @@ CUSTOM_PUPPET_MODULE_REPOS = {
 }
 CUSTOM_PUPPET_MODULE_REPOS_VERSION = '-0.2.0.tar.gz'
 
+PULP_EXPORT_DIR = '/var/lib/pulp/exports/'
+PULP_IMPORT_DIR = '/var/lib/pulp/imports/'
+COMMON_INSTALLER_OPTS = {
+    'foreman-proxy-puppetca': 'true',
+    'foreman-proxy-puppet': 'true',
+    'puppet-server': 'true',
+    # Options for puppetbootstrap test
+    'foreman-proxy-templates': 'true',
+    'foreman-proxy-http': 'true',
+}
+
 KICKSTART_CONTENT = [
     'treeinfo',
     'images/pxeboot/initrd.img',
