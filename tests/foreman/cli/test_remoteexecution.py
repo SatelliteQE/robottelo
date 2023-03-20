@@ -958,7 +958,6 @@ class TestAsyncSSHProviderRex:
             smart_proxy_location,
             module_ak_with_cv.name,
             target=module_capsule_configured_async_ssh,
-            satellite=module_target_sat,
             ignore_subman_errors=True,
             force=True,
         )

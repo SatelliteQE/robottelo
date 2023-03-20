@@ -1356,7 +1356,7 @@ class Capsule(ContentHost, CapsuleMixins):
         if not self._satellite:
             try:
                 # get the Capsule answer file
-                data = self.sftp_read(constants.CAPSULE_ANSWER_FILE, return_data=True)
+                data = self.session.sftp_read(constants.CAPSULE_ANSWER_FILE, return_data=True)
                 answers = Box(yaml.load(data, yaml.FullLoader))
                 sat_hostname = urlparse(answers.foreman_proxy.foreman_base_url).netloc
                 # get the Satellite hostname from the answer file
@@ -1374,7 +1374,7 @@ class Capsule(ContentHost, CapsuleMixins):
             except Exception:
                 # assign the default Sat instance in case we are not able to get it
                 logger.debug(
-                    'Unable to get Satellite hostname from Capsule answer file'
+                    'Unable to get Satellite hostname from Capsule answer file '
                     'Capsule gets the default Satellite instance assigned.'
                 )
                 self._satellite = Satellite()
