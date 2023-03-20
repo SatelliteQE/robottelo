@@ -52,7 +52,7 @@ class VersionedContent:
         if not product:
             if self.__class__.__name__ == 'ContentHost':
                 product = 'client'
-                release = release or 'Client'
+                release = release or 'client'
             else:
                 product = self.__class__.__name__.lower()
         repo = repo or product  # if repo is not specified, set it to the same as the product is
