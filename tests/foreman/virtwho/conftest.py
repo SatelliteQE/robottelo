@@ -63,7 +63,7 @@ def module_user_sca(request, module_target_sat, module_org, module_location):
     :rtype: :class:`nailgun.entities.Organization`
     """
     # take only "module" from "tests.foreman.virtwho.test_module"
-    test_module_name = request.module.__name__.split('.')[-1].split('_', 1)[-1]
+    test_module_name = request.module.__name__.split('_', 1)[-1]
     login = f'{test_module_name}_{gen_string("alphanumeric")}'
     password = gen_string('alphanumeric')
     logger.debug('Creating session user %r', login)
