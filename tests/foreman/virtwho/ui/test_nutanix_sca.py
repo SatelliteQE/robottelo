@@ -24,7 +24,7 @@ from robottelo.utils.virtwho import get_configure_command
 from robottelo.utils.virtwho import get_configure_file
 from robottelo.utils.virtwho import get_configure_id
 from robottelo.utils.virtwho import get_configure_option
-from robottelo.utils.virtwho import get_configure_option
+from robottelo.utils.virtwho import check_message_in_rhsm_log
 from robottelo.utils.virtwho import get_hypervisor_ahv_mapping
 
 
