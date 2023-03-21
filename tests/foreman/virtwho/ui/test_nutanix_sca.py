@@ -28,7 +28,6 @@ from robottelo.utils.virtwho import get_configure_option
 from robottelo.utils.virtwho import get_hypervisor_ahv_mapping
 
 
-
 @pytest.fixture()
 def form_data(target_sat, module_sca_manifest_org):
     form = {
