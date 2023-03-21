@@ -1,5 +1,6 @@
 import contextlib
 import io
+import os
 import random
 import re
 
@@ -8,10 +9,32 @@ import requests
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
+from robottelo.constants import COMMON_INSTALLER_OPTS as common_opts
+from robottelo.constants import PULP_EXPORT_DIR
+from robottelo.constants import PULP_IMPORT_DIR
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.logging import logger
+from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.manifest import clone
+
+
+class EnablePlugins:
+    """Miscellaneous settings helper methods"""
+
+    def enable_puppet(self):
+        enable_satellite_cmd = InstallerCommand(
+            installer_args=[
+                'enable-foreman-plugin-puppet',
+                'enable-foreman-cli-puppet',
+                'enable-puppet',
+            ],
+            installer_opts=common_opts,
+        )
+        result = self.execute(enable_satellite_cmd.get_command(), timeout='20m')
+        assert result.status == 0
+        self.execute('hammer -r')  # workaround for BZ#2039696
+        return self
 
 
 class ContentInfo:
@@ -168,6 +191,25 @@ class ContentInfo:
         content_view = content_view.read()
         return content_view
 
+    def move_pulp_archive(self, org, export_message):
+        """
+        Moves exported archive(s) and its metadata into import directory,
+        sets ownership, returns import path
+        """
+        self.execute(
+            f'mv {PULP_EXPORT_DIR}/{org.name} {PULP_IMPORT_DIR} && '
+            f'chown -R pulp:pulp {PULP_IMPORT_DIR}'
+        )
+
+        # removes everything before export path,
+        # replaces EXPORT_PATH by IMPORT_PATH,
+        # removes metadata filename
+        import_path = os.path.dirname(
+            re.sub(rf'.*{PULP_EXPORT_DIR}', PULP_IMPORT_DIR, export_message)
+        )
+
+        return import_path
+
 
 class SystemInfo:
     """Things that needs access to satellite shell for gaining satellite system configuration"""
@@ -257,6 +299,17 @@ class SystemInfo:
             finally:
                 logger.debug(f'Killing ncat pid: {ncat_pid}')
                 self.execute(f'kill {ncat_pid.pop()}')
+
+    def validate_pulp_filepath(
+        self,
+        org,
+        dir_path,
+        file_names=['*.json', '*.tar.gz'],
+    ):
+        """Checks the existence of certain files in a pulp dir"""
+        extension_query = ' -o '.join([f'-name "{file}"' for file in file_names])
+        result = self.execute(fr'find {dir_path}{org.name} -type f \( {extension_query} \)')
+        return result.stdout
 
 
 class Factories:
