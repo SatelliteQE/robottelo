@@ -214,7 +214,7 @@ class TestVirtwhoConfigforNutanix:
             session_sca.virtwho_configure.delete(name)
             assert not session_sca.virtwho_configure.search(name)
 
-   @pytest.mark.tier2
+    @pytest.mark.tier2
     def test_positive_ahv_internal_debug_option(
         self, module_sca_manifest_org, session_sca, form_data
     ):
