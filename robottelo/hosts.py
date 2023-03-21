@@ -1371,9 +1371,10 @@ class Capsule(ContentHost, CapsuleMixins):
                         'Satellite object with the same hostname will be created anyway.'
                     )
                     self._satellite = Satellite(hostname=sat_hostname)
-            except Exception:
+            except Exception as e:
+                logger.exception(e)
                 # assign the default Sat instance in case we are not able to get it
-                logger.debug(
+                logger.warning(
                     'Unable to get Satellite hostname from Capsule answer file '
                     'Capsule gets the default Satellite instance assigned.'
                 )
