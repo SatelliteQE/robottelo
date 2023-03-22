@@ -60,12 +60,23 @@ def clean_host(form_data, target_sat):
         target_sat.api.Host(id=results[0].read_json()['id']).delete()
 
 
+@pytest.fixture()
+def virtwho_config(form_data, target_sat, session_sca):
+    name = gen_string('alpha')
+    form_data['name'] = name
+    with session_sca:
+        session_sca.virtwho_configure.create(form_data)
+        yield virtwho_config
+        session_sca.virtwho_configure.delete(name)
+        assert not session_sca.virtwho_configure.search(name)
+
+
 @pytest.mark.usefixtures('clean_host')
 class TestVirtwhoConfigforEsx:
     @pytest.mark.tier2
     @pytest.mark.parametrize('deploy_type', ['id', 'script'])
     def test_positive_deploy_configure_by_id_script(
-        self, module_sca_manifest_org, session_sca, form_data, deploy_type
+        self, module_sca_manifest_org, virtwho_config, session_sca, form_data, deploy_type
     ):
         """Verify configure created and deployed with id.
 
@@ -82,33 +93,30 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: High
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session_sca:
-            session_sca.virtwho_configure.create(form_data)
-            values = session_sca.virtwho_configure.read(name)
-            if deploy_type == "id":
-                command = values['deploy']['command']
-                deploy_configure_by_command(
-                    command,
-                    form_data['hypervisor_type'],
-                    debug=True,
-                    org=module_sca_manifest_org.label,
-                )
-            elif deploy_type == "script":
-                script = values['deploy']['script']
-                deploy_configure_by_script(
-                    script,
-                    form_data['hypervisor_type'],
-                    debug=True,
-                    org=module_sca_manifest_org.label,
-                )
-            assert session_sca.virtwho_configure.search(name)[0]['Status'] == 'ok'
-            session_sca.virtwho_configure.delete(name)
-            assert not session_sca.virtwho_configure.search(name)
+        name = form_data['name']
+        values = session_sca.virtwho_configure.read(name)
+        if deploy_type == "id":
+            command = values['deploy']['command']
+            deploy_configure_by_command(
+                command,
+                form_data['hypervisor_type'],
+                debug=True,
+                org=module_sca_manifest_org.label,
+            )
+        elif deploy_type == "script":
+            script = values['deploy']['script']
+            deploy_configure_by_script(
+                script,
+                form_data['hypervisor_type'],
+                debug=True,
+                org=module_sca_manifest_org.label,
+            )
+        assert session_sca.virtwho_configure.search(name)[0]['Status'] == 'ok'
 
     @pytest.mark.tier2
-    def test_positive_debug_option(self, module_sca_manifest_org, session_sca, form_data):
+    def test_positive_debug_option(
+        self, module_sca_manifest_org, virtwho_config, session_sca, form_data
+    ):
         """Verify debug checkbox and the value changes of VIRTWHO_DEBUG
 
         :id: 71e675b5-16ae-423a-9162-cd10a7a6a5eb
@@ -121,28 +129,25 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session_sca:
-            session_sca.virtwho_configure.create(form_data)
-            config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, module_sca_manifest_org.name)
-            deploy_configure_by_command(
-                config_command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
-            )
-            assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '1'
-            session_sca.virtwho_configure.edit(name, {'debug': False})
-            results = session_sca.virtwho_configure.read(name)
-            assert results['overview']['debug'] is False
-            deploy_configure_by_command(
-                config_command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
-            )
-            assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '0'
-            session_sca.virtwho_configure.delete(name)
-            assert not session_sca.virtwho_configure.search(name)
+        name = form_data['name']
+        config_id = get_configure_id(name)
+        config_command = get_configure_command(config_id, module_sca_manifest_org.name)
+        deploy_configure_by_command(
+            config_command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+        )
+        assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '1'
+        session_sca.virtwho_configure.edit(name, {'debug': False})
+        results = session_sca.virtwho_configure.read(name)
+        assert results['overview']['debug'] is False
+        deploy_configure_by_command(
+            config_command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+        )
+        assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '0'
 
     @pytest.mark.tier2
-    def test_positive_interval_option(self, module_sca_manifest_org, session_sca, form_data):
+    def test_positive_interval_option(
+        self, module_sca_manifest_org, virtwho_config, session_sca, form_data
+    ):
         """Verify interval dropdown options and the value changes of VIRTWHO_INTERVAL.
 
         :id: 22fe4e66-5a73-4fa5-866e-c5664aabfa23
@@ -155,35 +160,32 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session_sca:
-            session_sca.virtwho_configure.create(form_data)
-            config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, module_sca_manifest_org.name)
-            intervals = {
-                'Every hour': '3600',
-                'Every 2 hours': '7200',
-                'Every 4 hours': '14400',
-                'Every 8 hours': '28800',
-                'Every 12 hours': '43200',
-                'Every 24 hours': '86400',
-                'Every 2 days': '172800',
-                'Every 3 days': '259200',
-            }
-            for option, value in intervals.items():
-                session_sca.virtwho_configure.edit(name, {'interval': option})
-                results = session_sca.virtwho_configure.read(name)
-                assert results['overview']['interval'] == option
-                deploy_configure_by_command(
-                    config_command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
-                )
-                assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
-            session_sca.virtwho_configure.delete(name)
-            assert not session_sca.virtwho_configure.search(name)
+        name = form_data['name']
+        config_id = get_configure_id(name)
+        config_command = get_configure_command(config_id, module_sca_manifest_org.name)
+        intervals = {
+            'Every hour': '3600',
+            'Every 2 hours': '7200',
+            'Every 4 hours': '14400',
+            'Every 8 hours': '28800',
+            'Every 12 hours': '43200',
+            'Every 24 hours': '86400',
+            'Every 2 days': '172800',
+            'Every 3 days': '259200',
+        }
+        for option, value in intervals.items():
+            session_sca.virtwho_configure.edit(name, {'interval': option})
+            results = session_sca.virtwho_configure.read(name)
+            assert results['overview']['interval'] == option
+            deploy_configure_by_command(
+                config_command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+            )
+            assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
 
     @pytest.mark.tier2
-    def test_positive_hypervisor_id_option(self, module_sca_manifest_org, session_sca, form_data):
+    def test_positive_hypervisor_id_option(
+        self, module_sca_manifest_org, virtwho_config, session_sca, form_data
+    ):
         """Verify Hypervisor ID dropdown options.
 
         :id: b9767319-ab81-425c-bebe-0701d5e91332
@@ -196,24 +198,19 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session_sca:
-            session_sca.virtwho_configure.create(form_data)
-            config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, module_sca_manifest_org.name)
-            config_file = get_configure_file(config_id)
-            # esx and rhevm support hwuuid option
-            for value in ['uuid', 'hostname', 'hwuuid']:
-                session_sca.virtwho_configure.edit(name, {'hypervisor_id': value})
-                results = session_sca.virtwho_configure.read(name)
-                assert results['overview']['hypervisor_id'] == value
-                deploy_configure_by_command(
-                    config_command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
-                )
-                assert get_configure_option('hypervisor_id', config_file) == value
-            session_sca.virtwho_configure.delete(name)
-            assert not session_sca.virtwho_configure.search(name)
+        name = form_data['name']
+        config_id = get_configure_id(name)
+        config_command = get_configure_command(config_id, module_sca_manifest_org.name)
+        config_file = get_configure_file(config_id)
+        # esx and rhevm support hwuuid option
+        for value in ['uuid', 'hostname', 'hwuuid']:
+            session_sca.virtwho_configure.edit(name, {'hypervisor_id': value})
+            results = session_sca.virtwho_configure.read(name)
+            assert results['overview']['hypervisor_id'] == value
+            deploy_configure_by_command(
+                config_command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+            )
+            assert get_configure_option('hypervisor_id', config_file) == value
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('filter_type', ['whitelist', 'blacklist'])
@@ -307,7 +304,9 @@ class TestVirtwhoConfigforEsx:
                     assert regex == get_configure_option('exclude_host_parents', config_file)
 
     @pytest.mark.tier2
-    def test_positive_last_checkin_status(self, module_sca_manifest_org, form_data, session_sca):
+    def test_positive_last_checkin_status(
+        self, module_sca_manifest_org, virtwho_config, form_data, session_sca
+    ):
         """Verify the Last Checkin status on Content Hosts Page.
 
         :id: 4b76b79b-df9b-453e-9e72-0f33f35b8d29
@@ -322,34 +321,29 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session_sca:
-            session_sca.virtwho_configure.create(form_data)
-            values = session_sca.virtwho_configure.read(name, widget_names='deploy.command')
-            command = values['deploy']['command']
-            hypervisor_name, guest_name = deploy_configure_by_command(
-                command, form_data['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
+        name = form_data['name']
+        values = session_sca.virtwho_configure.read(name, widget_names='deploy.command')
+        command = values['deploy']['command']
+        hypervisor_name, guest_name = deploy_configure_by_command(
+            command, form_data['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
+        )
+        time_now = session_sca.browser.get_client_datetime()
+        assert session_sca.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        checkin_time = session_sca.contenthost.search(hypervisor_name)[0]['Last Checkin']
+        # 10 mins margin to check the Last Checkin time
+        assert (
+            abs(
+                datetime.strptime(checkin_time, "%B %d, %Y, %I:%M %p")
+                .replace(year=datetime.utcnow().year)
+                .timestamp()
+                - time_now.timestamp()
             )
-            time_now = session_sca.browser.get_client_datetime()
-            assert session_sca.virtwho_configure.search(name)[0]['Status'] == 'ok'
-            checkin_time = session_sca.contenthost.search(hypervisor_name)[0]['Last Checkin']
-            # 10 mins margin to check the Last Checkin time
-            assert (
-                abs(
-                    datetime.strptime(checkin_time, "%B %d, %Y, %I:%M %p")
-                    .replace(year=datetime.utcnow().year)
-                    .timestamp()
-                    - time_now.timestamp()
-                )
-                <= 300
-            )
-            session_sca.virtwho_configure.delete(name)
-            assert not session_sca.virtwho_configure.search(name)
+            <= 300
+        )
 
     @pytest.mark.tier2
     def test_positive_remove_env_option(
-        self, module_sca_manifest_org, form_data, target_sat, session_sca
+        self, module_sca_manifest_org, virtwho_config, form_data, target_sat, session_sca
     ):
         """remove option 'env=' from the virt-who configuration file and without any error
 
@@ -367,33 +361,28 @@ class TestVirtwhoConfigforEsx:
 
         :customerscenario: true
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session_sca:
-            session_sca.virtwho_configure.create(form_data)
-            values = session_sca.virtwho_configure.read(name)
-            command = values['deploy']['command']
-            deploy_configure_by_command(
-                command, form_data['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
-            )
-            assert session_sca.virtwho_configure.search(name)[0]['Status'] == 'ok'
-            # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
-            option = "env"
-            config_id = get_configure_id(name)
-            config_file = get_configure_file(config_id)
-            env_error = (
-                f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
-            )
-            try:
-                get_configure_option({option}, {config_file})
-            except Exception as VirtWhoError:
-                assert env_error == str(VirtWhoError)
-            # Check /var/log/messages should not display warning message
-            env_warning = f"Ignoring unknown configuration option \"{option}\""
-            result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
-            assert result.status == 1
-            session_sca.virtwho_configure.delete(name)
-            assert not session_sca.virtwho_configure.search(name)
+        name = form_data['name']
+        values = session_sca.virtwho_configure.read(name)
+        command = values['deploy']['command']
+        deploy_configure_by_command(
+            command, form_data['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
+        )
+        assert session_sca.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
+        option = "env"
+        config_id = get_configure_id(name)
+        config_file = get_configure_file(config_id)
+        env_error = (
+            f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
+        )
+        try:
+            get_configure_option({option}, {config_file})
+        except Exception as VirtWhoError:
+            assert env_error == str(VirtWhoError)
+        # Check /var/log/messages should not display warning message
+        env_warning = f"Ignoring unknown configuration option \"{option}\""
+        result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
+        assert result.status == 1
 
     @pytest.mark.tier2
     def test_positive_virtwho_roles(self, session_sca):
