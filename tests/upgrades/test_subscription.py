@@ -17,18 +17,11 @@
 :Upstream: No
 """
 import pytest
-from fabric.api import execute
-from nailgun import entities
-from upgrade.helpers.docker import docker_execute_command
-from upgrade_tests.helpers.scenarios import delete_manifest
-from upgrade_tests.helpers.scenarios import dockerize
-from upgrade_tests.helpers.scenarios import upload_manifest
-from wait_for import wait_for
+from broker import Broker
+from manifester import Manifester
 
-from robottelo import manifests
-from robottelo import ssh
+from robottelo import constants
 from robottelo.config import settings
-from robottelo.upgrade_utility import host_location_update
 
 
 class TestManifestScenarioRefresh:
@@ -36,9 +29,10 @@ class TestManifestScenarioRefresh:
     The scenario to test the refresh of a manifest created before upgrade.
     """
 
-    @pytest.mark.skip('Skipping due to manifest refresh issues')
     @pytest.mark.pre_upgrade
-    def test_pre_manifest_scenario_refresh(self, request):
+    def test_pre_manifest_scenario_refresh(
+        self, upgrade_entitlement_manifest_org, target_sat, save_test_data
+    ):
         """Before upgrade, upload & refresh the manifest.
 
         :id: preupgrade-29b246aa-2c7f-49f4-870a-7a0075e184b1
@@ -48,19 +42,17 @@ class TestManifestScenarioRefresh:
 
         :expectedresults: Manifest should be uploaded and refreshed successfully.
         """
-        org = entities.Organization(name=f"{request.node.name}_org").create()
-        upload_manifest(settings.fake_manifest.url['default'], org.name)
-        history = entities.Subscription(organization=org).manifest_history(
-            data={'organization_id': org.id}
-        )
-        assert f"{org.name} file imported successfully." == history[0]['statusMessage']
-        sub = entities.Subscription(organization=org)
-        sub.refresh_manifest(data={'organization_id': org.id})
-        assert len(sub.search()) > 0
+        org = upgrade_entitlement_manifest_org
+        history = target_sat.cli.Subscription.manifest_history({'organization-id': org.id})
+        assert f'{org.name} file imported successfully.' in ''.join(history)
 
-    @pytest.mark.skip('Skipping due to manifest refresh issues')
+        sub = target_sat.api.Subscription(organization=org)
+        sub.refresh_manifest(data={'organization_id': org.id})
+        assert sub.search()
+        save_test_data({'org_name': f'{upgrade_entitlement_manifest_org.name}'})
+
     @pytest.mark.post_upgrade(depend_on=test_pre_manifest_scenario_refresh)
-    def test_post_manifest_scenario_refresh(self, request, dependent_scenario_name):
+    def test_post_manifest_scenario_refresh(self, request, target_sat, pre_upgrade_data):
         """After upgrade, Check the manifest refresh and delete functionality.
 
         :id: postupgrade-29b246aa-2c7f-49f4-870a-7a0075e184b1
@@ -72,14 +64,15 @@ class TestManifestScenarioRefresh:
         :expectedresults: After upgrade,
             1. Pre-upgrade manifest should be refreshed and deleted.
         """
-        pre_test_name = dependent_scenario_name
-        org = entities.Organization().search(query={'search': f'name={pre_test_name}_org'})[0]
+        org_name = pre_upgrade_data.org_name
+        org = target_sat.api.Organization().search(query={'search': f'name={org_name}'})[0]
         request.addfinalizer(org.delete)
-        sub = entities.Subscription(organization=org)
+        sub = target_sat.api.Subscription(organization=org)
         sub.refresh_manifest(data={'organization_id': org.id})
-        assert len(sub.search()) > 0
-        delete_manifest(org.name)
-        history = entities.Subscription(organization=org).manifest_history(
+        assert sub.search()
+        sub.delete_manifest(data={'organization_id': org.id})
+        assert len(sub.search()) == 0
+        history = target_sat.api.Subscription(organization=org).manifest_history(
             data={'organization_id': org.id}
         )
         assert "Subscriptions deleted by foreman_admin" == history[0]['statusMessage']
@@ -87,12 +80,21 @@ class TestManifestScenarioRefresh:
 
 class TestSubscriptionAutoAttach:
     """
-    The scenario to test auto-attachment of subscription on the the client registered before
+    The scenario to test auto-attachment of subscription on the client registered before
     upgrade.
     """
 
+    @pytest.mark.rhel_ver_list('8')
+    @pytest.mark.no_containers
     @pytest.mark.pre_upgrade
-    def test_pre_subscription_scenario_autoattach(self, request, target_sat):
+    def test_pre_subscription_scenario_auto_attach(
+        self,
+        target_sat,
+        save_test_data,
+        rhel_contenthost,
+        upgrade_entitlement_manifest_org,
+        upgrade_entitlement_manifest,
+    ):
         """Create content host and register with Satellite
 
         :id: preupgrade-940fc78c-ffa6-4d9a-9c4b-efa1b9480a22
@@ -103,53 +105,45 @@ class TestSubscriptionAutoAttach:
             3. Upload a manifest in it.
             4. Create a AK with 'auto-attach False' and without Subscription add in it.
             5. Create a content host.
-            6. Update content host location.
 
         :expectedresults:
             1. Content host should be created.
-            2. Content host location should be updated.
         """
-        docker_vm = settings.upgrade.docker_vm
-        container_name = f"{request.node.name}_docker_client"
-        org = entities.Organization(name=request.node.name + "_org").create()
-        loc = entities.Location(name=request.node.name + "_loc", organization=[org]).create()
-        manifests.upload_manifest_locked(org.id, interface=manifests.INTERFACE_API)
-        act_key = entities.ActivationKey(
+        _, manifester = upgrade_entitlement_manifest
+        org = upgrade_entitlement_manifest_org
+        rhel_contenthost._skip_context_checkin = True
+        lce = target_sat.api.LifecycleEnvironment(organization=org).create()
+        rh_repo_id = target_sat.api_factory.enable_sync_redhat_repo(
+            constants.REPOS['rhel8_bos'], org.id
+        )
+        rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
+        assert rh_repo.content_counts['rpm'] >= 1
+        content_view = target_sat.publish_content_view(org, rh_repo)
+        content_view.version[-1].promote(data={'environment_ids': lce.id})
+        subscription = target_sat.api.Subscription(organization=org.id).search(
+            query={'search': f'name="{constants.DEFAULT_SUBSCRIPTION_NAME}"'}
+        )
+        assert len(subscription)
+        activation_key = target_sat.api.ActivationKey(
+            content_view=content_view,
+            organization=org,
+            environment=lce,
             auto_attach=False,
-            organization=org.id,
-            environment=org.library.id,
-            name=request.node.name + "_ak",
         ).create()
-        rhel7_client = dockerize(ak_name=act_key.name, distro='rhel7', org_label=org.label)
-        client_container_id = [value for value in rhel7_client.values()][0]
-        ssh.command(
-            f"docker rename {client_container_id} {container_name}", hostname=f'{docker_vm}'
+        activation_key.add_subscriptions(data={'subscription_id': subscription[0].id})
+        rhel_contenthost.install_katello_ca(target_sat)
+        rhel_contenthost.register_contenthost(org=org.name, activation_key=activation_key.name)
+        assert rhel_contenthost.subscribed
+        save_test_data(
+            {
+                'rhel_client': rhel_contenthost.hostname,
+                'org_name': org.name,
+                'allocation_uuid': manifester.allocation_uuid,
+            }
         )
-        client_container_hostname = [key for key in rhel7_client.keys()][0]
-        host_location_update(client_container_name=f"{client_container_hostname}", loc=loc)
-        wait_for(
-            lambda: org.name
-            in execute(
-                docker_execute_command,
-                client_container_id,
-                'subscription-manager identity',
-                host=docker_vm,
-            )[docker_vm],
-            timeout=300,
-            delay=30,
-        )
-        status = execute(
-            docker_execute_command,
-            client_container_id,
-            'subscription-manager identity',
-            host=docker_vm,
-        )[docker_vm]
-        assert org.name in status
 
-    @pytest.mark.post_upgrade(depend_on=test_pre_subscription_scenario_autoattach)
-    def test_post_subscription_scenario_autoattach(
-        self, request, dependent_scenario_name, target_sat
-    ):
+    @pytest.mark.post_upgrade(depend_on=test_pre_subscription_scenario_auto_attach)
+    def test_post_subscription_scenario_auto_attach(self, request, target_sat, pre_upgrade_data):
         """Run subscription auto-attach on pre-upgrade content host registered
         with Satellite.
 
@@ -163,36 +157,22 @@ class TestSubscriptionAutoAttach:
             1. Pre-upgrade content host should get subscribed.
             2. All the cleanup should be completed successfully.
         """
-        docker_vm = settings.upgrade.docker_vm
-        pre_test_name = dependent_scenario_name
-        docker_container_name = f'{pre_test_name}' + "_docker_client"
-        docker_hostname = execute(
-            docker_execute_command,
-            docker_container_name,
-            'hostname',
-            host=docker_vm,
-        )[docker_vm]
-        org = entities.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[0]
+        rhel_contenthost = Broker().from_inventory(
+            filter=f'hostname={pre_upgrade_data.rhel_client}'
+        )[0]
+        host = target_sat.api.Host().search(query={'search': f'name={rhel_contenthost.hostname}'})[
+            0
+        ]
+        target_sat.cli.Host.subscription_auto_attach({'host-id': host.id})
+        result = rhel_contenthost.execute('yum install -y zsh')
+        assert result.status == 0, 'package was not installed'
+        org = target_sat.api.Organization().search(
+            query={'search': f'name={pre_upgrade_data.org_name}'}
+        )[0]
         request.addfinalizer(org.delete)
-        loc = entities.Location().search(query={'search': f'name="{pre_test_name}_loc"'})[0]
-        request.addfinalizer(loc.delete)
-        act_key = entities.ActivationKey(organization=org).search(
-            query={'search': f'name="{pre_test_name}_ak"'}
-        )[0]
-        request.addfinalizer(act_key.delete)
-        host = entities.Host(organization=org).search(
-            query={'search': f'name="{docker_hostname.casefold()}"'}
-        )[0]
-        delete_manifest(org.name)
-        request.addfinalizer(host.delete)
-        subscription = execute(
-            docker_execute_command,
-            docker_container_name,
-            'subscription-manager attach --auto',
-            host=docker_vm,
-        )[docker_vm]
-        assert 'Subscribed' in subscription
-        ssh.command(
-            f"docker stop {docker_container_name}; docker rm {docker_container_name}",
-            hostname=f'{docker_vm}',
-        )
+        sub = target_sat.api.Subscription(organization=org)
+        sub.delete_manifest(data={'organization_id': org.id})
+        assert len(sub.search()) == 0
+        manifester = Manifester(manifest_category=settings.manifest.entitlement)
+        manifester.allocation_uuid = pre_upgrade_data.allocation_uuid
+        request.addfinalizer(manifester.delete_subscription_allocation)
