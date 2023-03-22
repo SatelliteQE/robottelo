@@ -364,7 +364,7 @@ class TestVirtWhoConfigforEsx:
 
         api/v2/organizations/:organization_id/configs"
 
-        :id: 5bf34bef-bf68-4557-978d-419bd4df0ba1
+        :id: 6d6736cd-6a85-40f5-b195-54be8db92571
 
         :expectedresults: Config can be searched in org list
 
