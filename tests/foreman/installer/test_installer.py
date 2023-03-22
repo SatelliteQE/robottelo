@@ -1359,6 +1359,7 @@ def test_positive_check_installer_services(target_sat):
         assert result['Status'] == 'ok', f'{service} responded with {result}'
 
 
+@pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.tier3
 @pytest.mark.parametrize('filter', ['params', 'sections'])

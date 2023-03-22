@@ -99,6 +99,7 @@ def test_positive_inventory_generate_upload_cli(
         assert hosts_count == local_file_data['slices_counts'][slice_name]
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 def test_positive_inventory_recommendation_sync(
     organization_ak_setup,
@@ -142,6 +143,7 @@ def test_positive_inventory_recommendation_sync(
     assert result.stdout == 'Synchronized Insights hosts hits data\n'
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 def test_positive_sync_inventory_status(
     organization_ak_setup,
