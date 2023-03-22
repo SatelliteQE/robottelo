@@ -97,7 +97,7 @@ class TestVirtwhoConfigforNutanix:
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
         self, module_sca_manifest_org, virtwho_config, session_sca, form_data
-        ):
+    ):
         """Verify Hypervisor ID dropdown options.
 
         :id: 8f5771bd-4b74-49a7-93bb-31eb8e467477
