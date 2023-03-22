@@ -102,7 +102,7 @@ class TestVirtwhoConfigforHyperv:
 
         :expectedresults:
             1. hypervisor_id can be changed in virt-who-config-{}.conf if the
-            2. dropdown option is selected to uuid/hwuuid/hostname.
+                dropdown option is selected to uuid/hwuuid/hostname.
 
         :CaseLevel: Integration
 
