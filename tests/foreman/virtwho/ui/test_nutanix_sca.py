@@ -42,6 +42,7 @@ def form_data(target_sat, module_sca_manifest_org):
     }
     return form
 
+
 @pytest.fixture()
 def virtwho_config(form_data, target_sat, session_sca):
     name = gen_string('alpha')
@@ -94,7 +95,9 @@ class TestVirtwhoConfigforNutanix:
         assert session_sca.virtwho_configure.search(name)[0]['Status'] == 'ok'
 
     @pytest.mark.tier2
-    def test_positive_hypervisor_id_option(self, module_sca_manifest_org, virtwho_config, session_sca, form_data):
+    def test_positive_hypervisor_id_option(
+        self, module_sca_manifest_org, virtwho_config, session_sca, form_data
+        ):
         """Verify Hypervisor ID dropdown options.
 
         :id: 8f5771bd-4b74-49a7-93bb-31eb8e467477
@@ -261,9 +264,7 @@ class TestVirtwhoConfigforNutanix:
         deploy_configure_by_command(
             command, form_data['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
         )
-        assert (
-            get_hypervisor_ahv_mapping(form_data['hypervisor_type']) == 'Host UUID found for VM'
-        )
+        assert get_hypervisor_ahv_mapping(form_data['hypervisor_type']) == 'Host UUID found for VM'
         # ahv_internal_debug bas been set to true in virt-who-config-X.conf
         config_file = get_configure_file(config_id)
         assert get_configure_option("ahv_internal_debug", config_file) == 'true'
