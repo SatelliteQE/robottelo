@@ -177,7 +177,7 @@ class TestVirtwhoConfigforNutanix:
 
     @pytest.mark.tier2
     def test_positive_prism_central_prism_flavor_option(
-        self, module_sca_manifest_org, session_sca, form_data
+        self, module_sca_manifest_org, virtwho_config, session_sca, form_data
     ):
         """Verify prism_flavor dropdown options.
 
@@ -191,26 +191,21 @@ class TestVirtwhoConfigforNutanix:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session_sca:
-            session_sca.virtwho_configure.create(form_data)
-            results = session_sca.virtwho_configure.read(name)
-            assert results['overview']['prism_flavor'] == "element"
-            config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, module_sca_manifest_org.name)
-            config_file = get_configure_file(config_id)
-            session_sca.virtwho_configure.edit(
-                name, {'hypervisor_content.prism_flavor': "Prism Central"}
-            )
-            results = session_sca.virtwho_configure.read(name)
-            assert results['overview']['prism_flavor'] == "central"
-            deploy_configure_by_command(
-                config_command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
-            )
-            assert get_configure_option('prism_central', config_file) == 'true'
-            session_sca.virtwho_configure.delete(name)
-            assert not session_sca.virtwho_configure.search(name)
+        name = form_data['name']
+        results = session_sca.virtwho_configure.read(name)
+        assert results['overview']['prism_flavor'] == "element"
+        config_id = get_configure_id(name)
+        config_command = get_configure_command(config_id, module_sca_manifest_org.name)
+        config_file = get_configure_file(config_id)
+        session_sca.virtwho_configure.edit(
+            name, {'hypervisor_content.prism_flavor': "Prism Central"}
+        )
+        results = session_sca.virtwho_configure.read(name)
+        assert results['overview']['prism_flavor'] == "central"
+        deploy_configure_by_command(
+            config_command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+        )
+        assert get_configure_option('prism_central', config_file) == 'true'
 
     @pytest.mark.tier2
     def test_positive_ahv_internal_debug_option(
