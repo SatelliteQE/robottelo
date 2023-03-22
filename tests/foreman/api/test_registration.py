@@ -16,9 +16,12 @@
 
 :Upstream: No
 """
+import uuid
+
 import pytest
 
 from robottelo.constants import CLIENT_PORT
+from robottelo.constants import ENVIRONMENT
 from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.tier1
@@ -88,3 +91,36 @@ def test_host_registration_end_to_end(
         == rhel_contenthost.subscription_config['server']['hostname']
     )
     assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+
+    @pytest.mark.tier3
+    def test_positive_allow_reregistration_when_dmi_uuid_changed(
+        self, module_org, rhel_contenthost, target_sat
+    ):
+        """Register a content host with a custom DMI UUID, unregistering it, change
+        the DMI UUID, and re-registering it again
+
+        :id: 7f431cb2-5a63-41f7-a27f-62b86328b50d
+
+        :expectedresults: The content host registers successfully
+
+        :customerscenario: true
+
+        :BZ: 1747177
+
+        :CaseLevel: Integration
+        """
+        uuid_1 = str(uuid.uuid1())
+        uuid_2 = str(uuid.uuid4())
+        rhel_contenthost.install_katello_ca(target_sat)
+        target_sat.execute(
+            f'echo \'{{"dmi.system.uuid": "{uuid_1}"}}\' > /etc/rhsm/facts/uuid.facts'
+        )
+        result = rhel_contenthost.register_contenthost(module_org.label, lce=ENVIRONMENT)
+        assert result.status == 0
+        result = rhel_contenthost.execute('subscription-manager clean')
+        assert result.status == 0
+        target_sat.execute(
+            f'echo \'{{"dmi.system.uuid": "{uuid_2}"}}\' > /etc/rhsm/facts/uuid.facts'
+        )
+        result = rhel_contenthost.register_contenthost(module_org.label, lce=ENVIRONMENT)
+        assert result.status == 0
