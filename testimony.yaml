@@ -63,7 +63,7 @@ CaseComponent:
     - Infrastructure
     - Installer
     - InterSatelliteSync
-    - Katello-agent
+    - katello-agent
     - Katello-tracer
     - LDAP
     - Leappintegration
@@ -73,7 +73,7 @@ CaseComponent:
     - Navigation
     - Networking
     - Notifications
-    - OrganizationsLocations
+    - OrganizationsandLocations
     - Packaging
     - Parameters
     - Provisioning
@@ -107,7 +107,7 @@ CaseComponent:
     - Upgrades
     - UsersRoles
     - Virt-whoConfigurePlugin
-    - Webhooks
+    - HooksandWebhooks
     required: true
     type: choice
 CaseImportance:

@@ -1,6 +1,6 @@
 """Test class foreman_rake
 
-:Requirement: Other
+:Requirement: TasksPlugin
 
 :CaseAutomation: Automated
 
@@ -9,6 +9,10 @@
 :TestType: Functional
 
 :CaseImportance: Medium
+
+:CaseComponent: TasksPlugin
+
+:Team: Endeavour
 
 :Upstream: No
 """
@@ -21,10 +25,6 @@ pytestmark = pytest.mark.destructive
 def test_positive_katello_reimport(target_sat):
     """Close loop bug for running katello:reimport.  Making sure
     that katello:reimport works and doesn't throw an error.
-
-    :CaseComponent: ContentManagement
-
-    :Team: Phoenix
 
     :id: b4119265-1bf0-4b0b-8b96-43f68af39708
 

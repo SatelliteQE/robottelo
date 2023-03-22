@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: OrganizationsLocations
+:CaseComponent: OrganizationsandLocations
 
 :Team: Endeavour
 

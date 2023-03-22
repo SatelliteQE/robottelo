@@ -6,7 +6,7 @@
 
 :CaseLevel: Integration
 
-:CaseComponent: Convert2rhel
+:CaseComponent: Registration
 
 :Team: Rocket
 

@@ -9,7 +9,7 @@ http://<satellite-host>/apidoc/v2/organizations.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent: OrganizationsLocations
+:CaseComponent: OrganizationsandLocations
 
 :Team: Endeavour
 

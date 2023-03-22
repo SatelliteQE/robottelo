@@ -1,14 +1,14 @@
 """Test class for Operating System UI
 
-:Requirement: Operatingsystem
+:Requirement: Provisioning
 
 :CaseAutomation: Automated
 
 :CaseLevel: Component
 
-:CaseComponent: ContentManagement
+:CaseComponent: Provisioning
 
-:Team: Phoenix
+:Team: Rocket
 
 :TestType: Functional
 
