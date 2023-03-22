@@ -75,7 +75,7 @@ def test_positive_inventory_generate_upload_cli(
     assert result.status == 0
     assert upload_success_msg in result.stdout
 
-    local_report_path = robottelo_tmp_dir.joinpath(f'report_for_{org.id}.tar.xz')
+    local_report_path = str(robottelo_tmp_dir.joinpath(f'report_for_{org.id}.tar.xz'))
     remote_report_path = (
         f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     )
