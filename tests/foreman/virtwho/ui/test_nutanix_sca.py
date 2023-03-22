@@ -269,4 +269,4 @@ class TestVirtwhoConfigforNutanix:
         assert get_configure_option("ahv_internal_debug", config_file) == 'true'
         # check message does not exist in log file /var/log/rhsm/rhsm.log
         message = 'Value for "ahv_internal_debug" not set, using default: False'
-            assert str(check_message_in_rhsm_log(message)) == 'False'
+        assert str(check_message_in_rhsm_log(message)) == 'False'
