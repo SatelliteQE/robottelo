@@ -18,8 +18,10 @@
 """
 import pytest
 
-from pytest_fixtures.component.puppet import enable_capsule_cmd
+from robottelo.constants import PUPPET_CAPSULE_INSTALLER
+from robottelo.constants import PUPPET_COMMON_INSTALLER_OPTS
 from robottelo.hosts import Satellite
+from robottelo.utils.installer import InstallerCommand
 
 puppet_cli_commands = [
     'puppet-environment',
@@ -88,20 +90,20 @@ def test_positive_enable_disable_logic(target_sat, capsule_configured):
     assert_puppet_status(capsule_configured, expected=False)
 
     # Try to enable puppet on Capsule and check it failed.
+    enable_capsule_cmd = InstallerCommand(
+        installer_args=PUPPET_CAPSULE_INSTALLER, installer_opts=PUPPET_COMMON_INSTALLER_OPTS
+    )
     result = capsule_configured.execute(enable_capsule_cmd.get_command(), timeout='20m')
     assert result.status == 6
     assert 'failed to load one or more features (Puppet)' in result.stdout
 
     # Enable puppet on Satellite and check it succeeded.
     target_sat.register_to_cdn()
-    target_sat.enable_puppet()
-
+    target_sat.enable_puppet_satellite()
     assert_puppet_status(target_sat, expected=True)
 
     # Enable puppet on Capsule and check it succeeded.
-    result = capsule_configured.execute(enable_capsule_cmd.get_command(), timeout='20m')
-    assert result.status == 0
-    assert 'Success!' in result.stdout
+    capsule_configured.enable_puppet_capsule()
     assert_puppet_status(capsule_configured, expected=True)
 
     # Try to disable puppet on Satellite and check it failed.

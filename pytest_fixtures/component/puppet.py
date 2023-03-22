@@ -2,23 +2,20 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import COMMON_INSTALLER_OPTS as common_opts
 from robottelo.constants import ENVIRONMENT
-from robottelo.utils.installer import InstallerCommand
-
-
-enable_capsule_cmd = InstallerCommand(
-    installer_args=[
-        'enable-puppet',
-    ],
-    installer_opts=common_opts,
-)
 
 
 @pytest.fixture(scope='session')
 def session_puppet_enabled_sat(session_satellite_host):
     """Satellite with enabled puppet plugin"""
-    yield session_satellite_host.enable_puppet()
+    yield session_satellite_host.enable_puppet_satellite()
+
+
+@pytest.fixture(scope='session')
+def session_puppet_enabled_capsule(session_capsule_host, session_puppet_enabled_sat):
+    """Capsule with enabled puppet plugin"""
+    session_capsule_host.capsule_setup(sat_host=session_puppet_enabled_sat)
+    yield session_capsule_host.enable_puppet_capsule()
 
 
 @pytest.fixture(scope='module')
