@@ -22,7 +22,7 @@ from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 
 from robottelo.config import settings
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.issue_handlers import is_open
 
@@ -186,23 +186,24 @@ def test_positive_task_status(session):
 
 
 @pytest.mark.upgrade
+@pytest.mark.no_containers
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_match('8')
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 @pytest.mark.parametrize(
     'repos_collection',
     [
         {
-            'distro': 'rhel7',
-            'SatelliteToolsRepository': {},
-            'YumRepository': {'url': settings.repos.yum_6.url},
-        },
+            'distro': 'rhel8',
+            'YumRepository': {'url': settings.repos.yum_3.url},
+        }
     ],
     indirect=True,
 )
 def test_positive_user_access_with_host_filter(
-    test_name, module_location, rhel7_contenthost, target_sat, repos_collection
+    test_name, module_location, rhel_contenthost, target_sat, repos_collection
 ):
     """Check if user with necessary host permissions can access dashboard
     and required widgets are rendered with proper values
@@ -252,21 +253,23 @@ def test_positive_user_access_with_host_filter(
     with Session(test_name, user=user_login, password=user_password) as session:
         assert session.dashboard.read('HostConfigurationStatus')['total_count'] == 0
         assert len(session.dashboard.read('LatestErrata')['erratas']) == 0
-        repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+        rhel_contenthost.add_rex_key(target_sat)
+        repos_collection.setup_content(org.id, lce.id)
         repos_collection.setup_virtual_machine(
-            rhel7_contenthost, location_title=module_location.name
+            rhel_contenthost, location_title=module_location.name, install_katello_agent=False
         )
-        result = rhel7_contenthost.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+        rhel_contenthost.run('subscription-manager repos --enable "*"')
+        result = rhel_contenthost.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
         assert result.status == 0
-        hostname = rhel7_contenthost.hostname
+        hostname = rhel_contenthost.hostname
         # Check UI for values
         assert session.host.search(hostname)[0]['Name'] == hostname
         hosts_values = session.dashboard.read('HostConfigurationStatus')
         assert hosts_values['total_count'] == 1
         errata_values = session.dashboard.read('LatestErrata')['erratas']
-        assert len(errata_values) == 1
-        assert errata_values[0]['Type'] == 'security'
-        assert settings.repos.yum_6.errata[2] in errata_values[0]['Errata']
+        assert len(errata_values) == 2
+        assert 'security' in [e['Type'] for e in errata_values]
+        assert settings.repos.yum_3.errata[25] in [e['Errata'].split()[0] for e in errata_values]
 
 
 @pytest.mark.tier2
