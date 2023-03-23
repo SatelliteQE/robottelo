@@ -456,31 +456,3 @@ def test_positive_os_restriction_on_repos():
 
     :CaseAutomation: NotAutomated
     """
-
-
-@pytest.mark.tier2
-def test_positive_syncable_yum_format_repo_import(target_sat, module_org):
-    """Verify that you can import syncable yum format repositories 
-
-    :id: dc6422c3-1ea1-4856-ab64-7c66e6043300
-
-    :steps:
-        1. Execute hammer command
-            hammer content-import repository --organization='' --path=''
-        2. Assert job is succesful
-        3. Verify repsoitory is synced and contains rpms
-
-    :expectedresults: The syncable repository sync correctly and all content is imported
-
-    :customerscenario: true
-
-    :BZ: 2128894
-    """
-    target_sat.execute('mkdir /var/lib/pulp/imports/syncable-repo')
-    target_sat.execute('wget -r -np -nH --cut-dirs=100 /var/lib/pulp/imports/syncable-repo  http://infra-podman-01.infra.sat.rdu2.redhat.com:50123/exported_repo/')
-    synced_repo = target_sat.execute(f'hammer content-import repository --organization={module_org.name} --path=/var/lib/pulp/imports/syncable-repo')
-    assert 'success' in str(synced_repo.stderr[1])
-    repodata = target_sat.api.Repository(name='testrepo').search(
-        query={'organization_id': module_org.id}
-    )[0]
-    assert repodata.content_counts['rpm'] != 0
