@@ -1,12 +1,12 @@
 """Test class for Products UI
 
-:Requirement: Product
+:Requirement: Repositories
 
 :CaseAutomation: Automated
 
 :CaseLevel: Component
 
-:CaseComponent: ContentManagement
+:CaseComponent: Repositories
 
 :Team: Phoenix
 
