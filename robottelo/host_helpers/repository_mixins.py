@@ -691,13 +691,18 @@ class RepositoryCollection:
         subscription_names = list(rh_subscriptions)
         if custom_product_name:
             subscription_names.append(custom_product_name)
-        activation_key = self.setup_activation_key(
-            org_id,
-            content_view['id'],
-            lce_id,
-            subscription_names=subscription_names,
-            override=override,
-        )
+        if not self.satellite.is_sca_mode_enabled(org_id):
+            activation_key = self.setup_activation_key(
+                org_id,
+                content_view['id'],
+                lce_id,
+                subscription_names=subscription_names,
+                override=override,
+            )
+        else:
+            activation_key = self.setup_activation_key(
+                org_id, content_view['id'], lce_id, override=override
+            )
         setup_content_data = dict(
             activation_key=activation_key,
             content_view=content_view,
@@ -746,7 +751,6 @@ class RepositoryCollection:
             repo_labels = [
                 repo['label'] for repo in self.custom_repos_info if repo['content-type'] == 'yum'
             ]
-
         vm.contenthost_setup(
             self.satellite,
             self.organization['label'],
