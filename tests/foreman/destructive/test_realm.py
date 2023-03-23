@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Realm
+:CaseComponent: Authentication
 
 :Team: Rocket
 
