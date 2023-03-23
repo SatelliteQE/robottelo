@@ -480,10 +480,10 @@ def test_positive_async_endpoint_for_manifest_refresh(
     :BZ: 2066323
     """
     target_sat.upload_manifest(module_org.id, session_entitlement_manifest.content)
-    sub = entities.Subscription(organization=module_org)
+    sub = target_sat.Subscription(organization=module_org)
     # set log level to 'debug' and restart services
     target_sat.cli.Admin.logging({'all': True, 'level-debug': True})
-    target_sat.execute('satellite-maintain service restart')
+    target_sat.cli.Service.restart()
     # refresh manifest and assert new log message to confirm async endpoint
     sub.refresh_manifest(data={'organization_id': module_org.id})
     results = target_sat.execute(
@@ -491,4 +491,4 @@ def test_positive_async_endpoint_for_manifest_refresh(
     )
     assert 'Sending GET request to upstream Candlepin' in str(results)
     # set log level back to default
-    target_sat.execute('satellite-installer --reset-foreman-logging-level')
+    target_sat.cli.Admin.logging({'all': True, 'level-production': True})
