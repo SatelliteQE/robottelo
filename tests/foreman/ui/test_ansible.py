@@ -266,3 +266,4 @@ def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_cont
     def _finalize():
         result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
         assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
+        target_sat.execute('rm -rvf /etc/ansible/roles/custom_role')
