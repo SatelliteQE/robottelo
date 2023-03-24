@@ -21,6 +21,7 @@ from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha
 from fauxfactory import gen_string
+from manifester import Manifester
 from nailgun import entities
 from packaging.version import Version
 from ssh2.exceptions import AuthenticationError
@@ -38,8 +39,12 @@ from robottelo.config import settings
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
+from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import KEY_CLOAK_CLI
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
 from robottelo.constants import RHSSO_NEW_GROUP
 from robottelo.constants import RHSSO_NEW_USER
 from robottelo.constants import RHSSO_RESET_PASSWORD
@@ -92,18 +97,39 @@ def get_sat_rhel_version():
     return Version(rhel_version)
 
 
-def setup_capsule(satellite, capsule, registration_args=None, installation_args=None):
+def setup_capsule(satellite, capsule, org, registration_args=None, installation_args=None):
     """Given satellite and capsule instances, run the commands needed to set up the capsule
 
     Note: This does not perform content setup actions on the Satellite
 
     :param satellite: An instance of this module's Satellite class
     :param capsule: An instance of this module's Capsule class
+    :param org: An instance of the org to use on the Satellite
     :param registration_args: A dictionary mapping argument: value pairs for registration
     :param installation_args: A dictionary mapping argument: value pairs for installation
     :return: An ssh2-python result object for the installation command.
 
     """
+    # Unregister capsule incase it's registered to CDN
+    capsule.unregister()
+
+    # Add a manifest to the Satellite
+    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+        satellite.upload_manifest(org.id, manifest.content)
+
+    # Enable RHEL 8 BaseOS and AppStream repos and sync
+    for rh_repo_key in ['rhel8_bos', 'rhel8_aps']:
+        satellite.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=org.id,
+            product=PRDS['rhel8'],
+            repo=REPOS[rh_repo_key]['name'],
+            reposet=REPOSET[rh_repo_key],
+            releasever=REPOS[rh_repo_key]['releasever'],
+        )
+    product = satellite.api.Product(name=PRDS['rhel8'], organization=org.id).search()[0]
+    product.sync(timeout=1800, synchronous=True)
+
     if not registration_args:
         registration_args = {}
     file, _, cmd_args = satellite.capsule_certs_generate(capsule)
@@ -113,9 +139,9 @@ def setup_capsule(satellite, capsule, registration_args=None, installation_args=
         f'sshpass -p "{capsule.password}" scp -o "StrictHostKeyChecking no" '
         f'{file} root@{capsule.hostname}:{file}'
     )
-    capsule.install_katello_ca(sat_hostname=satellite.hostname)
+    capsule.install_katello_ca(satellite)
     capsule.register_contenthost(**registration_args)
-    return capsule.install(**cmd_args)
+    return capsule.install(cmd_args)
 
 
 class ContentHostError(Exception):
