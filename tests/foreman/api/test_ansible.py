@@ -47,10 +47,10 @@ def test_fetch_and_sync_ansible_playbooks(target_sat):
         "ansible-galaxy collection install -p /usr/share/ansible/collections "
         "xprazak2.forklift_collection"
     )
-    id = target_sat.api.SmartProxy(name=target_sat.hostname).search()[0].id
-    playbook_fetch = target_sat.api.AnsiblePlaybooks().fetch(data={'proxy_id': id})
+    proxy_id = target_sat.nailgun_smart_proxy.id
+    playbook_fetch = target_sat.api.AnsiblePlaybooks().fetch(data={'proxy_id': proxy_id})
     playbooks_count = len(playbook_fetch['results']['playbooks_names'])
-    playbook_sync = target_sat.api.AnsiblePlaybooks().sync(data={'proxy_id': id})
+    playbook_sync = target_sat.api.AnsiblePlaybooks().sync(data={'proxy_id': proxy_id})
     assert playbook_sync['action'] == "Sync playbooks"
 
     target_sat.wait_for_tasks(
@@ -97,10 +97,10 @@ def test_positive_ansible_job_on_host(target_sat, module_org, rhel_contenthost):
     rhel_contenthost.register_contenthost(module_org.label, force=True)
     assert rhel_contenthost.subscribed
     rhel_contenthost.add_rex_key(satellite=target_sat)
-    id = target_sat.nailgun_smart_proxy.id
+    proxy_id = target_sat.nailgun_smart_proxy.id
     target_host = rhel_contenthost.nailgun_host
-    target_sat.api.AnsibleRoles().sync(data={'proxy_id': id, 'role_names': [SELECTED_ROLE]})
-    target_host.assign_ansible_roles(data={'ansible_role_ids': [1]})
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]})
+    target_sat.cli.Host.ansible_roles_assign({'id': target_host.id, 'ansible-roles': SELECTED_ROLE})
     host_roles = target_host.list_ansible_roles()
     assert host_roles[0]['name'] == SELECTED_ROLE
     assert target_host.name == rhel_contenthost.hostname
