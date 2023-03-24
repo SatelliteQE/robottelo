@@ -225,7 +225,12 @@ class ContentHost(Host, ContentHostMixins):
                 self.nailgun_host.delete()
             self.unregister()
         # Strip most unnecessary attributes from our instance for checkin
-        keep_keys = set(self.to_dict()) | {'release', '_prov_inst', '_cont_inst'}
+        keep_keys = set(self.to_dict()) | {
+            'release',
+            '_prov_inst',
+            '_cont_inst',
+            '_skip_context_checkin',
+        }
         self.__dict__ = {k: v for k, v in self.__dict__.items() if k in keep_keys}
         self.__class__ = Host
 
