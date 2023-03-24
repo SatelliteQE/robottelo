@@ -960,6 +960,8 @@ class TestAsyncSSHProviderRex:
             module_ak_with_cv.name,
             target=module_capsule_configured_async_ssh,
             satellite=module_target_sat,
+            ignore_subman_errors=True,
+            force=True,
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         # run script provider rex command, longer-running command is needed to
@@ -1024,6 +1026,8 @@ class TestPullProviderRex:
             satellite=module_target_sat,
             packages=['katello-agent'],
             repo=client_repo.baseurl,
+            ignore_subman_errors=True,
+            force=True,
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
 
@@ -1121,6 +1125,8 @@ class TestPullProviderRex:
             satellite=module_target_sat,
             setup_remote_execution_pull=True,
             repo=client_repo.baseurl,
+            ignore_subman_errors=True,
+            force=True,
         )
 
         assert result.status == 0, f'Failed to register host: {result.stderr}'
