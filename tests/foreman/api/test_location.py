@@ -9,7 +9,7 @@ http://theforeman.org/api/apidoc/v2/locations.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent: OrganizationsLocations
+:CaseComponent: OrganizationsandLocations
 
 :Team: Endeavour
 

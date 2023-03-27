@@ -6,7 +6,7 @@
 
 :CaseLevel: Component
 
-:CaseComponent: Webhooks
+:CaseComponent: HooksandWebhooks
 
 :Team: Endeavour
 
