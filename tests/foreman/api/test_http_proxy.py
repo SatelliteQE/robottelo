@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
@@ -52,7 +52,7 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
 
     :expectedresults: HTTP Proxy works with other satellite components.
 
-    :Team: Phoenix
+    :Team: Phoenix-content
 
     :BZ: 2011303, 2042473, 2046337
 
@@ -153,7 +153,7 @@ def test_positive_auto_attach_with_http_proxy(
     :expectedresults: host successfully subscribed, subscription
         repository enabled, and repository package installed.
 
-    :Team: Phoenix
+    :Team: Phoenix-content
 
     :BZ: 2046337
 
@@ -215,7 +215,7 @@ def test_positive_assign_http_proxy_to_products():
     :expectedresults: HTTP Proxy is assigned to all repos present
         in Products and sync operation uses assigned http-proxy.
 
-    :Team: Phoenix
+    :Team: Phoenix-content
 
     :CaseImportance: Critical
     """
