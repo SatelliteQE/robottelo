@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentViews
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 

@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentViews
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
@@ -240,7 +240,7 @@ class TestContentView:
 
         :CaseComponent: Pulp
 
-        :Team: Phoenix
+        :team: Rocket
 
         :CaseImportance: Medium
 
@@ -660,7 +660,7 @@ class TestContentViewPublishPromote:
 
         :CaseComponent: Pulp
 
-        :Team: Phoenix
+        :team: Rocket
 
         :CaseImportance: Medium
 
