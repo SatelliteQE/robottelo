@@ -188,7 +188,7 @@ class TestVirtwhoConfigforNutanix:
 
         :expectedresults:
             1. prism_flavor can be changed in virt-who-config-{}.conf if the
-            2. dropdown option is selected to prism central.
+                dropdown option is selected to prism central.
 
         :CaseLevel: Integration
 
