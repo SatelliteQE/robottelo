@@ -8,7 +8,7 @@
 
 :CaseComponent: katello-agent
 
-:Team: Phoenix
+:team: Phoenix-subscriptions
 
 :TestType: Functional
 
