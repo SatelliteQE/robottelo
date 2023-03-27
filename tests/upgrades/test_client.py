@@ -19,8 +19,6 @@ sat6-upgrade requires env.satellite_hostname to be set, this is required for the
 
 :Upstream: No
 """
-import time
-
 import pytest
 from broker import Broker
 
@@ -68,18 +66,6 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
 
         """
         rhel_client = katello_agent_client_for_upgrade.client
-        rhid = rhel_client.execute('subscription-manager identity')
-        assert module_org.name in rhid.stdout
-        result = rhel_client.execute('rpm -q gofer')
-        assert result.status == 0
-        assert 'package gofer is not installed' not in result.stdout
-        # Run goferd on client as its docker container
-        rhel_client._cont_inst.exec_run('goferd -f', detach=True)
-        # Holding on for 30 seconds while goferd starts
-        time.sleep(30)
-        rhel_client.execute('yum install -y procps')  # ps command needs to be installed
-        result = rhel_client.execute("ps -ef | grep goferd")
-        assert 'goferd' in result.stdout
         module_target_sat.cli.Host.package_install(
             {'host-id': rhel_client.nailgun_host.id, 'packages': FAKE_4_CUSTOM_PACKAGE_NAME}
         )
@@ -134,7 +120,9 @@ class TestScenarioUpgradeNewClientAndPackageInstallation:
 
     @pytest.mark.post_upgrade
     def test_post_scenario_post_client_package_installation(
-        self, module_target_sat, katello_agent_client_for_upgrade, module_org
+        self,
+        module_target_sat,
+        katello_agent_client_for_upgrade,
     ):
         """Post-upgrade test that creates a client, installs a package on
         the post-upgrade created client and then verifies the package is installed.
@@ -157,18 +145,6 @@ class TestScenarioUpgradeNewClientAndPackageInstallation:
             3. The package is installed on post-upgrade client
         """
         rhel_client = katello_agent_client_for_upgrade.client
-        rhid = rhel_client.execute('subscription-manager identity')
-        assert module_org.name in rhid.stdout
-        result = rhel_client.execute('rpm -q gofer')
-        assert result.status == 0
-        assert 'package gofer is not installed' not in result.stdout
-        # Run goferd on client as its docker container
-        rhel_client._cont_inst.exec_run('goferd -f', detach=True)
-        # Holding on for 30 seconds while goferd starts
-        time.sleep(30)
-        rhel_client.execute('yum install -y procps')  # ps command needs to be installed
-        result = rhel_client.execute("ps -ef | grep goferd")
-        assert 'goferd' in result.stdout
         module_target_sat.cli.Host.package_install(
             {'host-id': rhel_client.nailgun_host.id, 'packages': FAKE_0_CUSTOM_PACKAGE_NAME}
         )

@@ -27,21 +27,23 @@ class VersionedContent:
 
     @cached_property
     def REPOS(self):
-        sys_repos = {}
-        if self._v_major > 7:
-            sys_repos['rhel_bos'] = constants.REPOS[f'rhel{self._v_major}_bos']
-            sys_repos['rhel_aps'] = constants.REPOS[f'rhel{self._v_major}_aps']
-        else:
-            sys_repos['rhel'] = constants.REPOS[
-                f'rhel{self._v_major}'
-            ]  # Should we implement some compatiblity layer here?
-        repos = {
-            'rhscl': constants.REPOS[f'rhscl{self._v_major}'],
-            'rhsclient': constants.REPOS[f'rhsclient{self._v_major}'],
-            'rhsc': constants.REPOS[f'rhsc{self._v_major}'],
-            'rhsc_iso': constants.REPOS[f'rhsc{self._v_major}_iso'],
-        }
-        return sys_repos | repos
+        try:
+            if self._v_major > 7:
+                sys_repos = {
+                    'rhel_bos': constants.REPOS[f'rhel{self._v_major}_bos'],
+                    'rhel_aps': constants.REPOS[f'rhel{self._v_major}_aps'],
+                }
+            else:
+                sys_repos = {'rhel': constants.REPOS[f'rhel{self._v_major}']}
+            repos = {
+                'rhscl': constants.REPOS[f'rhscl{self._v_major}'],
+                'rhsclient': constants.REPOS[f'rhsclient{self._v_major}'],
+                'rhsc': constants.REPOS[f'rhsc{self._v_major}'],
+                'rhsc_iso': constants.REPOS[f'rhsc{self._v_major}_iso'],
+            }
+            return sys_repos | repos
+        except KeyError as err:
+            raise ValueError(f'Unsupported system version: {self._v_major}') from err
 
     @cached_property
     def OSCAP(self):

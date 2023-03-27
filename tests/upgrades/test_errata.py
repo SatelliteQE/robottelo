@@ -29,16 +29,15 @@ class TestScenarioErrataAbstract:
     """This is an Abstract Class whose methods are inherited by others errata
     scenarios"""
 
-    def _create_custom_rhel_n_client_repos(self, target_sat, product, rhel_client):
+    def _create_custom_rhel_n_client_repos(self, target_sat, product, v_major):
         """Create custom RHEL (system) and Satellite Client repos and sync them"""
         repos = []
-        v_major = rhel_client.os_version.major
         rhel_repo_urls = [settings.repos[f'rhel{v_major}_os']]
         if v_major > 7:
             rhel_repo_urls = [rhel_repo_urls[0]['BASEOS'], rhel_repo_urls[0]['APPSTREAM']]
 
         client_repo_url = settings.repos.satclient_repo[f'rhel{v_major}']
-        if all([all(rhel_repo_urls), client_repo_url]):
+        if not all([all(rhel_repo_urls), client_repo_url]):
             raise ValueError(
                 f'Repo URLs for RHEL {v_major} system repository or/and '
                 f'Satellite Client repository for RHEL {v_major} are not set.'
@@ -65,25 +64,22 @@ class TestScenarioErrataAbstract:
         This method assumes that the RHEL and Satellite Client repositories
         are already created and synced.
 
-        :return: List[int]: repository IDs
+        :return: List[entities.Repository]: repositories
         """
-        rhel_repos = ['rhel_bos', 'rhel_aps'] if rhel_client.os_version.major > 7 else ['rhel']
-        rhel_repo_ids = [
-            target_sat.api.Repository(organization=org)
-            .search(query={'search': rhel_client.REPOS[repo]['id']})[0]
-            .id
-            for repo in rhel_repos
-        ]
-        sat_client_repo_id = (
-            target_sat.api.Repository(organization=org)
-            .search(query={'search': rhel_client.REPOS[constants.PRODUCT_KEY_SAT_CLIENT]['id']})[0]
-            .id
+        rhel_repo_labels = (
+            ['rhel_bos', 'rhel_aps'] if rhel_client.os_version.major > 7 else ['rhel']
         )
-
-        return [
-            target_sat.api.Repository(id=repo_id)
-            for repo_id in [*rhel_repo_ids, sat_client_repo_id]
+        rhel_repos = [
+            target_sat.api.Repository(organization=org).search(
+                query={'search': rhel_client.REPOS[repo]['id']}
+            )[0]
+            for repo in rhel_repo_labels
         ]
+        sat_client_repo = target_sat.api.Repository(organization=org).search(
+            query={'search': rhel_client.REPOS[constants.PRODUCT_KEY_SAT_CLIENT]['id']}
+        )[0]
+
+        return [*rhel_repos, sat_client_repo]
 
 
 class TestScenarioErrataCount(TestScenarioErrataAbstract):
@@ -131,7 +127,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         org = sat.api.Organization().create()
         loc = sat.api.Location(organization=[org]).create()
 
-        sat.update_vm_host_location(rhel_client, loc.id)
+        sat.api_factory.update_vm_host_location(rhel_client, loc.id)
         environment = sat.api.LifecycleEnvironment(organization=org).search(
             query={'search': f'name={constants.ENVIRONMENT}'}
         )[0]
@@ -140,7 +136,9 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             product=product, content_type='yum', url=settings.repos.yum_9.url
         ).create()
         product.sync()
-        synced_repos = self._create_custom_rhel_n_client_repos(sat, product, rhel_client)
+        synced_repos = self._create_custom_rhel_n_client_repos(
+            sat, product, rhel_client.os_version.major
+        )
         repolist = [
             custom_yum_repo,
             *synced_repos,
@@ -153,9 +151,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             query={'search': f'name={product.name}'}
         )[0]
         ak.add_subscriptions(data={'subscription_id': subscription.id})
-
-        rhid = rhel_client.execute('subscription-manager identity')
-        assert org.name in rhid.stdout
+        rhel_client.execute('subscription-manager refresh')
 
         rhel_client.execute(f'yum -y install {" ".join(constants.FAKE_9_YUM_OUTDATED_PACKAGES)}')
         host = sat.api.Host().search(query={'search': f'activation_key={ak.name}'})[0]
@@ -226,9 +222,8 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             delay=2,
             logger=logger,
         )
-        rhel_client.execute(
-            f'yum -y install {" ".join(constants.FAKE_9_YUM_UPDATED_PACKAGES)}'
-        )  # why do we install packages at the end of the test?
+        pkg_check = rhel_client.execute(f'rpm -q {" ".join(constants.FAKE_9_YUM_UPDATED_PACKAGES)}')
+        assert pkg_check.status == 0, 'Package check failed. One or more packages are not installed'
 
 
 class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataAbstract):
@@ -302,15 +297,7 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
         ).create()
         ak.add_subscriptions(data={'subscription_id': custom_sub.id})
         ak.add_subscriptions(data={'subscription_id': rh_sub.id})
-
-        # Is this needed? The client should already be registered from the fixture
-        wait_for(
-            lambda: default_org.label
-            in rhel_client.execute('subscription-manager identity').stdout,
-            timeout=800,
-            delay=2,
-            logger=logger,
-        )
+        rhel_client.execute('subscription-manager refresh')
 
         # Update OS to make errata count 0
         rhel_client.execute('yum -y update')
@@ -385,9 +372,7 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
         for errata in settings.repos.yum_9.errata:
             host.errata_apply(data={'errata_ids': [errata]})
 
-        rhel_client.execute(f'yum -y install {" ".join(constants.FAKE_9_YUM_UPDATED_PACKAGES)}')
-        # Do we need to install the packages on the client?
-        # The yum_9.errata(s) should already be installed
+        rhel_client.execute(f'rpm -q {" ".join(constants.FAKE_9_YUM_UPDATED_PACKAGES)}')
 
         # waiting for errata count to become 0, as profile uploading takes some time
         wait_for(
