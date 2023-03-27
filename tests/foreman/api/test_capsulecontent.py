@@ -816,7 +816,7 @@ class TestCapsuleContentManagement:
             basearch='x86_64',
             org_id=function_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
-            reposet=constants.REPOSET['kickstart'][distro],
+            reposet=constants.REPOS['kickstart'][distro]['reposet'],
             repo=constants.REPOS['kickstart'][distro]['name'],
             releasever=constants.REPOS['kickstart'][distro]['version'],
         )
@@ -860,7 +860,7 @@ class TestCapsuleContentManagement:
         tail = (
             f'rhel/server/7/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/kickstart'
             if distro == 'rhel7'
-            else f'{distro}/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
+            else f'{distro.split("_")[0]}/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
         )
         url_base = (
             f'pulp/content/{function_entitlement_manifest_org.label}/{lce.label}/{cv.label}/'
