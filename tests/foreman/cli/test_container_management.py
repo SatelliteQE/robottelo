@@ -6,7 +6,7 @@
 
 :TestType: Functional
 
-:Team: Phoenix
+:Team: Phoenix-content
 
 :CaseComponent: ContainerManagement-Content
 

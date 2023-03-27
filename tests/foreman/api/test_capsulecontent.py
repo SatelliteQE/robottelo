@@ -9,7 +9,7 @@ interactions and use capsule.
 
 :CaseComponent: Capsule-Content
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 

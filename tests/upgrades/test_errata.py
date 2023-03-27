@@ -8,7 +8,7 @@
 
 :CaseComponent: ErrataManagement
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
