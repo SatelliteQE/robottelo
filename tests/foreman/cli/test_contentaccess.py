@@ -8,7 +8,7 @@
 
 :CaseAutomation: Automated
 
-:Team: Phoenix
+:team: Phoenix-subscriptions
 
 :TestType: Functional
 

@@ -8,7 +8,7 @@
 
 :CaseComponent: Pulp
 
-:Team: Phoenix
+:team: Rocket
 
 :TestType: Functional
 

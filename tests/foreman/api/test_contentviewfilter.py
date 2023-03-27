@@ -12,7 +12,7 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 
 :CaseComponent: ContentViews
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 

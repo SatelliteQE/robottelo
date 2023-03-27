@@ -10,7 +10,7 @@ Satellite 6.8
 
 :CaseComponent: ContentCredentials
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 

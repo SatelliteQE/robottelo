@@ -8,7 +8,7 @@
 
 :CaseComponent: LifecycleEnvironments
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 

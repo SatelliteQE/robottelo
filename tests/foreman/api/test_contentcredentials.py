@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentCredentials
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 

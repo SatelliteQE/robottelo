@@ -8,7 +8,7 @@
 
 :CaseComponent: SubscriptionManagement
 
-:Team: Phoenix
+:team: Phoenix-subscriptions
 
 :TestType: Functional
 

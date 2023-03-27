@@ -8,7 +8,7 @@
 
 :CaseComponent: Virt-whoConfigurePlugin
 
-:Team: Phoenix
+:team: Phoenix-subscriptions
 
 :TestType: Functional
 
