@@ -1926,6 +1926,41 @@ def test_rex_new_ui(session, target_sat, rex_contenthost):
         assert "Run ls" == recent_jobs['recent_jobs']['finished']['table'][0]['column0']
         assert "succeeded" == recent_jobs['recent_jobs']['finished']['table'][0]['column2']
 
+@pytest.mark.tier4
+def test_positive_manage_table_columns(session):
+    """Set custom columns of the hosts table.
+
+    :id: e5e18982-cc43-11ed-8562-000c2989e153
+
+    :steps:
+        1. Navigate to the Hosts page.
+        2. Set custom columns for the hosts table via the 'Manage columns' dialog.
+
+    :expectedresults: Check if the custom columns were set properly, i.e., are displayed or not displayed in the table.
+
+    :CaseLevel: System
+    """
+    columns = {
+        'Host group': False,
+        'Last report': False,
+        'Comment': False,
+        'Installable updates': True,
+        'Registered': True,
+        'Last checkin': True,
+        'IPv4': True,
+        'MAC': True,
+        'Sockets': True,
+        'Cores': True,
+        'RAM': True,
+        'Boot time': True,
+        'Recommendations': False
+    }
+    with session:
+        session.host.manage_table_columns(columns)
+        displayed_columns = session.host.get_displayed_table_headers()
+        for column, is_displayed in columns.items():
+            assert (column in displayed_columns) is is_displayed
+
 
 @pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
