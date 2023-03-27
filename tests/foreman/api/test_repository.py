@@ -8,7 +8,7 @@
 
 :CaseComponent: Repositories
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
@@ -2187,7 +2187,7 @@ class TestSRPMRepositoryIgnoreContent:
 
     :customerscenario: true
 
-    :Team: Phoenix
+    :team: Phoenix-content
 
     :BZ: 1673215
     """
@@ -2447,7 +2447,7 @@ class TestTokenAuthContainerRepository:
 
     :CaseComponent: ContainerManagement-Content
 
-    :Team: Phoenix
+    :team: Phoenix-content
     """
 
     @pytest.mark.tier2
