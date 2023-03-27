@@ -81,7 +81,7 @@ def pytest_collection_modifyitems(session, items, config):
     # config.getoption(default) doesn't work like you think it does, hence or ''
     importance = [i for i in (config.getoption('importance') or '').split(',') if i != '']
     component = [c for c in (config.getoption('component') or '').split(',') if c != '']
-    team = [a for a in (config.getoption('team') or '').split(',') if a != '']
+    team = [a.lower() for a in (config.getoption('team') or '').split(',') if a != '']
 
     selected = []
     deselected = []
@@ -113,7 +113,7 @@ def pytest_collection_modifyitems(session, items, config):
                 item.add_marker(pytest.mark.importance(doc_importance[0]))
             doc_team = team_regex.findall(docstring)
             if doc_team and 'team' not in item_mark_names:
-                item.add_marker(pytest.mark.team(doc_team[0]))
+                item.add_marker(pytest.mark.team(doc_team[0].lower()))
 
         # add markers as user_properties so they are recorded in XML properties of the report
         # pytest-ibutsu will include user_properties dict in testresult metadata
