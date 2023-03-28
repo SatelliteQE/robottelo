@@ -1475,6 +1475,7 @@ class Capsule(ContentHost, CapsuleMixins):
 class Satellite(Capsule, SatelliteMixins):
     def __init__(self, hostname=None, **kwargs):
         hostname = hostname or settings.server.hostname  # instance attr set by broker.Host
+        self.omitting_credentials = False
         self.port = kwargs.get('port', settings.server.port)
         super().__init__(hostname=hostname, **kwargs)
         # create dummy classes for later population
@@ -1534,12 +1535,25 @@ class Satellite(Capsule, SatelliteMixins):
                     try:
                         if Base in obj.mro():
                             # create a copy of the class and set our hostname as a class attribute
-                            new_cls = type(name, (obj,), {'hostname': self.hostname})
+                            new_cls = type(
+                                name,
+                                (obj,),
+                                {
+                                    'hostname': self.hostname,
+                                    'omitting_credentials': self.omitting_credentials,
+                                },
+                            )
                             setattr(self._cli, name, new_cls)
                     except AttributeError:
                         # not everything has an mro method, we don't care about them
                         pass
         return self._cli
+
+    @contextmanager
+    def omit_credentials(self):
+        self.omitting_credentials = True
+        yield
+        self.omitting_credentials = False
 
     def ui_session(self, testname=None, user=None, password=None, url=None, login=True):
         """Initialize an airgun Session object and store it as self.ui_session"""
