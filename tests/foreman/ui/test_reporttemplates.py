@@ -585,7 +585,7 @@ def test_positive_generate_all_installed_packages_report(
         3. Select Date, Output format, and Hosts filter
 
     :expectedresults: A report is generated containing all installed package
-    information for a host
+            information for a host
 
     :BZ: 1826648
 

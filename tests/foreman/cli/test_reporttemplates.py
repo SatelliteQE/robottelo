@@ -1009,7 +1009,7 @@ def test_positive_generate_installed_packages_report(
             --organization-title '' --report-format '' --inputs 'Hosts filter = hostname'
 
     :expectedresults: A report is generated containing all installed package
-    information for a host
+            information for a host
 
     :BZ: 1826648
 
