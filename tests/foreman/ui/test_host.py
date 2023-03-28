@@ -21,6 +21,7 @@ import csv
 import os
 import re
 from datetime import datetime
+from time import sleep
 
 import pytest
 import yaml
@@ -257,6 +258,21 @@ def remove_vm_on_delete(target_sat, setting_update):
         target_sat.api.Setting().search(query={'search': 'name=destroy_vm_on_host_delete'})[0].value
     )
     yield
+
+
+@pytest.fixture
+def prepared_host(rex_contenthost, target_sat):
+    """Install katello-host-tools-tracer, create custom
+    repositories on the host"""
+    # create a custom, rhel version-specific OS repo
+    rhelver = rex_contenthost.os_version.major
+    if rhelver > 7:
+        rex_contenthost.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
+    else:
+        rex_contenthost.create_custom_repos(
+            **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
+        )
+    yield rex_contenthost
 
 
 @pytest.mark.tier2
@@ -2597,3 +2613,40 @@ def test_positive_remove_role_in_new_ui(self):
         up on the UI
 
     """
+
+
+@pytest.mark.tier2
+@pytest.mark.rhel_ver_match('8')
+def test_positive_tracer_enable_reload(prepared_host, target_sat):
+    """Using the new Host UI,enable tracer and verify that the page reloads
+
+    :id: c9ebd4a8-6db3-4d0e-92a2-14951c26769b
+
+    :caseComponent: katello-tracer
+
+    :Team: Phoenix
+
+    :CaseLevel: System
+
+    :Steps:
+        1. Register a RHEL host to Satellite.
+        2. Prepare katello-tracer to be installed
+        3. Navigate to the Traces tab in New Host UI
+        4. Enable tracer using the popup
+
+    :expectedresults: The Tracer tab message updates accordingly during the process, and displays
+        the state the correct Title
+
+    """
+    host = target_sat.api.Host().search(query={'search': prepared_host.hostname})[0].read_json()
+    with target_sat.ui_session() as session:
+        session.organization.select(host['organization_name'])
+        title = session.host_new.get_tracer_title(prepared_host.hostname)
+        assert title == "Traces are not enabled"
+        session.host_new.enable_tracer(prepared_host.hostname)
+        title = session.host_new.get_tracer_title(prepared_host.hostname)
+        assert title == "Traces are being enabled"
+        # Waiting on traces to be enabled. Not optimal, but not sure how else to do it
+        sleep(15)
+        title = session.host_new.get_tracer_title(prepared_host.hostname)
+        assert title == "No applications to restart"
