@@ -1345,6 +1345,15 @@ def test_positive_selinux_foreman_module(target_sat):
 @pytest.mark.parametrize('service', SATELLITE_SERVICES)
 def test_positive_check_installer_service_running(target_sat, service):
     """Check if a service is running
+
+    :id: 5389c174-7ab1-4e9d-b2aa-66d80fd6dc5f
+
+    :steps:
+        1. Verify a service is active with systemctl is-active
+
+    :expectedresults: The service is active
+
+    :CaseImportance: Medium
     """
     is_active = target_sat.execute(f'systemctl is-active {service}')
     status = target_sat.execute(f'systemctl status {service}')
