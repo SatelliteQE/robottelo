@@ -1003,7 +1003,7 @@ def test_positive_generate_installed_packages_report(
 
         :setup: Installed Satellite with Organization, Activation key,
                 Content View, Content Host, and custom product with installed packages
-    `
+                
         :steps:
             1. hammer report-template generate --name 'Host - All Installed Packages'
               --organization-title '' --report-format '' --inputs 'Hosts filter = hostname'
