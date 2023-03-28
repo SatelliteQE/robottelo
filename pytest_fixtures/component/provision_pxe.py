@@ -124,6 +124,7 @@ def module_provisioning_sat(
     It uses the artifacts from the workflow to create all the necessary Satellite entities
     that are later used by the tests.
     """
+    provisioning_type = getattr(request, 'param', '')
     sat = module_target_sat
     provisioning_domain_name = f"{gen_string('alpha').lower()}.foo"
 
