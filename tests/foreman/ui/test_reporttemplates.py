@@ -574,22 +574,22 @@ def test_positive_generate_all_installed_packages_report(
 ):
     """Generate an report using the 'Host - All Installed Packages' Report template
 
-        :id: 63ab3246-0fc5-48b3-ba56-7becfa0c5a7b
+    :id: 63ab3246-0fc5-48b3-ba56-7becfa0c5a7b
 
-        :setup: Installed Satellite with Organization, Activation key,
-                Content View, Content Host, and custom product with installed packages
-    `
-        :steps:
-            1. Monitor -> Report Templates
-            2. Host - All Installed Packages -> Generate
-            3. Select Date, Output format, and Hosts filter
+    :setup: Installed Satellite with Organization, Activation key,
+            Content View, Content Host, and custom product with installed packages
 
-        :expectedresults: A report is generated containing all installed package
-        information for a host
+    :steps:
+        1. Monitor -> Report Templates
+        2. Host - All Installed Packages -> Generate
+        3. Select Date, Output format, and Hosts filter
 
-        :BZ: 1826648
+    :expectedresults: A report is generated containing all installed package
+    information for a host
 
-        :customerscenario: true
+    :BZ: 1826648
+
+    :customerscenario: true
     """
     org, ak, cv, lce = setup_content
     setup_org_for_a_custom_repo(

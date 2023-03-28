@@ -999,21 +999,21 @@ def test_positive_generate_installed_packages_report(
 ):
     """Generate an report using the 'Host - All Installed Packages' Report template
 
-        :id: 47cc5528-41d9-4100-b603-e98d2ff097a8
+    :id: 47cc5528-41d9-4100-b603-e98d2ff097a8
 
-        :setup: Installed Satellite with Organization, Activation key,
-                Content View, Content Host, and custom product with installed packages
-                
-        :steps:
-            1. hammer report-template generate --name 'Host - All Installed Packages'
-              --organization-title '' --report-format '' --inputs 'Hosts filter = hostname'
+    :setup: Installed Satellite with Organization, Activation key,
+            Content View, Content Host, and custom product with installed packages
 
-        :expectedresults: A report is generated containing all installed package
-        information for a host
+    :steps:
+        1. hammer report-template generate --name 'Host - All Installed Packages'
+            --organization-title '' --report-format '' --inputs 'Hosts filter = hostname'
 
-        :BZ: 1826648
+    :expectedresults: A report is generated containing all installed package
+    information for a host
 
-        :customerscenario: true
+    :BZ: 1826648
+
+    :customerscenario: true
     """
     setup_org_for_a_custom_repo(
         {
