@@ -23,6 +23,7 @@ from random import choice
 
 import pytest
 from fauxfactory import gen_choice
+from fauxfactory import gen_mac
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
@@ -264,3 +265,48 @@ class TestProvisioningTemplate:
                     rendered == f"{settings.server.scheme}://"
                     f"{target_sat.hostname} {template['kind']}"
                 )
+
+    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    def test_positive_provision_template_check_net_interface(
+        self,
+        module_sync_kickstart_content,
+        module_target_sat,
+        module_sca_manifest_org,
+        module_location,
+        module_default_org_view,
+        module_lce_library,
+        default_architecture,
+        default_partitiontable,
+    ):
+        """Read the Provision template and verify correct network interface is created.
+
+        :id: 971c4dd0-548d-411a-9c5a-f351370bb860
+
+        :expectedresults: The rendered provision template has correct network interface.
+
+        :CaseImportance: High
+
+        :BZ: 2148433
+
+        :customerscenario: true
+        """
+        macaddress = gen_mac(multicast=False)
+        capsule = module_target_sat.nailgun_smart_proxy
+        host = module_target_sat.api.Host(
+            organization=module_sca_manifest_org,
+            location=module_location,
+            name=gen_string('alpha').lower(),
+            mac=macaddress,
+            operatingsystem=module_sync_kickstart_content.os,
+            architecture=default_architecture,
+            domain=module_sync_kickstart_content.domain,
+            root_pass=settings.provisioning.host_root_password,
+            ptable=default_partitiontable,
+            content_facet_attributes={
+                'content_source_id': capsule.id,
+                'content_view_id': module_default_org_view.id,
+                'lifecycle_environment_id': module_lce_library.id,
+            },
+        ).create()
+        provision_template = host.read_template(data={'template_kind': 'provision'})
+        assert 'ifcfg-$sanitized_real' in str(provision_template)

@@ -8,7 +8,7 @@
 
 :CaseComponent: Repositories
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
@@ -17,6 +17,8 @@
 :Upstream: No
 """
 import pytest
+from nailgun import entities
+from nailgun.entity_mixins import call_entity_method_with_timeout
 from requests.exceptions import HTTPError
 
 from robottelo import constants
@@ -137,3 +139,54 @@ def test_positive_epel_repositories_with_mirroring_policy(
     )[0]
     assert repodata.content_counts['rpm'] != 0
     assert module_repo_options['mirroring_policy'] == repodata.mirroring_policy
+
+
+@pytest.mark.tier4
+def test_positive_sync_kickstart_repo(self, module_entitlement_manifest_org, target_sat):
+    """No encoding gzip errors on kickstart repositories
+    sync.
+
+    :id: dbdabc0e-583c-4186-981a-a02844f90412
+
+    :expectedresults: No encoding gzip errors present in /var/log/messages.
+
+    :CaseLevel: Integration
+
+    :customerscenario: true
+
+    :steps:
+
+        1. Sync a kickstart repository.
+        2. After the repo is synced, change the download policy to
+            immediate.
+        3. Sync the repository again.
+        4. Assert that no errors related to encoding gzip are present in
+            /var/log/messages.
+        5. Assert that sync was executed properly.
+
+    :CaseComponent: Pulp
+
+    :BZ: 1687801
+    """
+    distro = 'rhel8_bos'
+    rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+        basearch='x86_64',
+        org_id=module_entitlement_manifest_org.id,
+        product=constants.REPOS['kickstart'][distro]['product'],
+        reposet=constants.REPOSET['kickstart'][distro],
+        repo=constants.REPOS['kickstart'][distro]['name'],
+        releasever=constants.REPOS['kickstart'][distro]['version'],
+    )
+    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    rh_repo.download_policy = 'immediate'
+    rh_repo = rh_repo.update(['download_policy'])
+    call_entity_method_with_timeout(rh_repo.sync, timeout=600)
+    result = target_sat.execute(
+        'grep pulp /var/log/messages | grep failed | grep encoding | grep gzip'
+    )
+    assert result.status == 1
+    assert not result.stdout
+    rh_repo = rh_repo.read()
+    assert rh_repo.content_counts['package_group'] > 0
+    assert rh_repo.content_counts['rpm'] > 0

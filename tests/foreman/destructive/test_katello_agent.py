@@ -6,9 +6,9 @@
 
 :CaseLevel: Component
 
-:CaseComponent: Katello-agent
+:CaseComponent: katello-agent
 
-:Team: Phoenix
+:team: Phoenix-subscriptions
 
 :TestType: Functional
 

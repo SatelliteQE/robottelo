@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
@@ -22,7 +22,13 @@ from fauxfactory import gen_string
 from fauxfactory import gen_url
 
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
+from robottelo.cli.http_proxy import HttpProxy
+from robottelo.cli.product import Product
+from robottelo.cli.repository import Repository
 from robottelo.config import settings
+from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT
 
 
 @pytest.mark.tier1
@@ -198,3 +204,93 @@ def test_positive_environment_variable_unset_set():
     :CaseAutomation: NotAutomated
 
     """
+
+
+@pytest.mark.tier2
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+def test_positive_assign_http_proxy_to_products(module_org):
+    """Assign http_proxy to Products and perform product sync.
+
+    :id: 6af7b2b8-15d5-4d9f-9f87-e76b404a966f
+
+    :expectedresults: HTTP Proxy is assigned to all repos present
+        in Products and sync operation performed successfully.
+
+    :CaseImportance: High
+    """
+    # create HTTP proxies
+    http_proxy_a = HttpProxy.create(
+        {
+            'name': gen_string('alpha', 15),
+            'url': settings.http_proxy.un_auth_proxy_url,
+            'organization-id': module_org.id,
+        },
+    )
+    http_proxy_b = HttpProxy.create(
+        {
+            'name': gen_string('alpha', 15),
+            'url': settings.http_proxy.auth_proxy_url,
+            'username': settings.http_proxy.username,
+            'password': settings.http_proxy.password,
+            'organization-id': module_org.id,
+        },
+    )
+    # Create products and repositories
+    product_a = make_product({'organization-id': module_org.id})
+    product_b = make_product({'organization-id': module_org.id})
+    repo_a1 = make_repository(
+        {
+            'organization-id': module_org.id,
+            'product-id': product_a['id'],
+            'url': settings.repos.yum_0.url,
+            'http-proxy-policy': 'none',
+        },
+    )
+    repo_a2 = make_repository(
+        {
+            'organization-id': module_org.id,
+            'product-id': product_a['id'],
+            'url': settings.repos.yum_0.url,
+            'http-proxy-policy': 'use_selected_http_proxy',
+            'http-proxy-id': http_proxy_a['id'],
+        },
+    )
+    repo_b1 = make_repository(
+        {
+            'organization-id': module_org.id,
+            'product-id': product_b['id'],
+            'url': settings.repos.yum_0.url,
+            'http-proxy-policy': 'none',
+        },
+    )
+    repo_b2 = make_repository(
+        {
+            'organization-id': module_org.id,
+            'product-id': product_b['id'],
+            'url': settings.repos.yum_0.url,
+        },
+    )
+    # Add http_proxy to products
+    Product.update_proxy(
+        {
+            'ids': f"{product_a['id']},{product_b['id']}",
+            'http-proxy-policy': 'use_selected_http_proxy',
+            'http-proxy-id': http_proxy_b['id'],
+        }
+    )
+    for repo in repo_a1, repo_a2, repo_b1, repo_b2:
+        result = Repository.info({'id': repo['id']})
+        assert result['http-proxy']['http-proxy-policy'] == 'use_selected_http_proxy'
+        assert result['http-proxy']['id'] == http_proxy_b['id']
+    # Perform sync and verify packages count
+    Product.synchronize({'id': product_a['id'], 'organization-id': module_org.id})
+    Product.synchronize({'id': product_b['id'], 'organization-id': module_org.id})
+
+    Product.update_proxy(
+        {'ids': f"{product_a['id']},{product_b['id']}", 'http-proxy-policy': 'none'}
+    )
+
+    for repo in repo_a1, repo_a2, repo_b1, repo_b2:
+        result = Repository.info({'id': repo['id']})
+        assert result['http-proxy']['http-proxy-policy'] == 'none'
+        assert int(result['content-counts']['packages']) == FAKE_0_YUM_REPO_PACKAGES_COUNT

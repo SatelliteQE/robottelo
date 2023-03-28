@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentViews
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
@@ -17,7 +17,7 @@
 :Upstream: No
 """
 import pytest
-from nailgun import entities
+from fauxfactory import gen_alpha
 
 from robottelo.config import settings
 from robottelo.constants import DataFile
@@ -30,7 +30,7 @@ class TestContentView:
     """
 
     @pytest.mark.pre_upgrade
-    def test_cv_preupgrade_scenario(self, request, target_sat):
+    def test_cv_preupgrade_scenario(self, request, target_sat, save_test_data):
         """Pre-upgrade scenario that creates content-view with various repositories.
 
         :id: preupgrade-a4ebbfa1-106a-4962-9c7c-082833879ae8
@@ -43,30 +43,26 @@ class TestContentView:
 
         :expectedresults: Content-view created with various repositories.
         """
-        test_name = request.node.name
-        org = entities.Organization(name=f'{request.node.name}_org').create()
-        product = entities.Product(organization=org, name=f'{request.node.name}_prod').create()
-        yum_repository = entities.Repository(
+        test_name = request.node.name + gen_alpha()
+        org = target_sat.api.Organization(name=f'{test_name}_org').create()
+        product = target_sat.api.Product(organization=org, name=f'{test_name}_prod').create()
+        yum_repository = target_sat.api.Repository(
             product=product, name=f'{test_name}_yum_repo', url=settings.repos.yum_1.url
         ).create()
-        entities.Repository.sync(yum_repository)
-        file_repository = entities.Repository(
-            product=product, name=f'{test_name}_file_repo', content_type="file"
+        target_sat.api.Repository.sync(yum_repository)
+        file_repository = target_sat.api.Repository(
+            product=product, name=f'{test_name}_file_repo', content_type='file'
         ).create()
-
-        remote_file_path = f"/tmp/{RPM_TO_UPLOAD}"
-
+        remote_file_path = f'/tmp/{RPM_TO_UPLOAD}'
         target_sat.put(DataFile.RPM_TO_UPLOAD, remote_file_path)
         file_repository.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
-        assert RPM_TO_UPLOAD in file_repository.files()["results"][0]['name']
-        cv = entities.ContentView(name=f"{test_name}_cv", organization=org).create()
-        cv.repository = [yum_repository, file_repository]
-        cv.update(['repository'])
-        cv.publish()
+        assert 'content' in file_repository.files()['results'][0]['name']
+        cv = target_sat.publish_content_view(org, [yum_repository, file_repository])
         assert len(cv.read_json()['versions']) == 1
+        save_test_data({'test_name': test_name, 'cv_name': cv.name})
 
     @pytest.mark.post_upgrade(depend_on=test_cv_preupgrade_scenario)
-    def test_cv_postupgrade_scenario(self, request, dependent_scenario_name):
+    def test_cv_postupgrade_scenario(self, request, target_sat, pre_upgrade_data):
         """After upgrade, the existing content-view(created before upgrade) should be updated.
 
         :id: postupgrade-a4ebbfa1-106a-4962-9c7c-082833879ae8
@@ -84,21 +80,24 @@ class TestContentView:
           3. The new repository should be added/updated to the CV.
 
         """
-        pre_test_name = dependent_scenario_name
-        org = entities.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[0]
+        pre_test_name = pre_upgrade_data.get('test_name')
+        cv_name = pre_upgrade_data.get('cv_name')
+        org = target_sat.api.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[
+            0
+        ]
         request.addfinalizer(org.delete)
-        product = entities.Product(organization=org.id).search(
+        product = target_sat.api.Product(organization=org.id).search(
             query={'search': f'name="{pre_test_name}_prod"'}
         )[0]
         request.addfinalizer(product.delete)
-        cv = entities.ContentView(organization=org.id).search(
-            query={'search': f'name="{pre_test_name}_cv"'}
+        cv = target_sat.api.ContentView(organization=org.id).search(
+            query={'search': f'name="{cv_name}"'}
         )[0]
-        yum_repo = entities.Repository(organization=org.id).search(
+        yum_repo = target_sat.api.Repository(organization=org.id).search(
             query={'search': f'name="{pre_test_name}_yum_repo"'}
         )[0]
         request.addfinalizer(yum_repo.delete)
-        file_repo = entities.Repository(organization=org.id).search(
+        file_repo = target_sat.api.Repository(organization=org.id).search(
             query={'search': f'name="{pre_test_name}_file_repo"'}
         )[0]
         request.addfinalizer(file_repo.delete)
@@ -107,7 +106,7 @@ class TestContentView:
         cv.update(['repository'])
         assert len(cv.read_json()['repositories']) == 0
 
-        yum_repository2 = entities.Repository(
+        yum_repository2 = target_sat.api.Repository(
             product=product, name=f'{pre_test_name}_yum_repos2', url=settings.repos.yum_2.url
         ).create()
         yum_repository2.sync()

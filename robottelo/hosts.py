@@ -71,7 +71,7 @@ def get_sat_version():
     try:
         sat_version = Satellite().version
     except (AuthenticationError, ContentHostError, BoxKeyError):
-        if str(sat_version := settings.server.version.get('release')) == 'stream':
+        if sat_version := str(settings.server.version.get('release')) == 'stream':
             sat_version = str(settings.robottelo.get('satellite_version'))
         if not sat_version:
             sat_version = SATELLITE_VERSION
@@ -222,7 +222,12 @@ class ContentHost(Host, ContentHostMixins):
                 self.nailgun_host.delete()
             self.unregister()
         # Strip most unnecessary attributes from our instance for checkin
-        keep_keys = set(self.to_dict()) | {'release', '_prov_inst', '_cont_inst'}
+        keep_keys = set(self.to_dict()) | {
+            'release',
+            '_prov_inst',
+            '_cont_inst',
+            '_skip_context_checkin',
+        }
         self.__dict__ = {k: v for k, v in self.__dict__.items() if k in keep_keys}
         self.__class__ = Host
 
@@ -1424,6 +1429,22 @@ class Capsule(ContentHost, CapsuleMixins):
         )
         if result.status != 0:
             raise SatelliteHostError(f'Failed to enable pull provider: {result.stdout}')
+
+    def set_mqtt_resend_interval(self, value):
+        """Set the time interval in seconds at which the notification should be
+        re-sent to the mqtt host until the job is picked up or cancelled"""
+        installer_opts = {
+            'foreman-proxy-plugin-remote-execution-script-mqtt-resend-interval': value,
+        }
+        enable_mqtt_command = InstallerCommand(
+            installer_opts=installer_opts,
+        )
+        result = self.execute(
+            enable_mqtt_command.get_command(),
+            timeout='20m',
+        )
+        if result.status != 0:
+            raise SatelliteHostError(f'Failed to change the mqtt resend interval: {result.stdout}')
 
     @property
     def cli(self):
