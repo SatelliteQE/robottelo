@@ -1342,14 +1342,24 @@ def test_positive_selinux_foreman_module(target_sat):
 
 @pytest.mark.upgrade
 @pytest.mark.tier1
-def test_positive_check_installer_services(target_sat):
-    """Check if services start correctly
+@pytest.mark.parametrize('service', SATELLITE_SERVICES)
+def test_positive_check_installer_service_running(target_sat, service):
+    """Check if a service is running
+    """
+    is_active = target_sat.execute(f'systemctl is-active {service}')
+    status = target_sat.execute(f'systemctl status {service}')
+    assert is_active.status == 0, status.stdout
+
+
+@pytest.mark.upgrade
+@pytest.mark.tier1
+def test_positive_check_installer_hammer_ping(target_sat):
+    """Check if hammer ping reports all services as ok
 
     :id: 85fd4388-6d94-42f5-bed2-24be38e9f104
 
     :steps:
-        1. Run 'systemctl status SATELLITE_SERVICES' command to check services status on satellite.
-        2. Run the 'hammer ping' command on satellite.
+        1. Run the 'hammer ping' command on satellite.
 
     :BZ: 1964394
 
@@ -1359,11 +1369,6 @@ def test_positive_check_installer_services(target_sat):
 
     :CaseLevel: System
     """
-    for service in SATELLITE_SERVICES:
-        result = target_sat.execute(f'systemctl status {service}')
-        assert result.status == 0
-        assert 'Active: active (running)' in result.stdout
-
     # check status reported by hammer ping command
     result = target_sat.execute('hammer ping')
     test_result = {}
@@ -1376,8 +1381,8 @@ def test_positive_check_installer_services(target_sat):
             key, value = line.split(":", 1)
             test_result[service][key] = value
 
-    for service, result in test_result.items():
-        assert result['Status'] == 'ok', f'{service} responded with {result}'
+    not_ok = {svc: result for svc, result in test_result.items() if result['Status'] != 'ok'}
+    assert not not_ok
 
 
 @pytest.mark.upgrade
