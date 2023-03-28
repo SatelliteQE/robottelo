@@ -603,7 +603,6 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
     :BZ: 1761012
 
     :steps:
-
         1. Register a host and properly setup REX for it.
         2. Run a simple job with predictable output
         3. Using the Job ID, generate a report using the Job - Invocation
@@ -611,8 +610,6 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
 
     :expectedresults: Report returns correct information (Hostname is set correctly,
         the output is what would be expected.)
-
-    :CaseImportance: High
 
     :customerscenario: true
     """
@@ -648,10 +645,10 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
     )
     res = rt.generate(
         data={
-            "organization_id": org.id,
-            "report_format": "json",
-            "input_values": {"job_id": job["id"]},
+            'organization_id': org.id,
+            'report_format': "json",
+            'input_values': {"job_id": job["id"]},
         }
     )
     assert res[0]['Host'] == rhel7_contenthost.hostname
-    assert "/root" in res[0]['stdout']
+    assert '/root' in res[0]['stdout']
