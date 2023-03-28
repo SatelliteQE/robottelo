@@ -20,6 +20,8 @@ from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 
+LOGGEDOUT = 'Logged out.'
+
 
 @pytest.fixture(scope='module')
 def default_sso_host(module_target_sat):
@@ -539,13 +541,49 @@ def func_enroll_ad_and_configure_external_auth(request, ad_data, target_sat):
 
 @pytest.mark.external_auth
 @pytest.fixture
-def configure_hammer_negotiate(parametrized_enrolled_sat):
-    """Configures hammer to use sessions and negotitate auth."""
-    parametrized_enrolled_sat.execute(f'mv {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
-    cfg = ':foreman:\n  :default_auth_type: Negotiate_Auth\n  :use_sessions: true\n'
-    parametrized_enrolled_sat.execute(f"echo '{cfg}' > {HAMMER_CONFIG}")
+def configure_hammer_no_creds(parametrized_enrolled_sat):
+    """Configures hammer to use sessions and negotiate auth."""
+    parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
+    parametrized_enrolled_sat.execute(f"sed -i '/:username.*/d' {HAMMER_CONFIG}")
+    parametrized_enrolled_sat.execute(f"sed -i '/:password.*/d' {HAMMER_CONFIG}")
     yield
     parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
+
+
+@pytest.mark.external_auth
+@pytest.fixture
+def configure_hammer_negotiate(parametrized_enrolled_sat, configure_hammer_no_creds):
+    """Configures hammer to use sessions and negotiate auth."""
+    parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
+    parametrized_enrolled_sat.execute(f"sed -i '/:default_auth_type.*/d' {HAMMER_CONFIG}")
+    parametrized_enrolled_sat.execute(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
+    parametrized_enrolled_sat.execute(f"echo '  :use_sessions: true' >> {HAMMER_CONFIG}")
+    parametrized_enrolled_sat.execute(
+        f"echo '  :default_auth_type: Negotiate_Auth' >> {HAMMER_CONFIG}"
+    )
+    yield
+    parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
+
+
+@pytest.mark.external_auth
+@pytest.fixture
+def configure_hammer_no_negotiate(parametrized_enrolled_sat):
+    """Configures hammer not to use automatic negotiation."""
+    parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
+    parametrized_enrolled_sat.execute(f"sed -i '/:default_auth_type.*/d' {HAMMER_CONFIG}")
+    yield
+    parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
+
+
+@pytest.mark.external_auth
+@pytest.fixture(scope='function')
+def hammer_logout(parametrized_enrolled_sat):
+    """Logout in Hammer."""
+    result = parametrized_enrolled_sat.cli.Auth.logout()
+    assert result[0]['message'] == LOGGEDOUT
+    yield
+    result = parametrized_enrolled_sat.cli.Auth.logout()
+    assert result[0]['message'] == LOGGEDOUT
 
 
 @pytest.fixture
@@ -556,3 +594,35 @@ def sessions_tear_down(parametrized_enrolled_sat):
     parametrized_enrolled_sat.execute(
         f'rm -f {HAMMER_SESSIONS}/https_{parametrized_enrolled_sat.hostname}'
     )
+
+
+@pytest.fixture
+def configure_ipa_api(
+    request,
+    parametrized_enrolled_sat,
+    enabled=True,
+):
+    """Enable Kerberos authentication in Hammer."""
+    if enabled:
+        # Normal ipa authentication needs to be enabled already
+        assert (
+            parametrized_enrolled_sat.execute(
+                'satellite-installer --help | grep foreman-ipa-authentication[^-] | grep true'
+            ).status
+            == 0
+        )
+    original_value = (
+        parametrized_enrolled_sat.execute(
+            'satellite-installer --help | grep foreman-ipa-authentication-api | grep true'
+        ).status
+        == 0
+    )
+    result = parametrized_enrolled_sat.install(
+        InstallerCommand(f'foreman-ipa-authentication-api {"true" if enabled else "false"}')
+    )
+    assert result.status == 0, 'Installer failed to enable IPA API authentication.'
+    yield
+    result = parametrized_enrolled_sat.install(
+        InstallerCommand(f'foreman-ipa-authentication-api {"true" if original_value else "false"}')
+    )
+    assert result.status == 0, 'Installer failed to reset IPA API authentication.'
