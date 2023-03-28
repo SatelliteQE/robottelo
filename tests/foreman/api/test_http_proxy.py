@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
@@ -17,6 +17,8 @@
 :Upstream: No
 """
 import pytest
+from fauxfactory import gen_string
+from nailgun import entities
 
 from robottelo import constants
 from robottelo.config import settings
@@ -48,7 +50,7 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
 
     :expectedresults: HTTP Proxy works with other satellite components.
 
-    :Team: Phoenix
+    :Team: Phoenix-content
 
     :BZ: 2011303, 2042473, 2046337
 
@@ -149,7 +151,7 @@ def test_positive_auto_attach_with_http_proxy(
     :expectedresults: host successfully subscribed, subscription
         repository enabled, and repository package installed.
 
-    :Team: Phoenix
+    :Team: Phoenix-content
 
     :BZ: 2046337
 
@@ -200,3 +202,64 @@ def test_positive_auto_attach_with_http_proxy(
     module_target_sat.cli.Host.subscription_auto_attach({'host-id': host.id})
     result = rhel_contenthost.execute('yum install -y zsh')
     assert result.status == 0, 'package was not installed'
+
+
+@pytest.mark.e2e
+@pytest.mark.tier2
+def test_positive_assign_http_proxy_to_products():
+    """Assign http_proxy to Products and check whether http-proxy is
+     used during sync.
+
+    :id: c9d23aa1-3325-4abd-a1a6-d5e75c12b08a
+
+    :expectedresults: HTTP Proxy is assigned to all repos present
+        in Products and sync operation uses assigned http-proxy.
+
+    :Team: Phoenix-content
+
+    :CaseImportance: Critical
+    """
+    org = entities.Organization().create()
+    # create HTTP proxies
+    http_proxy_a = entities.HTTPProxy(
+        name=gen_string('alpha', 15),
+        url=settings.http_proxy.un_auth_proxy_url,
+        organization=[org],
+    ).create()
+
+    http_proxy_b = entities.HTTPProxy(
+        name=gen_string('alpha', 15),
+        url=settings.http_proxy.auth_proxy_url,
+        username=settings.http_proxy.username,
+        password=settings.http_proxy.password,
+        organization=[org],
+    ).create()
+
+    # Create products and repositories
+    product_a = entities.Product(organization=org).create()
+    product_b = entities.Product(organization=org).create()
+    repo_a1 = entities.Repository(product=product_a, http_proxy_policy='none').create()
+    repo_a2 = entities.Repository(
+        product=product_a,
+        http_proxy_policy='use_selected_http_proxy',
+        http_proxy_id=http_proxy_a.id,
+    ).create()
+    repo_b1 = entities.Repository(product=product_b, http_proxy_policy='none').create()
+    repo_b2 = entities.Repository(
+        product=product_b, http_proxy_policy='global_default_http_proxy'
+    ).create()
+    # Add http_proxy to products
+    entities.ProductBulkAction().http_proxy(
+        data={
+            "ids": [product_a.id, product_b.id],
+            "http_proxy_policy": "use_selected_http_proxy",
+            "http_proxy_id": http_proxy_b.id,
+        }
+    )
+
+    for repo in repo_a1, repo_a2, repo_b1, repo_b2:
+        r = repo.read()
+        assert r.http_proxy_policy == "use_selected_http_proxy"
+        assert r.http_proxy_id == http_proxy_b.id
+
+    product_a.sync({'async': True})

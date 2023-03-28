@@ -65,6 +65,7 @@ class Base:
     See Subcommands section in `hammer --help` output on your Satellite.
     """
 
+    omitting_credentials = False
     command_base = None  # each inherited instance should define this
     command_sub = None  # specific to instance, like: create, update, etc.
     command_end = None  # extending commands like for directory to pass
@@ -231,7 +232,10 @@ class Base:
         return_raw_response=None,
     ):
         """Executes the cli ``command`` on the server via ssh"""
-        user, password = cls._get_username_password(user, password)
+        if cls.omitting_credentials:
+            user, password = None, None
+        else:
+            user, password = cls._get_username_password(user, password)
         time_hammer = settings.performance.time_hammer
 
         # add time to measure hammer performance

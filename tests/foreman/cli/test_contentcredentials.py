@@ -10,7 +10,7 @@ Satellite 6.8
 
 :CaseComponent: ContentCredentials
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
@@ -113,6 +113,8 @@ def test_positive_block_delete_key_in_use(module_org, target_sat):
         and still associated with the product and repository
 
     :BZ: 2052904
+
+    :customerscenario: true
 
     :CaseImportance: Critical
     """

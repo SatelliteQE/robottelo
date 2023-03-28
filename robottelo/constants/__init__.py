@@ -816,12 +816,8 @@ PULP_EXPORT_DIR = '/var/lib/pulp/exports/'
 PULP_IMPORT_DIR = '/var/lib/pulp/imports/'
 COMMON_INSTALLER_OPTS = {
     'foreman-proxy-puppetca': 'true',
-    'foreman-proxy-content-puppet': 'true',
     'foreman-proxy-puppet': 'true',
     'puppet-server': 'true',
-    'puppet-server-foreman-ssl-ca': '/etc/pki/katello/puppet/puppet_client_ca.crt',
-    'puppet-server-foreman-ssl-cert': '/etc/pki/katello/puppet/puppet_client.crt',
-    'puppet-server-foreman-ssl-key': '/etc/pki/katello/puppet/puppet_client.key',
     # Options for puppetbootstrap test
     'foreman-proxy-templates': 'true',
     'foreman-proxy-http': 'true',
