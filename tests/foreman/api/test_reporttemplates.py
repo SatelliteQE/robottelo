@@ -593,6 +593,7 @@ def test_positive_schedule_entitlements_report(setup_content, target_sat):
         assert DEFAULT_SUBSCRIPTION_NAME in data_csv
 
 
+@pytest.mark.no_containers
 @pytest.mark.tier3
 def test_positive_generate_job_report(setup_content, target_sat, rhel7_contenthost):
     """Generate a report using the Job - Invocation Report template.
@@ -618,7 +619,7 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
     ak, org = setup_content
     rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(org.label, ak.name)
-    rhel7_contenthost.add_rex_key(satellite=target_sat)
+    rhel7_contenthost.add_rex_key(target_sat)
     assert rhel7_contenthost.subscribed
     # Run a Job on the Host
     template_id = (
