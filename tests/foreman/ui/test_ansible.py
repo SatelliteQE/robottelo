@@ -155,27 +155,30 @@ def test_positive_config_report_ansible(session, target_sat, module_org, rhel_co
     id = target_sat.nailgun_smart_proxy.id
     target_host = rhel_contenthost.nailgun_host
     target_sat.api.AnsibleRoles().sync(data={'proxy_id': id, 'role_names': [SELECTED_ROLE]})
-    target_host.assign_ansible_roles(data={'ansible_role_ids': [1]})
+    target_sat.cli.Host.ansible_roles_assign({'id': target_host.id, 'ansible-roles': SELECTED_ROLE})
     host_roles = target_host.list_ansible_roles()
     assert host_roles[0]['name'] == SELECTED_ROLE
+    template_id = (
+        target_sat.api.JobTemplate()
+        .search(query={'search': 'name="Ansible Roles - Ansible Default"'})[0]
+        .id
+    )
+    job = target_sat.api.JobInvocation().run(
+        synchronous=False,
+        data={
+            'job_template_id': template_id,
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+        },
+    )
+    target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
+    )
+    result = target_sat.api.JobInvocation(id=job['id']).read()
+    assert result.succeeded == 1
     with session:
-        session.organization.select(module_org.name)
         session.location.select(constants.DEFAULT_LOC)
         assert session.host.search(target_host.name)[0]['Name'] == rhel_contenthost.hostname
-        session.jobinvocation.run(
-            {
-                'job_category': 'Ansible Playbook',
-                'job_template': 'Ansible Roles - Ansible Default',
-                'search_query': f'name ^ {rhel_contenthost.hostname}',
-            }
-        )
-        session.jobinvocation.wait_job_invocation_state(
-            entity_name='Run ansible roles', host_name=rhel_contenthost.hostname
-        )
-        status = session.jobinvocation.read(
-            entity_name='Run ansible roles', host_name=rhel_contenthost.hostname
-        )
-        assert status['overview']['hosts_table'][0]['Status'] == 'success'
         session.configreport.search(rhel_contenthost.hostname)
         session.configreport.delete(rhel_contenthost.hostname)
         assert len(session.configreport.read()['table']) == 0
@@ -183,7 +186,7 @@ def test_positive_config_report_ansible(session, target_sat, module_org, rhel_co
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('9')
-def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_contenthost):
+def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_contenthost, request):
     """
     Test Config report generation with Custom Ansible Role
 
@@ -230,7 +233,7 @@ def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_cont
     proxy_id = target_sat.nailgun_smart_proxy.id
     target_host = rhel_contenthost.nailgun_host
     target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]})
-    target_host.assign_ansible_roles(data={'ansible_role_ids': [1]})
+    target_sat.cli.Host.ansible_roles_assign({'id': target_host.id, 'ansible-roles': SELECTED_ROLE})
     host_roles = target_host.list_ansible_roles()
     assert host_roles[0]['name'] == SELECTED_ROLE
 
@@ -258,3 +261,9 @@ def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_cont
         session.configreport.search(rhel_contenthost.hostname)
         session.configreport.delete(rhel_contenthost.hostname)
         assert len(session.configreport.read()['table']) == 0
+
+    @request.addfinalizer
+    def _finalize():
+        result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
+        assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
+        target_sat.execute('rm -rvf /etc/ansible/roles/custom_role')

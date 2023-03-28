@@ -1,14 +1,15 @@
-"""Test class for the content management tests.
+"""Content Management related tests, which exercise katello with pulp
+interactions and use capsule.
 
-:Requirement: Content Management
+:Requirement: Capsule-Content
 
 :CaseAutomation: Automated
 
 :CaseLevel: Component
 
-:CaseComponent: ContentManagement
+:CaseComponent: Capsule-Content
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
@@ -17,7 +18,6 @@
 :Upstream: No
 """
 import re
-import uuid
 from datetime import datetime
 
 import pytest
@@ -52,245 +52,10 @@ def get_published_repo_url(capsule, org, prod, repo, lce=None, cv=None):
         return f'{capsule.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'
 
 
-class TestSatelliteContentManagement:
-    """Content Management related tests, which exercise katello with pulp
-    interactions.
-    """
-
-    @pytest.mark.tier2
-    @pytest.mark.skip("Uses old large_errata repo from repos.fedorapeople")
-    def test_positive_sync_repos_with_large_errata(self):
-        """Attempt to synchronize 2 repositories containing large (or lots of)
-        errata.
-
-        :id: d6680b9f-4c88-40b4-8b96-3d170664cb28
-
-        :customerscenario: true
-
-        :BZ: 1463811
-
-        :CaseLevel: Integration
-
-        :expectedresults: both repositories were successfully synchronized
-        """
-        org = entities.Organization().create()
-        for _ in range(2):
-            product = entities.Product(organization=org).create()
-            repo = entities.Repository(product=product, url=settings.repos.yum_7.url).create()
-            response = repo.sync()
-            assert response, f"Repository {repo} failed to sync."
-
-    @pytest.mark.tier2
-    def test_positive_sync_repos_with_lots_files(self):
-        """Attempt to synchronize repository containing a lot of files inside
-        rpms.
-
-        :id: 2cc09ce3-d5df-4caa-956a-78f83a7735ca
-
-        :customerscenario: true
-
-        :BZ: 1404345
-
-        :CaseLevel: Integration
-
-        :expectedresults: repository was successfully synchronized
-        """
-        org = entities.Organization().create()
-        product = entities.Product(organization=org).create()
-        repo = entities.Repository(product=product, url=settings.repos.yum_8.url).create()
-        response = repo.sync()
-        assert response, f"Repository {repo} failed to sync."
-
-    @pytest.mark.tier4
-    def test_positive_sync_kickstart_repo(self, module_entitlement_manifest_org, target_sat):
-        """No encoding gzip errors on kickstart repositories
-        sync.
-
-        :id: dbdabc0e-583c-4186-981a-a02844f90412
-
-        :expectedresults: No encoding gzip errors present in /var/log/messages.
-
-        :CaseLevel: Integration
-
-        :customerscenario: true
-
-        :steps:
-
-            1. Sync a kickstart repository.
-            2. After the repo is synced, change the download policy to
-                immediate.
-            3. Sync the repository again.
-            4. Assert that no errors related to encoding gzip are present in
-                /var/log/messages.
-            5. Assert that sync was executed properly.
-
-        :CaseComponent: Pulp
-
-        :BZ: 1687801
-        """
-        distro = 'rhel8_bos'
-        rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
-            basearch='x86_64',
-            org_id=module_entitlement_manifest_org.id,
-            product=constants.REPOS['kickstart'][distro]['product'],
-            reposet=constants.REPOSET['kickstart'][distro],
-            repo=constants.REPOS['kickstart'][distro]['name'],
-            releasever=constants.REPOS['kickstart'][distro]['version'],
-        )
-        rh_repo = entities.Repository(id=rh_repo_id).read()
-        rh_repo.sync()
-        rh_repo.download_policy = 'immediate'
-        rh_repo = rh_repo.update(['download_policy'])
-        call_entity_method_with_timeout(rh_repo.sync, timeout=600)
-        result = target_sat.execute(
-            'grep pulp /var/log/messages | grep failed | grep encoding | grep gzip'
-        )
-        assert result.status == 1
-        assert not result.stdout
-        rh_repo = rh_repo.read()
-        assert rh_repo.content_counts['package_group'] > 0
-        assert rh_repo.content_counts['rpm'] > 0
-
-    @pytest.mark.parametrize(
-        'distro',
-        [
-            ver
-            for ver in settings.supportability.content_hosts.rhel.versions
-            if isinstance(ver, int)
-        ],
-    )
-    def test_positive_sync_kickstart_check_os(
-        self, module_entitlement_manifest_org, distro, target_sat
-    ):
-        """Sync rhel KS repo and assert that OS was created
-
-        :id: f84bcf1b-717e-40e7-82ee-000eead45249
-
-        :Parametrized: Yes
-
-        :steps:
-            1. Enable and sync a kickstart repo.
-            2. Check that OS with corresponding version.
-
-        :expectedresults:
-            1. OS with corresponding version was created.
-
-        """
-        distro = f'rhel{distro} + "_bos"' if distro > 7 else f'rhel{distro}'
-        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
-            basearch='x86_64',
-            org_id=module_entitlement_manifest_org.id,
-            product=constants.REPOS['kickstart'][distro]['product'],
-            reposet=constants.REPOSET['kickstart'][distro],
-            repo=constants.REPOS['kickstart'][distro]['name'],
-            releasever=constants.REPOS['kickstart'][distro]['version'],
-        )
-        rh_repo = entities.Repository(id=repo_id).read()
-        rh_repo.sync()
-
-        major, minor = constants.REPOS['kickstart'][distro]['version'].split('.')
-        os = entities.OperatingSystem().search(
-            query={'search': f'name="RedHat" AND major="{major}" AND minor="{minor}"'}
-        )
-        assert len(os)
-
-    @pytest.mark.tier2
-    def test_positive_mirroring_policy(self, target_sat):
-        """Assert that the content of a repository with 'Mirror Policy' enabled
-        is restored properly after resync.
-
-        :id: cbf1c781-cb96-4b4a-bae2-15c9f5be5e50
-
-        :steps:
-            1. Create and sync a repo with 'Mirror Policy - mirror complete' enabled.
-            2. Remove all packages from the repo and upload another one.
-            3. Resync the repo again.
-            4. Check the content was restored properly.
-
-        :expectedresults:
-            1. The resync restores the original content properly.
-
-        :CaseLevel: System
-        """
-        repo_url = settings.repos.yum_0.url
-        packages_count = constants.FAKE_0_YUM_REPO_PACKAGES_COUNT
-
-        org = entities.Organization().create()
-        prod = entities.Product(organization=org).create()
-        repo = entities.Repository(
-            download_policy='immediate',
-            mirroring_policy='mirror_complete',
-            product=prod,
-            url=repo_url,
-        ).create()
-        repo.sync()
-        repo = repo.read()
-        assert repo.content_counts['rpm'] == packages_count
-
-        # remove all packages from the repo and upload another one
-        packages = entities.Package(repository=repo).search(query={'per_page': '1000'})
-        repo.remove_content(data={'ids': [package.id for package in packages]})
-
-        with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
-            repo.upload_content(files={'content': handle})
-
-        repo = repo.read()
-        assert repo.content_counts['rpm'] == 1
-        files = get_repo_files_by_url(repo.full_path)
-        assert len(files) == 1
-        assert constants.RPM_TO_UPLOAD in files
-
-        # resync the repo again and check the content
-        repo.sync()
-
-        repo = repo.read()
-        assert repo.content_counts['rpm'] == packages_count
-        files = get_repo_files_by_url(repo.full_path)
-        assert len(files) == packages_count
-        assert constants.RPM_TO_UPLOAD not in files
-
-    @pytest.mark.tier3
-    def test_positive_allow_reregistration_when_dmi_uuid_changed(
-        self, module_org, rhel_contenthost, target_sat
-    ):
-        """Register a content host with a custom DMI UUID, unregistering it, change
-        the DMI UUID, and re-registering it again
-
-        :id: 7f431cb2-5a63-41f7-a27f-62b86328b50d
-
-        :expectedresults: The content host registers successfully
-
-        :customerscenario: true
-
-        :BZ: 1747177
-
-        :CaseLevel: Integration
-        """
-        uuid_1 = str(uuid.uuid1())
-        uuid_2 = str(uuid.uuid4())
-        rhel_contenthost.install_katello_ca(target_sat)
-        target_sat.execute(
-            f'echo \'{{"dmi.system.uuid": "{uuid_1}"}}\' > /etc/rhsm/facts/uuid.facts'
-        )
-        result = rhel_contenthost.register_contenthost(module_org.label, lce=constants.ENVIRONMENT)
-        assert result.status == 0
-        result = rhel_contenthost.execute('subscription-manager clean')
-        assert result.status == 0
-        target_sat.execute(
-            f'echo \'{{"dmi.system.uuid": "{uuid_2}"}}\' > /etc/rhsm/facts/uuid.facts'
-        )
-        result = rhel_contenthost.register_contenthost(module_org.label, lce=constants.ENVIRONMENT)
-        assert result.status == 0
-
-
 @pytest.mark.run_in_one_thread
 class TestCapsuleContentManagement:
     """Content Management related tests, which exercise katello with pulp
     interactions and use capsule.
-
-    :CaseComponent: Capsule-Content
-
-    :Team: Phoenix
     """
 
     def update_capsule_download_policy(self, module_capsule_configured, download_policy):
@@ -1051,7 +816,7 @@ class TestCapsuleContentManagement:
             basearch='x86_64',
             org_id=function_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
-            reposet=constants.REPOSET['kickstart'][distro],
+            reposet=constants.REPOS['kickstart'][distro]['reposet'],
             repo=constants.REPOS['kickstart'][distro]['name'],
             releasever=constants.REPOS['kickstart'][distro]['version'],
         )
@@ -1095,7 +860,7 @@ class TestCapsuleContentManagement:
         tail = (
             f'rhel/server/7/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/kickstart'
             if distro == 'rhel7'
-            else f'{distro}/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
+            else f'{distro.split("_")[0]}/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
         )
         url_base = (
             f'pulp/content/{function_entitlement_manifest_org.label}/{lce.label}/{cv.label}/'
@@ -1506,3 +1271,73 @@ class TestCapsuleContentManagement:
 
         # Check all sync tasks finished without errors.
         self.wait_for_sync(module_capsule_configured)
+
+    @pytest.mark.tier4
+    @pytest.mark.skip_if_not_set('capsule')
+    def test_positive_capsule_sync_status_persists(
+        self, target_sat, module_capsule_configured, function_org, function_product, function_lce
+    ):
+        """Synchronize a capsule, delete the task in foreman-rake,
+        and then verify that the capsule is still listed as synced
+
+        :id: aa3d7dbb-8cbb-441c-85c2-70e85794c3a9
+
+        :steps:
+            1. Create and Sync a Repo
+            2. Associate lifecycle env with capsule
+            3. Create a CV with the repo
+            4. Publish CV
+            5. Promote to lifecycle env
+            6. Sync Capsule
+            7. Delete the task using foreman-rake console
+            8. Verify the status of capsule is still synced
+
+        :bz: 1956985
+
+        :customerscenario: true
+        """
+        repo_url = settings.repos.yum_1.url
+        repo = target_sat.api.Repository(product=function_product, url=repo_url).create()
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce.id}
+        )
+        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+
+        assert len(result['results'])
+        assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
+        repo.sync()
+        cv.publish()
+        cv = cv.read()
+
+        cvv = cv.version[-1].read()
+        cvv.promote(data={'environment_ids': function_lce.id})
+        cvv = cvv.read()
+
+        timestamp = (datetime.utcnow()).strftime('%Y-%m-%d %H:%M')
+        self.wait_for_sync(module_capsule_configured)
+
+        search_result = target_sat.wait_for_tasks(
+            search_query='label = Actions::Katello::CapsuleContent::Sync'
+            f' and organization_id = {function_org.id}'
+            f' and started_at >= "{timestamp}"',
+            search_rate=15,
+            max_tries=5,
+        )
+        # Delete the task using UUID (search_result[0].id)
+        task_result = target_sat.execute(
+            f"""echo "ForemanTasks::Task.find(
+            '{search_result[0].id}').destroy!" | foreman-rake console"""
+        )
+        assert task_result.status == 0
+        # Ensure task record was deleted.
+        task_result = target_sat.execute(
+            f"""echo "ForemanTasks::Task.find('{search_result[0].id}')" | foreman-rake console"""
+        )
+        assert task_result.status == 0
+        assert 'RecordNotFound' in task_result.stdout
+
+        # Check sync status again, and ensure last_sync_time is still correct
+        sync_status = module_capsule_configured.nailgun_capsule.content_get_sync()
+        assert sync_status['last_sync_time'] >= timestamp

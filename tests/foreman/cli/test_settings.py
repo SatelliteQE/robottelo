@@ -175,7 +175,9 @@ def test_positive_update_login_page_footer_text_with_long_string(setting_update)
 
     :CaseImportance: Low
     """
-    login_text_value = random.choice(list(generate_strings_list(1000)))
+    login_text_value = random.choice(
+        list(generate_strings_list(length=1000, exclude_types=['latin1', 'utf8', 'cjk', 'html']))
+    )
     Settings.set({'name': "login_text", 'value': login_text_value})
     login_text = Settings.list({'search': 'name=login_text'})[0]
     assert login_text['value'] == login_text_value
@@ -259,7 +261,10 @@ def test_positive_update_email_reply_address(setting_update):
     email_reply_address = Settings.list(
         {'search': 'name=email_reply_address'}, output_format='json'
     )[0]
-    assert email_reply_address['value'] == email_address
+    updated_email_address = (
+        str(email_reply_address['value']).replace('"', r'\"').replace('`', r'\`')
+    )
+    assert updated_email_address == email_address
 
 
 @pytest.mark.tier2

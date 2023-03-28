@@ -710,7 +710,7 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.parametrize(
-        'fixture_sca_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True
+        'fixture_sca_vmsetup', [{'nick': 'rhel8'}], ids=['rhel8'], indirect=True
     )
     def test_positive_install_ansible_collection(
         self, fixture_sca_vmsetup, module_sca_manifest_org
@@ -718,7 +718,6 @@ class TestAnsibleREX:
         """Test whether Ansible collection can be installed via REX
 
         :Steps:
-
             1. Upload a manifest.
             2. Enable and sync Ansible repository.
             3. Register content host to Satellite.
@@ -732,28 +731,27 @@ class TestAnsibleREX:
 
         :Team: Rocket
         """
-
         # Configure repository to prepare for installing ansible on host
         RepositorySet.enable(
             {
                 'basearch': 'x86_64',
-                'name': REPOSET['rhae2'],
+                'name': REPOSET['rhae2.9_el8'],
                 'organization-id': module_sca_manifest_org.id,
                 'product': PRDS['rhae'],
-                'releasever': '7Server',
+                'releasever': '8',
             }
         )
         Repository.synchronize(
             {
-                'name': REPOS['rhae2']['name'],
+                'name': REPOS['rhae2.9_el8']['name'],
                 'organization-id': module_sca_manifest_org.id,
                 'product': PRDS['rhae'],
             }
         )
         client = fixture_sca_vmsetup
         client.execute('subscription-manager refresh')
-        client.execute(f'subscription-manager repos --enable {REPOS["rhae2"]["id"]}')
-        client.execute('yum -y install ansible')
+        client.execute(f'subscription-manager repos --enable {REPOS["rhae2.9_el8"]["id"]}')
+        client.execute('dnf -y install ansible')
         collection_job = make_job_invocation(
             {
                 'job-template': 'Ansible Collection - Install from Galaxy',
@@ -763,8 +761,21 @@ class TestAnsibleREX:
         )
         result = JobInvocation.info({'id': collection_job['id']})
         assert result['success'] == '1'
-        collection_path = str(client.execute('ls /etc/ansible/collections/ansible_collections'))
-        assert 'oasis' in collection_path
+        collection_path = client.execute('ls /etc/ansible/collections/ansible_collections').stdout
+        assert 'oasis_roles' in collection_path
+
+        # Extend test with custom collections_path advanced input field
+        collection_job = make_job_invocation(
+            {
+                'job-template': 'Ansible Collection - Install from Galaxy',
+                'inputs': 'ansible_collections_list="oasis_roles.system", collections_path="~/"',
+                'search-query': f'name ~ {client.hostname}',
+            }
+        )
+        result = JobInvocation.info({'id': collection_job['id']})
+        assert result['success'] == '1'
+        collection_path = client.execute('ls ~/ansible_collections').stdout
+        assert 'oasis_roles' in collection_path
 
 
 class TestRexUsers:
@@ -948,6 +959,8 @@ class TestAsyncSSHProviderRex:
             module_ak_with_cv.name,
             target=module_capsule_configured_async_ssh,
             satellite=module_target_sat,
+            ignore_subman_errors=True,
+            force=True,
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         # run script provider rex command, longer-running command is needed to
@@ -992,7 +1005,7 @@ class TestPullProviderRex:
             settings.ohsnap,
             product='client',
             repo='client',
-            release='Client',
+            release='client',
             os_release=rhel_contenthost.os_version.major,
         )
         # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
@@ -1012,6 +1025,8 @@ class TestPullProviderRex:
             satellite=module_target_sat,
             packages=['katello-agent'],
             repo=client_repo.baseurl,
+            ignore_subman_errors=True,
+            force=True,
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
 
@@ -1090,7 +1105,7 @@ class TestPullProviderRex:
             settings.ohsnap,
             product='client',
             repo='client',
-            release='Client',
+            release='client',
             os_release=rhel_contenthost.os_version.major,
         )
         # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
@@ -1110,6 +1125,8 @@ class TestPullProviderRex:
             satellite=module_target_sat,
             setup_remote_execution_pull=True,
             repo=client_repo.baseurl,
+            ignore_subman_errors=True,
+            force=True,
         )
 
         assert result.status == 0, f'Failed to register host: {result.stderr}'
@@ -1180,7 +1197,7 @@ class TestPullProviderRex:
             settings.ohsnap,
             product='client',
             repo='client',
-            release='Client',
+            release='client',
             os_release=rhel_contenthost.os_version.major,
         )
         # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
@@ -1199,6 +1216,8 @@ class TestPullProviderRex:
             satellite=module_target_sat,
             setup_remote_execution_pull=True,
             repo=client_repo.baseurl,
+            ignore_subman_errors=True,
+            force=True,
         )
 
         assert result.status == 0, f'Failed to register host: {result.stderr}'

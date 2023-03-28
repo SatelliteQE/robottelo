@@ -1,14 +1,14 @@
 """Test class for module_streams UI
 
-:Requirement: module_streams
+:Requirement: Repositories
 
 :CaseAutomation: Automated
 
 :CaseLevel: Acceptance
 
-:CaseComponent: ContentManagement
+:CaseComponent: Repositories
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
