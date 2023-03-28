@@ -1,14 +1,14 @@
 """Test class for Ostree Branch CLI.
 
-:Requirement: Ostreebranch
+:Requirement: Repositories
 
 :CaseAutomation: Automated
 
 :CaseLevel: Acceptance
 
-:CaseComponent: ContentManagement
+:CaseComponent: Repositories
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 

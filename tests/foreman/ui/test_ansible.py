@@ -186,7 +186,7 @@ def test_positive_config_report_ansible(session, target_sat, module_org, rhel_co
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('9')
-def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_contenthost):
+def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_contenthost, request):
     """
     Test Config report generation with Custom Ansible Role
 
@@ -261,3 +261,9 @@ def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_cont
         session.configreport.search(rhel_contenthost.hostname)
         session.configreport.delete(rhel_contenthost.hostname)
         assert len(session.configreport.read()['table']) == 0
+
+    @request.addfinalizer
+    def _finalize():
+        result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
+        assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
+        target_sat.execute('rm -rvf /etc/ansible/roles/custom_role')

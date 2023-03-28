@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentCredentials
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
@@ -243,6 +243,8 @@ def test_positive_block_delete_key_in_use(module_org, target_sat, capfd):
         unmodified, is still associated with product and repo.
 
     :BZ: 2052904
+
+    :customerscenario: true
 
     :CaseImportance: Critical
     """
