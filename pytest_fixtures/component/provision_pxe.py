@@ -42,6 +42,7 @@ def module_provisioning_rhel_content(
         repo_names.append(f'rhel{rhel_ver}')
     else:
         repo_names.append(f'rhel{rhel_ver}_bos')
+        repo_names.append(f'rhel{rhel_ver}_aps')
     rh_repos = []
     tasks = []
     rh_repo_id = ""
@@ -127,12 +128,7 @@ def module_provisioning_sat(
     It uses the artifacts from the workflow to create all the necessary Satellite entities
     that are later used by the tests.
     """
-    provisioning_type = ""
-    # adding try/except to work if `provisioning_type` is not passed
-    try:
-        provisioning_type = request.param
-    except AttributeError:
-        pass
+    provisioning_type = getattr(request, 'param', '')
     sat = module_target_sat
     provisioning_domain_name = f"{gen_string('alpha').lower()}.foo"
 
