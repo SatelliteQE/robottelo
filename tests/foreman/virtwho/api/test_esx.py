@@ -392,7 +392,7 @@ class TestVirtWhoConfigforEsx:
     ):
         """Verify " hammer virt-who-config deploy hypervisor with special characters"
 
-        :id: abd622ae-8589-4706-baca-666456bf826e
+        :id: 3a79d65a-e206-4693-a5ba-59f6c44c984e
 
         :expectedresults: Config can be created and deployed without any error
 
@@ -443,7 +443,7 @@ class TestVirtWhoConfigforEsx:
     def test_positive_remove_env_option(self, default_org, form_data, virtwho_config, target_sat):
         """remove option 'env=' from the virt-who configuration file and without any error
 
-        :id: 0674e392-6fa5-4276-8c5a-e3cc1ab6f825
+        :id: 981b6828-a7ed-46d9-9c6c-9fb22af4011e
 
         :expectedresults:
             the option "env=" should be removed from etc/virt-who.d/virt-who.conf
