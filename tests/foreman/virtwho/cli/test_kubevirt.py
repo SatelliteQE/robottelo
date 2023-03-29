@@ -55,7 +55,7 @@ class TestVirtWhoConfigforKubevirt:
     ):
         """Verify " hammer virt-who-config deploy"
 
-        :id: 4658617b-7c33-4af2-b126-f23eedf6d707
+        :id: d0b109f5-2699-43e4-a6cd-d682204d97a7
 
         :expectedresults: Config can be created and deployed
 
@@ -100,7 +100,7 @@ class TestVirtWhoConfigforKubevirt:
     ):
         """Verify " hammer virt-who-config fetch"
 
-        :id: ec0edcc2-fa88-42b1-bc9f-07ea3c3957a4
+        :id: 273df8e0-5ef5-47d9-9567-543157be7dd8
 
         :expectedresults: Config can be created, fetch and deploy
 
@@ -147,7 +147,7 @@ class TestVirtWhoConfigforKubevirt:
     ):
         """Verify hypervisor_id option by hammer virt-who-config update"
 
-        :id: b17eca6f-7cc7-4914-b5fb-d1b2c7e834da
+        :id: 57b89c7e-538e-4ab8-98b5-af4b9f587792
 
         :expectedresults: hypervisor_id option can be updated.
 
