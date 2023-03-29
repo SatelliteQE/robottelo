@@ -168,7 +168,7 @@ class TestVirtWhoConfigforEsx:
     def test_positive_debug_option(self, default_org, form_data, virtwho_config, target_sat):
         """Verify debug option by hammer virt-who-config update"
 
-        :id: 981b6828-a7ed-46d9-9c6c-9fb22af4011e
+        :id: c98bc518-828c-49ba-a644-542db3190263
 
         :expectedresults: debug option can be updated.
 
