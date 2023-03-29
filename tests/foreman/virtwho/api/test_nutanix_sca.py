@@ -62,7 +62,7 @@ class TestVirtWhoConfigforNutanix:
     ):
         """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
-        :id: b1d8d261-80e0-498f-89fc-b1a246b46b83
+        :id: 81731df9-9bfc-411b-9836-ff298fd5228d
 
         :expectedresults: Config can be created and deployed
 
@@ -99,7 +99,7 @@ class TestVirtWhoConfigforNutanix:
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
-        :id: 15e8c907-0e4c-40be-94e1-9734a85c2195
+        :id: 850cc280-3f5a-498e-9132-5672dfe2f865
 
         :expectedresults: hypervisor_id option can be updated.
 
@@ -124,7 +124,7 @@ class TestVirtWhoConfigforNutanix:
     ):
         """Verify "POST /foreman_virt_who_configure/api/v2/configs" on nutanix prism central mode
 
-        :id: e7652f64-eaf8-45a5-ac01-eb40d53b6603
+        :id: 14b87abb-9355-4669-929a-20e656cdf446
 
         :expectedresults:
             Config can be created and deployed
@@ -168,7 +168,7 @@ class TestVirtWhoConfigforNutanix:
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
-        :id: 7f3b18c7-178c-4547-86ed-0e34772f755f
+        :id: f6ca8722-8f39-47b2-b7c0-e0c554aa7c65
 
         :expectedresults: prism_flavor option can be updated.
 
