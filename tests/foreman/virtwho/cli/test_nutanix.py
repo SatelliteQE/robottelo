@@ -239,7 +239,7 @@ class TestVirtWhoConfigforNutanix:
     ):
         """Verify prism_central option by hammer virt-who-config update"
 
-        :id: c2b7956d-4720-459b-b0c9-8f0b0f42d442
+        :id: 701e0390-2bfb-404a-a9bd-fa0fb5ecfdf8
 
         :expectedresults: prism_central option can be updated.
 
