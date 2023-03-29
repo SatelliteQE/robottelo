@@ -51,7 +51,7 @@ class TestVirtwhoConfigforNutanix:
     def test_positive_deploy_configure_by_id(self, default_org, session, form_data):
         """Verify configure created and deployed with id.
 
-        :id: 9359359c-ec00-4773-9a93-ecfccf9a66f3
+        :id: becea4d0-db4e-4a85-93d2-d40e86da0e2f
 
         :expectedresults:
             1. Config can be created and deployed by command
@@ -88,7 +88,7 @@ class TestVirtwhoConfigforNutanix:
     def test_positive_deploy_configure_by_script(self, default_org, session, form_data):
         """Verify configure created and deployed with script.
 
-        :id: 85c3a82c-3600-4ea3-9e00-d04a44492f54
+        :id: 1c1b19c9-988c-4b86-a2b2-658fded10ccb
 
         :expectedresults:
             1. Config can be created and deployed by script
@@ -125,7 +125,7 @@ class TestVirtwhoConfigforNutanix:
     def test_positive_hypervisor_id_option(self, default_org, session, form_data):
         """Verify Hypervisor ID dropdown options.
 
-        :id: 98038925-9bce-48dd-8d83-3fa81df260f8
+        :id: e076a305-88f4-42fb-8ef2-cb55e38eb912
 
         :expectedresults:
             hypervisor_id can be changed in virt-who-config-{}.conf if the
@@ -161,7 +161,7 @@ class TestVirtwhoConfigforNutanix:
     ):
         """Verify configure created and deployed with id on nutanix prism central mode
 
-        :id: 7b9f9dfc-295a-4232-9291-dd2c2e4c9940
+        :id: 74fb3b05-2f88-4ebf-8d0d-4973ee8536d8
 
         :expectedresults:
             1. Config can be created and deployed by command
@@ -210,7 +210,7 @@ class TestVirtwhoConfigforNutanix:
     def test_positive_prism_central_prism_flavor_option(self, default_org, session, form_data):
         """Verify prism_flavor dropdown options.
 
-        :id: dbcb9685-0fa7-472f-93cf-0efdd33a9278
+        :id: c76d94dd-25da-447d-8194-44217a36808b
 
         :expectedresults:
             prism_flavor can be changed in virt-who-config-{}.conf if the
