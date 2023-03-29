@@ -8,7 +8,7 @@
 
 :CaseComponent: Virt-whoConfigurePlugin
 
-:Team: Phoenix
+:team: Phoenix-subscriptions
 
 :TestType: Functional
 
@@ -20,11 +20,13 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo.config import settings
+from robottelo.utils.virtwho import check_message_in_rhsm_log
 from robottelo.utils.virtwho import deploy_configure_by_command
 from robottelo.utils.virtwho import deploy_configure_by_script
 from robottelo.utils.virtwho import get_configure_command
 from robottelo.utils.virtwho import get_configure_file
 from robottelo.utils.virtwho import get_configure_option
+from robottelo.utils.virtwho import get_hypervisor_ahv_mapping
 
 
 @pytest.fixture()
@@ -42,6 +44,7 @@ def form_data(target_sat, default_org):
         'hypervisor-username': settings.virtwho.ahv.hypervisor_username,
         'hypervisor-password': settings.virtwho.ahv.hypervisor_password,
         'prism-flavor': settings.virtwho.ahv.prism_flavor,
+        'ahv-internal-debug': 'false',
     }
     return form
 
@@ -149,7 +152,7 @@ class TestVirtWhoConfigforNutanix:
     ):
         """Verify hypervisor_id option by hammer virt-who-config update"
 
-        :id: 565228cd-2124-41ed-89b7-84ec6ff77213
+        :id: af92b814-fe7a-4969-b2ab-7b68859de3ce
 
         :expectedresults: hypervisor_id option can be updated.
 
@@ -255,3 +258,64 @@ class TestVirtWhoConfigforNutanix:
         command = get_configure_command(virtwho_config['id'], default_org.name)
         deploy_configure_by_command(command, form_data['hypervisor-type'], org=default_org.label)
         assert get_configure_option("prism_central", config_file) == 'true'
+
+    @pytest.mark.tier2
+    def test_positive_ahv_internal_debug_option(
+        self, default_org, form_data, virtwho_config, target_sat
+    ):
+        """Verify ahv_internal_debug option by hammer virt-who-config"
+
+        :id: a169a843-6ec7-4ef1-b471-649304e77cf1268
+
+        :expectedresults:
+            1. enable-ahv-debug option has been set to no
+            2. ahv_internal_debug bas been set to false in virt-who-config-X.conf
+            3. warning message exist in log file /var/log/rhsm/rhsm.log
+            4. ahv_internal_debug option can be updated
+            5. message Host UUID {system_uuid} found for VM: {guest_uuid} exist in rhsm.log
+            6. ahv_internal_debug bas been set to true in virt-who-config-X.conf
+            7. warning message does not exist in log file /var/log/rhsm/rhsm.log
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+
+        :BZ: 2141719
+        :customerscenario: true
+        """
+        command = get_configure_command(virtwho_config['id'], default_org.name)
+        deploy_configure_by_command(
+            command, form_data['hypervisor-type'], debug=True, org=default_org.label
+        )
+        result = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config['id']})
+        assert result['general-information']['enable-ahv-debug'] == 'no'
+        # ahv_internal_debug does not set in virt-who-config-X.conf
+        config_file = get_configure_file(virtwho_config['id'])
+        option = 'ahv_internal_debug'
+        env_error = f"option {option} is not exist or not be enabled in {config_file}"
+        try:
+            get_configure_option("ahv_internal_debug", config_file)
+        except Exception as VirtWhoError:
+            assert env_error == str(VirtWhoError)
+        # check message exist in log file /var/log/rhsm/rhsm.log
+        message = 'Value for "ahv_internal_debug" not set, using default: False'
+        assert check_message_in_rhsm_log(message) == message
+
+        # Update ahv_internal_debug option to true
+        value = 'true'
+        result = target_sat.cli.VirtWhoConfig.update(
+            {'id': virtwho_config['id'], 'ahv-internal-debug': value}
+        )
+        assert result[0]['message'] == f"Virt Who configuration [{virtwho_config['name']}] updated"
+        command = get_configure_command(virtwho_config['id'], default_org.name)
+        deploy_configure_by_command(
+            command, form_data['hypervisor-type'], debug=True, org=default_org.label
+        )
+        assert get_hypervisor_ahv_mapping(form_data['hypervisor-type']) == 'Host UUID found for VM'
+        result = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config['id']})
+        assert result['general-information']['enable-ahv-debug'] == 'yes'
+        # ahv_internal_debug bas been set to true in virt-who-config-X.conf
+        config_file = get_configure_file(virtwho_config['id'])
+        assert get_configure_option("ahv_internal_debug", config_file) == 'true'
+        # check message does not exist in log file /var/log/rhsm/rhsm.log
+        message = 'Value for "ahv_internal_debug" not set, using default: False'
+        assert str(check_message_in_rhsm_log(message)) == 'False'

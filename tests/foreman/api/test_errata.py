@@ -8,7 +8,7 @@
 
 :CaseComponent: ErrataManagement
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
@@ -947,3 +947,26 @@ def test_apply_modular_errata_using_default_content_view(
     # Check that there is now no errata applicable
     errata = _fetch_available_errata(module_entitlement_manifest_org, host, 0)
     assert len(errata) == 0
+
+    @pytest.mark.tier2
+    @pytest.mark.skip("Uses old large_errata repo from repos.fedorapeople")
+    def test_positive_sync_repos_with_large_errata(target_sat):
+        """Attempt to synchronize 2 repositories containing large (or lots of)
+        errata.
+
+        :id: d6680b9f-4c88-40b4-8b96-3d170664cb28
+
+        :customerscenario: true
+
+        :BZ: 1463811
+
+        :CaseLevel: Integration
+
+        :expectedresults: both repositories were successfully synchronized
+        """
+        org = target_sat.api.Organization().create()
+        for _ in range(2):
+            product = target_sat.api.Product(organization=org).create()
+            repo = target_sat.api.Repository(product=product, url=settings.repos.yum_7.url).create()
+            response = repo.sync()
+            assert response, f"Repository {repo} failed to sync."

@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
@@ -349,7 +349,7 @@ def test_positive_repo_discovery(setup_http_proxy, module_target_sat, module_org
 
     :expectedresults: Repository is discovered and created.
 
-    :Team: Phoenix
+    :team: Phoenix-content
 
     :BZ: 2011303, 2042473
 

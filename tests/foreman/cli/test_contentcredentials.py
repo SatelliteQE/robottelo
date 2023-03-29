@@ -10,7 +10,7 @@ Satellite 6.8
 
 :CaseComponent: ContentCredentials
 
-:Team: Phoenix
+:team: Phoenix-content
 
 :TestType: Functional
 
@@ -100,6 +100,52 @@ def test_positive_get_info_by_name(module_org):
     )
     gpg_key = ContentCredential.info({'name': gpg_key['name'], 'organization-id': module_org.id})
     assert gpg_key['name'] == name
+
+
+@pytest.mark.tier1
+def test_positive_block_delete_key_in_use(module_org, target_sat):
+    """Create a product and single associated repository. Create a new gpg key and associate
+        it with the product and repository. Attempt to delete the gpg key in use
+
+    :id: 022555fd-e6f2-4c95-80d7-cae26993ca8f
+
+    :expectedresults: Block deletion of gpg in use, remains unmodified,
+        and still associated with the product and repository
+
+    :BZ: 2052904
+
+    :customerscenario: true
+
+    :CaseImportance: Critical
+    """
+    name = gen_string('utf8')
+    product = make_product({'organization-id': module_org.id})
+    repo = make_repository({'product-id': product['id']})
+    gpg_key = make_content_credential(
+        {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': module_org.id}
+    )
+
+    # Associate repo with the product, gpg key with product and repo
+    target_sat.cli.Product.update(
+        {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
+    )
+    # Attempt to delete gpg in use
+    with pytest.raises(CLIReturnCodeError) as e:
+        target_sat.cli.ContentCredential.delete({'name': name, 'organization-id': module_org.id})
+    assert 'Cannot delete' in str(e.value)
+    # Assert gpg still exist
+    result = target_sat.cli.ContentCredential.exists(
+        {'organization-id': module_org.id}, (search_key, gpg_key[search_key])
+    )
+    assert gpg_key[search_key] == result[search_key]
+
+    # Assert gpg is still associated with the product and repository
+    product_info = target_sat.cli.Product.info(
+        {'id': product['id'], 'organization-id': module_org.id}
+    )
+    repo_info = target_sat.cli.Repository.info({'id': repo['id']})
+    assert product_info['gpg']['gpg-key-id'] == gpg_key['id']
+    assert repo_info['gpg-key']['id'] == gpg_key['id']
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
