@@ -21,7 +21,6 @@ import csv
 import os
 import re
 from datetime import datetime
-from time import sleep
 
 import pytest
 import yaml
@@ -262,8 +261,8 @@ def remove_vm_on_delete(target_sat, setting_update):
 
 @pytest.fixture
 def prepared_host(rex_contenthost, target_sat):
-    """Install katello-host-tools-tracer, create custom
-    repositories on the host"""
+    """Sets up a contenthost with katello-host-tools-tracer enabled,
+    to prep it for install later"""
     # create a custom, rhel version-specific OS repo
     rhelver = rex_contenthost.os_version.major
     if rhelver > 7:
@@ -2616,7 +2615,7 @@ def test_positive_remove_role_in_new_ui(self):
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('[^6].*')
 def test_positive_tracer_enable_reload(prepared_host, target_sat):
     """Using the new Host UI,enable tracer and verify that the page reloads
 
@@ -2647,6 +2646,13 @@ def test_positive_tracer_enable_reload(prepared_host, target_sat):
         title = session.host_new.get_tracer_title(prepared_host.hostname)
         assert title == "Traces are being enabled"
         # Waiting on traces to be enabled. Not optimal, but not sure how else to do it
-        sleep(15)
+        wait_for(
+            lambda: session.host_new.get_tracer_title(prepared_host.hostname)
+            != "Traces are being enabled",
+            timeout=1800,
+            delay=5,
+            silent_failure=True,
+            handle_exception=True,
+        )
         title = session.host_new.get_tracer_title(prepared_host.hostname)
         assert title == "No applications to restart"
