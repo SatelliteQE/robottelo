@@ -62,7 +62,7 @@ class TestVirtWhoConfigforNutanix:
     ):
         """Verify "hammer virt-who-config deploy"
 
-        :id: 129d8e57-b4fc-4d95-ad33-5aa6ec6fb146
+        :id: 71750104-b436-4ad4-9b6b-6f0fe8c3ee4c
 
         :expectedresults: Config can be created and deployed
 
@@ -122,7 +122,7 @@ class TestVirtWhoConfigforNutanix:
     ):
         """Verify "hammer virt-who-config deploy" on nutanix prism central mode
 
-        :id: 224ad753-6186-4b09-a72c-458839a8e412
+        :id: 96fd691f-5b62-469c-adc7-f2739ddf4a62
 
         :expectedresults:
             1. Config can be created and deployed
@@ -161,7 +161,7 @@ class TestVirtWhoConfigforNutanix:
     ):
         """Verify prism_central option by hammer virt-who-config update"
 
-        :id: 701e0390-2bfb-404a-a9bd-fa0fb5ecfdf8
+        :id: 68c75ae0-0beb-483e-874a-b14f8171f40a
 
         :expectedresults: prism_central option can be updated.
 
