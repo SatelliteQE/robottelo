@@ -168,7 +168,7 @@ class TestVirtWhoConfigforEsx:
     def test_positive_debug_option(self, default_org, form_data, virtwho_config, target_sat):
         """Verify debug option by hammer virt-who-config update"
 
-        :id: cc570272-cb48-41e9-8737-1849920a3882
+        :id: 981b6828-a7ed-46d9-9c6c-9fb22af4011e
 
         :expectedresults: debug option can be updated.
 
@@ -198,7 +198,7 @@ class TestVirtWhoConfigforEsx:
     def test_positive_interval_option(self, default_org, form_data, virtwho_config, target_sat):
         """Verify interval option by hammer virt-who-config update"
 
-        :id: 02564651-bf43-46da-8356-01a818bd7502
+        :id: 5d558bca-534c-4bd4-b401-a0c362033c57
 
         :expectedresults: interval option can be updated.
 
@@ -261,7 +261,7 @@ class TestVirtWhoConfigforEsx:
     def test_positive_filter_option(self, default_org, form_data, virtwho_config, target_sat):
         """Verify filter option by hammer virt-who-config update"
 
-        :id: 66275036-cdff-4e45-9dec-d6734e8c1558
+        :id: aaf45c5e-9504-47ce-8f25-b8073c2de036
 
         :expectedresults: filter and filter_hosts can be updated.
 
@@ -302,7 +302,7 @@ class TestVirtWhoConfigforEsx:
     def test_positive_proxy_option(self, default_org, form_data, virtwho_config, target_sat):
         """Verify http_proxy option by hammer virt-who-config update"
 
-        :id: 7258c607-c96a-4200-b878-5f060af3566c
+        :id: 409d108e-e814-482b-93ed-09db89d21dda
 
         :expectedresults: http_proxy and no_proxy option can be updated.
 
@@ -343,7 +343,7 @@ class TestVirtWhoConfigforEsx:
     def test_positive_rhsm_option(self, default_org, form_data, virtwho_config, target_sat):
         """Verify rhsm options in the configure file"
 
-        :id: 4382cc7b-bf74-4451-9dad-c15f04541d67
+        :id: b5b93d4d-e780-41c0-9eaa-2407cc1dcc9b
 
         :expectedresults:
             rhsm_hostname, rhsm_prefix are ecpected
@@ -367,7 +367,7 @@ class TestVirtWhoConfigforEsx:
     def test_positive_post_hypervisors(self, function_org, target_sat):
         """Post large json file to /rhsm/hypervisors"
 
-        :id: b59307be-f0cd-49b3-84d1-d58e96437557
+        :id: e344c9d2-3538-4432-9a74-b025e9ef852d
 
         :expectedresults:
             hypervisor/guest json can be posted and the task is success status
@@ -397,7 +397,7 @@ class TestVirtWhoConfigforEsx:
     ):
         """foreman-protector should allow virt-who to be installed
 
-        :id: ed0ef3d7-287d-4dba-80fc-64cb0f3128cd
+        :id: 635ef99b-c5a3-4ac4-a0f1-09f7036d116e
 
         :expectedresults:
             virt-who packages can be installed
@@ -427,7 +427,7 @@ class TestVirtWhoConfigforEsx:
     ):
         """Verify " hammer virt-who-config deploy hypervisor with special characters"
 
-        :id: cfed5f8f-bb71-4884-845c-f8e99cb3b73f
+        :id: 9892a94e-ff4b-44dd-87eb-1289d4a965be
 
         :expectedresults: Config can be created and deployed without any error
 
@@ -475,7 +475,7 @@ class TestVirtWhoConfigforEsx:
     def test_positive_remove_env_option(self, default_org, form_data, virtwho_config, target_sat):
         """remove option 'env=' from the virt-who configuration file and without any error
 
-        :id: 32e618b9-ea20-476f-914d-75404774dabe
+        :id: 509add77-dce7-4ba4-b9e5-2a5818c39731
 
         :expectedresults:
             the option "env=" should be removed from etc/virt-who.d/virt-who.conf
