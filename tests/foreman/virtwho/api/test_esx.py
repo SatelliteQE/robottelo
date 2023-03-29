@@ -177,7 +177,7 @@ class TestVirtWhoConfigforEsx:
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
-        :id: 24bf4c5b-cc7a-40ac-9079-e59c73984081
+        :id: be395108-3944-4a04-bee4-6bac3fa03a19
 
         :expectedresults: debug option can be updated.
 
@@ -205,7 +205,7 @@ class TestVirtWhoConfigforEsx:
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
-        :id: a9e06663-1158-4294-ab4c-daeabbb7b018
+        :id: 65f4138b-ca8f-4f1e-805c-1a331b951be5
 
         :expectedresults: interval option can be updated.
 
@@ -274,7 +274,7 @@ class TestVirtWhoConfigforEsx:
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
-        :id: 165b3339-a89f-46ab-b88e-0329ff74906f
+        :id: 1f251d89-5e22-4470-be4c-0aeba84c0273
 
         :expectedresults: filter and filter_hosts can be updated.
 
@@ -324,7 +324,7 @@ class TestVirtWhoConfigforEsx:
 
         /foreman_virt_who_configure/api/v2/configs/:id""
 
-        :id: a9a59721-ef42-4ecf-8acc-07375106566d
+        :id: e1b00b46-d5e6-40d5-a955-a45a75a5cfad
 
         :expectedresults: http_proxy/https_proxy and no_proxy option can be updated.
 
@@ -369,7 +369,7 @@ class TestVirtWhoConfigforEsx:
 
         api/v2/organizations/:organization_id/configs"
 
-        :id: ae83ef79-3e72-4d81-b3dc-f194e6795e56
+        :id: 5bf34bef-bf68-4557-978d-419bd4df0ba1
 
         :expectedresults: Config can be searched in org list
 
