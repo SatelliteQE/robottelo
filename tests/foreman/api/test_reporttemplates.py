@@ -591,3 +591,64 @@ def test_positive_schedule_entitlements_report(setup_content, target_sat):
         )
         assert vm.hostname in data_csv
         assert DEFAULT_SUBSCRIPTION_NAME in data_csv
+
+
+@pytest.mark.no_containers
+@pytest.mark.tier3
+def test_positive_generate_job_report(setup_content, target_sat, rhel7_contenthost):
+    """Generate a report using the Job - Invocation Report template.
+
+    :id: 946c39db-3061-43d7-b922-1be61f0c7d93
+
+    :BZ: 1761012
+
+    :steps:
+        1. Register a host and properly setup REX for it.
+        2. Run a simple job with predictable output
+        3. Using the Job ID, generate a report using the Job - Invocation
+           report template.
+
+    :expectedresults: Report returns correct information (Hostname is set correctly,
+        the output is what would be expected.)
+
+    :customerscenario: true
+    """
+    ak, org = setup_content
+    rhel7_contenthost.install_katello_ca(target_sat)
+    rhel7_contenthost.register_contenthost(org.label, ak.name)
+    rhel7_contenthost.add_rex_key(target_sat)
+    assert rhel7_contenthost.subscribed
+    # Run a Job on the Host
+    template_id = (
+        target_sat.api.JobTemplate()
+        .search(query={'search': 'name="Run Command - Script Default"'})[0]
+        .id
+    )
+    job = target_sat.api.JobInvocation().run(
+        synchronous=False,
+        data={
+            'job_template_id': template_id,
+            'inputs': {
+                'command': 'pwd',
+            },
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel7_contenthost.hostname}',
+        },
+    )
+    target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
+    result = target_sat.api.JobInvocation(id=job['id']).read()
+    assert result.succeeded == 1
+    rt = (
+        target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Job - Invocation Report"'})[0]
+        .read()
+    )
+    res = rt.generate(
+        data={
+            'organization_id': org.id,
+            'report_format': "json",
+            'input_values': {"job_id": job["id"]},
+        }
+    )
+    assert res[0]['Host'] == rhel7_contenthost.hostname
+    assert '/root' in res[0]['stdout']
