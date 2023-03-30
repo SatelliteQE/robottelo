@@ -20,6 +20,7 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.host import Host
+from robottelo.cli.simple_content_access import SimpleContentAccess
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
@@ -83,18 +84,19 @@ class TestScenarioPositiveVirtWho:
         )
         default_loc = target_sat.api.Location(id=default_loc_id).read()
         org = target_sat.api.Organization(name=ORG_DATA['name']).create()
-        default_loc.organization.append(target_sat.Organization(id=org.id))
+        default_loc.organization.append(target_sat.api.Organization(id=org.id))
         default_loc.update(['organization'])
+        SimpleContentAccess.disable({'organization-id': org.id})
         target_sat.upload_manifest(org.id, function_entitlement_manifest.content)
         form_data.update({'organization_id': org.id})
-        vhd = target_sat.VirtWhoConfig(**form_data).create()
+        vhd = target_sat.api.VirtWhoConfig(**form_data).create()
         assert vhd.status == 'unknown'
         command = get_configure_command(vhd.id, org=org.name)
         hypervisor_name, guest_name = deploy_configure_by_command(
             command, form_data['hypervisor_type'], debug=True, org=org.label
         )
         virt_who_instance = (
-            target_sat.VirtWhoConfig(organization_id=org.id)
+            target_sat.api.VirtWhoConfig(organization_id=org.id)
             .search(query={'search': f'name={form_data["name"]}'})[0]
             .status
         )
@@ -112,11 +114,11 @@ class TestScenarioPositiveVirtWho:
                     if hypervisor_name.lower() in item['type']:
                         vdc_id = item['id']
                         break
-            target_sat.HostSubscription(host=host['id']).add_subscriptions(
-                data={'subscriptions': [{'id': vdc_id, 'quantity': 1}]}
+            target_sat.api.HostSubscription(host=host['id']).add_subscriptions(
+                data={'subscriptions': [{'id': vdc_id, 'quantity': 'Automatic'}]}
             )
             result = (
-                target_sat.Host(organization=org.id)
+                target_sat.api.Host(organization=org.id)
                 .search(query={'search': hostname})[0]
                 .read_json()
             )
@@ -147,10 +149,10 @@ class TestScenarioPositiveVirtWho:
             2. the config and guest connection have the same status.
             3. virt-who config should update and delete successfully.
         """
-        org = target_sat.Organization().search(query={'search': f'name={ORG_DATA["name"]}'})[0]
+        org = target_sat.api.Organization().search(query={'search': f'name={ORG_DATA["name"]}'})[0]
 
         # Post upgrade, Verify virt-who exists and has same status.
-        vhd = target_sat.VirtWhoConfig(organization_id=org.id).search(
+        vhd = target_sat.api.VirtWhoConfig(organization_id=org.id).search(
             query={'search': f'name={form_data["name"]}'}
         )[0]
         if not is_open('BZ:1802395'):
@@ -165,7 +167,7 @@ class TestScenarioPositiveVirtWho:
         hosts = [hypervisor_name, guest_name]
         for hostname in hosts:
             result = (
-                target_sat.Host(organization=org.id)
+                target_sat.api.Host(organization=org.id)
                 .search(query={'search': hostname})[0]
                 .read_json()
             )
@@ -182,6 +184,6 @@ class TestScenarioPositiveVirtWho:
 
         # Delete virt-who config
         vhd.delete()
-        assert not target_sat.VirtWhoConfig(organization_id=org.id).search(
+        assert not target_sat.api.VirtWhoConfig(organization_id=org.id).search(
             query={'search': f'name={modify_name}'}
         )
