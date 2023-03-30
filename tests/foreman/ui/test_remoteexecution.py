@@ -25,6 +25,7 @@ from wait_for import wait_for
 from robottelo.utils.datafactory import gen_string
 
 
+@pytest.mark.skip_if_open('BZ:2182353')
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.tier3
 def test_positive_run_default_job_template_by_ip(session, rex_contenthost, module_org):
@@ -79,6 +80,7 @@ def test_positive_run_default_job_template_by_ip(session, rex_contenthost, modul
         assert job_name in [job['Name'] for job in success_jobs]
 
 
+@pytest.mark.skip_if_open('BZ:2182353')
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.tier3
 def test_positive_run_custom_job_template_by_ip(session, module_org, rex_contenthost):
@@ -132,6 +134,7 @@ def test_positive_run_custom_job_template_by_ip(session, module_org, rex_content
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
 
 
+@pytest.mark.skip_if_open('BZ:2182353')
 @pytest.mark.upgrade
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_list([8])
@@ -183,6 +186,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
         )
 
 
+@pytest.mark.skip_if_open('BZ:2182353')
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.tier3
 def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_contenthost):
