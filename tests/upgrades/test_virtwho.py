@@ -20,7 +20,6 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.host import Host
-from robottelo.cli.simple_content_access import SimpleContentAccess
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
