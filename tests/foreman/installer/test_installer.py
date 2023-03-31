@@ -1376,6 +1376,7 @@ def test_positive_check_installer_hammer_ping(target_sat):
     assert not not_ok
 
 
+@pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.tier3
 @pytest.mark.parametrize('filter', ['params', 'sections'])
