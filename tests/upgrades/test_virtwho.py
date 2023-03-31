@@ -86,7 +86,7 @@ class TestScenarioPositiveVirtWho:
         org = target_sat.api.Organization(name=ORG_DATA['name']).create()
         default_loc.organization.append(target_sat.api.Organization(id=org.id))
         default_loc.update(['organization'])
-        SimpleContentAccess.disable({'organization-id': org.id})
+        org.sca_disable()
         target_sat.upload_manifest(org.id, function_entitlement_manifest.content)
         form_data.update({'organization_id': org.id})
         vhd = target_sat.api.VirtWhoConfig(**form_data).create()
