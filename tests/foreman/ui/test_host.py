@@ -2621,7 +2621,7 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
 
     :id: c9ebd4a8-6db3-4d0e-92a2-14951c26769b
 
-    :caseComponent: katello-tracer
+    :caseComponent: Katello-tracer
 
     :Team: Phoenix
 
@@ -2642,18 +2642,18 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
     )
     with target_sat.ui_session() as session:
         session.organization.select(host['organization_name'])
-        title = session.host_new.get_tracer_title(tracer_install_host.hostname)
-        assert title == "Traces are not enabled"
+        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
+        assert tracer['title'] == "Traces are not enabled"
         session.host_new.enable_tracer(tracer_install_host.hostname)
-        title = session.host_new.get_tracer_title(tracer_install_host.hostname)
-        assert title == "Traces are being enabled"
+        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
+        assert tracer['title'] == "Traces are being enabled"
         wait_for(
-            lambda: session.host_new.get_tracer_title(tracer_install_host.hostname)
+            lambda: session.host_new.get_tracer(tracer_install_host.hostname)['title']
             != "Traces are being enabled",
             timeout=1800,
             delay=5,
             silent_failure=True,
             handle_exception=True,
         )
-        title = session.host_new.get_tracer_title(tracer_install_host.hostname)
-        assert title == "No applications to restart"
+        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
+        assert tracer['title'] == "No applications to restart"
