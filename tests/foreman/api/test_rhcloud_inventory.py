@@ -135,6 +135,7 @@ def test_rhcloud_inventory_api_e2e(
         assert len(host_profiles['installed_packages']) > 1
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 def test_rhcloud_inventory_api_hosts_synchronization(
     organization_ak_setup,

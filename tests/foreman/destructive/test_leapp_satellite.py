@@ -21,6 +21,7 @@ from robottelo.hosts import get_sat_rhel_version
 from robottelo.hosts import get_sat_version
 
 
+@pytest.mark.e2e
 @pytest.mark.skipif(
     get_sat_version().minor != 11 and get_sat_rhel_version().major > 7,
     reason='Run only on sat6.11el7',
