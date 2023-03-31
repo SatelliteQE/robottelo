@@ -500,6 +500,7 @@ def test_insights_tab_on_host_details_page(
                 assert len(insights_recommendations) == int(result['Recommendations'])
 
 
+@pytest.mark.e2e
 @pytest.mark.no_containers
 def test_insights_registration_with_capsule(
     rhcloud_capsule, organization_ak_setup, rhcloud_sat_host, rhel7_contenthost, default_os

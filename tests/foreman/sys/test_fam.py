@@ -65,6 +65,7 @@ def test_positive_ansible_modules_installation(target_sat):
     assert FOREMAN_ANSIBLE_MODULES.sort() == installed_modules.sort()
 
 
+@pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.tier1
 def test_positive_import_run_roles(sync_roles, target_sat):

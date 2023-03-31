@@ -82,6 +82,7 @@ def test_positive_list_health_check_by_tags(sat_maintain):
         assert sat_maintain.cli.Health.list({"tags": tag}).status == 0
 
 
+@pytest.mark.e2e
 @pytest.mark.include_capsule
 def test_positive_health_check(sat_maintain):
     """Verify satellite-maintain health check

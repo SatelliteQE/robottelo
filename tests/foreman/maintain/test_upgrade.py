@@ -33,6 +33,7 @@ def last_y_stream_version(release):
     return f"{release.split('.')[0]}.{y_minus}"
 
 
+@pytest.mark.e2e
 @pytest.mark.include_capsule
 def test_positive_satellite_maintain_upgrade_list(sat_maintain):
     """List versions this system is upgradable to

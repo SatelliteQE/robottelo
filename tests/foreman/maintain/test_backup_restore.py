@@ -409,6 +409,7 @@ def test_negative_restore_baddir(sat_maintain, setup_backup_tests):
     assert BADDIR_MSG in str(result.stdout)
 
 
+@pytest.mark.e2e
 @pytest.mark.include_capsule
 @pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])

@@ -79,6 +79,7 @@ def test_positive_update_katello_certs(cert_setup_destructive_teardown):
         assert result.status == 0, 'Not all services are running'
 
 
+@pytest.mark.e2e
 @pytest.mark.parametrize(
     'certs_vm_setup',
     [

@@ -55,6 +55,7 @@ def common_assertion(report_path, inventory_data, org, satellite):
         assert hosts_count == local_file_data['slices_counts'][slice_name]
 
 
+@pytest.mark.e2e
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_rhcloud_inventory_e2e(

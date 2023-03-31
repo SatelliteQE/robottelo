@@ -140,6 +140,7 @@ def test_positive_lock_package_versions_with_installer(sat_maintain):
         assert 'Success!' in result.stdout
 
 
+@pytest.mark.e2e
 @pytest.mark.include_capsule
 def test_positive_fm_packages_install(request, sat_maintain):
     """Verify whether packages install/update work as expected.
