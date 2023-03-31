@@ -19,6 +19,7 @@
 import pytest
 
 
+@pytest.mark.e2e
 @pytest.mark.rhel_ver_list([7, 8])
 @pytest.mark.tier1
 def test_positive_register(
