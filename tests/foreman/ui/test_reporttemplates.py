@@ -27,7 +27,6 @@ import yaml
 from lxml import etree
 from nailgun import entities
 
-from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -592,7 +591,7 @@ def test_positive_generate_all_installed_packages_report(
     :customerscenario: true
     """
     org, ak, cv, lce = setup_content
-    setup_org_for_a_custom_repo(
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_6.url,
             'organization-id': org.id,

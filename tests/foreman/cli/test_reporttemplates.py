@@ -988,13 +988,14 @@ def test_negative_generate_hostpkgcompare_nonexistent_host():
         assert "At least one of the hosts couldn't be found" in cm.exception.stderr
 
 
+@pytest.mark.rhel_ver_list([7, 8])
 @pytest.mark.tier3
 def test_positive_generate_installed_packages_report(
     module_entitlement_manifest_org,
     local_ak,
     local_content_view,
     local_environment,
-    rhel7_contenthost,
+    rhel_contenthost,
     target_sat,
 ):
     """Generate an report using the 'Host - All Installed Packages' Report template
@@ -1002,7 +1003,7 @@ def test_positive_generate_installed_packages_report(
     :id: 47cc5528-41d9-4100-b603-e98d2ff097a8
 
     :setup: Installed Satellite with Organization, Activation key,
-            Content View, Content Host, and custom product with installed packages
+            Content View, Content Host, and custom product containing packages
 
     :steps:
         1. hammer report-template generate --name 'Host - All Installed Packages'
@@ -1012,6 +1013,8 @@ def test_positive_generate_installed_packages_report(
             information for a host
 
     :BZ: 1826648
+
+    :parametrized: yes
 
     :customerscenario: true
     """
@@ -1024,12 +1027,12 @@ def test_positive_generate_installed_packages_report(
             'activationkey-id': local_ak['id'],
         }
     )
-    client = rhel7_contenthost
+    client = rhel_contenthost
     client.install_katello_ca(target_sat)
     client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
     assert client.subscribed
     client.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE_NAME} {FAKE_1_CUSTOM_PACKAGE}')
-    result_html = ReportTemplate.generate(
+    result_html = target_sat.cli.ReportTemplate.generate(
         {
             'organization': module_entitlement_manifest_org.name,
             'name': 'Host - All Installed Packages',
