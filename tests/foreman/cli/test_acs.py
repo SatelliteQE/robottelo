@@ -20,9 +20,8 @@ import pytest
 from fauxfactory import gen_alphanumeric
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.constants.repos import CUSTOM_FILE_REPO
-from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.constants.repos import PULP_FIXTURE_ROOT
+from robottelo.constants.repos import PULP_SUBPATHS_COMBINED
 
 ACS_UPDATED = 'Alternate Content Source updated.'
 ACS_DELETED = 'Alternate Content Source deleted.'
@@ -34,26 +33,12 @@ VAL_MUST_BLANK = 'must be blank'
 VAL_CANNOT_BE = 'cannot be'
 
 
-@pytest.fixture(scope='module')
-def module_synced_repos(module_target_sat, module_org):
-    file_product = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
-    file_repo = module_target_sat.cli_factory.make_repository(
-        {'product-id': file_product['id'], 'content-type': 'file', 'url': CUSTOM_FILE_REPO}
-    )
-    module_target_sat.cli.Repository.synchronize({'id': file_repo['id']})
-    yum_product = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
-    yum_repo = module_target_sat.cli_factory.make_repository(
-        {'product-id': yum_product['id'], 'content-type': 'yum', 'url': CUSTOM_RPM_REPO}
-    )
-    module_target_sat.cli.Repository.synchronize({'id': yum_repo['id']})
-    return {'yum': yum_repo, 'file': file_repo}
-
-
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.parametrize('cnt_type', ['yum', 'file'])
 @pytest.mark.parametrize('acs_type', ['custom', 'simplified', 'rhui'])
 def test_positive_CRUD_all_types(
-    request, module_target_sat, acs_type, cnt_type, module_synced_repos
+    request, module_target_sat, acs_type, cnt_type, module_yum_repo, module_file_repo
 ):
     """Create, read, update, refresh and delete ACSes of all supported types.
 
@@ -80,7 +65,6 @@ def test_positive_CRUD_all_types(
         pytest.skip('unsupported parametrize combination')
 
     # Create
-    paths = {'yum': 'rpm-zchunk/,rpm-modular/', 'file': 'file-large/,file-many/'}
     params = {
         'name': gen_alphanumeric(),
         'alternate-content-source-type': acs_type,
@@ -90,15 +74,15 @@ def test_positive_CRUD_all_types(
 
     if acs_type == 'simplified':
         params.update(
-            {
-                'product-ids': module_synced_repos[cnt_type]['product']['id'],
-            }
+            {'product-ids': [module_yum_repo.product.id]}
+            if cnt_type == 'yum'
+            else {'product-ids': [module_file_repo.product.id]}
         )
     else:
         params.update(
             {
                 'base-url': PULP_FIXTURE_ROOT,
-                'subpaths': paths[cnt_type],
+                'subpaths': PULP_SUBPATHS_COMBINED[cnt_type],
                 'verify-ssl': 'false',
             }
         )
@@ -168,7 +152,7 @@ def test_negative_check_name_validation(module_target_sat, acs_type):
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('acs_type', ['custom', 'rhui'])
-def test_negative_check_custom_rhui_validations(module_target_sat, acs_type, module_synced_repos):
+def test_negative_check_custom_rhui_validations(module_target_sat, acs_type, module_yum_repo):
     """Check validations for required and forbidden params specific to Custom and Rhui ACS.
 
     :id: 5361e66f-b7b9-411d-bb9e-43275d6676be
@@ -206,7 +190,7 @@ def test_negative_check_custom_rhui_validations(module_target_sat, acs_type, mod
                 'alternate-content-source-type': acs_type,
                 'base-url': PULP_FIXTURE_ROOT,
                 'verify-ssl': 'false',
-                'product-ids': module_synced_repos['yum']['product']['id'],
+                'product-ids': module_yum_repo.product.id,
             }
         )
     assert VAL_FAILED in context.value.message, 'validation notification is missing or wrong'
@@ -218,7 +202,9 @@ def test_negative_check_custom_rhui_validations(module_target_sat, acs_type, mod
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('cnt_type', ['yum', 'file'])
-def test_negative_check_simplified_validations(module_target_sat, module_synced_repos, cnt_type):
+def test_negative_check_simplified_validations(
+    module_target_sat, cnt_type, module_yum_repo, module_file_repo
+):
     """Check validations for forbidden params specific to Simplified ACS.
 
     :id: 4b975e9f-4950-4834-a3ed-0c0aa873ce51
@@ -235,25 +221,28 @@ def test_negative_check_simplified_validations(module_target_sat, module_synced_
 
     """
     # Create with forbidden present
+    params = {
+        'name': gen_alphanumeric(),
+        'alternate-content-source-type': 'simplified',
+        'content-type': cnt_type,
+        'smart-proxy-ids': module_target_sat.nailgun_capsule.id,
+        # forbidden options
+        'base-url': PULP_FIXTURE_ROOT,
+        'subpaths': f'{gen_alphanumeric()}/',
+        'verify-ssl': 'false',
+        'ssl-ca-cert-id': '1',
+        'ssl-client-cert-id': '1',
+        'ssl-client-key-id': '1',
+        'upstream-username': gen_alphanumeric(),
+        'upstream-password': gen_alphanumeric(),
+    }
+    params.update(
+        {'product-ids': [module_yum_repo.product.id]}
+        if cnt_type == 'yum'
+        else {'product-ids': [module_file_repo.product.id]}
+    )
     with pytest.raises(CLIReturnCodeError) as context:
-        module_target_sat.cli.ACS.create(
-            {
-                'name': gen_alphanumeric(),
-                'alternate-content-source-type': 'simplified',
-                'content-type': cnt_type,
-                'smart-proxy-ids': module_target_sat.nailgun_capsule.id,
-                'product-ids': module_synced_repos[cnt_type]['product']['id'],
-                # forbidden options
-                'base-url': PULP_FIXTURE_ROOT,
-                'subpaths': f'{gen_alphanumeric()}/',
-                'verify-ssl': 'false',
-                'ssl-ca-cert-id': '1',
-                'ssl-client-cert-id': '1',
-                'ssl-client-key-id': '1',
-                'upstream-username': gen_alphanumeric(),
-                'upstream-password': gen_alphanumeric(),
-            }
-        )
+        module_target_sat.cli.ACS.create(params)
     assert VAL_FAILED in context.value.message, 'validation notification is missing or wrong'
     assert f'Base url {VAL_MUST_BLANK}' in context.value.message
     assert f'Subpaths {VAL_MUST_BLANK}' in context.value.message

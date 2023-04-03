@@ -28,6 +28,7 @@ pytest_plugins = [
     'pytest_fixtures.core.xdist',
     'pytest_fixtures.core.ui',
     # Component Fixtures
+    'pytest_fixtures.component.acs',
     'pytest_fixtures.component.activationkey',
     'pytest_fixtures.component.ansible',
     'pytest_fixtures.component.architecture',
