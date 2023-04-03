@@ -34,6 +34,7 @@ from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
@@ -1950,7 +1951,8 @@ def test_positive_manage_table_columns(session):
 
     :steps:
         1. Navigate to the Hosts page.
-        2. Set custom columns for the hosts table via the 'Manage columns' dialog.
+        2. Switch to default organization and location, where is at least one host (Satellite).
+        3. Set custom columns for the hosts table via the 'Manage columns' dialog.
 
     :expectedresults: Check if the custom columns were set properly, i.e., are displayed
         or not displayed in the table.
@@ -1973,6 +1975,8 @@ def test_positive_manage_table_columns(session):
         'Recommendations': False,
     }
     with session:
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.location.select(loc_name=DEFAULT_LOC)
         session.host.manage_table_columns(columns)
         displayed_columns = session.host.get_displayed_table_headers()
         for column, is_displayed in columns.items():
