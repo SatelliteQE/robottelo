@@ -16,6 +16,8 @@
 
 :Upstream: No
 """
+import time
+
 import pytest
 
 from robottelo.constants import DEFAULT_CV
@@ -36,6 +38,7 @@ def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_org, modu
 
     :CaseImportance: High
     """
+
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     with session_puppet_enabled_sat.ui_session() as session:
@@ -46,6 +49,8 @@ def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_org, modu
                 'organizations.resources.assigned': [module_puppet_org.name],
             }
         )
+        print("The Test session is beginning")
+        time.sleep(180)
         found_envs = session.puppetenvironment.search(name)
         assert name in [env['Name'] for env in found_envs]
         env_values = session.puppetenvironment.read(name)
