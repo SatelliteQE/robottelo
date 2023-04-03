@@ -174,6 +174,7 @@ class TestDiscoveredHost:
     @pytest.mark.upgrade
     @pytest.mark.e2e
     @pytest.mark.on_premises_provisioning
+    @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
     @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
     @pytest.mark.rhel_ver_match('[^6]')
     @pytest.mark.tier3
@@ -228,6 +229,7 @@ class TestDiscoveredHost:
     @pytest.mark.upgrade
     @pytest.mark.e2e
     @pytest.mark.on_premises_provisioning
+    @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
     @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
     @pytest.mark.rhel_ver_match('[^6]')
     @pytest.mark.tier3
