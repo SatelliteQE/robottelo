@@ -74,6 +74,7 @@ def virtwho_config(form_data, target_sat, session_sca):
 @pytest.mark.usefixtures('clean_host')
 class TestVirtwhoConfigforEsx:
     @pytest.mark.tier2
+    @pytest.mark.upgrade
     @pytest.mark.parametrize('deploy_type', ['id', 'script'])
     def test_positive_deploy_configure_by_id_script(
         self, module_sca_manifest_org, virtwho_config, session_sca, form_data, deploy_type
