@@ -8,7 +8,7 @@
 
 :CaseComponent: AlternateContentSources
 
-:Team: Phoenix
+:Team: Phoenix-content
 
 :TestType: Functional
 
