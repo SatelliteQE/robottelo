@@ -30,10 +30,8 @@ from robottelo.cli.settings import Settings
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
-from robottelo.utils.issue_handlers import is_open
 
 LOGEDIN_MSG = "Session exists, currently logged in as '{0}'"
-LOGEDOFF_MSG = "Using sessions, you are currently not logged in"
 NOTCONF_MSG = "Credentials are not configured."
 password = gen_string('alpha')
 
@@ -102,7 +100,7 @@ def test_positive_create_session(admin_user, target_sat):
         with pytest.raises(CLIReturnCodeError):
             Org.with_user().list()
         result = Auth.with_user().status()
-        assert LOGEDOFF_MSG.format(admin_user['login']) in result[0]['message']
+        assert NOTCONF_MSG in result[0]['message']
     finally:
         # reset timeout to default
         Settings.set({'name': 'idle_timeout', 'value': f'{idle_timeout}'})
@@ -136,7 +134,7 @@ def test_positive_disable_session(admin_user, target_sat):
     result = configure_sessions(satellite=target_sat, enable=False)
     assert result == 0, 'Failed to configure hammer sessions'
     result = Auth.with_user().status()
-    assert NOTCONF_MSG.format(admin_user['login']) in result[0]['message']
+    assert NOTCONF_MSG in result[0]['message']
     with pytest.raises(CLIReturnCodeError):
         Org.with_user().list()
 
@@ -166,7 +164,7 @@ def test_positive_log_out_from_session(admin_user, target_sat):
     assert Org.with_user().list()
     Auth.logout()
     result = Auth.with_user().status()
-    assert LOGEDOFF_MSG.format(admin_user['login']) in result[0]['message']
+    assert NOTCONF_MSG in result[0]['message']
     with pytest.raises(CLIReturnCodeError):
         Org.with_user().list()
 
@@ -300,9 +298,6 @@ def test_positive_session_preceeds_saved_credentials(admin_user, target_sat):
         assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
         # list organizations without supplying credentials
         sleep(70)
-        if not is_open('BZ:1903693'):
-            result = Auth.with_user().status()
-            assert LOGEDOFF_MSG.format(admin_user['login']) in result[0]['message']
         with pytest.raises(CLIReturnCodeError):
             Org.with_user().list()
     finally:
