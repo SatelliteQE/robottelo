@@ -3291,7 +3291,7 @@ def test_positive_syncable_yum_format_repo_import(target_sat, module_org):
     """
     target_sat.execute('mkdir /var/lib/pulp/imports/syncable-repo')
     target_sat.execute(
-        'wget -r -np -nH --cut-dirs=100 /var/lib/pulp/imports/syncable-repo'
+        'wget -r -np -nH --cut-dirs=100 -e robots=off -P /var/lib/pulp/imports/syncable-repo'
         f' {settings.robottelo.REPOS_HOSTING_URL}/exported_repo/'
     )
     synced_repo = target_sat.execute(
