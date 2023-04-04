@@ -61,6 +61,8 @@ def virtwho_config(form_data, target_sat):
 
 
 class TestVirtWhoConfigforEsx:
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     @pytest.mark.parametrize('deploy_type', ['id', 'script'])
     def test_positive_deploy_configure_by_id_script(
         self, module_sca_manifest_org, form_data, virtwho_config, target_sat, deploy_type
