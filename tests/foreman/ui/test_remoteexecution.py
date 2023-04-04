@@ -20,27 +20,15 @@ import datetime
 import time
 
 import pytest
-from broker import Broker
 from wait_for import wait_for
 
-from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import gen_string
 
 
-@pytest.fixture
-def module_vm_client_by_ip(rhel7_contenthost, module_org, smart_proxy_location, target_sat):
-    """Setup a VM client to be used in remote execution by ip"""
-    rhel7_contenthost.configure_rex(satellite=target_sat, org=module_org)
-    target_sat.api_factory.update_vm_host_location(
-        rhel7_contenthost, location_id=smart_proxy_location.id
-    )
-    yield rhel7_contenthost
-
-
+@pytest.mark.skip_if_open('BZ:2182353')
+@pytest.mark.rhel_ver_match('8')
 @pytest.mark.tier3
-def test_positive_run_default_job_template_by_ip(
-    session, smart_proxy_location, module_vm_client_by_ip
-):
+def test_positive_run_default_job_template_by_ip(session, rex_contenthost, module_org):
     """Run a job template against a single host by ip
 
     :id: a21eac46-1a22-472d-b4ce-66097159a868
@@ -63,19 +51,20 @@ def test_positive_run_default_job_template_by_ip(
 
     :CaseLevel: Integration
     """
-    hostname = module_vm_client_by_ip.hostname
+    hostname = rex_contenthost.hostname
     with session:
-        session.location.select(smart_proxy_location.name)
+        session.organization.select(module_org.name)
+        session.location.select('Default Location')
         assert session.host.search(hostname)[0]['Name'] == hostname
         command = 'ls'
         job_status = session.host.schedule_remote_job(
             [hostname],
             {
-                'job_category': 'Commands',
-                'job_template': 'Run Command - Script Default',
-                'template_content.command': command,
-                'advanced_options.execution_order': 'Randomized',
-                'schedule': 'Execute now',
+                'category_and_template.job_category': 'Commands',
+                'category_and_template.job_template': 'Run Command - Script Default',
+                'target_hosts_and_inputs.command': command,
+                'advanced_fields.execution_order_randomized': True,
+                'schedule.immediate': True,
             },
         )
         assert job_status['overview']['job_status'] == 'Success'
@@ -91,10 +80,10 @@ def test_positive_run_default_job_template_by_ip(
         assert job_name in [job['Name'] for job in success_jobs]
 
 
+@pytest.mark.skip_if_open('BZ:2182353')
+@pytest.mark.rhel_ver_match('8')
 @pytest.mark.tier3
-def test_positive_run_custom_job_template_by_ip(
-    session, smart_proxy_location, module_vm_client_by_ip
-):
+def test_positive_run_custom_job_template_by_ip(session, module_org, rex_contenthost):
     """Run a job template on a host connected by ip
 
     :id: 3a59eb15-67c4-46e1-ba5f-203496ec0b0c
@@ -115,10 +104,11 @@ def test_positive_run_custom_job_template_by_ip(
     :CaseLevel: System
     """
 
-    hostname = module_vm_client_by_ip.hostname
+    hostname = rex_contenthost.hostname
     job_template_name = gen_string('alpha')
     with session:
-        session.location.select(smart_proxy_location.name)
+        session.organization.select(module_org.name)
+        session.location.select('Default Location')
         session.jobtemplate.create(
             {
                 'template.name': job_template_name,
@@ -133,10 +123,10 @@ def test_positive_run_custom_job_template_by_ip(
         job_status = session.host.schedule_remote_job(
             [hostname],
             {
-                'job_category': 'Miscellaneous',
-                'job_template': job_template_name,
-                'template_content.command': 'ls',
-                'schedule': 'Execute now',
+                'category_and_template.job_category': 'Miscellaneous',
+                'category_and_template.job_template': job_template_name,
+                'target_hosts_and_inputs.command': 'ls',
+                'schedule.immediate': True,
             },
         )
         assert job_status['overview']['job_status'] == 'Success'
@@ -144,10 +134,12 @@ def test_positive_run_custom_job_template_by_ip(
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
 
 
+@pytest.mark.skip_if_open('BZ:2182353')
 @pytest.mark.upgrade
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_list([8])
 def test_positive_run_job_template_multiple_hosts_by_ip(
-    session, module_org, smart_proxy_location, target_sat
+    session, module_org, target_sat, registered_hosts
 ):
     """Run a job template against multiple hosts by ip
 
@@ -167,43 +159,37 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
 
     :CaseLevel: System
     """
-    with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
-        host_names = []
-        for host in hosts:
-            host_names.append(host.hostname)
-            host.configure_rex(satellite=target_sat, org=module_org)
-            target_sat.api_factory.update_vm_host_location(
-                host, location_id=smart_proxy_location.id
-            )
-        with session:
-            session.location.select(smart_proxy_location.name)
-            hosts = session.host.search(
-                ' or '.join([f'name="{hostname}"' for hostname in host_names])
-            )
-            assert {host['Name'] for host in hosts} == set(host_names)
-            job_status = session.host.schedule_remote_job(
-                host_names,
-                {
-                    'job_category': 'Commands',
-                    'job_template': 'Run Command - Script Default',
-                    'template_content.command': 'ls',
-                    'schedule': 'Execute now',
-                },
-            )
-            assert job_status['overview']['job_status'] == 'Success'
-            assert {host_job['Host'] for host_job in job_status['overview']['hosts_table']} == set(
-                host_names
-            )
-            assert all(
-                host_job['Status'] == 'success'
-                for host_job in job_status['overview']['hosts_table']
-            )
+    host_names = []
+    for vm in registered_hosts:
+        host_names.append(vm.hostname)
+        vm.configure_rex(satellite=target_sat, org=module_org)
+    with session:
+        session.organization.select(module_org.name)
+        session.location.select('Default Location')
+        hosts = session.host.search(' or '.join([f'name="{hostname}"' for hostname in host_names]))
+        assert {host['Name'] for host in hosts} == set(host_names)
+        job_status = session.host.schedule_remote_job(
+            host_names,
+            {
+                'category_and_template.job_category': 'Commands',
+                'category_and_template.job_template': 'Run Command - Script Default',
+                'target_hosts_and_inputs.command': 'ls',
+                'schedule.immediate': True,
+            },
+        )
+        assert job_status['overview']['job_status'] == 'Success'
+        assert {host_job['Host'] for host_job in job_status['overview']['hosts_table']} == set(
+            host_names
+        )
+        assert all(
+            host_job['Status'] == 'success' for host_job in job_status['overview']['hosts_table']
+        )
 
 
+@pytest.mark.skip_if_open('BZ:2182353')
+@pytest.mark.rhel_ver_match('8')
 @pytest.mark.tier3
-def test_positive_run_scheduled_job_template_by_ip(
-    session, smart_proxy_location, module_vm_client_by_ip
-):
+def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_contenthost):
     """Schedule a job to be ran against a host by ip
 
     :id: 4387bed9-969d-45fb-80c2-b0905bb7f1bd
@@ -229,19 +215,21 @@ def test_positive_run_scheduled_job_template_by_ip(
     :CaseLevel: System
     """
     job_time = 10 * 60
-    hostname = module_vm_client_by_ip.hostname
+    hostname = rex_contenthost.hostname
     with session:
-        session.location.select(smart_proxy_location.name)
+        session.organization.select(module_org.name)
+        session.location.select('Default Location')
         assert session.host.search(hostname)[0]['Name'] == hostname
         plan_time = session.browser.get_client_datetime() + datetime.timedelta(seconds=job_time)
         job_status = session.host.schedule_remote_job(
             [hostname],
             {
-                'job_category': 'Commands',
-                'job_template': 'Run Command - Script Default',
-                'template_content.command': 'ls',
-                'schedule': 'Schedule future execution',
-                'schedule_content.start_at': plan_time.strftime("%Y-%m-%d %H:%M"),
+                'category_and_template.job_category': 'Commands',
+                'category_and_template.job_template': 'Run Command - Script Default',
+                'target_hosts_and_inputs.command': 'ls',
+                'schedule.future': True,
+                'schedule_future_execution.start_at_date': plan_time.strftime("%Y/%m/%d"),
+                'schedule_future_execution.start_at_time': plan_time.strftime("%H:%M"),
             },
             wait_for_results=False,
         )
