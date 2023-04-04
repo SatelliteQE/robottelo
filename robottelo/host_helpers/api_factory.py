@@ -154,7 +154,7 @@ class APIFactory:
         )
         return repo_id
 
-    def one_to_one_names(name):
+    def one_to_one_names(self, name):
         """Generate the names Satellite might use for a one to one field.
 
         Example of usage::
@@ -166,7 +166,7 @@ class APIFactory:
         :returns: A set including both ``name`` and variations on ``name``.
 
         """
-        return {name + '_name', name + '_id'}
+        return {f'{name}_name', f'{name}_id'}
 
     def configure_provisioning(self, org=None, loc=None, compute=False, os=None):
         """Create and configure org, loc, product, repo, cv, env. Update proxy,
