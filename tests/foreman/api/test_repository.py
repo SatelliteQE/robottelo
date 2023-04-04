@@ -2549,4 +2549,3 @@ class TestTokenAuthContainerRepository:
             synced_repo = repo.read()
             assert synced_repo.content_counts['docker_manifest'] >= 1
             assert synced_repo.content_counts['docker_tag'] == 1
-
