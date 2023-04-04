@@ -567,9 +567,10 @@ def test_positive_gen_entitlements_reports_multiple_formats(
         assert DEFAULT_SUBSCRIPTION_NAME in tree_result
 
 
+@pytest.mark.rhel_ver_list([7, 8, 9])
 @pytest.mark.tier3
 def test_positive_generate_all_installed_packages_report(
-    session, setup_content, rhel7_contenthost, target_sat
+    session, setup_content, rhel_contenthost, target_sat
 ):
     """Generate an report using the 'Host - All Installed Packages' Report template
 
@@ -600,7 +601,7 @@ def test_positive_generate_all_installed_packages_report(
             'activationkey-id': ak.id,
         }
     )
-    client = rhel7_contenthost
+    client = rhel_contenthost
     client.install_katello_ca(target_sat)
     client.register_contenthost(org.label, ak.name)
     assert client.subscribed
