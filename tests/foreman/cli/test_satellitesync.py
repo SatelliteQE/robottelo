@@ -42,6 +42,7 @@ from robottelo.constants import DEFAULT_CV
 from robottelo.constants import PRDS
 from robottelo.constants import PULP_EXPORT_DIR
 from robottelo.constants import PULP_IMPORT_DIR
+from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import ANSIBLE_GALAXY
@@ -67,7 +68,6 @@ def export_import_cleanup_function(target_sat, function_org):
     # Deletes directories created for export/import test
     target_sat.execute(
         f'rm -rf {PULP_EXPORT_DIR}/{function_org.name} {PULP_IMPORT_DIR}/{function_org.name}',
-        status=0,
     )
 
 
@@ -79,6 +79,23 @@ def export_import_cleanup_module(target_sat, module_org):
     target_sat.execute(
         f'rm -rf {PULP_EXPORT_DIR}/{module_org.name} {PULP_IMPORT_DIR}/{module_org.name}'
     )
+
+
+@pytest.fixture(scope='class')
+def docker_repo(module_target_sat, module_org):
+    product = make_product({'organization-id': module_org.id})
+    repo = make_repository(
+        {
+            'organization-id': module_org.id,
+            'product-id': product['id'],
+            'content-type': REPO_TYPE['docker'],
+            'download-policy': 'immediate',
+            'url': 'https://quay.io',
+            'docker-upstream-name': 'quay/busybox',
+        }
+    )
+    Repository.synchronize({'id': repo['id']})
+    yield repo
 
 
 @pytest.mark.run_in_one_thread
@@ -325,7 +342,7 @@ class TestRepositoryExport:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    def test_positive_complete_library_rh_repo(
+    def test_positive_export_complete_library_rh_repo(
         self, export_import_cleanup_function, function_entitlement_manifest_org, target_sat
     ):
         """Export RedHat repo via complete library
@@ -382,6 +399,96 @@ class TestRepositoryExport:
             target_sat.validate_pulp_filepath(function_entitlement_manifest_org, PULP_EXPORT_DIR)
             != ''
         )
+
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
+    def test_positive_export_repository_docker(
+        self, target_sat, export_import_cleanup_module, module_org, docker_repo
+    ):
+        """Export docker repo via complete and incremental repository.
+
+        :id: 3c666ffd-d287-4006-b3a0-66d892fe4250
+
+        :setup:
+            1. Have a synchronized docker-type repo with immediate download policy.
+
+        :steps:
+            1. Export complete repository.
+            2. Export incremental repository.
+
+        :expectedresults:
+            1. Export path is created (with expected files) for complete export.
+            2. Export path is created (with expected files) for incremental export.
+
+        :BZ: 1650468
+
+        :customerscenario: true
+        """
+        # Verify export directory is empty
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
+        # Export complete and check the export directory
+        target_sat.cli.ContentExport.completeRepository({'id': docker_repo['id']})
+        assert '1.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
+        # Export incremental and check the export directory
+        target_sat.cli.ContentExport.incrementalRepository({'id': docker_repo['id']})
+        assert '2.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
+
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
+    def test_positive_export_version_docker(
+        self, target_sat, export_import_cleanup_module, module_org, docker_repo
+    ):
+        """Export CV with docker repo via complete and incremental version.
+
+        :id: ddff4560-cd39-4ecc-a538-09aad9f64a73
+
+        :setup:
+            1. Have a synchronized docker-type repo with immediate download policy.
+
+        :steps:
+            1. Create a CV, add the docker repository and publish it.
+            2. Export complete version of the CV.
+            3. Publish new version of the CV.
+            4. Export incremental version of the CV.
+
+        :expectedresults:
+            1. Export path is created (with expected files) for complete CVV export.
+            2. Export path is created (with expected files) for incremental CVV export.
+
+        :BZ: 1650468
+
+        :customerscenario: true
+        """
+        # Create CV and publish
+        cv_name = gen_string('alpha')
+        cv = make_content_view({'name': cv_name, 'organization-id': module_org.id})
+        target_sat.cli.ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_org.id,
+                'repository-id': docker_repo['id'],
+            }
+        )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 1
+        cvv = cv['versions'][0]
+        # Verify export directory is empty
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
+        # Export complete and check the export directory
+        target_sat.cli.ContentExport.completeVersion(
+            {'id': cvv['id'], 'organization-id': module_org.id}
+        )
+        assert '1.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
+        # Publish new CVV, export incremental and check the export directory
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 2
+        cvv = cv['versions'][1]
+        target_sat.cli.ContentExport.incrementalVersion(
+            {'id': cvv['id'], 'organization-id': module_org.id}
+        )
+        assert '2.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
 
 
 @pytest.fixture(scope='class')

@@ -49,6 +49,16 @@ class ContentExport(Base):
         )
 
     @classmethod
+    def completeRepository(cls, options, output_format='json', timeout=None):
+        """
+        Make full repository export
+        """
+        cls.command_sub = 'complete repository'
+        return cls.execute(
+            cls._construct_command(options), output_format=output_format, timeout=timeout
+        )
+
+    @classmethod
     def completeVersion(cls, options, output_format='json', timeout=None):
         """
         Make full CV version export
@@ -61,7 +71,7 @@ class ContentExport(Base):
     @classmethod
     def incrementalLibrary(cls, options, output_format='json', timeout=None):
         """
-        Make make incremental library export
+        Make incremental library export
         """
         cls.command_sub = 'incremental library'
         return cls.execute(
@@ -69,9 +79,19 @@ class ContentExport(Base):
         )
 
     @classmethod
+    def incrementalRepository(cls, options, output_format='json', timeout=None):
+        """
+        Make incremental repository export
+        """
+        cls.command_sub = 'incremental repository'
+        return cls.execute(
+            cls._construct_command(options), output_format=output_format, timeout=timeout
+        )
+
+    @classmethod
     def incrementalVersion(cls, options, output_format='json', timeout=None):
         """
-        Make make incremental CV version export
+        Make incremental CV version export
         """
         cls.command_sub = 'incremental version'
         return cls.execute(
