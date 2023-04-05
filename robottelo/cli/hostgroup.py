@@ -31,6 +31,24 @@ class HostGroup(Base):
     command_base = 'hostgroup'
 
     @classmethod
+    def ansible_roles_assign(cls, options):
+        """Assigns Ansible roles to a hostgroup"""
+        cls.command_sub = 'ansible-roles assign'
+        return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def ansible_roles_remove(cls, options=None):
+        """Disassociate an Ansible role"""
+        cls.command_sub = 'ansible-roles remove'
+        return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def ansible_roles_add(cls, options):
+        """Associate an Ansible role"""
+        cls.command_sub = 'ansible-roles add'
+        return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
     def sc_params(cls, options=None):
         """List all smart class parameters
 
