@@ -51,9 +51,19 @@ if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
     pytest.skip('skipping tests due to missing settings', allow_module_level=True)
 
 
+@pytest.fixture(scope='module', autouse=True)
+def host_ui_default():
+    settings_object = entities.Setting().search(query={'search': 'name=host_details_ui'})[0]
+    settings_object.value = 'No'
+    settings_object.update({'value'})
+    yield
+    settings_object.value = 'Yes'
+    settings_object.update({'value'})
+
+
 @pytest.fixture(scope='module')
 def module_org():
-    org = entities.Organization().create()
+    org = entities.Organization(simple_content_access=False).create()
     # adding remote_execution_connect_by_ip=Yes at org level
     entities.Parameter(
         name='remote_execution_connect_by_ip',
