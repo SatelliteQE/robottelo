@@ -3295,11 +3295,12 @@ def test_positive_syncable_yum_format_repo_import(target_sat, module_org):
         'wget -r -np -nH -e robots=off -P /var/lib/pulp/imports/syncable-repo'
         f' {settings.robottelo.REPOS_HOSTING_URL}/exported_repo/'
     )
-    synced_repo = target_sat.execute(
-        f'hammer content-import repository --organization={module_org.name}'
-        ' --path=/var/lib/pulp/imports/syncable-repo/exported_repo'
+    target_sat.cli.ContentImport.repository(
+        {
+            'organization': module_org.name,
+            'path': '/var/lib/pulp/imports/syncable-repo/exported_repo',
+        }
     )
-    assert 'success' in str(synced_repo.stderr[1])
     repodata = target_sat.cli.Repository.info(
         {'name': 'testrepo', 'organization-id': module_org.id, 'product': 'testproduct'}
     )
