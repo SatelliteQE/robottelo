@@ -234,7 +234,7 @@ class ContentHost(Host, ContentHostMixins):
             self.remove_katello_ca()
 
     def teardown(self):
-        if not self.blank:
+        if not self.blank and not getattr(self, '_skip_context_checkin', False):
             if self.nailgun_host:
                 self.nailgun_host.delete()
             self.unregister()

@@ -779,7 +779,7 @@ FAKE_9_YUM_UPDATED_PACKAGES = [
     'duck-0.6-1.noarch',
     'gorilla-0.62-1.noarch',
     'penguin-0.9.1-1.noarch',
-    'stork-0.12-1.noarch',
+    'stork-0.12-2.noarch',
     'walrus-5.21-1.noarch',
     'kangaroo-0.2-1.noarch',
 ]

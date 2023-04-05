@@ -215,6 +215,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         assert host.id == rhel_client.nailgun_host.id, 'Host not found in Satellite'
         organization = target_sat.api.Organization(id=organization_id).read()
 
+        # Verifying errata count has not changed on satellite
         installable_errata_count = rhel_client.applicable_errata_count
         assert installable_errata_count > 1, f'No applicable errata found for host {host.name}'
         erratum_list = target_sat.api.Errata(repository=custom_yum_repo).search(
