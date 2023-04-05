@@ -659,7 +659,7 @@ class RepositoryCollection:
         if self.need_subscription:
             # upload manifest only when needed
             if upload_manifest and not self.organization_has_manifest(org_id):
-                self.satellite.upload_manifest(org_id, interface='CLI')
+                self.satellite.upload_manifest(org_id, interface='API')
             if not rh_subscriptions:
                 # add the default subscription if no subscription provided
                 rh_subscriptions = [constants.DEFAULT_SUBSCRIPTION_NAME]
