@@ -22,6 +22,7 @@ from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import settings
+from robottelo.hosts import ContentHost
 from robottelo.logging import logger
 
 
@@ -96,9 +97,11 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         5. Check if the Errata Count in Satellite after the upgrade.
     """
 
+    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.no_containers
     @pytest.mark.pre_upgrade
     def test_pre_scenario_generate_errata_for_client(
-        self, katello_agent_client_for_upgrade, save_test_data
+        self, target_sat, rhel_contenthost, function_org, save_test_data
     ):
         """Create product and repo from which the errata will be generated for the
         Satellite client or content host.
@@ -122,54 +125,60 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             2. errata count, erratum list will be generated to satellite client/content
                 host
         """
-        sat = katello_agent_client_for_upgrade.sat
-        rhel_client = katello_agent_client_for_upgrade.client
-        org = sat.api.Organization().create()
-        loc = sat.api.Location(organization=[org]).create()
-
-        sat.api_factory.update_vm_host_location(rhel_client, loc.id)
-        environment = sat.api.LifecycleEnvironment(organization=org).search(
+        rhel_contenthost._skip_context_checkin = True
+        # loc = sat.api.Location(organization=[org]).create() # function_location_with_org
+        # sat.api_factory.update_vm_host_location(rhel_client, loc.id)
+        environment = target_sat.api.LifecycleEnvironment(organization=function_org).search(
             query={'search': f'name={constants.ENVIRONMENT}'}
         )[0]
-        product = sat.api.Product(organization=org).create()
-        custom_yum_repo = sat.api.Repository(
+        product = target_sat.api.Product(organization=function_org).create()
+        custom_yum_repo = target_sat.api.Repository(
             product=product, content_type='yum', url=settings.repos.yum_9.url
         ).create()
         product.sync()
         synced_repos = self._create_custom_rhel_n_client_repos(
-            sat, product, rhel_client.os_version.major
+            target_sat, product, rhel_contenthost.os_version.major
         )
         repolist = [
             custom_yum_repo,
             *synced_repos,
         ]
-        content_view = sat.publish_content_view(org, repolist)
-        ak = sat.api.ActivationKey(
-            content_view=content_view, organization=org, environment=environment
+        content_view = target_sat.publish_content_view(function_org, repolist)
+        ak = target_sat.api.ActivationKey(
+            content_view=content_view, organization=function_org, environment=environment
         ).create()
-        subscription = sat.api.Subscription(organization=org).search(
+        subscription = target_sat.api.Subscription(organization=function_org).search(
             query={'search': f'name={product.name}'}
         )[0]
         ak.add_subscriptions(data={'subscription_id': subscription.id})
-        rhel_client.execute('subscription-manager refresh')
+        rhel_contenthost.install_katello_ca(target_sat)
+        rhel_contenthost.register_contenthost(org=function_org.name, activation_key=ak.name)
+        rhel_contenthost.add_rex_key(satellite=target_sat)
+        rhel_contenthost.install_katello_host_tools()
+        rhel_contenthost.execute('subscription-manager refresh')
 
-        rhel_client.execute(f'yum -y install {" ".join(constants.FAKE_9_YUM_OUTDATED_PACKAGES)}')
-        host = sat.api.Host().search(query={'search': f'activation_key={ak.name}'})[0]
-        installable_errata_count = host.content_facet_attributes['errata_counts']['total']
-        assert installable_errata_count > 1
-        erratum_list = sat.api.Errata(repository=custom_yum_repo).search(
+        rhel_contenthost.execute(
+            f'yum -y install {" ".join(constants.FAKE_9_YUM_OUTDATED_PACKAGES)}'
+        )
+        host = target_sat.api.Host().search(query={'search': f'activation_key={ak.name}'})[0]
+        assert host.id == rhel_contenthost.nailgun_host.id, 'Host not found in Satellite'
+        assert (
+            rhel_contenthost.applicable_errata_count > 1
+        ), f'No applicable errata found for host {host.name}'
+        erratum_list = target_sat.api.Errata(repository=custom_yum_repo).search(
             query={'order': 'updated ASC', 'per_page': 1000}
         )
         errata_ids = [errata.errata_id for errata in erratum_list]
         assert sorted(errata_ids) == sorted(settings.repos.yum_9.errata)
         save_test_data(
             {
-                'rhel_client': rhel_client.hostname,
+                'rhel_client': rhel_contenthost.hostname,
                 'activation_key': ak.name,
                 'custom_repo_id': custom_yum_repo.id,
                 'product_id': product.id,
                 'content_view_id': content_view.id,
                 'synced_repo_ids': [repo.id for repo in synced_repos],
+                'organization_id': function_org.id,
             }
         )
 
@@ -197,13 +206,17 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         client_hostname = pre_upgrade_data.get('rhel_client')
         custom_repo_id = pre_upgrade_data.get('custom_repo_id')
         activation_key = pre_upgrade_data.get('activation_key')
-
-        rhel_client = Broker().from_inventory(filter=f'hostname={client_hostname}')[0]
+        organization_id = pre_upgrade_data.get('organization_id')
+        rhel_client = Broker(host_class=ContentHost).from_inventory(
+            filter=f'hostname={client_hostname}'
+        )[0]
         custom_yum_repo = target_sat.api.Repository(id=custom_repo_id).read()
         host = target_sat.api.Host().search(query={'search': f'activation_key={activation_key}'})[0]
+        assert host.id == rhel_client.nailgun_host.id, 'Host not found in Satellite'
+        organization = target_sat.api.Organization(id=organization_id).read()
 
-        installable_errata_count = host.content_facet_attributes['errata_counts']['total']
-        assert installable_errata_count > 1
+        installable_errata_count = rhel_client.applicable_errata_count
+        assert installable_errata_count > 1, f'No applicable errata found for host {host.name}'
         erratum_list = target_sat.api.Errata(repository=custom_yum_repo).search(
             query={'order': 'updated ASC', 'per_page': 1000}
         )
@@ -211,16 +224,34 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         assert sorted(errata_ids) == sorted(settings.repos.yum_9.errata)
 
         for errata in settings.repos.yum_9.errata:
-            host.errata_apply(data={'errata_ids': [errata]})
+            task_id = target_sat.api.JobInvocation().run(
+                data={
+                    'feature': 'katello_errata_install',
+                    'inputs': {'errata': errata},
+                    'targeting_type': 'static_query',
+                    'search_query': f'name = {rhel_client.hostname}',
+                    'organization_id': organization.id,
+                },
+            )['id']
+            target_sat.wait_for_tasks(
+                search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+                search_rate=15,
+                max_tries=10,
+            )
             installable_errata_count -= 1
 
         # waiting for errata count to become 0, as profile uploading take some
         # amount of time
         wait_for(
-            lambda: host.read().content_facet_attributes['errata_counts']['total'] == 0,
+            lambda: rhel_client.applicable_errata_count == 0,
             timeout=400,
             delay=2,
             logger=logger,
         )
         pkg_check = rhel_client.execute(f'rpm -q {" ".join(constants.FAKE_9_YUM_UPDATED_PACKAGES)}')
-        assert pkg_check.status == 0, 'Package check failed. One or more packages are not installed'
+        assert pkg_check.status == 0, 'Package check failed. One or more packages were not updated'
+        errata_check = rhel_client.execute('dnf updateinfo list')
+        for errata in settings.repos.yum_9.errata:
+            assert (
+                errata not in errata_check.stdout
+            ), 'Errata check failed. One or more errata were not applied'
