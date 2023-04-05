@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import pytest
+from fauxfactory import gen_string
 
 from robottelo.config import settings
 
@@ -50,7 +51,8 @@ def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
     :CaseImportance: Critical
     """
     SELECTED_ROLE = 'RedHatInsights.insights-client'
-    SELECTED_VAR = 'insights_variable'
+    SELECTED_ROLE_1 = 'theforeman.foreman_scap_client'
+    SELECTED_VAR = gen_string('alpha')
     if rhel_contenthost.os_version.major <= 7:
         rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
         assert rhel_contenthost.execute('yum install -y insights-client').status == 0
@@ -61,9 +63,14 @@ def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
     proxy_id = target_sat.nailgun_smart_proxy.id
     target_host = rhel_contenthost.nailgun_host
 
-    target_sat.cli.Ansible.roles_sync({'role-names': SELECTED_ROLE, 'proxy-id': proxy_id})
+    target_sat.cli.Ansible.roles_sync(
+        {'role-names': f'{SELECTED_ROLE},{SELECTED_ROLE_1}', 'proxy-id': proxy_id}
+    )
 
-    target_sat.cli.Host.ansible_roles_assign({'id': target_host.id, 'ansible-roles': SELECTED_ROLE})
+    result = target_sat.cli.Host.ansible_roles_add(
+        {'id': target_host.id, 'ansible-role': SELECTED_ROLE}
+    )
+    assert 'Ansible role has been associated.' in result[0]['message']
 
     target_sat.cli.Ansible.variables_create(
         {'variable': SELECTED_VAR, 'ansible-role': SELECTED_ROLE}
@@ -72,7 +79,6 @@ def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
     assert SELECTED_ROLE, (
         SELECTED_VAR in target_sat.cli.Ansible.variables_info({'name': SELECTED_VAR}).stdout
     )
-
     template_id = (
         target_sat.api.JobTemplate()
         .search(query={'search': 'name="Ansible Roles - Ansible Default"'})[0]
@@ -92,6 +98,11 @@ def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
     result = target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
 
+    result = target_sat.cli.Host.ansible_roles_assign(
+        {'id': target_host.id, 'ansible-roles': f'{SELECTED_ROLE},{SELECTED_ROLE_1}'}
+    )
+    assert 'Ansible roles were assigned to the host' in result[0]['message']
+
     result = target_sat.cli.Host.ansible_roles_remove(
         {'id': target_host.id, 'ansible-role': SELECTED_ROLE}
     )
@@ -103,3 +114,49 @@ def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
     assert SELECTED_ROLE, (
         SELECTED_VAR not in target_sat.cli.Ansible.variables_info({'name': SELECTED_VAR}).stdout
     )
+
+
+@pytest.mark.e2e
+@pytest.mark.tier2
+def test_add_and_remove_ansible_role_hostgroup(target_sat):
+    """
+    Test add and remove functionality for ansible roles in hostgroup via cli
+
+    :id: 2c6fda14-4cd2-490a-b7ef-7a08f8164fad
+
+    :customerscenario: true
+
+    :Steps:
+        1. Create a hostgroup
+        2. Sync few ansible roles
+        3. Assign a few ansible roles with the host group
+        4. Add some ansible role with the host group
+        5. Remove the added ansible roles from the host group
+
+    :expectedresults:
+        1. Ansible role assign/add/remove functionality should work as expected in cli
+
+    :BZ: 2029402
+
+    :CaseAutomation: Automated
+    """
+    ROLES = [
+        'theforeman.foreman_scap_client',
+        'redhat.satellite.hostgroups',
+        'RedHatInsights.insights-client',
+    ]
+    proxy_id = target_sat.nailgun_smart_proxy.id
+    hg_name = gen_string('alpha')
+    result = target_sat.cli.HostGroup.create({'name': hg_name})
+    assert result['name'] == hg_name
+    target_sat.cli.Ansible.roles_sync({'role-names': ROLES, 'proxy-id': proxy_id})
+    result = target_sat.cli.HostGroup.ansible_roles_assign(
+        {'name': hg_name, 'ansible-roles': f'{ROLES[1]},{ROLES[2]}'}
+    )
+    assert 'Ansible roles were assigned to the hostgroup' in result[0]['message']
+    result = target_sat.cli.HostGroup.ansible_roles_add({'name': hg_name, 'ansible-role': ROLES[0]})
+    assert 'Ansible role has been associated.' in result[0]['message']
+    result = target_sat.cli.HostGroup.ansible_roles_remove(
+        {'name': hg_name, 'ansible-role': ROLES[0]}
+    )
+    assert 'Ansible role has been disassociated.' in result[0]['message']
