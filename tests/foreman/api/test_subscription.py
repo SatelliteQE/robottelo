@@ -480,7 +480,7 @@ def test_positive_async_endpoint_for_manifest_refresh(
     :BZ: 2066323
     """
     target_sat.upload_manifest(module_org.id, session_entitlement_manifest.content)
-    sub = entities.Subscription(organization=module_org)
+    sub = target_sat.api.Subscription(organization=module_org)
     # set log level to 'debug' and restart services
     target_sat.cli.Admin.logging({'all': True, 'level-debug': True})
     target_sat.cli.Service.restart()
