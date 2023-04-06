@@ -103,7 +103,7 @@ def test_positive_enable_disable_logic(target_sat, capsule_configured):
     assert_puppet_status(target_sat, expected=True)
 
     # Enable puppet on Capsule and check it succeeded.
-    capsule_configured.enable_puppet_capsule()
+    capsule_configured.enable_puppet_capsule(satellite=target_sat)
     assert_puppet_status(capsule_configured, expected=True)
 
     # Try to disable puppet on Satellite and check it failed.

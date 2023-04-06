@@ -8,7 +8,11 @@ from robottelo.utils.installer import InstallerCommand
 class EnablePluginsCapsule:
     """Miscellaneous settings helper methods"""
 
-    def enable_puppet_capsule(self):
+    def enable_puppet_capsule(self, satellite=None):
+        # Set Satellite URL for puppet-server-foreman-url
+        if satellite is not None:
+            satellite_url = f'https://{satellite.hostname}'
+            PUPPET_COMMON_INSTALLER_OPTS['puppet-server-foreman-url'] = satellite_url
         enable_capsule_cmd = InstallerCommand(
             installer_args=PUPPET_CAPSULE_INSTALLER, installer_opts=PUPPET_COMMON_INSTALLER_OPTS
         )
