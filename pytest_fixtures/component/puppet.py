@@ -15,7 +15,7 @@ def session_puppet_enabled_sat(session_satellite_host):
 def session_puppet_enabled_capsule(session_capsule_host, session_puppet_enabled_sat):
     """Capsule with enabled puppet plugin"""
     session_capsule_host.capsule_setup(sat_host=session_puppet_enabled_sat)
-    yield session_capsule_host.enable_puppet_capsule()
+    yield session_capsule_host.enable_puppet_capsule(satellite=session_puppet_enabled_sat)
 
 
 @pytest.fixture(scope='module')
