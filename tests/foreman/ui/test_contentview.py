@@ -60,8 +60,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants import RHEL_6_MAJOR_VERSION
-from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.utils.datafactory import gen_string
 
 VERSION = 'Version 1.0'
@@ -2703,11 +2701,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(
     )
     # Get the OS ID
     os = entities.OperatingSystem().search(
-        query={
-            'search': 'name="RedHat" AND (major="{}" OR major="{}")'.format(
-                RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
-            )
-        }
+        query={'search': 'name="RedHat" AND (major="6" OR major="7")'}
     )[0]
     # Update the OS to associate arch and ptable
     os.architecture = [arch]
