@@ -297,8 +297,7 @@ def test_positive_install_multiple_in_host(
         _install_package(
             module_org, clients=[rhel_contenthost], host_ids=[host.id], package_name=package
         )
-    host = host.read()
-    applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
+    applicable_errata_count = rhel_contenthost.applicable_errata_count
     assert applicable_errata_count > 1
     rhel_contenthost.add_rex_key(satellite=target_sat)
     for errata in settings.repos.yum_9.errata[1:4]:
@@ -316,9 +315,8 @@ def test_positive_install_multiple_in_host(
             search_rate=20,
             max_tries=15,
         )
-        host = host.read()
         applicable_errata_count -= 1
-        assert host.content_facet_attributes['errata_counts']['total'] == applicable_errata_count
+        assert rhel_contenthost.applicable_errata_count == applicable_errata_count
 
 
 @pytest.mark.tier3
@@ -788,9 +786,7 @@ def test_errata_installation_with_swidtags(
         return_result=True,
     )
     assert before_errata_apply_result != ''
-    host = rhel8_contenthost.nailgun_host
-    host = host.read()
-    applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
+    applicable_errata_count = rhel8_contenthost.applicable_errata_count
     assert applicable_errata_count == 1
 
     # apply modular errata
@@ -799,9 +795,8 @@ def test_errata_installation_with_swidtags(
     )
     _run_remote_command_on_content_host(module_org, 'dnf -y upload-profile', rhel8_contenthost)
     Host.errata_recalculate({'host-id': rhel8_contenthost.nailgun_host.id})
-    host = host.read()
     applicable_errata_count -= 1
-    assert host.content_facet_attributes['errata_counts']['total'] == applicable_errata_count
+    assert rhel8_contenthost.applicable_errata_count == applicable_errata_count
     after_errata_apply_result = _run_remote_command_on_content_host(
         module_org,
         f"swidq -i -n {module_name} | grep 'File'| grep -o 'rpm-.*.swidtag'",

@@ -36,6 +36,16 @@ class APIFactory:
                 organization=[org.id],
             ).create()
 
+    def update_vm_host_location(self, vm_client, location_id):
+        """Update vm client host location.
+
+        :param vm_client: A subscribed Virtual Machine client instance.
+        :param location_id: The location id to update the vm_client host with.
+        """
+        self._satellite.api.Host(
+            id=vm_client.nailgun_host.id, location=self._satellite.api.Location(id=location_id)
+        ).update(['location'])
+
     @contextmanager
     def satellite_setting(self, key_val: str):
         """Context Manager to update the satellite setting and revert on exit
