@@ -28,13 +28,23 @@ class VersionedContent:
 
     @cached_property
     def REPOS(self):
-        return {
-            'rhel': constants.REPOS[f'rhel{self._v_major}'],
-            'rhscl': constants.REPOS[f'rhscl{self._v_major}'],
-            'rhst': constants.REPOS[f'rhst{self._v_major}'],
-            'rhsc': constants.REPOS[f'rhsc{self._v_major}'],
-            'rhsc_iso': constants.REPOS[f'rhsc{self._v_major}_iso'],
-        }
+        try:
+            if self._v_major > 7:
+                sys_repos = {
+                    'rhel_bos': constants.REPOS[f'rhel{self._v_major}_bos'],
+                    'rhel_aps': constants.REPOS[f'rhel{self._v_major}_aps'],
+                }
+            else:
+                sys_repos = {'rhel': constants.REPOS[f'rhel{self._v_major}']}
+            repos = {
+                'rhscl': constants.REPOS[f'rhscl{self._v_major}'],
+                'rhsclient': constants.REPOS[f'rhsclient{self._v_major}'],
+                'rhsc': constants.REPOS[f'rhsc{self._v_major}'],
+                'rhsc_iso': constants.REPOS[f'rhsc{self._v_major}_iso'],
+            }
+            return sys_repos | repos
+        except KeyError as err:
+            raise ValueError(f'Unsupported system version: {self._v_major}') from err
 
     @cached_property
     def OSCAP(self):
@@ -127,6 +137,15 @@ class VersionedContent:
             self.execute(f'wget {rpm_url} -P {file_path}')
             # Renaming custom rpm to preRepoSync.rpm
             self.execute(f'createrepo --database {file_path}')
+
+
+class HostInfo:
+    """Helpers mixin that enables getting information about a host"""
+
+    @property
+    def applicable_errata_count(self):
+        """return the applicable errata count for a host"""
+        return self.nailgun_host.read().content_facet_attributes['errata_counts']['total']
 
 
 class SystemFacts:
