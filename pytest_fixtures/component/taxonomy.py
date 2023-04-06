@@ -112,6 +112,16 @@ def function_entitlement_manifest_org(function_org, function_entitlement_manifes
 
 
 @pytest.fixture
+def upgrade_entitlement_manifest_org(function_org, upgrade_entitlement_manifest, target_sat):
+    """A Pytest fixture that creates an organization and uploads an entitlement mode manifest
+    generated with Manifester. This will be used for upgrade scenarios"""
+    entitlement_manifest, _ = upgrade_entitlement_manifest
+    function_org.sca_disable()
+    target_sat.upload_manifest(function_org.id, entitlement_manifest.content)
+    return function_org
+
+
+@pytest.fixture
 def function_sca_manifest_org(function_org, function_sca_manifest, target_sat):
     """Creates an organization and uploads an SCA mode manifest generated with manifester"""
     target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
@@ -196,3 +206,12 @@ def smart_proxy_location(module_org, module_target_sat, default_smart_proxy):
     default_smart_proxy.location.append(module_target_sat.api.Location(id=location.id))
     default_smart_proxy.update(['location'])
     return location
+
+
+@pytest.fixture(scope='function')
+def upgrade_entitlement_manifest():
+    """Returns a manifest in entitlement mode with subscriptions determined by the
+    `manifest_category.entitlement` setting in conf/manifest.yaml. used only for
+    upgrade scenarios"""
+    manifestor = Manifester(manifest_category=settings.manifest.entitlement)
+    return manifestor.get_manifest(), manifestor
