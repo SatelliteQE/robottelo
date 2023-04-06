@@ -537,9 +537,9 @@ class APIFactory:
         :param vm_client: A subscribed Virtual Machine client instance.
         :param location_id: The location id to update the vm_client host with.
         """
-        host = self._satellite.api.Host().search(query={'search': f'name={vm_client.hostname}'})[0]
-        host.location = self._satellite.api.Location(id=location_id)
-        host.update(['location'])
+        self._satellite.api.Host(
+            id=vm_client.nailgun_host.id, location=self._satellite.api.Location(id=location_id)
+        ).update(['location'])
 
     def check_create_os_with_title(self, os_title):
         """Check if the OS is present, if not create the required OS
