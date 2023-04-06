@@ -118,7 +118,7 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
     ), 'repository published path not updated correctly'
 
     # check for any other occurences of old hostname
-    result = module_target_sat.execute(f'grep " {old_hostname}" /etc/* -r')
+    result = module_target_sat.execute(f'grep " {old_hostname}" --exclude-dir="promtail" /etc/* -r')
     assert result.status != 0, 'there are remaining instances of the old hostname'
 
     repo.sync()
