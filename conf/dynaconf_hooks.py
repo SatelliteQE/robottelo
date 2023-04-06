@@ -21,6 +21,7 @@ def post(settings):
                 'Config will be fetched now.'
             )
             data = get_repos_config(settings)
+            write_cache(settings_cache_path, data)
     data['dynaconf_merge'] = True
     return data
 

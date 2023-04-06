@@ -234,7 +234,7 @@ def test_end_to_end(
         assert status['overview']['job_status_progress'] == '100%'
         _generate_errata_applicability(vm.hostname)
         vm = vm.nailgun_host.read()
-        assert vm.content_facet_attributes['errata_counts']['total'] == 0
+        assert vm.applicable_errata_count == 0
 
 
 @pytest.mark.tier2

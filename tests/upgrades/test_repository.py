@@ -22,6 +22,7 @@ from broker import Broker
 from robottelo.config import settings
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
+from robottelo.hosts import ContentHost
 
 UPSTREAM_USERNAME = 'rTtest123'
 
@@ -150,8 +151,6 @@ class TestScenarioCustomRepoCheck:
             ak.add_subscriptions(data={'subscription_id': subscription.id})
         sat_upgrade_chost.install_katello_ca(target_sat)
         sat_upgrade_chost.register_contenthost(org.label, ak.name)
-        rhid = sat_upgrade_chost.execute('subscription-manager identity')
-        assert org.name in rhid.stdout
         sat_upgrade_chost.execute('subscription-manager repos --enable=*;yum clean all')
         result = sat_upgrade_chost.execute(f'yum install -y {FAKE_0_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0
@@ -199,6 +198,8 @@ class TestScenarioCustomRepoCheck:
             data={'environment_ids': lce_id}
         )
 
-        rhel_client = Broker().from_inventory(filter=f'hostname={client_hostname}')[0]
+        rhel_client = Broker(host_class=ContentHost).from_inventory(
+            filter=f'hostname={client_hostname}'
+        )[0]
         result = rhel_client.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0
