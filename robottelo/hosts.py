@@ -217,7 +217,7 @@ class ContentHost(Host, ContentHostMixins):
             self.remove_katello_ca()
 
     def teardown(self):
-        if not self.blank:
+        if not self.blank and not getattr(self, '_skip_context_checkin', False):
             if self.nailgun_host:
                 self.nailgun_host.delete()
             self.unregister()
@@ -1805,6 +1805,10 @@ class Satellite(Capsule, SatelliteMixins):
             f'Failed to register the host: {rhel_contenthost.hostname}:'
             f'rc: {register.status}: {register.stderr}'
         )
+        rhsm_id = rhel_contenthost.execute('subscription-manager identity')
+        assert module_org.name in rhsm_id.stdout, 'Host is not registered to expected organization'
+        rhel_contenthost._satellite = self
+
         # attach product subscriptions to contenthost
         rhel_contenthost.nailgun_host.bulk_add_subscriptions(
             data={
