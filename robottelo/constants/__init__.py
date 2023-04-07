@@ -42,7 +42,7 @@ LOCALES = (
 
 
 DISTRO_DEFAULT = 'rhel7'
-DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8, rhel9']
+DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8', 'rhel9']
 DISTROS_MAJOR_VERSION = {
     'rhel6': 6,
     'rhel7': 7,
