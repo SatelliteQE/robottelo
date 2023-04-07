@@ -16,7 +16,6 @@
 
 :Upstream: No
 """
-import re
 from datetime import datetime
 from datetime import timedelta
 from urllib.parse import urlparse
@@ -1721,7 +1720,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
 
     Search for hosts based on operating system and assert that more than one page
     is reported to exist and that more than one page can be accessed. Make some
-    additonal aserts to ensure the pagination widget is working as expected.
+    additonal asserts to ensure the pagination widget is working as expected.
 
     To avoid requiring more than 20 fakes hosts to overcome default page setting of 20,
     this test will set a new per_page default (see new_per_page_setting).
@@ -1755,20 +1754,18 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
         )
     with session(url=start_url):
         session.location.select(module_host_template.location.name)
-        # Search for all the hosts by os. This uses pagination to get more than one page.
-        all_fake_hosts_found = session.contenthost.search(
+        # Search for all the hosts by os.
+        fake_hosts_found = session.contenthost.search(
             f'os = {module_host_template.operatingsystem.name}'
         )
-        # Assert dump of fake hosts found includes the higest numbered host created for this test
-        match = re.search(fr'test-{host_num:0>2}', str(all_fake_hosts_found))
-        assert match, 'Highest numbered host not found.'
+        # Assert dump of fake hosts found includes the first numbered host created for this test
+        assert 'test-01' in fake_hosts_found[0]['Name']
         # Get all the pagination values
-        pagination_values = session.contenthost.read_all('Pagination')['Pagination']
+        total_items_found = session.contenthost.read_all('total_items')['total_items']
+        total_pages = session.contenthost.read_all('pages')['pages']
         # Assert total pages reported is greater than one page of hosts
-        total_pages = pagination_values['pages']
         assert int(total_pages) > int(host_num) / int(new_per_page_setting)
         # Assert that total items reported is the number of hosts created for this test
-        total_items_found = pagination_values['total_items']
         assert int(total_items_found) >= host_num
 
 
