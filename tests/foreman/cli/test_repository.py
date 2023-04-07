@@ -3270,3 +3270,39 @@ def test_copy_erratum_and_RPMs_within_a_date_range():
 
     :CaseImportance: Medium
     """
+
+
+@pytest.mark.tier2
+def test_positive_syncable_yum_format_repo_import(target_sat, module_org):
+    """Verify that you can import syncable yum format repositories
+
+    :id: dc6422c3-1ea1-4856-ab64-7c66e6043300
+
+    :steps:
+        1. Execute hammer command
+            hammer content-import repository --organization='' --path=''
+        2. Assert job is successful
+        3. Verify repository is synced and contains rpms
+
+    :expectedresults: The syncable repository sync correctly and all content is imported
+
+    :customerscenario: true
+
+    :BZ: 2128894
+    """
+    target_sat.execute('mkdir /var/lib/pulp/imports/syncable-repo')
+    target_sat.execute(
+        'wget -m -np -nH -e robots=off -P /var/lib/pulp/imports/syncable-repo'
+        f' {settings.robottelo.REPOS_HOSTING_URL}/exported_repo/'
+    )
+    target_sat.cli.ContentImport.repository(
+        {
+            'organization': module_org.name,
+            'path': '/var/lib/pulp/imports/syncable-repo/exported_repo',
+        }
+    )
+    repodata = target_sat.cli.Repository.info(
+        {'name': 'testrepo', 'organization-id': module_org.id, 'product': 'testproduct'}
+    )
+    assert repodata['content-counts']['packages'] != 0
+    assert repodata['sync']['status'] == 'Success'
