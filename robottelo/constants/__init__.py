@@ -45,7 +45,7 @@ DISTRO_SLES11 = "sles11"
 DISTRO_SLES12 = "sles12"
 
 DISTRO_DEFAULT = 'rhel7'
-DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8, rhel9']
+DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8', 'rhel9']
 DISTROS_MAJOR_VERSION = {
     'rhel6': 6,
     'rhel7': 7,
