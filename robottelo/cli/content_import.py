@@ -50,3 +50,11 @@ class ContentImport(Base):
         """
         cls.command_sub = 'version'
         return cls.execute(cls._construct_command(options), output_format='json', timeout=timeout)
+
+    @classmethod
+    def repository(cls, options, timeout=None):
+        """
+        Make a repository import
+        """
+        cls.command_sub = 'repository'
+        return cls.execute(cls._construct_command(options), output_format='json', timeout=timeout)
