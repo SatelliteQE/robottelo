@@ -9,9 +9,10 @@ import requests
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
-from robottelo.constants import COMMON_INSTALLER_OPTS as common_opts
 from robottelo.constants import PULP_EXPORT_DIR
 from robottelo.constants import PULP_IMPORT_DIR
+from robottelo.constants import PUPPET_COMMON_INSTALLER_OPTS
+from robottelo.constants import PUPPET_SATELLITE_INSTALLER
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.logging import logger
@@ -19,21 +20,17 @@ from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.manifest import clone
 
 
-class EnablePlugins:
+class EnablePluginsSatellite:
     """Miscellaneous settings helper methods"""
 
-    def enable_puppet(self):
+    def enable_puppet_satellite(self):
         enable_satellite_cmd = InstallerCommand(
-            installer_args=[
-                'enable-foreman-plugin-puppet',
-                'enable-foreman-cli-puppet',
-                'enable-puppet',
-            ],
-            installer_opts=common_opts,
+            installer_args=PUPPET_SATELLITE_INSTALLER,
+            installer_opts=PUPPET_COMMON_INSTALLER_OPTS,
         )
         result = self.execute(enable_satellite_cmd.get_command(), timeout='20m')
         assert result.status == 0
-        self.execute('hammer -r')  # workaround for BZ#2039696
+        assert 'Success!' in result.stdout
         return self
 
 

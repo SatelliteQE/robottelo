@@ -1,5 +1,26 @@
 import time
 
+from robottelo.constants import PUPPET_CAPSULE_INSTALLER
+from robottelo.constants import PUPPET_COMMON_INSTALLER_OPTS
+from robottelo.utils.installer import InstallerCommand
+
+
+class EnablePluginsCapsule:
+    """Miscellaneous settings helper methods"""
+
+    def enable_puppet_capsule(self, satellite=None):
+        # Set Satellite URL for puppet-server-foreman-url
+        if satellite is not None:
+            satellite_url = f'https://{satellite.hostname}'
+            PUPPET_COMMON_INSTALLER_OPTS['puppet-server-foreman-url'] = satellite_url
+        enable_capsule_cmd = InstallerCommand(
+            installer_args=PUPPET_CAPSULE_INSTALLER, installer_opts=PUPPET_COMMON_INSTALLER_OPTS
+        )
+        result = self.execute(enable_capsule_cmd.get_command(), timeout='20m')
+        assert result.status == 0
+        assert 'Success!' in result.stdout
+        return self
+
 
 class CapsuleInfo:
     """Miscellaneous Capsule helper methods"""
