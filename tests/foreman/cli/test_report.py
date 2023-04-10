@@ -69,16 +69,18 @@ def test_positive_delete_by_id(run_puppet_agent, session_puppet_enabled_sat):
 
 
 @pytest.mark.e2e
-@pytest.mark.rhel_ver_match('[7,8]')
-def test_positive_install_configure(request, session_puppet_enabled_sat, rhel_contenthost):
+@pytest.mark.rhel_ver_match('[^6]')
+def test_positive_install_configure(
+    session_puppet_enabled_sat, session_puppet_enabled_capsule, content_hosts
+):
     """Test that puppet-agent can be installed from the sat-client repo
     and configured to report back to the Satellite.
 
     :id: 07777fbb-4f2e-4fab-ba5a-2b698f9b9f38
 
     :setup:
-        1. Satellite with enabled puppet plugin.
-        2. Blank RHEL content host.
+        1. Satellite and Capsule with enabled puppet plugin.
+        2. Blank RHEL content hosts.
 
     :steps:
         1. Configure puppet on the content host. This creates sat-client repository,
@@ -94,18 +96,17 @@ def test_positive_install_configure(request, session_puppet_enabled_sat, rhel_co
 
     :customerscenario: true
 
-    :BZ: 2126891
+    :BZ: 2126891, 2026239
     """
-    rhel_contenthost.configure_puppet(proxy_hostname=session_puppet_enabled_sat.hostname)
-    report = session_puppet_enabled_sat.cli.ConfigReport.list(
-        {'search': f'host~{rhel_contenthost.hostname},origin=Puppet'}
-    )
-    assert len(report)
-    facts = session_puppet_enabled_sat.cli.Fact.list(
-        {'search': f'host~{rhel_contenthost.hostname}'}
-    )
-    assert len(facts)
-
-    @request.addfinalizer
-    def _finalize():
-        assert session_puppet_enabled_sat.cli.ConfigReport.delete({'id': report[0]['id']})
+    puppet_infra_host = [session_puppet_enabled_sat, session_puppet_enabled_capsule]
+    for client, puppet_proxy in zip(content_hosts, puppet_infra_host):
+        client.configure_puppet(proxy_hostname=puppet_proxy.hostname)
+        report = session_puppet_enabled_sat.cli.ConfigReport.list(
+            {'search': f'host~{client.hostname},origin=Puppet'}
+        )
+        assert len(report)
+        facts = session_puppet_enabled_sat.cli.Fact.list({'search': f'host~{client.hostname}'})
+        assert len(facts)
+        session_puppet_enabled_sat.cli.ConfigReport.delete({'id': report[0]['id']})
+        with pytest.raises(CLIReturnCodeError):
+            session_puppet_enabled_sat.cli.ConfigReport.info({'id': report[0]['id']})
