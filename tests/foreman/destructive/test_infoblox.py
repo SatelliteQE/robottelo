@@ -16,15 +16,26 @@
 """
 import pytest
 
-from robottelo.config import settings
+from robottelo.hosts import get_sat_rhel_version
 from robottelo.utils.installer import InstallerCommand
 
 pytestmark = pytest.mark.destructive
+if get_sat_rhel_version().base_version == '7':
+    dhcp_isc_package = 'tfm-rubygem-smart_proxy_dhcp_remote_isc'
+    infoblox_package = 'tfm-rubygem-infoblox'
+    infoblox_dhcp_package = 'tfm-rubygem-smart_proxy_dhcp_infoblox'
+    infoblox_dns_package = 'tfm-rubygem-smart_proxy_dns_infoblox'
+else:
+    dhcp_isc_package = 'rubygem-smart_proxy_dhcp_remote_isc'
+    infoblox_package = 'rubygem-infoblox'
+    infoblox_dhcp_package = 'rubygem-smart_proxy_dhcp_infoblox'
+    infoblox_dns_package = 'rubygem-smart_proxy_dns_infoblox'
+
 params = [
     (
         'enable-foreman-proxy-plugin-dhcp-remote-isc',
         {'foreman-proxy-dhcp': 'true'},
-        'rpm -q tfm-rubygem-smart_proxy_dhcp_remote_isc',
+        f'rpm -q {dhcp_isc_package}',
     ),
     (
         'enable-foreman-proxy-plugin-dhcp-infoblox',
@@ -32,7 +43,7 @@ params = [
             'foreman-proxy-plugin-dhcp-infoblox-username': 'fakeusername',
             'foreman-proxy-plugin-dhcp-infoblox-password': 'fakepassword',
         },
-        'echo tfm-rubygem-infoblox tfm-rubygem-smart_proxy_dhcp_infoblox | xargs rpm -q',
+        f'echo {infoblox_package} {infoblox_dhcp_package} | xargs rpm -q',
     ),
     (
         'enable-foreman-proxy-plugin-dns-infoblox',
@@ -41,21 +52,9 @@ params = [
             'foreman-proxy-plugin-dns-infoblox-password': 'fakepassword',
             'foreman-proxy-plugin-dns-infoblox-dns-server': 'infoblox.example.com',
         },
-        'echo tfm-rubygem-infoblox tfm-rubygem-smart_proxy_dns_infoblox | xargs rpm -q',
+        f'echo {infoblox_package} {infoblox_dns_package} | xargs rpm -q',
     ),
 ]
-
-
-def register_satellite(sat):
-    sat.execute(
-        'yum -y localinstall '
-        f'{settings.repos.dogfood_repo_host}/pub/katello-ca-consumer-latest.noarch.rpm'
-    )
-    sat.execute(
-        f'subscription-manager register --org {settings.subscription.dogfood_org} '
-        f'--activationkey {settings.subscription.dogfood_activationkey}'
-    )
-    return sat
 
 
 @pytest.mark.tier4
@@ -79,9 +78,7 @@ def test_plugin_installation(target_sat, command_args, command_opts, rpm_command
 
     :BZ: 1994490, 2000237
     """
-    register_satellite(target_sat)
-    installer_obj = InstallerCommand(command_args, **command_opts)
-    command_output = target_sat.execute(installer_obj.get_command())
-    assert 'Success!' in command_output.stdout
-    rpm_result = target_sat.execute(rpm_command)
-    assert rpm_result.status == 0
+    target_sat.register_to_cdn()
+    installer = target_sat.install(InstallerCommand(command_args, **command_opts))
+    assert 'Success!' in installer.stdout
+    assert target_sat.execute(rpm_command).status == 0
