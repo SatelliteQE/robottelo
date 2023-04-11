@@ -1557,7 +1557,7 @@ OSCAP_PROFILE = {
     'dsrhel8': '[DRAFT] DISA STIG for Red Hat Enterprise Linux 8',
     'esp': 'Example Server Profile',
     'rhccp': 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)',
-    'firefox': 'Upstream Firefox STIG',
+    'firefox': 'Mozilla Firefox STIG',
     'tailoring_rhel7': (
         'Standard System Security Profile for Red Hat Enterprise Linux 7 [CUSTOMIZED]'
     ),
