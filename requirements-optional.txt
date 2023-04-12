@@ -1,5 +1,4 @@
 # For running tests and checking code quality using these modules.
-codecov==2.1.12
 flake8==6.0.0
 pytest-cov==3.0.0
 redis==4.5.4
