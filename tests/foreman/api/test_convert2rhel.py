@@ -206,6 +206,7 @@ def version(request):
     return settings.content_host.get(request.param).vm.release
 
 
+@pytest.mark.e2e
 @pytest.mark.parametrize(
     "version",
     ['oracle7', 'oracle8'],
@@ -265,6 +266,7 @@ def test_convert2rhel_oracle(target_sat, oracle, activation_key_rhel, version):
     assert host_content['subscription_status'] == 0
 
 
+@pytest.mark.e2e
 @pytest.mark.parametrize("version", ['centos7', 'centos8'], indirect=True)
 def test_convert2rhel_centos(target_sat, centos, activation_key_rhel, version):
     """Convert Centos linux to RHEL

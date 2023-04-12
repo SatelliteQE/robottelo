@@ -21,6 +21,7 @@ import pytest
 from robottelo.config import settings
 
 
+@pytest.mark.e2e
 def test_fetch_and_sync_ansible_playbooks(target_sat):
     """
     Test Ansible Playbooks api for fetching and syncing playbooks
