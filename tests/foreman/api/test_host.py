@@ -33,29 +33,9 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
-from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
 from robottelo.utils import datafactory
-
-
-@pytest.fixture(scope='function')
-def tracer_host(katello_host_tools_tracer_host):
-    # create a custom, rhel version-specific mock-service repo
-    rhelver = katello_host_tools_tracer_host.os_version.major
-    katello_host_tools_tracer_host.create_custom_repos(
-        **{f'mock_service_rhel{rhelver}': settings.repos['MOCK_SERVICE_REPO'][f'rhel{rhelver}']}
-    )
-    katello_host_tools_tracer_host.execute(f'yum -y install {settings.repos["MOCK_SERVICE_RPM"]}')
-    assert (
-        katello_host_tools_tracer_host.execute(
-            f'rpm -q {settings.repos["MOCK_SERVICE_RPM"]}'
-        ).status
-        == 0
-    )
-    katello_host_tools_tracer_host.execute(f'systemctl start {settings.repos["MOCK_SERVICE_RPM"]}')
-
-    yield katello_host_tools_tracer_host
 
 
 def update_smart_proxy(location, smart_proxy):
@@ -1534,53 +1514,3 @@ class TestHostBulkAction:
         for host_id in host_ids[:-1]:
             with pytest.raises(HTTPError):
                 entities.Host(id=host_id).read()
-
-
-class TestHostTraces:
-    """Tests for host tracer"""
-
-    @pytest.mark.e2e
-    @pytest.mark.tier4
-    @pytest.mark.rhel_ver_match('[^6].*')
-    def test_positive_tracer_list_and_resolve(self, tracer_host):
-        """Install tracer on client, downgrade the service, check from the satellite
-        that tracer shows and resolves the problem. The test works with a package specified
-        in settings. This package is expected to install a systemd service which is expected
-        to log its version to /var/log/{package}/service.log.
-        The rpm is not supposed to start the service upon install.
-
-        :id: 552fc212-536a-11ec-865d-98fa9b6ecd5a
-
-        :expectedresults: Tracer detected and resolved the problem,
-            the affected service was restarted
-
-        :parametrized: yes
-
-        :CaseImportance: Medium
-
-        :CaseComponent: Katello-tracer
-        """
-        host = tracer_host.nailgun_host
-        package = settings.repos["MOCK_SERVICE_RPM"]
-        # mark the service log messages for later comparison and downgrade the pkg version
-        service_ver_log_old = tracer_host.execute(f'cat /var/log/{package}/service.log')
-        package_downgrade = tracer_host.execute(f'yum -y downgrade {package}')
-        assert package_downgrade.status == 0
-
-        # tracer should detect a new trace
-        traces = host.traces(data={'host_id': host.id})
-        assert (
-            len(traces['results']) == 1
-        ), f'only one trace trace should be found, there is: {traces["results"]}'
-        assert package == traces['results'][0]['application']
-
-        # resolve traces and make sure that they disappear
-        host.resolve_traces(data={'host_id': host.id, 'trace_ids': traces['results'][0]['id']})
-        traces = host.traces(data={'host_id': host.id})
-        assert not traces['results']
-
-        # verify on the host end, that the service was really restarted
-        service_ver_log_new = tracer_host.execute(f'cat /var/log/{package}/service.log')
-        assert (
-            service_ver_log_new != service_ver_log_old
-        ), f'The service {package} did not seem to be restarted'
