@@ -17,21 +17,14 @@
 :Upstream: No
 """
 import pytest
-<<<<<<< HEAD
+from manifester import Manifester
 from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
 from requests.exceptions import HTTPError
 
 from robottelo import constants
-=======
-from manifester import Manifester
-from requests.exceptions import HTTPError
-
-from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.subscription import Subscription
->>>>>>> a6ac698a7 (added test for expired manifest)
 from robottelo.config import settings
 from robottelo.constants import MIRRORING_POLICIES
 from robottelo.utils.datafactory import parametrized
