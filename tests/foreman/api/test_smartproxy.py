@@ -21,6 +21,7 @@ from fauxfactory import gen_string
 from fauxfactory import gen_url
 from requests import HTTPError
 
+from robottelo.config import user_nailgun_config
 from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_data_list
 from robottelo.utils.issue_handlers import is_open
@@ -233,8 +234,14 @@ def test_positive_refresh_features(request, target_sat):
 
 @pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier2
-def test_positive_import_puppet_classes(session_puppet_enabled_sat, puppet_proxy_port_range):
-    """Import puppet classes from proxy
+def test_positive_import_puppet_classes(
+    request,
+    session_puppet_enabled_sat,
+    puppet_proxy_port_range,
+    module_puppet_org,
+    module_puppet_loc,
+):
+    """Import puppet classes from proxy for admin and non-admin user
 
     :id: 385efd1b-6146-47bf-babf-0127ce5955ed
 
@@ -242,20 +249,62 @@ def test_positive_import_puppet_classes(session_puppet_enabled_sat, puppet_proxy
 
     :CaseLevel: Integration
 
-    :BZ: 1398695
+    :BZ: 1398695, 2142555
+
+    :customerscenario: true
     """
-    with session_puppet_enabled_sat as puppet_sat:
-        new_port = puppet_sat.available_capsule_port
-        with puppet_sat.default_url_on_new_port(9090, new_port) as url:
-            proxy = puppet_sat.api.SmartProxy(url=url).create()
-            result = proxy.import_puppetclasses()
-            assert (
-                "Successfully updated environment and puppetclasses from "
-                "the on-disk puppet installation"
-            ) in result['message'] or "No changes to your environments detected" in result[
-                'message'
+    puppet_sat = session_puppet_enabled_sat
+    update_msg = (
+        'Successfully updated environment and puppetclasses from the on-disk puppet installation'
+    )
+    no_update_msg = 'No changes to your environments detected'
+    # Create role, add permissions and create non-admin user
+    user_login = gen_string('alpha')
+    user_password = gen_string('alpha')
+    role = puppet_sat.api.Role().create()
+    puppet_sat.api_factory.create_role_permissions(
+        role,
+        {
+            'ForemanPuppet::Puppetclass': [
+                'view_puppetclasses',
+                'create_puppetclasses',
+                'import_puppetclasses',
             ]
-        puppet_sat.api.SmartProxy(id=proxy.id).delete()
+        },
+    )
+    user = puppet_sat.api.User(
+        role=[role],
+        admin=True,
+        login=user_login,
+        password=user_password,
+        organization=[module_puppet_org],
+        location=[module_puppet_loc],
+    ).create()
+    request.addfinalizer(user.delete)
+    request.addfinalizer(role.delete)
+
+    new_port = puppet_sat.available_capsule_port
+    with puppet_sat.default_url_on_new_port(9090, new_port) as url:
+        proxy = puppet_sat.api.SmartProxy(url=url).create()
+
+        result = proxy.import_puppetclasses()
+        assert result['message'] in [update_msg, no_update_msg]
+        # Import puppetclasses with environment
+        result = proxy.import_puppetclasses(environment='production')
+        assert result['message'] in [update_msg, no_update_msg]
+
+        # Non-Admin user with access to import_puppetclasses
+        user_cfg = user_nailgun_config(user_login, user_password)
+        user_cfg.url = f'https://{puppet_sat.hostname}'
+        user_proxy = puppet_sat.api.SmartProxy(server_config=user_cfg, id=proxy.id).read()
+
+        result = user_proxy.import_puppetclasses()
+        assert result['message'] in [update_msg, no_update_msg]
+        # Import puppetclasses with environment
+        result = user_proxy.import_puppetclasses(environment='production')
+        assert result['message'] in [update_msg, no_update_msg]
+
+    request.addfinalizer(puppet_sat.api.SmartProxy(id=proxy.id).delete)
 
 
 """Tests to see if the server returns the attributes it should.
