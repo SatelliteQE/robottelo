@@ -66,8 +66,7 @@ def export_import_cleanup_function(target_sat, function_org):
     yield
     # Deletes directories created for export/import test
     target_sat.execute(
-        f'rm -rf {PULP_EXPORT_DIR}/{function_org.name} {PULP_IMPORT_DIR}/{function_org.name}',
-        status=0,
+        f'rm -rf {PULP_EXPORT_DIR}/{function_org.name} {PULP_IMPORT_DIR}/{function_org.name}'
     )
 
 
