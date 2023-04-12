@@ -16,20 +16,8 @@
 
 :Upstream: No
 """
-import json
-import random
-from collections import namedtuple
-
 import pytest
-from airgun.session import Session
 from fauxfactory import gen_string
-from nailgun import entities
-from wait_for import wait_for
-
-from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.constants import LATEST_RHEL7_GCE_IMG_UUID
-from robottelo.constants import VALID_GCE_ZONES
 
 
 class TestScenarioPositiveGCEHostComputeResource:
@@ -37,10 +25,11 @@ class TestScenarioPositiveGCEHostComputeResource:
 
     :steps:
 
-        1. In Preupgrade Satellite, create GCE Compute Resource
-        2. Upgrade the satellite to next/latest version
-        3. Postupgrade, The Compute Resource attributes can be manipulated
-        4. The host can be provisioned on GCE CR created in previous satellite version
+        1. Create a GCE Compute Resource in Pre-upgrade Satellite.
+        2. Provision hosts on the GCE Compute Resource.
+        3. Upgrade the Satellite to the next or latest version.
+        4. After the upgrade, you can modify the attributes of Compute Resource.
+        5. Provision the new host on the GCE Compute Resource upgraded Satellite.
 
     :expectedresults:
 
@@ -48,75 +37,146 @@ class TestScenarioPositiveGCEHostComputeResource:
         2. The GCE CR attributes should be manipulated
     """
 
-    @pytest.fixture(scope='class')
-    def arch_os_domain(self, class_target_sat):
-        arch = class_target_sat.api.Architecture().search(query={'search': 'name=x86_64'})[0]
-        os = class_target_sat.api.OperatingSystem().search(
-            query={'search': 'family=Redhat and major=7'}
-        )[0]
+    @pytest.fixture
+    def class_setup(self, request, gce_latest_rhel_uuid, module_domain):
+        """
+        Sets Constants for all the Tests, fixtures which will be later used for assertions
+        """
+        request.cls.mtype = 'g1-small'
+        request.cls.network = 'default'
+        request.cls.volsize = '20'
+        request.cls.hostname = f'test{gen_string("alpha")}'
 
-        domain_name = class_target_sat.hostname.split('.', 1)[1]
-        return namedtuple('ArchOsDomain', ['arch', 'os', 'domain'])(arch, os, domain_name)
+        request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
 
-    @pytest.fixture(scope='class')
-    def delete_host(self):
-        if self.fullhost:
-            host = entities.Host().search(query={'search': f'name={self.fullhost}'})
-            if host:
-                entities.Host(id=host[0].id).delete()
+        request.cls.compute_attrs = {
+            'image_id': gce_latest_rhel_uuid,
+            'machine_type': self.mtype,
+            'network': self.network,
+            'associate_external_ip': True,
+            'volumes_attributes': {'0': {'size_gb': self.volsize}},
+        }
+
+    @pytest.fixture
+    def class_host(
+        self,
+        session_target_sat,
+        googleclient,
+        default_architecture,
+        module_domain,
+        gce_hostgroup,
+        module_org,
+        session_default_os,
+        module_location,
+        gce_latest_rhel_uuid,
+        module_gce_finishimg,
+        module_gce_compute,
+        class_setup,
+    ):
+        """Provisions the host on GCE
+
+        Later in tests this host will be used to perform assertions
+        """
+        host = session_target_sat.api.Host(
+            architecture=default_architecture,
+            compute_attributes=self.compute_attrs,
+            domain=module_domain,
+            hostgroup=gce_hostgroup,
+            organization=module_org,
+            operatingsystem=session_default_os,
+            location=module_location,
+            name=self.hostname,
+            provision_method='image',
+            image=module_gce_finishimg,
+            root_pass=gen_string('alphanumeric'),
+        ).create()
+        yield host
+
+    def google_host(self, googleclient):
+        """Returns the Google Client Host object to perform the assertions"""
+        return googleclient.get_vm(name='{}'.format(self.fullhostname.replace('.', '-')))
+
+    @pytest.fixture
+    def gce_hostgroup(
+        session_target_sat,
+        default_architecture,
+        module_gce_compute,
+        module_domain,
+        module_location,
+        session_default_os,
+        module_org,
+        default_partition_table,
+        googleclient,
+    ):
+        """Sets Hostgroup for GCE Host Provisioning"""
+        hgroup = session_target_sat.api.HostGroup(
+            architecture=default_architecture,
+            compute_resource=module_gce_compute,
+            domain=module_domain,
+            location=[module_location],
+            root_pass=gen_string('alphanumeric'),
+            operatingsystem=session_default_os,
+            organization=[module_org],
+            ptable=default_partition_table,
+        ).create()
+        return hgroup
 
     @pytest.mark.pre_upgrade
+    @pytest.mark.tier1
     def test_pre_create_gce_cr_and_host(
-        self, arch_os_domain, function_org, gce_cert, save_test_data
+        self,
+        class_host,
+        module_org,
+        module_location,
+        module_gce_compute,
+        module_domain,
+        gce_hostgroup,
+        module_gce_finishimg,
+        googleclient,
+        save_test_data,
     ):
-        """Create GCE Compute Resource
+        """Host can be provisioned on Google Cloud
 
-        :id: preupgrade-ef82143d-efef-49b2-9702-93d67ef6804c
+        :id: 889975f2-56ca-4584-95a7-21c513969630
 
-        :steps: In Preupgrade Satellite, create GCE Compute Resource
+        :CaseLevel: Component
 
-        :expectedresults: The GCE CR created successfully
+        ::CaseImportance: Critical
+
+        :steps:
+            1. Create a GCE Compute Resource
+            2. Create a Host-group with all the Global and Foreman entities but
+                without Compute Profile, required to provision a host
+            3. Provision a Host on Google Cloud using above GCE CR and Host-group
+
+        :expectedresults:
+            1. The host should be provisioned on Google Compute Engine
+            2. The host name should be the same as given in data to provision the host
+            3. The host should show Installed status for provisioned host
         """
-        arch, os, domain_name = arch_os_domain
-        cr_name = gen_string('alpha')
-        loc = entities.Location().create()
-        json_key = json.dumps(gce_cert, indent=2)
-        with Session('gce_upgrade_tests') as session:
-            # Compute Resource Create and Assertions
-            session.computeresource.create(
-                {
-                    'name': cr_name,
-                    'provider': FOREMAN_PROVIDERS['google'],
-                    'provider_content.json_key': json_key,
-                    'provider_content.zone.value': settings.gce.zone,
-                    'organizations.resources.assigned': [function_org.name],
-                    'locations.resources.assigned': [loc.name],
-                }
-            )
-        gce_cr = entities.AbstractComputeResource().search(query={'search': f'name={cr_name}'})[0]
-        gce_img = entities.Image(
-            architecture=arch,
-            compute_resource=gce_cr,
-            name='autoupgrade_gce_img',
-            operatingsystem=os,
-            username='gceautou',
-            uuid=LATEST_RHEL7_GCE_IMG_UUID,
-        ).create()
+        assert class_host.name == self.fullhostname
+        assert class_host.build_status_label == 'Installed'
+        assert class_host.ip == self.google_host(googleclient).ip
+
         save_test_data(
             {
-                'org': function_org.name,
-                'loc': loc.name,
-                'cr_name': cr_name,
+                'provision_host_name': self.fullhostname,
+                'provision_host_ip': class_host.ip,
             }
         )
-        assert gce_cr.name == cr_name
-        assert gce_img.name == 'autoupgrade_gce_img'
 
     @pytest.mark.post_upgrade(depend_on=test_pre_create_gce_cr_and_host)
     def test_post_create_gce_cr_and_host(
-        self, target_sat, arch_os_domain, delete_host, pre_upgrade_data
+        self,
+        request,
+        class_setup,
+        pre_upgrade_data,
+        session_target_sat,
+        default_architecture,
+        session_default_os,
+        googleclient,
     ):
-        """Host provisioned using preupgrade GCE CR
+        """Host provisioned using pre-upgrade GCE CR
 
         :id: postupgrade-ef82143d-efef-49b2-9702-93d67ef6804c
 
@@ -130,54 +190,35 @@ class TestScenarioPositiveGCEHostComputeResource:
             1. The host should be provisioned on GCE CR created in previous version
             2. The GCE CR attributes should be manipulated
         """
-        arch, os, domain_name = arch_os_domain
-        hostname = gen_string('alpha')
-        self.__class__.fullhost = f'{hostname}.{domain_name}'.lower()
-        gce_cr = entities.GCEComputeResource().search(
-            query={'search': f'name={pre_upgrade_data["cr_name"]}'}
+        pre_upgrade_host = session_target_sat.api.Host().search(
+            query={'search': f'name={pre_upgrade_data.provision_host_name}'}
         )[0]
-        org = entities.Organization().search(query={'search': f'name={pre_upgrade_data["org"]}'})[0]
-        loc = entities.Location().search(query={'search': f'name={pre_upgrade_data["loc"]}'})[0]
-        compute_attrs = {
-            'machine_type': 'g1-small',
-            'network': 'default',
-            'associate_external_ip': True,
-            'volumes_attributes': {'0': {'size_gb': '10'}},
-            'image_id': LATEST_RHEL7_GCE_IMG_UUID,
-        }
-        # Host Provisioning Tests
-        with target_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
-            gce_hst = entities.Host(
-                name=hostname,
-                organization=org,
-                location=loc,
-                root_pass=gen_string('alphanumeric'),
-                architecture=arch,
-                compute_resource=gce_cr,
-                domain=entities.Domain().search(query={'search': f'name={domain_name}'})[0],
-                compute_attributes=compute_attrs,
-                operatingsystem=os,
-                provision_method='image',
-            ).create()
-        wait_for(
-            lambda: entities.Host()
-            .search(query={'search': f'name={self.fullhost}'})[0]
-            .build_status_label
-            == 'Installed',
-            timeout=400,
-            delay=15,
-            silent_failure=True,
-            handle_exception=True,
-        )
-        assert gce_hst.name == self.fullhost
-        gce_hst = entities.Host(id=gce_hst.id).read()
-        assert gce_hst.build_status_label == 'Installed'
-        # CR Manipulation Tests
-        newgce_name = gen_string('alpha')
-        newgce_zone = random.choice(VALID_GCE_ZONES)
-        gce_cr.name = newgce_name
-        gce_cr.zone = newgce_zone
-        gce_cr.update(['name', 'zone'])
-        gce_cr = entities.GCEComputeResource(id=gce_cr.id).read()
-        assert gce_cr.name == newgce_name
-        assert gce_cr.zone == newgce_zone
+        org = session_target_sat.api.Organization(id=pre_upgrade_host.organization.id).read()
+        loc = session_target_sat.api.Location(id=pre_upgrade_host.location.id).read()
+        domain = session_target_sat.api.Domain(id=pre_upgrade_host.domain.id).read()
+        image = session_target_sat.api.Image(
+            id=pre_upgrade_host.image.id, compute_resource=pre_upgrade_host.compute_resource.id
+        ).read()
+        gce_hostgroup = session_target_sat.api.HostGroup(id=pre_upgrade_host.hostgroup.id).read()
+
+        assert pre_upgrade_host.ip == pre_upgrade_data.provision_host_ip
+        assert pre_upgrade_host.build_status_label == 'Installed'
+
+        host = session_target_sat.api.Host(
+            architecture=default_architecture,
+            compute_attributes=self.compute_attrs,
+            domain=domain,
+            hostgroup=gce_hostgroup,
+            organization=org,
+            operatingsystem=session_default_os,
+            location=loc,
+            name=self.hostname,
+            provision_method='image',
+            image=image,
+            root_pass=gen_string('alphanumeric'),
+        ).create()
+        request.addfinalizer(pre_upgrade_host.delete)
+        request.addfinalizer(host.delete)
+        assert host.name == f"{self.hostname}-{domain}"
+        assert host.build_status_label == 'Installed'
+        assert host.ip == self.google_host(googleclient).ip

@@ -13,5 +13,7 @@ def default_domain(session_target_sat, default_smart_proxy):
 
 
 @pytest.fixture(scope='module')
-def module_domain(module_org, module_location):
-    return entities.Domain(location=[module_location], organization=[module_org]).create()
+def module_domain(module_target_sat, module_org, module_location):
+    return module_target_sat.api.Domain(
+        location=[module_location], organization=[module_org]
+    ).create()

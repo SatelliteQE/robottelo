@@ -70,6 +70,15 @@ def gce_custom_cloudinit_uuid(googleclient, gce_cert):
     return cloudinit_uuid
 
 
+@pytest.fixture(scope='session')
+def session_default_os(session_target_sat):
+    """Default OS on the Satellite"""
+    search_string = 'name="RedHat" AND (major="6" OR major="7" OR major="8")'
+    return (
+        session_target_sat.api.OperatingSystem().search(query={'search': search_string})[0].read()
+    )
+
+
 @pytest.fixture(scope='module')
 def module_gce_compute(module_org, module_location, gce_cert):
     gce_cr = entities.GCEComputeResource(
@@ -185,6 +194,26 @@ def gce_resource_with_image(
         user_data=True,
     ).create()
     return gce_cr
+
+
+@pytest.fixture(scope='module')
+def module_gce_finishimg(
+    session_target_sat,
+    default_architecture,
+    module_gce_compute,
+    session_default_os,
+    gce_latest_rhel_uuid,
+):
+    """Creates finish image on GCE Compute Resource"""
+    finish_image = session_target_sat.api.Image(
+        architecture=default_architecture,
+        compute_resource=module_gce_compute,
+        name=gen_string('alpha'),
+        operatingsystem=session_default_os,
+        username=gen_string('alpha'),
+        uuid=gce_latest_rhel_uuid,
+    ).create()
+    return finish_image
 
 
 @pytest.fixture
