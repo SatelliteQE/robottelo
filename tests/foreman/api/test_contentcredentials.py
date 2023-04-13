@@ -260,13 +260,13 @@ def test_positive_block_delete_key_in_use(module_org, target_sat):
     assert repo.gpg_key.id == gpg_key.id
     assert product.gpg_key.id == repo.gpg_key.id
 
-    # Attempt to delete gpg in use, check errors
-    with pytest.raises(HTTPError) as exception:
-        response = gpg_key.delete_raw().json()
-        gpg_key.delete()
-    assert '500' in str(exception.value)
-    assert 'errors' in str(response)
-    assert 'Cannot delete record because of dependent root_repositories' in str(response['errors'])
+    # Attempt to delete gpg in use, capturing api response without raising exception
+    response = gpg_key.delete_raw()
+    assert response.status_code == 500
+    assert 'errors' in str(response.json())
+    assert 'Cannot delete record because of dependent root_repositories' in str(
+        response.json()['errors']
+    )
 
     # Assert gpg matches unmodified copy
     assert gpg_key.id == gpg_copy.id
