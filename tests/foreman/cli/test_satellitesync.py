@@ -625,11 +625,7 @@ def _import_entities(product, repo, cv, mos='no'):
 
 
 class TestContentViewSync:
-    """Implements Content View Export Import tests in CLI
-
-    :CaseComponent: ContentViews
-
-    """
+    """Implements Content View Export Import tests in CLI"""
 
     @pytest.mark.tier3
     @pytest.mark.e2e
@@ -659,10 +655,6 @@ class TestContentViewSync:
 
             1. CV version custom contents has been exported to directory
             2. All The exported custom contents has been imported in org/satellite
-
-        :CaseAutomation: Automated
-
-        :CaseComponent: ContentViews
 
         :CaseImportance: High
 
@@ -753,10 +745,6 @@ class TestContentViewSync:
 
             1. Default Organization View version custom contents has been exported to directory
             2. All The exported custom contents has been imported in org/satellite
-
-        :CaseAutomation: Automated
-
-        :CaseComponent: ContentViews
 
         :CaseImportance: High
 
@@ -855,8 +843,6 @@ class TestContentViewSync:
 
             1. Filtered CV version custom contents has been exported to directory
             2. Filtered exported custom contents has been imported in org/satellite
-
-        :CaseAutomation: Automated
 
         :CaseImportance: High
 
@@ -998,6 +984,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.e2e
     def test_positive_export_import_redhat_cv(
         self,
         export_import_cleanup_function,
@@ -1025,11 +1012,7 @@ class TestContentViewSync:
 
         :BZ: 1655239, 2040870
 
-        :CaseAutomation: Automated
-
         :customerscenario: true
-
-        :CaseComponent: ContentViews
 
         :CaseImportance: High
 
@@ -1156,10 +1139,6 @@ class TestContentViewSync:
             2. All The exported redhat contents has been imported in org/satellite
 
         :BZ: 1655239
-
-        :CaseAutomation: Automated
-
-        :CaseComponent: ContentViews
 
         :CaseImportance: Critical
 

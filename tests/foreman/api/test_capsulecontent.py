@@ -229,6 +229,7 @@ class TestCapsuleContentManagement:
         assert "sha256" not in checksum_types
 
     @pytest.mark.skip_if_open("BZ:2025494")
+    @pytest.mark.e2e
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_updated_repo(
@@ -330,6 +331,7 @@ class TestCapsuleContentManagement:
         assert sat_files == caps_files
         assert len(caps_files) == 2
 
+    @pytest.mark.e2e
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_capsule_sync(
@@ -747,6 +749,7 @@ class TestCapsuleContentManagement:
             # check that one of the files is in the content
             assert b'katello-server-ca.crt' in response.content
 
+    @pytest.mark.e2e
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
