@@ -55,6 +55,17 @@ def form_data():
     return form
 
 
+@pytest.fixture()
+def virtwho_config(form_data, target_sat, session):
+    name = gen_string('alpha')
+    form_data['name'] = name
+    with session:
+        session.virtwho_configure.create(form_data)
+        yield virtwho_config
+        session.virtwho_configure.delete(name)
+        assert not session.virtwho_configure.search(name)
+
+
 @pytest.fixture(autouse=True)
 def clean_host(form_data, target_sat):
     guest_name, _ = get_guest_info(form_data['hypervisor_type'])
@@ -66,7 +77,7 @@ def clean_host(form_data, target_sat):
 @pytest.mark.usefixtures('clean_host')
 class TestVirtwhoConfigforEsx:
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_id(self, default_org, session, form_data):
+    def test_positive_deploy_configure_by_id(self, default_org, virtwho_config, session, form_data):
         """Verify configure created and deployed with id.
 
         :id: 44f93ec8-a59a-42a4-ab30-edc554b022b2
@@ -82,28 +93,25 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: High
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session:
-            session.virtwho_configure.create(form_data)
-            values = session.virtwho_configure.read(name)
-            command = values['deploy']['command']
-            hypervisor_name, guest_name = deploy_configure_by_command(
-                command, form_data['hypervisor_type'], debug=True, org=default_org.label
-            )
-            assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
-            hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-            vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
-            vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
-            session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
-            assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
-            session.contenthost.add_subscription(guest_name, vdc_virtual)
-            assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
+        name = form_data['name']
+        values = session.virtwho_configure.read(name)
+        command = values['deploy']['command']
+        hypervisor_name, guest_name = deploy_configure_by_command(
+            command, form_data['hypervisor_type'], debug=True, org=default_org.label
+        )
+        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
+        vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
+        vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
+        session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
+        assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
+        session.contenthost.add_subscription(guest_name, vdc_virtual)
+        assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
 
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_script(self, default_org, session, form_data):
+    def test_positive_deploy_configure_by_script(
+        self, default_org, virtwho_config, session, form_data
+    ):
         """Verify configure created and deployed with script.
 
         :id: d64332fb-a6e0-4864-9f8b-2406223fcdcc
@@ -119,28 +127,23 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: High
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session:
-            session.virtwho_configure.create(form_data)
-            values = session.virtwho_configure.read(name)
-            script = values['deploy']['script']
-            hypervisor_name, guest_name = deploy_configure_by_script(
-                script, form_data['hypervisor_type'], debug=True, org=default_org.label
-            )
-            assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
-            hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-            vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
-            vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
-            session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
-            assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
-            session.contenthost.add_subscription(guest_name, vdc_virtual)
-            assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
+        name = form_data['name']
+        values = session.virtwho_configure.read(name)
+        script = values['deploy']['script']
+        hypervisor_name, guest_name = deploy_configure_by_script(
+            script, form_data['hypervisor_type'], debug=True, org=default_org.label
+        )
+        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
+        vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
+        vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
+        session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
+        assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
+        session.contenthost.add_subscription(guest_name, vdc_virtual)
+        assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
 
     @pytest.mark.tier2
-    def test_positive_debug_option(self, default_org, session, form_data):
+    def test_positive_debug_option(self, default_org, virtwho_config, session, form_data):
         """Verify debug checkbox and the value changes of VIRTWHO_DEBUG
 
         :id: adb435c4-d02b-47b6-89f5-dce9a4ff7939
@@ -153,28 +156,23 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session:
-            session.virtwho_configure.create(form_data)
-            config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.name)
-            deploy_configure_by_command(
-                config_command, form_data['hypervisor_type'], org=default_org.label
-            )
-            assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '1'
-            session.virtwho_configure.edit(name, {'debug': False})
-            results = session.virtwho_configure.read(name)
-            assert results['overview']['debug'] is False
-            deploy_configure_by_command(
-                config_command, form_data['hypervisor_type'], org=default_org.label
-            )
-            assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '0'
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
+        name = form_data['name']
+        config_id = get_configure_id(name)
+        config_command = get_configure_command(config_id, default_org.name)
+        deploy_configure_by_command(
+            config_command, form_data['hypervisor_type'], org=default_org.label
+        )
+        assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '1'
+        session.virtwho_configure.edit(name, {'debug': False})
+        results = session.virtwho_configure.read(name)
+        assert results['overview']['debug'] is False
+        deploy_configure_by_command(
+            config_command, form_data['hypervisor_type'], org=default_org.label
+        )
+        assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '0'
 
     @pytest.mark.tier2
-    def test_positive_interval_option(self, default_org, session, form_data):
+    def test_positive_interval_option(self, default_org, virtwho_config, session, form_data):
         """Verify interval dropdown options and the value changes of VIRTWHO_INTERVAL.
 
         :id: 731f8361-38d4-40b9-9530-8d785d61eaab
@@ -187,35 +185,30 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session:
-            session.virtwho_configure.create(form_data)
-            config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.name)
-            intervals = {
-                'Every hour': '3600',
-                'Every 2 hours': '7200',
-                'Every 4 hours': '14400',
-                'Every 8 hours': '28800',
-                'Every 12 hours': '43200',
-                'Every 24 hours': '86400',
-                'Every 2 days': '172800',
-                'Every 3 days': '259200',
-            }
-            for option, value in sorted(intervals.items(), key=lambda item: int(item[1])):
-                session.virtwho_configure.edit(name, {'interval': option})
-                results = session.virtwho_configure.read(name)
-                assert results['overview']['interval'] == option
-                deploy_configure_by_command(
-                    config_command, form_data['hypervisor_type'], org=default_org.label
-                )
-                assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
+        name = form_data['name']
+        config_id = get_configure_id(name)
+        config_command = get_configure_command(config_id, default_org.name)
+        intervals = {
+            'Every hour': '3600',
+            'Every 2 hours': '7200',
+            'Every 4 hours': '14400',
+            'Every 8 hours': '28800',
+            'Every 12 hours': '43200',
+            'Every 24 hours': '86400',
+            'Every 2 days': '172800',
+            'Every 3 days': '259200',
+        }
+        for option, value in sorted(intervals.items(), key=lambda item: int(item[1])):
+            session.virtwho_configure.edit(name, {'interval': option})
+            results = session.virtwho_configure.read(name)
+            assert results['overview']['interval'] == option
+            deploy_configure_by_command(
+                config_command, form_data['hypervisor_type'], org=default_org.label
+            )
+            assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
 
     @pytest.mark.tier2
-    def test_positive_hypervisor_id_option(self, default_org, session, form_data):
+    def test_positive_hypervisor_id_option(self, default_org, virtwho_config, session, form_data):
         """Verify Hypervisor ID dropdown options.
 
         :id: cc494bd9-51d9-452a-bfa9-5cdcafef5197
@@ -228,28 +221,23 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session:
-            session.virtwho_configure.create(form_data)
-            config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.name)
-            config_file = get_configure_file(config_id)
-            # esx and rhevm support hwuuid option
-            values = ['uuid', 'hostname', 'hwuuid']
-            for value in values:
-                session.virtwho_configure.edit(name, {'hypervisor_id': value})
-                results = session.virtwho_configure.read(name)
-                assert results['overview']['hypervisor_id'] == value
-                deploy_configure_by_command(
-                    config_command, form_data['hypervisor_type'], org=default_org.label
-                )
-                assert get_configure_option('hypervisor_id', config_file) == value
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
+        name = form_data['name']
+        config_id = get_configure_id(name)
+        config_command = get_configure_command(config_id, default_org.name)
+        config_file = get_configure_file(config_id)
+        # esx and rhevm support hwuuid option
+        values = ['uuid', 'hostname', 'hwuuid']
+        for value in values:
+            session.virtwho_configure.edit(name, {'hypervisor_id': value})
+            results = session.virtwho_configure.read(name)
+            assert results['overview']['hypervisor_id'] == value
+            deploy_configure_by_command(
+                config_command, form_data['hypervisor_type'], org=default_org.label
+            )
+            assert get_configure_option('hypervisor_id', config_file) == value
 
     @pytest.mark.tier2
-    def test_positive_filtering_option(self, default_org, session, form_data):
+    def test_positive_filtering_option(self, default_org, virtwho_config, session, form_data):
         """Verify Filtering dropdown options.
 
         :id: e17dda14-79cd-4cd2-8f29-60970b24a905
@@ -264,44 +252,39 @@ class TestVirtwhoConfigforEsx:
 
         :BZ: 1735670
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session:
-            session.virtwho_configure.create(form_data)
-            config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.name)
-            config_file = get_configure_file(config_id)
-            regex = '.*redhat.com'
-            whitelist = {'filtering': 'Whitelist', 'filtering_content.filter_hosts': regex}
-            blacklist = {'filtering': 'Blacklist', 'filtering_content.exclude_hosts': regex}
-            # esx support filter-host-parents and exclude-host-parents options
-            whitelist['filtering_content.filter_host_parents'] = regex
-            blacklist['filtering_content.exclude_host_parents'] = regex
-            # Update Whitelist and check the result
-            session.virtwho_configure.edit(name, whitelist)
-            results = session.virtwho_configure.read(name)
-            assert results['overview']['filter_hosts'] == regex
-            assert results['overview']['filter_host_parents'] == regex
-            deploy_configure_by_command(
-                config_command, form_data['hypervisor_type'], org=default_org.label
-            )
-            assert regex == get_configure_option('filter_hosts', config_file)
-            assert regex == get_configure_option('filter_host_parents', config_file)
-            # Update Blacklist and check the result
-            session.virtwho_configure.edit(name, blacklist)
-            results = session.virtwho_configure.read(name)
-            assert results['overview']['exclude_hosts'] == regex
-            assert results['overview']['exclude_host_parents'] == regex
-            deploy_configure_by_command(
-                config_command, form_data['hypervisor_type'], org=default_org.label
-            )
-            assert regex == get_configure_option('exclude_hosts', config_file)
-            assert regex == get_configure_option('exclude_host_parents', config_file)
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
+        name = form_data['name']
+        config_id = get_configure_id(name)
+        config_command = get_configure_command(config_id, default_org.name)
+        config_file = get_configure_file(config_id)
+        regex = '.*redhat.com'
+        whitelist = {'filtering': 'Whitelist', 'filtering_content.filter_hosts': regex}
+        blacklist = {'filtering': 'Blacklist', 'filtering_content.exclude_hosts': regex}
+        # esx support filter-host-parents and exclude-host-parents options
+        whitelist['filtering_content.filter_host_parents'] = regex
+        blacklist['filtering_content.exclude_host_parents'] = regex
+        # Update Whitelist and check the result
+        session.virtwho_configure.edit(name, whitelist)
+        results = session.virtwho_configure.read(name)
+        assert results['overview']['filter_hosts'] == regex
+        assert results['overview']['filter_host_parents'] == regex
+        deploy_configure_by_command(
+            config_command, form_data['hypervisor_type'], org=default_org.label
+        )
+        assert regex == get_configure_option('filter_hosts', config_file)
+        assert regex == get_configure_option('filter_host_parents', config_file)
+        # Update Blacklist and check the result
+        session.virtwho_configure.edit(name, blacklist)
+        results = session.virtwho_configure.read(name)
+        assert results['overview']['exclude_hosts'] == regex
+        assert results['overview']['exclude_host_parents'] == regex
+        deploy_configure_by_command(
+            config_command, form_data['hypervisor_type'], org=default_org.label
+        )
+        assert regex == get_configure_option('exclude_hosts', config_file)
+        assert regex == get_configure_option('exclude_host_parents', config_file)
 
     @pytest.mark.tier2
-    def test_positive_proxy_option(self, default_org, session, form_data):
+    def test_positive_proxy_option(self, default_org, virtwho_config, session, form_data):
         """Verify 'HTTP Proxy' and 'Ignore Proxy' options.
 
         :id: 6659d577-0135-4bf0-81af-14b930011536
@@ -317,33 +300,28 @@ class TestVirtwhoConfigforEsx:
         http_proxy, http_proxy_name, http_proxy_id = create_http_proxy(
             http_type='http', org=default_org
         )
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session:
-            session.virtwho_configure.create(form_data)
-            config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.name)
-            no_proxy = 'test.satellite.com'
-            # Check the https proxy and No_PROXY settings
-            session.virtwho_configure.edit(name, {'proxy': https_proxy, 'no_proxy': no_proxy})
-            results = session.virtwho_configure.read(name)
-            assert results['overview']['proxy'] == https_proxy
-            assert results['overview']['no_proxy'] == no_proxy
-            deploy_configure_by_command(
-                config_command, form_data['hypervisor_type'], org=default_org.label
-            )
-            assert get_configure_option('https_proxy', ETC_VIRTWHO_CONFIG) == https_proxy
-            assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
-            # Check the http proxy setting
-            session.virtwho_configure.edit(name, {'proxy': http_proxy})
-            results = session.virtwho_configure.read(name)
-            assert results['overview']['proxy'] == http_proxy
-            deploy_configure_by_command(
-                config_command, form_data['hypervisor_type'], org=default_org.label
-            )
-            assert get_configure_option('http_proxy', ETC_VIRTWHO_CONFIG) == http_proxy
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
+        name = form_data['name']
+        config_id = get_configure_id(name)
+        config_command = get_configure_command(config_id, default_org.name)
+        no_proxy = 'test.satellite.com'
+        # Check the https proxy and No_PROXY settings
+        session.virtwho_configure.edit(name, {'proxy': https_proxy, 'no_proxy': no_proxy})
+        results = session.virtwho_configure.read(name)
+        assert results['overview']['proxy'] == https_proxy
+        assert results['overview']['no_proxy'] == no_proxy
+        deploy_configure_by_command(
+            config_command, form_data['hypervisor_type'], org=default_org.label
+        )
+        assert get_configure_option('https_proxy', ETC_VIRTWHO_CONFIG) == https_proxy
+        assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
+        # Check the http proxy setting
+        session.virtwho_configure.edit(name, {'proxy': http_proxy})
+        results = session.virtwho_configure.read(name)
+        assert results['overview']['proxy'] == http_proxy
+        deploy_configure_by_command(
+            config_command, form_data['hypervisor_type'], org=default_org.label
+        )
+        assert get_configure_option('http_proxy', ETC_VIRTWHO_CONFIG) == http_proxy
 
     @pytest.mark.tier2
     def test_positive_virtwho_roles(self, session):
@@ -428,8 +406,6 @@ class TestVirtwhoConfigforEsx:
             values = session.dashboard.read('VirtWhoConfigStatus')
             assert values['config_status'] == expected_values
             assert values['latest_config'] == 'No configuration found'
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
             session.organization.select("Default Organization")
 
     @pytest.mark.tier2
@@ -698,11 +674,9 @@ class TestVirtwhoConfigforEsx:
             fields['exclude_hosts_label'] = 'Exclude Hosts'
             for key, value in fields.items():
                 assert results['overview'][key] == value
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_last_checkin_status(self, default_org, form_data, session):
+    def test_positive_last_checkin_status(self, default_org, virtwho_config, form_data, session):
         """Verify the Last Checkin status on Content Hosts Page.
 
         :id: 7448d482-d05c-4727-8980-176586e9e4a7
@@ -717,30 +691,25 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session:
-            session.virtwho_configure.create(form_data)
-            values = session.virtwho_configure.read(name, widget_names='deploy.command')
-            command = values['deploy']['command']
-            hypervisor_name, guest_name = deploy_configure_by_command(
-                command, form_data['hypervisor_type'], debug=True, org=default_org.label
+        name = form_data['name']
+        values = session.virtwho_configure.read(name, widget_names='deploy.command')
+        command = values['deploy']['command']
+        hypervisor_name, guest_name = deploy_configure_by_command(
+            command, form_data['hypervisor_type'], debug=True, org=default_org.label
+        )
+        time_now = session.browser.get_client_datetime()
+        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        checkin_time = session.contenthost.search(hypervisor_name)[0]['Last Checkin']
+        # 10 mins margin to check the Last Checkin time
+        assert (
+            abs(
+                datetime.strptime(checkin_time, "%B %d, %Y, %I:%M %p")
+                .replace(year=datetime.utcnow().year)
+                .timestamp()
+                - time_now.timestamp()
             )
-            time_now = session.browser.get_client_datetime()
-            assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
-            checkin_time = session.contenthost.search(hypervisor_name)[0]['Last Checkin']
-            # 10 mins margin to check the Last Checkin time
-            assert (
-                abs(
-                    datetime.strptime(checkin_time, "%B %d, %Y, %I:%M %p")
-                    .replace(year=datetime.utcnow().year)
-                    .timestamp()
-                    - time_now.timestamp()
-                )
-                <= 300
-            )
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
+            <= 300
+        )
 
     @pytest.mark.tier2
     def test_positive_deploy_configure_hypervisor_password_with_special_characters(
@@ -797,7 +766,9 @@ class TestVirtwhoConfigforEsx:
             assert not session.virtwho_configure.search(name)
 
     @pytest.mark.tier2
-    def test_positive_remove_env_option(self, default_org, form_data, target_sat, session):
+    def test_positive_remove_env_option(
+        self, default_org, virtwho_config, form_data, target_sat, session
+    ):
         """remove option 'env=' from the virt-who configuration file and without any error
 
         :id: 4503985c-8cf5-455c-855f-73dc7645ffe9
@@ -814,30 +785,25 @@ class TestVirtwhoConfigforEsx:
 
         :customerscenario: true
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session:
-            session.virtwho_configure.create(form_data)
-            values = session.virtwho_configure.read(name)
-            command = values['deploy']['command']
-            deploy_configure_by_command(
-                command, form_data['hypervisor_type'], debug=True, org=default_org.label
-            )
-            assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
-            # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
-            option = "env"
-            config_id = get_configure_id(name)
-            config_file = get_configure_file(config_id)
-            env_error = (
-                f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
-            )
-            try:
-                get_configure_option({option}, {config_file})
-            except Exception as VirtWhoError:
-                assert env_error == str(VirtWhoError)
-            # Check /var/log/messages should not display warning message
-            env_warning = f"Ignoring unknown configuration option \"{option}\""
-            result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
-            assert result.status == 1
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
+        name = form_data['name']
+        values = session.virtwho_configure.read(name)
+        command = values['deploy']['command']
+        deploy_configure_by_command(
+            command, form_data['hypervisor_type'], debug=True, org=default_org.label
+        )
+        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
+        option = "env"
+        config_id = get_configure_id(name)
+        config_file = get_configure_file(config_id)
+        env_error = (
+            f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
+        )
+        try:
+            get_configure_option({option}, {config_file})
+        except Exception as VirtWhoError:
+            assert env_error == str(VirtWhoError)
+        # Check /var/log/messages should not display warning message
+        env_warning = f"Ignoring unknown configuration option \"{option}\""
+        result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
+        assert result.status == 1
