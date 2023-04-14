@@ -42,7 +42,7 @@ def test_positive_password_reset(target_sat):
     """
     result = target_sat.execute('foreman-rake permissions:reset')
     assert result.status == 0
-    reset_password = result.stdout.strip().split('password: ')[1]
+    reset_password = result.stdout.splitlines()[0].split('password: ')[1]
     result = target_sat.execute(
         f'''sed -i -e '/username/d;/password/d;/use_sessions/d' {HAMMER_CONFIG};\
         echo '  :use_sessions: true' >> {HAMMER_CONFIG}'''

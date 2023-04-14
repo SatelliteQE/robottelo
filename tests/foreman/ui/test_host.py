@@ -34,6 +34,7 @@ from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
@@ -257,6 +258,21 @@ def remove_vm_on_delete(target_sat, setting_update):
         target_sat.api.Setting().search(query={'search': 'name=destroy_vm_on_host_delete'})[0].value
     )
     yield
+
+
+@pytest.fixture
+def tracer_install_host(rex_contenthost, target_sat):
+    """Sets up a contenthost with katello-host-tools-tracer enabled,
+    to prep it for install later"""
+    # create a custom, rhel version-specific OS repo
+    rhelver = rex_contenthost.os_version.major
+    if rhelver > 7:
+        rex_contenthost.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
+    else:
+        rex_contenthost.create_custom_repos(
+            **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
+        )
+    yield rex_contenthost
 
 
 @pytest.mark.tier2
@@ -1928,6 +1944,46 @@ def test_rex_new_ui(session, target_sat, rex_contenthost):
 
 
 @pytest.mark.tier4
+def test_positive_manage_table_columns(session):
+    """Set custom columns of the hosts table.
+
+    :id: e5e18982-cc43-11ed-8562-000c2989e153
+
+    :steps:
+        1. Navigate to the Hosts page.
+        2. Switch to default organization and location, where is at least one host (Satellite).
+        3. Set custom columns for the hosts table via the 'Manage columns' dialog.
+
+    :expectedresults: Check if the custom columns were set properly, i.e., are displayed
+        or not displayed in the table.
+
+    :CaseLevel: System
+    """
+    columns = {
+        'Host group': False,
+        'Last report': False,
+        'Comment': False,
+        'Installable updates': True,
+        'Registered': True,
+        'Last checkin': True,
+        'IPv4': True,
+        'MAC': True,
+        'Sockets': True,
+        'Cores': True,
+        'RAM': True,
+        'Boot time': True,
+        'Recommendations': False,
+    }
+    with session:
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.location.select(loc_name=DEFAULT_LOC)
+        session.host.manage_table_columns(columns)
+        displayed_columns = session.host.get_displayed_table_headers()
+        for column, is_displayed in columns.items():
+            assert (column in displayed_columns) is is_displayed
+
+
+@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
@@ -2475,125 +2531,45 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
 
 
 @pytest.mark.tier2
-def test_positive_host_role_information(target_sat, function_host):
-    """Assign Ansible Role to a Host and verify that the information
-    in the new UI is displayed correctly
+@pytest.mark.rhel_ver_match('[^6].*')
+def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
+    """Using the new Host UI,enable tracer and verify that the page reloads
 
-    :id: 7da913ef-3b43-4bfa-9a45-d895431c8b56
+    :id: c9ebd4a8-6db3-4d0e-92a2-14951c26769b
 
-    :caseComponent: Ansible
+    :caseComponent: Katello-tracer
 
-    :Team: Rocket
+    :Team: Phoenix
 
     :CaseLevel: System
 
     :Steps:
         1. Register a RHEL host to Satellite.
-        2. Import all roles available by default.
-        3. Assign one role to the RHEL host.
-        4. Navigate to the new UI for the given Host.
-        5. Select the 'Ansible' tab, then the 'Inventory' sub-tab.
+        2. Prepare katello-tracer to be installed
+        3. Navigate to the Traces tab in New Host UI
+        4. Enable tracer using the popup
 
-    :expectedresults: Roles assigned directly to the Host are visible on the subtab.
+    :expectedresults: The Tracer tab message updates accordingly during the process, and displays
+        the state the correct Title
 
     """
-    SELECTED_ROLE = 'RedHatInsights.insights-client'
-
-    location = function_host.location.read()
-    organization = function_host.organization.read()
-    proxy_id = target_sat.nailgun_smart_proxy.id
-    target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]})
-    function_host.assign_ansible_roles(data={'ansible_role_ids': [1]})
-    host_roles = function_host.list_ansible_roles()
-    assert host_roles[0]['name'] == SELECTED_ROLE
+    host = (
+        target_sat.api.Host().search(query={'search': tracer_install_host.hostname})[0].read_json()
+    )
     with target_sat.ui_session() as session:
-        session.location.select(location.name)
-        session.organization.select(organization.name)
-        ansible_roles_table = session.host_new.get_ansible_roles(function_host.name)
-        assert ansible_roles_table[0]["Name"] == SELECTED_ROLE
-        all_assigned_roles_table = session.host_new.get_ansible_roles_modal(function_host.name)
-        assert all_assigned_roles_table[0]["Name"] == SELECTED_ROLE
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier2
-def test_positive_role_variable_information(self):
-    """Create and assign variables to an Ansible Role and verify that the information in
-    the new UI is displayed correctly
-
-    :id: 4ab2813a-6b83-4907-b104-0473465814f5
-
-    :caseComponent: Ansible
-
-    :Team: Rocket
-
-    :CaseLevel: System
-
-    :Steps:
-        1. Register a RHEL host to Satellite.
-        2. Import all roles available by default.
-        3. Create a host group and assign one of the Ansible roles to the host group.
-        4. Assign the host to the host group.
-        5. Assign one roles to the RHEL host.
-        6. Create a variable and associate it with the role assigned to the Host.
-        7. Create a variable and associate it with the role assigned to the Hostgroup.
-        8. Navigate to the new UI for the given Host.
-        9. Select the 'Ansible' tab, then the 'Variables' sub-tab.
-
-    :expectedresults: The variables information for the given Host is visible.
-
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier2
-def test_positive_assign_role_in_new_ui(self):
-    """Using the new Host UI, assign a role to a Host
-
-    :id: 044f38b4-cff2-4ddc-b93c-7e9f2826d00d
-
-    :caseComponent: Ansible
-
-    :Team: Rocket
-
-    :CaseLevel: System
-
-    :Steps:
-        1. Register a RHEL host to Satellite.
-        2. Import all roles available by default.
-        3. Navigate to the new UI for the given Host.
-        4. Select the 'Ansible' tab
-        5. Click the 'Assign Ansible Roles' button.
-        6. Using the popup, assign a role to the Host.
-
-    :expectedresults: The Role is successfully assigned to the Host, and shows up on the UI
-
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier2
-def test_positive_remove_role_in_new_ui(self):
-    """Using the new Host UI, remove the role(s) of a Host
-
-    :id: d6de5130-45f6-4349-b490-fbde2aed082c
-
-    :caseComponent: Ansible
-
-    :Team: Rocket
-
-    :CaseLevel: System
-
-    :Steps:
-        1. Register a RHEL host to Satellite.
-        2. Import all roles available by default.
-        3. Assign a role to the host.
-        4. Navigate to the new UI for the given Host.
-        5. Select the 'Ansible' tab
-        6. Click the 'Edit Ansible roles' button.
-        7. Using the popup, remove the assigned role from the Host.
-
-    :expectedresults: The Role is successfully removed from the Host, and no longer shows
-        up on the UI
-
-    """
+        session.organization.select(host['organization_name'])
+        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
+        assert tracer['title'] == "Traces are not enabled"
+        session.host_new.enable_tracer(tracer_install_host.hostname)
+        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
+        assert tracer['title'] == "Traces are being enabled"
+        wait_for(
+            lambda: session.host_new.get_tracer(tracer_install_host.hostname)['title']
+            != "Traces are being enabled",
+            timeout=1800,
+            delay=5,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
+        assert tracer['title'] == "No applications to restart"

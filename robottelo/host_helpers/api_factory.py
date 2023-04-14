@@ -154,7 +154,7 @@ class APIFactory:
         )
         return repo_id
 
-    def one_to_one_names(name):
+    def one_to_one_names(self, name):
         """Generate the names Satellite might use for a one to one field.
 
         Example of usage::
@@ -166,7 +166,7 @@ class APIFactory:
         :returns: A set including both ``name`` and variations on ``name``.
 
         """
-        return {name + '_name', name + '_id'}
+        return {f'{name}_name', f'{name}_id'}
 
     def configure_provisioning(self, org=None, loc=None, compute=False, os=None):
         """Create and configure org, loc, product, repo, cv, env. Update proxy,
@@ -537,9 +537,9 @@ class APIFactory:
         :param vm_client: A subscribed Virtual Machine client instance.
         :param location_id: The location id to update the vm_client host with.
         """
-        host = self._satellite.api.Host().search(query={'search': f'name={vm_client.hostname}'})[0]
-        host.location = self._satellite.api.Location(id=location_id)
-        host.update(['location'])
+        self._satellite.api.Host(
+            id=vm_client.nailgun_host.id, location=self._satellite.api.Location(id=location_id)
+        ).update(['location'])
 
     def check_create_os_with_title(self, os_title):
         """Check if the OS is present, if not create the required OS
