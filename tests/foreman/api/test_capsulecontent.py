@@ -5,7 +5,7 @@ interactions and use capsule.
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
+:CaseLevel: System
 
 :CaseComponent: Capsule-Content
 
@@ -67,8 +67,6 @@ class TestCapsuleContentManagement:
         :expectedresults: `redhat-access-insights-puppet` package is delivered
             in capsule repo and is available for installation on capsule via
             yum
-
-        :CaseLevel: System
         """
         package_name = 'redhat-access-insights-puppet'
         result = module_capsule_configured.run(f'yum list {package_name} | grep @capsule')
@@ -92,8 +90,6 @@ class TestCapsuleContentManagement:
         :BZ: 1340686
 
         :expectedresults: custom content is present on external capsule
-
-        :CaseLevel: System
         """
         repo = entities.Repository(product=function_product, url=None).create()
         # Associate the lifecycle environment with the capsule
@@ -151,8 +147,6 @@ class TestCapsuleContentManagement:
 
         :expectedresults: checksum type is updated in repodata of corresponding
             repository on capsule
-
-        :CaseLevel: System
 
         :CaseImportance: Critical
         """
@@ -256,8 +250,6 @@ class TestCapsuleContentManagement:
             1. Capsule is synced successfully.
             2. Content is present at the Capsule side.
 
-        :CaseLevel: Integration
-
         :customerscenario: true
 
         :BZ: 2025494
@@ -355,8 +347,6 @@ class TestCapsuleContentManagement:
                second repo sync with no changes
             5. Syncing repository which was updated will update the content on
                capsule
-
-        :CaseLevel: System
         """
         repo_url = settings.repos.yum_1.url
         repo = entities.Repository(product=function_product, url=repo_url).create()
@@ -487,8 +477,6 @@ class TestCapsuleContentManagement:
         :BZ: 1303102, 1480358, 1303103, 1734312
 
         :expectedresults: ISOs are present on external capsule
-
-        :CaseLevel: System
         """
         # Enable & sync RH repository with ISOs
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
@@ -559,8 +547,6 @@ class TestCapsuleContentManagement:
                is automatically synced to the Capsule
             3. Package is successfully downloaded from the Capsule, its checksum matches
                the original package from the upstream repo
-
-        :CaseLevel: System
         """
         repo_url = settings.repos.yum_3.url
         packages_count = constants.FAKE_3_YUM_REPOS_COUNT
@@ -640,8 +626,6 @@ class TestCapsuleContentManagement:
 
         :expectedresults: content was successfully synchronized - capsule
             filesystem contains valid links to packages
-
-        :CaseLevel: System
         """
         repo_url = settings.repos.yum_1.url
         packages_count = constants.FAKE_1_YUM_REPOS_COUNT
@@ -734,8 +718,6 @@ class TestCapsuleContentManagement:
         :expectedresults: capsule pub url is accessible
 
         :BZ: 1463810, 2122780
-
-        :CaseLevel: System
         """
         https_pub_url = f'https://{module_capsule_configured.ip_addr}/pub'
         http_pub_url = f'http://{module_capsule_configured.ip_addr}/pub'
@@ -767,8 +749,6 @@ class TestCapsuleContentManagement:
 
         :expectedresults:
             1. The kickstart repo is successfully synced to the Capsule.
-
-        :CaseLevel: Integration
 
         :BZ: 1992329
         """
@@ -870,8 +850,6 @@ class TestCapsuleContentManagement:
             2. The image is successfully pulled from Capsule to a host.
 
         :parametrized: yes
-
-        :CaseLevel: Integration
 
         :BZ: 2125244, 2148813
 
@@ -1003,8 +981,6 @@ class TestCapsuleContentManagement:
 
         :parametrized: yes
 
-        :CaseLevel: Integration
-
         :BZ: 2121583
         """
         requirements = '''
@@ -1093,8 +1069,6 @@ class TestCapsuleContentManagement:
             1. Both capsule syncs succeed.
             2. Content is accessible on both, Satellite and Capsule.
 
-        :CaseLevel: Integration
-
         :BZ: 1985122
         """
         repo = entities.Repository(
@@ -1180,8 +1154,6 @@ class TestCapsuleContentManagement:
 
         :expectedresults:
             1. All capsule syncs succeed.
-
-        :CaseLevel: Integration
 
         :customerscenario: true
 
