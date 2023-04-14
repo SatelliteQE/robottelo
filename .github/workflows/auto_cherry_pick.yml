@@ -96,13 +96,3 @@ jobs:
             - [Parent Pull Request](https://github.com/${{ github.repository }}/pull/${{ github.event.number }})
           labels: Failed_AutoCherryPick,${{ matrix.label }}
           assignees: ${{ env.assignee }}
-      - name: Send Google Chat notification on cherrypick failure
-        id: google-chat-notification
-        if: ${{ always() && steps.cherrypick.outcome == 'failure' }}
-        uses: omkarkhatavkar/google-chat-notification@master
-        with:
-          name: ${{ env.title }}
-          url: ${{ secrets.GCHAT_REVIEWERS_WEBHOOK }}
-          issue_url: ${{ steps.create-issue.outputs.html_url }}
-          author: ${{ env.assignee }}
-          status: failure
