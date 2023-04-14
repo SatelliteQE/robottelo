@@ -18,6 +18,7 @@ interactions and use capsule.
 :Upstream: No
 """
 import re
+from datetime import datetime
 
 import pytest
 from nailgun import client
@@ -1297,4 +1298,3 @@ class TestCapsuleContentManagement:
         # Check sync status again, and ensure last_sync_time is still correct
         sync_status = module_capsule_configured.nailgun_capsule.content_get_sync()
         assert sync_status['last_sync_time'] >= timestamp
-
