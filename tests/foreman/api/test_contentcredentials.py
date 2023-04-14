@@ -232,7 +232,7 @@ def test_positive_delete(module_org):
 
 
 @pytest.mark.tier3
-def test_positive_block_delete_key_in_use(module_org, target_sat, capfd):
+def test_positive_block_delete_key_in_use(module_org, target_sat):
     """Create a GPG key with valid content. Create a new product and
         associated repository, assigning the GPG key to both. Attempt to delete the
         GPG key in use.
@@ -258,14 +258,12 @@ def test_positive_block_delete_key_in_use(module_org, target_sat, capfd):
     assert repo.gpg_key.id == gpg_key.id
     assert product.gpg_key.id == repo.gpg_key.id
 
-    # Attempt to delete gpg in use
-    with pytest.raises(HTTPError) as err:
-        gpg_key.delete()
-
-    # Check for 500 error and display message
-    err_message = capfd.readouterr()[1]
-    assert '500' in str(err.value)
-    assert 'Cannot delete' in str(err_message)
+    # Attempt to delete gpg in use, capturing api response without raising exception
+    response = gpg_key.delete_raw()
+    assert response.status_code == 500
+    assert 'Cannot delete record because of dependent root_repositories' in str(
+        response.json().get('errors')
+    )
 
     # Assert gpg matches unmodified copy
     assert gpg_key.id == gpg_copy.id
