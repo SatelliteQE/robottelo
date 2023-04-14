@@ -387,7 +387,7 @@ class TestGCEHostProvisioningTestCase:
 
         :expectedresults:
             1. The host should be provisioned on Google Compute Engine
-            2. The host name should should be the same as given in data to provision the host
+            2. The host name should be the same as given in data to provision the host
             3. The host should show Installed status for provisioned host
         """
         assert class_host.name == self.fullhostname
