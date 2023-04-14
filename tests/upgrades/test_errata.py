@@ -82,15 +82,22 @@ class TestScenarioErrataAbstract:
 
         return [*rhel_repos, sat_client_repo]
 
+    def _check_yum_plugins_count(self, host):
+        """Check yum loaded plugins message count"""
+        host.execute('yum clean all')
+        plugins_count = host.execute('yum repolist | grep "Loaded plugins" | wc -l').stdout
+        # The 'Loaded plugins' can happen once or (in the case of enabled repository upload) twice.
+        assert int(plugins_count) <= 2, 'Loaded plugins message is displayed more than twice'
+
 
 class TestScenarioErrataCount(TestScenarioErrataAbstract):
-    """The test class contains pre and post upgrade scenarios to test if the
-    errata count for satellite client/content host.
+    """The test class contains pre and post upgrade scenarios to test errata
+    applicability and errata count on Satellite content host.
 
     Test Steps::
 
         1. Before Satellite upgrade, Create a content host and register it with
-            satellite
+            Satellite
         2. Install packages and down-grade them to generate errata for a client
         3. Store Errata count and details in file
         4. Upgrade Satellite
@@ -104,30 +111,29 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         self, target_sat, rhel_contenthost, function_org, save_test_data
     ):
         """Create product and repo from which the errata will be generated for the
-        Satellite client or content host.
+        Satellite content host.
 
         :id: preupgrade-88fd28e6-b4df-46c0-91d6-784859fd1c21
 
         :steps:
 
-            1. Create  Life Cycle Environment, Product and Custom Yum Repo
+            1. Create Product and Custom Yum Repo
             2. Create custom tools, rhel repos and sync them
             3. Create content view and publish it
-            4. Create activation key and add subscription.
-            5. Registering Docker Content Host RHEL7
-            6. Check katello agent and goferd service running on host
-            7. Generate Errata by Installing Outdated/Older Packages
-            8. Collect the Erratum list
+            4. Create activation key and add subscription
+            5. Register RHEL host to Satellite
+            7. Generate Errata by installing outdated/older packages
+            8. Check that errata applicability generated expected errata list for the given client.
 
         :expectedresults:
 
             1. The content host is created
-            2. errata count, erratum list will be generated to satellite client/content
-                host
+            2. errata count, erratum list will be generated to Satellite content host
+            3. All the expected errata are ready-to-be-applied on the client
+
+        :BZ: 1625649
         """
         rhel_contenthost._skip_context_checkin = True
-        # loc = sat.api.Location(organization=[org]).create() # function_location_with_org
-        # sat.api_factory.update_vm_host_location(rhel_client, loc.id)
         environment = target_sat.api.LifecycleEnvironment(organization=function_org).search(
             query={'search': f'name={constants.ENVIRONMENT}'}
         )[0]
@@ -157,9 +163,12 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         rhel_contenthost.install_katello_host_tools()
         rhel_contenthost.execute('subscription-manager refresh')
 
-        rhel_contenthost.execute(
+        self._check_yum_plugins_count(rhel_contenthost)
+
+        pkg_install = rhel_contenthost.execute(
             f'yum -y install {" ".join(constants.FAKE_9_YUM_OUTDATED_PACKAGES)}'
         )
+        assert pkg_install.status == 0, 'Failed to install packages'
         host = target_sat.api.Host().search(query={'search': f'activation_key={ak.name}'})[0]
         assert host.id == rhel_contenthost.nailgun_host.id, 'Host not found in Satellite'
         assert (
@@ -184,24 +193,25 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
 
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_generate_errata_for_client)
     def test_post_scenario_errata_count_installation(self, target_sat, pre_upgrade_data):
-        """Post-upgrade scenario that installs the package on pre-upgrade
-        client remotely and then verifies if the package installed.
+        """Post-upgrade scenario that applies errata on the RHEL client that was set up
+        in the pre-upgrade test and verifies if the errata application was successfull.
 
         :id: postupgrade-88fd28e6-b4df-46c0-91d6-784859fd1c21
 
         :steps:
 
-            1. Recovered pre_upgrade data for post_upgrade verification
-            2. Verifying errata count has not changed on satellite
-            3. Update Katello-agent and Restart goferd
-            4. Verifying the errata_ids
-            5. Verifying installation errata passes successfully
-            6. Verifying that package installation passed successfully by remote docker
-                exec
+            1. Recover pre_upgrade data for post_upgrade verification
+            2. Verify errata count has not changed on Satellite
+            4. Verify the errata_ids
+            5. Verify installation of errata is successfull
+            6. Verify that the errata application updated packages on client
+            7. Verify that all expected erratas were installed on client.
 
         :expectedresults:
-            1. errata count, erratum list should same after satellite upgrade
-            2. Installation of errata should be pass successfully
+            1. errata count and erratum list should same after Satellite upgrade
+            2. Installation of errata should pass successfully.
+
+        :BZ: 1625649
         """
         client_hostname = pre_upgrade_data.get('rhel_client')
         custom_repo_id = pre_upgrade_data.get('custom_repo_id')
@@ -215,7 +225,9 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         assert host.id == rhel_client.nailgun_host.id, 'Host not found in Satellite'
         organization = target_sat.api.Organization(id=organization_id).read()
 
-        # Verifying errata count has not changed on satellite
+        self._check_yum_plugins_count(rhel_client)
+
+        # Verifying errata count has not changed on Satellite
         installable_errata_count = rhel_client.applicable_errata_count
         assert installable_errata_count > 1, f'No applicable errata found for host {host.name}'
         erratum_list = target_sat.api.Errata(repository=custom_yum_repo).search(
@@ -241,8 +253,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             )
             installable_errata_count -= 1
 
-        # waiting for errata count to become 0, as profile uploading take some
-        # amount of time
+        # waiting for errata count to become 0, as profile uploading take some amount of time
         wait_for(
             lambda: rhel_client.applicable_errata_count == 0,
             timeout=400,
