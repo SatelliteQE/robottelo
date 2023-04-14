@@ -1,10 +1,9 @@
 import time
 from datetime import datetime
 
-from robottelo.logging import logger
-
 from robottelo.constants import PUPPET_CAPSULE_INSTALLER
 from robottelo.constants import PUPPET_COMMON_INSTALLER_OPTS
+from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 
 
