@@ -1984,6 +1984,36 @@ def test_positive_manage_table_columns(session):
 
 
 @pytest.mark.tier4
+def test_positive_host_details_read_templates(session, target_sat):
+    """Check if all assigned host provisioning templates are correctly reported
+    in host detail / Details tab / Provisioning templates card.
+
+    :id: 43ca722e-d28a-11ed-8970-000c2989e153
+
+    :steps:
+        1. Go to Hosts page and select the Satellite host machine.
+        2. Go to the Details tab.
+        3. Gather all names from the `Provisioning templates` card.
+        4. Compare them with the host provisioning templates obtained via API.
+
+    :expectedresults: Provisioning templates reported via API and in UI should match.
+
+    :CaseLevel: System
+    """
+    host = target_sat.api.Host().search(query={'search': f'name={target_sat.hostname}'})[0]
+    api_templates = [template['name'] for template in host.list_provisioning_templates()]
+    with session:
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.location.select(loc_name=DEFAULT_LOC)
+        host_detail = session.host_new.get_details(target_sat.hostname, widget_names='details')
+        ui_templates = [
+            row['column1'].strip()
+            for row in host_detail['details']['provisioning_templates']['templates_table']
+        ]
+    assert set(api_templates) == set(ui_templates)
+
+
+@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
