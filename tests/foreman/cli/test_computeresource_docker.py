@@ -30,7 +30,7 @@ from robottelo.constants import REPO_TYPE
 @pytest.mark.skip_if_not_set('docker')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_upload_image(self, module_org, target_sat, container_contenthost):
+def test_positive_upload_image(module_org, target_sat, container_contenthost):
     """A Docker-enabled client can create a new ``Dockerfile``
     pointing to an existing Docker image from a Satellite 6 and modify it.
     Then, using ``docker build`` generate a new image which can then be
