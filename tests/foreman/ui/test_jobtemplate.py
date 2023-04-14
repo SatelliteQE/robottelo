@@ -44,9 +44,8 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
         {
             'name': gen_string('alpha'),
             'required': True,
-            'input_type': 'Puppet parameter',
-            'input_content.puppet_class_name': gen_string('alpha'),
-            'input_content.puppet_parameter_name': gen_string('alpha'),
+            'input_type': 'Variable',
+            'input_content.variable_name': gen_string('alpha'),
             'input_content.description': gen_string('alpha'),
         },
         {
@@ -93,7 +92,6 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
                 'inputs': template_inputs,
                 'job.value': value,
                 'job.current_user': True,
-                'job.overridable': False,
                 'job.foreign_input_sets': job_foreign_input_sets,
                 'type.snippet': True,
                 'organizations.resources.assigned': [module_org.name, "Default Organization"],
@@ -111,7 +109,6 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
         assert template['job']['timeout'] == '6000'
         assert template['job']['value'] == value
         assert template['job']['current_user']
-        assert template['job']['overridable'] is False
         assert template['type']['snippet']
         assert module_org.name in template['organizations']['resources']['assigned']
         assert module_location.name in template['locations']['resources']['assigned']
@@ -120,12 +117,8 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
         assert template['inputs'][0]['required'] == template_inputs[0]['required']
         assert template['inputs'][0]['input_type'] == template_inputs[0]['input_type']
         assert (
-            template['inputs'][0]['input_content']['puppet_class_name']
-            == template_inputs[0]['input_content.puppet_class_name']
-        )
-        assert (
-            template['inputs'][0]['input_content']['puppet_parameter_name']
-            == template_inputs[0]['input_content.puppet_parameter_name']
+            template['inputs'][0]['input_content']['variable_name']
+            == template_inputs[0]['input_content.variable_name']
         )
         assert (
             template['inputs'][0]['input_content']['description']
@@ -184,6 +177,7 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
             == job_foreign_input_sets[1]['include']
         )
         session.organization.select(org_name="Default Organization")
+        session.location.select(loc_name="Any location")
         template_values = session.jobtemplate.read(
             template_name,
             editor_view_option='Preview',
