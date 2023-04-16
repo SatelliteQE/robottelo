@@ -464,6 +464,7 @@ def test_positive_resynchronize_rpm_repo(session, module_prod):
         assert int(repo_values['content_counts']['Packages']) >= 1
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
@@ -530,6 +531,7 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
         assert not session.repository.search(module_prod.name, new_repo_name)
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
