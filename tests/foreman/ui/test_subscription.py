@@ -65,6 +65,7 @@ def golden_ticket_host_setup(function_entitlement_manifest_org, module_target_sa
     return org, ak
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, target_sat):
