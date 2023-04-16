@@ -31,6 +31,7 @@ from robottelo.constants import FAKE_3_CUSTOM_PACKAGE_NAME
 from robottelo.utils.datafactory import gen_string
 
 
+@pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_end_to_end(session):
