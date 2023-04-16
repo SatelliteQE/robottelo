@@ -143,6 +143,7 @@ def vm(module_repos_collection_with_setup, rhel7_contenthost, target_sat):
     yield rhel7_contenthost
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 @pytest.mark.parametrize('setting_update', ['remote_execution_by_default'], indirect=True)
 @pytest.mark.parametrize(
