@@ -194,7 +194,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_generate_errata_for_client)
     def test_post_scenario_errata_count_installation(self, target_sat, pre_upgrade_data):
         """Post-upgrade scenario that applies errata on the RHEL client that was set up
-        in the pre-upgrade test and verifies if the errata application was successfull.
+        in the pre-upgrade test and verifies that the errata was applied correctly.
 
         :id: postupgrade-88fd28e6-b4df-46c0-91d6-784859fd1c21
 
