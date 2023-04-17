@@ -53,6 +53,7 @@ def validate_repo_content(repo, content_types, after_sync=True):
             ), 'Repository contains invalid number of content entities.'
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 def test_positive_end_to_end(session, module_org):
     """Perform end to end scenario for sync plan component

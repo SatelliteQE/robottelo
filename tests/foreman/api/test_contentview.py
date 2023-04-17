@@ -1080,6 +1080,7 @@ def test_positive_admin_user_actions(
         content_view.read()
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 def test_positive_readonly_user_actions(target_sat, function_role, content_view, module_org):
     """Attempt to view content views
