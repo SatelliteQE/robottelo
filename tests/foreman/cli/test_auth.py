@@ -169,6 +169,7 @@ def test_positive_log_out_from_session(admin_user, target_sat):
         Org.with_user().list()
 
 
+@pytest.mark.e2e
 @pytest.mark.tier1
 def test_positive_change_session(admin_user, non_admin_user, target_sat):
     """Change from existing session to a different session
