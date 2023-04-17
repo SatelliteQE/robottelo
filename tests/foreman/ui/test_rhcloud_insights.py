@@ -16,6 +16,7 @@
 
 :Upstream: No
 """
+import time
 from datetime import datetime
 
 import pytest
@@ -287,9 +288,19 @@ def test_host_details_page(
             silent_failure=True,
             handle_exception=True,
         )
-        result = session.host.host_status(rhel_insights_vm.hostname)
-        assert 'Insights: Reporting' in result
-        assert 'Inventory: Successfully uploaded to your RH cloud inventory' in result
+        # Wait for inventory upload status to be updated
+        for i in range(1, 4):
+            result = session.host.host_status(rhel_insights_vm.hostname)
+            try:
+                assert 'Insights: Reporting' in result
+                assert 'Inventory: Successfully uploaded to your RH cloud inventory' in result
+                break
+            except AssertionError:
+                if i == 3:
+                    raise
+                else:
+                    time.sleep(30)
+                    continue
         result = session.host.search(rhel_insights_vm.hostname)[0]
         assert result['Name'] == rhel_insights_vm.hostname
         assert int(result['Recommendations']) > 0
