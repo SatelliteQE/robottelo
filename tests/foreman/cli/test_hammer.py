@@ -30,7 +30,7 @@ from robottelo.logging import logger
 
 HAMMER_COMMANDS = json.loads(DataFile.HAMMER_COMMANDS_JSON.read_text())
 
-pytestmark = [pytest.mark.tier1, pytest.mark.upgrade, pytest.mark.e2e]
+pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
 
 
 def fetch_command_info(command):
