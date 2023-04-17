@@ -18,7 +18,7 @@
 """
 import pytest
 from airgun.session import Session
-from broker import Broker
+from broker.broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 

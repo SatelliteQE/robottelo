@@ -15,7 +15,7 @@
 :Upstream: No
 """
 import pytest
-from broker import Broker
+from broker.broker import Broker
 
 from robottelo.hosts import get_sat_rhel_version
 from robottelo.hosts import get_sat_version

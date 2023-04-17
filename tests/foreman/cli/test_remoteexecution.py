@@ -21,7 +21,7 @@ from datetime import timedelta
 from time import sleep
 
 import pytest
-from broker import Broker
+from broker.broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 from wait_for import wait_for

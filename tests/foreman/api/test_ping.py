@@ -19,7 +19,7 @@
 import pytest
 
 pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
-
+from robottelo.logging import logger
 
 @pytest.mark.e2e
 @pytest.mark.build_sanity
@@ -30,6 +30,7 @@ def test_positive_ping(target_sat):
 
     :expectedresults: Overall and individual services status should be 'ok'.
     """
+    logger.info("xxx inside test body")
     response = target_sat.api.Ping().search_json()
     assert response['status'] == 'ok'  # overall status
 

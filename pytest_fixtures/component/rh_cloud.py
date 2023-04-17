@@ -1,5 +1,5 @@
 import pytest
-from broker import Broker
+from broker.broker import Broker
 
 
 @pytest.fixture(scope='module')

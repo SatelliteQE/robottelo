@@ -17,7 +17,7 @@
 :Upstream: No
 """
 import pytest
-from broker import Broker
+from broker.broker import Broker
 
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.config import settings

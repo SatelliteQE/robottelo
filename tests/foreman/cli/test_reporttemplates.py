@@ -16,7 +16,7 @@
 :Upstream: No
 """
 import pytest
-from broker import Broker
+from broker.broker import Broker
 from fauxfactory import gen_alpha
 
 from robottelo.cli.activationkey import ActivationKey

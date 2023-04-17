@@ -17,7 +17,7 @@
 :Upstream: No
 """
 import pytest
-from broker import Broker
+from broker.broker import Broker
 
 from robottelo.hosts import ContentHost
 

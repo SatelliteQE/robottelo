@@ -5,7 +5,7 @@ from pathlib import Path
 import logzero
 import yaml
 from box import Box
-from broker.logger import setup_logzero as broker_log_setup
+from broker.logger import setup_logger as broker_log_setup
 from manifester.logger import setup_logzero as manifester_log_setup
 
 
@@ -24,10 +24,11 @@ defaultFormatter = logzero.LogFormatter(
 )
 
 logger = logzero.setup_logger(
+    name='robottelo',
     level=logging_yaml.robottelo.level,
     logfile=str(robottelo_log_file),
     fileLoglevel=logging_yaml.robottelo.fileLevel,
-    isRootLogger=True,
+    isRootLogger=False,
     formatter=defaultFormatter,
     maxBytes=1e8,  # 100MB
     backupCount=3,
@@ -58,18 +59,21 @@ def configure_third_party_logging():
 
 
 configure_third_party_logging()
+
 broker_log_setup(
+    name='robottelo.broker',
     level=logging_yaml.robottelo.level,
     file_level=logging_yaml.robottelo.fileLevel,
-    path=str(robottelo_log_file),
+    formatter=defaultFormatter,
+    propagate=True,
 )
-manifester_log_setup(logging_yaml.robottelo.fileLevel, str(robottelo_log_file))
+
+#manifester_log_setup(logging_yaml.robottelo.fileLevel, str(robottelo_log_file))
 
 
 collection_logger = logzero.setup_logger(
     name='robottelo.collection',
     level=logging_yaml.collection.level,
-    logfile=str(robottelo_log_file),
     fileLoglevel=logging_yaml.collection.fileLevel,
     formatter=defaultFormatter,
 )

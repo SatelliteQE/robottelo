@@ -20,7 +20,7 @@ sat6-upgrade requires env.satellite_hostname to be set, this is required for the
 :Upstream: No
 """
 import pytest
-from broker import Broker
+from broker.broker import Broker
 
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME

@@ -17,7 +17,7 @@
 :Upstream: No
 """
 import pytest
-from broker import Broker
+from broker.broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 from requests import HTTPError

@@ -2,7 +2,7 @@ from contextlib import contextmanager
 
 import pytest
 from box import Box
-from broker import Broker
+from broker.broker import Broker
 from wait_for import wait_for
 
 from robottelo.config import settings

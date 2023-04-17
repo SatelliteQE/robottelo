@@ -2,7 +2,7 @@
 from pathlib import Path
 
 import pytest
-from broker import Broker
+from broker.broker import Broker
 from fauxfactory import gen_string
 
 from robottelo.constants import CERT_DATA as cert_data

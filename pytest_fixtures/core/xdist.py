@@ -2,7 +2,7 @@
 import random
 
 import pytest
-from broker import Broker
+from broker.broker import Broker
 
 from robottelo.config import configure_airgun
 from robottelo.config import configure_nailgun

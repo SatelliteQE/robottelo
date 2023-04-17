@@ -17,7 +17,7 @@
 :Upstream: No
 """
 import pytest
-from broker import Broker
+from broker.broker import Broker
 
 from robottelo.config import settings
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME

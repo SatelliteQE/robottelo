@@ -16,7 +16,7 @@ from urllib.parse import urlunsplit
 
 import requests
 from box import Box
-from broker import Broker
+from broker.broker import Broker
 from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha

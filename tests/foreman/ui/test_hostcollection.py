@@ -19,7 +19,7 @@
 import time
 
 import pytest
-from broker import Broker
+from broker.broker import Broker
 from nailgun import entities
 
 from robottelo import constants

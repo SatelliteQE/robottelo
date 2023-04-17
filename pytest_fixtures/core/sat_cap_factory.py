@@ -1,5 +1,5 @@
 import pytest
-from broker import Broker
+from broker.broker import Broker
 from wait_for import wait_for
 
 from pytest_fixtures.component.satellite_auth import disenroll_idm

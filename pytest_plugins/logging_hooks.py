@@ -1,6 +1,4 @@
 import logging
-import logzero
-import pytest
 from xdist import is_xdist_worker, get_xdist_worker_id
 
 from robottelo.logging import logger

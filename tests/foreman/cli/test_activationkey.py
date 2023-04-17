@@ -20,7 +20,7 @@ import re
 from random import choice
 
 import pytest
-from broker import Broker
+from broker.broker import Broker
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 

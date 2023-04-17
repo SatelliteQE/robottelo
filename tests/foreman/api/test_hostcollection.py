@@ -20,7 +20,7 @@ from random import choice
 from random import randint
 
 import pytest
-from broker import Broker
+from broker.broker import Broker
 from nailgun import entities
 from requests.exceptions import HTTPError
 
