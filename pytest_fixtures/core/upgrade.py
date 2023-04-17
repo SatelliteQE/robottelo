@@ -30,7 +30,7 @@ def pre_configured_capsule(session_target_sat):
     # do an intersection of both sets to just select those hosts that we have in the capsules
     # from that intersection take the Capsule that is not Satellite and return it
     intersect = inventory.intersection(capsules)
-    intersect.remove(session_target_sat.hostname)
+    intersect.discard(session_target_sat.hostname)
     assert len(intersect) == 1, "More than one Capsule found in the inventory"
     target_capsule = intersect.pop()
     hosts = Broker(host_class=Capsule).from_inventory(filter=f'hostname={target_capsule}')
