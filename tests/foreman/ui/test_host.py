@@ -275,6 +275,7 @@ def tracer_install_host(rex_contenthost, target_sat):
     yield rex_contenthost
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_options):
     """Create a new Host with parameters, config group. Check host presence on

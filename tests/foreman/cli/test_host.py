@@ -302,6 +302,7 @@ def test_positive_search_all_field_sets():
 
 
 # -------------------------- CREATE SCENARIOS -------------------------
+@pytest.mark.e2e
 @pytest.mark.cli_host_create
 @pytest.mark.tier1
 @pytest.mark.upgrade
