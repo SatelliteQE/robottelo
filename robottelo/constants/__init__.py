@@ -824,7 +824,6 @@ FAKE_3_YUM_REPO_RPMS = [
     'seal-1.0.10-1.noarch.rpm',
 ]
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS = {'rpm': 35, 'package_group': 2, 'erratum': 4}
-PULP_PUBLISHED_YUM_REPOS_PATH = '/var/lib/pulp/published/yum/http/repos'
 
 FAKE_FILE_LARGE_URL = 'https://fixtures.pulpproject.org/file-large/'
 FAKE_FILE_LARGE_COUNT = 10
