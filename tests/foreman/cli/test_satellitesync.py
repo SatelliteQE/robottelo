@@ -1003,7 +1003,7 @@ class TestContentViewSync:
         export_import_cleanup_function,
         config_export_import_settings,
         function_entitlement_manifest_org,
-        duplicate_entitlement_manifest,
+        function_secondary_entitlement_manifest,
         target_sat,
     ):
         """Export CV version redhat contents in directory and Import them
@@ -1094,7 +1094,7 @@ class TestContentViewSync:
         assert result.stdout != ''
         target_sat.upload_manifest(
             importing_org.id,
-            duplicate_entitlement_manifest,
+            function_secondary_entitlement_manifest,
             interface='CLI',
             timeout=7200000,
         )
@@ -1136,7 +1136,7 @@ class TestContentViewSync:
         config_export_import_settings,
         target_sat,
         function_entitlement_manifest_org,
-        duplicate_entitlement_manifest,
+        function_secondary_entitlement_manifest,
     ):
         """Export CV version redhat contents in directory and Import them
 
@@ -1219,7 +1219,7 @@ class TestContentViewSync:
         # Import and verify content
         target_sat.upload_manifest(
             importing_org.id,
-            duplicate_entitlement_manifest,
+            function_secondary_entitlement_manifest,
             interface='CLI',
             timeout=7200000,
         )
