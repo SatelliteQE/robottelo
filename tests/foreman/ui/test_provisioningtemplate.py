@@ -81,6 +81,34 @@ def test_positive_clone(session, clone_setup):
 
 
 @pytest.mark.tier2
+def test_positive_clone_locked(session, target_sat):
+    """Assure ability to clone a locked provisioning template
+
+    :id: 2df8550a-fe7d-405f-ab48-2896554cda12
+
+    :Steps:
+        1.  Go to Provisioning template UI
+        2.  Choose a locked provisioning template and attempt to clone it
+
+    :expectedresults: The template is cloned
+
+    :CaseLevel: Integration
+    """
+    clone_name = gen_string('alpha')
+    with session:
+        session.provisioningtemplate.clone(
+            'Kickstart default',
+            {
+                'template.name': clone_name,
+            },
+        )
+        pt = target_sat.api.ProvisioningTemplate().search(query={'search': f'name=={clone_name}'})
+        assert pt, (
+            f'Template {clone_name} expected to exist but is not included in the search' 'results'
+        )
+
+
+@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_location, template_data, target_sat):
     """Perform end to end testing for provisioning template component
