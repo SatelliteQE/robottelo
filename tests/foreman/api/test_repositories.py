@@ -195,6 +195,7 @@ def test_positive_sync_kickstart_repo(self, module_entitlement_manifest_org, tar
     assert rh_repo.content_counts['rpm'] > 0
 
 
+@pytest.mark.tier1
 def test_negative_upload_expired_manifest(module_org, target_sat):
     """Upload an expired manifest and attempt to refresh it
 
@@ -209,12 +210,11 @@ def test_negative_upload_expired_manifest(module_org, target_sat):
     """
     manifester = Manifester(manifest_category=settings.manifest.entitlement)
     manifest = manifester.get_manifest()
-    manifester.delete_subscription_allocation()
     target_sat.upload_manifest(module_org.id, manifest.content)
+    manifester.delete_subscription_allocation()
     with pytest.raises(CLIReturnCodeError) as error:
         Subscription.refresh_manifest({'organization-id': module_org.id})
     assert (
-        'The Subscription Allocation providing the imported manifest has been removed. '
-        'Please create a new Subscription Allocation and import the new manifest'
-        in error.value.stderr
+        "The manifest doesn't exist on console.redhat.com. "
+        "Please create and import a new manifest." in error.value.stderr
     )
