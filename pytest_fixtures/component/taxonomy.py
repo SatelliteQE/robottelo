@@ -193,6 +193,15 @@ def function_entitlement_manifest():
 
 
 @pytest.fixture(scope='function')
+def function_secondary_entitlement_manifest():
+    """Yields a manifest in entitlement mode with subscriptions determined by the
+    `manifest_category.entitlement` setting in conf/manifest.yaml.
+    A different one than is used in `function_entitlement_manifest_org`."""
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
+        yield manifest
+
+
+@pytest.fixture(scope='function')
 def function_sca_manifest():
     """Yields a manifest in Simple Content Access mode with subscriptions determined by the
     `manifest_category.golden_ticket` setting in conf/manifest.yaml."""
