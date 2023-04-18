@@ -1,4 +1,5 @@
 """Miscellaneous content helper functions"""
+import os
 import re
 
 import requests
@@ -31,12 +32,12 @@ def get_repo_files(repo_path, extension='rpm', hostname=None):
     return sorted(repo_file for repo_file in result.stdout.splitlines() if repo_file)
 
 
-def get_repo_files_by_url(url, extension='rpm'):
-    """Returns a list of repo files (for example rpms) in a specific repository
-    published at some url.
-    :param url: url where the repo or CV is published
+def get_repo_files_urls_by_url(url, extension='rpm'):
+    """Returns a list of URLs of repo files (for example rpms) in a specific repository
+    published at some URL.
+    :param url: URL where the repo or CV is published
     :param extension: extension of searched files. Defaults to 'rpm'
-    :return:  list representing rpm package names
+    :return:  list representing package URLs
     """
     if not url.endswith('/'):
         url += '/'
@@ -46,16 +47,25 @@ def get_repo_files_by_url(url, extension='rpm'):
         raise requests.HTTPError(f'{url} is not accessible')
 
     links = re.findall(r'(?<=href=").*?(?=">)', result.text)
-
     if 'Packages/' not in links:
-        return sorted(line for line in links if extension in line)
+        files = sorted(line for line in links if extension in line)
+        return [f'{url}{file}' for file in files]
 
     files = []
-    subs = get_repo_files_by_url(f'{url}Packages/', extension='/')
+    subs = get_repo_files_urls_by_url(f'{url}Packages/', extension='/')
     for sub in subs:
-        files.extend(get_repo_files_by_url(f'{url}Packages/{sub}', extension))
-
+        files.extend(get_repo_files_urls_by_url(sub, extension))
     return sorted(files)
+
+
+def get_repo_files_by_url(url, extension='rpm'):
+    """Returns a list of repo files (for example rpms) in a specific repository
+    published at some URL.
+    :param url: URL where the repo or CV is published
+    :param extension: extension of searched files. Defaults to 'rpm'
+    :return:  list representing package names
+    """
+    return sorted([os.path.basename(f) for f in get_repo_files_urls_by_url(url, extension)])
 
 
 def get_repomd(repo_url):

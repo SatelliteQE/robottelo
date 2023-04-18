@@ -16,20 +16,16 @@
 
 :Upstream: No
 """
+import os
+
 import pytest
-from fabric.api import execute
-from fabric.api import run
-from nailgun.entity_mixins import call_entity_method_with_timeout
-from upgrade.helpers.tasks import wait_untill_capsule_sync
-from upgrade_tests.helpers.scenarios import rpm1
-from upgrade_tests.helpers.scenarios import rpm2
 
+from robottelo import constants
 from robottelo.config import settings
-from robottelo.upgrade_utility import create_repo
-from robottelo.utils.datafactory import gen_string
+from robottelo.content_info import get_repo_files_urls_by_url
 
 
-def cleanup(content_view, repo, product):
+def cleanup(target_sat, content_view, repo, product):
     """
     This function is used to perform the cleanup of created content view, repository and product.
     """
@@ -41,24 +37,24 @@ def cleanup(content_view, repo, product):
     product.delete()
 
     # To clean the orphaned content for next run, it is used to fix KCS#4820591
-    run("foreman-rake katello:delete_orphaned_content")
+    target_sat.execute('foreman-rake katello:delete_orphaned_content')
 
 
 class TestCapsuleSync:
     """
-    The test class contains pre-upgrade and post-upgrade scenario to test the capsule sync
+    Test class contains pre-upgrade and post-upgrade scenario to test the capsule sync
     in the post-upgrade of pre-upgraded repo.
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_user_scenario_capsule_sync(self, request, target_sat, default_org):
-        """Pre-upgrade scenario that creates and sync repository with
-        rpm in satellite which will be synced in post upgrade scenario.
+    def test_pre_user_scenario_capsule_sync(self, target_sat, default_org, save_test_data):
+        """Pre-upgrade scenario that creates and syncs repository with
+        rpm in Satellite which will be synced in post upgrade scenario.
 
         :id: preupgrade-eb8970fa-98cc-4a99-99fb-1c12c4e319c9
 
         :steps:
-            1. Before Satellite upgrade, Sync a repo/rpm in satellite
+            1. Before Satellite upgrade, sync a RPM repo to Satellite
 
         :expectedresults:
             1. The repo/rpm should be synced to satellite
@@ -66,38 +62,33 @@ class TestCapsuleSync:
             id's list
 
         """
-        pre_test_name = request.node.name
-        repo_name = f"{pre_test_name}_repo"
-        repo_path = f'/var/www/html/pub/{repo_name}/'
-        activation_key = (
+        ak_name = (
             settings.upgrade.capsule_ak[settings.upgrade.os]
             or settings.upgrade.custom_capsule_ak[settings.upgrade.os]
         )
-        prod_name = f"{pre_test_name}_prod"
-        cv_name = f"{pre_test_name}_cv"
-        repo_url = f'http://{target_sat.hostname}/pub/{repo_name}'
-        ak = target_sat.api.ActivationKey(organization=default_org.id).search(
-            query={'search': f'name={activation_key}'}
+        ak = target_sat.api.ActivationKey(organization=default_org).search(
+            query={'search': f'name={ak_name}'}
         )[0]
         ak_env = ak.environment.read()
-
-        product = target_sat.api.Product(name=prod_name, organization=default_org.id).create()
-        create_repo(rpm1, repo_path)
-        repo = target_sat.api.Repository(product=product.id, name=repo_name, url=repo_url).create()
+        product = target_sat.api.Product(organization=default_org).create()
+        repo = target_sat.api.Repository(product=product, url=settings.repos.yum_1.url).create()
         repo.sync()
-        content_view = target_sat.api.ContentView(
-            name=cv_name, organization=default_org.id
-        ).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        content_view.publish()
+        content_view = target_sat.publish_content_view(default_org, repo)
         content_view.read().version[0].promote(data={'environment_ids': ak_env.id})
         content_view_env_id = [env.id for env in content_view.read().environment]
         assert ak_env.id in content_view_env_id
+        save_test_data(
+            {
+                'ak_id': ak.id,
+                'repo_id': repo.id,
+                'product_id': product.id,
+                'content_view_id': content_view.id,
+            }
+        )
 
     @pytest.mark.post_upgrade(depend_on=test_pre_user_scenario_capsule_sync)
     def test_post_user_scenario_capsule_sync(
-        self, request, dependent_scenario_name, target_sat, default_org
+        self, request, target_sat, pre_configured_capsule, pre_upgrade_data
     ):
         """Post-upgrade scenario that sync capsule from satellite and then
         verifies if the repo/rpm of pre-upgrade scenario is synced to capsule
@@ -107,59 +98,63 @@ class TestCapsuleSync:
 
         :steps:
             1. Run capsule sync post upgrade.
-            2. Check if the repo/rpm is been synced to capsule.
+            2. Check if the repo/rpm has been synced to capsule.
 
         :expectedresults:
             1. The capsule sync should be successful
             2. The repos/rpms from satellite should be synced to satellite
 
         """
-        request.addfinalizer(lambda: cleanup(content_view, repo, product))
-        pre_test_name = dependent_scenario_name
-        rpm_name = rpm1.split('/')[-1]
-        cap_host = settings.upgrade.capsule_hostname
-        activation_key = (
-            settings.upgrade.capsule_ak[settings.upgrade.os]
-            or settings.upgrade.custom_capsule_ak[settings.upgrade.os]
-        )
-        ak = target_sat.api.ActivationKey(organization=default_org.id).search(
-            query={'search': f'name={activation_key}'}
-        )[0]
-        repo = target_sat.api.Repository(organization=default_org.id).search(
-            query={'search': f'name={pre_test_name}_repo'}
-        )[0]
-        product = target_sat.api.Product(organization=default_org.id).search(
-            query={'search': f'name={pre_test_name}_prod'}
-        )[0]
-        env_name = ak.environment.read()
-        org_name = env_name.organization.read_json()['label']
+        request.addfinalizer(lambda: cleanup(target_sat, content_view, repo, product))
+        ak = target_sat.api.ActivationKey(id=pre_upgrade_data.get('ak_id')).read()
+        repo = target_sat.api.Repository(id=pre_upgrade_data.get('repo_id')).read()
+        product = target_sat.api.Product(id=pre_upgrade_data.get('product_id')).read()
+        ak_env = ak.environment.read()
+        org = ak.organization.read()
+        content_view = target_sat.api.ContentView(id=pre_upgrade_data.get('content_view_id')).read()
+        pre_configured_capsule.nailgun_capsule.content_sync(timeout=3600)
+        pre_configured_capsule.wait_for_sync(timeout=9000)
 
-        content_view = target_sat.api.ContentView(organization=f'{default_org.id}').search(
-            query={'search': f'name={pre_test_name}_cv'}
-        )[0]
-        capsule = target_sat.api.SmartProxy().search(query={'search': f'name={cap_host}'})[0]
-        call_entity_method_with_timeout(
-            target_sat.api.Capsule(id=capsule.id).content_sync, timeout=3600
+        sat_repo_url = target_sat.get_published_repo_url(
+            org=org.label,
+            lce=ak_env.label,
+            cv=content_view.label,
+            prod=product.label,
+            repo=repo.label,
         )
-        result = execute(
-            lambda: run(
-                f'[ -f /var/lib/pulp/published/yum/http/repos/'
-                f'{org_name}/{env_name.name}/{content_view.name}/custom/{pre_test_name}_prod/'
-                f'{pre_test_name}_repo/Packages/b/{rpm_name} ]; echo $?'
-            ),
-            host=cap_host,
-        )[cap_host]
-        assert result == '0'
+        cap_repo_url = pre_configured_capsule.get_published_repo_url(
+            org=org.label,
+            lce=ak_env.label,
+            cv=content_view.label,
+            prod=product.label,
+            repo=repo.label,
+        )
+        sat_files_urls = get_repo_files_urls_by_url(sat_repo_url)
+        cap_files_urls = get_repo_files_urls_by_url(cap_repo_url)
+        assert len(sat_files_urls) == len(cap_files_urls) == constants.FAKE_1_YUM_REPOS_COUNT
+
+        sat_files = {os.path.basename(f) for f in sat_files_urls}
+        cap_files = {os.path.basename(f) for f in cap_files_urls}
+        assert sat_files == cap_files
+
+        for pkg in constants.FAKE_1_YUM_REPO_RPMS:
+            assert pkg in sat_files, f'{pkg=} is not in the {repo=} on satellite'
+            assert pkg in cap_files, f'{pkg=} is not in the {repo=} on capsule'
+
+        sat_files_md5 = [target_sat.md5_by_url(url) for url in sat_files_urls]
+        cap_files_md5 = [target_sat.md5_by_url(url) for url in cap_files_urls]
+        assert sat_files_md5 == cap_files_md5
 
 
 class TestCapsuleSyncNewRepo:
     """
-    The test class contains a post-upgrade scenario to test the capsule sync of new added yum
-    and puppet repo.
+    Test class contains a post-upgrade scenario to test the capsule sync of newly added yum repo.
     """
 
     @pytest.mark.post_upgrade
-    def test_post_user_scenario_capsule_sync_yum_repo(self, request, target_sat, default_org):
+    def test_post_user_scenario_capsule_sync_yum_repo(
+        self, request, target_sat, pre_configured_capsule, default_org
+    ):
         """Post-upgrade scenario that creates and sync repository with
         rpm, sync capsule with satellite and verifies if the repo/rpm in
         satellite is synced to capsule.
@@ -169,7 +164,7 @@ class TestCapsuleSyncNewRepo:
         :steps:
             1. Post Upgrade , Sync a repo/rpm in satellite.
             2. Run capsule sync.
-            3. Check if the repo/rpm is been synced to capsule.
+            3. Check if the repo/rpm has been synced to capsule.
 
         :expectedresults:
             1. The repo/rpm should be synced to satellite
@@ -177,42 +172,52 @@ class TestCapsuleSyncNewRepo:
             3. The repo/rpm from satellite should be synced to capsule
 
         """
-        request.addfinalizer(lambda: cleanup(content_view, repo, product))
-        repo_name = gen_string('alpha')
-        rpm_name = rpm2.split('/')[-1]
+        request.addfinalizer(lambda: cleanup(target_sat, content_view, repo, product))
         activation_key = (
             settings.upgrade.capsule_ak[settings.upgrade.os]
             or settings.upgrade.custom_capsule_ak[settings.upgrade.os]
         )
-        cap_host = settings.upgrade.capsule_hostname
-        ak = target_sat.api.ActivationKey(organization=default_org.id).search(
+        ak = target_sat.api.ActivationKey(organization=default_org).search(
             query={'search': f'name={activation_key}'}
         )[0]
         ak_env = ak.environment.read()
-        repo_url = f'http://{target_sat.hostname}/pub/{repo_name}/'
-        product = target_sat.api.Product(organization=default_org.id).create()
-        repo_path = f'/var/www/html/pub/{repo_name}/'
-        create_repo(rpm2, repo_path)
-
-        repo = target_sat.api.Repository(
-            product=product.id, name=f'{repo_name}', url=repo_url
-        ).create()
+        product = target_sat.api.Product(organization=default_org).create()
+        repo = target_sat.api.Repository(product=product, url=settings.repos.yum_1.url).create()
         repo.sync()
-        content_view = target_sat.api.ContentView(organization=default_org.id).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        content_view.publish()
+        content_view = target_sat.publish_content_view(default_org, repo)
         content_view.read().version[0].promote(data={'environment_ids': ak_env.id})
         content_view_env = [env.id for env in content_view.read().environment]
         assert ak_env.id in content_view_env
+        pre_configured_capsule.nailgun_capsule.content_sync()
+        pre_configured_capsule.wait_for_sync(timeout=9000)
 
-        wait_untill_capsule_sync(cap_host)
-        result = execute(
-            lambda: run(
-                f'[ -f /var/lib/pulp/published/yum/http/repos/{default_org.label}/{ak_env.name}/'
-                f'{content_view.name}/custom/{product.name}/{repo_name}/Packages/c/{rpm_name} ];'
-                f' echo $?'
-            ),
-            host=cap_host,
-        )[cap_host]
-        assert '0' == result
+        sat_repo_url = target_sat.get_published_repo_url(
+            org=default_org.label,
+            lce=ak_env.label,
+            cv=content_view.label,
+            prod=product.label,
+            repo=repo.label,
+        )
+        cap_repo_url = pre_configured_capsule.get_published_repo_url(
+            org=default_org.label,
+            lce=ak_env.label,
+            cv=content_view.label,
+            prod=product.label,
+            repo=repo.label,
+        )
+
+        sat_files_urls = get_repo_files_urls_by_url(sat_repo_url)
+        cap_files_urls = get_repo_files_urls_by_url(cap_repo_url)
+        assert len(sat_files_urls) == len(cap_files_urls) == constants.FAKE_1_YUM_REPOS_COUNT
+
+        sat_files = {os.path.basename(f) for f in sat_files_urls}
+        cap_files = {os.path.basename(f) for f in cap_files_urls}
+        assert sat_files == cap_files
+
+        for pkg in constants.FAKE_1_YUM_REPO_RPMS:
+            assert pkg in sat_files, f'{pkg=} is not in the {repo=} on satellite'
+            assert pkg in cap_files, f'{pkg=} is not in the {repo=} on capsule'
+
+        sat_files_md5 = [target_sat.md5_by_url(url) for url in sat_files_urls]
+        cap_files_md5 = [target_sat.md5_by_url(url) for url in cap_files_urls]
+        assert sat_files_md5 == cap_files_md5
