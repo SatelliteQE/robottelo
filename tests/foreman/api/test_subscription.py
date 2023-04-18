@@ -22,14 +22,12 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 """
 import pytest
 from fauxfactory import gen_string
-from manifester import Manifester
 from nailgun import entities
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 
 from robottelo.cli.subscription import Subscription
-from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -76,14 +74,6 @@ def module_ak(module_sca_manifest_org, rh_repo, custom_repo):
     return module_ak
 
 
-@pytest.fixture(scope='function')
-def duplicate_manifest():
-    """Provides a function-scoped manifest that can be used alongside function_entitlement_manifest
-    when two manifests are required in a single test"""
-    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
-        yield manifest
-
-
 @pytest.mark.tier1
 @pytest.mark.pit_server
 def test_positive_create(module_entitlement_manifest, module_target_sat):
@@ -118,7 +108,7 @@ def test_positive_refresh(function_entitlement_manifest_org, request):
 
 @pytest.mark.tier1
 def test_positive_create_after_refresh(
-    function_entitlement_manifest_org, duplicate_manifest, target_sat
+    function_entitlement_manifest_org, function_secondary_entitlement_manifest, target_sat
 ):
     """Upload a manifest,refresh it and upload a new manifest to an other
      organization.
@@ -139,7 +129,7 @@ def test_positive_create_after_refresh(
     try:
         org_sub.refresh_manifest(data={'organization_id': function_entitlement_manifest_org.id})
         assert org_sub.search()
-        target_sat.upload_manifest(new_org.id, duplicate_manifest.content)
+        target_sat.upload_manifest(new_org.id, function_secondary_entitlement_manifest.content)
         assert new_org_sub.search()
     finally:
         org_sub.delete_manifest(data={'organization_id': function_entitlement_manifest_org.id})
