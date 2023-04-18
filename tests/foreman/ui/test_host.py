@@ -1219,6 +1219,7 @@ def test_positive_global_registration_form(
         assert pair in cmd
 
 
+@pytest.mark.e2e
 @pytest.mark.no_containers
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
@@ -2217,6 +2218,7 @@ def test_positive_apply_erratum(
         assert result.status == 1
 
 
+@pytest.mark.e2e
 @pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.no_containers

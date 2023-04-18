@@ -188,6 +188,7 @@ def test_positive_check_debug_log_levels(target_sat):
     assert 'log4j.logger.org.candlepin = WARN' in result.stdout
 
 
+@pytest.mark.e2e
 def test_positive_hammer_shell(target_sat):
     """Verify that hammer shell runs a command when input is provided via interactive/bash
 
