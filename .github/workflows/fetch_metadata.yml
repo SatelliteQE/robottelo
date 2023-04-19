@@ -16,8 +16,20 @@ jobs:
         uses: dependabot/fetch-metadata@v1
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+      
       - name: Print outputs
         run: |
           echo "Dependency names: ${{ steps.metadata.outputs.dependency-names }}"
           echo "Dependency type: ${{ steps.metadata.outputs.dependency-type }}"
           echo "Update type: ${{ steps.metadata.outputs.update-type }}"
+      
+      - name: fetch the tests from the yaml
+        uses: CumulusDS/get-yaml-paths-action@v1.0.1
+        id: yaml
+        with:
+          file: requirement-tests.yml
+          tests: '"${{ steps.metadata.outputs.dependency-names }}"'
+          
+      - name: Print Pytest Comment 
+        run: |
+          echo "Dependency names: ${{ steps.yaml.outputs.tests }}"
