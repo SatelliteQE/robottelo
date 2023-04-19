@@ -9,19 +9,19 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     steps:
-      - name: Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v1
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-      
-      - name: Print outputs
-        run: |
-          echo "Dependency names: ${{ steps.metadata.outputs.dependency-names }}"
-          echo "Dependency type: ${{ steps.metadata.outputs.dependency-type }}"
-          echo "Update type: ${{ steps.metadata.outputs.update-type }}"
+#      - name: Dependabot metadata
+#        id: metadata
+#        uses: dependabot/fetch-metadata@v1
+#        with:
+#          github-token: "${{ secrets.GITHUB_TOKEN }}"
+#      
+#      - name: Print outputs
+#        run: |
+#          echo "Dependency names: ${{ steps.metadata.outputs.dependency-names }}"
+#          echo "Dependency type: ${{ steps.metadata.outputs.dependency-type }}"
+#          echo "Update type: ${{ steps.metadata.outputs.update-type }}"
       
       - name: fetch the tests from the yaml
         uses: CumulusDS/get-yaml-paths-action@v1.0.1
