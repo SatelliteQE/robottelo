@@ -7,11 +7,20 @@ from robottelo.utils.installer import InstallerCommand
 
 @pytest.fixture(scope='module')
 def sat_with_katello_agent(module_target_sat):
-    """Assert that katello-agent feature is enabled on module_target_sat"""
-    result = module_target_sat.install(
-        InstallerCommand(help='| grep foreman-proxy-content-enable-katello-agent')
+    """Enable katello-agent feature on module_target_sat if not enabled yet."""
+    katello_agent_enabled = (
+        'true'
+        in module_target_sat.install(
+            InstallerCommand(help='| grep foreman-proxy-content-enable-katello-agent')
+        ).stdout
     )
-    assert 'true' in result.stdout, 'katello-agent feature is not enabled on Satellite'
+    if not katello_agent_enabled:
+        module_target_sat.register_to_cdn()
+        # Enable katello-agent from satellite-installer
+        result = module_target_sat.install(
+            InstallerCommand('foreman-proxy-content-enable-katello-agent true')
+        )
+        assert result.status == 0
     yield module_target_sat
 
 
