@@ -29,7 +29,7 @@ jobs:
         with:
           file: ./.github/workflows/requirement-tests.yml
           #tests: '"${{ steps.metadata.outputs.dependency-names }}"'
-          #tests: '"pre-commit"'
+          tests: '"pre-commit"'
           
       - name: Print Pytest Comment 
         run: |
