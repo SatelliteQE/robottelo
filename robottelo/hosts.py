@@ -88,7 +88,7 @@ def get_sat_rhel_version():
     if not available fallback to robottelo configuration."""
 
     try:
-        rhel_version = Satellite().os_version
+        return Satellite().os_version
     except (AuthenticationError, ContentHostError, BoxKeyError):
         if hasattr(settings.server.version, 'rhel_version'):
             rhel_version = str(settings.server.version.rhel_version)
