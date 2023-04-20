@@ -65,7 +65,7 @@ def delete_host(form_data, target_sat):
         target_sat.api.Host(id=results[0].read_json()['id']).delete()
 
 
-@pytest.mark.usefixtures('clean_host')
+@pytest.mark.usefixtures('delete_host')
 class TestVirtWhoConfigforEsx:
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(
