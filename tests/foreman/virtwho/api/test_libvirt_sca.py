@@ -91,9 +91,7 @@ class TestVirtWhoConfigforLibvirt:
     def test_positive_hypervisor_id_option(
         self, module_sca_manifest_org, form_data, virtwho_config, target_sat
     ):
-        """Verify hypervisor_id option by "PUT
-
-        /foreman_virt_who_configure/api/v2/configs/:id"
+        """Verify hypervisor_id option by "PUT /foreman_virt_who_configure/api/v2/configs/:id"
 
         :id: 60f373f0-5179-4531-834d-c297f9f7ea2d
 
