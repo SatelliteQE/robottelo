@@ -58,7 +58,7 @@ def virtwho_config(form_data, target_sat):
 
 
 @pytest.fixture(autouse=True)
-def clean_host(form_data, target_sat):
+def delete_host(form_data, target_sat):
     guest_name, _ = get_guest_info(form_data['hypervisor_type'])
     results = target_sat.api.Host().search(query={'search': guest_name})
     if results:
