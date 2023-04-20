@@ -53,7 +53,6 @@ def validate_repo_content(repo, content_types, after_sync=True):
             ), 'Repository contains invalid number of content entities.'
 
 
-@pytest.mark.e2e
 @pytest.mark.tier2
 def test_positive_end_to_end(session, module_org):
     """Perform end to end scenario for sync plan component
@@ -190,6 +189,7 @@ def test_positive_search_scoped(session, request, target_sat):
         assert name not in session.syncplan.search('enabled = false')
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 def test_positive_synchronize_custom_product_custom_cron_real_time(session, module_org, target_sat):
     """Create a sync plan with real datetime as a sync date,
