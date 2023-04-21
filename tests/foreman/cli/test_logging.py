@@ -29,6 +29,8 @@ from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.logging import logger
 
+pytestmark = pytest.mark.e2e
+
 
 def cut_lines(start_line, end_line, source_file, out_file, host):
     """Given start and end line numbers, cut lines from source file

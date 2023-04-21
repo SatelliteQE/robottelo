@@ -80,13 +80,13 @@ def module_puppet(session_puppet_enabled_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.e2e
 @pytest.mark.skipif(
     not settings.robottelo.repos_hosting_url, reason='repos_hosting_url is not defined'
 )
 class TestSmartClassParameters:
     """Implements Smart Class Parameter tests in API"""
 
+    @pytest.mark.e2e
     @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize('data', **parametrized(valid_sc_parameters_data()))
@@ -150,6 +150,7 @@ class TestSmartClassParameters:
         assert sc_param.read().default_value != test_data['value']
         assert 'Validation failed: Default value is invalid' in context.value.response.text
 
+    @pytest.mark.e2e
     @pytest.mark.tier1
     def test_positive_validate_default_value_required_check(
         self, session_puppet_enabled_sat, module_puppet
@@ -237,6 +238,7 @@ class TestSmartClassParameters:
         assert 'Validation failed: Default value is invalid' in context.value.response.text
         assert sc_param.read().default_value != value
 
+    @pytest.mark.e2e
     @pytest.mark.tier1
     def test_positive_validate_default_value_with_regex(
         self, session_puppet_enabled_sat, module_puppet
@@ -305,6 +307,7 @@ class TestSmartClassParameters:
         assert 'Validation failed: Lookup values is invalid' in context.value.response.text
         assert sc_param.read().default_value != 50
 
+    @pytest.mark.e2e
     @pytest.mark.tier1
     def test_positive_validate_matcher_value_with_list(
         self, session_puppet_enabled_sat, module_puppet
@@ -331,6 +334,7 @@ class TestSmartClassParameters:
         sc_param.update(['override', 'default_value', 'validator_type', 'validator_rule'])
         assert sc_param.read().default_value == 'example'
 
+    @pytest.mark.e2e
     @pytest.mark.tier1
     def test_positive_validate_matcher_value_with_default_type(
         self, session_puppet_enabled_sat, module_puppet
@@ -388,6 +392,7 @@ class TestSmartClassParameters:
             in context.value.response.text
         )
 
+    @pytest.mark.e2e
     @pytest.mark.tier1
     def test_positive_create_and_remove_matcher_puppet_default_value(
         self, session_puppet_enabled_sat, module_puppet
@@ -421,6 +426,7 @@ class TestSmartClassParameters:
         override.delete()
         assert len(sc_param.read().override_values) == 0
 
+    @pytest.mark.e2e
     @pytest.mark.tier1
     def test_positive_enable_merge_overrides_default_checkboxes(self, module_puppet):
         """Enable Merge Overrides, Merge Default checkbox for supported types.
