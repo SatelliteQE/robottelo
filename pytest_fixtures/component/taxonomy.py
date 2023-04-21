@@ -21,6 +21,20 @@ def default_location(session_target_sat):
 
 
 @pytest.fixture
+def current_sat_org(target_sat):
+    """Return the current organization assigned to the Satellite host"""
+    sat_host = target_sat.api.Host().search(query={'search': f'name={target_sat.hostname}'})[0]
+    return sat_host.organization.read().name
+
+
+@pytest.fixture
+def current_sat_location(target_sat):
+    """Return the current location assigned to the Satellite host"""
+    sat_host = target_sat.api.Host().search(query={'search': f'name={target_sat.hostname}'})[0]
+    return sat_host.location.read().name
+
+
+@pytest.fixture
 def function_org(target_sat):
     return target_sat.api.Organization().create()
 
