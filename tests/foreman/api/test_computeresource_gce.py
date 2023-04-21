@@ -367,6 +367,7 @@ class TestGCEHostProvisioningTestCase:
         """Returns the Google Client Host object to perform the assertions"""
         return googleclient.get_vm(name='{}'.format(self.fullhostname.replace('.', '-')))
 
+    @pytest.mark.e2e
     @pytest.mark.tier1
     def test_positive_gce_host_provisioned(self, class_host):
         """Host can be provisioned on Google Cloud

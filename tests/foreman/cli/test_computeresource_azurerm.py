@@ -383,6 +383,7 @@ class TestAzureRMFinishTemplateProvisioning:
         """Returns the AzureRM Client Host object to perform the assertions"""
         return azurermclient.get_vm(name=class_host_ft['name'].split('.')[0])
 
+    @pytest.mark.e2e
     @pytest.mark.upgrade
     @pytest.mark.tier3
     @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)

@@ -32,6 +32,7 @@ from robottelo.utils.datafactory import valid_data_list
 from robottelo.utils.issue_handlers import is_open
 
 
+@pytest.mark.e2e
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.on_premises_provisioning
 @pytest.mark.rhel_ver_match('[^6]')
