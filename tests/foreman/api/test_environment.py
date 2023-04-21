@@ -84,21 +84,16 @@ def test_positive_CRUD_with_attributes(
     # Update org and loc
     new_org = puppet_sat.api.Organization().create()
     new_loc = puppet_sat.api.Location().create()
-    env = puppet_sat.api.Environment(id=environment.id, organization=[new_org]).update(
-        ['organization']
-    )
+    new_env_name = gen_string('alpha')
+    env = puppet_sat.api.Environment(
+        id=environment.id, name=new_env_name, organization=[new_org], location=[new_loc]
+    ).update(['name', 'organization', 'location'])
     assert len(env.organization) == 1
     assert env.organization[0].id == new_org.id
     assert env.organization[0].id != module_puppet_org.id
-
-    env = puppet_sat.api.Environment(id=environment.id, location=[new_loc]).update(['location'])
     assert len(env.location) == 1
     assert env.location[0].id == new_loc.id
     assert env.location[0].id != module_puppet_loc.id
-
-    # Update name
-    new_env_name = gen_string('alpha')
-    env = puppet_sat.api.Environment(id=environment.id, name=new_env_name).update(['name'])
     assert env.name == new_env_name
 
     # Delete
