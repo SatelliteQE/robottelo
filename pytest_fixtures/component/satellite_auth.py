@@ -178,7 +178,7 @@ def ldap_auth_source(
 ):
     auth_type = request.param.lower()
     if 'ad' in auth_type:
-        ad_data = ad_data('2019') if '2019' in auth_type else ad_data()
+        ad_data = ad_data()
         # entity create with AD settings
         auth_source = module_target_sat.api.AuthSourceLDAP(
             onthefly_register=True,
@@ -260,7 +260,7 @@ def ldap_auth_source(
 def auth_data(request, ad_data, ipa_data):
     auth_type = request.param.lower()
     if 'ad' in auth_type:
-        ad_data = ad_data('2019') if '2019' in auth_type else ad_data()
+        ad_data = ad_data()
         ad_data['server_type'] = LDAP_SERVER_TYPE['UI']['ad']
         ad_data['attr_login'] = LDAP_ATTR['login_ad']
         ad_data['auth_type'] = auth_type
@@ -444,8 +444,8 @@ def rhsso_setting_setup_with_timeout(module_target_sat, rhsso_setting_setup):
 
 def enroll_ad_and_configure_external_auth(request, ad_data, sat):
     """Enroll Satellite Server to an AD Server."""
-    auth_type = getattr(request, 'param', 'AD_2016')
-    ad_data = ad_data('2019') if '2019' in auth_type else ad_data()
+    auth_type = getattr(request, 'param', 'AD_2019')
+    ad_data = ad_data()
     packages = (
         'sssd adcli realmd ipa-python-compat krb5-workstation '
         'samba-common-tools gssproxy nfs-utils ipa-client'
