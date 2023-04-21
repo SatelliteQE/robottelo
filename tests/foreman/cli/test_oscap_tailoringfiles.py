@@ -113,7 +113,7 @@ class TestTailoringFiles:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alphanumeric')
+        name = gen_string('utf8', length=5)
         make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
         result = TailoringFiles.list()
         assert name in [tailoringfile['name'] for tailoringfile in result]
