@@ -376,6 +376,7 @@ def test_negative_add_image_rhev_with_invalid_name(rhev, module_os):
         )
 
 
+@pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
