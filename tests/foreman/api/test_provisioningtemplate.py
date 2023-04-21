@@ -226,6 +226,7 @@ class TestProvisioningTemplate:
             updated.read()
         assert e3.value.response.status_code == 404
 
+    @pytest.mark.e2e
     @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.run_in_one_thread
@@ -309,6 +310,7 @@ class TestProvisioningTemplate:
         provision_template = host.read_template(data={'template_kind': 'provision'})
         assert 'ifcfg-$sanitized_real' in str(provision_template)
 
+    @pytest.mark.e2e
     @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
     def test_positive_template_check_ipxe(
         self,
