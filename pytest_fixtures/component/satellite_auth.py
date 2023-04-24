@@ -444,7 +444,6 @@ def rhsso_setting_setup_with_timeout(module_target_sat, rhsso_setting_setup):
 
 def enroll_ad_and_configure_external_auth(request, ad_data, sat):
     """Enroll Satellite Server to an AD Server."""
-    auth_type = getattr(request, 'param', 'AD_2019')
     ad_data = ad_data()
     packages = (
         'sssd adcli realmd ipa-python-compat krb5-workstation '

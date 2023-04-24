@@ -236,9 +236,7 @@ def test_single_sign_on_ldap_ipa_server(
     assert f'{target_sat.url}/hosts' in result.stdout
 
 
-@pytest.mark.parametrize(
-    'func_enroll_ad_and_configure_external_auth', ['AD_2019'], indirect=True
-)
+@pytest.mark.parametrize('func_enroll_ad_and_configure_external_auth', ['AD_2019'], indirect=True)
 def test_single_sign_on_ldap_ad_server(
     subscribe_satellite, func_enroll_ad_and_configure_external_auth, target_sat
 ):
