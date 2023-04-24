@@ -12,6 +12,7 @@ class Colored(Box):
     REDDARK = '\033[1;31m'
     GREEN = '\033[1;32m'
     WHITELIGHT = '\033[1;30m'
+    RESET = '\033[0m'
 
 
 # This should be updated after each version branch
