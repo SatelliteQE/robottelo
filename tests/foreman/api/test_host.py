@@ -1539,6 +1539,7 @@ class TestHostBulkAction:
 class TestHostTraces:
     """Tests for host tracer"""
 
+    @pytest.mark.e2e
     @pytest.mark.tier4
     @pytest.mark.rhel_ver_match('[^6].*')
     def test_positive_tracer_list_and_resolve(self, tracer_host):
@@ -1556,6 +1557,8 @@ class TestHostTraces:
         :parametrized: yes
 
         :CaseImportance: Medium
+
+        :CaseComponent: Katello-tracer
         """
         host = tracer_host.nailgun_host
         package = settings.repos["MOCK_SERVICE_RPM"]

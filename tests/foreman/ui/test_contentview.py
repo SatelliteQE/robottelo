@@ -95,6 +95,7 @@ def test_positive_add_custom_content(session):
         assert cv['repositories']['resources']['assigned'][0]['Name'] == repo_name
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, target_sat):

@@ -106,6 +106,7 @@ def run_remote_command_on_content_host(command, vm_module_streams):
     return result
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',

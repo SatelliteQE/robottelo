@@ -2485,6 +2485,8 @@ def test_positive_tracer_list_and_resolve(tracer_host):
     :parametrized: yes
 
     :CaseImportance: Medium
+
+    :CaseComponent: Katello-tracer
     """
     client = tracer_host
     package = settings.repos["MOCK_SERVICE_RPM"]

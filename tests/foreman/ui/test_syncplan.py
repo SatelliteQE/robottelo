@@ -189,6 +189,7 @@ def test_positive_search_scoped(session, request, target_sat):
         assert name not in session.syncplan.search('enabled = false')
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 def test_positive_synchronize_custom_product_custom_cron_real_time(session, module_org, target_sat):
     """Create a sync plan with real datetime as a sync date,
