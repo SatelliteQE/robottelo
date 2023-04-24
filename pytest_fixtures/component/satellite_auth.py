@@ -182,7 +182,7 @@ def ldap_auth_source(
         # entity create with AD settings
         auth_source = module_target_sat.api.AuthSourceLDAP(
             onthefly_register=True,
-            account=ad_data['ldap_user_name'],
+            account=f"cn={ad_data['ldap_user_name']},{ad_data['base_dn']}",
             account_password=ad_data['ldap_user_passwd'],
             base_dn=ad_data['base_dn'],
             groups_base=ad_data['group_base_dn'],
