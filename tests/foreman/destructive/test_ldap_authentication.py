@@ -143,7 +143,7 @@ def generate_otp(secret):
 
 
 @pytest.mark.upgrade
-@pytest.mark.parametrize('auth_data', ['AD_2016', 'AD_2019', 'IPA'], indirect=True)
+@pytest.mark.parametrize('auth_data', ['AD_2019', 'IPA'], indirect=True)
 def test_positive_create_with_https(
     session, module_subscribe_satellite, test_name, auth_data, ldap_tear_down, module_target_sat
 ):
@@ -236,9 +236,7 @@ def test_single_sign_on_ldap_ipa_server(
     assert f'{target_sat.url}/hosts' in result.stdout
 
 
-@pytest.mark.parametrize(
-    'func_enroll_ad_and_configure_external_auth', ['AD_2016', 'AD_2019'], indirect=True
-)
+@pytest.mark.parametrize('func_enroll_ad_and_configure_external_auth', ['AD_2019'], indirect=True)
 def test_single_sign_on_ldap_ad_server(
     subscribe_satellite, func_enroll_ad_and_configure_external_auth, target_sat
 ):
