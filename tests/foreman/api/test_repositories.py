@@ -24,7 +24,6 @@ from requests.exceptions import HTTPError
 
 from robottelo import constants
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.constants import MIRRORING_POLICIES
 from robottelo.utils.datafactory import parametrized
@@ -213,7 +212,7 @@ def test_negative_upload_expired_manifest(module_org, target_sat):
     target_sat.upload_manifest(module_org.id, manifest.content)
     manifester.delete_subscription_allocation()
     with pytest.raises(CLIReturnCodeError) as error:
-        Subscription.refresh_manifest({'organization-id': module_org.id})
+        target_sat.cli.Subscription.refresh_manifest({'organization-id': module_org.id})
     assert (
         "The manifest doesn't exist on console.redhat.com. "
         "Please create and import a new manifest." in error.value.stderr
