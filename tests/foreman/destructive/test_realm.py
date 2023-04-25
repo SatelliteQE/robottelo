@@ -126,6 +126,7 @@ def test_positive_realm_info_id(
     assert info == module_target_sat.cli.Realm.info({'id': realm['id']})
 
 
+@pytest.mark.e2e
 def test_positive_realm_update_name(
     module_subscribe_satellite,
     module_enroll_idm_and_configure_external_auth,
