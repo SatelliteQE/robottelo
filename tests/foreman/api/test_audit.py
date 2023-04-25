@@ -22,6 +22,7 @@ from nailgun import entities
 from robottelo.utils.datafactory import gen_string
 
 
+@pytest.mark.e2e
 @pytest.mark.tier1
 def test_positive_create_by_type():
     """Create entities of different types and check audit logs for these

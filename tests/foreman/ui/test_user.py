@@ -28,6 +28,7 @@ from robottelo.constants import PERMISSIONS
 from robottelo.constants import ROLES
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.pit_server
 @pytest.mark.upgrade

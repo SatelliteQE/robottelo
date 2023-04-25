@@ -25,6 +25,7 @@ from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 def test_positive_end_to_end(session, module_org, module_location):
     """Perform end to end testing for host group component

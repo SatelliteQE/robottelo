@@ -265,6 +265,7 @@ def test_positive_session_survives_failed_login(admin_user, non_admin_user, targ
     Org.with_user().list()
 
 
+@pytest.mark.e2e
 @pytest.mark.tier1
 def test_positive_session_preceeds_saved_credentials(admin_user, target_sat):
     """Check if enabled session is mutually exclusive with

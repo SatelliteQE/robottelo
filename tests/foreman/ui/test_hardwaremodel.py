@@ -19,6 +19,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, host_ui_options):

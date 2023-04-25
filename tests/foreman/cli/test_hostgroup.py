@@ -114,6 +114,7 @@ def test_negative_create_with_name(name):
         HostGroup.create({'name': name})
 
 
+@pytest.mark.e2e
 @pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_create_with_multiple_entities_and_delete(

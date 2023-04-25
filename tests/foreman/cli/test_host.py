@@ -302,6 +302,7 @@ def test_positive_search_all_field_sets():
 
 
 # -------------------------- CREATE SCENARIOS -------------------------
+@pytest.mark.e2e
 @pytest.mark.cli_host_create
 @pytest.mark.tier1
 @pytest.mark.upgrade
@@ -356,6 +357,7 @@ def test_positive_create_and_delete(target_sat, module_lce_library, module_publi
         Host.info({'id': new_host['id']})
 
 
+@pytest.mark.e2e
 @pytest.mark.cli_host_create
 @pytest.mark.tier1
 def test_positive_crud_interface_by_id(target_sat, default_location, default_org):
@@ -944,6 +946,7 @@ def test_negative_create_with_incompatible_pxe_loader():
 
 
 # -------------------------- UPDATE SCENARIOS -------------------------
+@pytest.mark.e2e
 @pytest.mark.cli_host_update
 @pytest.mark.tier1
 def test_positive_update_parameters_by_name(
@@ -1640,6 +1643,7 @@ def yum_security_plugin(katello_host_tools_host):
         assert yum_plugin_install.status == 0, "Failed to install yum-plugin-security plugin"
 
 
+@pytest.mark.e2e
 @pytest.mark.cli_katello_host_tools
 @pytest.mark.tier3
 def test_positive_report_package_installed_removed(katello_host_tools_host, setup_custom_repo):
@@ -1747,6 +1751,7 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
     assert len(applicable_packages) == 0
 
 
+@pytest.mark.e2e
 @pytest.mark.cli_katello_host_tools
 @pytest.mark.pit_client
 @pytest.mark.pit_server
@@ -2168,6 +2173,7 @@ def test_negative_without_attach_with_lce(
     host_subscription_client.enable_repo(REPOS['rhst7']['id'])
 
 
+@pytest.mark.e2e
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 @pytest.mark.upgrade

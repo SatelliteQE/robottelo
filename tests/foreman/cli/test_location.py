@@ -156,6 +156,7 @@ def _user(request):
 class TestLocation:
     """Tests for Location via Hammer CLI"""
 
+    @pytest.mark.e2e
     @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_create_update_delete(self, request):

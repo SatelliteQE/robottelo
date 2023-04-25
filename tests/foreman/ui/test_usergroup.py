@@ -51,6 +51,7 @@ def test_positive_delete_with_user(session, module_org, module_location):
         assert session.user.search(user_name) is not None
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_location):

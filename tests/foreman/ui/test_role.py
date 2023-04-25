@@ -28,6 +28,7 @@ from robottelo.constants import ROLES
 from robottelo.utils.datafactory import gen_string
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_location):

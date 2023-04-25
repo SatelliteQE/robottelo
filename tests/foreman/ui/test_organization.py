@@ -52,6 +52,7 @@ def module_repos_col(module_org, module_lce, module_target_sat, request):
             logger.exception('Exception cleaning manifest:')
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session):

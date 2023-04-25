@@ -92,6 +92,7 @@ def test_positive_no_duplicate_lines():
     assert len(set(lines)) == len(lines)
 
 
+@pytest.mark.e2e
 @pytest.mark.tier1
 def test_positive_CRD():
     """Create organization with valid name, label and description

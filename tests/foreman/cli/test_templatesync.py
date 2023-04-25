@@ -108,6 +108,7 @@ class TestTemplateSyncTestCase:
         else:
             pytest.fail('The template is not imported for force test')
 
+    @pytest.mark.e2e
     @pytest.mark.tier2
     @pytest.mark.skip_if_not_set('git')
     @pytest.mark.parametrize(

@@ -174,6 +174,7 @@ def loadbalancer_setup(
     }
 
 
+@pytest.mark.e2e
 @pytest.mark.tier1
 def test_loadbalancer_register_client_using_ak_to_ha_proxy(loadbalancer_setup, rhel7_contenthost):
     """Register the client using ak to the haproxy

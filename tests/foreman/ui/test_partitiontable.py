@@ -210,6 +210,7 @@ def test_positive_clone(session):
 
 
 @pytest.mark.tier2
+@pytest.mark.e2e
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_location, template_data):
     """Perform end to end testing for partition table component
