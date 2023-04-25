@@ -47,7 +47,9 @@ def pytest_collection_modifyitems(items, config):
         # Include/Exclude tests those are not part of SatQE CI
         item_component = item.get_closest_marker('component')
         if item_component and (item_component.args[0] in non_satCI_components):
-            if item_component.args[0] in include_non_satci_tests:
+            if item_component.args[0] in include_non_satci_tests or item.nodeid.startswith(
+                'tests/upgrades/'
+            ):
                 selected.append(item)
             else:
                 deselected.append(item)
