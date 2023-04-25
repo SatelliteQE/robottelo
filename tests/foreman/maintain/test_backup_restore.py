@@ -35,9 +35,8 @@ BACKUP_DIR = "/tmp/"
 BASIC_FILES = {"config_files.tar.gz", ".config.snar", "metadata.yml"}
 CONTENT_FILES = {"pulp_data.tar", ".pulp.snar"}
 OFFLINE_FILES = {"pgsql_data.tar.gz", ".postgres.snar"}
-ONLINE_SAT_FILES = {"candlepin.dump", "foreman.dump", "pulpcore.dump", "pg_globals.dump"}
+ONLINE_SAT_FILES = {"candlepin.dump", "foreman.dump", "pulpcore.dump"}
 ONLINE_CAPS_FILES = {"pulpcore.dump"}
-REMOTE_SAT_FILES = ONLINE_SAT_FILES - {"pg_globals.dump"}
 
 
 NODIR_MSG = "ERROR: parameter 'BACKUP_DIR': no value provided"
@@ -50,7 +49,7 @@ assert_msg = "Some required backup files are missing"
 def get_exp_files(sat_maintain, backup_type):
     if type(sat_maintain) is Satellite:
         if sat_maintain.is_remote_db():
-            expected_files = BASIC_FILES | REMOTE_SAT_FILES
+            expected_files = BASIC_FILES | ONLINE_SAT_FILES
         else:
             expected_files = (
                 BASIC_FILES | OFFLINE_FILES
@@ -273,7 +272,7 @@ def test_positive_backup_offline_logical(sat_maintain, setup_backup_tests, modul
 
     if type(sat_maintain) is Satellite:
         if sat_maintain.is_remote_db():
-            expected_files = BASIC_FILES | REMOTE_SAT_FILES
+            expected_files = BASIC_FILES | ONLINE_SAT_FILES
         else:
             expected_files = BASIC_FILES | OFFLINE_FILES | ONLINE_SAT_FILES
     else:
@@ -409,6 +408,88 @@ def test_negative_restore_baddir(sat_maintain, setup_backup_tests):
     assert BADDIR_MSG in str(result.stdout)
 
 
+@pytest.mark.parametrize('backup_type', ['online', 'offline'])
+def test_positive_puppet_backup_restore(
+    sat_maintain,
+    setup_backup_tests,
+    module_synced_repos,
+    backup_type,
+):
+    """Puppet backup/restore test.
+
+    :id: 0f8555dc-8c1f-47cd-b5f6-5655d98564cd
+
+    :parametrized: yes
+
+    :steps:
+        1. Enable puppet on the satellite
+        2. create a backup of different types
+        3. check that appropriate files are created
+        4. restore the backup (installer --reset-data is run in this step)
+        5. check system health
+        6. check the content was restored
+
+    :expectedresults:
+        1. backup succeeds
+        2. expected files are present in the backup
+        3. restore succeeds
+        4. system health check succeeds
+        5. content is present after restore
+
+    :customerscenario: true
+
+    :BZ: 2158896
+    """
+    # Enable puppet on the Satellite
+    sat_maintain.enable_puppet_satellite()
+
+    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
+    instance = 'satellite' if type(sat_maintain) is Satellite else 'capsule'
+    result = sat_maintain.cli.Backup.run_backup(
+        backup_dir=subdir,
+        backup_type=backup_type,
+        options={'assumeyes': True, 'plaintext': True, 'skip-pulp-content': False},
+    )
+    assert result.status == 0
+    assert 'FAIL' not in result.stdout
+
+    # Check for expected files
+    backup_dir = re.findall(fr'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
+    files = sat_maintain.execute(f'ls -a {backup_dir}').stdout.split('\n')
+    files = [i for i in files if not re.compile(r'^\.*$').search(i)]
+
+    expected_files = get_exp_files(sat_maintain, backup_type)
+    assert set(files).issuperset(expected_files | CONTENT_FILES), assert_msg
+
+    # Run restore
+    sat_maintain.execute('rm -rf /var/lib/pulp/media/artifact')
+    result = sat_maintain.cli.Restore.run(
+        backup_dir=backup_dir,
+        options={'assumeyes': True, 'plaintext': True},
+    )
+    assert result.status == 0
+    assert 'FAIL' not in result.stdout
+
+    # Check the system health after restore
+    result = sat_maintain.cli.Health.check(
+        options={'whitelist': 'foreman-tasks-not-paused', 'assumeyes': True, 'plaintext': True}
+    )
+    assert result.status == 0
+
+    # Check that content is present after restore
+    repo = sat_maintain.api.Repository().search(
+        query={'search': f'''name="{module_synced_repos['custom'].name}"'''}
+    )[0]
+    assert repo.id == module_synced_repos['custom'].id
+
+    rh_repo = sat_maintain.api.Repository().search(
+        query={'search': f'''name="{module_synced_repos['rh'].name}"'''}
+    )[0]
+    assert rh_repo.id == module_synced_repos['rh'].id
+
+    assert int(sat_maintain.run('find /var/lib/pulp/media/artifact -type f | wc -l').stdout) > 0
+
+
 @pytest.mark.e2e
 @pytest.mark.include_capsule
 @pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
@@ -441,6 +522,8 @@ def test_positive_backup_restore(
         3. restore succeeds
         4. system health check succeeds
         5. content is present after restore
+
+    :BZ: 2172540
     """
     subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
     instance = 'satellite' if type(sat_maintain) is Satellite else 'capsule'
@@ -559,14 +642,9 @@ def test_positive_backup_restore_incremental(
     files = sat_maintain.execute(f'ls -a {inc_backup_dir}').stdout.split('\n')
     files = [i for i in files if not re.compile(r'^\.*$').search(i)]
 
-    if sat_maintain.is_remote_db():
-        expected_files = BASIC_FILES | REMOTE_SAT_FILES
-    else:
-        expected_files = (
-            BASIC_FILES | OFFLINE_FILES
-            if backup_type == 'offline'
-            else BASIC_FILES | ONLINE_SAT_FILES
-        )
+    expected_files = (
+        BASIC_FILES | OFFLINE_FILES if backup_type == 'offline' else BASIC_FILES | ONLINE_SAT_FILES
+    )
     assert set(files).issuperset(expected_files | CONTENT_FILES), assert_msg
 
     # restore initial backup and check system health
