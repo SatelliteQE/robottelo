@@ -132,6 +132,8 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             3. All the expected errata are ready-to-be-applied on the client
 
         :BZ: 1625649
+
+        :customerscenario: true
         """
         rhel_contenthost._skip_context_checkin = True
         environment = target_sat.api.LifecycleEnvironment(organization=function_org).search(
@@ -212,6 +214,8 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             2. Installation of errata should pass successfully.
 
         :BZ: 1625649
+
+        :customerscenario: true
         """
         client_hostname = pre_upgrade_data.get('rhel_client')
         custom_repo_id = pre_upgrade_data.get('custom_repo_id')
