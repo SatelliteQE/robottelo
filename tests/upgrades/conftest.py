@@ -87,11 +87,8 @@ import json
 import os
 
 import pytest
-from automation_tools.satellite6.hammer import set_hammer_config
 from box import Box
-from fabric.api import env
 
-from robottelo.config import settings
 from robottelo.logging import logger
 from robottelo.utils.decorators.func_locker import lock_function
 
@@ -278,15 +275,6 @@ def pytest_configure(config):
     ]
     for marker in markers:
         config.addinivalue_line("markers", marker)
-
-
-def pytest_sessionstart(session):
-    """Do some setup for automation-tools and satellite6-upgrade"""
-    # Fabric Config setup
-    env.host_string = settings.server.hostname
-    env.user = settings.server.ssh_username
-    # Hammer Config Setup
-    set_hammer_config(user=settings.server.admin_username, password=settings.server.admin_password)
 
 
 def pytest_addoption(parser):
