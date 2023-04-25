@@ -2,8 +2,6 @@ import json
 from pathlib import Path
 
 import pytest
-from automation_tools.satellite6.hammer import set_hammer_config
-from fabric.api import env
 
 from robottelo.config import configure_airgun
 from robottelo.config import configure_nailgun
@@ -58,11 +56,7 @@ def set_post_upgrade_hostname(request, shared_workers):
             pre_hostname = get_worker_hostname_from_testname(pre_test_name, shared_workers)
             if (pre_hostname is None) or (pre_hostname not in settings.server.hostnames):
                 pytest.skip(
-                    'Skipping the post_upgrade test as the pre_upgrade hostname is not found!'
+                    'Skipping the post_upgrade test as the pre_upgrade hostname was not found!'
                 )
-            # Read the worker id of pre test name
-            settings.server.hostname = env.host_string = pre_hostname
-            env.user = 'root'
             configure_nailgun()
             configure_airgun()
-            set_hammer_config()
