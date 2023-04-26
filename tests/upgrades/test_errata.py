@@ -222,7 +222,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         activation_key = pre_upgrade_data.get('activation_key')
         organization_id = pre_upgrade_data.get('organization_id')
         rhel_client = Broker(host_class=ContentHost).from_inventory(
-            filter=f'hostname={client_hostname}'
+            filter=f'@inv.hostname == "{client_hostname}"'
         )[0]
         custom_yum_repo = target_sat.api.Repository(id=custom_repo_id).read()
         host = target_sat.api.Host().search(query={'search': f'activation_key={activation_key}'})[0]
