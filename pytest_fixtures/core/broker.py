@@ -25,7 +25,7 @@ def _default_sat(align_to_satellite):
     """Returns a Satellite object for settings.server.hostname"""
     if settings.server.hostname:
         hosts = Broker(host_class=Satellite).from_inventory(
-            filter=f'hostname={settings.server.hostname}'
+            filter=f'@inv.hostname == "{settings.server.hostname}"'
         )
         if hosts:
             return hosts[0]

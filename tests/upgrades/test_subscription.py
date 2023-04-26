@@ -158,7 +158,7 @@ class TestSubscriptionAutoAttach:
             2. All the cleanup should be completed successfully.
         """
         rhel_contenthost = Broker().from_inventory(
-            filter=f'hostname={pre_upgrade_data.rhel_client}'
+            filter=f'@inv.hostname == "{pre_upgrade_data.rhel_client}"'
         )[0]
         host = target_sat.api.Host().search(query={'search': f'name={rhel_contenthost.hostname}'})[
             0
