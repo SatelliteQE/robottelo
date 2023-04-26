@@ -48,53 +48,22 @@ jobs:
           running-workflow-name: 'Automerge auto-cherry-picked pr'
           allowed-conclusions: success,skipped
 
-      - name: is PRT check Passed ?
+      - name: Fetch the PRT status
+        id: outcome
+        uses: omkarkhatavkar/wait-for-status-checks@main
+        with:
+          ref: ${{ github.head_ref }}
+          context: 'Robottelo Runner'
+          wait-interval: 60
+          count: 100
+
+      - name: Check the PRT status
         run: |
-          api_endpoint="https://api.github.com/repos/${{github.repository}}/statuses/${{ github.head_ref }}"
-
-          function get_status() {
-            curl -s "$api_endpoint"  | jq '[.[] | .state] | .[0]' | tr -d '"'
-          }
-
-          function get_context() {
-            curl -s "$api_endpoint" | jq '[.[] | .context] | .[0]' | tr -d '"'
-          }
-
-          statuses_length=$(curl -s $api_endpoint | jq 'length')
-          if [ $statuses_length -eq 0 ]; then
-              echo "PRT failed to start ! Stopping."
-              exit 1
-          fi
-
-          status=$(get_status)
-          context=$(get_context)
-
-          if [ "$context" != "Robottelo-Runner" ]; then
-            echo "::error Failed to get Robottelo-Runner status"
-            exit 1
-          fi
-
-          counter=0
-          echo "Waiting for PRT to complete....."
-          while [ "$status" != "success" ] && [ "$status" != "failure" ]; do
-            if [ $counter -gt 20 ]; then
-              echo "PRT Timeout"
-              exit 1
-            fi
-            sleep 300
-            status=$(get_status)
-            echo "Robottelo-Runner : $status"
-            counter=$((counter+1))
-          done
-
-          if [ "$status" != "success" ]; then
-            echo "Robottelo-Runner : $status"
-            echo "::error PRT failed"
-            exit 1
+          if [ ${{ steps.outcome.outputs.result }} == 'success' ]; then
+            echo "Status check passed!"
           else
-           echo "PRT Passed Successfully!"
+            echo "Status check failed!"
           fi
-
 
       - id: automerge
         name: Auto merge of cherry-picked PRs.
