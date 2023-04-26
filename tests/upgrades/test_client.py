@@ -102,7 +102,7 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
         )
         # Verifies that package is really installed
         rhel_client = Broker(host_class=ContentHost).from_inventory(
-            filter=f'hostname={client_name}'
+            filter=f'@inv.hostname == "{client_name}"'
         )[0]
         result = rhel_client.execute(f"rpm -q {FAKE_0_CUSTOM_PACKAGE_NAME}")
         assert FAKE_0_CUSTOM_PACKAGE_NAME in result.stdout
