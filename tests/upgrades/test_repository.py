@@ -199,7 +199,7 @@ class TestScenarioCustomRepoCheck:
         )
 
         rhel_client = Broker(host_class=ContentHost).from_inventory(
-            filter=f'hostname={client_hostname}'
+            filter=f'@inv.hostname == "{client_hostname}"'
         )[0]
         result = rhel_client.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0

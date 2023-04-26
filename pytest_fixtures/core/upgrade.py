@@ -38,9 +38,6 @@ def pre_configured_capsule(worker_id, session_target_sat):
     logger.debug(f'Capsules found: {intersect}')
     assert len(intersect) == 1, "More than one Capsule found in the inventory"
     target_capsule = intersect.pop()
-    hosts = Broker(host_class=Capsule).from_inventory(filter=f'hostname={target_capsule}')
-    # hosts = Broker(host_class=Capsule).from_inventory(
-    #     filter=f'@inv.hostname == "{target_capsule}"'
-    # )  # broker 0.3.0 syntax
+    hosts = Broker(host_class=Capsule).from_inventory(filter=f'@inv.hostname == "{target_capsule}"')
     logger.info(f'xdist worker {worker_id} was assigned pre-configured Capsule {target_capsule}')
     return hosts[0]

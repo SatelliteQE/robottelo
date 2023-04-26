@@ -21,8 +21,8 @@ SERVER:
   # If an inventory filter is set and the xdist-behavior is on-demand
   # then broker will attempt to find hosts matching the filter defined
   # before checking out a new host
-  # Filter format follows Broker's specification: "hostname<sat"
-  INVENTORY_FILTER: "name<sat"
+  # Filter format follows Broker's specification: "'sat' in @inv.name"
+  INVENTORY_FILTER: "'sat' in @inv.name"
   # If one or more Satellites are provisioned,
   # this setting determines if they will be automatically checked in
   AUTO_CHECKIN: False
