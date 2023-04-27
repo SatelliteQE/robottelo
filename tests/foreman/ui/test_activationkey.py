@@ -32,6 +32,7 @@ from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_data_list
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end_crud(session, module_org):
@@ -69,6 +70,7 @@ def test_positive_end_to_end_crud(session, module_org):
         assert session.activationkey.search(new_name)[0]['Name'] != new_name
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
@@ -656,6 +658,7 @@ def test_positive_fetch_product_content(target_sat, function_entitlement_manifes
         assert {custom_repo.name, constants.REPOSET['rhst7']} == set(reposets)
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_access_non_admin_user(session, test_name):

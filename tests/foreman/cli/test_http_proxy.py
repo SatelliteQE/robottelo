@@ -206,6 +206,7 @@ def test_positive_environment_variable_unset_set():
     """
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_assign_http_proxy_to_products(module_org):
