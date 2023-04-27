@@ -20,6 +20,7 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
+from robottelo.hosts import get_sat_rhel_version
 from robottelo.hosts import Satellite
 
 SSH_PASS = settings.server.ssh_password
@@ -27,7 +28,9 @@ pytestmark = pytest.mark.destructive
 
 
 @pytest.mark.parametrize(
-    "sat_ready_rhel", [7, 8] if settings.server.version.rhel_version < 8 else [8], indirect=True
+    "sat_ready_rhel",
+    [7, 8] if get_sat_rhel_version().major < 8 else [8],
+    indirect=True,
 )
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
 @pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
