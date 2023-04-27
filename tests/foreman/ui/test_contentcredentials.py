@@ -42,6 +42,7 @@ def gpg_path():
     return DataFile.VALID_GPG_KEY_FILE
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, gpg_content):

@@ -73,6 +73,7 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
         assert not target_sat.api.HTTPProxy().search(query={'search': f'name={updated_proxy_name}'})
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_assign_http_proxy_to_products_repositories(
