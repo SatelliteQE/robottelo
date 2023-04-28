@@ -119,8 +119,7 @@ def test_negative_time_to_pickup(
         module_org,
         smart_proxy_location,
         module_ak_with_cv.name,
-        target=module_capsule_configured_mqtt,
-        satellite=module_target_sat,
+        module_capsule_configured_mqtt,
         setup_remote_execution_pull=True,
         repo=client_repo.baseurl,
     )

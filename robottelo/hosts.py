@@ -564,7 +564,7 @@ class ContentHost(Host, ContentHostMixins):
         org,
         loc,
         activation_keys,
-        target=None,
+        target,
         setup_insights=False,
         setup_remote_execution=True,
         setup_remote_execution_pull=False,
@@ -583,7 +583,7 @@ class ContentHost(Host, ContentHostMixins):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
 
-        :param target: Satellite or Capusle hostname to register to, required.
+        :param target: Satellite or Capusle object to register to, required.
         :param org: Organization to register content host for, required.
         :param loc: Location to register content host for, required.
         :param activation_keys: Activation key name to register content host with, required.
