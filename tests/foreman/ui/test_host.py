@@ -1957,6 +1957,10 @@ def test_positive_manage_table_columns(session, current_sat_org, current_sat_loc
         or not displayed in the table.
 
     :CaseLevel: System
+
+    :BZ: 1813274
+
+    :customerscenario: true
     """
     columns = {
         'Host group': False,
@@ -1998,6 +2002,10 @@ def test_positive_host_details_read_templates(
         4. Compare them with the host provisioning templates obtained via API.
 
     :expectedresults: Provisioning templates reported via API and in UI should match.
+
+    :BZ: 2128038
+
+    :customerscenario: true
 
     :CaseLevel: System
     """
