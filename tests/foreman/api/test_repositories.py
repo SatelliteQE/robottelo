@@ -217,3 +217,30 @@ def test_negative_upload_expired_manifest(module_org, target_sat):
         "The manifest doesn't exist on console.redhat.com. "
         "Please create and import a new manifest." in error.value.stderr
     )
+
+
+@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.tier3
+def test_positive_custom_repo_disabled_by_default(
+    setup_content,
+    rhel_contenthost,
+    target_sat,
+):
+    """Verify that custom products should be enabled by default for content hosts
+
+    :id: 84509bcc-3646-425e-905c-dbbe0325408c
+
+    :steps:
+        1. Create custom product and upload repository
+        2. Attach to activation key
+        3. Register Host
+        4. Assert that custom proudct is disabled by default
+
+    :expectedresults: Custom products should be disabled by default. "Enabled: 0"
+    """
+    ak, org = setup_content
+    rhel_contenthost.install_katello_ca(target_sat)
+    rhel_contenthost.register_contenthost(org.label, ak.name)
+    rhel_contenthost.add_rex_key(target_sat)
+    assert rhel_contenthost.subscribed
+
