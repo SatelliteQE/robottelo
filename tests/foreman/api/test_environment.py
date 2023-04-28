@@ -30,6 +30,78 @@ from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_environments_list
 
 
+@pytest.mark.e2e
+@pytest.mark.tier1
+@pytest.mark.upgrade
+def test_positive_CRUD_with_attributes(
+    session_puppet_enabled_sat, module_puppet_org, module_puppet_loc
+):
+    """Check if Environment with attributes can be created, updated and removed
+
+    :id: d2187971-86b2-40c9-a93c-66f37691ae2c
+
+    :BZ: 1337947
+
+    :expectedresults:
+        1. Environment is created and has parameters assigned
+        2. Environment can be listed by parameters
+        3. Environment can be updated
+        4. Environment can be removed
+    """
+    puppet_sat = session_puppet_enabled_sat
+    # Create with attributes
+    env_name = gen_string('alpha')
+    environment = puppet_sat.api.Environment(
+        name=env_name, organization=[module_puppet_org], location=[module_puppet_loc]
+    ).create()
+    assert env_name == environment.name
+    assert len(environment.organization) == 1
+    assert environment.organization[0].id == module_puppet_org.id
+    assert len(environment.location) == 1
+    assert environment.location[0].id == module_puppet_loc.id
+
+    # List by name
+    envs = puppet_sat.api.Environment().search(query=dict(search=f'name={env_name}'))
+    assert len(envs) == 1
+    assert envs[0].name == env_name
+
+    # List by org loc id
+    envs = puppet_sat.api.Environment().search(
+        query=dict(
+            search=f'organization_id={module_puppet_org.id} and location_id={module_puppet_loc.id}'
+        )
+    )
+    assert env_name in [res.name for res in envs]
+
+    # List by org loc name
+    envs = puppet_sat.api.Environment().search(
+        query=dict(
+            search=f'organization={module_puppet_org.name} and location={module_puppet_loc.name}'
+        )
+    )
+    assert env_name in [res.name for res in envs]
+
+    # Update org and loc
+    new_org = puppet_sat.api.Organization().create()
+    new_loc = puppet_sat.api.Location().create()
+    new_env_name = gen_string('alpha')
+    env = puppet_sat.api.Environment(
+        id=environment.id, name=new_env_name, organization=[new_org], location=[new_loc]
+    ).update(['name', 'organization', 'location'])
+    assert len(env.organization) == 1
+    assert env.organization[0].id == new_org.id
+    assert env.organization[0].id != module_puppet_org.id
+    assert len(env.location) == 1
+    assert env.location[0].id == new_loc.id
+    assert env.location[0].id != module_puppet_loc.id
+    assert env.name == new_env_name
+
+    # Delete
+    environment.delete()
+    with pytest.raises(HTTPError):
+        environment.read()
+
+
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_environments_list()))
 def test_positive_create_with_name(name, session_puppet_enabled_sat):
@@ -43,27 +115,6 @@ def test_positive_create_with_name(name, session_puppet_enabled_sat):
     """
     env = session_puppet_enabled_sat.api.Environment(name=name).create()
     assert env.name == name
-
-
-@pytest.mark.tier1
-def test_positive_create_with_org_and_loc(
-    module_puppet_org, module_puppet_loc, session_puppet_enabled_sat
-):
-    """Create an environment and assign it to new organization.
-
-    :id: de7e4132-5ca7-4b41-9af3-df075d31f8f4
-
-    :expectedresults: The environment created successfully and has expected attributes.
-    """
-    env = session_puppet_enabled_sat.api.Environment(
-        name=gen_string('alphanumeric'),
-        organization=[module_puppet_org],
-        location=[module_puppet_loc],
-    ).create()
-    assert len(env.organization) == 1
-    assert env.organization[0].id == module_puppet_org.id
-    assert len(env.location) == 1
-    assert env.location[0].id == module_puppet_loc.id
 
 
 @pytest.mark.tier1
@@ -112,39 +163,6 @@ def test_positive_update_name(module_puppet_environment, new_name, session_puppe
         id=module_puppet_environment.id, name=new_name
     ).update(['name'])
     assert env.name == new_name
-
-
-@pytest.mark.tier2
-def test_positive_update_and_remove(
-    module_puppet_org, module_puppet_loc, session_puppet_enabled_sat
-):
-    """Update environment and assign it to a new organization
-    and location. Delete environment afterwards.
-
-    :id: 31e43faa-65ee-4757-ac3d-3825eba37ae5
-
-    :expectedresults: Environment entity is updated and removed properly
-
-    :CaseLevel: Integration
-    """
-    env = session_puppet_enabled_sat.api.Environment().create()
-    assert len(env.organization) == 0
-    assert len(env.location) == 0
-    env = session_puppet_enabled_sat.api.Environment(
-        id=env.id, organization=[module_puppet_org]
-    ).update(['organization'])
-    assert len(env.organization) == 1
-    assert env.organization[0].id, module_puppet_org.id
-
-    env = session_puppet_enabled_sat.api.Environment(
-        id=env.id, location=[module_puppet_loc]
-    ).update(['location'])
-    assert len(env.location) == 1
-    assert env.location[0].id == module_puppet_loc.id
-
-    env.delete()
-    with pytest.raises(HTTPError):
-        env.read()
 
 
 @pytest.mark.tier1
