@@ -1361,7 +1361,7 @@ class Capsule(ContentHost, CapsuleMixins):
                 sat_hostname = urlparse(answers.foreman_proxy.foreman_base_url).netloc
                 # get the Satellite hostname from the answer file
                 hosts = Broker(host_class=Satellite).from_inventory(
-                    filter=f'hostname={sat_hostname}'
+                    filter=f'@inv.hostname == "{sat_hostname}"'
                 )
                 if hosts:
                     self._satellite = hosts[0]
