@@ -85,6 +85,10 @@ def test_positive_all_options(target_sat):
     :id: 1203ab9f-896d-4039-a166-9e2d36925b5b
 
     :expectedresults: All expected options are present
+
+    :BZ: 2119053
+
+    :customerscenario: true
     """
     differences = {}
     raw_output = target_sat.execute('hammer full-help').stdout
