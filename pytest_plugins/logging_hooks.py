@@ -59,6 +59,7 @@ def configure_logging(request, worker_id):
             broker_log_setup(
                 level=logging_yaml.broker.level,
                 file_level=logging_yaml.broker.fileLevel,
+                formatter=worker_formatter,
                 path=robottelo_log_dir.joinpath(f'robottelo_{worker_id}.log'),
             )
 
