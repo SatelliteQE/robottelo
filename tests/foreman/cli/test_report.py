@@ -22,8 +22,6 @@ import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
 
-pytestmark = pytest.mark.e2e
-
 
 @pytest.fixture(scope='module')
 def run_puppet_agent(session_puppet_enabled_sat):
@@ -34,13 +32,14 @@ def run_puppet_agent(session_puppet_enabled_sat):
     session_puppet_enabled_sat.execute('puppet agent -t')
 
 
+@pytest.mark.e2e
 @pytest.mark.tier1
-def test_positive_info(run_puppet_agent, session_puppet_enabled_sat):
-    """Test Info for Puppet report
+def test_positive_CRD_satellite(run_puppet_agent, session_puppet_enabled_sat):
+    """Test puppet-agent creates a report for satellite when its run, read and delete by its ID
 
     :id: 32646d4b-7101-421a-85e0-777d3c6b71ec
 
-    :expectedresults: Puppet Report Info is displayed
+    :expectedresults: Puppet reports are generated, readable, and deleteable
     """
     result = session_puppet_enabled_sat.cli.ConfigReport.list()
     assert len(result) > 0
@@ -48,21 +47,7 @@ def test_positive_info(run_puppet_agent, session_puppet_enabled_sat):
     report = random.choice(result)
     result = session_puppet_enabled_sat.cli.ConfigReport.info({'id': report['id']})
     assert report['id'] == result['id']
-
-
-@pytest.mark.tier1
-@pytest.mark.upgrade
-def test_positive_delete_by_id(run_puppet_agent, session_puppet_enabled_sat):
-    """Check if Puppet Report can be deleted by its ID
-
-    :id: bf918ec9-e2d4-45d0-b913-ab939b5d5e6a
-
-    :expectedresults: Puppet Report is deleted
-    """
-    result = session_puppet_enabled_sat.cli.ConfigReport.list()
-    assert len(result) > 0
-    # Grab a random report
-    report = random.choice(result)
+    # Delete ConfigReport by its ID
     session_puppet_enabled_sat.cli.ConfigReport.delete({'id': report['id']})
     with pytest.raises(CLIReturnCodeError):
         session_puppet_enabled_sat.cli.ConfigReport.info({'id': report['id']})
@@ -70,7 +55,7 @@ def test_positive_delete_by_id(run_puppet_agent, session_puppet_enabled_sat):
 
 @pytest.mark.e2e
 @pytest.mark.rhel_ver_match('[^6]')
-def test_positive_install_configure(
+def test_positive_install_configure_host(
     session_puppet_enabled_sat, session_puppet_enabled_capsule, content_hosts
 ):
     """Test that puppet-agent can be installed from the sat-client repo
