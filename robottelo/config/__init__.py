@@ -46,7 +46,9 @@ settings = get_settings()
 
 if not os.getenv('BROKER_DIRECTORY'):
     # set the BROKER_DIRECTORY envar so broker knows where to operate from
-    os.environ['BROKER_DIRECTORY'] = settings.broker.get('broker_directory')
+    if _broker_dir := settings.robottelo.get('BROKER_DIRECTORY'):
+        logger.debug(f'Setting BROKER_DIRECTORY to {_broker_dir}')
+        os.environ['BROKER_DIRECTORY'] = _broker_dir
 
 
 robottelo_tmp_dir = Path(settings.robottelo.tmp_dir)
