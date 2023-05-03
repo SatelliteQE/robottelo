@@ -18,8 +18,6 @@
 """
 import pytest
 
-from robottelo.hosts import Capsule
-
 
 class TestScenarioREXCapsule:
     """Test Remote Execution job created before migration runs successfully
@@ -45,6 +43,7 @@ class TestScenarioREXCapsule:
         module_org,
         smart_proxy_location,
         module_ak_with_cv,
+        pre_configured_capsule,
         save_test_data,
     ):
         """
@@ -65,10 +64,9 @@ class TestScenarioREXCapsule:
 
         """
         rhel_contenthost._skip_context_checkin = True
-        capsule = Capsule(target_sat.api.SmartProxy(id=2).read().name)
         target_sat.cli.Capsule.update(
             {
-                'name': capsule.hostname,
+                'name': pre_configured_capsule.hostname,
                 'organization-ids': module_org.id,
                 'location-ids': smart_proxy_location.id,
             }
@@ -78,7 +76,7 @@ class TestScenarioREXCapsule:
             module_org,
             smart_proxy_location,
             module_ak_with_cv.name,
-            capsule,
+            pre_configured_capsule,
             packages=['katello-agent'],
         )
         assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
