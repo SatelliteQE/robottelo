@@ -1102,7 +1102,7 @@ def test_positive_search_by_org(session, smart_proxy_location, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_validate_inherited_cv_lce_ansirole(session, target_sat, module_host_template):
+def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, module_host_template):
     """Create a host with hostgroup specified via CLI. Make sure host
     inherited hostgroup's lifecycle environment, content view and both
     fields are properly reflected via WebUI. Also host should be searchable by the
