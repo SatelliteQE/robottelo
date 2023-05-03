@@ -31,7 +31,7 @@ def test_positive_end_to_end(session, target_sat):
 
     :CaseImportance: Critical
 
-    :BZ: 2112093, 2131771
+    :BZ: 2112093, 2131771, 2119155
 
     :customerscenario: true
 
@@ -94,5 +94,7 @@ def test_positive_end_to_end(session, target_sat):
         assert values['general']['template'] == new_template
         assert values['general']['http_method'] == new_http_method
         assert values['general']['enabled'] is True
+        result = target_sat.execute('echo "Webhook.last.password" | foreman-rake console')
+        assert password in result.stdout
         session.webhook.delete(new_hook_name)
         assert not session.webhook.search(new_hook_name)
