@@ -1105,7 +1105,7 @@ def test_positive_search_by_org(session, smart_proxy_location, target_sat):
 def test_positive_validate_inherited_cv_lce_ansirole(session, target_sat, module_host_template):
     """Create a host with hostgroup specified via CLI. Make sure host
     inherited hostgroup's lifecycle environment, content view and both
-    fields are properly reflected via WebUI. Also host sould be searchable by the
+    fields are properly reflected via WebUI. Also host should be searchable by the
     inherited ansible role.
 
     :id: c83f6819-2649-4a8b-bb1d-ce93b2243765
