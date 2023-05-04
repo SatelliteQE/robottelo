@@ -112,7 +112,7 @@ def test_positive_configure_cloud_connector(
 
     assert module_target_sat.api.JobInvocation(id=invocation_id).read().status == 0
     assert "Install yggdrasil-worker-forwarder and rhc" in job_output
-    # assert "Restart rhcd" in job_output
+    assert "Restart rhcd" in job_output
     assert 'Exit status: 0' in job_output
 
     assert rhc_status.status == 0
