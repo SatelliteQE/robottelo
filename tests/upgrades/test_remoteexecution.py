@@ -78,8 +78,7 @@ class TestScenarioREXCapsule:
             module_org,
             smart_proxy_location,
             module_ak_with_cv.name,
-            target=capsule,
-            satellite=target_sat,
+            capsule,
             packages=['katello-agent'],
         )
         assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
@@ -189,8 +188,7 @@ class TestScenarioREXSatellite:
             module_org,
             smart_proxy_location,
             module_ak_with_cv.name,
-            target=target_sat,
-            satellite=target_sat,
+            target_sat,
             packages=['katello-agent'],
         )
         assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout

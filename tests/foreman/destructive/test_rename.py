@@ -22,6 +22,7 @@ from fauxfactory import gen_string
 
 from robottelo.cli import hammer
 from robottelo.config import settings
+from robottelo.constants import SATELLITE_ANSWER_FILE
 
 BCK_MSG = "**** Hostname change complete! ****"
 BAD_HN_MSG = (
@@ -104,8 +105,7 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
     assert result.status == 0
     assert new_hostname in hammer.parse_json(result.stdout)['path']
     # check answer file for instances of old hostname
-    ans_f = '/etc/foreman-installer/scenarios.d/satellite-answers.yaml'
-    result = module_target_sat.execute(f'grep " {old_hostname}" {ans_f}')
+    result = module_target_sat.execute(f'grep " {old_hostname}" {SATELLITE_ANSWER_FILE}')
     assert result.status == 1, 'old hostname was not correctly replaced in answers.yml'
 
     # check repository published at path
