@@ -17,11 +17,13 @@
 :Upstream: No
 """
 import pytest
+from manifester import Manifester
 from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
 from requests.exceptions import HTTPError
 
 from robottelo import constants
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import MIRRORING_POLICIES
 from robottelo.utils.datafactory import parametrized
@@ -190,3 +192,28 @@ def test_positive_sync_kickstart_repo(self, module_entitlement_manifest_org, tar
     rh_repo = rh_repo.read()
     assert rh_repo.content_counts['package_group'] > 0
     assert rh_repo.content_counts['rpm'] > 0
+
+
+@pytest.mark.tier1
+def test_negative_upload_expired_manifest(module_org, target_sat):
+    """Upload an expired manifest and attempt to refresh it
+
+    :id: d6e652d8-5f46-4d15-9191-d842466d45d0
+
+    :Steps:
+        1. Upload a manifest
+        2. Delete the Subscription Allocation on RHSM
+        3. Attempt to refresh the manifest
+
+    :expectedresults: Manifest refresh should fail and return error message
+    """
+    manifester = Manifester(manifest_category=settings.manifest.entitlement)
+    manifest = manifester.get_manifest()
+    target_sat.upload_manifest(module_org.id, manifest.content)
+    manifester.delete_subscription_allocation()
+    with pytest.raises(CLIReturnCodeError) as error:
+        target_sat.cli.Subscription.refresh_manifest({'organization-id': module_org.id})
+    assert (
+        "The manifest doesn't exist on console.redhat.com. "
+        "Please create and import a new manifest." in error.value.stderr
+    )
