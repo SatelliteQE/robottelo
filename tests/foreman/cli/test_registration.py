@@ -49,7 +49,7 @@ def test_host_registration_end_to_end(
     :customerscenario: true
     """
     result = rhel_contenthost.register(
-        module_org, module_location, module_ak_with_synced_repo.name, satellite=module_target_sat
+        module_org, module_location, module_ak_with_synced_repo.name, module_target_sat
     )
 
     if is_open('BZ:2156926') and rhel_contenthost.os_version.major == 6:
@@ -73,8 +73,7 @@ def test_host_registration_end_to_end(
         module_org,
         module_location,
         module_ak_with_synced_repo.name,
-        target=module_capsule_configured,
-        satellite=module_target_sat,
+        module_capsule_configured,
         force=True,
     )
     if is_open('BZ:2156926') and rhel_contenthost.os_version.major == 6:

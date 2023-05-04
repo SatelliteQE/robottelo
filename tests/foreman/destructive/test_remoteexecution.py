@@ -105,7 +105,7 @@ def test_positive_use_alternate_directory(
             'auto-attach': False,
         }
     )
-    result = client.register(default_org, default_location, ak.name, satellite=target_sat)
+    result = client.register(default_org, default_location, ak.name, target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     testdir = gen_string('alpha')
     result = client.run(f'mkdir /{testdir}')
