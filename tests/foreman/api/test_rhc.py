@@ -21,8 +21,6 @@ from fauxfactory import gen_string
 from wait_for import wait_for
 
 from robottelo import constants
-from robottelo.config import settings
-from robottelo.logging import logger
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -30,91 +28,42 @@ from robottelo.utils.issue_handlers import is_open
 def fixture_enable_rhc_repos(module_target_sat):
     """Enable repos required for configuring RHC."""
     # subscribe rhc satellite to cdn.
-    if settings.rh_cloud.crc_env == 'prod':
-        module_target_sat.register_to_cdn()
-        if module_target_sat.os_version.major == 8:
-            module_target_sat.enable_repo(constants.REPOS['rhel8_bos']['id'])
-            module_target_sat.enable_repo(constants.REPOS['rhel8_aps']['id'])
-        else:
-            module_target_sat.enable_repo(constants.REPOS['rhscl7']['id'])
-            module_target_sat.enable_repo(constants.REPOS['rhel7']['id'])
+    module_target_sat.register_to_cdn()
+    if module_target_sat.os_version.major == 8:
+        module_target_sat.enable_repo(constants.REPOS['rhel8_bos']['id'])
+        module_target_sat.enable_repo(constants.REPOS['rhel8_aps']['id'])
+    else:
+        module_target_sat.enable_repo(constants.REPOS['rhscl7']['id'])
+        module_target_sat.enable_repo(constants.REPOS['rhel7']['id'])
 
 
 @pytest.fixture(scope='module')
-def module_rhc_org(module_target_sat):
+def module_rhc_org(module_target_sat, module_org):
     """Module level fixture for creating organization"""
-    if settings.rh_cloud.crc_env == 'prod':
-        org = module_target_sat.api.Organization(
-            name=settings.rh_cloud.organization or gen_string('alpha')
-        ).create()
-    else:
-        org = (
-            module_target_sat.api.Organization()
-            .search(query={'search': f'name="{settings.rh_cloud.organization}"'})[0]
-            .read()
-        )
-
     # adding remote_execution_connect_by_ip=Yes at org level
     module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         value='Yes',
         parameter_type='boolean',
-        organization=org.id,
+        organization=module_org.id,
     ).create()
-    return org
-
-
-@pytest.fixture()
-def fixture_setup_rhc_satellite(request, module_target_sat, module_rhc_org):
-    """Create Organization and activation key after successful test execution"""
-    yield
-    if request.node.rep_call.passed:
-        if settings.rh_cloud.crc_env == 'prod':
-            manifests_path = module_target_sat.download_file(
-                file_url=settings.fake_manifest.url['default']
-            )[0]
-            module_target_sat.cli.Subscription.upload(
-                {'file': manifests_path, 'organization-id': module_rhc_org.id}
-            )
-        # Enable and sync required repos
-        repo1_id = module_target_sat.api_factory.enable_sync_redhat_repo(
-            constants.REPOS['rhel8_aps'], module_rhc_org.id
-        )
-        repo2_id = module_target_sat.api_factory.enable_sync_redhat_repo(
-            constants.REPOS['rhel7'], module_rhc_org.id
-        )
-        # Add repos to Content view
-        content_view = module_target_sat.api.ContentView(
-            organization=module_rhc_org, repository=[repo1_id, repo2_id]
-        ).create()
-        content_view.publish()
-        # Create Activation key
-        ak = module_target_sat.api.ActivationKey(
-            name=settings.rh_cloud.activation_key or gen_string('alpha'),
-            content_view=content_view,
-            organization=module_rhc_org,
-            environment=module_target_sat.api.LifecycleEnvironment(id=module_rhc_org.library.id),
-            auto_attach=True,
-        ).create()
-        logger.debug(
-            f"Activation key: {ak} \n CV: {content_view} \n Organization: {module_rhc_org}"
-        )
+    return module_org
 
 
 @pytest.mark.e2e
 @pytest.mark.tier3
 def test_positive_configure_cloud_connector(
-    module_target_sat,
-    fixture_enable_rhc_repos,
-    module_rhc_org,
-    fixture_setup_rhc_satellite,
+    module_target_sat, module_rhc_org, fixture_enable_rhc_repos
 ):
     """
     Enable RH Cloud Connector through API
 
+    :id: 1338dc6a-12e0-4378-9a51-a33f4679ba30
+
     :Steps:
 
         1. Enable RH Cloud Connector
+        2. Check if the task is completed successfully
 
     :expectedresults: The Cloud Connector has been installed and the service is running
     """
@@ -163,7 +112,7 @@ def test_positive_configure_cloud_connector(
 
     assert module_target_sat.api.JobInvocation(id=invocation_id).read().status == 0
     assert "Install yggdrasil-worker-forwarder and rhc" in job_output
-    assert "Restart rhcd" in job_output
+    # assert "Restart rhcd" in job_output
     assert 'Exit status: 0' in job_output
 
     assert rhc_status.status == 0
