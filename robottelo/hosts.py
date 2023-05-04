@@ -9,11 +9,12 @@ from functools import lru_cache
 from pathlib import Path
 from pathlib import PurePath
 from tempfile import NamedTemporaryFile
-from urllib.parse import urlencode
 from urllib.parse import urljoin
+from urllib.parse import urlparse
 from urllib.parse import urlunsplit
 
 import requests
+import yaml
 from box import Box
 from broker import Broker
 from broker.hosts import Host
@@ -521,10 +522,10 @@ class ContentHost(Host, ContentHostMixins):
 
     def register(
         self,
-        target,
         org,
         loc,
         activation_keys,
+        target,
         setup_insights=False,
         setup_remote_execution=True,
         setup_remote_execution_pull=False,
@@ -535,21 +536,18 @@ class ContentHost(Host, ContentHostMixins):
         repo_gpg_key_url=None,
         remote_execution_interface=None,
         update_packages=False,
-        ignore_subman_errors=True,
-        force=True,
+        ignore_subman_errors=False,
+        force=False,
         insecure=True,
-        username=settings.server.admin_username,
-        password=settings.server.admin_password,
-        port='9090',
+        hostgroup=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
 
-        :param target: Satellite or Capusle hostname to register to, required.
+        :param target: Satellite or Capusle object to register to, required.
         :param org: Organization to register content host for, required.
         :param loc: Location to register content host for, required.
-        :param activation_keys: Activation key name to register content host
-            with, required.
+        :param activation_keys: Activation key name to register content host with, required.
         :param setup_insights: Install and register Insights client, requires OS repo.
         :param setup_remote_execution: Copy remote execution SSH key.
         :param setup_remote_execution_pull: Deploy pull provider client on host
@@ -563,71 +561,48 @@ class ContentHost(Host, ContentHostMixins):
         :param ignore_subman_errors: Ignore subscription manager errors.
         :param force: Register the content host even if it's already registered.
         :param insecure: Don't verify server authenticity.
-        :param username: Satellite admin username
-        :param password: Satellite admin password
-        :param port: Capsule port, if unset template is pulled straight from Satellite
-        :return: SSHCommandResult instance filled with the result of the
-            registration.
+        :param hostgroup: hostgroup to register with
+        :return: SSHCommandResult instance filled with the result of the registration.
         """
-        insights = (
-            # requires OS repo enabled for host
-            f'&setup_insights={str(setup_insights).lower()}'
-            if setup_insights is not None
-            else ''
-        )
-        rex = (
-            f'&setup_remote_execution={str(setup_remote_execution).lower()}'
-            if setup_remote_execution is not None
-            else ''
-        )
-        rex_pull = (
-            # requires Satellite Client repo enabled for host
-            f'&setup_remote_execution_pull={str(setup_remote_execution_pull).lower()}'
-            if setup_remote_execution_pull is not None
-            else ''
-        )
-        lce = (
-            f'&lifecycle_environment_id={lifecycle_environment.id}'
-            if lifecycle_environment is not None
-            else ''
-        )
-        os = f'&operating_system_id={operating_system.id}' if operating_system is not None else ''
-        pkgs = f'&packages={"+".join(packages)}' if packages is not None else ''
-        rex_iface = (
-            f'&remote_execution_interface={remote_execution_interface}'
-            if remote_execution_interface is not None
-            else ''
-        )
-        rp = f'&{urlencode({"repo": repo })}' if repo is not None else ''
-        gpg = (
-            f'&{urlencode({"repo_gpg_key_url": repo_gpg_key_url })}'
-            if repo_gpg_key_url is not None
-            else ''
-        )
-        port = f':{port}' if port is not None else ''
-        cmd = (
-            'curl -sS '
-            f'-u {username}:{password} '
-            f'{"--insecure " if insecure else ""}'
-            f"'https://{target.hostname}{port}/register?"
-            f'activation_keys={activation_keys}'
-            f'&organization_id={org.id}'
-            f'&location_id={loc.id}'
-            f'{insights}'
-            f'{rex}'
-            f'&update_packages={"true" if update_packages else "false"}'
-            f'{rex_pull}'
-            f'{rex_iface}'
-            f'{lce}'
-            f'{os}'
-            f'{pkgs}'
-            f'{"&ignore_subman_errors=true" if ignore_subman_errors else ""}'
-            f'{"&force=true" if force else ""}'
-            f'{rp}'
-            f'{gpg}'
-            "' | bash"
-        )
-        return self.execute(cmd)
+        options = {
+            'activation-keys': activation_keys,
+            'organization-id': org.id,
+            'location-id': loc.id,
+            'insecure': str(insecure).lower(),
+            'update-packages': str(update_packages).lower(),
+        }
+        if target.__class__.__name__ == 'Capsule':
+            options['smart-proxy'] = target.hostname
+        elif target is not None and target.__class__.__name__ not in ['Capsule', 'Satellite']:
+            raise ValueError('Global registration method can be used with Satellite/Capsule only')
+
+        if lifecycle_environment is not None:
+            options['lifecycle_environment_id'] = lifecycle_environment.id
+        if operating_system is not None:
+            options['operatingsystem-id'] = operating_system.id
+        if hostgroup is not None:
+            options['hostgroup-id'] = hostgroup.id
+        if packages is not None:
+            options['packages'] = '+'.join(packages)
+        if repo is not None:
+            options['repo'] = repo
+        if setup_insights is not None:
+            options['setup-insights'] = str(setup_insights).lower()
+        if setup_remote_execution is not None:
+            options['setup-remote-execution'] = str(setup_remote_execution).lower()
+        if setup_remote_execution_pull is not None:
+            options['setup-remote-execution-pull'] = str(setup_remote_execution_pull).lower()
+        if remote_execution_interface is not None:
+            options['remote-execution-interface'] = remote_execution_interface
+        if repo_gpg_key_url is not None:
+            options['repo-gpg-key-url'] = repo_gpg_key_url
+        if ignore_subman_errors:
+            options['ignore-subman-errors'] = str(ignore_subman_errors).lower()
+        if force:
+            options['force'] = str(force).lower()
+
+        cmd = target.satellite.cli.HostRegistration.generate_command(options)
+        return self.execute(cmd.strip('\n'))
 
     def register_contenthost(
         self,
@@ -1327,6 +1302,36 @@ class Capsule(ContentHost, CapsuleMixins):
 
         return NailgunCapsule().search(query={'search': f'name={self.hostname}'})[0]
 
+    @property
+    def satellite(self):
+        if not self._satellite:
+            try:
+                # get the Capsule answer file
+                data = self.session.sftp_read(constants.CAPSULE_ANSWER_FILE, return_data=True)
+                answers = Box(yaml.load(data, yaml.FullLoader))
+                sat_hostname = urlparse(answers.foreman_proxy.foreman_base_url).netloc
+                # get the Satellite hostname from the answer file
+                hosts = Broker(host_class=Satellite).from_inventory(
+                    filter=f'@inv.hostname == "{sat_hostname}"'
+                )
+                if hosts:
+                    self._satellite = hosts[0]
+                else:
+                    logger.debug(
+                        f'No Satellite host found in inventory for {self.hostname}. '
+                        'Satellite object with the same hostname will be created anyway.'
+                    )
+                    self._satellite = Satellite(hostname=sat_hostname)
+            except Exception as e:
+                logger.exception(e)
+                # assign the default Sat instance in case we are not able to get it
+                logger.warning(
+                    'Unable to get Satellite hostname from Capsule answer file '
+                    'Capsule gets the default Satellite instance assigned.'
+                )
+                self._satellite = Satellite()
+        return self._satellite
+
     @cached_property
     def is_upstream(self):
         """Figure out which product distribution is installed on the server.
@@ -1606,10 +1611,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def is_remote_db(self):
         return (
-            self.execute(
-                'grep "db_manage: false" /etc/foreman-installer/scenarios.d/satellite-answers.yaml'
-            ).status
-            == 0
+            self.execute(f'grep "db_manage: false" {constants.SATELLITE_ANSWER_FILE}').status == 0
         )
 
     def capsule_certs_generate(self, capsule, cert_path=None, **extra_kwargs):
