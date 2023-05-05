@@ -1,0 +1,52 @@
+# Update robottelo image on quay.
+name: update_robottelo_image
+
+on:
+  push:
+    branches:
+      - master
+      - 6.*.z
+  repository_dispatch:
+    types:
+      - airgun-pr-merged
+      - nailgun-pr-merged
+
+jobs:
+  robottelo_container:
+    name: Update Robottelo container image on Quay.
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get image tag
+        id: image_tag
+        run: |
+          TAG="${{ github.event.client_payload.tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${GITHUB_REF##*/}"
+          fi
+          TAG=${TAG/master/latest}
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Quay Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ secrets.QUAY_SERVER }}
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_PASSWORD }}
+
+      - name: Build and push image to Quay
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.QUAY_SERVER }}/${{ secrets.QUAY_NAMESPACE }}/robottelo:${{ steps.image_tag.outputs.IMAGE_TAG }}
