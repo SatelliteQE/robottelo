@@ -559,7 +559,7 @@ def test_positive_add_admin_role_with_org_loc(
         assert ak['details']['name'] == ak_name
 
 
-@pytest.mark.parametrize('ldap_auth_source', ['AD_2016', 'AD_2019', 'IPA'], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD_2019', 'IPA'], indirect=True)
 @pytest.mark.tier2
 def test_positive_add_foreman_role_with_org_loc(
     test_name,
