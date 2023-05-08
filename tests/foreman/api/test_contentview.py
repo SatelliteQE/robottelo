@@ -1015,6 +1015,38 @@ class TestContentViewRedHatContent:
         content_view.read().version[0].promote(data={'environment_ids': module_lce.id})
         assert len(content_view.read().version[0].read().environment) == 2
 
+    @pytest.mark.stream
+    @pytest.mark.tier2
+    def test_cv_audit_scenarios(self, module_product):
+        """Check for various scenarios where a content view's needs_publish flag
+        should be set to true and that it properly gets set and unset
+
+        :id: 48b0ce35-f76b-447e-a465-d9ce70cbb20e
+
+        :expectedresults: When appropriate, a cv's needs_publish flag gets set or unset
+
+        :CaseLevel: Integration
+
+        :CaseImportance: High
+        """
+        # needs_publish is set to true when created
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # needs_publish is set to true when a filter is added/updated/deleted
+        entities.RPMContentViewFilter(
+            content_view=self.yumcv, inclusion='true', name=gen_string('alphanumeric')
+        ).create()
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # needs_publish is set to true whenever repositories are interacted with on the CV
+        repo = entities.Repository(product=module_product).create()
+        repo.sync()
+        self.yumcv.repository.append(repo)
+        self.yumcv = self.yumcv.update(['repository'])
+        assert self.yumcv.read().needs_publish
+
 
 @pytest.mark.tier2
 def test_positive_admin_user_actions(
