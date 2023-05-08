@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import pytest
-from airgun.exceptions import DisabledWidgetError
 from airgun.exceptions import NoSuchElementException
 from airgun.session import Session
 from fauxfactory import gen_string
@@ -262,9 +261,13 @@ def test_negative_create_with_duplicate_name(session, ui_entity):
     query = gen_string('alphanumeric')
     bookmark = entities.Bookmark(controller=ui_entity['controller'], public=True).create()
     with session:
-        assert session.bookmark.search(bookmark.name)[0]['Name'] == bookmark.name
+        existing_bookmark = session.bookmark.search(bookmark.name)[0]
+        assert existing_bookmark['Name'] == bookmark.name
         ui_lib = getattr(session, ui_entity['name'].lower())
-        with pytest.raises(DisabledWidgetError) as error:
-            ui_lib.create_bookmark({'name': bookmark.name, 'query': query, 'public': True})
-            assert error == 'name already exists'
-        assert len(session.bookmark.search(bookmark.name)) == 1
+        # this fails but does not raise UI error, BZ#1992652 closed wontfix
+        ui_lib.create_bookmark({'name': bookmark.name, 'query': query, 'public': True})
+        # assert there are no duplicate bookmarks
+        new_search = session.bookmark.search(bookmark.name)
+        assert len(new_search) == 1
+        # assert bookmark query wasn't overriden
+        assert new_search[0]['Search query'] == existing_bookmark['Search query']
