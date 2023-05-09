@@ -30,7 +30,6 @@ from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import CERT_PATH
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import PERMISSIONS
-from robottelo.utils import ssh
 from robottelo.utils.datafactory import gen_string
 
 
@@ -115,35 +114,33 @@ def rhsso_groups_teardown(default_sso_host):
 
 
 @pytest.fixture()
-def multigroup_setting_cleanup():
+def multigroup_setting_cleanup(default_ipa_host):
     """Adding and removing the user to/from ipa group"""
     sat_users = settings.ipa.groups
     idm_users = settings.ipa.group_users
-    ssh.command(cmd=f'echo {settings.ipa.password} | kinit admin', hostname=settings.ipa.hostname)
-    cmd = f'ipa group-add-member {sat_users[0]} --users={idm_users[1]}'
-    ssh.command(cmd, hostname=settings.ipa.hostname)
+    default_ipa_host.execute(
+        f'echo {settings.ipa.password} | kinit admin',
+    )
+    default_ipa_host.execute(f'ipa group-add-member {sat_users[0]} --users={idm_users[1]}')
     yield
-    cmd = f'ipa group-remove-member {sat_users[0]} --users={idm_users[1]}'
-    ssh.command(cmd, hostname=settings.ipa.hostname)
+    default_ipa_host.execute(f'ipa group-remove-member {sat_users[0]} --users={idm_users[1]}')
 
 
 @pytest.fixture()
-def ipa_add_user():
+def ipa_add_user(default_ipa_host):
     """Create an IPA user and delete it"""
-    result = ssh.command(
-        cmd=f'echo {settings.ipa.password} | kinit admin', hostname=settings.ipa.hostname
-    )
+    result = default_ipa_host.execute(f'echo {settings.ipa.password} | kinit admin')
     assert result.status == 0
     test_user = gen_string('alpha')
     add_user_cmd = (
         f'echo {settings.ipa.password} | ipa user-add {test_user} --first'
         f'={test_user} --last={test_user} --password'
     )
-    result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname)
+    result = default_ipa_host.execute(add_user_cmd)
     assert result.status == 0
     yield test_user
 
-    result = ssh.command(cmd=f'ipa user-del {test_user}', hostname=settings.ipa.hostname)
+    result = default_ipa_host.execute(f'ipa user-del {test_user}')
     assert result.status == 0
 
 
@@ -903,7 +900,9 @@ def test_negative_login_with_disable_user(ipa_data, auth_source_ipa, ldap_tear_d
 
 
 @pytest.mark.tier2
-def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, ldap_tear_down):
+def test_email_of_the_user_should_be_copied(
+    session, default_ipa_host, auth_source_ipa, ipa_data, ldap_tear_down
+):
     """Email of the user created in idm server ( set as external authorization source )
     should be copied to the satellite.
 
@@ -918,12 +917,9 @@ def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, 
 
     :expectedresults: Email is copied to Satellite:
     """
-    ssh.command(cmd=f'echo {settings.ipa.password} | kinit admin', hostname=settings.ipa.hostname)
-    result = ssh.command(
-        cmd=f"ipa user-find --login {ipa_data['ldap_user_name']}",
-        hostname=settings.ipa.hostname,
-    )
-    for line in result.strip().splitlines():
+    default_ipa_host.execute(f'echo {settings.ipa.password} | kinit admin')
+    result = default_ipa_host.execute(f"ipa user-find --login {ipa_data['ldap_user_name']}")
+    for line in result.stdout.strip().splitlines():
         if 'Email' in line:
             _, result = line.split(': ', 2)
             break
@@ -937,7 +933,9 @@ def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, 
 
 
 @pytest.mark.tier2
-def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear_down):
+def test_deleted_idm_user_should_not_be_able_to_login(
+    target_sat, default_ipa_host, auth_source_ipa, ldap_tear_down
+):
     """After deleting a user in IDM, user should not be able to login into satellite
 
     :id: 18ad0526-e083-11ea-b1ad-4ceb42ab8dbc
@@ -950,20 +948,18 @@ def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear
 
     :expectedresults: User login fails
     """
-    result = ssh.command(
-        cmd=f"echo {settings.ipa.password} | kinit admin", hostname=settings.ipa.hostname
-    )
+    result = default_ipa_host.execute(f"echo {settings.ipa.password} | kinit admin")
     assert result.status == 0
     test_user = gen_string('alpha')
     add_user_cmd = (
         f'echo {settings.ipa.password} | ipa user-add {test_user} --first'
         f'={test_user} --last={test_user} --password'
     )
-    result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname)
+    result = default_ipa_host.execute(add_user_cmd)
     assert result.status == 0
     with Session(user=test_user, password=settings.ipa.password) as ldapsession:
         ldapsession.bookmark.search('controller = hosts')
-    result = ssh.command(cmd=f'ipa user-del {test_user}', hostname=settings.ipa.hostname)
+    result = default_ipa_host.execute(f'ipa user-del {test_user}')
     assert result.status == 0
     with Session(user=test_user, password=settings.ipa.password) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
