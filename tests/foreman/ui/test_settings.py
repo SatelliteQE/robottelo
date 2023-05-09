@@ -98,7 +98,6 @@ def test_positive_update_restrict_composite_view(session, setting_update, repo_s
                     session.contentview.delete(content_view_name)
 
 
-@pytest.mark.skip_if_open("BZ:1677282")
 @pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['http_proxy'], indirect=True)
 def test_positive_httpd_proxy_url_update(session, setting_update):
@@ -162,7 +161,7 @@ def test_positive_host_dmi_uuid_duplicates(session, setting_update):
     property_value = gen_string("alpha")
     property_name = setting_update.name
     with session:
-        session.settings.update(f'name = {setting_update.name}', property_value)
+        session.settings.update(f'name = {property_name}', property_value)
         result = session.settings.read(f'name = {property_name}')
         assert result['table'][0]['Value'].strip('[]') == property_value
 
@@ -210,8 +209,10 @@ def test_positive_update_login_page_footer_text(session, setting_update):
         2. Click on general tab
         3. Input long length string into login page footer field
         4. Assert value from login page
-        5. Input empty string into the login page footer field
-        6. Assert empty value from login page
+        5. Input default value into the login page footer field
+        6. Assert default value from login page
+        7. Input empty string into the login page footer field
+        8. Assert empty value from login page
 
     :parametrized: yes
 
@@ -219,21 +220,34 @@ def test_positive_update_login_page_footer_text(session, setting_update):
 
     :CaseImportance: Medium
 
+    :customerscenario: true
+
+    :BZ: 2157869
+
     :CaseLevel: Acceptance
     """
     property_name = setting_update.name
+    default_value = setting_update.default
     login_text_data = gen_string('alpha', 270)
     empty_str = ""
+    login_details = {
+        'username': settings.server.admin_username,
+        'password': settings.server.admin_password,
+    }
     with session:
-        session.settings.update(f"name={property_name}", f"{login_text_data}")
+        session.settings.update(f"name={property_name}", login_text_data)
         result = session.login.logout()
         assert result["login_text"] == login_text_data
-        login_details = {
-            'username': settings.server.admin_username,
-            'password': settings.server.admin_password,
-        }
+
+        # change back to default (BZ#2157869)
         session.login.login(login_details)
-        session.settings.update(f"name={property_name}", f"{empty_str}")
+        session.settings.update(f'name = {property_name}', default_value)
+        result = session.login.logout()
+        assert result["login_text"] == default_value
+
+        # set empty
+        session.login.login(login_details)
+        session.settings.update(f"name={property_name}", empty_str)
         result = session.login.logout()
         assert not result["login_text"]
 
@@ -344,7 +358,6 @@ def test_negative_update_email_delivery_method_smtp():
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-@pytest.mark.skip_if_open("BZ:2080324")
 def test_positive_update_email_delivery_method_sendmail(session, target_sat):
     """Updating Sendmail params on Email tab
 
@@ -470,7 +483,6 @@ def test_positive_email_yaml_config_precedence():
     """
 
 
-@pytest.mark.skip_if_open("BZ:1989706")
 @pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['discovery_hostname'], indirect=True)
 def test_negative_update_hostname_with_empty_fact(session, setting_update):
