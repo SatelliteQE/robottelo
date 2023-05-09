@@ -358,3 +358,68 @@ class TestProvisioningTemplate:
             assert str(ipxe_template).count('ks=') == 1
         else:
             assert str(ipxe_template).count('inst.ks=') == 1
+
+    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    def test_positive_template_check_vlan_parameter(
+        self,
+        module_sync_kickstart_content,
+        module_target_sat,
+        module_sca_manifest_org,
+        module_location,
+        module_default_org_view,
+        module_lce_library,
+        default_architecture,
+        default_partitiontable,
+    ):
+        """Check whether vlan paremeter is properly rendered in the provisioning templates
+
+        :id: 2decc787-59b0-41e6-96be-5dd9371c8965
+
+        :expectedresults: The rendered templates should contain the "vlan" parameter
+                          expected for respective rhel hosts.
+
+        :BZ: 1607706
+
+        :customerscenario: true
+        """
+        macaddress = gen_mac(multicast=False)
+        capsule = module_target_sat.nailgun_smart_proxy
+        name = gen_string('alpha').lower()
+        identifier = gen_string('alphanumeric')
+        tag = gen_string('numeric', length=4)
+        # create a host with vlan enabled interface
+        host = module_target_sat.api.Host(
+            organization=module_sca_manifest_org,
+            location=module_location,
+            operatingsystem=module_sync_kickstart_content.os,
+            architecture=default_architecture,
+            root_pass=settings.provisioning.host_root_password,
+            ptable=default_partitiontable,
+            content_facet_attributes={
+                'content_source_id': capsule.id,
+                'content_view_id': module_default_org_view.id,
+                'lifecycle_environment_id': module_lce_library.id,
+            },
+            interfaces_attributes=[
+                {
+                    'mac': macaddress,
+                    'name': name,
+                    'identifier': identifier,
+                    'domain_id': module_sync_kickstart_content.domain.id,
+                },
+                {
+                    'mac': macaddress,
+                    'identifier': f'{identifier}.{tag}',
+                    'domain_id': module_sync_kickstart_content.domain.id,
+                    'managed': True,
+                    'provision': True,
+                    'virtual': True,
+                    'tag': tag,
+                    'attached_to': identifier,
+                },
+            ],
+        ).create()
+        provision_template = host.read_template(data={'template_kind': 'provision'})
+        assert f'interfacename=vlan{tag}' in str(provision_template)
+        ipxe_template = host.read_template(data={'template_kind': 'iPXE'})
+        assert f'vlan=vlan{tag}:{identifier}' in str(ipxe_template)
