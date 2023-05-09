@@ -178,6 +178,10 @@ def test_positive_update_bookmark_public(
         hidden
 
     :CaseLevel: Integration
+
+    :BZ: 2141187
+
+    :customerscenario: true
     """
     public_name = gen_string('alphanumeric')
     nonpublic_name = gen_string('alphanumeric')
