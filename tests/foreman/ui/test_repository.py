@@ -715,6 +715,32 @@ def test_positive_sync_ansible_collection_gallaxy_repo(session, module_prod):
 
 
 @pytest.mark.tier2
+def test_positive_no_errors_on_repo_scan(target_sat, function_sca_manifest_org):
+    """Scan repos for RHEL Server Extras, then check the production log
+    for a specific error
+
+    :id: 443bf4af-7f9a-48b8-8f98-fdb170e8ae88
+
+    :expectedresults: The specific error isn't contained in the prod log
+
+    :customerscenario: True
+
+    :BZ: 1994212
+
+    :CaseLevel: Integration
+    """
+    sat_rpm_extras = target_sat.cli_factory.RHELServerExtras(cdn=True)
+    with target_sat.ui_session() as session:
+        session.organization.select(function_sca_manifest_org.name)
+        session.redhatrepository.read(sat_rpm_extras.data['repository-set'])
+        result = target_sat.execute(
+            'grep "Failed at scanning for repository: undefined method '
+            '`resolve_substitutions\' for nil:NilClass" /var/log/foreman/production.log'
+        )
+        assert result.status == 1
+
+
+@pytest.mark.tier2
 def test_positive_reposet_disable(session, target_sat):
     """Enable RH repo, sync it and then disable
 

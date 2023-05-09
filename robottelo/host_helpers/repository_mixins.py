@@ -408,6 +408,12 @@ class RHELAnsibleEngineRepository(GenericRHRepository):
     _key = constants.PRODUCT_KEY_ANSIBLE_ENGINE
 
 
+class RHELServerExtras(GenericRHRepository):
+    """Red Hat Server Extras Repository"""
+
+    _key = constants.PRODUCT_KEY_RHEL_EXTRAS
+
+
 class RepositoryCollection:
     """Repository collection"""
 
