@@ -23,141 +23,11 @@ import random
 
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.constants import VALID_GCE_ZONES
 
-clouduser = gen_string('alpha')
-finishuser = gen_string('alpha')
 RHEL_CLOUD_PROJECTS = ['rhel-cloud', 'rhel-sap-cloud']
-
-
-@pytest.fixture(scope='module')
-def module_gce_cloudimg(
-    default_architecture, module_gce_compute, default_os, gce_custom_cloudinit_uuid
-):
-    """Creates cloudinit image on GCE Compute Resource"""
-    cloud_image = entities.Image(
-        architecture=default_architecture,
-        compute_resource=module_gce_compute,
-        name=gen_string('alpha'),
-        operatingsystem=default_os,
-        username=clouduser,
-        uuid=gce_custom_cloudinit_uuid,
-        user_data=True,
-    ).create()
-    return cloud_image
-
-
-@pytest.fixture(scope='module')
-def module_gce_finishimg(
-    default_architecture, module_gce_compute, default_os, gce_latest_rhel_uuid
-):
-    """Creates finish image on GCE Compute Resource"""
-    finish_image = entities.Image(
-        architecture=default_architecture,
-        compute_resource=module_gce_compute,
-        name=gen_string('alpha'),
-        operatingsystem=default_os,
-        username=finishuser,
-        uuid=gce_latest_rhel_uuid,
-    ).create()
-    return finish_image
-
-
-@pytest.fixture(scope='module')
-def module_gce_finishimg_puppet(
-    session_puppet_enabled_sat,
-    session_puppet_default_architecture,
-    module_gce_compute_puppet,
-    session_puppet_default_os,
-    gce_latest_rhel_uuid,
-):
-    """Creates finish image on GCE Compute Resource"""
-    finish_image = session_puppet_enabled_sat.api.Image(
-        architecture=session_puppet_default_architecture,
-        compute_resource=module_gce_compute_puppet,
-        name=gen_string('alpha'),
-        operatingsystem=session_puppet_default_os,
-        username=finishuser,
-        uuid=gce_latest_rhel_uuid,
-    ).create()
-    return finish_image
-
-
-@pytest.fixture(scope='class')
-def gce_domain(module_org, module_location, default_smart_proxy, target_sat):
-    """Sets Domain for GCE Host Provisioning"""
-    _, _, dom = target_sat.hostname.partition('.')
-    domain = entities.Domain().search(query={'search': f'name="{dom}"'})
-    domain = domain[0].read()
-    domain.location.append(module_location)
-    domain.organization.append(module_org)
-    domain.dns = default_smart_proxy
-    domain.update(['dns', 'location', 'organization'])
-    return entities.Domain(id=domain.id).read()
-
-
-@pytest.fixture(scope='class')
-def gce_hostgroup(
-    default_architecture,
-    module_gce_compute,
-    gce_domain,
-    module_location,
-    module_puppet_environment,
-    default_smart_proxy,
-    default_os,
-    module_org,
-    default_partitiontable,
-    googleclient,
-):
-    """Sets Hostgroup for GCE Host Provisioning"""
-    hgroup = entities.HostGroup(
-        architecture=default_architecture,
-        compute_resource=module_gce_compute,
-        domain=gce_domain,
-        location=[module_location],
-        environment=module_puppet_environment,
-        puppet_proxy=default_smart_proxy,
-        puppet_ca_proxy=default_smart_proxy,
-        root_pass=gen_string('alphanumeric'),
-        operatingsystem=default_os,
-        organization=[module_org],
-        ptable=default_partitiontable,
-    ).create()
-    return hgroup
-
-
-@pytest.fixture(scope='class')
-def gce_hostgroup_puppet(
-    session_puppet_enabled_sat,
-    session_puppet_default_architecture,
-    module_gce_compute_puppet,
-    module_puppet_domain,
-    module_puppet_loc,
-    module_puppet_environment,
-    session_puppet_enabled_proxy,
-    session_puppet_default_os,
-    module_puppet_org,
-    session_puppet_default_partition_table,
-    googleclient,
-):
-    """Sets Hostgroup for GCE Host Provisioning"""
-    hgroup = session_puppet_enabled_sat.api.HostGroup(
-        architecture=session_puppet_default_architecture,
-        compute_resource=module_gce_compute_puppet,
-        domain=module_puppet_domain,
-        location=[module_puppet_loc],
-        environment=module_puppet_environment,
-        puppet_proxy=session_puppet_enabled_proxy,
-        puppet_ca_proxy=session_puppet_enabled_proxy,
-        root_pass=gen_string('alphanumeric'),
-        operatingsystem=session_puppet_default_os,
-        organization=[module_puppet_org],
-        ptable=session_puppet_default_partition_table,
-    ).create()
-    return hgroup
 
 
 @pytest.mark.skip_if_not_set('gce')
@@ -165,7 +35,8 @@ class TestGCEComputeResourceTestCases:
     """Tests for ``api/v2/compute_resources``."""
 
     @pytest.mark.tier1
-    def test_positive_crud_gce_cr(self, module_org, module_location, gce_cert):
+    @pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
+    def test_positive_crud_gce_cr(self, sat_gce, sat_gce_org, sat_gce_loc, gce_cert):
         """Create, Read, Update and Delete GCE compute resources
 
         :id: b324f8cd-d509-4d7a-b738-08aefafdc2b5
@@ -178,13 +49,13 @@ class TestGCEComputeResourceTestCases:
         """
         cr_name = gen_string('alpha')
         # Testing Create
-        compresource = entities.GCEComputeResource(
+        compresource = sat_gce.api.GCEComputeResource(
             name=cr_name,
             provider='GCE',
             key_path=settings.gce.cert_path,
             zone=settings.gce.zone,
-            organization=[module_org],
-            location=[module_location],
+            organization=[sat_gce_org],
+            location=[sat_gce_loc],
         ).create()
         assert compresource.name == cr_name
         # Testing Update
@@ -196,13 +67,13 @@ class TestGCEComputeResourceTestCases:
         compresource.zone = new_zone
         compresource.update(['name', 'description', 'zone'])
         # Testing Read
-        updated = entities.GCEComputeResource(id=compresource.id).read()
+        updated = sat_gce.api.GCEComputeResource(id=compresource.id).read()
         assert updated.name == new_name
         assert updated.description == description
         assert updated.zone == new_zone
         # Testing Delete
         updated.delete()
-        assert not entities.GCEComputeResource().search(query={'search': f'name={new_name}'})
+        assert not sat_gce.api.GCEComputeResource().search(query={'search': f'name={new_name}'})
 
     @pytest.mark.tier3
     def test_positive_check_available_images(self, module_gce_compute, googleclient):
@@ -278,7 +149,6 @@ class TestGCEComputeResourceTestCases:
         """
         assert module_gce_finishimg.compute_resource.id == module_gce_compute.id
         assert module_gce_finishimg.uuid == gce_latest_rhel_uuid
-        assert module_gce_finishimg.username == finishuser
 
     @pytest.mark.tier3
     def test_positive_create_cloud_init_image(
@@ -298,7 +168,6 @@ class TestGCEComputeResourceTestCases:
         """
         assert module_gce_cloudimg.compute_resource.id == module_gce_compute.id
         assert module_gce_cloudimg.uuid == gce_custom_cloudinit_uuid
-        assert module_gce_cloudimg.username == clouduser
 
 
 @pytest.mark.skip_if_not_set('gce')
@@ -309,7 +178,7 @@ class TestGCEHostProvisioningTestCase:
     """
 
     @pytest.fixture(scope='class', autouse=True)
-    def class_setup(self, request, gce_latest_rhel_uuid, module_puppet_domain):
+    def class_setup(self, request, gce_latest_rhel_uuid, sat_gce_domain):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
@@ -318,7 +187,7 @@ class TestGCEHostProvisioningTestCase:
         request.cls.volsize = '20'
         request.cls.hostname = f'test{gen_string("alpha")}'
 
-        request.cls.fullhostname = f'{self.hostname}.{module_puppet_domain.name}'.lower()
+        request.cls.fullhostname = f'{self.hostname}.{sat_gce_domain.name}'.lower()
 
         request.cls.compute_attrs = {
             'image_id': gce_latest_rhel_uuid,
@@ -331,32 +200,32 @@ class TestGCEHostProvisioningTestCase:
     @pytest.fixture(scope='class')
     def class_host(
         self,
-        session_puppet_enabled_sat,
+        sat_gce,
         googleclient,
-        session_puppet_default_architecture,
-        module_puppet_domain,
-        gce_hostgroup_puppet,
-        module_puppet_org,
-        session_puppet_default_os,
-        module_puppet_loc,
+        sat_gce_default_architecture,
+        sat_gce_domain,
+        gce_hostgroup,
+        sat_gce_org,
+        sat_gce_default_os,
+        sat_gce_loc,
         gce_latest_rhel_uuid,
-        module_gce_finishimg_puppet,
+        module_gce_finishimg,
     ):
         """Provisions the host on GCE
 
         Later in tests this host will be used to perform assertions
         """
-        host = session_puppet_enabled_sat.api.Host(
-            architecture=session_puppet_default_architecture,
+        host = sat_gce.api.Host(
+            architecture=sat_gce_default_architecture,
             compute_attributes=self.compute_attrs,
-            domain=module_puppet_domain,
-            hostgroup=gce_hostgroup_puppet,
-            organization=module_puppet_org,
-            operatingsystem=session_puppet_default_os,
-            location=module_puppet_loc,
+            domain=sat_gce_domain,
+            hostgroup=gce_hostgroup,
+            organization=sat_gce_org,
+            operatingsystem=sat_gce_default_os,
+            location=sat_gce_loc,
             name=self.hostname,
             provision_method='image',
-            image=module_gce_finishimg_puppet,
+            image=module_gce_finishimg,
             root_pass=gen_string('alphanumeric'),
         ).create()
         yield host
@@ -369,7 +238,8 @@ class TestGCEHostProvisioningTestCase:
 
     @pytest.mark.e2e
     @pytest.mark.tier1
-    def test_positive_gce_host_provisioned(self, class_host):
+    @pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
+    def test_positive_gce_host_provisioned(self, class_host, google_host):
         """Host can be provisioned on Google Cloud
 
         :id: 889975f2-56ca-4584-95a7-21c513969630
@@ -388,29 +258,10 @@ class TestGCEHostProvisioningTestCase:
             1. The host should be provisioned on Google Compute Engine
             2. The host name should be the same as given in data to provision the host
             3. The host should show Installed status for provisioned host
+            4. The provisioned host should be assigned with external IP
         """
         assert class_host.name == self.fullhostname
         assert class_host.build_status_label == 'Installed'
-
-    @pytest.mark.tier3
-    def test_positive_gce_host_ip(self, class_host, google_host):
-        """Host has assigned with external IP
-
-        :id: e0ee4243-4b8e-474b-ad8c-46198506d196
-
-        :CaseLevel: System
-
-        ::CaseImportance: Critical
-
-        :steps:
-            1. Create a GCE Compute Resource
-            2. Create a Hostgroup with all the Global and Foreman entities but
-                without Compute Profile, required to provision a host
-            3. Provision a Host on Google Cloud using above GCE CR and Hostgroup
-
-        :expectedresults:
-            1. The provisioned host should be assigned with external IP
-        """
         assert class_host.ip == google_host.ip
 
     @pytest.mark.tier3
