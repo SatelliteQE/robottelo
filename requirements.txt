@@ -1,7 +1,7 @@
 # Version updates managed by dependabot
 
 betelgeuse==1.10.0
-broker[docker]==0.3.0
+broker[docker]==0.3.1
 cryptography==40.0.2
 deepdiff==6.3.0
 dynaconf[vault]==3.1.12
@@ -23,7 +23,7 @@ requests==2.29.0
 tenacity==8.2.2
 testimony==2.2.0
 wait-for==1.2.0
-wrapanapi==3.5.14
+wrapanapi==3.5.15
 
 # Get airgun, nailgun and upgrade from master
 git+https://github.com/SatelliteQE/airgun.git@master#egg=airgun

@@ -1102,20 +1102,24 @@ def test_positive_search_by_org(session, smart_proxy_location, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_validate_inherited_cv_lce(session, target_sat, module_host_template):
+def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, module_host_template):
     """Create a host with hostgroup specified via CLI. Make sure host
     inherited hostgroup's lifecycle environment, content view and both
-    fields are properly reflected via WebUI.
+    fields are properly reflected via WebUI. Also host should be searchable by the
+    inherited ansible role.
 
     :id: c83f6819-2649-4a8b-bb1d-ce93b2243765
 
-    :expectedresults: Host's lifecycle environment and content view match
+    :expectedresults: Host's lifecycle environment, content view and ansible role match
        the ones specified in hostgroup.
 
     :CaseLevel: Integration
 
-    :BZ: 1391656
+    :customerscenario: true
+
+    :BZ: 1391656, 2094912
     """
+    SELECTED_ROLE = 'RedHatInsights.insights-client'
     cv_name = gen_string('alpha')
     lce_name = gen_string('alphanumeric')
     cv = target_sat.api_factory.cv_publish_promote(
@@ -1131,6 +1135,9 @@ def test_positive_validate_inherited_cv_lce(session, target_sat, module_host_tem
         )[0]
         .read()
     )
+    target_sat.cli.Ansible.roles_sync(
+        {'role-names': SELECTED_ROLE, 'proxy-id': target_sat.nailgun_smart_proxy.id}
+    )
     hostgroup = target_sat.cli_factory.make_hostgroup(
         {
             'content-view-id': cv.id,
@@ -1138,6 +1145,14 @@ def test_positive_validate_inherited_cv_lce(session, target_sat, module_host_tem
             'organization-ids': module_host_template.organization.id,
         }
     )
+    result = target_sat.cli.HostGroup.ansible_roles_assign(
+        {'name': hostgroup.name, 'ansible-roles': SELECTED_ROLE}
+    )
+    assert 'Ansible roles were assigned to the hostgroup' in result[0]['message']
+    result = target_sat.cli.HostGroup.ansible_roles_add(
+        {'name': hostgroup.name, 'ansible-role': SELECTED_ROLE}
+    )
+    assert 'Ansible role has been associated.' in result[0]['message']
     host = target_sat.cli_factory.make_host(
         {
             'architecture-id': module_host_template.architecture.id,
@@ -1154,6 +1169,11 @@ def test_positive_validate_inherited_cv_lce(session, target_sat, module_host_tem
         values = session.host.read(host['name'], ['host.lce', 'host.content_view'])
         assert values['host']['lce'] == lce.name
         assert values['host']['content_view'] == cv.name
+        matching_hosts = target_sat.api.Host().search(
+            query={'search': f'ansible_role="{SELECTED_ROLE}"'}
+        )
+        assert len(matching_hosts), 'Host not found by inherited ansible role'
+        assert host.name in [host.name for host in matching_hosts]
 
 
 @pytest.mark.tier2

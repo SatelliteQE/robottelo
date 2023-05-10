@@ -71,7 +71,7 @@ def setup_capsules(
         install_cmd.opts.update(**extra_installer_var)
         result = capsule.install(install_cmd)
         assert result.status == 0
-
+        capsule._satellite = module_target_sat
         for i in module_target_sat.cli.Capsule.list():
             if i['name'] == capsule.hostname:
                 capsule_id = i['id']
@@ -271,7 +271,6 @@ def test_loadbalancer_register_client_using_ak_to_ha_proxy(loadbalancer_setup, r
 def test_client_register_through_lb(
     loadbalancer_setup,
     rhel_contenthost,
-    module_target_sat,
     module_org,
     module_location,
     setup_capsules,
@@ -298,7 +297,6 @@ def test_client_register_through_lb(
         org=module_org,
         loc=module_location,
         activation_keys=loadbalancer_setup['content_for_client']['client_ak'].name,
-        satellite=module_target_sat,
         target=setup_capsules['capsule_1'],
         force=True,
     )
@@ -314,7 +312,6 @@ def test_client_register_through_lb(
         org=module_org,
         loc=module_location,
         activation_keys=loadbalancer_setup['content_for_client']['client_ak'].name,
-        satellite=module_target_sat,
         target=setup_capsules['capsule_2'],
         force=True,
     )
