@@ -17,16 +17,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Get branch info
+        id: repo_branch
+        run: |
+          BRANCH="${{ github.event.client_payload.branch }}"
+          if [ -z "$BRANCH" ]; then
+            BRANCH="${GITHUB_REF##*/}"
+          fi
+          echo "REPO_BRANCH=$BRANCH" >> $GITHUB_OUTPUT
+
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ref: "${{ steps.repo_branch.outputs.REPO_BRANCH }}"
 
-      - name: Get image tag
+      - name: Update tag info
         id: image_tag
         run: |
-          TAG="${{ github.event.client_payload.tag }}"
-          if [ -z "$TAG" ]; then
-            TAG="${GITHUB_REF##*/}"
-          fi
+          TAG="${{ steps.repo_branch.outputs.REPO_BRANCH }}"
           TAG=${TAG/master/latest}
           echo "IMAGE_TAG=$TAG" >> $GITHUB_OUTPUT
 
