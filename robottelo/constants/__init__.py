@@ -359,7 +359,7 @@ REPOS = {
         'version': '6.13',
         'reposet': REPOSET['rhs8'],
         'product': PRDS['rhs'],
-        'distro': 'rhel7',
+        'distro': 'rhel8',
         'key': 'rhs',
     },
     'rhs7': {
