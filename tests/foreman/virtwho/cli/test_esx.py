@@ -56,7 +56,10 @@ def form_data(target_sat, default_org):
 
 @pytest.fixture()
 def virtwho_config(form_data, target_sat):
-    return target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
+    virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
+    yield virtwho_config
+    target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
+    assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
 
 
 class TestVirtWhoConfigforEsx:
@@ -108,8 +111,6 @@ class TestVirtWhoConfigforEsx:
                 {'host-id': host['id'], 'subscription-id': vdc_id}
             )
             assert result.strip() == 'Subscription attached to the host successfully.'
-        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_script(
@@ -161,11 +162,9 @@ class TestVirtWhoConfigforEsx:
                 {'host-id': host['id'], 'subscription-id': vdc_id}
             )
             assert result.strip() == 'Subscription attached to the host successfully.'
-        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
-    def test_positive_debug_option(self, default_org, form_data, virtwho_config, target_sat):
+    def test_positive_debug_option(self, default_org, form_data, target_sat):
         """Verify debug option by hammer virt-who-config update"
 
         :id: c98bc518-828c-49ba-a644-542db3190263
@@ -176,6 +175,7 @@ class TestVirtWhoConfigforEsx:
 
         :CaseImportance: Medium
         """
+        virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
         assert virtwho_config['name'] == form_data['name']
         new_name = gen_string('alphanumeric')
         target_sat.cli.VirtWhoConfig.update({'id': virtwho_config['id'], 'new-name': new_name})
@@ -191,8 +191,6 @@ class TestVirtWhoConfigforEsx:
                 command, form_data['hypervisor-type'], org=default_org.label
             )
             assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == value
-        target_sat.cli.VirtWhoConfig.delete({'name': new_name})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', new_name))
 
     @pytest.mark.tier2
     def test_positive_interval_option(self, default_org, form_data, virtwho_config, target_sat):
@@ -223,8 +221,6 @@ class TestVirtWhoConfigforEsx:
                 command, form_data['hypervisor-type'], org=default_org.label
             )
             assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
-        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
@@ -254,8 +250,6 @@ class TestVirtWhoConfigforEsx:
                 command, form_data['hypervisor-type'], org=default_org.label
             )
             assert get_configure_option('hypervisor_id', config_file) == value
-        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
     def test_positive_filter_option(self, default_org, form_data, virtwho_config, target_sat):
@@ -295,8 +289,6 @@ class TestVirtWhoConfigforEsx:
         deploy_configure_by_command(command, form_data['hypervisor-type'], org=default_org.label)
         assert get_configure_option('exclude_hosts', config_file) == regex
         assert get_configure_option('exclude_host_parents', config_file) == regex
-        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
     def test_positive_proxy_option(self, default_org, form_data, virtwho_config, target_sat):
@@ -336,9 +328,6 @@ class TestVirtWhoConfigforEsx:
         deploy_configure_by_command(command, form_data['hypervisor-type'], org=default_org.label)
         assert get_configure_option('http_proxy', ETC_VIRTWHO_CONFIG) == http_proxy_url
 
-        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
-
     @pytest.mark.tier2
     def test_positive_rhsm_option(self, default_org, form_data, virtwho_config, target_sat):
         """Verify rhsm options in the configure file"
@@ -360,8 +349,6 @@ class TestVirtWhoConfigforEsx:
         assert not User.exists(search=('login', rhsm_username))
         assert get_configure_option('rhsm_hostname', config_file) == target_sat.hostname
         assert get_configure_option('rhsm_prefix', config_file) == '/rhsm'
-        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
     def test_positive_post_hypervisors(self, function_org, target_sat):
@@ -418,8 +405,6 @@ class TestVirtWhoConfigforEsx:
             'general-information'
         ]['status']
         assert virt_who_instance == 'OK'
-        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
     def test_positive_deploy_configure_hypervisor_password_with_special_characters(
@@ -468,8 +453,6 @@ class TestVirtWhoConfigforEsx:
             get_configure_option('username', config_file)
             == settings.virtwho.esx.hypervisor_username
         )
-        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
     def test_positive_remove_env_option(self, default_org, form_data, virtwho_config, target_sat):
@@ -511,5 +494,3 @@ class TestVirtWhoConfigforEsx:
         env_warning = f"Ignoring unknown configuration option \"{option}\""
         result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
         assert result.status == 1
-        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))

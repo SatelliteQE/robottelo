@@ -28,6 +28,7 @@ from robottelo.utils.virtwho import ETC_VIRTWHO_CONFIG
 from robottelo.utils.virtwho import get_configure_command
 from robottelo.utils.virtwho import get_configure_file
 from robottelo.utils.virtwho import get_configure_option
+from robottelo.utils.virtwho import get_guest_info
 
 
 @pytest.fixture()
@@ -50,9 +51,21 @@ def form_data(default_org, target_sat):
 
 @pytest.fixture()
 def virtwho_config(form_data, target_sat):
-    return target_sat.api.VirtWhoConfig(**form_data).create()
+    virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
+    yield virtwho_config
+    virtwho_config.delete()
+    assert not target_sat.api.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
 
+@pytest.fixture(autouse=True)
+def delete_host(form_data, target_sat):
+    guest_name, _ = get_guest_info(form_data['hypervisor_type'])
+    results = target_sat.api.Host().search(query={'search': guest_name})
+    if results:
+        target_sat.api.Host(id=results[0].read_json()['id']).delete()
+
+
+@pytest.mark.usefixtures('delete_host')
 class TestVirtWhoConfigforEsx:
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(
@@ -105,10 +118,6 @@ class TestVirtWhoConfigforEsx:
             )
             result = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_script(
@@ -166,10 +175,6 @@ class TestVirtWhoConfigforEsx:
             )
             result = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_debug_option(self, default_org, form_data, virtwho_config, target_sat):
@@ -194,10 +199,6 @@ class TestVirtWhoConfigforEsx:
                 command, form_data['hypervisor_type'], org=default_org.label
             )
             assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == value
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_interval_option(self, default_org, form_data, virtwho_config, target_sat):
@@ -231,10 +232,6 @@ class TestVirtWhoConfigforEsx:
                 command, form_data['hypervisor_type'], org=default_org.label
             )
             assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
@@ -263,10 +260,6 @@ class TestVirtWhoConfigforEsx:
                 command, form_data['hypervisor_type'], org=default_org.label
             )
             assert get_configure_option('hypervisor_id', config_file) == value
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_filter_option(self, default_org, form_data, virtwho_config, target_sat):
@@ -313,10 +306,6 @@ class TestVirtWhoConfigforEsx:
             get_configure_option('exclude_host_parents', config_file)
             == blacklist['exclude_host_parents']
         )
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_proxy_option(self, default_org, form_data, virtwho_config, target_sat):
@@ -356,10 +345,6 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.update(['http_proxy_id'])
         deploy_configure_by_command(command, form_data['hypervisor_type'], org=default_org.label)
         assert get_configure_option('https_proxy', ETC_VIRTWHO_CONFIG) == https_proxy_url
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_configure_organization_list(
@@ -381,10 +366,6 @@ class TestVirtWhoConfigforEsx:
         deploy_configure_by_command(command, form_data['hypervisor_type'], org=default_org.label)
         search_result = virtwho_config.get_organization_configs(data={'per_page': '1000'})
         assert [item for item in search_result['results'] if item['name'] == form_data['name']]
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_deploy_configure_hypervisor_password_with_special_characters(
@@ -482,7 +463,3 @@ class TestVirtWhoConfigforEsx:
         env_warning = f"Ignoring unknown configuration option \"{option}\""
         result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
         assert result.status == 1
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
