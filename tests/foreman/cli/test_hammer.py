@@ -86,7 +86,7 @@ def test_positive_all_options(target_sat):
 
     :expectedresults: All expected options are present
 
-    :BZ: 2119053
+    :BZ: 2119053, 2154512
 
     :customerscenario: true
     """
