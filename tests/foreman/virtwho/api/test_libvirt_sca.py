@@ -1,4 +1,4 @@
-"""Test class for Virtwho Configure CLI
+"""Test class for Virtwho Configure API
 
 :Requirement: Virt-whoConfigurePlugin
 
@@ -26,28 +26,28 @@ from robottelo.utils.virtwho import get_configure_option
 
 
 @pytest.fixture()
-def form_data(target_sat, module_sca_manifest_org):
+def form_data(module_sca_manifest_org, target_sat):
     form = {
         'name': gen_string('alpha'),
         'debug': 1,
         'interval': '60',
-        'hypervisor-id': 'hostname',
-        'hypervisor-type': settings.virtwho.libvirt.hypervisor_type,
-        'hypervisor-server': settings.virtwho.libvirt.hypervisor_server,
-        'organization-id': module_sca_manifest_org.id,
-        'filtering-mode': 'none',
-        'satellite-url': target_sat.hostname,
-        'hypervisor-username': settings.virtwho.libvirt.hypervisor_username,
+        'hypervisor_id': 'hostname',
+        'hypervisor_type': settings.virtwho.libvirt.hypervisor_type,
+        'hypervisor_server': settings.virtwho.libvirt.hypervisor_server,
+        'organization_id': module_sca_manifest_org.id,
+        'filtering_mode': 'none',
+        'satellite_url': target_sat.hostname,
+        'hypervisor_username': settings.virtwho.libvirt.hypervisor_username,
     }
     return form
 
 
 @pytest.fixture()
 def virtwho_config(form_data, target_sat):
-    virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
+    virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
     yield virtwho_config
-    target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-    assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
+    virtwho_config.delete()
+    assert not target_sat.api.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
 
 class TestVirtWhoConfigforLibvirt:
@@ -56,9 +56,9 @@ class TestVirtWhoConfigforLibvirt:
     def test_positive_deploy_configure_by_id_script(
         self, module_sca_manifest_org, form_data, virtwho_config, target_sat, deploy_type
     ):
-        """Verify " hammer virt-who-config deploy"
+        """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
-        :id: 53143fc3-97e0-4403-8114-4d7f20fde98e
+        :id: be6563e7-f714-4189-a8f5-9e99b0522a02
 
         :expectedresults: Config can be created and deployed
 
@@ -66,31 +66,34 @@ class TestVirtWhoConfigforLibvirt:
 
         :CaseImportance: High
         """
-        assert virtwho_config['status'] == 'No Report Yet'
+        assert virtwho_config.status == 'unknown'
         if deploy_type == "id":
-            command = get_configure_command(virtwho_config['id'], module_sca_manifest_org.name)
+            command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                command, form_data['hypervisor-type'], debug=True, org=module_sca_manifest_org.label
+                command, form_data['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
             )
         elif deploy_type == "script":
-            script = target_sat.cli.VirtWhoConfig.fetch(
-                {'id': virtwho_config['id']}, output_format='base'
-            )
+            script = virtwho_config.deploy_script()
             deploy_configure_by_script(
-                script, form_data['hypervisor-type'], debug=True, org=module_sca_manifest_org.label
+                script['virt_who_config_script'],
+                form_data['hypervisor_type'],
+                debug=True,
+                org=module_sca_manifest_org.label,
             )
-        virt_who_instance = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config['id']})[
-            'general-information'
-        ]['status']
-        assert virt_who_instance == 'OK'
+        virt_who_instance = (
+            target_sat.api.VirtWhoConfig()
+            .search(query={'search': f'name={virtwho_config.name}'})[0]
+            .status
+        )
+        assert virt_who_instance == 'ok'
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
         self, module_sca_manifest_org, form_data, virtwho_config, target_sat
     ):
-        """Verify hypervisor_id option by hammer virt-who-config update"
+        """Verify hypervisor_id option by "PUT /foreman_virt_who_configure/api/v2/configs/:id"
 
-        :id: e68421b5-ff3d-4f25-926d-8330b92f2cdf
+        :id: 60f373f0-5179-4531-834d-c297f9f7ea2d
 
         :expectedresults: hypervisor_id option can be updated.
 
@@ -99,14 +102,11 @@ class TestVirtWhoConfigforLibvirt:
         :CaseImportance: Medium
         """
         for value in ['uuid', 'hostname']:
-            target_sat.cli.VirtWhoConfig.update(
-                {'id': virtwho_config['id'], 'hypervisor-id': value}
-            )
-            result = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config['id']})
-            assert result['connection']['hypervisor-id'] == value
-            config_file = get_configure_file(virtwho_config['id'])
-            command = get_configure_command(virtwho_config['id'], module_sca_manifest_org.name)
+            virtwho_config.hypervisor_id = value
+            virtwho_config.update(['hypervisor_id'])
+            config_file = get_configure_file(virtwho_config.id)
+            command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                command, form_data['hypervisor-type'], org=module_sca_manifest_org.label
+                command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
             )
             assert get_configure_option('hypervisor_id', config_file) == value

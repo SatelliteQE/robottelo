@@ -46,7 +46,10 @@ def form_data(default_org, target_sat):
 
 @pytest.fixture()
 def virtwho_config(form_data, target_sat):
-    return target_sat.api.VirtWhoConfig(**form_data).create()
+    virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
+    yield virtwho_config
+    virtwho_config.delete()
+    assert not target_sat.api.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
 
 class TestVirtWhoConfigforLibvirt:
@@ -101,10 +104,6 @@ class TestVirtWhoConfigforLibvirt:
             )
             result = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_script(
@@ -162,10 +161,6 @@ class TestVirtWhoConfigforLibvirt:
             )
             result = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
@@ -193,7 +188,3 @@ class TestVirtWhoConfigforLibvirt:
                 command, form_data['hypervisor_type'], org=default_org.label
             )
             assert get_configure_option('hypervisor_id', config_file) == value
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
