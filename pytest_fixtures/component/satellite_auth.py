@@ -127,20 +127,20 @@ def auth_source(ldap_cleanup, module_org, module_location, ad_data):
 
 
 @pytest.fixture(scope='function')
-def auth_source_ipa(ldap_cleanup, module_org, module_location, ipa_data):
+def auth_source_ipa(ldap_cleanup, default_ipa_host, module_org, module_location):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
-        account=ipa_data['ldap_user_cn'],
-        account_password=ipa_data['ldap_user_passwd'],
-        base_dn=ipa_data['base_dn'],
-        groups_base=ipa_data['group_base_dn'],
+        account=default_ipa_host.ldap_user_cn,
+        account_password=default_ipa_host.ldap_user_passwd,
+        base_dn=default_ipa_host.base_dn,
+        groups_base=default_ipa_host.group_base_dn,
         attr_firstname=LDAP_ATTR['firstname'],
         attr_lastname=LDAP_ATTR['surname'],
         attr_login=LDAP_ATTR['login'],
         server_type=LDAP_SERVER_TYPE['API']['ipa'],
         attr_mail=LDAP_ATTR['mail'],
         name=gen_string('alpha'),
-        host=ipa_data['ldap_hostname'],
+        host=default_ipa_host.hostname,
         tls=False,
         port='389',
         organization=[module_org],

@@ -118,30 +118,19 @@ def multigroup_setting_cleanup(default_ipa_host):
     """Adding and removing the user to/from ipa group"""
     sat_users = settings.ipa.groups
     idm_users = settings.ipa.group_users
-    default_ipa_host.execute(
-        f'echo {settings.ipa.password} | kinit admin',
-    )
-    default_ipa_host.execute(f'ipa group-add-member {sat_users[0]} --users={idm_users[1]}')
+    default_ipa_host.add_user_to_usergroup(idm_users[1], sat_users[0])
     yield
-    default_ipa_host.execute(f'ipa group-remove-member {sat_users[0]} --users={idm_users[1]}')
+    default_ipa_host.remove_user_from_usergroup(idm_users[1], sat_users[0])
 
 
 @pytest.fixture()
 def ipa_add_user(default_ipa_host):
     """Create an IPA user and delete it"""
-    result = default_ipa_host.execute(f'echo {settings.ipa.password} | kinit admin')
-    assert result.status == 0
     test_user = gen_string('alpha')
-    add_user_cmd = (
-        f'echo {settings.ipa.password} | ipa user-add {test_user} --first'
-        f'={test_user} --last={test_user} --password'
-    )
-    result = default_ipa_host.execute(add_user_cmd)
-    assert result.status == 0
+    default_ipa_host.create_user(test_user)
     yield test_user
 
-    result = default_ipa_host.execute(f'ipa user-del {test_user}')
-    assert result.status == 0
+    default_ipa_host.delete_user(test_user)
 
 
 def generate_otp(secret):
@@ -784,7 +773,9 @@ def test_positive_login_user_basic_roles(
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_login_user_password_otp(auth_source_ipa, test_name, ldap_tear_down, ipa_data):
+def test_positive_login_user_password_otp(
+    auth_source_ipa, default_ipa_host, test_name, ldap_tear_down
+):
     """Login with password with time based OTP
 
     :id: be7eb5d6-3228-4660-aa64-c56f9f3ec5e0
@@ -798,19 +789,19 @@ def test_positive_login_user_password_otp(auth_source_ipa, test_name, ldap_tear_
     :CaseImportance: Medium
     """
 
-    otp_pass = f"{ipa_data['ldap_user_passwd']}{generate_otp(ipa_data['time_based_secret'])}"
-    with Session(test_name, ipa_data['ipa_otp_username'], otp_pass) as ldapsession:
+    otp_pass = (
+        f"{default_ipa_host.ldap_user_passwd}{generate_otp(default_ipa_host.time_based_secret)}"
+    )
+    with Session(test_name, default_ipa_host.ipa_otp_username, otp_pass) as ldapsession:
         with pytest.raises(NavigationTriesExceeded):
             ldapsession.user.search('')
-    users = entities.User().search(
-        query={'search': 'login="{}"'.format(ipa_data['ipa_otp_username'])}
-    )
-    assert users[0].login == ipa_data['ipa_otp_username']
+    users = entities.User().search(query={'search': f'login="{default_ipa_host.ipa_otp_username}"'})
+    assert users[0].login == default_ipa_host.ipa_otp_username
 
 
 @pytest.mark.tier2
 def test_negative_login_user_with_invalid_password_otp(
-    auth_source_ipa, test_name, ldap_tear_down, ipa_data
+    auth_source_ipa, default_ipa_host, test_name, ldap_tear_down
 ):
     """Login with password with time based OTP
 
@@ -825,8 +816,10 @@ def test_negative_login_user_with_invalid_password_otp(
     :CaseImportance: Medium
     """
 
-    password_with_otp = f"{ipa_data['ldap_user_passwd']}{gen_string(str_type='numeric', length=6)}"
-    with Session(test_name, ipa_data['ipa_otp_username'], password_with_otp) as ldapsession:
+    password_with_otp = (
+        f"{default_ipa_host.ldap_user_passwd}{gen_string(str_type='numeric', length=6)}"
+    )
+    with Session(test_name, default_ipa_host.ipa_otp_username, password_with_otp) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
         assert error.typename == 'NavigationTriesExceeded'
@@ -880,7 +873,7 @@ def test_negative_login_with_incorrect_password(test_name, ldap_auth_source):
 
 
 @pytest.mark.tier2
-def test_negative_login_with_disable_user(ipa_data, auth_source_ipa, ldap_tear_down):
+def test_negative_login_with_disable_user(default_ipa_host, auth_source_ipa, ldap_tear_down):
     """Disabled IDM user cannot login
 
     :id: 49f28006-aa1f-11ea-90d3-4ceb42ab8dbc
@@ -892,7 +885,7 @@ def test_negative_login_with_disable_user(ipa_data, auth_source_ipa, ldap_tear_d
     :expectedresults: Login fails
     """
     with Session(
-        user=ipa_data['disabled_user_ipa'], password=ipa_data['ldap_user_passwd']
+        user=default_ipa_host.disabled_user_ipa, password=default_ipa_host.ldap_user_passwd
     ) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
@@ -901,7 +894,7 @@ def test_negative_login_with_disable_user(ipa_data, auth_source_ipa, ldap_tear_d
 
 @pytest.mark.tier2
 def test_email_of_the_user_should_be_copied(
-    session, default_ipa_host, auth_source_ipa, ipa_data, ldap_tear_down
+    session, default_ipa_host, auth_source_ipa, ldap_tear_down
 ):
     """Email of the user created in idm server ( set as external authorization source )
     should be copied to the satellite.
@@ -917,18 +910,17 @@ def test_email_of_the_user_should_be_copied(
 
     :expectedresults: Email is copied to Satellite:
     """
-    default_ipa_host.execute(f'echo {settings.ipa.password} | kinit admin')
-    result = default_ipa_host.execute(f"ipa user-find --login {ipa_data['ldap_user_name']}")
-    for line in result.stdout.strip().splitlines():
+    result = default_ipa_host.find_user(default_ipa_host.ldap_user_name)
+    for line in result.strip().splitlines():
         if 'Email' in line:
             _, result = line.split(': ', 2)
             break
     with Session(
-        user=ipa_data['ldap_user_name'], password=ipa_data['ldap_user_passwd']
+        user=default_ipa_host.ldap_user_name, password=default_ipa_host.ldap_user_passwd
     ) as ldapsession:
         ldapsession.bookmark.search('controller = hosts')
     with session:
-        user_value = session.user.read(ipa_data['ldap_user_name'], widget_names='user')
+        user_value = session.user.read(default_ipa_host.ldap_user_name, widget_names='user')
         assert user_value['user']['mail'] == result
 
 
@@ -948,19 +940,11 @@ def test_deleted_idm_user_should_not_be_able_to_login(
 
     :expectedresults: User login fails
     """
-    result = default_ipa_host.execute(f"echo {settings.ipa.password} | kinit admin")
-    assert result.status == 0
     test_user = gen_string('alpha')
-    add_user_cmd = (
-        f'echo {settings.ipa.password} | ipa user-add {test_user} --first'
-        f'={test_user} --last={test_user} --password'
-    )
-    result = default_ipa_host.execute(add_user_cmd)
-    assert result.status == 0
+    default_ipa_host.create_user(test_user)
     with Session(user=test_user, password=settings.ipa.password) as ldapsession:
         ldapsession.bookmark.search('controller = hosts')
-    result = default_ipa_host.execute(f'ipa user-del {test_user}')
-    assert result.status == 0
+    default_ipa_host.delete_user(test_user)
     with Session(user=test_user, password=settings.ipa.password) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
@@ -1328,7 +1312,9 @@ def test_verify_group_permissions(
 
 
 @pytest.mark.tier2
-def test_verify_ldap_filters_ipa(session, ipa_add_user, auth_source_ipa, ipa_data, ldap_tear_down):
+def test_verify_ldap_filters_ipa(
+    session, ipa_add_user, auth_source_ipa, default_ipa_host, ldap_tear_down
+):
     """Verifying ldap filters in authsource to restrict access
 
     :id: 0052b272-08b1-11eb-80c6-0c7a158cbff4
@@ -1344,16 +1330,16 @@ def test_verify_ldap_filters_ipa(session, ipa_add_user, auth_source_ipa, ipa_dat
 
     # 'test_user' able to login before the filter is applied.
     test_user = ipa_add_user
-    with Session(user=test_user, password=ipa_data['ldap_user_passwd']) as ldapsession:
+    with Session(user=test_user, password=default_ipa_host.ldap_user_passwd) as ldapsession:
         ldapsession.task.read_all()
 
     # updating the authsource with filter
-    group_name = ipa_data['groups'][0]
-    ldap_data = f"(memberOf=cn={group_name},{ipa_data['group_base_dn']})"
+    group_name = default_ipa_host.groups[0]
+    ldap_data = f"(memberOf=cn={group_name},{default_ipa_host.group_base_dn})"
     session.ldapauthentication.update(auth_source_ipa.name, {'account.ldap_filter': ldap_data})
 
     # 'test_user' not able login as it gets filtered out
-    with Session(user=test_user, password=ipa_data['ldap_user_passwd']) as ldapsession:
+    with Session(user=test_user, password=default_ipa_host.ldap_user_passwd) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
         assert error.typename == 'NavigationTriesExceeded'

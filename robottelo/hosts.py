@@ -158,6 +158,10 @@ class SatelliteHostError(Exception):
     pass
 
 
+class IPAHostError(Exception):
+    pass
+
+
 class ContentHost(Host, ContentHostMixins):
     run = Host.execute
     default_timeout = settings.server.ssh_client.command_timeout
@@ -2172,6 +2176,22 @@ class IPAHost(Host):
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
         kwargs['hostname'] = kwargs.get('hostname', settings.ipa.hostname)
+        # Allow the class to be constructed from kwargs
+        kwargs['from_dict'] = True
+        kwargs.update(
+            {
+                'base_dn': settings.ipa.basedn,
+                'disabled_user_ipa': settings.ipa.disabled_ipa_user,
+                'group_base_dn': settings.ipa.grpbasedn,
+                'group_users': settings.ipa.group_users,
+                'groups': settings.ipa.groups,
+                'ipa_otp_username': settings.ipa.otp_user,
+                'ldap_user_cn': settings.ipa.username,
+                'ldap_user_name': settings.ipa.user,
+                'ldap_user_passwd': settings.ipa.password,
+                'time_based_secret': settings.ipa.time_based_secret,
+            }
+        )
         super().__init__(**kwargs)
 
     def disenroll_idm(self):
@@ -2185,7 +2205,7 @@ class IPAHost(Host):
         )
         if result.status != 0:
             raise SatelliteHostError('Failed to install ipa client')
-        self.execute(f'echo {settings.ipa.password} | kinit admin')
+        self._kinit_admin()
         result = self.execute(f'ipa host-find {self.satellite.hostname}')
         if result.status == 0:
             self.disenroll_idm()
@@ -2207,3 +2227,44 @@ class IPAHost(Host):
         result = self.satellite.install(InstallerCommand('foreman-ipa-authentication true'))
         assert result.status == 0, 'Installer failed to enable IPA authentication.'
         self.satellite.cli.Service.restart()
+
+    def _kinit_admin(self):
+        result = self.execute(f'echo {self.ldap_user_passwd} | kinit admin')
+        if result.status != 0:
+            raise IPAHostError('Failed to login to the IPA server with admin credentials')
+
+    def create_user(self, username):
+        self._kinit_admin()
+        add_user_cmd = (
+            f'echo {self.ldap_user_passwd} | ipa user-add {username} --first'
+            f'={username} --last={username} --password'
+        )
+        result = self.execute(add_user_cmd)
+        if result.status != 0:
+            raise IPAHostError('Failed to create the user')
+
+    def delete_user(self, username):
+        result = self.execute(f'ipa user-del {username}')
+        if result.status != 0:
+            raise IPAHostError('Failed to delete the user')
+
+    def find_user(self, username):
+        self._kinit_admin()
+        result = self.execute(f"ipa user-find --login {username}")
+        if result.status != 0:
+            raise IPAHostError('Failed to find the user')
+        return result.stdout
+
+    def add_user_to_usergroup(self, member_username, member_group):
+        self._kinit_admin()
+        result = self.execute(f'ipa group-add-member {member_group} --users={member_username}')
+        if result.status != 0:
+            raise IPAHostError('Failed to add the user to usergroup')
+
+    def remove_user_from_usergroup(self, member_username, member_group):
+        self._kinit_admin()
+        result = self.execute(
+            f'ipa group-remove-member {member_group} --users={member_username}',
+        )
+        if result.status != 0:
+            raise IPAHostError('Failed to remove the user from user group')
