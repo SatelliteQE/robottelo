@@ -357,7 +357,7 @@ REPOS = {
         'id': 'satellite-6.13-for-rhel-8-x86_64-rpms',
         'name': ('Red Hat Satellite 6.13 for RHEL 8 x86_64 RPMs'),
         'version': '6.13',
-        'reposet': REPOSET['rhs7'],
+        'reposet': REPOSET['rhs8'],
         'product': PRDS['rhs'],
         'distro': 'rhel7',
         'key': 'rhs',
