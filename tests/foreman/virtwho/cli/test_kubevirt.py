@@ -45,7 +45,10 @@ def form_data(target_sat, default_org):
 
 @pytest.fixture()
 def virtwho_config(form_data, target_sat):
-    return target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
+    virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
+    yield virtwho_config
+    target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
+    assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
 
 
 class TestVirtWhoConfigforKubevirt:
@@ -91,8 +94,6 @@ class TestVirtWhoConfigforKubevirt:
                 {'host-id': host['id'], 'subscription-id': vdc_id}
             )
             assert result.strip() == 'Subscription attached to the host successfully.'
-        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_script(
@@ -138,8 +139,6 @@ class TestVirtWhoConfigforKubevirt:
                 {'host-id': host['id'], 'subscription-id': vdc_id}
             )
             assert result.strip() == 'Subscription attached to the host successfully.'
-        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
@@ -168,5 +167,3 @@ class TestVirtWhoConfigforKubevirt:
                 command, form_data['hypervisor-type'], org=default_org.label
             )
             assert get_configure_option('hypervisor_id', config_file) == value
-        target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-        assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))

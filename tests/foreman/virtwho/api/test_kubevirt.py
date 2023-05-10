@@ -25,6 +25,7 @@ from robottelo.utils.virtwho import deploy_configure_by_script
 from robottelo.utils.virtwho import get_configure_command
 from robottelo.utils.virtwho import get_configure_file
 from robottelo.utils.virtwho import get_configure_option
+from robottelo.utils.virtwho import get_guest_info
 
 
 @pytest.fixture()
@@ -45,9 +46,21 @@ def form_data(default_org, target_sat):
 
 @pytest.fixture()
 def virtwho_config(form_data, target_sat):
-    return target_sat.api.VirtWhoConfig(**form_data).create()
+    virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
+    yield virtwho_config
+    virtwho_config.delete()
+    assert not target_sat.api.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
 
+@pytest.fixture(autouse=True)
+def clean_host(form_data, target_sat):
+    guest_name, _ = get_guest_info(form_data['hypervisor_type'])
+    results = target_sat.api.Host().search(query={'search': guest_name})
+    if results:
+        target_sat.api.Host(id=results[0].read_json()['id']).delete()
+
+
+@pytest.mark.usefixtures('clean_host')
 class TestVirtWhoConfigforKubevirt:
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(
@@ -100,10 +113,6 @@ class TestVirtWhoConfigforKubevirt:
             )
             result = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_script(
@@ -161,10 +170,6 @@ class TestVirtWhoConfigforKubevirt:
             )
             result = target_sat.api.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
@@ -192,7 +197,3 @@ class TestVirtWhoConfigforKubevirt:
                 command, form_data['hypervisor_type'], org=default_org.label
             )
             assert get_configure_option('hypervisor_id', config_file) == value
-        virtwho_config.delete()
-        assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
-        )
