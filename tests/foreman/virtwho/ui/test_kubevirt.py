@@ -40,9 +40,20 @@ def form_data():
     return form
 
 
+@pytest.fixture()
+def virtwho_config(form_data, target_sat, session):
+    name = gen_string('alpha')
+    form_data['name'] = name
+    with session:
+        session.virtwho_configure.create(form_data)
+        yield virtwho_config
+        session.virtwho_configure.delete(name)
+        assert not session.virtwho_configure.search(name)
+
+
 class TestVirtwhoConfigforKubevirt:
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_id(self, default_org, session, form_data):
+    def test_positive_deploy_configure_by_id(self, default_org, virtwho_config, session, form_data):
         """Verify configure created and deployed with id.
 
         :id: 7b2a1b08-f33c-44f4-ad2e-317b6c44b938
@@ -58,28 +69,25 @@ class TestVirtwhoConfigforKubevirt:
 
         :CaseImportance: High
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session:
-            session.virtwho_configure.create(form_data)
-            values = session.virtwho_configure.read(name)
-            command = values['deploy']['command']
-            hypervisor_name, guest_name = deploy_configure_by_command(
-                command, form_data['hypervisor_type'], debug=True, org=default_org.label
-            )
-            assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
-            hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-            vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
-            vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
-            session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
-            assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
-            session.contenthost.add_subscription(guest_name, vdc_virtual)
-            assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
+        name = form_data['name']
+        values = session.virtwho_configure.read(name)
+        command = values['deploy']['command']
+        hypervisor_name, guest_name = deploy_configure_by_command(
+            command, form_data['hypervisor_type'], debug=True, org=default_org.label
+        )
+        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
+        vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
+        vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
+        session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
+        assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
+        session.contenthost.add_subscription(guest_name, vdc_virtual)
+        assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
 
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_script(self, default_org, session, form_data):
+    def test_positive_deploy_configure_by_script(
+        self, default_org, virtwho_config, session, form_data
+    ):
         """Verify configure created and deployed with script.
 
         :id: b3903ccb-04cc-4867-b7ed-d5053d2bfe03
@@ -95,28 +103,23 @@ class TestVirtwhoConfigforKubevirt:
 
         :CaseImportance: High
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session:
-            session.virtwho_configure.create(form_data)
-            values = session.virtwho_configure.read(name)
-            script = values['deploy']['script']
-            hypervisor_name, guest_name = deploy_configure_by_script(
-                script, form_data['hypervisor_type'], debug=True, org=default_org.label
-            )
-            assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
-            hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-            vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
-            vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
-            session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
-            assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
-            session.contenthost.add_subscription(guest_name, vdc_virtual)
-            assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
+        name = form_data['name']
+        values = session.virtwho_configure.read(name)
+        script = values['deploy']['script']
+        hypervisor_name, guest_name = deploy_configure_by_script(
+            script, form_data['hypervisor_type'], debug=True, org=default_org.label
+        )
+        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
+        vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
+        vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
+        session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
+        assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
+        session.contenthost.add_subscription(guest_name, vdc_virtual)
+        assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
 
     @pytest.mark.tier2
-    def test_positive_hypervisor_id_option(self, default_org, session, form_data):
+    def test_positive_hypervisor_id_option(self, default_org, virtwho_config, session, form_data):
         """Verify Hypervisor ID dropdown options.
 
         :id: 09826cc0-aa49-4355-8980-8097511eb7d7
@@ -129,21 +132,16 @@ class TestVirtwhoConfigforKubevirt:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alpha')
-        form_data['name'] = name
-        with session:
-            session.virtwho_configure.create(form_data)
-            config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, default_org.name)
-            config_file = get_configure_file(config_id)
-            values = ['uuid', 'hostname']
-            for value in values:
-                session.virtwho_configure.edit(name, {'hypervisor_id': value})
-                results = session.virtwho_configure.read(name)
-                assert results['overview']['hypervisor_id'] == value
-                deploy_configure_by_command(
-                    config_command, form_data['hypervisor_type'], org=default_org.label
-                )
-                assert get_configure_option('hypervisor_id', config_file) == value
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)
+        name = form_data['name']
+        config_id = get_configure_id(name)
+        config_command = get_configure_command(config_id, default_org.name)
+        config_file = get_configure_file(config_id)
+        values = ['uuid', 'hostname']
+        for value in values:
+            session.virtwho_configure.edit(name, {'hypervisor_id': value})
+            results = session.virtwho_configure.read(name)
+            assert results['overview']['hypervisor_id'] == value
+            deploy_configure_by_command(
+                config_command, form_data['hypervisor_type'], org=default_org.label
+            )
+            assert get_configure_option('hypervisor_id', config_file) == value

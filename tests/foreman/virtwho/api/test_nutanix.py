@@ -26,6 +26,7 @@ from robottelo.utils.virtwho import deploy_configure_by_script
 from robottelo.utils.virtwho import get_configure_command
 from robottelo.utils.virtwho import get_configure_file
 from robottelo.utils.virtwho import get_configure_option
+from robottelo.utils.virtwho import get_guest_info
 from robottelo.utils.virtwho import get_hypervisor_ahv_mapping
 
 
@@ -57,6 +58,15 @@ def virtwho_config(form_data, target_sat):
     assert not target_sat.api.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
 
+@pytest.fixture(autouse=True)
+def clean_host(form_data, target_sat):
+    guest_name, _ = get_guest_info(form_data['hypervisor_type'])
+    results = target_sat.api.Host().search(query={'search': guest_name})
+    if results:
+        target_sat.api.Host(id=results[0].read_json()['id']).delete()
+
+
+@pytest.mark.usefixtures('clean_host')
 class TestVirtWhoConfigforNutanix:
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(
