@@ -761,7 +761,7 @@ class TestContentViewPublishPromote:
         :id: cdd94ab8-da31-40ac-ab81-02472517e9bf
 
         :expectedresults: When appropriate, a ccv and it's cvs needs_publish flags get
-         set or unset
+            set or unset
 
         :CaseLevel: Integration
 
@@ -787,7 +787,7 @@ class TestContentViewPublishPromote:
         :id: 6e4aa845-db08-4cc3-a960-ea64fb20f50c
 
         :expectedresults: The publish_only_if_needed flag is working as intended, and is defaulted
-        to false
+            to false
 
         :CaseLevel: Integration
 
