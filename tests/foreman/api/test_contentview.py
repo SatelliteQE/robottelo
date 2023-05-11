@@ -780,20 +780,32 @@ class TestContentViewPublishPromote:
     @pytest.mark.stream
     @pytest.mark.tier2
     def test_check_needs_publish_flag(self, target_sat):
-        """Check that the check_needs_publish flag in the API works as intended (defaults to
+        """Check that the publish_only_if_needed option in the API works as intended (defaults to
         false, is able to be overriden to true, and if so gives the appropriate message
         if the cvs needs_publish flag is set to false)
 
         :id: 6e4aa845-db08-4cc3-a960-ea64fb20f50c
 
-        :expectedresults: The check_needs_publish flag is working as intended, and is defaulted
+        :expectedresults: The publish_only_if_needed flag is working as intended, and is defaulted
         to false
 
         :CaseLevel: Integration
 
         :CaseImportance: High
         """
-        pass
+        cv = target_sat.api.ContentView().create()
+        cv.publish()
+        assert not cv.read().needs_publish
+        # Check that the default for this is false
+        assert cv.publish()
+        with pytest.raises(HTTPError):
+            assert (
+                cv.publish(data={'publish_only_if_needed': True})['displayMessage']
+                == """
+            Content view does not need a publish since there are no audited changes since the
+            last publish. Pass check_needs_publish parameter as false if you don't want to check
+            if content view needs a publish."""
+            )
 
 
 class TestContentViewUpdate:
