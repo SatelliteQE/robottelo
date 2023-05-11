@@ -29,6 +29,7 @@ from robottelo.config import settings
 from robottelo.config import user_nailgun_config
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CUSTOM_RPM_SHA_512_FEED_COUNT
+from robottelo.constants import DataFile
 from robottelo.constants import FILTER_ERRATA_TYPE
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import PRDS
@@ -750,6 +751,50 @@ class TestContentViewPublishPromote:
         comp_content_view_info = comp_content_view.version[0].read()
         assert comp_content_view_info.package_count == 36
 
+    @pytest.mark.stream
+    @pytest.mark.tier2
+    def test_ccv_audit_scenarios(self, module_org, target_sat):
+        """Check for various scenarios where a composite content view or it's component
+        content views needs_publish flags should be set to true and that they properly
+        get set and unset
+
+        :id: cdd94ab8-da31-40ac-ab81-02472517e9bf
+
+        :expectedresults: When appropriate, a ccv and it's cvs needs_publish flags get
+         set or unset
+
+        :CaseLevel: Integration
+
+        :CaseImportance: High
+        """
+        composite_cv = target_sat.api.ContentView(composite=True).create()
+        # Needs_publish is set to True on creation
+        assert composite_cv.read().needs_publish
+        composite_cv.publish()
+        assert not composite_cv.read().needs_publish
+        # Add some content_views to the composite view
+        self.add_content_views_to_composite(composite_cv, module_org, random.randint(2, 3))
+        # Needs_publish should be set to True when a component CV is added/removed
+        assert composite_cv.read().needs_publish
+
+    @pytest.mark.stream
+    @pytest.mark.tier2
+    def test_check_needs_publish_flag(self, target_sat):
+        """Check that the check_needs_publish flag in the API works as intended (defaults to
+        false, is able to be overriden to true, and if so gives the appropriate message
+        if the cvs needs_publish flag is set to false)
+
+        :id: 6e4aa845-db08-4cc3-a960-ea64fb20f50c
+
+        :expectedresults: The check_needs_publish flag is working as intended, and is defaulted
+        to false
+
+        :CaseLevel: Integration
+
+        :CaseImportance: High
+        """
+        pass
+
 
 class TestContentViewUpdate:
     """Tests for updating content views."""
@@ -1017,7 +1062,7 @@ class TestContentViewRedHatContent:
 
     @pytest.mark.stream
     @pytest.mark.tier2
-    def test_cv_audit_scenarios(self, module_product):
+    def test_cv_audit_scenarios(self, module_product, target_sat):
         """Check for various scenarios where a content view's needs_publish flag
         should be set to true and that it properly gets set and unset
 
@@ -1034,18 +1079,61 @@ class TestContentViewRedHatContent:
         self.yumcv.publish()
         assert not self.yumcv.read().needs_publish
         # needs_publish is set to true when a filter is added/updated/deleted
-        entities.RPMContentViewFilter(
+        cv_filter = entities.RPMContentViewFilter(
             content_view=self.yumcv, inclusion='true', name=gen_string('alphanumeric')
         ).create()
         assert self.yumcv.read().needs_publish
         self.yumcv.publish()
         assert not self.yumcv.read().needs_publish
+        # Adding a rule should set needs_publish to true
+        cvf_rule = entities.ContentViewFilterRule(
+            content_view_filter=cv_filter, name=gen_string('alphanumeric'), version='1.0'
+        ).create()
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # Deleting a rule should set needs_publish to true
+        cvf_rule.delete()
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # Deleting a filter should set needs_publish to true
+        cv_filter.delete()
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
         # needs_publish is set to true whenever repositories are interacted with on the CV
-        repo = entities.Repository(product=module_product).create()
+        # add a repo th the CV, needs_publish should be set to true
+        repo_url = settings.repos.yum_0.url
+        repo = target_sat.api.Repository(
+            download_policy='immediate',
+            mirroring_policy='mirror_complete',
+            product=module_product,
+            url=repo_url,
+        ).create()
         repo.sync()
-        self.yumcv.repository.append(repo)
+        self.yumcv.repository = [repo]
         self.yumcv = self.yumcv.update(['repository'])
         assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # needs_publish is set to true when repository content is removed
+        packages = entities.Package(repository=repo).search(query={'per_page': '1000'})
+        repo.remove_content(data={'ids': [package.id for package in packages]})
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # needs_publish is set to true whenever repo content is added
+        with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
+            repo.upload_content(files={'content': handle})
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # needs_publish is set to true whenever a repo is synced
+        repo.sync()
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
 
 
 @pytest.mark.tier2
