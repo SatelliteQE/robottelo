@@ -348,6 +348,7 @@ API_PATHS = {
         '/katello/api/errata/compare',
         '/katello/api/errata/:id',
     ),
+    'exports': (),
     'external_usergroups': (
         '/api/usergroups/:usergroup_id/external_usergroups',
         '/api/usergroups/:usergroup_id/external_usergroups',
