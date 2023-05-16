@@ -40,6 +40,7 @@ from robottelo.cli.user import User
 from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants.repos import CUSTOM_RPM_REPO
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -87,12 +88,13 @@ def test_positive_cli_find_admin_user():
     assert result['admin'] == 'yes'
 
 
-@pytest.mark.skip_if_not_set('libvirt')
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('7')
 @pytest.mark.tier4
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel7_contenthost):
+def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel_contenthost):
     """Perform end to end smoke tests using RH and custom repos.
 
     1. Create a new user with admin permissions
@@ -120,6 +122,8 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
 
     :expectedresults: All tests should succeed and Content should be
         successfully fetched by client.
+
+    :bz: 2216461
 
     :parametrized: yes
     """
@@ -265,25 +269,28 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
 
     # BONUS: Create a content host and associate it with promoted
     # content view and last lifecycle where it exists
-    content_host_name = gen_alphanumeric()
-    content_host = Host.with_user(user['login'], user['password']).subscription_register(
-        {
-            'content-view-id': content_view['id'],
-            'lifecycle-environment-id': lifecycle_environment['id'],
-            'name': content_host_name,
-            'organization-id': org['id'],
-        }
-    )
+    if not is_open('BZ:2216461'):
+        content_host_name = gen_alphanumeric()
+        content_host = Host.with_user(user['login'], user['password']).subscription_register(
+            {
+                'content-view-id': content_view['id'],
+                'lifecycle-environment-id': lifecycle_environment['id'],
+                'name': content_host_name,
+                'organization-id': org['id'],
+            }
+        )
 
-    content_host = Host.with_user(user['login'], user['password']).info({'id': content_host['id']})
-    # check that content view matches what we passed
-    assert content_host['content-information']['content-view']['name'] == content_view['name']
+        content_host = Host.with_user(user['login'], user['password']).info(
+            {'id': content_host['id']}
+        )
+        # check that content view matches what we passed
+        assert content_host['content-information']['content-view']['name'] == content_view['name']
 
-    # check that lifecycle environment matches
-    assert (
-        content_host['content-information']['lifecycle-environment']['name']
-        == lifecycle_environment['name']
-    )
+        # check that lifecycle environment matches
+        assert (
+            content_host['content-information']['lifecycle-environment']['name']
+            == lifecycle_environment['name']
+        )
 
     # step 2.14: Create a new libvirt compute resource
     _create(
@@ -328,16 +335,16 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     # step 2.18: Provision a client
     # TODO this isn't provisioning through satellite as intended
     # Note it wasn't well before the change that added this todo
-    rhel7_contenthost.install_katello_ca(target_sat)
+    rhel_contenthost.install_katello_ca(target_sat)
     # Register client with foreman server using act keys
-    rhel7_contenthost.register_contenthost(org['label'], activation_key['name'])
-    assert rhel7_contenthost.subscribed
+    rhel_contenthost.register_contenthost(org['label'], activation_key['name'])
+    assert rhel_contenthost.subscribed
     # Install rpm on client
     package_name = 'katello-agent'
-    result = rhel7_contenthost.execute(f'yum install -y {package_name}')
+    result = rhel_contenthost.execute(f'yum install -y {package_name}')
     assert result.status == 0
     # Verify that the package is installed by querying it
-    result = rhel7_contenthost.run(f'rpm -q {package_name}')
+    result = rhel_contenthost.run(f'rpm -q {package_name}')
     assert result.status == 0
 
 
