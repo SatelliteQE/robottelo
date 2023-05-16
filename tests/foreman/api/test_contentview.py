@@ -773,9 +773,45 @@ class TestContentViewPublishPromote:
         composite_cv.publish()
         assert not composite_cv.read().needs_publish
         # Add some content_views to the composite view
-        self.add_content_views_to_composite(composite_cv, module_org, random.randint(2, 3))
+        self.add_content_views_to_composite(composite_cv, module_org, 2)
         # Needs_publish should be set to True when a component CV is added/removed
         assert composite_cv.read().needs_publish
+        composite_cv.publish()
+        assert not composite_cv.read().needs_publish
+        component_cvs = composite_cv.read().component
+        # Remove a component cv, should need publish now
+        component_cvs.pop(1)
+        composite_cv.component = component_cvs
+        composite_cv = composite_cv.update(['component'])
+        assert composite_cv.read().needs_publish
+        composite_cv.publish()
+        assert not composite_cv.read().needs_publish
+        # add a CV that has `latest` set to true
+        new_cv = target_sat.api.ContentView().create()
+        new_cv.publish()
+        composite_cv.content_view_component[0].add(
+            data={"components": [{"content_view_id": new_cv.id, "latest": "true"}]}
+        )
+        assert composite_cv.read().needs_publish
+        composite_cv.publish()
+        assert not composite_cv.read().needs_publish
+        # a new version of a component cv that has "latest" - needs publish
+        new_cv.publish()
+        assert composite_cv.read().needs_publish
+        composite_cv.publish()
+        assert not composite_cv.read().needs_publish
+        # a component CV was changed to "always update" when ccv has old version - needs publish
+        # update composite_cv after changes
+        composite_cv = composite_cv.read()
+        # get the first CV that was added, which has 1 version
+        old_component = composite_cv.content_view_component[0].read()
+        old_component.content_view.publish()
+        old_component.latest = True
+        old_component = old_component.update(['latest'])
+        # set latest to true and see if CV needs publish
+        assert composite_cv.read().needs_publish
+        composite_cv.publish()
+        assert not composite_cv.read().needs_publish
 
     @pytest.mark.stream
     @pytest.mark.tier2
