@@ -664,6 +664,52 @@ class TestContentViewFilter:
         with pytest.raises(HTTPError):
             cvf.update(['repository'])
 
+    @pytest.mark.stream
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'filter_type', ['erratum', 'package_group', 'rpm', 'modulemd', 'docker']
+    )
+    def test_positive_check_filter_applied_flag(
+        self, filter_type, target_sat, module_product, content_view, sync_repo
+    ):
+        """Create a filter and check that CVV returns its usage properly.
+
+        :id: 0e014d70-171b-4f4d-9c56-1f484cada0ee
+
+        :parametrized: yes
+
+        :steps:
+            1. Create a filter for a CV.
+            2. Publish new CV version and assert it has filter applied.
+            3. Remove the filter.
+            4. Publish new CV version and assert it has not filter applied.
+
+        :expectedresults:
+            1. Filters applied flag is set correctly per usage.
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+
+        """
+        cvf = target_sat.api.AbstractContentViewFilter(
+            type=filter_type,
+            content_view=content_view,
+            inclusion=True,
+            repository=[sync_repo],
+        ).create()
+
+        content_view.publish()
+        content_view = content_view.read()
+        cvv = content_view.version[0].read()
+        assert cvv.filters_applied is True
+
+        cvf.delete()
+        content_view.publish()
+        content_view = content_view.read()
+        cvv = max(content_view.version, key=lambda x: x.id).read()
+        assert cvv.filters_applied is False
+
 
 class TestContentViewFilterSearch:
     """Tests that search through content view filters."""
