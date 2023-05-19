@@ -23,7 +23,6 @@ from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import MAINTAIN_HAMMER_YML
 from robottelo.constants import SATELLITE_ANSWER_FILE
-from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.destructive
 
@@ -131,6 +130,7 @@ def test_positive_service_stop_restart(sat_maintain):
     assert result.status == 0
 
 
+@pytest.mark.stream
 @pytest.mark.include_capsule
 def test_positive_service_enable_disable(sat_maintain):
     """Enable/Disable services using satellite-maintain service subcommand
@@ -144,11 +144,14 @@ def test_positive_service_enable_disable(sat_maintain):
         2. Run satellite-maintain service enable
 
     :expectedresults: Services should enable/disable
+
+    :BZ: 1995783
+
+    :customerscenario: true
     """
-    if not is_open('BZ:1995783'):
-        result = sat_maintain.cli.Service.disable()
-        assert 'FAIL' not in result.stdout
-        assert result.status == 0
+    result = sat_maintain.cli.Service.disable()
+    assert 'FAIL' not in result.stdout
+    assert result.status == 0
     result = sat_maintain.cli.Service.enable()
     assert 'FAIL' not in result.stdout
     assert result.status == 0
