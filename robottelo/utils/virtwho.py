@@ -468,7 +468,8 @@ def hypervisor_json_create(hypervisors, guests):
                     "attributes": {"active": 1, "virtWhoType": "esx"},
                 }
             )
-        hypervisor = {"guestIds": guest_list}
+        name = str(uuid.uuid4())
+        hypervisor = {"guestIds": guest_list, "name": name, "hypervisorId": {"hypervisorId": name}}
         hypervisors_list.append(hypervisor)
     mapping = {"hypervisors": hypervisors_list}
     return mapping

@@ -1807,7 +1807,7 @@ def test_search_for_virt_who_hypervisors(session, default_location):
         assert not session.contenthost.search('hypervisor = true')
         # create virt-who hypervisor through the fake json conf
         data = create_fake_hypervisor_content(org.label, hypervisors=1, guests=1)
-        hypervisor_name = data['hypervisors'][0]['hypervisorId']
+        hypervisor_name = data['hypervisors'][0]['name']
         hypervisor_display_name = f'virt-who-{hypervisor_name}-{org.id}'
         # Search with hypervisor=True gives the correct result.
         assert (
