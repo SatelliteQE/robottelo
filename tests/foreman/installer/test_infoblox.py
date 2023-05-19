@@ -4,7 +4,9 @@
 
 :CaseLevel: System
 
-:CaseComponent: DHCPDNS
+:CaseAutomation: Automated
+
+:CaseComponent: Infobloxintegration
 
 :Team: Rocket
 
@@ -15,146 +17,185 @@
 :Upstream: No
 """
 import pytest
+import requests
+from fauxfactory import gen_mac
+from fauxfactory import gen_string
+from requests.exceptions import HTTPError
+
+from robottelo.config import settings
+from robottelo.utils.installer import InstallerCommand
 
 
-@pytest.mark.stubbed
-@pytest.mark.tier3
-@pytest.mark.upgrade
-def test_set_dns_provider():
-    """Check Infoblox DNS plugin is set as provider
+infoblox_plugin_enable = [
+    'enable-foreman-proxy-plugin-dhcp-infoblox',
+    'enable-foreman-proxy-plugin-dns-infoblox',
+]
 
-    :id: 23f76fa8-79bb-11e6-a3d4-68f72889dc7f
+infoblox_plugin_disable = [
+    'no-enable-foreman-proxy-plugin-dhcp-infoblox',
+    'no-enable-foreman-proxy-plugin-dns-infoblox',
+]
 
-    :Steps: Set infoblox as dns provider with options
-        --foreman-proxy-dns=true
-        --foreman-proxy-plugin-provider=infoblox
-        --enable-foreman-proxy-plugin-dns-infoblox
-        --foreman-proxy-plugin-dns-infoblox-dns-server=<ip>
-        --foreman-proxy-plugin-dns-infoblox-username=<username>
-        --foreman-proxy-plugin-dns-infoblox-password=<password>
+infoblox_plugin_opts = {
+    'foreman-proxy-dhcp': 'true',
+    'foreman-proxy-dhcp-managed': 'false',
+    'foreman-proxy-dhcp-provider': 'infoblox',
+    'foreman-proxy-dhcp-server': settings.infoblox.hostname,
+    'foreman-proxy-plugin-dhcp-infoblox-dns-view': 'default',
+    'foreman-proxy-plugin-dhcp-infoblox-network-view': 'default',
+    'foreman-proxy-plugin-dhcp-infoblox-username': settings.infoblox.username,
+    'foreman-proxy-plugin-dhcp-infoblox-password': settings.infoblox.password,
+    'foreman-proxy-plugin-dhcp-infoblox-record-type': 'fixedaddress',
+    'foreman-proxy-dns': 'true',
+    'foreman-proxy-dns-provider': 'infoblox',
+    'foreman-proxy-plugin-dns-infoblox-username': settings.infoblox.username,
+    'foreman-proxy-plugin-dns-infoblox-password': settings.infoblox.password,
+    'foreman-proxy-plugin-dns-infoblox-dns-server': settings.infoblox.hostname,
+    'foreman-proxy-plugin-dns-infoblox-dns-view': 'default',
+}
 
-    :expectedresults: Check inflobox is set as DNS provider
 
-    :CaseLevel: System
+@pytest.mark.stream
+@pytest.mark.e2e
+@pytest.mark.parametrize('module_sync_kickstart_content', [8], indirect=True)
+def test_infoblox_end_to_end(
+    request,
+    module_sync_kickstart_content,
+    module_provisioning_capsule,
+    module_target_sat,
+    module_sca_manifest_org,
+    module_location,
+    module_default_org_view,
+    module_lce_library,
+    default_architecture,
+    default_partitiontable,
+):
+    """Verify end to end infoblox plugin integration and host creation with
+       Infoblox as DHCP and DNS provider
 
-    :CaseAutomation: NotAutomated
+    :id: 0aebdf39-84ba-4182-9a17-6eb523f1695f
+
+    :steps:
+        1. Run installer to integrate Satellite and Infoblox.
+        2. Assert if DHCP, DNS provider and server is properly set.
+        3. Create a host with proper domain and subnet.
+        4. Check if A record is created with host ip and hostname on Infoblox
+        5. Delete the host, domain, subnet
+
+    :expectedresults: Satellite and Infoblox are integrated properly with DHCP, DNS
+                      provider and server.Also, A record is created for the host created.
+
+    :BZ: 1813953
+
+    :customerscenario: true
     """
+    enable_infoblox_plugin = InstallerCommand(
+        installer_args=infoblox_plugin_enable,
+        installer_opts=infoblox_plugin_opts,
+    )
+    result = module_target_sat.execute(enable_infoblox_plugin.get_command(), timeout='10m')
+    assert result.status == 0
+    assert 'Success!' in result.stdout
 
+    installer = module_target_sat.install(
+        InstallerCommand(help='| grep enable-foreman-proxy-plugin-dhcp-infoblox')
+    )
+    assert 'default: true' in installer.stdout
 
-@pytest.mark.stubbed
-@pytest.mark.tier3
-@pytest.mark.upgrade
-def test_set_dhcp_provider():
-    """Check Infoblox DHCP plugin is set as provider
+    installer = module_target_sat.install(
+        InstallerCommand(help='| grep enable-foreman-proxy-plugin-dns-infoblox')
+    )
+    assert 'default: true' in installer.stdout
 
-    :id: 40783976-7e68-11e6-b728-68f72889dc7f
+    installer = module_target_sat.install(
+        InstallerCommand(help='| grep foreman-proxy-dhcp-provider')
+    )
+    assert 'current: "infoblox"' in installer.stdout
 
-    :Steps: Set infoblox as dhcp provider with options
-        --foreman-proxy-dhcp=true
-        --foreman-proxy-plugin-dhcp-provider=infoblox
-        --enable-foreman-proxy-plugin-dhcp-infoblox
-        --foreman-proxy-plugin-dhcp-infoblox-dhcp-server=<ip>
-        --foreman-proxy-plugin-dhcp-infoblox-username=<username>
-        --foreman-proxy-plugin-dhcp-infoblox-password=<password>
+    installer = module_target_sat.install(
+        InstallerCommand(help='| grep foreman-proxy-dns-provider')
+    )
+    assert 'current: "infoblox"' in installer.stdout
 
-    :expectedresults: Check inflobox is set as DHCP provider
+    installer = module_target_sat.install(InstallerCommand(help='| grep foreman-proxy-dhcp-server'))
+    assert f'current: "{settings.infoblox.hostname}"' in installer.stdout
 
-    :CaseLevel: System
+    installer = module_target_sat.install(
+        InstallerCommand(help='| grep foreman-proxy-plugin-dns-infoblox-dns-server')
+    )
+    assert f'current: "{settings.infoblox.hostname}"' in installer.stdout
 
-    :CaseAutomation: NotAutomated
-    """
+    macaddress = gen_mac(multicast=False)
+    # using the domain name as defined in Infoblox DNS
+    domain = module_target_sat.api.Domain(
+        name=settings.infoblox.domain,
+        location=[module_location],
+        dns=module_provisioning_capsule.id,
+        organization=[module_sca_manifest_org],
+    ).create()
+    subnet = module_target_sat.api.Subnet(
+        location=[module_location],
+        organization=[module_sca_manifest_org],
+        network=settings.infoblox.network,
+        cidr=settings.infoblox.network_prefix,
+        mask=settings.infoblox.netmask,
+        from_=settings.infoblox.start_range,
+        to=settings.infoblox.end_range,
+        boot_mode='DHCP',
+        ipam='DHCP',
+        dhcp=module_provisioning_capsule.id,
+        tftp=module_provisioning_capsule.id,
+        dns=module_provisioning_capsule.id,
+        discovery=module_provisioning_capsule.id,
+        remote_execution_proxy=[module_provisioning_capsule.id],
+        domain=[domain.id],
+    ).create()
+    host = module_target_sat.api.Host(
+        organization=module_sca_manifest_org,
+        location=module_location,
+        name=gen_string('alpha').lower(),
+        mac=macaddress,
+        operatingsystem=module_sync_kickstart_content.os,
+        architecture=default_architecture,
+        domain=domain,
+        subnet=subnet,
+        root_pass=settings.provisioning.host_root_password,
+        ptable=default_partitiontable,
+        content_facet_attributes={
+            'content_source_id': module_provisioning_capsule.id,
+            'content_view_id': module_default_org_view.id,
+            'lifecycle_environment_id': module_lce_library.id,
+        },
+    ).create()
+    # check if A Record is created for the host IP on Infoblox
+    url = f'https://{settings.infoblox.hostname}/wapi/v2.0/ipv4address?ip_address={host.ip}'
+    auth = (settings.infoblox.username, settings.infoblox.password)
+    result = requests.get(url, auth=auth, verify=False)
+    assert result.status_code == 200
+    # check hostname and ip is present in A record
+    assert host.name in result.text
+    assert host.ip in result.text
+    # disable dhcp and dns plugin
+    disable_infoblox_plugin = InstallerCommand(installer_args=infoblox_plugin_disable)
+    result = module_target_sat.execute(disable_infoblox_plugin.get_command(), timeout='10m')
+    installer = module_target_sat.install(
+        InstallerCommand(help='| grep enable-foreman-proxy-plugin-dhcp-infoblox')
+    )
+    assert 'default: false' in installer.stdout
 
+    installer = module_target_sat.install(
+        InstallerCommand(help='| grep enable-foreman-proxy-plugin-dns-infoblox')
+    )
+    assert 'default: false' in installer.stdout
 
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_update_dns_appliance_credentials():
-    """Check infoblox appliance credentials are updated
-
-    :id: 2e84a8b4-79b6-11e6-8bf8-68f72889dc7f
-
-    :Steps: Pass appliance credentials via installer options
-        --foreman-proxy-plugin-dns-infoblox-username=<username>
-        --foreman-proxy-plugin-dns-infoblox-password=<password>
-
-    :expectedresults: config/dns_infoblox.yml should be updated with
-        infoblox_hostname, username & password
-
-    :CaseLevel: System
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
-@pytest.mark.upgrade
-def test_enable_dns_plugin():
-    """Check Infoblox DNS plugin can be enabled on server
-
-    :id: f8be8c34-79b2-11e6-8992-68f72889dc7f
-
-    :Steps: Enable Infoblox plugin via installer options
-        --enable-foreman-proxy-plugin-dns-infoblox
-
-    :CaseLevel: System
-
-    :expectedresults: Check DNS plugin is enabled on host
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_disable_dns_plugin():
-    """Check Infoblox DNS plugin can be disabled on host
-
-    :id: c5f563c6-79b3-11e6-8cb6-68f72889dc7f
-
-    :Steps: Disable Infoblox plugin via installer
-
-    :expectedresults: Check DNS plugin is disabled on host
-
-    :CaseLevel: System
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
-@pytest.mark.upgrade
-def test_enable_dhcp_plugin():
-    """Check Infoblox DHCP plugin can be enabled on host
-
-    :id: 75650c06-79b6-11e6-ad91-68f72889dc7f
-
-    :Steps: Enable Infoblox plugin via installer option
-        --enable-foreman-proxy-plugin-dhcp-infoblox
-
-    :expectedresults: Check DHCP plugin is enabled on host
-
-    :CaseLevel: System
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_disable_dhcp_plugin():
-    """Check Infoblox DHCP plugin can be disabled on host
-
-    :id: ea347f34-79b7-11e6-bb03-68f72889dc7f
-
-    :Steps: Disable Infoblox plugin via installer
-
-    :expectedresults: Check DHCP plugin is disabled on host
-
-    :CaseLevel: System
-
-    :CaseAutomation: NotAutomated
-    """
+    @request.addfinalizer
+    def _finalize():
+        module_target_sat.api.Subnet(id=subnet.id, domain=[]).update()
+        module_target_sat.api.Host(id=host.id).delete()
+        module_target_sat.api.Subnet(id=subnet.id).delete()
+        module_target_sat.api.Domain(id=domain.id).delete()
+        with pytest.raises(HTTPError):
+            host.read()
 
 
 @pytest.mark.stubbed
