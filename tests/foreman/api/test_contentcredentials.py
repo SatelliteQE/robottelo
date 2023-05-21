@@ -244,6 +244,8 @@ def test_positive_block_delete_key_in_use(module_org, target_sat):
 
     :BZ: 2052904
 
+    :customerscenario: true
+
     :CaseImportance: Critical
     """
     gpg_key = target_sat.api.GPGKey(organization=module_org, content=key_content).create()

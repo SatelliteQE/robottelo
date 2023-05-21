@@ -1230,6 +1230,8 @@ class TestCapsuleContentManagement:
         :customerscenario: true
 
         :bz: 1956985
+
+        :customerscenario: true
         """
         repo_url = settings.repos.yum_1.url
         repo = target_sat.api.Repository(product=function_product, url=repo_url).create()
