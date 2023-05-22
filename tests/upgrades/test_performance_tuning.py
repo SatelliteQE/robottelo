@@ -6,7 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Performance
+:CaseComponent: Installer
+
+:Team: Platform
 
 :TestType: Functional
 

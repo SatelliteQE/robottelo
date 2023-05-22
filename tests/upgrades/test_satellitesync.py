@@ -8,7 +8,7 @@
 
 :CaseComponent: InterSatelliteSync
 
-:team: Phoenix-subscriptions
+:Team: Phoenix-subscriptions
 
 :TestType: Functional
 
