@@ -3,8 +3,7 @@ name: auto_cherry_pick_commits
 
 on:
   pull_request_target:
-    types:
-      - closed
+    types: [closed, labeled]
 
 # Github & Parent PR Env vars
 env:
@@ -16,6 +15,7 @@ jobs:
 
   # Pre-Requisites for Auto Cherrypicking
   find-the-parent-prt-comment:
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
     name: Find & Save last PRT comment of Parent PR
     runs-on: ubuntu-latest
     outputs:
