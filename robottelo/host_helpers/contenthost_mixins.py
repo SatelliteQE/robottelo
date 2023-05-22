@@ -34,12 +34,13 @@ class VersionedContent:
                     'rhel_aps': constants.REPOS[f'rhel{self._v_major}_aps'],
                 }
             else:
-                sys_repos = {'rhel': constants.REPOS[f'rhel{self._v_major}']}
+                sys_repos = {
+                    'rhel': constants.REPOS[f'rhel{self._v_major}'],
+                    'rhscl': constants.REPOS[f'rhscl{self._v_major}'],
+                }
             repos = {
-                'rhscl': constants.REPOS[f'rhscl{self._v_major}'],
                 'rhsclient': constants.REPOS[f'rhsclient{self._v_major}'],
                 'rhsc': constants.REPOS[f'rhsc{self._v_major}'],
-                'rhsc_iso': constants.REPOS[f'rhsc{self._v_major}_iso'],
             }
             return sys_repos | repos
         except KeyError as err:
