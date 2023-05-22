@@ -8,7 +8,7 @@
 
 :CaseComponent: Host-Content
 
-:team: Phoenix-subscriptions
+:Team: Phoenix-subscriptions
 
 :TestType: Functional
 
