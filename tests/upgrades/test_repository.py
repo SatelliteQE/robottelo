@@ -8,7 +8,7 @@
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:Team: Phoenix-content
 
 :TestType: Functional
 
