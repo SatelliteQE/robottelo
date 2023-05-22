@@ -8,7 +8,7 @@
 
 :CaseComponent: ActivationKeys
 
-:team: Phoenix-subscriptions
+:Team: Phoenix-subscriptions
 
 :TestType: Functional
 
