@@ -72,6 +72,18 @@ POWER_OPERATIONS = {
 }
 
 
+@lru_cache(maxsize=128)
+def lru_sat_ready_rhel(rhel_ver):
+    deploy_args = {
+        'deploy_rhel_version': rhel_ver or settings.server.version.rhel_version,
+        'deploy_flavor': 'satqe-ssd.standard.std',
+        'promtail_config_template_file': 'config_sat.j2',
+        'workflow': 'deploy-rhel',
+    }
+    sat_ready_rhel = Broker(**deploy_args, host_class=Satellite).checkout()
+    return sat_ready_rhel
+
+
 def get_sat_version():
     """Try to read sat_version from envvar SATELLITE_VERSION
     if not available fallback to ssh connection to get it."""
@@ -1706,6 +1718,19 @@ class Satellite(Capsule, SatelliteMixins):
         return (
             self.execute(f'grep "db_manage: false" {constants.SATELLITE_ANSWER_FILE}').status == 0
         )
+
+    def setup_firewall(self):
+        # Setups firewall on Satellite
+        assert (
+            self.execute(
+                command='firewall-cmd --add-port="53/udp" --add-port="53/tcp" --add-port="67/udp" '
+                '--add-port="69/udp" --add-port="80/tcp" --add-port="443/tcp" '
+                '--add-port="5647/tcp" --add-port="8000/tcp" --add-port="9090/tcp" '
+                '--add-port="8140/tcp"'
+            ).status
+            == 0
+        )
+        assert self.execute(command='firewall-cmd --runtime-to-permanent').status == 0
 
     def capsule_certs_generate(self, capsule, cert_path=None, **extra_kwargs):
         """Generate capsule certs, returning the cert path, installer command stdout and args"""

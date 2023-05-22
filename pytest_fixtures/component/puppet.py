@@ -8,7 +8,9 @@ from robottelo.constants import ENVIRONMENT
 @pytest.fixture(scope='session')
 def session_puppet_enabled_sat(session_satellite_host):
     """Satellite with enabled puppet plugin"""
-    yield session_satellite_host.enable_puppet_satellite()
+    if session_satellite_host:
+        yield session_satellite_host.enable_puppet_satellite()
+    yield
 
 
 @pytest.fixture(scope='session')
