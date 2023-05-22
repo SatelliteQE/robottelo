@@ -8,7 +8,7 @@
 
 :CaseComponent: SyncPlans
 
-:team: Phoenix-content
+:Team: Phoenix-content
 
 :TestType: Functional
 
