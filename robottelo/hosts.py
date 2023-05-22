@@ -348,7 +348,7 @@ class ContentHost(Host, ContentHostMixins):
             downstream_repo = settings.repos.sattools_repo['rhel7']
         elif repo == constants.REPOS['rhst8']['id']:
             downstream_repo = settings.repos.sattools_repo['rhel8']
-        elif repo in (constants.REPOS['rhsc6']['id'], constants.REPOS['rhsc7']['id']):
+        elif repo in (constants.REPOS['rhsc7']['id'], constants.REPOS['rhsc8']['id']):
             downstream_repo = settings.repos.capsule_repo
         if force or settings.robottelo.cdn or not downstream_repo:
             return self.execute(f'subscription-manager repos --enable {repo}')
