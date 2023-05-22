@@ -18,16 +18,13 @@
 """
 import pytest
 
-from robottelo.config import settings
-from robottelo.hosts import Capsule
-
 
 @pytest.fixture(scope='module', params=[True, False], ids=["satellite", "capsule"])
-def upgrade_server(request, module_target_sat):
+def upgrade_server(request, module_target_sat, pre_configured_capsule):
     if request.param:
         return module_target_sat
     else:
-        return Capsule(settings.upgrade.capsule_hostname)
+        return pre_configured_capsule
 
 
 class TestPuppet:
@@ -64,7 +61,7 @@ class TestPuppet:
         assert 'active (running)' in result.stdout
 
     @pytest.mark.post_upgrade
-    def test_post_puppet_reporting(self, target_sat):
+    def test_post_puppet_reporting(self, target_sat, pre_configured_capsule):
         """Test that puppet is reporting to Satellite after the upgrade.
 
         :id:   postupgrade-cdc4f6cc-23d8-4b4a-bd94-5c86b3072828
@@ -78,12 +75,10 @@ class TestPuppet:
             2. At least one Config report exists (was created) for the Capsule.
 
         """
-        default_caps = Capsule(settings.upgrade.capsule_hostname)
-
-        result = default_caps.execute('puppet agent -t')
+        result = pre_configured_capsule.execute('puppet agent -t')
         assert result.status == 0
 
         result = target_sat.cli.ConfigReport.list(
-            {'search': f'host={default_caps.hostname},origin=Puppet'}
+            {'search': f'host={pre_configured_capsule.hostname},origin=Puppet'}
         )
         assert len(result)
