@@ -1281,7 +1281,7 @@ LAST_SAVED_SECTIONS = {
     '= Module puppet:',
 }
 
-SATELLITE_SERVICES = {
+SATELLITE_SERVICES = [
     'dynflow-sidekiq@orchestrator',
     'dynflow-sidekiq@worker-1',
     'dynflow-sidekiq@worker-hosts-queue-1',
@@ -1293,7 +1293,7 @@ SATELLITE_SERVICES = {
     'pulpcore-content',
     'pulpcore-worker@*',
     'tomcat',
-}
+]
 
 
 def extract_help(filter='params'):
