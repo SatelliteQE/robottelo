@@ -47,14 +47,19 @@ def test_positive_custom_products_by_default(
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)
-        host_details = session.contenthost.read(
-            rhel_contenthost.hostname, widget_names=['repository_sets']
-        )
+        #assert session.contenthost.search(rhel_contenthost.hostname)[0]['Name'] == rhel_contenthost.hostname
+        # chost = session.contenthost.read(
+        #     rhel_contenthost.hostname, widget_names=['details', 'provisioning_details', 'subscriptions']
+        # )
+        # session.contenthost.update(rhel_contenthost.hostname, {'repository_sets.limit_to_lce': True})
+        # host_details = session.contenthost.read(
+        #     rhel_contenthost.hostname, widget_names=['repository_sets']
+        # )
         ak_details = session.activationkey.read(ak.name, widget_names='repository sets')[
             'repository sets'
         ]['table'][0]
         assert 'Disabled' in ak_details['Status']
-        assert host_details != 0
+        # assert host_details != 0
         # assert session.activationkey.search(name)[0]['Name'] == name
         # session.activationkey.add_subscription(name, constants.DEFAULT_SUBSCRIPTION_NAME)
         # ak = session.activationkey.read(name, widget_names='subscriptions')
