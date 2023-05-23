@@ -760,6 +760,15 @@ class TestContentViewPublishPromote:
 
         :id: cdd94ab8-da31-40ac-ab81-02472517e9bf
 
+        :steps:
+
+            1. Create a ccv
+            2. Add some content views to the composite view
+            3. Remove a content view from the composite view
+            4. Add a CV that has `latest` set to true to the composite view
+            5. Publish a new version of that CV
+            6. Publish a new version of another CV in the CCV, and update it to latest
+
         :expectedresults: When appropriate, a ccv and it's cvs needs_publish flags get
             set or unset
 
@@ -830,10 +839,8 @@ class TestContentViewPublishPromote:
         :CaseImportance: High
         """
         cv = target_sat.api.ContentView().create()
-        cv.publish()
-        assert not cv.read().needs_publish
-        # Check that the default for this is false
         assert cv.publish()
+        assert not cv.read().needs_publish
         with pytest.raises(HTTPError):
             assert (
                 cv.publish(data={'publish_only_if_needed': True})['displayMessage']
@@ -1114,9 +1121,22 @@ class TestContentViewRedHatContent:
         """Check for various scenarios where a content view's needs_publish flag
         should be set to true and that it properly gets set and unset
 
-        :id: 48b0ce35-f76b-447e-a465-d9ce70cbb20e
+        :id: 48b0ce35-f76b-447e-a465-d9ce70cbb20e`
 
-        :expectedresults: When appropriate, a cv's needs_publish flag gets set or unset
+        :steps:
+
+            1. Create a CV
+            2. Add a filter to the CV
+            3. Add a rule to the filter
+            4. Delete that rule
+            5. Delete that filter
+            6. Add a repo to the CV
+            7. Delete content from the repo
+            8. Add content to the repo
+            9. Sync the repo
+
+        :expectedresults: All of the above steps should results in the CV needing to be
+            be published
 
         :CaseLevel: Integration
 
@@ -1151,7 +1171,7 @@ class TestContentViewRedHatContent:
         self.yumcv.publish()
         assert not self.yumcv.read().needs_publish
         # needs_publish is set to true whenever repositories are interacted with on the CV
-        # add a repo th the CV, needs_publish should be set to true
+        # add a repo to the CV, needs_publish should be set to true
         repo_url = settings.repos.yum_0.url
         repo = target_sat.api.Repository(
             download_policy='immediate',
