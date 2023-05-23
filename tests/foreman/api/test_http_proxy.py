@@ -272,8 +272,6 @@ def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, m
 
     :id: a9645b7f-228e-4f4d-ab04-610382bd2d0b
 
-    :customerscenario: true
-
     :steps:
         1. Generate new cert files with custom_cert_generate.
         2. Create new http-proxy with path to cacert.
@@ -284,18 +282,20 @@ def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, m
         sync operation uses assigned http-proxy with the cacert.
 
     :BZ: 2144044
+
+    :customerscenario: true
     """
     # Cleanup any existing certs that may conflict
     target_sat.custom_certs_cleanup()
-    proxy_host = settings.http_proxy.auth_proxy_url.replace("http://", "").replace(":3128", "")
+    proxy_host = settings.http_proxy.auth_proxy_url.replace('http://', '').replace(':3128', '')
     cacert_path = '/root/cacert.crt'
 
     # Create and fetch new cerfiticate
     target_sat.custom_cert_generate(proxy_host)
     cacert = target_sat.execute(f'cat {cacert_path}').stdout
-    assert "BEGIN CERTIFICATE" and "END CERTIFICATE" in cacert
+    assert 'BEGIN CERTIFICATE' and 'END CERTIFICATE' in cacert
 
-    # Create HTTP_Proxy and repository
+    # Create http-proxy and repository
     http_proxy = target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.auth_proxy_url,
