@@ -263,3 +263,63 @@ def test_positive_assign_http_proxy_to_products():
         assert r.http_proxy_id == http_proxy_b.id
 
     product_a.sync({'async': True})
+
+
+@pytest.mark.tier2
+def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, module_product):
+    """Assign http_proxy with cacert.crt to repository and test
+       that http_proxy and cacert are used during sync.
+
+    :id: a9645b7f-228e-4f4d-ab04-610382bd2d0b
+
+    :steps:
+        1. Generate new cert files with custom_cert_generate.
+        2. Create new http-proxy with path to cacert.
+        3. Create new repository, assign http-proxy.
+        4. Perform repo sync. Clean up new custom certs.
+
+    :expectedresults: http-proxy with cacert is assigned to repo,
+        sync operation uses assigned http-proxy with the cacert.
+
+    :BZ: 2144044
+
+    :customerscenario: true
+    """
+    # Cleanup any existing certs that may conflict
+    target_sat.custom_certs_cleanup()
+    proxy_host = settings.http_proxy.auth_proxy_url.replace('http://', '').replace(':3128', '')
+    cacert_path = '/root/cacert.crt'
+
+    # Create and fetch new cerfiticate
+    target_sat.custom_cert_generate(proxy_host)
+    cacert = target_sat.execute(f'cat {cacert_path}').stdout
+    assert 'BEGIN CERTIFICATE' and 'END CERTIFICATE' in cacert
+
+    # Create http-proxy and repository
+    http_proxy = target_sat.api.HTTPProxy(
+        name=gen_string('alpha', 15),
+        url=settings.http_proxy.auth_proxy_url,
+        username=settings.http_proxy.username,
+        password=settings.http_proxy.password,
+        organization=[module_org],
+        cacert=cacert_path,
+    ).create()
+    repo = target_sat.api.Repository(
+        product=module_product,
+        http_proxy_policy='use_selected_http_proxy',
+        http_proxy_id=http_proxy.id,
+    ).create()
+    module_product.update()
+
+    assert repo.http_proxy_policy == 'use_selected_http_proxy'
+    assert repo.http_proxy_id == http_proxy.id
+    assert http_proxy.cacert == cacert_path
+
+    response = repo.sync()
+    assert response.get('errors') is None
+    assert repo.read().last_sync is not None
+    assert repo.read().content_counts['rpm'] >= 1
+
+    @request.addfinalizer
+    def _finalize():
+        target_sat.custom_certs_cleanup()
