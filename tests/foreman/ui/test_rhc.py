@@ -185,6 +185,6 @@ def test_positive_configure_cloud_connector(
 
     assert rhc_status.status == 0
     assert "Connected to Red Hat Subscription Management" in rhc_status.stdout
-    assert "The Red Hat connector daemon is active" in rhc_status.stdout
+    assert "The Remote Host Configuration daemon is active" in rhc_status.stdout
 
     assert "error" not in rhcd_log.stdout
