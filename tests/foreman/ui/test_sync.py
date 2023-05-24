@@ -132,11 +132,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-<<<<<<< HEAD
-def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest, target_sat):
-=======
-def test_positive_sync_rh_ostree_repo(session, module_entitlement_manifest_org):
->>>>>>> 8511003a5 (Convert UI sync tests to manifester)
+def test_positive_sync_rh_ostree_repo(session, target_sat, module_entitlement_manifest_org):
     """Sync CDN based ostree repository.
 
     :id: 4d28fff0-5fda-4eee-aa0c-c5af02c31de5

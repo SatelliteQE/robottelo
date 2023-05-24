@@ -741,7 +741,7 @@ def test_positive_no_errors_on_repo_scan(target_sat, function_sca_manifest_org):
 
 
 @pytest.mark.tier2
-def test_positive_reposet_disable(session, target_sat):
+def test_positive_reposet_disable(session, target_sat, function_entitlement_manifest_org):
     """Enable RH repo, sync it and then disable
 
     :id: de596c56-1327-49e8-86d5-a1ab907f26aa

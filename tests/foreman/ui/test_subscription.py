@@ -38,9 +38,9 @@ pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_m
 
 
 @pytest.fixture(scope='module')
-def golden_ticket_host_setup(module_sca_manifest_org):
-    org = module_sca_manifest_org
-    rh_repo_id = enable_rhrepo_and_fetchid(
+def golden_ticket_host_setup(function_entitlement_manifest_org, module_target_sat):
+    org = function_entitlement_manifest_org
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
         product=PRDS['rhel'],

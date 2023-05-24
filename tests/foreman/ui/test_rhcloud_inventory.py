@@ -16,10 +16,10 @@
 
 :Upstream: No
 """
-import epdb
 from datetime import datetime
 from datetime import timedelta
 
+import epdb
 import pytest
 from airgun.session import Session
 from wait_for import wait_for
