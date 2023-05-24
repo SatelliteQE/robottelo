@@ -20,7 +20,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import ssh
 from robottelo.cli.auth import Auth
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_ldap_auth_source
@@ -58,7 +57,8 @@ class TestADAuthSource:
     @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
-    def test_positive_create_with_ad(self, ad_data, server_name, ldap_tear_down):
+    @pytest.mark.usefixtures("ldap_tear_down")
+    def test_positive_create_with_ad(self, ad_data, server_name):
         """Create/update/delete LDAP authentication with AD using names of different types
 
         :id: 093f6abc-91e7-4449-b484-71e4a14ac808
@@ -99,7 +99,8 @@ class TestADAuthSource:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('member_group', ['foobargroup', 'foobar.group'])
-    def test_positive_refresh_usergroup_with_ad(self, member_group, ad_data, ldap_tear_down):
+    @pytest.mark.usefixtures("ldap_tear_down")
+    def test_positive_refresh_usergroup_with_ad(self, member_group, ad_data):
         """Verify the usergroup-sync functionality in AD Auth Source
 
         :id: 2e913e76-49c3-11eb-b4c6-d46d6dd3b5b2
@@ -159,24 +160,6 @@ class TestADAuthSource:
 class TestIPAAuthSource:
     """Implements FreeIPA ldap auth feature tests in CLI"""
 
-    def _add_user_in_IPA_usergroup(self, member_username, member_group):
-        self.ipa_host.execute(
-            f'echo {self.ldap_ipa_user_passwd} | kinit admin',
-        )
-        self.ipa_host.execute(
-            f'ipa group-add-member {member_group} --users={member_username}',
-        )
-
-    def _remove_user_in_IPA_usergroup(self, member_username, member_group):
-        self.ipa_host.execute(
-            f'echo {self.ldap_ipa_user_passwd} | kinit admin',
-        )
-        result = self.ipa_host.execute(
-            f'ipa group-remove-member {member_group} --users={member_username}',
-        )
-        if result.status != 0:
-            raise AssertionError('failed to remove the user from user-group')
-
     def _clean_up_previous_ldap(self):
         """clean up the all ldap settings user, usergroup and ldap delete"""
         ldap = entities.AuthSourceLDAP().search()
@@ -193,7 +176,8 @@ class TestIPAAuthSource:
     @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
     @pytest.mark.upgrade
     @pytest.mark.e2e
-    def test_positive_end_to_end_with_ipa(self, ipa_data, server_name, ldap_tear_down):
+    @pytest.mark.usefixtures("ldap_tear_down")
+    def test_positive_end_to_end_with_ipa(self, default_ipa_host, server_name):
         """CRUD LDAP authentication with FreeIPA
 
         :id: 6cb54405-b579-4020-bf99-cb811a6aa28b
@@ -209,20 +193,20 @@ class TestIPAAuthSource:
             {
                 'name': server_name,
                 'onthefly-register': 'true',
-                'host': ipa_data['ldap_hostname'],
+                'host': default_ipa_host.hostname,
                 'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
                 'attr-login': LDAP_ATTR['login'],
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': ipa_data['ldap_user_cn'],
-                'account-password': ipa_data['ldap_user_passwd'],
-                'base-dn': ipa_data['base_dn'],
-                'groups-base': ipa_data['group_base_dn'],
+                'account': default_ipa_host.ldap_user_cn,
+                'account-password': default_ipa_host.ldap_user_passwd,
+                'base-dn': default_ipa_host.base_dn,
+                'groups-base': default_ipa_host.group_base_dn,
             }
         )
         assert auth['server']['name'] == server_name
-        assert auth['server']['server'] == ipa_data['ldap_hostname']
+        assert auth['server']['server'] == default_ipa_host.hostname
         assert auth['server']['server-type'] == LDAP_SERVER_TYPE['CLI']['ipa']
         new_name = gen_string('alpha')
         LDAPAuthSource.update({'name': server_name, 'new-name': new_name})
@@ -233,7 +217,8 @@ class TestIPAAuthSource:
             LDAPAuthSource.info({'name': new_name})
 
     @pytest.mark.tier3
-    def test_usergroup_sync_with_refresh(self, ipa_data, ldap_tear_down):
+    @pytest.mark.usefixtures("ldap_tear_down")
+    def test_usergroup_sync_with_refresh(self, default_ipa_host):
         """Verify the refresh functionality in Ldap Auth Source
 
         :id: c905eb80-2bd0-11ea-abc3-ddb7dbb3c930
@@ -244,9 +229,7 @@ class TestIPAAuthSource:
         :CaseImportance: Medium
         """
         self._clean_up_previous_ldap()
-        self.ipa_host = ssh.get_client(hostname=ipa_data['ldap_hostname'])
-        self.ldap_ipa_user_passwd = ipa_data['ldap_user_passwd']
-        ipa_group_base_dn = ipa_data['group_base_dn'].replace('foobargroup', 'foreman_group')
+        ipa_group_base_dn = default_ipa_host.group_base_dn.replace('foobargroup', 'foreman_group')
         member_username = 'foreman_test'
         member_group = 'foreman_group'
         LOGEDIN_MSG = "Using configured credentials for user '{0}'."
@@ -256,22 +239,22 @@ class TestIPAAuthSource:
                 'name': auth_source_name,
                 'onthefly-register': 'true',
                 'usergroup-sync': 'false',
-                'host': ipa_data['ldap_hostname'],
+                'host': default_ipa_host.hostname,
                 'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
                 'attr-login': LDAP_ATTR['login'],
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': ipa_data['ldap_user_cn'],
-                'account-password': ipa_data['ldap_user_passwd'],
-                'base-dn': ipa_data['base_dn'],
+                'account': default_ipa_host.ldap_user_cn,
+                'account-password': default_ipa_host.ldap_user_passwd,
+                'base-dn': default_ipa_host.base_dn,
                 'groups-base': ipa_group_base_dn,
             }
         )
         auth_source = LDAPAuthSource.info({'id': auth_source['server']['id']})
 
         # Adding User in IPA UserGroup
-        self._add_user_in_IPA_usergroup(member_username, member_group)
+        default_ipa_host.add_user_to_usergroup(member_username, member_group)
         viewer_role = Role.info({'name': 'Viewer'})
         user_group = make_usergroup()
         ext_user_group = make_usergroup_external(
@@ -286,30 +269,37 @@ class TestIPAAuthSource:
         user_group = UserGroup.info({'id': user_group['id']})
         assert len(user_group['users']) == 0
         result = Auth.with_user(
-            username=member_username, password=self.ldap_ipa_user_passwd
+            username=member_username, password=default_ipa_host.ldap_user_passwd
         ).status()
         assert LOGEDIN_MSG.format(member_username) in result[0]['message']
         with pytest.raises(CLIReturnCodeError) as error:
-            Role.with_user(username=member_username, password=self.ldap_ipa_user_passwd).list()
+            Role.with_user(
+                username=member_username, password=default_ipa_host.ldap_user_passwd
+            ).list()
         assert 'Missing one of the required permissions' in error.value.message
         UserGroupExternal.refresh({'user-group-id': user_group['id'], 'name': member_group})
-        list = Role.with_user(username=member_username, password=self.ldap_ipa_user_passwd).list()
+        list = Role.with_user(
+            username=member_username, password=default_ipa_host.ldap_user_passwd
+        ).list()
         assert len(list) > 1
         user_group = UserGroup.info({'id': user_group['id']})
         assert len(user_group['users']) == 1
         assert user_group['users'][0] == member_username
 
         # Removing User in IPA UserGroup
-        self._remove_user_in_IPA_usergroup(member_username, member_group)
+        default_ipa_host.remove_user_from_usergroup(member_username, member_group)
         UserGroupExternal.refresh({'user-group-id': user_group['id'], 'name': member_group})
         user_group = UserGroup.info({'id': user_group['id']})
         assert len(user_group['users']) == 0
         with pytest.raises(CLIReturnCodeError) as error:
-            Role.with_user(username=member_username, password=self.ldap_ipa_user_passwd).list()
+            Role.with_user(
+                username=member_username, password=default_ipa_host.ldap_user_passwd
+            ).list()
         assert 'Missing one of the required permissions' in error.value.message
 
     @pytest.mark.tier3
-    def test_usergroup_with_usergroup_sync(self, ipa_data, ldap_tear_down):
+    @pytest.mark.usefixtures("ldap_tear_down")
+    def test_usergroup_with_usergroup_sync(self, default_ipa_host):
         """Verify the usergroup-sync functionality in Ldap Auth Source
 
         :id: 2b63e886-2c53-11ea-9da5-db3ae0527554
@@ -320,9 +310,7 @@ class TestIPAAuthSource:
         :CaseImportance: Medium
         """
         self._clean_up_previous_ldap()
-        self.ipa_host = ssh.get_client(hostname=ipa_data['ldap_hostname'])
-        self.ldap_ipa_user_passwd = ipa_data['ldap_user_passwd']
-        ipa_group_base_dn = ipa_data['group_base_dn'].replace('foobargroup', 'foreman_group')
+        ipa_group_base_dn = default_ipa_host.group_base_dn.replace('foobargroup', 'foreman_group')
         member_username = 'foreman_test'
         member_group = 'foreman_group'
         LOGEDIN_MSG = "Using configured credentials for user '{0}'."
@@ -332,22 +320,22 @@ class TestIPAAuthSource:
                 'name': auth_source_name,
                 'onthefly-register': 'true',
                 'usergroup-sync': 'true',
-                'host': ipa_data['ldap_hostname'],
+                'host': default_ipa_host.hostname,
                 'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
                 'attr-login': LDAP_ATTR['login'],
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': ipa_data['ldap_user_cn'],
-                'account-password': ipa_data['ldap_user_passwd'],
-                'base-dn': ipa_data['base_dn'],
+                'account': default_ipa_host.ldap_user_cn,
+                'account-password': default_ipa_host.ldap_user_passwd,
+                'base-dn': default_ipa_host.base_dn,
                 'groups-base': ipa_group_base_dn,
             }
         )
         auth_source = LDAPAuthSource.info({'id': auth_source['server']['id']})
 
         # Adding User in IPA UserGroup
-        self._add_user_in_IPA_usergroup(member_username, member_group)
+        default_ipa_host.add_user_to_usergroup(member_username, member_group)
         viewer_role = Role.info({'name': 'Viewer'})
         user_group = make_usergroup()
         ext_user_group = make_usergroup_external(
@@ -362,19 +350,23 @@ class TestIPAAuthSource:
         user_group = UserGroup.info({'id': user_group['id']})
         assert len(user_group['users']) == 0
         result = Auth.with_user(
-            username=member_username, password=self.ldap_ipa_user_passwd
+            username=member_username, password=default_ipa_host.ldap_user_passwd
         ).status()
         assert LOGEDIN_MSG.format(member_username) in result[0]['message']
-        list = Role.with_user(username=member_username, password=self.ldap_ipa_user_passwd).list()
+        list = Role.with_user(
+            username=member_username, password=default_ipa_host.ldap_user_passwd
+        ).list()
         assert len(list) > 1
         user_group = UserGroup.info({'id': user_group['id']})
         assert len(user_group['users']) == 1
         assert user_group['users'][0] == member_username
 
         # Removing User in IPA UserGroup
-        self._remove_user_in_IPA_usergroup(member_username, member_group)
+        default_ipa_host.remove_user_from_usergroup(member_username, member_group)
         with pytest.raises(CLIReturnCodeError) as error:
-            Role.with_user(username=member_username, password=self.ldap_ipa_user_passwd).list()
+            Role.with_user(
+                username=member_username, password=default_ipa_host.ldap_user_passwd
+            ).list()
         assert 'Missing one of the required permissions' in error.value.message
         user_group = UserGroup.info({'id': user_group['id']})
         assert len(user_group['users']) == 0

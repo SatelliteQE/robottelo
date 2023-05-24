@@ -2,12 +2,10 @@ import pytest
 from broker import Broker
 from wait_for import wait_for
 
-from pytest_fixtures.component.satellite_auth import disenroll_idm
-from pytest_fixtures.component.satellite_auth import enroll_ad_and_configure_external_auth
-from pytest_fixtures.component.satellite_auth import enroll_idm_and_configure_external_auth
 from pytest_fixtures.core.broker import _resolve_deploy_args
 from robottelo.config import settings
 from robottelo.hosts import Capsule
+from robottelo.hosts import IPAHost
 
 
 @pytest.fixture
@@ -149,13 +147,14 @@ def parametrized_enrolled_sat(
 ):
     """Yields a Satellite enrolled into [IDM, AD] as parameter."""
     new_sat = satellite_factory()
+    ipa_host = IPAHost(new_sat)
     new_sat.register_to_cdn()
     if 'IDM' in request.param:
-        enroll_idm_and_configure_external_auth(new_sat)
+        ipa_host.enroll_idm_and_configure_external_auth()
         yield new_sat
-        disenroll_idm(new_sat)
+        ipa_host.disenroll_idm()
     else:
-        enroll_ad_and_configure_external_auth(request, ad_data, new_sat)
+        new_sat.enroll_ad_and_configure_external_auth(ad_data)
         yield new_sat
     new_sat.unregister()
     new_sat.teardown()

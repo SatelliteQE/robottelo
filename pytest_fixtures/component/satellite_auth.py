@@ -5,7 +5,6 @@ import pytest
 from box import Box
 from nailgun import entities
 
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import AUDIENCE_MAPPER
 from robottelo.constants import CERT_PATH
@@ -14,7 +13,7 @@ from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import HAMMER_SESSIONS
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
-from robottelo.hosts import ContentHost
+from robottelo.hosts import IPAHost
 from robottelo.hosts import SSOHost
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
@@ -27,6 +26,12 @@ LOGGEDOUT = 'Logged out.'
 def default_sso_host(module_target_sat):
     """Returns default sso host"""
     return SSOHost(module_target_sat)
+
+
+@pytest.fixture(scope='module')
+def default_ipa_host(module_target_sat):
+    """Returns default IPA host"""
+    return IPAHost(module_target_sat)
 
 
 @pytest.fixture()
@@ -122,20 +127,20 @@ def auth_source(ldap_cleanup, module_org, module_location, ad_data):
 
 
 @pytest.fixture(scope='function')
-def auth_source_ipa(ldap_cleanup, module_org, module_location, ipa_data):
+def auth_source_ipa(ldap_cleanup, default_ipa_host, module_org, module_location):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
-        account=ipa_data['ldap_user_cn'],
-        account_password=ipa_data['ldap_user_passwd'],
-        base_dn=ipa_data['base_dn'],
-        groups_base=ipa_data['group_base_dn'],
+        account=default_ipa_host.ldap_user_cn,
+        account_password=default_ipa_host.ldap_user_passwd,
+        base_dn=default_ipa_host.base_dn,
+        groups_base=default_ipa_host.group_base_dn,
         attr_firstname=LDAP_ATTR['firstname'],
         attr_lastname=LDAP_ATTR['surname'],
         attr_login=LDAP_ATTR['login'],
         server_type=LDAP_SERVER_TYPE['API']['ipa'],
         attr_mail=LDAP_ATTR['mail'],
         name=gen_string('alpha'),
-        host=ipa_data['ldap_hostname'],
+        host=default_ipa_host.hostname,
         tls=False,
         port='389',
         organization=[module_org],
@@ -328,64 +333,26 @@ def enable_external_auth_rhsso(
     default_sso_host.set_the_redirect_uri()
 
 
-def enroll_idm_and_configure_external_auth(sat):
-    """Enroll the Satellite6 Server to an IDM Server."""
-    if is_open('BZ:2129096'):
-        settings.set('ipa.user', 'foreman_test')
-    ipa_host = ContentHost(settings.ipa.hostname)
-    result = sat.execute(
-        'yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools'
-    )
-    if result.status != 0:
-        raise CLIReturnCodeError(result.status, result.stderr, 'Failed to install ipa client')
-    ipa_host.execute(f'echo {settings.ipa.password} | kinit admin')
-    result = ipa_host.execute(f'ipa host-find {sat.hostname}')
-    if result.status == 0:
-        disenroll_idm(sat)
-    result = ipa_host.execute(f'ipa host-add --random {sat.hostname}')
-    for line in result.stdout.splitlines():
-        if 'Random password' in line:
-            _, password = line.split(': ', 2)
-            break
-    ipa_host.execute(f'ipa service-add HTTP/{sat.hostname}')
-    _, domain = settings.ipa.hostname.split('.', 1)
-    result = sat.execute(
-        f"ipa-client-install --password '{password}' "
-        f'--domain {domain} '
-        f'--server {settings.ipa.hostname} '
-        f'--realm {domain.upper()} -U'
-    )
-    if result.status not in [0, 3]:
-        raise CLIReturnCodeError(result.status, result.stderr, 'Failed to enable ipa client')
-    result = sat.install(InstallerCommand('foreman-ipa-authentication true'))
-    assert result.status == 0, 'Installer failed to enable IPA authentication.'
-    sat.cli.Service.restart()
-
-
-def disenroll_idm(sat):
-    ipa_host = ContentHost(settings.ipa.hostname)
-    ipa_host.execute(f'ipa service-del HTTP/{sat.hostname}')
-    ipa_host.execute(f'ipa host-del {sat.hostname}')
-
-
 @pytest.mark.external_auth
 @pytest.fixture(scope='module')
 def module_enroll_idm_and_configure_external_auth(module_target_sat):
-    enroll_idm_and_configure_external_auth(module_target_sat)
+    ipa_host = IPAHost(module_target_sat)
+    ipa_host.enroll_idm_and_configure_external_auth()
     yield
-    disenroll_idm(module_target_sat)
+    ipa_host.disenroll_idm()
 
 
 @pytest.mark.external_auth
 @pytest.fixture
 def func_enroll_idm_and_configure_external_auth(target_sat):
-    enroll_idm_and_configure_external_auth(target_sat)
+    ipa_host = IPAHost(target_sat)
+    ipa_host.enroll_idm_and_configure_external_auth()
     yield
-    disenroll_idm(target_sat)
+    ipa_host.disenroll_idm()
 
 
 @pytest.fixture(scope='module')
-def configure_realm(module_target_sat):
+def configure_realm(module_target_sat, default_ipa_host):
     """Configure realm"""
     realm = settings.upgrade.vm_domain.upper()
     module_target_sat.execute(f'curl -o /root/freeipa.keytab {settings.ipa.keytab_url}')
@@ -394,7 +361,7 @@ def configure_realm(module_target_sat):
     module_target_sat.execute(
         'satellite-installer --foreman-proxy-realm true '
         f'--foreman-proxy-realm-principal realm-proxy@{realm} '
-        f'--foreman-proxy-dhcp-nameservers {socket.gethostbyname(settings.ipa.hostname)}'
+        f'--foreman-proxy-dhcp-nameservers {socket.gethostbyname(default_ipa_host.hostname)}'
     )
     module_target_sat.execute('cp /etc/ipa/ca.crt /etc/pki/ca-trust/source/anchors/ipa.crt')
     module_target_sat.execute('update-ca-trust enable ; update-ca-trust')
@@ -442,119 +409,16 @@ def rhsso_setting_setup_with_timeout(module_target_sat, rhsso_setting_setup):
     setting_entity.update({'value'})
 
 
-def enroll_ad_and_configure_external_auth(request, ad_data, sat):
-    """Enroll Satellite Server to an AD Server."""
-    ad_data = ad_data()
-    packages = (
-        'sssd adcli realmd ipa-python-compat krb5-workstation '
-        'samba-common-tools gssproxy nfs-utils ipa-client'
-    )
-    realm = ad_data.realm
-    workgroup = ad_data.workgroup
-
-    default_content = f'[global]\nserver = unused\nrealm = {realm}'
-    keytab_content = (
-        f'[global]\nworkgroup = {workgroup}\nrealm = {realm}'
-        f'\nkerberos method = system keytab\nsecurity = ads'
-    )
-
-    # install the required packages
-    assert sat.execute(f'yum -y --disableplugin=foreman-protector install {packages}').status == 0
-
-    # update the AD name server
-    assert sat.execute('chattr -i /etc/resolv.conf').status == 0
-    line_number = int(
-        sat.execute(
-            "awk -v search='nameserver' '$0~search{print NR; exit}' /etc/resolv.conf"
-        ).stdout
-    )
-    assert (
-        sat.execute(
-            f'sed -i "{line_number}i nameserver {ad_data.nameserver}" /etc/resolv.conf'
-        ).status
-        == 0
-    )
-    assert sat.execute('chattr +i /etc/resolv.conf').status == 0
-
-    # join the realm
-    assert (
-        sat.execute(
-            f'echo {settings.ldap.password} | realm join -v {realm} --membership-software=samba'
-        ).status
-        == 0
-    )
-    assert sat.execute('touch /etc/ipa/default.conf').status == 0
-    assert sat.execute(f'echo "{default_content}" > /etc/ipa/default.conf').status == 0
-    assert sat.execute(f'echo "{keytab_content}" > /etc/net-keytab.conf').status == 0
-
-    # gather the apache id
-    id_apache = str(sat.execute('id -u apache')).strip()
-    http_conf_content = (
-        f'[service/HTTP]\nmechs = krb5\ncred_store = keytab:/etc/krb5.keytab'
-        f'\ncred_store = ccache:/var/lib/gssproxy/clients/krb5cc_%U'
-        f'\neuid = {id_apache}'
-    )
-
-    # register the satellite as client for external auth
-    assert sat.execute(f'echo "{http_conf_content}" > /etc/gssproxy/00-http.conf').status == 0
-    token_command = (
-        'KRB5_KTNAME=FILE:/etc/httpd/conf/http.keytab net ads keytab add HTTP '
-        '-U administrator -d3 -s /etc/net-keytab.conf'
-    )
-    assert sat.execute(f'echo {settings.ldap.password} | {token_command}').status == 0
-    assert sat.execute('chown root.apache /etc/httpd/conf/http.keytab').status == 0
-    assert sat.execute('chmod 640 /etc/httpd/conf/http.keytab').status == 0
-
-    # enable the foreman-ipa-authentication feature
-    result = sat.install(InstallerCommand('foreman-ipa-authentication true'))
-    assert result.status == 0
-
-    # add foreman ad_gp_map_service (BZ#2117523)
-    line_number = int(
-        sat.execute(
-            "awk -v search='domain/' '$0~search{print NR; exit}' /etc/sssd/sssd.conf"
-        ).stdout
-    )
-    assert (
-        sat.execute(
-            f'sed -i "{line_number + 1}i ad_gpo_map_service = +foreman" /etc/sssd/sssd.conf'
-        ).status
-        == 0
-    )
-    assert sat.execute('systemctl restart sssd.service').status == 0
-
-    # unset GssapiLocalName (BZ#1787630)
-    assert (
-        sat.execute(
-            'sed -i -e "s/GssapiLocalName.*On/GssapiLocalName Off/g" '
-            '/etc/httpd/conf.d/05-foreman-ssl.d/auth_gssapi.conf'
-        ).status
-        == 0
-    )
-    assert sat.execute('systemctl restart gssproxy.service').status == 0
-    assert sat.execute('systemctl enable gssproxy.service').status == 0
-
-    # restart the deamon and httpd services
-    httpd_service_content = (
-        '.include /lib/systemd/system/httpd.service\n[Service]' '\nEnvironment=GSS_USE_PROXY=1'
-    )
-    assert (
-        sat.execute(f'echo "{httpd_service_content}" > /etc/systemd/system/httpd.service').status
-        == 0
-    )
-    assert sat.execute('systemctl daemon-reload && systemctl restart httpd.service').status == 0
-
-
 @pytest.mark.external_auth
 @pytest.fixture(scope='module')
-def module_enroll_ad_and_configure_external_auth(request, ad_data, module_target_sat):
-    enroll_ad_and_configure_external_auth(request, ad_data, module_target_sat)
+def module_enroll_ad_and_configure_external_auth(ad_data, module_target_sat):
+    module_target_sat.enroll_ad_and_configure_external_auth(ad_data)
 
 
 @pytest.mark.external_auth
 @pytest.fixture
-def func_enroll_ad_and_configure_external_auth(request, ad_data, target_sat):
-    enroll_ad_and_configure_external_auth(request, ad_data, target_sat)
+def func_enroll_ad_and_configure_external_auth(ad_data, target_sat):
+    target_sat.enroll_ad_and_configure_external_auth(ad_data)
 
 
 @pytest.mark.external_auth
