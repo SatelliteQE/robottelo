@@ -60,7 +60,7 @@ CaseComponent:
     - HostGroup
     - Hosts
     - Hosts-Content
-    - Infobloxintegration
+    - InfobloxIntegration
     - Infrastructure
     - Installer
     - InterSatelliteSync
