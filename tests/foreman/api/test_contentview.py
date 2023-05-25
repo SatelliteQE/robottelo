@@ -751,7 +751,6 @@ class TestContentViewPublishPromote:
         comp_content_view_info = comp_content_view.version[0].read()
         assert comp_content_view_info.package_count == 36
 
-    @pytest.mark.stream
     @pytest.mark.tier2
     def test_ccv_audit_scenarios(self, module_org, target_sat):
         """Check for various scenarios where a composite content view or it's component
@@ -822,7 +821,6 @@ class TestContentViewPublishPromote:
         composite_cv.publish()
         assert not composite_cv.read().needs_publish
 
-    @pytest.mark.stream
     @pytest.mark.tier2
     def test_check_needs_publish_flag(self, target_sat):
         """Check that the publish_only_if_needed option in the API works as intended (defaults to
@@ -1115,7 +1113,6 @@ class TestContentViewRedHatContent:
         content_view.read().version[0].promote(data={'environment_ids': module_lce.id})
         assert len(content_view.read().version[0].read().environment) == 2
 
-    @pytest.mark.stream
     @pytest.mark.tier2
     def test_cv_audit_scenarios(self, module_product, target_sat):
         """Check for various scenarios where a content view's needs_publish flag
@@ -1147,14 +1144,14 @@ class TestContentViewRedHatContent:
         self.yumcv.publish()
         assert not self.yumcv.read().needs_publish
         # needs_publish is set to true when a filter is added/updated/deleted
-        cv_filter = entities.RPMContentViewFilter(
+        cv_filter = target_sat.api.RPMContentViewFilter(
             content_view=self.yumcv, inclusion='true', name=gen_string('alphanumeric')
         ).create()
         assert self.yumcv.read().needs_publish
         self.yumcv.publish()
         assert not self.yumcv.read().needs_publish
         # Adding a rule should set needs_publish to true
-        cvf_rule = entities.ContentViewFilterRule(
+        cvf_rule = target_sat.api.ContentViewFilterRule(
             content_view_filter=cv_filter, name=gen_string('alphanumeric'), version='1.0'
         ).create()
         assert self.yumcv.read().needs_publish
@@ -1186,7 +1183,7 @@ class TestContentViewRedHatContent:
         self.yumcv.publish()
         assert not self.yumcv.read().needs_publish
         # needs_publish is set to true when repository content is removed
-        packages = entities.Package(repository=repo).search(query={'per_page': '1000'})
+        packages = target_sat.api.Package(repository=repo).search(query={'per_page': '1000'})
         repo.remove_content(data={'ids': [package.id for package in packages]})
         assert self.yumcv.read().needs_publish
         self.yumcv.publish()
