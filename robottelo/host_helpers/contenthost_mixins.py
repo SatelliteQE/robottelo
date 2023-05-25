@@ -84,7 +84,7 @@ class VersionedContent:
         """Downloads the tools/client, capsule, or satellite repos on the machine"""
         product, release, snap, v_major, _ = self._dogfood_helper(product, release, snap)
         url = dogfood_repofile_url(settings.ohsnap, product, release, v_major, snap)
-        self.execute(f'curl -o /etc/yum.repos.d/dogfood.repo {url}')
+        self.execute(f'curl -o /etc/yum.repos.d/dogfood.repo -L {url}')
 
     def dogfood_repository(self, repo=None, product=None, release=None, snap=''):
         """Returns a repository definition based on the arguments provided"""
