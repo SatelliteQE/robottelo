@@ -55,6 +55,7 @@ def test_positive_custom_products_by_default(
         # host_details = session.contenthost.read(
         #     rhel_contenthost.hostname, widget_names=['repository_sets']
         # )
+        host_detail = session.host_new.get_details(target_sat.hostname, widget_names='content.repository_sets')
         ak_details = session.activationkey.read(ak.name, widget_names='repository sets')[
             'repository sets'
         ]['table'][0]
