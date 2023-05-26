@@ -25,8 +25,9 @@ from os import chmod
 from tempfile import mkstemp
 
 from robottelo import ssh
-from robottelo.cli.base import Base, CLIError
+from robottelo.cli.base import Base
 from robottelo.constants import REPORT_TEMPLATE_FILE, DataFile
+from robottelo.exceptions import CLIError
 
 
 class ReportTemplate(Base):

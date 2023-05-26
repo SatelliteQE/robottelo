@@ -23,9 +23,8 @@ from tempfile import mkstemp
 from fauxfactory import gen_alphanumeric, gen_choice, gen_integer, gen_string
 import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.constants import DataFile
-from robottelo.host_helpers.cli_factory import CLIFactoryError
+from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
     invalid_values_list,
     parametrized,

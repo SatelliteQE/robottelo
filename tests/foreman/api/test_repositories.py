@@ -22,9 +22,9 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo import constants
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, MIRRORING_POLICIES, REPOS
+from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import parametrized
 
 

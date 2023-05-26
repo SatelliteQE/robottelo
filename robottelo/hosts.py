@@ -30,7 +30,6 @@ import yaml
 
 from robottelo import constants
 from robottelo.cli.base import Base
-from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import (
     configure_airgun,
     configure_nailgun,
@@ -53,7 +52,7 @@ from robottelo.constants import (
     RHSSO_USER_UPDATE,
     SATELLITE_VERSION,
 )
-from robottelo.exceptions import DownloadFileError, HostPingFailed
+from robottelo.exceptions import CLIFactoryError, DownloadFileError, HostPingFailed
 from robottelo.host_helpers import CapsuleMixins, ContentHostMixins, SatelliteMixins
 from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
@@ -1248,18 +1247,19 @@ class ContentHost(Host, ContentHostMixins):
         :param bool upload_manifest: whether to upload the organization manifest
         :param list extra_repos: (Optional) repositories dict options to setup additionally.
         """
-        from robottelo.cli import factory as cli_factory
-        from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-        from robottelo.cli.org import Org
-        from robottelo.cli.subscription import Subscription
-        from robottelo.cli.virt_who_config import VirtWhoConfig
 
-        org = cli_factory.make_org() if org_id is None else Org.info({'id': org_id})
+        org = (
+            satellite.cli_factory.make_org()
+            if org_id is None
+            else satellite.cli.Org.info({'id': org_id})
+        )
 
         if lce_id is None:
-            lce = cli_factory.make_lifecycle_environment({'organization-id': org['id']})
+            lce = satellite.cli_factory.make_lifecycle_environment({'organization-id': org['id']})
         else:
-            lce = LifecycleEnvironment.info({'id': lce_id, 'organization-id': org['id']})
+            lce = satellite.cli.LifecycleEnvironment.info(
+                {'id': lce_id, 'organization-id': org['id']}
+            )
         extra_repos = extra_repos or []
         repos = [
             # Red Hat Satellite Tools
@@ -1273,7 +1273,7 @@ class ContentHost(Host, ContentHostMixins):
             }
         ]
         repos.extend(extra_repos)
-        content_setup_data = cli_factory.setup_cdn_and_custom_repos_content(
+        content_setup_data = satellite.cli_factory.setup_cdn_and_custom_repos_content(
             org[id],
             lce[id],
             repos,
@@ -1317,7 +1317,7 @@ class ContentHost(Host, ContentHostMixins):
         # create the virt-who directory on satellite
         satellite = Satellite()
         satellite.execute(f'mkdir -p {virt_who_deploy_directory}')
-        VirtWhoConfig.fetch({'id': config_id, 'output': virt_who_deploy_file})
+        satellite.cli.VirtWhoConfig.fetch({'id': config_id, 'output': virt_who_deploy_file})
         # remote_copy from satellite to self
         satellite.session.remote_copy(virt_who_deploy_file, self)
 
@@ -1383,7 +1383,9 @@ class ContentHost(Host, ContentHostMixins):
         virt_who_hypervisor_host = org_hosts[0]
         subscription_id = None
         if hypervisor_hostname and subscription_name:
-            subscriptions = Subscription.list({'organization-id': org_id}, per_page=False)
+            subscriptions = satellite.cli.Subscription.list(
+                {'organization-id': org_id}, per_page=False
+            )
             for subscription in subscriptions:
                 if subscription['name'] == subscription_name:
                     subscription_id = subscription['id']

@@ -25,8 +25,7 @@ from nailgun.entities import Role as RoleEntity, User as UserEntity
 import pytest
 from requests import HTTPError
 
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError, make_discoveryrule
+from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
 from robottelo.utils.datafactory import (
     filtered_datapoint,
@@ -62,7 +61,7 @@ class TestDiscoveryRule:
     """Implements Foreman discovery Rules tests in CLI."""
 
     @pytest.fixture
-    def discoveryrule_factory(self, class_org, class_location, class_hostgroup):
+    def discoveryrule_factory(self, class_org, class_location, class_hostgroup, target_sat):
         def _create_discoveryrule(org, loc, hostgroup, options=None):
             """Makes a new discovery rule and asserts its success"""
             options = options or {}
@@ -89,7 +88,7 @@ class TestDiscoveryRule:
 
             # create a simple object from the dictionary that the CLI factory provides
             # This allows for consistent attributized access of all fixture entities in the tests
-            return Box(make_discoveryrule(options))
+            return Box(target_sat.cli_factory.discoveryrule(options))
 
         return partial(
             _create_discoveryrule, org=class_org, loc=class_location, hostgroup=class_hostgroup
@@ -173,7 +172,7 @@ class TestDiscoveryRule:
 
         new_org = target_sat.cli_factory.make_org()
         new_loc = target_sat.cli_factory.make_location()
-        new_hostgroup = target_sat.cli_factory.make_hostgroup(
+        new_hostgroup = target_sat.cli_factory.hostgroup(
             {'organization-ids': new_org.id, 'location-ids': new_loc.id}
         )
         target_sat.cli.DiscoveryRule.update(
@@ -213,7 +212,7 @@ class TestDiscoveryRule:
 
         new_org = target_sat.cli_factory.make_org()
         new_loc = target_sat.cli_factory.make_location()
-        new_hostgroup = target_sat.cli_factory.make_hostgroup(
+        new_hostgroup = target_sat.cli_factory.hostgroup(
             {'organization-ids': new_org.id, 'location-ids': new_loc.id}
         )
 
@@ -366,7 +365,7 @@ class TestDiscoveryRule:
         new_query = 'model = KVM'
         new_hostname = gen_string('alpha')
         new_limit = '10'
-        new_hostgroup = target_sat.cli_factory.make_hostgroup({'organization-ids': class_org.id})
+        new_hostgroup = target_sat.cli_factory.hostgroup({'organization-ids': class_org.id})
 
         target_sat.cli.DiscoveryRule.update(
             {

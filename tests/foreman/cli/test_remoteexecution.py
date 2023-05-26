@@ -27,23 +27,6 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo import constants
-from robottelo.cli.factory import (
-    make_filter,
-    make_job_invocation,
-    make_job_invocation_with_credentials,
-    make_job_template,
-    make_role,
-    make_user,
-)
-from robottelo.cli.filter import Filter
-from robottelo.cli.globalparam import GlobalParameter
-from robottelo.cli.host import Host
-from robottelo.cli.job_invocation import JobInvocation
-from robottelo.cli.recurring_logic import RecurringLogic
-from robottelo.cli.repository import Repository
-from robottelo.cli.repository_set import RepositorySet
-from robottelo.cli.task import Task
-from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.hosts import ContentHost
@@ -89,33 +72,39 @@ def infra_host(request, target_sat, module_capsule_configured):
     return infra_hosts[request.param]
 
 
-def assert_job_invocation_result(invocation_command_id, client_hostname, expected_result='success'):
+def assert_job_invocation_result(
+    sat, invocation_command_id, client_hostname, expected_result='success'
+):
     """Asserts the job invocation finished with the expected result and fetches job output
     when error occurs. Result is one of: success, pending, error, warning"""
-    result = JobInvocation.info({'id': invocation_command_id})
+    result = sat.cli.JobInvocation.info({'id': invocation_command_id})
     try:
         assert result[expected_result] == '1'
     except AssertionError:
         raise AssertionError(
             'host output: {}'.format(
                 ' '.join(
-                    JobInvocation.get_output({'id': invocation_command_id, 'host': client_hostname})
+                    sat.cli.JobInvocation.get_output(
+                        {'id': invocation_command_id, 'host': client_hostname}
+                    )
                 )
             )
         )
 
 
-def assert_job_invocation_status(invocation_command_id, client_hostname, status):
+def assert_job_invocation_status(sat, invocation_command_id, client_hostname, status):
     """Asserts the job invocation status and fetches job output when error occurs.
     Status is one of: queued, stopped, running, paused"""
-    result = JobInvocation.info({'id': invocation_command_id})
+    result = sat.cli.JobInvocation.info({'id': invocation_command_id})
     try:
         assert result['status'] == status
     except AssertionError:
         raise AssertionError(
             'host output: {}'.format(
                 ' '.join(
-                    JobInvocation.get_output({'id': invocation_command_id, 'host': client_hostname})
+                    sat.cli.JobInvocation.get_output(
+                        {'id': invocation_command_id, 'host': client_hostname}
+                    )
                 )
             )
         )
@@ -128,7 +117,9 @@ class TestRemoteExecution:
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_run_default_job_template(self, module_org, rex_contenthost):
+    def test_positive_run_default_job_template(
+        self, module_org, rex_contenthost, module_target_sat
+    ):
         """Run default template on host connected and list task
 
         :id: 811c7747-bec6-4a2d-8e5c-b5045d3fbc0d
@@ -144,18 +135,18 @@ class TestRemoteExecution:
         """
         client = rex_contenthost
         command = f'echo {gen_string("alpha")}'
-        invocation_command = make_job_invocation(
+        invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': f'command={command}',
                 'search-query': f"name ~ {client.hostname}",
             }
         )
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
-        task = Task.list_tasks({'search': command})[0]
-        search = Task.list_tasks({'search': f'id={task["id"]}'})
+        assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
+        task = module_target_sat.cli.Task.list_tasks({'search': command})[0]
+        search = module_target_sat.cli.Task.list_tasks({'search': f'id={task["id"]}'})
         assert search[0]['action'] == task['action']
-        out = JobInvocation.get_output(
+        out = module_target_sat.cli.JobInvocation.get_output(
             {
                 'id': invocation_command['id'],
                 'host': client.hostname,
@@ -169,7 +160,7 @@ class TestRemoteExecution:
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([7, 8, 9])
-    def test_positive_run_job_effective_user(self, rex_contenthost):
+    def test_positive_run_job_effective_user(self, rex_contenthost, module_target_sat):
         """Run default job template as effective user on a host
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
@@ -185,16 +176,16 @@ class TestRemoteExecution:
         # create a user on client via remote job
         username = gen_string('alpha')
         filename = gen_string('alpha')
-        make_user_job = make_job_invocation(
+        make_user_job = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': f"command=useradd -m {username}",
                 'search-query': f"name ~ {client.hostname}",
             }
         )
-        assert_job_invocation_result(make_user_job['id'], client.hostname)
+        assert_job_invocation_result(module_target_sat, make_user_job['id'], client.hostname)
         # create a file as new user
-        invocation_command = make_job_invocation(
+        invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': f"command=touch /home/{username}/{filename}",
@@ -202,7 +193,7 @@ class TestRemoteExecution:
                 'effective-user': f'{username}',
             }
         )
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
         # check the file owner
         result = client.execute(
             f'''stat -c '%U' /home/{username}/{filename}''',
@@ -233,10 +224,10 @@ class TestRemoteExecution:
         template_file = 'template_file.txt'
         target_sat.execute(f'echo "echo Enforcing" > {template_file}')
         template_name = gen_string('alpha', 7)
-        make_job_template(
+        target_sat.cli_factory.job_template(
             {'organizations': self.org.name, 'name': template_name, 'file': template_file}
         )
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {'job-template': template_name, 'search-query': f'name ~ {client.hostname}'}
         )
         assert_job_invocation_result(invocation_command['id'], client.hostname)
@@ -245,7 +236,9 @@ class TestRemoteExecution:
     @pytest.mark.upgrade
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_run_default_job_template_multiple_hosts(self, registered_hosts, module_org):
+    def test_positive_run_default_job_template_multiple_hosts(
+        self, registered_hosts, module_target_sat
+    ):
         """Run default job template against multiple hosts
 
         :id: 694a21d3-243b-4296-8bd0-4bad9663af15
@@ -255,7 +248,7 @@ class TestRemoteExecution:
         :parametrized: yes
         """
         clients = registered_hosts
-        invocation_command = make_job_invocation(
+        invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': 'command=ls',
@@ -269,13 +262,13 @@ class TestRemoteExecution:
                 'host output from {}: {}'.format(
                     vm.hostname,
                     ' '.join(
-                        JobInvocation.get_output(
+                        module_target_sat.cli.JobInvocation.get_output(
                             {'id': invocation_command['id'], 'host': vm.hostname}
                         )
                     ),
                 )
             )
-        result = JobInvocation.info({'id': invocation_command['id']})
+        result = module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
         assert result['success'] == '2', output_msgs
 
     @pytest.mark.tier3
@@ -306,21 +299,21 @@ class TestRemoteExecution:
             repo=settings.repos.yum_3.url,
         )
         # Install packages
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Install Package - Katello Script Default',
                 'inputs': f'package={" ".join(packages)}',
                 'search-query': f'name ~ {client.hostname}',
             }
         )
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
         result = client.run(f'rpm -q {" ".join(packages)}')
         assert result.status == 0
         # Update packages
         pre_versions = result.stdout.splitlines()
         result = client.run(f'dnf -y downgrade {" ".join(packages)}')
         assert result.status == 0
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Update Package - Katello Script Default',
                 'inputs': f'package={" ".join(packages)}',
@@ -331,14 +324,14 @@ class TestRemoteExecution:
         post_versions = client.run(f'rpm -q {" ".join(packages)}').stdout.splitlines()
         assert set(pre_versions) == set(post_versions)
         # Remove packages
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Remove Package - Katello Script Default',
                 'inputs': f'package={" ".join(packages)}',
                 'search-query': f'name ~ {client.hostname}',
             }
         )
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
         result = client.run(f'rpm -q {" ".join(packages)}')
         assert result.status == len(packages)
 
@@ -370,26 +363,26 @@ class TestRemoteExecution:
             repo=settings.repos.yum_1.url,
         )
         # Install the package groups
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Install Group - Katello Script Default',
                 'inputs': f'package={" ".join(groups)}',
                 'search-query': f'name ~ {client.hostname}',
             }
         )
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
         result = client.run('dnf grouplist --installed')
         assert all(item in result.stdout for item in groups)
         # Remove one of the installed package groups
         remove = random.choice(groups)
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Remove Group - Katello Script Default',
                 'inputs': f'package={remove}',
                 'search-query': f'name ~ {client.hostname}',
             }
         )
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
         result = client.run('dnf grouplist --installed')
         assert remove not in result.stdout
 
@@ -420,14 +413,14 @@ class TestRemoteExecution:
         )
         client.run(f'dnf install -y {constants.FAKE_1_CUSTOM_PACKAGE}')
         # Install errata
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Install Errata - Katello Script Default',
                 'inputs': f'errata={settings.repos.yum_0.errata[1]}',
                 'search-query': f'name ~ {client.hostname}',
             }
         )
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
         result = client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}')
         assert result.status == 0
 
@@ -447,7 +440,7 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_run_recurring_job_with_max_iterations(self, rex_contenthost):
+    def test_positive_run_recurring_job_with_max_iterations(self, rex_contenthost, target_sat):
         """Run default job template multiple times with max iteration
 
         :id: 0a3d1627-95d9-42ab-9478-a908f2a7c509
@@ -458,7 +451,7 @@ class TestRemoteExecution:
         :parametrized: yes
         """
         client = rex_contenthost
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': 'command=ls',
@@ -467,16 +460,16 @@ class TestRemoteExecution:
                 'max-iteration': 2,  # just two runs
             }
         )
-        result = JobInvocation.info({'id': invocation_command['id']})
+        result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
         assert_job_invocation_status(invocation_command['id'], client.hostname, 'queued')
         sleep(150)
-        rec_logic = RecurringLogic.info({'id': result['recurring-logic-id']})
+        rec_logic = target_sat.cli.RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
 
     @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_time_expressions(self, rex_contenthost):
+    def test_positive_time_expressions(self, rex_contenthost, target_sat):
         """Test various expressions for extended cronline syntax
 
         :id: 584e7b27-9484-436a-b850-11acb900a7d8
@@ -541,7 +534,7 @@ class TestRemoteExecution:
             ],
         ]
         for exp in fugit_expressions:
-            invocation_command = make_job_invocation(
+            invocation_command = target_sat.cli_factory.job_invocation(
                 {
                     'job-template': 'Run Command - Script Default',
                     'inputs': 'command=ls',
@@ -550,9 +543,9 @@ class TestRemoteExecution:
                     'max-iteration': 1,
                 }
             )
-            result = JobInvocation.info({'id': invocation_command['id']})
+            result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
             assert_job_invocation_status(invocation_command['id'], client.hostname, 'queued')
-            rec_logic = RecurringLogic.info({'id': result['recurring-logic-id']})
+            rec_logic = target_sat.cli.RecurringLogic.info({'id': result['recurring-logic-id']})
             assert (
                 rec_logic['next-occurrence'] == exp[1]
             ), f'Job was not scheduled as expected using {exp[0]}'
@@ -573,7 +566,7 @@ class TestRemoteExecution:
         system_current_time = target_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout
         current_time_object = datetime.strptime(system_current_time.strip('\n'), '%b %d %Y %I:%M%p')
         plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M")
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': 'command=ls',
@@ -584,10 +577,10 @@ class TestRemoteExecution:
         # Wait until the job runs
         pending_state = '1'
         while pending_state != '0':
-            invocation_info = JobInvocation.info({'id': invocation_command['id']})
+            invocation_info = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
             pending_state = invocation_info['pending']
             sleep(30)
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
 
 
 class TestAnsibleREX:
@@ -598,7 +591,7 @@ class TestAnsibleREX:
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([7, 8, 9])
-    def test_positive_run_effective_user_job(self, rex_contenthost):
+    def test_positive_run_effective_user_job(self, rex_contenthost, target_sat):
         """Tests Ansible REX job having effective user runs successfully
 
         :id: a5fa20d8-c2bd-4bbf-a6dc-bf307b59dd8c
@@ -625,16 +618,16 @@ class TestAnsibleREX:
         # create a user on client via remote job
         username = gen_string('alpha')
         filename = gen_string('alpha')
-        make_user_job = make_job_invocation(
+        make_user_job = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
                 'inputs': f"command=useradd -m {username}",
                 'search-query': f"name ~ {client.hostname}",
             }
         )
-        assert_job_invocation_result(make_user_job['id'], client.hostname)
+        assert_job_invocation_result(target_sat, make_user_job['id'], client.hostname)
         # create a file as new user
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
                 'inputs': f"command=touch /home/{username}/{filename}",
@@ -642,7 +635,7 @@ class TestAnsibleREX:
                 'effective-user': f'{username}',
             }
         )
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
         # check the file owner
         result = client.execute(
             f'''stat -c '%U' /home/{username}/{filename}''',
@@ -653,7 +646,7 @@ class TestAnsibleREX:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_run_reccuring_job(self, rex_contenthost):
+    def test_positive_run_reccuring_job(self, rex_contenthost, target_sat):
         """Tests Ansible REX reccuring job runs successfully multiple times
 
         :id: 49b0d31d-58f9-47f1-aa5d-561a1dcb0d66
@@ -679,7 +672,7 @@ class TestAnsibleREX:
         :parametrized: yes
         """
         client = rex_contenthost
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
                 'inputs': 'command=ls',
@@ -688,9 +681,9 @@ class TestAnsibleREX:
                 'max-iteration': 2,  # just two runs
             }
         )
-        result = JobInvocation.info({'id': invocation_command['id']})
+        result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
         sleep(150)
-        rec_logic = RecurringLogic.info({'id': result['recurring-logic-id']})
+        rec_logic = target_sat.cli.RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
         # 2129432
@@ -705,7 +698,7 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.no_containers
-    def test_positive_run_concurrent_jobs(self, registered_hosts, module_org):
+    def test_positive_run_concurrent_jobs(self, registered_hosts, target_sat):
         """Tests Ansible REX concurent jobs without batch trigger
 
         :id: ad0f108c-03f2-49c7-8732-b1056570567b
@@ -729,10 +722,10 @@ class TestAnsibleREX:
         :parametrized: yes
         """
         param_name = 'foreman_tasks_proxy_batch_trigger'
-        GlobalParameter().set({'name': param_name, 'value': 'false'})
+        target_sat.cli.GlobalParameter().set({'name': param_name, 'value': 'false'})
         clients = registered_hosts
         output_msgs = []
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
                 'inputs': 'command=ls',
@@ -745,16 +738,16 @@ class TestAnsibleREX:
                 'host output from {}: {}'.format(
                     vm.hostname,
                     ' '.join(
-                        JobInvocation.get_output(
+                        target_sat.cli.JobInvocation.get_output(
                             {'id': invocation_command['id'], 'host': vm.hostname}
                         )
                     ),
                 )
             )
-        result = JobInvocation.info({'id': invocation_command['id']})
+        result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
         assert result['success'] == '2', output_msgs
-        GlobalParameter().delete({'name': param_name})
-        assert len(GlobalParameter().list({'search': param_name})) == 0
+        target_sat.cli.GlobalParameter().delete({'name': param_name})
+        assert len(target_sat.cli.GlobalParameter().list({'search': param_name})) == 0
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -808,7 +801,7 @@ class TestAnsibleREX:
             repo=settings.repos.yum_3.url,
         )
         # install package
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Package Action - Ansible Default',
                 'inputs': 'state=latest, name={}'.format(*packages),
@@ -821,7 +814,7 @@ class TestAnsibleREX:
 
         # stop a service
         service = "rsyslog"
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Service Action - Ansible Default',
                 'inputs': f'state=stopped, name={service}',
@@ -833,7 +826,7 @@ class TestAnsibleREX:
         assert result.status == 3
 
         # start it again
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Service Action - Ansible Default',
                 'inputs': f'state=started, name={service}',
@@ -849,7 +842,7 @@ class TestAnsibleREX:
         'fixture_sca_vmsetup', [{'nick': 'rhel8'}], ids=['rhel8'], indirect=True
     )
     def test_positive_install_ansible_collection(
-        self, fixture_sca_vmsetup, module_sca_manifest_org
+        self, fixture_sca_vmsetup, module_sca_manifest_org, target_sat
     ):
         """Test whether Ansible collection can be installed via REX
 
@@ -868,7 +861,7 @@ class TestAnsibleREX:
         :Team: Rocket
         """
         # Configure repository to prepare for installing ansible on host
-        RepositorySet.enable(
+        target_sat.cli.RepositorySet.enable(
             {
                 'basearch': 'x86_64',
                 'name': REPOSET['rhae2.9_el8'],
@@ -877,7 +870,7 @@ class TestAnsibleREX:
                 'releasever': '8',
             }
         )
-        Repository.synchronize(
+        target_sat.cli.Repository.synchronize(
             {
                 'name': REPOS['rhae2.9_el8']['name'],
                 'organization-id': module_sca_manifest_org.id,
@@ -888,27 +881,27 @@ class TestAnsibleREX:
         client.execute('subscription-manager refresh')
         client.execute(f'subscription-manager repos --enable {REPOS["rhae2.9_el8"]["id"]}')
         client.execute('dnf -y install ansible')
-        collection_job = make_job_invocation(
+        collection_job = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Ansible Collection - Install from Galaxy',
                 'inputs': 'ansible_collections_list="oasis_roles.system"',
                 'search-query': f'name ~ {client.hostname}',
             }
         )
-        result = JobInvocation.info({'id': collection_job['id']})
+        result = target_sat.cli.JobInvocation.info({'id': collection_job['id']})
         assert result['success'] == '1'
         collection_path = client.execute('ls /etc/ansible/collections/ansible_collections').stdout
         assert 'oasis_roles' in collection_path
 
         # Extend test with custom collections_path advanced input field
-        collection_job = make_job_invocation(
+        collection_job = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Ansible Collection - Install from Galaxy',
                 'inputs': 'ansible_collections_list="oasis_roles.system", collections_path="~/"',
                 'search-query': f'name ~ {client.hostname}',
             }
         )
-        result = JobInvocation.info({'id': collection_job['id']})
+        result = target_sat.cli.JobInvocation.info({'id': collection_job['id']})
         assert result['success'] == '1'
         collection_path = client.execute('ls ~/ansible_collections').stdout
         assert 'oasis_roles' in collection_path
@@ -918,38 +911,50 @@ class TestRexUsers:
     """Tests related to remote execution users"""
 
     @pytest.fixture(scope='class')
-    def class_rexmanager_user(self, module_org):
+    def class_rexmanager_user(self, module_org, class_target_sat):
         """Creates a user with Remote Execution Manager role"""
         password = gen_string('alpha')
         rexmanager = gen_string('alpha')
-        make_user({'login': rexmanager, 'password': password, 'organization-ids': module_org.id})
-        User.add_role({'login': rexmanager, 'role': 'Remote Execution Manager'})
+        class_target_sat.cli_factory.user(
+            {'login': rexmanager, 'password': password, 'organization-ids': module_org.id}
+        )
+        class_target_sat.cli.User.add_role(
+            {'login': rexmanager, 'role': 'Remote Execution Manager'}
+        )
         return (rexmanager, password)
 
     @pytest.fixture(scope='class')
-    def class_rexinfra_user(self, module_org):
+    def class_rexinfra_user(self, module_org, class_target_sat):
         """Creates a user with all Remote Execution related permissions"""
         password = gen_string('alpha')
         rexinfra = gen_string('alpha')
-        make_user({'login': rexinfra, 'password': password, 'organization-ids': module_org.id})
-        role = make_role({'organization-ids': module_org.id})
+        class_target_sat.cli_factory.user(
+            {'login': rexinfra, 'password': password, 'organization-ids': module_org.id}
+        )
+        role = class_target_sat.cli_factory.make_role({'organization-ids': module_org.id})
         invocation_permissions = [
             permission['name']
-            for permission in Filter.available_permissions(
+            for permission in class_target_sat.cli.Filter.available_permissions(
                 {'search': 'resource_type=JobInvocation'}
             )
         ]
         template_permissions = [
             permission['name']
-            for permission in Filter.available_permissions({'search': 'resource_type=JobTemplate'})
+            for permission in class_target_sat.cli.Filter.available_permissions(
+                {'search': 'resource_type=JobTemplate'}
+            )
         ]
         permissions = ','.join(invocation_permissions)
-        make_filter({'role-id': role['id'], 'permissions': permissions})
+        class_target_sat.cli_factory.make_filter(
+            {'role-id': role['id'], 'permissions': permissions}
+        )
         permissions = ','.join(template_permissions)
         # needs execute_jobs_on_infrastructure_host permission
-        make_filter({'role-id': role['id'], 'permissions': permissions})
-        User.add_role({'login': rexinfra, 'role': role['name']})
-        User.add_role({'login': rexinfra, 'role': 'Remote Execution Manager'})
+        class_target_sat.cli_factory.make_filter(
+            {'role-id': role['id'], 'permissions': permissions}
+        )
+        class_target_sat.cli.User.add_role({'login': rexinfra, 'role': role['name']})
+        class_target_sat.cli.User.add_role({'login': rexinfra, 'role': 'Remote Execution Manager'})
         return (rexinfra, password)
 
     @pytest.mark.tier3
@@ -992,11 +997,13 @@ class TestRexUsers:
         """
         client = rex_contenthost
         infra_host.add_rex_key(satellite=target_sat)
-        Host.update({'name': infra_host.hostname, 'new-organization-id': module_org.id})
+        target_sat.cli.Host.update(
+            {'name': infra_host.hostname, 'new-organization-id': module_org.id}
+        )
 
         # run job as admin
         command = f"echo {gen_string('alpha')}"
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': f'command={command}',
@@ -1007,14 +1014,16 @@ class TestRexUsers:
         hostnames = [client.hostname, infra_host.hostname]
         for hostname in hostnames:
             inv_output = ' '.join(
-                JobInvocation.get_output({'id': invocation_command['id'], 'host': hostname})
+                target_sat.cli.JobInvocation.get_output(
+                    {'id': invocation_command['id'], 'host': hostname}
+                )
             )
             output_msgs.append(f"host output from {hostname}: { inv_output }")
-        result = JobInvocation.info({'id': invocation_command['id']})
+        result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
         assert result['success'] == '2', output_msgs
 
         # run job as regular rex user on all hosts
-        invocation_command = make_job_invocation_with_credentials(
+        invocation_command = target_sat.cli_factory.job_invocation_with_credentials(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': f'command={command}',
@@ -1023,11 +1032,11 @@ class TestRexUsers:
             class_rexmanager_user,
         )
 
-        result = JobInvocation.info({'id': invocation_command['id']})
+        result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
         assert result['success'] == '1'
 
         # run job as regular rex user just on infra hosts
-        invocation_command = make_job_invocation_with_credentials(
+        invocation_command = target_sat.cli_factory.job_invocation_with_credentials(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': f'command={command}',
@@ -1035,11 +1044,11 @@ class TestRexUsers:
             },
             class_rexmanager_user,
         )
-        result = JobInvocation.info({'id': invocation_command['id']})
+        result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
         assert result['success'] == '0'
 
         # run job as rex user on Satellite
-        invocation_command = make_job_invocation_with_credentials(
+        invocation_command = target_sat.cli_factory.job_invocation_with_credentials(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': f'command={command}',
@@ -1047,7 +1056,7 @@ class TestRexUsers:
             },
             class_rexinfra_user,
         )
-        result = JobInvocation.info({'id': invocation_command['id']})
+        result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
         assert result['success'] == '1'
 
 
@@ -1100,7 +1109,7 @@ class TestAsyncSSHProviderRex:
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         # run script provider rex command, longer-running command is needed to
         # verify the connection is not shut down too soon
-        invocation_command = make_job_invocation(
+        invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': 'command=echo start; sleep 10; echo done',
@@ -1173,7 +1182,7 @@ class TestPullProviderRex:
         result = rhel_contenthost.execute('systemctl status yggdrasild')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         # run script provider rex command
-        invocation_command = make_job_invocation(
+        invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': 'command=ls',
@@ -1186,21 +1195,23 @@ class TestPullProviderRex:
         assert result.status == 0, 'Failed to start goferd on client'
 
         # run Ansible rex command to prove ssh provider works, remove katello-agent
-        invocation_command = make_job_invocation(
+        invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Package Action - Ansible Default',
                 'inputs': 'state=absent, name=katello-agent',
                 'search-query': f"name ~ {rhel_contenthost.hostname}",
             }
         )
-        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+        assert_job_invocation_result(
+            module_target_sat, invocation_command['id'], rhel_contenthost.hostname
+        )
 
         # check katello-agent removal did not influence ygdrassil (SAT-1672)
         result = rhel_contenthost.execute('systemctl status yggdrasild')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         result = rhel_contenthost.execute('systemctl status yggdrasild')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
-        invocation_command = make_job_invocation(
+        invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': 'command=ls',
@@ -1208,7 +1219,7 @@ class TestPullProviderRex:
             }
         )
         assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
-        result = JobInvocation.info({'id': invocation_command['id']})
+        result = module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -1223,6 +1234,7 @@ class TestPullProviderRex:
         module_ak_with_cv,
         module_capsule_configured_mqtt,
         rhel_contenthost,
+        target_sat,
     ):
         """Run custom template on host registered to mqtt, check effective user setting
 
@@ -1267,7 +1279,7 @@ class TestPullProviderRex:
         result = rhel_contenthost.execute('systemctl status yggdrasild')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         # run script provider rex command
-        invocation_command = make_job_invocation(
+        invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Service Action - Script Default',
                 'inputs': 'action=status, service=yggdrasild',
@@ -1278,7 +1290,7 @@ class TestPullProviderRex:
         # create user on host
         username = gen_string('alpha')
         filename = gen_string('alpha')
-        make_user_job = make_job_invocation(
+        make_user_job = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': f"command=useradd -m {username}",
@@ -1287,7 +1299,7 @@ class TestPullProviderRex:
         )
         assert_job_invocation_result(make_user_job['id'], rhel_contenthost.hostname)
         # create a file as new user
-        invocation_command = make_job_invocation(
+        invocation_command = module_target_sat.make_job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': f"command=touch /home/{username}/{filename}",
@@ -1360,7 +1372,7 @@ class TestPullProviderRex:
         result = rhel_contenthost.execute('systemctl stop yggdrasild')
         assert result.status == 0, f'Failed to stop yggdrasil on client: {result.stderr}'
         # run script provider rex command
-        invocation_command = make_job_invocation(
+        invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': 'command=ls',
