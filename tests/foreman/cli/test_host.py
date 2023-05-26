@@ -2492,7 +2492,7 @@ def test_positive_tracer_list_and_resolve(tracer_host):
 
     :CaseImportance: Medium
 
-    :CaseComponent: Katello-tracer
+    :CaseComponent: katello-tracer
 
     :bz: 2186188
     """
