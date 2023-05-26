@@ -67,23 +67,26 @@ def virtwho_config(form_data, target_sat, session):
 
 
 @pytest.fixture(autouse=True)
-def clean_host(form_data, target_sat):
+def delete_host(form_data, target_sat):
     guest_name, _ = get_guest_info(form_data['hypervisor_type'])
     results = target_sat.api.Host().search(query={'search': guest_name})
     if results:
         target_sat.api.Host(id=results[0].read_json()['id']).delete()
 
 
-@pytest.mark.usefixtures('clean_host')
+@pytest.mark.usefixtures('delete_host')
 class TestVirtwhoConfigforEsx:
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_id(self, default_org, virtwho_config, session, form_data):
-        """Verify configure created and deployed with id.
+    @pytest.mark.parametrize('deploy_type', ['id', 'script'])
+    def test_positive_deploy_configure_by_id_script(
+        self, default_org, virtwho_config, session, form_data, deploy_type
+    ):
+        """Verify configure created and deployed with id|script.
 
         :id: 44f93ec8-a59a-42a4-ab30-edc554b022b2
 
         :expectedresults:
-            1. Config can be created and deployed by command
+            1. Config can be created and deployed by command|script
             2. No error msg in /var/log/rhsm/rhsm.log
             3. Report is sent to satellite
             4. Virtual sku can be generated and attached
@@ -95,50 +98,24 @@ class TestVirtwhoConfigforEsx:
         """
         name = form_data['name']
         values = session.virtwho_configure.read(name)
-        command = values['deploy']['command']
-        hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data['hypervisor_type'], debug=True, org=default_org.label
-        )
+        if deploy_type == "id":
+            command = values['deploy']['command']
+            hypervisor_name, guest_name = deploy_configure_by_command(
+                command, form_data['hypervisor_type'], debug=True, org=default_org.label
+            )
+        elif deploy_type == "script":
+            script = values['deploy']['script']
+            hypervisor_name, guest_name = deploy_configure_by_script(
+                script, form_data['hypervisor_type'], debug=True, org=default_org.label
+            )
         assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
         hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
         vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
         vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
+        session.contenthost.get_details(hypervisor_display_name)
         session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
         assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
-        session.contenthost.add_subscription(guest_name, vdc_virtual)
-        assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
-
-    @pytest.mark.tier2
-    def test_positive_deploy_configure_by_script(
-        self, default_org, virtwho_config, session, form_data
-    ):
-        """Verify configure created and deployed with script.
-
-        :id: d64332fb-a6e0-4864-9f8b-2406223fcdcc
-
-        :expectedresults:
-            1. Config can be created and deployed by script
-            2. No error msg in /var/log/rhsm/rhsm.log
-            3. Report is sent to satellite
-            4. Virtual sku can be generated and attached
-            5. Config can be deleted
-
-        :CaseLevel: Integration
-
-        :CaseImportance: High
-        """
-        name = form_data['name']
-        values = session.virtwho_configure.read(name)
-        script = values['deploy']['script']
-        hypervisor_name, guest_name = deploy_configure_by_script(
-            script, form_data['hypervisor_type'], debug=True, org=default_org.label
-        )
-        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
-        hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-        vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
-        vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
-        session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
-        assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
+        session.contenthost.get_details(guest_name)
         session.contenthost.add_subscription(guest_name, vdc_virtual)
         assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
 
