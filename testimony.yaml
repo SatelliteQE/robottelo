@@ -64,7 +64,7 @@ CaseComponent:
     - Installer
     - InterSatelliteSync
     - katello-agent
-    - Katello-tracer
+    - katello-tracer
     - LDAP
     - Leappintegration
     - LifecycleEnvironments
