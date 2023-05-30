@@ -112,7 +112,7 @@ def setup_content(module_org):
     ak = entities.ActivationKey(
         content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
     ).create()
-    return ak, org
+    return ak, org, custom_repo
 
 
 @pytest.fixture(scope='module')
