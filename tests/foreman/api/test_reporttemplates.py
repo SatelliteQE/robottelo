@@ -23,7 +23,10 @@ from nailgun import entities
 from requests import HTTPError
 from wait_for import wait_for
 
+from robottelo.cli.factory import setup_org_for_a_custom_repo
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
@@ -66,6 +69,14 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     return ak, org
+
+
+@pytest.fixture(scope='module')
+def activation_key(module_org, module_lce):
+    activation_key = entities.ActivationKey(
+        environment=module_lce, organization=module_org
+    ).create()
+    return activation_key
 
 
 # Tests for ``katello/api/v2/report_templates``.
@@ -369,22 +380,76 @@ def test_negative_create_report_without_name():
 
 
 @pytest.mark.tier2
-@pytest.mark.stubbed
-def test_positive_applied_errata():
+@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.no_containers
+def test_positive_applied_errata(
+    module_org, module_cv, module_lce, activation_key, rhel_contenthost, target_sat
+):
     """Generate an Applied Errata report
 
     :id: a4b577db-141e-4871-a42e-e93887464986
 
-    :setup: User with reporting access rights, some host with applied errata
+    :setup: A Host with some applied errata applied errata
 
     :steps:
 
-        1. POST /api/report_templates/:id/generate
+        1. Generate an Applied Errata report
 
     :expectedresults: A report is generated with all applied errata listed
 
     :CaseImportance: Medium
     """
+    ERRATUM_ID = str(settings.repos.yum_6.errata[2])
+    setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_9.url,
+            'organization-id': module_org.id,
+            'content-view-id': module_cv.id,
+            'lifecycle-environment-id': module_lce.id,
+            'activationkey-id': activation_key.id,
+        }
+    )
+    rhel_contenthost.install_katello_ca(target_sat)
+    rhel_contenthost.register_contenthost(module_org.label, activation_key.name)
+    assert rhel_contenthost.subscribed
+    result = rhel_contenthost.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+    assert result.status == 0
+    result = rhel_contenthost.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
+    assert result.status == 0
+    rhel_contenthost.add_rex_key(satellite=target_sat)
+    task_id = target_sat.api.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install',
+            'inputs': {'errata': ERRATUM_ID},
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+            'organization_id': module_org.id,
+        },
+    )['id']
+    target_sat.wait_for_tasks(
+        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+        search_rate=15,
+        max_tries=10,
+    )
+    rt = (
+        target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Applied Errata"'})[0]
+        .read()
+    )
+    res = rt.generate(
+        data={
+            'organization_id': module_org.id,
+            'report_format': "json",
+            'input_values': {
+                'Filter Errata Type': 'all',
+                'Include Last Reboot': 'no',
+                'Status': 'all',
+            },
+        }
+    )
+    print(res)
+    assert res[0]['erratum_id'] == ERRATUM_ID
+    assert res[0]['issued'] == '2012-01-27'
 
 
 @pytest.mark.tier2
