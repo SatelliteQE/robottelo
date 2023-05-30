@@ -9,4 +9,4 @@ sphinx==7.0.1
 sphinx-autoapi==2.1.0
 
 # For 'manage' interactive shell
-manage>=0.1.13
+manage==0.1.15
