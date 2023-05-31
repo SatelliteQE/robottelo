@@ -1,0 +1,79 @@
+name: Dependabot Auto Merge
+on: pull_request
+
+permissions:
+  pull-requests: write
+
+jobs:
+  dependabot:
+    name: dependabot-auto-merge
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v1
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Find the tests for the dependency requirement
+        id: yaml
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq e ".${{ steps.metadata.outputs.dependency-names }}" ./.github/dependency_tests.yaml
+
+      - name: Add the PRT Comment
+        if:  steps.yaml.outputs.result != 'null'
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            trigger: test-robottelo\r
+            pytest: ${{ steps.yaml.outputs.result }}
+      - name: Wait for PRT checks to get initiated
+        if: steps.yaml.outputs.result != 'null'
+        run: |
+          echo "Waiting for ~ 10 mins, PRT to be initiated." && sleep 600
+      - name: Fetch and Verify the PRT status
+        if: steps.yaml.outputs.result != 'null'
+        id: outcome
+        uses: omkarkhatavkar/wait-for-status-checks@main
+        with:
+          ref: ${{ github.head_ref }}
+          context: 'Robottelo-Runner'
+          wait-interval: 60
+          count: 100
+
+      - name: Wait for other status checks to Pass
+        id: waitforstatuschecks
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.head_ref }}
+          repo-token: ${{ secrets.CHERRYPICK_PAT }}
+          wait-interval: 60
+          running-workflow-name: 'dependabot-auto-merge'
+          allowed-conclusions: success,skipped
+
+      - id: automerge
+        name: Auto merge of dependabot PRs.
+        uses: "pascalgn/automerge-action@v0.15.6"
+        env:
+          GITHUB_TOKEN: "${{ secrets.CHERRYPICK_PAT }}"
+          MERGE_LABELS: "dependencies"
+          MERGE_METHOD: "squash"
+          MERGE_RETRIES: 5
+          MERGE_RETRY_SLEEP: 900000
+
+      - name: Auto Merge Status
+        run: |
+          if [ "${{ steps.automerge.outputs.mergeResult }}" == 'merged' ]; then
+            echo "Pull request ${{ steps.automerge.outputs.pullRequestNumber }} is Auto Merged !"
+          else
+            echo "::error Auto Merge for Pull request failed !"
+            exit 1
+          fi
