@@ -22,7 +22,6 @@ import pytest
 
 from robottelo.constants import CLIENT_PORT
 from robottelo.constants import ENVIRONMENT
-from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.tier1
 
@@ -57,10 +56,8 @@ def test_host_registration_end_to_end(
     ).create()
 
     result = rhel_contenthost.execute(command)
-    if is_open('BZ:2156926') and rhel_contenthost.os_version.major == 6:
-        assert result.status == 1, f'Failed to register host: {result.stderr}'
-    else:
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+    rc = 1 if rhel_contenthost.os_version.major == 6 else 0
+    assert result.status == rc, f'Failed to register host: {result.stderr}'
 
     # Verify server.hostname and server.port from subscription-manager config
     assert module_target_sat.hostname == rhel_contenthost.subscription_config['server']['hostname']
@@ -80,10 +77,8 @@ def test_host_registration_end_to_end(
     ).create()
     result = rhel_contenthost.execute(command)
 
-    if is_open('BZ:2156926') and rhel_contenthost.os_version.major == 6:
-        assert result.status == 1, f'Failed to register host: {result.stderr}'
-    else:
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+    rc = 1 if rhel_contenthost.os_version.major == 6 else 0
+    assert result.status == rc, f'Failed to register host: {result.stderr}'
 
     # Verify server.hostname and server.port from subscription-manager config
     assert (
