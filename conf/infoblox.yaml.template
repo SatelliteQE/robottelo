@@ -1,0 +1,18 @@
+INFOBLOX:
+  HOSTNAME: infoblox.example.com
+  # username: Login for Infoblox instance
+  USERNAME:
+  # password: Password for Infoblox instance
+  PASSWORD:
+  #Domain
+  DOMAIN:
+  #Network Address
+  NETWORK:
+  #Network Prefix
+  NETWORK_PREFIX:
+  #Network Netmask
+  NETMASK:
+  #Starting range of IP
+  START_RANGE:
+  #Ending range of IP
+  END_RANGE:
