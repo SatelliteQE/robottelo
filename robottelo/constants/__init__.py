@@ -16,7 +16,7 @@ class Colored(Box):
 
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.14"
+SATELLITE_VERSION = "6.15"
 SATELLITE_OS_VERSION = "8"
 
 # Default system ports
