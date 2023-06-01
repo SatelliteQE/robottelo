@@ -663,6 +663,11 @@ class CLIFactory:
                     'subscription': custom_product['name'],
                 }
             )
+        # Override custom product to true ( turned off by default in 6.14 )
+        custom_repo = self._satellite.cli.Repository.info({'id': custom_repo['id']})
+        self._satellite.cli.ActivationKey.content_override(
+            {'id': activationkey_id, 'content-label': custom_repo['content-label'], 'value': 'true'}
+        )
         return {
             'activationkey-id': activationkey_id,
             'content-view-id': cv_id,
