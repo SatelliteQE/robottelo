@@ -130,7 +130,6 @@ def test_positive_service_stop_restart(sat_maintain):
     assert result.status == 0
 
 
-@pytest.mark.stream
 @pytest.mark.include_capsule
 def test_positive_service_enable_disable(sat_maintain):
     """Enable/Disable services using satellite-maintain service subcommand
@@ -149,10 +148,17 @@ def test_positive_service_enable_disable(sat_maintain):
 
     :customerscenario: true
     """
+    result = sat_maintain.cli.Service.stop()
+    assert 'FAIL' not in result.stdout
+    assert result.status == 0
     result = sat_maintain.cli.Service.disable()
     assert 'FAIL' not in result.stdout
     assert result.status == 0
     result = sat_maintain.cli.Service.enable()
+    assert 'FAIL' not in result.stdout
+    assert result.status == 0
+    sat_maintain.power_control(state='reboot')
+    result = sat_maintain.cli.Service.status(options={'brief': True, 'only': 'foreman.service'})
     assert 'FAIL' not in result.stdout
     assert result.status == 0
 
