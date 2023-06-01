@@ -82,7 +82,7 @@ def get_sat_version():
             sat_version = str(settings.robottelo.get('satellite_version'))
         if not sat_version:
             sat_version = SATELLITE_VERSION
-    return Version('9999' if 'nightly' in sat_version else sat_version)
+    return Version('9999' if 'nightly' or 'stream' in sat_version else sat_version)
 
 
 def get_sat_rhel_version():
