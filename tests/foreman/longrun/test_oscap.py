@@ -254,6 +254,7 @@ def test_positive_oscap_run_via_ansible(
         result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})
         assert result is not None
 
+
 @pytest.mark.skip_if_open('BZ:2211437')
 @pytest.mark.tier4
 def test_positive_oscap_run_via_ansible_bz_1814988(
