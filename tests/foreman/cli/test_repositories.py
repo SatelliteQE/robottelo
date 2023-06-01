@@ -20,12 +20,13 @@ import pytest
 
 
 @pytest.mark.rhel_ver_list([7, 8, 9])
-def test_positive_custom_products_by_default(
+def test_positive_custom_products_disabled_by_default(
     setup_content,
     rhel_contenthost,
     target_sat,
 ):
-    """Verify that custom products should be enabled by default for content hosts
+    """Verify that custom products should be disabled by default for content hosts
+    and activation keys
 
     :id: ba237e11-3b41-49e3-94b3-63e1f404d9e5
 
@@ -33,7 +34,7 @@ def test_positive_custom_products_by_default(
         1. Create custom product and upload repository
         2. Attach to activation key
         3. Register Host
-        4. Assert that custom proudct is disabled by default
+        4. Assert that custom proudcts are disabled by default
 
     :expectedresults: Custom products should be disabled by default. "Enabled: 0"
     """
