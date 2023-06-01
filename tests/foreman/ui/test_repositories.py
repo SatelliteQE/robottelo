@@ -47,11 +47,9 @@ def test_positive_custom_products_by_default(
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)
-        repos = session.host_new.get_details(
-            rhel_contenthost.hostname, widget_names='content.repository_sets'
-        )['content']['repository_sets']['table']
+        repos = session.host_new.get_repo_sets(rhel_contenthost.hostname, custom_repo.name)
         assert repos[0]['Repository'] == custom_repo.name
-        assert repos[0]['status'] == 'Disabled'
+        assert repos[0]['Status'] == 'Disabled'
         assert repos[0]['Repository type'] == 'Custom'
         ak_details = session.activationkey.read(ak.name, widget_names='repository sets')[
             'repository sets'
