@@ -130,7 +130,6 @@ def test_positive_service_stop_restart(sat_maintain):
     assert result.status == 0
 
 
-@pytest.mark.stream
 @pytest.mark.include_capsule
 def test_positive_service_enable_disable(sat_maintain):
     """Enable/Disable services using satellite-maintain service subcommand

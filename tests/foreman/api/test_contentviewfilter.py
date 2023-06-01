@@ -664,7 +664,6 @@ class TestContentViewFilter:
         with pytest.raises(HTTPError):
             cvf.update(['repository'])
 
-    @pytest.mark.stream
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'filter_type', ['erratum', 'package_group', 'rpm', 'modulemd', 'docker']
