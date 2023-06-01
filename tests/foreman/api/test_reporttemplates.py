@@ -23,7 +23,6 @@ from nailgun import entities
 from requests import HTTPError
 from wait_for import wait_for
 
-from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
@@ -69,14 +68,6 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     return ak, org
-
-
-@pytest.fixture(scope='module')
-def activation_key(module_org, module_lce):
-    activation_key = entities.ActivationKey(
-        environment=module_lce, organization=module_org
-    ).create()
-    return activation_key
 
 
 # Tests for ``katello/api/v2/report_templates``.
@@ -380,16 +371,16 @@ def test_negative_create_report_without_name():
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
 @pytest.mark.no_containers
 def test_positive_applied_errata(
-    module_org, module_cv, module_lce, activation_key, rhel_contenthost, target_sat
+    module_org, module_location, module_cv, module_lce, rhel_contenthost, target_sat
 ):
     """Generate an Applied Errata report
 
     :id: a4b577db-141e-4871-a42e-e93887464986
 
-    :setup: A Host with some applied errata applied errata
+    :setup: A Host with some applied errata.
 
     :steps:
 
@@ -399,8 +390,11 @@ def test_positive_applied_errata(
 
     :CaseImportance: Medium
     """
+    activation_key = target_sat.api.ActivationKey(
+        environment=module_lce, organization=module_org
+    ).create()
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
-    setup_org_for_a_custom_repo(
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_9.url,
             'organization-id': module_org.id,
@@ -409,8 +403,8 @@ def test_positive_applied_errata(
             'activationkey-id': activation_key.id,
         }
     )
-    rhel_contenthost.install_katello_ca(target_sat)
-    rhel_contenthost.register_contenthost(module_org.label, activation_key.name)
+    result = rhel_contenthost.register(module_org, module_location, activation_key.name, target_sat)
+    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
     result = rhel_contenthost.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
@@ -447,7 +441,6 @@ def test_positive_applied_errata(
             },
         }
     )
-    print(res)
     assert res[0]['erratum_id'] == ERRATUM_ID
     assert res[0]['issued'] == '2012-01-27'
 
