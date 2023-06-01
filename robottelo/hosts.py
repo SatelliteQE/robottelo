@@ -1397,8 +1397,7 @@ class Capsule(ContentHost, CapsuleMixins):
     @cached_property
     def version(self):
         if not self.is_upstream:
-            version = self.execute('rpm -q satellite-capsule').stdout
-            return 'stream' if 'stream' in version else version.split('-')[2]
+            return self.execute('rpm -q satellite-capsule').stdout.split('-')[2]
         else:
             return 'upstream'
 
@@ -1673,8 +1672,7 @@ class Satellite(Capsule, SatelliteMixins):
     @cached_property
     def version(self):
         if not self.is_upstream:
-            version = self.execute('rpm -q satellite').stdout
-            return 'stream' if 'stream' in version else version.split('-')[1]
+            return self.execute('rpm -q satellite').stdout.split('-')[1]
         else:
             return 'upstream'
 
