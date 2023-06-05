@@ -16,6 +16,8 @@
 
 :Upstream: No
 """
+import random
+
 import pytest
 from fauxfactory import gen_string
 
@@ -973,3 +975,87 @@ class TestContentViewFilter:
             ContentView.filter.delete(
                 {'content-view-id': content_view['id'], 'name': gen_string('utf8')}
             )
+
+    @pytest.mark.stream
+    @pytest.mark.tier2
+    def test_positive_check_filters_applied(self, target_sat, module_org, content_view):
+        """Ensure the applied filters are indicated and listed correctly in the CVV info.
+
+        :id: ab72af3f-6bee-4aa8-a74a-637fe9b7e34a
+
+        :steps:
+            1. Publish first CVV with no filters applied, assert no applied filters are indicated
+               nor listed.
+            2. Randomly add filters to the CV, publish new CVVs and assert that the applied filters
+               are indicated and the correct filters are listed.
+            3. Randomly remove filters from the CV, publish new CVVs and assert that the applied
+               filters are indicated when at least one filter exists and the correct filters were
+               removed.
+
+        :expectedresults:
+            1. Hammer shows correctly if a CVV has filter(s) applied, no matter the filter type,
+               count, nor order.
+            2. Hammer lists correctly the applied filter(s), no matter the filter type, count
+               nor order.
+        """
+        f_types = ['rpm', 'package_group', 'erratum', 'modulemd', 'docker']
+        filters_applied = []
+
+        # Publish first CVV with no filters applied
+        target_sat.cli.ContentView.publish({'id': content_view['id']})
+        cvv = target_sat.cli.ContentView.info({'id': content_view['id']})['versions'][0]
+        cvv_info = target_sat.cli.ContentView.version_info(
+            {'id': cvv['id'], 'include-applied-filters': 'true'}
+        )
+        assert cvv_info['has-applied-filters'] == 'no'
+        assert 'applied-filters' not in cvv_info
+
+        # Randomly add filters to the CV, assert correct CVV info values
+        for f_type in random.choices(f_types, k=random.randint(1, 5)):
+            cvf = target_sat.cli.ContentView.filter.create(
+                {
+                    'content-view-id': content_view['id'],
+                    'name': gen_string('alpha'),
+                    'organization-id': module_org.id,
+                    'type': f_type,
+                    'inclusion': random.choice(['true', 'false']),
+                },
+            )
+            filters_applied.append(cvf)
+
+            target_sat.cli.ContentView.publish({'id': content_view['id']})
+            cvv = max(
+                target_sat.cli.ContentView.info({'id': content_view['id']})['versions'],
+                key=lambda x: int(x['id']),
+            )
+            cvv_info = target_sat.cli.ContentView.version_info(
+                {'id': cvv['id'], 'include-applied-filters': 'true'}
+            )
+            assert cvv_info['has-applied-filters'] == 'yes'
+            assert len(cvv_info['applied-filters']) == len(filters_applied)
+            f_listed = [f for f in cvv_info['applied-filters'] if f['id'] == cvf['filter-id']]
+            assert len(f_listed) == 1
+            assert f_listed[0]['name'] == cvf['name']
+
+        # Randomly remove filters from the CV, assert correct CVV info values
+        random.shuffle(filters_applied)
+        for _ in range(len(filters_applied)):
+            cvf = filters_applied.pop()
+            target_sat.cli.ContentView.filter.delete({'id': cvf['filter-id']})
+
+            target_sat.cli.ContentView.publish({'id': content_view['id']})
+            cvv = max(
+                target_sat.cli.ContentView.info({'id': content_view['id']})['versions'],
+                key=lambda x: int(x['id']),
+            )
+            cvv_info = target_sat.cli.ContentView.version_info(
+                {'id': cvv['id'], 'include-applied-filters': 'true'}
+            )
+            if len(filters_applied) > 0:
+                assert cvv_info['has-applied-filters'] == 'yes'
+                assert len(cvv_info['applied-filters']) == len(filters_applied)
+                assert cvf['filter-id'] not in [f['id'] for f in cvv_info['applied-filters']]
+                assert cvf['name'] not in [f['name'] for f in cvv_info['applied-filters']]
+            else:
+                assert cvv_info['has-applied-filters'] == 'no'
+                assert 'applied-filters' not in cvv_info
