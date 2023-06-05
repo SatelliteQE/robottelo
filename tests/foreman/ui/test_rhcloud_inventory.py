@@ -19,7 +19,6 @@
 from datetime import datetime
 from datetime import timedelta
 
-import epdb
 import pytest
 from airgun.session import Session
 from wait_for import wait_for
@@ -28,6 +27,8 @@ from robottelo.constants import DEFAULT_LOC
 from robottelo.utils.io import get_local_file_data
 from robottelo.utils.io import get_remote_report_checksum
 from robottelo.utils.io import get_report_data
+
+# import epdb
 
 
 def common_assertion(report_path, inventory_data, org, satellite):
@@ -156,7 +157,6 @@ def test_obfuscate_host_names(
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
     with Session(hostname=rhcloud_sat_host.hostname) as session:
-        epdb.serve(port=9000)
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Enable obfuscate_hostnames setting on inventory page.
