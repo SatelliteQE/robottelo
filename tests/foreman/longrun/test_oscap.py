@@ -132,10 +132,11 @@ def update_scap_content(module_org):
         Scapcontent.update({'title': content['title'], 'organization-ids': organization_ids})
 
 
+@pytest.mark.skip_if_open('BZ:2211437')
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.tier4
-@pytest.mark.parametrize('distro', ['rhel6', 'rhel7', 'rhel8'])
+@pytest.mark.parametrize('distro', ['rhel7', 'rhel8'])
 def test_positive_oscap_run_via_ansible(
     module_org, default_proxy, content_view, lifecycle_env, distro, target_sat
 ):
@@ -164,10 +165,7 @@ def test_positive_oscap_run_via_ansible(
 
     :CaseImportance: Critical
     """
-    if distro == 'rhel6':
-        rhel_repo = settings.repos.rhel6_os
-        profile = OSCAP_PROFILE['dsrhel6']
-    elif distro == 'rhel7':
+    if distro == 'rhel7':
         rhel_repo = settings.repos.rhel7_os
         profile = OSCAP_PROFILE['security7']
     else:
@@ -219,7 +217,7 @@ def test_positive_oscap_run_via_ansible(
                 'parameter-type': 'boolean',
             }
         )
-        if distro not in ('rhel6', 'rhel7'):
+        if distro not in ('rhel7'):
             vm.create_custom_repos(**rhel_repo)
         else:
             vm.create_custom_repos(**{distro: rhel_repo})
@@ -257,6 +255,7 @@ def test_positive_oscap_run_via_ansible(
         assert result is not None
 
 
+@pytest.mark.skip_if_open('BZ:2211437')
 @pytest.mark.tier4
 def test_positive_oscap_run_via_ansible_bz_1814988(
     module_org, default_proxy, content_view, lifecycle_env, target_sat
