@@ -976,7 +976,6 @@ class TestContentViewFilter:
                 {'content-view-id': content_view['id'], 'name': gen_string('utf8')}
             )
 
-    @pytest.mark.stream
     @pytest.mark.tier2
     def test_positive_check_filters_applied(self, target_sat, module_org, content_view):
         """Ensure the applied filters are indicated and listed correctly in the CVV info.
