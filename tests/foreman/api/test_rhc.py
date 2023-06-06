@@ -18,9 +18,7 @@
 """
 import pytest
 from fauxfactory import gen_string
-from wait_for import wait_for
 
-from robottelo import constants
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -29,31 +27,18 @@ def fixture_enable_rhc_repos(module_target_sat):
     """Enable repos required for configuring RHC."""
     # subscribe rhc satellite to cdn.
     module_target_sat.register_to_cdn()
-    if module_target_sat.os_version.major == 8:
-        module_target_sat.enable_repo(constants.REPOS['rhel8_bos']['id'])
-        module_target_sat.enable_repo(constants.REPOS['rhel8_aps']['id'])
+    if module_target_sat.os_version.major > 7:
+        module_target_sat.enable_repo(module_target_sat.REPOS['rhel_bos']['id'])
+        module_target_sat.enable_repo(module_target_sat.REPOS['rhel_aps']['id'])
     else:
-        module_target_sat.enable_repo(constants.REPOS['rhscl7']['id'])
-        module_target_sat.enable_repo(constants.REPOS['rhel7']['id'])
-
-
-@pytest.fixture(scope='module')
-def module_rhc_org(module_target_sat, module_org):
-    """Module level fixture for creating organization"""
-    # adding remote_execution_connect_by_ip=Yes at org level
-    module_target_sat.api.Parameter(
-        name='remote_execution_connect_by_ip',
-        value='Yes',
-        parameter_type='boolean',
-        organization=module_org.id,
-    ).create()
-    return module_org
+        module_target_sat.enable_repo(module_target_sat.REPOS['rhscl']['id'])
+        module_target_sat.enable_repo(module_target_sat.REPOS['rhel']['id'])
 
 
 @pytest.mark.e2e
 @pytest.mark.tier3
 def test_positive_configure_cloud_connector(
-    module_target_sat, module_rhc_org, fixture_enable_rhc_repos
+    module_target_sat, module_org, fixture_enable_rhc_repos
 ):
     """
     Enable RH Cloud Connector through API
@@ -66,6 +51,8 @@ def test_positive_configure_cloud_connector(
         2. Check if the task is completed successfully
 
     :expectedresults: The Cloud Connector has been installed and the service is running
+
+    :CaseImportance: Critical
     """
 
     # Delete old satellite  hostname if BZ#2130173 is open
@@ -86,7 +73,9 @@ def test_positive_configure_cloud_connector(
     host.host_parameters_attributes = parameters
     host.update(['host_parameters_attributes'])
 
-    module_target_sat.api.RHCloud().enable_connector(data={'organization_id': module_rhc_org.id})
+    enable_connector = module_target_sat.api.RHCloud().enable_connector(
+        data={'organization_id': module_org.id}
+    )
 
     template_name = 'Configure Cloud Connector'
     invocation_id = (
@@ -94,17 +83,15 @@ def test_positive_configure_cloud_connector(
         .search(query={'search': f'description="{template_name}"'})[0]
         .id
     )
-    wait_for(
-        lambda: module_target_sat.api.JobInvocation(id=invocation_id).read().status_label
-        in ["succeeded", "failed"],
-        timeout="1500s",
+    task_id = enable_connector['task_id']
+    module_target_sat.wait_for_tasks(
+        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+        search_rate=15,
     )
 
     job_output = module_target_sat.cli.JobInvocation.get_output(
         {'id': invocation_id, 'host': module_target_sat.hostname}
     )
-    # if installation fails, it's often due to missing rhscl repo -> print enabled repos
-    module_target_sat.execute('yum repolist')
     # get rhc status
     rhc_status = module_target_sat.execute('rhc status')
     # get rhcd log
@@ -117,6 +104,6 @@ def test_positive_configure_cloud_connector(
 
     assert rhc_status.status == 0
     assert "Connected to Red Hat Subscription Management" in rhc_status.stdout
-    assert "The Red Hat connector daemon is active" in rhc_status.stdout
+    assert "The Remote Host Configuration daemon is active" in rhc_status.stdout
 
     assert "error" not in rhcd_log.stdout
