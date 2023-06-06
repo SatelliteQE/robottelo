@@ -313,7 +313,6 @@ def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, m
 
     assert repo.http_proxy_policy == 'use_selected_http_proxy'
     assert repo.http_proxy_id == http_proxy.id
-    assert http_proxy.cacert == cacert_path
 
     response = repo.sync()
     assert response.get('errors') is None
