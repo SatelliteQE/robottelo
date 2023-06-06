@@ -75,18 +75,33 @@ CUSTOM_REPOS = {
 }
 
 
+@pytest.fixture(scope="module")
+def setup_env(module_target_sat, module_org):
+    """Creating essential things and returning in form of dictiory for use"""
+    # 1. Import a subscription manifest
+    module_target_sat.upload_manifest(module_org)
+    lc_env = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    c_view = module_target_sat.api.ContentView(organization=module_org).create()
+    return {
+        'organization': module_org,
+        'satellite': module_target_sat,
+        'environment': lc_env,
+        'contentview': c_view,
+    }
+
+
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('8')
 def test_upgrade_rhel8_to_rehl9(
-    target_sat,
-    default_org,
+    setup_env,
     rhel_contenthost,
 ):
     """Test to upgrade RHEL host to next major RHEL Realse with Leapp Preupgrade and Leapp Upgrade
     Job templates
 
-    :Steps:
+    :id: 7add9b32-a13a-4e65-973c-cd64326b332a
 
+    :Steps:
         1. Import a subscription manifest and enable, sync source & target repositories
         2. Create CV, add repositories, create lce, ak, etc.
         3. Register contenthost using ak
@@ -94,22 +109,22 @@ def test_upgrade_rhel8_to_rehl9(
         5. Update all packages, install leapp tool and fix inhibitors
         6. Run Leapp Preupgrade and Leapp Upgrade job template
 
-    :Expectedresult: 1. Update RHEL OS major version to another major version
+    :expectedresults:
+        1. Update RHEL OS major version to another major version
+
     """
-    # 1. Import a subscription manifest
-    target_sat.upload_manifest(default_org)
+    organization = setup_env['organization']
+    target_sat = setup_env['satellite']
+    lc_env = setup_env['environment']
+    c_view = setup_env['contentview']
+
     # Enable rhel8/rhel9 bos, aps repository and add in content view
-    lc_env = target_sat.api.LifecycleEnvironment(organization=default_org).create()
-    c_view = target_sat.api.ContentView(organization=default_org).create()
     all_repos = []
     for rh_repo_key in ['rhel8_8_bos', 'rhel8_8_aps', 'rhel9_2_bos', 'rhel9_2_aps']:
-        if 'rhel8' in rh_repo_key:
-            prod = PRDS['rhel8']
-        else:
-            prod = PRDS['rhel9']
+        prod = PRDS['rhel8'] if 'rhel8' in rh_repo_key else PRDS['rhel9']
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=default_org.id,
+            org_id=organization.id,
             product=prod,
             repo=CUSTOM_REPOS[rh_repo_key]['name'],
             reposet=CUSTOM_REPOSET[rh_repo_key],
@@ -130,17 +145,17 @@ def test_upgrade_rhel8_to_rehl9(
     ak = target_sat.api.ActivationKey(
         content_view=c_view,
         environment=lc_env,
-        organization=default_org,
+        organization=organization,
     ).create()
     # 3. Register Host
     rhel_contenthost.install_katello_ca(target_sat)
-    rhel_contenthost.register_contenthost(org=default_org.label, activation_key=ak.name)
+    rhel_contenthost.register_contenthost(org=organization.label, activation_key=ak.name)
     rhel_contenthost.add_rex_key(satellite=target_sat)
     assert rhel_contenthost.subscribed
     # Verify target rhel version repositories has enabled on Satellite Server
     cmd_out = target_sat.execute(
         f"hammer repository list --search 'content_label ~ rhel-9' --content-view {c_view.name} "
-        f"--organization '{default_org.name}' --lifecycle-environment '{lc_env.name}'"
+        f"--organization '{organization.name}' --lifecycle-environment '{lc_env.name}'"
     )
     assert cmd_out.status == 0
     assert ("AppStream RPMs 9" in cmd_out.stdout) and ("BaseOS RPMs 9" in cmd_out.stdout)
@@ -148,7 +163,7 @@ def test_upgrade_rhel8_to_rehl9(
     # Preupgrade conditions and check
     rhel_contenthost.run("rm -rf /root/tmp_leapp_py3")
     # Remove directory if in-place upgrade already performed from RHEL7 to RHEL8
-    rhel_old_ver = rhel_contenthost.run("cat /etc/redhat-release")
+    rhel_old_ver = rhel_contenthost.os_version
     # 5. Update all packages and install Leapp utility
     rhel_contenthost.run("yum clean all")
     rhel_contenthost.run("yum repolist")
@@ -207,5 +222,6 @@ def test_upgrade_rhel8_to_rehl9(
     assert result.succeeded == 1
     # Resume the rhel_contenthsot with ensure True to ping the virtual machine
     rhel_contenthost.power_control(state=VmState.RUNNING, ensure=True)
-    rhel_new_ver = rhel_contenthost.run("cat /etc/redhat-release")
+    rhel_new_ver = rhel_contenthost.os_version
     assert rhel_old_ver != rhel_new_ver
+    assert "9.2" in str(rhel_new_ver)
