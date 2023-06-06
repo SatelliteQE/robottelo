@@ -199,6 +199,8 @@ SNIPPET_URL = 'https://gist.github.com/sghai/8434467/raw'
 
 INSTALL_MEDIUM_URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
+HTTPS_MEDIUM_URL = "https://partha.fedorapeople.org/test-repos/kickstart-zoo"
+
 VALID_GPG_KEY_FILE = "valid_gpg_key.txt"
 
 ZOO_CUSTOM_GPG_KEY = "zoo_custom_gpgkey.txt"
