@@ -28,6 +28,7 @@ def test_positive_custom_products_disabled_by_default(
     target_sat,
 ):
     """Verify that custom products should be disabled by default for content hosts
+    and activation keys
 
     :id: 05bdf790-a7a1-48b1-bbae-dc25b6ee7d58
 
