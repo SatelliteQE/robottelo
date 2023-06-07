@@ -26,6 +26,18 @@ repos:
   rev: 6.0.0
   hooks:
   - id: flake8
+- repo: https://github.com/PyCQA/autoflake
+  rev: v2.1.1
+  hooks:
+  - id: autoflake
+    "types": [ python ]
+    require_serial: true
+    args:
+      - "--in-place"
+      - "--expand-star-imports"
+      - "--remove-duplicate-keys"
+      - "--remove-unused-variables"
+      - "--remove-all-unused-imports"
 - repo: local
   hooks:
     - id: fix-uuids
