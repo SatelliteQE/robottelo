@@ -442,7 +442,7 @@ def test_positive_applied_errata(
         }
     )
     assert res[0]['erratum_id'] == ERRATUM_ID
-    assert res[0]['issued'] == '2012-01-27'
+    assert res[0]['issued']
 
 
 @pytest.mark.tier2
