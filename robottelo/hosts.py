@@ -825,7 +825,7 @@ class ContentHost(Host, ContentHostMixins):
         # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
         self.execute('/opt/puppetlabs/bin/puppet agent -t')
-        proxy_host = Host(proxy_hostname)
+        proxy_host = Host(hostname=proxy_hostname)
         proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
         # This particular puppet run would create the host entity under
         # 'All Hosts' and let's redirect stderr to /dev/null as errors at
