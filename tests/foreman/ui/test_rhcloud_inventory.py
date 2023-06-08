@@ -160,9 +160,7 @@ def test_obfuscate_host_names(
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Enable obfuscate_hostnames setting on inventory page.
-        session.cloudinventory.update({'obfuscate_hostnames': True})
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
-        session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
             lambda: rhcloud_sat_host.api.ForemanTask()

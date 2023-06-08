@@ -16,7 +16,6 @@ def rhcloud_manifest_org(rhcloud_sat_host, module_sca_manifest):
     """A module level fixture to get organization with manifest."""
     org = rhcloud_sat_host.api.Organization().create()
     rhcloud_sat_host.upload_manifest(org.id, module_sca_manifest.content)
-    org.sca_disable()
     return org
 
 
@@ -32,7 +31,7 @@ def organization_ak_setup(rhcloud_sat_host, rhcloud_manifest_org):
         service_level='Self-Support',
         purpose_usage='test-usage',
         purpose_role='test-role',
-        auto_attach=True,
+        auto_attach=False,
     ).create()
     yield rhcloud_manifest_org, ak
     ak.delete()
