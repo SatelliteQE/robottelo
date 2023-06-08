@@ -872,7 +872,7 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     :expectedresults: Host is successfully listed and has both parent and
         nested host groups names in its hostgroup parameter
 
-    :BZ: 1427554
+    :BZ: 1427554, 1955421
 
     :CaseLevel: System
     """
@@ -886,11 +886,13 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     content_view.publish()
     content_view.read().version[0].promote(data={'environment_ids': lce.id, 'force': False})
     parent_hg = target_sat.api.HostGroup(
-        name=parent_hg_name, organization=[options.organization]
+        name=parent_hg_name,
+        organization=[options.organization],
+        content_view=content_view,
+        ptable=options.ptable,
     ).create()
     nested_hg = target_sat.api.HostGroup(
         architecture=options.architecture,
-        content_view=content_view,
         domain=options.domain,
         lifecycle_environment=lce,
         location=[options.location],
@@ -899,7 +901,6 @@ def test_positive_list_with_nested_hostgroup(target_sat):
         operatingsystem=options.operatingsystem,
         organization=[options.organization],
         parent=parent_hg,
-        ptable=options.ptable,
     ).create()
     make_host(
         {
@@ -911,6 +912,13 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     )
     hosts = Host.list({'organization-id': options.organization.id})
     assert f'{parent_hg_name}/{nested_hg_name}' == hosts[0]['host-group']
+    host = Host.info({'id': hosts[0]['id']})
+    assert int(host['content-information']['lifecycle-environment']['id']) == int(lce.id)
+    assert host['operating-system']['medium'] == options.medium.name
+    assert host['operating-system']['partition-table'] == options.ptable.name  # inherited
+    assert int(host['content-information']['content-view']['id']) == int(
+        content_view.id
+    )  # inherited
 
 
 @pytest.mark.cli_host_create
