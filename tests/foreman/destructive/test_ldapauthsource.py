@@ -46,7 +46,7 @@ def rh_sso_hammer_auth_setup(module_target_sat, default_sso_host, request):
         """restore the hammer config backup file and rhsso client settings"""
         module_target_sat.execute(f'mv {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
         client_config = {'publicClient': 'false'}
-        default_sso_host.update_client_configuration(client_config, module_target_sat)
+        default_sso_host.update_client_configuration(client_config)
 
     request.addfinalizer(rh_sso_hammer_auth_cleanup)
 
