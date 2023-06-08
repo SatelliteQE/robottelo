@@ -399,6 +399,37 @@ class TestUser:
         with pytest.raises(HTTPError):
             entities.User(auth_source='').create()
 
+    @pytest.mark.tier1
+    def test_positive_table_preferences(self, module_target_sat):
+        """Create a user, create their Table Preferences, read it
+
+        :id: 10fda3f1-4fee-461b-a413-a4d1fa098a94
+
+        :expectedresults: Table Preferences can be accessed
+
+        :CaseImportance: Medium
+
+        :customerscenario: true
+
+        :BZ: 1757394
+        """
+        existing_roles = entities.Role().search()
+        password = gen_string('alpha')
+        user = entities.User(role=existing_roles, password=password).create()
+        name = "hosts"
+        columns = ["power_status", "name", "comment"]
+        sc = ServerConfig(auth=(user.login, password), url=module_target_sat.url, verify=False)
+        entities.TablePreferences(sc, user=user, name=name, columns=columns).create()
+        table_preferences = entities.TablePreferences(sc, user=user).search()
+        assert len(table_preferences) == 1
+        tp = table_preferences[0]
+        assert hasattr(tp, 'name')
+        assert hasattr(tp, 'columns')
+        assert tp.name == 'hosts'
+        assert len(tp.columns) == len(columns)
+        for column in columns:
+            assert column in tp.columns
+
 
 class TestUserRole:
     """Test associations between users and roles."""
