@@ -2054,9 +2054,16 @@ class SSOHost(Host):
         return query_group[0]
 
     def upload_rhsso_entity(self, json_content, entity_name):
-        """Helper method upload the entity json request as file on RHSSO Server"""
+        """Helper method to upload the RHSSO entity file on RHSSO Server.
+        Overwrites already existing file with the same name.
+        """
         with open(entity_name, "w") as file:
             json.dump(json_content, file)
+        # Before uploading a file, remove the file of the same name. In sftp_write,
+        # if uploading a file of length n when there was already uploaded a file with
+        # the same name of length m, for n<m, only first n characters are replaced by
+        # the characters in new file and the rest is left as it is.
+        self.execute(f'rm {entity_name}')
         self.session.sftp_write(entity_name)
 
     def create_mapper(self, json_content, client_id):
@@ -2129,10 +2136,10 @@ class SSOHost(Host):
         client_id = self.get_rhsso_client_id()
         self.upload_rhsso_entity(json_content, "update_client_info")
         update_cmd = (
-            f"{KEY_CLOAK_CLI} update clients/{client_id}"
+            f"{KEY_CLOAK_CLI} update clients/{client_id} "  # EOL space important
             "-f update_client_info -s enabled=true --merge"
         )
-        self.execute(update_cmd)
+        assert self.execute(update_cmd).status == 0
 
     @cached_property
     def oidc_token_endpoint(self):

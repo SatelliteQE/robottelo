@@ -374,9 +374,9 @@ def rhsso_setting_setup(module_target_sat):
     rhhso_settings = {
         'authorize_login_delegation': True,
         'authorize_login_delegation_auth_source_user_autocreate': 'External',
-        'login_delegation_logout_url': f'https://{settings.server.hostname}/users/extlogout',
+        'login_delegation_logout_url': f'https://{module_target_sat.hostname}/users/extlogout',
         'oidc_algorithm': 'RS256',
-        'oidc_audience': [f'{settings.server.hostname}-foreman-openidc'],
+        'oidc_audience': [f'{module_target_sat.hostname}-foreman-openidc'],
         'oidc_issuer': f'{settings.rhsso.host_url}/auth/realms/{settings.rhsso.realm}',
         'oidc_jwks_url': f'{settings.rhsso.host_url}/auth/realms'
         f'/{settings.rhsso.realm}/protocol/openid-connect/certs',
