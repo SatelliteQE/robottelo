@@ -1395,7 +1395,7 @@ def test_positive_list_hosts_thin_all(module_target_sat):
 
     :expectedresults: Hosts listed without ISE
 
-    :BZ: 1969263
+    :BZ: 1969263, 1644750
 
     :customerscenario: true
     """
