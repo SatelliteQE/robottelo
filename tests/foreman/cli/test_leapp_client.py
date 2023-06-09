@@ -174,11 +174,11 @@ def test_upgrade_rhel8_to_rehl9(
     rhel_contenthost.run("yum install leapp-upgrade -y")
 
     # Fixing inhibitors - download data files to avoid inhibitors
-    rhel_contenthost.run(
-        'curl -k "https://gitlab.cee.redhat.com/oamg/leapp-data/-/raw/stage/data/'
-        '{repomap.json,pes-events.json,device_driver_deprecation_data.json}"'
-        ' -o "/etc/leapp/files/#1"'
-    )
+    # rhel_contenthost.run(
+    #    'curl -k "https://gitlab.cee.redhat.com/oamg/leapp-data/-/raw/stage/data/'
+    #    '{repomap.json,pes-events.json,device_driver_deprecation_data.json}"'
+    #    ' -o "/etc/leapp/files/#1"'
+    # )
     rhel_contenthost.run(
         'sed -i "s/^AllowZoneDrifting=.*/AllowZoneDrifting=no/" /etc/firewalld/firewalld.conf'
     )
