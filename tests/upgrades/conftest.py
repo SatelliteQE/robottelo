@@ -186,7 +186,11 @@ def _read_test_data(test_node_id):
 
 def _set_test_node_id(test_func, node_id):
     """Mark the test function with it's node_id"""
-    setattr(test_func, TEST_NODE_ID_NAME, node_id)
+    attribute_value = getattr(test_func, TEST_NODE_ID_NAME, None)
+    if attribute_value is None:
+        attribute_value = []
+    attribute_value.append(node_id)
+    setattr(test_func, TEST_NODE_ID_NAME, attribute_value)
 
 
 def _get_test_node_id(test_func):
@@ -212,20 +216,35 @@ def save_test_data(request):
 
             save_test_data({'key': some_value})
     """
-    test_node_id = _get_test_node_id(request.function)
+    test_node_id = request.node.nodeid
     return functools.partial(_save_test_data, test_node_id)
 
 
 @pytest.fixture
 def pre_upgrade_data(request):
-    """A fixture to allow restoring the saved data in pre_upgrade stage
+    """A fixture to allow restoring the saved data in the pre_upgrade stage
+        Usage:
+            @pytest.mark.post_upgrade(depend_on=test_something_pre_upgrade)
+            def test_something_post_upgrade(pre_upgrade_data):
+                # Restoring
+                pre_upgrade_key_value = pre_upgrade_data['key'] or pre_upgrade_data.key
 
-    Usage::
+            @pytest.mark.rhel_ver_list([param_1, param_2, param_3])
+            @pytest.mark.post_upgrade(depend_on=test_something_pre_upgrade)
+            def test_something_post_upgrade(pre_upgrade_data):
+                # Restoring
+                pre_upgrade_key_value = pre_upgrade_data['key'] or pre_upgrade_data.key
 
-       @pytest.mark.post_upgrade(depend_on=test_something_pre_upgrade)
-       def test_something_post_upgrade(pre_upgrade_data):
-           # restoring
-           pre_upgrade_key_value = pre_upgrade_data['key']
+    This fixture retrieves saved data from the pre_upgrade stage for use in the post_upgrade
+    stage. It looks for test functions marked with the 'post_upgrade' marker and retrieves
+    their dependencies.
+
+    The fixture provides the test data as a dictionary. Access the desired values using the
+    corresponding keys. It also parameterizes the post_upgrade test scenarios if the parameters
+    passed in the post_upgrade marker match with the pre_upgrade test scenario.
+
+    :param request: The pytest request object representing the test being executed.
+    :return: A Box object containing the test data for the pre_upgrade stage.
     """
     dependant_on_functions = []
     for marker in request.node.iter_markers(POST_UPGRADE_MARK):
@@ -234,11 +253,22 @@ def pre_upgrade_data(request):
             dependant_on_functions.extend(depend_on)
         elif depend_on is not None:
             dependant_on_functions.append(depend_on)
-    depend_on_node_ids = [_get_test_node_id(f) for f in dependant_on_functions]
-    data = [_read_test_data(test_node_id) for test_node_id in depend_on_node_ids]
-    if len(data) == 1:
-        data = data[0]
-    return Box(data)
+    depend_on_node_ids = []
+    for f in dependant_on_functions:
+        depend_on_node_ids.extend(_get_test_node_id(f))
+    upgrade_data = {}
+    for test_node_id in depend_on_node_ids:
+        start_index = test_node_id.find('[') + 1
+        end_index = test_node_id.find(']')
+        extracted_value = test_node_id[start_index:end_index]
+        upgrade_data[extracted_value] = _read_test_data(test_node_id)
+    if len(upgrade_data) == 1:
+        param_value = next(iter(upgrade_data.values()))
+    else:
+        param_value = upgrade_data.get(request.param)
+        if param_value is None:
+            pytest.fail(f"Invalid test parameter: {request.param}. Test data not found.")
+    return Box(param_value)
 
 
 @pytest.fixture(scope='class')
