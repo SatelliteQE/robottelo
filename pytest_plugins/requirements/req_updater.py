@@ -9,6 +9,8 @@ class ReqUpdater:
         'Betelgeuse': 'betelgeuse',
         'broker': 'broker[docker]',
         'dynaconf': 'dynaconf[vault]',
+        'Jinja2': 'jinja2',
+        'Sphinx': 'sphinx',
     }
 
     @cached_property
