@@ -36,6 +36,8 @@ def pytest_report_header(config):
         if config.getoption('update_required_reqs') or config.getoption('update_all_reqs'):
             print('Updating the mandatory requirements on demand ....')
             updater.install_req_deviations()
+    else:
+        print(f'{Colored.GREEN}Mandatory Requirements are up to date!{Colored.RESET}')
 
     if updater.opt_deviation:
         print(
@@ -45,3 +47,5 @@ def pytest_report_header(config):
         if config.getoption('update_all_reqs'):
             print('Updating the optional requirements on demand ....')
             updater.install_opt_deviations()
+    else:
+        print(f'{Colored.GREEN}Optional Requirements are up to date!{Colored.RESET}')
