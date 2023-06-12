@@ -8,39 +8,27 @@ jobs:
   dependabot:
     name: dependabot-auto-merge
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    if: |
+      (github.event.pull_request.user.login == 'dependabot[bot]' ||
+      github.event.pull_request.user.login == 'Satellite-QE') &&
+      contains( github.event.pull_request.labels.*.name, 'dependencies')
+
     steps:
-      - name: Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v1
+      - id: find-prt-comment
+        name: Find the prt comment
+        uses: peter-evans/find-comment@v2
         with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          issue-number: ${{ github.event.number }}
+          body-includes: "trigger: test-robottelo"
+          direction: last
 
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Find the tests for the dependency requirement
-        id: yaml
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq e ".${{ steps.metadata.outputs.dependency-names }}" ./.github/dependency_tests.yaml
-
-      - name: Add the PRT Comment
-        if:  steps.yaml.outputs.result != 'null'
-        uses: peter-evans/create-or-update-comment@v3
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            trigger: test-robottelo\r
-            pytest: ${{ steps.yaml.outputs.result }}
       - name: Wait for PRT checks to get initiated
-        if: steps.yaml.outputs.result != 'null'
+        if: steps.find-prt-comment.outputs.comment-body != ''
         run: |
           echo "Waiting for ~ 10 mins, PRT to be initiated." && sleep 600
+
       - name: Fetch and Verify the PRT status
-        if: steps.yaml.outputs.result != 'null'
+        if: steps.find-prt-comment.outputs.comment-body != ''
         id: outcome
         uses: omkarkhatavkar/wait-for-status-checks@main
         with:
@@ -54,7 +42,7 @@ jobs:
         uses: lewagon/wait-on-check-action@v1.3.1
         with:
           ref: ${{ github.head_ref }}
-          repo-token: ${{ secrets.CHERRYPICK_PAT }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 60
           running-workflow-name: 'dependabot-auto-merge'
           allowed-conclusions: success,skipped
@@ -63,7 +51,7 @@ jobs:
         name: Auto merge of dependabot PRs.
         uses: "pascalgn/automerge-action@v0.15.6"
         env:
-          GITHUB_TOKEN: "${{ secrets.CHERRYPICK_PAT }}"
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           MERGE_LABELS: "dependencies"
           MERGE_METHOD: "squash"
           MERGE_RETRIES: 5
