@@ -33,7 +33,7 @@ class TestScenarioREXCapsule:
         4. Check if REX job still getting success.
     """
 
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.rhel_ver_list([7, 8, 9])
     @pytest.mark.no_containers
     @pytest.mark.pre_upgrade
     def test_pre_scenario_remote_execution_external_capsule(
@@ -110,6 +110,7 @@ class TestScenarioREXCapsule:
             }
         )
 
+    @pytest.mark.parametrize('pre_upgrade_data', ['rhel7', 'rhel8', 'rhel9'], indirect=True)
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_remote_execution_external_capsule)
     def test_post_scenario_remote_execution_external_capsule(self, target_sat, pre_upgrade_data):
         """Run a REX job on pre-upgrade created client registered
@@ -154,7 +155,7 @@ class TestScenarioREXSatellite:
         7. Check if REX job still getting success.
     """
 
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.rhel_ver_list([7, 8, 9])
     @pytest.mark.no_containers
     @pytest.mark.pre_upgrade
     def test_pre_scenario_remote_execution_satellite(
@@ -220,6 +221,7 @@ class TestScenarioREXSatellite:
             }
         )
 
+    @pytest.mark.parametrize('pre_upgrade_data', ['rhel7', 'rhel8', 'rhel9'], indirect=True)
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_remote_execution_satellite)
     def test_post_scenario_remote_execution_satellite(self, target_sat, pre_upgrade_data):
         """Run a REX job on pre-upgrade created client registered
