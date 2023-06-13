@@ -48,11 +48,17 @@ def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
 
     :CaseAutomation: Automated
 
+    :BZ: 2154184
+
+    :customerscenario: true
+
     :CaseImportance: Critical
     """
     SELECTED_ROLE = 'RedHatInsights.insights-client'
     SELECTED_ROLE_1 = 'theforeman.foreman_scap_client'
     SELECTED_VAR = gen_string('alpha')
+    # disable batch tasks to test BZ#2154184
+    target_sat.cli.Settings.set({'name': "foreman_tasks_proxy_batch_trigger", 'value': "false"})
     if rhel_contenthost.os_version.major <= 7:
         rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
         assert rhel_contenthost.execute('yum install -y insights-client').status == 0
