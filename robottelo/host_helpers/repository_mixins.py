@@ -590,7 +590,9 @@ class RepositoryCollection:
         content_view = self.satellite.cli.ContentView.info({'id': content_view['id']})
         return content_view, lce
 
-    def setup_activation_key(self, org_id, content_view_id, lce_id, subscription_names=None):
+    def setup_activation_key(
+        self, org_id, content_view_id, lce_id, subscription_names=None, override=None
+    ):
         """Create activation and associate content-view,
         lifecycle environment and subscriptions"""
         if subscription_names is None:
@@ -602,6 +604,19 @@ class RepositoryCollection:
                 'content-view-id': content_view_id,
             }
         )
+        if override is not None:
+            for repo in self.satellite.cli.ActivationKey.product_content(
+                {'id': activation_key['id'], 'content-access-mode-all': 1}
+            ):
+                self.satellite.cli.ActivationKey.content_override(
+                    {
+                        'id': activation_key['id'],
+                        'content-label': repo['label'],
+                        'value': int(override),
+                    }
+                )
+        if self.satellite.is_sca_mode_enabled(org_id):
+            return activation_key
         # Add subscriptions to activation-key
         # Get organization subscriptions
         subscriptions = self.satellite.cli.Subscription.list(
@@ -646,17 +661,18 @@ class RepositoryCollection:
         upload_manifest=False,
         download_policy='on_demand',
         rh_subscriptions=None,
+        override=None,
     ):
         """
         Setup content view and activation key of all the repositories.
 
         :param org_id: The organization id
-        :param lce_id:  The lifecycle environment id
+        :param lce_id: The lifecycle environment id
         :param upload_manifest: Whether to upload the manifest (The manifest is
             uploaded only if needed)
         :param download_policy: The repositories download policy
-        :param rh_subscriptions: The RH subscriptions to be added to activation
-            key
+        :param rh_subscriptions: The RH subscriptions to be added to activation key
+        :param override: Content override (True = enable, False = disable, None = no action)
         """
         if self._repos_info:
             raise RepositoryAlreadyCreated('Repositories already created can not setup content')
@@ -676,7 +692,11 @@ class RepositoryCollection:
         if custom_product_name:
             subscription_names.append(custom_product_name)
         activation_key = self.setup_activation_key(
-            org_id, content_view['id'], lce_id, subscription_names=subscription_names
+            org_id,
+            content_view['id'],
+            lce_id,
+            subscription_names=subscription_names,
+            override=override,
         )
         setup_content_data = dict(
             activation_key=activation_key,
