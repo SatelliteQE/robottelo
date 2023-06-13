@@ -229,5 +229,7 @@ def module_repos_collection_with_manifest(request, module_target_sat, module_org
             for repo_name, repo_params in repo.items()
         ],
     )
-    _repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
+    _repos_collection.setup_content(
+        module_org.id, module_lce.id, upload_manifest=True, override=True
+    )
     return _repos_collection
