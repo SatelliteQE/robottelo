@@ -596,6 +596,8 @@ class RepositoryCollection:
                 'content-view-id': content_view_id,
             }
         )
+        if self.satellite.is_sca_mode_enabled(org_id):
+            return activation_key
         # Add subscriptions to activation-key
         # Get organization subscriptions
         subscriptions = self.satellite.cli.Subscription.list(
