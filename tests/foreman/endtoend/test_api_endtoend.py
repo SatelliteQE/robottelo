@@ -1099,6 +1099,7 @@ class TestEndToEnd:
         # step 2.1: Create a new organization
         user_cfg = user_nailgun_config(login, password)
         org = target_sat.api.Organization(server_config=user_cfg).create()
+        org.sca_disable()
 
         # step 2.2: Upload manifest
         target_sat.upload_manifest(org.id, function_entitlement_manifest.content)
