@@ -2,7 +2,7 @@
 flake8==6.0.0
 pytest-cov==3.0.0
 redis==4.5.5
-pre-commit==3.3.2
+pre-commit==3.3.3
 
 # For generating documentation.
 sphinx==7.0.1
