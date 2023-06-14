@@ -55,6 +55,7 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import SM_OVERALL_STATUS
 from robottelo.hosts import ContentHostError
+from robottelo.logging import logger
 from robottelo.utils.datafactory import invalid_values_list
 from robottelo.utils.datafactory import valid_data_list
 from robottelo.utils.datafactory import valid_hosts_list
@@ -913,6 +914,7 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     hosts = Host.list({'organization-id': options.organization.id})
     assert f'{parent_hg_name}/{nested_hg_name}' == hosts[0]['host-group']
     host = Host.info({'id': hosts[0]['id']})
+    logger.info(f'Host info: {host}')
     assert int(host['content-information']['lifecycle-environment']['id']) == int(lce.id)
     assert host['operating-system']['medium'] == options.medium.name
     assert host['operating-system']['partition-table'] == options.ptable.name  # inherited
