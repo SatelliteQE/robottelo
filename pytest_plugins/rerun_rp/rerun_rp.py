@@ -73,7 +73,7 @@ def pytest_collection_modifyitems(items, config):
     failed/skipped and user-specific tests in Report Portal
     """
     rp_url = settings.report_portal.portal_url or config.getini('rp_endpoint')
-    rp_uuid = config.getini('rp_uuid') or settings.report_portal.api_key
+    rp_api_key = config.getini('rp_api_key') or settings.report_portal.api_key
     # prefer dynaconf setting before ini config as pytest-reportportal plugin uses default value
     # for `rp_launch` if none is set there
     rp_launch_name = settings.report_portal.launch_name or config.getini('rp_launch')
@@ -87,7 +87,7 @@ def pytest_collection_modifyitems(items, config):
     tests = []
     if not any([fail_args, skip_arg, user_arg]):
         return
-    rp = ReportPortal(rp_url=rp_url, rp_api_key=rp_uuid, rp_project=rp_project)
+    rp = ReportPortal(rp_url=rp_url, rp_api_key=rp_api_key, rp_project=rp_project)
 
     if ref_launch_uuid:
         logger.info(f'Fetching A reference Report Portal launch {ref_launch_uuid}')
