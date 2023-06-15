@@ -915,12 +915,14 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     assert f'{parent_hg_name}/{nested_hg_name}' == hosts[0]['host-group']
     host = Host.info({'id': hosts[0]['id']})
     logger.info(f'Host info: {host}')
-    assert int(host['content-information']['lifecycle-environment']['id']) == int(lce.id)
     assert host['operating-system']['medium'] == options.medium.name
     assert host['operating-system']['partition-table'] == options.ptable.name  # inherited
-    assert int(host['content-information']['content-view']['id']) == int(
-        content_view.id
-    )  # inherited
+    if not is_open('BZ:2215294') or target_sat.version!='stream':
+        assert 'id' in host['content-information']['lifecycle-environment']
+        assert int(host['content-information']['lifecycle-environment']['id']) == int(lce.id)
+        assert int(host['content-information']['content-view']['id']) == int(
+            content_view.id
+        )  # inherited
 
 
 @pytest.mark.cli_host_create
