@@ -1249,6 +1249,57 @@ class TestRepository:
         assert len(files) == packages_count
         assert constants.RPM_TO_UPLOAD not in files
 
+    @pytest.mark.tier3
+    @pytest.mark.parametrize('policy', ['additive', 'mirror_content_only'])
+    def test_positive_sync_with_treeinfo_ignore(
+        self, target_sat, function_entitlement_manifest_org, policy
+    ):
+        """Verify that the treeinfo file is not synced when added to ignorable content
+        and synced otherwise. Check for applicable mirroring policies.
+
+        :id: d7becf1d-3883-468d-88c4-d513a2e2e90a
+
+        :parametrized: yes
+
+        :steps:
+            1. Enable RHEL8 BaseOS KS repo.
+            2. Add `treeinfo` to ignorable content and sync, check it's missing.
+            3. Remove the `treeinfo` from ignorable content, resync, check again.
+
+        :expectedresults:
+            1. The sync should succeed.
+            2. The treeinfo file should be missing when in ignorable content and present otherwise.
+
+        :customerscenario: true
+
+        :BZ: 2174912, 2135215
+
+        """
+        distro = 'rhel8_bos'
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=function_entitlement_manifest_org.id,
+            product=constants.REPOS['kickstart'][distro]['product'],
+            reposet=constants.REPOS['kickstart'][distro]['reposet'],
+            repo=constants.REPOS['kickstart'][distro]['name'],
+            releasever=constants.REPOS['kickstart'][distro]['version'],
+        )
+        repo = target_sat.api.Repository(id=repo_id).read()
+
+        repo.mirroring_policy = policy
+        repo.ignorable_content = ['treeinfo']
+        repo = repo.update(['mirroring_policy', 'ignorable_content'])
+        repo.sync()
+        with pytest.raises(AssertionError):
+            target_sat.md5_by_url(f'{repo.full_path}.treeinfo')
+
+        repo.ignorable_content = []
+        repo = repo.update(['ignorable_content'])
+        repo.sync()
+        assert target_sat.md5_by_url(
+            f'{repo.full_path}.treeinfo'
+        ), 'The treeinfo file is missing in the KS repo but it should be there.'
+
 
 @pytest.mark.run_in_one_thread
 class TestRepositorySync:
