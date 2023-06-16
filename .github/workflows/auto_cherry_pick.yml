@@ -59,6 +59,19 @@ jobs:
             No-CherryPick
           assignees: ${{ env.assignee }}
 
+      - name: Add dependencies label, if merged pr author is dependabot[bot]
+        id: dependencies
+        if: |
+          contains(github.event.pull_request.labels.*.name, 'dependencies') &&
+          github.event.pull_request.user.login == 'dependabot[bot]'
+        uses: jyejare/github-cherry-pick-action@main
+        with:
+          token: ${{ secrets.CHERRYPICK_PAT }}
+          branch: ${{ matrix.label }}
+          labels: |
+            dependencies
+          assignees: ${{ env.assignee }}
+
       - name: Add Parent PR's PRT comment to Auto_Cherry_Picked PR's
         id: add-parent-prt-comment
         if: ${{ always() && steps.cherrypick.outcome == 'success' }}
