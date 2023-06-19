@@ -1278,3 +1278,93 @@ class TestCapsuleContentManagement:
         # Check sync status again, and ensure last_sync_time is still correct
         sync_status = module_capsule_configured.nailgun_capsule.content_get_sync()
         assert sync_status['last_sync_time'] >= timestamp
+
+    @pytest.mark.tier4
+    @pytest.mark.skip_if_not_set('capsule')
+    def test_positive_remove_capsule_orphans(
+        self,
+        target_sat,
+        capsule_configured,
+        function_entitlement_manifest_org,
+        function_lce_library,
+    ):
+        """Synchronize RPM content to the capsule, disassociate the capsule form the content
+        source and resync, run orphan cleanup and ensure the RPM artifacts were removed.
+
+        :id: 7089a36e-ea68-47ad-86ac-9945b732b0c4
+
+        :setup:
+            1. A blank external capsule that has not been synced yet with immediate download policy.
+
+        :steps:
+            1. Enable RHST repo and sync it to the Library LCE.
+            2. Set immediate download policy to the capsule, assign it the Library LCE and sync it.
+               Ensure the RPM artifacts were created.
+            3. Remove the Library LCE from the capsule and resync it.
+            4. Run orphan cleanup for the capsule.
+            5. Ensure the artifacts were removed.
+
+        :expectedresults:
+            1. RPM artifacts are created after capsule sync.
+            2. RPM artifacts are removed after orphan cleanup.
+
+        :customerscenario: true
+
+        :BZ: 22043089, 2211962
+
+        """
+        # Enable RHST repo and sync it to the Library LCE.
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=function_entitlement_manifest_org.id,
+            product=constants.REPOS['rhst8']['product'],
+            repo=constants.REPOS['rhst8']['name'],
+            reposet=constants.REPOSET['rhst8'],
+        )
+        repo = target_sat.api.Repository(id=repo_id).read()
+        repo.sync()
+
+        # Set immediate download policy to the capsule, assign it the Library LCE and sync it.
+        proxy = capsule_configured.nailgun_smart_proxy.read()
+        proxy.download_policy = 'immediate'
+        proxy.update(['download_policy'])
+
+        capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce_library.id}
+        )
+        result = capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert len(result['results']) == 1
+        assert result['results'][0]['id'] == function_lce_library.id
+
+        sync_status = capsule_configured.nailgun_capsule.content_sync()
+        assert sync_status['result'] == 'success', 'Capsule sync task failed.'
+
+        # Ensure the RPM artifacts were created.
+        result = capsule_configured.execute(
+            'ls /var/lib/pulp/media/artifact/*/* | xargs file | grep RPM'
+        )
+        assert not result.status, 'RPM artifacts are missing after capsule sync.'
+
+        # Remove the Library LCE from the capsule and resync it.
+        capsule_configured.nailgun_capsule.content_delete_lifecycle_environment(
+            data={'environment_id': function_lce_library.id}
+        )
+        sync_status = capsule_configured.nailgun_capsule.content_sync()
+        assert sync_status['result'] == 'success', 'Capsule sync task failed.'
+
+        # Run orphan cleanup for the capsule.
+        target_sat.execute(
+            'foreman-rake katello:delete_orphaned_content RAILS_ENV=production '
+            f'SMART_PROXY_ID={capsule_configured.nailgun_capsule.id}'
+        )
+        target_sat.wait_for_tasks(
+            search_query=('label = Actions::Katello::OrphanCleanup::RemoveOrphans'),
+            search_rate=5,
+            max_tries=10,
+        )
+
+        # Ensure the artifacts were removed.
+        result = capsule_configured.execute(
+            'ls /var/lib/pulp/media/artifact/*/* | xargs file | grep RPM'
+        )
+        assert result.status, 'RPM artifacts are still present. They should be gone.'
