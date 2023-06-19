@@ -78,6 +78,9 @@ class TestScenarioPositiveVirtWho:
             3. Report is sent to satellite.
             4. Virtual sku can be generated and attached.
         """
+        org = target_sat.api.Organization().search(query={'search': f'name={ORG_DATA["name"]}'})
+        if org:
+            target_sat.api.Organization(id=org[0].id).delete()
         default_loc_id = (
             target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
         )
