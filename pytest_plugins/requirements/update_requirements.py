@@ -1,6 +1,5 @@
 """Plugin enables pytest to notify and update the requirements"""
 from .req_updater import ReqUpdater
-from robottelo.constants import Colored
 
 updater = ReqUpdater()
 
@@ -29,23 +28,23 @@ def pytest_report_header(config):
     # pytest tests/foreman --collect-only --upgrade-all-reqs
     """
     if updater.req_deviation:
-        print(
-            f"{Colored.REDLIGHT}Mandatory Requirements Available: "
-            f"{' '.join(updater.req_deviation)}{Colored.RESET}"
-        )
+        print(f"Mandatory Requirements Mismatch: {' '.join(updater.req_deviation)}")
         if config.getoption('update_required_reqs') or config.getoption('update_all_reqs'):
-            print('Updating the mandatory requirements on demand ....')
             updater.install_req_deviations()
+            print('Mandatory requirements are installed to be up-to-date.')
     else:
-        print(f'{Colored.GREEN}Mandatory Requirements are up to date!{Colored.RESET}')
+        print('Mandatory Requirements are up to date.')
 
     if updater.opt_deviation:
-        print(
-            f"{Colored.REDLIGHT}Optional Requirements Available: "
-            f"{' '.join(updater.opt_deviation)}{Colored.RESET}"
-        )
+        print(f"Optional Requirements Mismatch: {' '.join(updater.opt_deviation)}")
         if config.getoption('update_all_reqs'):
-            print('Updating the optional requirements on demand ....')
             updater.install_opt_deviations()
+            print('Optional requirements are installed to be up-to-date.')
     else:
-        print(f'{Colored.GREEN}Optional Requirements are up to date!{Colored.RESET}')
+        print('Optional Requirements are up to date.')
+
+    if updater.req_deviation or updater.opt_deviation:
+        print(
+            "To update mismatched requirements, run the pytest command with "
+            "'--upgrade-required-reqs' OR '--upgrade-all-reqs' option."
+        )
