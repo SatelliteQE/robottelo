@@ -24,6 +24,7 @@ from robottelo.config import settings
 from robottelo.constants import HTTPS_MEDIUM_URL
 
 
+@pytest.mark.skip_if_open("BZ:2216211")
 @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
 def test_positive_bootdisk_download_https(
     module_location,
@@ -47,7 +48,7 @@ def test_positive_bootdisk_download_https(
 
     :expectedresults: Full host bootdisk is downloaded properly
 
-    :BZ: 2173199
+    :BZ: 2173199, 2216211
 
     :customerscenario: true
 
