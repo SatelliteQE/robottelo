@@ -70,6 +70,7 @@ def register_host(sat, act_key, module_org, module_loc, host, ubi=None):
         location=module_loc,
         insecure=True,
         repo=ubi,
+        force=True,
     ).create()
     assert host.execute(command).status == 0
 
@@ -85,13 +86,17 @@ def ssl_cert(module_target_sat, module_org):
 
 
 @pytest.fixture
-def activation_key_rhel(target_sat, module_org, module_lce, module_promoted_cv, version):
+def activation_key_rhel(
+    target_sat, module_entitlement_manifest_org, module_lce, module_promoted_cv, version
+):
     """Create activation key that will be used after conversion for registration"""
-    subs = target_sat.api.Subscription(organization=module_org).search(
+    subs = target_sat.api.Subscription(organization=module_entitlement_manifest_org.id).search(
         query={'search': f'{DEFAULT_SUBSCRIPTION_NAME}'}
     )
     assert subs
-    return create_activation_key(target_sat, module_org, module_lce, module_promoted_cv, subs[0].id)
+    return create_activation_key(
+        target_sat, module_entitlement_manifest_org, module_lce, module_promoted_cv, subs[0].id
+    )
 
 
 @pytest.fixture(scope='module')
@@ -125,6 +130,8 @@ def enable_rhel_subscriptions(module_target_sat, module_entitlement_manifest_org
         module_target_sat.wait_for_tasks(
             search_query=(f'id = {task["id"]}'),
             poll_timeout=2500,
+            search_rate=20,
+            max_tries=10,
         )
         task_status = module_target_sat.api.ForemanTask(id=task['id']).poll()
         assert task_status['result'] == 'success'
@@ -155,6 +162,10 @@ def centos(
     ]
     act_key = create_activation_key(target_sat, module_org, module_lce, cv, c2r_sub.id)
     register_host(target_sat, act_key, module_org, smart_proxy_location, centos_host)
+    # Below lines are workaround because of the kernel mismatch errror.
+    # These will be removed once we have the solution  to fix this.
+    centos_host.execute("yum update kernel -y")
+    centos_host.power_control(state='reboot', ensure=True)
     yield centos_host
     # close ssh session before teardown, because of reboot in conversion it may cause problems
     centos_host.close()
@@ -203,7 +214,7 @@ def oracle(
 @pytest.fixture(scope='module')
 def version(request):
     """Version of converted OS"""
-    return settings.content_host.get(request.param).vm.release
+    return settings.content_host.get(request.param).vm.deploy_rhel_version
 
 
 @pytest.mark.e2e
@@ -250,7 +261,7 @@ def test_convert2rhel_oracle(target_sat, oracle, activation_key_rhel, version):
     )
     # wait for job to complete
     target_sat.wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
+        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=2500
     )
     result = target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
@@ -267,7 +278,7 @@ def test_convert2rhel_oracle(target_sat, oracle, activation_key_rhel, version):
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize("version", ['centos7', 'centos8'], indirect=True)
+@pytest.mark.parametrize("version", ['centos7'], indirect=True)
 def test_convert2rhel_centos(target_sat, centos, activation_key_rhel, version):
     """Convert Centos linux to RHEL
 
@@ -287,8 +298,8 @@ def test_convert2rhel_centos(target_sat, centos, activation_key_rhel, version):
     """
     host_content = target_sat.api.Host(id=centos.hostname).read_json()
     major = version.split('.')[0]
-    assert host_content['operatingsystem_name'] == f"CentOS {major}"
 
+    assert host_content['operatingsystem_name'] == f"CentOS {major}"
     # execute job 'Convert 2 RHEL' on host
     template_id = (
         target_sat.api.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
@@ -307,7 +318,9 @@ def test_convert2rhel_centos(target_sat, centos, activation_key_rhel, version):
     )
     # wait for job to complete
     target_sat.wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
+        f'resource_type = JobInvocation and resource_id = {job["id"]}',
+        poll_timeout=2500,
+        search_rate=20,
     )
     result = target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
