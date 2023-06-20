@@ -45,6 +45,11 @@ sat_613_repos = [
     'satellite-maintenance-6.13-for-rhel-8-x86_64-rpms',
 ] + common_repos
 
+sat_614_repos = [
+    'satellite-6.14-for-rhel-8-x86_64-rpms',
+    'satellite-maintenance-6.14-for-rhel-8-x86_64-rpms',
+] + common_repos
+
 # Capsule repositories
 cap_611_repos = [
     'satellite-capsule-6.11-for-rhel-8-x86_64-rpms',
@@ -61,15 +66,22 @@ cap_613_repos = [
     'satellite-maintenance-6.13-for-rhel-8-x86_64-rpms',
 ] + common_repos
 
+cap_614_repos = [
+    'satellite-capsule-6.14-for-rhel-8-x86_64-rpms',
+    'satellite-maintenance-6.14-for-rhel-8-x86_64-rpms',
+] + common_repos
+
 sat_repos = {
     '6.11': sat_611_repos,
     '6.12': sat_612_repos,
     '6.13': sat_613_repos,
+    '6.14': sat_614_repos,
 }
 cap_repos = {
     '6.11': cap_611_repos,
     '6.12': cap_612_repos,
     '6.13': cap_613_repos,
+    '6.14': cap_614_repos,
 }
 
 
@@ -377,7 +389,7 @@ def test_positive_satellite_repositories_setup(sat_maintain):
 
     :expectedresults: Required Satellite repositories for install/upgrade should get enabled
     """
-    supported_versions = ['6.11', '6.12']
+    supported_versions = ['6.11', '6.12', '6.13']
     for ver in supported_versions:
         result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': ver})
         assert result.status == 0
@@ -386,26 +398,11 @@ def test_positive_satellite_repositories_setup(sat_maintain):
         for repo in sat_repos[ver]:
             assert repo in result.stdout
 
-    # 6.13 till not GA
-    result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': '6.13'})
+    # 6.14 till not GA
+    result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': '6.14'})
     assert result.status == 1
     assert 'FAIL' in result.stdout
-    for repo in sat_repos['6.13']:
-        assert repo in result.stdout
-
-    # Verify that all required beta repositories gets enabled
-    # maintain beta repo is unavailable for EL8 https://bugzilla.redhat.com/show_bug.cgi?id=2106750
-    sat_beta_repo = ['satellite-6-beta-for-rhel-8-x86_64-rpms'] + common_repos
-    missing_beta_el8_repos = ['satellite-maintenance-6-beta-for-rhel-8-x86_64-rpms']
-    result = sat_maintain.cli.Advanced.run_repositories_setup(
-        options={'version': '6.12'}, env_var='FOREMAN_MAINTAIN_USE_BETA=1'
-    )
-    assert result.status != 0
-    assert 'FAIL' in result.stdout
-    for repo in missing_beta_el8_repos:
-        assert f"Error: '{repo}' does not match a valid repository ID" in result.stdout
-    result = sat_maintain.execute('yum repolist')
-    for repo in sat_beta_repo:
+    for repo in sat_repos['6.14']:
         assert repo in result.stdout
 
 
