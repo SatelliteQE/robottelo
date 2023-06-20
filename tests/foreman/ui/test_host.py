@@ -2599,9 +2599,9 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
 
     :id: c9ebd4a8-6db3-4d0e-92a2-14951c26769b
 
-    :caseComponent: katello-tracer
+    :CaseComponent: Katello-tracer
 
-    :Team: Phoenix
+    :Team: Phoenix-subscriptions
 
     :CaseLevel: System
 
