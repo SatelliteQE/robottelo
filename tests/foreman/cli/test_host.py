@@ -2498,7 +2498,9 @@ def test_positive_tracer_list_and_resolve(tracer_host):
 
     :CaseImportance: Medium
 
-    :CaseComponent: katello-tracer
+    :CaseComponent: Katello-tracer
+
+    :Team: Phoenix-subscriptions
 
     :bz: 2186188
     """
