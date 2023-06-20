@@ -73,9 +73,7 @@ def test_positive_configure_cloud_connector(
     host.host_parameters_attributes = parameters
     host.update(['host_parameters_attributes'])
 
-    enable_connector = module_target_sat.api.RHCloud().enable_connector(
-        data={'organization_id': module_org.id}
-    )
+    enable_connector = module_target_sat.api.RHCloud(organization=module_org).enable_connector()
 
     template_name = 'Configure Cloud Connector'
     invocation_id = (
