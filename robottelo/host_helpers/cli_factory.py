@@ -585,6 +585,7 @@ class CLIFactory:
         4. Checks if activation key was given, otherwise creates a new one and
             associates it with the content view.
         5. Adds the custom repo subscription to the activation key
+        6. Override custom product to true ( turned off by default in 6.14 )
 
         :return: A dictionary with the entity ids of Activation key, Content view,
             Lifecycle Environment, Organization, Product and Repository
