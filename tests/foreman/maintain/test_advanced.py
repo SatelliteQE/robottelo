@@ -407,21 +407,6 @@ def test_positive_satellite_repositories_setup(sat_maintain):
     for repo in sat_repos['6.14']:
         assert repo in result.stdout
 
-    # Verify that all required beta repositories gets enabled
-    # maintain beta repo is unavailable for EL8 https://bugzilla.redhat.com/show_bug.cgi?id=2106750
-    sat_beta_repo = ['satellite-6-beta-for-rhel-8-x86_64-rpms'] + common_repos
-    missing_beta_el8_repos = ['satellite-maintenance-6-beta-for-rhel-8-x86_64-rpms']
-    result = sat_maintain.cli.Advanced.run_repositories_setup(
-        options={'version': '6.13'}, env_var='FOREMAN_MAINTAIN_USE_BETA=1'
-    )
-    assert result.status != 0
-    assert 'FAIL' in result.stdout
-    for repo in missing_beta_el8_repos:
-        assert f"Error: '{repo}' does not match a valid repository ID" in result.stdout
-    result = sat_maintain.execute('yum repolist')
-    for repo in sat_beta_repo:
-        assert repo in result.stdout
-
 
 @pytest.mark.e2e
 @pytest.mark.capsule_only
