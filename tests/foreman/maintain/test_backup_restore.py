@@ -128,6 +128,10 @@ def test_positive_backup_split_pulp_tar(
         1. backup succeeds
         2. expected files are present in the backup
         3. size of the pulp_data.tar smaller than provided value
+
+    :customerscenario: true
+
+    :BZ: 2164413
     """
     subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
     instance = 'satellite' if type(sat_maintain) is Satellite else 'capsule'
@@ -440,6 +444,10 @@ def test_positive_backup_restore(
         3. restore succeeds
         4. system health check succeeds
         5. content is present after restore
+
+    :customerscenario: true
+
+    :BZ: 2172540, 1978764, 1979045
     """
     subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
     instance = 'satellite' if type(sat_maintain) is Satellite else 'capsule'
@@ -476,6 +484,10 @@ def test_positive_backup_restore(
     result = sat_maintain.cli.Health.check(
         options={'whitelist': 'foreman-tasks-not-paused', 'assumeyes': True, 'plaintext': True}
     )
+    assert result.status == 0
+
+    result = sat_maintain.cli.Service.status()
+    assert 'FAIL' not in result.stdout
     assert result.status == 0
 
     # Check that content is present after restore
