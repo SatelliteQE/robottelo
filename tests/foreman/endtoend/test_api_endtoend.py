@@ -1058,7 +1058,9 @@ class TestEndToEnd:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_positive_end_to_end(self, fake_manifest_is_set, target_sat, rhel7_contenthost):
+    def test_positive_end_to_end(
+        self, function_entitlement_manifest, target_sat, rhel7_contenthost
+    ):
         """Perform end to end smoke tests using RH and custom repos.
 
         1. Create a new user with admin permissions
@@ -1097,11 +1099,10 @@ class TestEndToEnd:
         # step 2.1: Create a new organization
         user_cfg = user_nailgun_config(login, password)
         org = target_sat.api.Organization(server_config=user_cfg).create()
+        org.sca_disable()
 
-        # step 2.2: Clone and upload manifest
-        if fake_manifest_is_set:
-            with clone() as manifest:
-                target_sat.upload_manifest(org.id, manifest.content)
+        # step 2.2: Upload manifest
+        target_sat.upload_manifest(org.id, function_entitlement_manifest.content)
 
         # step 2.3: Create a new lifecycle environment
         le1 = target_sat.api.LifecycleEnvironment(server_config=user_cfg, organization=org).create()
@@ -1117,17 +1118,16 @@ class TestEndToEnd:
         repositories.append(custom_repo)
 
         # step 2.6: Enable a Red Hat repository
-        if fake_manifest_is_set:
-            rhel_repo = target_sat.api.Repository(
-                id=target_sat.api_factory.enable_rhrepo_and_fetchid(
-                    basearch='x86_64',
-                    org_id=org.id,
-                    product=constants.PRDS['rhel'],
-                    repo=constants.REPOS['rhst7']['name'],
-                    reposet=constants.REPOSET['rhst7'],
-                )
+        rhel_repo = target_sat.api.Repository(
+            id=target_sat.api_factory.enable_rhrepo_and_fetchid(
+                basearch='x86_64',
+                org_id=org.id,
+                product=constants.PRDS['rhel'],
+                repo=constants.REPOS['rhst7']['name'],
+                reposet=constants.REPOSET['rhst7'],
             )
-            repositories.append(rhel_repo)
+        )
+        repositories.append(rhel_repo)
 
         # step 2.7: Synchronize these two repositories
         for repo in repositories:
@@ -1166,14 +1166,13 @@ class TestEndToEnd:
                 activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': sub.id})
                 break
         # step 2.13.1: Enable product content
-        if fake_manifest_is_set:
-            activation_key.content_override(
-                data={
-                    'content_overrides': [
-                        {'content_label': constants.REPOS['rhst7']['id'], 'value': '1'}
-                    ]
-                }
-            )
+        activation_key.content_override(
+            data={
+                'content_overrides': [
+                    {'content_label': constants.REPOS['rhst7']['id'], 'value': '1'}
+                ]
+            }
+        )
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
