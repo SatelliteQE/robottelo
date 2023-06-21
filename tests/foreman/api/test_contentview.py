@@ -29,6 +29,7 @@ from robottelo.config import settings
 from robottelo.config import user_nailgun_config
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CUSTOM_RPM_SHA_512_FEED_COUNT
+from robottelo.constants import DataFile
 from robottelo.constants import FILTER_ERRATA_TYPE
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import PRDS
@@ -750,6 +751,103 @@ class TestContentViewPublishPromote:
         comp_content_view_info = comp_content_view.version[0].read()
         assert comp_content_view_info.package_count == 36
 
+    @pytest.mark.tier2
+    def test_ccv_audit_scenarios(self, module_org, target_sat):
+        """Check for various scenarios where a composite content view or it's component
+        content views needs_publish flags should be set to true and that they properly
+        get set and unset
+
+        :id: cdd94ab8-da31-40ac-ab81-02472517e9bf
+
+        :steps:
+
+            1. Create a ccv
+            2. Add some content views to the composite view
+            3. Remove a content view from the composite view
+            4. Add a CV that has `latest` set to true to the composite view
+            5. Publish a new version of that CV
+            6. Publish a new version of another CV in the CCV, and update it to latest
+
+        :expectedresults: When appropriate, a ccv and it's cvs needs_publish flags get
+            set or unset
+
+        :CaseLevel: Integration
+
+        :CaseImportance: High
+        """
+        composite_cv = target_sat.api.ContentView(composite=True).create()
+        # Needs_publish is set to True on creation
+        assert composite_cv.read().needs_publish
+        composite_cv.publish()
+        assert not composite_cv.read().needs_publish
+        # Add some content_views to the composite view
+        self.add_content_views_to_composite(composite_cv, module_org, 2)
+        # Needs_publish should be set to True when a component CV is added/removed
+        assert composite_cv.read().needs_publish
+        composite_cv.publish()
+        assert not composite_cv.read().needs_publish
+        component_cvs = composite_cv.read().component
+        # Remove a component cv, should need publish now
+        component_cvs.pop(1)
+        composite_cv.component = component_cvs
+        composite_cv = composite_cv.update(['component'])
+        assert composite_cv.read().needs_publish
+        composite_cv.publish()
+        assert not composite_cv.read().needs_publish
+        # add a CV that has `latest` set to true
+        new_cv = target_sat.api.ContentView().create()
+        new_cv.publish()
+        composite_cv.content_view_component[0].add(
+            data={"components": [{"content_view_id": new_cv.id, "latest": "true"}]}
+        )
+        assert composite_cv.read().needs_publish
+        composite_cv.publish()
+        assert not composite_cv.read().needs_publish
+        # a new version of a component cv that has "latest" - needs publish
+        new_cv.publish()
+        assert composite_cv.read().needs_publish
+        composite_cv.publish()
+        assert not composite_cv.read().needs_publish
+        # a component CV was changed to "always update" when ccv has old version - needs publish
+        # update composite_cv after changes
+        composite_cv = composite_cv.read()
+        # get the first CV that was added, which has 1 version
+        old_component = composite_cv.content_view_component[0].read()
+        old_component.content_view.publish()
+        old_component.latest = True
+        old_component = old_component.update(['latest'])
+        # set latest to true and see if CV needs publish
+        assert composite_cv.read().needs_publish
+        composite_cv.publish()
+        assert not composite_cv.read().needs_publish
+
+    @pytest.mark.tier2
+    def test_check_needs_publish_flag(self, target_sat):
+        """Check that the publish_only_if_needed option in the API works as intended (defaults to
+        false, is able to be overriden to true, and if so gives the appropriate message
+        if the cvs needs_publish flag is set to false)
+
+        :id: 6e4aa845-db08-4cc3-a960-ea64fb20f50c
+
+        :expectedresults: The publish_only_if_needed flag is working as intended, and is defaulted
+            to false
+
+        :CaseLevel: Integration
+
+        :CaseImportance: High
+        """
+        cv = target_sat.api.ContentView().create()
+        assert cv.publish()
+        assert not cv.read().needs_publish
+        with pytest.raises(HTTPError):
+            assert (
+                cv.publish(data={'publish_only_if_needed': True})['displayMessage']
+                == """
+            Content view does not need a publish since there are no audited changes since the
+            last publish. Pass check_needs_publish parameter as false if you don't want to check
+            if content view needs a publish."""
+            )
+
 
 class TestContentViewUpdate:
     """Tests for updating content views."""
@@ -1014,6 +1112,93 @@ class TestContentViewRedHatContent:
         content_view.publish()
         content_view.read().version[0].promote(data={'environment_ids': module_lce.id})
         assert len(content_view.read().version[0].read().environment) == 2
+
+    @pytest.mark.tier2
+    def test_cv_audit_scenarios(self, module_product, target_sat):
+        """Check for various scenarios where a content view's needs_publish flag
+        should be set to true and that it properly gets set and unset
+
+        :id: 48b0ce35-f76b-447e-a465-d9ce70cbb20e`
+
+        :steps:
+
+            1. Create a CV
+            2. Add a filter to the CV
+            3. Add a rule to the filter
+            4. Delete that rule
+            5. Delete that filter
+            6. Add a repo to the CV
+            7. Delete content from the repo
+            8. Add content to the repo
+            9. Sync the repo
+
+        :expectedresults: All of the above steps should results in the CV needing to be
+            be published
+
+        :CaseLevel: Integration
+
+        :CaseImportance: High
+        """
+        # needs_publish is set to true when created
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # needs_publish is set to true when a filter is added/updated/deleted
+        cv_filter = target_sat.api.RPMContentViewFilter(
+            content_view=self.yumcv, inclusion='true', name=gen_string('alphanumeric')
+        ).create()
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # Adding a rule should set needs_publish to true
+        cvf_rule = target_sat.api.ContentViewFilterRule(
+            content_view_filter=cv_filter, name=gen_string('alphanumeric'), version='1.0'
+        ).create()
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # Deleting a rule should set needs_publish to true
+        cvf_rule.delete()
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # Deleting a filter should set needs_publish to true
+        cv_filter.delete()
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # needs_publish is set to true whenever repositories are interacted with on the CV
+        # add a repo to the CV, needs_publish should be set to true
+        repo_url = settings.repos.yum_0.url
+        repo = target_sat.api.Repository(
+            download_policy='immediate',
+            mirroring_policy='mirror_complete',
+            product=module_product,
+            url=repo_url,
+        ).create()
+        repo.sync()
+        self.yumcv.repository = [repo]
+        self.yumcv = self.yumcv.update(['repository'])
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # needs_publish is set to true when repository content is removed
+        packages = target_sat.api.Package(repository=repo).search(query={'per_page': '1000'})
+        repo.remove_content(data={'ids': [package.id for package in packages]})
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # needs_publish is set to true whenever repo content is added
+        with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
+            repo.upload_content(files={'content': handle})
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
+        # needs_publish is set to true whenever a repo is synced
+        repo.sync()
+        assert self.yumcv.read().needs_publish
+        self.yumcv.publish()
+        assert not self.yumcv.read().needs_publish
 
 
 @pytest.mark.tier2
