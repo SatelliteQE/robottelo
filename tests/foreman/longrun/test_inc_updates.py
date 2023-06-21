@@ -35,36 +35,41 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def module_lce_library(module_manifest_org):
+def module_lce_library(module_entitlement_manifest_org):
     """Returns the Library lifecycle environment from chosen organization"""
     return (
         entities.LifecycleEnvironment()
         .search(
-            query={'search': f'name={ENVIRONMENT} and organization_id={module_manifest_org.id}'}
+            query={
+                'search': f'name={ENVIRONMENT} and '
+                f'organization_id={module_entitlement_manifest_org.id}'
+            }
         )[0]
         .read()
     )
 
 
 @pytest.fixture(scope='module')
-def dev_lce(module_manifest_org):
-    return entities.LifecycleEnvironment(name='DEV', organization=module_manifest_org).create()
+def dev_lce(module_entitlement_manifest_org):
+    return entities.LifecycleEnvironment(
+        name='DEV', organization=module_entitlement_manifest_org
+    ).create()
 
 
 @pytest.fixture(scope='module')
-def qe_lce(module_manifest_org, dev_lce):
+def qe_lce(module_entitlement_manifest_org, dev_lce):
     qe_lce = entities.LifecycleEnvironment(
-        name='QE', prior=dev_lce, organization=module_manifest_org
+        name='QE', prior=dev_lce, organization=module_entitlement_manifest_org
     ).create()
     return qe_lce
 
 
 @pytest.fixture(scope='module')
-def rhel7_sat6tools_repo(module_manifest_org, module_target_sat):
+def rhel7_sat6tools_repo(module_entitlement_manifest_org, module_target_sat):
     """Enable Sat tools repository"""
     rhel7_sat6tools_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
-        org_id=module_manifest_org.id,
+        org_id=module_entitlement_manifest_org.id,
         product=PRDS['rhel'],
         repo=REPOS['rhst7']['name'],
         reposet=REPOSET['rhst7'],
@@ -76,21 +81,22 @@ def rhel7_sat6tools_repo(module_manifest_org, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def custom_repo(module_manifest_org):
+def custom_repo(module_entitlement_manifest_org):
     """Enable custom errata repository"""
     custom_repo = entities.Repository(
         url=settings.repos.yum_9.url,
-        product=entities.Product(organization=module_manifest_org).create(),
+        product=entities.Product(organization=module_entitlement_manifest_org).create(),
     ).create()
     assert custom_repo.sync()['result'] == 'success'
     return custom_repo
 
 
 @pytest.fixture(scope='module')
-def module_cv(module_manifest_org, rhel7_sat6tools_repo, custom_repo):
+def module_cv(module_entitlement_manifest_org, rhel7_sat6tools_repo, custom_repo):
     """Publish both repos into module CV"""
     module_cv = entities.ContentView(
-        organization=module_manifest_org, repository=[rhel7_sat6tools_repo.id, custom_repo.id]
+        organization=module_entitlement_manifest_org,
+        repository=[rhel7_sat6tools_repo.id, custom_repo.id],
     ).create()
     module_cv.publish()
     module_cv = module_cv.read()
@@ -98,15 +104,15 @@ def module_cv(module_manifest_org, rhel7_sat6tools_repo, custom_repo):
 
 
 @pytest.fixture(scope='module')
-def module_ak(module_manifest_org, module_cv, custom_repo, module_lce_library):
+def module_ak(module_entitlement_manifest_org, module_cv, custom_repo, module_lce_library):
     """Create a module AK in Library LCE"""
     ak = entities.ActivationKey(
         content_view=module_cv,
         environment=module_lce_library,
-        organization=module_manifest_org,
+        organization=module_entitlement_manifest_org,
     ).create()
     # Fetch available subscriptions
-    subs = entities.Subscription(organization=module_manifest_org).search()
+    subs = entities.Subscription(organization=module_entitlement_manifest_org).search()
     assert len(subs) > 0
     # Add default subscription to activation key
     sub_found = False
@@ -121,7 +127,7 @@ def module_ak(module_manifest_org, module_cv, custom_repo, module_lce_library):
     )
     # Add custom subscription to activation key
     prod = custom_repo.product.read()
-    custom_sub = entities.Subscription(organization=module_manifest_org).search(
+    custom_sub = entities.Subscription(organization=module_entitlement_manifest_org).search(
         query={'search': f'name={prod.name}'}
     )
     ak.add_subscriptions(data={'subscription_id': custom_sub[0].id})
@@ -131,7 +137,7 @@ def module_ak(module_manifest_org, module_cv, custom_repo, module_lce_library):
 @pytest.fixture(scope='module')
 def host(
     rhel7_contenthost_module,
-    module_manifest_org,
+    module_entitlement_manifest_org,
     dev_lce,
     qe_lce,
     custom_repo,
@@ -142,7 +148,9 @@ def host(
     # Create client machine and register it to satellite with rhel_7_partial_ak
     rhel7_contenthost_module.install_katello_ca(module_target_sat)
     # Register, enable tools repo and install katello-host-tools.
-    rhel7_contenthost_module.register_contenthost(module_manifest_org.label, module_ak.name)
+    rhel7_contenthost_module.register_contenthost(
+        module_entitlement_manifest_org.label, module_ak.name
+    )
     rhel7_contenthost_module.enable_repo(REPOS['rhst7']['id'])
     rhel7_contenthost_module.install_katello_host_tools()
     # make a note of time for later wait_for_tasks, and include 4 mins margin of safety.
@@ -176,7 +184,9 @@ def get_applicable_errata(repo):
 
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_noapply_api(module_manifest_org, module_cv, custom_repo, host, dev_lce):
+def test_positive_noapply_api(
+    module_entitlement_manifest_org, module_cv, custom_repo, host, dev_lce
+):
     """Check if api incremental update can be done without
     actually applying it
 
