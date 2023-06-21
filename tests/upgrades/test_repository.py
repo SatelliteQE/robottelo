@@ -257,7 +257,7 @@ class TestScenarioCustomRepoCheck:
             }
         )
 
-    @pytest.mark.post_upgrade(depend_on=test_pre_scenario_custom_repo_check)
+    @pytest.mark.post_upgrade(depend_on=test_pre_scenario_custom_repo_check_sca_toggle)
     def test_post_scenario_custom_repo_sca_toggle(self, pre_upgrade_data):
         """This is a post-upgrade scenario test to verify that repositories in a non-sca
         Organization set to "Enabled" should be overridden to "Enabled(Override)"
