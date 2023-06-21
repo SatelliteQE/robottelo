@@ -431,6 +431,8 @@ API_PATHS = {
         '/api/hostgroups/:id/play_roles',
         '/api/hostgroups/multiple_play_roles',
         '/api/hostgroups/:id/ansible_roles',
+        '/api/hostgroups/:id/ansible_roles/:ansible_role_id',
+        '/api/hostgroups/:id/ansible_roles/:ansible_role_id',
         '/api/hostgroups/:id/assign_ansible_roles',
     ),
     'hosts': (
@@ -453,6 +455,8 @@ API_PATHS = {
         '/api/hosts/:id/play_roles',
         '/api/hosts/multiple_play_roles',
         '/api/hosts/:id/ansible_roles',
+        '/api/hosts/:id/ansible_roles/:ansible_role_id',
+        '/api/hosts/:id/ansible_roles/:ansible_role_id',
         '/api/hosts/:id/assign_ansible_roles',
         '/api/hosts/:host_id/host_collections',
         '/api/hosts/:id/policies_enc',
@@ -634,8 +638,6 @@ API_PATHS = {
     ),
     'oval_reports': ('/api/compliance/oval_reports/:cname/:oval_policy_id/:date',),
     'package_groups': (
-        '/katello/api/package_group',
-        '/katello/api/package_group',
         '/katello/api/package_groups/:id',
         '/katello/api/package_groups/compare',
     ),
