@@ -1,4 +1,4 @@
-"""Unit tests for the new ``repositories`` paths.
+"""Test module for Repositories CLI.
 
 :Requirement: Repository
 
@@ -22,6 +22,7 @@ import pytest
 @pytest.mark.rhel_ver_list([7, 8, 9])
 def test_positive_custom_products_disabled_by_default(
     setup_content,
+    default_location,
     rhel_contenthost,
     target_sat,
 ):
@@ -37,10 +38,9 @@ def test_positive_custom_products_disabled_by_default(
 
     :expectedresults: Custom products should be disabled by default. "Enabled: 0"
     """
-    ak, org = setup_content
+    ak, org, _ = setup_content
     client = rhel_contenthost
-    client.install_katello_ca(target_sat)
-    client.register_contenthost(org.label, ak.name)
+    client.register(org, default_location, ak.name, target_sat)
     assert client.subscribed
     product_details = rhel_contenthost.run('subscription-manager repos --list')
     assert "Enabled:   0" in product_details.stdout

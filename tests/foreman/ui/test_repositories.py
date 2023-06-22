@@ -1,4 +1,4 @@
-"""Unit tests for the new ``repositories`` paths.
+"""Test module for Repositories UI.
 
 :Requirement: Repository
 
@@ -19,7 +19,7 @@
 import pytest
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_match('[^6]')
 def test_positive_custom_products_disabled_by_default(
     session,
     default_location,
@@ -42,8 +42,7 @@ def test_positive_custom_products_disabled_by_default(
     """
     ak, org, custom_repo = setup_content
     client = rhel_contenthost
-    client.install_katello_ca(target_sat)
-    client.register_contenthost(org.label, ak.name)
+    client.register(org, default_location, ak.name, target_sat)
     assert client.subscribed
     with session:
         session.organization.select(org.name)
