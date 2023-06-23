@@ -32,45 +32,21 @@ CUSTOM_REPOS = {
         'id': 'rhel-8-for-x86_64-baseos-rpms',
         'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8.8',
         'releasever': '8.8',
-        'version': '8',
-        'reposet': CUSTOM_REPOSET['rhel8_8_bos'],
-        'product': PRDS['rhel8'],
-        'distro': 'rhel8',
-        'key': 'rhel8_bos',
-        'basearch': 'x86_64',
     },
     'rhel8_8_aps': {
         'id': 'rhel-8-for-x86_64-appstream-rpms',
         'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream RPMs 8.8',
         'releasever': '8.8',
-        'basearch': 'x86_64',
-        'version': '8',
-        'reposet': CUSTOM_REPOSET['rhel8_8_aps'],
-        'product': PRDS['rhel8'],
-        'distro': 'rhel8',
-        'key': 'rhel8_aps',
     },
     'rhel9_2_bos': {
         'id': 'rhel-9-for-x86_64-baseos-rpms',
         'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS RPMs 9.2',
         'releasever': '9.2',
-        'version': '9',
-        'reposet': CUSTOM_REPOSET['rhel9_2_bos'],
-        'product': PRDS['rhel9'],
-        'distro': 'rhel9',
-        'key': 'rhel9_bos',
-        'basearch': 'x86_64',
     },
     'rhel9_2_aps': {
         'id': 'rhel-9-for-x86_64-appstream-rpms',
         'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream RPMs 9.2',
         'releasever': '9.2',
-        'basearch': 'x86_64',
-        'version': '9',
-        'reposet': CUSTOM_REPOSET['rhel9_2_aps'],
-        'product': PRDS['rhel9'],
-        'distro': 'rhel9',
-        'key': 'rhel9_aps',
     },
 }
 
@@ -152,7 +128,7 @@ def test_upgrade_rhel8_to_rehl9(
     rhel_contenthost.register_contenthost(org=organization.label, activation_key=ak.name)
     rhel_contenthost.add_rex_key(satellite=target_sat)
     assert rhel_contenthost.subscribed
-    # Verify target rhel version repositories has enabled on Satellite Server
+    # 4. Verify target rhel version repositories has enabled on Satellite Server
     cmd_out = target_sat.execute(
         f"hammer repository list --search 'content_label ~ rhel-9' --content-view {c_view.name} "
         f"--organization '{organization.name}' --lifecycle-environment '{lc_env.name}'"
@@ -174,11 +150,11 @@ def test_upgrade_rhel8_to_rehl9(
     rhel_contenthost.run("yum install leapp-upgrade -y")
 
     # Fixing inhibitors - download data files to avoid inhibitors
-    # rhel_contenthost.run(
-    #    'curl -k "https://gitlab.cee.redhat.com/oamg/leapp-data/-/raw/stage/data/'
-    #    '{repomap.json,pes-events.json,device_driver_deprecation_data.json}"'
-    #    ' -o "/etc/leapp/files/#1"'
-    # )
+    rhel_contenthost.run(
+        'curl -k "https://gitlab.cee.redhat.com/oamg/leapp-data/-/raw/stage/data/'
+        '{repomap.json,pes-events.json,device_driver_deprecation_data.json}"'
+        ' -o "/etc/leapp/files/#1"'
+    )
     rhel_contenthost.run(
         'sed -i "s/^AllowZoneDrifting=.*/AllowZoneDrifting=no/" /etc/firewalld/firewalld.conf'
     )
@@ -222,6 +198,6 @@ def test_upgrade_rhel8_to_rehl9(
     assert result.succeeded == 1
     # Resume the rhel_contenthsot with ensure True to ping the virtual machine
     rhel_contenthost.power_control(state=VmState.RUNNING, ensure=True)
-    rhel_new_ver = rhel_contenthost.os_version
+    rhel_new_ver = rhel_contenthost.run('cat /etc/redhat-release')
     assert rhel_old_ver != rhel_new_ver
     assert "9.2" in str(rhel_new_ver)
