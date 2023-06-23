@@ -16,12 +16,15 @@
 
 :Upstream: No
 """
+from calendar import monthrange
 from datetime import datetime
 from datetime import timedelta
 from time import sleep
 
 import pytest
 from broker import Broker
+from dateutil.relativedelta import FR
+from dateutil.relativedelta import relativedelta
 from fauxfactory import gen_string
 from nailgun import entities
 from wait_for import wait_for
@@ -352,6 +355,89 @@ class TestRemoteExecution:
         rec_logic = RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
+
+    @pytest.mark.tier3
+    @pytest.mark.rhel_ver_list([8])
+    def test_positive_time_expressions(self, rex_contenthost):
+        """Test various expressions for extended cronline syntax
+
+        :id: 584e7b27-9484-436a-b850-11acb900a7d8
+
+        :expectedresults: Verify the job was scheduled to the expected
+            iteration
+
+        :bz: 1967030
+
+        :customerscenario: true
+
+        """
+        client = rex_contenthost
+        today = datetime.today()
+        hour = datetime.utcnow().hour
+        last_day_of_month = monthrange(today.year, today.month)[1]
+        days_to = (2 - today.weekday()) % 7
+        # cronline uses https://github.com/floraison/fugit
+        fugit_expressions = [
+            ['@yearly', f'{today.year + 1}/01/01 00:00:00'],
+            [
+                '@monthly',
+                f'{(today + relativedelta(months=+1)).strftime("%Y/%m")}/01 00:00:00',
+            ],
+            [
+                '@weekly',
+                f'{(today + timedelta(days=-today.weekday() +6)).strftime("%Y/%m/%d")} 00:00:00',
+            ],
+            [
+                '@midnight',
+                f'{(today + timedelta(days=1)).strftime("%Y/%m/%d")} 00:00:00',
+            ],
+            [
+                '@hourly',
+                f'{(datetime.utcnow() + timedelta(hours=1)).strftime("%Y/%m/%d %H")}:00:00',
+            ],
+            [
+                '0 0 * * wed-fri',
+                f'{(today + timedelta(days=(days_to if days_to > 0 else 1))).strftime("%Y/%m/%d")} '
+                '00:00:00',
+            ],
+            # 23 mins after every other hour
+            [
+                '23 0-23/2 * * *',
+                f'{today.strftime("%Y/%m/%d")} '
+                f'{ (str(hour if hour % 2 == 0 else hour + 1)).rjust(2,"0") }:23:00',
+            ],
+            # last day of month
+            [
+                '0 0 last * *',
+                f'{today.strftime("%Y/%m")}/{last_day_of_month} 00:00:00',
+            ],
+            # last 7 days of month
+            [
+                '0 0 -7-L * *',
+                f'{today.strftime("%Y/%m")}/{last_day_of_month-6} 00:00:00',
+            ],
+            # last friday of month at 7
+            [
+                '0 7 * * fri#-1',
+                f'{(today+relativedelta(day=31, weekday=FR(-1))).strftime("%Y/%m/%d")} 07:00:00',
+            ],
+        ]
+        for exp in fugit_expressions:
+            invocation_command = make_job_invocation(
+                {
+                    'job-template': 'Run Command - Script Default',
+                    'inputs': 'command=ls',
+                    'search-query': f"name ~ {client.hostname}",
+                    'cron-line': exp[0],
+                    'max-iteration': 1,
+                }
+            )
+            result = JobInvocation.info({'id': invocation_command['id']})
+            assert_job_invocation_status(invocation_command['id'], client.hostname, 'queued')
+            rec_logic = RecurringLogic.info({'id': result['recurring-logic-id']})
+            assert (
+                rec_logic['next-occurrence'] == exp[1]
+            ), f'Job was not scheduled as expected using {exp[0]}'
 
     @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([8])
