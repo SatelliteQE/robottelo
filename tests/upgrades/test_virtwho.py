@@ -48,7 +48,7 @@ def form_data(target_sat):
     }
 
 
-ORG_DATA = {'name': 'virtwho_upgrade_org_name'}
+ORG_DATA = {'name': f'virtwho_upgrade_{gen_string("alpha")}'}
 
 
 class TestScenarioPositiveVirtWho:
@@ -78,6 +78,9 @@ class TestScenarioPositiveVirtWho:
             3. Report is sent to satellite.
             4. Virtual sku can be generated and attached.
         """
+        org = target_sat.api.Organization().search(query={'search': f'name={ORG_DATA["name"]}'})
+        if org:
+            target_sat.api.Organization(id=org[0].id).delete()
         default_loc_id = (
             target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
         )
@@ -127,6 +130,7 @@ class TestScenarioPositiveVirtWho:
             {
                 'hypervisor_name': hypervisor_name,
                 'guest_name': guest_name,
+                'org_id': org.id,
             }
         )
 
@@ -148,10 +152,10 @@ class TestScenarioPositiveVirtWho:
             2. the config and guest connection have the same status.
             3. virt-who config should update and delete successfully.
         """
-        org = target_sat.api.Organization().search(query={'search': f'name={ORG_DATA["name"]}'})[0]
+        org_id = pre_upgrade_data.get('org_id')
 
         # Post upgrade, Verify virt-who exists and has same status.
-        vhd = target_sat.api.VirtWhoConfig(organization_id=org.id).search(
+        vhd = target_sat.api.VirtWhoConfig(organization_id=org_id).search(
             query={'search': f'name={form_data["name"]}'}
         )[0]
         if not is_open('BZ:1802395'):
@@ -166,7 +170,7 @@ class TestScenarioPositiveVirtWho:
         hosts = [hypervisor_name, guest_name]
         for hostname in hosts:
             result = (
-                target_sat.api.Host(organization=org.id)
+                target_sat.api.Host(organization=org_id)
                 .search(query={'search': hostname})[0]
                 .read_json()
             )
@@ -183,6 +187,6 @@ class TestScenarioPositiveVirtWho:
 
         # Delete virt-who config
         vhd.delete()
-        assert not target_sat.api.VirtWhoConfig(organization_id=org.id).search(
+        assert not target_sat.api.VirtWhoConfig(organization_id=org_id).search(
             query={'search': f'name={modify_name}'}
         )
