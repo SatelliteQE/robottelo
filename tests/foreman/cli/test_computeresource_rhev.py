@@ -380,8 +380,10 @@ def test_negative_add_image_rhev_with_invalid_name(rhev, module_os):
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete'], indirect=True)
 def test_positive_provision_rhev_with_host_group(
     request,
+    setting_update,
     module_provisioning_sat,
     rhev,
     module_sca_manifest_org,
