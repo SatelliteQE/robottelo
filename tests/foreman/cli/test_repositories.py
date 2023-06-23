@@ -43,4 +43,4 @@ def test_positive_custom_products_disabled_by_default(
     client.register(org, default_location, ak.name, target_sat)
     assert client.subscribed
     product_details = rhel_contenthost.run('subscription-manager repos --list')
-    assert "Enabled:   0" in product_details.stdout
+    assert 'Enabled:   0' in product_details.stdout

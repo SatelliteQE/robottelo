@@ -39,6 +39,8 @@ def test_positive_custom_products_disabled_by_default(
         4. Assert that custom proudcts are disabled by default
 
     :expectedresults: Custom products should be disabled by default.
+
+    :BZ: 1265120
     """
     ak, org, custom_repo = setup_content
     client = rhel_contenthost
@@ -47,11 +49,11 @@ def test_positive_custom_products_disabled_by_default(
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)
-        repos = session.host_new.get_repo_sets(rhel_contenthost.hostname, custom_repo.name)
-        assert repos[0]['Repository'] == custom_repo.name
-        assert repos[0]['Status'] == 'Disabled'
-        assert repos[0]['Repository type'] == 'Custom'
         ak_details = session.activationkey.read(ak.name, widget_names='repository sets')[
             'repository sets'
         ]['table'][0]
         assert 'Disabled' in ak_details['Status']
+        repos = session.host_new.get_repo_sets(rhel_contenthost.hostname, custom_repo.name)
+        assert repos[0]['Repository'] == custom_repo.name
+        assert repos[0]['Status'] == 'Disabled'
+        assert repos[0]['Repository type'] == 'Custom'
