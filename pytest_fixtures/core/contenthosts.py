@@ -224,7 +224,7 @@ def oracle_host(request, version):
 def sat_ready_rhel(request):
     deploy_args = {
         'deploy_rhel_version': request.param,
-        'deploy_flavor': 'satqe-ssd.standard.std',
+        'deploy_flavor': settings.flavors.default,
         'promtail_config_template_file': 'config_sat.j2',
         'workflow': 'deploy-rhel',
     }
