@@ -1394,7 +1394,7 @@ class Capsule(ContentHost, CapsuleMixins):
         :return: True if no downstream satellite RPMS are installed
         :rtype: bool
         """
-        return self.execute(f'rpm -q {self.product_rpm_name} &>/dev/null').status != 0
+        return self.execute(f'rpm -q {self.product_rpm_name}').status != 0
 
     @cached_property
     def is_stream(self):
@@ -1403,12 +1403,16 @@ class Capsule(ContentHost, CapsuleMixins):
         :return: True if the Capsule is a stream release
         :rtype: bool
         """
-        return 'stream' in self.execute(f'rpm -q {self.product_rpm_name}').stdout.strip()
+        if self.is_upstream:
+            return False
+        return (
+            'stream' in self.execute(f'rpm -q --qf "%{{RELEASE}}" {self.product_rpm_name}').stdout
+        )
 
     @cached_property
     def version(self):
         rpm_name = self.upstream_rpm_name if self.is_upstream else self.product_rpm_name
-        return self.execute(f'rpm -q {rpm_name}').stdout.split('-')[2]
+        return self.execute(f'rpm -q --qf "%{{VERSION}}" {rpm_name}').stdout
 
     @cached_property
     def url(self):
