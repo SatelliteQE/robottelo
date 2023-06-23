@@ -126,7 +126,7 @@ def module_provisioning_rhel_content(
 
     # Ensure client repo is enabled in the activation key
     content = ak.product_content(data={'content_access_mode_all': '1'})['results']
-    client_repo_label = [i['label'] for i in content if i['name'] == client_repo.name][0]
+    client_repo_label = [repo['label'] for repo in content if repo['name'] == client_repo.name][0]
     ak.content_override(
         data={'content_overrides': [{'content_label': client_repo_label, 'value': '1'}]}
     )
