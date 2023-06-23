@@ -46,7 +46,7 @@ def get_repo_files_urls_by_url(url, extension='rpm'):
     if result.status_code != 200:
         raise requests.HTTPError(f'{url} is not accessible')
 
-    links = re.findall(r'(?<=href=").*?(?=">)', result.text)
+    links = re.findall(r'(?<=href=")(?!\.\.).*?(?=">)', result.text)
     if 'Packages/' not in links:
         files = sorted(line for line in links if extension in line)
         return [f'{url}{file}' for file in files]
