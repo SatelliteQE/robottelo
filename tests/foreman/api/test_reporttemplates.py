@@ -70,14 +70,6 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
     return ak, org
 
 
-@pytest.fixture(scope='module')
-def activation_key(module_org, module_lce):
-    activation_key = entities.ActivationKey(
-        environment=module_lce, organization=module_org
-    ).create()
-    return activation_key
-
-
 # Tests for ``katello/api/v2/report_templates``.
 
 
@@ -414,10 +406,8 @@ def test_positive_applied_errata(
     result = rhel_contenthost.register(module_org, module_location, activation_key.name, target_sat)
     assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
-    result = rhel_contenthost.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
-    assert result.status == 0
-    result = rhel_contenthost.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
-    assert result.status == 0
+    assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
     task_id = target_sat.api.JobInvocation().run(
         data={
             'feature': 'katello_errata_install',
