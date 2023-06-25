@@ -1387,6 +1387,31 @@ def test_positive_read_puppet_ca_proxy_name(
     assert session_puppet_enabled_proxy.name == host['puppet_ca_proxy_name']
 
 
+@pytest.mark.tier2
+def test_positive_list_hosts_thin_all(module_target_sat):
+    """List hosts with thin=true and per_page=all
+
+    :id: 00b7e603-aed5-4b19-bfec-1a179fad6743
+
+    :expectedresults: Hosts listed without ISE
+
+    :BZ: 1969263, 1644750
+
+    :customerscenario: true
+    """
+    hosts = module_target_sat.api.Host().search(query={'thin': 'true', 'per_page': 'all'})
+    assert module_target_sat.hostname in [host.name for host in hosts]
+    keys = dir(hosts[0])
+    assert 'id' in keys
+    assert 'name' in keys
+    # Can't check for only id and name being present because the framework adds
+    # some data the API doesn't actually return (currently, it adds empty Environment).
+    # Instead, check for some data to be missing, as opposed to non-thin.
+    assert 'domain' not in keys
+    assert 'ip' not in keys
+    assert 'architecture' not in keys
+
+
 class TestHostInterface:
     """Tests for Host Interfaces"""
 

@@ -55,6 +55,7 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import SM_OVERALL_STATUS
 from robottelo.hosts import ContentHostError
+from robottelo.logging import logger
 from robottelo.utils.datafactory import invalid_values_list
 from robottelo.utils.datafactory import valid_data_list
 from robottelo.utils.datafactory import valid_hosts_list
@@ -872,7 +873,7 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     :expectedresults: Host is successfully listed and has both parent and
         nested host groups names in its hostgroup parameter
 
-    :BZ: 1427554
+    :BZ: 1427554, 1955421
 
     :CaseLevel: System
     """
@@ -886,11 +887,13 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     content_view.publish()
     content_view.read().version[0].promote(data={'environment_ids': lce.id, 'force': False})
     parent_hg = target_sat.api.HostGroup(
-        name=parent_hg_name, organization=[options.organization]
+        name=parent_hg_name,
+        organization=[options.organization],
+        content_view=content_view,
+        ptable=options.ptable,
     ).create()
     nested_hg = target_sat.api.HostGroup(
         architecture=options.architecture,
-        content_view=content_view,
         domain=options.domain,
         lifecycle_environment=lce,
         location=[options.location],
@@ -899,7 +902,6 @@ def test_positive_list_with_nested_hostgroup(target_sat):
         operatingsystem=options.operatingsystem,
         organization=[options.organization],
         parent=parent_hg,
-        ptable=options.ptable,
     ).create()
     make_host(
         {
@@ -911,6 +913,16 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     )
     hosts = Host.list({'organization-id': options.organization.id})
     assert f'{parent_hg_name}/{nested_hg_name}' == hosts[0]['host-group']
+    host = Host.info({'id': hosts[0]['id']})
+    logger.info(f'Host info: {host}')
+    assert host['operating-system']['medium'] == options.medium.name
+    assert host['operating-system']['partition-table'] == options.ptable.name  # inherited
+    if not is_open('BZ:2215294') or target_sat.version != 'stream':
+        assert 'id' in host['content-information']['lifecycle-environment']
+        assert int(host['content-information']['lifecycle-environment']['id']) == int(lce.id)
+        assert int(host['content-information']['content-view']['id']) == int(
+            content_view.id
+        )  # inherited
 
 
 @pytest.mark.cli_host_create
@@ -2492,7 +2504,9 @@ def test_positive_tracer_list_and_resolve(tracer_host):
 
     :CaseImportance: Medium
 
-    :CaseComponent: katello-tracer
+    :CaseComponent: Katello-tracer
+
+    :Team: Phoenix-subscriptions
 
     :bz: 2186188
     """
