@@ -581,3 +581,100 @@ def test_positive_associate_with_custom_profile_with_template(session, rhev_data
             for key, value in values['provider_content'].items()
             if key in cr_profile_data
         }
+
+
+@pytest.mark.tier3
+def test_positive_virt_card(target_sat, module_org, module_location, rhev_data):
+    """Check to see that the Virtualization card appears for an imported VM
+
+    :id: 0502d5a6-64c1-422f-a9ba-ac7c2ee7bad2
+
+    :parametrized: no
+
+    :expectedresults: Virtualization card appears in the new Host UI for the VM
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Medium
+    """
+    # create entities for hostgroup
+    default_loc_id = (
+        target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
+    )
+    target_sat.api.SmartProxy(id=1, location=[default_loc_id, module_location.id]).update()
+    domain = target_sat.api.Domain(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    subnet = target_sat.api.Subnet(
+        organization=[module_org.id], location=[module_location], domain=[domain]
+    ).create()
+    architecture = target_sat.api.Architecture().create()
+    ptable = target_sat.api.PartitionTable(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    operatingsystem = target_sat.api.OperatingSystem(
+        architecture=[architecture], ptable=[ptable]
+    ).create()
+    medium = target_sat.api.Media(
+        organization=[module_org.id], location=[module_location], operatingsystem=[operatingsystem]
+    ).create()
+    le = (
+        target_sat.api.LifecycleEnvironment(name="Library", organization=module_org.id)
+        .search()[0]
+        .read()
+        .id
+    )
+    cv = target_sat.api.ContentView(organization=module_org).create()
+    cv.publish()
+
+    # create hostgroup
+    hostgroup_name = gen_string('alpha')
+    target_sat.api.HostGroup(
+        name=hostgroup_name,
+        architecture=architecture,
+        domain=domain,
+        subnet=subnet,
+        location=[module_location.id],
+        medium=medium,
+        operatingsystem=operatingsystem,
+        organization=[module_org],
+        ptable=ptable,
+        lifecycle_environment=le,
+        content_view=cv,
+        content_source=1,
+    ).create()
+
+    name = gen_string('alpha')
+    with target_sat.ui_session() as session:
+
+        session.organization.select(org_name="Any organization")
+        session.location.select(loc_name="Any location")
+        session.computeresource.create(
+            {
+                'name': name,
+                'provider': FOREMAN_PROVIDERS['rhev'],
+                'provider_content.url': rhev_data['rhev_url'],
+                'provider_content.user': rhev_data['username'],
+                'provider_content.password': rhev_data['password'],
+                'provider_content.datacenter.value': rhev_data['datacenter'],
+                'provider_content.certification_authorities': rhev_data['cert'],
+                'locations.resources.assigned': [module_location.name],
+            }
+        )
+        session.hostgroup.update(hostgroup_name, {'host_group.deploy': name + " (RHV)"})
+        session.computeresource.vm_import(
+            name, rhev_data['vm_name'], hostgroup_name, module_location.name
+        )
+        virt_card = session.host_new.get_virtualization(rhev_data['vm_name'])
+        assert virt_card['name'] == 'automation-robottelo-rhev-vm'
+        assert virt_card['cores_per_socket'] == 1
+        assert virt_card['sockets'] == 1
+        assert virt_card['memory'] == 1
+        assert virt_card['display'] == 'spice'
+        assert virt_card['disk'] == '4 GB'
+
+    # disassociate the host so the corresponding VM doesn't get removed from the CR on host delete
+    entities.Host().search(query={'search': 'name~{}'.format(rhev_data['vm_name'])})[
+        0
+    ].disassociate()
+    entities.Host(name=rhev_data['vm_name']).search()[0].delete()
