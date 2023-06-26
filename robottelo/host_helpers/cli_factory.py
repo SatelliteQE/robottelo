@@ -585,6 +585,7 @@ class CLIFactory:
         4. Checks if activation key was given, otherwise creates a new one and
             associates it with the content view.
         5. Adds the custom repo subscription to the activation key
+        6. Override custom product to true ( turned off by default in 6.14 )
 
         :return: A dictionary with the entity ids of Activation key, Content view,
             Lifecycle Environment, Organization, Product and Repository
@@ -663,6 +664,11 @@ class CLIFactory:
                     'subscription': custom_product['name'],
                 }
             )
+        # Override custom product to true ( turned off by default in 6.14 )
+        custom_repo = self._satellite.cli.Repository.info({'id': custom_repo['id']})
+        self._satellite.cli.ActivationKey.content_override(
+            {'id': activationkey_id, 'content-label': custom_repo['content-label'], 'value': 'true'}
+        )
         return {
             'activationkey-id': activationkey_id,
             'content-view-id': cv_id,
