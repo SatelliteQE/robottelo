@@ -631,6 +631,10 @@ class TestAnsibleREX:
 
         :CaseAutomation: Automated
 
+        :customerscenario: true
+
+        :bz: 2129432
+
         :CaseLevel: System
 
         :parametrized: yes
@@ -650,6 +654,15 @@ class TestAnsibleREX:
         rec_logic = RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
+        # 2129432
+        rec_logic_keys = rec_logic.keys()
+        assert 'action' in rec_logic_keys
+        assert 'last-occurrence' in rec_logic_keys
+        assert 'next-occurrence' in rec_logic_keys
+        assert 'state' in rec_logic_keys
+        assert 'purpose' in rec_logic_keys
+        assert 'iteration' in rec_logic_keys
+        assert 'iteration-limit' in rec_logic_keys
 
     @pytest.mark.tier3
     @pytest.mark.no_containers
