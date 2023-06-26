@@ -380,7 +380,7 @@ def test_negative_add_image_rhev_with_invalid_name(rhev, module_os):
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
-@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete'], indirect=True)
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_provision_rhev_with_host_group(
     request,
     setting_update,
@@ -548,7 +548,7 @@ def test_positive_provision_rhev_without_host_group(rhev):
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
-@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete'], indirect=True)
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_provision_rhev_image_based_and_disassociate(
     request,
     module_provisioning_sat,
@@ -676,7 +676,6 @@ def test_positive_provision_rhev_image_based_and_disassociate(
         assert 'compute-resource' not in host_info
 
     finally:
-
         # Now, let's just remove the host
         if host is not None:
             cli.Host.delete({'id': host['id']})

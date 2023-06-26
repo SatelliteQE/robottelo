@@ -15,6 +15,7 @@ import pytest
 from fauxfactory import gen_string
 from wrapanapi import VMWareSystem
 
+from robottelo.api.utils import configure_provisioning
 from robottelo.cli.factory import make_compute_resource
 from robottelo.cli.factory import make_host
 from robottelo.cli.host import Host
