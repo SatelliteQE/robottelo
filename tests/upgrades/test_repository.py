@@ -206,7 +206,7 @@ class TestScenarioCustomRepoCheck:
 
     @pytest.mark.pre_upgrade
     def test_pre_scenario_custom_repo_check_sca_toggle(
-        self, target_sat, sat_upgrade_chost, save_test_data
+        self, target_sat, sat_upgrade_chost, save_test_data, default_location
     ):
         """This is a pre-upgrade scenario test to verify that repositories in a non-sca org
         set to "Enabled" should be overridden to "Enabled(Override)" when upgrading to 6.14.
@@ -242,10 +242,9 @@ class TestScenarioCustomRepoCheck:
                 query={'search': f'name={product.name}'}
             )[0]
             ak.add_subscriptions(data={'subscription_id': subscription.id})
-        sat_upgrade_chost.install_katello_ca(target_sat)
-        sat_upgrade_chost.register_contenthost(org.label, ak.name)
+        sat_upgrade_chost.register(org, default_location, ak.name, target_sat)
         product_details = sat_upgrade_chost.execute('subscription-manager repos --list')
-        assert "Enabled:   1" in product_details.stdout
+        assert 'Enabled:   1' in product_details.stdout
 
         save_test_data(
             {
