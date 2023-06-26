@@ -578,8 +578,6 @@ def test_positive_virt_card(target_sat, module_vmware_settings, module_location,
                 'organizations.resources.assigned': [module_org.name],
             }
         )
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_location.name)
         session.hostgroup.update(hostgroup_name, {'host_group.deploy': cr_name + " (VMware)"})
         session.computeresource.vm_import(
             cr_name,
@@ -590,7 +588,9 @@ def test_positive_virt_card(target_sat, module_vmware_settings, module_location,
             module_vmware_settings['vm_name'],
         )
         host_name = module_vmware_settings['vm_name'] + '.' + domain.name
-        virt_card = session.host_new.get_virtualization(host_name)
+        virt_card = session.host_new.get_details(host_name, widget_names='details.virtualization')[
+            'details'
+        ]['virtualization']
         assert virt_card['datacenter'] == 'RH_Engineering'
         assert virt_card['cluster'] == 'Satellite-Engineering'
         assert virt_card['memory'] == '2 GB'
