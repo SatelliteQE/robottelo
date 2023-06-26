@@ -1229,7 +1229,6 @@ def test_positive_ak_with_custom_product_on_rhel6(session, rhel6_contenthost, ta
         assert ak['content_hosts']['table'][0]['Name'] == rhel6_contenthost.hostname
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9])
 def test_positive_custom_products_disabled_by_default_ak(
     session,
     default_location,
@@ -1249,6 +1248,8 @@ def test_positive_custom_products_disabled_by_default_ak(
         6. Assert custom product is not visible
 
     :expectedresults: Custom products should be filtered and Disabled by default.
+
+    :BZ: 1265120
     """
     ak, org, custom_repo = setup_content
     with session:
