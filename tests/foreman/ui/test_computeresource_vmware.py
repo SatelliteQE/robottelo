@@ -566,6 +566,11 @@ def test_positive_virt_card(target_sat, module_vmware_settings, module_location,
     ).create()
     cr_name = gen_string('alpha')
     with target_sat.ui_session() as session:
+<<<<<<< HEAD
+=======
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+>>>>>>> 12c7e87f2 (Change any location/org to module)
         session.computeresource.create(
             {
                 'name': cr_name,
