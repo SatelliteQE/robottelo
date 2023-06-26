@@ -1,4 +1,4 @@
-"""Unit tests for the new ``repositories`` paths.
+"""Test module for Repositories UI.
 
 :Requirement: Repository
 
@@ -19,7 +19,7 @@
 import pytest
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_list('[^6]')
 def test_positive_custom_products_override_when_sca_toggle(
     session,
     default_location,
@@ -48,8 +48,7 @@ def test_positive_custom_products_override_when_sca_toggle(
     org.sca_disable()
     ak.add_subscriptions(data={'subscription_id': custom_repo.product.id})
     client = rhel_contenthost
-    client.install_katello_ca(target_sat)
-    client.register_contenthost(org.label, ak.name)
+    client.register(org, default_location, ak.name, target_sat)
     assert client.subscribed
     with session:
         session.organization.select(org.name)
