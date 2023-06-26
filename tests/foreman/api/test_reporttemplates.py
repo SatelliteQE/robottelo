@@ -70,14 +70,6 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
     return ak, org
 
 
-@pytest.fixture(scope='module')
-def activation_key(module_org, module_lce):
-    activation_key = entities.ActivationKey(
-        environment=module_lce, organization=module_org
-    ).create()
-    return activation_key
-
-
 # Tests for ``katello/api/v2/report_templates``.
 
 
