@@ -16,6 +16,8 @@
 
 :Upstream: No
 """
+from datetime import datetime
+
 import pytest
 from broker import Broker
 from fauxfactory import gen_string
@@ -26,6 +28,8 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
@@ -707,3 +711,95 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
     )
     assert res[0]['Host'] == rhel7_contenthost.hostname
     assert '/root' in res[0]['stdout']
+
+
+@pytest.mark.tier2
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+def test_positive_installable_errata(
+    module_org, module_target_sat, module_location, module_cv, module_lce, rhel_contenthost
+):
+    """Generate an Installable Errata report
+
+    :id: 6263a0fa-5021-4553-939b-84fb71c81d59
+
+    :setup: A Host with some applied errata
+
+    :steps:
+        1. Downgrade a package contained within the errata
+        2. Generate an Installable Errata report
+
+    :expectedresults: A report is generated with the installable errata listed
+
+    :CaseImportance: Medium
+
+    :customerscenario: true
+
+    :BZ: 1726504
+    """
+    activation_key = module_target_sat.api.ActivationKey(
+        environment=module_lce, organization=module_org
+    ).create()
+    ERRATUM_ID = str(settings.repos.yum_6.errata[2])
+    module_target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_9.url,
+            'organization-id': module_org.id,
+            'content-view-id': module_cv.id,
+            'lifecycle-environment-id': module_lce.id,
+            'activationkey-id': activation_key.id,
+        }
+    )
+    result = rhel_contenthost.register(
+        module_org, module_location, activation_key.name, module_target_sat
+    )
+    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    assert rhel_contenthost.subscribed
+    result = rhel_contenthost.run(f'yum install -y {FAKE_2_CUSTOM_PACKAGE}')
+    assert result.status == 0
+    rhel_contenthost.add_rex_key(satellite=module_target_sat)
+    # Install/Apply the errata
+    task_id = module_target_sat.api.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install',
+            'inputs': {'errata': ERRATUM_ID},
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+            'organization_id': module_org.id,
+        },
+    )['id']
+    module_target_sat.wait_for_tasks(
+        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+        search_rate=15,
+        max_tries=10,
+    )
+    # Downgrade the package impacted by the erratum
+    result = rhel_contenthost.run(f'yum downgrade -y {FAKE_1_CUSTOM_PACKAGE}')
+    assert result.status == 0
+
+    _data_for_generate = {
+        'organization_id': module_org.id,
+        'report_format': "json",
+        'input_values': {
+            'Filter Errata Type': 'all',
+            'Include Last Reboot': 'no',
+            'Status': 'all',
+        },
+    }
+    search_query = {'search': 'name="Host - Applicable Errata"'}
+    template = module_target_sat.api.ReportTemplate()
+    # Wait for the search to finish collecting results, it may take some time
+    wait_for(
+        lambda: (
+            template.search(query=search_query)[0].read().generate(data=_data_for_generate) != []
+        ),
+        timeout=120,
+        delay=10,
+    )
+    # Generate final report and check the entry
+    report = template.search(query=search_query)[0].read().generate(data=_data_for_generate)
+
+    assert report != []
+    assert datetime.now().strftime("%Y-%m-%d") in report[0]['Available since']
+    assert FAKE_1_CUSTOM_PACKAGE_NAME in report[0]['Packages']
+    assert report[0]['Erratum'] == ERRATUM_ID
