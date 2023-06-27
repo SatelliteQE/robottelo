@@ -19,6 +19,7 @@
 from math import floor
 from math import log10
 from random import choice
+from time import sleep
 
 import pytest
 from nailgun import entities
