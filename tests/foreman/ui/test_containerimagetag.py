@@ -43,7 +43,7 @@ def module_repository(module_product):
         product=module_product,
         url=CONTAINER_REGISTRY_HUB,
     ).create()
-    repo.sync()
+    repo.sync(timeout=1440)
     return repo
 
 

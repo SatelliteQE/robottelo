@@ -2552,7 +2552,7 @@ class TestTokenAuthContainerRepository:
             repo = repo.read()
             for field in 'name', 'docker_upstream_name', 'content_type', 'upstream_username':
                 assert getattr(repo, field) == repo_options[field]
-            repo.sync(timeout=600)
+            repo.sync(timeout=900)
             assert repo.read().content_counts['docker_manifest'] > 1
 
     try:
