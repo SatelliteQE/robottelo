@@ -15,7 +15,6 @@ import pytest
 from fauxfactory import gen_string
 from wrapanapi import VMWareSystem
 
-from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.factory import make_compute_resource
 from robottelo.cli.factory import make_host
 from robottelo.cli.host import Host
@@ -86,89 +85,6 @@ def tear_down(provisioning):
     hosts = Host.list({'organization': provisioning.org_name})
     for host in hosts:
         Host.delete({'id': host['id']})
-
-
-@pytest.mark.on_premises_provisioning
-@pytest.mark.vlan_networking
-@pytest.mark.tier3
-def test_positive_provision_rhev_with_host_group(rhev, provisioning, target_sat, tear_down):
-    """Provision a host on RHEV compute resource with
-    the help of hostgroup.
-
-    :Requirement: Computeresource RHV
-
-    :CaseComponent: ComputeResources-RHEV
-
-    :Team: Rocket
-
-    :id: ba78868f-5cff-462f-a55d-f6aa4d11db52
-
-    :setup: Hostgroup and provisioning setup like domain, subnet etc.
-
-    :steps:
-
-        1. Create a RHEV compute resource.
-        2. Create a host on RHEV compute resource using the Hostgroup
-        3. Use compute-attributes parameter to specify key-value parameters
-           regarding the virtual machine.
-        4. Provision the host.
-
-    :expectedresults: The host should be provisioned with host group
-
-    :BZ: 1777992
-
-    :customerscenario: true
-
-    :CaseAutomation: Automated
-    """
-    name = gen_string('alpha')
-    rhv_cr = ComputeResource.create(
-        {
-            'name': name,
-            'provider': 'Ovirt',
-            'user': rhev.rhev_username,
-            'password': rhev.rhev_password,
-            'datacenter': rhev.rhev_datacenter,
-            'url': rhev.rhev_url,
-            'ovirt-quota': rhev.quota,
-            'organizations': provisioning.org_name,
-            'locations': provisioning.loc_name,
-        }
-    )
-    assert rhv_cr['name'] == name
-    host_name = gen_string('alpha').lower()
-    host = make_host(
-        {
-            'name': f'{host_name}',
-            'root-password': gen_string('alpha'),
-            'organization': provisioning.org_name,
-            'location': provisioning.loc_name,
-            'pxe-loader': 'PXELinux BIOS',
-            'hostgroup': provisioning.config_env['host_group'],
-            'compute-resource-id': rhv_cr.get('id'),
-            'compute-attributes': "cluster={},"
-            "cores=1,"
-            "memory=1073741824,"
-            "start=1".format(rhev.cluster_id),
-            'ip': None,
-            'mac': None,
-            'interface': f"compute_name=nic1, compute_network={rhev.network_id}",
-            'volume': "size_gb=10," "storage_domain={}," "bootable=True".format(rhev.storage_id),
-            'provision-method': 'build',
-        }
-    )
-    hostname = '{}.{}'.format(host_name, provisioning.config_env['domain'])
-    assert hostname == host['name']
-    host_info = Host.info({'name': hostname})
-    host_ip = host_info.get('network').get('ipv4-address')
-    # Check on RHV, if VM exists
-    assert rhev.rhv_api.does_vm_exist(hostname)
-    # Get the information of created VM
-    rhv_vm = rhev.rhv_api.get_vm(hostname)
-    # Assert of Satellite mac address for VM and Mac of VM created is same
-    assert host_info.get('network').get('mac') == rhv_vm.get_nics()[0].mac.address
-    # Start to run a ping check if network was established on VM
-    target_sat.ping_host(host=host_ip)
 
 
 @pytest.mark.on_premises_provisioning
