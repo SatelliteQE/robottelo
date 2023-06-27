@@ -1250,6 +1250,8 @@ def test_positive_custom_products_disabled_by_default_ak(
     :expectedresults: Custom products should be filtered and Disabled by default.
 
     :BZ: 1265120
+
+    :customerscenario: true
     """
     ak, org, custom_repo = setup_content
     with session:
