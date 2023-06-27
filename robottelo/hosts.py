@@ -588,8 +588,8 @@ class ContentHost(Host, ContentHostMixins):
         using a global registration template.
 
         :param target: Satellite or Capusle object to register to, required.
-        :param org: Organization to register content host for, required.
-        :param loc: Location to register content host for, required.
+        :param org: Organization to register content host to. Previously required, pass None to omit
+        :param loc: Location to register content host for, Previously required, pass None to omit.
         :param activation_keys: Activation key name to register content host with, required.
         :param setup_insights: Install and register Insights client, requires OS repo.
         :param setup_remote_execution: Copy remote execution SSH key.
@@ -609,11 +609,25 @@ class ContentHost(Host, ContentHostMixins):
         """
         options = {
             'activation-keys': activation_keys,
-            'organization-id': org.id,
-            'location-id': loc.id,
             'insecure': str(insecure).lower(),
             'update-packages': str(update_packages).lower(),
         }
+        if org is not None:
+            if isinstance(org, entities.Organization):
+                options['organization-id'] = org.id
+            elif isinstance(org, dict):
+                options['organization-id'] = org['id']
+            else:
+                raise ValueError('org must be a dict or an Organization object')
+
+        if loc is not None:
+            if isinstance(loc, entities.Location):
+                options['location-id'] = loc.id
+            elif isinstance(loc, dict):
+                options['location-id'] = loc['id']
+            else:
+                raise ValueError('loc must be a dict or a Location object')
+
         if target.__class__.__name__ == 'Capsule':
             options['smart-proxy'] = target.hostname
         elif target is not None and target.__class__.__name__ not in ['Capsule', 'Satellite']:
