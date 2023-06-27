@@ -249,16 +249,6 @@ def module_activation_key(module_entitlement_manifest_org, module_target_sat):
     return activation_key
 
 
-@pytest.fixture(scope='function')
-def remove_vm_on_delete(target_sat, setting_update):
-    setting_update.value = 'true'
-    setting_update.update({'value'})
-    assert (
-        target_sat.api.Setting().search(query={'search': 'name=destroy_vm_on_host_delete'})[0].value
-    )
-    yield
-
-
 @pytest.fixture
 def tracer_install_host(rex_contenthost, target_sat):
     """Sets up a contenthost with katello-host-tools-tracer enabled,
@@ -1848,7 +1838,7 @@ def test_positive_provision_end_to_end(
 @pytest.mark.on_premises_provisioning
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
-@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete'], indirect=True)
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_delete_libvirt(
     session,
     module_org,
@@ -1857,7 +1847,6 @@ def test_positive_delete_libvirt(
     module_libvirt_hostgroup,
     module_libvirt_resource,
     setting_update,
-    remove_vm_on_delete,
     target_sat,
 ):
     """Create a new Host on libvirt compute resource and delete it
