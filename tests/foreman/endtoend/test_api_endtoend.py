@@ -1055,14 +1055,14 @@ class TestEndToEnd:
 
     @pytest.mark.skip_if_not_set('libvirt')
     @pytest.mark.tier4
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_match('7')
     @pytest.mark.e2e
     @pytest.mark.upgrade
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_positive_end_to_end(
-        self, function_entitlement_manifest, target_sat, rhel7_contenthost
-    ):
+    def test_positive_end_to_end(self, function_entitlement_manifest, target_sat, rhel_contenthost):
         """Perform end to end smoke tests using RH and custom repos.
 
         1. Create a new user with admin permissions
@@ -1090,6 +1090,8 @@ class TestEndToEnd:
 
         :expectedresults: All tests should succeed and Content should be
             successfully fetched by client.
+
+        :bz: 2216461
 
         :parametrized: yes
         """
@@ -1178,17 +1180,22 @@ class TestEndToEnd:
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
-        content_host = target_sat.api.Host(
-            content_facet_attributes={
-                'content_view_id': content_view.id,
-                'lifecycle_environment_id': le1.id,
-            },
-            organization=org,
-        ).create()
-        # check that content view matches what we passed
-        assert content_host.content_facet_attributes['content_view_id'] == content_view.id
-        # check that lifecycle environment matches
-        assert content_host.content_facet_attributes['lifecycle_environment_id'] == le1.id
+        if not is_open('BZ:2216461'):
+            content_host = target_sat.api.Host(
+                content_facet_attributes={
+                    'content_view_id': content_view.id,
+                    'lifecycle_environment_id': le1.id,
+                },
+                organization=org,
+            ).create()
+            # check that content view matches what we passed
+            assert (
+                content_host.content_facet_attributes['content_views'][0]['id'] == content_view.id
+            )
+            # check that lifecycle environment matches
+            assert (
+                content_host.content_facet_attributes['lifecycle_environments'][0]['id'] == le1.id
+            )
 
         # step 2.14: Create a new libvirt compute resource
         target_sat.api.LibvirtComputeResource(
@@ -1208,14 +1215,14 @@ class TestEndToEnd:
         # step 2.18: Provision a client
         # TODO this isn't provisioning through satellite as intended
         # Note it wasn't well before the change that added this todo
-        rhel7_contenthost.install_katello_ca(target_sat)
+        rhel_contenthost.install_katello_ca(target_sat)
         # Register client with foreman server using act keys
-        rhel7_contenthost.register_contenthost(org.label, activation_key_name)
-        assert rhel7_contenthost.subscribed
+        rhel_contenthost.register_contenthost(org.label, activation_key_name)
+        assert rhel_contenthost.subscribed
         # Install rpm on client
         package_name = 'katello-agent'
-        result = rhel7_contenthost.execute(f'yum install -y {package_name}')
+        result = rhel_contenthost.execute(f'yum install -y {package_name}')
         assert result.status == 0
         # Verify that the package is installed by querying it
-        result = rhel7_contenthost.run(f'rpm -q {package_name}')
+        result = rhel_contenthost.run(f'rpm -q {package_name}')
         assert result.status == 0
