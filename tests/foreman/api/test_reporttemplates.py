@@ -726,8 +726,9 @@ def test_positive_installable_errata(
     :setup: A Host with some applied errata
 
     :steps:
-        1. Downgrade a package contained within the errata
-        2. Generate an Installable Errata report
+        1. Downgrade a package contained within the applied errata
+        2. Perform a search for any applicable Erratum
+        3. Generate an Installable Errata report
 
     :expectedresults: A report is generated with the installable errata listed
 
@@ -740,7 +741,7 @@ def test_positive_installable_errata(
     activation_key = module_target_sat.api.ActivationKey(
         environment=module_lce, organization=module_org
     ).create()
-    ERRATUM_ID = str(settings.repos.yum_6.errata[2])
+    ERRATUM_ID = str(settings.repos.yum_9.errata[0])
     module_target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_9.url,
@@ -757,7 +758,6 @@ def test_positive_installable_errata(
     assert rhel_contenthost.subscribed
     result = rhel_contenthost.run(f'yum install -y {FAKE_2_CUSTOM_PACKAGE}')
     assert result.status == 0
-    rhel_contenthost.add_rex_key(satellite=module_target_sat)
     # Install/Apply the errata
     task_id = module_target_sat.api.JobInvocation().run(
         data={
@@ -773,7 +773,7 @@ def test_positive_installable_errata(
         search_rate=15,
         max_tries=10,
     )
-    # Downgrade the package impacted by the erratum
+    # Downgrade package impacted by the erratum
     result = rhel_contenthost.run(f'yum downgrade -y {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
 
@@ -788,17 +788,17 @@ def test_positive_installable_errata(
     }
     search_query = {'search': 'name="Host - Applicable Errata"'}
     template = module_target_sat.api.ReportTemplate()
-    # Wait for the search to finish collecting results, it may take some time
+    # Allow search to collect results, it may take some time
+    # Wait until a generated report is populated
     wait_for(
         lambda: (
-            template.search(query=search_query)[0].read().generate(data=_data_for_generate) != []
+            [] != template.search(query=search_query)[0].read().generate(data=_data_for_generate)
         ),
         timeout=120,
         delay=10,
     )
-    # Generate final report and check the entry
+    # Now that a populated report is ready, generate a final time
     report = template.search(query=search_query)[0].read().generate(data=_data_for_generate)
-
     assert report != []
     assert datetime.now().strftime("%Y-%m-%d") in report[0]['Available since']
     assert FAKE_1_CUSTOM_PACKAGE_NAME in report[0]['Packages']
