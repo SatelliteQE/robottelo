@@ -60,11 +60,13 @@ class TestVirtWhoConfigforNutanix:
     def test_positive_deploy_configure_by_id_script(
         self, module_sca_manifest_org, form_data, virtwho_config, target_sat, deploy_type
     ):
-        """Verify "hammer virt-who-config deploy"
+        """Verify "hammer virt-who-config deploy & fetch"
 
         :id: 71750104-b436-4ad4-9b6b-6f0fe8c3ee4c
 
-        :expectedresults: Config can be created and deployed
+        :expectedresults:
+            1. Config can be created and deployed
+            2. Config can be created, fetch and deploy
 
         :CaseLevel: Integration
 
@@ -120,13 +122,14 @@ class TestVirtWhoConfigforNutanix:
     def test_positive_prism_central_deploy_configure_by_id_script(
         self, module_sca_manifest_org, form_data, target_sat, deploy_type
     ):
-        """Verify "hammer virt-who-config deploy" on nutanix prism central mode
+        """Verify "hammer virt-who-config deploy & fetch" on nutanix prism central mode
 
         :id: 96fd691f-5b62-469c-adc7-f2739ddf4a62
 
         :expectedresults:
             1. Config can be created and deployed
             2. The prism_central has been set in /etc/virt-who.d/vir-who.conf file
+            3. Config can be created, fetch and deploy
 
         :CaseLevel: Integration
 

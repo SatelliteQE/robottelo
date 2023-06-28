@@ -53,13 +53,16 @@ def virtwho_config(form_data, target_sat, session):
 
 class TestVirtwhoConfigforKubevirt:
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_id(self, default_org, virtwho_config, session, form_data):
+    @pytest.mark.parametrize('deploy_type', ['id', 'script'])
+    def test_positive_deploy_configure_by_id_script(
+        self, default_org, virtwho_config, session, form_data, deploy_type
+    ):
         """Verify configure created and deployed with id.
 
         :id: 7b2a1b08-f33c-44f4-ad2e-317b6c44b938
 
         :expectedresults:
-            1. Config can be created and deployed by command
+            1. Config can be created and deployed by command/script
             2. No error msg in /var/log/rhsm/rhsm.log
             3. Report is sent to satellite
             4. Virtual sku can be generated and attached
@@ -71,50 +74,30 @@ class TestVirtwhoConfigforKubevirt:
         """
         name = form_data['name']
         values = session.virtwho_configure.read(name)
-        command = values['deploy']['command']
-        hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data['hypervisor_type'], debug=True, org=default_org.label
-        )
+        if deploy_type == "id":
+            command = values['deploy']['command']
+            hypervisor_name, guest_name = deploy_configure_by_command(
+                command, form_data['hypervisor_type'], debug=True, org=default_org.label
+            )
+        elif deploy_type == "script":
+            script = values['deploy']['script']
+            hypervisor_name, guest_name = deploy_configure_by_script(
+                script, form_data['hypervisor_type'], debug=True, org=default_org.label
+            )
         assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
         hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
         vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
         vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
-        session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
-        assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
-        session.contenthost.add_subscription(guest_name, vdc_virtual)
-        assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
-
-    @pytest.mark.tier2
-    def test_positive_deploy_configure_by_script(
-        self, default_org, virtwho_config, session, form_data
-    ):
-        """Verify configure created and deployed with script.
-
-        :id: b3903ccb-04cc-4867-b7ed-d5053d2bfe03
-
-        :expectedresults:
-            1. Config can be created and deployed by script
-            2. No error msg in /var/log/rhsm/rhsm.log
-            3. Report is sent to satellite
-            4. Virtual sku can be generated and attached
-            5. Config can be deleted
-
-        :CaseLevel: Integration
-
-        :CaseImportance: High
-        """
-        name = form_data['name']
-        values = session.virtwho_configure.read(name)
-        script = values['deploy']['script']
-        hypervisor_name, guest_name = deploy_configure_by_script(
-            script, form_data['hypervisor_type'], debug=True, org=default_org.label
+        assert (
+            session.contenthost.read_legacy_ui(hypervisor_display_name)['subscriptions']['status']
+            == 'Unsubscribed hypervisor'
         )
-        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
-        hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-        vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
-        vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
         session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
         assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
+        assert (
+            session.contenthost.read_legacy_ui(guest_name)['subscriptions']['status']
+            == 'Unentitled'
+        )
         session.contenthost.add_subscription(guest_name, vdc_virtual)
         assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
 

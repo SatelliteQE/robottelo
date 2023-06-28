@@ -56,11 +56,13 @@ class TestVirtWhoConfigforLibvirt:
     def test_positive_deploy_configure_by_id_script(
         self, module_sca_manifest_org, form_data, virtwho_config, target_sat, deploy_type
     ):
-        """Verify " hammer virt-who-config deploy"
+        """Verify " hammer virt-who-config deploy & fetch"
 
         :id: 53143fc3-97e0-4403-8114-4d7f20fde98e
 
-        :expectedresults: Config can be created and deployed
+        :expectedresults:
+            1. Config can be created and deployed
+            2. Config can be created, fetch and deploy
 
         :CaseLevel: Integration
 

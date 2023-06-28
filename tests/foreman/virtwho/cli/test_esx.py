@@ -64,8 +64,9 @@ def virtwho_config(form_data, target_sat):
 
 class TestVirtWhoConfigforEsx:
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_id(
-        self, default_org, form_data, virtwho_config, target_sat
+    @pytest.mark.parametrize('deploy_type', ['id', 'script'])
+    def test_positive_deploy_configure_by_id_script(
+        self, default_org, form_data, virtwho_config, target_sat, deploy_type
     ):
         """Verify " hammer virt-who-config deploy"
 
@@ -78,61 +79,18 @@ class TestVirtWhoConfigforEsx:
         :CaseImportance: High
         """
         assert virtwho_config['status'] == 'No Report Yet'
-        command = get_configure_command(virtwho_config['id'], default_org.name)
-        hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data['hypervisor-type'], debug=True, org=default_org.label
-        )
-        virt_who_instance = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config['id']})[
-            'general-information'
-        ]['status']
-        assert virt_who_instance == 'OK'
-        hosts = [
-            (
-                hypervisor_name,
-                f'product_id={settings.virtwho.sku.vdc_physical} and type=NORMAL',
-            ),
-            (
-                guest_name,
-                f'product_id={settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED',
-            ),
-        ]
-        for hostname, sku in hosts:
-            host = target_sat.cli.Host.list({'search': hostname})[0]
-            subscriptions = target_sat.cli.Subscription.list(
-                {'organization': default_org.name, 'search': sku}
+        if deploy_type == "id":
+            command = get_configure_command(virtwho_config['id'], default_org.name)
+            hypervisor_name, guest_name = deploy_configure_by_command(
+                command, form_data['hypervisor-type'], debug=True, org=default_org.label
             )
-            vdc_id = subscriptions[0]['id']
-            if 'type=STACK_DERIVED' in sku:
-                for item in subscriptions:
-                    if hypervisor_name.lower() in item['type']:
-                        vdc_id = item['id']
-                        break
-            result = target_sat.cli.Host.subscription_attach(
-                {'host-id': host['id'], 'subscription-id': vdc_id}
+        elif deploy_type == "script":
+            script = target_sat.cli.VirtWhoConfig.fetch(
+                {'id': virtwho_config['id']}, output_format='base'
             )
-            assert result.strip() == 'Subscription attached to the host successfully.'
-
-    @pytest.mark.tier2
-    def test_positive_deploy_configure_by_script(
-        self, default_org, form_data, virtwho_config, target_sat
-    ):
-        """Verify " hammer virt-who-config fetch"
-
-        :id: 6aaffaeb-aaf2-42cf-b0dc-ca41a53d42a6
-
-        :expectedresults: Config can be created, fetch and deploy
-
-        :CaseLevel: Integration
-
-        :CaseImportance: High
-        """
-        assert virtwho_config['status'] == 'No Report Yet'
-        script = target_sat.cli.VirtWhoConfig.fetch(
-            {'id': virtwho_config['id']}, output_format='base'
-        )
-        hypervisor_name, guest_name = deploy_configure_by_script(
-            script, form_data['hypervisor-type'], debug=True, org=default_org.label
-        )
+            hypervisor_name, guest_name = deploy_configure_by_script(
+                script, form_data['hypervisor-type'], debug=True, org=default_org.label
+            )
         virt_who_instance = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config['id']})[
             'general-information'
         ]['status']
