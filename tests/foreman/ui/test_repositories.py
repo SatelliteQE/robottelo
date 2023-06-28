@@ -19,7 +19,7 @@
 import pytest
 
 
-@pytest.mark.rhel_ver_list('[^6]')
+@pytest.mark.rhel_ver_match('[^6]')
 def test_positive_custom_products_override_when_sca_toggle(
     session,
     default_location,
@@ -36,27 +36,26 @@ def test_positive_custom_products_override_when_sca_toggle(
         1. Create Custom Product and upload Repository
         2. Attach to Activation Key
         3. Disable SCA on the Organization
-        4. Add Subscription to Activation Key
-        5. Register Host
-        6. Verify Repository status is "Enabled"
-        7. Set Organization back to SCA mode
-        8. Verify Repository status is "Disabled(Override)"
+        4. Register Host
+        5. Set Organization back to SCA mode
+        6. Verify Repository status is "Disabled(Override)"
+        7. Verify Repository is listed under SubMan repo-override
+
 
     :expectedresults: Repository status should be set to Disabled(Override)
+
+    :BZ: 2188380
     """
     ak, org, custom_repo = setup_content
     org.sca_disable()
-    ak.add_subscriptions(data={'subscription_id': custom_repo.product.id})
-    client = rhel_contenthost
-    client.register(org, default_location, ak.name, target_sat)
-    assert client.subscribed
+    rhel_contenthost.register(org, default_location, ak.name, target_sat)
+    assert rhel_contenthost.subscribed
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)
-        repos1 = session.host_new.get_repo_sets(rhel_contenthost.hostname, custom_repo.name)
-        assert repos1[0]['Repository'] == custom_repo.name
-        assert repos1[0]['Status'] == 'Enabled'
         org.sca_enable()
         repos2 = session.host_new.get_repo_sets(rhel_contenthost.hostname, custom_repo.name)
         assert repos2[0]['Repository'] == custom_repo.name
         assert repos2[0]['Status'] == 'Disabled'
+        result = rhel_contenthost.execute('subscription-manager repo-override --list')
+        assert custom_repo.name in result.stdout
