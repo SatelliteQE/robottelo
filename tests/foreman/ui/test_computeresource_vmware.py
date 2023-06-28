@@ -505,7 +505,9 @@ def test_positive_access_vmware_with_custom_profile(session, module_vmware_setti
 
 
 @pytest.mark.tier2
-def test_positive_virt_card(target_sat, module_vmware_settings, module_location, module_org):
+def test_positive_virt_card(
+    session, target_sat, module_vmware_settings, module_location, module_org
+):
     """Check to see that the Virtualization card appears for an imported VM
 
     :id: 0502d5a6-64c1-422f-a9ba-ac7c2ee7bad2
@@ -565,7 +567,7 @@ def test_positive_virt_card(target_sat, module_vmware_settings, module_location,
         content_source=1,
     ).create()
     cr_name = gen_string('alpha')
-    with target_sat.ui_session() as session:
+    with session:
         session.computeresource.create(
             {
                 'name': cr_name,
