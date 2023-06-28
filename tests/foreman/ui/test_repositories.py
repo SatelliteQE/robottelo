@@ -41,11 +41,12 @@ def test_positive_custom_products_disabled_by_default(
     :expectedresults: Custom products should be disabled by default.
 
     :BZ: 1265120
+
+    :customerscenario: true
     """
     ak, org, custom_repo = setup_content
-    client = rhel_contenthost
-    client.register(org, default_location, ak.name, target_sat)
-    assert client.subscribed
+    rhel_contenthost.register(org, default_location, ak.name, target_sat)
+    assert rhel_contenthost.subscribed
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)

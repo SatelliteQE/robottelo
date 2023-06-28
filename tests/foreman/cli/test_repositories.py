@@ -19,7 +19,7 @@
 import pytest
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_match('[^6]')
 def test_positive_custom_products_disabled_by_default(
     setup_content,
     default_location,
@@ -37,10 +37,11 @@ def test_positive_custom_products_disabled_by_default(
         4. Assert that custom proudcts are disabled by default
 
     :expectedresults: Custom products should be disabled by default. "Enabled: 0"
+
+    :BZ: 1265120
     """
     ak, org, _ = setup_content
-    client = rhel_contenthost
-    client.register(org, default_location, ak.name, target_sat)
-    assert client.subscribed
+    rhel_contenthost.register(org, default_location, ak.name, target_sat)
+    assert rhel_contenthost.subscribed
     product_details = rhel_contenthost.run('subscription-manager repos --list')
     assert 'Enabled:   0' in product_details.stdout
