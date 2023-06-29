@@ -204,8 +204,26 @@ class TestScenarioCustomRepoCheck:
         result = rhel_client.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0
 
+
+class TestScenarioCustomRepoOverrideCheck:
+    """Scenario test to verify that repositories in a non-sca org set to "Enabled"
+    should be overridden to "Enabled(Override)" when upgrading to 6.14.
+
+    Test Steps:
+
+        1. Before Satellite upgrade.
+        2. Create new Organization, Location.
+        3. Create Product, Custom Repository, Content view.
+        4. Create Activation Key and add Subscription.
+        5. Create a Content Host, register it, and check Repository Sets for enabled Repository.
+        6. Upgrade Satellite.
+        7. Search Host to verify Repository Set is set to Enabled(Override).
+
+    BZ: 1265120
+    """
+
     @pytest.mark.pre_upgrade
-    def test_pre_scenario_custom_repo_check_sca_toggle(
+    def test_pre_scenario_custom_repo_sca_toggle(
         self, target_sat, sat_upgrade_chost, save_test_data, default_location
     ):
         """This is a pre-upgrade scenario test to verify that repositories in a non-sca org
@@ -256,20 +274,20 @@ class TestScenarioCustomRepoCheck:
             }
         )
 
-    @pytest.mark.post_upgrade(depend_on=test_pre_scenario_custom_repo_check_sca_toggle)
+    @pytest.mark.post_upgrade(depend_on=test_pre_scenario_custom_repo_sca_toggle)
     def test_post_scenario_custom_repo_sca_toggle(self, pre_upgrade_data):
         """This is a post-upgrade scenario test to verify that repositories in a non-sca
         Organization set to "Enabled" should be overridden to "Enabled(Override)"
-        when upgrading to 6.14
+        when upgrading to 6.14.
 
         :id: postupgrade-cc392ce3-f3bb-4cf3-afd5-c062e3a5d109
 
         :steps:
             1. After upgrade, search Host to verify Repository Set is set to
-            Enabled(Override)
+            Enabled(Override).
 
 
-        :expectedresults: Repository on Host should be overridden
+        :expectedresults: Repository on Host should be overridden.
 
         """
         client_hostname = pre_upgrade_data.get('rhel_client')
