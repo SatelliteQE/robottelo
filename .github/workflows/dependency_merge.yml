@@ -25,7 +25,7 @@ jobs:
         id: yaml
         uses: mikefarah/yq@master
         with:
-          cmd: yq e ".${{ steps.metadata.outputs.dependency-names }}" ./.github/dependency_tests.yaml
+          cmd: yq e '.["${{ steps.metadata.outputs.dependency-names }}"]' ./.github/dependency_tests.yaml
 
       - name: Add the PRT Comment
         if:  steps.yaml.outputs.result != 'null'
