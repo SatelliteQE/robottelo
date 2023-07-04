@@ -1624,6 +1624,7 @@ def setup_custom_repo(target_sat, module_org, katello_host_tools_host, request):
         url=settings.repos[custom_repo].url,
     ).create()
     custom_repo.sync()
+
     subs = target_sat.api.Subscription(organization=module_org, name=prod.name).search()
     assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
     custom_sub = subs[0]
@@ -1634,6 +1635,10 @@ def setup_custom_repo(target_sat, module_org, katello_host_tools_host, request):
             "included": {"ids": [katello_host_tools_host.nailgun_host.id]},
             "subscriptions": [{"id": custom_sub.id, "quantity": 1}],
         }
+    )
+    # make sure repo is enabled
+    katello_host_tools_host.enable_repo(
+        f'{module_org.name}_{prod.name}_{custom_repo.name}', force=True
     )
     # refresh repository metadata
     katello_host_tools_host.subscription_manager_list_repos()
