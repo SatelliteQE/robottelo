@@ -1815,3 +1815,57 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
     )
     command_output = capsule_configured.execute('satellite-installer', timeout='20m')
     assert 'Success!' in command_output.stdout
+
+
+@pytest.mark.e2e
+@pytest.mark.tier1
+@pytest.mark.parametrize("sat_ready_rhel", [settings.server.version.rhel_version], indirect=True)
+def test_satellite_installation_with_options(sat_ready_rhel):
+    """Run Satellite installation with different options
+
+    :id: fa315028-d9fd-42b3-a07b-53166203abdc
+
+    :steps:
+        1. Get a RHEL host
+        2. Configure satellite repos
+        3. Enable satellite module
+        4. Install satellite
+        5. Run satellite-installer with required options
+
+    :expectedresults:
+        1. Correct satellite packaged is installed
+        2. satellite-installer runs successfully
+        3. satellite-maintain health check runs successfully
+
+    :CaseImportance: High
+
+    :customerscenario: true
+
+    :BZ: 2063717, 2165092
+    """
+    sat_version = settings.server.version.release
+    # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
+    sat_ready_rhel.register_to_cdn()
+    sat_ready_rhel.download_repofile(product='satellite', release=settings.server.version.release)
+    sat_ready_rhel.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
+    installed_version = sat_ready_rhel.execute('rpm --query satellite').stdout
+    assert sat_version in installed_version
+    # Install Satellite
+    sat_ready_rhel.execute(
+        InstallerCommand(
+            installer_args=[
+                'scenario satellite',
+                f'foreman-initial-admin-password {settings.server.admin_password}',
+                'foreman-rails-cache-store type:redis',
+            ]
+        ).get_command(),
+        timeout='30m',
+    )
+    result = sat_ready_rhel.execute(
+        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/satellite.log'
+    )
+    assert len(result.stdout) == 0
+    result = sat_ready_rhel.cli.Health.check()
+    assert 'FAIL' not in result.stdout
+    assert sat_ready_rhel.execute('rpm -q foreman-redis').status == 0
+    assert sat_ready_rhel.execute('grep "type: redis" /etc/foreman/settings.yaml').status == 0
