@@ -5,6 +5,7 @@ example: my_satellite.api_factory.api_method()
 from contextlib import contextmanager
 
 from fauxfactory import gen_string
+from requests import HTTPError
 
 from robottelo.config import settings
 
@@ -35,6 +36,44 @@ class APIFactory:
                 password=settings.http_proxy.password,
                 organization=[org.id],
             ).create()
+
+    def enable_rhrepo_and_fetchid(
+        self, basearch, org_id, product, repo, reposet, releasever=None, strict=False
+    ):
+        """Enable a RedHat Repository and fetches it's Id.
+
+        :param str org_id: The organization Id.
+        :param str product: The product name in which repository exists.
+        :param str reposet: The reposet name in which repository exists.
+        :param str repo: The repository name who's Id is to be fetched.
+        :param str basearch: The architecture of the repository.
+        :param str optional releasever: The releasever of the repository.
+        :param bool optional strict: Raise exception if the reposet was already enabled.
+        :return: Returns the repository Id.
+        :rtype: str
+
+        """
+        product = self._satellite.api.Product(name=product, organization=org_id).search()[0]
+        r_set = self._satellite.api.RepositorySet(name=reposet, product=product).search()[0]
+        payload = {}
+        if basearch is not None:
+            payload['basearch'] = basearch
+        if releasever is not None:
+            payload['releasever'] = releasever
+        payload['product_id'] = product.id
+        try:
+            r_set.enable(data=payload)
+        except HTTPError as e:
+            if (
+                not strict
+                and e.response.status_code == 409
+                and 'repository is already enabled' in e.response.json()['displayMessage']
+            ):
+                pass
+            else:
+                raise
+        result = self._satellite.api.Repository(name=repo).search(query={'organization_id': org_id})
+        return result[0].id
 
     def update_vm_host_location(self, vm_client, location_id):
         """Update vm client host location.
