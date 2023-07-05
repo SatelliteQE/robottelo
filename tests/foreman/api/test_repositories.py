@@ -22,7 +22,6 @@ from nailgun.entity_mixins import call_entity_method_with_timeout
 from requests.exceptions import HTTPError
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.constants import MIRRORING_POLICIES
 from robottelo.utils.datafactory import parametrized
@@ -43,7 +42,7 @@ def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, ta
 
     :expectedresults: A message should be thrown saying you cannot disable the Repo
     """
-    rh_repo_id = enable_rhrepo_and_fetchid(
+    rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=constants.DEFAULT_ARCHITECTURE,
         org_id=module_entitlement_manifest_org.id,
         product=constants.PRDS['rhel8'],

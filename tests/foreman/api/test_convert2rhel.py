@@ -17,9 +17,7 @@
 import pytest
 import requests
 
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
-from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -112,7 +110,7 @@ def enable_rhel_subscriptions(module_target_sat, module_entitlement_manifest_org
     rh_repos = []
     tasks = []
     for name in repo_names:
-        rh_repo_id = enable_rhrepo_and_fetchid(
+        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
             org_id=module_entitlement_manifest_org.id,
             product=REPOS[name]['product'],
@@ -126,7 +124,7 @@ def enable_rhel_subscriptions(module_target_sat, module_entitlement_manifest_org
         tasks.append(task)
         rh_repos.append(rh_repo)
     for task in tasks:
-        wait_for_tasks(
+        module_target_sat.wait_for_tasks(
             search_query=(f'id = {task["id"]}'),
             poll_timeout=2500,
         )
@@ -252,7 +250,7 @@ def test_convert2rhel_oracle(target_sat, oracle, activation_key_rhel, version):
         },
     )
     # wait for job to complete
-    wait_for_tasks(
+    target_sat.wait_for_tasks(
         f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
     )
     result = target_sat.api.JobInvocation(id=job['id']).read()
@@ -308,7 +306,7 @@ def test_convert2rhel_centos(target_sat, centos, activation_key_rhel, version):
         },
     )
     # wait for job to complete
-    wait_for_tasks(
+    target_sat.wait_for_tasks(
         f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
     )
     result = target_sat.api.JobInvocation(id=job['id']).read()

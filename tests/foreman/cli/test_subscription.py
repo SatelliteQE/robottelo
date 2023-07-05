@@ -20,8 +20,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_activation_key
 from robottelo.cli.factory import make_product
@@ -39,32 +37,23 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def golden_ticket_host_setup(request, module_org):
-    with manifests.clone(name='golden_ticket') as manifest:
-        upload_manifest(module_org.id, manifest.content)
-    new_product = make_product({'organization-id': module_org.id})
+def golden_ticket_host_setup(request, module_sca_manifest_org):
+    new_product = make_product({'organization-id': module_sca_manifest_org.id})
     new_repo = make_repository({'product-id': new_product['id']})
     Repository.synchronize({'id': new_repo['id']})
     new_ak = make_activation_key(
         {
             'lifecycle-environment': 'Library',
             'content-view': 'Default Organization View',
-            'organization-id': module_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'auto-attach': False,
         }
     )
     return new_ak
 
 
-@pytest.fixture(scope='function')
-def manifest_clone_upload(function_org):
-    with manifests.clone() as cloned_manifest:
-        upload_manifest(function_org.id, cloned_manifest.content)
-        yield
-
-
 @pytest.mark.tier1
-def test_positive_manifest_upload(function_org, manifest_clone_upload):
+def test_positive_manifest_upload(function_entitlement_manifest_org):
     """upload manifest
 
     :id: e5a0e4f8-fed9-4896-87a0-ac33f6baa227
@@ -74,12 +63,12 @@ def test_positive_manifest_upload(function_org, manifest_clone_upload):
     :CaseImportance: Critical
     """
 
-    Subscription.list({'organization-id': function_org.id}, per_page=False)
+    Subscription.list({'organization-id': function_entitlement_manifest_org.id}, per_page=False)
 
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_manifest_delete(function_org, manifest_clone_upload):
+def test_positive_manifest_delete(function_entitlement_manifest_org):
     """Delete uploaded manifest
 
     :id: 01539c07-00d5-47e2-95eb-c0fd4f39090f
@@ -88,14 +77,14 @@ def test_positive_manifest_delete(function_org, manifest_clone_upload):
 
     :CaseImportance: Critical
     """
-    Subscription.list({'organization-id': function_org.id}, per_page=False)
-    Subscription.delete_manifest({'organization-id': function_org.id})
-    Subscription.list({'organization-id': function_org.id}, per_page=False)
+    Subscription.list({'organization-id': function_entitlement_manifest_org.id}, per_page=False)
+    Subscription.delete_manifest({'organization-id': function_entitlement_manifest_org.id})
+    Subscription.list({'organization-id': function_entitlement_manifest_org.id}, per_page=False)
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_enable_manifest_reposet(function_org, manifest_clone_upload):
+def test_positive_enable_manifest_reposet(function_entitlement_manifest_org):
     """enable repository set
 
     :id: cc0f8f40-5ea6-4fa7-8154-acdc2cb56b45
@@ -107,12 +96,12 @@ def test_positive_enable_manifest_reposet(function_org, manifest_clone_upload):
 
     :CaseImportance: Critical
     """
-    Subscription.list({'organization-id': function_org.id}, per_page=False)
+    Subscription.list({'organization-id': function_entitlement_manifest_org.id}, per_page=False)
     RepositorySet.enable(
         {
             'basearch': 'x86_64',
             'name': REPOSET['rhva6'],
-            'organization-id': function_org.id,
+            'organization-id': function_entitlement_manifest_org.id,
             'product': PRDS['rhel'],
             'releasever': '6Server',
         }
@@ -120,14 +109,14 @@ def test_positive_enable_manifest_reposet(function_org, manifest_clone_upload):
     Repository.synchronize(
         {
             'name': REPOS['rhva6']['name'],
-            'organization-id': function_org.id,
+            'organization-id': function_entitlement_manifest_org.id,
             'product': PRDS['rhel'],
         }
     )
 
 
 @pytest.mark.tier3
-def test_positive_manifest_history(function_org, manifest_clone_upload):
+def test_positive_manifest_history(function_entitlement_manifest_org):
     """upload manifest and check history
 
     :id: 000ab0a0-ec1b-497a-84ff-3969a965b52c
@@ -136,15 +125,19 @@ def test_positive_manifest_history(function_org, manifest_clone_upload):
 
     :CaseImportance: Medium
     """
-    Subscription.list({'organization-id': function_org.id}, per_page=None)
-    history = Subscription.manifest_history({'organization-id': function_org.id})
-    assert f'{function_org.name} file imported successfully.' in ''.join(history)
+    Subscription.list({'organization-id': function_entitlement_manifest_org.id}, per_page=None)
+    history = Subscription.manifest_history(
+        {'organization-id': function_entitlement_manifest_org.id}
+    )
+    assert f'{function_entitlement_manifest_org.name} file imported successfully.' in ''.join(
+        history
+    )
 
 
 @pytest.mark.skip('Skipping due to manifest refresh issues')
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_manifest_refresh(function_org):
+def test_positive_manifest_refresh(function_entitlement_manifest_org):
     """upload manifest and refresh
 
     :id: 579bbbf7-11cf-4d78-a3b1-16d73bd4ca57
@@ -153,14 +146,14 @@ def test_positive_manifest_refresh(function_org):
 
     :CaseImportance: Critical
     """
-    upload_manifest(function_org.id, manifests.original_manifest().content)
-    Subscription.list({'organization-id': function_org.id}, per_page=False)
-    Subscription.refresh_manifest({'organization-id': function_org.id})
-    Subscription.delete_manifest({'organization-id': function_org.id})
+    org = function_entitlement_manifest_org
+    Subscription.list({'organization-id': org.id}, per_page=False)
+    Subscription.refresh_manifest({'organization-id': org.id})
+    Subscription.delete_manifest({'organization-id': org.id})
 
 
 @pytest.mark.tier2
-def test_positive_subscription_list(function_org, manifest_clone_upload):
+def test_positive_subscription_list(function_entitlement_manifest_org):
     """Verify that subscription list contains start and end date
 
     :id: 4861bcbc-785a-436d-98ce-14cfef7d6907
@@ -173,13 +166,15 @@ def test_positive_subscription_list(function_org, manifest_clone_upload):
 
     :CaseImportance: Medium
     """
-    subscription_list = Subscription.list({'organization-id': function_org.id}, per_page=False)
+    subscription_list = Subscription.list(
+        {'organization-id': function_entitlement_manifest_org.id}, per_page=False
+    )
     for column in ['start-date', 'end-date']:
         assert column in subscription_list[0].keys()
 
 
 @pytest.mark.tier2
-def test_positive_delete_manifest_as_another_user(target_sat):
+def test_positive_delete_manifest_as_another_user(target_sat, function_entitlement_manifest):
     """Verify that uploaded manifest if visible and deletable
         by a different user than the one who uploaded it
 
@@ -203,10 +198,9 @@ def test_positive_delete_manifest_as_another_user(target_sat):
         admin=True, password=user2_password, organization=[org], default_organization=org
     ).create()
     # use the first admin to upload a manifest
-    with manifests.clone() as manifest:
-        target_sat.put(manifest, manifest.filename)
+    target_sat.put(f'{function_entitlement_manifest.path}', f'{function_entitlement_manifest.name}')
     Subscription.with_user(username=user1.login, password=user1_password).upload(
-        {'file': manifest.filename, 'organization-id': org.id}
+        {'file': f'{function_entitlement_manifest.name}', 'organization-id': org.id}
     )
     # try to search and delete the manifest with another admin
     Subscription.with_user(username=user2.login, password=user2_password).delete_manifest(

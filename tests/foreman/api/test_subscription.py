@@ -28,8 +28,6 @@ from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 
-from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import upload_manifest
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -42,8 +40,8 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def rh_repo(module_sca_manifest_org):
-    rh_repo_id = enable_rhrepo_and_fetchid(
+def rh_repo(module_sca_manifest_org, module_target_sat):
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=module_sca_manifest_org.id,
         product=PRDS['rhel'],
@@ -88,7 +86,7 @@ def duplicate_manifest():
 
 @pytest.mark.tier1
 @pytest.mark.pit_server
-def test_positive_create(module_entitlement_manifest):
+def test_positive_create(module_entitlement_manifest, module_target_sat):
     """Upload a manifest.
 
     :id: 6faf9d96-9b45-4bdc-afa9-ec3fbae83d41
@@ -98,7 +96,7 @@ def test_positive_create(module_entitlement_manifest):
     :CaseImportance: Critical
     """
     org = entities.Organization().create()
-    upload_manifest(org.id, module_entitlement_manifest.content)
+    module_target_sat.upload_manifest(org.id, module_entitlement_manifest.content)
 
 
 @pytest.mark.tier1
@@ -119,7 +117,9 @@ def test_positive_refresh(function_entitlement_manifest_org, request):
 
 
 @pytest.mark.tier1
-def test_positive_create_after_refresh(function_entitlement_manifest_org, duplicate_manifest):
+def test_positive_create_after_refresh(
+    function_entitlement_manifest_org, duplicate_manifest, target_sat
+):
     """Upload a manifest,refresh it and upload a new manifest to an other
      organization.
 
@@ -139,7 +139,7 @@ def test_positive_create_after_refresh(function_entitlement_manifest_org, duplic
     try:
         org_sub.refresh_manifest(data={'organization_id': function_entitlement_manifest_org.id})
         assert org_sub.search()
-        upload_manifest(new_org.id, duplicate_manifest.content)
+        target_sat.upload_manifest(new_org.id, duplicate_manifest.content)
         assert new_org_sub.search()
     finally:
         org_sub.delete_manifest(data={'organization_id': function_entitlement_manifest_org.id})
@@ -162,7 +162,7 @@ def test_positive_delete(function_entitlement_manifest_org):
 
 
 @pytest.mark.tier2
-def test_negative_upload(function_entitlement_manifest):
+def test_negative_upload(function_entitlement_manifest, target_sat):
     """Upload the same manifest to two organizations.
 
     :id: 60ca078d-cfaf-402e-b0db-34d8901449fe
@@ -172,9 +172,9 @@ def test_negative_upload(function_entitlement_manifest):
     """
     orgs = [entities.Organization().create() for _ in range(2)]
     with function_entitlement_manifest as manifest:
-        upload_manifest(orgs[0].id, manifest.content)
+        target_sat.upload_manifest(orgs[0].id, manifest.content)
         with pytest.raises(TaskFailedError):
-            upload_manifest(orgs[1].id, manifest.content)
+            target_sat.upload_manifest(orgs[1].id, manifest.content)
     assert len(entities.Subscription(organization=orgs[1]).search()) == 0
 
 
@@ -358,7 +358,7 @@ def test_positive_candlepin_events_processed_by_stomp(
     host_content = entities.Host(id=host_id).read_json()
     assert host_content['subscription_status'] == 2
     with function_entitlement_manifest as manifest:
-        upload_manifest(function_org.id, manifest.content)
+        target_sat.upload_manifest(function_org.id, manifest.content)
     subscription = entities.Subscription(organization=function_org).search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
@@ -416,7 +416,7 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel7_conte
     rhel7_contenthost.unregister()
     # syncing content with the content host unregistered should invalidate
     # the previous client SCA cert
-    rh_repo_id = enable_rhrepo_and_fetchid(
+    rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=module_sca_manifest_org.id,
         product=PRDS['rhel'],

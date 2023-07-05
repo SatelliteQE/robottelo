@@ -95,19 +95,6 @@ def promote(content_view_version, environment_id, force=False):
     return content_view_version.promote(data=data)
 
 
-def upload_manifest(organization_id, manifest):
-    """Call ``nailgun.entities.Subscription.upload``.
-
-    :param organization_id: An organization ID.
-    :param manifest: A file object referencing a Red Hat Satellite 6 manifest.
-    :returns: Whatever ``nailgun.entities.Subscription.upload`` returns.
-
-    """
-    return entities.Subscription().upload(
-        data={'organization_id': organization_id}, files={'content': manifest}
-    )
-
-
 def create_sync_custom_repo(
     org_id=None,
     product_name=None,

@@ -22,7 +22,6 @@ import pytest
 import requests
 from fauxfactory import gen_string
 
-from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.utils.virtwho import create_http_proxy
@@ -387,7 +386,7 @@ class TestVirtWhoConfigforEsx:
         if result.status_code != 200:
             if "foreman_tasks_sync_task_timeout" in result.text:
                 task_id = re.findall('waiting for task (.*?) to finish', result.text)[-1]
-                wait_for_tasks(search_query=f'id = {task_id}', max_tries=10)
+                target_sat.wait_for_tasks(search_query=f'id = {task_id}', max_tries=10)
             else:
                 assert result.status_code == 200
 

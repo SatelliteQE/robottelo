@@ -27,7 +27,6 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_virt_who_config
@@ -273,7 +272,7 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm, target_s
             action_via='via remote execution',
         )
         # Wait for applicability update event (in case Satellite system slow)
-        wait_for_tasks(
+        target_sat.wait_for_tasks(
             search_query='label = Actions::Katello::Applicability::Hosts::BulkGenerate'
             f' and started_at >= "{timestamp}"'
             f' and state = stopped'
@@ -1296,7 +1295,7 @@ def test_module_status_update_from_content_host_to_satellite(
     indirect=True,
 )
 def test_module_status_update_without_force_upload_package_profile(
-    session, default_location, vm_module_streams
+    session, default_location, vm_module_streams, target_sat
 ):
     """Verify you do not have to run dnf upload-profile or restart rhsmcertd
     to update the module stream status to Satellite and that the web UI will also be updated.
@@ -1324,7 +1323,7 @@ def test_module_status_update_without_force_upload_package_profile(
         vm_module_streams,
     )
     # Wait for applicability update event (in case Satellite system slow)
-    wait_for_tasks(
+    target_sat.wait_for_tasks(
         search_query='label = Actions::Katello::Applicability::Hosts::BulkGenerate'
         f' and started_at >= "{timestamp}"'
         f' and state = stopped'

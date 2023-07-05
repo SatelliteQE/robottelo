@@ -26,9 +26,6 @@ from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
 
-from robottelo import manifests
-from robottelo.api.utils import create_role_permissions
-from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DataFile
@@ -91,7 +88,7 @@ def test_positive_create_in_different_orgs(session, module_org):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_create_as_non_admin_user(module_org, test_name):
+def test_positive_create_as_non_admin_user(module_org, test_name, target_sat):
     """Create a repository as a non admin user
 
     :id: 582949c4-b95f-4d64-b7f0-fb80b3d2bd7e
@@ -116,7 +113,7 @@ def test_positive_create_as_non_admin_user(module_org, test_name):
         ],
     }
     role = entities.Role().create()
-    create_role_permissions(role, user_permissions)
+    target_sat.api_factory.create_role_permissions(role, user_permissions)
     entities.User(
         login=user_login,
         password=user_password,
@@ -181,7 +178,7 @@ def test_positive_create_yum_repo_same_url_different_orgs(session, module_prod):
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_name):
+def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_name, target_sat):
     """Create a repository as a non admin user in a product that already
     contain a repository that is used in a published content view.
 
@@ -207,7 +204,7 @@ def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_na
         ],
     }
     role = entities.Role().create()
-    create_role_permissions(role, user_permissions)
+    target_sat.api_factory.create_role_permissions(role, user_permissions)
     entities.User(
         login=user_login,
         password=user_password,
@@ -726,7 +723,7 @@ def test_positive_reposet_disable(session, target_sat):
     :CaseLevel: Integration
     """
     org = entities.Organization().create()
-    manifests.upload_manifest_locked(org.id)
+    target_sat.upload_manifest(org.id)
     sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
     repository_name = sat_tools_repo.data['repository']
     with session:
@@ -772,7 +769,7 @@ def test_positive_reposet_disable_after_manifest_deleted(session, target_sat):
     :CaseLevel: Integration
     """
     org = entities.Organization().create()
-    manifests.upload_manifest_locked(org.id)
+    target_sat.upload_manifest(org.id)
     sub = entities.Subscription(organization=org)
     sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
     repository_name = sat_tools_repo.data['repository']
@@ -855,7 +852,7 @@ def test_positive_delete_rhel_repo(session, module_org, target_sat):
     :BZ: 1152672
     """
 
-    manifests.upload_manifest_locked(module_org.id)
+    target_sat.upload_manifest(module_org.id)
     sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
     repository_name = sat_tools_repo.data['repository']
     product_name = sat_tools_repo.data['product']
@@ -889,7 +886,7 @@ def test_positive_delete_rhel_repo(session, module_org, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_recommended_repos(session, module_org):
+def test_positive_recommended_repos(session, module_org, target_sat):
     """list recommended repositories using
      On/Off 'Recommended Repositories' toggle.
 
@@ -904,7 +901,7 @@ def test_positive_recommended_repos(session, module_org):
 
     :BZ: 1776108
     """
-    manifests.upload_manifest_locked(module_org.id)
+    target_sat.upload_manifest(module_org.id)
     with session:
         session.organization.select(module_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
@@ -1070,7 +1067,7 @@ def test_sync_status_persists_after_task_delete(session, module_prod, module_org
         assert len(result) == 1
         assert result[0] == 'Syncing Complete.'
         # Get the UUID of the sync task.
-        search_result = wait_for_tasks(
+        search_result = target_sat.wait_for_tasks(
             search_query='label = Actions::Katello::Repository::Sync'
             f' and organization_id = {module_org.id}'
             f' and started_at >= "{timestamp}"',

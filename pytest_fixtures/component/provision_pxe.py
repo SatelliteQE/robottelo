@@ -10,8 +10,6 @@ from fauxfactory import gen_string
 from packaging.version import Version
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
 
@@ -45,7 +43,7 @@ def module_provisioning_rhel_content(
     rh_repos = []
     tasks = []
     for name in repo_names:
-        rh_repo_id = enable_rhrepo_and_fetchid(
+        rh_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
             org_id=module_sca_manifest_org.id,
             product=constants.REPOS['kickstart'][name]['product'],
@@ -59,7 +57,7 @@ def module_provisioning_rhel_content(
         tasks.append(task)
         rh_repos.append(rh_repo)
     for task in tasks:
-        wait_for_tasks(
+        sat.wait_for_tasks(
             search_query=(f'id = {task["id"]}'),
             poll_timeout=2500,
         )

@@ -20,8 +20,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import manifests
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.constants import DataFile
 from robottelo.constants import RPM_TO_UPLOAD
@@ -63,9 +61,9 @@ def module_yum_repo2(module_product):
 
 @pytest.fixture(scope='module')
 def module_rh_repo(module_org, module_target_sat):
-    manifests.upload_manifest_locked(module_org.id, manifests.clone())
+    module_target_sat.upload_manifest(module_org.id)
     rhst = module_target_sat.cli_factory.SatelliteToolsRepository(cdn=True)
-    repo_id = enable_rhrepo_and_fetchid(
+    repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=rhst.data['arch'],
         org_id=module_org.id,
         product=rhst.data['product'],

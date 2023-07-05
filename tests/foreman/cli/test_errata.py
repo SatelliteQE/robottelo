@@ -26,8 +26,6 @@ from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
@@ -627,7 +625,7 @@ def test_install_errata_to_one_host(module_org, errata_hosts, host_collection, t
         host.add_rex_key(satellite=target_sat)
         Host.errata_recalculate({'host-id': host.nailgun_host.id})
     timestamp = (datetime.utcnow() - timedelta(minutes=1)).strftime(TIMESTAMP_FMT)
-    wait_for_tasks(
+    target_sat.wait_for_tasks(
         search_query=(
             'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
             f' and started_at >= "{timestamp}"'
@@ -784,7 +782,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
 
 @pytest.mark.tier3
 def test_host_errata_search_commands(
-    request, module_org, module_cv, module_lce, host_collection, errata_hosts
+    request, module_org, module_cv, module_lce, host_collection, errata_hosts, target_sat
 ):
     """View a list of affected hosts for security (RHSA) and bugfix (RHBA) errata,
     filtered with errata status and applicable flags. Applicability is calculated using the
@@ -826,7 +824,7 @@ def test_host_errata_search_commands(
         timestamp = (datetime.utcnow() - timedelta(minutes=1)).strftime(TIMESTAMP_FMT)
         Host.errata_recalculate({'host-id': host.nailgun_host.id})
         # Wait for upload profile event (in case Satellite system slow)
-        wait_for_tasks(
+        target_sat.wait_for_tasks(
             search_query=(
                 'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
                 f' and started_at >= "{timestamp}"'
@@ -1294,12 +1292,12 @@ def test_positive_check_errata_dates(module_org):
 
 
 @pytest.fixture(scope='module')
-def rh_repo_module_manifest(module_manifest_org):
+def rh_repo_module_manifest(module_entitlement_manifest_org, module_target_sat):
     """Use module manifest org, creates RH tools repo, syncs and returns RH repo."""
     # enable rhel repo and return its ID
-    rh_repo_id = enable_rhrepo_and_fetchid(
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
-        org_id=module_manifest_org.id,
+        org_id=module_entitlement_manifest_org.id,
         product=PRDS['rhel'],
         repo=REPOS['rhst7']['name'],
         reposet=REPOSET['rhst7'],
@@ -1396,7 +1394,7 @@ def test_apply_errata_using_default_content_view(errata_host, target_sat):
     assert 'success' in result
     timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
-    wait_for_tasks(
+    target_sat.wait_for_tasks(
         search_query=(
             'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
             f' and started_at >= "{timestamp}"'
@@ -1412,7 +1410,7 @@ def test_apply_errata_using_default_content_view(errata_host, target_sat):
 
 @pytest.mark.tier2
 @pytest.mark.no_containers
-def test_update_applicable_package_using_default_content_view(errata_host):
+def test_update_applicable_package_using_default_content_view(errata_host, target_sat):
     """Updating an applicable package on a host attached to the default content view causes the
     package to not be applicable or installable.
 
@@ -1441,7 +1439,7 @@ def test_update_applicable_package_using_default_content_view(errata_host):
     )
     timestamp = (datetime.utcnow()).strftime(TIMESTAMP_FMT)
     Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
-    wait_for_tasks(
+    target_sat.wait_for_tasks(
         search_query=(
             'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
             f' and started_at >= "{timestamp}"'
@@ -1466,7 +1464,7 @@ def test_update_applicable_package_using_default_content_view(errata_host):
     Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
 
     # Wait for upload profile event (in case Satellite system slow)
-    wait_for_tasks(
+    target_sat.wait_for_tasks(
         search_query=(
             'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
             f' and started_at >= "{timestamp}"'
@@ -1527,7 +1525,7 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host, ta
     errata_host.run(f'yum -y downgrade {PSUTIL_RPM}')
     Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
     # Wait for upload profile event (in case Satellite system slow)
-    wait_for_tasks(
+    target_sat.wait_for_tasks(
         search_query=(
             'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
             f' and started_at >= "{timestamp}"'
@@ -1548,7 +1546,7 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host, ta
 
 
 @pytest.mark.tier2
-def test_install_applicable_package_to_registerd_host(chost):
+def test_install_applicable_package_to_registerd_host(chost, target_sat):
     """Installing an older package to an already registered host should show the newer package
     and errata as applicable and installable.
 
@@ -1583,7 +1581,7 @@ def test_install_applicable_package_to_registerd_host(chost):
     timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     chost.run(f'yum -y install {PSUTIL_RPM}')
     # Wait for upload profile event (in case Satellite system slow)
-    wait_for_tasks(
+    target_sat.wait_for_tasks(
         search_query=(
             'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
             f' and started_at >= "{timestamp}"'
@@ -1607,7 +1605,9 @@ def test_install_applicable_package_to_registerd_host(chost):
 
 @pytest.mark.tier2
 @pytest.mark.no_containers
-def test_downgrading_package_shows_errata_from_library(errata_host, module_manifest_org):
+def test_downgrading_package_shows_errata_from_library(
+    errata_host, module_manifest_org, target_sat
+):
     """Downgrading a package on a host attached to the default content view
     causes the package to become applicable and installable.
 
@@ -1646,7 +1646,7 @@ def test_downgrading_package_shows_errata_from_library(errata_host, module_manif
     # Wait for upload profile event (in case Satellite system slow)
     Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
     # Wait for upload profile event (in case Satellite system slow)
-    wait_for_tasks(
+    target_sat.wait_for_tasks(
         search_query=(
             'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
             f' and started_at >= "{timestamp}"'
