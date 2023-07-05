@@ -266,7 +266,7 @@ class TestVirtWhoConfigforEsx:
                 assert get_configure_option('filter_hosts', config_file) == regex
                 assert (
                     get_configure_option('filter_host_parents', config_file)
-                    == whitelist['filter_host_parents']
+                    == whitelist['whitelist']
                 )
                 assert result.whitelist == regex
                 assert result.filter_host_parents == regex
@@ -275,7 +275,7 @@ class TestVirtWhoConfigforEsx:
                 assert get_configure_option('exclude_hosts', config_file) == regex
                 assert (
                     get_configure_option('exclude_host_parents', config_file)
-                    == blacklist['exclude_host_parents']
+                    == blacklist['blacklist']
                 )
                 assert result.blacklist == regex
                 assert result.exclude_host_parents == regex
