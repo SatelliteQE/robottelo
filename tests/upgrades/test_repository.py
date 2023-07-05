@@ -251,10 +251,6 @@ class TestScenarioCustomRepoOverrideCheck:
             2. Custom Repository is enabled on Host.
 
         """
-        # org = target_sat.api.Organization().create()
-        # lce = target_sat.api.LifecycleEnvironment(organization=org).create()
-
-        # product = target_sat.api.Product(organization=org).create()
         repo = target_sat.api.Repository(
             product=function_product.id, url=settings.repos.yum_1.url
         ).create()
