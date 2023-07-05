@@ -20,9 +20,6 @@ import pytest
 from nailgun.entity_mixins import TaskFailedError
 
 from robottelo import constants
-from robottelo import manifests
-from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import upload_manifest
 from robottelo.api.utils import wait_for_tasks
 
 pytestmark = pytest.mark.destructive
@@ -30,7 +27,7 @@ pytestmark = pytest.mark.destructive
 
 @pytest.mark.tier4
 @pytest.mark.run_in_one_thread
-def test_positive_reboot_recover_cv_publish(target_sat):
+def test_positive_reboot_recover_cv_publish(target_sat, function_entitlement_manifest_org):
     """Reboot the Satellite during publish and resume publishing
 
     :id: cceae727-81db-40a4-9c26-05ca6e93464e
@@ -46,10 +43,8 @@ def test_positive_reboot_recover_cv_publish(target_sat):
 
     :CaseAutomation: Automated
     """
-    org = target_sat.api.Organization().create()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
-    rhel7_extra = enable_rhrepo_and_fetchid(
+    org = function_entitlement_manifest_org
+    rhel7_extra = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
         product=constants.PRDS['rhel'],
@@ -57,7 +52,7 @@ def test_positive_reboot_recover_cv_publish(target_sat):
         reposet=constants.REPOSET['rhel7_extra'],
         releasever=None,
     )
-    rhel7_optional = enable_rhrepo_and_fetchid(
+    rhel7_optional = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
         product=constants.PRDS['rhel'],
@@ -65,7 +60,7 @@ def test_positive_reboot_recover_cv_publish(target_sat):
         reposet=constants.REPOSET['rhel7_optional'],
         releasever=constants.REPOS['rhel7_optional']['releasever'],
     )
-    rhel7_sup = enable_rhrepo_and_fetchid(
+    rhel7_sup = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
         product=constants.PRDS['rhel'],

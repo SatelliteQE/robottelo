@@ -29,7 +29,6 @@ from wait_for import wait_for
 from wrapanapi.entities.vm import VmState
 
 from robottelo import constants
-from robottelo.api.utils import update_provisioning_template
 from robottelo.cli.base import Base
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import configure_airgun
@@ -691,7 +690,7 @@ class ContentHost(Host, ContentHostMixins):
         If local_path is a manifest object, write its contents to a temporary file
         then continue with the upload.
         """
-        if 'manifests.Manifest' in str(local_path):
+        if 'utils.Manifest' in str(local_path):
             with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
                 content_file.write(local_path.content.read())
                 content_file.flush()
@@ -1739,9 +1738,9 @@ class Satellite(Capsule, SatelliteMixins):
         """
         old = 'yum -t -y update'
         new = 'echo "Yum update skipped for faster automation testing"'
-        update_provisioning_template(name=template, old=old, new=new)
+        self.satellite.api_factory.update_provisioning_template(name=template, old=old, new=new)
         yield
-        update_provisioning_template(name=template, old=new, new=old)
+        self.satellite.api_factory.update_provisioning_template(name=template, old=new, new=old)
 
     def update_setting(self, name, value):
         """changes setting value and returns the setting value before the change."""

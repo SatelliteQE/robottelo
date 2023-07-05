@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import http
-import random
 from collections import defaultdict
 from pprint import pformat
 
@@ -28,10 +27,7 @@ from nailgun import client
 from nailgun import entities
 
 from robottelo import constants
-from robottelo import manifests
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
-from robottelo.api.utils import upload_manifest
 from robottelo.config import get_credentials
 from robottelo.config import get_url
 from robottelo.config import setting_is_set
@@ -39,6 +35,7 @@ from robottelo.config import settings
 from robottelo.config import user_nailgun_config
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.utils.issue_handlers import is_open
+from robottelo.utils.manifest import clone
 
 
 API_PATHS = {
@@ -1077,8 +1074,8 @@ class TestEndToEnd:
 
         # step 2.2: Clone and upload manifest
         if fake_manifest_is_set:
-            with manifests.clone() as manifest:
-                upload_manifest(org.id, manifest.content)
+            with clone() as manifest:
+                target_sat.upload_manifest(org.id, manifest.content)
 
         # step 2.3: Create a new lifecycle environment
         le1 = target_sat.api.LifecycleEnvironment(server_config=user_cfg, organization=org).create()
@@ -1096,7 +1093,7 @@ class TestEndToEnd:
         # step 2.6: Enable a Red Hat repository
         if fake_manifest_is_set:
             rhel_repo = target_sat.api.Repository(
-                id=enable_rhrepo_and_fetchid(
+                id=target_sat.api_factory.enable_rhrepo_and_fetchid(
                     basearch='x86_64',
                     org_id=org.id,
                     product=constants.PRDS['rhel'],

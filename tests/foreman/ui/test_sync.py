@@ -20,8 +20,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import manifests
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
@@ -45,9 +43,9 @@ def module_custom_product(module_org):
 
 
 @pytest.fixture(scope='module')
-def module_org_with_manifest():
+def module_org_with_manifest(module_target_sat):
     org = entities.Organization().create()
-    manifests.upload_manifest_locked(org.id)
+    module_target_sat.upload_manifest(org.id)
     return org
 
 
@@ -143,7 +141,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest):
+def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest, target_sat):
     """Sync CDN based ostree repository.
 
     :id: 4d28fff0-5fda-4eee-aa0c-c5af02c31de5
@@ -160,7 +158,7 @@ def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest):
 
     :BZ: 1625783
     """
-    enable_rhrepo_and_fetchid(
+    target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=None,
         org_id=module_org_with_manifest.id,
         product=PRDS['rhah'],

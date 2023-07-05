@@ -15,7 +15,6 @@ import pytest
 from fauxfactory import gen_string
 from wrapanapi import VMWareSystem
 
-from robottelo.api.utils import configure_provisioning
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.factory import make_compute_resource
 from robottelo.cli.factory import make_host
@@ -50,14 +49,14 @@ def vmware():
 
 
 @pytest.fixture(scope="module")
-def provisioning(module_org, module_location):
+def provisioning(module_org, module_location, module_target_sat):
     os = None
     if hasattr(settings, 'rhev') and hasattr(settings.rhev, 'image_os') and settings.rhev.image_os:
         os = settings.rhev.image_os
     provisioning = type("", (), {})()
     provisioning.org_name = module_org.name
     provisioning.loc_name = module_location.name
-    provisioning.config_env = configure_provisioning(
+    provisioning.config_env = module_target_sat.api_factory.configure_provisioning(
         compute=True, org=module_org, loc=module_location, os=os
     )
     provisioning.os_name = provisioning.config_env['os']

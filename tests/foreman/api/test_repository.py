@@ -33,7 +33,6 @@ from requests.exceptions import HTTPError
 
 from robottelo import constants
 from robottelo.api.utils import call_entity_method_with_timeout
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import DataFile
@@ -149,7 +148,9 @@ class TestRepository:
     @pytest.mark.skip_if_open("BZ:2042473")
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_sync_redhat_repo_using_http_proxy(self, module_manifest_org):
+    def test_positive_sync_redhat_repo_using_http_proxy(
+        self, module_manifest_org, module_target_sat
+    ):
         """Assign http_proxy to Redhat repository and perform repository sync.
 
         :id: 238bf07b-bab0-4d30-a6ab-be73cbaefc46
@@ -169,7 +170,7 @@ class TestRepository:
             organization=[module_manifest_org.id],
         ).create()
 
-        rh_repo_id = enable_rhrepo_and_fetchid(
+        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
             org_id=module_manifest_org.id,
             product=constants.PRDS['rhae'],
@@ -1263,7 +1264,7 @@ class TestRepository:
         :expectedresults: foreman-rake katello:correct_repositories COMMIT=true recreates deleted
          repos with no TaskErrors
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhel'],
@@ -1369,7 +1370,7 @@ class TestRepositorySync:
         assert response, f"Repository {repo} failed to sync."
 
     @pytest.mark.tier2
-    def test_positive_sync_rh(self, module_entitlement_manifest_org):
+    def test_positive_sync_rh(self, module_entitlement_manifest_org, module_target_sat):
         """Sync RedHat Repository.
 
         :id: d69c44cd-753c-4a75-9fd5-a8ed963b5e04
@@ -1378,7 +1379,7 @@ class TestRepositorySync:
 
         :CaseLevel: Integration
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhel'],
@@ -1453,7 +1454,7 @@ class TestRepositorySync:
         """
         repo_ids = []
         for repo in constants.BULK_REPO_LIST:
-            repo_id = enable_rhrepo_and_fetchid(
+            repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
                 basearch='x86_64',
                 org_id=module_entitlement_manifest_org.id,
                 product=repo['product'],
@@ -1535,7 +1536,7 @@ class TestRepositorySync:
 
         :CaseAutomation: Automated
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhel'],
@@ -2187,7 +2188,7 @@ class TestDockerRepository:
 #
 #         :BZ: 1625783
 #         """
-#         with manifests.clone() as manifest:
+#         with clone() as manifest:
 #             upload_manifest(module_org.id, manifest.content)
 #         repo_id = enable_rhrepo_and_fetchid(
 #             org_id=module_org.id,

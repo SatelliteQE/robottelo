@@ -18,11 +18,9 @@
 """
 import pytest
 
-from robottelo import manifests
 from robottelo.cli.factory import make_org
 from robottelo.cli.product import Product
 from robottelo.cli.repository_set import RepositorySet
-from robottelo.cli.subscription import Subscription
 from robottelo.constants import PRDS
 from robottelo.constants import REPOSET
 
@@ -115,15 +113,6 @@ def params(manifest_org):
 def org():
     """Create and return an organization."""
     return make_org()
-
-
-@pytest.fixture
-def manifest_org(org, target_sat):
-    """Upload a manifest to the organization."""
-    with manifests.clone() as manifest:
-        target_sat.put(manifest, manifest.filename)
-    Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
-    return org
 
 
 def match_repos(repos, match_params):

@@ -23,7 +23,6 @@ from nailgun import entities
 from requests import HTTPError
 from wait_for import wait_for
 
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
@@ -36,9 +35,9 @@ from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
-def setup_content(module_entitlement_manifest_org):
+def setup_content(module_entitlement_manifest_org, module_target_sat):
     org = module_entitlement_manifest_org
-    rh_repo_id = enable_rhrepo_and_fetchid(
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
         product=PRDS['rhel'],

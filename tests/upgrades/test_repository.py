@@ -19,7 +19,6 @@
 import pytest
 from broker import Broker
 
-from robottelo.api.utils import create_sync_custom_repo
 from robottelo.config import settings
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
@@ -59,7 +58,7 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
         """
 
         org = target_sat.api.Organization().create()
-        custom_repo = create_sync_custom_repo(org_id=org.id)
+        custom_repo = target_sat.api_factory.create_sync_custom_repo(org_id=org.id)
         rake_repo = f'repo = Katello::Repository.find_by_id({custom_repo})'
         rake_username = f'; repo.root.upstream_username = "{UPSTREAM_USERNAME}"'
         rake_repo_save = '; repo.save!(validate: false)'

@@ -21,7 +21,6 @@ from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_ipaddr
 
 from robottelo import constants
-from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contentview import ContentView
@@ -93,7 +92,7 @@ def test_positive_cli_find_admin_user():
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_cli_end_to_end(fake_manifest_is_set, target_sat, rhel7_contenthost):
+def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel7_contenthost):
     """Perform end to end smoke tests using RH and custom repos.
 
     1. Create a new user with admin permissions
@@ -133,10 +132,10 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, target_sat, rhel7_content
     org = _create(user, Org, {'name': gen_alphanumeric()})
 
     # step 2.2: Clone and upload manifest
-    if fake_manifest_is_set:
-        with manifests.clone() as manifest:
-            target_sat.put(manifest, manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
+    target_sat.put(f'{function_entitlement_manifest.path}', f'{function_entitlement_manifest.name}')
+    Subscription.upload(
+        {'file': f'{function_entitlement_manifest.name}', 'organization-id': org['id']}
+    )
 
     # step 2.3: Create a new lifecycle environment
     lifecycle_environment = _create(

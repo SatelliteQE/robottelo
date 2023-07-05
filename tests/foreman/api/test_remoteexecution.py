@@ -18,7 +18,6 @@
 """
 import pytest
 
-from robottelo.api.utils import wait_for_tasks
 from robottelo.hosts import get_sat_version
 
 CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
@@ -57,7 +56,7 @@ def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target
             'search_query': f'name = {module_capsule_configured.hostname}',
         },
     )
-    wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
+    target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
     result = target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
     result = target_sat.execute('satellite-maintain health check')

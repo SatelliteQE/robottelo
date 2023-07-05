@@ -25,9 +25,6 @@ from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo import manifests
-from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import upload_manifest
 from robottelo.config import get_credentials
 from robottelo.config import user_nailgun_config
 from robottelo.constants import PRDS
@@ -437,7 +434,9 @@ def test_positive_remove_user(target_sat):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_fetch_product_content(module_org):
+def test_positive_fetch_product_content(
+    module_org, module_target_sat, session_entitlement_manifest
+):
     """Associate RH & custom product with AK and fetch AK's product content
 
     :id: 424f3dfb-0112-464b-b633-e8c9bce6e0f1
@@ -445,15 +444,12 @@ def test_positive_fetch_product_content(module_org):
     :expectedresults: Both Red Hat and custom product subscriptions are
         assigned as Activation Key's product content
 
-    :BZ: 1426386
-
     :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
-    with manifests.clone() as manifest:
-        upload_manifest(module_org.id, manifest.content)
-    rh_repo_id = enable_rhrepo_and_fetchid(
+    module_target_sat.upload_manifest(module_org.id, session_entitlement_manifest.content)
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=module_org.id,
         product=PRDS['rhel'],
