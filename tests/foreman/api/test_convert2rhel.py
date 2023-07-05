@@ -164,7 +164,7 @@ def centos(
     register_host(target_sat, act_key, module_org, smart_proxy_location, centos_host)
     # Below lines are workaround because of the kernel mismatch errror.
     # These will be removed once we have the solution  to fix this.
-    centos_host.execute("yum update kernel -y")
+    centos_host.execute("yum update kernel* -y")
     centos_host.power_control(state='reboot', ensure=True)
     yield centos_host
     # close ssh session before teardown, because of reboot in conversion it may cause problems
