@@ -949,6 +949,7 @@ class ContentHost(Host, ContentHostMixins):
                 f'stdout: {result.stdout} host_data_stdout: {data.stdout}, '
                 f'and host_data_stderr: {data.stderr}'
             )
+        return result.stdout
 
     def configure_rex(self, satellite, org, subnet_id=None, by_ip=True, register=True):
         """Setup a VM host for remote execution.
