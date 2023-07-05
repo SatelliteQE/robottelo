@@ -224,7 +224,14 @@ class TestScenarioCustomRepoOverrideCheck:
 
     @pytest.mark.pre_upgrade
     def test_pre_scenario_custom_repo_sca_toggle(
-        self, target_sat, sat_upgrade_chost, save_test_data, default_location
+        self,
+        target_sat,
+        function_org,
+        function_product,
+        function_lce,
+        sat_upgrade_chost,
+        save_test_data,
+        default_location,
     ):
         """This is a pre-upgrade scenario test to verify that repositories in a non-sca org
         set to "Enabled" should be overridden to "Enabled(Override)" when upgrading to 6.14.
@@ -244,31 +251,33 @@ class TestScenarioCustomRepoOverrideCheck:
             2. Custom Repository is enabled on Host.
 
         """
-        org = target_sat.api.Organization().create()
-        lce = target_sat.api.LifecycleEnvironment(organization=org).create()
+        # org = target_sat.api.Organization().create()
+        # lce = target_sat.api.LifecycleEnvironment(organization=org).create()
 
-        product = target_sat.api.Product(organization=org).create()
-        repo = target_sat.api.Repository(product=product.id, url=settings.repos.yum_1.url).create()
-        repo.sync()
-        content_view = target_sat.publish_content_view(org, repo)
-        content_view.version[0].promote(data={'environment_ids': lce.id})
-        ak = target_sat.api.ActivationKey(
-            content_view=content_view, organization=org.id, environment=lce
+        # product = target_sat.api.Product(organization=org).create()
+        repo = target_sat.api.Repository(
+            product=function_product.id, url=settings.repos.yum_1.url
         ).create()
-        if not target_sat.is_sca_mode_enabled(org.id):
-            subscription = target_sat.api.Subscription(organization=org).search(
-                query={'search': f'name={product.name}'}
+        repo.sync()
+        content_view = target_sat.publish_content_view(function_org, repo)
+        content_view.version[0].promote(data={'environment_ids': function_lce.id})
+        ak = target_sat.api.ActivationKey(
+            content_view=content_view, organization=function_org.id, environment=function_lce
+        ).create()
+        if not target_sat.is_sca_mode_enabled(function_org.id):
+            subscription = target_sat.api.Subscription(organization=function_org).search(
+                query={'search': f'name={function_product.name}'}
             )[0]
             ak.add_subscriptions(data={'subscription_id': subscription.id})
-        sat_upgrade_chost.register(org, default_location, ak.name, target_sat)
+        sat_upgrade_chost.register(function_org, default_location, ak.name, target_sat)
         product_details = sat_upgrade_chost.execute('subscription-manager repos --list')
         assert 'Enabled:   1' in product_details.stdout
 
         save_test_data(
             {
                 'rhel_client': sat_upgrade_chost.hostname,
-                'org_name': org.name,
-                'product_name': product.name,
+                'org_name': function_org.name,
+                'product_name': function_product.name,
                 'repo_name': repo.name,
                 'product_details': product_details.stdout,
             }
