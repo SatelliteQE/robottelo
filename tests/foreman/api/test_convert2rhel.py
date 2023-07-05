@@ -278,7 +278,7 @@ def test_convert2rhel_oracle(target_sat, oracle, activation_key_rhel, version):
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize("version", ['centos7'], indirect=True)
+@pytest.mark.parametrize('version', ['centos7'], indirect=True)
 def test_convert2rhel_centos(target_sat, centos, activation_key_rhel, version):
     """Convert Centos linux to RHEL
 
