@@ -92,6 +92,30 @@ def repo_setup():
 
 
 @pytest.fixture(scope='module')
+def setup_content(module_org):
+    """This fixture is used to setup an activation key with a custom product attached. Used for
+    registering a host
+    """
+    org = module_org
+    custom_repo = entities.Repository(
+        product=entities.Product(organization=org).create(),
+    ).create()
+    custom_repo.sync()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    cv = entities.ContentView(
+        organization=org,
+        repository=[custom_repo.id],
+    ).create()
+    cv.publish()
+    cvv = cv.read().version[0].read()
+    cvv.promote(data={'environment_ids': lce.id, 'force': False})
+    ak = entities.ActivationKey(
+        content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
+    ).create()
+    return ak, org, custom_repo
+
+
+@pytest.fixture(scope='module')
 def module_repository(os_path, module_product, module_target_sat):
     repo = module_target_sat.api.Repository(product=module_product, url=os_path).create()
     call_entity_method_with_timeout(module_target_sat.api.Repository(id=repo.id).sync, timeout=3600)
