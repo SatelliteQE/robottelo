@@ -20,6 +20,7 @@ import pytest
 from airgun.session import Session
 from broker import Broker
 from fauxfactory import gen_string
+from manifester import Manifester
 from nailgun import entities
 
 from robottelo.config import settings
@@ -84,35 +85,54 @@ def _set_setting_value(setting_entity, value):
 
 
 @pytest.fixture(scope='module')
-def module_org(module_target_sat, module_entitlement_manifest_org):
+def module_manifest():
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
+        yield manifest
+
+
+@pytest.fixture
+def function_manifest():
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
+        yield manifest
+
+
+@pytest.fixture(scope='module')
+def module_org_with_parameter(module_target_sat, module_manifest):
+    org = module_target_sat.api.Organization(simple_content_access=False).create()
+    # org.sca_disable()
     module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         parameter_type='boolean',
         value='Yes',
-        organization=module_entitlement_manifest_org.id,
+        organization=org.id,
     ).create()
-    return module_entitlement_manifest_org
+    module_target_sat.upload_manifest(org.id, module_manifest.content)
+    return org
 
 
 @pytest.fixture
-def org(target_sat, function_entitlement_manifest_org):
+def function_org_with_parameter(target_sat, function_manifest):
+    org = target_sat.api.Organization(simple_content_access=False).create()
     target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         parameter_type='boolean',
         value='Yes',
-        organization=function_entitlement_manifest_org.id,
+        organization=org.id,
     ).create()
-    return function_entitlement_manifest_org
+    target_sat.upload_manifest(org.id, function_manifest.content)
+    return org
 
 
 @pytest.fixture(scope='module')
-def module_lce(module_org):
-    return entities.LifecycleEnvironment(organization=module_org).create()
+def module_lce(module_target_sat, module_org_with_parameter):
+    return module_target_sat.api.LifecycleEnvironment(
+        organization=module_org_with_parameter
+    ).create()
 
 
 @pytest.fixture
-def lce(org):
-    return entities.LifecycleEnvironment(organization=org).create()
+def lce(target_sat, function_org_with_parameter):
+    return target_sat.api.LifecycleEnvironment(organization=function_org_with_parameter).create()
 
 
 @pytest.fixture
@@ -159,7 +179,12 @@ def vm(module_repos_collection_with_setup, rhel7_contenthost, target_sat):
 )
 @pytest.mark.no_containers
 def test_end_to_end(
-    session, module_org, module_repos_collection_with_setup, vm, target_sat, setting_update
+    session,
+    module_org_with_parameter,
+    module_repos_collection_with_setup,
+    vm,
+    target_sat,
+    setting_update,
 ):
     """Create all entities required for errata, set up applicable host,
     read errata details and apply it to host
@@ -239,7 +264,7 @@ def test_end_to_end(
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_content_host_errata_page_pagination(session, org, lce, target_sat):
+def test_content_host_errata_page_pagination(session, function_org_with_parameter, lce, target_sat):
     """
     # Test per-page pagination for BZ#1662254
     # Test apply by REX using Select All for BZ#1846670
@@ -272,6 +297,7 @@ def test_content_host_errata_page_pagination(session, org, lce, target_sat):
     :CaseLevel: System
     """
 
+    org = function_org_with_parameter
     pkgs = ' '.join(FAKE_3_YUM_OUTDATED_PACKAGES)
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel7',
@@ -325,7 +351,7 @@ def test_content_host_errata_page_pagination(session, org, lce, target_sat):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_list(session, org, lce, target_sat):
+def test_positive_list(session, function_org_with_parameter, lce, target_sat):
     """View all errata in an Org
 
     :id: 71c7a054-a644-4c1e-b304-6bc34ea143f4
@@ -342,6 +368,7 @@ def test_positive_list(session, org, lce, target_sat):
 
     :CaseLevel: Integration
     """
+    org = function_org_with_parameter
     rc = target_sat.cli_factory.RepositoryCollection(
         repositories=[target_sat.cli_factory.YumRepository(settings.repos.yum_3.url)]
     )
@@ -372,7 +399,9 @@ def test_positive_list(session, org, lce, target_sat):
     ],
     indirect=True,
 )
-def test_positive_list_permission(test_name, module_org, module_repos_collection_with_setup):
+def test_positive_list_permission(
+    test_name, module_org_with_parameter, module_repos_collection_with_setup
+):
     """Show errata only if the User has permissions to view them
 
     :id: cdb28f6a-23df-47a2-88ab-cd3b492126b2
@@ -390,6 +419,7 @@ def test_positive_list_permission(test_name, module_org, module_repos_collection
 
     :CaseLevel: Integration
     """
+    module_org = module_org_with_parameter
     role = entities.Role().create()
     entities.Filter(
         organization=[module_org],
@@ -429,7 +459,7 @@ def test_positive_list_permission(test_name, module_org, module_repos_collection
     indirect=True,
 )
 def test_positive_apply_for_all_hosts(
-    session, module_org, module_repos_collection_with_setup, target_sat
+    session, module_org_with_parameter, module_repos_collection_with_setup, target_sat
 ):
     """Apply an erratum for all content hosts
 
@@ -527,7 +557,7 @@ def test_positive_view_cve(session, module_repos_collection_with_setup):
     indirect=True,
 )
 def test_positive_filter_by_environment(
-    session, module_org, module_repos_collection_with_setup, target_sat
+    session, module_org_with_parameter, module_repos_collection_with_setup, target_sat
 ):
     """Filter Content hosts by environment
 
@@ -546,6 +576,7 @@ def test_positive_filter_by_environment(
 
     :CaseLevel: System
     """
+    module_org = module_org_with_parameter
     with Broker(
         nick=module_repos_collection_with_setup.distro, host_class=ContentHost, _count=2
     ) as clients:
@@ -603,7 +634,7 @@ def test_positive_filter_by_environment(
     indirect=True,
 )
 def test_positive_content_host_previous_env(
-    session, module_org, module_repos_collection_with_setup, vm
+    session, module_org_with_parameter, module_repos_collection_with_setup, vm
 ):
     """Check if the applicable errata are available from the content
     host's previous environment
@@ -624,6 +655,7 @@ def test_positive_content_host_previous_env(
 
     :CaseLevel: System
     """
+    module_org = module_org_with_parameter
     hostname = vm.hostname
     assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
     # Promote the latest content view version to a new lifecycle environment
@@ -662,7 +694,7 @@ def test_positive_content_host_previous_env(
     ],
     indirect=True,
 )
-def test_positive_content_host_library(session, module_org, vm):
+def test_positive_content_host_library(session, module_org_with_parameter, vm):
     """Check if the applicable errata are available from the content
     host's Library
 
@@ -776,7 +808,9 @@ def test_positive_content_host_search_type(session, erratatype_vm):
     ],
     indirect=True,
 )
-def test_positive_show_count_on_content_host_page(session, module_org, erratatype_vm):
+def test_positive_show_count_on_content_host_page(
+    session, module_org_with_parameter, erratatype_vm
+):
     """Available errata count displayed in Content hosts page
 
     :id: 8575e282-d56e-41dc-80dd-f5f6224417cb
@@ -832,7 +866,9 @@ def test_positive_show_count_on_content_host_page(session, module_org, erratatyp
     ],
     indirect=True,
 )
-def test_positive_show_count_on_content_host_details_page(session, module_org, erratatype_vm):
+def test_positive_show_count_on_content_host_details_page(
+    session, module_org_with_parameter, erratatype_vm
+):
     """Errata count on Content host Details page
 
     :id: 388229da-2b0b-41aa-a457-9b5ecbf3df4b
@@ -993,7 +1029,7 @@ def test_positive_filtered_errata_status_installable_param(
     indirect=True,
 )
 def test_content_host_errata_search_commands(
-    session, module_org, module_repos_collection_with_setup, target_sat
+    session, module_org_with_parameter, module_repos_collection_with_setup, target_sat
 ):
     """View a list of affected content hosts for security (RHSA) and bugfix (RHBA) errata,
     filtered with errata status and applicable flags. Applicability is calculated using the
