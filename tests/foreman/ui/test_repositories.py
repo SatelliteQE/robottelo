@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
+:CaseLevel: Integration
 
 :CaseComponent: Repositories
 
