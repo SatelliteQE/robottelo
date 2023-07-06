@@ -1243,7 +1243,7 @@ def test_positive_custom_products_disabled_by_default_ak(
         1. Create custom product and upload repository
         2. Attach to activation key
         3. Filter Repositories by "Custom" type
-        4. Assert that custom proudct is visible and disabled by default
+        4. Assert that custom product is visible and disabled by default
         5. Filter Repositories by "Red Hat" type
         6. Assert custom product is not visible
 
@@ -1257,12 +1257,8 @@ def test_positive_custom_products_disabled_by_default_ak(
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)
-        repo1 = session.activationkey.get_repos(
-            ak.name, repo_type="Custom", widget_names='Repository Sets'
-        )
+        repo1 = session.activationkey.get_repos(ak.name, repo_type="Custom")
         assert repo1[0]['Repository Name'] == custom_repo.name
         assert repo1[0]['Status'] == 'Disabled'
-        repo2 = session.activationkey.get_repos(
-            ak.name, repo_type="Red Hat", widget_names='Repository Sets'
-        )
+        repo2 = session.activationkey.get_repos(ak.name, repo_type="Red Hat")
         assert repo2[0]['Repository Name'] != custom_repo.name
