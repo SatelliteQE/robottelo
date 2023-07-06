@@ -104,6 +104,9 @@ def module_vmware_settings():
         image_username=settings.vmware.image_username,
         image_password=settings.vmware.image_password,
         vm_name=settings.vmware.vm_name,
+        cluster=settings.vmware.cluster,
+        mac_address=settings.vmware.mac_address,
+        hypervisor=settings.vmware.hypervisor,
     )
     if 'INTERFACE' in settings.vmware:
         ret['interface'] = VMWARE_CONSTANTS['network_interfaces'] % settings.vmware.interface
@@ -593,15 +596,15 @@ def test_positive_virt_card(
         virt_card = session.host_new.get_details(host_name, widget_names='details.virtualization')[
             'details'
         ]['virtualization']
-        assert virt_card['datacenter'] == 'RH_Engineering'
-        assert virt_card['cluster'] == 'Satellite-Engineering'
+        assert virt_card['datacenter'] == module_vmware_settings['datacenter']
+        assert virt_card['cluster'] == module_vmware_settings['cluster']
         assert virt_card['memory'] == '2 GB'
-        assert virt_card['public_ip_address'] == ''
-        assert virt_card['mac_address'] == '00:50:56:8d:a2:96'
+        assert virt_card['public_ip_address']
+        assert virt_card['mac_address'] == module_vmware_settings['mac_address']
         assert virt_card['cpus'] == '1'
         assert virt_card['cores_per_socket'] == '1'
         assert virt_card['firmware'] == 'bios'
-        assert virt_card['hypervisor'] == 'esxi3.satellite.lab.eng.rdu2.redhat.com'
+        assert virt_card['hypervisor'] == module_vmware_settings['hypervisor']
         assert virt_card['connection_state'] == 'connected'
         assert virt_card['overall_status'] == 'green'
         assert virt_card['annotation_notes'] == ''
