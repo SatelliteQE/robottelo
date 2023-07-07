@@ -917,7 +917,7 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     logger.info(f'Host info: {host}')
     assert host['operating-system']['medium'] == options.medium.name
     assert host['operating-system']['partition-table'] == options.ptable.name  # inherited
-    if not is_open('BZ:2215294') or target_sat.version != 'stream':
+    if not is_open('BZ:2215294') or not target_sat.is_stream:
         assert 'id' in host['content-information']['lifecycle-environment']
         assert int(host['content-information']['lifecycle-environment']['id']) == int(lce.id)
         assert int(host['content-information']['content-view']['id']) == int(
