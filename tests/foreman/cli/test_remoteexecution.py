@@ -755,8 +755,6 @@ class TestAnsibleREX:
             module_ak_with_cv.name,
             target_sat,
             repo=settings.repos.yum_3.url,
-            ignore_subman_errors=True,
-            force=True,
         )
         # install package
         invocation_command = make_job_invocation(
