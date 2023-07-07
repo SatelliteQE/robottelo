@@ -8,8 +8,15 @@ VMWARE:
   PASSWORD:
   # vmware datacenter
   DATACENTER:
+  # cluster: vmware cluster
+  CLUSTER:
   # Name of VM that should be used
   VM_NAME:
+  # mac_address: Mac address of the vm
+  MAC_ADDRESS:
+  # hypervisor: IP address of the hypervisor
+  HYPERVISOR:
+
 
   # Vmware Compute resource image data
   # Operating system of the image
