@@ -29,6 +29,7 @@ from wrapanapi.systems.virtualcenter import VMWareSystem
 
 from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_LARGE
+from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import VMWARE_CONSTANTS
 from robottelo.utils.datafactory import gen_string
@@ -103,6 +104,9 @@ def module_vmware_settings():
         image_username=settings.vmware.image_username,
         image_password=settings.vmware.image_password,
         vm_name=settings.vmware.vm_name,
+        cluster=settings.vmware.cluster,
+        mac_address=settings.vmware.mac_address,
+        hypervisor=settings.vmware.hypervisor,
     )
     if 'INTERFACE' in settings.vmware:
         ret['interface'] = VMWARE_CONSTANTS['network_interfaces'] % settings.vmware.interface
@@ -501,3 +505,110 @@ def test_positive_access_vmware_with_custom_profile(session, module_vmware_setti
                     if key in expected_disk_value
                 }
                 assert provided_disk_value == expected_disk_value
+
+
+@pytest.mark.tier2
+def test_positive_virt_card(
+    session, target_sat, module_vmware_settings, module_location, module_org
+):
+    """Check to see that the Virtualization card appears for an imported VM
+
+    :id: 0502d5a6-64c1-422f-a9ba-ac7c2ee7bad2
+
+    :parametrized: no
+
+    :expectedresults: Virtualization card appears in the new Host UI for the VM
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Medium
+    """
+    # create entities for hostgroup
+    default_loc_id = (
+        target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
+    )
+    target_sat.api.SmartProxy(id=1, location=[default_loc_id, module_location.id]).update()
+    domain = target_sat.api.Domain(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    subnet = target_sat.api.Subnet(
+        organization=[module_org.id], location=[module_location], domain=[domain]
+    ).create()
+    architecture = target_sat.api.Architecture().create()
+    ptable = target_sat.api.PartitionTable(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    operatingsystem = target_sat.api.OperatingSystem(
+        architecture=[architecture], ptable=[ptable]
+    ).create()
+    medium = target_sat.api.Media(
+        organization=[module_org.id], location=[module_location], operatingsystem=[operatingsystem]
+    ).create()
+    lce = (
+        target_sat.api.LifecycleEnvironment(name="Library", organization=module_org.id)
+        .search()[0]
+        .read()
+        .id
+    )
+    cv = target_sat.api.ContentView(organization=module_org).create()
+    cv.publish()
+
+    # create hostgroup
+    hostgroup_name = gen_string('alpha')
+    target_sat.api.HostGroup(
+        name=hostgroup_name,
+        architecture=architecture,
+        domain=domain,
+        subnet=subnet,
+        location=[module_location.id],
+        medium=medium,
+        operatingsystem=operatingsystem,
+        organization=[module_org],
+        ptable=ptable,
+        lifecycle_environment=lce,
+        content_view=cv,
+        content_source=1,
+    ).create()
+    cr_name = gen_string('alpha')
+    with session:
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'provider': FOREMAN_PROVIDERS['vmware'],
+                'provider_content.vcenter': module_vmware_settings['vcenter'],
+                'provider_content.user': module_vmware_settings['user'],
+                'provider_content.password': module_vmware_settings['password'],
+                'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+                'locations.resources.assigned': [module_location.name],
+                'organizations.resources.assigned': [module_org.name],
+            }
+        )
+        session.hostgroup.update(hostgroup_name, {'host_group.deploy': cr_name + " (VMware)"})
+        session.computeresource.vm_import(
+            cr_name,
+            module_vmware_settings['vm_name'],
+            hostgroup_name,
+            module_location.name,
+            module_org.name,
+            module_vmware_settings['vm_name'],
+        )
+        host_name = module_vmware_settings['vm_name'] + '.' + domain.name
+        virt_card = session.host_new.get_details(host_name, widget_names='details.virtualization')[
+            'details'
+        ]['virtualization']
+        assert virt_card['datacenter'] == module_vmware_settings['datacenter']
+        assert virt_card['cluster'] == module_vmware_settings['cluster']
+        assert virt_card['memory'] == '2 GB'
+        assert virt_card['public_ip_address']
+        assert virt_card['mac_address'] == module_vmware_settings['mac_address']
+        assert virt_card['cpus'] == '1'
+        assert virt_card['cores_per_socket'] == '1'
+        assert virt_card['firmware'] == 'bios'
+        assert virt_card['hypervisor'] == module_vmware_settings['hypervisor']
+        assert virt_card['connection_state'] == 'connected'
+        assert virt_card['overall_status'] == 'green'
+        assert virt_card['annotation_notes'] == ''
+        assert virt_card['running_on'] == cr_name
+        target_sat.api.Host(
+            id=target_sat.api.Host().search(query={'search': f'name={host_name}'})[0].id
+        ).delete()
