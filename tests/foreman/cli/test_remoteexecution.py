@@ -275,11 +275,14 @@ class TestRemoteExecution:
         assert result['success'] == '2', output_msgs
 
     @pytest.mark.tier3
+    @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([8])
     @pytest.mark.skipif(
         (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
     )
-    def test_positive_install_multiple_packages_with_a_job_by_ip(self, rex_contenthost, module_org):
+    def test_positive_install_multiple_packages_with_a_job_by_ip(
+        self, rhel_contenthost, module_org, module_ak_with_cv, target_sat
+    ):
         """Run job to install several packages on host by ip
 
         :id: 8b73033f-83c9-4024-83c3-5e442a79d320
@@ -289,30 +292,15 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        self.org = module_org
-        client = rex_contenthost
+        client = rhel_contenthost
         packages = ['monkey', 'panda', 'seal']
-        # Create a custom repo
-        repo = entities.Repository(
-            content_type='yum',
-            product=entities.Product(organization=self.org).create(),
-            url=settings.repos.yum_3.url,
-        ).create()
-        repo.sync()
-        prod = repo.product.read()
-        subs = entities.Subscription(organization=self.org).search(
-            query={'search': f'name={prod.name}'}
+        client.register(
+            module_org,
+            None,
+            module_ak_with_cv.name,
+            target_sat,
+            repo=settings.repos.yum_3.url,
         )
-        assert len(subs) > 0, 'No subscriptions matching the product returned'
-
-        ak = entities.ActivationKey(
-            organization=self.org,
-            content_view=self.org.default_content_view,
-            environment=self.org.library,
-        ).create()
-        ak.add_subscriptions(data={'subscriptions': [{'id': subs[0].id}]})
-        client.register_contenthost(org=self.org.label, activation_key=ak.name)
-
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Install Package - Katello Script Default',
@@ -621,12 +609,15 @@ class TestAnsibleREX:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.e2e
+    @pytest.mark.no_containers
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_match('[^6].*')
     @pytest.mark.skipif(
         (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
     )
-    def test_positive_run_packages_and_services_job(self, rex_contenthost, module_org):
+    def test_positive_run_packages_and_services_job(
+        self, rhel_contenthost, module_org, module_ak_with_cv, target_sat
+    ):
         """Tests Ansible REX job can install packages and start services
 
         :id: 47ed82fb-77ca-43d6-a52e-f62bae5d3a42
@@ -657,29 +648,15 @@ class TestAnsibleREX:
 
         :parametrized: yes
         """
-        self.org = module_org
-        client = rex_contenthost
+        client = rhel_contenthost
         packages = ['tapir']
-        # Create a custom repo
-        repo = entities.Repository(
-            content_type='yum',
-            product=entities.Product(organization=self.org).create(),
-            url=settings.repos.yum_3.url,
-        ).create()
-        repo.sync()
-        prod = repo.product.read()
-        subs = entities.Subscription(organization=self.org).search(
-            query={'search': f'name={prod.name}'}
+        client.register(
+            module_org,
+            None,
+            module_ak_with_cv.name,
+            target_sat,
+            repo=settings.repos.yum_3.url,
         )
-        assert len(subs), 'No subscriptions matching the product returned'
-        ak = entities.ActivationKey(
-            organization=self.org,
-            content_view=self.org.default_content_view,
-            environment=self.org.library,
-        ).create()
-        ak.add_subscriptions(data={'subscriptions': [{'id': subs[0].id}]})
-        client.register_contenthost(org=self.org.label, activation_key=ak.name)
-
         # install package
         invocation_command = make_job_invocation(
             {
