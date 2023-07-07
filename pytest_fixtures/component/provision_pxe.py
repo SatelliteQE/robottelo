@@ -152,12 +152,12 @@ def module_provisioning_sat(
     provisioning_domain_name = f"{gen_string('alpha').lower()}.foo"
 
     broker_data_out = Broker().execute(
-        workflow="configure-install-sat-provisioning-rhv",
-        artifacts="last",
+        workflow='configure-install-sat-provisioning-rhv',
+        artifacts='last',
         target_vlan_id=settings.provisioning.vlan_id,
         target_host=sat.name,
         provisioning_dns_zone=provisioning_domain_name,
-        sat_version=sat.version,
+        sat_version='stream' if sat.is_stream else sat.version,
     )
 
     broker_data_out = Box(**broker_data_out['data_out'])
