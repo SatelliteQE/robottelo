@@ -1360,6 +1360,8 @@ class ContentHost(Host, ContentHostMixins):
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
+    product_rpm_name = 'satellite-capsule'
+    upstream_rpm_name = 'foreman-proxy'
 
     @property
     def nailgun_capsule(self):
@@ -1406,15 +1408,25 @@ class Capsule(ContentHost, CapsuleMixins):
         :return: True if no downstream satellite RPMS are installed
         :rtype: bool
         """
-        return self.execute('rpm -q satellite-capsule &>/dev/null').status != 0
+        return self.execute(f'rpm -q {self.product_rpm_name}').status != 0
+
+    @cached_property
+    def is_stream(self):
+        """Check if the Capsule is a stream release or not
+
+        :return: True if the Capsule is a stream release
+        :rtype: bool
+        """
+        if self.is_upstream:
+            return False
+        return (
+            'stream' in self.execute(f'rpm -q --qf "%{{RELEASE}}" {self.product_rpm_name}').stdout
+        )
 
     @cached_property
     def version(self):
-        if not self.is_upstream:
-            version = self.execute('rpm -q satellite-capsule').stdout
-            return 'stream' if 'stream' in version else version.split('-')[2]
-        else:
-            return 'upstream'
+        rpm_name = self.upstream_rpm_name if self.is_upstream else self.product_rpm_name
+        return self.execute(f'rpm -q --qf "%{{VERSION}}" {rpm_name}').stdout
 
     @cached_property
     def url(self):
@@ -1565,6 +1577,9 @@ class Capsule(ContentHost, CapsuleMixins):
 
 
 class Satellite(Capsule, SatelliteMixins):
+    product_rpm_name = 'satellite'
+    upstream_rpm_name = 'foreman'
+
     def __init__(self, hostname=None, **kwargs):
         hostname = hostname or settings.server.hostname  # instance attr set by broker.Host
         self.omitting_credentials = False
@@ -1674,23 +1689,6 @@ class Satellite(Capsule, SatelliteMixins):
         if not self._satellite:
             return self
         return self._satellite
-
-    @cached_property
-    def is_upstream(self):
-        """Figure out which product distribution is installed on the server.
-
-        :return: True if no downstream satellite RPMS are installed
-        :rtype: bool
-        """
-        return self.execute('rpm -q satellite &>/dev/null').status != 0
-
-    @cached_property
-    def version(self):
-        if not self.is_upstream:
-            version = self.execute('rpm -q satellite').stdout
-            return 'stream' if 'stream' in version else version.split('-')[1]
-        else:
-            return 'upstream'
 
     def is_remote_db(self):
         return (
