@@ -53,18 +53,19 @@ def virtwho_config(form_data, target_sat):
 
 
 @pytest.fixture(autouse=True)
-def clean_host(form_data, target_sat):
+def delete_host(form_data, target_sat):
     guest_name, _ = get_guest_info(form_data['hypervisor_type'])
     results = target_sat.api.Host().search(query={'search': guest_name})
     if results:
         target_sat.api.Host(id=results[0].read_json()['id']).delete()
 
 
-@pytest.mark.usefixtures('clean_host')
+@pytest.mark.usefixtures('delete_host')
 class TestVirtWhoConfigforKubevirt:
     @pytest.mark.tier2
-    def test_positive_deploy_configure_by_id(
-        self, default_org, form_data, virtwho_config, target_sat
+    @pytest.mark.parametrize('deploy_type', ['id', 'script'])
+    def test_positive_deploy_configure_by_id_script(
+        self, default_org, form_data, virtwho_config, target_sat, deploy_type
     ):
         """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
@@ -77,10 +78,19 @@ class TestVirtWhoConfigforKubevirt:
         :CaseImportance: High
         """
         assert virtwho_config.status == 'unknown'
-        command = get_configure_command(virtwho_config.id, default_org.name)
-        hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data['hypervisor_type'], debug=True, org=default_org.label
-        )
+        if deploy_type == "id":
+            command = get_configure_command(virtwho_config.id, default_org.name)
+            hypervisor_name, guest_name = deploy_configure_by_command(
+                command, form_data['hypervisor_type'], debug=True, org=default_org.label
+            )
+        elif deploy_type == "script":
+            script = virtwho_config.deploy_script()
+            hypervisor_name, guest_name = deploy_configure_by_script(
+                script['virt_who_config_script'],
+                form_data['hypervisor_type'],
+                debug=True,
+                org=default_org.label,
+            )
         virt_who_instance = (
             target_sat.api.VirtWhoConfig()
             .search(query={'search': f'name={virtwho_config.name}'})[0]
