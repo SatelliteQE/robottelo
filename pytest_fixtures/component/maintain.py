@@ -30,34 +30,32 @@ def setup_backup_tests(request, sat_maintain):
 
 
 @pytest.fixture(scope='module')
-def module_synced_repos(session_target_sat, session_capsule_configured, module_sca_manifest):
-    org = session_target_sat.api.Organization().create()
-    session_target_sat.upload_manifest(org.id, module_sca_manifest.content)
+def module_synced_repos(sat_maintain, session_capsule_configured, module_sca_manifest):
+    org = sat_maintain.api.Organization().create()
+    sat_maintain.upload_manifest(org.id, module_sca_manifest.content)
     # sync custom repo
-    cust_prod = session_target_sat.api.Product(organization=org).create()
-    cust_repo = session_target_sat.api.Repository(
+    cust_prod = sat_maintain.api.Product(organization=org).create()
+    cust_repo = sat_maintain.api.Repository(
         url=settings.repos.yum_1.url, product=cust_prod
     ).create()
     cust_repo.sync()
 
     # sync RH repo
-    product = session_target_sat.api.Product(
-        name=constants.PRDS['rhae'], organization=org.id
-    ).search()[0]
-    r_set = session_target_sat.api.RepositorySet(
+    product = sat_maintain.api.Product(name=constants.PRDS['rhae'], organization=org.id).search()[0]
+    r_set = sat_maintain.api.RepositorySet(
         name=constants.REPOSET['rhae2'], product=product
     ).search()[0]
     payload = {'basearch': constants.DEFAULT_ARCHITECTURE, 'product_id': product.id}
     r_set.enable(data=payload)
-    result = session_target_sat.api.Repository(name=constants.REPOS['rhae2']['name']).search(
+    result = sat_maintain.api.Repository(name=constants.REPOS['rhae2']['name']).search(
         query={'organization_id': org.id}
     )
     rh_repo_id = result[0].id
-    rh_repo = session_target_sat.api.Repository(id=rh_repo_id).read()
+    rh_repo = sat_maintain.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
 
     # assign the Library LCE to the Capsule
-    lce = session_target_sat.api.LifecycleEnvironment(organization=org).search(
+    lce = sat_maintain.api.LifecycleEnvironment(organization=org).search(
         query={'search': f'name={constants.ENVIRONMENT}'}
     )[0]
     session_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
