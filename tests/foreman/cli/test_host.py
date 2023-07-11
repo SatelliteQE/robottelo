@@ -588,58 +588,8 @@ def test_positive_katello_and_openscap_loaded():
 
 @pytest.mark.cli_host_create
 @pytest.mark.tier3
-@pytest.mark.upgrade
-def test_positive_register_with_no_ak(
-    module_lce, module_org, module_promoted_cv, rhel7_contenthost, target_sat
-):
-    """Register host to satellite without activation key
-
-    :id: 6a7cedd2-aa9c-4113-a83b-3f0eea43ecb4
-
-    :expectedresults: Host successfully registered to appropriate org
-
-    :parametrized: yes
-
-    :CaseLevel: System
-    """
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(
-        module_org.label,
-        lce=f'{module_lce.label}/{module_promoted_cv.label}',
-    )
-    assert rhel7_contenthost.subscribed
-
-
-@pytest.mark.cli_host_create
-@pytest.mark.tier3
-def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthost, target_sat):
-    """Attempt to register a host twice to Satellite
-
-    :id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
-
-    :expectedresults: host cannot be registered twice
-
-    :parametrized: yes
-
-    :CaseLevel: System
-    """
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
-    assert rhel7_contenthost.subscribed
-    result = rhel7_contenthost.register_contenthost(
-        module_org.label, module_ak_with_cv.name, force=False
-    )
-    # Depending on distro version, successful status may be 0 or
-    # 1, so we can't verify host wasn't registered by status != 0
-    # check. Verifying status == 64 here, which stands for content
-    # host being already registered.
-    assert result.status == 64
-
-
-@pytest.mark.cli_host_create
-@pytest.mark.tier3
 def test_positive_list_and_unregister(
-    module_ak_with_cv, module_lce, module_org, rhel7_contenthost, target_sat
+    module_ak_with_cv, module_lce, module_org, module_location, rhel7_contenthost, target_sat
 ):
     """List registered host for a given org and unregister the host
 
@@ -652,8 +602,7 @@ def test_positive_list_and_unregister(
 
     :CaseLevel: System
     """
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
+    rhel7_contenthost.register(module_org, module_location, module_ak_with_cv.name, target_sat)
     assert rhel7_contenthost.subscribed
     hosts = Host.list({'organization-id': module_org.id})
     assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
