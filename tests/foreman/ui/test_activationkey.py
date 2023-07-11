@@ -1227,3 +1227,38 @@ def test_positive_ak_with_custom_product_on_rhel6(session, rhel6_contenthost, ta
         ak = session.activationkey.read(ak.name, widget_names='content_hosts')
         assert len(ak['content_hosts']['table']) == 1
         assert ak['content_hosts']['table'][0]['Name'] == rhel6_contenthost.hostname
+
+
+def test_positive_custom_products_disabled_by_default_ak(
+    session,
+    default_location,
+    setup_content,
+):
+    """Verify that repositories can be filtered by type and that repositories
+    are Disabled by default on activation keys
+
+    :id: 3e6793ff-3501-47f6-8cd6-e24a60bdcb73
+
+    :steps:
+        1. Create custom product and upload repository
+        2. Attach to activation key
+        3. Filter Repositories by "Custom" type
+        4. Assert that custom product is visible and disabled by default
+        5. Filter Repositories by "Red Hat" type
+        6. Assert custom product is not visible
+
+    :expectedresults: Custom products should be filtered and Disabled by default.
+
+    :BZ: 1265120
+
+    :customerscenario: true
+    """
+    ak, org, custom_repo = setup_content
+    with session:
+        session.organization.select(org.name)
+        session.location.select(default_location.name)
+        repo1 = session.activationkey.get_repos(ak.name, repo_type="Custom")
+        assert repo1[0]['Repository Name'] == custom_repo.name
+        assert repo1[0]['Status'] == 'Disabled'
+        repo2 = session.activationkey.get_repos(ak.name, repo_type="Red Hat")
+        assert repo2[0]['Repository Name'] != custom_repo.name
