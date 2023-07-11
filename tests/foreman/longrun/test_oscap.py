@@ -562,13 +562,8 @@ def test_positive_oscap_run_via_local_files(
         module_target_sat.api.AnsibleRoles().sync(
             data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
         )
-        role_id = (
-            module_target_sat.api.AnsibleRoles()
-            .search(query={'search': f'name={SELECTED_ROLE}'})[0]
-            .id
-        )
-        module_target_sat.api.Host(id=target_host.id).add_ansible_role(
-            data={'ansible_role_id': role_id}
+        module_target_sat.cli.Host.ansible_roles_assign(
+            {'id': target_host.id, 'ansible-roles': SELECTED_ROLE}
         )
         host_roles = target_host.list_ansible_roles()
         assert host_roles[0]['name'] == SELECTED_ROLE
