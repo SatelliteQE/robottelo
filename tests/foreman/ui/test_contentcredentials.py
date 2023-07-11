@@ -89,7 +89,7 @@ def test_positive_end_to_end(session, target_sat, module_org, gpg_content):
 
 
 @pytest.mark.tier2
-def test_positive_search_scoped(session, target_sat, gpg_content):
+def test_positive_search_scoped(session, target_sat, gpg_content, module_org):
     """Search for gpgkey by organization id parameter
 
     :id: e1e04f68-5d4f-43f6-a9c1-b9f566fcbc92
@@ -101,9 +101,8 @@ def test_positive_search_scoped(session, target_sat, gpg_content):
     :BZ: 1259374
     """
     name = gen_string('alpha')
-    org = target_sat.api.Organization().create()
     with session:
-        session.organization.select(org.name)
+        session.organization.select(module_org.name)
         session.contentcredential.create(
             {
                 'name': name,
@@ -111,7 +110,10 @@ def test_positive_search_scoped(session, target_sat, gpg_content):
                 'content': gpg_content,
             }
         )
-        assert session.contentcredential.search(f'organization_id = {org.id}')[0]['Name'] == name
+        assert (
+            session.contentcredential.search(f'organization_id = {module_org.id}')[0]['Name']
+            == name
+        )
 
 
 @pytest.mark.tier2
