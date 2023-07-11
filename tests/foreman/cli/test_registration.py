@@ -147,3 +147,26 @@ def test_upgrade_katello_ca_consumer_rpm(
     result = vm.execute('subscription-manager identity')
     # Result will be 0 if registered
     assert result.status == 0
+
+
+@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.tier3
+def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost, target_sat):
+    """Attempt to register a host twice to Satellite
+
+    :id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
+
+    :expectedresults: host cannot be registered twice
+
+    :parametrized: yes
+
+    :CaseLevel: System
+    """
+    rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+    assert rhel_contenthost.subscribed
+    result = rhel_contenthost.register(
+        module_org, None, module_ak_with_cv.name, target_sat, force=False
+    )
+    # host being already registered.
+    assert result.status == 1
+    assert 'This system is already registered' in str(result.stderr)
