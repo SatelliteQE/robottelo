@@ -38,6 +38,8 @@ def test_positive_custom_products_disabled_by_default(
 
     :expectedresults: Custom products should be disabled by default. "Enabled: 0"
 
+    :customerscenario: true
+
     :BZ: 1265120
     """
     ak, org, _ = setup_content
