@@ -1281,7 +1281,6 @@ def make_os(options=None):
         'password-hash': None,
         'release-name': None,
     }
-
     return create_object(OperatingSys, args, options)
 
 
