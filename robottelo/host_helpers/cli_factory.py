@@ -195,6 +195,7 @@ ENTITY_FIELDS = {
         'name': gen_alphanumeric,
     },
     'os': {
+        '_entity_cls': 'OperatingSys',
         'major': partial(random.randint, 0, 10),
         'minor': partial(random.randint, 0, 10),
         'name': gen_alphanumeric,
