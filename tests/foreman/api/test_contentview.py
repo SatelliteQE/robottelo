@@ -751,6 +751,7 @@ class TestContentViewPublishPromote:
         comp_content_view_info = comp_content_view.version[0].read()
         assert comp_content_view_info.package_count == 36
 
+    @pytest.mark.e2e
     @pytest.mark.tier2
     def test_ccv_audit_scenarios(self, module_org, target_sat):
         """Check for various scenarios where a composite content view or it's component
@@ -1113,6 +1114,7 @@ class TestContentViewRedHatContent:
         content_view.read().version[0].promote(data={'environment_ids': module_lce.id})
         assert len(content_view.read().version[0].read().environment) == 2
 
+    @pytest.mark.e2e
     @pytest.mark.tier2
     def test_cv_audit_scenarios(self, module_product, target_sat):
         """Check for various scenarios where a content view's needs_publish flag
