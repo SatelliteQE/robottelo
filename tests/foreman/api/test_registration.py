@@ -92,35 +92,32 @@ def test_host_registration_end_to_end(
     )
     assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
 
-    @pytest.mark.tier3
-    def test_positive_allow_reregistration_when_dmi_uuid_changed(
-        self, module_org, rhel_contenthost, target_sat
-    ):
-        """Register a content host with a custom DMI UUID, unregistering it, change
-        the DMI UUID, and re-registering it again
 
-        :id: 7f431cb2-5a63-41f7-a27f-62b86328b50d
+@pytest.mark.tier3
+def test_positive_allow_reregistration_when_dmi_uuid_changed(
+    module_org, rhel_contenthost, target_sat
+):
+    """Register a content host with a custom DMI UUID, unregistering it, change
+    the DMI UUID, and re-registering it again
 
-        :expectedresults: The content host registers successfully
+    :id: 7f431cb2-5a63-41f7-a27f-62b86328b50d
 
-        :customerscenario: true
+    :expectedresults: The content host registers successfully
 
-        :BZ: 1747177
+    :customerscenario: true
 
-        :CaseLevel: Integration
-        """
-        uuid_1 = str(uuid.uuid1())
-        uuid_2 = str(uuid.uuid4())
-        rhel_contenthost.install_katello_ca(target_sat)
-        target_sat.execute(
-            f'echo \'{{"dmi.system.uuid": "{uuid_1}"}}\' > /etc/rhsm/facts/uuid.facts'
-        )
-        result = rhel_contenthost.register_contenthost(module_org.label, lce=ENVIRONMENT)
-        assert result.status == 0
-        result = rhel_contenthost.execute('subscription-manager clean')
-        assert result.status == 0
-        target_sat.execute(
-            f'echo \'{{"dmi.system.uuid": "{uuid_2}"}}\' > /etc/rhsm/facts/uuid.facts'
-        )
-        result = rhel_contenthost.register_contenthost(module_org.label, lce=ENVIRONMENT)
-        assert result.status == 0
+    :BZ: 1747177
+
+    :CaseLevel: Integration
+    """
+    uuid_1 = str(uuid.uuid1())
+    uuid_2 = str(uuid.uuid4())
+    rhel_contenthost.install_katello_ca(target_sat)
+    target_sat.execute(f'echo \'{{"dmi.system.uuid": "{uuid_1}"}}\' > /etc/rhsm/facts/uuid.facts')
+    result = rhel_contenthost.register_contenthost(module_org.label, lce=ENVIRONMENT)
+    assert result.status == 0
+    result = rhel_contenthost.execute('subscription-manager clean')
+    assert result.status == 0
+    target_sat.execute(f'echo \'{{"dmi.system.uuid": "{uuid_2}"}}\' > /etc/rhsm/facts/uuid.facts')
+    result = rhel_contenthost.register_contenthost(module_org.label, lce=ENVIRONMENT)
+    assert result.status == 0
