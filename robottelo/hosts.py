@@ -1674,6 +1674,7 @@ class Satellite(Capsule, SatelliteMixins):
         yield
         self.omitting_credentials = False
 
+    @contextmanager
     def ui_session(self, testname=None, user=None, password=None, url=None, login=True):
         """Initialize an airgun Session object and store it as self.ui_session"""
 
@@ -1686,14 +1687,30 @@ class Satellite(Capsule, SatelliteMixins):
                 if frame.function.startswith('test_'):
                     return frame.function
 
-        return Session(
-            session_name=testname or get_caller(),
-            user=user or settings.server.admin_username,
-            password=password or settings.server.admin_password,
+        test_name = testname or get_caller()
+
+        if getattr(self, 'organization') and getattr(self, 'location') and user is None:
+            user_passwd = gen_string('alphanumeric')
+            new_user = self.api.User(
+                admin=True,
+                default_organization=self.organization,
+                default_location=self.location,
+                description=f'created automatically by airgun for module "{test_name}"',
+                login=f'{test_name}_{gen_string("alphanumeric")}',
+                password=user_passwd,
+            ).create()
+            new_user.password = user_passwd
+
+        yield Session(
+            session_name=test_name,
+            user=user or new_user.login,
+            password=password or new_user.password,
             url=url,
             hostname=self.hostname,
             login=login,
         )
+        if user is None:
+            new_user.delete()
 
     @property
     def satellite(self):

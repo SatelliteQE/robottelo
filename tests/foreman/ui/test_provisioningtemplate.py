@@ -60,8 +60,6 @@ def test_positive_clone(module_org, module_location, target_sat, clone_setup):
     """
     clone_name = gen_string('alpha')
     with target_sat.ui_session() as session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_location.name)
         session.provisioningtemplate.clone(
             clone_setup['pt'].name,
             {
@@ -134,8 +132,6 @@ def test_positive_end_to_end(module_org, module_location, template_data, target_
         }
     ]
     with target_sat.ui_session() as session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_location.name)
         session.provisioningtemplate.create(
             {
                 'template.name': name,

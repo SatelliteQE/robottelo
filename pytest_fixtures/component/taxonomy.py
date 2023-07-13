@@ -41,7 +41,9 @@ def function_org(target_sat):
 
 @pytest.fixture(scope='module')
 def module_org(module_target_sat):
-    return module_target_sat.api.Organization().create()
+    org = module_target_sat.api.Organization().create()
+    module_target_sat.organization = org
+    yield org
 
 
 @pytest.fixture(scope='class')
@@ -53,7 +55,9 @@ def class_org(class_target_sat):
 
 @pytest.fixture(scope='module')
 def module_location(module_target_sat, module_org):
-    return module_target_sat.api.Location(organization=[module_org]).create()
+    loc = module_target_sat.api.Location(organization=[module_org]).create()
+    module_target_sat.location = loc
+    yield loc
 
 
 @pytest.fixture(scope='class')
