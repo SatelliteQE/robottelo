@@ -132,6 +132,9 @@ class TestDiscoveryRule:
         search_query = 'cpu_count = 2'
         rule = discoveryrule_factory(options={'search': search_query})
         assert rule.search == search_query
+        custom_query = 'processor = x86'
+        rule = discoveryrule_factory(options={'search': custom_query})
+        assert rule.search == custom_query
 
     @pytest.mark.tier2
     def test_positive_create_with_hostname(self, discoveryrule_factory):
@@ -149,7 +152,7 @@ class TestDiscoveryRule:
         assert rule['hostname-template'] == host_name
 
     @pytest.mark.tier1
-    def test_positive_create_with_org_loc_id(
+    def test_positive_create_and_update_with_org_loc_id(
         self, discoveryrule_factory, class_org, class_location, class_hostgroup
     ):
         """Create discovery rule by associating org and location ids
@@ -172,8 +175,25 @@ class TestDiscoveryRule:
         assert class_org.name in rule.organizations
         assert class_location.name in rule.locations
 
+        new_org = Box(make_org())
+        new_loc = Box(make_location())
+        new_hostgroup = Box(
+            make_hostgroup({'organization-ids': new_org.id, 'location-ids': new_loc.id})
+        )
+        DiscoveryRule.update(
+            {
+                'id': rule.id,
+                'organization-ids': new_org.id,
+                'location-ids': new_loc.id,
+                'hostgroup-id': new_hostgroup.id,
+            }
+        )
+        rule = Box(DiscoveryRule.info({'id': rule.id}))
+        assert new_org.name in rule.organizations
+        assert new_loc.name in rule.locations
+
     @pytest.mark.tier2
-    def test_positive_create_with_org_loc_name(
+    def test_positive_create_and_update_with_org_loc_name(
         self, discoveryrule_factory, class_org, class_location, class_hostgroup
     ):
         """Create discovery rule by associating org and location names
@@ -194,6 +214,23 @@ class TestDiscoveryRule:
         assert class_org.name in rule.organizations
         assert class_location.name in rule.locations
 
+        new_org = Box(make_org())
+        new_loc = Box(make_location())
+        new_hostgroup = Box(
+            make_hostgroup({'organization-ids': new_org.id, 'location-ids': new_loc.id})
+        )
+        DiscoveryRule.update(
+            {
+                'id': rule.id,
+                'organizations': new_org.name,
+                'locations': new_loc.name,
+                'hostgroup-id': new_hostgroup.id,
+            }
+        )
+        rule = Box(DiscoveryRule.info({'id': rule.id}))
+        assert new_org.name in rule.organizations
+        assert new_loc.name in rule.locations
+
     @pytest.mark.tier2
     def test_positive_create_with_hosts_limit(self, discoveryrule_factory):
         """Create Discovery Rule providing any number from range 1..100 for
@@ -211,7 +248,7 @@ class TestDiscoveryRule:
         assert rule['hosts-limit'] == hosts_limit
 
     @pytest.mark.tier1
-    def test_positive_create_with_priority(self, discoveryrule_factory):
+    def test_positive_create_and_update_with_priority(self, discoveryrule_factory):
         """Create Discovery Rule providing any number from range 1..100 for
         priority option
 
@@ -225,6 +262,10 @@ class TestDiscoveryRule:
         available = set(range(1, 1000)) - {int(Box(r).priority) for r in DiscoveryRule.list()}
         rule_priority = random.sample(sorted(available), 1)
         rule = discoveryrule_factory(options={'priority': rule_priority[0]})
+        assert rule.priority == str(rule_priority[0])
+        # Update
+        DiscoveryRule.update({'id': rule.id, 'priority': rule_priority[0]})
+        rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert rule.priority == str(rule_priority[0])
 
     @pytest.mark.tier2
@@ -240,60 +281,12 @@ class TestDiscoveryRule:
         rule = discoveryrule_factory(options={'enabled': 'false'})
         assert rule.enabled == 'false'
 
-    @pytest.mark.tier3
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_invalid_name(self, name, discoveryrule_factory):
-        """Create Discovery Rule with invalid names
-
-        :id: a0350dc9-8f5b-4673-be88-a5e35d1f8ca7
-
-        :expectedresults: Error should be raised and rule should not be created
-
-        :CaseImportance: Medium
-
-        :CaseLevel: Component
-
-        :parametrized: yes
-        """
-        with pytest.raises(CLIFactoryError):
-            discoveryrule_factory(options={'name': name})
-
-    @pytest.mark.tier3
-    @pytest.mark.parametrize('name', **parametrized(invalid_hostnames_list()))
-    def test_negative_create_with_invalid_hostname(self, name, discoveryrule_factory):
-        """Create Discovery Rule with invalid hostname
-
-        :id: 0ae51085-30d0-44f9-9e49-abe928a8a4b7
-
-        :expectedresults: Error should be raised and rule should not be created
-
-        :CaseImportance: Medium
-
-        :CaseLevel: Component
-
-        :BZ: 1378427
-
-        :parametrized: yes
-        """
-        with pytest.raises(CLIFactoryError):
-            discoveryrule_factory(options={'hostname': name})
-
-    @pytest.mark.tier3
-    def test_negative_create_with_too_long_limit(self, discoveryrule_factory):
-        """Create Discovery Rule with too long host limit value
-
-        :id: 12dbb023-c963-4ead-a81e-ad53033de947
-
-        :expectedresults: Validation error should be raised and rule should not
-            be created
-
-        :CaseImportance: Medium
-        """
-        with pytest.raises(CLIFactoryError):
-            discoveryrule_factory(options={'hosts-limit': '9999999999'})
-
     @pytest.mark.tier1
-    def test_negative_create_with_same_name(self, discoveryrule_factory):
+    @pytest.mark.parametrize('host_name', **parametrized(invalid_hostnames_list()))
+    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
+    def test_negative_create_rule_with_discovery_params(
+        self, name, host_name, discoveryrule_factory
+    ):
         """Create Discovery Rule with name that already exists
 
         :id: 0906cf64-ed0b-49af-844f-1af22f81ab94
@@ -302,6 +295,16 @@ class TestDiscoveryRule:
 
         :CaseImportance: Medium
         """
+        with pytest.raises(CLIFactoryError):
+            discoveryrule_factory(options={'name': name})
+
+        with pytest.raises(CLIFactoryError):
+            discoveryrule_factory(options={'hostname': host_name})
+
+        with pytest.raises(CLIFactoryError):
+            discoveryrule_factory(options={'hosts-limit': '9999999999'})
+
+        # Validating for same name
         name = gen_string('alpha')
         discoveryrule_factory(options={'name': name})
         with pytest.raises(CLIFactoryError):
@@ -323,7 +326,7 @@ class TestDiscoveryRule:
             DiscoveryRule.info({'id': rule.id})
 
     @pytest.mark.tier3
-    def test_positive_update_name(self, discoveryrule_factory):
+    def test_positive_update_discovery_params(self, discoveryrule_factory, class_org):
         """Update discovery rule name
 
         :id: 1045e2c4-e1f7-42c9-95f7-488fc79bf70b
@@ -334,159 +337,29 @@ class TestDiscoveryRule:
 
         :CaseImportance: Medium
         """
-        rule = discoveryrule_factory()
-        new_name = gen_string('numeric')
-        DiscoveryRule.update({'id': rule.id, 'name': new_name})
+        rule = discoveryrule_factory(options={'hosts-limit': '5'})
+        new_name = gen_string('alpha')
+        new_query = 'model = KVM'
+        new_hostname = gen_string('alpha')
+        new_limit = '10'
+        new_hostgroup = Box(make_hostgroup({'organization-ids': class_org.id}))
+        DiscoveryRule.update(
+            {
+                'id': rule.id,
+                'name': new_name,
+                'search': new_query,
+                'hostgroup': new_hostgroup.name,
+                'hostname': new_hostname,
+                'hosts-limit': new_limit,
+            }
+        )
+
         rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert rule.name == new_name
-
-    @pytest.mark.tier2
-    def test_positive_update_org_loc_by_id(self, discoveryrule_factory):
-        """Update org and location of selected discovery rule using org/loc ids
-
-        :id: 26da79aa-30e5-4052-98ae-141de071a68a
-
-        :expectedresults: Rule was updated and with given org & location.
-
-        :BZ: 1377990
-
-        :CaseLevel: Component
-        """
-        new_org = Box(make_org())
-        new_loc = Box(make_location())
-        new_hostgroup = Box(
-            make_hostgroup({'organization-ids': new_org.id, 'location-ids': new_loc.id})
-        )
-        rule = discoveryrule_factory()
-        DiscoveryRule.update(
-            {
-                'id': rule.id,
-                'organization-ids': new_org.id,
-                'location-ids': new_loc.id,
-                'hostgroup-id': new_hostgroup.id,
-            }
-        )
-        rule = Box(DiscoveryRule.info({'id': rule.id}))
-        assert new_org.name in rule.organizations
-        assert new_loc.name in rule.locations
-
-    @pytest.mark.tier3
-    def test_positive_update_org_loc_by_name(self, discoveryrule_factory):
-        """Update org and location of selected discovery rule using org/loc
-        names
-
-        :id: 7a5d61ac-6a2d-48f6-a00d-df437a7dc3c4
-
-        :expectedresults: Rule was updated and with given org & location.
-
-        :BZ: 1377990
-
-        :CaseLevel: Component
-
-        :CaseImportance: Medium
-        """
-        new_org = Box(make_org())
-        new_loc = Box(make_location())
-        new_hostgroup = Box(
-            make_hostgroup({'organization-ids': new_org.id, 'location-ids': new_loc.id})
-        )
-        rule = discoveryrule_factory()
-        DiscoveryRule.update(
-            {
-                'id': rule.id,
-                'organizations': new_org.name,
-                'locations': new_loc.name,
-                'hostgroup-id': new_hostgroup.id,
-            }
-        )
-        rule = Box(DiscoveryRule.info({'id': rule.id}))
-        assert new_org.name in rule.organizations
-        assert new_loc.name in rule.locations
-
-    @pytest.mark.tier2
-    def test_positive_update_query(self, discoveryrule_factory):
-        """Update discovery rule search query
-
-        :id: 86943095-acc5-40ff-8e3c-88c76b36333d
-
-        :expectedresults: Rule search field is updated
-
-        :CaseLevel: Component
-        """
-        rule = discoveryrule_factory()
-        new_query = 'model = KVM'
-        DiscoveryRule.update({'id': rule.id, 'search': new_query})
-        rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert rule.search == new_query
-
-    @pytest.mark.tier2
-    def test_positive_update_hostgroup(self, discoveryrule_factory, class_org):
-        """Update discovery rule host group
-
-        :id: 07992a3f-2aa9-4e45-b2e8-ef3d2f255292
-
-        :expectedresults: Rule host group is updated
-
-        :CaseLevel: Component
-        """
-        new_hostgroup = Box(make_hostgroup({'organization-ids': class_org.id}))
-        rule = discoveryrule_factory()
-        DiscoveryRule.update({'id': rule.id, 'hostgroup': new_hostgroup.name})
-        rule = DiscoveryRule.info({'id': rule.id})
         assert rule['host-group'] == new_hostgroup.name
-
-    @pytest.mark.tier2
-    def test_positive_update_hostname(self, discoveryrule_factory):
-        """Update discovery rule hostname value
-
-
-        :id: 4c123488-92df-42f6-afe3-8a88cd90ffc2
-
-        :expectedresults: Rule host name is updated
-
-        :CaseLevel: Component
-        """
-        new_hostname = gen_string('alpha')
-        rule = discoveryrule_factory()
-        DiscoveryRule.update({'id': rule.id, 'hostname': new_hostname})
-        rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert rule['hostname-template'] == new_hostname
-
-    @pytest.mark.tier2
-    def test_positive_update_limit(self, discoveryrule_factory):
-        """Update discovery rule limit value
-
-        :id: efa6f5bc-4d56-4449-90f5-330affbcfb09
-
-        :expectedresults: Rule host limit field is updated
-
-        :CaseLevel: Component
-        """
-        rule = discoveryrule_factory(options={'hosts-limit': '5'})
-        new_limit = '10'
-        DiscoveryRule.update({'id': rule.id, 'hosts-limit': new_limit})
-        rule = Box(DiscoveryRule.info({'id': rule.id}))
         assert rule['hosts-limit'] == new_limit
-
-    @pytest.mark.tier1
-    def test_positive_update_priority(self, discoveryrule_factory):
-        """Update discovery rule priority value
-
-        :id: 0543cc73-c692-4bbf-818b-37353ec98986
-
-        :expectedresults: Rule priority is updated
-
-        :CaseImportance: Critical
-        """
-        available = set(range(1, 1000)) - {int(Box(r).priority) for r in DiscoveryRule.list()}
-        rule_priority = random.sample(sorted(available), 1)
-        rule = discoveryrule_factory(options={'priority': rule_priority[0]})
-        assert rule.priority == str(rule_priority[0])
-        available = set(range(1, 1000)) - {int(Box(r).priority) for r in DiscoveryRule.list()}
-        rule_priority = random.sample(sorted(available), 1)
-        DiscoveryRule.update({'id': rule.id, 'priority': rule_priority[0]})
-        rule = Box(DiscoveryRule.info({'id': rule.id}))
-        assert rule.priority == str(rule_priority[0])
 
     @pytest.mark.tier1
     def test_positive_update_disable_enable(self, discoveryrule_factory):
@@ -506,7 +379,7 @@ class TestDiscoveryRule:
 
     @pytest.mark.tier3
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_update_name(self, name, discoveryrule_factory):
+    def test_negative_update_discovery_params(self, name, discoveryrule_factory):
         """Update discovery rule name using invalid names only
 
         :id: 8293cc6a-d983-460a-b76e-221ad02b54b7
@@ -520,56 +393,17 @@ class TestDiscoveryRule:
         :parametrized: yes
         """
         rule = discoveryrule_factory()
+        priority = gen_string('alpha')
+        host_limit = gen_string('alpha')
         with pytest.raises(CLIReturnCodeError):
             DiscoveryRule.update({'id': rule.id, 'name': name})
 
-    @pytest.mark.tier3
-    def test_negative_update_hostname(self, discoveryrule_factory):
-        """Update discovery rule host name using number as a value
-
-        :id: c382dbc7-9509-4060-9038-1617f7fef038
-
-        :expectedresults: Rule host name is not updated
-
-        :CaseImportance: Medium
-
-        :CaseLevel: Component
-        """
-        rule = discoveryrule_factory()
         with pytest.raises(CLIReturnCodeError):
             DiscoveryRule.update({'id': rule.id, 'hostname': '$#@!*'})
 
-    @pytest.mark.tier3
-    def test_negative_update_limit(self, discoveryrule_factory):
-        """Update discovery rule host limit using invalid values
-
-        :id: e3257d8a-91b9-406f-bd74-0fd1fb05bb77
-
-        :expectedresults: Rule host limit is not updated
-
-        :CaseLevel: Component
-
-        :CaseImportance: Medium
-        """
-        rule = discoveryrule_factory()
-        host_limit = gen_string('alpha')
         with pytest.raises(CLIReturnCodeError):
             DiscoveryRule.update({'id': rule.id, 'hosts-limit': host_limit})
 
-    @pytest.mark.tier3
-    def test_negative_update_priority(self, discoveryrule_factory):
-        """Update discovery rule priority using invalid values
-
-        :id: 0778dd00-aa19-4062-bdf3-752e1b546ec2
-
-        :expectedresults: Rule priority is not updated
-
-        :CaseLevel: Component
-
-        :CaseImportance: Medium
-        """
-        rule = discoveryrule_factory()
-        priority = gen_string('alpha')
         with pytest.raises(CLIReturnCodeError):
             DiscoveryRule.update({'id': rule.id, 'priority': priority})
 
@@ -614,7 +448,7 @@ class TestDiscoveryRuleRole:
             logger.exception('Exception while deleting class scope user entity in teardown')
 
     @pytest.mark.tier2
-    def test_positive_create_rule_with_non_admin_user(
+    def test_positive_create_and_delete_rule_with_non_admin_user(
         self, class_org, class_location, class_user_password, class_user_manager, class_hostgroup
     ):
         """Create rule with non-admin user by associating discovery_manager role
@@ -643,36 +477,6 @@ class TestDiscoveryRuleRole:
             )
         )
         assert rule.name == rule_name
-
-    @pytest.mark.tier2
-    def test_positive_delete_rule_with_non_admin_user(
-        self, class_org, class_location, class_user_manager, class_hostgroup, class_user_password
-    ):
-        """Delete rule with non-admin user by associating discovery_manager role
-
-        :id: 87ab969b-7d92-478d-a5c0-1c0d50e9bdd6
-
-        :expectedresults: Rule should be deleted successfully.
-
-        :CaseLevel: Integration
-        """
-        rule_name = gen_string('alpha')
-        rule = Box(
-            DiscoveryRule.with_user(class_user_manager.login, class_user_password).create(
-                {
-                    'name': rule_name,
-                    'search': 'cpu_count = 5',
-                    'organizations': class_org.name,
-                    'locations': class_location.name,
-                    'hostgroup-id': class_hostgroup.id,
-                }
-            )
-        )
-        rule = Box(
-            DiscoveryRule.with_user(class_user_manager.login, class_user_password).info(
-                {'id': rule.id}
-            )
-        )
 
         DiscoveryRule.with_user(class_user_manager.login, class_user_password).delete(
             {'id': rule.id}
