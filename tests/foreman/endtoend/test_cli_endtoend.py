@@ -40,7 +40,6 @@ from robottelo.cli.user import User
 from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -269,28 +268,25 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
 
     # BONUS: Create a content host and associate it with promoted
     # content view and last lifecycle where it exists
-    if not is_open('BZ:2216461'):
-        content_host_name = gen_alphanumeric()
-        content_host = Host.with_user(user['login'], user['password']).subscription_register(
-            {
-                'content-view-id': content_view['id'],
-                'lifecycle-environment-id': lifecycle_environment['id'],
-                'name': content_host_name,
-                'organization-id': org['id'],
-            }
-        )
+    content_host_name = gen_alphanumeric()
+    content_host = Host.with_user(user['login'], user['password']).subscription_register(
+        {
+            'content-view-id': content_view['id'],
+            'lifecycle-environment-id': lifecycle_environment['id'],
+            'name': content_host_name,
+            'organization-id': org['id'],
+        }
+    )
 
-        content_host = Host.with_user(user['login'], user['password']).info(
-            {'id': content_host['id']}
-        )
-        # check that content view matches what we passed
-        assert content_host['content-information']['content-view']['name'] == content_view['name']
+    content_host = Host.with_user(user['login'], user['password']).info({'id': content_host['id']})
+    # check that content view matches what we passed
+    assert content_host['content-information']['content-view']['name'] == content_view['name']
 
-        # check that lifecycle environment matches
-        assert (
-            content_host['content-information']['lifecycle-environment']['name']
-            == lifecycle_environment['name']
-        )
+    # check that lifecycle environment matches
+    assert (
+        content_host['content-information']['lifecycle-environment']['name']
+        == lifecycle_environment['name']
+    )
 
     # step 2.14: Create a new libvirt compute resource
     _create(
