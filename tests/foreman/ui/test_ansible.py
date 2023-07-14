@@ -41,13 +41,15 @@ def test_positive_create_and_delete_variable(target_sat):
     :expectedresults: The variable is successfully created and deleted.
     """
     key = gen_string('alpha')
-    role = 'redhat.satellite.activation_keys'
+
+    SELECTED_ROLE = 'redhat.satellite.activation_keys'
+    proxy_id = target_sat.nailgun_smart_proxy.id
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]})
     with target_sat.ui_session() as session:
-        session.ansibleroles.import_all_roles()
         session.ansiblevariables.create(
             {
                 'key': key,
-                'ansible_role': role,
+                'ansible_role': SELECTED_ROLE,
             }
         )
         assert session.ansiblevariables.search(key)[0]['Name'] == key
@@ -69,14 +71,16 @@ def test_positive_create_variable_with_overrides(target_sat):
     :expectedresults: The variable is successfully created.
     """
     key = gen_string('alpha')
-    role = 'redhat.satellite.activation_keys'
+
+    SELECTED_ROLE = 'redhat.satellite.activation_keys'
+    proxy_id = target_sat.nailgun_smart_proxy.id
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]})
     with target_sat.ui_session() as session:
-        session.ansibleroles.import_all_roles()
         session.ansiblevariables.create_with_overrides(
             {
                 'key': key,
                 'description': 'this is a description',
-                'ansible_role': role,
+                'ansible_role': SELECTED_ROLE,
                 'parameter_type': 'integer',
                 'default_value': '11',
                 'validator_type': 'list',
