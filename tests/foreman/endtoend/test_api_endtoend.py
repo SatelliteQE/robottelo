@@ -1178,22 +1178,17 @@ class TestEndToEnd:
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
-        if not is_open('BZ:2216461'):
-            content_host = target_sat.api.Host(
-                content_facet_attributes={
-                    'content_view_id': content_view.id,
-                    'lifecycle_environment_id': le1.id,
-                },
-                organization=org,
-            ).create()
-            # check that content view matches what we passed
-            assert (
-                content_host.content_facet_attributes['content_views'][0]['id'] == content_view.id
-            )
-            # check that lifecycle environment matches
-            assert (
-                content_host.content_facet_attributes['lifecycle_environments'][0]['id'] == le1.id
-            )
+        content_host = target_sat.api.Host(
+            content_facet_attributes={
+                'content_view_id': content_view.id,
+                'lifecycle_environment_id': le1.id,
+            },
+            organization=org,
+        ).create()
+        # check that content view matches what we passed
+        assert content_host.content_facet_attributes['content_view']['id'] == content_view.id
+        # check that lifecycle environment matches
+        assert content_host.content_facet_attributes['lifecycle_environment']['id'] == le1.id
 
         # step 2.14: Create a new libvirt compute resource
         target_sat.api.LibvirtComputeResource(
