@@ -4,6 +4,7 @@ import json
 import random
 import re
 import time
+import warnings
 from configparser import ConfigParser
 from contextlib import contextmanager
 from functools import cached_property
@@ -504,6 +505,10 @@ class ContentHost(Host, ContentHostMixins):
         :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
             installed.
         """
+        warnings.warn(
+            message='The install_katello_ca method is deprecated, use the register method instead.',
+            category=DeprecationWarning,
+        )
         self._satellite = satellite
         self.execute(
             f'curl --insecure --output katello-ca-consumer-latest.noarch.rpm \
@@ -547,6 +552,13 @@ class ContentHost(Host, ContentHostMixins):
         :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
             installed.
         """
+        warnings.warn(
+            message=(
+                'The install_capsule_katello_ca method is deprecated, '
+                'use the register method instead.'
+            ),
+            category=DeprecationWarning,
+        )
         url = urlunsplit(('http', capsule, 'pub/', '', ''))
         ca_url = urljoin(url, 'katello-ca-consumer-latest.noarch.rpm')
         result = self.execute(f'rpm -Uvh {ca_url}')

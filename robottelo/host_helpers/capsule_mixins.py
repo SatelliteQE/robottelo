@@ -47,7 +47,7 @@ class CapsuleInfo:
         :param poll_timeout: Maximum number of seconds to wait until timing out.
             Parameter for ``sat.api.ForemanTask.poll()`` method.
         :param must_succeed: Assert success result on finished task.
-        :return: List of ``sat.api.ForemanTasks`` entities.
+        :return: List of ``sat.api.ForemanTask`` entities.
         :raises: ``AssertionError``. If not tasks were found until timeout.
         """
         for _ in range(max_tries):
