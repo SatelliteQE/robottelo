@@ -29,12 +29,8 @@ from nailgun.entities import User as UserEntity
 from requests import HTTPError
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.discoveryrule import DiscoveryRule
-from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_discoveryrule
-from robottelo.cli.factory import make_hostgroup
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_org
+from robottelo.host_helpers.cli_factory import CLIFactoryError
 from robottelo.logging import logger
 from robottelo.utils.datafactory import filtered_datapoint
 from robottelo.utils.datafactory import invalid_values_list
@@ -115,8 +111,8 @@ class TestDiscoveryRule:
         :parametrized: yes
         """
         rule = discoveryrule_factory(options={'name': name, 'priority': gen_int32()})
-        request.addfinalizer(target_sat.api.DiscoveryRule(id=rule.id).delete)
         assert rule.name == name
+        request.addfinalizer(target_sat.api.DiscoveryRule(id=rule.id).delete)
 
     @pytest.mark.tier1
     def test_positive_create_with_search(self, discoveryrule_factory):
@@ -153,13 +149,13 @@ class TestDiscoveryRule:
 
     @pytest.mark.tier1
     def test_positive_create_and_update_with_org_loc_id(
-        self, discoveryrule_factory, class_org, class_location, class_hostgroup
+        self, discoveryrule_factory, class_org, class_location, class_hostgroup, target_sat
     ):
-        """Create discovery rule by associating org and location ids
+        """Create discovery rule by associating org and location ids and update
 
         :id: bdb4c581-d27a-4d1a-920b-89689e68a57f
 
-        :expectedresults: Rule was created and with given org & location names.
+        :expectedresults: Rule was created with given org & location names and updated.
 
         :BZ: 1377990, 1523221
 
@@ -175,12 +171,12 @@ class TestDiscoveryRule:
         assert class_org.name in rule.organizations
         assert class_location.name in rule.locations
 
-        new_org = Box(make_org())
-        new_loc = Box(make_location())
-        new_hostgroup = Box(
-            make_hostgroup({'organization-ids': new_org.id, 'location-ids': new_loc.id})
+        new_org = target_sat.cli_factory.make_org()
+        new_loc = target_sat.cli_factory.make_location()
+        new_hostgroup = target_sat.cli_factory.make_hostgroup(
+            {'organization-ids': new_org.id, 'location-ids': new_loc.id}
         )
-        DiscoveryRule.update(
+        target_sat.cli.DiscoveryRule.update(
             {
                 'id': rule.id,
                 'organization-ids': new_org.id,
@@ -188,19 +184,20 @@ class TestDiscoveryRule:
                 'hostgroup-id': new_hostgroup.id,
             }
         )
-        rule = Box(DiscoveryRule.info({'id': rule.id}))
+
+        rule = target_sat.cli.DiscoveryRule.info({'id': rule.id}, output_format='json')
         assert new_org.name in rule.organizations
         assert new_loc.name in rule.locations
 
     @pytest.mark.tier2
     def test_positive_create_and_update_with_org_loc_name(
-        self, discoveryrule_factory, class_org, class_location, class_hostgroup
+        self, discoveryrule_factory, class_org, class_location, class_hostgroup, target_sat
     ):
-        """Create discovery rule by associating org and location names
+        """Create discovery rule by associating org and location names and update
 
         :id: f0d550ae-16d8-48ec-817e-d2e5b7405b46
 
-        :expectedresults: Rule was created and with given org & location names.
+        :expectedresults: Rule was created and with given org & location names and updated
 
         :BZ: 1377990
         """
@@ -214,12 +211,13 @@ class TestDiscoveryRule:
         assert class_org.name in rule.organizations
         assert class_location.name in rule.locations
 
-        new_org = Box(make_org())
-        new_loc = Box(make_location())
-        new_hostgroup = Box(
-            make_hostgroup({'organization-ids': new_org.id, 'location-ids': new_loc.id})
+        new_org = target_sat.cli_factory.make_org()
+        new_loc = target_sat.cli_factory.make_location()
+        new_hostgroup = target_sat.cli_factory.make_hostgroup(
+            {'organization-ids': new_org.id, 'location-ids': new_loc.id}
         )
-        DiscoveryRule.update(
+
+        target_sat.cli.DiscoveryRule.update(
             {
                 'id': rule.id,
                 'organizations': new_org.name,
@@ -227,7 +225,7 @@ class TestDiscoveryRule:
                 'hostgroup-id': new_hostgroup.id,
             }
         )
-        rule = Box(DiscoveryRule.info({'id': rule.id}))
+        rule = Box(target_sat.cli.DiscoveryRule.info({'id': rule.id}))
         assert new_org.name in rule.organizations
         assert new_loc.name in rule.locations
 
@@ -248,24 +246,26 @@ class TestDiscoveryRule:
         assert rule['hosts-limit'] == hosts_limit
 
     @pytest.mark.tier1
-    def test_positive_create_and_update_with_priority(self, discoveryrule_factory):
+    def test_positive_create_and_update_with_priority(self, discoveryrule_factory, target_sat):
         """Create Discovery Rule providing any number from range 1..100 for
-        priority option
+        priority option and update
 
         :id: 8ef58279-0ad3-41a4-b8dd-65594afdb655
 
-        :expectedresults: Rule should be successfully created and has expected
+        :expectedresults: Rule should be successfully created/updated and has expected
             priority value
 
         :CaseImportance: Critical
         """
-        available = set(range(1, 1000)) - {int(Box(r).priority) for r in DiscoveryRule.list()}
+        available = set(range(1, 1000)) - {
+            int(Box(r).priority) for r in target_sat.cli.DiscoveryRule.list()
+        }
         rule_priority = random.sample(sorted(available), 1)
         rule = discoveryrule_factory(options={'priority': rule_priority[0]})
         assert rule.priority == str(rule_priority[0])
         # Update
-        DiscoveryRule.update({'id': rule.id, 'priority': rule_priority[0]})
-        rule = Box(DiscoveryRule.info({'id': rule.id}))
+        target_sat.cli.DiscoveryRule.update({'id': rule.id, 'priority': rule_priority[0]})
+        rule = Box(target_sat.cli.DiscoveryRule.info({'id': rule.id}))
         assert rule.priority == str(rule_priority[0])
 
     @pytest.mark.tier2
@@ -287,13 +287,17 @@ class TestDiscoveryRule:
     def test_negative_create_rule_with_discovery_params(
         self, name, host_name, discoveryrule_factory
     ):
-        """Create Discovery Rule with name that already exists
+        """Create Discovery Rule with negative parameters.
 
         :id: 0906cf64-ed0b-49af-844f-1af22f81ab94
 
         :expectedresults: Error should be raised and rule should not be created
 
         :CaseImportance: Medium
+
+        :CaseLevel: Component
+
+        :parametrized: yes
         """
         with pytest.raises(CLIFactoryError):
             discoveryrule_factory(options={'name': name})
@@ -310,28 +314,13 @@ class TestDiscoveryRule:
         with pytest.raises(CLIFactoryError):
             discoveryrule_factory(options={'name': name})
 
-    @pytest.mark.tier1
-    def test_positive_delete(self, discoveryrule_factory):
-        """Delete existing Discovery Rule
-
-        :id: c9b88a94-13c4-496f-a5c1-c088187250dc
-
-        :expectedresults: Rule should be successfully deleted
-
-        :CaseImportance: Critical
-        """
-        rule = discoveryrule_factory()
-        DiscoveryRule.delete({'id': rule.id})
-        with pytest.raises(CLIReturnCodeError):
-            DiscoveryRule.info({'id': rule.id})
-
     @pytest.mark.tier3
-    def test_positive_update_discovery_params(self, discoveryrule_factory, class_org):
-        """Update discovery rule name
+    def test_positive_update_discovery_params(self, discoveryrule_factory, class_org, target_sat):
+        """Update discovery rule parameters
 
         :id: 1045e2c4-e1f7-42c9-95f7-488fc79bf70b
 
-        :expectedresults: Rule name is updated
+        :expectedresults: Rule params are updated
 
         :CaseLevel: Component
 
@@ -342,8 +331,9 @@ class TestDiscoveryRule:
         new_query = 'model = KVM'
         new_hostname = gen_string('alpha')
         new_limit = '10'
-        new_hostgroup = Box(make_hostgroup({'organization-ids': class_org.id}))
-        DiscoveryRule.update(
+        new_hostgroup = target_sat.cli_factory.make_hostgroup({'organization-ids': class_org.id})
+
+        target_sat.cli.DiscoveryRule.update(
             {
                 'id': rule.id,
                 'name': new_name,
@@ -354,7 +344,7 @@ class TestDiscoveryRule:
             }
         )
 
-        rule = Box(DiscoveryRule.info({'id': rule.id}))
+        rule = Box(target_sat.cli.DiscoveryRule.info({'id': rule.id}))
         assert rule.name == new_name
         assert rule.search == new_query
         assert rule['host-group'] == new_hostgroup.name
@@ -362,7 +352,7 @@ class TestDiscoveryRule:
         assert rule['hosts-limit'] == new_limit
 
     @pytest.mark.tier1
-    def test_positive_update_disable_enable(self, discoveryrule_factory):
+    def test_positive_update_disable_enable(self, discoveryrule_factory, target_sat):
         """Update discovery rule enabled state. (Disabled->Enabled)
 
         :id: 64e8b21b-2ab0-49c3-a12d-02dbdb36647a
@@ -373,18 +363,18 @@ class TestDiscoveryRule:
         """
         rule = discoveryrule_factory(options={'enabled': 'false'})
         assert rule.enabled == 'false'
-        DiscoveryRule.update({'id': rule.id, 'enabled': 'true'})
-        rule = Box(DiscoveryRule.info({'id': rule.id}))
+        target_sat.cli.DiscoveryRule.update({'id': rule.id, 'enabled': 'true'})
+        rule = Box(target_sat.cli.DiscoveryRule.info({'id': rule.id}))
         assert rule.enabled == 'true'
 
     @pytest.mark.tier3
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_update_discovery_params(self, name, discoveryrule_factory):
-        """Update discovery rule name using invalid names only
+    def test_negative_update_discovery_params(self, name, discoveryrule_factory, target_sat):
+        """Update discovery rule name using invalid parameters
 
         :id: 8293cc6a-d983-460a-b76e-221ad02b54b7
 
-        :expectedresults: Rule name is not updated
+        :expectedresults: Rule params are not updated
 
         :CaseLevel: Component
 
@@ -396,16 +386,15 @@ class TestDiscoveryRule:
         priority = gen_string('alpha')
         host_limit = gen_string('alpha')
         with pytest.raises(CLIReturnCodeError):
-            DiscoveryRule.update({'id': rule.id, 'name': name})
-
-        with pytest.raises(CLIReturnCodeError):
-            DiscoveryRule.update({'id': rule.id, 'hostname': '$#@!*'})
-
-        with pytest.raises(CLIReturnCodeError):
-            DiscoveryRule.update({'id': rule.id, 'hosts-limit': host_limit})
-
-        with pytest.raises(CLIReturnCodeError):
-            DiscoveryRule.update({'id': rule.id, 'priority': priority})
+            target_sat.cli.DiscoveryRule.update(
+                {
+                    'id': rule.id,
+                    'name': name,
+                    'hostname': '$#@!*',
+                    'hosts-limit': host_limit,
+                    'priority': priority,
+                }
+            )
 
 
 class TestDiscoveryRuleRole:
@@ -448,20 +437,29 @@ class TestDiscoveryRuleRole:
             logger.exception('Exception while deleting class scope user entity in teardown')
 
     @pytest.mark.tier2
-    def test_positive_create_and_delete_rule_with_non_admin_user(
-        self, class_org, class_location, class_user_password, class_user_manager, class_hostgroup
+    def test_positive_crud_with_non_admin_user(
+        self,
+        class_org,
+        class_location,
+        class_user_password,
+        class_user_manager,
+        class_hostgroup,
+        target_sat,
     ):
-        """Create rule with non-admin user by associating discovery_manager role
+        """Create and delete rule with non-admin user by associating discovery_manager role
 
         :id: 056535aa-3338-4c1e-8a4b-ebfc8bd6e456
 
-        :expectedresults: Rule should be created successfully.
+        :expectedresults: Rule should be created and deleted successfully.
 
         :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
+        new_name = gen_string('alpha')
         rule = Box(
-            DiscoveryRule.with_user(class_user_manager.login, class_user_password).create(
+            target_sat.cli.DiscoveryRule.with_user(
+                class_user_manager.login, class_user_password
+            ).create(
                 {
                     'name': rule_name,
                     'search': 'cpu_count = 5',
@@ -472,60 +470,37 @@ class TestDiscoveryRuleRole:
             )
         )
         rule = Box(
-            DiscoveryRule.with_user(class_user_manager.login, class_user_password).info(
-                {'id': rule.id}
-            )
+            target_sat.cli.DiscoveryRule.with_user(
+                class_user_manager.login, class_user_password
+            ).info({'id': rule.id})
         )
         assert rule.name == rule_name
 
-        DiscoveryRule.with_user(class_user_manager.login, class_user_password).delete(
-            {'id': rule.id}
+        target_sat.cli.DiscoveryRule.update(
+            {
+                'id': rule.id,
+                'name': new_name,
+            }
         )
+
+        rule = Box(target_sat.cli.DiscoveryRule.info({'id': rule.id}))
+        assert rule.name == new_name
+
+        target_sat.cli.DiscoveryRule.with_user(
+            class_user_manager.login, class_user_password
+        ).delete({'id': rule.id})
         with pytest.raises(CLIReturnCodeError):
-            DiscoveryRule.info({'id': rule.id})
-
-    @pytest.mark.tier2
-    def test_positive_view_existing_rule_with_non_admin_user(
-        self, class_org, class_location, class_user_password, class_user_reader, class_hostgroup
-    ):
-        """Existing rule should be viewed to non-admin user by associating
-        discovery_reader role.
-
-        :id: 7b1d90b9-fc2d-4ccb-93d3-605c2da876f7
-
-        :Steps:
-
-            1. create a rule with admin user
-            2. create a non-admin user and assign 'Discovery Reader' role
-            3. Login with non-admin user
-
-        :expectedresults: Rule should be visible to non-admin user.
-
-        :CaseLevel: Integration
-        """
-        rule_name = gen_string('alpha')
-        rule = Box(
-            make_discoveryrule(
-                {
-                    'name': rule_name,
-                    'enabled': 'false',
-                    'search': "last_report = Today",
-                    'organizations': class_org.name,
-                    'locations': class_location.name,
-                    'hostgroup-id': class_hostgroup.id,
-                }
-            )
-        )
-        rule = Box(
-            DiscoveryRule.with_user(class_user_reader.login, class_user_password).info(
-                {'id': rule.id}
-            )
-        )
-        assert rule.name == rule_name
+            target_sat.cli.DiscoveryRule.info({'id': rule.id})
 
     @pytest.mark.tier2
     def test_negative_delete_rule_with_non_admin_user(
-        self, class_org, class_location, class_user_password, class_user_reader, class_hostgroup
+        self,
+        class_org,
+        class_location,
+        class_user_password,
+        class_user_reader,
+        class_hostgroup,
+        target_sat,
     ):
         """Delete rule with non-admin user by associating discovery_reader role
 
@@ -536,23 +511,22 @@ class TestDiscoveryRuleRole:
 
         :CaseLevel: Integration
         """
-        rule = Box(
-            make_discoveryrule(
-                {
-                    'enabled': 'false',
-                    'search': "last_report = Today",
-                    'organizations': class_org.name,
-                    'locations': class_location.name,
-                    'hostgroup-id': class_hostgroup.id,
-                }
-            )
+        rule = target_sat.cli_factory.make_discoveryrule(
+            {
+                'enabled': 'false',
+                'search': "last_report = Today",
+                'organizations': class_org.name,
+                'locations': class_location.name,
+                'hostgroup-id': class_hostgroup.id,
+            }
         )
+
         rule = Box(
-            DiscoveryRule.with_user(class_user_reader.login, class_user_password).info(
-                {'id': rule.id}
-            )
+            target_sat.cli.DiscoveryRule.with_user(
+                class_user_reader.login, class_user_password
+            ).info({'id': rule.id})
         )
         with pytest.raises(CLIReturnCodeError):
-            DiscoveryRule.with_user(class_user_reader.login, class_user_password).delete(
-                {'id': rule.id}
-            )
+            target_sat.cli.DiscoveryRule.with_user(
+                class_user_reader.login, class_user_password
+            ).delete({'id': rule.id})
