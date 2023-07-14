@@ -30,7 +30,7 @@ CUSTOM_REPO_ERRATA_ID = settings.repos.yum_0.errata[0]
 
 
 @pytest.fixture(scope='module')
-def module_repos_col(module_entitlement_manifest_org, module_lce, module_target_sat, request):
+def module_repos_col(request, module_entitlement_manifest_org, module_lce, module_target_sat):
     repos_collection = module_target_sat.cli_factory.RepositoryCollection(
         repositories=[
             # As Satellite Tools may be added as custom repo and to have a "Fully entitled" host,

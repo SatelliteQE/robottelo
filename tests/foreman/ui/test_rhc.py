@@ -92,7 +92,7 @@ def fixture_setup_rhc_satellite(
         content_view.publish()
         # Create Activation key
         ak = module_target_sat.api.ActivationKey(
-            name=settings.rh_cloud.activationkey or gen_string('alpha'),
+            name=settings.rh_cloud.activation_key or gen_string('alpha'),
             content_view=content_view,
             organization=module_rhc_org,
             environment=module_target_sat.api.LifecycleEnvironment(id=module_rhc_org.library.id),
