@@ -112,6 +112,7 @@ def test_positive_audit_comment(session, module_org):
         assert values['comment'] == audit_comment
 
 
+@pytest.mark.skip_if_open("BZ:2222890")
 @pytest.mark.tier2
 def test_positive_update_event(session, module_org):
     """When existing content view is updated, corresponding audit entry appear
@@ -126,6 +127,8 @@ def test_positive_update_event(session, module_org):
     :CaseLevel: Integration
 
     :CaseImportance: Medium
+
+    :bz: 2222890
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
