@@ -113,14 +113,12 @@ def mod_content_hosts(request):
 
 
 @pytest.fixture()
-def registered_hosts(request, target_sat, module_org):
+def registered_hosts(request, target_sat, module_org, module_ak_with_cv):
     """Fixture that registers content hosts to Satellite, based on rh_cloud setup"""
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
         for vm in hosts:
             repo = settings.repos['SATCLIENT_REPO'][f'RHEL{vm.os_version.major}']
-            target_sat.register_host_custom_repo(module_org, vm, [repo])
-            vm.install_katello_host_tools()
-            vm.add_rex_key(target_sat)
+            vm.register(module_org, None, module_ak_with_cv.name, target_sat, repo=repo)
         yield hosts
 
 
