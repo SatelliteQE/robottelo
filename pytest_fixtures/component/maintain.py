@@ -54,19 +54,19 @@ def module_synced_repos(sat_maintain, session_capsule_configured, module_sca_man
     rh_repo = sat_maintain.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
 
-    # assign the Library LCE to the Capsule
-    lce = sat_maintain.api.LifecycleEnvironment(organization=org).search(
-        query={'search': f'name={constants.ENVIRONMENT}'}
-    )[0]
-    session_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
-        data={'environment_id': lce.id}
-    )
-    result = session_capsule_configured.nailgun_capsule.content_lifecycle_environments()
-    assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
-
-    # sync the Capsule
-    sync_status = session_capsule_configured.nailgun_capsule.content_sync()
-    assert sync_status['result'] == 'success'
+    if not settings.remotedb.server:
+        # assign the Library LCE to the Capsule
+        lce = sat_maintain.api.LifecycleEnvironment(organization=org).search(
+            query={'search': f'name={constants.ENVIRONMENT}'}
+        )[0]
+        session_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': lce.id}
+        )
+        result = session_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
+        # sync the Capsule
+        sync_status = session_capsule_configured.nailgun_capsule.content_sync()
+        assert sync_status['result'] == 'success'
 
     yield {'custom': cust_repo, 'rh': rh_repo}
 
