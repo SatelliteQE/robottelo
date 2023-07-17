@@ -10,6 +10,8 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import GCE_RHEL_CLOUD_PROJECTS
+from robottelo.constants import GCE_TARGET_RHEL_IMAGE_NAME
 from robottelo.exceptions import GCECertNotFoundError
 
 
@@ -86,16 +88,19 @@ def googleclient(gce_cert):
 
 @pytest.fixture(scope='session')
 def gce_latest_rhel_uuid(googleclient):
-    template_names = [img.name for img in googleclient.list_templates(True)]
-    latest_rhel7_template = max(name for name in template_names if name.startswith('rhel-7'))
-    latest_rhel7_uuid = googleclient.get_template(latest_rhel7_template, project='rhel-cloud').uuid
-    return latest_rhel7_uuid
+    templates = googleclient.find_templates(
+        include_public=True,
+        public_projects=GCE_RHEL_CLOUD_PROJECTS,
+        filter_expr=f'name:{GCE_TARGET_RHEL_IMAGE_NAME}*',
+    )
+    latest_template_name = max(tpl.name for tpl in templates)
+    latest_template_uuid = next(tpl for tpl in templates if tpl.name == latest_template_name).uuid
+    return latest_template_uuid
 
 
 @pytest.fixture(scope='session')
 def gce_custom_cloudinit_uuid(googleclient, gce_cert):
-    cloudinit_uuid = googleclient.get_template('customcinit', project=gce_cert['project_id']).uuid
-    return cloudinit_uuid
+    return googleclient.get_template('customcinit', project=gce_cert['project_id']).uuid
 
 
 @pytest.fixture(scope='session')
@@ -123,19 +128,6 @@ def module_gce_compute(sat_gce, sat_gce_org, sat_gce_loc, gce_cert):
 
 
 @pytest.fixture(scope='module')
-def gce_template(googleclient):
-    max_rhel7_template = max(
-        img.name for img in googleclient.list_templates(True) if str(img.name).startswith('rhel-7')
-    )
-    return googleclient.get_template(max_rhel7_template, project='rhel-cloud').uuid
-
-
-@pytest.fixture(scope='module')
-def gce_cloudinit_template(googleclient, gce_cert):
-    return googleclient.get_template('customcinit', project=gce_cert['project_id']).uuid
-
-
-@pytest.fixture(scope='module')
 def gce_domain(sat_gce_org, sat_gce_loc, gce_cert, sat_gce):
     domain_name = f'{settings.gce.zone}.c.{gce_cert["project_id"]}.internal'
     domain = sat_gce.api.Domain().search(query={'search': f'name={domain_name}'})
@@ -153,8 +145,8 @@ def gce_domain(sat_gce_org, sat_gce_loc, gce_cert, sat_gce):
 
 @pytest.fixture(scope='module')
 def gce_resource_with_image(
-    gce_template,
-    gce_cloudinit_template,
+    gce_latest_rhel_uuid,
+    gce_custom_cloudinit_uuid,
     gce_cert,
     sat_gce_default_architecture,
     sat_gce_default_os,
@@ -186,7 +178,7 @@ def gce_resource_with_image(
         name='autogce_img',
         operatingsystem=sat_gce_default_os,
         username=vm_user,
-        uuid=gce_template,
+        uuid=gce_latest_rhel_uuid,
     ).create()
     # Cloud-Init Image
     sat_gce.api.Image(
@@ -195,7 +187,7 @@ def gce_resource_with_image(
         name='autogce_img_cinit',
         operatingsystem=sat_gce_default_os,
         username=vm_user,
-        uuid=gce_cloudinit_template,
+        uuid=gce_custom_cloudinit_uuid,
         user_data=True,
     ).create()
     return gce_cr

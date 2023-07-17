@@ -131,6 +131,9 @@ GCE_EXTERNAL_IP_DEFAULT = True
 GCE_RHEL_CLOUD_PROJECTS = ['rhel-cloud', 'rhel-sap-cloud']
 GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-7'
 
+GCE_RHEL_CLOUD_PROJECTS = ['rhel-cloud', 'rhel-sap-cloud']
+GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-7'
+
 # AzureRM specific constants
 AZURERM_VALID_REGIONS = [
     'East Asia',
