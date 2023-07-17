@@ -1747,6 +1747,11 @@ class Satellite(Capsule, SatelliteMixins):
         install_cmd = InstallerCommand.from_cmd_str(cmd_str=result.stdout)
         return cert_file_path, result, install_cmd
 
+    def load_remote_yaml_file(self, file_path):
+        """Load a remote yaml file and return a Box object"""
+        data = self.session.sftp_read(file_path, return_data=True)
+        return Box(yaml.load(data, yaml.FullLoader))
+
     def __enter__(self):
         """Satellite objects can be used as a context manager to temporarily force everything
         to use the Satellite object's hostname.

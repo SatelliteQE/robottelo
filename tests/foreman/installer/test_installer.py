@@ -1380,8 +1380,6 @@ def sat_non_default_install(module_sat_ready_rhels):
 
 @pytest.mark.e2e
 @pytest.mark.tier1
-@pytest.mark.build_sanity
-@pytest.mark.first_sanity
 def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
     """Run a basic Capsule installation
 
@@ -1396,7 +1394,7 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
     :expectedresults:
         1. Capsule is installed and setup correctly
 
-    :CaseImportance: Critical
+    :CaseImportance: High
     """
     # Get Capsule repofile, and enable and download satellite-capsule
     cap_ready_rhel.register_to_cdn()
