@@ -9,6 +9,8 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 :CaseLevel: Component
 
+:CaseComponent: ContentViews
+
 :team: Phoenix-content
 
 :TestType: Functional
