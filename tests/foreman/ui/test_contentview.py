@@ -23,9 +23,18 @@ from fauxfactory import gen_string
 @pytest.mark.tier2
 def test_positive_create_cv(session, target_sat):
     """Able to create cv and search for it
-    :id: 1bad50d8-4909-47ef-8524-8c703c75069d
+
+    :id: 15666f4e-d6e6-448a-97df-fede20cc2d1a
+
+    :steps:
+        1. Create a CV in the UI
+        2. Search for the CV
+
+    :expectedresults: CV is visible in the UI, and matches the given name
 
     :CaseLevel: System
+
+    :CaseImportance: High
     """
     cv = gen_string('alpha')
     with target_sat.ui_session() as session:
