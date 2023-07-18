@@ -105,9 +105,9 @@ def dogfood_repository(
     return Box(**repository)
 
 
-def ohsnap_snap_srpms(ohsnap, sat_version, snap_version, os_major, is_all=True):
+def ohsnap_snap_rpms(ohsnap, sat_version, snap_version, os_major, is_all=True):
     sat_xy = '.'.join(sat_version.split('.')[:2])
-    url = f'{ohsnap.host}/api/releases/{sat_version}/snaps/{snap_version}/srpms'
+    url = f'{ohsnap.host}/api/releases/{sat_version}/snaps/{snap_version}/rpms'
     if is_all:
         url += '?all=true'
     res, _ = wait_for(
@@ -117,11 +117,11 @@ def ohsnap_snap_srpms(ohsnap, sat_version, snap_version, os_major, is_all=True):
         timeout=ohsnap.request_retry.timeout,
         delay=ohsnap.request_retry.delay,
     )
-    srpms = []
+    rpms = []
     rpm_repos = [f'satellite {sat_xy}', f'maintenance {sat_xy}']
     if res.status_code == 200:
         for repo_data in res.json():
             if repo_data['rhel'] == os_major:
                 if any(repo in repo_data['repository'].lower() for repo in rpm_repos):
-                    srpms += repo_data['srpms']
-    return srpms
+                    rpms += repo_data['rpms']
+    return rpms

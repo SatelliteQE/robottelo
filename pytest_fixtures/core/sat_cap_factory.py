@@ -31,9 +31,8 @@ def _target_satellite_host(request, satellite_factory):
         yield new_sat
         new_sat.teardown()
         Broker(hosts=[new_sat]).checkin()
-    # Resolve Comment:
-    # Return target sat instead if its sanity ?
-    yield
+    else:
+        yield
 
 
 @contextmanager
@@ -43,7 +42,8 @@ def _target_capsule_host(request, capsule_factory):
         yield new_cap
         new_cap.teardown()
         Broker(hosts=[new_cap]).checkin()
-    yield
+    else:
+        yield
 
 
 @pytest.fixture(scope='session')
@@ -107,54 +107,42 @@ def capsule_factory():
 def satellite_host(request, satellite_factory):
     """A fixture that provides a Satellite based on config settings"""
     with _target_satellite_host(request, satellite_factory) as sat:
-        if sat:
-            yield sat
-    yield
+        yield sat
 
 
 @pytest.fixture(scope='module')
 def module_satellite_host(request, satellite_factory):
     """A fixture that provides a Satellite based on config settings"""
     with _target_satellite_host(request, satellite_factory) as sat:
-        if sat:
-            yield sat
-    yield
+        yield sat
 
 
 @pytest.fixture(scope='session')
 def session_satellite_host(request, satellite_factory):
     """A fixture that provides a Satellite based on config settings"""
     with _target_satellite_host(request, satellite_factory) as sat:
-        if sat:
-            yield sat
-    yield
+        yield sat
 
 
 @pytest.fixture
 def capsule_host(request, capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
     with _target_capsule_host(request, capsule_factory) as cap:
-        if cap:
-            yield cap
-    yield
+        yield cap
 
 
 @pytest.fixture(scope='module')
 def module_capsule_host(request, capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
     with _target_capsule_host(request, capsule_factory) as cap:
-        if cap:
-            yield cap
-    yield
+        yield cap
 
 
 @pytest.fixture(scope='session')
 def session_capsule_host(request, capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
     with _target_capsule_host(request, capsule_factory) as cap:
-        if cap:
-            yield cap
-    yield
+        yield cap
 
 
 @pytest.fixture
@@ -328,8 +316,9 @@ def installer_satellite(request):
         configure_airgun()
     yield sat
     if 'sanity' not in request.config.option.markexpr:
-        sat.teardown()
+        sanity_sat = Satellite(sat.hostname)
+        sanity_sat.unregister()
         broker_sat = Broker(host_class=Satellite).from_inventory(
-            filter=f'@inv.hostname == "{sat.hostname}"'
+            filter=f'@inv.hostname == "{sanity_sat.hostname}"'
         )[0]
         Broker(hosts=[broker_sat]).checkin()

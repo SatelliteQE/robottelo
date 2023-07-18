@@ -72,11 +72,11 @@ POWER_OPERATIONS = {
 }
 
 
-@lru_cache(maxsize=128)
+@lru_cache
 def lru_sat_ready_rhel(rhel_ver):
     deploy_args = {
         'deploy_rhel_version': rhel_ver or settings.server.version.rhel_version,
-        'deploy_flavor': 'satqe-ssd.standard.std',
+        'deploy_flavor': settings.flavors.default,
         'promtail_config_template_file': 'config_sat.j2',
         'workflow': 'deploy-rhel',
     }

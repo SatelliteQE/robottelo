@@ -21,7 +21,7 @@ import re
 import pytest
 
 from robottelo.config import settings
-from robottelo.utils.ohsnap import ohsnap_snap_srpms
+from robottelo.utils.ohsnap import ohsnap_snap_rpms
 
 pytestmark = [pytest.mark.build_sanity]
 
@@ -35,7 +35,7 @@ def test_installed_packages_with_versions(target_sat):
         identical to ohsnap as SOT
     """
     # Raw Data from Ohsnap and Satellite Server
-    ohsnap_srpms = ohsnap_snap_srpms(
+    ohsnap_rpms = ohsnap_snap_rpms(
         ohsnap=settings.ohsnap,
         sat_version=settings.server.version.release,
         snap_version=settings.server.version.snap,
@@ -53,8 +53,8 @@ def test_installed_packages_with_versions(target_sat):
     namever_pattern = r'.*-\d+[-._]*\d*'
 
     # Formatted Ohsnap Data
-    ohsnp_rpm_names = [re.split(split_by_version, rpm)[0] for rpm in ohsnap_srpms]
-    ohsnap_rpm_name_vers = [re.findall(namever_pattern, rpm)[0] for rpm in ohsnap_srpms]
+    ohsnp_rpm_names = [re.split(split_by_version, rpm)[0] for rpm in ohsnap_rpms]
+    ohsnap_rpm_name_vers = [re.findall(namever_pattern, rpm)[0] for rpm in ohsnap_rpms]
 
     # Comparing installed rpms with ohsnap data
     mismatch_versions = []
