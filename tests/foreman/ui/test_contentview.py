@@ -1,4 +1,4 @@
-"""Test class for Content View UI
+"""Test class for Old Content View UI
 
 Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
@@ -9,7 +9,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 :CaseLevel: Component
 
-:CaseComponent: ContentViews
+:CaseComponent: ContentViews-old
 
 :team: Phoenix-content
 
