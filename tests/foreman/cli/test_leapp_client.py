@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import pytest
+from wait_for import wait_for
 from wrapanapi.entities.vm import VmState
 
 from robottelo.constants import PRDS
@@ -52,14 +53,15 @@ CUSTOM_REPOS = {
 
 
 @pytest.fixture(scope="module")
-def setup_env(module_target_sat, module_org):
+def setup_env(module_target_sat, module_sca_manifest_org):
     """Creating essential things and returning in form of dictiory for use"""
     # 1. Import a subscription manifest
-    module_target_sat.upload_manifest(module_org)
-    lc_env = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
-    c_view = module_target_sat.api.ContentView(organization=module_org).create()
+    lc_env = module_target_sat.api.LifecycleEnvironment(
+        organization=module_sca_manifest_org
+    ).create()
+    c_view = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
     return {
-        'organization': module_org,
+        'organization': module_sca_manifest_org,
         'satellite': module_target_sat,
         'environment': lc_env,
         'contentview': c_view,
@@ -67,10 +69,17 @@ def setup_env(module_target_sat, module_org):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('8')
-def test_upgrade_rhel8_to_rehl9(
+@pytest.mark.parametrize(
+    'custom_host',
+    [
+        {'deploy_rhel_version': '8.8'},
+    ],
+    ids=['RHEL8.8'],
+    indirect=True,
+)
+def test_upgrade_rhel8_to_rhel9(
     setup_env,
-    rhel_contenthost,
+    custom_host,
 ):
     """Test to upgrade RHEL host to next major RHEL Realse with Leapp Preupgrade and Leapp Upgrade
     Job templates
@@ -89,6 +98,7 @@ def test_upgrade_rhel8_to_rehl9(
         1. Update RHEL OS major version to another major version
 
     """
+    # rhel_contenthost = custom_host
     organization = setup_env['organization']
     target_sat = setup_env['satellite']
     lc_env = setup_env['environment']
@@ -96,12 +106,12 @@ def test_upgrade_rhel8_to_rehl9(
 
     # Enable rhel8/rhel9 bos, aps repository and add in content view
     all_repos = []
-    for rh_repo_key in ['rhel8_8_bos', 'rhel8_8_aps', 'rhel9_2_bos', 'rhel9_2_aps']:
-        prod = PRDS['rhel8'] if 'rhel8' in rh_repo_key else PRDS['rhel9']
+    for rh_repo_key in CUSTOM_REPOS.keys():
+        prod = rh_repo_key.split('_')[0]
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
-            basearch='x86_64',
+            basearch=custom_host.arch,
             org_id=organization.id,
-            product=prod,
+            product=PRDS[prod],
             repo=CUSTOM_REPOS[rh_repo_key]['name'],
             reposet=CUSTOM_REPOSET[rh_repo_key],
             releasever=CUSTOM_REPOS[rh_repo_key]['releasever'],
@@ -124,10 +134,10 @@ def test_upgrade_rhel8_to_rehl9(
         organization=organization,
     ).create()
     # 3. Register Host
-    rhel_contenthost.install_katello_ca(target_sat)
-    rhel_contenthost.register_contenthost(org=organization.label, activation_key=ak.name)
-    rhel_contenthost.add_rex_key(satellite=target_sat)
-    assert rhel_contenthost.subscribed
+    custom_host.install_katello_ca(target_sat)
+    custom_host.register_contenthost(org=organization.label, activation_key=ak.name)
+    custom_host.add_rex_key(satellite=target_sat)
+    assert custom_host.subscribed
     # 4. Verify target rhel version repositories has enabled on Satellite Server
     cmd_out = target_sat.execute(
         f"hammer repository list --search 'content_label ~ rhel-9' --content-view {c_view.name} "
@@ -137,28 +147,26 @@ def test_upgrade_rhel8_to_rehl9(
     assert ("AppStream RPMs 9" in cmd_out.stdout) and ("BaseOS RPMs 9" in cmd_out.stdout)
 
     # Preupgrade conditions and check
-    rhel_contenthost.run("rm -rf /root/tmp_leapp_py3")
+    custom_host.run("rm -rf /root/tmp_leapp_py3")
     # Remove directory if in-place upgrade already performed from RHEL7 to RHEL8
-    rhel_old_ver = rhel_contenthost.os_version
+    rhel_old_ver = custom_host.run('cat /etc/redhat-release')
     # 5. Update all packages and install Leapp utility
-    rhel_contenthost.run("yum clean all")
-    rhel_contenthost.run("yum repolist")
+    custom_host.run("dnf clean all")
+    custom_host.run("dnf repolist")
 
-    rhel_contenthost.run("subscription-manager release --set 8.8")
-    result = rhel_contenthost.run("dnf update -y")
+    custom_host.run("subscription-manager release --set 8.8")
+    result = custom_host.run("dnf update -y")
     assert result.status == 0
-    rhel_contenthost.run("yum install leapp-upgrade -y")
+    custom_host.run("dnf install leapp-upgrade -y")
 
     # Fixing inhibitors - download data files to avoid inhibitors
-    rhel_contenthost.run(
-        'curl -k "https://gitlab.cee.redhat.com/oamg/leapp-data/-/raw/stage/data/'
-        '{repomap.json,pes-events.json,device_driver_deprecation_data.json}"'
-        ' -o "/etc/leapp/files/#1"'
-    )
-    rhel_contenthost.run(
+    custom_host.run(
         'sed -i "s/^AllowZoneDrifting=.*/AllowZoneDrifting=no/" /etc/firewalld/firewalld.conf'
     )
-    # 6.1 Run LEAPP-PREUPGRADE Job Template-
+    if custom_host.run('needs-restarting -r').status == 1:
+        custom_host.power_control(state='reboot', ensure=True)
+        custom_host.power_control(state=VmState.RUNNING, ensure=True)
+    # 6. Run LEAPP-PREUPGRADE Job Template-
     template_id = (
         target_sat.api.JobTemplate()
         .search(query={'search': 'name="Run preupgrade via Leapp"'})[0]
@@ -169,7 +177,7 @@ def test_upgrade_rhel8_to_rehl9(
         data={
             'job_template_id': template_id,
             'targeting_type': 'static_query',
-            'search_query': f'name = {rhel_contenthost.hostname}',
+            'search_query': f'name = {custom_host.hostname}',
         },
     )
     target_sat.wait_for_tasks(
@@ -177,8 +185,7 @@ def test_upgrade_rhel8_to_rehl9(
     )
     result = target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
-
-    # 6.2 Run LEAPP-UPGRADE Job Template-
+    # Run LEAPP-UPGRADE Job Template-
     template_id = (
         target_sat.api.JobTemplate().search(query={'search': 'name="Run upgrade via Leapp"'})[0].id
     )
@@ -187,7 +194,7 @@ def test_upgrade_rhel8_to_rehl9(
         data={
             'job_template_id': template_id,
             'targeting_type': 'static_query',
-            'search_query': f'name = {rhel_contenthost.hostname}',
+            'search_query': f'name = {custom_host.hostname}',
             'inputs': {'Reboot': 'true'},
         },
     )
@@ -196,8 +203,18 @@ def test_upgrade_rhel8_to_rehl9(
     )
     result = target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
-    # Resume the rhel_contenthsot with ensure True to ping the virtual machine
-    rhel_contenthost.power_control(state=VmState.RUNNING, ensure=True)
-    rhel_new_ver = rhel_contenthost.run('cat /etc/redhat-release')
+    # Wait for the host to be rebooted and SSH daemon to be started.
+    try:
+        wait_for(
+            custom_host.connect,
+            fail_condition=lambda res: res is not None,
+            handle_exception=True,
+            raise_original=True,
+            timeout=180,
+            delay=1,
+        )
+    except ConnectionRefusedError:
+        raise ConnectionRefusedError('Timed out waiting for SSH daemon to start on the host')
+    rhel_new_ver = custom_host.run('cat /etc/redhat-release')
     assert rhel_old_ver != rhel_new_ver
     assert "9.2" in str(rhel_new_ver)
