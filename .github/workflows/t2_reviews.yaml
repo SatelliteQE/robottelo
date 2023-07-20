@@ -5,6 +5,9 @@ on:
   pull_request:
     paths: ['*', '.github/**', 'conf/**', 'pytest_fixtures/core/*', 'pytest_plugins/**', 'robottelo/**', '!robottelo/constants/*', 'scripts/**']
 
+permissions:
+  pull-requests: write
+
 env:
   NUMBER: ${{ github.event.number }}
   REVIEWERS: '["robottelo-tier-2-reviewers"]'
