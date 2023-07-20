@@ -5,6 +5,9 @@ on:
   pull_request:
     paths: ['*', '.github/**', 'conf/**', 'pytest_fixtures/core/*', 'pytest_plugins/**', 'robottelo/**', '!robottelo/constants/*', 'scripts/**']
 
+permissions:
+  pull-requests: write
+
 env:
   NUMBER: ${{ github.event.number }}
   REVIEWERS: '["robottelo-tier-2-reviewers"]'
@@ -20,7 +23,7 @@ jobs:
           echo "Adding applicable labels to the PR $NUMBER"
           curl -L -X POST \
           -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.T2_TOKEN }}" \
+          -H "Authorization: Bearer ${{ secrets.CHERRYPICK_PAT }}" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
           https://api.github.com/repos/SatelliteQE/robottelo/issues/$NUMBER/labels \
           -d '{"labels": '"$LABELS"'}'
@@ -31,7 +34,7 @@ jobs:
           curl -L \
           -X POST \
           -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.T2_TOKEN }}" \
+          -H "Authorization: Bearer ${{ secrets.CHERRYPICK_PAT }}" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
           https://api.github.com/repos/SatelliteQE/robottelo/pulls/$NUMBER/requested_reviewers \
           -d '{"team_reviewers": '"${REVIEWERS}"'}'
