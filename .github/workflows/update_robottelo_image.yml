@@ -1,0 +1,44 @@
+# Update robottelo image on quay.
+name: update_robottelo_image
+
+on:
+  push:
+    branches:
+      - master
+      - 6.*.z
+  workflow_dispatch:
+
+jobs:
+  robottelo_container:
+    name: Update Robottelo container image on Quay.
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get image tag
+        id: image_tag
+        run: |
+          TAG="${GITHUB_REF##*/}"
+          TAG=${TAG/master/latest}
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Build Robottelo image
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: robottelo
+          tags: ${{ steps.image_tag.outputs.IMAGE_TAG }}
+          containerfiles: |
+            ./Dockerfile
+
+      - name: Push Robottelo image to quay.io
+        id: push-to-quay
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: robottelo
+          tags: ${{ steps.image_tag.outputs.IMAGE_TAG }}
+          registry: ${{ secrets.QUAY_SERVER }}/${{ secrets.QUAY_NAMESPACE }}
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_PASSWORD }}
