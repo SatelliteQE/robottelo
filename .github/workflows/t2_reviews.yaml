@@ -1,0 +1,37 @@
+# Github Action to Automatically assign T2 Reviewers to framework touched PRs
+name: Auto assign T2 Reviewers
+
+on:
+  pull_request:
+    paths: ['*', '.github/**', 'conf/**', 'pytest_fixtures/core/*', 'pytest_plugins/**', 'robottelo/**', '!robottelo/constants/*', 'scripts/**']
+
+env:
+  NUMBER: ${{ github.event.number }}
+  REVIEWERS: '["robottelo-tier-2-reviewers"]'
+  LABELS: '["Framework Changes"]'
+
+jobs:
+  assign-reviewers-and-labels:
+    name: Assign T2 Reviewers and Labels to the PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add Labels to the PR
+        run: |
+          echo "Adding applicable labels to the PR $NUMBER"
+          curl -L -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.CHERRYPICK_PAT }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          https://api.github.com/repos/SatelliteQE/robottelo/issues/$NUMBER/labels \
+          -d '{"labels": '"$LABELS"'}'
+
+      - name: Assign T2 Reviewers Team to the PR
+        run: |
+          echo "Assigning T2 Reviewers to the PR $number"
+          curl -L \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.CHERRYPICK_PAT }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          https://api.github.com/repos/SatelliteQE/robottelo/pulls/$NUMBER/requested_reviewers \
+          -d '{"team_reviewers": '"${REVIEWERS}"'}'
