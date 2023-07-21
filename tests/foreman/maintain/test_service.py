@@ -25,6 +25,7 @@ from robottelo.constants import (
     MAINTAIN_HAMMER_YML,
     SATELLITE_ANSWER_FILE,
 )
+from wait_for import wait_for
 from robottelo.hosts import Satellite
 
 SATELLITE_SERVICES = [
@@ -181,6 +182,27 @@ def test_positive_service_enable_disable(sat_maintain):
     assert 'FAIL' not in result.stdout
     assert result.status == 0
     result = sat_maintain.cli.Service.enable()
+    assert 'FAIL' not in result.stdout
+    assert result.status == 0
+    sat_maintain.power_control(state='reboot')
+    if type(sat_maintain) is Satellite:
+        result, _ = wait_for(
+            sat_maintain.cli.Service.status,
+            func_kwargs={'options': {'brief': True, 'only': 'foreman.service'}},
+            fail_condition=lambda res: "FAIL" in res.stdout,
+            handle_exception=True,
+            delay=30,
+            timeout=300,
+        )
+    else:
+        result, _ = wait_for(
+            sat_maintain.cli.Service.status,
+            func_kwargs={'options': {'brief': True}},
+            fail_condition=lambda res: "FAIL" in res.stdout,
+            handle_exception=True,
+            delay=30,
+            timeout=300,
+        )
     assert 'FAIL' not in result.stdout
     assert result.status == 0
 
