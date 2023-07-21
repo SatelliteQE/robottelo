@@ -27,6 +27,7 @@ jobs:
         with:
           issue-number: ${{ env.number }}
           body-includes: "trigger: test-robottelo"
+          direction: last
 
   # Auto CherryPicking and Failure Recording
   auto-cherry-pick:
