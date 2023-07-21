@@ -18,11 +18,13 @@
 """
 import pytest
 from fauxfactory import gen_string
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import MAINTAIN_HAMMER_YML
 from robottelo.constants import SATELLITE_ANSWER_FILE
+from robottelo.hosts import Satellite
 
 pytestmark = pytest.mark.destructive
 
@@ -158,7 +160,24 @@ def test_positive_service_enable_disable(sat_maintain):
     assert 'FAIL' not in result.stdout
     assert result.status == 0
     sat_maintain.power_control(state='reboot')
-    result = sat_maintain.cli.Service.status(options={'brief': True, 'only': 'foreman.service'})
+    if type(sat_maintain) is Satellite:
+        result, _ = wait_for(
+            sat_maintain.cli.Service.status,
+            func_kwargs={'options': {'brief': True, 'only': 'foreman.service'}},
+            fail_condition=lambda res: "FAIL" in res.stdout,
+            handle_exception=True,
+            delay=30,
+            timeout=300,
+        )
+    else:
+        result, _ = wait_for(
+            sat_maintain.cli.Service.status,
+            func_kwargs={'options': {'brief': True}},
+            fail_condition=lambda res: "FAIL" in res.stdout,
+            handle_exception=True,
+            delay=30,
+            timeout=300,
+        )
     assert 'FAIL' not in result.stdout
     assert result.status == 0
 
