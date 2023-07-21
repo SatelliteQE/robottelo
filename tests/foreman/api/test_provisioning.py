@@ -20,12 +20,13 @@ import pytest
 from fauxfactory import gen_string
 from packaging.version import Version
 from wait_for import wait_for
+from robottelo.config import settings
 
 
 @pytest.mark.e2e
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.on_premises_provisioning
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('[8]')
 def test_rhel_pxe_provisioning(
     request,
     module_provisioning_sat,
@@ -143,6 +144,22 @@ def test_rhel_pxe_provisioning(
     )
     assert job['result'] == 'success', 'Job invocation failed'
 
+    # check if root password is properly updated
+    assert provisioning_host.execute('mv /root/.ssh /root/nosshlogin').status == 0
+    job = sat.api.JobInvocation().run(
+        data={
+            'job_template_id': template_id,
+            'inputs': {'command': 'ls -la'},
+            'search_query': f"name = {host.name}",
+            'targeting_type': 'static_query',
+            'ssh_user': 'root',
+            'password': settings.server.ssh_password,
+        },
+    )
+    assert job['result'] == 'success', 'Job invocation failed'
     # assert that the host is subscribed and consumes
     # subsctiption provided by the activation key
     assert provisioning_host.subscribed, 'Host is not subscribed'
+
+
+# testing
