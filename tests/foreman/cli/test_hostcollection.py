@@ -118,7 +118,6 @@ def test_positive_end_to_end(module_org):
         HostCollection.info({'id': new_host_col['id']})
 
 
-@pytest.mark.build_sanity
 @pytest.mark.tier1
 def test_positive_create_with_limit(module_org):
     """Check if host collection can be created with correct limits

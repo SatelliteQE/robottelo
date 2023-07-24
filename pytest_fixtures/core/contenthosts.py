@@ -9,7 +9,6 @@ from broker import Broker
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.hosts import Capsule
 from robottelo.hosts import ContentHost
 from robottelo.hosts import Satellite
 
@@ -220,33 +219,6 @@ def oracle_host(request, version):
         "no_containers": True,
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
-        yield host
-
-
-@pytest.fixture
-def sat_ready_rhel(request):
-    deploy_args = {
-        'deploy_rhel_version': request.param,
-        'deploy_flavor': settings.flavors.default,
-        'promtail_config_template_file': 'config_sat.j2',
-        'workflow': 'deploy-rhel',
-    }
-    # if 'deploy_rhel_version' is not set, let's default to RHEL 8
-    deploy_args['deploy_rhel_version'] = deploy_args.get('deploy_rhel_version', '8')
-    deploy_args['workflow'] = 'deploy-rhel'
-    with Broker(**deploy_args, host_class=Satellite) as host:
-        yield host
-
-
-@pytest.fixture
-def cap_ready_rhel():
-    rhel8 = settings.content_host.rhel8.vm
-    deploy_args = {
-        'deploy_rhel_version': rhel8.deploy_rhel_version,
-        'deploy_flavor': 'satqe-ssd.standard.std',
-        'workflow': rhel8.workflow,
-    }
-    with Broker(**deploy_args, host_class=Capsule) as host:
         yield host
 
 

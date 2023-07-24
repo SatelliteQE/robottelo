@@ -141,7 +141,6 @@ class TestUser:
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    @pytest.mark.build_sanity
     def test_positive_CRUD_admin(self):
         """Create an Admin user
 

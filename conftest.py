@@ -19,6 +19,7 @@ pytest_plugins = [
     'pytest_plugins.fixture_collection',
     'pytest_plugins.factory_collection',
     'pytest_plugins.requirements.update_requirements',
+    'pytest_plugins.sanity_plugin',
     # Fixtures
     'pytest_fixtures.core.broker',
     'pytest_fixtures.core.sat_cap_factory',
