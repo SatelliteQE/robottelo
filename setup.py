@@ -17,7 +17,7 @@ setup(
     include_package_data=True,
     license='GNU GPL v3.0',
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
-    python_requires="~=3.9",
+    python_requires="~=3.10",
     classifiers=(
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
