@@ -10,7 +10,8 @@ def session_puppet_enabled_sat(session_satellite_host):
     """Satellite with enabled puppet plugin"""
     if session_satellite_host:
         yield session_satellite_host.enable_puppet_satellite()
-    yield
+    else:
+        yield
 
 
 @pytest.fixture(scope='session')
