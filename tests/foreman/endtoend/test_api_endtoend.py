@@ -953,7 +953,6 @@ class TestAvailableURLs:
         """We want to delay referencing get_url() until test execution"""
         return f'{get_url()}/api/v2'
 
-    @pytest.mark.build_sanity
     def test_positive_get_status_code(self, api_url):
         """GET ``api/v2`` and examine the response.
 
@@ -1015,7 +1014,6 @@ class TestEndToEnd:
     def fake_manifest_is_set(self):
         return setting_is_set('fake_manifest')
 
-    @pytest.mark.build_sanity
     def test_positive_find_default_org(self):
         """Check if 'Default Organization' is present
 
@@ -1029,7 +1027,6 @@ class TestEndToEnd:
         assert len(results) == 1
         assert results[0].name == constants.DEFAULT_ORG
 
-    @pytest.mark.build_sanity
     def test_positive_find_default_loc(self):
         """Check if 'Default Location' is present
 

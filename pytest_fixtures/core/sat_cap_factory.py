@@ -1,47 +1,74 @@
+from contextlib import contextmanager
+
 import pytest
 from broker import Broker
 from wait_for import wait_for
 
-from pytest_fixtures.core.broker import _resolve_deploy_args
+from robottelo.config import configure_airgun
+from robottelo.config import configure_nailgun
 from robottelo.config import settings
 from robottelo.hosts import Capsule
 from robottelo.hosts import IPAHost
+from robottelo.hosts import lru_sat_ready_rhel
+from robottelo.hosts import Satellite
+from robottelo.logging import logger
+from robottelo.utils.installer import InstallerCommand
 
 
-@pytest.fixture
-def satellite_host(satellite_factory):
-    """A fixture that provides a Satellite based on config settings"""
-    new_sat = satellite_factory()
-    yield new_sat
-    new_sat.teardown()
-    Broker(hosts=[new_sat]).checkin()
+def resolve_deploy_args(args_dict):
+    # TODO: https://github.com/rochacbruno/dynaconf/issues/690
+    for key, val in args_dict.copy().to_dict().items():
+        if isinstance(val, str) and val.startswith('this.'):
+            # Args transformed into small letters and existing capital args removed
+            args_dict[key.lower()] = settings.get(args_dict.pop(key).replace('this.', ''))
+    return args_dict
 
 
-@pytest.fixture(scope='module')
-def module_satellite_host(satellite_factory):
-    """A fixture that provides a Satellite based on config settings"""
-    new_sat = satellite_factory()
-    yield new_sat
-    new_sat.teardown()
-    Broker(hosts=[new_sat]).checkin()
+@contextmanager
+def _target_satellite_host(request, satellite_factory):
+    if 'sanity' not in request.config.option.markexpr:
+        new_sat = satellite_factory()
+        yield new_sat
+        new_sat.teardown()
+        Broker(hosts=[new_sat]).checkin()
+    else:
+        yield
+
+
+@contextmanager
+def _target_capsule_host(request, capsule_factory):
+    if 'sanity' not in request.config.option.markexpr:
+        new_cap = capsule_factory()
+        yield new_cap
+        new_cap.teardown()
+        Broker(hosts=[new_cap]).checkin()
+    else:
+        yield
 
 
 @pytest.fixture(scope='session')
-def session_satellite_host(satellite_factory):
-    """A fixture that provides a Satellite based on config settings"""
-    new_sat = satellite_factory()
-    yield new_sat
-    new_sat.teardown()
-    Broker(hosts=[new_sat]).checkin()
+def satellite_factory():
+    if settings.server.get('deploy_arguments'):
+        logger.debug(f'Original deploy arguments for sat: {settings.server.deploy_arguments}')
+        resolved = resolve_deploy_args(settings.server.deploy_arguments)
+        settings.set('server.deploy_arguments', resolved)
+        logger.debug(f'Resolved deploy arguments for sat: {settings.server.deploy_arguments}')
 
+    def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
+        if settings.server.deploy_arguments:
+            broker_args.update(settings.server.deploy_arguments)
+            logger.debug(f'Updated broker args for sat: {broker_args}')
 
-@pytest.fixture
-def capsule_host(capsule_factory):
-    """A fixture that provides a Capsule based on config settings"""
-    new_cap = capsule_factory()
-    yield new_cap
-    new_cap.teardown()
-    Broker(hosts=[new_cap]).checkin()
+        vmb = Broker(
+            host_class=Satellite,
+            workflow=workflow or settings.server.deploy_workflow,
+            **broker_args,
+        )
+        timeout = (1200 + delay) * retry_limit
+        sat = wait_for(vmb.checkout, timeout=timeout, delay=delay, fail_condition=[])
+        return sat.out
+
+    return factory
 
 
 @pytest.fixture
@@ -53,22 +80,69 @@ def large_capsule_host(capsule_factory):
     Broker(hosts=[new_cap]).checkin()
 
 
+@pytest.fixture(scope='session')
+def capsule_factory():
+    if settings.capsule.get('deploy_arguments'):
+        logger.debug(f'Original deploy arguments for cap: {settings.capsule.deploy_arguments}')
+        resolved = resolve_deploy_args(settings.capsule.deploy_arguments)
+        settings.set('capsule.deploy_arguments', resolved)
+        logger.debug(f'Resolved deploy arguments for cap: {settings.capsule.deploy_arguments}')
+
+    def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
+        if settings.capsule.deploy_arguments:
+            broker_args.update(settings.capsule.deploy_arguments)
+        vmb = Broker(
+            host_class=Capsule,
+            workflow=workflow or settings.capsule.deploy_workflow,
+            **broker_args,
+        )
+        timeout = (1200 + delay) * retry_limit
+        cap = wait_for(vmb.checkout, timeout=timeout, delay=delay, fail_condition=[])
+        return cap.out
+
+    return factory
+
+
+@pytest.fixture
+def satellite_host(request, satellite_factory):
+    """A fixture that provides a Satellite based on config settings"""
+    with _target_satellite_host(request, satellite_factory) as sat:
+        yield sat
+
+
 @pytest.fixture(scope='module')
-def module_capsule_host(capsule_factory):
-    """A fixture that provides a Capsule based on config settings"""
-    new_cap = capsule_factory()
-    yield new_cap
-    new_cap.teardown()
-    Broker(hosts=[new_cap]).checkin()
+def module_satellite_host(request, satellite_factory):
+    """A fixture that provides a Satellite based on config settings"""
+    with _target_satellite_host(request, satellite_factory) as sat:
+        yield sat
 
 
 @pytest.fixture(scope='session')
-def session_capsule_host(capsule_factory):
+def session_satellite_host(request, satellite_factory):
+    """A fixture that provides a Satellite based on config settings"""
+    with _target_satellite_host(request, satellite_factory) as sat:
+        yield sat
+
+
+@pytest.fixture
+def capsule_host(request, capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
-    new_cap = capsule_factory()
-    yield new_cap
-    new_cap.teardown()
-    Broker(hosts=[new_cap]).checkin()
+    with _target_capsule_host(request, capsule_factory) as cap:
+        yield cap
+
+
+@pytest.fixture(scope='module')
+def module_capsule_host(request, capsule_factory):
+    """A fixture that provides a Capsule based on config settings"""
+    with _target_capsule_host(request, capsule_factory) as cap:
+        yield cap
+
+
+@pytest.fixture(scope='session')
+def session_capsule_host(request, capsule_factory):
+    """A fixture that provides a Capsule based on config settings"""
+    with _target_capsule_host(request, capsule_factory) as cap:
+        yield cap
 
 
 @pytest.fixture
@@ -95,8 +169,10 @@ def module_capsule_configured(module_capsule_host, module_target_sat):
 @pytest.fixture(scope='session')
 def session_capsule_configured(session_capsule_host, session_target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    session_capsule_host.capsule_setup(sat_host=session_target_sat)
-    yield session_capsule_host
+    if session_capsule_host:
+        session_capsule_host.capsule_setup(sat_host=session_target_sat)
+        yield session_capsule_host
+    yield
 
 
 @pytest.fixture(scope='module')
@@ -120,7 +196,7 @@ def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
     :return: List of capsules
     """
     if settings.capsule.get('deploy_arguments'):
-        resolved = _resolve_deploy_args(settings.capsule.deploy_arguments)
+        resolved = resolve_deploy_args(settings.capsule.deploy_arguments)
         settings.set('capsule.deploy_arguments', resolved)
         broker_args.update(settings.capsule.deploy_arguments)
         timeout = (1200 + delay) * retry_limit
@@ -175,3 +251,74 @@ def parametrized_enrolled_sat(
     new_sat.unregister()
     new_sat.teardown()
     Broker(hosts=[new_sat]).checkin()
+
+
+@pytest.fixture
+def sat_ready_rhel(request):
+    deploy_args = {
+        'deploy_rhel_version': request.param,
+        'deploy_flavor': settings.flavors.default,
+        'promtail_config_template_file': 'config_sat.j2',
+        'workflow': 'deploy-rhel',
+    }
+    # if 'deploy_rhel_version' is not set, let's default to RHEL 8
+    deploy_args['deploy_rhel_version'] = deploy_args.get('deploy_rhel_version', '8')
+    deploy_args['workflow'] = 'deploy-rhel'
+    with Broker(**deploy_args, host_class=Satellite) as host:
+        yield host
+
+
+@pytest.fixture
+def cap_ready_rhel():
+    rhel8 = settings.content_host.rhel8.vm
+    deploy_args = {
+        'deploy_rhel_version': rhel8.deploy_rhel_version,
+        'deploy_flavor': 'satqe-ssd.standard.std',
+        'workflow': rhel8.workflow,
+    }
+    with Broker(**deploy_args, host_class=Capsule) as host:
+        yield host
+
+
+@pytest.fixture(scope='session')
+def installer_satellite(request):
+    """A fixture to freshly install the satellite using installer on RHEL machine
+
+    This is a pure / virgin / nontemplate based satellite
+
+    :params request: A pytest request object and this fixture is looking for
+        broker object of class satellite
+    """
+    sat_version = settings.server.version.release
+    if 'sanity' in request.config.option.markexpr:
+        sat = Satellite(settings.server.hostname)
+    else:
+        sat = lru_sat_ready_rhel(getattr(request, 'param', None))
+    sat.setup_firewall()
+    # # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
+    sat.register_to_cdn()
+    sat.download_repofile(product='satellite', release=settings.server.version.release)
+    sat.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
+    installed_version = sat.execute('rpm --query satellite').stdout
+    assert sat_version in installed_version
+    # Install Satellite
+    sat.execute(
+        InstallerCommand(
+            installer_args=[
+                'scenario satellite',
+                f'foreman-initial-admin-password {settings.server.admin_password}',
+            ]
+        ).get_command(),
+        timeout='30m',
+    )
+    if 'sanity' in request.config.option.markexpr:
+        configure_nailgun()
+        configure_airgun()
+    yield sat
+    if 'sanity' not in request.config.option.markexpr:
+        sanity_sat = Satellite(sat.hostname)
+        sanity_sat.unregister()
+        broker_sat = Broker(host_class=Satellite).from_inventory(
+            filter=f'@inv.hostname == "{sanity_sat.hostname}"'
+        )[0]
+        Broker(hosts=[broker_sat]).checkin()
