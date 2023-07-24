@@ -1243,6 +1243,7 @@ class TestContentView:
         environment = {'id': env1['id'], 'name': env1['name']}
         assert environment in new_cv['lifecycle-environments']
 
+    @pytest.mark.build_sanity
     @pytest.mark.tier2
     def test_positive_promote_custom_content(self, module_org, module_product):
         """attempt to promote a content view containing custom content

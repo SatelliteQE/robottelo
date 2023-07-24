@@ -409,6 +409,7 @@ class TestUserRole:
         return [entities.Role().create() for _ in range(2)]
 
     @pytest.mark.tier1
+    @pytest.mark.build_sanity
     @pytest.mark.parametrize('number_of_roles', range(1, 3))
     def test_positive_create_with_role(self, make_roles, number_of_roles):
         """Create a user with the ``role`` attribute.

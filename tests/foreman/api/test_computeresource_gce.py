@@ -370,6 +370,7 @@ class TestGCEHostProvisioningTestCase:
         return googleclient.get_vm(name='{}'.format(self.fullhostname.replace('.', '-')))
 
     @pytest.mark.tier1
+    @pytest.mark.build_sanity
     def test_positive_gce_host_provisioned(self, class_host):
         """Host can be provisioned on Google Cloud
 

@@ -22,6 +22,7 @@ CaseComponent:
     - BootdiskPlugin
     - Bootstrap
     - Branding
+    - BVT
     - Candlepin
     - Capsule
     - Capsule-Content
@@ -103,6 +104,7 @@ CaseComponent:
     - SyncPlans
     - TasksPlugin
     - TemplatesPlugin
+    - TestEnvironment
     - TFTP
     - Upgrades
     - UsersRoles
