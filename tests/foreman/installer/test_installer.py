@@ -1394,7 +1394,7 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
     :expectedresults:
         1. Capsule is installed and setup correctly
 
-    :CaseImportance: High
+    :CaseImportance: Critical
     """
     # Get Capsule repofile, and enable and download satellite-capsule
     cap_ready_rhel.register_to_cdn()
@@ -1927,3 +1927,29 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
     )
     command_output = capsule_configured.execute('satellite-installer', timeout='20m')
     assert 'Success!' in command_output.stdout
+
+
+@pytest.mark.tier1
+@pytest.mark.build_sanity
+@pytest.mark.first_sanity
+def test_satellite_installation(installer_satellite):
+    """Run a basic Satellite installation
+
+    :id: 661206f3-2eec-403c-af26-3c5cadcd5766
+
+    :steps:
+        1. Get RHEL Host
+        2. Configure satellite repos
+        3. Enable satellite module
+        4. Install satellite
+        5. Run satellite-installer
+
+    :expectedresults:
+        1. Correct satellite packaged is installed
+        2. satellite-installer runs successfully
+        3. satellite-maintain health check runs successfully
+
+    :CaseImportance: Critical
+
+    """
+    common_sat_install_assertions(installer_satellite)
