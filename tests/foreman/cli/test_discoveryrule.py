@@ -29,8 +29,8 @@ from nailgun.entities import User as UserEntity
 from requests import HTTPError
 
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_discoveryrule
-from robottelo.host_helpers.cli_factory import CLIFactoryError
 from robottelo.logging import logger
 from robottelo.utils.datafactory import filtered_datapoint
 from robottelo.utils.datafactory import invalid_values_list
@@ -113,6 +113,8 @@ class TestDiscoveryRule:
         rule = discoveryrule_factory(options={'name': name, 'priority': gen_int32()})
         assert rule.name == name
         request.addfinalizer(target_sat.api.DiscoveryRule(id=rule.id).delete)
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.DiscoveryRule.info({'id': rule.id})
 
     @pytest.mark.tier1
     def test_positive_create_with_search(self, discoveryrule_factory):
@@ -155,7 +157,7 @@ class TestDiscoveryRule:
 
         :id: bdb4c581-d27a-4d1a-920b-89689e68a57f
 
-        :expectedresults: Rule was created with given org & location names and updated.
+        :expectedresults: Rule was created with given org & location ids and updated.
 
         :BZ: 1377990, 1523221
 
@@ -184,10 +186,10 @@ class TestDiscoveryRule:
                 'hostgroup-id': new_hostgroup.id,
             }
         )
-
         rule = target_sat.cli.DiscoveryRule.info({'id': rule.id}, output_format='json')
-        assert new_org.name in rule.organizations
-        assert new_loc.name in rule.locations
+        assert new_org.name == rule['organizations'][0]['name']
+        assert new_loc.name == rule['locations'][0]['name']
+        assert new_hostgroup.name == rule['host-group']['name']
 
     @pytest.mark.tier2
     def test_positive_create_and_update_with_org_loc_name(
@@ -225,9 +227,10 @@ class TestDiscoveryRule:
                 'hostgroup-id': new_hostgroup.id,
             }
         )
-        rule = Box(target_sat.cli.DiscoveryRule.info({'id': rule.id}))
-        assert new_org.name in rule.organizations
-        assert new_loc.name in rule.locations
+        rule = target_sat.cli.DiscoveryRule.info({'id': rule.id}, output_format='json')
+        assert new_org.name == rule['organizations'][0]['name']
+        assert new_loc.name == rule['locations'][0]['name']
+        assert new_hostgroup.name == rule['host-group']['name']
 
     @pytest.mark.tier2
     def test_positive_create_with_hosts_limit(self, discoveryrule_factory):
