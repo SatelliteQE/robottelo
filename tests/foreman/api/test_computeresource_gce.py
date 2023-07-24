@@ -371,6 +371,7 @@ class TestGCEHostProvisioningTestCase:
 
     @pytest.mark.e2e
     @pytest.mark.tier1
+    @pytest.mark.build_sanity
     def test_positive_gce_host_provisioned(self, class_host):
         """Host can be provisioned on Google Cloud
 
