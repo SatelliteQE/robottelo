@@ -3,9 +3,6 @@ name: Auto assign T2 Reviewers
 
 on:
   pull_request:
-    branches:
-      - master
-      - 6.*.z
     paths: ['*', '.github/**', 'conf/**', 'pytest_fixtures/core/*', 'pytest_plugins/**', 'robottelo/**', '!robottelo/constants/*', 'scripts/**']
 
 permissions:
