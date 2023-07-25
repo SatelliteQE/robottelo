@@ -85,7 +85,7 @@ jobs:
       ## Failure Logging to issues and GChat Group
       - name: Create Github issue on cherrypick failure
         id: create-issue
-        if: ${{ always() && steps.cherrypick.outcome == 'failure' }}
+        if: ${{ always() && steps.cherrypick.outcome != 'success' }}
         uses: dacbd/create-issue-action@main
         with:
           token: ${{ secrets.CHERRYPICK_PAT }}
