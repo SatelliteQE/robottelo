@@ -162,10 +162,8 @@ def module_capsule_configured(module_capsule_host, module_target_sat):
 @pytest.fixture(scope='session')
 def session_capsule_configured(session_capsule_host, session_target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    if session_capsule_host:
-        session_capsule_host.capsule_setup(sat_host=session_target_sat)
-        yield session_capsule_host
-    yield
+    session_capsule_host.capsule_setup(sat_host=session_target_sat)
+    yield session_capsule_host
 
 
 @pytest.fixture(scope='module')
