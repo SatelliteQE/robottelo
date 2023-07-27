@@ -28713,6 +28713,12 @@
           "name": "create",
           "options": [
             {
+              "help": "Enable the callback plugin for this template",
+              "name": "ansible-callback-enabled",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
               "help": "",
               "name": "audit-comment",
               "shortname": null,
@@ -29180,7 +29186,7 @@
               "value": null
             },
             {
-              "help": "Print help ---------------|-----|---------|----- | ALL | DEFAULT | THIN ---------------|-----|---------|----- | x   | x       | x | x   | x       | x category   | x   | x       | | x   | x       | | x   | x       | | x   | x       | | x   | x       | Locations/     | x   | x       | Organizations/ | x   | x       | ---------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "help": "Print help -------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------|-----|---------|----- | x   | x       | x | x   | x       | x category             | x   | x       | | x   | x       | | x   | x       | callback enabled | x   | x       | | x   | x       | | x   | x       | Locations/               | x   | x       | Organizations/           | x   | x       | -------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -29271,6 +29277,12 @@
           "description": "Update a job template",
           "name": "update",
           "options": [
+            {
+              "help": "Enable the callback plugin for this template",
+              "name": "ansible-callback-enabled",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
             {
               "help": "",
               "name": "audit-comment",
@@ -29728,6 +29740,12 @@
           "description": "List environment paths",
           "name": "paths",
           "options": [
+            {
+              "help": "Show whether each lifecycle environment is associated with the given Capsule id.",
+              "name": "content-source-id",
+              "shortname": null,
+              "value": "NUMBER"
+            },
             {
               "help": "Show specified fields or predefined field sets only. (See below)",
               "name": "fields",
@@ -45077,6 +45095,12 @@
               "name": "async",
               "shortname": null,
               "value": null
+            },
+            {
+              "help": "Automatically create disabled content overrides for custom products which do not have an attached subscription",
+              "name": "auto-create-overrides",
+              "shortname": null,
+              "value": "BOOLEAN"
             },
             {
               "help": "VALUE/NUMBER Organization name/title/label/id",
