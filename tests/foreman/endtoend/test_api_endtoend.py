@@ -849,7 +849,7 @@ API_PATHS = {
         '/katello/api/sync_plans',
         '/katello/api/sync_plans/:id/sync',
     ),
-    'sync': ('/katello/api/organizations/:organization_id/products/:product_id/sync',),
+    'sync': ('/katello/api/repositories/:repository_id/sync',),
     'tailoring_files': (
         '/api/compliance/tailoring_files',
         '/api/compliance/tailoring_files',
@@ -912,6 +912,7 @@ API_PATHS = {
         '/api/webhooks',
         '/api/webhooks/:id',
         '/api/webhooks/:id',
+        '/api/webhooks/:id/test',
         '/api/webhooks/events',
     ),
     'webhook_templates': (
