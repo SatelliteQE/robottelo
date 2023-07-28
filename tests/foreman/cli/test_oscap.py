@@ -475,6 +475,10 @@ class TestOpenScap:
             }
         )
         assert scap_policy['name'] == name
+        # Deleting policy which created for all valid input (ex- latin1, cjk, utf-8, etc.)
+        Scappolicy.delete({'name': scap_policy['name']})
+        with pytest.raises(CLIReturnCodeError):
+            Scappolicy.info({'name': scap_policy['name']})
 
     @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
     @pytest.mark.tier2
