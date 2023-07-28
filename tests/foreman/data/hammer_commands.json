@@ -33309,6 +33309,12 @@
           "name": "configure-cdn",
           "options": [
             {
+              "help": "If product certificates should be used to authenticate to a custom CDN.",
+              "name": "custom-cdn-auth-enabled",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
               "help": "Id of the Organization",
               "name": "id",
               "shortname": null,
