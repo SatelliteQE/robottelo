@@ -8,6 +8,7 @@ from robottelo.config import configure_airgun
 from robottelo.config import configure_nailgun
 from robottelo.config import settings
 from robottelo.hosts import Capsule
+from robottelo.hosts import get_sat_rhel_version
 from robottelo.hosts import IPAHost
 from robottelo.hosts import lru_sat_ready_rhel
 from robottelo.hosts import Satellite
@@ -303,3 +304,25 @@ def installer_satellite(request):
             filter=f'@inv.hostname == "{sanity_sat.hostname}"'
         )[0]
         Broker(hosts=[broker_sat]).checkin()
+
+
+def get_deploy_args(request):
+    deploy_args = {
+        'deploy_rhel_version': get_sat_rhel_version().base_version,
+        'deploy_flavor': settings.flavors.default,
+        'promtail_config_template_file': 'config_sat.j2',
+        'workflow': 'deploy-rhel',
+    }
+    if hasattr(request, 'param'):
+        if isinstance(request.param, dict):
+            deploy_args.update(request.param)
+        else:
+            deploy_args['deploy_rhel_version'] = request.param
+    return deploy_args
+
+
+@pytest.fixture
+def sat_ready_rhel(request):
+    deploy_args = get_deploy_args(request)
+    with Broker(**deploy_args, host_class=Satellite) as host:
+        yield host
