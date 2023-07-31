@@ -62,7 +62,6 @@ def ohsnap_repo_url(ohsnap, request_type, product, release, os_release, snap='')
             else:
                 logger.warning(f'Ohsnap returned no releases for the given stream: {release}')
 
-        release = '.'.join(release.split('.')[:3])  # keep only major.minor.patch
         logger.debug(f'Release string after processing: {release}')
     return (
         f'{ohsnap.host}/api/releases/'
