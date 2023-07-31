@@ -27,8 +27,8 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
 from robottelo.constants import DataFile
+from robottelo.host_helpers.cli_factory import CLIFactoryError
 from robottelo.utils.datafactory import invalid_values_list
 from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_data_list
@@ -87,7 +87,7 @@ def test_positive_get_info_by_name(target_sat, module_org):
     """
     name = gen_string('utf8')
     gpg_key = target_sat.cli_factory.make_content_credential(
-        {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': module_org.id}
+        {'path': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': module_org.id}
     )
     gpg_key = target_sat.cli.ContentCredential.info(
         {'name': gpg_key['name'], 'organization-id': module_org.id}
@@ -113,9 +113,11 @@ def test_positive_block_delete_key_in_use(target_sat, module_org):
     """
     name = gen_string('utf8')
     product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
-    repo = target_sat.cli_factory.make_repository({'product-id': product['id']})
+    repo = target_sat.cli_factory.make_repository(
+        {'product-id': product['id'], 'content-type': 'yum'}
+    )
     gpg_key = target_sat.cli_factory.make_content_credential(
-        {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': module_org.id}
+        {'path': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': module_org.id}
     )
 
     # Associate repo with the product, gpg key with product and repo
@@ -157,7 +159,7 @@ def test_positive_create_with_default_org(target_sat, name, default_org):
     """
 
     gpg_key = target_sat.cli_factory.make_content_credential(
-        {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': default_org.id}
+        {'path': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': default_org.id}
     )
     # Can we find the new object?
     result = target_sat.cli.ContentCredential.exists(
@@ -182,7 +184,7 @@ def test_positive_create_with_custom_org(target_sat, name, module_org):
     """
     gpg_key = target_sat.cli_factory.make_content_credential(
         {
-            'key': VALID_GPG_KEY_FILE_PATH,
+            'path': VALID_GPG_KEY_FILE_PATH,
             'name': name,
             'organization-id': module_org.id,
         }
@@ -403,7 +405,9 @@ def test_positive_add_product_with_repo(target_sat, module_org):
     :CaseLevel: Integration
     """
     product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
-    repo = target_sat.cli_factory.make_repository({'product-id': product['id']})
+    repo = target_sat.cli_factory.make_repository(
+        {'product-id': product['id'], 'content-type': 'yum'}
+    )
     gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     target_sat.cli.Product.update(
         {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
@@ -429,7 +433,7 @@ def test_positive_add_product_with_repos(target_sat, module_org):
     """
     product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
     repos = [
-        target_sat.cli_factory.make_repository({'product-id': product['id']})
+        target_sat.cli_factory.make_repository({'product-id': product['id'], 'content-type': 'yum'})
         for _ in range(gen_integer(2, 5))
     ]
     gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
@@ -457,7 +461,9 @@ def test_positive_add_repo_from_product_with_repo(target_sat, module_org):
     :CaseLevel: Integration
     """
     product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
-    repo = target_sat.cli_factory.make_repository({'product-id': product['id']})
+    repo = target_sat.cli_factory.make_repository(
+        {'product-id': product['id'], 'content-type': 'yum'}
+    )
     gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     target_sat.cli.Repository.update(
         {'gpg-key-id': gpg_key['id'], 'id': repo['id'], 'organization-id': module_org.id}
@@ -484,7 +490,7 @@ def test_positive_add_repo_from_product_with_repos(target_sat, module_org):
     """
     product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
     repos = [
-        target_sat.cli_factory.make_repository({'product-id': product['id']})
+        target_sat.cli_factory.make_repository({'product-id': product['id'], 'content-type': 'yum'})
         for _ in range(gen_integer(2, 5))
     ]
     gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
@@ -557,7 +563,9 @@ def test_positive_update_key_for_product_with_repo(target_sat, module_org):
     product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
     gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     # Create a repository and assign it to the product
-    repo = target_sat.cli_factory.make_repository({'product-id': product['id']})
+    repo = target_sat.cli_factory.make_repository(
+        {'product-id': product['id'], 'content-type': 'yum'}
+    )
     # Associate gpg key with a product
     target_sat.cli.Product.update(
         {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
@@ -603,7 +611,7 @@ def test_positive_update_key_for_product_with_repos(target_sat, default_org):
     gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': default_org.id})
     # Create repositories and assign them to the product
     repos = [
-        target_sat.cli_facotry.make_repository({'product-id': product['id']})
+        target_sat.cli_factory.make_repository({'product-id': product['id'], 'content-type': 'yum'})
         for _ in range(gen_integer(2, 5))
     ]
     # Associate gpg key with a product
@@ -653,7 +661,7 @@ def test_positive_update_key_for_repo_from_product_with_repo(target_sat, module_
     gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     # Create repository, assign product and gpg-key
     repo = target_sat.cli_factory.make_repository(
-        {'gpg-key-id': gpg_key['id'], 'product-id': product['id']}
+        {'gpg-key-id': gpg_key['id'], 'product-id': product['id'], 'content-type': 'yum'}
     )
     # Verify gpg key was associated
     assert repo['gpg-key'].get('name') == gpg_key['name']
@@ -694,7 +702,7 @@ def test_positive_update_key_for_repo_from_product_with_repos(target_sat, module
     gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     # Create repositories and assign them to the product
     repos = [
-        target_sat.cli_factory.make_repository({'product-id': product['id']})
+        target_sat.cli_factory.make_repository({'product-id': product['id'], 'content-type': 'yum'})
         for _ in range(gen_integer(2, 5))
     ]
     # Associate gpg key with a single repository
@@ -727,7 +735,7 @@ def test_positive_update_key_for_repo_from_product_with_repos(target_sat, module
 
 
 @pytest.mark.tier1
-def test_positive_list(target_sat, default_org):
+def test_positive_list(module_target_sat, default_org):
     """Create gpg key and list it
 
     :id: ca69e23b-ca96-43dd-89a6-55b0e4ea322d
@@ -737,11 +745,11 @@ def test_positive_list(target_sat, default_org):
     :CaseImportance: Critical
     """
 
-    gpg_key = target_sat.cli_factory.make_content_credential(
-        {'key': VALID_GPG_KEY_FILE_PATH, 'organization-id': default_org.id}
+    gpg_key = module_target_sat.cli_factory.make_content_credential(
+        {'path': VALID_GPG_KEY_FILE_PATH, 'organization-id': default_org.id}
     )
 
-    gpg_key_list = target_sat.cli.ContentCredential.list({'organization-id': default_org.id})
+    gpg_key_list = module_target_sat.cli.ContentCredential.list({'organization-id': default_org.id})
     assert gpg_key['id'] in [gpg['id'] for gpg in gpg_key_list]
 
 
@@ -760,7 +768,7 @@ def test_positive_search(target_sat, name, module_org):
     """
     gpg_key = target_sat.cli_factory.make_content_credential(
         {
-            'key': VALID_GPG_KEY_FILE_PATH,
+            'path': VALID_GPG_KEY_FILE_PATH,
             'name': name,
             'organization-id': module_org.id,
         }
