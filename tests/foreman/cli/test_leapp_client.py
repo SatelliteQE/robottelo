@@ -52,6 +52,66 @@ CUSTOM_REPOS = {
 }
 
 
+def create_activation_key(satellite, content_view, lifecycle_env, organization):
+    """Create activation key uinsg specific entities"""
+    return satellite.api.ActivationKey(
+        content_view=content_view,
+        environment=lifecycle_env,
+        organization=organization,
+    ).create()
+
+
+def register_host_with_satellite(satellite, custom_host, organization, activation_key):
+    """Register content host with satellite"""
+    custom_host.install_katello_ca(satellite)
+    custom_host.register_contenthost(org=organization.label, activation_key=activation_key.name)
+    custom_host.add_rex_key(satellite=satellite)
+    assert custom_host.subscribed
+
+
+def verify_target_repo_on_satellite(
+    satellite, content_view, organization, lifecycle_env, target_rhel
+):
+    """Verify target rhel version repositories has enabled on Satellite Server"""
+    cmd_out = satellite.execute(
+        f"hammer repository list --search 'content_label ~ {target_rhel}' "
+        f"--content-view {content_view.name} --organization '{organization.name}' "
+        f"--lifecycle-environment '{lifecycle_env.name}'"
+    )
+    assert cmd_out.status == 0
+    if 'rhel-9' in target_rhel:
+        assert ("AppStream RPMs 9" in cmd_out.stdout) and ("BaseOS RPMs 9" in cmd_out.stdout)
+    else:
+        # placeholder for target_rhel - rhel-8
+        pass
+
+
+def precondition_check_upgrade_and_install_leapp_tool(custom_host, source_rhel):
+    """Clean-up directory, set rhel release version, update system and install leapp tool"""
+    # Remove directory if in-place upgrade already performed from RHEL7 to RHEL8
+    custom_host.run("rm -rf /root/tmp_leapp_py3")
+    custom_host.run("dnf clean all")
+    custom_host.run("dnf repolist")
+    custom_host.run(f"subscription-manager release --set {source_rhel}")
+    assert custom_host.run("dnf update -y").status == 0
+    assert custom_host.run("dnf install leapp-upgrade -y").status == 0
+
+
+def fix_inhibitors(custom_host, source_rhel):
+    """Fixing inhibitors to avoid hard stop of Leapp tool execution"""
+    if '8' in source_rhel:
+        # 1. Firewalld Configuration AllowZoneDrifting Is Unsupported
+        custom_host.run(
+            'sed -i "s/^AllowZoneDrifting=.*/AllowZoneDrifting=no/" /etc/firewalld/firewalld.conf'
+        )
+        # 2. Newest installed kernel not in use
+        if custom_host.run('needs-restarting -r').status == 1:
+            custom_host.power_control(state='reboot', ensure=True)
+    else:
+        # placeholder for source_rhel - 7
+        pass
+
+
 @pytest.fixture(scope="module")
 def setup_env(module_target_sat, module_sca_manifest_org):
     """Creating essential things and returning in form of dictiory for use"""
@@ -77,9 +137,11 @@ def setup_env(module_target_sat, module_sca_manifest_org):
     ids=['RHEL8.8'],
     indirect=True,
 )
+@pytest.mark.parametrize('target_rhel', ['rhel-9'])
 def test_upgrade_rhel8_to_rhel9(
     setup_env,
     custom_host,
+    target_rhel,
 ):
     """Test to upgrade RHEL host to next major RHEL Realse with Leapp Preupgrade and Leapp Upgrade
     Job templates
@@ -128,44 +190,22 @@ def test_upgrade_rhel8_to_rhel9(
     cv_version.promote(data={'environment_ids': lc_env.id, 'force': True})
     c_view = c_view.read()
     # Create activation key
-    ak = target_sat.api.ActivationKey(
-        content_view=c_view,
-        environment=lc_env,
-        organization=organization,
-    ).create()
+    ak = create_activation_key(target_sat, c_view, lc_env, organization)
+
     # 3. Register Host
-    custom_host.install_katello_ca(target_sat)
-    custom_host.register_contenthost(org=organization.label, activation_key=ak.name)
-    custom_host.add_rex_key(satellite=target_sat)
-    assert custom_host.subscribed
+    register_host_with_satellite(target_sat, custom_host, organization, ak)
+
     # 4. Verify target rhel version repositories has enabled on Satellite Server
-    cmd_out = target_sat.execute(
-        f"hammer repository list --search 'content_label ~ rhel-9' --content-view {c_view.name} "
-        f"--organization '{organization.name}' --lifecycle-environment '{lc_env.name}'"
-    )
-    assert cmd_out.status == 0
-    assert ("AppStream RPMs 9" in cmd_out.stdout) and ("BaseOS RPMs 9" in cmd_out.stdout)
+    verify_target_repo_on_satellite(target_sat, c_view, organization, lc_env, target_rhel)
 
-    # Preupgrade conditions and check
-    custom_host.run("rm -rf /root/tmp_leapp_py3")
-    # Remove directory if in-place upgrade already performed from RHEL7 to RHEL8
-    rhel_old_ver = custom_host.run('cat /etc/redhat-release')
     # 5. Update all packages and install Leapp utility
-    custom_host.run("dnf clean all")
-    custom_host.run("dnf repolist")
+    # Preupgrade conditions and check
+    rhel_old_ver = custom_host.run('cat /etc/redhat-release')
+    precondition_check_upgrade_and_install_leapp_tool(custom_host, custom_host.deploy_rhel_version)
 
-    custom_host.run("subscription-manager release --set 8.8")
-    result = custom_host.run("dnf update -y")
-    assert result.status == 0
-    custom_host.run("dnf install leapp-upgrade -y")
+    # Fixing inhibitors to avoid hard stop of Leapp tool execution
+    fix_inhibitors(custom_host, custom_host.deploy_rhel_version)
 
-    # Fixing inhibitors - download data files to avoid inhibitors
-    custom_host.run(
-        'sed -i "s/^AllowZoneDrifting=.*/AllowZoneDrifting=no/" /etc/firewalld/firewalld.conf'
-    )
-    if custom_host.run('needs-restarting -r').status == 1:
-        custom_host.power_control(state='reboot', ensure=True)
-        custom_host.power_control(state=VmState.RUNNING, ensure=True)
     # 6. Run LEAPP-PREUPGRADE Job Template-
     template_id = (
         target_sat.api.JobTemplate()
@@ -218,3 +258,10 @@ def test_upgrade_rhel8_to_rhel9(
     rhel_new_ver = custom_host.run('cat /etc/redhat-release')
     assert rhel_old_ver != rhel_new_ver
     assert "9.2" in str(rhel_new_ver)
+
+
+def test_abc(target_sat):
+    rhel_version = target_sat.os_version
+    ret = target_sat.list_cached_properties()
+    print(rhel_version)
+    rhel_version = target_sat.os_version
