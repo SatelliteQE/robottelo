@@ -18,7 +18,6 @@
 """
 import pytest
 from wait_for import wait_for
-from wrapanapi.entities.vm import VmState
 
 from robottelo.constants import PRDS
 
@@ -200,7 +199,8 @@ def test_upgrade_rhel8_to_rhel9(
 
     # 5. Update all packages and install Leapp utility
     # Preupgrade conditions and check
-    rhel_old_ver = custom_host.run('cat /etc/redhat-release')
+    # rhel_old_ver = custom_host.run('cat /etc/redhat-release')
+    rhel_old_ver = custom_host.os_version
     precondition_check_upgrade_and_install_leapp_tool(custom_host, custom_host.deploy_rhel_version)
 
     # Fixing inhibitors to avoid hard stop of Leapp tool execution
@@ -255,13 +255,8 @@ def test_upgrade_rhel8_to_rhel9(
         )
     except ConnectionRefusedError:
         raise ConnectionRefusedError('Timed out waiting for SSH daemon to start on the host')
-    rhel_new_ver = custom_host.run('cat /etc/redhat-release')
+    # rhel_new_ver = custom_host.run('cat /etc/redhat-release')
+    custom_host.list_and_clean_cached()
+    rhel_new_ver = custom_host.os_version
     assert rhel_old_ver != rhel_new_ver
     assert "9.2" in str(rhel_new_ver)
-
-
-def test_abc(target_sat):
-    rhel_version = target_sat.os_version
-    ret = target_sat.list_cached_properties()
-    print(rhel_version)
-    rhel_version = target_sat.os_version
