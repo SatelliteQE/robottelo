@@ -42,7 +42,7 @@ from robottelo.utils.datafactory import valid_data_list
 def invalid_hostnames_list():
     """Generates a list of invalid host names.
 
-    :return: Returns the invalid host names list
+    :return: Returns the invalid host names list.
     """
     return {
         'cjk': gen_string('cjk'),
@@ -99,12 +99,12 @@ class TestDiscoveryRule:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_with_name(self, name, discoveryrule_factory, request, target_sat):
+    def test_positive_create_with_name(self, name, discoveryrule_factory, target_sat):
         """Create Discovery Rule using different names
 
         :id: 066e66bc-c572-4ae9-b458-90daf83bab54
 
-        :expectedresults: Rule should be successfully created
+        :expectedresults: Rule should be successfully created.
 
         :CaseImportance: Critical
 
@@ -112,7 +112,7 @@ class TestDiscoveryRule:
         """
         rule = discoveryrule_factory(options={'name': name, 'priority': gen_int32()})
         assert rule.name == name
-        request.addfinalizer(target_sat.api.DiscoveryRule(id=rule.id).delete)
+        target_sat.api.DiscoveryRule(id=rule.id).delete()
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.DiscoveryRule.info({'id': rule.id})
 
