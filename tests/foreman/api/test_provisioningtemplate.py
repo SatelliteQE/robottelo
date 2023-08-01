@@ -244,16 +244,14 @@ class TestProvisioningTemplate:
                 r.raise_for_status()
                 rendered = r.text
             else:
-                rendered = module_target_sat.execute(f'cat {template["path"]}').stdout.splitlines()[
-                    0
-                ]
+                rendered = module_target_sat.execute(f'cat {template["path"]}').stdout
 
             if template['kind'] == 'iPXE':
                 assert f'{module_target_sat.hostname}/unattended/iPXE' in r.text
             else:
                 assert (
-                    rendered == f'{settings.server.scheme}://'
-                    f'{module_target_sat.hostname} {template["kind"]}'
+                    f'{settings.server.scheme}://{module_target_sat.hostname} {template["kind"]}'
+                    in rendered
                 )
 
     @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
@@ -277,6 +275,8 @@ class TestProvisioningTemplate:
         :BZ: 2148433
 
         :customerscenario: true
+
+        :parametrized: yes
         """
         macaddress = gen_mac(multicast=False)
         capsule = module_target_sat.nailgun_smart_proxy
@@ -296,8 +296,8 @@ class TestProvisioningTemplate:
                 'lifecycle_environment_id': module_lce_library.id,
             },
         ).create()
-        provision_template = host.read_template(data={'template_kind': 'provision'})
-        assert 'ifcfg-$sanitized_real' in str(provision_template)
+        provision_template = host.read_template(data={'template_kind': 'provision'})['template']
+        assert 'ifcfg-$sanitized_real' in provision_template
 
     @pytest.mark.e2e
     @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
@@ -323,6 +323,8 @@ class TestProvisioningTemplate:
         :BZ: 2149030
 
         :customerscenario: true
+
+        :parametrized: yes
         """
         macaddress = gen_mac(multicast=False)
         capsule = module_target_sat.nailgun_smart_proxy
@@ -342,9 +344,9 @@ class TestProvisioningTemplate:
                 'lifecycle_environment_id': module_lce_library.id,
             },
         ).create()
-        ipxe_template = host.read_template(data={'template_kind': 'iPXE'})
+        ipxe_template = host.read_template(data={'template_kind': 'iPXE'})['template']
         ks_param = 'ks=' if module_sync_kickstart_content.rhel_ver <= 8 else 'inst.ks='
-        assert str(ipxe_template).count(ks_param) == 1
+        assert ipxe_template.count(ks_param) == 1
 
     @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
     def test_positive_template_check_vlan_parameter(
@@ -368,6 +370,8 @@ class TestProvisioningTemplate:
         :BZ: 1607706
 
         :customerscenario: true
+
+        :parametrized: yes
         """
         macaddress = gen_mac(multicast=False)
         capsule = module_target_sat.nailgun_smart_proxy
@@ -406,7 +410,67 @@ class TestProvisioningTemplate:
                 },
             ],
         ).create()
-        provision_template = host.read_template(data={'template_kind': 'provision'})
-        assert f'interfacename=vlan{tag}' in str(provision_template)
-        ipxe_template = host.read_template(data={'template_kind': 'iPXE'})
-        assert f'vlan=vlan{tag}:{identifier}' in str(ipxe_template)
+        provision_template = host.read_template(data={'template_kind': 'provision'})['template']
+        assert f'interfacename=vlan{tag}' in provision_template
+        ipxe_template = host.read_template(data={'template_kind': 'iPXE'})['template']
+        assert f'vlan=vlan{tag}:{identifier}' in ipxe_template
+
+    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    @pytest.mark.parametrize('pxe_loader', ['uefi'], indirect=True)
+    @pytest.mark.parametrize('boot_mode', ['Static', 'DHCP'])
+    def test_positive_template_subnet_with_boot_mode(
+        self,
+        module_sync_kickstart_content,
+        module_target_sat,
+        module_sca_manifest_org,
+        module_location,
+        default_architecture,
+        default_partitiontable,
+        pxe_loader,
+        boot_mode,
+    ):
+        """Check whether boot mode paremeter in subnet respected when PXELoader UEFI is used,
+            and properly rendered in the provisioning templates
+
+        :id: 2decc787-59b0-41e6-96be-5dd9371c8966
+
+        :expectedresults: templates should get render and contains boot mode used as set in subnet
+
+        :BZ: 2168967, 1955861, 1784012
+
+        :customerscenario: true
+
+        :parametrized: yes
+        """
+        subnet = module_target_sat.api.Subnet(
+            name=gen_string('alpha'),
+            organization=[module_sca_manifest_org],
+            location=[module_location],
+            network='192.168.0.1',
+            mask='255.255.255.240',
+            boot_mode=boot_mode,
+        ).create()
+        host = module_target_sat.api.Host(
+            name=gen_string('alpha'),
+            organization=module_sca_manifest_org,
+            location=module_location,
+            subnet=subnet,
+            pxe_loader=pxe_loader.pxe_loader,
+            root_pass=settings.provisioning.host_root_password,
+            ptable=default_partitiontable,
+            architecture=default_architecture,
+            operatingsystem=module_sync_kickstart_content.os,
+        ).create()
+        # Verify provision templates for boot_mode in subnet, and check provision logs exists
+        rendered = host.read_template(data={'template_kind': 'provision'})['template']
+        assert f'--bootproto {boot_mode.lower()}' in rendered
+        assert '/root/install.post.log' in rendered
+        assert '/mnt/sysimage/root/install.post.log' not in rendered
+
+        # Verify PXE templates for boot_mode in subnet
+        pxe_templates = ['PXEGrub', 'PXEGrub2', 'PXELinux', 'iPXE']
+        provision_url = f'http://{module_target_sat.hostname}/unattended/provision'
+        ks_param = provision_url + '?static=1' if boot_mode == 'Static' else provision_url
+        for template in pxe_templates:
+            rendered = host.read_template(data={'template_kind': f'{template}'})['template']
+            assert f'ks={ks_param}' in rendered
