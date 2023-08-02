@@ -112,7 +112,7 @@ class TestDiscoveryRule:
         """
         rule = discoveryrule_factory(options={'name': name, 'priority': gen_int32()})
         assert rule.name == name
-        target_sat.api.DiscoveryRule(id=rule.id).delete()
+        target_sat.cli.DiscoveryRule.delete({'id': rule.id})
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.DiscoveryRule.info({'id': rule.id})
 
@@ -284,15 +284,12 @@ class TestDiscoveryRule:
         rule = discoveryrule_factory(options={'enabled': 'false'})
         assert rule.enabled == 'false'
 
-    @pytest.mark.tier1
-    @pytest.mark.parametrize('host_name', **parametrized(invalid_hostnames_list()))
+    @pytest.mark.tier3
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_rule_with_discovery_params(
-        self, name, host_name, discoveryrule_factory
-    ):
-        """Create Discovery Rule with negative parameters.
+    def test_negative_create_with_invalid_name(self, name, discoveryrule_factory):
+        """Create Discovery Rule with invalid names
 
-        :id: 0906cf64-ed0b-49af-844f-1af22f81ab94
+        :id: a0350dc9-8f5b-4673-be88-a5e35d1f8ca7
 
         :expectedresults: Error should be raised and rule should not be created
 
@@ -305,13 +302,50 @@ class TestDiscoveryRule:
         with pytest.raises(CLIFactoryError):
             discoveryrule_factory(options={'name': name})
 
-        with pytest.raises(CLIFactoryError):
-            discoveryrule_factory(options={'hostname': host_name})
+    @pytest.mark.tier3
+    @pytest.mark.parametrize('name', **parametrized(invalid_hostnames_list()))
+    def test_negative_create_with_invalid_hostname(self, name, discoveryrule_factory):
+        """Create Discovery Rule with invalid hostname
 
+        :id: 0ae51085-30d0-44f9-9e49-abe928a8a4b7
+
+        :expectedresults: Error should be raised and rule should not be created
+
+        :CaseImportance: Medium
+
+        :CaseLevel: Component
+
+        :BZ: 1378427
+
+        :parametrized: yes
+        """
+        with pytest.raises(CLIFactoryError):
+            discoveryrule_factory(options={'hostname': name})
+
+    @pytest.mark.tier3
+    def test_negative_create_with_too_long_limit(self, discoveryrule_factory):
+        """Create Discovery Rule with too long host limit value
+
+        :id: 12dbb023-c963-4ead-a81e-ad53033de947
+
+        :expectedresults: Validation error should be raised and rule should not
+            be created
+
+        :CaseImportance: Medium
+        """
         with pytest.raises(CLIFactoryError):
             discoveryrule_factory(options={'hosts-limit': '9999999999'})
 
-        # Validating for same name
+    @pytest.mark.tier1
+    def test_negative_create_with_same_name(self, discoveryrule_factory):
+        """Create Discovery Rule with name that already exists
+
+        :id: 0906cf64-ed0b-49af-844f-1af22f81ab94
+
+        :expectedresults: Error should be raised and rule should not be created
+
+        :CaseImportance: Medium
+        """
         name = gen_string('alpha')
         discoveryrule_factory(options={'name': name})
         with pytest.raises(CLIFactoryError):
@@ -388,16 +422,35 @@ class TestDiscoveryRule:
         rule = discoveryrule_factory()
         priority = gen_string('alpha')
         host_limit = gen_string('alpha')
+        params = {
+            'name': name,
+            'hostname': '$#@!*',
+            'hosts-limit': host_limit,
+            'priority': priority,
+        }
+        key = random.choice(list(params.keys()))
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.DiscoveryRule.update(
                 {
                     'id': rule.id,
-                    'name': name,
-                    'hostname': '$#@!*',
-                    'hosts-limit': host_limit,
-                    'priority': priority,
+                    key: params[key],
                 }
             )
+
+    @pytest.mark.tier1
+    def test_positive_delete(self, discoveryrule_factory, target_sat):
+        """Delete existing Discovery Rule
+
+        :id: c9b88a94-13c4-496f-a5c1-c088187250dc
+
+        :expectedresults: Rule should be successfully deleted
+
+        :CaseImportance: Critical
+        """
+        rule = discoveryrule_factory()
+        target_sat.cli.DiscoveryRule.delete({'id': rule.id})
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.DiscoveryRule.info({'id': rule.id})
 
 
 class TestDiscoveryRuleRole:
@@ -418,8 +471,9 @@ class TestDiscoveryRuleRole:
         yield user
         try:
             user.delete()
-        except HTTPError:
-            logger.exception('Exception while deleting class scope user entity in teardown')
+        except HTTPError as err:
+            logger.exception(err)
+            logger.error('Exception while deleting class scope user entity in teardown')
 
     @pytest.fixture(scope='class')
     def class_user_reader(self, class_user_password, class_org, class_location):
@@ -436,8 +490,9 @@ class TestDiscoveryRuleRole:
         yield user
         try:
             user.delete()
-        except HTTPError:
-            logger.exception('Exception while deleting class scope user entity in teardown')
+        except HTTPError as err:
+            logger.exception(err)
+            logger.error('Exception while deleting class scope user entity in teardown')
 
     @pytest.mark.tier2
     def test_positive_crud_with_non_admin_user(
@@ -449,7 +504,7 @@ class TestDiscoveryRuleRole:
         class_hostgroup,
         target_sat,
     ):
-        """Create and delete rule with non-admin user by associating discovery_manager role
+        """Create, update and delete rule with non-admin user by associating discovery_manager role
 
         :id: 056535aa-3338-4c1e-8a4b-ebfc8bd6e456
 
