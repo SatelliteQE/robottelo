@@ -1560,7 +1560,7 @@ class TestRepository:
             local_path=DataFile.RPM_TO_UPLOAD,
             remote_path=f"/tmp/{RPM_TO_UPLOAD}",
         )
-        result = Repository.upload_content(
+        result = target_sat.cli.Repository.upload_content(
             {
                 'name': repo['name'],
                 'organization': repo['organization'],
@@ -1568,8 +1568,11 @@ class TestRepository:
                 'product-id': repo['product']['id'],
             }
         )
-        assert f"Successfully uploaded file '{RPM_TO_UPLOAD}'" in result[0]['message']
-        assert int(Repository.info({'id': repo['id']})['content-counts']['packages']) == 1
+        assert f"Successfully uploaded file {RPM_TO_UPLOAD}" == result[0]['message']
+        assert (
+            int(target_sat.cli.Repository.info({'id': repo['id']})['content-counts']['packages'])
+            == 1
+        )
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -1592,15 +1595,15 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        Repository.synchronize({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
         # Verify it has finished
-        new_repo = Repository.info({'id': repo['id']})
+        new_repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert int(new_repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT
         target_sat.put(
             local_path=DataFile.OS_TEMPLATE_DATA_FILE,
             remote_path=f"/tmp/{OS_TEMPLATE_DATA_FILE}",
         )
-        result = Repository.upload_content(
+        result = target_sat.cli.Repository.upload_content(
             {
                 'name': new_repo['name'],
                 'organization': new_repo['organization'],
@@ -1608,8 +1611,8 @@ class TestRepository:
                 'product-id': new_repo['product']['id'],
             }
         )
-        assert f"Successfully uploaded file '{OS_TEMPLATE_DATA_FILE}'" in result[0]['message']
-        new_repo = Repository.info({'id': new_repo['id']})
+        assert f"Successfully uploaded file {OS_TEMPLATE_DATA_FILE}" == result[0]['message']
+        new_repo = target_sat.cli.Repository.info({'id': new_repo['id']})
         assert int(new_repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT + 1
 
     @pytest.mark.skip_if_open("BZ:1410916")
