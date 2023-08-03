@@ -274,32 +274,6 @@ class ContentHost(Host, ContentHostMixins):
         version_string = f'{groups["major"]}{minor_version}'
         return Version(version=version_string)
 
-    def list_cached_properties(self):
-        import inspect
-        import functools
-
-        list_of_cached_properties_names = [
-            name
-            for name, value in inspect.getmembers(ContentHost)
-            if isinstance(value, functools.cached_property)
-        ]
-        return list_of_cached_properties_names
-
-    def clean_cached_properties(self):
-        for name in self.list_cached_properties():
-            del self.__dict__[name]
-            pass
-
-    def list_and_clean_cached(self):
-        import inspect
-        import functools
-
-        for name, value in inspect.getmembers(ContentHost):
-            if isinstance(value, functools.cached_property):
-                del self.__dict__[name]
-            else:
-                pass
-
     def setup(self):
         if not self.blank:
             self.remove_katello_ca()

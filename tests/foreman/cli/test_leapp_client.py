@@ -1,8 +1,8 @@
-"""Test for LEAPP cli
+"""Tests for leapp upgrade of content hosts with Satellite
 
 :Requirement: leapp
 
-:CaseLevel: Acceptance
+:CaseLevel: Integration
 
 :CaseComponent: Leappintegration
 
@@ -88,12 +88,12 @@ def verify_target_repo_on_satellite(
 def precondition_check_upgrade_and_install_leapp_tool(custom_host, source_rhel):
     """Clean-up directory, set rhel release version, update system and install leapp tool"""
     # Remove directory if in-place upgrade already performed from RHEL7 to RHEL8
-    custom_host.run("rm -rf /root/tmp_leapp_py3")
-    custom_host.run("dnf clean all")
-    custom_host.run("dnf repolist")
-    custom_host.run(f"subscription-manager release --set {source_rhel}")
-    assert custom_host.run("dnf update -y").status == 0
-    assert custom_host.run("dnf install leapp-upgrade -y").status == 0
+    custom_host.run('rm -rf /root/tmp_leapp_py3')
+    custom_host.run('dnf clean all')
+    custom_host.run('dnf repolist')
+    custom_host.run(f'subscription-manager release --set {source_rhel}')
+    assert custom_host.run('dnf update -y').status == 0
+    assert custom_host.run('dnf install leapp-upgrade -y').status == 0
 
 
 def fix_inhibitors(custom_host, source_rhel):
@@ -136,11 +136,9 @@ def setup_env(module_target_sat, module_sca_manifest_org):
     ids=['RHEL8.8'],
     indirect=True,
 )
-@pytest.mark.parametrize('target_rhel', ['rhel-9'])
 def test_upgrade_rhel8_to_rhel9(
     setup_env,
     custom_host,
-    target_rhel,
 ):
     """Test to upgrade RHEL host to next major RHEL Realse with Leapp Preupgrade and Leapp Upgrade
     Job templates
@@ -149,8 +147,8 @@ def test_upgrade_rhel8_to_rhel9(
 
     :Steps:
         1. Import a subscription manifest and enable, sync source & target repositories
-        2. Create CV, add repositories, create lce, ak, etc.
-        3. Register contenthost using ak
+        2. Create LCE, Create CV, add repositories to it, publish and promote CV, Create AK, etc.
+        3. Register content host with AK
         4. Varify target rhel repositories are enable on Satellite
         5. Update all packages, install leapp tool and fix inhibitors
         6. Run Leapp Preupgrade and Leapp Upgrade job template
@@ -163,7 +161,7 @@ def test_upgrade_rhel8_to_rhel9(
     organization = setup_env['organization']
     target_sat = setup_env['satellite']
     lc_env = setup_env['environment']
-    c_view = setup_env['contentview']
+    cv = setup_env['contentview']
 
     # Enable rhel8/rhel9 bos, aps repository and add in content view
     all_repos = []
@@ -181,26 +179,25 @@ def test_upgrade_rhel8_to_rhel9(
         all_repos.append(rh_repo)
         # sync repo
         rh_repo.sync(timeout=1800)
-    c_view.repository = all_repos
-    c_view = c_view.update(['repository'])
+    cv.repository = all_repos
+    cv = cv.update(['repository'])
     # Publish, promote content view to lce
-    c_view.publish()
-    cv_version = c_view.read().version[0]
-    cv_version.promote(data={'environment_ids': lc_env.id, 'force': True})
-    c_view = c_view.read()
+    cv.publish()
+    cvv = cv.read().version[0]
+    cvv.promote(data={'environment_ids': lc_env.id, 'force': True})
+    cv = cv.read()
     # Create activation key
-    ak = create_activation_key(target_sat, c_view, lc_env, organization)
+    ak = create_activation_key(target_sat, cv, lc_env, organization)
 
     # 3. Register Host
     register_host_with_satellite(target_sat, custom_host, organization, ak)
 
     # 4. Verify target rhel version repositories has enabled on Satellite Server
-    verify_target_repo_on_satellite(target_sat, c_view, organization, lc_env, target_rhel)
+    verify_target_repo_on_satellite(target_sat, cv, organization, lc_env, target_rhel='rhel-9')
 
     # 5. Update all packages and install Leapp utility
     # Preupgrade conditions and check
-    # rhel_old_ver = custom_host.run('cat /etc/redhat-release')
-    rhel_old_ver = custom_host.os_version
+    rhel_old_ver = custom_host.run('cat /etc/redhat-release')
     precondition_check_upgrade_and_install_leapp_tool(custom_host, custom_host.deploy_rhel_version)
 
     # Fixing inhibitors to avoid hard stop of Leapp tool execution
@@ -255,8 +252,6 @@ def test_upgrade_rhel8_to_rhel9(
         )
     except ConnectionRefusedError:
         raise ConnectionRefusedError('Timed out waiting for SSH daemon to start on the host')
-    # rhel_new_ver = custom_host.run('cat /etc/redhat-release')
-    custom_host.list_and_clean_cached()
-    rhel_new_ver = custom_host.os_version
+    rhel_new_ver = custom_host.run('cat /etc/redhat-release')
     assert rhel_old_ver != rhel_new_ver
     assert "9.2" in str(rhel_new_ver)
