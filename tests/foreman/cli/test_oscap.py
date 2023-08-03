@@ -32,7 +32,6 @@ from robottelo.cli.scapcontent import Scapcontent
 from robottelo.config import settings
 from robottelo.constants import OSCAP_DEFAULT_CONTENT
 from robottelo.constants import OSCAP_PERIOD
-from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.utils.datafactory import invalid_names_list
 from robottelo.utils.datafactory import parametrized
@@ -43,21 +42,16 @@ class TestOpenScap:
     """Tests related to the oscap cli hammer plugin"""
 
     @classmethod
-    def fetch_scap_and_profile_id(cls, scap_name, scap_profile):
+    def fetch_scap_and_profile_id(cls, scap_name):
         """Extracts the scap ID and scap profile id
 
         :param scap_name: Scap title
-        :param scap_profile: Scap profile you want to select
 
         :returns: scap_id and scap_profile_id
         """
         default_content = Scapcontent.info({'title': scap_name}, output_format='json')
         scap_id = default_content['id']
-        scap_profile_ids = [
-            profile['id']
-            for profile in default_content['scap-content-profiles']
-            if scap_profile in profile['title']
-        ]
+        scap_profile_ids = default_content['scap-content-profiles'][0]['id']
         return scap_id, scap_profile_ids
 
     @pytest.mark.tier1
@@ -897,14 +891,14 @@ class TestOpenScap:
         )
         assert scap_policy['scap-content-id'] == scap_content["scap_id"]
         scap_id, scap_profile_id = self.fetch_scap_and_profile_id(
-            OSCAP_DEFAULT_CONTENT['rhel_firefox'], OSCAP_PROFILE['firefox']
+            OSCAP_DEFAULT_CONTENT['rhel_firefox']
         )
         Scappolicy.update(
             {'name': name, 'scap-content-id': scap_id, 'scap-content-profile-id': scap_profile_id}
         )
         scap_info = Scappolicy.info({'name': name})
         assert scap_info['scap-content-id'] == scap_id
-        assert scap_info['scap-content-profile-id'] == scap_profile_id[0]
+        assert scap_info['scap-content-profile-id'] == scap_profile_id
 
     @pytest.mark.tier2
     def test_positive_associate_scap_policy_with_single_server(self, scap_content):
