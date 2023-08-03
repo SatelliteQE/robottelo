@@ -34,8 +34,6 @@ from robottelo.config import settings
 from robottelo.constants import OSCAP_DEFAULT_CONTENT
 from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_PROFILE
-from robottelo.constants import OSCAP_TARGET_CORES
-from robottelo.constants import OSCAP_TARGET_MEMORY
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.exceptions import ProxyError
 from robottelo.hosts import ContentHost
@@ -132,7 +130,6 @@ def update_scap_content(module_org):
         Scapcontent.update({'title': content['title'], 'organization-ids': organization_ids})
 
 
-@pytest.mark.skip_if_open('BZ:2211437')
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.tier4
@@ -199,29 +196,13 @@ def test_positive_oscap_run_via_ansible(
             'organizations': module_org.name,
         }
     )
-    with Broker(
-        nick=distro,
-        host_class=ContentHost,
-        target_cores=OSCAP_TARGET_CORES,
-        target_memory=OSCAP_TARGET_MEMORY,
-    ) as vm:
-        host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca(target_sat)
-        vm.register_contenthost(module_org.name, ak_name[distro])
-        assert vm.subscribed
-        Host.set_parameter(
-            {
-                'host': vm.hostname.lower(),
-                'name': 'remote_execution_connect_by_ip',
-                'value': 'True',
-                'parameter-type': 'boolean',
-            }
-        )
+    with Broker(nick=distro, host_class=ContentHost, deploy_flavor=settings.flavors.default) as vm:
+        result = vm.register(module_org, None, ak_name[distro], target_sat)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         if distro not in ('rhel7'):
             vm.create_custom_repos(**rhel_repo)
         else:
             vm.create_custom_repos(**{distro: rhel_repo})
-        vm.add_rex_key(satellite=target_sat)
         Host.update(
             {
                 'name': vm.hostname.lower(),
@@ -255,7 +236,6 @@ def test_positive_oscap_run_via_ansible(
         assert result is not None
 
 
-@pytest.mark.skip_if_open('BZ:2211437')
 @pytest.mark.tier4
 def test_positive_oscap_run_via_ansible_bz_1814988(
     module_org, default_proxy, content_view, lifecycle_env, target_sat
@@ -315,24 +295,9 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
             'organizations': module_org.name,
         }
     )
-    with Broker(
-        nick='rhel7',
-        host_class=ContentHost,
-        target_cores=OSCAP_TARGET_CORES,
-        target_memory=OSCAP_TARGET_MEMORY,
-    ) as vm:
-        host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca(target_sat)
-        vm.register_contenthost(module_org.name, ak_name['rhel7'])
-        assert vm.subscribed
-        Host.set_parameter(
-            {
-                'host': vm.hostname.lower(),
-                'name': 'remote_execution_connect_by_ip',
-                'value': 'True',
-                'parameter-type': 'boolean',
-            }
-        )
+    with Broker(nick='rhel7', host_class=ContentHost, deploy_flavor=settings.flavors.default) as vm:
+        result = vm.register(module_org, None, ak_name['rhel7'], target_sat)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         vm.create_custom_repos(rhel7=settings.repos.rhel7_os)
         # Harden the rhel7 client with DISA STIG security policy
         vm.run('yum install -y scap-security-guide')
@@ -341,7 +306,6 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
             '--fetch-remote-resources --results-arf results.xml '
             '/usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml',
         )
-        vm.add_rex_key(satellite=target_sat)
         Host.update(
             {
                 'name': vm.hostname.lower(),
