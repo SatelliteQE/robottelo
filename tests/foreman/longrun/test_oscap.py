@@ -33,8 +33,6 @@ from robottelo.config import settings
 from robottelo.constants import OSCAP_DEFAULT_CONTENT
 from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_PROFILE
-from robottelo.constants import OSCAP_TARGET_CORES
-from robottelo.constants import OSCAP_TARGET_MEMORY
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.exceptions import ProxyError
 from robottelo.hosts import ContentHost
@@ -122,22 +120,23 @@ def activation_key(module_target_sat, module_org, lifecycle_env, content_view):
 
 
 @pytest.fixture(scope='module', autouse=True)
-def update_scap_content(module_org):
+def update_scap_content(module_org, module_target_sat):
     """Update default scap contents"""
     for content in rhel8_content, rhel7_content, rhel6_content:
-        content = Scapcontent.info({'title': content}, output_format='json')
+        content = module_target_sat.cli.Scapcontent.info({'title': content}, output_format='json')
         organization_ids = [content_org['id'] for content_org in content.get('organizations', [])]
         organization_ids.append(module_org.id)
-        Scapcontent.update({'title': content['title'], 'organization-ids': organization_ids})
+        module_target_sat.cli.Scapcontent.update(
+            {'title': content['title'], 'organization-ids': organization_ids}
+        )
 
 
-@pytest.mark.skip_if_open('BZ:2211437')
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.tier4
 @pytest.mark.parametrize('distro', ['rhel7', 'rhel8'])
 def test_positive_oscap_run_via_ansible(
-    module_org, default_proxy, content_view, lifecycle_env, distro, target_sat
+    module_org, module_location, default_proxy, content_view, lifecycle_env, distro, target_sat
 ):
     """End-to-End Oscap run via ansible
 
@@ -152,7 +151,7 @@ def test_positive_oscap_run_via_ansible(
         1. Create a valid scap content
         2. Import Ansible role theforeman.foreman_scap_client
         3. Import Ansible Variables needed for the role
-        4. Create a scap policy with anisble as deploy option
+        4. Create a scap policy with ansible as deploy option
         5. Associate the policy with a hostgroup
         6. Provision a host using the hostgroup
         7. Configure REX and associate the Ansible role to created host
@@ -198,29 +197,13 @@ def test_positive_oscap_run_via_ansible(
             'organizations': module_org.name,
         }
     )
-    with Broker(
-        nick=distro,
-        host_class=ContentHost,
-        target_cores=OSCAP_TARGET_CORES,
-        target_memory=OSCAP_TARGET_MEMORY,
-    ) as vm:
-        host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca(target_sat)
-        vm.register_contenthost(module_org.name, ak_name[distro])
-        assert vm.subscribed
-        Host.set_parameter(
-            {
-                'host': vm.hostname.lower(),
-                'name': 'remote_execution_connect_by_ip',
-                'value': 'True',
-                'parameter-type': 'boolean',
-            }
-        )
+    with Broker(nick=distro, host_class=ContentHost, deploy_flavor=settings.flavors.default) as vm:
         if distro not in ('rhel7'):
             vm.create_custom_repos(**rhel_repo)
         else:
             vm.create_custom_repos(**{distro: rhel_repo})
-        vm.add_rex_key(satellite=target_sat)
+        result = vm.register(module_org, module_location, ak_name[distro], target_sat)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         Host.update(
             {
                 'name': vm.hostname.lower(),
@@ -254,10 +237,9 @@ def test_positive_oscap_run_via_ansible(
         assert result is not None
 
 
-@pytest.mark.skip_if_open('BZ:2211437')
 @pytest.mark.tier4
 def test_positive_oscap_run_via_ansible_bz_1814988(
-    module_org, default_proxy, content_view, lifecycle_env, target_sat
+    module_org, module_location, default_proxy, content_view, lifecycle_env, target_sat
 ):
     """End-to-End Oscap run via ansible
 
@@ -274,7 +256,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         1. Create a valid scap content
         2. Import Ansible role theforeman.foreman_scap_client
         3. Import Ansible Variables needed for the role
-        4. Create a scap policy with anisble as deploy option
+        4. Create a scap policy with ansible as deploy option
         5. Associate the policy with a hostgroup
         6. Provision a host using the hostgroup
         7. Harden the host by remediating it with DISA STIG security policy
@@ -314,25 +296,10 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
             'organizations': module_org.name,
         }
     )
-    with Broker(
-        nick='rhel7',
-        host_class=ContentHost,
-        target_cores=OSCAP_TARGET_CORES,
-        target_memory=OSCAP_TARGET_MEMORY,
-    ) as vm:
-        host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca(target_sat)
-        vm.register_contenthost(module_org.name, ak_name['rhel7'])
-        assert vm.subscribed
-        Host.set_parameter(
-            {
-                'host': vm.hostname.lower(),
-                'name': 'remote_execution_connect_by_ip',
-                'value': 'True',
-                'parameter-type': 'boolean',
-            }
-        )
+    with Broker(nick='rhel7', host_class=ContentHost, deploy_flavor=settings.flavors.default) as vm:
         vm.create_custom_repos(rhel7=settings.repos.rhel7_os)
+        result = vm.register(module_org, module_location, ak_name['rhel7'], target_sat)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         # Harden the rhel7 client with DISA STIG security policy
         vm.run('yum install -y scap-security-guide')
         vm.run(
@@ -340,7 +307,6 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
             '--fetch-remote-resources --results-arf results.xml '
             '/usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml',
         )
-        vm.add_rex_key(satellite=target_sat)
         Host.update(
             {
                 'name': vm.hostname.lower(),
