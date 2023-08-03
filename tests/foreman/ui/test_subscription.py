@@ -19,6 +19,7 @@
 import time
 from tempfile import mkstemp
 
+import epdb
 import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
@@ -109,6 +110,7 @@ def test_positive_end_to_end(session, target_sat):
         with open(temporary_local_manifest_path, 'wb') as file_handler:
             file_handler.write(manifest.content.read())
     with session:
+        epdb.serve(port=9000)
         session.organization.select(org.name)
         # Ignore "Danger alert: Katello::Errors::UpstreamConsumerNotFound'" as server will connect
         # to upstream subscription service to verify
