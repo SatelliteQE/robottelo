@@ -4,8 +4,12 @@ The full set of configuration options is listed on the Sphinx website:
 http://sphinx-doc.org/config.html
 
 """
+import builtins
 import os
 import sys
+
+# Set the __sphinx_build__ variable to True. This is used to skip config generation
+builtins.__sphinx_build__ = True
 
 
 def skip_data(app, what, name, obj, skip, options):

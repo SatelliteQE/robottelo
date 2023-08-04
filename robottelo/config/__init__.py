@@ -1,3 +1,4 @@
+import builtins
 import logging
 import os
 from pathlib import Path
@@ -21,24 +22,30 @@ def get_settings():
 
     :return: A validated Lazy settings object
     """
-    settings = LazySettings(
-        envvar_prefix="ROBOTTELO",
-        core_loaders=["YAML"],
-        settings_file="settings.yaml",
-        preload=["conf/*.yaml"],
-        includes=["settings.local.yaml", ".secrets.yaml", ".secrets_*.yaml"],
-        envless_mode=True,
-        lowercase_read=True,
-        load_dotenv=True,
-    )
-    settings.validators.register(**VALIDATORS)
-
     try:
-        settings.validators.validate()
-    except ValidationError as err:
-        logger.warning(f'Dynaconf validation failed, continuing for the sake of unit tests\n{err}')
+        if builtins.__sphinx_build__:
+            settings = None
+    except AttributeError:
+        settings = LazySettings(
+            envvar_prefix="ROBOTTELO",
+            core_loaders=["YAML"],
+            settings_file="settings.yaml",
+            preload=["conf/*.yaml"],
+            includes=["settings.local.yaml", ".secrets.yaml", ".secrets_*.yaml"],
+            envless_mode=True,
+            lowercase_read=True,
+            load_dotenv=True,
+        )
+        settings.validators.register(**VALIDATORS)
 
-    return settings
+        try:
+            settings.validators.validate()
+        except ValidationError as err:
+            logger.warning(
+                f'Dynaconf validation failed, continuing for the sake of unit tests\n{err}'
+            )
+
+        return settings
 
 
 settings = get_settings()
