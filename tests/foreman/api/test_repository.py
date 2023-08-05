@@ -1276,6 +1276,7 @@ class TestRepositorySync:
         assert response, f"Repository {repo} failed to sync."
 
     @pytest.mark.tier2
+    @pytest.mark.build_sanity
     def test_positive_sync_rh(self, module_entitlement_manifest_org, target_sat):
         """Sync RedHat Repository.
 
