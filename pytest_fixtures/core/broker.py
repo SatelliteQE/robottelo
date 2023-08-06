@@ -5,6 +5,7 @@ from box import Box
 from broker import Broker
 
 from robottelo.config import settings
+from robottelo.hosts import ContentHostError
 from robottelo.hosts import lru_sat_ready_rhel
 from robottelo.hosts import Satellite
 
@@ -13,12 +14,9 @@ from robottelo.hosts import Satellite
 def _default_sat(align_to_satellite):
     """Returns a Satellite object for settings.server.hostname"""
     if settings.server.hostname:
-        hosts = Broker(host_class=Satellite).from_inventory(
-            filter=f'@inv.hostname == "{settings.server.hostname}"'
-        )
-        if hosts:
-            return hosts[0]
-        else:
+        try:
+            return Satellite.get_host_by_hostname(settings.server.hostname)
+        except ContentHostError:
             return Satellite()
 
 

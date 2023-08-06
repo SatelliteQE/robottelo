@@ -1,3 +1,4 @@
+import contextlib
 import importlib
 import io
 import json
@@ -198,6 +199,26 @@ class ContentHost(Host, ContentHostMixins):
         self.blank = kwargs.get('blank', False)
         super().__init__(hostname=hostname, **kwargs)
 
+    @classmethod
+    def get_hosts_from_inventory(cls, filter):
+        """Get an instance of a host from inventory using a filter"""
+        inv_hosts = Broker(host_class=cls).from_inventory(filter)
+        logger.debug('Found %s instances from inventory by filter: %s', len(inv_hosts), filter)
+        return inv_hosts
+
+    @classmethod
+    def get_host_by_hostname(cls, hostname):
+        """Get an instance of a host from inventory by hostname"""
+        logger.info('Getting %s instance from inventory by hostname: %s', cls.__name__, hostname)
+        inv_hosts = cls.get_hosts_from_inventory(filter=f'@inv.hostname == "{hostname}"')
+        if not inv_hosts:
+            raise ContentHostError(f'No {cls.__name__} found in inventory by hostname {hostname}')
+        if len(inv_hosts) > 1:
+            raise ContentHostError(
+                f'Multiple {cls.__name__} found in inventory by hostname {hostname}'
+            )
+        return inv_hosts[0]
+
     @property
     def satellite(self):
         if not self._satellite:
@@ -247,32 +268,75 @@ class ContentHost(Host, ContentHostMixins):
         return self.get_facts().get('lscpu.architecture') or self.execute('uname -m').stdout.strip()
 
     @cached_property
-    def _redhat_release(self):
-        """Process redhat-release file for distro and version information"""
-        result = self.execute('cat /etc/redhat-release')
+    def _os_release(self):
+        """Process os-release file for distro and version information"""
+        facts = {}
+        regex = r'^(["\'])(.*)(\1)$'
+        result = self.execute('cat /etc/os-release')
         if result.status != 0:
-            raise ContentHostError(f'Not able to cat /etc/redhat-release "{result.stderr}"')
-        match = re.match(r'(?P<distro>.+) release (?P<major>\d+)(.(?P<minor>\d+))?', result.stdout)
-        if match is None:
-            raise ContentHostError(f'Not able to parse release string "{result.stdout}"')
-        return match.groupdict()
+            raise ContentHostError(f'Not able to cat /etc/os-release "{result.stderr}"')
+        for ln in [line for line in result.stdout.splitlines() if line.strip()]:
+            line = ln.strip()
+            if line.startswith('#'):
+                continue
+            key, value = line.split('=')
+            if key and value:
+                facts[key] = re.sub(regex, r'\2', value).replace('\\', '')
+        return facts
 
-    @cached_property
+    @property
     def os_distro(self):
         """Get host's distro information"""
-        groups = self._redhat_release
-        return groups['distro']
+        return self._os_release['NAME']
 
-    @cached_property
+    @property
     def os_version(self):
         """Get host's OS version information
 
         :returns: A ``packaging.version.Version`` instance
         """
-        groups = self._redhat_release
-        minor_version = '' if groups['minor'] is None else f'.{groups["minor"]}'
-        version_string = f'{groups["major"]}{minor_version}'
-        return Version(version=version_string)
+        return Version(self._os_release['VERSION_ID'])
+
+    @property
+    def os_id(self):
+        """Get host's OS ID information"""
+        return self._os_release['ID']
+
+    @cached_property
+    def is_el(self):
+        """Boolean representation of whether this host is an EL host"""
+        return self.execute('stat /etc/redhat-release').status == 0
+
+    @property
+    def is_rhel(self):
+        """Boolean representation of whether this host is a RHEL host"""
+        return self.os_id == 'rhel'
+
+    @property
+    def is_centos(self):
+        """Boolean representation of whether this host is a CentOS host"""
+        return self.os_id == 'centos'
+
+    def list_cached_properties(self):
+        """Return a list of cached property names of this class"""
+        import inspect
+        import functools
+
+        return [
+            name
+            for name, value in inspect.getmembers(self.__class__)
+            if isinstance(value, functools.cached_property)
+        ]
+
+    def get_cached_properties(self):
+        """Return a dictionary of cached properties for this class"""
+        return {name: getattr(self, name) for name in self.list_cached_properties()}
+
+    def clean_cached_properties(self):
+        """Delete all cached properties for this class"""
+        for name in self.list_cached_properties():
+            with contextlib.suppress(KeyError):  # ignore if property is not cached
+                del self.__dict__[name]
 
     def setup(self):
         if not self.blank:
@@ -280,18 +344,9 @@ class ContentHost(Host, ContentHostMixins):
 
     def teardown(self):
         if not self.blank and not getattr(self, '_skip_context_checkin', False):
-            if self.nailgun_host:
-                self.nailgun_host.delete()
             self.unregister()
-        # Strip most unnecessary attributes from our instance for checkin
-        keep_keys = set(self.to_dict()) | {
-            'release',
-            '_prov_inst',
-            '_cont_inst',
-            '_skip_context_checkin',
-        }
-        self.__dict__ = {k: v for k, v in self.__dict__.items() if k in keep_keys}
-        self.__class__ = Host
+            if self.nailgun_host and type(self) is not Satellite:
+                self.nailgun_host.delete()
 
     def power_control(self, state=VmState.RUNNING, ensure=True):
         """Lookup the host workflow for power on and execute
@@ -305,6 +360,8 @@ class ContentHost(Host, ContentHostMixins):
             BrokerError: various error types to do with broker execution
             ContentHostError: if the workflow status isn't successful and broker didn't raise
         """
+        if getattr(self, '_cont_inst', None):
+            raise NotImplementedError('Power control not supported for container instances')
         try:
             vm_operation = POWER_OPERATIONS.get(state)
             workflow_name = settings.broker.host_workflows.power_control
@@ -331,8 +388,23 @@ class ContentHost(Host, ContentHostMixins):
                     self.connect, fail_condition=lambda res: res is not None, handle_exception=True
                 )
             # really broad diaper here, but connection exceptions could be a ton of types
-            except TimedOutError:
-                raise ContentHostError('Unable to connect to host that should be running')
+            except TimedOutError as toe:
+                raise ContentHostError('Unable to connect to host that should be running') from toe
+
+    def wait_for_connection(self, timeout=180):
+        try:
+            wait_for(
+                self.connect,
+                fail_condition=lambda res: res is not None,
+                handle_exception=True,
+                raise_original=True,
+                timeout=timeout,
+                delay=1,
+            )
+        except (ConnectionRefusedError, ConnectionAbortedError, TimedOutError) as err:
+            raise ContentHostError(
+                f'Unable to establsh SSH connection to host {self!r} after {timeout} seconds'
+            ) from err
 
     def download_file(self, file_url, local_path=None, file_name=None):
         """Downloads file from given fileurl to directory specified by local_path by given filename
@@ -554,6 +626,8 @@ class ContentHost(Host, ContentHostMixins):
         result = self.execute('rpm -qa |grep katello-ca-consumer')
         if result.status == 0:
             raise ContentHostError(f'katello-ca rpm(s) are still installed: {result.stdout}')
+        # unregister host from CDN to avoid subscription leakage
+        self.execute('subscription-manager unregister')
         self.execute('subscription-manager clean')
         self._satellite = None
 
@@ -1404,12 +1478,9 @@ class Capsule(ContentHost, CapsuleMixins):
                 answers = Box(yaml.load(data, yaml.FullLoader))
                 sat_hostname = urlparse(answers.foreman_proxy.foreman_base_url).netloc
                 # get the Satellite hostname from the answer file
-                hosts = Broker(host_class=Satellite).from_inventory(
-                    filter=f'@inv.hostname == "{sat_hostname}"'
-                )
-                if hosts:
-                    self._satellite = hosts[0]
-                else:
+                try:
+                    self._satellite = Satellite.get_host_by_hostname(sat_hostname)
+                except ContentHostError:
                     logger.debug(
                         f'No Satellite host found in inventory for {self.hostname}. '
                         'Satellite object with the same hostname will be created anyway.'

@@ -17,11 +17,11 @@
 :Upstream: No
 """
 import pytest
-from broker import Broker
 from manifester import Manifester
 
 from robottelo import constants
 from robottelo.config import settings
+from robottelo.hosts import ContentHost
 
 
 class TestManifestScenarioRefresh:
@@ -163,9 +163,7 @@ class TestSubscriptionAutoAttach:
             1. Pre-upgrade content host should get subscribed.
             2. All the cleanup should be completed successfully.
         """
-        rhel_contenthost = Broker().from_inventory(
-            filter=f'@inv.hostname == "{pre_upgrade_data.rhel_client}"'
-        )[0]
+        rhel_contenthost = ContentHost.get_host_by_hostname(pre_upgrade_data.rhel_client)
         host = target_sat.api.Host().search(query={'search': f'name={rhel_contenthost.hostname}'})[
             0
         ]
