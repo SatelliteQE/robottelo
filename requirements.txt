@@ -9,9 +9,8 @@ fauxfactory==3.1.0
 jinja2==3.1.2
 manifester==0.0.13
 navmazing==1.1.6
-pexpect==4.8.0
-productmd==1.35
-pyotp==2.8.0
+productmd==1.36
+pyotp==2.9.0
 python-box==7.0.1
 pytest==7.4.0
 pytest-services==2.2.1
@@ -19,12 +18,17 @@ pytest-mock==3.11.1
 pytest-reportportal==5.2.1
 pytest-xdist==3.3.1
 pytest-ibutsu==2.2.4
-PyYAML==6.0
-requests==2.29.0
+PyYAML==6.0.1
+requests==2.31.0
 tenacity==8.2.2
 testimony==2.3.0
 wait-for==1.2.0
 wrapanapi==3.5.17
+
+
+
+# Moved to the bottom to avoid future conflicts with the master branch
+pexpect==4.8.0
 
 # Get airgun, nailgun and upgrade from master
 git+https://github.com/SatelliteQE/airgun.git@6.11.z#egg=airgun
