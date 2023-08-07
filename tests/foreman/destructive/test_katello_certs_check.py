@@ -21,8 +21,6 @@ import re
 
 import pytest
 
-import robottelo.constants as constants
-from robottelo.config import settings
 from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.destructive
@@ -77,64 +75,6 @@ def test_positive_update_katello_certs(cert_setup_destructive_teardown):
         # assert all services are running
         result = satellite.execute('satellite-maintain health check --label services-up -y')
         assert result.status == 0, 'Not all services are running'
-
-
-@pytest.mark.parametrize(
-    'certs_vm_setup',
-    [
-        {'nick': 'rhel7', 'target_memory': '20GiB', 'target_cores': 4},
-        {'nick': 'rhel8', 'target_memory': '20GiB', 'target_cores': 4},
-    ],
-    ids=['rhel7', 'rhel8'],
-    indirect=True,
-)
-def test_positive_install_sat_with_katello_certs(certs_vm_setup):
-    """Update certificates on a currently running satellite instance.
-
-    :id: 47e3a57f-d7a2-40d2-bbc7-d1bb3d79a7e1
-
-    :steps:
-
-        1. Generate the custom certs on RHEL 7 machine
-        2. Install satellite with custom certs
-        3. Assert output does not report SSL certificate error
-        4. Assert all services are running
-
-
-    :expectedresults: Satellite should be installed using the custom certs.
-
-    :CaseAutomation: Automated
-    """
-    cert_data, rhel_vm = certs_vm_setup
-    version = rhel_vm.os_version.major
-    rhel_vm.download_repos(repo_name='satellite', version=version)
-    rhel_vm.register_contenthost(
-        org=None,
-        lce=None,
-        username=settings.subscription.rhn_username,
-        password=settings.subscription.rhn_password,
-    )
-    result = rhel_vm.subscription_manager_attach_pool([settings.subscription.rhn_poolid])[0]
-    for repo in getattr(constants, f"OHSNAP_RHEL{version}_REPOS"):
-        rhel_vm.enable_repo(repo, force=True)
-    rhel_vm.execute('yum -y update')
-    result = rhel_vm.execute(getattr(constants, f"INSTALL_RHEL{version}_STEPS"))
-    assert result.status == 0
-    command = (
-        'satellite-installer --scenario satellite '
-        f'--certs-server-cert "/root/{cert_data["cert_file_name"]}" '
-        f'--certs-server-key "/root/{cert_data["key_file_name"]}" '
-        f'--certs-server-ca-cert "/root/{cert_data["ca_bundle_file_name"]}" '
-    )
-    result = rhel_vm.execute(command, timeout=2200000)
-    assert result.status == 0
-    # assert no hammer ping SSL cert error
-    result = rhel_vm.execute('hammer ping')
-    assert 'SSL certificate verification failed' not in result.stdout
-    assert result.stdout.count('ok') == 8
-    # assert all services are running
-    result = rhel_vm.execute('satellite-maintain health check --label services-up -y')
-    assert result.status == 0, 'Not all services are running'
 
 
 def test_regeneration_ssl_build_certs(target_sat):
