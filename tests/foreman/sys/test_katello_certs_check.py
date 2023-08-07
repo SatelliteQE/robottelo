@@ -21,6 +21,51 @@ import re
 
 import pytest
 
+from robottelo.config import settings
+from robottelo.utils.installer import InstallerCommand
+
+
+@pytest.mark.e2e
+def test_positive_install_sat_with_katello_certs(certs_data, sat_ready_rhel):
+    """Install Satellite with custom certs.
+
+    :id: 47e3a57f-d7a2-40d2-bbc7-d1bb3d79a7e1
+
+    :steps:
+
+        1. Generate the custom certs on RHEL machine
+        2. Install satellite with custom certs
+        3. Assert output does not report SSL certificate error
+        4. Assert all services are running
+
+
+    :expectedresults: Satellite should be installed using the custom certs.
+
+    :CaseAutomation: Automated
+    """
+    sat_ready_rhel.download_repofile(product='satellite', release=settings.server.version.release)
+    sat_ready_rhel.register_to_cdn()
+    sat_ready_rhel.execute('dnf -y update')
+    result = sat_ready_rhel.execute(
+        'dnf -y module enable satellite:el8 && dnf -y install satellite'
+    )
+    assert result.status == 0
+    command = InstallerCommand(
+        scenario='satellite',
+        certs_server_cert=f'/root/{certs_data["cert_file_name"]}',
+        certs_server_key=f'/root/{certs_data["key_file_name"]}',
+        certs_server_ca_cert=f'/root/{certs_data["ca_bundle_file_name"]}',
+    ).get_command()
+    result = sat_ready_rhel.execute(command, timeout='30m')
+    assert result.status == 0
+    # assert no hammer ping SSL cert error
+    result = sat_ready_rhel.execute('hammer ping')
+    assert 'SSL certificate verification failed' not in result.stdout
+    assert result.stdout.count('Status:') == result.stdout.count(' ok')
+    # assert all services are running
+    result = sat_ready_rhel.execute('satellite-maintain health check --label services-up -y')
+    assert result.status == 0, 'Not all services are running'
+
 
 @pytest.mark.run_in_one_thread
 class TestKatelloCertsCheck:
