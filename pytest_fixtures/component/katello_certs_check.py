@@ -2,29 +2,18 @@
 from pathlib import Path
 
 import pytest
-from broker import Broker
 from fauxfactory import gen_string
 
 from robottelo.constants import CERT_DATA as cert_data
 from robottelo.hosts import Capsule
-from robottelo.hosts import ContentHost
 
 
 @pytest.fixture
-def certs_vm_setup(request):
-    """Create VM and register content host"""
-    target_cores = request.param.get('target_cores', 1)
-    target_memory = request.param.get('target_memory', '1GiB')
-    with Broker(
-        nick=request.param['nick'],
-        host_class=ContentHost,
-        target_cores=target_cores,
-        target_memory=target_memory,
-    ) as host:
-        cert_data['key_file_name'] = f'{host.hostname}/{host.hostname}.key'
-        cert_data['cert_file_name'] = f'{host.hostname}/{host.hostname}.crt'
-        host.custom_cert_generate(cert_data['capsule_hostname'])
-        yield cert_data, host
+def certs_data(sat_ready_rhel):
+    cert_data['key_file_name'] = f'{sat_ready_rhel.hostname}/{sat_ready_rhel.hostname}.key'
+    cert_data['cert_file_name'] = f'{sat_ready_rhel.hostname}/{sat_ready_rhel.hostname}.crt'
+    sat_ready_rhel.custom_cert_generate(cert_data['capsule_hostname'])
+    yield cert_data
 
 
 @pytest.fixture
