@@ -27,16 +27,8 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.content_credentials import ContentCredential
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_content_credential
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
-from robottelo.cli.org import Org
-from robottelo.cli.product import Product
-from robottelo.cli.repository import Repository
 from robottelo.constants import DataFile
-from robottelo.constants import DEFAULT_ORG
+from robottelo.host_helpers.cli_factory import CLIFactoryError
 from robottelo.utils.datafactory import invalid_values_list
 from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_data_list
@@ -63,7 +55,7 @@ search_key = 'name'
 
 
 @pytest.mark.tier1
-def test_verify_gpg_key_content_displayed(module_org):
+def test_verify_gpg_key_content_displayed(target_sat, module_org):
     """content-credential info should display key content
 
     :id: 0ee87ee0-8bf1-4d15-b5f9-0ac364e61155
@@ -76,14 +68,14 @@ def test_verify_gpg_key_content_displayed(module_org):
     content = gen_alphanumeric()
     key_path = create_gpg_key_file(content=content)
     assert key_path, 'GPG Key file must be created'
-    gpg_key = make_content_credential(
+    gpg_key = target_sat.cli_factory.make_content_credential(
         {'path': key_path, 'name': gen_string('alpha'), 'organization-id': module_org.id}
     )
     assert gpg_key['content'] == content
 
 
 @pytest.mark.tier1
-def test_positive_get_info_by_name(module_org):
+def test_positive_get_info_by_name(target_sat, module_org):
     """Create single gpg key and get its info by name
 
     :id: 890456ea-0b31-4386-9231-f47572f26d08
@@ -94,15 +86,17 @@ def test_positive_get_info_by_name(module_org):
     :CaseImportance: Critical
     """
     name = gen_string('utf8')
-    gpg_key = make_content_credential(
-        {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': module_org.id}
+    gpg_key = target_sat.cli_factory.make_content_credential(
+        {'path': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': module_org.id}
     )
-    gpg_key = ContentCredential.info({'name': gpg_key['name'], 'organization-id': module_org.id})
+    gpg_key = target_sat.cli.ContentCredential.info(
+        {'name': gpg_key['name'], 'organization-id': module_org.id}
+    )
     assert gpg_key['name'] == name
 
 
 @pytest.mark.tier1
-def test_positive_block_delete_key_in_use(module_org, target_sat):
+def test_positive_block_delete_key_in_use(target_sat, module_org):
     """Create a product and single associated repository. Create a new gpg key and associate
         it with the product and repository. Attempt to delete the gpg key in use
 
@@ -118,10 +112,12 @@ def test_positive_block_delete_key_in_use(module_org, target_sat):
     :CaseImportance: Critical
     """
     name = gen_string('utf8')
-    product = make_product({'organization-id': module_org.id})
-    repo = make_repository({'product-id': product['id']})
-    gpg_key = make_content_credential(
-        {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': module_org.id}
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    repo = target_sat.cli_factory.make_repository(
+        {'product-id': product['id'], 'content-type': 'yum'}
+    )
+    gpg_key = target_sat.cli_factory.make_content_credential(
+        {'path': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': module_org.id}
     )
 
     # Associate repo with the product, gpg key with product and repo
@@ -149,7 +145,7 @@ def test_positive_block_delete_key_in_use(module_org, target_sat):
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_create_with_default_org(name, module_org, default_org):
+def test_positive_create_with_default_org(target_sat, name, default_org):
     """Create gpg key with valid name and valid gpg key via file
     import using the default created organization
 
@@ -161,20 +157,21 @@ def test_positive_create_with_default_org(name, module_org, default_org):
 
     :CaseImportance: Critical
     """
-    org = Org.info({'name': DEFAULT_ORG})
-    gpg_key = make_content_credential(
-        {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': org['id']}
+
+    gpg_key = target_sat.cli_factory.make_content_credential(
+        {'path': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': default_org.id}
     )
     # Can we find the new object?
-    result = ContentCredential.exists(
-        {'organization-id': org['id']}, (search_key, gpg_key[search_key])
+    result = target_sat.cli.ContentCredential.exists(
+        {'organization-id': default_org.id}, (search_key, gpg_key[search_key])
     )
+    target_sat.cli.ContentCredential.delete({'id': gpg_key.id})
     assert gpg_key[search_key] == result[search_key]
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_create_with_custom_org(name, module_org):
+def test_positive_create_with_custom_org(target_sat, name, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import using a new organization
 
@@ -186,15 +183,15 @@ def test_positive_create_with_custom_org(name, module_org):
 
     :CaseImportance: Critical
     """
-    gpg_key = make_content_credential(
+    gpg_key = target_sat.cli_factory.make_content_credential(
         {
-            'key': VALID_GPG_KEY_FILE_PATH,
+            'path': VALID_GPG_KEY_FILE_PATH,
             'name': name,
             'organization-id': module_org.id,
         }
     )
     # Can we find the new object?
-    result = ContentCredential.exists(
+    result = target_sat.cli.ContentCredential.exists(
         {'organization-id': module_org.id},
         (search_key, gpg_key[search_key]),
     )
@@ -202,7 +199,7 @@ def test_positive_create_with_custom_org(name, module_org):
 
 
 @pytest.mark.tier1
-def test_negative_create_with_same_name(module_org):
+def test_negative_create_with_same_name(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then try to create new one with same name
 
@@ -213,19 +210,23 @@ def test_negative_create_with_same_name(module_org):
     :CaseImportance: Critical
     """
     name = gen_string('alphanumeric')
-    gpg_key = make_content_credential({'name': name, 'organization-id': module_org.id})
+    gpg_key = target_sat.cli_factory.make_content_credential(
+        {'name': name, 'organization-id': module_org.id}
+    )
     # Can we find the new object?
-    result = ContentCredential.exists(
+    result = target_sat.cli.ContentCredential.exists(
         {'organization-id': module_org.id}, (search_key, gpg_key[search_key])
     )
     assert gpg_key[search_key] == result[search_key]
     with pytest.raises(CLIFactoryError):
-        make_content_credential({'name': name, 'organization-id': module_org.id})
+        target_sat.cli_factory.make_content_credential(
+            {'name': name, 'organization-id': module_org.id}
+        )
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_negative_create_with_no_gpg_key(name, module_org):
+def test_negative_create_with_no_gpg_key(name, target_sat, module_org):
     """Create gpg key with valid name and no gpg key
 
     :id: bbfd5306-cfe7-40c1-a3a2-35834108163c
@@ -237,12 +238,12 @@ def test_negative_create_with_no_gpg_key(name, module_org):
     :CaseImportance: Critical
     """
     with pytest.raises(CLIReturnCodeError):
-        ContentCredential.create({'name': name, 'organization-id': module_org.id})
+        target_sat.cli.ContentCredential.create({'name': name, 'organization-id': module_org.id})
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 @pytest.mark.tier1
-def test_negative_create_with_invalid_name(name, module_org):
+def test_negative_create_with_invalid_name(target_sat, name, module_org):
     """Create gpg key with invalid name and valid gpg key via
     file import
 
@@ -256,13 +257,15 @@ def test_negative_create_with_invalid_name(name, module_org):
     """
     with pytest.raises(CLIFactoryError):
         # factory will provide a valid key
-        make_content_credential({'name': name, 'organization-id': module_org.id})
+        target_sat.cli_factory.make_content_credential(
+            {'name': name, 'organization-id': module_org.id}
+        )
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_delete(name, module_org):
+def test_positive_delete(target_sat, name, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then delete it
 
@@ -274,14 +277,16 @@ def test_positive_delete(name, module_org):
 
     :CaseImportance: Critical
     """
-    gpg_key = make_content_credential({'name': name, 'organization-id': module_org.id})
-    result = ContentCredential.exists(
+    gpg_key = target_sat.cli_factory.make_content_credential(
+        {'name': name, 'organization-id': module_org.id}
+    )
+    result = target_sat.cli.ContentCredential.exists(
         {'organization-id': module_org.id},
         (search_key, gpg_key[search_key]),
     )
     assert gpg_key[search_key] == result[search_key]
-    ContentCredential.delete({'name': name, 'organization-id': module_org.id})
-    result = ContentCredential.exists(
+    target_sat.cli.ContentCredential.delete({'name': name, 'organization-id': module_org.id})
+    result = target_sat.cli.ContentCredential.exists(
         {'organization-id': module_org.id},
         (search_key, gpg_key[search_key]),
     )
@@ -290,7 +295,7 @@ def test_positive_delete(name, module_org):
 
 @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_update_name(new_name, module_org):
+def test_positive_update_name(target_sat, new_name, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then update its name
 
@@ -302,15 +307,17 @@ def test_positive_update_name(new_name, module_org):
 
     :CaseImportance: Critical
     """
-    gpg_key = make_content_credential({'organization-id': module_org.id})
-    ContentCredential.update(
+    gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
+    target_sat.cli.ContentCredential.update(
         {
             'name': gpg_key['name'],
             'new-name': new_name,
             'organization-id': module_org.id,
         }
     )
-    gpg_key = ContentCredential.info({'name': new_name, 'organization-id': module_org.id})
+    gpg_key = target_sat.cli.ContentCredential.info(
+        {'name': new_name, 'organization-id': module_org.id}
+    )
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
@@ -327,23 +334,25 @@ def test_positive_update_key(name, module_org, target_sat):
 
     :CaseImportance: Critical
     """
-    gpg_key = make_content_credential({'organization-id': module_org.id})
+    gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     content = gen_alphanumeric(gen_integer(20, 50))
     assert gpg_key['content'] != content
     local_key = create_gpg_key_file(content)
     assert gpg_key, 'GPG Key file must be created'
     key = f'/tmp/{gen_alphanumeric()}'
     target_sat.put(local_key, key)
-    ContentCredential.update(
+    target_sat.cli.ContentCredential.update(
         {'path': key, 'name': gpg_key['name'], 'organization-id': module_org.id}
     )
-    gpg_key = ContentCredential.info({'name': gpg_key['name'], 'organization-id': module_org.id})
+    gpg_key = target_sat.cli.ContentCredential.info(
+        {'name': gpg_key['name'], 'organization-id': module_org.id}
+    )
     assert gpg_key['content'] == content
 
 
 @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
 @pytest.mark.tier1
-def test_negative_update_name(new_name, module_org):
+def test_negative_update_name(target_sat, new_name, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then fail to update its name
 
@@ -355,9 +364,9 @@ def test_negative_update_name(new_name, module_org):
 
     :CaseImportance: Critical
     """
-    gpg_key = make_content_credential({'organization-id': module_org.id})
+    gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     with pytest.raises(CLIReturnCodeError):
-        ContentCredential.update(
+        target_sat.cli.ContentCredential.update(
             {
                 'name': gpg_key['name'],
                 'new-name': new_name,
@@ -367,7 +376,7 @@ def test_negative_update_name(new_name, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_add_empty_product(module_org):
+def test_positive_add_empty_product(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it with empty (no repos) custom product
 
@@ -377,13 +386,15 @@ def test_positive_add_empty_product(module_org):
 
     :CaseLevel: Integration
     """
-    gpg_key = make_content_credential({'organization-id': module_org.id})
-    product = make_product({'gpg-key-id': gpg_key['id'], 'organization-id': module_org.id})
+    gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
+    product = target_sat.cli_factory.make_product(
+        {'gpg-key-id': gpg_key['id'], 'organization-id': module_org.id}
+    )
     assert product['gpg']['gpg-key'] == gpg_key['name']
 
 
 @pytest.mark.tier2
-def test_positive_add_product_with_repo(module_org):
+def test_positive_add_product_with_repo(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it with custom product that has one repository
 
@@ -394,20 +405,22 @@ def test_positive_add_product_with_repo(module_org):
 
     :CaseLevel: Integration
     """
-    product = make_product({'organization-id': module_org.id})
-    repo = make_repository({'product-id': product['id']})
-    gpg_key = make_content_credential({'organization-id': module_org.id})
-    Product.update(
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    repo = target_sat.cli_factory.make_repository(
+        {'product-id': product['id'], 'content-type': 'yum'}
+    )
+    gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
+    target_sat.cli.Product.update(
         {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
-    repo = Repository.info({'id': repo['id']})
+    product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
+    repo = target_sat.cli.Repository.info({'id': repo['id']})
     assert product['gpg']['gpg-key-id'] == gpg_key['id']
     assert repo['gpg-key']['id'] == gpg_key['id']
 
 
 @pytest.mark.tier2
-def test_positive_add_product_with_repos(module_org):
+def test_positive_add_product_with_repos(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it with custom product that has more than one
     repository
@@ -419,21 +432,24 @@ def test_positive_add_product_with_repos(module_org):
 
     :CaseLevel: Integration
     """
-    product = make_product({'organization-id': module_org.id})
-    repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
-    gpg_key = make_content_credential({'organization-id': module_org.id})
-    Product.update(
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    repos = [
+        target_sat.cli_factory.make_repository({'product-id': product['id'], 'content-type': 'yum'})
+        for _ in range(gen_integer(2, 5))
+    ]
+    gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
+    target_sat.cli.Product.update(
         {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
+    product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg']['gpg-key-id'] == gpg_key['id']
     for repo in repos:
-        repo = Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['gpg-key']['id'] == gpg_key['id']
 
 
 @pytest.mark.tier2
-def test_positive_add_repo_from_product_with_repo(module_org):
+def test_positive_add_repo_from_product_with_repo(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it to repository from custom product that has
     one repository
@@ -445,20 +461,22 @@ def test_positive_add_repo_from_product_with_repo(module_org):
 
     :CaseLevel: Integration
     """
-    product = make_product({'organization-id': module_org.id})
-    repo = make_repository({'product-id': product['id']})
-    gpg_key = make_content_credential({'organization-id': module_org.id})
-    Repository.update(
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    repo = target_sat.cli_factory.make_repository(
+        {'product-id': product['id'], 'content-type': 'yum'}
+    )
+    gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
+    target_sat.cli.Repository.update(
         {'gpg-key-id': gpg_key['id'], 'id': repo['id'], 'organization-id': module_org.id}
     )
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
-    repo = Repository.info({'id': repo['id']})
+    product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
+    repo = target_sat.cli.Repository.info({'id': repo['id']})
     assert repo['gpg-key']['id'] == gpg_key['id']
     assert product['gpg'].get('gpg-key-id') != gpg_key['id']
 
 
 @pytest.mark.tier2
-def test_positive_add_repo_from_product_with_repos(module_org):
+def test_positive_add_repo_from_product_with_repos(target_sat, module_org):
     """Create gpg key via file import and associate with custom repo
 
     GPGKey should contain valid name and valid key and should be associated
@@ -471,25 +489,28 @@ def test_positive_add_repo_from_product_with_repos(module_org):
 
     :CaseLevel: Integration
     """
-    product = make_product({'organization-id': module_org.id})
-    repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
-    gpg_key = make_content_credential({'organization-id': module_org.id})
-    Repository.update(
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    repos = [
+        target_sat.cli_factory.make_repository({'product-id': product['id'], 'content-type': 'yum'})
+        for _ in range(gen_integer(2, 5))
+    ]
+    gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
+    target_sat.cli.Repository.update(
         {'gpg-key-id': gpg_key['id'], 'id': repos[0]['id'], 'organization-id': module_org.id}
     )
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
+    product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg'].get('gpg-key-id') != gpg_key['id']
     # First repo should have a valid gpg key assigned
-    repo = Repository.info({'id': repos.pop(0)['id']})
+    repo = target_sat.cli.Repository.info({'id': repos.pop(0)['id']})
     assert repo['gpg-key']['id'] == gpg_key['id']
     # The rest of repos should not
     for repo in repos:
-        repo = Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['gpg-key'].get('id') != gpg_key['id']
 
 
 @pytest.mark.tier2
-def test_positive_update_key_for_empty_product(module_org):
+def test_positive_update_key_for_empty_product(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it with empty (no repos) custom product then
     update the key
@@ -502,30 +523,32 @@ def test_positive_update_key_for_empty_product(module_org):
     :CaseLevel: Integration
     """
     # Create a product and a gpg key
-    product = make_product({'organization-id': module_org.id})
-    gpg_key = make_content_credential({'organization-id': module_org.id})
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     # Associate gpg key with a product
-    Product.update(
+    target_sat.cli.Product.update(
         {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
     # Verify gpg key was associated
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
+    product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg']['gpg-key'] == gpg_key['name']
     # Update the gpg key
     new_name = gen_choice(list(valid_data_list().values()))
-    ContentCredential.update(
+    target_sat.cli.ContentCredential.update(
         {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': module_org.id}
     )
     # Verify changes are reflected in the gpg key
-    gpg_key = ContentCredential.info({'id': gpg_key['id'], 'organization-id': module_org.id})
+    gpg_key = target_sat.cli.ContentCredential.info(
+        {'id': gpg_key['id'], 'organization-id': module_org.id}
+    )
     assert gpg_key['name'] == new_name
     # Verify changes are reflected in the product
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
+    product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg']['gpg-key'] == new_name
 
 
 @pytest.mark.tier2
-def test_positive_update_key_for_product_with_repo(module_org):
+def test_positive_update_key_for_product_with_repo(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it with custom product that has one repository
     then update the key
@@ -538,37 +561,41 @@ def test_positive_update_key_for_product_with_repo(module_org):
     :CaseLevel: Integration
     """
     # Create a product and a gpg key
-    product = make_product({'organization-id': module_org.id})
-    gpg_key = make_content_credential({'organization-id': module_org.id})
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     # Create a repository and assign it to the product
-    repo = make_repository({'product-id': product['id']})
+    repo = target_sat.cli_factory.make_repository(
+        {'product-id': product['id'], 'content-type': 'yum'}
+    )
     # Associate gpg key with a product
-    Product.update(
+    target_sat.cli.Product.update(
         {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
     # Verify gpg key was associated
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
-    repo = Repository.info({'id': repo['id']})
+    product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
+    repo = target_sat.cli.Repository.info({'id': repo['id']})
     assert product['gpg']['gpg-key'] == gpg_key['name']
     assert repo['gpg-key'].get('name') == gpg_key['name']
     # Update the gpg key
     new_name = gen_choice(list(valid_data_list().values()))
-    ContentCredential.update(
+    target_sat.cli.ContentCredential.update(
         {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': module_org.id}
     )
     # Verify changes are reflected in the gpg key
-    gpg_key = ContentCredential.info({'id': gpg_key['id'], 'organization-id': module_org.id})
+    gpg_key = target_sat.cli.ContentCredential.info(
+        {'id': gpg_key['id'], 'organization-id': module_org.id}
+    )
     assert gpg_key['name'] == new_name
     # Verify changes are reflected in the product
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
+    product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg']['gpg-key'] == new_name
     # Verify changes are reflected in the repository
-    repo = Repository.info({'id': repo['id']})
-    assert repo['gpg-key'].get('id') == gpg_key['id']
+    repo = target_sat.cli.Repository.info({'id': repo['id']})
+    assert repo['gpg-key'].get('name') == new_name
 
 
 @pytest.mark.tier2
-def test_positive_update_key_for_product_with_repos(module_org):
+def test_positive_update_key_for_product_with_repos(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it with custom product that has more than one
     repository then update the key
@@ -581,39 +608,44 @@ def test_positive_update_key_for_product_with_repos(module_org):
     :CaseLevel: Integration
     """
     # Create a product and a gpg key
-    product = make_product({'organization-id': module_org.id})
-    gpg_key = make_content_credential({'organization-id': module_org.id})
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     # Create repositories and assign them to the product
-    repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
+    repos = [
+        target_sat.cli_factory.make_repository({'product-id': product['id'], 'content-type': 'yum'})
+        for _ in range(gen_integer(2, 5))
+    ]
     # Associate gpg key with a product
-    Product.update(
+    target_sat.cli.Product.update(
         {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
     # Verify gpg key was associated
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
+    product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg']['gpg-key'] == gpg_key['name']
     for repo in repos:
-        repo = Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['gpg-key'].get('name') == gpg_key['name']
     # Update the gpg key
     new_name = gen_choice(list(valid_data_list().values()))
-    ContentCredential.update(
+    target_sat.cli.ContentCredential.update(
         {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': module_org.id}
     )
     # Verify changes are reflected in the gpg key
-    gpg_key = ContentCredential.info({'id': gpg_key['id'], 'organization-id': module_org.id})
+    gpg_key = target_sat.cli.ContentCredential.info(
+        {'id': gpg_key['id'], 'organization-id': module_org.id}
+    )
     assert gpg_key['name'] == new_name
     # Verify changes are reflected in the product
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
+    product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg']['gpg-key'] == new_name
     # Verify changes are reflected in the repositories
     for repo in repos:
-        repo = Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['gpg-key'].get('name') == new_name
 
 
 @pytest.mark.tier2
-def test_positive_update_key_for_repo_from_product_with_repo(module_org):
+def test_positive_update_key_for_repo_from_product_with_repo(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it to repository from custom product that has
     one repository then update the key
@@ -626,30 +658,34 @@ def test_positive_update_key_for_repo_from_product_with_repo(module_org):
     :CaseLevel: Integration
     """
     # Create a product and a gpg key
-    product = make_product({'organization-id': module_org.id})
-    gpg_key = make_content_credential({'organization-id': module_org.id})
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     # Create repository, assign product and gpg-key
-    repo = make_repository({'gpg-key-id': gpg_key['id'], 'product-id': product['id']})
+    repo = target_sat.cli_factory.make_repository(
+        {'gpg-key-id': gpg_key['id'], 'product-id': product['id'], 'content-type': 'yum'}
+    )
     # Verify gpg key was associated
     assert repo['gpg-key'].get('name') == gpg_key['name']
     # Update the gpg key
     new_name = gen_choice(list(valid_data_list().values()))
-    ContentCredential.update(
+    target_sat.cli.ContentCredential.update(
         {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': module_org.id}
     )
     # Verify changes are reflected in the gpg key
-    gpg_key = ContentCredential.info({'id': gpg_key['id'], 'organization-id': module_org.id})
+    gpg_key = target_sat.cli.ContentCredential.info(
+        {'id': gpg_key['id'], 'organization-id': module_org.id}
+    )
     assert gpg_key['name'] == new_name
     # Verify changes are reflected in the repositories
-    repo = Repository.info({'id': repo['id']})
+    repo = target_sat.cli.Repository.info({'id': repo['id']})
     assert repo['gpg-key'].get('name') == new_name
     # Verify gpg key wasn't added to the product
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
+    product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg']['gpg-key'] != new_name
 
 
 @pytest.mark.tier2
-def test_positive_update_key_for_repo_from_product_with_repos(module_org):
+def test_positive_update_key_for_repo_from_product_with_repos(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it to repository from custom product that has
     more than one repository then update the key
@@ -663,228 +699,44 @@ def test_positive_update_key_for_repo_from_product_with_repos(module_org):
     :CaseLevel: Integration
     """
     # Create a product and a gpg key
-    product = make_product({'organization-id': module_org.id})
-    gpg_key = make_content_credential({'organization-id': module_org.id})
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     # Create repositories and assign them to the product
-    repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
+    repos = [
+        target_sat.cli_factory.make_repository({'product-id': product['id'], 'content-type': 'yum'})
+        for _ in range(gen_integer(2, 5))
+    ]
     # Associate gpg key with a single repository
-    Repository.update(
+    target_sat.cli.Repository.update(
         {'gpg-key-id': gpg_key['id'], 'id': repos[0]['id'], 'organization-id': module_org.id}
     )
     # Verify gpg key was associated
-    repos[0] = Repository.info({'id': repos[0]['id']})
+    repos[0] = target_sat.cli.Repository.info({'id': repos[0]['id']})
     assert repos[0]['gpg-key']['name'] == gpg_key['name']
     # Update the gpg key
     new_name = gen_choice(list(valid_data_list().values()))
-    ContentCredential.update(
+    target_sat.cli.ContentCredential.update(
         {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': module_org.id}
     )
     # Verify changes are reflected in the gpg key
-    gpg_key = ContentCredential.info({'id': gpg_key['id'], 'organization-id': module_org.id})
+    gpg_key = target_sat.cli.ContentCredential.info(
+        {'id': gpg_key['id'], 'organization-id': module_org.id}
+    )
     assert gpg_key['name'] == new_name
     # Verify changes are reflected in the associated repository
-    repos[0] = Repository.info({'id': repos[0]['id']})
+    repos[0] = target_sat.cli.Repository.info({'id': repos[0]['id']})
     assert repos[0]['gpg-key'].get('name') == new_name
     # Verify changes are not reflected in the product
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
+    product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg']['gpg-key'] != new_name
     # Verify changes are not reflected in the rest of repositories
     for repo in repos[1:]:
-        repo = Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['gpg-key'].get('name') != new_name
 
 
-@pytest.mark.tier2
-def test_positive_delete_key_for_empty_product(module_org):
-    """Create gpg key with valid name and valid gpg key via file
-    import then associate it with empty (no repos) custom product
-    then delete it
-
-    :id: 238a80f8-983a-4fd5-a168-6ef9442e2b1c
-
-    :expectedresults: gpg key is associated with product during creation
-        but removed from product after deletion
-
-    :CaseLevel: Integration
-    """
-    # Create a product and a gpg key
-    gpg_key = make_content_credential({'organization-id': module_org.id})
-    product = make_product({'gpg-key-id': gpg_key['id'], 'organization-id': module_org.id})
-    # Verify gpg key was associated
-    assert product['gpg']['gpg-key'] == gpg_key['name']
-    # Delete the gpg key
-    ContentCredential.delete({'name': gpg_key['name'], 'organization-id': module_org.id})
-    # Verify gpg key was actually deleted
-    with pytest.raises(CLIReturnCodeError):
-        ContentCredential.info({'id': gpg_key['id'], 'organization-id': module_org.id})
-    # Verify gpg key was disassociated from the product
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
-    assert product['gpg']['gpg-key'] != gpg_key['name']
-
-
-@pytest.mark.tier2
-@pytest.mark.upgrade
-def test_positive_delete_key_for_product_with_repo(module_org):
-    """Create gpg key with valid name and valid gpg key via file
-    import then associate it with custom product that has one repository
-    then delete it
-
-    :id: 1e98e588-8b5d-475c-ad84-5d566df5619c
-
-    :expectedresults: gpg key is associated with product but and its
-        repository during creation but removed from product and repository
-        after deletion
-
-    :CaseLevel: Integration
-    """
-    # Create product, repository and gpg key
-    product = make_product({'organization-id': module_org.id})
-    repo = make_repository({'product-id': product['id']})
-    gpg_key = make_content_credential({'organization-id': module_org.id})
-    # Associate gpg key with a product
-    Product.update(
-        {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
-    )
-    # Verify gpg key was associated both with product and its repository
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
-    repo = Repository.info({'id': repo['id']})
-    assert product['gpg']['gpg-key'] == gpg_key['name']
-    assert repo['gpg-key'].get('name') == gpg_key['name']
-    # Delete the gpg key
-    ContentCredential.delete({'name': gpg_key['name'], 'organization-id': module_org.id})
-    # Verify gpg key was actually deleted
-    with pytest.raises(CLIReturnCodeError):
-        ContentCredential.info({'id': gpg_key['id'], 'organization-id': module_org.id})
-    # Verify gpg key was disassociated from the product and its repository
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
-    repo = Repository.info({'id': repo['id']})
-    assert product['gpg']['gpg-key'] != gpg_key['name']
-    assert repo['gpg-key'].get('name') != gpg_key['name']
-
-
-@pytest.mark.tier2
-def test_positive_delete_key_for_product_with_repos(module_org):
-    """Create gpg key with valid name and valid gpg key via file
-    import then associate it with custom product that has more than one
-    repository then delete it
-
-    :id: 3848441f-746a-424c-afc3-4d5a15888af8
-
-    :expectedresults: gpg key is associated with product and its
-        repositories during creation but removed from the product and the
-        repositories after deletion
-
-    :CaseLevel: Integration
-    """
-    # Create product, repositories and gpg key
-    product = make_product({'organization-id': module_org.id})
-    repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
-    gpg_key = make_content_credential({'organization-id': module_org.id})
-    # Associate gpg key with a product
-    Product.update(
-        {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
-    )
-    # Verify gpg key was associated with product and its repositories
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
-    assert product['gpg']['gpg-key'] == gpg_key['name']
-    for repo in repos:
-        repo = Repository.info({'id': repo['id']})
-        assert repo['gpg-key'].get('name') == gpg_key['name']
-    # Delete the gpg key
-    ContentCredential.delete({'name': gpg_key['name'], 'organization-id': module_org.id})
-    # Verify gpg key was actually deleted
-    with pytest.raises(CLIReturnCodeError):
-        ContentCredential.info({'id': gpg_key['id'], 'organization-id': module_org.id})
-    # Verify gpg key was disassociated from the product and its
-    # repositories
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
-    assert product['gpg']['gpg-key'] != gpg_key['name']
-    for repo in repos:
-        repo = Repository.info({'id': repo['id']})
-        assert repo['gpg-key'].get('name') != gpg_key['name']
-
-
-@pytest.mark.tier2
-def test_positive_delete_key_for_repo_from_product_with_repo(module_org):
-    """Create gpg key with valid name and valid gpg key via file
-    import then associate it to repository from custom product that has
-    one repository then delete the key
-
-    :id: 2555b08f-8cee-4e84-8f4d-9b46743f5758
-
-    :expectedresults: gpg key is associated with the single repository but
-        not the product during creation and was removed from repository
-        after deletion
-
-    :CaseLevel: Integration
-    """
-    # Create product, repository and gpg key
-    product = make_product({'organization-id': module_org.id})
-    repo = make_repository({'product-id': product['id']})
-    gpg_key = make_content_credential({'organization-id': module_org.id})
-    # Associate gpg key with a repository
-    Repository.update(
-        {'gpg-key-id': gpg_key['id'], 'id': repo['id'], 'organization-id': module_org.id}
-    )
-    # Verify gpg key was associated with the repository but not with the
-    # product
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
-    repo = Repository.info({'id': repo['id']})
-    assert product['gpg']['gpg-key'] != gpg_key['name']
-    assert repo['gpg-key'].get('name') == gpg_key['name']
-    # Delete the gpg key
-    ContentCredential.delete({'name': gpg_key['name'], 'organization-id': module_org.id})
-    # Verify gpg key was actually deleted
-    with pytest.raises(CLIReturnCodeError):
-        ContentCredential.info({'id': gpg_key['id'], 'organization-id': module_org.id})
-    # Verify gpg key was disassociated from the repository
-    repo = Repository.info({'id': repo['id']})
-    assert repo['gpg-key'].get('name') != gpg_key['name']
-
-
-@pytest.mark.tier2
-def test_positive_delete_key_for_repo_from_product_with_repos(module_org):
-    """Create gpg key with valid name and valid gpg key via file
-    import then associate it to repository from custom product that has
-    more than one repository then delete the key
-
-    :id: 7d6a278b-1063-4e72-bc32-ca60bd17bb84
-
-    :expectedresults: gpg key is associated with a single repository but
-        not the product during creation and removed from repository after
-        deletion
-
-    :CaseLevel: Integration
-    """
-    # Create product, repositories and gpg key
-    product = make_product({'organization-id': module_org.id})
-    repos = []
-    for _ in range(gen_integer(2, 5)):
-        repos.append(make_repository({'product-id': product['id']}))
-    gpg_key = make_content_credential({'organization-id': module_org.id})
-    # Associate gpg key with a repository
-    Repository.update(
-        {'gpg-key-id': gpg_key['id'], 'id': repos[0]['id'], 'organization-id': module_org.id}
-    )
-    # Verify gpg key was associated with the repository
-    repos[0] = Repository.info({'id': repos[0]['id']})
-    assert repos[0]['gpg-key']['name'] == gpg_key['name']
-    # Delete the gpg key
-    ContentCredential.delete({'name': gpg_key['name'], 'organization-id': module_org.id})
-    # Verify gpg key was actually deleted
-    with pytest.raises(CLIReturnCodeError):
-        ContentCredential.info({'id': gpg_key['id'], 'organization-id': module_org.id})
-    # Verify gpg key is not associated with any repository or the product
-    # itself
-    product = Product.info({'id': product['id'], 'organization-id': module_org.id})
-    assert product['gpg']['gpg-key'] != gpg_key['name']
-    for repo in repos:
-        repo = Repository.info({'id': repo['id']})
-        assert repo['gpg-key'].get('name') != gpg_key['name']
-
-
 @pytest.mark.tier1
-def test_positive_list(module_org):
+def test_positive_list(module_target_sat, module_org):
     """Create gpg key and list it
 
     :id: ca69e23b-ca96-43dd-89a6-55b0e4ea322d
@@ -893,16 +745,21 @@ def test_positive_list(module_org):
 
     :CaseImportance: Critical
     """
-    gpg_key = make_content_credential(
-        {'key': VALID_GPG_KEY_FILE_PATH, 'organization-id': module_org.id}
+
+    gpg_key = module_target_sat.cli_factory.make_content_credential(
+        {'path': VALID_GPG_KEY_FILE_PATH, 'organization-id': module_org.id}
     )
-    gpg_keys_list = ContentCredential.list({'organization-id': module_org.id})
-    assert gpg_key['id'] in [gpg['id'] for gpg in gpg_keys_list]
+
+    gpg_key_list = module_target_sat.cli.ContentCredential.list(
+        {'organization-id': module_org.id, 'name': gpg_key['name']}
+    )
+
+    assert gpg_key['id'] in [gpg['id'] for gpg in gpg_key_list]
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_search(name, module_org):
+def test_positive_search(target_sat, name, module_org):
     """Create gpg key and search for it
 
     :id: f72648f1-b468-4662-9653-3464e7d0c349
@@ -913,15 +770,15 @@ def test_positive_search(name, module_org):
 
     :CaseImportance: Critical
     """
-    gpg_key = make_content_credential(
+    gpg_key = target_sat.cli_factory.make_content_credential(
         {
-            'key': VALID_GPG_KEY_FILE_PATH,
+            'path': VALID_GPG_KEY_FILE_PATH,
             'name': name,
             'organization-id': module_org.id,
         }
     )
     # Can we find the new object?
-    result = ContentCredential.exists(
+    result = target_sat.cli.ContentCredential.exists(
         {'organization-id': module_org.id}, search=('name', gpg_key['name'])
     )
     assert gpg_key['name'] == result['name']

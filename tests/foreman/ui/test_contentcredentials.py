@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import pytest
-from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.constants import CONTENT_CREDENTIALS_TYPES
@@ -28,13 +27,8 @@ empty_message = "You currently don't have any Products associated with this Cont
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
 def gpg_content():
-    return DataFile.VALID_GPG_KEY_FILE.read_bytes()
+    return DataFile.VALID_GPG_KEY_FILE.read_text()
 
 
 @pytest.fixture(scope='module')
@@ -45,7 +39,7 @@ def gpg_path():
 @pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, gpg_content):
+def test_positive_end_to_end(session, target_sat, module_org, gpg_content):
     """Perform end to end testing for gpg key component
 
     :id: d1a8cc1b-a072-465b-887d-5bca0acd21c3
@@ -66,11 +60,11 @@ def test_positive_end_to_end(session, module_org, gpg_content):
             }
         )
         assert session.contentcredential.search(name)[0]['Name'] == name
-        gpg_key = entities.ContentCredential(organization=module_org).search(
+        gpg_key = target_sat.api.ContentCredential(organization=module_org).search(
             query={'search': f'name="{name}"'}
         )[0]
-        product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
-        repo = entities.Repository(product=product).create()
+        product = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
+        repo = target_sat.api.Repository(product=product).create()
         values = session.contentcredential.read(name)
         assert values['details']['name'] == name
         assert values['details']['content_type'] == CONTENT_CREDENTIALS_TYPES['gpg']
@@ -86,13 +80,16 @@ def test_positive_end_to_end(session, module_org, gpg_content):
         # Update gpg key with new name
         session.contentcredential.update(name, {'details.name': new_name})
         assert session.contentcredential.search(new_name)[0]['Name'] == new_name
+        # Delete repo and product dependent on the gpg key
+        repo.delete()
+        product.delete()
         # Delete gpg key
         session.contentcredential.delete(new_name)
         assert session.contentcredential.search(new_name)[0]['Name'] != new_name
 
 
 @pytest.mark.tier2
-def test_positive_search_scoped(session, gpg_content):
+def test_positive_search_scoped(session, target_sat, gpg_content, module_org):
     """Search for gpgkey by organization id parameter
 
     :id: e1e04f68-5d4f-43f6-a9c1-b9f566fcbc92
@@ -104,9 +101,8 @@ def test_positive_search_scoped(session, gpg_content):
     :BZ: 1259374
     """
     name = gen_string('alpha')
-    org = entities.Organization().create()
     with session:
-        session.organization.select(org.name)
+        session.organization.select(module_org.name)
         session.contentcredential.create(
             {
                 'name': name,
@@ -114,11 +110,14 @@ def test_positive_search_scoped(session, gpg_content):
                 'content': gpg_content,
             }
         )
-        assert session.contentcredential.search(f'organization_id = {org.id}')[0]['Name'] == name
+        assert (
+            session.contentcredential.search(f'organization_id = {module_org.id}')[0]['Name']
+            == name
+        )
 
 
 @pytest.mark.tier2
-def test_positive_add_empty_product(session, module_org, gpg_content):
+def test_positive_add_empty_product(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate
     it with empty (no repos) custom product
 
@@ -129,7 +128,7 @@ def test_positive_add_empty_product(session, module_org, gpg_content):
     :CaseLevel: Integration
     """
     prod_name = gen_string('alpha')
-    gpg_key = entities.GPGKey(content=gpg_content, organization=module_org).create()
+    gpg_key = target_sat.api.GPGKey(content=gpg_content, organization=module_org).create()
     with session:
         session.product.create({'name': prod_name, 'gpg_key': gpg_key.name})
         values = session.contentcredential.read(gpg_key.name)
@@ -140,7 +139,7 @@ def test_positive_add_empty_product(session, module_org, gpg_content):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_product_with_repo(session, module_org, gpg_content):
+def test_positive_add_product_with_repo(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has one repository
 
@@ -152,11 +151,13 @@ def test_positive_add_product_with_repo(session, module_org, gpg_content):
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
     # Creates new product
-    product = entities.Product(organization=module_org).create()
+    product = target_sat.api.Product(organization=module_org).create()
     # Creates new repository without GPGKey
-    repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
+    repo = target_sat.api.Repository(url=settings.repos.yum_1.url, product=product).create()
     with session:
         values = session.contentcredential.read(name)
         assert values['products']['table'][0]['Name'] == empty_message
@@ -174,7 +175,7 @@ def test_positive_add_product_with_repo(session, module_org, gpg_content):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_product_with_repos(session, module_org, gpg_content):
+def test_positive_add_product_with_repos(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has more than one repository
 
@@ -185,13 +186,15 @@ def test_positive_add_product_with_repos(session, module_org, gpg_content):
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
     # Creates new product and associate GPGKey with it
-    product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
+    product = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
     # Creates new repository_1 without GPGKey
-    repo1 = entities.Repository(product=product, url=settings.repos.yum_1.url).create()
+    repo1 = target_sat.api.Repository(product=product, url=settings.repos.yum_1.url).create()
     # Creates new repository_2 without GPGKey
-    repo2 = entities.Repository(product=product, url=settings.repos.yum_2.url).create()
+    repo2 = target_sat.api.Repository(product=product, url=settings.repos.yum_2.url).create()
     with session:
         values = session.contentcredential.read(name)
         assert len(values['repositories']['table']) == 2
@@ -201,7 +204,7 @@ def test_positive_add_product_with_repos(session, module_org, gpg_content):
 
 
 @pytest.mark.tier2
-def test_positive_add_repo_from_product_with_repo(session, module_org, gpg_content):
+def test_positive_add_repo_from_product_with_repo(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has one repository
 
@@ -213,11 +216,13 @@ def test_positive_add_repo_from_product_with_repo(session, module_org, gpg_conte
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
     # Creates new product
-    product = entities.Product(organization=module_org).create()
+    product = target_sat.api.Product(organization=module_org).create()
     # Creates new repository
-    repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
+    repo = target_sat.api.Repository(url=settings.repos.yum_1.url, product=product).create()
     with session:
         values = session.contentcredential.read(name)
         assert values['products']['table'][0]['Name'] == empty_message
@@ -232,7 +237,7 @@ def test_positive_add_repo_from_product_with_repo(session, module_org, gpg_conte
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_repo_from_product_with_repos(session, module_org, gpg_content):
+def test_positive_add_repo_from_product_with_repos(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has more than one repository
 
@@ -244,15 +249,17 @@ def test_positive_add_repo_from_product_with_repos(session, module_org, gpg_cont
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
     # Creates new product without selecting GPGkey
-    product = entities.Product(organization=module_org).create()
+    product = target_sat.api.Product(organization=module_org).create()
     # Creates new repository with GPGKey
-    repo1 = entities.Repository(
+    repo1 = target_sat.api.Repository(
         url=settings.repos.yum_1.url, product=product, gpg_key=gpg_key
     ).create()
     # Creates new repository without GPGKey
-    entities.Repository(url=settings.repos.yum_2.url, product=product).create()
+    target_sat.api.Repository(url=settings.repos.yum_2.url, product=product).create()
     with session:
         values = session.contentcredential.read(name)
         assert values['products']['table'][0]['Name'] == empty_message
@@ -308,7 +315,7 @@ def test_positive_add_product_using_repo_discovery(session, gpg_path):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_product_and_search(session, module_org, gpg_content):
+def test_positive_add_product_and_search(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key
     then associate it with custom product that has one repository
     After search and select product through gpg key interface
@@ -325,11 +332,13 @@ def test_positive_add_product_and_search(session, module_org, gpg_content):
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
     # Creates new product and associate GPGKey with it
-    product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
+    product = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
     # Creates new repository without GPGKey
-    repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
+    repo = target_sat.api.Repository(url=settings.repos.yum_1.url, product=product).create()
     with session:
         values = session.contentcredential.read(gpg_key.name)
         assert len(values['products']['table']) == 1
@@ -400,54 +409,7 @@ def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path)
 
 
 @pytest.mark.tier2
-@pytest.mark.upgrade
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-@pytest.mark.usefixtures('allow_repo_discovery')
-def test_positive_delete_key_for_product_using_repo_discovery(session, gpg_path):
-    """Create gpg key with valid name and valid gpg then associate
-    it with custom product using Repo discovery method then delete it
-
-    :id: 513ae138-84d9-4c43-8d4e-7b9fb797208d
-
-    :expectedresults: gpg key is associated with product as well as with
-        the repositories during creation but removed from product after
-        deletion
-
-    :BZ: 1210180, 1461804
-
-    :CaseLevel: Integration
-    """
-    name = gen_string('alpha')
-    product_name = gen_string('alpha')
-    repo_name = 'fakerepo01'
-    with session:
-        session.contentcredential.create(
-            {
-                'name': name,
-                'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
-                'upload_file': gpg_path,
-            }
-        )
-        assert session.contentcredential.search(name)[0]['Name'] == name
-        session.product.discover_repo(
-            {
-                'repo_type': 'Yum Repositories',
-                'url': settings.repos.repo_discovery.url,
-                'discovered_repos.repos': repo_name,
-                'create_repo.product_type': 'New Product',
-                'create_repo.product_content.product_name': product_name,
-                'create_repo.product_content.gpg_key': name,
-            }
-        )
-        product_values = session.product.read(product_name)
-        assert product_values['details']['gpg_key'] == name
-        session.contentcredential.delete(name)
-        product_values = session.product.read(product_name)
-        assert product_values['details']['gpg_key'] == ''
-
-
-@pytest.mark.tier2
-def test_positive_update_key_for_empty_product(session, module_org, gpg_content):
+def test_positive_update_key_for_empty_product(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with empty (no repos) custom product then update the key
 
@@ -460,9 +422,11 @@ def test_positive_update_key_for_empty_product(session, module_org, gpg_content)
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
     # Creates new product and associate GPGKey with it
-    product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
+    product = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
     with session:
         values = session.contentcredential.read(name)
         # Assert that GPGKey is associated with product
@@ -477,7 +441,7 @@ def test_positive_update_key_for_empty_product(session, module_org, gpg_content)
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_update_key_for_product_with_repo(session, module_org, gpg_content):
+def test_positive_update_key_for_product_with_repo(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has one repository then update the key
 
@@ -490,11 +454,13 @@ def test_positive_update_key_for_product_with_repo(session, module_org, gpg_cont
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
     # Creates new product and associate GPGKey with it
-    product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
+    product = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
     # Creates new repository without GPGKey
-    repo = entities.Repository(product=product, url=settings.repos.yum_1.url).create()
+    repo = target_sat.api.Repository(product=product, url=settings.repos.yum_1.url).create()
     with session:
         session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
@@ -508,7 +474,7 @@ def test_positive_update_key_for_product_with_repo(session, module_org, gpg_cont
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_update_key_for_product_with_repos(session, module_org, gpg_content):
+def test_positive_update_key_for_product_with_repos(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has more than one repository then update the
     key
@@ -522,13 +488,15 @@ def test_positive_update_key_for_product_with_repos(session, module_org, gpg_con
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
     # Creates new product and associate GPGKey with it
-    product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
+    product = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
     # Creates new repository_1 without GPGKey
-    repo1 = entities.Repository(product=product, url=settings.repos.yum_1.url).create()
+    repo1 = target_sat.api.Repository(product=product, url=settings.repos.yum_1.url).create()
     # Creates new repository_2 without GPGKey
-    repo2 = entities.Repository(product=product, url=settings.repos.yum_2.url).create()
+    repo2 = target_sat.api.Repository(product=product, url=settings.repos.yum_2.url).create()
     with session:
         session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
@@ -540,7 +508,9 @@ def test_positive_update_key_for_product_with_repos(session, module_org, gpg_con
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_update_key_for_repo_from_product_with_repo(session, module_org, gpg_content):
+def test_positive_update_key_for_repo_from_product_with_repo(
+    session, target_sat, module_org, gpg_content
+):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has one repository then update
     the key
@@ -554,11 +524,13 @@ def test_positive_update_key_for_repo_from_product_with_repo(session, module_org
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
     # Creates new product without selecting GPGkey
-    product = entities.Product(organization=module_org).create()
+    product = target_sat.api.Product(organization=module_org).create()
     # Creates new repository with GPGKey
-    repo = entities.Repository(
+    repo = target_sat.api.Repository(
         gpg_key=gpg_key, product=product, url=settings.repos.yum_1.url
     ).create()
     with session:
@@ -575,7 +547,9 @@ def test_positive_update_key_for_repo_from_product_with_repo(session, module_org
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_update_key_for_repo_from_product_with_repos(session, module_org, gpg_content):
+def test_positive_update_key_for_repo_from_product_with_repos(
+    session, target_sat, module_org, gpg_content
+):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has more than one repository
     then update the key
@@ -589,219 +563,20 @@ def test_positive_update_key_for_repo_from_product_with_repos(session, module_or
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
     # Creates new product without selecting GPGkey
-    product = entities.Product(organization=module_org).create()
+    product = target_sat.api.Product(organization=module_org).create()
     # Creates new repository_1 with GPGKey
-    repo1 = entities.Repository(
+    repo1 = target_sat.api.Repository(
         url=settings.repos.yum_1.url, product=product, gpg_key=gpg_key
     ).create()
     # Creates new repository_2 without GPGKey
-    entities.Repository(product=product, url=settings.repos.yum_2.url).create()
+    target_sat.api.Repository(product=product, url=settings.repos.yum_2.url).create()
     with session:
         session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
         assert values['products']['table'][0]['Name'] == empty_message
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo1.name
-
-
-@pytest.mark.tier2
-def test_positive_delete_key_for_empty_product(session, module_org, gpg_content):
-    """Create gpg key with valid name and valid gpg key then
-    associate it with empty (no repos) custom product then delete it
-
-    :id: b9766403-61b2-4a88-a744-a25d53d577fb
-
-    :expectedresults: gpg key is associated with product during creation
-        but removed from product after deletion
-
-    :CaseLevel: Integration
-    """
-    gpg_key = entities.GPGKey(content=gpg_content, organization=module_org).create()
-    # Creates new product and associate GPGKey with it
-    product = entities.Product(
-        gpg_key=gpg_key, name=gen_string('alpha'), organization=module_org
-    ).create()
-    with session:
-        # Assert that GPGKey is associated with product
-        gpg_values = session.contentcredential.read(gpg_key.name)
-        assert len(gpg_values['products']['table']) == 1
-        assert gpg_values['products']['table'][0]['Name'] == product.name
-        product_values = session.product.read(product.name)
-        assert product_values['details']['gpg_key'] == gpg_key.name
-        session.contentcredential.delete(gpg_key.name)
-        # Assert GPGKey isn't associated with product
-        product_values = session.product.read(product.name)
-        assert not product_values['details']['gpg_key']
-
-
-@pytest.mark.tier2
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_delete_key_for_product_with_repo(session, module_org, gpg_content):
-    """Create gpg key with valid name and valid gpg key then
-    associate it with custom product that has one repository then delete it
-
-    :id: 75057dd2-9083-47a8-bea7-4f073bdb667e
-
-    :expectedresults: gpg key is associated with product as well as with
-        the repository during creation but removed from product after
-        deletion
-
-    :CaseLevel: Integration
-    """
-    gpg_key = entities.GPGKey(content=gpg_content, organization=module_org).create()
-    # Creates new product and associate GPGKey with it
-    product = entities.Product(
-        gpg_key=gpg_key, name=gen_string('alpha'), organization=module_org
-    ).create()
-    # Creates new repository without GPGKey
-    repo = entities.Repository(
-        name=gen_string('alpha'), url=settings.repos.yum_1.url, product=product
-    ).create()
-    with session:
-        # Assert that GPGKey is associated with product
-        values = session.contentcredential.read(gpg_key.name)
-        assert len(values['products']['table']) == 1
-        assert values['products']['table'][0]['Name'] == product.name
-        assert len(values['repositories']['table']) == 1
-        assert values['repositories']['table'][0]['Name'] == repo.name
-        repo_values = session.repository.read(product.name, repo.name)
-        assert repo_values['repo_content']['gpg_key'] == gpg_key.name
-        session.contentcredential.delete(gpg_key.name)
-        # Assert GPGKey isn't associated with product and repository
-        product_values = session.product.read(product.name)
-        assert not product_values['details']['gpg_key']
-        repo_values = session.repository.read(product.name, repo.name)
-        assert not repo_values['repo_content']['gpg_key']
-
-
-@pytest.mark.tier2
-@pytest.mark.upgrade
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_delete_key_for_product_with_repos(session, module_org, gpg_content):
-    """Create gpg key with valid name and valid gpg key then
-    associate it with custom product that has more than one repository then
-    delete it
-
-    :id: cb5d4efd-863a-4b8e-b1f8-a0771e90ff5e
-
-    :expectedresults: gpg key is associated with product as well as with
-        repositories during creation but removed from product after
-        deletion
-
-    :CaseLevel: Integration
-    """
-    gpg_key = entities.GPGKey(content=gpg_content, organization=module_org).create()
-    # Creates new product and associate GPGKey with it
-    product = entities.Product(
-        gpg_key=gpg_key, name=gen_string('alpha'), organization=module_org
-    ).create()
-    # Creates new repository_1 without GPGKey
-    repo1 = entities.Repository(
-        name=gen_string('alpha'), product=product, url=settings.repos.yum_1.url
-    ).create()
-    # Creates new repository_2 without GPGKey
-    repo2 = entities.Repository(
-        name=gen_string('alpha'), product=product, url=settings.repos.yum_2.url
-    ).create()
-    with session:
-        # Assert that GPGKey is associated with product
-        values = session.contentcredential.read(gpg_key.name)
-        assert len(values['products']['table']) == 1
-        assert values['products']['table'][0]['Name'] == product.name
-        assert len(values['repositories']['table']) == 2
-        assert {repo1.name, repo2.name} == {
-            repo['Name'] for repo in values['repositories']['table']
-        }
-        session.contentcredential.delete(gpg_key.name)
-        # Assert GPGKey isn't associated with product and repositories
-        product_values = session.product.read(product.name)
-        assert not product_values['details']['gpg_key']
-        for repo in [repo1, repo2]:
-            repo_values = session.repository.read(product.name, repo.name)
-            assert not repo_values['repo_content']['gpg_key']
-
-
-@pytest.mark.tier2
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_delete_key_for_repo_from_product_with_repo(session, module_org, gpg_content):
-    """Create gpg key with valid name and valid gpg key then
-    associate it to repository from custom product that has one repository
-    then delete the key
-
-    :id: 92ba492e-79af-48fe-84cb-763102b42fa7
-
-    :expectedresults: gpg key is associated with single repository during
-        creation but removed from repository after deletion
-
-    :CaseLevel: Integration
-    """
-    gpg_key = entities.GPGKey(content=gpg_content, organization=module_org).create()
-    # Creates new product without selecting GPGkey
-    product = entities.Product(name=gen_string('alpha'), organization=module_org).create()
-    # Creates new repository with GPGKey
-    repo = entities.Repository(
-        name=gen_string('alpha'), url=settings.repos.yum_1.url, product=product, gpg_key=gpg_key
-    ).create()
-    with session:
-        # Assert that GPGKey is associated with product
-        values = session.contentcredential.read(gpg_key.name)
-        assert values['products']['table'][0]['Name'] == empty_message
-        assert len(values['repositories']['table']) == 1
-        assert values['repositories']['table'][0]['Name'] == repo.name
-        repo_values = session.repository.read(product.name, repo.name)
-        assert repo_values['repo_content']['gpg_key'] == gpg_key.name
-        session.contentcredential.delete(gpg_key.name)
-        # Assert GPGKey isn't associated with repository
-        repo_values = session.repository.read(product.name, repo.name)
-        assert not repo_values['repo_content']['gpg_key']
-
-
-@pytest.mark.tier2
-@pytest.mark.upgrade
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_delete_key_for_repo_from_product_with_repos(session, module_org, gpg_content):
-    """Create gpg key with valid name and valid gpg key then
-    associate it to repository from custom product that has more than
-    one repository then delete the key
-
-    :id: 5f204a44-bf7b-4a9c-9974-b701e0d38860
-
-    :expectedresults: gpg key is associated with single repository but not
-        with product during creation but removed from repository after
-        deletion
-
-    :BZ: 1461804
-
-    :CaseLevel: Integration
-    """
-    # Creates New GPGKey
-    gpg_key = entities.GPGKey(content=gpg_content, organization=module_org).create()
-    # Creates new product without GPGKey association
-    product = entities.Product(name=gen_string('alpha'), organization=module_org).create()
-    # Creates new repository_1 with GPGKey association
-    repo1 = entities.Repository(
-        gpg_key=gpg_key, name=gen_string('alpha'), product=product, url=settings.repos.yum_1.url
-    ).create()
-    repo2 = entities.Repository(
-        name=gen_string('alpha'),
-        product=product,
-        url=settings.repos.yum_2.url,
-        # notice that we're not making this repo point to the GPG key
-    ).create()
-    with session:
-        # Assert that GPGKey is associated with product
-        values = session.contentcredential.read(gpg_key.name)
-        assert values['products']['table'][0]['Name'] == empty_message
-        assert len(values['repositories']['table']) == 1
-        assert values['repositories']['table'][0]['Name'] == repo1.name
-        repo_values = session.repository.read(product.name, repo1.name)
-        assert repo_values['repo_content']['gpg_key'] == gpg_key.name
-        repo_values = session.repository.read(product.name, repo2.name)
-        assert not repo_values['repo_content']['gpg_key']
-        session.contentcredential.delete(gpg_key.name)
-        # Assert GPGKey isn't associated with repositories
-        for repo in [repo1, repo2]:
-            repo_values = session.repository.read(product.name, repo.name)
-            assert not repo_values['repo_content']['gpg_key']
