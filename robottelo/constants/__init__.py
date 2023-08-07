@@ -116,6 +116,8 @@ LATEST_RHEL7_GCE_IMG_UUID = '7726764279310511390'
 GCE_MACHINE_TYPE_DEFAULT = 'f1-micro'
 GCE_NETWORK_DEFAULT = 'default'
 GCE_EXTERNAL_IP_DEFAULT = True
+GCE_RHEL_CLOUD_PROJECTS = ['rhel-cloud', 'rhel-sap-cloud']
+GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-7'
 
 # AzureRM specific constants
 AZURERM_VALID_REGIONS = [
@@ -1537,8 +1539,6 @@ LDAP_ATTR = {
     'mail': 'mail',
 }
 
-OSCAP_TARGET_CORES = 4
-OSCAP_TARGET_MEMORY = '16GiB'
 OSCAP_PERIOD = {'weekly': 'Weekly', 'monthly': 'Monthly', 'custom': 'Custom'}
 OSCAP_TAILORING_FILE = 'ssg-rhel7-ds-tailoring.xml'
 
