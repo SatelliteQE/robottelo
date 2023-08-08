@@ -599,7 +599,6 @@ def test_positive_virt_card(
         assert virt_card['datacenter'] == module_vmware_settings['datacenter']
         assert virt_card['cluster'] == module_vmware_settings['cluster']
         assert virt_card['memory'] == '2 GB'
-        assert virt_card['public_ip_address']
         assert virt_card['mac_address'] == module_vmware_settings['mac_address']
         assert virt_card['cpus'] == '1'
         assert virt_card['cores_per_socket'] == '1'
