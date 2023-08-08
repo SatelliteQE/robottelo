@@ -103,7 +103,6 @@ def fixture_setup_rhc_satellite(request, module_target_sat, module_rhc_org):
 
 @pytest.mark.e2e
 @pytest.mark.tier3
-@pytest.mark.destructive
 def test_positive_configure_cloud_connector(
     session,
     module_target_sat,
