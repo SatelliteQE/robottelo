@@ -21,7 +21,6 @@ import uuid
 import pytest
 
 from robottelo.constants import CLIENT_PORT
-from robottelo.constants import ENVIRONMENT
 
 pytestmark = pytest.mark.tier1
 
@@ -89,8 +88,10 @@ def test_host_registration_end_to_end(
 
 
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.skip_if_open("BZ:2229112")
 def test_positive_allow_reregistration_when_dmi_uuid_changed(
-    module_org, rhel_contenthost, target_sat
+    module_org, rhel_contenthost, target_sat, module_ak_with_synced_repo, module_location
 ):
     """Register a content host with a custom DMI UUID, unregistering it, change
     the DMI UUID, and re-registering it again
@@ -101,18 +102,27 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
 
     :customerscenario: true
 
-    :BZ: 1747177
+    :BZ: 1747177,2229112
 
     :CaseLevel: Integration
     """
     uuid_1 = str(uuid.uuid1())
     uuid_2 = str(uuid.uuid4())
-    rhel_contenthost.install_katello_ca(target_sat)
     target_sat.execute(f'echo \'{{"dmi.system.uuid": "{uuid_1}"}}\' > /etc/rhsm/facts/uuid.facts')
-    result = rhel_contenthost.register_contenthost(module_org.label, lce=ENVIRONMENT)
+    command = target_sat.api.RegistrationCommand(
+        organization=module_org,
+        activation_keys=[module_ak_with_synced_repo.name],
+        location=module_location,
+    ).create()
+    result = rhel_contenthost.execute(command)
     assert result.status == 0
     result = rhel_contenthost.execute('subscription-manager clean')
     assert result.status == 0
     target_sat.execute(f'echo \'{{"dmi.system.uuid": "{uuid_2}"}}\' > /etc/rhsm/facts/uuid.facts')
-    result = rhel_contenthost.register_contenthost(module_org.label, lce=ENVIRONMENT)
+    command = target_sat.api.RegistrationCommand(
+        organization=module_org,
+        activation_keys=[module_ak_with_synced_repo.name],
+        location=module_location,
+    ).create()
+    result = rhel_contenthost.execute(command)
     assert result.status == 0
