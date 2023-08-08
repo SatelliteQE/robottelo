@@ -260,9 +260,6 @@ OHSNAP_RHEL8_REPOS = (
     'rhel-8-for-x86_64-appstream-rpms',
 )
 
-INSTALL_RHEL7_STEPS = 'yum -y install satellite'
-INSTALL_RHEL8_STEPS = 'dnf -y module enable satellite:el8 && dnf -y install satellite'
-
 # On importing manifests, Red Hat repositories are listed like this:
 # Product -> RepositorySet -> Repository
 # We need to first select the Product, then the reposet and then the repos
