@@ -52,6 +52,10 @@ class TestTailoringFiles:
             {'name': name, 'scap-file': tailoring_file_path['satellite']}
         )
         assert tailoring_file['name'] == name
+        # Delete tailoring files which created for all valid input (ex- latin1, cjk, utf-8, etc.)
+        TailoringFiles.delete({'id': tailoring_file['id']})
+        with pytest.raises(CLIReturnCodeError):
+            TailoringFiles.info({'id': tailoring_file['id']})
 
     @pytest.mark.tier1
     def test_positive_create_with_space(self, tailoring_file_path):
