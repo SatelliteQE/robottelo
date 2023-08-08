@@ -2,7 +2,7 @@
 import pytest
 from nailgun import entities
 
-from robottelo.api.utils import call_entity_method_with_timeout
+from nailgun.entity_mixins import call_entity_method_with_timeout
 from robottelo.api.utils import promote
 from robottelo.constants import DEFAULT_CV
 
