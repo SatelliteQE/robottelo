@@ -335,7 +335,8 @@ class ContentHost(Host, ContentHostMixins):
     def clean_cached_properties(self):
         """Delete all cached properties for this class"""
         for name in self.list_cached_properties():
-            getattr(self, name).cache_clear()
+            with contextlib.suppress(KeyError):  # ignore if property is not cached
+                del self.__dict__[name]
 
     def setup(self):
         if not self.blank:
