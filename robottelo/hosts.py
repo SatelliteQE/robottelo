@@ -268,13 +268,47 @@ class ContentHost(Host, ContentHostMixins):
         return self.get_facts().get('lscpu.architecture') or self.execute('uname -m').stdout.strip()
 
     @cached_property
+    def _redhat_release(self):
+        """Process redhat-release file for distro and version information
+        This is a fallback for when /etc/os-release is not available
+        """
+        result = self.execute('cat /etc/redhat-release')
+        if result.status != 0:
+            raise ContentHostError(f'Not able to cat /etc/redhat-release "{result.stderr}"')
+        match = re.match(r'(?P<NAME>.+) release (?P<major>\d+)(.(?P<minor>\d+))?', result.stdout)
+        if match is None:
+            raise ContentHostError(f'Not able to parse release string "{result.stdout}"')
+        r_release = match.groupdict()
+
+        # /etc/os-release compatibility layer
+        r_release['VERSION_ID'] = r_release['major']
+        # not every release have a minor version
+        r_release['VERSION_ID'] += f'.{r_release["minor"]}' if r_release['minor'] else ''
+
+        distro_map = {
+            'Fedora': {'NAME': 'Fedora Linux', 'ID': 'fedora'},
+            'CentOS': {'ID': 'centos'},
+            'Red Hat Enterprise Linux': {'ID': 'rhel'},
+        }
+        # Use the version map to set the NAME and ID fields
+        for distro, properties in distro_map.items():
+            if distro in r_release['NAME']:
+                r_release.update(properties)
+                break
+        return r_release
+
+    @cached_property
     def _os_release(self):
         """Process os-release file for distro and version information"""
         facts = {}
         regex = r'^(["\'])(.*)(\1)$'
         result = self.execute('cat /etc/os-release')
         if result.status != 0:
-            raise ContentHostError(f'Not able to cat /etc/os-release "{result.stderr}"')
+            logger.info(
+                f'Not able to cat /etc/os-release "{result.stderr}", '
+                'falling back to /etc/redhat-release'
+            )
+            return self._redhat_release
         for ln in [line for line in result.stdout.splitlines() if line.strip()]:
             line = ln.strip()
             if line.startswith('#'):
