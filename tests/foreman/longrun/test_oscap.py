@@ -492,7 +492,7 @@ def test_positive_oscap_run_via_local_files(
     """
     SELECTED_ROLE = 'theforeman.foreman_scap_client'
     file_name = 'security-data-oval-com.redhat.rhsa-RHEL8.xml.bz2'
-    download_url = 'https://www.redhat.com/security/data/oval/com.redhat.rhsa-RHEL8.xml.bz2'
+    download_url = 'https://www.redhat.com/security/data/oval/v2/RHEL8/rhel-8.oval.xml.bz2'
     profile = OSCAP_PROFILE['ospp8']
     content = OSCAP_DEFAULT_CONTENT[f'{distro}_content']
     hgrp_name = gen_string('alpha')
@@ -510,8 +510,7 @@ def test_positive_oscap_run_via_local_files(
     with Broker(
         nick=distro,
         host_class=ContentHost,
-        target_cores=OSCAP_TARGET_CORES,
-        target_memory=OSCAP_TARGET_MEMORY,
+        deploy_flavor=settings.flavors.default,
     ) as vm:
         vm.create_custom_repos(
             **{
