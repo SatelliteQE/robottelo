@@ -77,3 +77,9 @@ class Repository(Base):
         """Upload content to repository."""
         cls.command_sub = 'upload-content'
         return cls.execute(cls._construct_command(options), output_format='csv', ignore_stderr=True)
+
+    @classmethod
+    def list(cls, options):
+        """List repositories"""
+        cls.command_sub = 'list'
+        return cls.execute(cls._construct_command(options), output_format='csv')
