@@ -54,7 +54,7 @@ def rhcloud_registered_hosts(organization_ak_setup, mod_content_hosts, rhcloud_s
 
 @pytest.fixture
 def rhel_insights_vm(rhcloud_sat_host, organization_ak_setup, rhel_contenthost):
-    """A module-level fixture to create rhel content host registered with insights."""
+    """A function-level fixture to create rhel content host registered with insights."""
     # settings.supportability.content_hosts.rhel.versions
     org, ak = organization_ak_setup
     rhel_contenthost.configure_rex(satellite=rhcloud_sat_host, org=org, register=False)
@@ -65,6 +65,12 @@ def rhel_insights_vm(rhcloud_sat_host, organization_ak_setup, rhel_contenthost):
         rhel_distro=f"rhel{rhel_contenthost.os_version.major}",
     )
     yield rhel_contenthost
+    # Delete host
+    host = rhcloud_sat_host.api.Host().search(
+        query={"search": f'name={rhel_contenthost.hostname}'}
+    )[0]
+    host.delete()
+    assert not rhcloud_sat_host.api.Host().search(query={"search": f'name={host.name}'})
 
 
 @pytest.fixture
@@ -80,8 +86,13 @@ def inventory_settings(rhcloud_sat_host):
     rhcloud_sat_host.update_setting('include_parameter_tags', parameter_tags_setting)
 
 
-@pytest.fixture
-def rhcloud_capsule(capsule_host, rhcloud_sat_host):
+@pytest.fixture(scope='module')
+def rhcloud_capsule(module_capsule_host, rhcloud_sat_host, organization_ak_setup):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    capsule_host.capsule_setup(sat_host=rhcloud_sat_host)
-    yield capsule_host
+    org, ak = organization_ak_setup
+    module_capsule_host.capsule_setup(sat_host=rhcloud_sat_host, enable_registration=True)
+    capsule = rhcloud_sat_host.api.SmartProxy(name=module_capsule_host.hostname).search()[0].read()
+    if org.id not in [organization.id for organization in capsule.organization]:
+        capsule.organization.append(org)
+        capsule.update(['organization'])
+    yield module_capsule_host
