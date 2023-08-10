@@ -1,16 +1,33 @@
 OSP:
   # Openstack to be added as a compute resource
+  HOSTNAME:
+    OSP16: hostname.example.com
+    OSP17: hostname.example.com
+  # Openstack authentication url
+  AUTH_URL:
+    OSP16: '@format http://{this.osp.hostname.osp16}:5000'
+    OSP17: '@format http://{this.osp.hostname.osp17}:5000'
   # Openstack api url For eg: https://hostname:port/v3/auth/tokens
-  HOSTNAME: https://hostname:port/v3/auth/tokens
+  API_URL:
+    OSP16: '@format {this.osp.auth_url.osp16}/v3/auth/tokens'
+    OSP17: '@format {this.osp.auth_url.osp17}/v3/auth/tokens'
   # Login for Openstack
-  USERNAME: psi-satellite-jenkins
+  USERNAME:
   # Password for Openstack
   PASSWORD:
+  # Name of Security group
+  SECURITY_GROUP:
   # Openstack tenant to be used
-  TENANT: satellite-jenkins
-  # Name of group for provisioning
-  SECURITY_GROUP: satellite5
+  TENANT:
   # Name of VM to power On/Off & delete
-  VM_NAME: automation-robottelo-vm
+  VM_NAME:
   # ID of the domain for the project
   PROJECT_DOMAIN_ID:
+  # Openstack network name
+  NETWORK_NAME:
+  # Openstack rhel8 image name
+  RHEL8_IMAGE:
+  # Openstack template's configuration flavour name
+  FLAVOR_NAME:
+  # Openstack ssh-key configuration
+  SSHKEY:
