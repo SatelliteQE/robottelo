@@ -23,7 +23,6 @@ from robottelo.cli.host import Host
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC
 from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.virtwho import deploy_configure_by_command
 from robottelo.utils.virtwho import get_configure_command
@@ -78,16 +77,8 @@ class TestScenarioPositiveVirtWho:
             3. Report is sent to satellite.
             4. Virtual sku can be generated and attached.
         """
-        org = target_sat.api.Organization().search(query={'search': f'name={ORG_DATA["name"]}'})
-        if org:
-            target_sat.api.Organization(id=org[0].id).delete()
-        default_loc_id = (
-            target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
-        )
-        default_loc = target_sat.api.Location(id=default_loc_id).read()
         org = target_sat.api.Organization(name=ORG_DATA['name']).create()
-        default_loc.organization.append(target_sat.api.Organization(id=org.id))
-        default_loc.update(['organization'])
+        target_sat.api.Location(organization=[org]).create()
         target_sat.upload_manifest(org.id, function_entitlement_manifest.content)
         form_data.update({'organization_id': org.id})
         vhd = target_sat.api.VirtWhoConfig(**form_data).create()
