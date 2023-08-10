@@ -80,6 +80,7 @@ class TestOrganization:
         assert http.client.UNSUPPORTED_MEDIA_TYPE == response.status_code
 
     @pytest.mark.tier1
+    @pytest.mark.build_sanity
     @pytest.mark.parametrize('name', **parametrized(valid_org_data_list()))
     def test_positive_create_with_name_and_description(self, name):
         """Create an organization and provide a name and description.
