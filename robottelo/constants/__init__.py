@@ -116,6 +116,8 @@ LATEST_RHEL7_GCE_IMG_UUID = '7726764279310511390'
 GCE_MACHINE_TYPE_DEFAULT = 'f1-micro'
 GCE_NETWORK_DEFAULT = 'default'
 GCE_EXTERNAL_IP_DEFAULT = True
+GCE_RHEL_CLOUD_PROJECTS = ['rhel-cloud', 'rhel-sap-cloud']
+GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-7'
 
 # AzureRM specific constants
 AZURERM_VALID_REGIONS = [
@@ -257,9 +259,6 @@ OHSNAP_RHEL8_REPOS = (
     'rhel-8-for-x86_64-baseos-rpms',
     'rhel-8-for-x86_64-appstream-rpms',
 )
-
-INSTALL_RHEL7_STEPS = 'yum -y install satellite'
-INSTALL_RHEL8_STEPS = 'dnf -y module enable satellite:el8 && dnf -y install satellite'
 
 # On importing manifests, Red Hat repositories are listed like this:
 # Product -> RepositorySet -> Repository
