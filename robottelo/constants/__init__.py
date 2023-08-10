@@ -1961,6 +1961,12 @@ WEBHOOK_METHODS = [
     "PATCH",
 ]
 
+OPENSSH_RECOMMENDATION = 'Decreased security: OpenSSH config permissions'
+DNF_RECOMMENDATION = (
+    'The dnf installs lower versions of packages when the "best" '
+    'option is not present in the /etc/dnf/dnf.conf'
+)
+
 
 # Data File Paths
 class DataFile(Box):
