@@ -16,19 +16,16 @@
 :Upstream: No
 """
 import pytest
+from box import Box
 from fauxfactory import gen_string
 
-from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import CLIReturnCodeError
-from robottelo.cli.factory import make_compute_resource
 from robottelo.config import settings
 
-OSP_SETTINGS = dict(
+OSP_SETTINGS = Box(
     username=settings.osp.username,
     password=settings.osp.password,
     tenant=settings.osp.tenant,
-    hostname=settings.osp.hostname,
     project_domain_id=settings.osp.project_domain_id,
 )
 
@@ -36,19 +33,29 @@ OSP_SETTINGS = dict(
 class TestOSPComputeResourceTestCase:
     """OSPComputeResource CLI tests."""
 
-    def cr_cleanup(self, cr_id):
+    def cr_cleanup(self, cr_id, id_type, target_sat):
         """Finalizer for removing CR from Satellite.
         This should remove ssh key pairs from OSP in case of test fail.
         """
         try:
-            ComputeResource.delete({'id': cr_id})
+            target_sat.cli.ComputeResource.delete({id_type: cr_id})
+            assert not target_sat.cli.ComputeResource.exists(search=(id_type, cr_id))
         except CLIReturnCodeError:
             pass
 
+    @pytest.fixture
+    def osp_version(request):
+        versions = {'osp16': settings.osp.api_url.osp16, 'osp17': settings.osp.api_url.osp17}
+        yield versions[getattr(request, 'param', 'osp16')]
+
     @pytest.mark.upgrade
     @pytest.mark.tier3
-    @pytest.mark.parametrize('id_type', ['id', 'name'])
-    def test_crud_and_duplicate_name(self, request, id_type):
+    @pytest.mark.parametrize('osp_version', ['osp16', 'osp17'], indirect=True)
+    @pytest.mark.parametrize(
+        'id_type',
+        ['id', 'name'],
+    )
+    def test_crud_and_duplicate_name(self, request, id_type, osp_version, target_sat):
         """Create, list, update and delete Openstack compute resource
 
         :id: caf60bad-999d-483e-807f-95f52f35085d
@@ -63,47 +70,47 @@ class TestOSPComputeResourceTestCase:
         """
         # create
         name = gen_string('alpha')
-        compute_resource = make_compute_resource(
+        compute_resource = target_sat.cli.ComputeResource.create(
             {
                 'name': name,
                 'provider': 'Openstack',
-                'user': OSP_SETTINGS['username'],
-                'password': OSP_SETTINGS['password'],
-                'tenant': OSP_SETTINGS['tenant'],
-                'url': OSP_SETTINGS['hostname'],
-                'project-domain-id': OSP_SETTINGS['project_domain_id'],
+                'user': OSP_SETTINGS.username,
+                'password': OSP_SETTINGS.password,
+                'tenant': OSP_SETTINGS.tenant,
+                'project-domain-id': OSP_SETTINGS.project_domain_id,
+                'url': osp_version,
             }
         )
-        request.addfinalizer(lambda: self.cr_cleanup(compute_resource['id']))
         assert compute_resource['name'] == name
-        assert ComputeResource.exists(search=(id_type, compute_resource[id_type]))
+        assert target_sat.cli.ComputeResource.exists(search=(id_type, compute_resource[id_type]))
 
         # negative create with same name
-        with pytest.raises(CLIFactoryError):
-            make_compute_resource(
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ComputeResource.create(
                 {
                     'name': name,
                     'provider': 'Openstack',
-                    'user': OSP_SETTINGS['username'],
-                    'password': OSP_SETTINGS['password'],
-                    'tenant': OSP_SETTINGS['tenant'],
-                    'url': OSP_SETTINGS['hostname'],
-                    'project-domain-id': OSP_SETTINGS['project_domain_id'],
+                    'user': OSP_SETTINGS.username,
+                    'password': OSP_SETTINGS.password,
+                    'tenant': OSP_SETTINGS.tenant,
+                    'project-domain-id': OSP_SETTINGS.project_domain_id,
+                    'url': osp_version,
                 }
             )
         # update
         new_name = gen_string('alpha')
-        ComputeResource.update({id_type: compute_resource[id_type], 'new-name': new_name})
+        target_sat.cli.ComputeResource.update(
+            {id_type: compute_resource[id_type], 'new-name': new_name}
+        )
         if id_type == 'name':
-            compute_resource = ComputeResource.info({'name': new_name})
+            compute_resource = target_sat.cli.ComputeResource.info({'name': new_name})
         else:
-            compute_resource = ComputeResource.info({'id': compute_resource['id']})
+            compute_resource = target_sat.cli.ComputeResource.info({'id': compute_resource['id']})
         assert new_name == compute_resource['name']
-        ComputeResource.delete({id_type: compute_resource[id_type]})
-        assert not ComputeResource.exists(search=(id_type, compute_resource[id_type]))
+        request.addfinalizer(lambda: self.cr_cleanup(compute_resource['id'], id_type, target_sat))
 
     @pytest.mark.tier3
-    def test_negative_create_osp_with_url(self):
+    def test_negative_create_osp_with_url(self, target_sat):
         """Attempt to create Openstack compute resource with invalid URL
 
         :id: a6be8233-2641-4c87-8563-f48d6efbb6ac
@@ -116,15 +123,15 @@ class TestOSPComputeResourceTestCase:
         """
         name = gen_string('alpha')
         with pytest.raises(CLIReturnCodeError):
-            ComputeResource.create(
+            target_sat.cli.ComputeResource.create(
                 {
                     'name': name,
                     'provider': 'Openstack',
-                    'user': OSP_SETTINGS['username'],
-                    'password': OSP_SETTINGS['password'],
-                    'tenant': OSP_SETTINGS['tenant'],
-                    'url': 'invalid url',
-                    'project-domain-id': OSP_SETTINGS['project_domain_id'],
+                    'user': OSP_SETTINGS.username,
+                    'password': OSP_SETTINGS.password,
+                    'tenant': OSP_SETTINGS.tenant,
+                    'project-domain-id': OSP_SETTINGS.project_domain_id,
+                    'url': 'invalid_url',
                 }
             )
 
