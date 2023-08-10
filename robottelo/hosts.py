@@ -1597,7 +1597,7 @@ class Capsule(ContentHost, CapsuleMixins):
         """Get capsule features"""
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
-    def capsule_setup(self, sat_host=None, **installer_kwargs):
+    def capsule_setup(self, sat_host=None, enable_registration=False, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
 
@@ -1629,6 +1629,12 @@ class Capsule(ContentHost, CapsuleMixins):
         certs_tar, _, installer = self.satellite.capsule_certs_generate(self, **installer_kwargs)
         self.satellite.session.remote_copy(certs_tar, self)
         installer.update(**installer_kwargs)
+        if enable_registration:
+            opts = {
+                'foreman-proxy-registration': 'true',
+                'foreman-proxy-templates': 'true',
+            }
+            installer.update(**opts)
         result = self.install(installer)
         if result.status:
             # before exit download the capsule log file
