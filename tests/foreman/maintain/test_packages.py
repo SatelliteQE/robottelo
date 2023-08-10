@@ -141,6 +141,9 @@ def test_positive_lock_package_versions_with_installer(sat_maintain):
 
 
 @pytest.mark.e2e
+@pytest.mark.upgrade
+@pytest.mark.pit_client
+@pytest.mark.pit_server
 @pytest.mark.include_capsule
 def test_positive_fm_packages_install(request, sat_maintain):
     """Verify whether packages install/update work as expected.
