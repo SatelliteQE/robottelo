@@ -262,6 +262,7 @@ def test_positive_advanced_run_foreman_tasks_ui_investigate(sat_maintain):
     assert result.status == 0
 
 
+@pytest.mark.e2e
 def test_positive_advanced_run_sync_plan(setup_sync_plan, sat_maintain):
     """Run sync-plans-enable and sync-plans-disable using advanced procedure run
 
@@ -377,6 +378,7 @@ def test_positive_sync_plan_with_hammer_defaults(request, sat_maintain, module_o
         sync_plans[1].delete()
 
 
+@pytest.mark.e2e
 def test_positive_satellite_repositories_setup(sat_maintain):
     """Verify that all required repositories gets enabled.
 
@@ -406,6 +408,7 @@ def test_positive_satellite_repositories_setup(sat_maintain):
         assert repo in result.stdout
 
 
+@pytest.mark.e2e
 @pytest.mark.capsule_only
 def test_positive_capsule_repositories_setup(sat_maintain):
     """Verify that all required capsule repositories gets enabled.

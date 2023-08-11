@@ -22,6 +22,7 @@ from broker import Broker
 from robottelo.hosts import ContentHost
 
 
+@pytest.mark.e2e
 @pytest.mark.tier4
 @pytest.mark.parametrize('distro', ['rhel7', 'rhel8'])
 def test_positive_connection_option(organization_ak_setup, rhcloud_sat_host, distro):
