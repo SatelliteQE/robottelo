@@ -67,6 +67,7 @@ def test_positive_service_list(sat_maintain):
     assert result.status == 0
 
 
+@pytest.mark.e2e
 @pytest.mark.include_capsule
 def test_positive_service_stop_start(sat_maintain):
     """Start/Stop services using satellite-maintain service subcommand
@@ -97,6 +98,7 @@ def test_positive_service_stop_start(sat_maintain):
     assert result.status == 0
 
 
+@pytest.mark.e2e
 @pytest.mark.include_capsule
 def test_positive_service_stop_restart(sat_maintain):
     """Disable services using satellite-maintain service
