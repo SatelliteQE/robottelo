@@ -50,7 +50,7 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
     :customerscenario: true
     """
     rhel_version = sat_ready_rhel._v_major
-    sat_version = target_sat.version
+    sat_version = 'stream' if target_sat.is_stream else target_sat.version
 
     # SATELLITE PART - SOURCE SERVER
     # Enabling and starting services
