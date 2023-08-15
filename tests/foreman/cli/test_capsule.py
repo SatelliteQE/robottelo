@@ -21,8 +21,8 @@ from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.proxy import Proxy
+from robottelo.host_helpers.cli_factory import CLIFactoryError
 from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_data_list
 from robottelo.utils.issue_handlers import is_open
