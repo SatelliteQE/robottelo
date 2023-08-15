@@ -20,6 +20,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.cli.repository import Repository
+from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import PRDS
 
 RHEL_REPOS = {
@@ -63,36 +64,54 @@ RHEL_REPOS = {
     },
 }
 
+@pytest.fixture(scope="module")
+def module_cv(module_target_sat, module_sca_manifest_org):
+    return module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
 
-def create_activation_key(satellite, content_view, lifecycle_env, organization):
-    """Create activation key uinsg specific entities"""
-    return satellite.api.ActivationKey(
-        content_view=content_view,
-        environment=lifecycle_env,
-        organization=organization,
+
+@pytest.fixture(scope="module")
+def module_lce(module_target_sat, module_sca_manifest_org):
+    return module_target_sat.api.LifecycleEnvironment(organization=module_sca_manifest_org).create()
+
+
+@pytest.fixture(scope="module")
+def module_ak(module_target_sat, module_cv, module_lce, module_sca_manifest_org):
+    # module_cv.publish()
+    # module_cvv = module_cv.read().version[0]
+    # module_cvv.promote(data={'environment_ids': module_lce.id, 'force': True})
+
+    return module_target_sat.api.ActivationKey(
+        content_view=module_cv,
+        environment=module_lce,
+        organization=module_sca_manifest_org,
     ).create()
 
-
-def register_host_with_satellite(satellite, custom_host, organization, activation_key):
-    """Register content host with satellite"""
-    result = custom_host.register(organization, None, activation_key.name, satellite)
+@pytest.fixture
+def register_host_with_satellite(module_target_sat, custom_host, module_sca_manifest_org, module_ak):
+    result = custom_host.register(module_sca_manifest_org, None, module_ak.name, module_target_sat)
     assert result.status == 0, f"Failed to register host: {result.stderr}"
 
 
+@pytest.fixture
+def target_rhel_minor_ver(custom_host):
+    """Return the next major RHEL verision of custom_host to upgrade"""
+    return str(int(custom_host.deploy_rhel_version.split('.')[0]) + 1)
+
+@pytest.fixture
 def verify_target_repo_on_satellite(
-    satellite, content_view, organization, lifecycle_env, target_rhel
+    module_target_sat, module_cv, module_sca_manifest_org, module_lce, target_rhel_minor_ver
 ):
     """Verify target rhel version repositories has enabled on Satellite Server"""
     cmd_out = Repository.list(
         {
-            'search': f'content_label ~ {target_rhel}',
-            'content-view-id': content_view.id,
-            'organization-id': organization.id,
-            'lifecycle-environment-id': lifecycle_env.id,
+            'search': f'content_label ~ rhel-{target_rhel_minor_ver}',
+            'content-view-id': module_cv.id,
+            'organization-id': module_sca_manifest_org.id,
+            'lifecycle-environment-id': module_lce.id,
         }
     )
     repo_names = [out['name'] for out in cmd_out]
-    if 'rhel-9' in target_rhel:
+    if target_rhel_minor_ver == '9':
         assert RHEL_REPOS['rhel9_2_bos']['name'] in repo_names
         assert RHEL_REPOS['rhel9_2_aps']['name'] in repo_names
     else:
@@ -100,9 +119,11 @@ def verify_target_repo_on_satellite(
         pass
 
 
-def precondition_check_upgrade_and_install_leapp_tool(custom_host, source_rhel):
-    """Clean-up directory, set rhel release version, update system and install leapp tool"""
-    # Remove directory if in-place upgrade already performed from RHEL7 to RHEL8
+@pytest.fixture
+def precondition_check_upgrade_and_install_leapp_tool(custom_host):
+    """Clean-up directory if in-place upgrade already performed,
+    set rhel release version, update system and install leapp tool"""
+    source_rhel = custom_host.deploy_rhel_version
     custom_host.run('rm -rf /root/tmp_leapp_py3')
     custom_host.run('dnf clean all')
     custom_host.run('dnf repolist')
@@ -110,10 +131,11 @@ def precondition_check_upgrade_and_install_leapp_tool(custom_host, source_rhel):
     assert custom_host.run('dnf update -y').status == 0
     assert custom_host.run('dnf install leapp-upgrade -y').status == 0
 
-
-def fix_inhibitors(custom_host, source_rhel):
+@pytest.fixture
+def fix_inhibitors(custom_host):
     """Fix inhibitors to avoid hard stop of Leapp tool execution"""
-    if '8' in source_rhel:
+    source_rhel_minor_ver = custom_host.deploy_rhel_version.split('.')[0]
+    if source_rhel_minor_ver == '8':
         # 1. Firewalld Configuration AllowZoneDrifting Is Unsupported
         custom_host.run(
             'sed -i "s/^AllowZoneDrifting=.*/AllowZoneDrifting=no/" /etc/firewalld/firewalld.conf'
@@ -125,21 +147,37 @@ def fix_inhibitors(custom_host, source_rhel):
         # placeholder for source_rhel - 7
         pass
 
-
 @pytest.fixture(scope="module")
-def setup_env(module_target_sat, module_sca_manifest_org):
-    """Create essential things and returning in form of directory for use"""
-    # 1. Import a subscription manifest
-    lc_env = module_target_sat.api.LifecycleEnvironment(
-        organization=module_sca_manifest_org
-    ).create()
-    c_view = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
-    return {
-        'organization': module_sca_manifest_org,
-        'satellite': module_target_sat,
-        'environment': lc_env,
-        'contentview': c_view,
-    }
+def leapp_sat_content(custom_host, target_rhel_version, module_target_sat, module_sca_manifest_org, module_cv, module_lce):
+    """Enable rhel8/rhel9 bos, aps repository and add in content view"""
+    source = custom_host.deploy_rhel_version
+    target = target_rhel_version
+    all_repos = []
+    for rh_repo_key in RHEL_REPOS.keys():
+        release_version = RHEL_REPOS[rh_repo_key]['releasever']
+        if release_version == source or release_version == target:
+            prod = rh_repo_key.split('_')[0]
+            repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+                basearch=DEFAULT_ARCHITECTURE,
+                org_id=module_sca_manifest_org.id,
+                product=PRDS[prod],
+                repo=RHEL_REPOS[rh_repo_key]['name'],
+                reposet=RHEL_REPOS[rh_repo_key]['reposet'],
+                releasever=release_version,
+            )
+            rh_repo = module_target_sat.api.Repository(id=repo_id).read()
+            all_repos.append(rh_repo)
+            # sync repo
+            rh_repo.sync(timeout=1800)
+        else:
+            pass
+    module_cv.repository = all_repos
+    module_cv = module_cv.update(['repository'])
+    # Publish, promote content view to lce
+    module_cv.publish()
+    cvv = module_cv.read().version[0]
+    cvv.promote(data={'environment_ids': module_lce.id, 'force': True})
+    module_cv = module_cv.read()
 
 
 @pytest.mark.no_containers
@@ -151,9 +189,18 @@ def setup_env(module_target_sat, module_sca_manifest_org):
     ids=['RHEL8.8'],
     indirect=True,
 )
+@pytest.mark.parametrize('target_rhel_version', ['9.2'])
+@pytest.mark.usefixtures(
+    'leapp_sat_content',
+    'register_host_with_satellite',
+    'verify_target_repo_on_satellite',
+    'precondition_check_upgrade_and_install_leapp_tool',
+    'fix_inhibitors',
+)
 def test_upgrade_rhel8_to_rhel9(
-    setup_env,
+    module_target_sat,
     custom_host,
+    target_rhel_version,
 ):
     """Test to upgrade RHEL host to next major RHEL Realse with Leapp Preupgrade and Leapp Upgrade
     Job templates
@@ -172,63 +219,15 @@ def test_upgrade_rhel8_to_rhel9(
         1. Update RHEL OS major version to another major version
 
     """
-    # rhel_contenthost = custom_host
-    organization = setup_env['organization']
-    target_sat = setup_env['satellite']
-    lc_env = setup_env['environment']
-    cv = setup_env['contentview']
 
-    # Enable rhel8/rhel9 bos, aps repository and add in content view
-    all_repos = []
-    for rh_repo_key in RHEL_REPOS.keys():
-        release_version = RHEL_REPOS[rh_repo_key]['releasever']
-        if release_version == '8.8' or release_version == '9.2':
-            prod = rh_repo_key.split('_')[0]
-            repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
-                basearch=custom_host.arch,
-                org_id=organization.id,
-                product=PRDS[prod],
-                repo=RHEL_REPOS[rh_repo_key]['name'],
-                reposet=RHEL_REPOS[rh_repo_key]['reposet'],
-                releasever=release_version,
-            )
-            rh_repo = target_sat.api.Repository(id=repo_id).read()
-            all_repos.append(rh_repo)
-            # sync repo
-            rh_repo.sync(timeout=1800)
-        else:
-            pass
-    cv.repository = all_repos
-    cv = cv.update(['repository'])
-    # Publish, promote content view to lce
-    cv.publish()
-    cvv = cv.read().version[0]
-    cvv.promote(data={'environment_ids': lc_env.id, 'force': True})
-    cv = cv.read()
-    # Create activation key
-    ak = create_activation_key(target_sat, cv, lc_env, organization)
-
-    # 3. Register Host
-    register_host_with_satellite(target_sat, custom_host, organization, ak)
-
-    # 4. Verify target rhel version repositories has enabled on Satellite Server
-    verify_target_repo_on_satellite(target_sat, cv, organization, lc_env, target_rhel='rhel-9')
-
-    # 5. Update all packages and install Leapp utility
-    # Preupgrade conditions and check
     rhel_old_ver = custom_host.run('cat /etc/redhat-release')
-    precondition_check_upgrade_and_install_leapp_tool(custom_host, custom_host.deploy_rhel_version)
-
-    # Fixing inhibitors to avoid hard stop of Leapp tool execution
-    fix_inhibitors(custom_host, custom_host.deploy_rhel_version)
-
     # 6. Run LEAPP-PREUPGRADE Job Template-
     template_id = (
-        target_sat.api.JobTemplate()
+        module_target_sat.api.JobTemplate()
         .search(query={'search': 'name="Run preupgrade via Leapp"'})[0]
         .id
     )
-    job = target_sat.api.JobInvocation().run(
+    job = module_target_sat.api.JobInvocation().run(
         synchronous=False,
         data={
             'job_template_id': template_id,
@@ -236,16 +235,16 @@ def test_upgrade_rhel8_to_rhel9(
             'search_query': f'name = {custom_host.hostname}',
         },
     )
-    target_sat.wait_for_tasks(
+    module_target_sat.wait_for_tasks(
         f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1800
     )
-    result = target_sat.api.JobInvocation(id=job['id']).read()
+    result = module_target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
     # Run LEAPP-UPGRADE Job Template-
     template_id = (
-        target_sat.api.JobTemplate().search(query={'search': 'name="Run upgrade via Leapp"'})[0].id
+        module_target_sat.api.JobTemplate().search(query={'search': 'name="Run upgrade via Leapp"'})[0].id
     )
-    job = target_sat.api.JobInvocation().run(
+    job = module_target_sat.api.JobInvocation().run(
         synchronous=False,
         data={
             'job_template_id': template_id,
@@ -254,10 +253,10 @@ def test_upgrade_rhel8_to_rhel9(
             'inputs': {'Reboot': 'true'},
         },
     )
-    target_sat.wait_for_tasks(
+    module_target_sat.wait_for_tasks(
         f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1800
     )
-    result = target_sat.api.JobInvocation(id=job['id']).read()
+    result = module_target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
     # Wait for the host to be rebooted and SSH daemon to be started.
     try:
