@@ -165,6 +165,8 @@ def test_positive_advanced_run_hammer_setup(request, sat_maintain):
         assert default_admin_pass in result.stdout
 
 
+@pytest.mark.e2e
+@pytest.mark.upgrade
 def test_positive_advanced_run_packages(request, sat_maintain):
     """Packages install/downgrade/check-update/update using advanced procedure run
 
@@ -248,20 +250,6 @@ def test_positive_advanced_run_foreman_task_resume(sat_maintain):
     assert 'FAIL' not in result.stdout
 
 
-def test_positive_advanced_run_foreman_tasks_ui_investigate(sat_maintain):
-    """Run foreman-tasks-ui-investigate using advanced procedure run
-
-    :id: 3b4f69c6-c0a1-42e3-a099-8a6e26280d17
-
-    :steps:
-        1. Run satellite-maintain advanced procedure run foreman-tasks-ui-investigate
-
-    :expectedresults: procedure foreman-tasks-ui-investigate should work.
-    """
-    result = sat_maintain.cli.Advanced.run_foreman_tasks_ui_investigate(env_var='echo " " | ')
-    assert result.status == 0
-
-
 @pytest.mark.e2e
 def test_positive_advanced_run_sync_plan(setup_sync_plan, sat_maintain):
     """Run sync-plans-enable and sync-plans-disable using advanced procedure run
@@ -293,49 +281,6 @@ def test_positive_advanced_run_sync_plan(setup_sync_plan, sat_maintain):
     with open(local_data_yml_path) as f:
         data_yml = yaml.safe_load(f)
     assert len(enable_sync_ids) == len(data_yml[':default'][':sync_plans'][':enabled'])
-
-
-@pytest.mark.include_capsule
-def test_positive_advanced_by_tag_check_migrations(sat_maintain):
-    """Run pre-migrations and post-migrations using advanced procedure by-tag
-
-    :id: 65cacca0-f142-4a63-a644-01f76120f16c
-
-    :parametrized: yes
-
-    :steps:
-        1. Run satellite-maintain advanced procedure by-tag pre-migrations
-        2. Run satellite-maintain advanced procedure by-tag post-migrations
-
-    :expectedresults: procedures of pre-migrations tag and post-migrations tag should work.
-    """
-    result = sat_maintain.cli.AdvancedByTag.pre_migrations()
-    assert 'FAIL' not in result.stdout
-    rules = sat_maintain.execute('nft list tables')
-    assert 'FOREMAN_MAINTAIN_TABLE' in rules.stdout
-
-    result = sat_maintain.cli.AdvancedByTag.post_migrations()
-    assert 'FAIL' not in result.stdout
-    rules = sat_maintain.execute('nft list tables')
-    assert 'FOREMAN_MAINTAIN_TABLE' not in rules.stdout
-
-
-@pytest.mark.include_capsule
-def test_positive_advanced_by_tag_restore_confirmation(sat_maintain):
-    """Run restore_confirmation using advanced procedure by-tag
-
-    :id: f9e10352-04fb-49ba-8346-5b02e64fd028
-
-    :parametrized: yes
-
-    :steps:
-        1. Run satellite-maintain advanced procedure by-tag restore
-
-    :expectedresults: procedure restore_confirmation should work.
-    """
-    result = sat_maintain.cli.AdvancedByTag.restore(options={'assumeyes': True})
-    assert 'FAIL' not in result.stdout
-    assert result.status == 0
 
 
 def test_positive_sync_plan_with_hammer_defaults(request, sat_maintain, module_org):

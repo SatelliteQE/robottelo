@@ -159,7 +159,7 @@ def test_positive_backup_split_pulp_tar(
 
 @pytest.mark.include_capsule
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
-def test_positive_backup_caspule_features(
+def test_positive_backup_capsule_features(
     sat_maintain, setup_backup_tests, module_synced_repos, backup_type
 ):
     """Take a backup with capsule features as dns, tftp, dhcp, openscap
@@ -368,29 +368,7 @@ def test_negative_backup_maintenance_mode(sat_maintain, setup_backup_tests):
 
 
 @pytest.mark.include_capsule
-def test_negative_restore_nodir(sat_maintain, setup_backup_tests):
-    """Try to run restore with no source dir provided
-
-    :id: dadc4e32-c0b8-427f-a449-4ae66fe09268
-
-    :parametrized: yes
-
-    :steps:
-        1. try to run restore with no path argument provided
-
-    :expectedresults:
-        1. should fail with appropriate error message
-    """
-    result = sat_maintain.cli.Restore.run(
-        backup_dir='',
-        options={'assumeyes': True, 'plaintext': True},
-    )
-    assert result.status != 0
-    assert NODIR_MSG in str(result.stderr)
-
-
-@pytest.mark.include_capsule
-def test_negative_restore_baddir(sat_maintain, setup_backup_tests):
+def test_negative_restore_baddir_nodir(sat_maintain, setup_backup_tests):
     """Try to run restore with non-existing source dir provided
 
     :id: 65ccc0d0-ca43-4877-9b29-50037e378ca5
@@ -399,6 +377,7 @@ def test_negative_restore_baddir(sat_maintain, setup_backup_tests):
 
     :steps:
         1. try to run restore with non-existing path provided
+        2. try to run restore without a backup dir
 
     :expectedresults:
         1. should fail with appropriate error message
@@ -410,6 +389,12 @@ def test_negative_restore_baddir(sat_maintain, setup_backup_tests):
     )
     assert result.status != 0
     assert BADDIR_MSG in str(result.stdout)
+    result = sat_maintain.cli.Restore.run(
+        backup_dir='',
+        options={'assumeyes': True, 'plaintext': True},
+    )
+    assert result.status != 0
+    assert NODIR_MSG in str(result.stderr)
 
 
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
@@ -495,6 +480,7 @@ def test_positive_puppet_backup_restore(
 
 
 @pytest.mark.e2e
+@pytest.mark.upgrade
 @pytest.mark.include_capsule
 @pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
