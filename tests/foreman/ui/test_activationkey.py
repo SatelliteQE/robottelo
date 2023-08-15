@@ -18,7 +18,6 @@
 """
 import random
 
-import epdb
 import pytest
 from airgun.session import Session
 from broker import Broker
@@ -100,7 +99,6 @@ def test_positive_end_to_end_register(
     repos_collection.setup_content(org.id, lce.id, upload_manifest=False)
     ak_name = repos_collection.setup_content_data['activation_key']['name']
 
-    epdb.serve(port=9000)
     repos_collection.setup_virtual_machine(rhel7_contenthost)
     with session:
         session.organization.select(org.name)
