@@ -124,7 +124,7 @@ def test_positive_update_name(request, target_sat):
     """
     proxy = _make_proxy(request, target_sat, options={'name': gen_alphanumeric()})
     valid_data = valid_data_list()
-    if is_open('BZ:2084661') and 'html' in request.node.name:
+    if is_open('BZ:2084661') and 'html' in valid_data:
         del valid_data['html']
     for new_name in valid_data.values():
         newport = target_sat.available_capsule_port
