@@ -121,13 +121,15 @@ def activation_key(module_org, lifecycle_env, content_view):
 
 
 @pytest.fixture(scope='module', autouse=True)
-def update_scap_content(module_org):
+def update_scap_content(module_org, module_target_sat):
     """Update default scap contents"""
     for content in rhel8_content, rhel7_content, rhel6_content:
-        content = Scapcontent.info({'title': content}, output_format='json')
+        content = module_target_sat.cli.Scapcontent.info({'title': content}, output_format='json')
         organization_ids = [content_org['id'] for content_org in content.get('organizations', [])]
         organization_ids.append(module_org.id)
-        Scapcontent.update({'title': content['title'], 'organization-ids': organization_ids})
+        module_target_sat.cli.Scapcontent.update(
+            {'title': content['title'], 'organization-ids': organization_ids}
+        )
 
 
 @pytest.mark.e2e
@@ -150,7 +152,7 @@ def test_positive_oscap_run_via_ansible(
         1. Create a valid scap content
         2. Import Ansible role theforeman.foreman_scap_client
         3. Import Ansible Variables needed for the role
-        4. Create a scap policy with anisble as deploy option
+        4. Create a scap policy with ansible as deploy option
         5. Associate the policy with a hostgroup
         6. Provision a host using the hostgroup
         7. Configure REX and associate the Ansible role to created host
@@ -255,7 +257,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         1. Create a valid scap content
         2. Import Ansible role theforeman.foreman_scap_client
         3. Import Ansible Variables needed for the role
-        4. Create a scap policy with anisble as deploy option
+        4. Create a scap policy with ansible as deploy option
         5. Associate the policy with a hostgroup
         6. Provision a host using the hostgroup
         7. Harden the host by remediating it with DISA STIG security policy
@@ -457,3 +459,129 @@ def test_positive_reporting_emails_of_oscap_reports():
 
     :CaseLevel: System
     """
+
+
+@pytest.mark.parametrize('distro', ['rhel8'])
+def test_positive_oscap_run_via_local_files(
+    module_org, default_proxy, content_view, lifecycle_env, distro, module_target_sat
+):
+    """End-to-End Oscap run via local files deployed with ansible
+
+    :id: 0dde5893-540c-4e03-a206-55fccdb2b9ca
+
+    :parametrized: yes
+
+    :customerscenario: true
+
+    :setup: scap content, scap policy , Remote execution
+
+    :steps:
+
+        1. Create a valid scap content
+        2. Import Ansible role theforeman.foreman_scap_client
+        3. Create a scap policy with ansible as deploy option
+        4. Associate the policy with a hostgroup
+        5. Run the Ansible job and then trigger the Oscap job.
+        6. Oscap must Utilize the local files for the client scan.
+
+    :expectedresults: Oscap run should happen using the --localfile argument.
+
+    :BZ: 2081777,2211952
+
+    :CaseImportance: Critical
+    """
+    SELECTED_ROLE = 'theforeman.foreman_scap_client'
+    file_name = 'security-data-oval-com.redhat.rhsa-RHEL8.xml.bz2'
+    download_url = 'https://www.redhat.com/security/data/oval/v2/RHEL8/rhel-8.oval.xml.bz2'
+    profile = OSCAP_PROFILE['ospp8']
+    content = OSCAP_DEFAULT_CONTENT[f'{distro}_content']
+    hgrp_name = gen_string('alpha')
+    policy_name = gen_string('alpha')
+
+    module_target_sat.cli_factory.make_hostgroup(
+        {
+            'content-source-id': default_proxy,
+            'name': hgrp_name,
+            'organizations': module_org.name,
+        }
+    )
+    # Creates oscap_policy.
+    scap_id, scap_profile_id = fetch_scap_and_profile_id(content, profile)
+    with Broker(
+        nick=distro,
+        host_class=ContentHost,
+        deploy_flavor=settings.flavors.default,
+    ) as vm:
+        vm.create_custom_repos(
+            **{
+                'baseos': settings.repos.rhel8_os.baseos,
+                'appstream': settings.repos.rhel8_os.appstream,
+                'sat_client': settings.repos['SATCLIENT_REPO'][distro.upper()],
+            }
+        )
+        result = vm.register(module_org, None, ak_name[distro], module_target_sat)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        proxy_id = module_target_sat.nailgun_smart_proxy.id
+        target_host = vm.nailgun_host
+        module_target_sat.api.AnsibleRoles().sync(
+            data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
+        )
+        role_id = (
+            module_target_sat.api.AnsibleRoles()
+            .search(query={'search': f'name={SELECTED_ROLE}'})[0]
+            .id
+        )
+        module_target_sat.api.Host(id=target_host.id).add_ansible_role(
+            data={'ansible_role_id': role_id}
+        )
+        host_roles = target_host.list_ansible_roles()
+        assert host_roles[0]['name'] == SELECTED_ROLE
+        module_target_sat.cli_factory.make_scap_policy(
+            {
+                'scap-content-id': scap_id,
+                'hostgroups': hgrp_name,
+                'deploy-by': 'ansible',
+                'name': policy_name,
+                'period': OSCAP_PERIOD['weekly'].lower(),
+                'scap-content-profile-id': scap_profile_id,
+                'weekday': OSCAP_WEEKDAY['friday'].lower(),
+                'organizations': module_org.name,
+            }
+        )
+        # The file here needs to be present on the client in order
+        # to perform the scan from the local-files.
+        vm.execute(f'curl -o {file_name} {download_url}')
+        module_target_sat.cli.Host.update(
+            {
+                'name': vm.hostname,
+                'lifecycle-environment': lifecycle_env.name,
+                'content-view': content_view.name,
+                'hostgroup': hgrp_name,
+                'openscap-proxy-id': default_proxy,
+                'organization': module_org.name,
+            }
+        )
+
+        template_id = (
+            module_target_sat.api.JobTemplate()
+            .search(query={'search': 'name="Ansible Roles - Ansible Default"'})[0]
+            .id
+        )
+        job = module_target_sat.api.JobInvocation().run(
+            synchronous=False,
+            data={
+                'job_template_id': template_id,
+                'targeting_type': 'static_query',
+                'search_query': f'name = {vm.hostname}',
+            },
+        )
+        module_target_sat.wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {job["id"]}',
+            poll_timeout=1000,
+        )
+        assert module_target_sat.api.JobInvocation(id=job['id']).read().succeeded == 1
+        assert vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile').status == 0
+        # Runs the actual oscap scan on the vm/clients
+        # TODO: instead of running it on the client itself we should invoke a job from satellite
+        result = vm.execute_foreman_scap_client()
+        assert f"WARNING: Using local file '/root/{file_name}'" in result

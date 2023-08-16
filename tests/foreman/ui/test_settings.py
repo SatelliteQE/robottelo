@@ -546,6 +546,7 @@ def test_positive_entries_per_page(session, setting_update):
     with session:
         session.settings.update(f"name={property_name}", property_value)
         page_content = session.task.read_all(widget_names="Pagination")
-        assert str(property_value) in page_content["Pagination"]["per_page"]
-        total_pages = math.ceil(int(page_content["Pagination"]["total_items"]) / property_value)
-        assert str(total_pages) == page_content["Pagination"]["pages"]
+        assert str(property_value) in page_content["Pagination"]["_items"]
+        total_pages_str = page_content["Pagination"]['_items'].split()[-2]
+        total_pages = math.ceil(int(total_pages_str.split()[-1]) / property_value)
+        assert str(total_pages) == page_content["Pagination"]['_total_pages'].split()[-1]
