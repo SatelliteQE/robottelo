@@ -71,19 +71,22 @@ def test_positive_upload_image(module_org, target_sat, container_contenthost):
         })
         Docker.container.start({'id': container['id']})
         """
-        container = {'uuid': 'stubbed test'}
+        container = {'name': gen_string('alphanumeric')}
         repo_name = gen_string('alphanumeric').lower()
 
         # Commit a new docker image and verify image was created
         image_name = f'{repo_name}/{CONTAINER_UPSTREAM_NAME}'
+        container_contenthost.execute(
+            f'podman run -d -it --name {container["uuid"]} docker.io/{CONTAINER_UPSTREAM_NAME}'
+        )
         result = container_contenthost.execute(
-            f'docker commit {container["uuid"]} {image_name}:latest && '
-            f'docker images --all | grep {image_name}'
+            f'podman commit {container["uuid"]} {image_name}:latest && '
+            f'podman images --all | grep {image_name}'
         )
         assert result.status == 0
 
         # Save the image to a tar archive
-        result = container_contenthost.execute(f'docker save -o {repo_name}.tar {image_name}')
+        result = container_contenthost.execute(f'podman save -o {repo_name}.tar {image_name}')
         assert result.status == 0
 
         tar_file = f'{repo_name}.tar'
@@ -108,7 +111,7 @@ def test_positive_upload_image(module_org, target_sat, container_contenthost):
 
         # Verify repository was uploaded successfully
         repo = Repository.info({'id': repo['id']})
-        assert target_sat.hostname == repo['published-at']
+        assert target_sat.hostname in repo['published-at']
 
         repo_name = '-'.join((module_org.label, product['label'], repo['label'])).lower()
         assert repo_name in repo['published-at']

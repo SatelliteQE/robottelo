@@ -196,7 +196,8 @@ def container_contenthost(request, target_sat):
         host.create_custom_repos(**repos)
         for service in constants.CONTAINER_CLIENTS:
             host.execute(f'yum -y install {service}')
-            host.execute(f'systemctl start {service}')
+            if service == 'docker':
+                host.execute(f'systemctl start {service}')
         yield host
 
 
