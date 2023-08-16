@@ -593,9 +593,7 @@ def test_positive_virt_card(
             module_vmware_settings['vm_name'],
         )
         host_name = module_vmware_settings['vm_name'] + '.' + domain.name
-        virt_card = session.host_new.get_details(host_name, widget_names='details.virtualization')[
-            'details'
-        ]['virtualization']
+        virt_card = session.host_new.get_virtualization(host_name)
         assert virt_card['datacenter'] == module_vmware_settings['datacenter']
         assert virt_card['cluster'] == module_vmware_settings['cluster']
         assert virt_card['memory'] == '2 GB'
