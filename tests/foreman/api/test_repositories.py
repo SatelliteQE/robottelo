@@ -215,6 +215,7 @@ def test_negative_upload_expired_manifest(module_org, target_sat):
     with pytest.raises(CLIReturnCodeError) as error:
         target_sat.cli.Subscription.refresh_manifest({'organization-id': module_org.id})
     assert (
-        "The manifest doesn't exist on console.redhat.com. "
-        "Please create and import a new manifest." in error.value.stderr
+        'The Subscription Allocation providing the imported manifest has been removed. '
+        'Please create a new Subscription Allocation and import the new manifest'
+        in error.value.stderr
     )
