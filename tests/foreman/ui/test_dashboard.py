@@ -203,7 +203,12 @@ def test_positive_task_status(session):
     indirect=True,
 )
 def test_positive_user_access_with_host_filter(
-    test_name, module_location, rhel_contenthost, target_sat, repos_collection
+    test_name,
+    function_entitlement_manifest_org,
+    module_location,
+    rhel_contenthost,
+    target_sat,
+    repos_collection,
 ):
     """Check if user with necessary host permissions can access dashboard
     and required widgets are rendered with proper values
@@ -229,7 +234,7 @@ def test_positive_user_access_with_host_filter(
     """
     user_login = gen_string('alpha')
     user_password = gen_string('alphanumeric')
-    org = entities.Organization().create()
+    org = function_entitlement_manifest_org
     lce = entities.LifecycleEnvironment(organization=org).create()
     # create a role with necessary permissions
     role = entities.Role().create()
