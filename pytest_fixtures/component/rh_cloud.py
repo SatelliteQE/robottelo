@@ -31,7 +31,7 @@ def organization_ak_setup(rhcloud_sat_host, rhcloud_manifest_org):
         service_level='Self-Support',
         purpose_usage='test-usage',
         purpose_role='test-role',
-        auto_attach=True,
+        auto_attach=False,
     ).create()
     yield rhcloud_manifest_org, ak
     ak.delete()
