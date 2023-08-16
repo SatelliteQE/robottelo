@@ -235,7 +235,9 @@ def module_repos_collection_with_setup(request, module_target_sat, module_org, m
 
 
 @pytest.fixture(scope='module')
-def module_repos_collection_with_manifest(request, module_target_sat, module_org, module_lce):
+def module_repos_collection_with_manifest(
+    request, module_target_sat, module_entitlement_manifest_org, module_lce
+):
     """This fixture and its usage is very similar to repos_collection fixture above with extra
     setup_content and uploaded manifest capabilities using module_org and module_lce fixtures
 
@@ -253,7 +255,5 @@ def module_repos_collection_with_manifest(request, module_target_sat, module_org
             for repo_name, repo_params in repo.items()
         ],
     )
-    _repos_collection.setup_content(
-        module_org.id, module_lce.id, upload_manifest=True, override=True
-    )
+    _repos_collection.setup_content(module_entitlement_manifest_org.id, module_lce.id)
     return _repos_collection

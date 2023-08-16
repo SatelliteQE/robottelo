@@ -205,7 +205,6 @@ def make_content_view_with_credentials(options=None, credentials=None):
     # Organization ID is a required field.
     if not options or not options.get('organization-id'):
         raise CLIFactoryError('Please provide a valid ORG ID.')
-
     args = {
         'component-ids': None,
         'composite': False,

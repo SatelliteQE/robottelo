@@ -20,7 +20,7 @@ import time
 
 import pytest
 from broker import Broker
-from nailgun import entities
+from manifester import Manifester
 
 from robottelo import constants
 from robottelo.config import settings
@@ -29,25 +29,34 @@ from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    org = entities.Organization().create()
+def module_manifest():
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
+        yield manifest
+
+
+@pytest.fixture(scope='module')
+def module_org_with_parameter(module_target_sat, module_manifest):
     # adding remote_execution_connect_by_ip=Yes at org level
-    entities.Parameter(
+    org = module_target_sat.api.Organization(simple_content_access=False).create()
+    module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         parameter_type='boolean',
         value='Yes',
         organization=org.id,
     ).create()
+    module_target_sat.upload_manifest(org.id, module_manifest.content)
     return org
 
 
 @pytest.fixture(scope='module')
-def module_lce(module_org):
-    return entities.LifecycleEnvironment(organization=module_org).create()
+def module_lce(module_target_sat, module_org_with_parameter):
+    return module_target_sat.api.LifecycleEnvironment(
+        organization=module_org_with_parameter
+    ).create()
 
 
 @pytest.fixture(scope='module')
-def module_repos_collection(module_org, module_lce, module_target_sat):
+def module_repos_collection(module_org_with_parameter, module_lce, module_target_sat):
     repos_collection = module_target_sat.cli_factory.RepositoryCollection(
         distro=constants.DISTRO_DEFAULT,
         repositories=[
@@ -56,7 +65,7 @@ def module_repos_collection(module_org, module_lce, module_target_sat):
             module_target_sat.cli_factory.YumRepository(url=settings.repos.yum_6.url),
         ],
     )
-    repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
+    repos_collection.setup_content(module_org_with_parameter.id, module_lce.id)
     return repos_collection
 
 
@@ -86,22 +95,28 @@ def vm_content_hosts_module_stream(
 
 
 @pytest.fixture
-def vm_host_collection(module_org, vm_content_hosts):
+def vm_host_collection(module_target_sat, module_org_with_parameter, vm_content_hosts):
     host_ids = [
-        entities.Host().search(query={'search': f'name={host.hostname}'})[0].id
+        module_target_sat.api.Host().search(query={'search': f'name={host.hostname}'})[0].id
         for host in vm_content_hosts
     ]
-    host_collection = entities.HostCollection(host=host_ids, organization=module_org).create()
+    host_collection = module_target_sat.api.HostCollection(
+        host=host_ids, organization=module_org_with_parameter
+    ).create()
     return host_collection
 
 
 @pytest.fixture
-def vm_host_collection_module_stream(module_org, vm_content_hosts_module_stream):
+def vm_host_collection_module_stream(
+    module_target_sat, module_org_with_parameter, vm_content_hosts_module_stream
+):
     host_ids = [
-        entities.Host().search(query={'search': f'name={host.hostname}'})[0].id
+        module_target_sat.api.Host().search(query={'search': f'name={host.hostname}'})[0].id
         for host in vm_content_hosts_module_stream
     ]
-    host_collection = entities.HostCollection(host=host_ids, organization=module_org).create()
+    host_collection = module_target_sat.api.HostCollection(
+        host=host_ids, organization=module_org_with_parameter
+    ).create()
     return host_collection
 
 
@@ -199,7 +214,9 @@ def _get_content_repository_urls(repos_collection, lce, content_view, module_tar
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, smart_proxy_location):
+def test_positive_end_to_end(
+    session, module_target_sat, module_org_with_parameter, smart_proxy_location
+):
     """Perform end to end testing for host collection component
 
     :id: 1d40bc74-8e05-42fa-b6e3-2999dc3b730d
@@ -213,7 +230,9 @@ def test_positive_end_to_end(session, module_org, smart_proxy_location):
     hc_name = gen_string('alpha')
     new_name = gen_string('alpha')
     description = gen_string('alpha')
-    host = entities.Host(organization=module_org, location=smart_proxy_location).create()
+    host = module_target_sat.api.Host(
+        organization=module_org_with_parameter, location=smart_proxy_location
+    ).create()
     with session:
         session.location.select(smart_proxy_location.name)
         # Create new host collection
@@ -244,7 +263,9 @@ def test_positive_end_to_end(session, module_org, smart_proxy_location):
 
 
 @pytest.mark.tier2
-def test_negative_install_via_remote_execution(session, module_org, smart_proxy_location):
+def test_negative_install_via_remote_execution(
+    session, module_target_sat, module_org_with_parameter, smart_proxy_location
+):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution.
 
@@ -259,9 +280,13 @@ def test_negative_install_via_remote_execution(session, module_org, smart_proxy_
     """
     hosts = []
     for _ in range(2):
-        hosts.append(entities.Host(organization=module_org, location=smart_proxy_location).create())
-    host_collection = entities.HostCollection(
-        host=[host.id for host in hosts], organization=module_org
+        hosts.append(
+            module_target_sat.api.Host(
+                organization=module_org_with_parameter, location=smart_proxy_location
+            ).create()
+        )
+    host_collection = module_target_sat.api.HostCollection(
+        host=[host.id for host in hosts], organization=module_org_with_parameter
     ).create()
     with session:
         session.location.select(smart_proxy_location.name)
@@ -278,7 +303,9 @@ def test_negative_install_via_remote_execution(session, module_org, smart_proxy_
 
 
 @pytest.mark.tier2
-def test_negative_install_via_custom_remote_execution(session, module_org, smart_proxy_location):
+def test_negative_install_via_custom_remote_execution(
+    session, module_target_sat, module_org_with_parameter, smart_proxy_location
+):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution - customize first.
 
@@ -293,9 +320,13 @@ def test_negative_install_via_custom_remote_execution(session, module_org, smart
     """
     hosts = []
     for _ in range(2):
-        hosts.append(entities.Host(organization=module_org, location=smart_proxy_location).create())
-    host_collection = entities.HostCollection(
-        host=[host.id for host in hosts], organization=module_org
+        hosts.append(
+            module_target_sat.api.Host(
+                organization=module_org_with_parameter, location=smart_proxy_location
+            ).create()
+        )
+    host_collection = module_target_sat.api.HostCollection(
+        host=[host.id for host in hosts], organization=module_org_with_parameter
     ).create()
     with session:
         session.location.select(smart_proxy_location.name)
@@ -313,7 +344,7 @@ def test_negative_install_via_custom_remote_execution(session, module_org, smart
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_add_host(session):
+def test_positive_add_host(session, module_target_sat):
     """Check if host can be added to Host Collection
 
     :id: 80824c9f-15a1-4f76-b7ac-7d9ca9f6ed9e
@@ -323,13 +354,13 @@ def test_positive_add_host(session):
     :CaseLevel: System
     """
     hc_name = gen_string('alpha')
-    org = entities.Organization().create()
-    loc = entities.Location().create()
-    cv = entities.ContentView(organization=org).create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    org = module_target_sat.api.Organization().create()
+    loc = module_target_sat.api.Location().create()
+    cv = module_target_sat.api.ContentView(organization=org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
     cv.publish()
     cv.read().version[0].promote(data={'environment_ids': lce.id})
-    host = entities.Host(
+    host = module_target_sat.api.Host(
         organization=org,
         location=loc,
         content_facet_attributes={'content_view_id': cv.id, 'lifecycle_environment_id': lce.id},
@@ -347,7 +378,7 @@ def test_positive_add_host(session):
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_package(
-    session, module_org, smart_proxy_location, vm_content_hosts, vm_host_collection
+    session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
 ):
     """Install a package to hosts inside host collection remotely
 
@@ -359,7 +390,7 @@ def test_positive_install_package(
     :CaseLevel: System
     """
     with session:
-        session.organization.select(org_name=module_org.name)
+        session.organization.select(org_name=module_org_with_parameter.name)
         session.location.select(smart_proxy_location.name)
         session.hostcollection.manage_packages(
             vm_host_collection.name,
@@ -373,7 +404,7 @@ def test_positive_install_package(
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_remove_package(
-    session, module_org, smart_proxy_location, vm_content_hosts, vm_host_collection
+    session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
 ):
     """Remove a package from hosts inside host collection remotely
 
@@ -386,7 +417,7 @@ def test_positive_remove_package(
     """
     _install_package_with_assertion(vm_content_hosts, constants.FAKE_0_CUSTOM_PACKAGE)
     with session:
-        session.organization.select(org_name=module_org.name)
+        session.organization.select(org_name=module_org_with_parameter.name)
         session.location.select(smart_proxy_location.name)
         session.hostcollection.manage_packages(
             vm_host_collection.name,
@@ -401,7 +432,7 @@ def test_positive_remove_package(
 
 @pytest.mark.tier3
 def test_positive_upgrade_package(
-    session, module_org, smart_proxy_location, vm_content_hosts, vm_host_collection
+    session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
 ):
     """Upgrade a package on hosts inside host collection remotely
 
@@ -414,7 +445,7 @@ def test_positive_upgrade_package(
     """
     _install_package_with_assertion(vm_content_hosts, constants.FAKE_1_CUSTOM_PACKAGE)
     with session:
-        session.organization.select(org_name=module_org.name)
+        session.organization.select(org_name=module_org_with_parameter.name)
         session.location.select(smart_proxy_location.name)
         session.hostcollection.manage_packages(
             vm_host_collection.name,
@@ -428,7 +459,7 @@ def test_positive_upgrade_package(
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_package_group(
-    session, module_org, smart_proxy_location, vm_content_hosts, vm_host_collection
+    session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
 ):
     """Install a package group to hosts inside host collection remotely
 
@@ -440,7 +471,7 @@ def test_positive_install_package_group(
     :CaseLevel: System
     """
     with session:
-        session.organization.select(org_name=module_org.name)
+        session.organization.select(org_name=module_org_with_parameter.name)
         session.location.select(smart_proxy_location.name)
         session.hostcollection.manage_packages(
             vm_host_collection.name,
@@ -455,7 +486,7 @@ def test_positive_install_package_group(
 
 @pytest.mark.tier3
 def test_positive_remove_package_group(
-    session, module_org, smart_proxy_location, vm_content_hosts, vm_host_collection
+    session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
 ):
     """Remove a package group from hosts inside host collection remotely
 
@@ -472,7 +503,7 @@ def test_positive_remove_package_group(
     for package in constants.FAKE_0_CUSTOM_PACKAGE_GROUP:
         assert _is_package_installed(vm_content_hosts, package)
     with session:
-        session.organization.select(org_name=module_org.name)
+        session.organization.select(org_name=module_org_with_parameter.name)
         session.location.select(smart_proxy_location.name)
         session.hostcollection.manage_packages(
             vm_host_collection.name,
@@ -488,7 +519,7 @@ def test_positive_remove_package_group(
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_errata(
-    session, module_org, smart_proxy_location, vm_content_hosts, vm_host_collection
+    session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
 ):
     """Install an errata to the hosts inside host collection remotely
 
@@ -501,7 +532,7 @@ def test_positive_install_errata(
     """
     _install_package_with_assertion(vm_content_hosts, constants.FAKE_1_CUSTOM_PACKAGE)
     with session:
-        session.organization.select(org_name=module_org.name)
+        session.organization.select(org_name=module_org_with_parameter.name)
         session.location.select(smart_proxy_location.name)
         result = session.hostcollection.install_errata(
             vm_host_collection.name,
@@ -518,7 +549,7 @@ def test_positive_install_errata(
 @pytest.mark.tier3
 def test_positive_change_assigned_content(
     session,
-    module_org,
+    module_org_with_parameter,
     smart_proxy_location,
     module_lce,
     vm_content_hosts,
@@ -572,7 +603,7 @@ def test_positive_change_assigned_content(
     new_lce_name = gen_string('alpha')
     new_cv_name = gen_string('alpha')
     new_lce = module_target_sat.api.LifecycleEnvironment(
-        name=new_lce_name, organization=module_org
+        name=new_lce_name, organization=module_org_with_parameter
     ).create()
     content_view = module_target_sat.api.ContentView(
         id=module_repos_collection.setup_content_data['content_view']['id']
@@ -603,7 +634,7 @@ def test_positive_change_assigned_content(
         assert len(client_repo_urls)
         assert set(expected_repo_urls) == set(client_repo_urls)
     with session:
-        session.organization.select(org_name=module_org.name)
+        session.organization.select(org_name=module_org_with_parameter.name)
         session.location.select(smart_proxy_location.name)
         task_values = session.hostcollection.change_assigned_content(
             vm_host_collection.name, new_lce.name, new_content_view.name
@@ -628,7 +659,9 @@ def test_positive_change_assigned_content(
 
 
 @pytest.mark.tier3
-def test_negative_hosts_limit(session, module_org, smart_proxy_location):
+def test_negative_hosts_limit(
+    session, module_target_sat, module_org_with_parameter, smart_proxy_location
+):
     """Check that Host limit actually limits usage
 
     :id: 57b70977-2110-47d9-be3b-461ad15c70c7
@@ -647,16 +680,16 @@ def test_negative_hosts_limit(session, module_org, smart_proxy_location):
     :CaseLevel: System
     """
     hc_name = gen_string('alpha')
-    org = entities.Organization().create()
-    cv = entities.ContentView(organization=org).create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    org = module_target_sat.api.Organization().create()
+    cv = module_target_sat.api.ContentView(organization=org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
     cv.publish()
     cv.read().version[0].promote(data={'environment_ids': lce.id})
     hosts = []
     for _ in range(2):
         hosts.append(
-            entities.Host(
-                organization=module_org,
+            module_target_sat.api.Host(
+                organization=module_org_with_parameter,
                 location=smart_proxy_location,
                 content_facet_attributes={
                     'content_view_id': cv.id,
