@@ -41,13 +41,6 @@ def module_custom_product(module_org):
     return entities.Product(organization=module_org).create()
 
 
-@pytest.fixture(scope='module')
-def module_org_with_manifest(module_target_sat):
-    org = entities.Organization().create()
-    module_target_sat.upload_manifest(org.id)
-    return org
-
-
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_sync_custom_repo(session, module_custom_product):
@@ -70,7 +63,7 @@ def test_positive_sync_custom_repo(session, module_custom_product):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_sync_rh_repos(session, target_sat, module_org_with_manifest):
+def test_positive_sync_rh_repos(session, target_sat, module_entitlement_manifest_org):
     """Create Content RedHat Sync with two repos.
 
     :id: e30f6509-0b65-4bcc-a522-b4f3089d3911
@@ -89,7 +82,7 @@ def test_positive_sync_rh_repos(session, target_sat, module_org_with_manifest):
         for distro, repo in zip(distros, repos)
     ]
     for repo_collection in repo_collections:
-        repo_collection.setup(module_org_with_manifest.id, synchronize=False)
+        repo_collection.setup(module_entitlement_manifest_org.id, synchronize=False)
     repo_paths = [
         (
             repo.repo_data['product'],
@@ -100,7 +93,7 @@ def test_positive_sync_rh_repos(session, target_sat, module_org_with_manifest):
         for repo in repos
     ]
     with session:
-        session.organization.select(org_name=module_org_with_manifest.name)
+        session.organization.select(org_name=module_entitlement_manifest_org.name)
         results = session.sync_status.synchronize(repo_paths)
         assert len(results) == len(repo_paths)
         assert all([result == 'Syncing Complete.' for result in results])
@@ -140,7 +133,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest):
+def test_positive_sync_rh_ostree_repo(session, target_sat, module_entitlement_manifest_org):
     """Sync CDN based ostree repository.
 
     :id: 4d28fff0-5fda-4eee-aa0c-c5af02c31de5
@@ -159,14 +152,14 @@ def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest):
     """
     enable_rhrepo_and_fetchid(
         basearch=None,
-        org_id=module_org_with_manifest.id,
+        org_id=module_entitlement_manifest_org.id,
         product=PRDS['rhah'],
         repo=REPOS['rhaht']['name'],
         reposet=REPOSET['rhaht'],
         releasever=None,
     )
     with session:
-        session.organization.select(org_name=module_org_with_manifest.name)
+        session.organization.select(org_name=module_entitlement_manifest_org.name)
         results = session.sync_status.synchronize([(PRDS['rhah'], REPOS['rhaht']['name'])])
         assert len(results) == 1
         assert results[0] == 'Syncing Complete.'

@@ -33,7 +33,7 @@ def organization_ak_setup(rhcloud_sat_host, rhcloud_manifest_org):
         service_level='Self-Support',
         purpose_usage='test-usage',
         purpose_role='test-role',
-        auto_attach=True,
+        auto_attach=False,
     ).create()
     subscription = rhcloud_sat_host.api.Subscription(organization=rhcloud_manifest_org)
     # Disabling due to an issue with manifest refreshes. Is this refresh actually needed?
