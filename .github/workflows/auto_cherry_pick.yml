@@ -3,7 +3,7 @@ name: auto_cherry_pick_commits
 
 on:
   pull_request_target:
-    types: [closed, labeled]
+    types: [closed]
 
 # Github & Parent PR Env vars
 env:
