@@ -206,7 +206,7 @@ def test_positive_user_access_with_host_filter(
     test_name,
     function_entitlement_manifest_org,
     module_location,
-    rhel_contenthost,
+    rhel7_contenthost,
     target_sat,
     repos_collection,
 ):
