@@ -289,3 +289,65 @@ def test_positive_fm_packages_sat_installer(sat_maintain):
 
     :CaseAutomation: ManualOnly
     """
+
+
+@pytest.mark.include_capsule
+def test_positive_fm_packages_check_update(sat_maintain):
+    """Verify satellite-maintain packages check-update returns 0 exit code
+    when there are no packages available for update
+
+    :id: 05874849-1db8-4f78-934b-9cf508a730f8
+
+    :steps:
+        1. Update all packages
+        2. Run satellite-maintain packages check-update
+        3. Install and downgrade walrus package
+        4. Run satellite-maintain packages check-update
+        5. Run satellite-maintain packages update
+        6. Verify return code of satellite-maintain packages update
+
+    :BZ: 2073535
+
+    :expectedresults: satellite-maintain packages check-update returns
+        0 exit code when there are no packages available for update
+
+    :customerscenario: true
+    """
+
+    disableplugin = '--disableplugin=foreman-protector'
+
+    # Update all packages first
+    result = sat_maintain.execute(f'dnf -y {disableplugin} update')
+    assert result.status == 0
+    assert 'Complete!' in result.stdout
+
+    # Verify that there are no packages available for update and return code is 0
+    result = sat_maintain.cli.Packages.check_update()
+    assert 'FAIL' not in result.stdout
+    assert result.status == 0
+
+    # Install and downgrade walrus package
+    sat_maintain.create_custom_repos(custom_repo=settings.repos.yum_0.url)
+    assert sat_maintain.execute(f'dnf -y {disableplugin} install walrus').status == 0
+    assert sat_maintain.execute(f'dnf -y {disableplugin} downgrade walrus-0.71-1').status == 0
+
+    # Verify walrus package is downgraded
+    result = sat_maintain.execute('rpm -qa walrus')
+    assert result.status == 0
+    assert 'walrus-0.71-1' in result.stdout
+
+    # Run satellite-maintain packages check update and verify walrus package is available for update
+    result = sat_maintain.cli.Packages.check_update()
+    assert 'FAIL' not in result.stdout
+    assert result.status == 0
+    assert 'walrus' in result.stdout
+
+    # Run satellite-maintain packages update
+    result = sat_maintain.cli.Packages.update(packages='walrus', options={'assumeyes': True})
+    assert 'OK' in result.stdout
+    assert result.status == 0
+
+    # Verify that there are no packages available for update and return code is 0
+    result = sat_maintain.cli.Packages.check_update()
+    assert 'FAIL' not in result.stdout
+    assert result.status == 0
