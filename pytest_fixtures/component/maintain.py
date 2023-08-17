@@ -6,7 +6,19 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_MAINTAIN_YML
+from robottelo.hosts import Capsule
 from robottelo.hosts import Satellite
+
+synced_repos = pytest.StashKey[dict]
+
+
+@pytest.fixture(scope='module')
+def module_stash(request):
+    """Module scoped stash for storing data between tests"""
+    # Please refer the documentation for more details on stash
+    # https://docs.pytest.org/en/latest/reference/reference.html#stash
+    request.node.stash[synced_repos] = {}
+    yield request.node.stash
 
 
 @pytest.fixture(scope='session')
@@ -30,35 +42,44 @@ def setup_backup_tests(request, sat_maintain):
 
 
 @pytest.fixture(scope='module')
-def module_synced_repos(sat_maintain, session_capsule_configured, module_sca_manifest):
-    org = sat_maintain.api.Organization().create()
-    sat_maintain.upload_manifest(org.id, module_sca_manifest.content)
-    # sync custom repo
-    cust_prod = sat_maintain.api.Product(organization=org).create()
-    cust_repo = sat_maintain.api.Repository(
-        url=settings.repos.yum_1.url, product=cust_prod
-    ).create()
-    cust_repo.sync()
+def module_synced_repos(
+    sat_maintain, session_capsule_configured, module_sca_manifest, module_stash
+):
+    if not module_stash[synced_repos]:
+        org = sat_maintain.satellite.api.Organization().create()
+        sat_maintain.satellite.upload_manifest(org.id, module_sca_manifest.content)
+        # sync custom repo
+        cust_prod = sat_maintain.satellite.api.Product(organization=org).create()
+        cust_repo = sat_maintain.satellite.api.Repository(
+            url=settings.repos.yum_1.url, product=cust_prod
+        ).create()
+        cust_repo.sync()
 
-    # sync RH repo
-    product = sat_maintain.api.Product(name=constants.PRDS['rhae'], organization=org.id).search()[0]
-    r_set = sat_maintain.api.RepositorySet(
-        name=constants.REPOSET['rhae2'], product=product
-    ).search()[0]
-    payload = {'basearch': constants.DEFAULT_ARCHITECTURE, 'product_id': product.id}
-    r_set.enable(data=payload)
-    result = sat_maintain.api.Repository(name=constants.REPOS['rhae2']['name']).search(
-        query={'organization_id': org.id}
-    )
-    rh_repo_id = result[0].id
-    rh_repo = sat_maintain.api.Repository(id=rh_repo_id).read()
-    rh_repo.sync()
+        # sync RH repo
+        product = sat_maintain.satellite.api.Product(
+            name=constants.PRDS['rhae'], organization=org.id
+        ).search()[0]
+        r_set = sat_maintain.satellite.api.RepositorySet(
+            name=constants.REPOSET['rhae2'], product=product
+        ).search()[0]
+        payload = {'basearch': constants.DEFAULT_ARCHITECTURE, 'product_id': product.id}
+        r_set.enable(data=payload)
+        result = sat_maintain.satellite.api.Repository(
+            name=constants.REPOS['rhae2']['name']
+        ).search(query={'organization_id': org.id})
+        rh_repo_id = result[0].id
+        rh_repo = sat_maintain.satellite.api.Repository(id=rh_repo_id).read()
+        rh_repo.sync()
 
-    if not settings.remotedb.server:
+        module_stash[synced_repos]['rh_repo'] = rh_repo
+        module_stash[synced_repos]['cust_repo'] = cust_repo
+        module_stash[synced_repos]['org'] = org
+
+    if type(sat_maintain) is Capsule:
         # assign the Library LCE to the Capsule
-        lce = sat_maintain.api.LifecycleEnvironment(organization=org).search(
-            query={'search': f'name={constants.ENVIRONMENT}'}
-        )[0]
+        lce = sat_maintain.satellite.api.LifecycleEnvironment(
+            organization=module_stash[synced_repos]['org']
+        ).search(query={'search': f'name={constants.ENVIRONMENT}'})[0]
         session_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': lce.id}
         )
@@ -68,7 +89,10 @@ def module_synced_repos(sat_maintain, session_capsule_configured, module_sca_man
         sync_status = session_capsule_configured.nailgun_capsule.content_sync()
         assert sync_status['result'] == 'success'
 
-    yield {'custom': cust_repo, 'rh': rh_repo}
+    yield {
+        'custom': module_stash[synced_repos]['cust_repo'],
+        'rh': module_stash[synced_repos]['rh_repo'],
+    }
 
 
 @pytest.fixture
