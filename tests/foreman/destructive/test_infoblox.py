@@ -22,7 +22,6 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.utils.installer import InstallerCommand
-from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.destructive
 
@@ -64,7 +63,13 @@ infoblox_plugin_enable = [
 infoblox_plugin_disable = [
     'no-enable-foreman-proxy-plugin-dhcp-infoblox',
     'no-enable-foreman-proxy-plugin-dns-infoblox',
+    'reset-foreman-proxy-dhcp-provider',
+    'reset-foreman-proxy-dns-provider',
 ]
+infoblox_plugin_disable_opts = {
+    'foreman-proxy-dhcp': 'false',
+    'foreman-proxy-dns': 'false',
+}
 
 infoblox_plugin_opts = {
     'foreman-proxy-dhcp': 'true',
@@ -232,27 +237,26 @@ def test_infoblox_end_to_end(
     # check hostname and ip is present in A record
     assert host.name in result.text
     assert host.ip in result.text
+    # delete host
+    module_target_sat.api.Subnet(id=subnet.id, domain=[]).update()
+    module_target_sat.api.Host(id=host.id).delete()
+    module_target_sat.api.Subnet(id=subnet.id).delete()
+    module_target_sat.api.Domain(id=domain.id).delete()
+    with pytest.raises(HTTPError):
+        host.read()
     # disable dhcp and dns plugin
-    if not is_open('BZ:2210256'):
-        disable_infoblox_plugin = InstallerCommand(installer_args=infoblox_plugin_disable)
-        result = module_target_sat.install(disable_infoblox_plugin)
-        assert result.status == 0
-        assert 'Success!' in result.stdout
-        installer = module_target_sat.install(
-            InstallerCommand(help='| grep enable-foreman-proxy-plugin-dhcp-infoblox')
-        )
-        assert 'default: false' in installer.stdout
+    disable_infoblox_plugin = InstallerCommand(
+        installer_args=infoblox_plugin_disable, installer_opts=infoblox_plugin_disable_opts
+    )
+    result = module_target_sat.install(disable_infoblox_plugin)
+    assert result.status == 0
+    assert 'Success!' in result.stdout
+    installer = module_target_sat.install(
+        InstallerCommand(help='| grep enable-foreman-proxy-plugin-dhcp-infoblox')
+    )
+    assert 'default: false' in installer.stdout
 
-        installer = module_target_sat.install(
-            InstallerCommand(help='| grep enable-foreman-proxy-plugin-dns-infoblox')
-        )
-        assert 'default: false' in installer.stdout
-
-    @request.addfinalizer
-    def _finalize():
-        module_target_sat.api.Subnet(id=subnet.id, domain=[]).update()
-        module_target_sat.api.Host(id=host.id).delete()
-        module_target_sat.api.Subnet(id=subnet.id).delete()
-        module_target_sat.api.Domain(id=domain.id).delete()
-        with pytest.raises(HTTPError):
-            host.read()
+    installer = module_target_sat.install(
+        InstallerCommand(help='| grep enable-foreman-proxy-plugin-dns-infoblox')
+    )
+    assert 'default: false' in installer.stdout
