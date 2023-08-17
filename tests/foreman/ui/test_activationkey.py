@@ -425,7 +425,6 @@ def test_positive_update_cv(session, module_org, cv2_name):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_update_rh_product(function_entitlement_manifest_org, session):
     """Update Content View in an Activation key
@@ -482,7 +481,6 @@ def test_positive_update_rh_product(function_entitlement_manifest_org, session):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_add_rh_product(function_entitlement_manifest_org, session):
     """Test that RH product can be associated to Activation Keys
@@ -549,7 +547,6 @@ def test_positive_add_custom_product(session, module_org):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_add_rh_and_custom_products(function_entitlement_manifest_org, session):
@@ -611,7 +608,6 @@ def test_positive_add_rh_and_custom_products(function_entitlement_manifest_org, 
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_fetch_product_content(function_entitlement_manifest_org, session):
@@ -1070,7 +1066,7 @@ def test_positive_host_associations(session, target_sat):
             assert ak2['content_hosts']['table'][0]['Name'] == vm2.hostname
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_service_level_subscription_with_custom_product(
@@ -1141,7 +1137,6 @@ def test_positive_service_level_subscription_with_custom_product(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_delete_manifest(session, function_entitlement_manifest_org):
     """Check if deleting a manifest removes it from Activation key
@@ -1185,7 +1180,7 @@ def test_positive_delete_manifest(session, function_entitlement_manifest_org):
         assert not ak['subscriptions']['resources']['assigned']
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_ak_with_custom_product_on_rhel6(session, rhel6_contenthost, target_sat):
