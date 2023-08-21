@@ -593,6 +593,10 @@ def test_positive_virt_card(
             module_vmware_settings['vm_name'],
         )
         host_name = module_vmware_settings['vm_name'] + '.' + domain.name
+        power_status = session.computeresource.vm_status(cr_name, module_vmware_settings['vm_name'])
+        if power_status is False:
+            session.computeresource.vm_poweron(cr_name, module_vmware_settings['vm_name'])
+            session.browser.refresh()
         virt_card = session.host_new.get_details(host_name, widget_names='details.virtualization')[
             'details'
         ]['virtualization']
