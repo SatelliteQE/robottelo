@@ -354,12 +354,11 @@ class ContentHost(Host, ContentHostMixins):
     def list_cached_properties(self):
         """Return a list of cached property names of this class"""
         import inspect
-        import functools
 
         return [
             name
             for name, value in inspect.getmembers(self.__class__)
-            if isinstance(value, functools.cached_property)
+            if isinstance(value, cached_property)
         ]
 
     def get_cached_properties(self):
@@ -379,7 +378,7 @@ class ContentHost(Host, ContentHostMixins):
     def teardown(self):
         if not self.blank and not getattr(self, '_skip_context_checkin', False):
             self.unregister()
-            if self.nailgun_host and type(self) is not Satellite:
+            if type(self) is not Satellite and self.nailgun_host:
                 self.nailgun_host.delete()
 
     def power_control(self, state=VmState.RUNNING, ensure=True):
@@ -652,6 +651,8 @@ class ContentHost(Host, ContentHostMixins):
         :return: None.
         :raises robottelo.hosts.ContentHostError: If katello-ca wasn't removed.
         """
+        # unregister host from CDN to avoid subscription leakage
+        self.execute('subscription-manager unregister')
         # Not checking the status here, as rpm can be not even installed
         # and deleting may fail
         self.execute('yum erase -y $(rpm -qa |grep katello-ca-consumer)')
@@ -660,8 +661,6 @@ class ContentHost(Host, ContentHostMixins):
         result = self.execute('rpm -qa |grep katello-ca-consumer')
         if result.status == 0:
             raise ContentHostError(f'katello-ca rpm(s) are still installed: {result.stdout}')
-        # unregister host from CDN to avoid subscription leakage
-        self.execute('subscription-manager unregister')
         self.execute('subscription-manager clean')
         self._satellite = None
 
