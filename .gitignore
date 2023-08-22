@@ -94,3 +94,7 @@ ven*/
 
 # pytest-fixture-tools artifacts
 artifacts/
+
+# pyvcloud artifacts
+# workaround till https://github.com/vmware/pyvcloud/pull/766 is merged and released
+**vcd_sdk.log
