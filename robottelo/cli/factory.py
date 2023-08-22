@@ -1691,9 +1691,15 @@ def setup_org_for_a_custom_repo(options=None):
     cvv = ContentView.info({'id': cv_id})['versions'][-1]
     # Promote version to next env
     try:
-        ContentView.version_promote(
-            {'id': cvv['id'], 'organization-id': org_id, 'to-lifecycle-environment-id': env_id}
-        )
+        all_lifecycle_env = ContentView.info({'id': cv_id})['lifecycle-environments']
+        for lce in all_lifecycle_env:
+            if int(lce['id']) == env_id:
+                # already promoted to environment
+                break
+        else:
+            ContentView.version_promote(
+                {'id': cvv['id'], 'organization-id': org_id, 'to-lifecycle-environment-id': env_id}
+            )
     except CLIReturnCodeError as err:
         raise CLIFactoryError(f'Failed to promote version to next environment\n{err.msg}')
     # Create activation key if needed and associate content view with it
