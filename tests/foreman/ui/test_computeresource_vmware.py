@@ -593,16 +593,21 @@ def test_positive_virt_card(
             module_vmware_settings['vm_name'],
         )
         host_name = module_vmware_settings['vm_name'] + '.' + domain.name
-        virt_card = session.host_new.get_virtualization(host_name)
+        virt_card = session.host_new.get_virtualization(host_name)['details']
         assert virt_card['datacenter'] == module_vmware_settings['datacenter']
         assert virt_card['cluster'] == module_vmware_settings['cluster']
         assert virt_card['memory'] == '2 GB'
         assert 'public_ip_address' in virt_card
         assert virt_card['mac_address'] == module_vmware_settings['mac_address']
         assert virt_card['cpus'] == '1'
+        assert virt_card['disk_label'] == 'Hard disk 1'
+        assert 'disk_capacity' in virt_card
+        assert 'partition_capacity' in virt_card
+        assert virt_card['partition_path'] == '/boot'
+        assert 'partition_allocation' in virt_card
         assert virt_card['cores_per_socket'] == '1'
         assert virt_card['firmware'] == 'bios'
-        assert virt_card['hypervisor'] == module_vmware_settings['hypervisor']
+        assert 'hypervisor' in virt_card
         assert virt_card['connection_state'] == 'connected'
         assert virt_card['overall_status'] == 'green'
         assert virt_card['annotation_notes'] == ''
