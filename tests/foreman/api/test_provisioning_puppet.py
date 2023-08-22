@@ -185,17 +185,7 @@ def test_host_provisioning_with_external_puppetserver(
     provisioning_host.blank = False
 
     # Wait for the host to be rebooted and SSH daemon to be started.
-    try:
-        wait_for(
-            provisioning_host.connect,
-            fail_condition=lambda res: res is not None,
-            handle_exception=True,
-            raise_original=True,
-            timeout=180,
-            delay=1,
-        )
-    except ConnectionRefusedError:
-        raise ConnectionRefusedError('Timed out waiting for SSH daemon to start on the host')
+    provisioning_host.wait_for_connection()
 
     # Perform version check
     host_os = host.operatingsystem.read()
