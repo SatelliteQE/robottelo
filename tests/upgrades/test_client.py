@@ -20,7 +20,6 @@ sat6-upgrade requires env.satellite_hostname to be set, this is required for the
 :Upstream: No
 """
 import pytest
-from broker import Broker
 
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
@@ -93,17 +92,12 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
 
         :expectedresults: The package is installed on client
         """
-        client_name = pre_upgrade_data.get('rhel_client')
-        client_id = (
-            module_target_sat.api.Host().search(query={'search': f'name={client_name}'})[0].id
-        )
+        client_hostname = pre_upgrade_data.get('rhel_client')
+        rhel_client = ContentHost.get_host_by_hostname(client_hostname)
         module_target_sat.cli.Host.package_install(
-            {'host-id': client_id, 'packages': FAKE_0_CUSTOM_PACKAGE_NAME}
+            {'host-id': rhel_client.nailgun_host.id, 'packages': FAKE_0_CUSTOM_PACKAGE_NAME}
         )
-        # Verifies that package is really installed
-        rhel_client = Broker(host_class=ContentHost).from_inventory(
-            filter=f'@inv.hostname == "{client_name}"'
-        )[0]
+        # Verify that package is really installed
         result = rhel_client.execute(f"rpm -q {FAKE_0_CUSTOM_PACKAGE_NAME}")
         assert FAKE_0_CUSTOM_PACKAGE_NAME in result.stdout
 
