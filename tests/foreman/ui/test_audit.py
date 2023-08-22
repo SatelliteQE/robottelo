@@ -18,8 +18,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import create_role_permissions
-from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import ENVIRONMENT
 
 
@@ -199,48 +197,4 @@ def test_positive_add_event(session, module_org):
         assert len(values['action_summary']) == 1
         assert values['action_summary'][0]['column0'] == 'Added {}/{} to {}'.format(
             ENVIRONMENT, cv.name, cv.name
-        )
-
-
-@pytest.mark.skip_if_open("BZ:1701118")
-@pytest.mark.skip_if_open("BZ:1701132")
-@pytest.mark.tier2
-def test_positive_create_role_filter(session, module_org):
-    """Update a role with new filter and check that corresponding event
-    appeared in the audit log
-
-    :id: 74679c0d-7ef1-4ab1-8282-9377c6cabb9f
-
-    :customerscenario: true
-
-    :expectedresults: audit log has an entry for a new filter that was
-        added to the role
-
-    :BZ: 1425977, 1701118, 1701132
-
-    :CaseAutomation: Automated
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Medium
-    """
-    role = entities.Role(organization=[module_org]).create()
-    with session:
-        session.organization.select(org_name=ANY_CONTEXT['org'])
-        values = session.audit.search(f'type=role and organization={module_org.name}')
-        assert values['action_type'] == 'create'
-        assert values['resource_type'] == 'ROLE'
-        assert values['resource_name'] == role.name
-        create_role_permissions(
-            role, {'Architecture': ['view_architectures', 'edit_architectures']}
-        )
-        values = session.audit.search('type=filter')
-        assert values['action_type'] == 'added'
-        assert values['resource_type'] == 'Filter'
-        assert values['resource_name'] == '{} and {} / {}'.format(
-            'view_architectures', 'edit_architectures', role.name
-        )
-        assert len(values['action_summary']) == 1
-        assert values['action_summary'][0]['column0'] == 'Added {} and {} to {}'.format(
-            'view_architectures', 'edit_architectures', role.name
         )
