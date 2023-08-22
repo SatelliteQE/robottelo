@@ -596,7 +596,21 @@ def test_positive_virt_card(
         power_status = session.computeresource.vm_status(cr_name, module_vmware_settings['vm_name'])
         if power_status is False:
             session.computeresource.vm_poweron(cr_name, module_vmware_settings['vm_name'])
-            session.browser.refresh()
+            try:
+                wait_for(
+                    lambda: (
+                        session.browser.refresh(),
+                        session.computeresource.vm_status(
+                            cr_name, module_vmware_settings['vm_name']
+                        ),
+                    )[1]
+                    is not power_status,
+                    timeout=30,
+                    delay=2,
+                )
+            except TimedOutError:
+                raise AssertionError('Timed out waiting for VM to toggle power state')
+
         virt_card = session.host_new.get_virtualization(host_name)['details']
         assert virt_card['datacenter'] == module_vmware_settings['datacenter']
         assert virt_card['cluster'] == module_vmware_settings['cluster']
