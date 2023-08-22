@@ -1,3 +1,4 @@
+import contextlib
 import importlib
 import io
 import json
@@ -198,6 +199,26 @@ class ContentHost(Host, ContentHostMixins):
         self.blank = kwargs.get('blank', False)
         super().__init__(hostname=hostname, **kwargs)
 
+    @classmethod
+    def get_hosts_from_inventory(cls, filter):
+        """Get an instance of a host from inventory using a filter"""
+        inv_hosts = Broker(host_class=cls).from_inventory(filter)
+        logger.debug('Found %s instances from inventory by filter: %s', len(inv_hosts), filter)
+        return inv_hosts
+
+    @classmethod
+    def get_host_by_hostname(cls, hostname):
+        """Get an instance of a host from inventory by hostname"""
+        logger.info('Getting %s instance from inventory by hostname: %s', cls.__name__, hostname)
+        inv_hosts = cls.get_hosts_from_inventory(filter=f'@inv.hostname == "{hostname}"')
+        if not inv_hosts:
+            raise ContentHostError(f'No {cls.__name__} found in inventory by hostname {hostname}')
+        if len(inv_hosts) > 1:
+            raise ContentHostError(
+                f'Multiple {cls.__name__} found in inventory by hostname {hostname}'
+            )
+        return inv_hosts[0]
+
     @property
     def satellite(self):
         if not self._satellite:
@@ -248,31 +269,107 @@ class ContentHost(Host, ContentHostMixins):
 
     @cached_property
     def _redhat_release(self):
-        """Process redhat-release file for distro and version information"""
+        """Process redhat-release file for distro and version information
+        This is a fallback for when /etc/os-release is not available
+        """
         result = self.execute('cat /etc/redhat-release')
         if result.status != 0:
             raise ContentHostError(f'Not able to cat /etc/redhat-release "{result.stderr}"')
-        match = re.match(r'(?P<distro>.+) release (?P<major>\d+)(.(?P<minor>\d+))?', result.stdout)
+        match = re.match(r'(?P<NAME>.+) release (?P<major>\d+)(.(?P<minor>\d+))?', result.stdout)
         if match is None:
             raise ContentHostError(f'Not able to parse release string "{result.stdout}"')
-        return match.groupdict()
+        r_release = match.groupdict()
+
+        # /etc/os-release compatibility layer
+        r_release['VERSION_ID'] = r_release['major']
+        # not every release have a minor version
+        r_release['VERSION_ID'] += f'.{r_release["minor"]}' if r_release['minor'] else ''
+
+        distro_map = {
+            'Fedora': {'NAME': 'Fedora Linux', 'ID': 'fedora'},
+            'CentOS': {'ID': 'centos'},
+            'Red Hat Enterprise Linux': {'ID': 'rhel'},
+        }
+        # Use the version map to set the NAME and ID fields
+        for distro, properties in distro_map.items():
+            if distro in r_release['NAME']:
+                r_release.update(properties)
+                break
+        return r_release
 
     @cached_property
+    def _os_release(self):
+        """Process os-release file for distro and version information"""
+        facts = {}
+        regex = r'^(["\'])(.*)(\1)$'
+        result = self.execute('cat /etc/os-release')
+        if result.status != 0:
+            logger.info(
+                f'Not able to cat /etc/os-release "{result.stderr}", '
+                'falling back to /etc/redhat-release'
+            )
+            return self._redhat_release
+        for ln in [line for line in result.stdout.splitlines() if line.strip()]:
+            line = ln.strip()
+            if line.startswith('#'):
+                continue
+            key, value = line.split('=')
+            if key and value:
+                facts[key] = re.sub(regex, r'\2', value).replace('\\', '')
+        return facts
+
+    @property
     def os_distro(self):
         """Get host's distro information"""
-        groups = self._redhat_release
-        return groups['distro']
+        return self._os_release['NAME']
 
-    @cached_property
+    @property
     def os_version(self):
         """Get host's OS version information
 
         :returns: A ``packaging.version.Version`` instance
         """
-        groups = self._redhat_release
-        minor_version = '' if groups['minor'] is None else f'.{groups["minor"]}'
-        version_string = f'{groups["major"]}{minor_version}'
-        return Version(version=version_string)
+        return Version(self._os_release['VERSION_ID'])
+
+    @property
+    def os_id(self):
+        """Get host's OS ID information"""
+        return self._os_release['ID']
+
+    @cached_property
+    def is_el(self):
+        """Boolean representation of whether this host is an EL host"""
+        return self.execute('stat /etc/redhat-release').status == 0
+
+    @property
+    def is_rhel(self):
+        """Boolean representation of whether this host is a RHEL host"""
+        return self.os_id == 'rhel'
+
+    @property
+    def is_centos(self):
+        """Boolean representation of whether this host is a CentOS host"""
+        return self.os_id == 'centos'
+
+    def list_cached_properties(self):
+        """Return a list of cached property names of this class"""
+        import inspect
+
+        return [
+            name
+            for name, value in inspect.getmembers(self.__class__)
+            if isinstance(value, cached_property)
+        ]
+
+    def get_cached_properties(self):
+        """Return a dictionary of cached properties for this class"""
+        return {name: getattr(self, name) for name in self.list_cached_properties()}
+
+    def clean_cached_properties(self):
+        """Delete all cached properties for this class"""
+        for name in self.list_cached_properties():
+            with contextlib.suppress(KeyError):  # ignore if property is not cached
+                del self.__dict__[name]
 
     def setup(self):
         if not self.blank:
@@ -280,18 +377,9 @@ class ContentHost(Host, ContentHostMixins):
 
     def teardown(self):
         if not self.blank and not getattr(self, '_skip_context_checkin', False):
-            if self.nailgun_host:
-                self.nailgun_host.delete()
             self.unregister()
-        # Strip most unnecessary attributes from our instance for checkin
-        keep_keys = set(self.to_dict()) | {
-            'release',
-            '_prov_inst',
-            '_cont_inst',
-            '_skip_context_checkin',
-        }
-        self.__dict__ = {k: v for k, v in self.__dict__.items() if k in keep_keys}
-        self.__class__ = Host
+            if type(self) is not Satellite and self.nailgun_host:
+                self.nailgun_host.delete()
 
     def power_control(self, state=VmState.RUNNING, ensure=True):
         """Lookup the host workflow for power on and execute
@@ -305,6 +393,8 @@ class ContentHost(Host, ContentHostMixins):
             BrokerError: various error types to do with broker execution
             ContentHostError: if the workflow status isn't successful and broker didn't raise
         """
+        if getattr(self, '_cont_inst', None):
+            raise NotImplementedError('Power control not supported for container instances')
         try:
             vm_operation = POWER_OPERATIONS.get(state)
             workflow_name = settings.broker.host_workflows.power_control
@@ -331,8 +421,23 @@ class ContentHost(Host, ContentHostMixins):
                     self.connect, fail_condition=lambda res: res is not None, handle_exception=True
                 )
             # really broad diaper here, but connection exceptions could be a ton of types
-            except TimedOutError:
-                raise ContentHostError('Unable to connect to host that should be running')
+            except TimedOutError as toe:
+                raise ContentHostError('Unable to connect to host that should be running') from toe
+
+    def wait_for_connection(self, timeout=180):
+        try:
+            wait_for(
+                self.connect,
+                fail_condition=lambda res: res is not None,
+                handle_exception=True,
+                raise_original=True,
+                timeout=timeout,
+                delay=1,
+            )
+        except (ConnectionRefusedError, ConnectionAbortedError, TimedOutError) as err:
+            raise ContentHostError(
+                f'Unable to establsh SSH connection to host {self} after {timeout} seconds'
+            ) from err
 
     def download_file(self, file_url, local_path=None, file_name=None):
         """Downloads file from given fileurl to directory specified by local_path by given filename
@@ -546,6 +651,8 @@ class ContentHost(Host, ContentHostMixins):
         :return: None.
         :raises robottelo.hosts.ContentHostError: If katello-ca wasn't removed.
         """
+        # unregister host from CDN to avoid subscription leakage
+        self.execute('subscription-manager unregister')
         # Not checking the status here, as rpm can be not even installed
         # and deleting may fail
         self.execute('yum erase -y $(rpm -qa |grep katello-ca-consumer)')
@@ -1405,12 +1512,9 @@ class Capsule(ContentHost, CapsuleMixins):
                 answers = Box(yaml.load(data, yaml.FullLoader))
                 sat_hostname = urlparse(answers.foreman_proxy.foreman_base_url).netloc
                 # get the Satellite hostname from the answer file
-                hosts = Broker(host_class=Satellite).from_inventory(
-                    filter=f'@inv.hostname == "{sat_hostname}"'
-                )
-                if hosts:
-                    self._satellite = hosts[0]
-                else:
+                try:
+                    self._satellite = Satellite.get_host_by_hostname(sat_hostname)
+                except ContentHostError:
                     logger.debug(
                         f'No Satellite host found in inventory for {self.hostname}. '
                         'Satellite object with the same hostname will be created anyway.'
