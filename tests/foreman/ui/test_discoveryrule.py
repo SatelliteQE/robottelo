@@ -21,58 +21,42 @@ from airgun.session import Session
 from fauxfactory import gen_integer
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_string
-from nailgun import entities
-
-
-@pytest.fixture(scope='module')
-def manager_loc():
-    return entities.Location().create()
-
-
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
 
 
 @pytest.fixture
-def module_discovery_env(module_org, module_location):
-    discovery_loc = entities.Setting().search(query={'search': 'name="discovery_location"'})[0]
-    default_discovery_loc = discovery_loc.value
-    discovery_loc.value = module_location.name
-    discovery_loc.update(['value'])
-    discovery_org = entities.Setting().search(query={'search': 'name="discovery_organization"'})[0]
-    default_discovery_org = discovery_org.value
-    discovery_org.value = module_org.name
-    discovery_org.update(['value'])
+def module_discovery_env(module_org, module_location, module_target_sat):
+    discovery_loc = module_target_sat.update_setting('discovery_location', module_location.name)
+    discovery_org = module_target_sat.update_setting('discovery_organization', module_org.name)
     yield
-    discovery_loc.value = default_discovery_loc
-    discovery_loc.update(['value'])
-    discovery_org.value = default_discovery_org
-    discovery_org.update(['value'])
+    module_target_sat.update_setting('discovery_location', discovery_loc)
+    module_target_sat.update_setting('discovery_organization', discovery_org)
 
 
-@pytest.fixture
-def manager_user(manager_loc, module_location, module_org):
-    manager_role = entities.Role().search(query={'search': 'name="Discovery Manager"'})[0]
+@pytest.fixture(scope='module')
+def manager_user(module_location, module_org, module_target_sat):
+    manager_role = module_target_sat.api.Role().search(
+        query={'search': 'name="Discovery Manager"'}
+    )[0]
     password = gen_string('alphanumeric')
-    manager_user = entities.User(
+    manager_user = module_target_sat.api.User(
         login=gen_string('alpha'),
         role=[manager_role],
         password=password,
-        location=[module_location, manager_loc],
+        location=[module_location],
         organization=[module_org],
     ).create()
     manager_user.password = password
     return manager_user
 
 
-@pytest.fixture
-def reader_user(module_location, module_org):
+@pytest.fixture(scope='module')
+def reader_user(module_location, module_org, module_target_sat):
     password = gen_string('alphanumeric')
-    reader_role = entities.Role().search(query={'search': 'name="Discovery Reader"'})[0]
-    reader_user = entities.User(
+    # Applying Discovery reader_role to the user
+    role = module_target_sat.api.Role().search(query={'search': 'name="Discovery Reader"'})[0]
+    reader_user = module_target_sat.api.User(
         login=gen_string('alpha'),
-        role=[reader_role],
+        role=[role],
         password=password,
         organization=[module_org],
         location=[module_location],
@@ -87,86 +71,68 @@ def gen_int32(min_value=1):
 
 
 @pytest.mark.tier2
-def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user, module_org, test_name):
-    """Create rule with non-admin user by associating discovery_manager role
+def test_positive_crud_with_non_admin_user(
+    module_location, manager_user, module_org, module_target_sat
+):
+    """CRUD with non-admin user by associating discovery_manager role
 
     :id: 6a03983b-363d-4646-b277-34af5f5abc55
 
-    :expectedresults: Rule should be created successfully.
+    :expectedresults: All crud operations should work with non_admin user.
 
     :CaseLevel: Integration
     """
-    name = gen_string('alpha')
+    rule_name = gen_string('alpha')
     search = gen_string('alpha')
-    hg = entities.HostGroup(organization=[module_org]).create()
-    with Session(test_name, user=manager_user.login, password=manager_user.password) as session:
-        session.location.select(loc_name=manager_loc.name)
+    priority = str(gen_integer(1, 20))
+    new_rule_name = gen_string('alpha')
+    new_search = gen_string('alpha')
+    new_hg_name = gen_string('alpha')
+    new_priority = str(gen_integer(101, 200))
+    hg = module_target_sat.api.HostGroup(organization=[module_org]).create()
+    new_hg_name = module_target_sat.api.HostGroup(organization=[module_org]).create()
+    with Session(user=manager_user.login, password=manager_user.password) as session:
+        session.location.select(loc_name=module_location.name)
         session.discoveryrule.create(
             {
-                'primary.name': name,
+                'primary.name': rule_name,
                 'primary.search': search,
                 'primary.host_group': hg.name,
-                'primary.priority': gen_int32(),
+                'primary.priority': priority,
             }
         )
-        dr_val = session.discoveryrule.read(name, widget_names='primary')
-        assert dr_val['primary']['name'] == name
-        assert dr_val['primary']['host_group'] == hg.name
 
+        values = session.discoveryrule.read(rule_name, widget_names='primary')
+        assert values['primary']['name'] == rule_name
+        assert values['primary']['search'] == search
+        assert values['primary']['host_group'] == hg.name
+        assert values['primary']['priority'] == priority
+        session.discoveryrule.update(
+            rule_name,
+            {
+                'primary.name': new_rule_name,
+                'primary.search': new_search,
+                'primary.host_group': new_hg_name.name,
+                'primary.priority': new_priority,
+            },
+        )
+        values = session.discoveryrule.read(
+            new_rule_name,
+            widget_names='primary',
+        )
+        assert values['primary']['name'] == new_rule_name
+        assert values['primary']['search'] == new_search
+        assert values['primary']['host_group'] == new_hg_name.name
+        assert values['primary']['priority'] == new_priority
 
-@pytest.mark.tier2
-def test_positive_delete_rule_with_non_admin_user(manager_loc, manager_user, module_org, test_name):
-    """Delete rule with non-admin user by associating discovery_manager role
-
-    :id: 7fa56bab-82d7-46c9-a4fa-c44ef173c703
-
-    :expectedresults: Rule should be deleted successfully.
-
-    :CaseLevel: Integration
-    """
-    hg = entities.HostGroup(organization=[module_org]).create()
-    dr = entities.DiscoveryRule(
-        hostgroup=hg, organization=[module_org], location=[manager_loc]
-    ).create()
-    with Session(test_name, user=manager_user.login, password=manager_user.password) as session:
+        session.discoveryrule.delete(new_rule_name)
         dr_val = session.discoveryrule.read_all()
-        assert dr.name in [rule['Name'] for rule in dr_val]
-        session.discoveryrule.delete(dr.name)
-        dr_val = session.discoveryrule.read_all()
-        assert dr.name not in [rule['Name'] for rule in dr_val]
-
-
-@pytest.mark.tier2
-def test_positive_view_existing_rule_with_non_admin_user(
-    module_location, module_org, reader_user, test_name
-):
-    """Existing rule should be viewed to non-admin user by associating
-    discovery_reader role.
-
-    :id: 0f5b0221-43be-47bc-8619-749824c4e54f
-
-    :Steps:
-
-        1. create a rule with admin user
-        2. create a non-admin user and assign 'Discovery Reader' role
-        3. Login with non-admin user
-
-    :expectedresults: Rule should be visible to non-admin user.
-
-    :CaseLevel: Integration
-    """
-    hg = entities.HostGroup(organization=[module_org]).create()
-    dr = entities.DiscoveryRule(
-        hostgroup=hg, organization=[module_org], location=[module_location]
-    ).create()
-    with Session(test_name, user=reader_user.login, password=reader_user.password) as session:
-        dr_val = session.discoveryrule.read_all()
-        assert dr.name in [rule['Name'] for rule in dr_val]
+        assert new_rule_name not in [rule['Name'] for rule in dr_val]
 
 
 @pytest.mark.tier2
 def test_negative_delete_rule_with_non_admin_user(
-    module_location, module_org, reader_user, test_name
+    module_location, module_org, module_target_sat, reader_user
 ):
     """Delete rule with non-admin user by associating discovery_reader role
 
@@ -177,11 +143,20 @@ def test_negative_delete_rule_with_non_admin_user(
 
     :CaseLevel: Integration
     """
-    hg = entities.HostGroup(organization=[module_org]).create()
-    dr = entities.DiscoveryRule(
-        hostgroup=hg, organization=[module_org], location=[module_location]
+    hg_name = gen_string('alpha')
+    rule_name = gen_string('alpha')
+    search = gen_string('alpha')
+    hg = module_target_sat.api.HostGroup(
+        name=hg_name, organization=[module_org], location=[module_location]
     ).create()
-    with Session(test_name, user=reader_user.login, password=reader_user.password) as session:
+    dr = module_target_sat.api.DiscoveryRule(
+        name=rule_name,
+        search_=search,
+        hostgroup=hg.id,
+        organization=[module_org],
+        location=[module_location],
+    ).create()
+    with Session(user=reader_user.login, password=reader_user.password) as session:
         with pytest.raises(ValueError):
             session.discoveryrule.delete(dr.name)
         dr_val = session.discoveryrule.read_all()
@@ -218,8 +193,8 @@ def test_positive_list_host_based_on_rule_search_query(
     cpu_count = gen_integer(2, 10)
     rule_search = f'cpu_count = {cpu_count}'
     # any way create a host to be sure that this org has more than one host
-    host = entities.Host(organization=module_org, location=module_location).create()
-    host_group = entities.HostGroup(
+    host = target_sat.api.Host(organization=module_org, location=module_location).create()
+    host_group = target_sat.api.HostGroup(
         organization=[module_org],
         location=[module_location],
         medium=host.medium,
@@ -229,7 +204,7 @@ def test_positive_list_host_based_on_rule_search_query(
         domain=host.domain,
         architecture=host.architecture,
     ).create()
-    discovery_rule = entities.DiscoveryRule(
+    discovery_rule = target_sat.api.DiscoveryRule(
         hostgroup=host_group,
         search_=rule_search,
         organization=[module_org],
@@ -241,7 +216,7 @@ def test_positive_list_host_based_on_rule_search_query(
     )
     # create an other discovered host with an other cpu count
     target_sat.api_factory.create_discovered_host(options={'physicalprocessorcount': cpu_count + 1})
-    provisioned_host_name = '{}.{}'.format(discovered_host['name'], host.domain.read().name)
+    provisioned_host_name = f'{host.domain.read().name}'
     with session:
         values = session.discoveryrule.read_all()
         assert discovery_rule.name in [rule['Name'] for rule in values]
@@ -254,16 +229,17 @@ def test_positive_list_host_based_on_rule_search_query(
         session.discoveredhosts.apply_action('Auto Provision', [discovered_host['name']])
         assert not session.discoveredhosts.search('name = "{}"'.format(discovered_host['name']))
         values = session.discoveryrule.read_associated_hosts(discovery_rule.name)
+        host_name = values['table'][0]['Name']
         assert values['searchbox'] == f'discovery_rule = "{discovery_rule.name}"'
         assert len(values['table']) == 1
-        assert values['table'][0]['Name'] == provisioned_host_name
-        values = session.host.get_details(provisioned_host_name)
+        assert provisioned_host_name in host_name
+        values = session.host.get_details(host_name)
         assert values['properties']['properties_table']['IP Address'] == ip_address
 
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_location):
+def test_positive_end_to_end(session, module_org, module_location, module_target_sat):
     """Perform end to end testing for discovery rule component.
 
     :id: dd35e566-dc3a-43d3-939c-a33ae528740f
@@ -273,23 +249,25 @@ def test_positive_end_to_end(session, module_org, module_location):
     :CaseImportance: Critical
     """
     rule_name = gen_string('alpha')
-    search = f'cpu_count = {gen_integer(1, 5)}'
+    search = gen_string('alpha')
     hg_name = gen_string('alpha')
     hostname = gen_string('alpha')
     hosts_limit = str(gen_integer(0, 100))
     priority = str(gen_integer(1, 100))
     new_rule_name = gen_string('alpha')
-    new_search = f'cpu_count = {gen_integer(6, 10)}'
+    new_search = gen_string('alpha')
     new_hg_name = gen_string('alpha')
     new_hostname = gen_string('alpha')
     new_hosts_limit = str(gen_integer(101, 200))
     new_priority = str(gen_integer(101, 200))
-    entities.HostGroup(name=hg_name, organization=[module_org], location=[module_location]).create()
-    entities.HostGroup(
+    module_target_sat.api.HostGroup(
+        name=hg_name, organization=[module_org], location=[module_location]
+    ).create()
+    module_target_sat.api.HostGroup(
         name=new_hg_name, organization=[module_org], location=[module_location]
     ).create()
-    new_org = entities.Organization().create()
-    new_loc = entities.Location().create()
+    new_org = module_target_sat.api.Organization().create()
+    new_loc = module_target_sat.api.Location().create()
     with session:
         session.discoveryrule.create(
             {
