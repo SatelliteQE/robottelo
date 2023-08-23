@@ -232,7 +232,9 @@ def test_positive_access_with_non_admin_user_with_manifest(
 
 
 @pytest.mark.tier2
-def test_positive_access_manifest_as_another_admin_user(test_name, target_sat):
+def test_positive_access_manifest_as_another_admin_user(
+    test_name, target_sat, function_entitlement_manifest
+):
     """Other admin users should be able to access and manage a manifest
     uploaded by a different admin.
 
@@ -259,7 +261,7 @@ def test_positive_access_manifest_as_another_admin_user(test_name, target_sat):
     ).create()
     # use the first admin to upload a manifest
     with Session(test_name, user=user1.login, password=user1_password) as session:
-        target_sat.upload_manifest(org.id)
+        target_sat.upload_manifest(org.id, function_entitlement_manifest.content)
         assert session.subscription.has_manifest
         # store subscriptions that have "Red Hat" in the name for later
         rh_subs = session.subscription.search("Red Hat")
@@ -274,7 +276,9 @@ def test_positive_access_manifest_as_another_admin_user(test_name, target_sat):
 
 
 @pytest.mark.tier3
-def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, target_sat):
+def test_positive_view_vdc_subscription_products(
+    session, rhel7_contenthost, target_sat, function_entitlement_manifest_org
+):
     """Ensure that Virtual Datacenters subscription provided products is
     not empty and that a consumed product exist in content products.
 
@@ -307,16 +311,14 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, tar
 
     :CaseLevel: System
     """
-    org = entities.Organization().create()
+    org = function_entitlement_manifest_org
     lce = entities.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel7',
         repositories=[target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)],
     )
     product_name = repos_collection.rh_repos[0].data['product']
-    repos_collection.setup_content(
-        org.id, lce.id, upload_manifest=True, rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME]
-    )
+    repos_collection.setup_content(org.id, lce.id, rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME])
     rhel7_contenthost.contenthost_setup(
         target_sat,
         org.label,
@@ -338,7 +340,9 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, tar
 
 @pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.tier3
-def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthost, target_sat):
+def test_positive_view_vdc_guest_subscription_products(
+    session, rhel7_contenthost, target_sat, function_entitlement_manifest_org
+):
     """Ensure that Virtual Data Centers guest subscription Provided
     Products and Content Products are not empty.
 
@@ -368,7 +372,7 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
 
     :CaseLevel: System
     """
-    org = entities.Organization().create()
+    org = function_entitlement_manifest_org
     lce = entities.LifecycleEnvironment(organization=org).create()
     provisioning_server = settings.libvirt.libvirt_hostname
     rh_product_repository = target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)
@@ -391,6 +395,7 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
         hypervisor_hostname=provisioning_server,
         configure_ssh=True,
         subscription_name=VDC_SUBSCRIPTION_NAME,
+        upload_manifest=False,
         extra_repos=[rh_product_repository.data],
     )
     virt_who_hypervisor_host = virt_who_data['virt_who_hypervisor_host']
@@ -417,7 +422,9 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
 
 
 @pytest.mark.tier3
-def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
+def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
+    session, function_org, function_entitlement_manifest
+):
     """Ensures that no column headers from checkboxes show up in the table after
     unticking everything from selectable customizable column
 
@@ -451,28 +458,20 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
         'Consumed': False,
         'Entitlements': False,
     }
-    org = entities.Organization().create()
-    _, temporary_local_manifest_path = mkstemp(prefix='manifest-', suffix='.zip')
-    with clone() as manifest:
-        with open(temporary_local_manifest_path, 'wb') as file_handler:
-            file_handler.write(manifest.content.read())
-
+    org = function_org
     with session:
         session.organization.select(org.name)
-        # Ignore "Danger alert: Katello::Errors::UpstreamConsumerNotFound" as server will connect
-        # to upstream subscription service to verify
-        # the consumer uuid, that will be displayed in flash error messages
-        # Note: this happen only when using clone manifest.
         session.subscription.add_manifest(
-            temporary_local_manifest_path,
+            function_entitlement_manifest.path,
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound'],
         )
         headers = session.subscription.filter_columns(checkbox_dict)
-        assert not headers
+        assert headers == ('Select all rows',)
         assert len(checkbox_dict) == 9
         time.sleep(3)
         checkbox_dict.update((k, True) for k in checkbox_dict)
         col = session.subscription.filter_columns(checkbox_dict)
+        checkbox_dict.update({'Select all rows': ''})
         assert set(col) == set(checkbox_dict)
 
 

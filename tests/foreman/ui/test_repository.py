@@ -717,7 +717,7 @@ def test_positive_sync_ansible_collection_gallaxy_repo(session, module_prod):
 
 
 @pytest.mark.tier2
-def test_positive_reposet_disable(session, target_sat):
+def test_positive_reposet_disable(session, target_sat, function_entitlement_manifest_org):
     """Enable RH repo, sync it and then disable
 
     :id: de596c56-1327-49e8-86d5-a1ab907f26aa
@@ -726,8 +726,7 @@ def test_positive_reposet_disable(session, target_sat):
 
     :CaseLevel: Integration
     """
-    org = entities.Organization().create()
-    target_sat.upload_manifest(org.id)
+    org = function_entitlement_manifest_org
     sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro='rhel7', cdn=True)
     repository_name = sat_tools_repo.data['repository']
     with session:
@@ -758,7 +757,9 @@ def test_positive_reposet_disable(session, target_sat):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-def test_positive_reposet_disable_after_manifest_deleted(session, target_sat):
+def test_positive_reposet_disable_after_manifest_deleted(
+    session, function_entitlement_manifest_org, target_sat
+):
     """Enable RH repo and sync it. Remove manifest and then disable
     repository
 
@@ -772,8 +773,7 @@ def test_positive_reposet_disable_after_manifest_deleted(session, target_sat):
 
     :CaseLevel: Integration
     """
-    org = entities.Organization().create()
-    target_sat.upload_manifest(org.id)
+    org = function_entitlement_manifest_org
     sub = entities.Subscription(organization=org)
     sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro='rhel7', cdn=True)
     repository_name = sat_tools_repo.data['repository']
@@ -842,7 +842,7 @@ def test_positive_delete_random_docker_repo(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_delete_rhel_repo(session, module_org, target_sat):
+def test_positive_delete_rhel_repo(session, module_entitlement_manifest_org, target_sat):
     """Enable and sync a Red Hat Repository, and then delete it
 
     :id: e96f369d-3e58-4824-802e-0b7e99d6d207
@@ -856,12 +856,11 @@ def test_positive_delete_rhel_repo(session, module_org, target_sat):
     :BZ: 1152672
     """
 
-    target_sat.upload_manifest(module_org.id)
     sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro='rhel7', cdn=True)
     repository_name = sat_tools_repo.data['repository']
     product_name = sat_tools_repo.data['product']
     with session:
-        session.organization.select(module_org.name)
+        session.organization.select(module_entitlement_manifest_org.name)
         session.redhatrepository.enable(
             sat_tools_repo.data['repository-set'],
             sat_tools_repo.data['arch'],
@@ -890,7 +889,7 @@ def test_positive_delete_rhel_repo(session, module_org, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_recommended_repos(session, module_org, target_sat):
+def test_positive_recommended_repos(session, module_entitlement_manifest_org):
     """list recommended repositories using
      On/Off 'Recommended Repositories' toggle.
 
@@ -905,9 +904,8 @@ def test_positive_recommended_repos(session, module_org, target_sat):
 
     :BZ: 1776108
     """
-    target_sat.upload_manifest(module_org.id)
     with session:
-        session.organization.select(module_org.name)
+        session.organization.select(module_entitlement_manifest_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
         assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
         v = get_sat_version()

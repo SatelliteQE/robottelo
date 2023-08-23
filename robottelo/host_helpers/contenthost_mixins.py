@@ -68,10 +68,11 @@ class VersionedContent:
                 product = self.__class__.__name__.lower()
         repo = repo or product  # if repo is not specified, set it to the same as the product is
         release = self.satellite.version if not release else str(release)
+        # issue warning if requesting repofile of different version than the product is
         settings_release = settings.server.version.release.split('.')
         if len(settings_release) == 2:
             settings_release.append('0')
-        settings_release = '.'.join(settings_release[:3])  # keep only major.minor.patch
+        settings_release = '.'.join(settings_release)
         if product != 'client' and release != settings_release:
             logger.warning(
                 'Satellite release in settings differs from the one passed to the function '

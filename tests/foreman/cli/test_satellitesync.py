@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-from random import randint
-
 import pytest
 from fauxfactory import gen_string
 
@@ -34,16 +32,15 @@ from robottelo.cli.file import File
 from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
-from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.settings import Settings
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
+from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
-from robottelo.constants import PRDS
 from robottelo.constants import PULP_EXPORT_DIR
 from robottelo.constants import PULP_IMPORT_DIR
+from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
 from robottelo.constants.repos import ANSIBLE_GALAXY
 
 
@@ -80,64 +77,75 @@ def export_import_cleanup_module(target_sat, module_org):
     )
 
 
+@pytest.fixture(scope='class')
+def docker_repo(module_target_sat, module_org):
+    product = make_product({'organization-id': module_org.id})
+    repo = make_repository(
+        {
+            'organization-id': module_org.id,
+            'product-id': product['id'],
+            'content-type': REPO_TYPE['docker'],
+            'download-policy': 'immediate',
+            'url': 'https://quay.io',
+            'docker-upstream-name': 'quay/busybox',
+        }
+    )
+    Repository.synchronize({'id': repo['id']})
+    yield repo
+
+
+@pytest.fixture(scope='module')
+def module_synced_repo(module_target_sat, module_org, module_product):
+    repo = module_target_sat.cli_factory.make_repository(
+        {
+            'content-type': 'yum',
+            'download-policy': 'immediate',
+            'organization-id': module_org.id,
+            'product-id': module_product.id,
+        }
+    )
+    module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+    yield repo
+
+
+@pytest.fixture(scope='function')
+def function_synced_repo(target_sat, function_org, function_product):
+    repo = target_sat.cli_factory.make_repository(
+        {
+            'content-type': 'yum',
+            'download-policy': 'immediate',
+            'organization-id': function_org.id,
+            'product-id': function_product.id,
+        }
+    )
+    target_sat.cli.Repository.synchronize({'id': repo['id']})
+    yield repo
+
+
 @pytest.mark.run_in_one_thread
 class TestRepositoryExport:
     """Tests for exporting a repository via CLI"""
 
     @pytest.mark.tier3
-    def test_positive_export_complete_version_custom_repo(
-        self, target_sat, export_import_cleanup_module, module_org
+    def test_positive_export_version_custom_repo(
+        self, target_sat, export_import_cleanup_module, module_org, module_synced_repo
     ):
-        """Export a custom repository via complete version
-
-        :id: 9c855866-b9b1-4e32-b3eb-7342fdaa7116
-
-        :expectedresults: Repository was successfully exported, exported files are
-            present on satellite machine
-
-        :CaseLevel: System
-        """
-        # setup custom repo
-        cv_name = gen_string('alpha')
-        product = make_product({'organization-id': module_org.id})
-        repo = make_repository(
-            {
-                'download-policy': 'immediate',
-                'organization-id': module_org.id,
-                'product-id': product['id'],
-            }
-        )
-        Repository.synchronize({'id': repo['id']})
-        # create cv and publish
-        cv = make_content_view({'name': cv_name, 'organization-id': module_org.id})
-        ContentView.add_repository(
-            {
-                'id': cv['id'],
-                'organization-id': module_org.id,
-                'repository-id': repo['id'],
-            }
-        )
-        ContentView.publish({'id': cv['id']})
-        cv = ContentView.info({'id': cv['id']})
-        assert len(cv['versions']) == 1
-        cvv = cv['versions'][0]
-        # Verify export directory is empty
-        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
-        # Export content view
-        ContentExport.completeVersion({'id': cvv['id'], 'organization-id': module_org.id})
-        # Verify export directory is not empty
-        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) != ''
-
-    @pytest.mark.tier3
-    def test_positive_export_incremental_version_custom_repo(
-        self, target_sat, export_import_cleanup_module, module_org
-    ):
-        """Export custom repo via incremental export
+        """Export custom repo via complete and incremental CV version export.
 
         :id: 1b58dca7-c8bb-4893-a306-5882826da559
 
-        :expectedresults: Repository was successfully exported, exported files are
-            present on satellite machine
+        :setup:
+            1. Product with synced custom repository.
+
+        :steps:
+            1. Create a CV, add the product and publish it.
+            2. Export complete CV version.
+            3. Publish new CV version.
+            4. Export incremental CV version.
+
+        :expectedresults:
+            1. Complete export succeeds, exported files are present on satellite machine.
+            2. Incremental export succeeds, exported files are present on satellite machine.
 
         :CaseLevel: System
 
@@ -145,117 +153,82 @@ class TestRepositoryExport:
 
         :customerscenario: true
         """
-        # Create custom product and repository
-        cv_name = gen_string('alpha')
-        product = make_product({'organization-id': module_org.id})
-        repo = make_repository(
-            {
-                'download-policy': 'immediate',
-                'organization-id': module_org.id,
-                'product-id': product['id'],
-            }
-        )
-        Repository.synchronize({'id': repo['id']})
         # Create cv and publish
-        cv = make_content_view({'name': cv_name, 'organization-id': module_org.id})
-        ContentView.add_repository(
+        cv_name = gen_string('alpha')
+        cv = target_sat.cli_factory.make_content_view(
+            {'name': cv_name, 'organization-id': module_org.id}
+        )
+        target_sat.cli.ContentView.add_repository(
             {
                 'id': cv['id'],
                 'organization-id': module_org.id,
-                'repository-id': repo['id'],
+                'repository-id': module_synced_repo['id'],
             }
         )
-        ContentView.publish({'id': cv['id']})
-        cv = ContentView.info({'id': cv['id']})
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
         assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
-        # Export complete first, then incremental
-        ContentExport.completeVersion({'id': cvv['id'], 'organization-id': module_org.id})
-        ContentExport.incrementalVersion({'id': cvv['id'], 'organization-id': module_org.id})
-        # Verify export directory is not empty
-        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) != ''
+        # Export complete and check the export directory
+        target_sat.cli.ContentExport.completeVersion(
+            {'id': cvv['id'], 'organization-id': module_org.id}
+        )
+        assert '1.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
+        # Publish new CV version, export incremental and check the export directory
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 2
+        cvv = cv['versions'][1]
+        target_sat.cli.ContentExport.incrementalVersion(
+            {'id': cvv['id'], 'organization-id': module_org.id}
+        )
+        assert '2.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
 
     @pytest.mark.tier3
-    def test_positive_export_complete_library_custom_repo(
-        self, function_org, export_import_cleanup_function, target_sat
+    def test_positive_export_library_custom_repo(
+        self, target_sat, export_import_cleanup_function, function_org, function_synced_repo
     ):
-        """Export custom repo via complete library export
-
-        :id: 5f35654b-fc46-48f0-b064-595e04e2bd7e
-
-        :expectedresults: Repository was successfully exported, exported files are
-            present on satellite machine
-
-        :CaseLevel: System
-        """
-        # Create custom product and repository
-        cv_name = gen_string('alpha')
-        product = make_product({'organization-id': function_org.id})
-        repo = make_repository(
-            {
-                'download-policy': 'immediate',
-                'organization-id': function_org.id,
-                'product-id': product['id'],
-            }
-        )
-        cv = make_content_view({'name': cv_name, 'organization-id': function_org.id})
-        ContentView.add_repository(
-            {
-                'id': cv['id'],
-                'organization-id': function_org.id,
-                'repository-id': repo['id'],
-            }
-        )
-        ContentView.publish({'id': cv['id']})
-        # Verify export directory is empty
-        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
-        # Export content view
-        ContentExport.completeLibrary({'organization-id': function_org.id})
-        # Verify export directory is not empty
-        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
-
-    @pytest.mark.tier3
-    def test_positive_export_incremental_library_custom_repo(
-        self, export_import_cleanup_function, function_org, target_sat
-    ):
-        """Export custom repo via incremental library export
+        """Export custom repo via complete and incremental library export.
 
         :id: ba8dc7f3-55c2-4120-ac76-cc825ef0abb8
 
-        :expectedresults: Repository was successfully exported, exported files are
-            present on satellite machine
+        :setup:
+            1. Product with synced custom repository.
+
+        :steps:
+            1. Create a CV, add the product and publish it.
+            2. Export complete library.
+            3. Export incremental library.
+
+        :expectedresults:
+            1. Complete export succeeds, exported files are present on satellite machine.
+            2. Incremental export succeeds, exported files are present on satellite machine.
 
         :CaseLevel: System
         """
-        # Create custom product and repository
-        cv_name = gen_string('alpha')
-        product = make_product({'organization-id': function_org.id})
-        repo = make_repository(
-            {
-                'download-policy': 'immediate',
-                'organization-id': function_org.id,
-                'product-id': product['id'],
-            }
-        )
         # Create cv and publish
-        cv = make_content_view({'name': cv_name, 'organization-id': function_org.id})
-        ContentView.add_repository(
+        cv_name = gen_string('alpha')
+        cv = target_sat.cli_factory.make_content_view(
+            {'name': cv_name, 'organization-id': function_org.id}
+        )
+        target_sat.cli.ContentView.add_repository(
             {
                 'id': cv['id'],
                 'organization-id': function_org.id,
-                'repository-id': repo['id'],
+                'repository-id': function_synced_repo['id'],
             }
         )
-        ContentView.publish({'id': cv['id']})
+        target_sat.cli.ContentView.publish({'id': cv['id']})
         # Verify export directory is empty
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
-        # Export complete library, then export incremental
-        ContentExport.completeLibrary({'organization-id': function_org.id})
-        ContentExport.incrementalLibrary({'organization-id': function_org.id})
-        # Verify export directory is not empty
-        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
+        # Export complete and check the export directory
+        target_sat.cli.ContentExport.completeLibrary({'organization-id': function_org.id})
+        assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
+        # Export incremental and check the export directory
+        target_sat.cli.ContentExport.incrementalLibrary({'organization-id': function_org.id})
+        assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -271,28 +244,14 @@ class TestRepositoryExport:
 
         :CaseLevel: System
         """
-        # Enable RH repository
-        cv_name = gen_string('alpha')
-        RepositorySet.enable(
-            {
-                'basearch': 'x86_64',
-                'name': REPOSET['rhva6'],
-                'organization-id': module_entitlement_manifest_org.id,
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
-            }
+        # Enable and sync RH repository
+        repo = _enable_rhel_content(
+            sat=target_sat,
+            org=module_entitlement_manifest_org,
+            repo_dict=REPOS['rhae2'],
         )
-        repo = Repository.info(
-            {
-                'name': REPOS['rhva6']['name'],
-                'organization-id': module_entitlement_manifest_org.id,
-                'product': PRDS['rhel'],
-            }
-        )
-        # Update the download policy to 'immediate' and sync
-        Repository.update({'download-policy': 'immediate', 'id': repo['id']})
-        Repository.synchronize({'id': repo['id']})
         # Create cv and publish
+        cv_name = gen_string('alpha')
         cv = make_content_view(
             {'name': cv_name, 'organization-id': module_entitlement_manifest_org.id}
         )
@@ -324,40 +283,26 @@ class TestRepositoryExport:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    def test_positive_complete_library_rh_repo(
+    def test_positive_export_complete_library_rh_repo(
         self, export_import_cleanup_function, function_entitlement_manifest_org, target_sat
     ):
         """Export RedHat repo via complete library
 
         :id: ffae18bf-6536-4f11-8002-7bf1568bf7f1
 
-        :expectedresults: Repository was successfully exported, exported files are
-            present on satellite machine
+        :expectedresults:
+            1. Repository was successfully exported, exported files are present on satellite machine
 
         :CaseLevel: System
         """
-        # Enable RH repository
-        cv_name = gen_string('alpha')
-        RepositorySet.enable(
-            {
-                'basearch': 'x86_64',
-                'name': REPOSET['rhva6'],
-                'organization-id': function_entitlement_manifest_org.id,
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
-            }
+        # Enable and sync RH repository
+        repo = _enable_rhel_content(
+            sat=target_sat,
+            org=function_entitlement_manifest_org,
+            repo_dict=REPOS['rhae2'],
         )
-        repo = Repository.info(
-            {
-                'name': REPOS['rhva6']['name'],
-                'organization-id': function_entitlement_manifest_org.id,
-                'product': PRDS['rhel'],
-            }
-        )
-        # Update the download policy to 'immediate' and sync
-        Repository.update({'download-policy': 'immediate', 'id': repo['id']})
-        Repository.synchronize({'id': repo['id']}, timeout=7200000)
         # Create cv and publish
+        cv_name = gen_string('alpha')
         cv = make_content_view(
             {'name': cv_name, 'organization-id': function_entitlement_manifest_org.id}
         )
@@ -381,6 +326,96 @@ class TestRepositoryExport:
             target_sat.validate_pulp_filepath(function_entitlement_manifest_org, PULP_EXPORT_DIR)
             != ''
         )
+
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
+    def test_positive_export_repository_docker(
+        self, target_sat, export_import_cleanup_module, module_org, docker_repo
+    ):
+        """Export docker repo via complete and incremental repository.
+
+        :id: 3c666ffd-d287-4006-b3a0-66d892fe4250
+
+        :setup:
+            1. Have a synchronized docker-type repo with immediate download policy.
+
+        :steps:
+            1. Export complete repository.
+            2. Export incremental repository.
+
+        :expectedresults:
+            1. Export path is created (with expected files) for complete export.
+            2. Export path is created (with expected files) for incremental export.
+
+        :BZ: 1650468
+
+        :customerscenario: true
+        """
+        # Verify export directory is empty
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
+        # Export complete and check the export directory
+        target_sat.cli.ContentExport.completeRepository({'id': docker_repo['id']})
+        assert '1.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
+        # Export incremental and check the export directory
+        target_sat.cli.ContentExport.incrementalRepository({'id': docker_repo['id']})
+        assert '2.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
+
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
+    def test_positive_export_version_docker(
+        self, target_sat, export_import_cleanup_module, module_org, docker_repo
+    ):
+        """Export CV with docker repo via complete and incremental version.
+
+        :id: ddff4560-cd39-4ecc-a538-09aad9f64a73
+
+        :setup:
+            1. Have a synchronized docker-type repo with immediate download policy.
+
+        :steps:
+            1. Create a CV, add the docker repository and publish it.
+            2. Export complete version of the CV.
+            3. Publish new version of the CV.
+            4. Export incremental version of the CV.
+
+        :expectedresults:
+            1. Export path is created (with expected files) for complete CVV export.
+            2. Export path is created (with expected files) for incremental CVV export.
+
+        :BZ: 1650468
+
+        :customerscenario: true
+        """
+        # Create CV and publish
+        cv_name = gen_string('alpha')
+        cv = make_content_view({'name': cv_name, 'organization-id': module_org.id})
+        target_sat.cli.ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_org.id,
+                'repository-id': docker_repo['id'],
+            }
+        )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 1
+        cvv = cv['versions'][0]
+        # Verify export directory is empty
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
+        # Export complete and check the export directory
+        target_sat.cli.ContentExport.completeVersion(
+            {'id': cvv['id'], 'organization-id': module_org.id}
+        )
+        assert '1.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
+        # Publish new CVV, export incremental and check the export directory
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 2
+        cvv = cv['versions'][1]
+        target_sat.cli.ContentExport.incrementalVersion(
+            {'id': cvv['id'], 'organization-id': module_org.id}
+        )
+        assert '2.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
 
 
 @pytest.fixture(scope='class')
@@ -440,42 +475,40 @@ def _create_cv(cv_name, repo, module_org, publish=True):
     return content_view, cvv_id
 
 
-def _enable_rhel_content(
-    sat_obj, module_entitlement_manifest_org, repo_name, releasever=None, product=None, sync=True
-):
-    """Enable and/or Synchronize rhel content
+def _enable_rhel_content(sat, org, repo_dict, ver=None, sync=True):
+    """Enable (and synchronize) rhel content
 
-    :param organization: The organization directory into which the rhel
-        contents will be enabled
-    :param bool sync: Syncs contents to repository if true else doesnt
+    :param sat: Satellite instance to work with
+    :param org: The organization directory into which the rhel contents will be enabled
+    :param repo_dict: The repository dict as defined in consts REPOS
+    :param bool sync: Syncs contents to repository if true else doesn't
     :return: Repository cli object
     """
-    RepositorySet.enable(
+    sat.cli.RepositorySet.enable(
         {
-            'basearch': 'x86_64',
-            'name': REPOSET[repo_name],
-            'organization-id': module_entitlement_manifest_org.id,
-            'product': PRDS[product],
-            'releasever': releasever,
+            'organization-id': org.id,
+            'name': repo_dict['reposet'],
+            'product': repo_dict['product'],
+            'releasever': ver or repo_dict.get('releasever', None),
+            'basearch': DEFAULT_ARCHITECTURE,
         }
     )
-    repo = Repository.info(
+    repo = sat.cli.Repository.info(
         {
-            'name': REPOS[repo_name]['name'],
-            'organization-id': module_entitlement_manifest_org.id,
-            'product': PRDS[product],
+            'organization-id': org.id,
+            'name': repo_dict['name'],
+            'product': repo_dict['product'],
         }
     )
-    # Update the download policy to 'immediate'
-    Repository.update({'download-policy': 'immediate', 'mirror-on-sync': 'no', 'id': repo['id']})
+    # Update the download policy to 'immediate' and sync if required
+    sat.cli.Repository.update({'download-policy': 'immediate', 'id': repo['id']})
     if sync:
-        # Synchronize the repository
-        Repository.synchronize({'id': repo['id']}, timeout=7200000)
-    repo = Repository.info(
+        sat.cli.Repository.synchronize({'id': repo['id']}, timeout=7200000)
+    repo = sat.cli.Repository.info(
         {
-            'name': REPOS[repo_name]['name'],
-            'organization-id': module_entitlement_manifest_org.id,
-            'product': PRDS[product],
+            'organization-id': org.id,
+            'name': repo_dict['name'],
+            'product': repo_dict['product'],
         }
     )
     return repo
@@ -910,28 +943,15 @@ class TestContentViewSync:
 
         :CaseLevel: System
         """
-        # Setup rhel repo
-        cv_name = gen_string('alpha')
-        RepositorySet.enable(
-            {
-                'basearch': 'x86_64',
-                'name': REPOSET['kickstart']['rhel7'],
-                'organization-id': function_entitlement_manifest_org.id,
-                'product': PRDS['rhel'],
-                'releasever': '7.9',
-            }
+        # Enable and sync RH repository
+        repo = _enable_rhel_content(
+            sat=target_sat,
+            org=function_entitlement_manifest_org,
+            repo_dict=REPOS['kickstart']['rhel7'],
+            ver=REPOS['kickstart']['rhel7']['version'],
         )
-        repo = Repository.info(
-            {
-                'name': REPOS['kickstart']['rhel7']['name'],
-                'organization-id': function_entitlement_manifest_org.id,
-                'product': PRDS['rhel'],
-            }
-        )
-        # Update the download policy to 'immediate' and sync
-        Repository.update({'download-policy': 'immediate', 'id': repo['id']})
-        Repository.synchronize({'id': repo['id']}, timeout=7200000)
         # Create cv and publish
+        cv_name = gen_string('alpha')
         cv = make_content_view(
             {'name': cv_name, 'organization-id': function_entitlement_manifest_org.id}
         )
@@ -1036,28 +1056,14 @@ class TestContentViewSync:
 
         :CaseLevel: Acceptance
         """
-        cv_name = gen_string('alpha')
-
-        RepositorySet.enable(
-            {
-                'basearch': 'x86_64',
-                'name': REPOSET['rhscl7'],
-                'organization-id': function_entitlement_manifest_org.id,
-                'product': PRDS['rhscl'],
-                'releasever': '7Server',
-            }
+        # Enable and sync RH repository
+        repo = _enable_rhel_content(
+            sat=target_sat,
+            org=function_entitlement_manifest_org,
+            repo_dict=REPOS['rhscl7'],
         )
-        repo = Repository.info(
-            {
-                'name': REPOS['rhscl7']['name'],
-                'organization-id': function_entitlement_manifest_org.id,
-                'product': PRDS['rhscl'],
-            }
-        )
-        # Update the download policy to 'immediate' and sync
-        Repository.update({'download-policy': 'immediate', 'id': repo['id']})
-        Repository.synchronize({'id': repo['id']}, timeout=7200000)
         # Create cv and publish
+        cv_name = gen_string('alpha')
         cv = make_content_view(
             {'name': cv_name, 'organization-id': function_entitlement_manifest_org.id}
         )
@@ -1133,66 +1139,87 @@ class TestContentViewSync:
         :id: c366ace5-1fde-4ae7-9e84-afe58c06c0ca
 
         :steps:
-
             1. Create product
             2. Create repos with immediate and on_demand download policy
             3. Sync the repositories
             4. Create CV with above product and publish
-            5. Attempt to export CV version contents
+            5. Attempt to export CV version with 'fail-on-missing' option
+            6. Attempt to export CV version without 'fail-on-missing' option
 
         :expectedresults:
-
-            1. Export passes with warning and skips the on_demand repo
-
-        :BZ: 1998626
+            1. Export fails when 'fail-on-missing' option is used
+            2. Export passes otherwise with warning and skips the on_demand repo
         """
         # Create custom product
-        product = make_product({'organization-id': module_org.id, 'name': gen_string('alpha')})
+        product = target_sat.cli_factory.make_product(
+            {'organization-id': module_org.id, 'name': gen_string('alpha')}
+        )
 
-        # Create repositories
-        repo_ondemand = make_repository(
+        # Create repositories and sync them
+        repo_ondemand = target_sat.cli_factory.make_repository(
             {
+                'content-type': 'yum',
                 'download-policy': 'on_demand',
                 'organization-id': module_org.id,
                 'product-id': product['id'],
             }
         )
-        repo_immediate = make_repository(
+        repo_immediate = target_sat.cli_factory.make_repository(
             {
+                'content-type': 'yum',
                 'download-policy': 'immediate',
                 'organization-id': module_org.id,
                 'product-id': product['id'],
             }
         )
-
-        # Sync repositories
-        Repository.synchronize({'id': repo_ondemand['id']})
-        Repository.synchronize({'id': repo_immediate['id']})
+        target_sat.cli.Repository.synchronize({'id': repo_ondemand['id']})
+        target_sat.cli.Repository.synchronize({'id': repo_immediate['id']})
 
         # Create cv and publish
-        cv = make_content_view({'name': gen_string('alpha'), 'organization-id': module_org.id})
-        ContentView.add_repository(
+        cv = target_sat.cli_factory.make_content_view(
+            {'name': gen_string('alpha'), 'organization-id': module_org.id}
+        )
+        target_sat.cli.ContentView.add_repository(
             {
                 'id': cv['id'],
                 'organization-id': module_org.id,
                 'repository-id': repo_ondemand['id'],
             }
         )
-        ContentView.add_repository(
+        target_sat.cli.ContentView.add_repository(
             {
                 'id': cv['id'],
                 'organization-id': module_org.id,
                 'repository-id': repo_immediate['id'],
             }
         )
-        ContentView.publish({'id': cv['id']})
+        target_sat.cli.ContentView.publish({'id': cv['id']})
 
         # Verify export directory is empty
         assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
 
-        # Export Content View version
-        result = ContentExport.completeVersion(
-            {'id': cv['id'], 'organization-id': module_org.id},
+        # Attempt to export CV version with 'fail-on-missing' option
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentExport.completeVersion(
+                {
+                    'organization-id': module_org.id,
+                    'content-view-id': cv['id'],
+                    'version': '1.0',
+                    'fail-on-missing-content': True,
+                },
+                output_format='base',  # json output can't be parsed - BZ#1998626
+            )
+
+        # Export is not generated
+        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
+
+        # Attempt to export CV version without 'fail-on-missing' option
+        result = target_sat.cli.ContentExport.completeVersion(
+            {
+                'organization-id': module_org.id,
+                'content-view-id': cv['id'],
+                'version': '1.0',
+            },
             output_format='base',  # json output can't be parsed - BZ#1998626
         )
 
@@ -1289,117 +1316,6 @@ class TestContentViewSync:
             'If the metadata.json file is at a different location provide it to the '
             '--metadata-file option'
         ) in error.value.message
-
-    @pytest.mark.tier2
-    def test_negative_export_cv_with_on_demand_repo(
-        self, export_import_cleanup_module, target_sat, module_org
-    ):
-        """Exporting CV version having on_demand repo throws error
-        with "fail-on-missing-content" option set
-
-        :id: f8b86d0e-e1a7-4e19-bb82-6de7d16c6676
-
-        :steps:
-
-            1. Create product
-            2. Create repos with immediate and on_demand download policy
-            3. Sync the repositories
-            4. Create CV with above product and publish
-            5. Attempt to export CV version contents
-
-        :expectedresults:
-
-            1. Export fails with error and no export is created
-
-        :BZ: 1998626, 2067275
-        """
-
-        # Create custom product
-        product = make_product({'organization-id': module_org.id, 'name': gen_string('alpha')})
-
-        # Create repositories
-        repo_ondemand = make_repository(
-            {
-                'download-policy': 'on_demand',
-                'organization-id': module_org.id,
-                'product-id': product['id'],
-            }
-        )
-        repo_immediate = make_repository(
-            {
-                'download-policy': 'immediate',
-                'organization-id': module_org.id,
-                'product-id': product['id'],
-            }
-        )
-
-        # Sync repositories
-        Repository.synchronize({'id': repo_ondemand['id']})
-        Repository.synchronize({'id': repo_immediate['id']})
-
-        # Create cv and publish
-        cv = make_content_view({'name': gen_string('alpha'), 'organization-id': module_org.id})
-        ContentView.add_repository(
-            {
-                'id': cv['id'],
-                'organization-id': module_org.id,
-                'repository-id': repo_ondemand['id'],
-            }
-        )
-        ContentView.add_repository(
-            {
-                'id': cv['id'],
-                'organization-id': module_org.id,
-                'repository-id': repo_immediate['id'],
-            }
-        )
-        ContentView.publish({'id': cv['id']})
-
-        # Verify export directory is empty
-        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
-
-        # Export Content View version
-        with pytest.raises(CLIReturnCodeError) as error:
-            ContentExport.completeVersion(
-                {'id': cv['id'], 'organization-id': module_org.id, 'fail-on-missing-content': True},
-                output_format='base',  # json output can't be parsed - BZ#1998626
-            )
-            # Error is raised
-            assert error.status != 0
-
-        # Export is not generated
-        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
-
-    @pytest.mark.tier2
-    def test_positive_create_custom_major_minor_cv_version(self):
-        """CV can published with custom major and minor versions
-
-        :id: 6697cd22-253a-4bdc-a108-7e0af22caaf4
-
-        :steps:
-
-            1. Create product and repository with custom contents
-            2. Sync the repository
-            3. Create CV with above repository
-            4. Publish the CV with custom major and minor versions
-
-        :expectedresults:
-
-            1. CV version with custom major and minor versions is created
-
-        :CaseLevel: System
-        """
-        org = make_org()
-        major = randint(1, 1000)
-        minor = randint(1, 1000)
-        content_view = make_content_view(
-            {'name': gen_string('alpha'), 'organization-id': org['id']}
-        )
-        ContentView.publish({'id': content_view['id'], 'major': major, 'minor': minor})
-        content_view = ContentView.info({'id': content_view['id']})
-        cvv = content_view['versions'][0]['version']
-        assert cvv.split('.')[0] == str(major)
-        assert cvv.split('.')[1] == str(minor)
 
     @pytest.mark.tier3
     def test_postive_export_cv_with_mixed_content_repos(
@@ -1646,28 +1562,14 @@ class TestContentViewSync:
                importing content."
 
         """
-        # Setup rhel repo
-        cv_name = gen_string('alpha')
-        RepositorySet.enable(
-            {
-                'basearch': 'x86_64',
-                'name': REPOSET['rhva6'],
-                'organization-id': function_entitlement_manifest_org.id,
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
-            }
+        # Enable and sync RH repository
+        repo = _enable_rhel_content(
+            sat=target_sat,
+            org=function_entitlement_manifest_org,
+            repo_dict=REPOS['rhae2'],
         )
-        repo = Repository.info(
-            {
-                'name': REPOS['rhva6']['name'],
-                'organization-id': function_entitlement_manifest_org.id,
-                'product': PRDS['rhel'],
-            }
-        )
-        # Update the download policy to 'immediate' and sync
-        Repository.update({'download-policy': 'immediate', 'id': repo['id']})
-        Repository.synchronize({'id': repo['id']}, timeout=7200000)
         # Create cv and publish
+        cv_name = gen_string('alpha')
         cv = make_content_view(
             {'name': cv_name, 'organization-id': function_entitlement_manifest_org.id}
         )
@@ -1769,104 +1671,6 @@ class TestInterSatelliteSync:
 
     @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_negative_export_cv(self):
-        """Export whole CV version contents is aborted due to insufficient
-        memory.
-
-        :id: 4fa58c0c-95d2-45f5-a7fc-c5f3312a989c
-
-        :steps: Attempt to Export whole CV version contents to a directory
-            which has less memory available than contents size.
-
-        :expectedresults: The export CV version contents has been aborted due
-            to insufficient memory.
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
-    def test_positive_export_import_cv_iso(self):
-        """Export CV version contents in directory as iso and Import it.
-
-        :id: 5c39afd4-09d6-43c5-8d50-edc98105b7db
-
-        :steps:
-
-            1. Export whole CV version contents as ISO
-            2. Import these copied ISO to some other org/satellite.
-
-        :expectedresults:
-
-            1. CV version has been exported to directory as ISO in specified in
-               settings.
-            2. The exported ISO has been imported in org/satellite.
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_negative_export_cv_iso(self):
-        """Export whole CV version to iso is aborted due to insufficient
-        memory.
-
-        :id: ef84ffbd-c7cf-4d9a-9944-3c3b06a18872
-
-        :steps: Attempt to Export whole CV version as iso to a directory which
-            has less memory available than contents size.
-
-        :expectedresults: The export CV version to iso has been aborted due to
-            insufficient memory.
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_negative_export_cv_iso_max_size(self):
-        """Export whole CV version to iso is aborted due to inadequate maximum
-        iso size.
-
-        :id: 93fe1cef-254b-484d-a628-bec56b356234
-
-        :steps: Attempt to Export whole CV version as iso with mb size less
-            than required.
-
-        :expectedresults: The export CV version to iso has been aborted due to
-            maximum size is not enough to contain the CV version contents.
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_export_cv_iso_max_size(self):
-        """CV version exported to iso in maximum iso size.
-
-        :id: 7ec91557-bafc-490d-b760-573a07389be5
-
-        :steps: Attempt to Export whole CV version as iso with mb size more
-            than required.
-
-        :expectedresults: CV version has been exported to iso successfully.
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_import_cv_incremental(self):
         """Export and Import CV version contents incrementally.
@@ -1874,44 +1678,20 @@ class TestInterSatelliteSync:
         :id: 3c4dfafb-fabf-406e-bca8-7af1ab551135
 
         :steps:
-            1. In upstream, Export CV version contents to a directory specified
-               in settings.
-            2. In downstream, Import these copied contents from some other
-               org/satellite.
-            3. In upstream, Add new packages to the CV.
-            4. Export the CV incrementally from the last date time.
+            1. In upstream, Export CV version contents to a directory specified in settings.
+            2. In downstream, Import these copied contents from some other org/satellite.
+            3. In upstream, don't add any new packages to the CV.
+            4. Export the CV incrementally.
             5. In downstream, Import the CV incrementally.
+            6. In upstream, add new packages to the CV.
+            7. Export the CV incrementally.
+            8. In downstream, Import the CV incrementally.
 
         :expectedresults:
             1. On incremental export, only the new packages are exported.
-            2. New directory of incremental export with new packages is
-               created.
-            3. On incremental import, only the new packages are imported.
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_negative_export_import_cv_incremental(self):
-        """No new incremental packages exported or imported.
-
-        :id: 90692d59-788c-4e18-add1-33db04204a4b
-
-        :steps:
-            1. In upstream, Export CV version contents to a directory specified
-               in settings.
-            2. In downstream, Import these copied contents from some other
-               org/satellite.
-            3. In upstream, Don't add any new packages to the CV.
-            4. Export the CV incrementally from the last date time.
-            5. In downstream, Import the CV incrementally.
-
-        :expectedresults:
-            1. An Empty packages directory created on incremental export.
-            2. On incremental import, no new packages are imported.
+            2. New directory of incremental export with new packages is created.
+            3. On first incremental import, no new packages are imported.
+            4. On second incremental import, only the new packages are imported.
 
         :CaseAutomation: NotAutomated
 
@@ -1986,54 +1766,6 @@ class TestInterSatelliteSync:
 
     @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_negative_import_kickstart_tree(self):
-        """Export whole kickstart tree in directory and Import nothing.
-
-        :id: 55ddf6a6-b99a-4986-bdd3-7a5384f06915
-
-        :steps:
-
-            1. Export whole kickstart tree contents to a directory specified in
-               settings.
-            2. Dont copy exported contents to /var/www/html/pub/export
-               directory.
-            3. Attempt to import these not copied contents from some other
-               org/satellite.
-
-        :expectedresults:
-
-            1. Whole kickstart tree has been exported to directory specified in
-               settings.
-            2. The exported contents are not imported due to non availability.
-            3. Error is thrown for non availability of kickstart tree to
-               import.
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_negative_export_kickstart_tree(self):
-        """Export whole kickstart tree contents is aborted due to insufficient
-        memory.
-
-        :id: 5f681f43-bac8-4196-9b3c-8b66b9c149f9
-
-        :steps: Attempt to Export whole kickstart tree contents to a directory
-            which has less memory available than contents size.
-
-        :expectedresults: The export kickstart tree has been aborted due to
-            insufficient memory.
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
     def test_positive_export_redhat_incremental_yum_repo(self):
         """Export Red Hat YUM repo in directory incrementally.
 
@@ -2070,32 +1802,6 @@ class TestInterSatelliteSync:
             4. Import the exported YUM repo contents incrementally.
 
         :expectedresults: YUM repo contents have been imported incrementally.
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
-    def test_positive_export_import_redhat_mix_cv(self):
-        """Export CV version having Red Hat and custom repo in directory
-        and Import them.
-
-        :id: a38cf67d-563c-46f0-a263-4825b26faf2b
-
-        :steps:
-
-            1. Export whole CV version having mixed repos to a path accessible
-               over HTTP.
-            2. Import the Red Hat repository by defining the CDN URL from the
-               exported HTTP URL.
-            3. Import custom repo by creating new repo and setting yum repo url
-               to exported HTTP url.
-
-        :expectedresults: Both custom and Red Hat repos are imported
-            successfully.
 
         :CaseAutomation: NotAutomated
 

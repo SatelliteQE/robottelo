@@ -382,7 +382,7 @@ def test_positive_autocomplete(session):
 
 @pytest.mark.tier2
 def test_positive_schedule_generation_and_get_mail(
-    session, module_manifest_org, module_location, target_sat
+    session, module_entitlement_manifest_org, module_location, target_sat
 ):
     """Schedule generating a report. Request the result be sent via e-mail.
 
@@ -437,7 +437,9 @@ def test_positive_schedule_generation_and_get_mail(
     target_sat.get(remote_path=str(gzip_path), local_path=str(local_gzip_file))
     assert os.system(f'gunzip {local_gzip_file}') == 0
     data = json.loads(local_file.read_text())
-    subscription_search = target_sat.api.Subscription(organization=module_manifest_org).search()
+    subscription_search = target_sat.api.Subscription(
+        organization=module_entitlement_manifest_org
+    ).search()
     assert len(data) >= len(subscription_search) > 0
     keys_expected = [
         'Account number',

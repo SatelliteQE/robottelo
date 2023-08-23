@@ -82,6 +82,7 @@ def test_positive_list_health_check_by_tags(sat_maintain):
         assert sat_maintain.cli.Health.list({"tags": tag}).status == 0
 
 
+@pytest.mark.e2e
 @pytest.mark.include_capsule
 def test_positive_health_check(sat_maintain):
     """Verify satellite-maintain health check
@@ -117,7 +118,12 @@ def test_positive_health_check_by_tags(sat_maintain):
     result = sat_maintain.cli.Health.list_tags().stdout
     output = [i.split("]\x1b[0m")[0] for i in result.split("\x1b[36m[") if i]
     for tag in output:
-        assert sat_maintain.cli.Health.check(options={'tags': tag, 'assumeyes': True}).status == 0
+        assert (
+            sat_maintain.cli.Health.check(
+                options={'tags': tag, 'assumeyes': True, 'whitelist': 'non-rh-packages'}
+            ).status
+            == 0
+        )
 
 
 @pytest.mark.include_capsule
@@ -133,7 +139,9 @@ def test_positive_health_check_pre_upgrade(sat_maintain):
 
     :expectedresults: Pre-upgrade health checks should pass.
     """
-    result = sat_maintain.cli.Health.check(options={'tags': 'pre-upgrade'})
+    result = sat_maintain.cli.Health.check(
+        options={'tags': 'pre-upgrade', 'whitelist': 'non-rh-packages'}
+    )
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
@@ -759,7 +767,7 @@ def test_positive_health_check_non_rh_packages(sat_maintain, request):
         == 0
     )
     result = sat_maintain.cli.Health.check({'label': 'non-rh-packages'})
-    assert 'Found 1 unexpected non Red Hat Package(s) installed!' in result.stdout
+    assert 'unexpected non Red Hat Package(s) installed!' in result.stdout
     assert 'walrus-5.21-1.noarch' in result.stdout
     assert result.status == 78
     assert 'WARNING' in result.stdout

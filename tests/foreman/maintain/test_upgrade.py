@@ -21,6 +21,7 @@ import pytest
 pytestmark = pytest.mark.destructive
 
 
+@pytest.mark.e2e
 @pytest.mark.include_capsule
 def test_positive_satellite_maintain_upgrade_list(sat_maintain):
     """List versions this system is upgradable to

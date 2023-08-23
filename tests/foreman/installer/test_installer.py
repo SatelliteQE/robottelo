@@ -19,6 +19,9 @@
 import pytest
 
 from robottelo import ssh
+from robottelo.config import settings
+from robottelo.constants import DEFAULT_ORG
+from robottelo.hosts import setup_capsule
 
 PREVIOUS_INSTALLER_OPTIONS = {
     '-',
@@ -1373,6 +1376,7 @@ def test_positive_check_installer_hammer_ping(target_sat):
     assert not not_ok
 
 
+@pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.tier3
 @pytest.mark.parametrize('filter', ['params', 'sections'])
@@ -1402,6 +1406,95 @@ def test_installer_options_and_sections(filter):
     added.sort()
     msg = f"###Removed {filter}:\n{removed}\n###Added {filter}:\n{added}"
     assert previous == current, msg
+
+
+@pytest.mark.tier1
+@pytest.mark.build_sanity
+@pytest.mark.first_sanity
+@pytest.mark.parametrize(
+    "installer_satellite", [settings.server.version.rhel_version], indirect=True
+)
+def test_satellite_installation(installer_satellite):
+    """Run a basic Satellite installation
+
+    :id: 661206f3-2eec-403c-af26-3c5cadcd5766
+
+    :steps:
+        1. Get RHEL Host
+        2. Configure satellite repos
+        3. Enable satellite module
+        4. Install satellite
+        5. Run satellite-installer
+
+    :expectedresults:
+        1. Correct satellite packaged is installed
+        2. satellite-installer runs successfully
+        3. satellite-maintain health check runs successfully
+
+    :CaseImportance: Critical
+
+    """
+    result = installer_satellite.execute(
+        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/satellite.log'
+    )
+    assert len(result.stdout) == 0
+    result = installer_satellite.cli.Health.check()
+    assert 'FAIL' not in result.stdout
+
+
+@pytest.mark.e2e
+@pytest.mark.tier1
+@pytest.mark.parametrize(
+    "installer_satellite", [settings.server.version.rhel_version], indirect=True
+)
+def test_satellite_and_capsule_installation(installer_satellite, cap_ready_rhel):
+    """Run a basic Satellite and Capsule installation
+
+    :id: bbab30a6-6861-494f-96dd-23b883c2c906
+
+    :steps:
+        1. Get 2 RHEL hosts
+        2. Configure satellite repos
+        3. Enable satellite module
+        4. Install satellite
+        5. Run satellite-installer
+        6. Configure capsule repos
+        7. Enable capsule module
+        8. Install and setup capsule
+
+    :expectedresults:
+        1. Correct satellite packaged is installed
+        2. satellite-installer runs successfully
+        3. satellite-maintain health check runs successfully
+        4. Capsule is installed and setup correctly
+
+    :CaseImportance: Critical
+    """
+    # Get Capsule repofile, and enable and download satellite-capsule
+    cap_ready_rhel.register_to_cdn()
+    cap_ready_rhel.download_repofile(product='capsule', release=settings.server.version.release)
+    cap_ready_rhel.execute(
+        'dnf -y module enable satellite-capsule:el8 && dnf -y install satellite-capsule'
+    )
+    # Configure Satellite firewall to open communication
+    installer_satellite.execute(
+        'firewall-cmd --permanent --add-service RH-Satellite-6 && '
+        'firewall-cmd --add-service RH-Satellite-6'
+    )
+    # Setup Capsule
+    org = installer_satellite.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[
+        0
+    ]
+    setup_capsule(installer_satellite, cap_ready_rhel, org)
+    assert installer_satellite.api.Capsule().search(
+        query={'search': f'name={cap_ready_rhel.hostname}'}
+    )[0]
+    result = cap_ready_rhel.execute(
+        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/satellite.log'
+    )
+    assert len(result.stdout) == 0
+    result = cap_ready_rhel.cli.Health.check()
+    assert 'FAIL' not in result.stdout
 
 
 @pytest.mark.stubbed

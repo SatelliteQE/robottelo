@@ -26,46 +26,33 @@ from fauxfactory import gen_choice
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
 from nailgun import client
-from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.config import user_nailgun_config
 from robottelo.utils.datafactory import invalid_names_list
 from robottelo.utils.datafactory import valid_data_list
 
 
-@pytest.fixture(scope="module")
-def module_location(module_location):
-    yield module_location
-    module_location.delete()
-
-
-@pytest.fixture(scope="module")
-def module_org(module_org):
-    yield module_org
-    module_org.delete()
-
-
-@pytest.fixture(scope="module")
-def module_user(module_org, module_location):
+@pytest.fixture(scope='module')
+def module_user(module_target_sat, module_org, module_location):
     """Creates an org admin role and user"""
     user_login = gen_string('alpha')
     user_password = gen_string('alpha')
-    # Create user with Manager role
-    orig_role = entities.Role().search(query={'search': 'name="Organization admin"'})[0]
-    new_role_dict = entities.Role(id=orig_role.id).clone(
+    orig_role = module_target_sat.api.Role().search(query={'search': 'name="Organization admin"'})[
+        0
+    ]
+    new_role_dict = module_target_sat.api.Role(id=orig_role.id).clone(
         data={
             'role': {
-                'name': f"test_template_admin_{gen_string('alphanumeric', 3)}",
+                'name': f'test_template_admin_{gen_string("alphanumeric", 3)}',
                 'organization_ids': [module_org.id],
                 'location_ids': [module_location.id],
             }
         }
     )
-    new_role = entities.Role(id=new_role_dict['id']).read()
-    user = entities.User(
+    new_role = module_target_sat.api.Role(id=new_role_dict['id']).read()
+    user = module_target_sat.api.User(
         role=[new_role],
         admin=False,
         login=user_login,
@@ -73,13 +60,14 @@ def module_user(module_org, module_location):
         organization=[module_org],
         location=[module_location],
     ).create()
-    yield (user, user_login, user_password)
+    user.password = user_password
+    yield user
     user.delete()
     new_role.delete()
 
 
-@pytest.fixture(scope="function")
-def tftpboot(module_org, target_sat):
+@pytest.fixture
+def tftpboot(module_org, module_target_sat):
     """This fixture removes the current deployed templates from TFTP, and sets up new ones.
     It manipulates the global defaults, so it shouldn't be used in concurrent environment
 
@@ -106,36 +94,37 @@ def tftpboot(module_org, target_sat):
         },
         'ipxe': {
             'setting': 'global_iPXE',
-            'path': f'{target_sat.url}/unattended/iPXE?bootstrap=1',
+            'path': f'{module_target_sat.url}/unattended/iPXE?bootstrap=1',
             'kind': 'iPXE',
         },
     }
     # we keep the value of these for the teardown
-    default_settings = entities.Setting().search(query={"search": "name ~ global_"})
-    kinds = entities.TemplateKind().search(query={"search": "name ~ PXE"})
+    default_settings = module_target_sat.api.Setting().search(query={'search': 'name ~ global_'})
+    kinds = module_target_sat.api.TemplateKind().search(query={"search": "name ~ PXE"})
 
     # clean the already-deployed default pxe configs
-    target_sat.execute('rm {}'.format(' '.join([i['path'] for i in default_templates.values()])))
+    module_target_sat.execute(f'rm -f {" ".join([i["path"] for i in default_templates.values()])}')
 
     # create custom Templates per kind
     for template in default_templates.values():
-        template['entity'] = entities.ProvisioningTemplate(
+        template['entity'] = module_target_sat.api.ProvisioningTemplate(
             name=gen_string('alpha'),
             organization=[module_org],
             snippet=False,
             template_kind=[i.id for i in kinds if i.name == template['kind']][0],
-            template=f"<%= foreman_server_url %> {template['kind']}",
+            template=f'<%= foreman_server_url %> {template["kind"]}',
         ).create(create_missing=False)
 
         # Update the global settings to use newly created template
-        template['setting_id'] = entities.Setting(
+        module_target_sat.api.Setting(
             id=[i.id for i in default_settings if i.name == template['setting']][0],
             value=template['entity'].name,
         ).update(fields=['value'])
     yield default_templates
 
-    # delete the deployed tftp files
-    target_sat.execute('rm {}'.format(' '.join([i['path'] for i in default_templates.values()])))
+    # clean the already-deployed default pxe configs
+    module_target_sat.execute(f'rm -f {" ".join([i["path"] for i in default_templates.values()])}')
+
     # set the settings back to defaults
     for setting in default_settings:
         if setting.value is None:
@@ -152,7 +141,9 @@ class TestProvisioningTemplate:
     @pytest.mark.tier1
     @pytest.mark.e2e
     @pytest.mark.upgrade
-    def test_positive_end_to_end_crud(self, module_org, module_location, module_user, target_sat):
+    def test_positive_end_to_end_crud(
+        self, module_org, module_location, module_user, module_target_sat
+    ):
         """Create a new provisioning template with several attributes, update them,
         clone the provisioning template and then delete it
 
@@ -163,12 +154,12 @@ class TestProvisioningTemplate:
 
         :CaseImportance: Critical
         """
-        cfg = user_nailgun_config(module_user[1], module_user[2])
+        cfg = user_nailgun_config(module_user.login, module_user.password)
         name = gen_string('alpha')
         new_name = gen_string('alpha')
-        template_kind = choice(target_sat.api.TemplateKind().search())
+        template_kind = choice(module_target_sat.api.TemplateKind().search())
 
-        template = target_sat.api.ProvisioningTemplate(
+        template = module_target_sat.api.ProvisioningTemplate(
             name=name,
             organization=[module_org],
             location=[module_location],
@@ -176,19 +167,21 @@ class TestProvisioningTemplate:
             template_kind=template_kind,
         ).create()
         assert template.name == name
-        assert len(template.organization) == 1, "Template should be assigned to a single org here"
+        assert len(template.organization) == 1, 'Template should be assigned to a single org here'
         assert template.organization[0].id == module_org.id
-        assert len(template.location) == 1, "Template should be assigned to a single location here"
+        assert len(template.location) == 1, 'Template should be assigned to a single location here'
         assert template.location[0].id == module_location.id
-        assert template.snippet is False, "Template snippet attribute is True instead of False"
+        assert template.snippet is False, 'Template snippet attribute is True instead of False'
         assert template.template_kind.id == template_kind.id
 
         # negative create
         with pytest.raises(HTTPError) as e1:
-            target_sat.api.ProvisioningTemplate(name=gen_choice(invalid_names_list())).create()
+            module_target_sat.api.ProvisioningTemplate(
+                name=gen_choice(invalid_names_list())
+            ).create()
         assert e1.value.response.status_code == 422
 
-        invalid = target_sat.api.ProvisioningTemplate(snippet=False)
+        invalid = module_target_sat.api.ProvisioningTemplate(snippet=False)
         invalid.create_missing()
         invalid.template_kind = None
         invalid.template_kind_name = gen_string('alpha')
@@ -197,13 +190,12 @@ class TestProvisioningTemplate:
         assert e2.value.response.status_code == 422
 
         # update
-        assert template.template_kind.id == template_kind.id, "Template kind id doesn't match"
-        updated = target_sat.api.ProvisioningTemplate(
+        assert template.template_kind.id == template_kind.id, 'Template kind id does not match'
+        updated = module_target_sat.api.ProvisioningTemplate(
             server_config=cfg, id=template.id, name=new_name
         ).update(['name'])
-        assert updated.name == new_name, "The Provisioning template wasn't properly renamed"
+        assert updated.name == new_name, 'The Provisioning template was not properly renamed'
         # clone
-
         template_origin = template.read_json()
         # remove unique keys
         unique_keys = ('updated_at', 'created_at', 'id', 'name')
@@ -212,10 +204,10 @@ class TestProvisioningTemplate:
         }
 
         dupe_name = gen_choice(list(valid_data_list().values()))
-        dupe_json = target_sat.api.ProvisioningTemplate(
+        dupe_json = module_target_sat.api.ProvisioningTemplate(
             id=template.clone(data={'name': dupe_name})['id']
         ).read_json()
-        dupe_template = target_sat.api.ProvisioningTemplate(id=dupe_json['id'])
+        dupe_template = module_target_sat.api.ProvisioningTemplate(id=dupe_json['id'])
         dupe_json = {key: value for key, value in dupe_json.items() if key not in unique_keys}
         assert template_origin == dupe_json
 
@@ -229,8 +221,7 @@ class TestProvisioningTemplate:
     @pytest.mark.e2e
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.run_in_one_thread
-    def test_positive_build_pxe_default(self, tftpboot, target_sat):
+    def test_positive_build_pxe_default(self, tftpboot, module_target_sat):
         """Call the "build_pxe_default" path.
 
         :id: ca19d9da-1049-4b39-823b-933fc1a0cebd
@@ -244,27 +235,23 @@ class TestProvisioningTemplate:
 
         :BZ: 1202564
         """
-        response = client.post(
-            entities.ProvisioningTemplate().path('build_pxe_default'),
-            auth=get_credentials(),
-            verify=False,
-        )
-        response.raise_for_status()
-        assert type(response.json()) == dict
+        # Build PXE default template to get default PXE file
+        module_target_sat.api.ProvisioningTemplate().build_pxe_default()
+
         for template in tftpboot.values():
             if template['path'].startswith('http'):
                 r = client.get(template['path'], verify=False)
                 r.raise_for_status()
                 rendered = r.text
             else:
-                rendered = target_sat.execute(f'cat {template["path"]}').stdout.splitlines()[0]
+                rendered = module_target_sat.execute(f'cat {template["path"]}').stdout
 
             if template['kind'] == 'iPXE':
-                assert f'{target_sat.hostname}/unattended/iPXE' in r.text
+                assert f'{module_target_sat.hostname}/unattended/iPXE' in r.text
             else:
                 assert (
-                    rendered == f"{settings.server.scheme}://"
-                    f"{target_sat.hostname} {template['kind']}"
+                    f'{settings.server.scheme}://{module_target_sat.hostname} {template["kind"]}'
+                    in rendered
                 )
 
     @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
@@ -288,6 +275,8 @@ class TestProvisioningTemplate:
         :BZ: 2148433
 
         :customerscenario: true
+
+        :parametrized: yes
         """
         macaddress = gen_mac(multicast=False)
         capsule = module_target_sat.nailgun_smart_proxy
@@ -307,8 +296,8 @@ class TestProvisioningTemplate:
                 'lifecycle_environment_id': module_lce_library.id,
             },
         ).create()
-        provision_template = host.read_template(data={'template_kind': 'provision'})
-        assert 'ifcfg-$sanitized_real' in str(provision_template)
+        provision_template = host.read_template(data={'template_kind': 'provision'})['template']
+        assert 'ifcfg-$sanitized_real' in provision_template
 
     @pytest.mark.e2e
     @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
@@ -334,6 +323,8 @@ class TestProvisioningTemplate:
         :BZ: 2149030
 
         :customerscenario: true
+
+        :parametrized: yes
         """
         macaddress = gen_mac(multicast=False)
         capsule = module_target_sat.nailgun_smart_proxy
@@ -353,11 +344,9 @@ class TestProvisioningTemplate:
                 'lifecycle_environment_id': module_lce_library.id,
             },
         ).create()
-        ipxe_template = host.read_template(data={'template_kind': 'iPXE'})
-        if module_sync_kickstart_content.rhel_ver <= 8:
-            assert str(ipxe_template).count('ks=') == 1
-        else:
-            assert str(ipxe_template).count('inst.ks=') == 1
+        ipxe_template = host.read_template(data={'template_kind': 'iPXE'})['template']
+        ks_param = 'ks=' if module_sync_kickstart_content.rhel_ver <= 8 else 'inst.ks='
+        assert ipxe_template.count(ks_param) == 1
 
     @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
     def test_positive_template_check_vlan_parameter(
@@ -381,6 +370,8 @@ class TestProvisioningTemplate:
         :BZ: 1607706
 
         :customerscenario: true
+
+        :parametrized: yes
         """
         macaddress = gen_mac(multicast=False)
         capsule = module_target_sat.nailgun_smart_proxy
@@ -419,7 +410,67 @@ class TestProvisioningTemplate:
                 },
             ],
         ).create()
-        provision_template = host.read_template(data={'template_kind': 'provision'})
-        assert f'interfacename=vlan{tag}' in str(provision_template)
-        ipxe_template = host.read_template(data={'template_kind': 'iPXE'})
-        assert f'vlan=vlan{tag}:{identifier}' in str(ipxe_template)
+        provision_template = host.read_template(data={'template_kind': 'provision'})['template']
+        assert f'interfacename=vlan{tag}' in provision_template
+        ipxe_template = host.read_template(data={'template_kind': 'iPXE'})['template']
+        assert f'vlan=vlan{tag}:{identifier}' in ipxe_template
+
+    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    @pytest.mark.parametrize('pxe_loader', ['uefi'], indirect=True)
+    @pytest.mark.parametrize('boot_mode', ['Static', 'DHCP'])
+    def test_positive_template_subnet_with_boot_mode(
+        self,
+        module_sync_kickstart_content,
+        module_target_sat,
+        module_sca_manifest_org,
+        module_location,
+        default_architecture,
+        default_partitiontable,
+        pxe_loader,
+        boot_mode,
+    ):
+        """Check whether boot mode paremeter in subnet respected when PXELoader UEFI is used,
+            and properly rendered in the provisioning templates
+
+        :id: 2decc787-59b0-41e6-96be-5dd9371c8966
+
+        :expectedresults: templates should get render and contains boot mode used as set in subnet
+
+        :BZ: 2168967, 1955861, 1784012
+
+        :customerscenario: true
+
+        :parametrized: yes
+        """
+        subnet = module_target_sat.api.Subnet(
+            name=gen_string('alpha'),
+            organization=[module_sca_manifest_org],
+            location=[module_location],
+            network='192.168.0.1',
+            mask='255.255.255.240',
+            boot_mode=boot_mode,
+        ).create()
+        host = module_target_sat.api.Host(
+            name=gen_string('alpha'),
+            organization=module_sca_manifest_org,
+            location=module_location,
+            subnet=subnet,
+            pxe_loader=pxe_loader.pxe_loader,
+            root_pass=settings.provisioning.host_root_password,
+            ptable=default_partitiontable,
+            architecture=default_architecture,
+            operatingsystem=module_sync_kickstart_content.os,
+        ).create()
+        # Verify provision templates for boot_mode in subnet, and check provision logs exists
+        rendered = host.read_template(data={'template_kind': 'provision'})['template']
+        assert f'--bootproto {boot_mode.lower()}' in rendered
+        assert '/root/install.post.log' in rendered
+        assert '/mnt/sysimage/root/install.post.log' not in rendered
+
+        # Verify PXE templates for boot_mode in subnet
+        pxe_templates = ['PXEGrub', 'PXEGrub2', 'PXELinux', 'iPXE']
+        provision_url = f'http://{module_target_sat.hostname}/unattended/provision'
+        ks_param = provision_url + '?static=1' if boot_mode == 'Static' else provision_url
+        for template in pxe_templates:
+            rendered = host.read_template(data={'template_kind': f'{template}'})['template']
+            assert f'ks={ks_param}' in rendered

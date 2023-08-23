@@ -80,7 +80,9 @@ def test_positive_inventory_generate_upload_cli(
         f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     )
     wait_for(
-        lambda: rhcloud_sat_host.get(remote_path=remote_report_path, local_path=local_report_path),
+        lambda: rhcloud_sat_host.get(
+            remote_path=str(remote_report_path), local_path=str(local_report_path)
+        ),
         timeout=60,
         delay=15,
         silent_failure=True,
@@ -99,6 +101,7 @@ def test_positive_inventory_generate_upload_cli(
         assert hosts_count == local_file_data['slices_counts'][slice_name]
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 def test_positive_inventory_recommendation_sync(
     organization_ak_setup,
@@ -142,6 +145,7 @@ def test_positive_inventory_recommendation_sync(
     assert result.stdout == 'Synchronized Insights hosts hits data\n'
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 def test_positive_sync_inventory_status(
     organization_ak_setup,
