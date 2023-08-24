@@ -628,12 +628,19 @@ class CLIFactory:
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to publish new version of content view\n{err.msg}')
         # Get the version id
-        cvv = self._satellite.cli.ContentView.info({'id': cv_id})['versions'][-1]
+        cv_info = self._satellite.cli.ContentView.info({'id': cv_id})
+        lce_promoted = cv_info['lifecycle-environments']
+        cvv = cv_info['versions'][-1]
         # Promote version to next env
         try:
-            self._satellite.cli.ContentView.version_promote(
-                {'id': cvv['id'], 'organization-id': org_id, 'to-lifecycle-environment-id': env_id}
-            )
+            if env_id not in [int(lce['id']) for lce in lce_promoted]:
+                self._satellite.cli.ContentView.version_promote(
+                    {
+                        'id': cvv['id'],
+                        'organization-id': org_id,
+                        'to-lifecycle-environment-id': env_id,
+                    }
+                )
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to promote version to next environment\n{err.msg}')
         # Create activation key if needed and associate content view with it
