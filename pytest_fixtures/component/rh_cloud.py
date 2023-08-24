@@ -2,10 +2,10 @@ import pytest
 
 
 @pytest.fixture(scope='module')
-def rhcloud_manifest_org(module_target_sat, module_sca_manifest):
+def rhcloud_manifest_org(module_target_sat, module_extra_rhel_entitlement_manifest):
     """A module level fixture to get organization with manifest."""
     org = module_target_sat.api.Organization().create()
-    module_target_sat.upload_manifest(org.id, module_sca_manifest.content)
+    module_target_sat.upload_manifest(org.id, module_extra_rhel_entitlement_manifest.content)
     return org
 
 
@@ -54,13 +54,11 @@ def rhel_insights_vm(module_target_sat, organization_ak_setup, rhel_contenthost)
         org=org.label,
         rhel_distro=f"rhel{rhel_contenthost.os_version.major}",
     )
+    # Generate report
+    module_target_sat.generate_inventory_report(org)
+    # Sync inventory status
+    module_target_sat.sync_inventory_status(org)
     yield rhel_contenthost
-    # Delete host
-    host = module_target_sat.api.Host().search(
-        query={"search": f'name={rhel_contenthost.hostname}'}
-    )[0]
-    host.delete()
-    assert not module_target_sat.api.Host().search(query={"search": f'name={host.name}'})
 
 
 @pytest.fixture
@@ -77,12 +75,17 @@ def inventory_settings(module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def rhcloud_capsule(module_capsule_host, module_target_sat, organization_ak_setup):
+def rhcloud_capsule(
+    module_capsule_host, module_target_sat, organization_ak_setup, default_location
+):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
     org, ak = organization_ak_setup
     module_capsule_host.capsule_setup(sat_host=module_target_sat, enable_registration=True)
-    capsule = module_target_sat.api.SmartProxy(name=module_capsule_host.hostname).search()[0].read()
-    if org.id not in [organization.id for organization in capsule.organization]:
-        capsule.organization.append(org)
-        capsule.update(['organization'])
+    module_target_sat.cli.Capsule.update(
+        {
+            'name': module_capsule_host.hostname,
+            'organization-ids': org.id,
+            'location-ids': default_location.id,
+        }
+    )
     yield module_capsule_host
