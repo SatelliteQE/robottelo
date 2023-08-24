@@ -25,7 +25,6 @@ from robottelo.cli.ansible import Ansible
 from robottelo.cli.arfreport import Arfreport
 from robottelo.cli.factory import make_hostgroup
 from robottelo.cli.factory import make_scap_policy
-from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.host import Host
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.proxy import Proxy
@@ -96,7 +95,7 @@ def content_view(module_org):
 
 
 @pytest.fixture(scope='module', autouse=True)
-def activation_key(module_org, lifecycle_env, content_view):
+def activation_key(module_target_sat, module_org, lifecycle_env, content_view):
     """Create activation keys"""
     repo_values = [
         {'repo': settings.repos.satclient_repo.rhel8, 'akname': ak_name['rhel8']},
@@ -109,7 +108,7 @@ def activation_key(module_org, lifecycle_env, content_view):
             name=repo.get('akname'), environment=lifecycle_env, organization=module_org
         ).create()
         # Setup org for a custom repo for RHEL6, RHEL7 and RHEL8.
-        setup_org_for_a_custom_repo(
+        module_target_sat.cli_factory.setup_org_for_a_custom_repo(
             {
                 'url': repo.get('repo'),
                 'organization-id': module_org.id,
