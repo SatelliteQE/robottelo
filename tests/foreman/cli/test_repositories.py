@@ -19,7 +19,6 @@
 import pytest
 
 
-
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_custom_products_disabled_by_default(
     setup_content,
