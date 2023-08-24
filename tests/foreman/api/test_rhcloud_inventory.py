@@ -16,35 +16,14 @@
 
 :Upstream: No
 """
-from datetime import datetime
-
 import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
-from wait_for import wait_for
 
 from robottelo.config import robottelo_tmp_dir
 from robottelo.utils.io import get_local_file_data
 from robottelo.utils.io import get_report_data
 from robottelo.utils.io import get_report_metadata
-
-generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
-
-
-def generate_inventory_report(satellite, org):
-    """Function to generate inventory report."""
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-    satellite.api.Organization(id=org.id).rh_cloud_generate_report()
-    wait_for(
-        lambda: satellite.api.ForemanTask()
-        .search(query={'search': f'{generate_report_task} and started_at >= "{timestamp}"'})[0]
-        .result
-        == 'success',
-        timeout=400,
-        delay=15,
-        silent_failure=True,
-        handle_exception=True,
-    )
 
 
 def common_assertion(report_path):
@@ -95,7 +74,7 @@ def test_rhcloud_inventory_api_e2e(
     virtual_host, baremetal_host = rhcloud_registered_hosts
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     # Generate report
-    generate_inventory_report(module_target_sat, org)
+    module_target_sat.generate_inventory_report(org)
     # Download report
     module_target_sat.api.Organization(id=org.id).rh_cloud_download_report(
         destination=local_report_path
@@ -164,19 +143,9 @@ def test_rhcloud_inventory_api_hosts_synchronization(
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
     # Generate report
-    generate_inventory_report(module_target_sat, org)
+    module_target_sat.generate_inventory_report(org)
     # Sync inventory status
-    inventory_sync = module_target_sat.api.Organization(id=org.id).rh_cloud_inventory_sync()
-    wait_for(
-        lambda: module_target_sat.api.ForemanTask()
-        .search(query={'search': f'id = {inventory_sync["task"]["id"]}'})[0]
-        .result
-        == 'success',
-        timeout=400,
-        delay=15,
-        silent_failure=True,
-        handle_exception=True,
-    )
+    inventory_sync = module_target_sat.sync_inventory_status(org)
     task_output = module_target_sat.api.ForemanTask().search(
         query={'search': f'id = {inventory_sync["task"]["id"]}'}
     )
@@ -245,7 +214,7 @@ def test_system_purpose_sla_field(
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
-    generate_inventory_report(module_target_sat, org)
+    module_target_sat.generate_inventory_report(org)
     # Download report
     module_target_sat.api.Organization(id=org.id).rh_cloud_download_report(
         destination=local_report_path
@@ -343,7 +312,7 @@ def test_include_parameter_tags_setting(
     virtual_host, baremetal_host = rhcloud_registered_hosts
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     module_target_sat.update_setting('include_parameter_tags', True)
-    generate_inventory_report(module_target_sat, org)
+    module_target_sat.generate_inventory_report(org)
     # Download report
     module_target_sat.api.Organization(id=org.id).rh_cloud_download_report(
         destination=local_report_path
@@ -396,7 +365,7 @@ def test_rh_cloud_tag_values(
     assert len(host_collection.host) == 1
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     # Generate report
-    generate_inventory_report(module_target_sat, org)
+    module_target_sat.generate_inventory_report(org)
     module_target_sat.api.Organization(id=org.id).rh_cloud_download_report(
         destination=local_report_path
     )
@@ -446,7 +415,7 @@ def test_positive_tag_values_max_length(
     org, ak = organization_ak_setup
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     module_target_sat.update_setting('include_parameter_tags', True)
-    generate_inventory_report(module_target_sat, org)
+    module_target_sat.generate_inventory_report(org)
     # Download report
     module_target_sat.api.Organization(id=org.id).rh_cloud_download_report(
         destination=local_report_path
