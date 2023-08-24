@@ -14,8 +14,8 @@ def merge_nested_dictionaries(original, new, overwrite=False):
         # if the key is not in the original, add it
         if key not in original:
             original[key] = value
-        # if the key is in the original, and the value is a dictionary, recurse
-        elif isinstance(value, dict):
+        # if the key is in the original, and original[key] and value are dictionaries, recurse
+        elif isinstance(original[key], dict) and isinstance(value, dict):
             # use deepdiff to check if the dictionaries are the same
             if deepdiff.DeepDiff(original[key], value):
                 original[key] = merge_nested_dictionaries(original[key], value, overwrite)
@@ -24,6 +24,7 @@ def merge_nested_dictionaries(original, new, overwrite=False):
         # if the key is in the original, and the value is a list, ask the user
         elif overwrite == "ask":
             choice_prompt = (
+                "-------------------------\n"
                 f"The current value for {key} is {original[key]}.\n"
                 "Please choose an option:\n"
                 "1. Keep the current value\n"
