@@ -163,7 +163,7 @@ def test_negative_create_with_invalid_name(name):
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('max_host', **parametrized(_good_max_hosts()))
-def test_positive_update_limited_host(max_host):
+def test_positive_update_limited_host(max_host, target_sat):
     """Create activation key then update it to limited hosts.
 
     :id: 34ca8303-8135-4694-9cf7-b20f8b4b0a1e
@@ -173,8 +173,12 @@ def test_positive_update_limited_host(max_host):
     :parametrized: yes
     """
     # unlimited_hosts defaults to True.
-    act_key = entities.ActivationKey().create()
-    want = {'max_hosts': max_host, 'unlimited_hosts': False}
+    act_key = target_sat.api.ActivationKey().create()
+    want = {
+        'max_hosts': max_host,
+        'unlimited_hosts': False,
+        'organization_id': act_key.organization_id,
+    }
     for key, value in want.items():
         setattr(act_key, key, value)
     act_key = act_key.update(want.keys())
@@ -184,7 +188,7 @@ def test_positive_update_limited_host(max_host):
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-def test_positive_update_name(new_name):
+def test_positive_update_name(new_name, target_sat):
     """Create activation key providing the initial name, then update
     its name to another valid name.
 
@@ -195,14 +199,16 @@ def test_positive_update_name(new_name):
 
     :parametrized: yes
     """
-    act_key = entities.ActivationKey().create()
-    updated = entities.ActivationKey(id=act_key.id, name=new_name).update(['name'])
+    act_key = target_sat.api.ActivationKey().create()
+    updated = target_sat.api.ActivationKey(
+        id=act_key.id, name=new_name, organization_id=act_key.organization.id
+    ).update(['name', 'organization_id'])
     assert new_name == updated.name
 
 
 @pytest.mark.tier3
 @pytest.mark.parametrize('max_host', **parametrized(_bad_max_hosts()))
-def test_negative_update_limit(max_host):
+def test_negative_update_limit(max_host, target_sat):
     """Create activation key then update its limit to invalid value.
 
     :id: 0f857d2f-81ed-4b8b-b26e-34b4f294edbc
@@ -217,8 +223,12 @@ def test_negative_update_limit(max_host):
 
     :parametrized: yes
     """
-    act_key = entities.ActivationKey().create()
-    want = {'max_hosts': act_key.max_hosts, 'unlimited_hosts': act_key.unlimited_hosts}
+    act_key = target_sat.api.ActivationKey().create()
+    want = {
+        'max_hosts': act_key.max_hosts,
+        'unlimited_hosts': act_key.unlimited_hosts,
+        'organization_id': act_key.organization_id,
+    }
     act_key.max_hosts = max_host
     act_key.unlimited_hosts = False
     with pytest.raises(HTTPError):
@@ -230,7 +240,7 @@ def test_negative_update_limit(max_host):
 
 @pytest.mark.tier3
 @pytest.mark.parametrize('new_name', **parametrized(invalid_names_list()))
-def test_negative_update_name(new_name):
+def test_negative_update_name(new_name, target_sat):
     """Create activation key then update its name to an invalid name.
 
     :id: da85a32c-942b-4ab8-a133-36b028208c4d
@@ -242,16 +252,18 @@ def test_negative_update_name(new_name):
 
     :parametrized: yes
     """
-    act_key = entities.ActivationKey().create()
+    act_key = target_sat.api.ActivationKey().create()
     with pytest.raises(HTTPError):
-        entities.ActivationKey(id=act_key.id, name=new_name).update(['name'])
-    new_key = entities.ActivationKey(id=act_key.id).read()
+        target_sat.api.ActivationKey(
+            id=act_key.id, name=new_name, organization_id=act_key.organization_id
+        ).update(['name', 'organization_id'])
+    new_key = target_sat.api.ActivationKey(id=act_key.id).read()
     assert new_key.name != new_name
     assert new_key.name == act_key.name
 
 
 @pytest.mark.tier3
-def test_negative_update_max_hosts():
+def test_negative_update_max_hosts(target_sat):
     """Create an activation key with ``max_hosts == 1``, then update that
     field with a string value.
 
@@ -261,9 +273,11 @@ def test_negative_update_max_hosts():
 
     :CaseImportance: Low
     """
-    act_key = entities.ActivationKey(max_hosts=1).create()
+    act_key = target_sat.api.ActivationKey(max_hosts=1).create()
     with pytest.raises(HTTPError):
-        entities.ActivationKey(id=act_key.id, max_hosts='foo').update(['max_hosts'])
+        target_sat.api.ActivationKey(
+            id=act_key.id, max_hosts='foo', organization_id=act_key.organization_id
+        ).update(['max_hosts', 'organization_id'])
     assert act_key.read().max_hosts == 1
 
 
@@ -303,7 +317,7 @@ def test_positive_get_releases_content():
 
 
 @pytest.mark.tier2
-def test_positive_add_host_collections(module_org):
+def test_positive_add_host_collections(module_org, target_sat):
     """Associate an activation key with several host collections.
 
     :id: 1538808c-621e-4cf9-9b9b-840c5dd54644
@@ -321,17 +335,17 @@ def test_positive_add_host_collections(module_org):
     :CaseImportance: Critical
     """
     # An activation key has no host collections by default.
-    act_key = entities.ActivationKey(organization=module_org).create()
+    act_key = target_sat.api.ActivationKey(organization=module_org).create()
     assert len(act_key.host_collection) == 0
 
     # Give activation key one host collection.
-    act_key.host_collection.append(entities.HostCollection(organization=module_org).create())
-    act_key = act_key.update(['host_collection'])
+    act_key.host_collection.append(target_sat.api.HostCollection(organization=module_org).create())
+    act_key = act_key.update(['host_collection', 'organization_id'])
     assert len(act_key.host_collection) == 1
 
     # Give activation key second host collection.
-    act_key.host_collection.append(entities.HostCollection(organization=module_org).create())
-    act_key = act_key.update(['host_collection'])
+    act_key.host_collection.append(target_sat.api.HostCollection(organization=module_org).create())
+    act_key = act_key.update(['host_collection', 'organization_id'])
     assert len(act_key.host_collection) == 2
 
 
@@ -371,7 +385,7 @@ def test_positive_remove_host_collection(module_org):
 
 
 @pytest.mark.tier1
-def test_positive_update_auto_attach():
+def test_positive_update_auto_attach(target_sat):
     """Create an activation key, then update the auto_attach
     field with the inverse boolean value.
 
@@ -381,10 +395,12 @@ def test_positive_update_auto_attach():
 
     :CaseImportance: Critical
     """
-    act_key = entities.ActivationKey().create()
-    act_key_2 = entities.ActivationKey(id=act_key.id, auto_attach=(not act_key.auto_attach)).update(
-        ['auto_attach']
-    )
+    act_key = target_sat.api.ActivationKey().create()
+    act_key_2 = target_sat.api.ActivationKey(
+        id=act_key.id,
+        auto_attach=(not act_key.auto_attach),
+        organization_id=act_key.organization_id,
+    ).update(['auto_attach', 'organization_id'])
     assert act_key.auto_attach != act_key_2.auto_attach
 
 
