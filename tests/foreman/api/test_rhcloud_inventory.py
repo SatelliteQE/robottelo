@@ -66,7 +66,7 @@ def common_assertion(report_path):
 @pytest.mark.tier3
 @pytest.mark.e2e
 def test_rhcloud_inventory_api_e2e(
-    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
+    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, module_target_sat
 ):
     """Generate report using rh_cloud plugin api's and verify its basic properties.
 
@@ -95,17 +95,17 @@ def test_rhcloud_inventory_api_e2e(
     virtual_host, baremetal_host = rhcloud_registered_hosts
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     # Generate report
-    generate_inventory_report(rhcloud_sat_host, org)
+    generate_inventory_report(module_target_sat, org)
     # Download report
-    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_download_report(
+    module_target_sat.api.Organization(id=org.id).rh_cloud_download_report(
         destination=local_report_path
     )
     common_assertion(local_report_path)
     # Assert Hostnames, IP addresses, and installed packages are present in report.
     json_data = get_report_data(local_report_path)
     json_meta_data = get_report_metadata(local_report_path)
-    prefix = 'tfm-' if rhcloud_sat_host.os_version.major < 8 else ''
-    package_version = rhcloud_sat_host.run(
+    prefix = 'tfm-' if module_target_sat.os_version.major < 8 else ''
+    package_version = module_target_sat.run(
         f'rpm -qa --qf "%{{VERSION}}" {prefix}rubygem-foreman_rh_cloud'
     ).stdout.strip()
     assert json_meta_data['source_metadata']['foreman_rh_cloud_version'] == str(package_version)
@@ -139,7 +139,7 @@ def test_rhcloud_inventory_api_e2e(
 def test_rhcloud_inventory_api_hosts_synchronization(
     organization_ak_setup,
     rhcloud_registered_hosts,
-    rhcloud_sat_host,
+    module_target_sat,
 ):
     """Test RH Cloud plugin api to synchronize list of available hosts from cloud.
 
@@ -164,11 +164,11 @@ def test_rhcloud_inventory_api_hosts_synchronization(
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
     # Generate report
-    generate_inventory_report(rhcloud_sat_host, org)
+    generate_inventory_report(module_target_sat, org)
     # Sync inventory status
-    inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
+    inventory_sync = module_target_sat.api.Organization(id=org.id).rh_cloud_inventory_sync()
     wait_for(
-        lambda: rhcloud_sat_host.api.ForemanTask()
+        lambda: module_target_sat.api.ForemanTask()
         .search(query={'search': f'id = {inventory_sync["task"]["id"]}'})[0]
         .result
         == 'success',
@@ -177,7 +177,7 @@ def test_rhcloud_inventory_api_hosts_synchronization(
         silent_failure=True,
         handle_exception=True,
     )
-    task_output = rhcloud_sat_host.api.ForemanTask().search(
+    task_output = module_target_sat.api.ForemanTask().search(
         query={'search': f'id = {inventory_sync["task"]["id"]}'}
     )
     assert task_output[0].output['host_statuses']['sync'] == 2
@@ -216,7 +216,7 @@ def test_rhcloud_inventory_mtu_field():
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 def test_system_purpose_sla_field(
-    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
+    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, module_target_sat
 ):
     """Verify that system_purpose_sla field is present in the inventory report
     for the host subscribed using Activation key with service level set in it.
@@ -245,9 +245,9 @@ def test_system_purpose_sla_field(
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
-    generate_inventory_report(rhcloud_sat_host, org)
+    generate_inventory_report(module_target_sat, org)
     # Download report
-    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_download_report(
+    module_target_sat.api.Organization(id=org.id).rh_cloud_download_report(
         destination=local_report_path
     )
     json_data = get_report_data(local_report_path)
@@ -316,7 +316,7 @@ def test_inventory_upload_with_http_proxy():
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 def test_include_parameter_tags_setting(
-    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
+    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, module_target_sat
 ):
     """Verify that include_parameter_tags setting doesn't cause invalid report
     to be generated.
@@ -342,10 +342,10 @@ def test_include_parameter_tags_setting(
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
-    rhcloud_sat_host.update_setting('include_parameter_tags', True)
-    generate_inventory_report(rhcloud_sat_host, org)
+    module_target_sat.update_setting('include_parameter_tags', True)
+    generate_inventory_report(module_target_sat, org)
     # Download report
-    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_download_report(
+    module_target_sat.api.Organization(id=org.id).rh_cloud_download_report(
         destination=local_report_path
     )
     json_data = get_report_data(local_report_path)
@@ -359,7 +359,7 @@ def test_include_parameter_tags_setting(
 
 @pytest.mark.tier3
 def test_rh_cloud_tag_values(
-    inventory_settings, organization_ak_setup, rhcloud_sat_host, rhcloud_registered_hosts
+    inventory_settings, organization_ak_setup, module_target_sat, rhcloud_registered_hosts
 ):
     """Verify that tag values are escaped properly when hostgroup name
         contains " (double quote) in it.
@@ -388,16 +388,16 @@ def test_rh_cloud_tag_values(
 
     host_col_name = gen_string('alpha')
     host_name = rhcloud_registered_hosts[0].hostname
-    host = rhcloud_sat_host.api.Host().search(query={'search': host_name})[0]
-    host_collection = rhcloud_sat_host.api.HostCollection(
+    host = module_target_sat.api.Host().search(query={'search': host_name})[0]
+    host_collection = module_target_sat.api.HostCollection(
         organization=org, name=f'"{host_col_name}"', host=[host]
     ).create()
 
     assert len(host_collection.host) == 1
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     # Generate report
-    generate_inventory_report(rhcloud_sat_host, org)
-    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_download_report(
+    generate_inventory_report(module_target_sat, org)
+    module_target_sat.api.Organization(id=org.id).rh_cloud_download_report(
         destination=local_report_path
     )
     common_assertion(local_report_path)
@@ -416,7 +416,7 @@ def test_positive_tag_values_max_length(
     inventory_settings,
     organization_ak_setup,
     rhcloud_registered_hosts,
-    rhcloud_sat_host,
+    module_target_sat,
     target_sat,
 ):
     """Verify that tags values are truncated properly for the host parameter
@@ -445,10 +445,10 @@ def test_positive_tag_values_max_length(
 
     org, ak = organization_ak_setup
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
-    rhcloud_sat_host.update_setting('include_parameter_tags', True)
-    generate_inventory_report(rhcloud_sat_host, org)
+    module_target_sat.update_setting('include_parameter_tags', True)
+    generate_inventory_report(module_target_sat, org)
     # Download report
-    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_download_report(
+    module_target_sat.api.Organization(id=org.id).rh_cloud_download_report(
         destination=local_report_path
     )
     json_data = get_report_data(local_report_path)
