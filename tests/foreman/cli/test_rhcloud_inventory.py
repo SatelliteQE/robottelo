@@ -33,7 +33,7 @@ generate_report_jobs = 'ForemanInventoryUpload::Async::GenerateAllReportsJob'
 @pytest.mark.tier3
 @pytest.mark.e2e
 def test_positive_inventory_generate_upload_cli(
-    organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
+    organization_ak_setup, rhcloud_registered_hosts, module_target_sat
 ):
     """Tests Insights inventory generation and upload via foreman-rake commands:
     https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
@@ -71,7 +71,7 @@ def test_positive_inventory_generate_upload_cli(
     org, _ = organization_ak_setup
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:report:generate_upload'
     upload_success_msg = f"Generated and uploaded inventory report for organization '{org.name}'"
-    result = rhcloud_sat_host.execute(cmd)
+    result = module_target_sat.execute(cmd)
     assert result.status == 0
     assert upload_success_msg in result.stdout
 
@@ -80,7 +80,7 @@ def test_positive_inventory_generate_upload_cli(
         f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     )
     wait_for(
-        lambda: rhcloud_sat_host.get(
+        lambda: module_target_sat.get(
             remote_path=str(remote_report_path), local_path=str(local_report_path)
         ),
         timeout=60,
@@ -89,7 +89,7 @@ def test_positive_inventory_generate_upload_cli(
         handle_exception=True,
     )
     local_file_data = get_local_file_data(local_report_path)
-    assert local_file_data['checksum'] == get_remote_report_checksum(rhcloud_sat_host, org.id)
+    assert local_file_data['checksum'] == get_remote_report_checksum(module_target_sat, org.id)
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']
     assert local_file_data['json_files_parsable']
@@ -106,7 +106,7 @@ def test_positive_inventory_generate_upload_cli(
 def test_positive_inventory_recommendation_sync(
     organization_ak_setup,
     rhcloud_registered_hosts,
-    rhcloud_sat_host,
+    module_target_sat,
 ):
     """Tests Insights recommendation sync via foreman-rake commands:
     https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
@@ -130,9 +130,9 @@ def test_positive_inventory_recommendation_sync(
     org, ak = organization_ak_setup
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_insights:sync'
     timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-    result = rhcloud_sat_host.execute(cmd)
+    result = module_target_sat.execute(cmd)
     wait_for(
-        lambda: rhcloud_sat_host.api.ForemanTask()
+        lambda: module_target_sat.api.ForemanTask()
         .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
         .result
         == 'success',
@@ -150,7 +150,7 @@ def test_positive_inventory_recommendation_sync(
 def test_positive_sync_inventory_status(
     organization_ak_setup,
     rhcloud_registered_hosts,
-    rhcloud_sat_host,
+    module_target_sat,
 ):
     """Sync inventory status via foreman-rake commands:
     https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
@@ -176,12 +176,12 @@ def test_positive_sync_inventory_status(
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
     success_msg = f"Synchronized inventory for organization '{org.name}'"
     timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-    result = rhcloud_sat_host.execute(cmd)
+    result = module_target_sat.execute(cmd)
     assert result.status == 0
     assert success_msg in result.stdout
     # Check task details
     wait_for(
-        lambda: rhcloud_sat_host.api.ForemanTask()
+        lambda: module_target_sat.api.ForemanTask()
         .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'})[0]
         .result
         == 'success',
@@ -190,7 +190,7 @@ def test_positive_sync_inventory_status(
         silent_failure=True,
         handle_exception=True,
     )
-    task_output = rhcloud_sat_host.api.ForemanTask().search(
+    task_output = module_target_sat.api.ForemanTask().search(
         query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'}
     )
     assert task_output[0].output['host_statuses']['sync'] == 2

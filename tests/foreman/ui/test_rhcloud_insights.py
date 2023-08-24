@@ -43,7 +43,7 @@ def create_insights_vulnerability(insights_vm):
 def test_rhcloud_insights_e2e(
     rhel_insights_vm,
     organization_ak_setup,
-    rhcloud_sat_host,
+    module_target_sat,
 ):
     """Synchronize hits data from cloud, verify it is displayed in Satellite and run remediation.
 
@@ -78,13 +78,13 @@ def test_rhcloud_insights_e2e(
     job_query = (
         f'Remote action: Insights remediations for selected issues on {rhel_insights_vm.hostname}'
     )
-    with Session(hostname=rhcloud_sat_host.hostname) as session:
+    with Session(hostname=module_target_sat.hostname) as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
         wait_for(
-            lambda: rhcloud_sat_host.api.ForemanTask()
+            lambda: module_target_sat.api.ForemanTask()
             .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
             .result
             == 'success',
@@ -103,7 +103,7 @@ def test_rhcloud_insights_e2e(
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.remediate(OPENSSH_RECOMMENDATION)
         wait_for(
-            lambda: rhcloud_sat_host.api.ForemanTask()
+            lambda: module_target_sat.api.ForemanTask()
             .search(query={'search': f'{job_query} and started_at >= "{timestamp}"'})[0]
             .result
             == 'success',
@@ -115,7 +115,7 @@ def test_rhcloud_insights_e2e(
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
         wait_for(
-            lambda: rhcloud_sat_host.api.ForemanTask()
+            lambda: module_target_sat.api.ForemanTask()
             .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
             .result
             == 'success',
@@ -238,7 +238,7 @@ def test_host_sorting_based_on_recommendation_count():
 def test_host_details_page(
     rhel_insights_vm,
     organization_ak_setup,
-    rhcloud_sat_host,
+    module_target_sat,
 ):
     """Test host details page for host having insights recommendations.
 
@@ -275,9 +275,9 @@ def test_host_details_page(
     org, ak = organization_ak_setup
     create_insights_vulnerability(rhel_insights_vm)
     # Sync inventory status
-    inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
+    inventory_sync = module_target_sat.api.Organization(id=org.id).rh_cloud_inventory_sync()
     wait_for(
-        lambda: rhcloud_sat_host.api.ForemanTask()
+        lambda: module_target_sat.api.ForemanTask()
         .search(query={'search': f'id = {inventory_sync["task"]["id"]}'})[0]
         .result
         == 'success',
@@ -286,14 +286,14 @@ def test_host_details_page(
         silent_failure=True,
         handle_exception=True,
     )
-    with Session(hostname=rhcloud_sat_host.hostname) as session:
+    with Session(hostname=module_target_sat.hostname) as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Sync insights recommendations
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
         wait_for(
-            lambda: rhcloud_sat_host.api.ForemanTask()
+            lambda: module_target_sat.api.ForemanTask()
             .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
             .result
             == 'success',
@@ -332,7 +332,7 @@ def test_host_details_page(
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([7, 8, 9])
 def test_insights_registration_with_capsule(
-    rhcloud_capsule, organization_ak_setup, rhcloud_sat_host, rhel_contenthost, default_os
+    rhcloud_capsule, organization_ak_setup, module_target_sat, rhel_contenthost, default_os
 ):
     """Registering host with insights having traffic going through
         external capsule and also test rh_cloud_insights:clean_statuses rake command.
@@ -360,7 +360,7 @@ def test_insights_registration_with_capsule(
     :parametrized: yes
     """
     org, ak = organization_ak_setup
-    with Session(hostname=rhcloud_sat_host.hostname) as session:
+    with Session(hostname=module_target_sat.hostname) as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         cmd = session.host.get_register_command(
@@ -382,15 +382,19 @@ def test_insights_registration_with_capsule(
         values = session.host.get_details(rhel_contenthost.hostname)
         assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
         # Clean insights status
-        result = rhcloud_sat_host.run(
+        result = module_target_sat.run(
             f'foreman-rake rh_cloud_insights:clean_statuses SEARCH="{rhel_contenthost.hostname}"'
         )
         assert 'Deleted 1 insights statuses' in result.stdout
         assert result.status == 0
+        # Workaround for not reading old data.
+        session.browser.refresh()
         values = session.host.get_details(rhel_contenthost.hostname)
         with pytest.raises(KeyError):
             values['properties']['properties_table']['Insights']
         result = rhel_contenthost.run('insights-client')
         assert result.status == 0
+        # Workaround for not reading old data.
+        session.browser.refresh()
         values = session.host.get_details(rhel_contenthost.hostname)
         assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
