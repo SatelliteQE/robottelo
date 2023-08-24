@@ -28,7 +28,6 @@ from nailgun import client
 from nailgun import entities
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import get_credentials
 from robottelo.config import get_url
 from robottelo.config import setting_is_set
@@ -1111,17 +1110,16 @@ class TestEndToEnd:
         repositories.append(custom_repo)
 
         # step 2.6: Enable a Red Hat repository
-        if fake_manifest_is_set:
-            rhel_repo = target_sat.api.Repository(
-                id=enable_rhrepo_and_fetchid(
-                    basearch='x86_64',
-                    org_id=org.id,
-                    product=constants.PRDS['rhel'],
-                    repo=constants.REPOS['rhst7']['name'],
-                    reposet=constants.REPOSET['rhst7'],
-                )
+        rhel_repo = target_sat.api.Repository(
+            id=target_sat.api_factory.enable_rhrepo_and_fetchid(
+                basearch='x86_64',
+                org_id=org.id,
+                product=constants.PRDS['rhel'],
+                repo=constants.REPOS['rhst7']['name'],
+                reposet=constants.REPOSET['rhst7'],
             )
-            repositories.append(rhel_repo)
+        )
+        repositories.append(rhel_repo)
 
         # step 2.7: Synchronize these two repositories
         for repo in repositories:

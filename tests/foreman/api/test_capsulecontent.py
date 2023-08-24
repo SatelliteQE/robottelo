@@ -26,7 +26,6 @@ from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.constants import DataFile
 from robottelo.constants.repos import ANSIBLE_GALAXY
@@ -474,7 +473,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients')
     def test_positive_iso_library_sync(
-        self, module_capsule_configured, module_entitlement_manifest_org
+        self, module_capsule_configured, module_entitlement_manifest_org, target_sat
     ):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
         to capsule automatically
@@ -490,7 +489,7 @@ class TestCapsuleContentManagement:
         :CaseLevel: System
         """
         # Enable & sync RH repository with ISOs
-        rh_repo_id = enable_rhrepo_and_fetchid(
+        rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhsc'],
@@ -771,7 +770,7 @@ class TestCapsuleContentManagement:
 
         :BZ: 1992329
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=function_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
@@ -1186,7 +1185,7 @@ class TestCapsuleContentManagement:
         :BZ: 1830403
         """
         # Sync a repository to the Satellite.
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_manifest_org.id,
             product=constants.PRDS['rhel'],

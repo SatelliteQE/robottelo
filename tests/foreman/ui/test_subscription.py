@@ -24,8 +24,6 @@ from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import create_role_permissions
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -40,9 +38,9 @@ pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_m
 
 
 @pytest.fixture(scope='module')
-def golden_ticket_host_setup(function_entitlement_manifest_org):
+def golden_ticket_host_setup(function_entitlement_manifest_org, module_target_sat):
     org = function_entitlement_manifest_org
-    rh_repo_id = enable_rhrepo_and_fetchid(
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
         product=PRDS['rhel'],
@@ -149,7 +147,7 @@ def test_positive_end_to_end(session, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_access_with_non_admin_user_without_manifest(test_name):
+def test_positive_access_with_non_admin_user_without_manifest(test_name, target_sat):
     """Access subscription page with non admin user that has the necessary
     permissions to check that there is no manifest uploaded.
 
@@ -165,7 +163,7 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name):
     """
     org = entities.Organization().create()
     role = entities.Role(organization=[org]).create()
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         role,
         {
             'Katello::Subscription': [
@@ -192,7 +190,7 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name):
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_access_with_non_admin_user_with_manifest(
-    test_name, function_entitlement_manifest_org
+    test_name, function_entitlement_manifest_org, target_sat
 ):
     """Access subscription page with user that has only view_subscriptions and view organizations
     permission and organization that has a manifest uploaded.
@@ -212,7 +210,7 @@ def test_positive_access_with_non_admin_user_with_manifest(
     """
     org = function_entitlement_manifest_org
     role = entities.Role(organization=[org]).create()
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         role,
         {'Katello::Subscription': ['view_subscriptions'], 'Organization': ['view_organizations']},
     )

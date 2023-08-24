@@ -20,7 +20,6 @@ import pytest
 from nailgun import entities
 from wait_for import wait_for
 
-from robottelo.api.utils import check_create_os_with_title
 from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_LARGE
@@ -379,7 +378,7 @@ def test_positive_update_organization(session, rhev_data, module_location):
 
 
 @pytest.mark.tier2
-def test_positive_image_end_to_end(session, rhev_data, module_location):
+def test_positive_image_end_to_end(session, rhev_data, module_location, target_sat):
     """Perform end to end testing for compute resource RHV component image.
 
     :id: 62a5c52f-dd15-45e7-8200-c64bb335474f
@@ -393,7 +392,7 @@ def test_positive_image_end_to_end(session, rhev_data, module_location):
     cr_name = gen_string('alpha')
     image_name = gen_string('alpha')
     new_image_name = gen_string('alpha')
-    check_create_os_with_title(rhev_data['image_os'])
+    target_sat.api_factory.check_create_os_with_title(rhev_data['image_os'])
     with session:
         session.computeresource.create(
             {

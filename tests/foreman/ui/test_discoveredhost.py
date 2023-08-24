@@ -19,8 +19,6 @@ from fauxfactory import gen_ipaddr
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import configure_provisioning
-from robottelo.api.utils import create_discovered_host
 from robottelo.utils import ssh
 
 pytestmark = [pytest.mark.run_in_one_thread]
@@ -54,7 +52,7 @@ def discovery_location(module_location):
 def provisioning_env(module_target_sat, discovery_org, discovery_location):
     # Build PXE default template to get default PXE file
     module_target_sat.cli.ProvisioningTemplate().build_pxe_default()
-    return configure_provisioning(
+    return module_target_sat.api_factory.configure_provisioning(
         org=discovery_org,
         loc=discovery_location,
         os='Redhat {}'.format(module_target_sat.cli_factory.RHELRepository().repo_data['version']),
@@ -62,8 +60,8 @@ def provisioning_env(module_target_sat, discovery_org, discovery_location):
 
 
 @pytest.fixture
-def discovered_host():
-    return create_discovered_host()
+def discovered_host(target_sat):
+    return target_sat.api_factory.create_discovered_host()
 
 
 @pytest.fixture(scope='module')
@@ -221,7 +219,7 @@ def test_positive_update_name(
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_auto_provision_host_with_rule(
-    session, discovery_org, discovery_location, module_host_group
+    session, discovery_org, discovery_location, module_host_group, target_sat
 ):
     """Create a new discovery rule and automatically create host from discovered host using that
     discovery rule.
@@ -239,7 +237,7 @@ def test_positive_auto_provision_host_with_rule(
     :CaseImportance: High
     """
     host_ip = gen_ipaddr()
-    discovered_host_name = create_discovered_host(ip_address=host_ip)['name']
+    discovered_host_name = target_sat.api_factory.create_discovered_host(ip_address=host_ip)['name']
     domain = module_host_group.domain.read()
     discovery_rule = entities.DiscoveryRule(
         max_count=1,
@@ -283,7 +281,7 @@ def test_positive_delete(session, discovery_org, discovery_location, discovered_
 
 
 @pytest.mark.tier3
-def test_positive_update_default_taxonomies(session, discovery_org, discovery_location):
+def test_positive_update_default_taxonomies(session, discovery_org, discovery_location, target_sat):
     """Change the default organization and location of more than one
     discovered hosts from 'Select Action' drop down
 
@@ -298,7 +296,7 @@ def test_positive_update_default_taxonomies(session, discovery_org, discovery_lo
 
     :CaseImportance: High
     """
-    host_names = [create_discovered_host()['name'] for _ in range(2)]
+    host_names = [target_sat.api_factory.create_discovered_host()['name'] for _ in range(2)]
     new_org = entities.Organization().create()
     discovery_location.organization.append(new_org)
     discovery_location.update(['organization'])

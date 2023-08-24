@@ -22,8 +22,6 @@ from datetime import timedelta
 import pytest
 from nailgun import entities
 
-from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -62,11 +60,11 @@ def qe_lce(module_manifest_org, dev_lce):
 
 
 @pytest.fixture(scope='module')
-def rhel7_sat6tools_repo(module_manifest_org):
+def rhel7_sat6tools_repo(module_entitlement_manifest_org, module_target_sat):
     """Enable Sat tools repository"""
-    rhel7_sat6tools_repo_id = enable_rhrepo_and_fetchid(
+    rhel7_sat6tools_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
-        org_id=module_manifest_org.id,
+        org_id=module_entitlement_manifest_org.id,
         product=PRDS['rhel'],
         repo=REPOS['rhst7']['name'],
         reposet=REPOSET['rhst7'],
@@ -153,7 +151,7 @@ def host(
     rhel7_contenthost_module.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE}')
     rhel7_contenthost_module.execute('katello-package-upload')
     # Wait for applicability update event (in case Satellite system slow)
-    wait_for_tasks(
+    module_target_sat.wait_for_tasks(
         search_query='label = Actions::Katello::Applicability::Hosts::BulkGenerate'
         f' and started_at >= "{timestamp}"'
         f' and state = stopped'

@@ -32,9 +32,6 @@ from navmazing import NavigationTriesExceeded
 from productmd.common import parse_nvra
 
 from robottelo import constants
-from robottelo.api.utils import create_role_permissions
-from robottelo.api.utils import create_sync_custom_repo
-from robottelo.api.utils import enable_sync_redhat_repo
 from robottelo.cli.contentview import ContentView
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
@@ -101,7 +98,7 @@ def test_positive_add_custom_content(session):
 @pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org):
+def test_positive_end_to_end(session, module_org, target_sat):
     """Create content view with yum repo, publish it and promote it to Library
         +1 env
 
@@ -124,7 +121,7 @@ def test_positive_end_to_end(session, module_org):
     env_name = gen_string('alpha')
     cv_name = gen_string('alpha')
     # Creates a CV along with product and sync'ed repository
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         # Create Life-cycle environment
         session.lifecycleenvironment.create({'name': env_name})
@@ -194,7 +191,7 @@ def test_positive_publish_version_changes_in_source_env(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_repo_count_for_composite_cv(session, module_org):
+def test_positive_repo_count_for_composite_cv(session, module_org, target_sat):
     """Create some content views with synchronized repositories and
     promoted to one lce. Add them to composite content view and check repo
     count for it.
@@ -214,7 +211,7 @@ def test_positive_repo_count_for_composite_cv(session, module_org):
     ccv_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     # Create a product and sync'ed repository
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         # Creates a composite CV
         session.contentview.create({'name': ccv_name, 'composite_view': True})
@@ -244,7 +241,9 @@ def test_positive_repo_count_for_composite_cv(session, module_org):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_create_composite(session, module_prod, module_entitlement_manifest_org):
+def test_positive_create_composite(
+    session, module_prod, module_entitlement_manifest_org, target_sat
+):
     """Create a composite content views
 
     :id: 550f1970-5cbd-4571-bb7b-17e97639b715
@@ -272,7 +271,7 @@ def test_positive_create_composite(session, module_prod, module_entitlement_mani
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
 
-    enable_sync_redhat_repo(rh_repo, org.id)
+    target_sat.api_factory.enable_sync_redhat_repo(rh_repo, org.id)
     docker_repo.sync()
     with session:
         session.organization.select(org.name)
@@ -298,7 +297,7 @@ def test_positive_create_composite(session, module_prod, module_entitlement_mani
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_add_rh_content(session, function_entitlement_manifest_org):
+def test_positive_add_rh_content(session, function_entitlement_manifest_org, target_sat):
     """Add Red Hat content to a content view
 
     :id: c370fd79-0c0d-4685-99cb-848556c786c1
@@ -321,7 +320,7 @@ def test_positive_add_rh_content(session, function_entitlement_manifest_org):
     }
     # Create new org to import manifest
     org = function_entitlement_manifest_org
-    enable_sync_redhat_repo(rh_repo, org.id)
+    target_sat.api_factory.enable_sync_redhat_repo(rh_repo, org.id)
     with session:
         # Create content-view
         session.organization.select(org.name)
@@ -866,7 +865,7 @@ def test_positive_check_composite_cv_addition_list_versions(session):
 
 
 @pytest.mark.tier2
-def test_negative_add_dupe_repos(session, module_org):
+def test_negative_add_dupe_repos(session, module_org, target_sat):
     """attempt to associate the same repo multiple times within a
     content view
 
@@ -880,7 +879,7 @@ def test_negative_add_dupe_repos(session, module_org):
     """
     cv_name = gen_string('alpha')
     repo_name = gen_string('alpha')
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         session.contentview.create({'name': cv_name})
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
@@ -893,7 +892,7 @@ def test_negative_add_dupe_repos(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_publish_with_custom_content(session, module_org):
+def test_positive_publish_with_custom_content(session, module_org, target_sat):
     """Attempt to publish a content view containing custom content
 
     :id: 66b5efc7-2e43-438e-bd80-a754814222f9
@@ -908,7 +907,7 @@ def test_positive_publish_with_custom_content(session, module_org):
     """
     repo_name = gen_string('alpha')
     cv_name = gen_string('alpha')
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         session.contentview.create({'name': cv_name})
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
@@ -922,7 +921,7 @@ def test_positive_publish_with_custom_content(session, module_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_publish_with_rh_content(session, function_entitlement_manifest_org):
+def test_positive_publish_with_rh_content(session, function_entitlement_manifest_org, target_sat):
     """Attempt to publish a content view containing RH content
 
     :id: bd24dc13-b6c4-4a9b-acb2-cd6df30f436c
@@ -944,7 +943,7 @@ def test_positive_publish_with_rh_content(session, function_entitlement_manifest
         'releasever': None,
     }
     org = function_entitlement_manifest_org
-    enable_sync_redhat_repo(rh_repo, org.id)
+    target_sat.api_factory.enable_sync_redhat_repo(rh_repo, org.id)
     with session:
         session.organization.select(org.name)
         session.contentview.create({'name': cv_name})
@@ -960,7 +959,9 @@ def test_positive_publish_with_rh_content(session, function_entitlement_manifest
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_publish_composite_with_custom_content(session, function_entitlement_manifest_org):
+def test_positive_publish_composite_with_custom_content(
+    session, function_entitlement_manifest_org, target_sat
+):
     """Attempt to publish composite content view containing custom content
 
     :id: 73947204-408e-4e2e-b87f-ba2e52ee50b6
@@ -999,13 +1000,13 @@ def test_positive_publish_composite_with_custom_content(session, function_entitl
     docker_repo1.sync()
     docker_repo2.sync()
     # Enable and sync RH repository
-    enable_sync_redhat_repo(rh7_repo, org.id)
+    target_sat.api_factory.enable_sync_redhat_repo(rh7_repo, org.id)
     # Create custom yum repositories
     for name, url in (
         (custom_repo1_name, custom_repo1_url),
         (custom_repo2_name, custom_repo2_url),
     ):
-        create_sync_custom_repo(repo_name=name, repo_url=url, org_id=org.id)
+        target_sat.api_factory.create_sync_custom_repo(repo_name=name, repo_url=url, org_id=org.id)
     with session:
         session.organization.select(org.name)
         # create the first content view
@@ -1043,7 +1044,7 @@ def test_positive_publish_composite_with_custom_content(session, function_entitl
 
 
 @pytest.mark.tier2
-def test_positive_publish_version_changes_in_target_env(session, module_org):
+def test_positive_publish_version_changes_in_target_env(session, module_org, target_sat):
     # Dev notes:
     # If Dev has version x, then when I promote version y into
     # Dev, version x goes away (ie when I promote version 1 to Dev,
@@ -1074,7 +1075,7 @@ def test_positive_publish_version_changes_in_target_env(session, module_org):
     repo_names = [gen_string('alphanumeric') for _ in range(versions_count)]
     # before each content view publishing add a new repository
     for repo_name in repo_names:
-        create_sync_custom_repo(module_org.id, repo_name=repo_name)
+        target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         # create content view
         session.contentview.create({'name': cv_name})
@@ -1103,7 +1104,7 @@ def test_positive_publish_version_changes_in_target_env(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_promote_with_custom_content(session, module_org):
+def test_positive_promote_with_custom_content(session, module_org, target_sat):
     """Attempt to promote a content view containing custom content,
         check dashboard
 
@@ -1122,7 +1123,7 @@ def test_positive_promote_with_custom_content(session, module_org):
     repo_name = gen_string('alpha')
     cv_name = gen_string('alpha')
     lce = entities.LifecycleEnvironment(organization=module_org).create()
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         session.contentview.create({'name': cv_name})
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
@@ -1149,7 +1150,7 @@ def test_positive_promote_with_custom_content(session, module_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_promote_with_rh_content(session, function_entitlement_manifest_org):
+def test_positive_promote_with_rh_content(session, function_entitlement_manifest_org, target_sat):
     """Attempt to promote a content view containing RH content
 
     :id: 82f71639-3580-49fd-bd5a-8dba568b98d1
@@ -1171,7 +1172,7 @@ def test_positive_promote_with_rh_content(session, function_entitlement_manifest
         'releasever': None,
     }
     org = function_entitlement_manifest_org
-    enable_sync_redhat_repo(rh_repo, org.id)
+    target_sat.api_factory.enable_sync_redhat_repo(rh_repo, org.id)
     lce = entities.LifecycleEnvironment(organization=org).create()
     with session:
         session.organization.select(org.name)
@@ -1188,7 +1189,9 @@ def test_positive_promote_with_rh_content(session, function_entitlement_manifest
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_promote_composite_with_custom_content(session, function_entitlement_manifest_org):
+def test_positive_promote_composite_with_custom_content(
+    session, function_entitlement_manifest_org, target_sat
+):
     """Attempt to promote composite content view containing custom content
 
     :id: 35efbd83-d32e-4831-9d5b-1adb15289f54
@@ -1222,13 +1225,13 @@ def test_positive_promote_composite_with_custom_content(session, function_entitl
     # create a life cycle environment
     lce = entities.LifecycleEnvironment(organization=org).create()
     # Enable and sync RH repository
-    enable_sync_redhat_repo(rh7_repo, org.id)
+    target_sat.api_factory.enable_sync_redhat_repo(rh7_repo, org.id)
     # Create custom yum repositories
     for name, url in (
         (custom_repo1_name, custom_repo1_url),
         (custom_repo2_name, custom_repo2_url),
     ):
-        create_sync_custom_repo(repo_name=name, repo_url=url, org_id=org.id)
+        target_sat.api_factory.create_sync_custom_repo(repo_name=name, repo_url=url, org_id=org.id)
     # Create docker repo and sync
     docker_repo1 = entities.Repository(
         url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
@@ -1324,7 +1327,7 @@ def test_positive_publish_rh_content_with_errata_by_date_filter(session, target_
 
 
 @pytest.mark.tier3
-def test_negative_add_same_package_filter_twice(session, module_org):
+def test_negative_add_same_package_filter_twice(session, module_org, target_sat):
     """Update version of package inside exclusive cv package filter
 
     :id: 5a97de5a-679e-4150-adf7-b4a28290b834
@@ -1338,7 +1341,7 @@ def test_negative_add_same_package_filter_twice(session, module_org):
     cv_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     package_name = 'walrus'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         session.contentview.create({'name': cv_name})
         for filter_type in FILTER_TYPE['exclude'], FILTER_TYPE['include']:
@@ -1363,7 +1366,7 @@ def test_negative_add_same_package_filter_twice(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_remove_cv_version_from_default_env(session, module_org):
+def test_positive_remove_cv_version_from_default_env(session, module_org, target_sat):
     """Remove content view version from Library environment
 
     :id: 43c83c15-c883-45a7-be05-d9b26da99e3c
@@ -1384,7 +1387,7 @@ def test_positive_remove_cv_version_from_default_env(session, module_org):
     """
     cv_name = gen_string('alpha')
     repo_name = gen_string('alpha')
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         # create a content view
         session.contentview.create({'name': cv_name})
@@ -1624,7 +1627,7 @@ def test_positive_delete_cv_promoted_to_multi_env(session, module_org, target_sa
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_delete_composite_version(session, module_org):
+def test_positive_delete_composite_version(session, module_org, target_sat):
     """Delete a composite content-view version associated to 'Library'
 
     :id: b2d9b21d-1e0d-40f1-9bbc-3c88cddd4f5e
@@ -1640,7 +1643,7 @@ def test_positive_delete_composite_version(session, module_org):
     cv_name = gen_string('alpha')
     ccv_name = gen_string('alpha')
     repo_name = gen_string('alpha')
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         # create a content view
         session.contentview.create({'name': cv_name})
@@ -1661,7 +1664,7 @@ def test_positive_delete_composite_version(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_delete_non_default_version(session):
+def test_positive_delete_non_default_version(session, target_sat):
     """Delete a content-view version associated to non-default
     environment
 
@@ -1675,7 +1678,7 @@ def test_positive_delete_non_default_version(session):
     """
     repo_name = gen_string('alpha')
     org = entities.Organization().create()
-    create_sync_custom_repo(org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(org.id, repo_name=repo_name)
     repo = entities.Repository(name=repo_name).search(query={'organization_id': org.id})[0]
     cv = entities.ContentView(organization=org, repository=[repo]).create()
     lce = entities.LifecycleEnvironment(organization=org).create()
@@ -1734,7 +1737,7 @@ def test_positive_delete_version_with_ak(session):
 
 
 @pytest.mark.tier2
-def test_positive_clone_within_same_env(session, module_org):
+def test_positive_clone_within_same_env(session, module_org, target_sat):
     """attempt to create new content view based on existing
     view within environment
 
@@ -1751,7 +1754,7 @@ def test_positive_clone_within_same_env(session, module_org):
     repo_name = gen_string('alpha')
     cv_name = gen_string('alpha')
     copy_cv_name = gen_string('alpha')
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         session.contentview.create({'name': cv_name})
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
@@ -1766,7 +1769,7 @@ def test_positive_clone_within_same_env(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_clone_within_diff_env(session, module_org):
+def test_positive_clone_within_diff_env(session, module_org, target_sat):
     """attempt to create new content view based on existing
     view, inside a different environment
 
@@ -1783,7 +1786,7 @@ def test_positive_clone_within_diff_env(session, module_org):
     """
     repo_name = gen_string('alpha')
     copy_cv_name = gen_string('alpha')
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
     cv = entities.ContentView(organization=module_org, repository=[repo]).create()
     lce = entities.LifecycleEnvironment(organization=module_org).create()
@@ -1838,7 +1841,7 @@ def test_positive_remove_filter(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_add_package_filter(session, module_org):
+def test_positive_add_package_filter(session, module_org, target_sat):
     """Add package to content views filter
 
     :id: 1cc8d921-92e5-4b51-8050-a7e775095f97
@@ -1858,7 +1861,7 @@ def test_positive_add_package_filter(session, module_org):
     )
     filter_name = gen_string('alpha')
     repo_name = gen_string('alpha')
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
     cv = entities.ContentView(organization=module_org, repository=[repo]).create()
     with session:
@@ -1882,7 +1885,7 @@ def test_positive_add_package_filter(session, module_org):
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
-def test_positive_add_package_inclusion_filter_and_publish(session, module_org):
+def test_positive_add_package_inclusion_filter_and_publish(session, module_org, target_sat):
     """Add package to inclusion content views filter, publish CV and verify
     package was actually filtered
 
@@ -1898,7 +1901,7 @@ def test_positive_add_package_inclusion_filter_and_publish(session, module_org):
     repo_name = gen_string('alpha')
     package1_name = 'cow'
     package2_name = 'bear'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
     cv = entities.ContentView(organization=module_org, repository=[repo]).create()
     with session:
@@ -1928,7 +1931,7 @@ def test_positive_add_package_inclusion_filter_and_publish(session, module_org):
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
-def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
+def test_positive_add_package_exclusion_filter_and_publish(session, module_org, target_sat):
     """Add package to exclusion content views filter, publish CV and verify
     package was actually filtered
 
@@ -1944,7 +1947,7 @@ def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
     repo_name = gen_string('alpha')
     package1_name = 'cow'
     package2_name = 'bear'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
     cv = entities.ContentView(organization=module_org, repository=[repo]).create()
     with session:
@@ -2024,7 +2027,7 @@ def test_positive_remove_package_from_exclusion_filter(session, module_org, targ
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
-def test_positive_update_inclusive_filter_package_version(session, module_org):
+def test_positive_update_inclusive_filter_package_version(session, module_org, target_sat):
     """Update version of package inside inclusive cv package filter
 
     :id: 8d6801de-ab82-49d6-bdeb-0f6e5c95b906
@@ -2039,7 +2042,7 @@ def test_positive_update_inclusive_filter_package_version(session, module_org):
     filter_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     package_name = 'walrus'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
     cv = entities.ContentView(organization=module_org, repository=[repo]).create()
     with session:
@@ -2086,7 +2089,7 @@ def test_positive_update_inclusive_filter_package_version(session, module_org):
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
-def test_positive_update_exclusive_filter_package_version(session, module_org):
+def test_positive_update_exclusive_filter_package_version(session, module_org, target_sat):
     """Update version of package inside exclusive cv package filter
 
     :id: a8aa8864-190a-46c3-aeed-4953c8f3f601
@@ -2101,7 +2104,7 @@ def test_positive_update_exclusive_filter_package_version(session, module_org):
     filter_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     package_name = 'walrus'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
     cv = entities.ContentView(organization=module_org, repository=[repo]).create()
     with session:
@@ -2353,7 +2356,7 @@ def test_positive_add_all_security_errata_by_id_filter(session, module_org):
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
-def test_positive_add_errata_filter(session, module_org):
+def test_positive_add_errata_filter(session, module_org, target_sat):
     """add errata to content views filter
 
     :id: bb9eef30-62c4-435c-9573-9f31210b8d7d
@@ -2367,7 +2370,7 @@ def test_positive_add_errata_filter(session, module_org):
     """
     filter_name = gen_string('alpha')
     repo_name = gen_string('alpha')
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
     cv = entities.ContentView(organization=module_org, repository=[repo]).create()
     with session:
@@ -2392,7 +2395,7 @@ def test_positive_add_errata_filter(session, module_org):
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_module_stream_filter(session, module_org):
+def test_positive_add_module_stream_filter(session, module_org, target_sat):
     """add module stream filter in a content view
 
     :id: 343c543e-5773-4ea4-aff4-27e0ed6be19e
@@ -2406,7 +2409,7 @@ def test_positive_add_module_stream_filter(session, module_org):
     """
     filter_name = gen_string('alpha')
     repo_name = gen_string('alpha')
-    create_sync_custom_repo(
+    target_sat.api_factory.create_sync_custom_repo(
         module_org.id, repo_name=repo_name, repo_url=settings.repos.module_stream_1.url
     )
     repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
@@ -2433,7 +2436,7 @@ def test_positive_add_module_stream_filter(session, module_org):
 
 
 @pytest.mark.tier3
-def test_positive_add_package_group_filter(session, module_org):
+def test_positive_add_package_group_filter(session, module_org, target_sat):
     """add package group to content views filter
 
     :id: 8c02a432-8b2a-4ba3-9613-7070b2dc2bcb
@@ -2448,7 +2451,7 @@ def test_positive_add_package_group_filter(session, module_org):
     filter_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     package_group = 'mammals'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
     cv = entities.ContentView(organization=module_org, repository=[repo]).create()
     with session:
@@ -2468,7 +2471,7 @@ def test_positive_add_package_group_filter(session, module_org):
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_update_filter_affected_repos(session, module_org):
+def test_positive_update_filter_affected_repos(session, module_org, target_sat):
     """Update content view package filter affected repos
 
     :id: 8f095b11-fd63-4a23-9586-a85d6191314f
@@ -2486,8 +2489,10 @@ def test_positive_update_filter_affected_repos(session, module_org):
     repo2_name = gen_string('alpha')
     repo1_package_name = 'dolphin'
     repo2_package_name = 'dolphin'
-    create_sync_custom_repo(module_org.id, repo_name=repo1_name, repo_url=settings.repos.yum_3.url)
-    create_sync_custom_repo(module_org.id, repo_name=repo2_name)
+    target_sat.api_factory.create_sync_custom_repo(
+        module_org.id, repo_name=repo1_name, repo_url=settings.repos.yum_3.url
+    )
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo2_name)
     repo1 = entities.Repository(name=repo1_name).search(query={'organization_id': module_org.id})[0]
     repo2 = entities.Repository(name=repo2_name).search(query={'organization_id': module_org.id})[0]
     cv = entities.ContentView(organization=module_org, repository=[repo1, repo2]).create()
@@ -2552,7 +2557,7 @@ def test_positive_search_composite(session):
 
 
 @pytest.mark.tier3
-def test_positive_publish_with_repo_with_disabled_http(session, module_org):
+def test_positive_publish_with_repo_with_disabled_http(session, module_org, target_sat):
     """Attempt to publish content view with repository that set
     'Unprotected' to False
 
@@ -2581,7 +2586,7 @@ def test_positive_publish_with_repo_with_disabled_http(session, module_org):
     product_name = gen_string('alpha')
     cv_name = gen_string('alpha')
     # Creates a CV along with product and sync'ed repository
-    create_sync_custom_repo(
+    target_sat.api_factory.create_sync_custom_repo(
         module_org.id, product_name=product_name, repo_name=repo_name, repo_unprotected=True
     )
     with session:
@@ -2723,7 +2728,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(
 @pytest.mark.upgrade
 @pytest.mark.tier3
 def test_positive_rh_mixed_content_end_to_end(
-    session, module_prod, module_entitlement_manifest_org
+    session, module_prod, module_entitlement_manifest_org, target_sat
 ):
     """Create a CV with docker repo as well as RH yum contents and publish and promote
     them to next environment. Remove promoted version afterwards
@@ -2750,7 +2755,7 @@ def test_positive_rh_mixed_content_end_to_end(
         'basearch': 'x86_64',
         'releasever': None,
     }
-    enable_sync_redhat_repo(rh_st_repo, module_entitlement_manifest_org.id)
+    target_sat.api_factory.enable_sync_redhat_repo(rh_st_repo, module_entitlement_manifest_org.id)
     docker_repo.sync()
     lce = entities.LifecycleEnvironment(organization=module_entitlement_manifest_org).create()
     with session:
@@ -2956,7 +2961,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_module_stream_end_to_end(session, module_org):
+def test_positive_module_stream_end_to_end(session, module_org, target_sat):
     """Create content view with custom module_stream contents, publish and promote it
     to Library +1 env. Then disassociate repository from that content view
 
@@ -2979,7 +2984,7 @@ def test_positive_module_stream_end_to_end(session, module_org):
     env_name = gen_string('alpha')
     cv_name = gen_string('alpha')
     # Creates a CV along with product and sync'ed repository
-    create_sync_custom_repo(
+    target_sat.api_factory.create_sync_custom_repo(
         module_org.id, repo_name=repo_name, repo_url=settings.repos.module_stream_1.url
     )
     with session:
@@ -3006,7 +3011,7 @@ def test_positive_module_stream_end_to_end(session, module_org):
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_search_module_streams_in_content_view(session, module_org):
+def test_positive_search_module_streams_in_content_view(session, module_org, target_sat):
     """Search module streams in content view version
 
     :id: 7f5273ff-e80f-459d-adf4-b517b6d60fdc
@@ -3020,7 +3025,7 @@ def test_positive_search_module_streams_in_content_view(session, module_org):
     """
     repo_name = gen_string('alpha')
     module_stream = 'walrus'
-    create_sync_custom_repo(
+    target_sat.api_factory.create_sync_custom_repo(
         module_org.id, repo_name=repo_name, repo_url=settings.repos.module_stream_1.url
     )
     repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
@@ -3042,7 +3047,7 @@ def test_positive_search_module_streams_in_content_view(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_non_admin_user_actions(session, module_org, test_name):
+def test_positive_non_admin_user_actions(session, module_org, test_name, target_sat):
     """Attempt to manage content views
 
     :id: c4d270fc-a3e6-4ae2-a338-41d864a5622a
@@ -3075,8 +3080,10 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     # create a role with all content views permissions
     role = entities.Role().create()
-    create_role_permissions(role, {'Katello::ContentView': PERMISSIONS['Katello::ContentView']})
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
+        role, {'Katello::ContentView': PERMISSIONS['Katello::ContentView']}
+    )
+    target_sat.api_factory.create_role_permissions(
         role,
         {
             'Katello::KTEnvironment': [
@@ -3095,7 +3102,7 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
         password=user_password,
         mail='test@test.com',
     ).create()
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     # create a content view with the main admin account
     with session:
         session.contentview.create({'name': cv_name})
@@ -3135,7 +3142,7 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
 
 
 @pytest.mark.tier2
-def test_positive_readonly_user_actions(module_org, test_name):
+def test_positive_readonly_user_actions(module_org, test_name, target_sat):
     """Attempt to view content views
 
     :id: ebdc37ed-7887-4f64-944c-f2f92c58a206
@@ -3157,8 +3164,10 @@ def test_positive_readonly_user_actions(module_org, test_name):
     user_password = gen_string('alphanumeric')
     # create a role with content views read only permissions
     role = entities.Role().create()
-    create_role_permissions(role, {'Katello::ContentView': ['view_content_views']})
-    create_role_permissions(role, {'Katello::Product': ['view_products']})
+    target_sat.api_factory.create_role_permissions(
+        role, {'Katello::ContentView': ['view_content_views']}
+    )
+    target_sat.api_factory.create_role_permissions(role, {'Katello::Product': ['view_products']})
     # create a user and assign the above created role
     entities.User(
         default_organization=module_org,
@@ -3167,7 +3176,7 @@ def test_positive_readonly_user_actions(module_org, test_name):
         login=user_login,
         password=user_password,
     ).create()
-    repo_id = create_sync_custom_repo(module_org.id)
+    repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
     yum_repo = entities.Repository(id=repo_id).read()
     cv = entities.ContentView(organization=module_org, repository=[yum_repo]).create()
     cv.publish()
@@ -3183,7 +3192,7 @@ def test_positive_readonly_user_actions(module_org, test_name):
 
 
 @pytest.mark.tier2
-def test_negative_read_only_user_actions(session, module_org, test_name):
+def test_negative_read_only_user_actions(session, module_org, test_name, target_sat):
     """Attempt to manage content views
 
     :id: aae6eede-b40e-4e06-a5f7-59d9251aa35d
@@ -3213,8 +3222,10 @@ def test_negative_read_only_user_actions(session, module_org, test_name):
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     # create a role with content views read only permissions
     role = entities.Role().create()
-    create_role_permissions(role, {'Katello::ContentView': ['view_content_views']})
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
+        role, {'Katello::ContentView': ['view_content_views']}
+    )
+    target_sat.api_factory.create_role_permissions(
         role,
         {
             'Katello::KTEnvironment': [
@@ -3232,7 +3243,7 @@ def test_negative_read_only_user_actions(session, module_org, test_name):
         login=user_login,
         password=user_password,
     ).create()
-    repo_id = create_sync_custom_repo(module_org.id)
+    repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
     yum_repo = entities.Repository(id=repo_id).read()
     repo_name = 'fakerepo01'
     cv = entities.ContentView(organization=module_org, repository=[yum_repo]).create()
@@ -3293,7 +3304,7 @@ def test_negative_read_only_user_actions(session, module_org, test_name):
 
 
 @pytest.mark.tier2
-def test_negative_non_readonly_user_actions(module_org, test_name):
+def test_negative_non_readonly_user_actions(module_org, test_name, target_sat):
     """Attempt to view content views
 
     :id: 9cbc661a-dbe3-4b88-af27-4cf7b9544074
@@ -3314,7 +3325,7 @@ def test_negative_non_readonly_user_actions(module_org, test_name):
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     cv = entities.ContentView(organization=module_org).create()
     role = entities.Role().create()
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         role,
         {
             'Katello::ContentView': [
@@ -3326,7 +3337,7 @@ def test_negative_non_readonly_user_actions(module_org, test_name):
             ]
         },
     )
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         role,
         {
             'Katello::KTEnvironment': [
@@ -3363,7 +3374,7 @@ def test_negative_non_readonly_user_actions(module_org, test_name):
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_conservative_solve_dependencies(session, module_org):
+def test_positive_conservative_solve_dependencies(session, module_org, target_sat):
     """Performing solve dependencies on a package that is required by another
     package.  Then performing solve dependencies on a root package with
     its corresponding dependency.
@@ -3396,7 +3407,9 @@ def test_positive_conservative_solve_dependencies(session, module_org):
     package1_name = 'duck'
     package2_name = 'cockateel'
     arch = 'noarch'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=settings.repos.yum_0.url)
+    target_sat.api_factory.create_sync_custom_repo(
+        module_org.id, repo_name=repo_name, repo_url=settings.repos.yum_0.url
+    )
     with session:
         session.settings.update(f'name = {property_name}', param_value)
         session.contentview.create({'name': cv_name, 'solve_dependencies': True})
@@ -3438,7 +3451,9 @@ def test_positive_conservative_solve_dependencies(session, module_org):
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
-def test_positive_conservative_dep_solving_with_multiversion_packages(session, module_org):
+def test_positive_conservative_dep_solving_with_multiversion_packages(
+    session, module_org, target_sat
+):
     """Performing solve dependencies on a package with multiple versions that is required
     by another package.
 
@@ -3466,7 +3481,9 @@ def test_positive_conservative_dep_solving_with_multiversion_packages(session, m
     repo_name = gen_string('alpha')
     package_name = 'walrus'
     arch = 'noarch'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=settings.repos.yum_0.url)
+    target_sat.api_factory.create_sync_custom_repo(
+        module_org.id, repo_name=repo_name, repo_url=settings.repos.yum_0.url
+    )
     with session:
         session.settings.update(f'name = {property_name}', param_value)
         session.contentview.create({'name': cv_name, 'solve_dependencies': True})
@@ -3506,7 +3523,7 @@ def test_positive_conservative_dep_solving_with_multiversion_packages(session, m
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_depsolve_with_module_errata(session, module_org):
+def test_positive_depsolve_with_module_errata(session, module_org, target_sat):
     """Allowing users to filter module streams in content views.  This test case does not test
     against RHEL8 repos because it is known that RHEL8 filtering with depsolving creates
     inconsistent results.  The custom repo used in this test case has consistent results based
@@ -3536,10 +3553,10 @@ def test_positive_depsolve_with_module_errata(session, module_org):
     ms_version = '0.71'
     rpm_pack = ['shark', 'stork', 'walrus', 'whale']
     mod_stream = 'walrus'
-    create_sync_custom_repo(
+    target_sat.api_factory.create_sync_custom_repo(
         module_org.id, repo_name=repo_name_1, repo_url=settings.repos.yum_10.url
     )
-    create_sync_custom_repo(
+    target_sat.api_factory.create_sync_custom_repo(
         module_org.id, repo_name=repo_name_2, repo_url=settings.repos.yum_11.url
     )
     content = '4 Packages 1 Errata ( 1 0 0 ) 1 Module Streams'
@@ -3598,7 +3615,7 @@ def test_positive_filter_by_pkg_group_name(session, module_org, target_sat):
     repo_name = gen_string('alpha')
     package_group = 'birds'
     expected_packages = [('cockateel'), ('duck'), ('penguin'), ('stork')]
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     repo = target_sat.api.Repository(name=repo_name).search(
         query={'organization_id': module_org.id}
     )[0]
@@ -3736,7 +3753,7 @@ def test_positive_no_duplicate_key_violate_unique_constraint_using_filters(
         'katello-host-tools',
         'katello-host-tools-fact-plugin',
     ]
-    enable_sync_redhat_repo(rh_repo, module_entitlement_manifest_org.id)
+    target_sat.api_factory.enable_sync_redhat_repo(rh_repo, module_entitlement_manifest_org.id)
     with session:
         session.contentview.create({'name': cv})
         session.contentview.add_yum_repo(cv, rh_repo['name'])

@@ -10,8 +10,6 @@ from fauxfactory import gen_string
 from packaging.version import Version
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
 
@@ -48,7 +46,7 @@ def module_provisioning_rhel_content(
     rh_repo_id = ""
     content_view = sat.api.ContentView(organization=module_sca_manifest_org).create()
     for name in repo_names:
-        rh_kickstart_repo_id = enable_rhrepo_and_fetchid(
+        rh_kickstart_repo_id = module_provisioning_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
             org_id=module_sca_manifest_org.id,
             product=constants.REPOS['kickstart'][name]['product'],
@@ -58,7 +56,7 @@ def module_provisioning_rhel_content(
         )
         # do not sync content repos for discovery based provisioning.
         if not module_provisioning_sat.provisioning_type == 'discovery':
-            rh_repo_id = enable_rhrepo_and_fetchid(
+            rh_repo_id = module_provisioning_sat.api_factory.enable_rhrepo_and_fetchid(
                 basearch=constants.DEFAULT_ARCHITECTURE,
                 org_id=module_sca_manifest_org.id,
                 product=constants.REPOS[name]['product'],
@@ -77,7 +75,7 @@ def module_provisioning_rhel_content(
                 content_view.repository.append(rh_repo)
                 content_view.update(['repository'])
     for task in tasks:
-        wait_for_tasks(
+        sat.wait_for_tasks(
             search_query=(f'id = {task["id"]}'),
             poll_timeout=2500,
         )
@@ -96,7 +94,7 @@ def module_provisioning_rhel_content(
     # return only the first kickstart repo - RHEL X KS or RHEL X BaseOS KS
     ksrepo = rh_repos[0]
     publish = content_view.publish()
-    task_status = wait_for_tasks(
+    task_status = sat.wait_for_tasks(
         search_query=(f'Actions::Katello::ContentView::Publish and id = {publish["id"]}'),
         search_rate=15,
         max_tries=10,
