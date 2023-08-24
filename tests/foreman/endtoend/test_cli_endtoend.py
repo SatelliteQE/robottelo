@@ -280,11 +280,11 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
 
     content_host = Host.with_user(user['login'], user['password']).info({'id': content_host['id']})
     # check that content view matches what we passed
-    assert content_host['content-information']['content-view']['name'] == content_view['name']
+    assert content_host['content-information'][0]['content-view'] == content_view['name']
 
     # check that lifecycle environment matches
     assert (
-        content_host['content-information']['lifecycle-environment']['name']
+        content_host['content-information'][0]['lifecycle-environment']
         == lifecycle_environment['name']
     )
 
