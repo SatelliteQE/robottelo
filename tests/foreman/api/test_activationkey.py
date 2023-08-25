@@ -201,9 +201,8 @@ def test_positive_update_name(new_name, target_sat):
     """
     act_key = target_sat.api.ActivationKey().create()
     updated = target_sat.api.ActivationKey(
-        id=act_key.id, name=new_name, organization_id=act_key.organization_id).update(
-        ['name', 'organization_id']
-    )
+        id=act_key.id, name=new_name, organization_id=act_key.organization_id
+    ).update(['name', 'organization_id'])
     assert new_name == updated.name
 
 
@@ -225,7 +224,11 @@ def test_negative_update_limit(max_host, target_sat):
     :parametrized: yes
     """
     act_key = target_sat.api.ActivationKey().create()
-    want = {'max_hosts': act_key.max_hosts, 'unlimited_hosts': act_key.unlimited_hosts, 'organization_id': act_key.organization_id}
+    want = {
+        'max_hosts': act_key.max_hosts,
+        'unlimited_hosts': act_key.unlimited_hosts,
+        'organization_id': act_key.organization_id,
+    }
     act_key.max_hosts = max_host
     act_key.unlimited_hosts = False
     with pytest.raises(HTTPError):
@@ -252,9 +255,8 @@ def test_negative_update_name(new_name, target_sat):
     act_key = target_sat.api.ActivationKey().create()
     with pytest.raises(HTTPError):
         target_sat.api.ActivationKey(
-            id=act_key.id, name=new_name, organization_id=act_key.organization_id).update(
-            ['name', 'organization_id']
-        )
+            id=act_key.id, name=new_name, organization_id=act_key.organization_id
+        ).update(['name', 'organization_id'])
     new_key = target_sat.api.ActivationKey(id=act_key.id).read()
     assert new_key.name != new_name
     assert new_key.name == act_key.name
@@ -274,9 +276,8 @@ def test_negative_update_max_hosts(target_sat):
     act_key = target_sat.api.ActivationKey(max_hosts=1).create()
     with pytest.raises(HTTPError):
         target_sat.api.ActivationKey(
-            id=act_key.id, max_hosts='foo', organization_id=act_key.organization_id).update(
-            ['max_hosts', 'organization_id']
-        )
+            id=act_key.id, max_hosts='foo', organization_id=act_key.organization_id
+        ).update(['max_hosts', 'organization_id'])
     assert act_key.read().max_hosts == 1
 
 
@@ -396,9 +397,10 @@ def test_positive_update_auto_attach(target_sat):
     """
     act_key = target_sat.api.ActivationKey().create()
     act_key_2 = target_sat.api.ActivationKey(
-        id=act_key.id, auto_attach=(not act_key.auto_attach), organization_id=act_key.organization_id).update(
-        ['auto_attach', 'organization_id']
-    )
+        id=act_key.id,
+        auto_attach=(not act_key.auto_attach),
+        organization_id=act_key.organization_id,
+    ).update(['auto_attach', 'organization_id'])
     assert act_key.auto_attach != act_key_2.auto_attach
 
 
