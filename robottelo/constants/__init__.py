@@ -58,7 +58,6 @@ FOREMAN_PROVIDERS = {
     'ec2': 'EC2',
     'vmware': 'VMware',
     'openstack': 'RHEL OpenStack Platform',
-    'rackspace': 'Rackspace',
     'google': 'Google',
     'azurerm': 'Azure Resource Manager',
 }
