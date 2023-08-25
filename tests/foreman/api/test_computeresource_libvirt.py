@@ -20,132 +20,115 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 :Upstream: No
 """
-from random import randint
-
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
+from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import LIBVIRT_RESOURCE_URL
 from robottelo.utils.datafactory import invalid_values_list
 from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_data_list
 
-pytestmark = [
-    pytest.mark.skip_if_not_set('libvirt'),
-]
+pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
+
+LIBVIRT_URL = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
 
 
-@pytest.fixture(scope="module")
-def setup():
-    """Set up organization and location for tests."""
-    setupEntities = type("", (), {})()
-    setupEntities.org = entities.Organization().create()
-    setupEntities.loc = entities.Location(organization=[setupEntities.org]).create()
-    setupEntities.current_libvirt_url = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
-    return setupEntities
+@pytest.mark.e2e
+def test_positive_crud_libvirt_cr(module_target_sat, module_org, module_location):
+    """CRUD compute resource libvirt
 
-
-@pytest.mark.tier1
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_name(setup, name):
-    """Create compute resources with different names
-
-    :id: 1e545c56-2f53-44c1-a17e-38c83f8fe0c1
+    :id: 1e545c56-2f53-44c1-a17e-38c83f8fe0c2
 
     :expectedresults: Compute resources are created with expected names
 
     :CaseImportance: Critical
 
     :CaseLevel: Component
+    """
+    name = gen_string('alphanumeric')
+    description = gen_string('alphanumeric')
+    display_type = 'spice'
+    libvirt_url = 'qemu+tcp://libvirt.example.com:16509/system'
+
+    cr = module_target_sat.api.LibvirtComputeResource(
+        name=name,
+        description=description,
+        provider=FOREMAN_PROVIDERS['libvirt'],
+        display_type=display_type,
+        organization=[module_org],
+        location=[module_location],
+        url=libvirt_url,
+    ).create()
+    assert cr.name == name
+    assert cr.description == description
+    assert cr.provider == FOREMAN_PROVIDERS['libvirt']
+    assert cr.display_type == display_type
+    assert cr.url == libvirt_url
+
+    # Update
+    new_name = gen_string('alphanumeric')
+    new_description = gen_string('alphanumeric')
+    new_display_type = 'vnc'
+    new_org = module_target_sat.api.Organization().create()
+    new_loc = module_target_sat.api.Location(organization=[new_org]).create()
+    cr.name = new_name
+    cr.description = new_description
+    cr.display_type = new_display_type
+    cr.url = LIBVIRT_URL
+    cr.organization = [new_org]
+    cr.location = [new_loc]
+    cr.update(['name', 'description', 'display_type', 'url', 'organization', 'location'])
+
+    # READ
+    updated_cr = module_target_sat.api.LibvirtComputeResource(id=cr.id).read()
+    assert updated_cr.name == new_name
+    assert updated_cr.description == new_description
+    assert updated_cr.display_type == new_display_type
+    assert updated_cr.url == LIBVIRT_URL
+    assert updated_cr.organization[0].id == new_org.id
+    assert updated_cr.location[0].id == new_loc.id
+    # DELETE
+    updated_cr.delete()
+    assert not module_target_sat.api.LibvirtComputeResource().search(
+        query={'search': f'name={new_name}'}
+    )
+
+
+@pytest.mark.tier1
+@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
+def test_positive_create_with_name_description(
+    name, request, module_target_sat, module_org, module_location
+):
+    """Create compute resources with different names and descriptions
+
+    :id: 1e545c56-2f53-44c1-a17e-38c83f8fe0c1
+
+    :expectedresults: Compute resources are created with expected names and descriptions
+
+    :CaseImportance: Critical
+
+    :CaseLevel: Component
 
     :parametrized: yes
     """
-    compresource = entities.LibvirtComputeResource(
-        location=[setup.loc],
+    compresource = module_target_sat.api.LibvirtComputeResource(
         name=name,
-        organization=[setup.org],
-        url=setup.current_libvirt_url,
+        description=name,
+        organization=[module_org],
+        location=[module_location],
+        url=LIBVIRT_URL,
     ).create()
     assert compresource.name == name
-
-
-@pytest.mark.tier1
-@pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-def test_positive_create_with_description(setup, description):
-    """Create compute resources with different descriptions
-
-    :id: 1fa5b35d-ee47-452b-bb5f-4a4ca321f992
-
-    :expectedresults: Compute resources are created with expected
-        descriptions
-
-    :CaseImportance: Critical
-
-    :CaseLevel: Component
-
-    :parametrized: yes
-    """
-    compresource = entities.LibvirtComputeResource(
-        description=description,
-        location=[setup.loc],
-        organization=[setup.org],
-        url=setup.current_libvirt_url,
-    ).create()
-    assert compresource.description == description
+    assert compresource.description == name
+    request.addfinalizer(compresource.delete)
 
 
 @pytest.mark.tier2
-@pytest.mark.parametrize('display_type', ['spice', 'vnc'])
-def test_positive_create_libvirt_with_display_type(setup, display_type):
-    """Create a libvirt compute resources with different values of
-    'display_type' parameter
-
-    :id: 76380f31-e217-4ff1-ac6b-20f41e59f133
-
-    :expectedresults: Compute resources are created with expected
-        display_type value
-
-    :CaseImportance: High
-
-    :CaseLevel: Component
-
-    :parametrized: yes
-    """
-    compresource = entities.LibvirtComputeResource(
-        display_type=display_type,
-        location=[setup.loc],
-        organization=[setup.org],
-        url=setup.current_libvirt_url,
-    ).create()
-    assert compresource.display_type == display_type
-
-
-@pytest.mark.tier1
-def test_positive_create_with_provider(setup):
-    """Create compute resources with different providers. Testing only
-    Libvirt and Docker as other providers require valid credentials
-
-    :id: f61c66c9-15f8-4b00-9e53-7ebfb09397cc
-
-    :expectedresults: Compute resources are created with expected providers
-
-    :CaseImportance: Critical
-
-    :CaseLevel: Component
-    """
-    entity = entities.LibvirtComputeResource()
-    entity.location = [setup.loc]
-    entity.organization = [setup.org]
-    result = entity.create()
-    assert result.provider == entity.provider
-
-
-@pytest.mark.tier2
-def test_positive_create_with_locs(setup):
-    """Create a compute resource with multiple locations
+def test_positive_create_with_orgs_and_locs(request, module_target_sat):
+    """Create a compute resource with multiple organizations and locations
 
     :id: c6c6c6f7-50ca-4f38-8126-eb95359d7cbb
 
@@ -156,248 +139,19 @@ def test_positive_create_with_locs(setup):
 
     :CaseLevel: Integration
     """
-    locs = [entities.Location(organization=[setup.org]).create() for _ in range(randint(3, 5))]
-    compresource = entities.LibvirtComputeResource(
-        location=locs, organization=[setup.org], url=setup.current_libvirt_url
-    ).create()
-    assert {loc.name for loc in locs} == {loc.read().name for loc in compresource.location}
-
-
-@pytest.mark.tier2
-def test_positive_create_with_orgs(setup):
-    """Create a compute resource with multiple organizations
-
-    :id: 2f6e5019-6353-477e-a81f-2a551afc7556
-
-    :expectedresults: A compute resource is created with expected multiple
-        organizations assigned
-
-    :CaseImportance: High
-
-    :CaseLevel: Integration
-    """
-    orgs = [entities.Organization().create() for _ in range(randint(3, 5))]
-    compresource = entities.LibvirtComputeResource(
-        organization=orgs, url=setup.current_libvirt_url
+    orgs = [module_target_sat.api.Organization().create() for _ in range(2)]
+    locs = [module_target_sat.api.Location(organization=[org]).create() for org in orgs]
+    compresource = module_target_sat.api.LibvirtComputeResource(
+        location=locs, organization=orgs, url=LIBVIRT_URL
     ).create()
     assert {org.name for org in orgs} == {org.read().name for org in compresource.organization}
-
-
-@pytest.mark.tier1
-@pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-def test_positive_update_name(setup, new_name):
-    """Update a compute resource with different names
-
-    :id: 60f08418-b1a2-445e-9cd6-dbc92a33b57a
-
-    :expectedresults: Compute resource is updated with expected names
-
-    :CaseImportance: Critical
-
-    :CaseLevel: Component
-
-    :parametrized: yes
-    """
-    compresource = entities.LibvirtComputeResource(
-        location=[setup.loc], organization=[setup.org], url=setup.current_libvirt_url
-    ).create()
-    compresource.name = new_name
-    compresource = compresource.update(['name'])
-    assert compresource.name == new_name
-
-
-@pytest.mark.tier2
-@pytest.mark.parametrize('new_description', **parametrized(valid_data_list()))
-def test_positive_update_description(setup, new_description):
-    """Update a compute resource with different descriptions
-
-    :id: aac5dc53-8709-441b-b360-28b8efd3f63f
-
-    :expectedresults: Compute resource is updated with expected
-        descriptions
-
-    :CaseImportance: High
-
-    :CaseLevel: Component
-
-    :parametrized: yes
-    """
-    compresource = entities.LibvirtComputeResource(
-        description=gen_string('alpha'),
-        location=[setup.loc],
-        organization=[setup.org],
-        url=setup.current_libvirt_url,
-    ).create()
-    compresource.description = new_description
-    compresource = compresource.update(['description'])
-    assert compresource.description == new_description
-
-
-@pytest.mark.tier2
-@pytest.mark.parametrize('display_type', ['spice', 'vnc'])
-def test_positive_update_libvirt_display_type(setup, display_type):
-    """Update a libvirt compute resource with different values of
-    'display_type' parameter
-
-    :id: 0cbf08ac-acc4-476a-b389-271cea2b6cda
-
-    :expectedresults: Compute resource is updated with expected
-        display_type value
-
-    :CaseImportance: High
-
-    :CaseLevel: Component
-
-    :parametrized: yes
-    """
-    compresource = entities.LibvirtComputeResource(
-        display_type='VNC',
-        location=[setup.loc],
-        organization=[setup.org],
-        url=setup.current_libvirt_url,
-    ).create()
-    compresource.display_type = display_type
-    compresource = compresource.update(['display_type'])
-    assert compresource.display_type == display_type
-
-
-@pytest.mark.tier2
-def test_positive_update_url(setup):
-    """Update a compute resource's url field
-
-    :id: 259aa060-ed9e-4ed5-91e1-7fb0a3592879
-
-    :expectedresults: Compute resource is updated with expected url
-
-    :CaseImportance: High
-
-    :CaseLevel: Component
-    """
-    new_url = 'qemu+tcp://localhost:16509/system'
-
-    compresource = entities.LibvirtComputeResource(
-        location=[setup.loc], organization=[setup.org], url=setup.current_libvirt_url
-    ).create()
-    compresource.url = new_url
-    compresource = compresource.update(['url'])
-    assert compresource.url == new_url
-
-
-@pytest.mark.tier2
-def test_positive_update_loc(setup):
-    """Update a compute resource's location
-
-    :id: 57e96c7c-da9e-4400-af80-c374cd6b3d4a
-
-    :expectedresults: Compute resource is updated with expected location
-
-    :CaseImportance: High
-
-    :CaseLevel: Integration
-    """
-    compresource = entities.LibvirtComputeResource(
-        location=[setup.loc], organization=[setup.org], url=setup.current_libvirt_url
-    ).create()
-    new_loc = entities.Location(organization=[setup.org]).create()
-    compresource.location = [new_loc]
-    compresource = compresource.update(['location'])
-    assert len(compresource.location) == 1
-    assert compresource.location[0].id == new_loc.id
-
-
-@pytest.mark.tier2
-def test_positive_update_locs(setup):
-    """Update a compute resource with new multiple locations
-
-    :id: cda9f501-2879-4cb0-a017-51ee795232f1
-
-    :expectedresults: Compute resource is updated with expected locations
-
-    :CaseImportance: High
-
-    :CaseLevel: Integration
-    """
-    compresource = entities.LibvirtComputeResource(
-        location=[setup.loc], organization=[setup.org], url=setup.current_libvirt_url
-    ).create()
-    new_locs = [entities.Location(organization=[setup.org]).create() for _ in range(randint(3, 5))]
-    compresource.location = new_locs
-    compresource = compresource.update(['location'])
-    assert {location.id for location in compresource.location} == {
-        location.id for location in new_locs
-    }
-
-
-@pytest.mark.tier2
-def test_positive_update_org(setup):
-    """Update a compute resource's organization
-
-    :id: 430b64a2-7f64-4344-a73b-1b47d8dfa6cb
-
-    :expectedresults: Compute resource is updated with expected
-        organization
-
-    :CaseImportance: High
-
-    :CaseLevel: Integration
-    """
-    compresource = entities.LibvirtComputeResource(
-        organization=[setup.org], url=setup.current_libvirt_url
-    ).create()
-    new_org = entities.Organization().create()
-    compresource.organization = [new_org]
-    compresource = compresource.update(['organization'])
-    assert len(compresource.organization) == 1
-    assert compresource.organization[0].id == new_org.id
-
-
-@pytest.mark.tier2
-def test_positive_update_orgs(setup):
-    """Update a compute resource with new multiple organizations
-
-    :id: 2c759ad5-d115-46d9-8365-712c0bb39a1d
-
-    :expectedresults: Compute resource is updated with expected
-        organizations
-
-    :CaseImportance: High
-
-    :CaseLevel: Integration
-    """
-    compresource = entities.LibvirtComputeResource(
-        organization=[setup.org], url=setup.current_libvirt_url
-    ).create()
-    new_orgs = [entities.Organization().create() for _ in range(randint(3, 5))]
-    compresource.organization = new_orgs
-    compresource = compresource.update(['organization'])
-    assert {organization.id for organization in compresource.organization} == {
-        organization.id for organization in new_orgs
-    }
-
-
-@pytest.mark.tier1
-def test_positive_delete(setup):
-    """Delete a compute resource
-
-    :id: 0117a4f1-e2c2-44aa-8919-453166aeebbc
-
-    :expectedresults: Compute resources is successfully deleted
-
-    :CaseImportance: Critical
-
-    :CaseLevel: Component
-    """
-    compresource = entities.LibvirtComputeResource(
-        location=[setup.loc], organization=[setup.org], url=setup.current_libvirt_url
-    ).create()
-    compresource.delete()
-    with pytest.raises(HTTPError):
-        compresource.read()
+    assert {loc.name for loc in locs} == {loc.read().name for loc in compresource.location}
+    request.addfinalizer(compresource.delete)
 
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_invalid_name(setup, name):
+def test_negative_create_with_invalid_name(name, module_target_sat, module_org, module_location):
     """Attempt to create compute resources with invalid names
 
     :id: f73bf838-3ffd-46d3-869c-81b334b47b13
@@ -411,16 +165,16 @@ def test_negative_create_with_invalid_name(setup, name):
     :parametrized: yes
     """
     with pytest.raises(HTTPError):
-        entities.LibvirtComputeResource(
-            location=[setup.loc],
+        module_target_sat.api.LibvirtComputeResource(
             name=name,
-            organization=[setup.org],
-            url=setup.current_libvirt_url,
+            organization=[module_org],
+            location=[module_location],
+            url=LIBVIRT_URL,
         ).create()
 
 
 @pytest.mark.tier2
-def test_negative_create_with_same_name(setup):
+def test_negative_create_with_same_name(request, module_target_sat, module_org, module_location):
     """Attempt to create a compute resource with already existing name
 
     :id: 9376e25c-2aa8-4d99-83aa-2eec160c030e
@@ -432,21 +186,23 @@ def test_negative_create_with_same_name(setup):
     :CaseLevel: Component
     """
     name = gen_string('alphanumeric')
-    entities.LibvirtComputeResource(
-        location=[setup.loc], name=name, organization=[setup.org], url=setup.current_libvirt_url
+    cr = module_target_sat.api.LibvirtComputeResource(
+        location=[module_location], name=name, organization=[module_org], url=LIBVIRT_URL
     ).create()
+    assert cr.name == name
+    request.addfinalizer(cr.delete)
     with pytest.raises(HTTPError):
-        entities.LibvirtComputeResource(
-            location=[setup.loc],
+        module_target_sat.api.LibvirtComputeResource(
             name=name,
-            organization=[setup.org],
-            url=setup.current_libvirt_url,
+            organization=[module_org],
+            location=[module_location],
+            url=LIBVIRT_URL,
         ).create()
 
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('url', **parametrized({'random': gen_string('alpha'), 'empty': ''}))
-def test_negative_create_with_url(setup, url):
+def test_negative_create_with_url(module_target_sat, module_org, module_location, url):
     """Attempt to create compute resources with invalid url
 
     :id: 37e9bf39-382e-4f02-af54-d3a17e285c2a
@@ -460,14 +216,16 @@ def test_negative_create_with_url(setup, url):
     :parametrized: yes
     """
     with pytest.raises(HTTPError):
-        entities.LibvirtComputeResource(
-            location=[setup.loc], organization=[setup.org], url=url
+        module_target_sat.api.LibvirtComputeResource(
+            location=[module_location], organization=[module_org], url=url
         ).create()
 
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-def test_negative_update_invalid_name(setup, new_name):
+def test_negative_update_invalid_name(
+    request, module_target_sat, module_org, module_location, new_name
+):
     """Attempt to update compute resource with invalid names
 
     :id: a6554c1f-e52f-4614-9fc3-2127ced31470
@@ -481,9 +239,10 @@ def test_negative_update_invalid_name(setup, new_name):
     :parametrized: yes
     """
     name = gen_string('alphanumeric')
-    compresource = entities.LibvirtComputeResource(
-        location=[setup.loc], name=name, organization=[setup.org], url=setup.current_libvirt_url
+    compresource = module_target_sat.api.LibvirtComputeResource(
+        location=[module_location], name=name, organization=[module_org], url=LIBVIRT_URL
     ).create()
+    request.addfinalizer(compresource.delete)
     with pytest.raises(HTTPError):
         compresource.name = new_name
         compresource.update(['name'])
@@ -491,7 +250,7 @@ def test_negative_update_invalid_name(setup, new_name):
 
 
 @pytest.mark.tier2
-def test_negative_update_same_name(setup):
+def test_negative_update_same_name(request, module_target_sat, module_org, module_location):
     """Attempt to update a compute resource with already existing name
 
     :id: 4d7c5eb0-b8cb-414f-aa10-fe464a164ab4
@@ -503,21 +262,26 @@ def test_negative_update_same_name(setup):
     :CaseLevel: Component
     """
     name = gen_string('alphanumeric')
-    entities.LibvirtComputeResource(
-        location=[setup.loc], name=name, organization=[setup.org], url=setup.current_libvirt_url
+    compresource = module_target_sat.api.LibvirtComputeResource(
+        location=[module_location], name=name, organization=[module_org], url=LIBVIRT_URL
     ).create()
-    new_compresource = entities.LibvirtComputeResource(
-        location=[setup.loc], organization=[setup.org], url=setup.current_libvirt_url
+    new_compresource = module_target_sat.api.LibvirtComputeResource(
+        location=[module_location], organization=[module_org], url=LIBVIRT_URL
     ).create()
     with pytest.raises(HTTPError):
         new_compresource.name = name
         new_compresource.update(['name'])
     assert new_compresource.read().name != name
 
+    @request.addfinalizer
+    def _finalize():
+        compresource.delete()
+        new_compresource.delete()
+
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('url', **parametrized({'random': gen_string('alpha'), 'empty': ''}))
-def test_negative_update_url(setup, url):
+def test_negative_update_url(url, request, module_target_sat, module_org, module_location):
     """Attempt to update a compute resource with invalid url
 
     :id: b5256090-2ceb-4976-b54e-60d60419fe50
@@ -530,9 +294,10 @@ def test_negative_update_url(setup, url):
 
     :parametrized: yes
     """
-    compresource = entities.LibvirtComputeResource(
-        location=[setup.loc], organization=[setup.org], url=setup.current_libvirt_url
+    compresource = module_target_sat.api.LibvirtComputeResource(
+        location=[module_location], organization=[module_org], url=LIBVIRT_URL
     ).create()
+    request.addfinalizer(compresource.delete)
     with pytest.raises(HTTPError):
         compresource.url = url
         compresource.update(['url'])

@@ -223,7 +223,6 @@ def test_positive_create_with_all_users(session):
 
 
 @pytest.mark.skip_if_not_set('libvirt')
-@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 def test_positive_update_compresource(session):
     """Add/Remove compute resource from/to organization.
