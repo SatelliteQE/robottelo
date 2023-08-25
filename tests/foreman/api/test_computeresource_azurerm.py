@@ -19,7 +19,6 @@
 import pytest
 from fauxfactory import gen_string
 
-from robottelo.api.utils import satellite_setting
 from robottelo.config import settings
 from robottelo.constants import AZURERM_FILE_URI
 from robottelo.constants import AZURERM_PLATFORM_DEFAULT
@@ -269,7 +268,9 @@ class TestAzureRMHostProvisioningTestCase:
                 puppet_ca_proxy=session_puppet_enabled_proxy,
             ).create()
             yield host
-            with satellite_setting('destroy_vm_on_host_delete=True'):
+            with session_puppet_enabled_sat.api_factory.satellite_setting(
+                'destroy_vm_on_host_delete=True'
+            ):
                 host.delete()
 
     @pytest.fixture(scope='class')
@@ -426,7 +427,9 @@ class TestAzureRMUserDataProvisioning:
                 puppet_ca_proxy=session_puppet_enabled_proxy,
             ).create()
             yield host
-            with satellite_setting('destroy_vm_on_host_delete=True'):
+            with session_puppet_enabled_sat.api_factory.satellite_setting(
+                'destroy_vm_on_host_delete=True'
+            ):
                 host.delete()
 
     @pytest.fixture(scope='class')
@@ -581,7 +584,9 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
                 puppet_ca_proxy=session_puppet_enabled_proxy,
             ).create()
             yield host
-            with satellite_setting('destroy_vm_on_host_delete=True'):
+            with session_puppet_enabled_sat.api_factory.satellite_setting(
+                'destroy_vm_on_host_delete=True'
+            ):
                 host.delete()
 
     @pytest.fixture(scope='class')
@@ -708,7 +713,9 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
                 puppet_ca_proxy=session_puppet_enabled_proxy,
             ).create()
             yield host
-            with satellite_setting('destroy_vm_on_host_delete=True'):
+            with session_puppet_enabled_sat.api_factory.satellite_setting(
+                'destroy_vm_on_host_delete=True'
+            ):
                 host.delete()
 
     @pytest.fixture(scope='class')

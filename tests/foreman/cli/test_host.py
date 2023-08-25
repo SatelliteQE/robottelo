@@ -29,7 +29,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 from wait_for import wait_for
 
-from robottelo.api.utils import promote
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import add_role_permissions
@@ -817,7 +816,7 @@ def test_positive_create_inherit_nested_hostgroup():
     lce = entities.LifecycleEnvironment(organization=options.organization).create()
     content_view = entities.ContentView(organization=options.organization).create()
     content_view.publish()
-    promote(content_view.read().version[0], environment_id=lce.id)
+    content_view.read().version[0].promote(data={'environment_ids': lce.id, 'force': False})
     host_name = gen_string('alpha').lower()
     nested_hg_name = gen_string('alpha')
     parent_hostgroups = []
@@ -879,7 +878,7 @@ def test_positive_list_with_nested_hostgroup():
     lce = entities.LifecycleEnvironment(organization=options.organization).create()
     content_view = entities.ContentView(organization=options.organization).create()
     content_view.publish()
-    promote(content_view.read().version[0], environment_id=lce.id)
+    content_view.read().version[0].promote(data={'environment_ids': lce.id, 'force': False})
     parent_hg = entities.HostGroup(
         name=parent_hg_name, organization=[options.organization]
     ).create()
@@ -2118,7 +2117,7 @@ def test_negative_without_attach_with_lce(
     host_lce = target_sat.api.LifecycleEnvironment(organization=function_org).create()
     # refresh content view data
     content_view.publish()
-    promote(content_view.read().version[-1], environment_id=host_lce.id)
+    content_view.read().version[-1].promote(data={'environment_ids': host_lce.id, 'force': False})
 
     # register client
     host_subscription_client.register_contenthost(

@@ -32,7 +32,6 @@ from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.api.utils import promote
 from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV
@@ -248,7 +247,7 @@ def test_positive_create_and_update_with_hostgroup(
 
     :CaseLevel: Integration
     """
-    promote(module_published_cv.version[0], environment_id=module_lce.id)
+    module_published_cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
     hostgroup = entities.HostGroup(location=[module_location], organization=[module_org]).create()
     host = entities.Host(
         hostgroup=hostgroup,
@@ -994,7 +993,7 @@ def test_positive_read_content_source_id(
     :CaseLevel: System
     """
     proxy = entities.SmartProxy().search(query={'url': f'{target_sat.url}:9090'})[0].read()
-    promote(module_published_cv.version[0], environment_id=module_lce.id)
+    module_published_cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
     host = entities.Host(
         organization=module_org,
         location=module_location,
@@ -1030,7 +1029,7 @@ def test_positive_update_content_source_id(
     :CaseLevel: System
     """
     proxy = target_sat.api.SmartProxy().search(query={'url': f'{target_sat.url}:9090'})[0]
-    promote(module_published_cv.version[0], environment_id=module_lce.id)
+    module_published_cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
     host = target_sat.api.Host(
         organization=module_org,
         location=module_location,

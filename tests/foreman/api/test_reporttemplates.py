@@ -23,7 +23,6 @@ from nailgun import entities
 from requests import HTTPError
 from wait_for import wait_for
 
-from robottelo.api.utils import promote
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -58,7 +57,7 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
     ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
-    promote(cvv, lce.id)
+    cvv.promote(data={'environment_ids': lce.id, 'force': False})
     ak = entities.ActivationKey(
         content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
     ).create()

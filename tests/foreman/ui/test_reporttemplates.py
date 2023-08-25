@@ -27,7 +27,6 @@ import yaml
 from lxml import etree
 from nailgun import entities
 
-from robottelo.api.utils import promote
 from robottelo.config import robottelo_tmp_dir
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
@@ -62,7 +61,7 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
     ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
-    promote(cvv, lce.id)
+    cvv.promote(data={'environment_ids': lce.id})
     ak = entities.ActivationKey(
         content_view=cv, organization=org, environment=lce, auto_attach=True
     ).create()

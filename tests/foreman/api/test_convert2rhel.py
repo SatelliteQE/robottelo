@@ -17,7 +17,6 @@
 import pytest
 import requests
 
-from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -58,7 +57,7 @@ def update_cv(sat, cv, lce, repos):
     cv = sat.api.ContentView(id=cv.id, repository=repos).update(["repository"])
     cv.publish()
     cv = cv.read()
-    promote(cv.version[-1], environment_id=lce.id)
+    cv.version[-1].promote(data={'environment_ids': lce.id, 'force': False})
     return cv
 
 

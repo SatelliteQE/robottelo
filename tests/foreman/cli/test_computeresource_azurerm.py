@@ -19,7 +19,6 @@
 import pytest
 from fauxfactory import gen_string
 
-from robottelo.api.utils import satellite_setting
 from robottelo.cli.computeprofile import ComputeProfile
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.host import Host
@@ -364,7 +363,9 @@ class TestAzureRMFinishTemplateProvisioning:
                     timeout=1800000,
                 )
                 yield host
-                with satellite_setting('destroy_vm_on_host_delete=True'):
+                with session_puppet_enabled_sat.api_factory.satellite_setting(
+                    'destroy_vm_on_host_delete=True'
+                ):
                     if Host.exists(search=('name', host['name'])):
                         Host.delete({'name': self.fullhostname}, timeout=1800000)
 
@@ -490,7 +491,9 @@ class TestAzureRMUserDataProvisioning:
                     timeout=1800000,
                 )
                 yield host
-                with satellite_setting('destroy_vm_on_host_delete=True'):
+                with session_puppet_enabled_sat.api_factory.satellite_setting(
+                    'destroy_vm_on_host_delete=True'
+                ):
                     if Host.exists(search=('name', host['name'])):
                         Host.delete({'name': self.fullhostname}, timeout=1800000)
 
@@ -615,7 +618,9 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
                     timeout=1800000,
                 )
                 yield host
-                with satellite_setting('destroy_vm_on_host_delete=True'):
+                with session_puppet_enabled_sat.api_factory.satellite_setting(
+                    'destroy_vm_on_host_delete=True'
+                ):
                     if Host.exists(search=('name', host['name'])):
                         Host.delete({'name': self.fullhostname}, timeout=1800000)
 

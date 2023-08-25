@@ -19,7 +19,6 @@
 import pytest
 from nailgun import entities
 
-from robottelo.api.utils import promote
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.utils.datafactory import gen_string
 
@@ -68,7 +67,7 @@ def test_positive_check_dashboard(
     content_view = entities.ContentView(organization=default_org).create()
     content_view.publish()
     content_view = content_view.read()
-    promote(content_view.version[0], environment_id=lce.id)
+    content_view.version[0].promote(data={'environment_ids': lce.id})
     entities.Host(
         hostgroup=module_host_group,
         location=default_location,
