@@ -45,7 +45,10 @@ def common_assertion(report_path):
 @pytest.mark.tier3
 @pytest.mark.e2e
 def test_rhcloud_inventory_api_e2e(
-    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, module_target_sat
+    inventory_settings,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
+    module_target_sat,
 ):
     """Generate report using rh_cloud plugin api's and verify its basic properties.
 
@@ -70,7 +73,7 @@ def test_rhcloud_inventory_api_e2e(
 
     :customerscenario: true
     """
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     # Generate report
@@ -116,7 +119,7 @@ def test_rhcloud_inventory_api_e2e(
 @pytest.mark.e2e
 @pytest.mark.tier3
 def test_rhcloud_inventory_api_hosts_synchronization(
-    organization_ak_setup,
+    rhcloud_manifest_org,
     rhcloud_registered_hosts,
     module_target_sat,
 ):
@@ -140,7 +143,7 @@ def test_rhcloud_inventory_api_hosts_synchronization(
 
     :CaseAutomation: Automated
     """
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
     # Generate report
     module_target_sat.generate_inventory_report(org)
@@ -185,7 +188,10 @@ def test_rhcloud_inventory_mtu_field():
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 def test_system_purpose_sla_field(
-    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, module_target_sat
+    inventory_settings,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
+    module_target_sat,
 ):
     """Verify that system_purpose_sla field is present in the inventory report
     for the host subscribed using Activation key with service level set in it.
@@ -211,7 +217,7 @@ def test_system_purpose_sla_field(
 
     :CaseAutomation: Automated
     """
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     module_target_sat.generate_inventory_report(org)
@@ -285,7 +291,10 @@ def test_inventory_upload_with_http_proxy():
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 def test_include_parameter_tags_setting(
-    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, module_target_sat
+    inventory_settings,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
+    module_target_sat,
 ):
     """Verify that include_parameter_tags setting doesn't cause invalid report
     to be generated.
@@ -308,7 +317,7 @@ def test_include_parameter_tags_setting(
 
     :CaseAutomation: Automated
     """
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     module_target_sat.update_setting('include_parameter_tags', True)
@@ -328,7 +337,10 @@ def test_include_parameter_tags_setting(
 
 @pytest.mark.tier3
 def test_rh_cloud_tag_values(
-    inventory_settings, organization_ak_setup, module_target_sat, rhcloud_registered_hosts
+    inventory_settings,
+    rhcloud_manifest_org,
+    module_target_sat,
+    rhcloud_registered_hosts,
 ):
     """Verify that tag values are escaped properly when hostgroup name
         contains " (double quote) in it.
@@ -353,7 +365,7 @@ def test_rh_cloud_tag_values(
 
     :CaseAutomation: Automated
     """
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
 
     host_col_name = gen_string('alpha')
     host_name = rhcloud_registered_hosts[0].hostname
@@ -383,7 +395,7 @@ def test_rh_cloud_tag_values(
 @pytest.mark.tier2
 def test_positive_tag_values_max_length(
     inventory_settings,
-    organization_ak_setup,
+    rhcloud_manifest_org,
     rhcloud_registered_hosts,
     module_target_sat,
     target_sat,
@@ -412,7 +424,7 @@ def test_positive_tag_values_max_length(
     param_value = gen_string('alpha', length=260)
     target_sat.api.CommonParameter(name=param_name, value=param_value).create()
 
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     module_target_sat.update_setting('include_parameter_tags', True)
     module_target_sat.generate_inventory_report(org)
