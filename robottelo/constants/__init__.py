@@ -872,6 +872,10 @@ PUPPET_SATELLITE_INSTALLER = [
     'enable-foreman-cli-puppet',
 ]
 PUPPET_CAPSULE_INSTALLER = ['enable-puppet']
+CAPSULE_REGISTRATION_OPTS = {
+    'foreman-proxy-registration': 'true',
+    'foreman-proxy-templates': 'true',
+}
 
 KICKSTART_CONTENT = [
     'treeinfo',

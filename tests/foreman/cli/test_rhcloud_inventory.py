@@ -33,7 +33,7 @@ generate_report_jobs = 'ForemanInventoryUpload::Async::GenerateAllReportsJob'
 @pytest.mark.tier3
 @pytest.mark.e2e
 def test_positive_inventory_generate_upload_cli(
-    organization_ak_setup, rhcloud_registered_hosts, module_target_sat
+    rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat
 ):
     """Tests Insights inventory generation and upload via foreman-rake commands:
     https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
@@ -68,7 +68,7 @@ def test_positive_inventory_generate_upload_cli(
 
     :CaseLevel: System
     """
-    org, _ = organization_ak_setup
+    org = rhcloud_manifest_org
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:report:generate_upload'
     upload_success_msg = f"Generated and uploaded inventory report for organization '{org.name}'"
     result = module_target_sat.execute(cmd)
@@ -104,7 +104,7 @@ def test_positive_inventory_generate_upload_cli(
 @pytest.mark.e2e
 @pytest.mark.tier3
 def test_positive_inventory_recommendation_sync(
-    organization_ak_setup,
+    rhcloud_manifest_org,
     rhcloud_registered_hosts,
     module_target_sat,
 ):
@@ -127,7 +127,7 @@ def test_positive_inventory_recommendation_sync(
 
     :CaseLevel: System
     """
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_insights:sync'
     timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
     result = module_target_sat.execute(cmd)
@@ -148,7 +148,7 @@ def test_positive_inventory_recommendation_sync(
 @pytest.mark.e2e
 @pytest.mark.tier3
 def test_positive_sync_inventory_status(
-    organization_ak_setup,
+    rhcloud_manifest_org,
     rhcloud_registered_hosts,
     module_target_sat,
 ):
@@ -172,7 +172,7 @@ def test_positive_sync_inventory_status(
 
     :CaseLevel: System
     """
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
     success_msg = f"Synchronized inventory for organization '{org.name}'"
     timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
