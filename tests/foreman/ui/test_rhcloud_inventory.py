@@ -20,7 +20,6 @@ from datetime import datetime
 from datetime import timedelta
 
 import pytest
-from airgun.session import Session
 from wait_for import wait_for
 
 from robottelo.constants import DEFAULT_LOC
@@ -59,7 +58,10 @@ def common_assertion(report_path, inventory_data, org, satellite):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_rhcloud_inventory_e2e(
-    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, module_target_sat
+    inventory_settings,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
+    module_target_sat,
 ):
     """Generate report and verify its basic properties
 
@@ -82,9 +84,9 @@ def test_rhcloud_inventory_e2e(
 
     :BZ: 1807829, 1926100
     """
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
-    with Session(hostname=module_target_sat.hostname) as session:
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
@@ -130,7 +132,10 @@ def test_rhcloud_inventory_e2e(
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_obfuscate_host_names(
-    module_target_sat, inventory_settings, organization_ak_setup, rhcloud_registered_hosts
+    module_target_sat,
+    inventory_settings,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
 ):
     """Test whether `Obfuscate host names` setting works as expected.
 
@@ -152,9 +157,9 @@ def test_obfuscate_host_names(
 
     :CaseAutomation: Automated
     """
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
-    with Session(hostname=module_target_sat.hostname) as session:
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Enable obfuscate_hostnames setting on inventory page.
@@ -232,7 +237,10 @@ def test_obfuscate_host_names(
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_obfuscate_host_ipv4_addresses(
-    module_target_sat, inventory_settings, organization_ak_setup, rhcloud_registered_hosts
+    module_target_sat,
+    inventory_settings,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
 ):
     """Test whether `Obfuscate host ipv4 addresses` setting works as expected.
 
@@ -258,9 +266,9 @@ def test_obfuscate_host_ipv4_addresses(
 
     :CaseAutomation: Automated
     """
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
-    with Session(hostname=module_target_sat.hostname) as session:
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Enable obfuscate_ips setting on inventory page.
@@ -350,7 +358,10 @@ def test_obfuscate_host_ipv4_addresses(
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_exclude_packages_setting(
-    module_target_sat, inventory_settings, organization_ak_setup, rhcloud_registered_hosts
+    module_target_sat,
+    inventory_settings,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
 ):
     """Test whether `Exclude Packages` setting works as expected.
 
@@ -377,9 +388,9 @@ def test_exclude_packages_setting(
 
     :CaseAutomation: Automated
     """
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
-    with Session(hostname=module_target_sat.hostname) as session:
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Enable exclude_packages setting on inventory page.

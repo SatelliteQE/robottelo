@@ -19,7 +19,6 @@
 from datetime import datetime
 
 import pytest
-from airgun.session import Session
 from wait_for import wait_for
 
 from robottelo.config import settings
@@ -42,7 +41,7 @@ def create_insights_vulnerability(insights_vm):
 @pytest.mark.rhel_ver_list([7, 8, 9])
 def test_rhcloud_insights_e2e(
     rhel_insights_vm,
-    organization_ak_setup,
+    rhcloud_manifest_org,
     module_target_sat,
 ):
     """Synchronize hits data from cloud, verify it is displayed in Satellite and run remediation.
@@ -76,11 +75,11 @@ def test_rhcloud_insights_e2e(
     job_query = (
         f'Remote action: Insights remediations for selected issues on {rhel_insights_vm.hostname}'
     )
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
     # Prepare misconfigured machine and upload data to Insights
     create_insights_vulnerability(rhel_insights_vm)
 
-    with Session(hostname=module_target_sat.hostname) as session:
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
@@ -244,7 +243,7 @@ def test_host_sorting_based_on_recommendation_count():
 @pytest.mark.rhel_ver_list([7, 8, 9])
 def test_host_details_page(
     rhel_insights_vm,
-    organization_ak_setup,
+    rhcloud_manifest_org,
     module_target_sat,
 ):
     """Test host details page for host having insights recommendations.
@@ -281,10 +280,10 @@ def test_host_details_page(
 
     :CaseAutomation: Automated
     """
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
     # Prepare misconfigured machine and upload data to Insights
     create_insights_vulnerability(rhel_insights_vm)
-    with Session(hostname=module_target_sat.hostname) as session:
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Sync insights recommendations
@@ -326,18 +325,20 @@ def test_host_details_page(
         assert recommendations[0]['Hostname'] == rhel_insights_vm.hostname
         assert int(result['Recommendations']) == len(recommendations)
         # Delete host
-        host = module_target_sat.api.Host().search(
-            query={"search": f'name={rhel_insights_vm.hostname}'}
-        )[0]
-        host.delete()
-        assert not module_target_sat.api.Host().search(query={"search": f'name={host.name}'})
+        rhel_insights_vm.nailgun_host.delete()
+        assert not rhel_insights_vm.nailgun_host
 
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([7, 8, 9])
 def test_insights_registration_with_capsule(
-    rhcloud_capsule, organization_ak_setup, module_target_sat, rhel_contenthost, default_os
+    rhcloud_capsule,
+    rhcloud_activation_key,
+    rhcloud_manifest_org,
+    module_target_sat,
+    rhel_contenthost,
+    default_os,
 ):
     """Registering host with insights having traffic going through
         external capsule and also test rh_cloud_insights:clean_statuses rake command.
@@ -364,7 +365,8 @@ def test_insights_registration_with_capsule(
 
     :parametrized: yes
     """
-    org, ak = organization_ak_setup
+    org = rhcloud_manifest_org
+    ak = rhcloud_activation_key
     # Enable rhel repos and install insights-client
     rhelver = rhel_contenthost.os_version.major
     if rhelver > 7:
@@ -373,7 +375,7 @@ def test_insights_registration_with_capsule(
         rhel_contenthost.create_custom_repos(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
-    with Session(hostname=module_target_sat.hostname) as session:
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Generate host registration command
