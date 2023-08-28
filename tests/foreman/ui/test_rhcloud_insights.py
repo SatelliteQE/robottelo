@@ -19,21 +19,30 @@
 from datetime import datetime
 
 import pytest
-from airgun.session import Session
 from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DNF_RECOMMENDATION
+from robottelo.constants import OPENSSH_RECOMMENDATION
+
+
+def create_insights_vulnerability(insights_vm):
+    """Function to create vulnerabilities that can be remediated."""
+    insights_vm.run(
+        'chmod 777 /etc/ssh/sshd_config;dnf update -y dnf;'
+        'sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client'
+    )
 
 
 @pytest.mark.e2e
-@pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_list([8, 9])
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([7, 8, 9])
 def test_rhcloud_insights_e2e(
     rhel_insights_vm,
-    organization_ak_setup,
-    rhcloud_sat_host,
+    rhcloud_manifest_org,
+    module_target_sat,
 ):
     """Synchronize hits data from cloud, verify it is displayed in Satellite and run remediation.
 
@@ -41,9 +50,9 @@ def test_rhcloud_insights_e2e(
 
     :Steps:
         1. Prepare misconfigured machine and upload its data to Insights.
-        2. In Satellite UI, Configure -> Insights -> Sync recommendations.
-        3. Run remediation for "OpenSSH config permissions" recommendation against rhel8/rhel9 host.
-        4. Assert that job completed successfully.
+        2. In Satellite UI, go to Configure -> Insights -> Sync recommendations.
+        3. Run remediation for "OpenSSH config permissions" recommendation against host.
+        4. Verify that the remediation job completed successfully.
         5. Sync Insights recommendations.
         6. Search for previously remediated issue.
 
@@ -63,20 +72,21 @@ def test_rhcloud_insights_e2e(
 
     :CaseAutomation: Automated
     """
-    org, ak = organization_ak_setup
-    # Create a vulnerability which can be remediated
-    rhel_insights_vm.run('chmod 777 /etc/ssh/sshd_config;insights-client')
-    query = 'Decreased security: OpenSSH config permissions'
     job_query = (
         f'Remote action: Insights remediations for selected issues on {rhel_insights_vm.hostname}'
     )
-    with Session(hostname=rhcloud_sat_host.hostname) as session:
+    org = rhcloud_manifest_org
+    # Prepare misconfigured machine and upload data to Insights
+    create_insights_vulnerability(rhel_insights_vm)
+
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        # Sync Insights recommendations
         session.cloudinsights.sync_hits()
         wait_for(
-            lambda: rhcloud_sat_host.api.ForemanTask()
+            lambda: module_target_sat.api.ForemanTask()
             .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
             .result
             == 'success',
@@ -87,13 +97,17 @@ def test_rhcloud_insights_e2e(
         )
         # Workaround for alert message causing search to fail. See airgun issue 584.
         session.browser.refresh()
-        result = session.cloudinsights.search(query)[0]
+        # Search for Insights recommendation.
+        result = session.cloudinsights.search(
+            f'hostname= "{rhel_insights_vm.hostname}" and title = "{OPENSSH_RECOMMENDATION}"'
+        )[0]
         assert result['Hostname'] == rhel_insights_vm.hostname
-        assert result['Recommendation'] == query
+        assert result['Recommendation'] == OPENSSH_RECOMMENDATION
+        # Run remediation and verify job completion.
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-        session.cloudinsights.remediate(query)
+        session.cloudinsights.remediate(OPENSSH_RECOMMENDATION)
         wait_for(
-            lambda: rhcloud_sat_host.api.ForemanTask()
+            lambda: module_target_sat.api.ForemanTask()
             .search(query={'search': f'{job_query} and started_at >= "{timestamp}"'})[0]
             .result
             == 'success',
@@ -102,10 +116,11 @@ def test_rhcloud_insights_e2e(
             silent_failure=True,
             handle_exception=True,
         )
+        # Search for Insights recommendations again.
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
         wait_for(
-            lambda: rhcloud_sat_host.api.ForemanTask()
+            lambda: module_target_sat.api.ForemanTask()
             .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
             .result
             == 'success',
@@ -116,7 +131,10 @@ def test_rhcloud_insights_e2e(
         )
         # Workaround for alert message causing search to fail. See airgun issue 584.
         session.browser.refresh()
-        assert not session.cloudinsights.search(query)
+        # Verify that the insights recommendation is not listed anymore.
+        assert not session.cloudinsights.search(
+            f'hostname= "{rhel_insights_vm.hostname}" and title = "{OPENSSH_RECOMMENDATION}"'
+        )
 
 
 @pytest.mark.stubbed
@@ -220,62 +238,68 @@ def test_host_sorting_based_on_recommendation_count():
     """
 
 
-@pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_list([8])
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([7, 8, 9])
 def test_host_details_page(
     rhel_insights_vm,
-    organization_ak_setup,
-    rhcloud_sat_host,
+    rhcloud_manifest_org,
+    module_target_sat,
 ):
     """Test host details page for host having insights recommendations.
 
     :id: e079ed10-c9f5-4331-9cb3-70b224b1a584
+
+    :customerscenario: true
 
     :Steps:
         1. Prepare misconfigured machine and upload its data to Insights.
         2. Sync insights recommendations.
         3. Sync RH Cloud inventory status.
         4. Go to Hosts -> All Hosts
-        5. Assert there is "Recommendations" column containing insights recommendation count.
+        5. Verify there is a "Recommendations" column containing insights recommendation count.
         6. Check popover status of host.
-        7. Assert that host properties shows reporting inventory upload status.
-        8. Click on "Recommendations" tab.
+        7. Verify that host properties shows "reporting" inventory upload status.
+        8. Read the recommendations listed in Insights tab present on host details page.
+        9. Click on "Recommendations" tab.
+        10. Try to delete host.
 
     :expectedresults:
         1. There's Insights column with number of recommendations.
         2. Inventory upload status is displayed in popover status of host.
         3. Insights registration status is displayed in popover status of host.
         4. Inventory upload status is present in host properties table.
-        5. Clicking on "Recommendations" tab takes user to Insights page with insights
+        5. Verify the contents of Insights tab.
+        6. Clicking on "Recommendations" tab takes user to Insights page with insights
             recommendations selected for that host.
+        7. Host having insights recommendations is deleted from Satellite.
 
-    :BZ: 1974578
+    :BZ: 1974578, 1860422, 1928652, 1865876, 1879448
 
     :parametrized: yes
 
     :CaseAutomation: Automated
     """
-    org, ak = organization_ak_setup
-    # Create a vulnerability which can be remediated
-    rhel_insights_vm.run('dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client')
-    # Sync inventory status
-    inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
-    wait_for(
-        lambda: rhcloud_sat_host.api.ForemanTask()
-        .search(query={'search': f'id = {inventory_sync["task"]["id"]}'})[0]
-        .result
-        == 'success',
-        timeout=400,
-        delay=15,
-        silent_failure=True,
-        handle_exception=True,
-    )
-    with Session(hostname=rhcloud_sat_host.hostname) as session:
+    org = rhcloud_manifest_org
+    # Prepare misconfigured machine and upload data to Insights
+    create_insights_vulnerability(rhel_insights_vm)
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Sync insights recommendations
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
+        wait_for(
+            lambda: module_target_sat.api.ForemanTask()
+            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        # Verify Insights status of host.
         result = session.host.host_status(rhel_insights_vm.hostname)
         assert 'Insights: Reporting' in result
         assert 'Inventory: Successfully uploaded to your RH cloud inventory' in result
@@ -288,225 +312,36 @@ def test_host_details_page(
             values['properties']['properties_table']['Inventory']
             == 'Successfully uploaded to your RH cloud inventory clear'
         )
+        # Read the recommendations listed in Insights tab present on host details page
+        insights_recommendations = session.host_new.insights_tab(rhel_insights_vm.hostname)
+        for recommendation in insights_recommendations:
+            if recommendation['name'] == DNF_RECOMMENDATION:
+                assert recommendation['label'] == 'Moderate'
+                assert DNF_RECOMMENDATION in recommendation['text']
+                assert len(insights_recommendations) == int(result['Recommendations'])
+        # Test Recommendation button present on host details page
         recommendations = session.host.read_insights_recommendations(rhel_insights_vm.hostname)
         assert len(recommendations), 'No recommendations were found'
         assert recommendations[0]['Hostname'] == rhel_insights_vm.hostname
         assert int(result['Recommendations']) == len(recommendations)
-
-
-@pytest.mark.run_in_one_thread
-@pytest.mark.tier2
-def test_rh_cloud_insights_clean_statuses(
-    rhel7_contenthost,
-    rhel8_contenthost,
-    organization_ak_setup,
-    rhcloud_sat_host,
-):
-    """Test rh_cloud_insights:clean_statuses rake command.
-
-    :id: 6416ed31-cafb-4278-b205-bf3da9ab2ee4
-
-    :Steps:
-        1. Prepare misconfigured machine and upload its data to Insights
-        2. Go to Hosts -> All Hosts
-        3. Assert that host properties shows reporting status for insights.
-        4. Run rh_cloud_insights:clean_statuses rake command
-        5. Assert that host properties doesn't contain insights status.
-
-    :expectedresults:
-        1. rake command deletes insights reporting status of host.
-
-    :BZ: 1962930
-
-    :parametrized: yes
-
-    :CaseAutomation: Automated
-    """
-    org, ak = organization_ak_setup
-    rhel7_contenthost.configure_rhai_client(
-        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro='rhel7'
-    )
-    rhel8_contenthost.configure_rhai_client(
-        satellite=rhcloud_sat_host, activation_key=ak.name, org=org.label, rhel_distro='rhel8'
-    )
-    with Session(hostname=rhcloud_sat_host.hostname) as session:
-        session.organization.select(org_name=org.name)
-        session.location.select(loc_name=DEFAULT_LOC)
-        values = session.host.get_details(rhel7_contenthost.hostname)
-        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
-        values = session.host.get_details(rhel8_contenthost.hostname)
-        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
-        # Clean insights status
-        result = rhcloud_sat_host.run(
-            f'foreman-rake rh_cloud_insights:clean_statuses SEARCH="{rhel7_contenthost.hostname}"'
-        )
-        assert 'Deleted 1 insights statuses' in result.stdout
-        assert result.status == 0
-        values = session.host.get_details(rhel7_contenthost.hostname)
-        with pytest.raises(KeyError):
-            values['properties']['properties_table']['Insights']
-        values = session.host.get_details(rhel8_contenthost.hostname)
-        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
-        result = rhel7_contenthost.run('insights-client')
-        assert result.status == 0
-        values = session.host.get_details(rhel7_contenthost.hostname)
-        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
-
-
-@pytest.mark.run_in_one_thread
-@pytest.mark.tier2
-@pytest.mark.rhel_ver_list([8])
-def test_delete_host_having_insights_recommendation(
-    rhel_insights_vm,
-    organization_ak_setup,
-    rhcloud_sat_host,
-):
-    """Verify that host having insights recommendations can be deleted from Satellite.
-
-    :id: 07914ff7-e230-4416-8664-7d357e9966f3
-
-    :customerscenario: true
-
-    :Steps:
-        1. Prepare misconfigured machine and upload its data to Insights.
-        2. Sync insights recommendations.
-        3. Sync RH Cloud inventory status.
-        4. Go to Hosts -> All Hosts
-        5. Assert there is "Recommendations" column containing insights recommendation count.
-        6. Try to delete host.
-
-    :expectedresults:
-        1. host having insights recommendations is deleted from Satellite.
-
-    :CaseImportance: Critical
-
-    :BZ: 1860422, 1928652
-
-    :parametrized: yes
-
-    :CaseAutomation: Automated
-    """
-    org, ak = organization_ak_setup
-    # Create a vulnerability which can be remediated
-    rhel_insights_vm.run('dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client')
-    # Sync inventory status
-    inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
-    wait_for(
-        lambda: rhcloud_sat_host.api.ForemanTask()
-        .search(query={'search': f'id = {inventory_sync["task"]["id"]}'})[0]
-        .result
-        == 'success',
-        timeout=400,
-        delay=15,
-        silent_failure=True,
-        handle_exception=True,
-    )
-    with Session(hostname=rhcloud_sat_host.hostname) as session:
-        session.organization.select(org_name=org.name)
-        session.location.select(loc_name=DEFAULT_LOC)
-        # Sync insights recommendations
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-        session.cloudinsights.sync_hits()
-        wait_for(
-            lambda: rhcloud_sat_host.api.ForemanTask()
-            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
-            .result
-            == 'success',
-            timeout=400,
-            delay=15,
-            silent_failure=True,
-            handle_exception=True,
-        )
-        result = session.host.search(rhel_insights_vm.hostname)[0]
-        assert result['Name'] == rhel_insights_vm.hostname
-        assert int(result['Recommendations']) > 0
-        values = session.host.get_details(rhel_insights_vm.hostname)
-        # Note: Reading host properties adds 'clear' to original value.
-        assert (
-            values['properties']['properties_table']['Inventory']
-            == 'Successfully uploaded to your RH cloud inventory clear'
-        )
-        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
         # Delete host
-        session.host.delete(rhel_insights_vm.hostname)
-        assert not rhcloud_sat_host.api.Host().search(
-            query={'search': f'name="{rhel_insights_vm.hostname}"'}
-        )
-
-
-@pytest.mark.tier2
-@pytest.mark.rhel_ver_list([8])
-def test_insights_tab_on_host_details_page(
-    rhel_insights_vm,
-    organization_ak_setup,
-    rhcloud_sat_host,
-):
-    """Test recommendations count in hosts index is a link and contents
-        of Insights tab on host details page.
-
-    :id: d969ad38-7ee5-4c57-8538-1cf6c1705707
-
-    :Steps:
-        1. Prepare misconfigured machine and upload its data to Insights.
-        2. In Satellite UI, Configure -> Insights -> Sync now.
-        3. Go to Hosts -> All Hosts.
-        4. Click on recommendation count.
-        5. Assert the contents of Insights tab.
-
-    :expectedresults:
-        1. There's Insights recommendation column with number of recommendations and
-            link to Insights tab on host details page.
-        2. Insights tab shows recommendations for the host.
-
-    :CaseImportance: High
-
-    :BZ: 1865876, 1879448
-
-    :parametrized: yes
-
-    :CaseAutomation: Automated
-    """
-    org, ak = organization_ak_setup
-    # Create a vulnerability which can be remediated
-    rhel_insights_vm.run('dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf;insights-client')
-    dnf_issue = (
-        'The dnf installs lower versions of packages when the '
-        '"best" option is not present in the /etc/dnf/dnf.conf'
-    )
-    with Session(hostname=rhcloud_sat_host.hostname) as session:
-        session.organization.select(org_name=org.name)
-        session.location.select(loc_name=DEFAULT_LOC)
-        # Sync insights recommendations
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-        session.cloudinsights.sync_hits()
-        wait_for(
-            lambda: rhcloud_sat_host.api.ForemanTask()
-            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
-            .result
-            == 'success',
-            timeout=400,
-            delay=15,
-            silent_failure=True,
-            handle_exception=True,
-        )
-        result = session.host.search(rhel_insights_vm.hostname)[0]
-        assert result['Name'] == rhel_insights_vm.hostname
-        assert int(result['Recommendations']) > 0
-        insights_recommendations = session.host.insights_tab(rhel_insights_vm.hostname)
-        for recommendation in insights_recommendations:
-            if recommendation['name'] == dnf_issue:
-                assert recommendation['label'] == 'Moderate'
-                assert dnf_issue in recommendation['text']
-                assert len(insights_recommendations) == int(result['Recommendations'])
+        rhel_insights_vm.nailgun_host.delete()
+        assert not rhel_insights_vm.nailgun_host
 
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([7, 8, 9])
 def test_insights_registration_with_capsule(
-    rhcloud_capsule, organization_ak_setup, rhcloud_sat_host, rhel7_contenthost, default_os
+    rhcloud_capsule,
+    rhcloud_activation_key,
+    rhcloud_manifest_org,
+    module_target_sat,
+    rhel_contenthost,
+    default_os,
 ):
     """Registering host with insights having traffic going through
-        external capsule.
+        external capsule and also test rh_cloud_insights:clean_statuses rake command.
 
     :id: 9db1d307-664c-4d4a-89de-da986224f071
 
@@ -515,23 +350,35 @@ def test_insights_registration_with_capsule(
     :steps:
         1. Integrate a capsule with satellite.
         2. open the global registration form and select the same capsule.
-        3. Overide Insights and Rex parameters.
+        3. Override Insights and Rex parameters.
         4. check host is registered successfully with selected capsule.
         5. Test insights client connection & reporting status.
+        6. Run rh_cloud_insights:clean_statuses rake command
+        7. Verify that host properties doesn't contain insights status.
 
-    :expectedresults: Host is successfully registered with capsule host,
-             having remote execution and insights.
+    :expectedresults:
+        1. Host is successfully registered with capsule host,
+            having remote execution and insights.
+        2. rake command deletes insights reporting status of host.
 
-    :BZ: 2110222, 2112386
+    :BZ: 2110222, 2112386, 1962930
+
+    :parametrized: yes
     """
-    org, ak = organization_ak_setup
-    capsule = rhcloud_sat_host.api.SmartProxy(name=rhcloud_capsule.hostname).search()[0]
-    org.smart_proxy.append(capsule)
-    org.update(['smart_proxy'])
-
-    with Session(hostname=rhcloud_sat_host.hostname) as session:
+    org = rhcloud_manifest_org
+    ak = rhcloud_activation_key
+    # Enable rhel repos and install insights-client
+    rhelver = rhel_contenthost.os_version.major
+    if rhelver > 7:
+        rhel_contenthost.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
+    else:
+        rhel_contenthost.create_custom_repos(
+            **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
+        )
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
+        # Generate host registration command
         cmd = session.host.get_register_command(
             {
                 'general.operating_system': default_os.title,
@@ -543,11 +390,28 @@ def test_insights_registration_with_capsule(
                 'advanced.setup_rex': 'Yes (override)',
             }
         )
-        # TODO: Make this test parametirzed for all rhel versions after verifying BZ:2129254
-        rhel7_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
-        assert rhel7_contenthost.execute('yum install -y insights-client').status == 0
-        rhel7_contenthost.execute(cmd)
-        assert rhel7_contenthost.subscribed
-        assert rhel7_contenthost.execute('insights-client --test-connection').status == 0
-        values = session.host.get_details(rhel7_contenthost.hostname)
+        # Register host with Satellite and Insights.
+        rhel_contenthost.execute(cmd)
+        assert rhel_contenthost.subscribed
+        assert rhel_contenthost.execute('insights-client --test-connection').status == 0
+        values = session.host.get_details(rhel_contenthost.hostname)
+        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
+        # Clean insights status
+        result = module_target_sat.run(
+            f'foreman-rake rh_cloud_insights:clean_statuses SEARCH="{rhel_contenthost.hostname}"'
+        )
+        assert 'Deleted 1 insights statuses' in result.stdout
+        assert result.status == 0
+        # Workaround for not reading old data.
+        session.browser.refresh()
+        # Verify that Insights status is cleared.
+        values = session.host.get_details(rhel_contenthost.hostname)
+        with pytest.raises(KeyError):
+            values['properties']['properties_table']['Insights']
+        result = rhel_contenthost.run('insights-client')
+        assert result.status == 0
+        # Workaround for not reading old data.
+        session.browser.refresh()
+        # Verify that Insights status again.
+        values = session.host.get_details(rhel_contenthost.hostname)
         assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
