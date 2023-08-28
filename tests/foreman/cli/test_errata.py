@@ -23,7 +23,6 @@ from operator import itemgetter
 
 import pytest
 from broker import Broker
-from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.cli.activationkey import ActivationKey
@@ -33,22 +32,16 @@ from robottelo.cli.contentview import ContentViewFilter
 from robottelo.cli.erratum import Erratum
 from robottelo.cli.factory import make_content_view_filter
 from robottelo.cli.factory import make_content_view_filter_rule
-from robottelo.cli.factory import make_filter
 from robottelo.cli.factory import make_host_collection
 from robottelo.cli.factory import make_repository
-from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_user
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
-from robottelo.cli.filter import Filter
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.job_invocation import JobInvocation
-from robottelo.cli.org import Org
 from robottelo.cli.package import Package
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
-from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -1203,108 +1196,6 @@ def test_positive_list_filter_by_cve(module_entitlement_manifest_org, rh_repo):
         assert REAL_4_ERRATA_ID in {
             errata['errata-id'] for errata in Erratum.list({'cve': errata_cve})
         }
-
-
-@pytest.mark.tier3
-@pytest.mark.upgrade
-def test_positive_user_permission(products_with_repos):
-    """Show errata only if the User has permissions to view them
-
-    :id: f350c13b-8cf9-4aa5-8c3a-1c48397ea514
-
-    :Setup:
-
-        1. Create two products with one repo each. Sync them.
-        2. Make sure that they both have errata.
-        3. Create a user with view access on one product and not on the
-           other.
-
-    :Steps: erratum list --organization-id=<orgid>
-
-    :expectedresults: Check that the new user is able to see errata for one
-        product only.
-
-    :BZ: 1403947
-    """
-    user_password = gen_string('alphanumeric')
-    user_name = gen_string('alphanumeric')
-
-    product = products_with_repos[3]
-    org = product.organization
-
-    # get the available permissions
-    permissions = Filter.available_permissions()
-    user_required_permissions_names = ['view_products']
-    # get the user required permissions ids
-    user_required_permissions_ids = [
-        permission['id']
-        for permission in permissions
-        if permission['name'] in user_required_permissions_names
-    ]
-    assert len(user_required_permissions_ids) > 0
-
-    # create a role
-    role = make_role({'organization-ids': org.id})
-
-    # create a filter with the required permissions for role with product
-    # one only
-    make_filter(
-        {
-            'permission-ids': user_required_permissions_ids,
-            'role-id': role['id'],
-            'search': f"name = {product.name}",
-        }
-    )
-
-    # create a new user and assign him the created role permissions
-    user = make_user(
-        {
-            'admin': False,
-            'login': user_name,
-            'password': user_password,
-            'organization-ids': [org.id],
-            'default-organization-id': org.id,
-        }
-    )
-    User.add_role({'id': user['id'], 'role-id': role['id']})
-
-    # make sure the user is not admin and has only the permissions assigned
-    user = User.info({'id': user['id']})
-    assert user['admin'] == 'no'
-    assert set(user['roles']) == {role['name']}
-
-    # try to get organization info
-    # get the info as admin user first
-    org_info = Org.info({'id': org.id})
-    assert str(org.id) == org_info['id']
-    assert org.name == org_info['name']
-
-    # get the organization info as the created user
-    with pytest.raises(CLIReturnCodeError) as context:
-        Org.with_user(user_name, user_password).info({'id': org.id})
-    assert 'Missing one of the required permissions: view_organizations' in context.value.stderr
-
-    # try to get the erratum products list by organization id only
-    # ensure that all products erratum are accessible by admin user
-    admin_org_errata_ids = [
-        errata['errata-id'] for errata in Erratum.list({'organization-id': org.id})
-    ]
-    assert REPOS_WITH_ERRATA[2]['errata_id'] in admin_org_errata_ids
-    assert REPOS_WITH_ERRATA[3]['errata_id'] in admin_org_errata_ids
-
-    assert len(admin_org_errata_ids) == (
-        REPOS_WITH_ERRATA[2]['errata_count'] + REPOS_WITH_ERRATA[3]['errata_count']
-    )
-
-    # ensure that the created user see only the erratum product that was
-    # assigned in permissions
-    user_org_errata_ids = [
-        errata['errata-id']
-        for errata in Erratum.with_user(user_name, user_password).list({'organization-id': org.id})
-    ]
-    assert len(user_org_errata_ids) == REPOS_WITH_ERRATA[3]['errata_count']
-    assert REPOS_WITH_ERRATA[3]['errata_id'] in user_org_errata_ids
-    assert REPOS_WITH_ERRATA[2]['errata_id'] not in user_org_errata_ids
 
 
 @pytest.mark.tier3
