@@ -1,8 +1,10 @@
 """Global Configurations for py.test runner"""
 import pytest
 
+
 pytest_plugins = [
     # Plugins
+    'pytest_plugins.auto_vault',
     'pytest_plugins.disable_rp_params',
     'pytest_plugins.external_logging',
     'pytest_plugins.fixture_markers',
