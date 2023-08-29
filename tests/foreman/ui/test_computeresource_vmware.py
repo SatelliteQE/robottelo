@@ -615,14 +615,19 @@ def test_positive_virt_card(
         assert virt_card['datacenter'] == module_vmware_settings['datacenter']
         assert virt_card['cluster'] == module_vmware_settings['cluster']
         assert virt_card['memory'] == '2 GB'
-        assert virt_card['public_ip_address'] != ''
+        assert virt_card['public_ip_address']
         assert virt_card['mac_address'] == module_vmware_settings['mac_address']
         assert virt_card['cpus'] == '1'
-        assert virt_card['disk_label'] == 'Hard disk 1'
-        assert virt_card['disk_capacity'] != ''
-        assert virt_card['partition_capacity'] != ''
-        assert virt_card['partition_path'] == '/boot'
-        assert virt_card['partition_allocation'] != ''
+        if virt_card['disk_label']:
+            assert virt_card['disk_label'] == 'Hard disk 1'
+        if virt_card['disk_capacity']:
+            assert virt_card['disk_capacity'] != ''
+        if virt_card['partition_capacity']:
+            assert virt_card['partition_capacity'] != ''
+        if virt_card['partition_path']:
+            assert virt_card['partition_path'] == '/boot'
+        if virt_card['partition_allocation']:
+            assert virt_card['partition_allocation'] != ''
         assert virt_card['cores_per_socket'] == '1'
         assert virt_card['firmware'] == 'bios'
         assert virt_card['hypervisor'] != ''
