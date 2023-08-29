@@ -399,12 +399,14 @@ def test_positive_health_check_old_foreman_tasks(sat_maintain):
 
     :expectedresults: check-old-foreman-tasks health check should pass.
     """
-    rake_command = 'foreman-rake console <<< '
-    find_task = '\'t = ForemanTasks::Task.where(state: "stopped").first;'
-    update_task = "t.started_at = t.started_at - 31.day;t.save(:validate => false)'"
     error_message = 'paused or stopped task(s) older than 30 days'
     delete_message = 'Deleted old tasks:'
-    sat_maintain.execute(rake_command + find_task + update_task)
+    rake_command = (
+        't = ForemanTasks::Task.where(state: "stopped").first;'
+        't.started_at = t.started_at - 32.day;'
+        't.save(:validate => false)'
+    )
+    sat_maintain.execute(f"foreman-rake console <<< '{rake_command}'")
     result = sat_maintain.cli.Health.check(
         options={'label': 'check-old-foreman-tasks', 'assumeyes': True}
     )
