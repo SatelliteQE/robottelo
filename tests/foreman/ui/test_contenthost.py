@@ -139,6 +139,7 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
 
     :CaseImportance: Critical
     """
+    vm.run(r'subscription-manager repos --enable \*')
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     startdate = datetime.utcnow().strftime('%m/%d/%Y')
@@ -252,6 +253,7 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm, target_s
     """
     hc_name = gen_string('alpha')
     description = gen_string('alpha')
+    vm.run(r'subscription-manager repos --enable \*')
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     with session:
