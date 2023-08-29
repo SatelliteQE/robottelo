@@ -214,56 +214,6 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_list([7, 8, 9])
 @pytest.mark.no_containers
-def test_positive_install_in_host(
-    module_org, activation_key, custom_repo, rhel_contenthost, target_sat
-):
-    """Install errata in a host
-
-    :id: 1e6fc159-b0d6-436f-b945-2a5731c46df5
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps: POST /api/v2/job_invocations/{hash}
-
-    :expectedresults: errata is installed in the host.
-
-    :parametrized: yes
-
-    :CaseLevel: System
-
-    :BZ: 1983043
-    """
-    rhel_contenthost.install_katello_ca(target_sat)
-    rhel_contenthost.register_contenthost(module_org.label, activation_key.name)
-    assert rhel_contenthost.subscribed
-    host_id = rhel_contenthost.nailgun_host.id
-    _install_package(
-        module_org,
-        clients=[rhel_contenthost],
-        host_ids=[host_id],
-        package_name=constants.FAKE_1_CUSTOM_PACKAGE,
-    )
-    rhel_contenthost.add_rex_key(satellite=target_sat)
-    task_id = target_sat.api.JobInvocation().run(
-        data={
-            'feature': 'katello_errata_install',
-            'inputs': {'errata': str(CUSTOM_REPO_ERRATA_ID)},
-            'targeting_type': 'static_query',
-            'search_query': f'name = {rhel_contenthost.hostname}',
-            'organization_id': module_org.id,
-        },
-    )['id']
-    target_sat.wait_for_tasks(
-        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
-        search_rate=15,
-        max_tries=10,
-    )
-    _validate_package_installed([rhel_contenthost], constants.FAKE_2_CUSTOM_PACKAGE)
-
-
-@pytest.mark.tier3
-@pytest.mark.rhel_ver_list([7, 8, 9])
-@pytest.mark.no_containers
 @pytest.mark.e2e
 def test_positive_install_multiple_in_host(
     module_org, activation_key, custom_repo, rhel_contenthost, target_sat
