@@ -25,7 +25,9 @@ from robottelo.hosts import ContentHost
 @pytest.mark.e2e
 @pytest.mark.tier4
 @pytest.mark.parametrize('distro', ['rhel7', 'rhel8'])
-def test_positive_connection_option(organization_ak_setup, rhcloud_sat_host, distro):
+def test_positive_connection_option(
+    rhcloud_activation_key, rhcloud_manifest_org, module_target_sat, distro
+):
     """Verify that 'insights-client --test-connection' successfully tests the proxy connection via
     the Satellite.
 
@@ -45,9 +47,10 @@ def test_positive_connection_option(organization_ak_setup, rhcloud_sat_host, dis
 
     :CaseImportance: Critical
     """
-    org, activation_key = organization_ak_setup
+    org = rhcloud_manifest_org
+    ak = rhcloud_activation_key
     with Broker(nick=distro, host_class=ContentHost) as vm:
-        vm.configure_rhai_client(rhcloud_sat_host, activation_key.name, org.label, distro)
+        vm.configure_rhai_client(module_target_sat, ak.name, org.label, distro)
         result = vm.run('insights-client --test-connection')
         assert result.status == 0, (
             'insights-client --test-connection failed.\n'

@@ -146,7 +146,7 @@ def test_positive_configure_cloud_connector(
     host.host_parameters_attributes = parameters
     host.update(['host_parameters_attributes'])
 
-    with session:
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_rhc_org.name)
         if session.cloudinventory.is_cloud_connector_configured():
             pytest.skip(
