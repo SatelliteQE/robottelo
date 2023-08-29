@@ -23,9 +23,33 @@ from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import MAINTAIN_HAMMER_YML
 from robottelo.constants import SATELLITE_ANSWER_FILE
+from robottelo.hosts import Satellite
 from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.destructive
+
+SATELLITE_SERVICES = [
+    "dynflow-sidekiq@.service",
+    "foreman-proxy.service",
+    "foreman.service",
+    "httpd.service",
+    "postgresql.service",
+    "pulpcore-api.service",
+    "pulpcore-content.service",
+    "pulpcore-worker@.service",
+    "redis.service",
+    "tomcat.service",
+]
+
+CAPSULE_SERVICES = [
+    "foreman-proxy.service",
+    "httpd.service",
+    "postgresql.service",
+    "pulpcore-api.service",
+    "pulpcore-content.service",
+    "pulpcore-worker@.service",
+    "redis.service",
+]
 
 
 @pytest.fixture
@@ -65,6 +89,9 @@ def test_positive_service_list(sat_maintain):
     result = sat_maintain.cli.Service.list()
     assert 'FAIL' not in result.stdout
     assert result.status == 0
+    services = SATELLITE_SERVICES if type(sat_maintain) is Satellite else CAPSULE_SERVICES
+    for service in services:
+        assert service in result.stdout
 
 
 @pytest.mark.e2e
