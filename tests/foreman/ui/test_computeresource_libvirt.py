@@ -20,7 +20,6 @@ from random import choice
 
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_SMALL
@@ -29,14 +28,12 @@ from robottelo.constants import LIBVIRT_RESOURCE_URL
 
 pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
 
-
-@pytest.fixture(scope='module')
-def module_libvirt_url():
-    return LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
+LIBVIRT_URL = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
 
 
 @pytest.mark.tier2
-def test_positive_end_to_end(session, module_org, module_location, module_libvirt_url):
+@pytest.mark.e2e
+def test_positive_end_to_end(session, module_target_sat, module_org, module_location):
     """Perform end to end testing for compute resource Libvirt component.
 
     :id: 7ef925ac-5aec-4e9d-b786-328a9b219c01
@@ -53,17 +50,18 @@ def test_positive_end_to_end(session, module_org, module_location, module_libvir
     cr_description = gen_string('alpha')
     new_cr_name = gen_string('alpha')
     new_cr_description = gen_string('alpha')
-    new_org = entities.Organization().create()
-    new_loc = entities.Location().create()
+    new_org = module_target_sat.api.Organization().create()
+    new_loc = module_target_sat.api.Location().create()
     display_type = choice(('VNC', 'SPICE'))
     console_passwords = choice((True, False))
+    module_target_sat.configure_libvirt_cr()
     with session:
         session.computeresource.create(
             {
                 'name': cr_name,
                 'description': cr_description,
                 'provider': FOREMAN_PROVIDERS['libvirt'],
-                'provider_content.url': module_libvirt_url,
+                'provider_content.url': LIBVIRT_URL,
                 'provider_content.display_type': display_type,
                 'provider_content.console_passwords': console_passwords,
                 'organizations.resources.assigned': [module_org.name],
@@ -73,7 +71,7 @@ def test_positive_end_to_end(session, module_org, module_location, module_libvir
         cr_values = session.computeresource.read(cr_name)
         assert cr_values['name'] == cr_name
         assert cr_values['description'] == cr_description
-        assert cr_values['provider_content']['url'] == module_libvirt_url
+        assert cr_values['provider_content']['url'] == LIBVIRT_URL
         assert cr_values['provider_content']['display_type'] == display_type
         assert cr_values['provider_content']['console_passwords'] == console_passwords
         assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
@@ -102,7 +100,7 @@ def test_positive_end_to_end(session, module_org, module_location, module_libvir
         # check that the compute resource is listed in one of the default compute profiles
         profile_cr_values = session.computeprofile.list_resources(COMPUTE_PROFILE_SMALL)
         profile_cr_names = [cr['Compute Resource'] for cr in profile_cr_values]
-        assert '{} ({})'.format(new_cr_name, FOREMAN_PROVIDERS['libvirt']) in profile_cr_names
+        assert f'{new_cr_name} ({FOREMAN_PROVIDERS["libvirt"]})' in profile_cr_names
         session.computeresource.update_computeprofile(
             new_cr_name,
             COMPUTE_PROFILE_SMALL,
@@ -112,8 +110,9 @@ def test_positive_end_to_end(session, module_org, module_location, module_libvir
             new_cr_name, COMPUTE_PROFILE_SMALL
         )
         assert cr_profile_values['compute_profile'] == COMPUTE_PROFILE_SMALL
-        assert cr_profile_values['compute_resource'] == '{} ({})'.format(
-            new_cr_name, FOREMAN_PROVIDERS['libvirt']
+        assert (
+            cr_profile_values['compute_resource']
+            == f'{new_cr_name} ({FOREMAN_PROVIDERS["libvirt"]})'
         )
         assert cr_profile_values['provider_content']['cpus'] == '16'
         assert cr_profile_values['provider_content']['memory'] == '8192 MB'

@@ -6,6 +6,7 @@ from robottelo.host_helpers.contenthost_mixins import VersionedContent
 from robottelo.host_helpers.satellite_mixins import ContentInfo
 from robottelo.host_helpers.satellite_mixins import EnablePluginsSatellite
 from robottelo.host_helpers.satellite_mixins import Factories
+from robottelo.host_helpers.satellite_mixins import ProvisioningSetup
 from robottelo.host_helpers.satellite_mixins import SystemInfo
 
 
@@ -17,5 +18,7 @@ class CapsuleMixins(CapsuleInfo, EnablePluginsCapsule):
     pass
 
 
-class SatelliteMixins(ContentInfo, Factories, SystemInfo, EnablePluginsSatellite):
+class SatelliteMixins(
+    ContentInfo, Factories, SystemInfo, EnablePluginsSatellite, ProvisioningSetup
+):
     pass
