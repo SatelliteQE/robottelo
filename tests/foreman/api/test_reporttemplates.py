@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-from datetime import datetime
-
 import pytest
 from broker import Broker
 from fauxfactory import gen_string
@@ -410,6 +408,7 @@ def test_positive_applied_errata(
     result = rhel_contenthost.register(module_org, module_location, activation_key.name, target_sat)
     assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
+    assert rhel_contenthost.execute(r'subscription-manager repos --enable \*').status == 0
     assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     assert rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
     task_id = target_sat.api.JobInvocation().run(
@@ -717,18 +716,21 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
 def test_positive_installable_errata(
-    module_org, module_target_sat, module_location, module_cv, module_lce, rhel_contenthost
+    module_target_sat, module_org, module_lce, module_location, module_cv, rhel_contenthost
 ):
-    """Generate an Installable Errata report
+    """Generate an Installable Errata report using the Report Template - Available Errata,
+        with the option of 'Installable'.
 
     :id: 6263a0fa-5021-4553-939b-84fb71c81d59
 
     :setup: A Host with some applied errata
 
     :steps:
-        1. Downgrade a package contained within the applied errata
-        2. Perform a search for any applicable Erratum
-        3. Generate an Installable Errata report
+        1. Install an outdated package version
+        2. Apply some errata which updates the package
+        3. Downgrade the package impacted by the erratum
+        4. Perform a search for any Available Errata
+        5. Generate an Installable Report from the Available Errata
 
     :expectedresults: A report is generated with the installable errata listed
 
@@ -741,10 +743,10 @@ def test_positive_installable_errata(
     activation_key = module_target_sat.api.ActivationKey(
         environment=module_lce, organization=module_org
     ).create()
-    ERRATUM_ID = str(settings.repos.yum_9.errata[0])
+    ERRATUM_ID = str(settings.repos.yum_6.errata[2])
     module_target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
-            'url': settings.repos.yum_9.url,
+            'url': settings.repos.yum_6.url,
             'organization-id': module_org.id,
             'content-view-id': module_cv.id,
             'lifecycle-environment-id': module_lce.id,
@@ -756,8 +758,11 @@ def test_positive_installable_errata(
     )
     assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
-    result = rhel_contenthost.run(f'yum install -y {FAKE_2_CUSTOM_PACKAGE}')
-    assert result.status == 0
+
+    # Install the outdated package version
+    assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    rhel_contenthost.add_rex_key(satellite=module_target_sat)
+
     # Install/Apply the errata
     task_id = module_target_sat.api.JobInvocation().run(
         data={
@@ -773,33 +778,44 @@ def test_positive_installable_errata(
         search_rate=15,
         max_tries=10,
     )
-    # Downgrade package impacted by the erratum
-    result = rhel_contenthost.run(f'yum downgrade -y {FAKE_1_CUSTOM_PACKAGE}')
-    assert result.status == 0
+    # Check that applying erratum updated the package
+    assert (
+        rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}').stdout.strip()
+        == FAKE_2_CUSTOM_PACKAGE
+    )
+    # Downgrade the package
+    assert rhel_contenthost.execute(f'yum downgrade -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
 
-    _data_for_generate = {
+    # Data to generate Installable Errata report
+    _rt_input_data = {
         'organization_id': module_org.id,
         'report_format': "json",
         'input_values': {
-            'Filter Errata Type': 'all',
-            'Include Last Reboot': 'no',
-            'Status': 'all',
+            'Installability': 'installable',
         },
     }
-    search_query = {'search': 'name="Host - Applicable Errata"'}
-    template = module_target_sat.api.ReportTemplate()
-    # Allow search to collect results, it may take some time
-    # Wait until a generated report is populated
+
+    # Gather Errata using the template 'Available Errata', may take some time
     wait_for(
         lambda: (
-            [] != template.search(query=search_query)[0].read().generate(data=_data_for_generate)
+            []
+            != module_target_sat.api.ReportTemplate()
+            .search(query={'search': 'name="Host - Available Errata"'})[0]
+            .read()
+            .generate(data=_rt_input_data)
         ),
         timeout=120,
         delay=10,
     )
     # Now that a populated report is ready, generate a final time
-    report = template.search(query=search_query)[0].read().generate(data=_data_for_generate)
-    assert report != []
-    assert datetime.now().strftime("%Y-%m-%d") in report[0]['Available since']
-    assert FAKE_1_CUSTOM_PACKAGE_NAME in report[0]['Packages']
-    assert report[0]['Erratum'] == ERRATUM_ID
+    report = (
+        module_target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Available Errata"'})[0]
+        .read()
+        .generate(data=_rt_input_data)
+    )
+
+    assert len(report) > 0
+    installable_errata = report[0]
+    assert FAKE_1_CUSTOM_PACKAGE_NAME in installable_errata['Packages']
+    assert installable_errata['Erratum'] == ERRATUM_ID
