@@ -618,15 +618,15 @@ def test_positive_virt_card(
         assert virt_card['public_ip_address'] != ''
         assert virt_card['mac_address'] == module_vmware_settings['mac_address']
         assert virt_card['cpus'] == '1'
-        if virt_card['disk_label']:
+        if 'disk_label' in virt_card:
             assert virt_card['disk_label'] == 'Hard disk 1'
-        if virt_card['disk_capacity']:
+        if 'disk_capacity' in virt_card:
             assert virt_card['disk_capacity'] != ''
-        if virt_card['partition_capacity']:
+        if 'partition_capacity' in virt_card:
             assert virt_card['partition_capacity'] != ''
-        if virt_card['partition_path']:
+        if 'partition_path' in virt_card:
             assert virt_card['partition_path'] == '/boot'
-        if virt_card['partition_allocation']:
+        if 'partition_allocation' in virt_card:
             assert virt_card['partition_allocation'] != ''
         assert virt_card['cores_per_socket'] == '1'
         assert virt_card['firmware'] == 'bios'
