@@ -8,6 +8,7 @@ import time
 import warnings
 from configparser import ConfigParser
 from contextlib import contextmanager
+from datetime import datetime
 from functools import cached_property
 from functools import lru_cache
 from pathlib import Path
@@ -1597,7 +1598,7 @@ class Capsule(ContentHost, CapsuleMixins):
         """Get capsule features"""
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
-    def capsule_setup(self, sat_host=None, **installer_kwargs):
+    def capsule_setup(self, sat_host=None, capsule_cert_opts=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
 
@@ -1626,7 +1627,9 @@ class Capsule(ContentHost, CapsuleMixins):
             raise CapsuleHostError(f'The satellite-capsule package was not found\n{result.stdout}')
 
         # Generate certificate, copy it to Capsule, run installer, check it succeeds
-        certs_tar, _, installer = self.satellite.capsule_certs_generate(self, **installer_kwargs)
+        if not capsule_cert_opts:
+            capsule_cert_opts = {}
+        certs_tar, _, installer = self.satellite.capsule_certs_generate(self, **capsule_cert_opts)
         self.satellite.session.remote_copy(certs_tar, self)
         installer.update(**installer_kwargs)
         result = self.install(installer)
@@ -2165,6 +2168,37 @@ class Satellite(Capsule, SatelliteMixins):
         assert (
             self.execute('systemctl daemon-reload && systemctl restart httpd.service').status == 0
         )
+
+    def generate_inventory_report(self, org):
+        """Function to perform inventory upload."""
+        generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        self.api.Organization(id=org.id).rh_cloud_generate_report()
+        wait_for(
+            lambda: self.api.ForemanTask()
+            .search(query={'search': f'{generate_report_task} and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+
+    def sync_inventory_status(self, org):
+        """Perform inventory sync"""
+        inventory_sync = self.api.Organization(id=org.id).rh_cloud_inventory_sync()
+        wait_for(
+            lambda: self.api.ForemanTask()
+            .search(query={'search': f'id = {inventory_sync["task"]["id"]}'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        return inventory_sync
 
 
 class SSOHost(Host):

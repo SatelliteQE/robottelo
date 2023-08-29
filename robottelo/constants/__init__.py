@@ -58,7 +58,6 @@ FOREMAN_PROVIDERS = {
     'ec2': 'EC2',
     'vmware': 'VMware',
     'openstack': 'RHEL OpenStack Platform',
-    'rackspace': 'Rackspace',
     'google': 'Google',
     'azurerm': 'Azure Resource Manager',
 }
@@ -873,6 +872,10 @@ PUPPET_SATELLITE_INSTALLER = [
     'enable-foreman-cli-puppet',
 ]
 PUPPET_CAPSULE_INSTALLER = ['enable-puppet']
+CAPSULE_REGISTRATION_OPTS = {
+    'foreman-proxy-registration': 'true',
+    'foreman-proxy-templates': 'true',
+}
 
 KICKSTART_CONTENT = [
     'treeinfo',
@@ -1961,6 +1964,12 @@ WEBHOOK_METHODS = [
     "DELETE",
     "PATCH",
 ]
+
+OPENSSH_RECOMMENDATION = 'Decreased security: OpenSSH config permissions'
+DNF_RECOMMENDATION = (
+    'The dnf installs lower versions of packages when the "best" '
+    'option is not present in the /etc/dnf/dnf.conf'
+)
 
 
 # Data File Paths
