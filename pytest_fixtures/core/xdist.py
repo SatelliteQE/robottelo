@@ -19,9 +19,7 @@ def align_to_satellite(request, worker_id, satellite_factory):
         if settings.server.hostname:
             sanity_sat = Satellite(settings.server.hostname)
             sanity_sat.unregister()
-            broker_sat = Broker(host_class=Satellite).from_inventory(
-                filter=f'@inv.hostname == "{sanity_sat.hostname}"'
-            )[0]
+            broker_sat = Satellite.get_host_by_hostname(sanity_sat.hostname)
             Broker(hosts=[broker_sat]).checkin()
     else:
         # clear any hostname that may have been previously set
@@ -35,9 +33,7 @@ def align_to_satellite(request, worker_id, satellite_factory):
 
         # attempt to add potential satellites from the broker inventory file
         if settings.server.inventory_filter:
-            hosts = Broker(host_class=Satellite).from_inventory(
-                filter=settings.server.inventory_filter
-            )
+            hosts = Satellite.get_hosts_from_inventory(filter=settings.server.inventory_filter)
             settings.server.hostnames += [host.hostname for host in hosts]
 
         # attempt to align a worker to a satellite

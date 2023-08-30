@@ -315,7 +315,5 @@ def installer_satellite(request):
     if 'sanity' not in request.config.option.markexpr:
         sanity_sat = Satellite(sat.hostname)
         sanity_sat.unregister()
-        broker_sat = Broker(host_class=Satellite).from_inventory(
-            filter=f'@inv.hostname == "{sanity_sat.hostname}"'
-        )[0]
+        broker_sat = Satellite.get_host_by_hostname(sanity_sat.hostname)
         Broker(hosts=[broker_sat]).checkin()
