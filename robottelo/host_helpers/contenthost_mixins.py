@@ -21,10 +21,21 @@ class VersionedContent:
 
     @cached_property
     def REPOSET(self):
-        return {
-            'rhel': constants.REPOSET[f'rhel{self._v_major}'],
-            'rhst': constants.REPOSET[f'rhst{self._v_major}'],
-        }
+        try:
+            if self._v_major > 7:
+                sys_reposets = {
+                    'rhel_bos': constants.REPOSET[f'rhel{self._v_major}_bos'],
+                    'rhel_aps': constants.REPOSET[f'rhel{self._v_major}_aps'],
+                }
+            else:
+                sys_reposets = {
+                    'rhel': constants.REPOSET[f'rhel{self._v_major}'],
+                    'rhscl': constants.REPOSET[f'rhscl{self._v_major}'],
+                }
+            reposets = {'rhst': constants.REPOSET[f'rhst{self._v_major}']}
+        except KeyError as err:
+            raise ValueError(f'Unsupported system version: {self._v_major}') from err
+        return sys_reposets | reposets
 
     @cached_property
     def REPOS(self):

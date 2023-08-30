@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import pytest
-from broker import Broker
 
 from robottelo.api.utils import create_sync_custom_repo
 from robottelo.config import settings
@@ -199,8 +198,6 @@ class TestScenarioCustomRepoCheck:
             data={'environment_ids': lce_id}
         )
 
-        rhel_client = Broker(host_class=ContentHost).from_inventory(
-            filter=f'@inv.hostname == "{client_hostname}"'
-        )[0]
+        rhel_client = ContentHost.get_host_by_hostname(client_hostname)
         result = rhel_client.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0
