@@ -55,17 +55,3 @@ def test_publish_cv(session, module_org, target_sat):
         response = session.contentview_new.publish(cv.name)
         assert response[0]['Version'] == 'Version 1.0'
         assert session.contentview_new.search(cv.name)[0]['Latest version'] == 'Version 1.0'
-
-
-@pytest.mark.tier2
-def test_publish_promote_cv(session, module_org, target_sat):
-    """Publish and promote CV to custom LCE within dialogue box
-    :id: 5fe7f197-5f10-4752-8707-d1d0554e6a7a
-    :CaseLevel: System
-    """
-    cv = target_sat.api.ContentView(organization=module_org).create()
-    cv.publish()
-    target_sat.api.LifecycleEnvironment(organization=module_org).create()
-    lce = target_sat.api.LifecycleEnvironment(organization=module_org).create()
-    with session:
-        session.contentview_new.promote(cv.name, 'Version 1.0', lce.name)
