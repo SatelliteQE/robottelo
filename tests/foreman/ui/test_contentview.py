@@ -27,12 +27,11 @@ from airgun.exceptions import InvalidElementStateException
 from airgun.exceptions import NoSuchElementException
 from airgun.session import Session
 from nailgun import entities
+from nailgun.entity_mixins import call_entity_method_with_timeout
 from navmazing import NavigationTriesExceeded
 from productmd.common import parse_nvra
 
 from robottelo import constants
-from robottelo.api.utils import call_entity_method_with_timeout
-from robottelo.api.utils import promote
 from robottelo.cli.contentview import ContentView
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
@@ -1487,7 +1486,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
     repo_name = repo.repos_info[0]['name']
     cv, lce = repo.setup_content_view(module_org.id, dev_lce.id)
     cvv = entities.ContentView(id=cv['id']).read().version[0]
-    promote(cvv, qe_lce.id)
+    cvv.promote(data={'environment_ids': qe_lce.id})
     with session:
         cv_values = session.contentview.read(cv['name'])
         assert cv_values['docker_repositories']['resources']['assigned'][0]['Name'] == repo_name
@@ -1556,7 +1555,7 @@ def test_positive_remove_cv_version_from_env(session, module_org, repos_collecti
     ][0]
     cv, lce = repos_collection.setup_content_view(module_org.id, dev_lce.id)
     cvv = entities.ContentView(id=cv['id']).read().version[0]
-    promote(cvv, qe_lce.id)
+    cvv.promote(data={'environment_ids': qe_lce.id})
     with session:
         cvv = session.contentview.read_version(cv['name'], VERSION)
         assert cvv['yum_repositories']['table'][0]['Name']
@@ -1715,7 +1714,7 @@ def test_positive_delete_version_with_ak(session):
     cv.publish()
     cvv = cv.read().version[0].read()
     lc_env = entities.LifecycleEnvironment(organization=org).create()
-    promote(cvv, lc_env.id)
+    cvv.promote(data={'environment_ids': lc_env.id})
     ak = entities.ActivationKey(
         name=gen_string('alphanumeric'), environment=lc_env.id, organization=org, content_view=cv
     ).create()
@@ -2681,7 +2680,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(
     content_view = content_view.update(['repository'])
     content_view.publish()
     content_view = content_view.read()
-    promote(content_view.version[0], lc_env.id)
+    content_view.version[0].promote(data={'environment_ids': lc_env.id})
     cv_name = content_view.name
     # Get the Partition table ID
     ptable = entities.PartitionTable().search(query={'search': f'name="{DEFAULT_PTABLE}"'})[0]
@@ -2908,7 +2907,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
     ).create()
     cv.publish()
     cvv = entities.ContentView(id=cv.id).read().version[0]
-    promote(cvv, lce.id)
+    cvv.promote(data={'environment_ids': lce.id})
     # Setup tools repo and add it to ak
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro=constants.DISTRO_RHEL7,
@@ -2933,7 +2932,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
     composite_cv = composite_cv.update(['component'])
     # Publish and promote
     composite_cv.publish()
-    promote(composite_cv.read().version[0], lce.id)
+    composite_cv.read().version[0].promote(data={'environment_ids': lce.id})
     # Update AK to use composite cv
     entities.ActivationKey(
         id=content_data['activation_key']['id'], content_view=composite_cv

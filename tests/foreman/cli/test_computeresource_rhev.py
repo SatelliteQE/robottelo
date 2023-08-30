@@ -20,7 +20,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 from wrapanapi import RHEVMSystem
 
-from robottelo.api.utils import configure_provisioning
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import CLIReturnCodeError
@@ -53,10 +52,10 @@ def rhev():
 
 
 @pytest.fixture(scope='module')
-def provisioning(module_org, module_location):
+def provisioning(module_org, module_location, module_target_sat):
     provisioning.org_name = module_org.name
     provisioning.loc_name = module_location.name
-    provisioning.config_env = configure_provisioning(
+    provisioning.config_env = module_target_sat.api_factory.configure_provisioning(
         compute=True, org=module_org, loc=module_location, os=None
     )
     provisioning.os_name = provisioning.config_env['os']

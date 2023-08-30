@@ -5,7 +5,6 @@ from nailgun import entities
 from packaging.version import Version
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_PXE_TEMPLATE
 from robottelo.constants import DEFAULT_TEMPLATE
@@ -71,7 +70,7 @@ def module_sync_kickstart_content(
     else:
         repo_names.append(f'rhel{rhel_ver}_bos')
     for name in repo_names:
-        rh_kickstart_repo_id = enable_rhrepo_and_fetchid(
+        rh_kickstart_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
             org_id=module_sca_manifest_org.id,
             product=constants.REPOS['kickstart'][name]['product'],

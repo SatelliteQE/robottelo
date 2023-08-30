@@ -23,7 +23,6 @@ from broker import Broker
 from nailgun import entities
 
 from robottelo import constants
-from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import gen_string
@@ -329,7 +328,7 @@ def test_positive_add_host(session):
     cv = entities.ContentView(organization=org).create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     cv.publish()
-    promote(cv.read().version[0], lce.id)
+    cv.read().version[0].promote(data={'environment_ids': lce.id})
     host = entities.Host(
         organization=org,
         location=loc,
@@ -652,7 +651,7 @@ def test_negative_hosts_limit(session, module_org, smart_proxy_location):
     cv = entities.ContentView(organization=org).create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     cv.publish()
-    promote(cv.read().version[0], lce.id)
+    cv.read().version[0].promote(data={'environment_ids': lce.id})
     hosts = []
     for _ in range(2):
         hosts.append(

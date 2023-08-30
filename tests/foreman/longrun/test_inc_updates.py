@@ -22,7 +22,6 @@ from datetime import timedelta
 import pytest
 from nailgun import entities
 
-from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -196,7 +195,7 @@ def test_positive_noapply_api(module_manifest_org, module_cv, custom_repo, host,
     # Promote CV to new LCE
     versions = sorted(module_cv.read().version, key=lambda ver: ver.id)
     cvv = versions[-1].read()
-    promote(cvv, dev_lce.id)
+    cvv.promote(data={'environment_ids': dev_lce.id})
     # Read CV to pick up LCE ID and next_version
     module_cv = module_cv.read()
 

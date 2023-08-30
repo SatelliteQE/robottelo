@@ -25,7 +25,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import constants
-from robottelo.api.utils import promote
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
@@ -683,7 +682,10 @@ def test_positive_access_non_admin_user(session, test_name):
     env_name = random.choice(envs_list)
     cv = entities.ContentView(organization=org).create()
     cv.publish()
-    promote(cv.read().version[0], entities.LifecycleEnvironment(name=env_name).search()[0].id)
+    content_view_version = cv.read().version[0]
+    content_view_version.promote(
+        data={'environment_ids': [entities.LifecycleEnvironment(name=env_name).search()[0].id]}
+    )
     # Create new role
     role = entities.Role().create()
     # Create filter with predefined activation keys search criteria
@@ -791,7 +793,7 @@ def test_positive_add_docker_repo_cv(session, module_org):
     ).create()
     content_view.publish()
     cvv = content_view.read().version[0].read()
-    promote(cvv, lce.id)
+    cvv.promote(data={'environment_ids': lce.id, 'force': False})
     ak_name = gen_string('alphanumeric')
     with session:
         session.activationkey.create(
@@ -827,13 +829,13 @@ def test_positive_add_docker_repo_ccv(session, module_org):
     ).create()
     content_view.publish()
     cvv = content_view.read().version[0].read()
-    promote(cvv, lce.id)
+    cvv.promote(data={'environment_ids': lce.id, 'force': False})
     composite_cv = entities.ContentView(
         component=[cvv], composite=True, organization=module_org
     ).create()
     composite_cv.publish()
     ccvv = composite_cv.read().version[0].read()
-    promote(ccvv, lce.id)
+    ccvv.promote(data={'environment_ids': lce.id, 'force': False})
     ak_name = gen_string('alphanumeric')
     with session:
         session.activationkey.create(

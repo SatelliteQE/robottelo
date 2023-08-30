@@ -30,7 +30,6 @@ from airgun.session import Session
 from wait_for import wait_for
 
 from robottelo import constants
-from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import DEFAULT_CV
@@ -799,7 +798,7 @@ def test_positive_check_permissions_affect_create_procedure(
     for content_view in [cv, filter_cv]:
         content_view.publish()
         content_view = content_view.read()
-        promote(content_view.version[0], filter_lc_env.id)
+        content_view.version[0].promote(data={'environment_ids': filter_lc_env.id})
     # Create two host groups
     hg = target_sat.api.HostGroup(organization=[function_org]).create()
     filter_hg = target_sat.api.HostGroup(organization=[function_org]).create()

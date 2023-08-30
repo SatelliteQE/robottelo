@@ -22,11 +22,9 @@ import re
 import pytest
 from nailgun import client
 from nailgun import entities
+from nailgun.entity_mixins import call_entity_method_with_timeout
 
 from robottelo import constants
-from robottelo.api.utils import call_entity_method_with_timeout
-from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import DataFile
 from robottelo.constants.repos import ANSIBLE_GALAXY
@@ -181,7 +179,7 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 1
 
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -214,7 +212,7 @@ class TestCapsuleContentManagement:
 
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -285,7 +283,7 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 1
 
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
@@ -303,7 +301,7 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 2
 
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
@@ -381,7 +379,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -428,7 +426,7 @@ class TestCapsuleContentManagement:
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         # Promote new content view version to lifecycle environment
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -450,7 +448,7 @@ class TestCapsuleContentManagement:
         cv = cv.read()
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -474,7 +472,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients')
     def test_positive_iso_library_sync(
-        self, module_capsule_configured, module_entitlement_manifest_org
+        self, module_capsule_configured, module_entitlement_manifest_org, target_sat
     ):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
         to capsule automatically
@@ -490,7 +488,7 @@ class TestCapsuleContentManagement:
         :CaseLevel: System
         """
         # Enable & sync RH repository with ISOs
-        rh_repo_id = enable_rhrepo_and_fetchid(
+        rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
             product=constants.PRDS['rhsc'],
@@ -595,7 +593,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -674,7 +672,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -702,7 +700,7 @@ class TestCapsuleContentManagement:
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -770,7 +768,7 @@ class TestCapsuleContentManagement:
 
         :BZ: 1992329
         """
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=function_entitlement_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
@@ -807,7 +805,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        promote(cvv, lce.id)
+        cvv.promote(data={'environment_ids': lce.id})
         cvv = cvv.read()
 
         assert len(cvv.environment) == 2
@@ -908,7 +906,7 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
@@ -1097,7 +1095,7 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
-        promote(cvv, function_lce.id)
+        cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
@@ -1161,7 +1159,7 @@ class TestCapsuleContentManagement:
         :BZ: 1830403
         """
         # Sync a repository to the Satellite.
-        repo_id = enable_rhrepo_and_fetchid(
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_manifest_org.id,
             product=constants.PRDS['rhel'],

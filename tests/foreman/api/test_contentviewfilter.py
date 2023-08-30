@@ -30,7 +30,6 @@ from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.api.utils import promote
 from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
@@ -753,7 +752,7 @@ class TestContentViewFilterRule:
 
         # Promote Content View
         lce = entities.LifecycleEnvironment(organization=module_org).create()
-        promote(content_view.version[0], lce.id)
+        content_view.version[0].promote(data={'environment_ids': lce.id, 'force': False})
         content_view = content_view.read()
         content_view_version_info = content_view.version[0].read()
 

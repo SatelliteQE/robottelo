@@ -19,7 +19,6 @@
 import pytest
 from fauxfactory import gen_string
 
-from robottelo.api.utils import satellite_setting
 from robottelo.config import settings
 from robottelo.constants import AZURERM_FILE_URI
 from robottelo.constants import AZURERM_PLATFORM_DEFAULT
@@ -149,7 +148,9 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                 assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
 
                 # Host Delete
-                with satellite_setting('destroy_vm_on_host_delete=True'):
+                with session_puppet_enabled_sat.api_factory.satellite_setting(
+                    'destroy_vm_on_host_delete=True'
+                ):
                     session.host.delete(fqdn)
                 assert not session.host.search(fqdn)
 
@@ -240,5 +241,7 @@ def test_positive_azurerm_host_provision_ud(
                 query={'search': f'name={fqdn}'}
             )
             if azure_vm:
-                with satellite_setting('destroy_vm_on_host_delete=True'):
+                with session_puppet_enabled_sat.api_factory.satellite_setting(
+                    'destroy_vm_on_host_delete=True'
+                ):
                     azure_vm[0].delete(synchronous=False)
