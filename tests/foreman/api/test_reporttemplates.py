@@ -408,7 +408,6 @@ def test_positive_applied_errata(
     result = rhel_contenthost.register(module_org, module_location, activation_key.name, target_sat)
     assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
-    assert rhel_contenthost.execute(r'subscription-manager repos --enable \*').status == 0
     assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     assert rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
     task_id = target_sat.api.JobInvocation().run(
@@ -760,8 +759,8 @@ def test_positive_installable_errata(
     assert rhel_contenthost.subscribed
 
     # Install the outdated package version
+    rhel_contenthost.execute(r'subscription-manager repos --enable \*')
     assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
-    rhel_contenthost.add_rex_key(satellite=module_target_sat)
 
     # Install/Apply the errata
     task_id = module_target_sat.api.JobInvocation().run(
@@ -798,8 +797,7 @@ def test_positive_installable_errata(
     # Gather Errata using the template 'Available Errata', may take some time
     wait_for(
         lambda: (
-            []
-            != module_target_sat.api.ReportTemplate()
+            module_target_sat.api.ReportTemplate()
             .search(query={'search': 'name="Host - Available Errata"'})[0]
             .read()
             .generate(data=_rt_input_data)
