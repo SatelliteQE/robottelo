@@ -973,14 +973,13 @@ class TestCapsuleContentManagement:
             )
             assert result.status == 0
 
-    @pytest.mark.skip_if_open("BZ:2121583")
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_collection_repo(
         self,
+        request,
         target_sat,
         module_capsule_configured,
-        rhel7_contenthost,
         function_product,
         function_lce_library,
     ):
@@ -1032,22 +1031,11 @@ class TestCapsuleContentManagement:
         repo.sync(timeout=600)
         repo = repo.read()
         assert repo.content_counts['ansible_collection'] == 2
-
         module_capsule_configured.wait_for_sync()
-
-        # Configure the content host to fetch collections from capsule
-        rhel7_contenthost.install_katello_ca(module_capsule_configured)
-        rhel7_contenthost.create_custom_repos(
-            **{
-                'server': settings.repos.rhel7_os,
-                'ansible': settings.repos.ansible_repo,
-            }
-        )
-        result = rhel7_contenthost.execute('yum -y install ansible')
-        assert result.status == 0
 
         repo_path = repo.full_path.replace(target_sat.hostname, module_capsule_configured.hostname)
         coll_path = './collections'
+        cfg_path = './ansible.cfg'
         cfg = (
             '[defaults]\n'
             f'collections_paths = {coll_path}\n\n'
@@ -1056,16 +1044,18 @@ class TestCapsuleContentManagement:
             '[galaxy_server.capsule_galaxy]\n'
             f'url={repo_path}\n'
         )
-        rhel7_contenthost.execute(f'echo "{cfg}" > ./ansible.cfg')
+
+        request.addfinalizer(lambda: target_sat.execute(f'rm -rf {cfg_path} {coll_path}'))
 
         # Try to install collections from the Capsule
-        result = rhel7_contenthost.execute(
+        target_sat.execute(f'echo "{cfg}" > {cfg_path}')
+        result = target_sat.execute(
             'ansible-galaxy collection install theforeman.foreman theforeman.operations'
         )
         assert result.status == 0
         assert 'error' not in result.stdout.lower()
 
-        result = rhel7_contenthost.execute(f'ls {coll_path}/ansible_collections/theforeman/')
+        result = target_sat.execute(f'ls {coll_path}/ansible_collections/theforeman/')
         assert result.status == 0
         assert 'foreman' in result.stdout
         assert 'operations' in result.stdout
