@@ -45,10 +45,12 @@ def test_positive_leapp(target_sat):
     )
     # Recreate the session object within a Satellite object after upgrading
     target_sat.connect()
+    # Clean cached properties after the upgrade
+    target_sat.clean_cached_properties()
     # Get RHEL version after upgrading
-    result = target_sat.execute('cat /etc/redhat-release | grep -Po "\\d"')
+    res_rhel_version = target_sat.os_version.major
     # Check if RHEL was upgraded
-    assert result.stdout[0] == str(orig_rhel_ver + 1), 'RHEL was not upgraded'
+    assert res_rhel_version == orig_rhel_ver + 1, 'RHEL was not upgraded'
     # Check satellite's health
     sat_health = target_sat.cli.Health.check()
     assert sat_health.status == 0, 'Satellite health check failed'
