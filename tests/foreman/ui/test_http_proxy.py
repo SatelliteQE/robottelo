@@ -214,7 +214,6 @@ def test_set_default_http_proxy(module_org, module_location, setting_update, tar
 
     :CaseLevel: Acceptance
     """
-
     property_name = setting_update.name
 
     http_proxy_a = target_sat.api.HTTPProxy(
@@ -225,6 +224,8 @@ def test_set_default_http_proxy(module_org, module_location, setting_update, tar
     ).create()
 
     with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
         session.settings.update(
             f'name = {property_name}', f'{http_proxy_a.name} ({http_proxy_a.url})'
         )
