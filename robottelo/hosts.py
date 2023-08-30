@@ -32,7 +32,6 @@ from wait_for import wait_for
 from wrapanapi.entities.vm import VmState
 
 from robottelo import constants
-from robottelo.api.utils import update_provisioning_template
 from robottelo.cli.base import Base
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import configure_airgun
@@ -1878,9 +1877,9 @@ class Satellite(Capsule, SatelliteMixins):
         """
         old = 'yum -t -y update'
         new = 'echo "Yum update skipped for faster automation testing"'
-        update_provisioning_template(name=template, old=old, new=new)
+        self.satellite.api_factory.update_provisioning_template(name=template, old=old, new=new)
         yield
-        update_provisioning_template(name=template, old=new, new=old)
+        self.satellite.api_factory.update_provisioning_template(name=template, old=new, new=old)
 
     def update_setting(self, name, value):
         """changes setting value and returns the setting value before the change."""

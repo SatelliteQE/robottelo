@@ -22,7 +22,6 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_url
 
-from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import CLIFactoryError
@@ -45,7 +44,7 @@ from robottelo.utils.datafactory import valid_labels_list
 @pytest.mark.tier1
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_CRUD(module_org):
+def test_positive_CRUD(module_org, target_sat):
     """Check if product can be created, updated, synchronized and deleted
 
     :id: 9d7b5ec8-59d0-4371-b5d2-d43145e4e2db
@@ -119,7 +118,7 @@ def test_positive_CRUD(module_org):
     product = Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert len(product['sync-plan-id']) == 0
     Product.delete({'id': product['id']})
-    wait_for_tasks(
+    target_sat.wait_for_tasks(
         search_query="label = Actions::Katello::Product::Destroy"
         f" and resource_id = {product['id']}",
         max_tries=10,

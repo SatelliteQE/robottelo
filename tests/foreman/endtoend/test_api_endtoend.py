@@ -28,7 +28,6 @@ from nailgun import client
 from nailgun import entities
 
 from robottelo import constants
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import get_credentials
 from robottelo.config import get_url
 from robottelo.config import setting_is_set

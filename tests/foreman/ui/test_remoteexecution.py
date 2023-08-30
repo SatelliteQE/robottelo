@@ -23,7 +23,6 @@ import pytest
 from broker import Broker
 from wait_for import wait_for
 
-from robottelo.api.utils import update_vm_host_location
 from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import gen_string
 
@@ -32,7 +31,9 @@ from robottelo.utils.datafactory import gen_string
 def module_vm_client_by_ip(rhel7_contenthost, module_org, smart_proxy_location, target_sat):
     """Setup a VM client to be used in remote execution by ip"""
     rhel7_contenthost.configure_rex(satellite=target_sat, org=module_org)
-    update_vm_host_location(rhel7_contenthost, location_id=smart_proxy_location.id)
+    target_sat.api_factory.update_vm_host_location(
+        rhel7_contenthost, location_id=smart_proxy_location.id
+    )
     yield rhel7_contenthost
 
 
@@ -171,7 +172,9 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
         for host in hosts:
             host_names.append(host.hostname)
             host.configure_rex(satellite=target_sat, org=module_org)
-            update_vm_host_location(host, location_id=smart_proxy_location.id)
+            target_sat.api_factory.update_vm_host_location(
+                host, location_id=smart_proxy_location.id
+            )
         with session:
             session.location.select(smart_proxy_location.name)
             hosts = session.host.search(

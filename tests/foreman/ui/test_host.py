@@ -31,9 +31,6 @@ from airgun.session import Session
 from wait_for import wait_for
 
 from robottelo import constants
-from robottelo.api.utils import create_role_permissions
-from robottelo.api.utils import cv_publish_promote
-from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import DEFAULT_CV
@@ -629,7 +626,9 @@ def test_positive_view_hosts_with_non_admin_user(
     """
     user_password = gen_string('alpha')
     role = target_sat.api.Role(organization=[module_org]).create()
-    create_role_permissions(role, {'Organization': ['view_organizations'], 'Host': ['view_hosts']})
+    target_sat.api_factory.create_role_permissions(
+        role, {'Organization': ['view_organizations'], 'Host': ['view_hosts']}
+    )
     user = target_sat.api.User(
         role=[role],
         admin=False,
@@ -667,7 +666,7 @@ def test_positive_remove_parameter_non_admin_user(
     user_password = gen_string('alpha')
     parameter = {'name': gen_string('alpha'), 'value': gen_string('alpha')}
     role = target_sat.api.Role(organization=[module_org]).create()
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         role,
         {
             'Parameter': PERMISSIONS['Parameter'],
@@ -724,7 +723,7 @@ def test_negative_remove_parameter_non_admin_user(
     user_password = gen_string('alpha')
     parameter = {'name': gen_string('alpha'), 'value': gen_string('alpha')}
     role = target_sat.api.Role(organization=[module_org]).create()
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         role,
         {
             'Parameter': ['view_params'],
@@ -792,7 +791,7 @@ def test_positive_check_permissions_affect_create_procedure(
     filter_hg = target_sat.api.HostGroup(organization=[function_org]).create()
     # Create lifecycle environment permissions and select one specific
     # environment user will have access to
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         function_role,
         {
             'Katello::KTEnvironment': [
@@ -804,7 +803,7 @@ def test_positive_check_permissions_affect_create_procedure(
         search=f'name = {filter_lc_env.name}',
     )
     # Add necessary permissions for content view as we did for lce
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         function_role,
         {
             'Katello::ContentView': [
@@ -817,21 +816,21 @@ def test_positive_check_permissions_affect_create_procedure(
         search=f'name = {filter_cv.name}',
     )
     # Add necessary permissions for hosts as we did for lce
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         function_role,
         {'Host': ['create_hosts', 'view_hosts']},
         # allow access only to the mentioned here host group
         search=f'hostgroup_fullname = {filter_hg.name}',
     )
     # Add necessary permissions for host groups as we did for lce
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         function_role,
         {'Hostgroup': ['view_hostgroups']},
         # allow access only to the mentioned here host group
         search=f'name = {filter_hg.name}',
     )
     # Add permissions for Organization and Location
-    create_role_permissions(
+    target_sat.api_factory.create_role_permissions(
         function_role,
         {'Organization': PERMISSIONS['Organization'], 'Location': PERMISSIONS['Location']},
     )
@@ -1093,7 +1092,7 @@ def test_positive_validate_inherited_cv_lce(session, target_sat, module_host_tem
     """
     cv_name = gen_string('alpha')
     lce_name = gen_string('alphanumeric')
-    cv = cv_publish_promote(
+    cv = target_sat.api_factory.cv_publish_promote(
         name=cv_name, env_name=lce_name, org_id=module_host_template.organization.id
     )
     lce = (
@@ -1316,7 +1315,7 @@ def test_positive_global_registration_end_to_end(
         .read()
     )
     # make sure that task is finished
-    task_result = wait_for_tasks(
+    task_result = target_sat.wait_for_tasks(
         search_query=(f'id = {result.task.id}'), search_rate=2, max_tries=60
     )
     assert task_result[0].result == 'success'
@@ -2178,7 +2177,7 @@ def test_rex_new_ui(session, target_sat, rex_contenthost):
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         session.host_new.schedule_job(hostname, job_args)
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Remote action: Run ls on {hostname}'),
             search_rate=2,
             max_tries=30,
@@ -2254,7 +2253,7 @@ def test_positive_update_delete_package(
             client.run('subscription-manager repos')
         # install package
         session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Install package(s) on {client.hostname}'),
             search_rate=4,
             max_tries=60,
@@ -2286,7 +2285,7 @@ def test_positive_update_delete_package(
         session.host_new.apply_package_action(
             client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME, "Upgrade via remote execution"
         )
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Update package(s) {FAKE_8_CUSTOM_PACKAGE_NAME} on {client.hostname}'),
             search_rate=2,
             max_tries=60,
@@ -2298,7 +2297,7 @@ def test_positive_update_delete_package(
 
         # remove package
         session.host_new.apply_package_action(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME, "Remove")
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Remove package(s) {FAKE_8_CUSTOM_PACKAGE_NAME} on {client.hostname}'),
             search_rate=2,
             max_tries=60,
@@ -2374,7 +2373,7 @@ def test_positive_apply_erratum(
         assert erratas['content']['errata']['table'][0]['Errata'] == errata_id
         # apply errata
         session.host_new.apply_erratas(client.hostname, f"errata_id == {errata_id}")
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(
                 f'"Install errata errata_id == {errata_id.lower()} '
                 f'and type=security on {client.hostname}"'
@@ -2444,7 +2443,7 @@ def test_positive_crud_module_streams(
 
         # enable module stream
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Enable")
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Module enable {module_name} on {client.hostname}'),
             search_rate=5,
             max_tries=60,
@@ -2457,7 +2456,7 @@ def test_positive_crud_module_streams(
 
         # install
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Install")
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Module install {module_name} on {client.hostname}'),
             search_rate=5,
             max_tries=60,
@@ -2469,7 +2468,7 @@ def test_positive_crud_module_streams(
 
         # remove
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Remove")
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Module remove {module_name} on {client.hostname}'),
             search_rate=5,
             max_tries=60,
@@ -2481,7 +2480,7 @@ def test_positive_crud_module_streams(
         assert streams[0]['Installation status'] == 'Not installed'
 
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Reset")
-        task_result = wait_for_tasks(
+        task_result = target_sat.wait_for_tasks(
             search_query=(f'Module reset {module_name} on {client.hostname}'),
             search_rate=5,
             max_tries=60,

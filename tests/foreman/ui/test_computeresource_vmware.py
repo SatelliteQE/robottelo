@@ -27,7 +27,6 @@ from wait_for import wait_for
 from wrapanapi.systems.virtualcenter import vim
 from wrapanapi.systems.virtualcenter import VMWareSystem
 
-from robottelo.api.utils import check_create_os_with_title
 from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_LARGE
 from robottelo.constants import FOREMAN_PROVIDERS
@@ -223,7 +222,7 @@ def test_positive_retrieve_virtual_machine_list(session, module_vmware_settings)
 
 
 @pytest.mark.tier2
-def test_positive_image_end_to_end(session, module_vmware_settings):
+def test_positive_image_end_to_end(session, module_vmware_settings, target_sat):
     """Perform end to end testing for compute resource VMware component image.
 
     :id: 6b7949ef-c684-40aa-b181-11f8d4cd39c6
@@ -235,7 +234,7 @@ def test_positive_image_end_to_end(session, module_vmware_settings):
     cr_name = gen_string('alpha')
     image_name = gen_string('alpha')
     new_image_name = gen_string('alpha')
-    check_create_os_with_title(module_vmware_settings['image_os'])
+    target_sat.api_factory.check_create_os_with_title(module_vmware_settings['image_os'])
     image_user_data = choice((False, True))
     with session:
         session.computeresource.create(

@@ -24,21 +24,19 @@ import pytest
 from fauxfactory import gen_choice
 from nailgun import entities
 
-from robottelo.api.utils import disable_syncplan
-from robottelo.api.utils import wait_for_tasks
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.datafactory import valid_cron_expressions
 
 
-def validate_task_status(repo_id, org_id, max_tries=10):
+def validate_task_status(sat, repo_id, org_id, max_tries=10):
     """Wait for foreman_tasks to complete or timeout
 
     :param repo_id: Repository Id to identify the correct task
     :param max_tries: Max tries to poll for the task creation
     :param org_id: Org ID to ensure valid check on busy Satellite
     """
-    wait_for_tasks(
+    sat.wait_for_tasks(
         search_query='Actions::Katello::Repository::Sync'
         f' and organization_id = {org_id}'
         f' and resource_id = {repo_id}'
@@ -176,7 +174,7 @@ def test_positive_end_to_end_custom_cron(session):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_search_scoped(session, request):
+def test_positive_search_scoped(session, request, target_sat):
     """Test scoped search for different sync plan parameters
 
     :id: 3a48513e-205d-47a3-978e-79b764cc74d9
@@ -200,7 +198,7 @@ def test_positive_search_scoped(session, request):
         sync_date=start_date,
     ).create()
     sync_plan = entities.SyncPlan(organization=org.id, id=sync_plan.id).read()
-    request.addfinalizer(lambda: disable_syncplan(sync_plan))
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     with session:
         session.organization.select(org.name)
         for query_type, query_value in [('interval', SYNC_INTERVAL['day']), ('enabled', 'true')]:
@@ -210,7 +208,7 @@ def test_positive_search_scoped(session, request):
 
 @pytest.mark.e2e
 @pytest.mark.tier3
-def test_positive_synchronize_custom_product_custom_cron_real_time(session, module_org):
+def test_positive_synchronize_custom_product_custom_cron_real_time(session, module_org, target_sat):
     """Create a sync plan with real datetime as a sync date,
     add a custom product and verify the product gets synchronized
     on the next sync occurrence based on custom cron interval
@@ -247,12 +245,12 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
         session.syncplan.add_product(plan_name, product.name)
         # check that product was not synced
         with pytest.raises(AssertionError) as context:
-            validate_task_status(repo.id, module_org.id, max_tries=1)
+            validate_task_status(target_sat, repo.id, module_org.id, max_tries=1)
         assert 'No task was found using query' in str(context.value)
         validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
         # Waiting part of delay that is left and check that product was synced
         time.sleep(next_sync)
-        validate_task_status(repo.id, module_org.id)
+        validate_task_status(target_sat, repo.id, module_org.id)
         validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
         repo_values = session.repository.read(product.name, repo.name)
         for repo_type in ['Packages', 'Errata', 'Package Groups']:
@@ -263,7 +261,9 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
 
 
 @pytest.mark.tier3
-def test_positive_synchronize_custom_product_custom_cron_past_sync_date(session, module_org):
+def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
+    session, module_org, target_sat
+):
     """Create a sync plan with past datetime as a sync date,
     add a custom product and verify the product gets synchronized
     on the next sync occurrence based on custom cron interval
@@ -300,12 +300,12 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(session,
         session.syncplan.add_product(plan_name, product.name)
         # check that product was not synced
         with pytest.raises(AssertionError) as context:
-            validate_task_status(repo.id, module_org.id, max_tries=1)
+            validate_task_status(target_sat, repo.id, module_org.id, max_tries=1)
         assert 'No task was found using query' in str(context.value)
         validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
         # Waiting part of delay that is left and check that product was synced
         time.sleep(next_sync)
-        validate_task_status(repo.id, module_org.id)
+        validate_task_status(target_sat, repo.id, module_org.id)
         validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
         repo_values = session.repository.read(product.name, repo.name)
         for repo_type in ['Packages', 'Errata', 'Package Groups']:

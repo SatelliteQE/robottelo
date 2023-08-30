@@ -20,7 +20,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
@@ -150,7 +149,7 @@ def test_positive_sync_rh_ostree_repo(session, target_sat, module_entitlement_ma
 
     :BZ: 1625783
     """
-    enable_rhrepo_and_fetchid(
+    target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=None,
         org_id=module_entitlement_manifest_org.id,
         product=PRDS['rhah'],
