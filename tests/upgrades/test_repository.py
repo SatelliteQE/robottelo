@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import pytest
-from broker import Broker
 
 from robottelo.config import settings
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
@@ -198,9 +197,7 @@ class TestScenarioCustomRepoCheck:
             data={'environment_ids': lce_id}
         )
 
-        rhel_client = Broker(host_class=ContentHost).from_inventory(
-            filter=f'@inv.hostname == "{client_hostname}"'
-        )[0]
+        rhel_client = ContentHost.get_host_by_hostname(client_hostname)
         result = rhel_client.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0
 
@@ -299,9 +296,7 @@ class TestScenarioCustomRepoOverrideCheck:
         org_name = pre_upgrade_data.get('org_name')
         product_name = pre_upgrade_data.get('product_name')
         repo_name = pre_upgrade_data.get('repo_name')
-        rhel_client = Broker(host_class=ContentHost).from_inventory(
-            filter=f'@inv.hostname == "{client_hostname}"'
-        )[0]
+        rhel_client = ContentHost.get_host_by_hostname(client_hostname)
         result = rhel_client.execute('subscription-manager repo-override --list')
         assert 'enabled: 1' in result.stdout
         assert f'{org_name}_{product_name}_{repo_name}' in result.stdout
