@@ -719,7 +719,7 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
 def test_positive_installable_errata(
-    module_target_sat, module_org, module_lce, module_location, module_cv, rhel_contenthost
+    target_sat, function_org, function_lce, function_location, rhel_contenthost
 ):
     """Generate an Installable Errata report using the Report Template - Available Errata,
         with the option of 'Installable'.
@@ -743,21 +743,22 @@ def test_positive_installable_errata(
 
     :BZ: 1726504
     """
-    activation_key = module_target_sat.api.ActivationKey(
-        environment=module_lce, organization=module_org
+    activation_key = target_sat.api.ActivationKey(
+        environment=function_lce, organization=function_org
     ).create()
+    custom_cv = target_sat.api.ContentView(organization=function_org).create()
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
-    module_target_sat.cli_factory.setup_org_for_a_custom_repo(
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_6.url,
-            'organization-id': module_org.id,
-            'content-view-id': module_cv.id,
-            'lifecycle-environment-id': module_lce.id,
+            'organization-id': function_org.id,
+            'content-view-id': custom_cv.id,
+            'lifecycle-environment-id': function_lce.id,
             'activationkey-id': activation_key.id,
         }
     )
     result = rhel_contenthost.register(
-        module_org, module_location, activation_key.name, module_target_sat
+        function_org, function_location, activation_key.name, target_sat
     )
     assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
@@ -773,16 +774,16 @@ def test_positive_installable_errata(
     )
 
     # Install/Apply the errata
-    task_id = module_target_sat.api.JobInvocation().run(
+    task_id = target_sat.api.JobInvocation().run(
         data={
             'feature': 'katello_errata_install',
             'inputs': {'errata': ERRATUM_ID},
             'targeting_type': 'static_query',
             'search_query': f'name = {rhel_contenthost.hostname}',
-            'organization_id': module_org.id,
+            'organization_id': function_org.id,
         },
     )['id']
-    module_target_sat.wait_for_tasks(
+    target_sat.wait_for_tasks(
         search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
         search_rate=15,
         max_tries=10,
@@ -797,7 +798,7 @@ def test_positive_installable_errata(
 
     # Data to generate Installable Errata report
     _rt_input_data = {
-        'organization_id': module_org.id,
+        'organization_id': function_org.id,
         'report_format': "json",
         'input_values': {
             'Installability': 'installable',
@@ -808,7 +809,7 @@ def test_positive_installable_errata(
     # When condition is met, newest Report Template will have Errata entries
     wait_for(
         lambda: (
-            module_target_sat.api.ReportTemplate()
+            target_sat.api.ReportTemplate()
             .search(query={'search': 'name="Host - Available Errata"'})[0]
             .read()
             .generate(data=_rt_input_data)
@@ -818,7 +819,7 @@ def test_positive_installable_errata(
         delay=10,
     )
     report = (
-        module_target_sat.api.ReportTemplate()
+        target_sat.api.ReportTemplate()
         .search(query={'search': 'name="Host - Available Errata"'})[0]
         .read()
         .generate(data=_rt_input_data)
