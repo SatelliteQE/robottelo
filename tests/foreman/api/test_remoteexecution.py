@@ -77,7 +77,7 @@ def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target
 
 @pytest.mark.tier3
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.rhel_ver_list('8')
 def test_negative_time_to_pickup(
     module_org,
     module_target_sat,
@@ -95,7 +95,7 @@ def test_negative_time_to_pickup(
 
     :CaseImportance: High
 
-    :bz: 2158738, 2118651
+    :bz: 2158738
 
     :parametrized: yes
     """
@@ -132,24 +132,6 @@ def test_negative_time_to_pickup(
     # check mqtt client is running
     result = rhel_contenthost.execute('systemctl status yggdrasild')
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
-    # check that longrunning command is not affected by time_to_pickup BZ#2158738
-    job = module_target_sat.api.JobInvocation().run(
-        synchronous=False,
-        data={
-            'job_template_id': template_id,
-            'organization': module_org.name,
-            'location': smart_proxy_location.name,
-            'inputs': {
-                'command': 'echo start; sleep 10; echo done',
-            },
-            'targeting_type': 'static_query',
-            'search_query': f'name = {rhel_contenthost.hostname}',
-            'time_to_pickup': '5',
-        },
-    )
-    module_target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
-    result = module_target_sat.api.JobInvocation(id=job['id']).read()
-    assert result.succeeded == 1
     # stop yggdrasil client on host
     result = rhel_contenthost.execute('systemctl stop yggdrasild')
     assert result.status == 0, f'Failed to stop yggdrasil on client: {result.stderr}'
@@ -190,6 +172,7 @@ def test_negative_time_to_pickup(
     global_ttp = module_target_sat.api.Setting().search(
         query={'search': 'name="remote_execution_time_to_pickup"'}
     )[0]
+    default_global_ttp = global_ttp.value
     global_ttp.value = '10'
     global_ttp.update(['value'])
     job = module_target_sat.api.JobInvocation().run(
@@ -214,3 +197,60 @@ def test_negative_time_to_pickup(
         query={'search': f'resource_type = JobInvocation and resource_id = {job["id"]}'}
     )
     assert 'The job was not picked up in time' in result[0].humanized['output']
+    global_ttp.value = default_global_ttp
+    global_ttp.update(['value'])
+    # start yggdrasil client on host
+    result = rhel_contenthost.execute('systemctl start yggdrasild')
+    assert result.status == 0, f'Failed to start on client: {result.stderr}'
+    result = rhel_contenthost.execute('systemctl status yggdrasild')
+    assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
+    rhel_contenthost.execute('yggdrasil status')
+
+
+@pytest.mark.tier3
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list('8')
+def test_positive_check_longrunning_job(
+    module_org,
+    module_target_sat,
+    smart_proxy_location,
+    module_ak_with_cv,
+    module_capsule_configured_mqtt,
+    rhel_contenthost,
+):
+    """Time to pickup setting doesn't disrupt longrunning jobs
+
+    :id: e6eeb948-faa5-4b76-9a86-5e934f7bee77
+
+    :expectedresults: Time to pickup doesn't aborts the long running job if
+        it already started
+
+    :CaseImportance: Medium
+
+    :bz: 2118651
+
+    :parametrized: yes
+    """
+    template_id = (
+        module_target_sat.api.JobTemplate()
+        .search(query={'search': 'name="Run Command - Script Default"'})[0]
+        .id
+    )
+    # check that longrunning command is not affected by time_to_pickup BZ#2158738
+    job = module_target_sat.api.JobInvocation().run(
+        synchronous=False,
+        data={
+            'job_template_id': template_id,
+            'organization': module_org.name,
+            'location': smart_proxy_location.name,
+            'inputs': {
+                'command': 'echo start; sleep 25; echo done',
+            },
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+            'time_to_pickup': '20',
+        },
+    )
+    module_target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
+    result = module_target_sat.api.JobInvocation(id=job['id']).read()
+    assert result.succeeded == 1

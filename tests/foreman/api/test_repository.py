@@ -1188,8 +1188,8 @@ class TestRepository:
         identifier = results.stdout.split('version_href\n"', 1)[1].split('version')[0]
         target_sat.execute(
             f'curl -X DELETE {target_sat.url}/{identifier}'
-            f' --cert /etc/pki/katello/certs/pulp-client.crt'
-            f' --key /etc/pki/katello/private/pulp-client.key'
+            f' --cert /etc/foreman/client_cert.pem'
+            f' --key /etc/foreman/client_key.pem'
         )
         command_output = target_sat.execute('foreman-rake katello:correct_repositories COMMIT=true')
         assert 'Recreating' in command_output.stdout and 'TaskError' not in command_output.stdout
@@ -1327,6 +1327,7 @@ class TestRepositorySync:
         assert response, f"Repository {repo} failed to sync."
 
     @pytest.mark.tier2
+    @pytest.mark.build_sanity
     def test_positive_sync_rh(self, module_entitlement_manifest_org, target_sat):
         """Sync RedHat Repository.
 

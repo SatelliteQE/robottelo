@@ -25,9 +25,8 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo.config import settings
+from robottelo.constants import GCE_RHEL_CLOUD_PROJECTS
 from robottelo.constants import VALID_GCE_ZONES
-
-RHEL_CLOUD_PROJECTS = ['rhel-cloud', 'rhel-sap-cloud']
 
 
 @pytest.mark.skip_if_not_set('gce')
@@ -89,7 +88,7 @@ class TestGCEComputeResourceTestCases:
         """
         satgce_images = module_gce_compute.available_images()
         googleclient_images = googleclient.list_templates(
-            include_public=True, public_projects=RHEL_CLOUD_PROJECTS
+            include_public=True, public_projects=GCE_RHEL_CLOUD_PROJECTS
         )
         googleclient_image_names = [img.name for img in googleclient_images]
         # Validating GCE_CR images in Google CR
@@ -238,6 +237,7 @@ class TestGCEHostProvisioningTestCase:
 
     @pytest.mark.e2e
     @pytest.mark.tier1
+    @pytest.mark.build_sanity
     @pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
     def test_positive_gce_host_provisioned(self, class_host, google_host):
         """Host can be provisioned on Google Cloud

@@ -23,6 +23,7 @@ CaseComponent:
     - BootdiskPlugin
     - Bootstrap
     - Branding
+    - BVT
     - Candlepin
     - Capsule
     - Capsule-Content
@@ -65,7 +66,7 @@ CaseComponent:
     - Installer
     - InterSatelliteSync
     - katello-agent
-    - Katello-tracer
+    - katello-tracer
     - LDAP
     - Leappintegration
     - LifecycleEnvironments
@@ -104,6 +105,7 @@ CaseComponent:
     - SyncPlans
     - TasksPlugin
     - TemplatesPlugin
+    - TestEnvironment
     - TFTP
     - Upgrades
     - UsersRoles

@@ -65,17 +65,17 @@ def module_rhc_org(module_target_sat):
 
 
 @pytest.fixture()
-def fixture_setup_rhc_satellite(request, module_target_sat, module_rhc_org):
+def fixture_setup_rhc_satellite(
+    request,
+    module_target_sat,
+    module_rhc_org,
+    module_entitlement_manifest,
+):
     """Create Organization and activation key after successful test execution"""
+    if settings.rh_cloud.crc_env == 'prod':
+        module_target_sat.upload_manifest(module_rhc_org.id, module_entitlement_manifest.content)
     yield
     if request.node.rep_call.passed:
-        if settings.rh_cloud.crc_env == 'prod':
-            manifests_path = module_target_sat.download_file(
-                file_url=settings.fake_manifest.url['default']
-            )[0]
-            module_target_sat.cli.Subscription.upload(
-                {'file': manifests_path, 'organization-id': module_rhc_org.id}
-            )
         # Enable and sync required repos
         repo1_id = module_target_sat.api_factory.enable_sync_redhat_repo(
             constants.REPOS['rhel8_aps'], module_rhc_org.id
@@ -146,7 +146,7 @@ def test_positive_configure_cloud_connector(
     host.host_parameters_attributes = parameters
     host.update(['host_parameters_attributes'])
 
-    with session:
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_rhc_org.name)
         if session.cloudinventory.is_cloud_connector_configured():
             pytest.skip(

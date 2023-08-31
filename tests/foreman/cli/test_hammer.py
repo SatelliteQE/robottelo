@@ -181,9 +181,9 @@ def test_positive_check_debug_log_levels(target_sat):
     """
     target_sat.cli.Admin.logging({'all': True, 'level-debug': True})
     # Verify value of `log4j.logger.org.candlepin` as `DEBUG`
-    result = target_sat.execute('grep DEBUG /etc/candlepin/candlepin.conf')
+    result = target_sat.execute('grep log4j.logger.org.candlepin /etc/candlepin/candlepin.conf')
     assert result.status == 0
-    assert 'log4j.logger.org.candlepin = DEBUG' in result.stdout
+    assert 'DEBUG' in result.stdout
 
     target_sat.cli.Admin.logging({"all": True, "level-production": True})
     # Verify value of `log4j.logger.org.candlepin` as `WARN`

@@ -167,6 +167,12 @@ class ContentView(Base):
         return cls.execute(cls._construct_command(options), ignore_stderr=True)
 
     @classmethod
+    def version_republish_repositories(cls, options):
+        """Removes content-view version."""
+        cls.command_sub = 'version republish-repositories'
+        return cls.execute(cls._construct_command(options), ignore_stderr=True)
+
+    @classmethod
     def remove_from_environment(cls, options=None):
         """Remove content-view from an environment"""
         cls.command_sub = 'remove-from-environment'

@@ -1242,6 +1242,7 @@ class TestContentView:
         environment = {'id': env1['id'], 'name': env1['name']}
         assert environment in new_cv['lifecycle-environments']
 
+    @pytest.mark.build_sanity
     @pytest.mark.tier2
     def test_positive_promote_custom_content(self, module_org, module_product):
         """attempt to promote a content view containing custom content
@@ -1504,6 +1505,37 @@ class TestContentView:
         new_cv = ContentView.info({'id': new_cv['id']})
         assert new_cv['yum-repositories'][0]['name'] == new_repo['name']
         assert new_cv['versions'][0]['version'] == '1.0'
+
+    @pytest.mark.tier2
+    def test_positive_publish_custom_major_minor_cv_version(self):
+        """CV can published with custom major and minor versions
+
+        :id: 6697cd22-253a-4bdc-a108-7e0af22caaf4
+
+        :steps:
+
+            1. Create product and repository with custom contents
+            2. Sync the repository
+            3. Create CV with above repository
+            4. Publish the CV with custom major and minor versions
+
+        :expectedresults:
+
+            1. CV version with custom major and minor versions is created
+
+        :CaseLevel: System
+        """
+        org = cli_factory.make_org()
+        major = random.randint(1, 1000)
+        minor = random.randint(1, 1000)
+        content_view = cli_factory.make_content_view(
+            {'name': gen_string('alpha'), 'organization-id': org['id']}
+        )
+        ContentView.publish({'id': content_view['id'], 'major': major, 'minor': minor})
+        content_view = ContentView.info({'id': content_view['id']})
+        cvv = content_view['versions'][0]['version']
+        assert cvv.split('.')[0] == str(major)
+        assert cvv.split('.')[1] == str(minor)
 
     @pytest.mark.upgrade
     @pytest.mark.tier3

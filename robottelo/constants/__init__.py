@@ -58,7 +58,6 @@ FOREMAN_PROVIDERS = {
     'ec2': 'EC2',
     'vmware': 'VMware',
     'openstack': 'RHEL OpenStack Platform',
-    'rackspace': 'Rackspace',
     'google': 'Google',
     'azurerm': 'Azure Resource Manager',
 }
@@ -116,6 +115,8 @@ LATEST_RHEL7_GCE_IMG_UUID = '7726764279310511390'
 GCE_MACHINE_TYPE_DEFAULT = 'f1-micro'
 GCE_NETWORK_DEFAULT = 'default'
 GCE_EXTERNAL_IP_DEFAULT = True
+GCE_RHEL_CLOUD_PROJECTS = ['rhel-cloud', 'rhel-sap-cloud']
+GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-7'
 
 # AzureRM specific constants
 AZURERM_VALID_REGIONS = [
@@ -258,9 +259,6 @@ OHSNAP_RHEL8_REPOS = (
     'rhel-8-for-x86_64-baseos-rpms',
     'rhel-8-for-x86_64-appstream-rpms',
 )
-
-INSTALL_RHEL7_STEPS = 'yum -y install satellite'
-INSTALL_RHEL8_STEPS = 'dnf -y module enable satellite:el8 && dnf -y install satellite'
 
 # On importing manifests, Red Hat repositories are listed like this:
 # Product -> RepositorySet -> Repository
@@ -874,6 +872,10 @@ PUPPET_SATELLITE_INSTALLER = [
     'enable-foreman-cli-puppet',
 ]
 PUPPET_CAPSULE_INSTALLER = ['enable-puppet']
+CAPSULE_REGISTRATION_OPTS = {
+    'foreman-proxy-registration': 'true',
+    'foreman-proxy-templates': 'true',
+}
 
 KICKSTART_CONTENT = [
     'treeinfo',
@@ -1537,8 +1539,6 @@ LDAP_ATTR = {
     'mail': 'mail',
 }
 
-OSCAP_TARGET_CORES = 4
-OSCAP_TARGET_MEMORY = '16GiB'
 OSCAP_PERIOD = {'weekly': 'Weekly', 'monthly': 'Monthly', 'custom': 'Custom'}
 OSCAP_TAILORING_FILE = 'ssg-rhel7-ds-tailoring.xml'
 
@@ -1742,6 +1742,7 @@ SATELLITE_ANSWER_FILE = "/etc/foreman-installer/scenarios.d/satellite-answers.ya
 CAPSULE_ANSWER_FILE = "/etc/foreman-installer/scenarios.d/capsule-answers.yaml"
 MAINTAIN_HAMMER_YML = "/etc/foreman-maintain/foreman-maintain-hammer.yml"
 SATELLITE_MAINTAIN_YML = "/etc/foreman-maintain/foreman_maintain.yml"
+FOREMAN_SETTINGS_YML = '/etc/foreman/settings.yaml'
 
 FOREMAN_TEMPLATE_IMPORT_URL = 'https://github.com/SatelliteQE/foreman_templates.git'
 FOREMAN_TEMPLATE_IMPORT_API_URL = 'http://api.github.com/repos/SatelliteQE/foreman_templates'
@@ -1963,6 +1964,12 @@ WEBHOOK_METHODS = [
     "DELETE",
     "PATCH",
 ]
+
+OPENSSH_RECOMMENDATION = 'Decreased security: OpenSSH config permissions'
+DNF_RECOMMENDATION = (
+    'The dnf installs lower versions of packages when the "best" '
+    'option is not present in the /etc/dnf/dnf.conf'
+)
 
 
 # Data File Paths

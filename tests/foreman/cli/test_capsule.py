@@ -21,8 +21,8 @@ from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.proxy import Proxy
+from robottelo.host_helpers.cli_factory import CLIFactoryError
 from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_data_list
 from robottelo.utils.issue_handlers import is_open
@@ -124,7 +124,7 @@ def test_positive_update_name(request, target_sat):
     """
     proxy = _make_proxy(request, target_sat, options={'name': gen_alphanumeric()})
     valid_data = valid_data_list()
-    if is_open('BZ:2084661') and 'html' in request.node.name:
+    if is_open('BZ:2084661') and 'html' in valid_data:
         del valid_data['html']
     for new_name in valid_data.values():
         newport = target_sat.available_capsule_port

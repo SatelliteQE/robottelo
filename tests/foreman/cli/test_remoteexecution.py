@@ -26,10 +26,7 @@ from broker import Broker
 from dateutil.relativedelta import FR
 from dateutil.relativedelta import relativedelta
 from fauxfactory import gen_string
-from nailgun import entities
-from wait_for import wait_for
 
-from robottelo import constants
 from robottelo.cli.factory import make_filter
 from robottelo.cli.factory import make_job_invocation
 from robottelo.cli.factory import make_job_invocation_with_credentials
@@ -50,7 +47,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.hosts import ContentHost
-from robottelo.logging import logger
 from robottelo.utils import ohsnap
 
 
@@ -70,14 +66,6 @@ def fixture_sca_vmsetup(request, module_sca_manifest_org, target_sat):
         with Broker(nick=request.param['nick'], host_class=ContentHost) as client:
             client.configure_rex(satellite=target_sat, org=module_sca_manifest_org)
             yield client
-
-
-@pytest.fixture()
-def fixture_enable_receptor_repos(request, target_sat):
-    """Enable RHSCL repo required by receptor installer"""
-    target_sat.enable_repo(constants.REPOS['rhscl7']['id'])
-    target_sat.enable_repo(constants.REPOS['rhae2']['id'])
-    target_sat.enable_repo(constants.REPOS['rhs7']['id'])
 
 
 @pytest.fixture()
@@ -466,77 +454,6 @@ class TestRemoteExecution:
             pending_state = invocation_info['pending']
             sleep(30)
         assert_job_invocation_result(invocation_command['id'], client.hostname)
-
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
-    @pytest.mark.skip("Receptor plugin is deprecated/removed for Satellite >= 6.11")
-    def test_positive_run_receptor_installer(
-        self, target_sat, subscribe_satellite, fixture_enable_receptor_repos
-    ):
-        """Run Receptor installer ("Configure Cloud Connector")
-
-        :CaseComponent: RHCloud-CloudConnector
-
-        :Team: Platform
-
-        :id: 811c7747-bec6-1a2d-8e5c-b5045d3fbc0d
-
-        :expectedresults: The job passes, installs Receptor that peers with c.r.c
-
-        :BZ: 1818076
-        """
-        result = target_sat.execute('stat /etc/receptor/*/receptor.conf')
-        if result.status == 0:
-            pytest.skip(
-                'Cloud Connector has already been configured on this system. '
-                'It is possible to reconfigure it but then the test would not really '
-                'check if everything is correctly configured from scratch. Skipping.'
-            )
-        # Copy foreman-proxy user's key to root@localhost user's authorized_keys
-        target_sat.add_rex_key(satellite=target_sat)
-
-        # Set Host parameter source_display_name to something random.
-        # To avoid 'name has already been taken' error when run multiple times
-        # on a machine with the same hostname.
-        host_id = Host.info({'name': target_sat.hostname})['id']
-        Host.set_parameter(
-            {'host-id': host_id, 'name': 'source_display_name', 'value': gen_string('alpha')}
-        )
-
-        template_name = 'Configure Cloud Connector'
-        invocation = make_job_invocation(
-            {
-                'async': True,
-                'job-template': template_name,
-                'inputs': f'satellite_user="{settings.server.admin_username}",\
-                        satellite_password="{settings.server.admin_password}"',
-                'search-query': f'name ~ {target_sat.hostname}',
-            }
-        )
-        invocation_id = invocation['id']
-        wait_for(
-            lambda: entities.JobInvocation(id=invocation_id).read().status_label
-            in ['succeeded', 'failed'],
-            timeout='1500s',
-        )
-
-        result = JobInvocation.get_output({'id': invocation_id, 'host': target_sat.hostname})
-        logger.debug(f'Invocation output>>\n{result}\n<<End of invocation output')
-        # if installation fails, it's often due to missing rhscl repo -> print enabled repos
-        repolist = target_sat.execute('yum repolist')
-        logger.debug(f'Repolist>>\n{repolist}\n<<End of repolist')
-
-        assert entities.JobInvocation(id=invocation_id).read().status == 0
-        assert 'project-receptor.satellite_receptor_installer' in result
-        assert 'Exit status: 0' in result
-        # check that there is one receptor conf file and it's only readable
-        # by the receptor user and root
-        result = target_sat.execute('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
-        assert all(
-            filestats == '400:foreman-proxy' for filestats in result.stdout.strip().split('\n')
-        )
-        result = target_sat.execute('ls -l /etc/receptor/*/receptor.conf | wc -l')
-        assert int(result.stdout.strip()) >= 1
 
 
 class TestAnsibleREX:

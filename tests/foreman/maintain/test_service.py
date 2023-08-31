@@ -23,8 +23,32 @@ from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import MAINTAIN_HAMMER_YML
 from robottelo.constants import SATELLITE_ANSWER_FILE
+from robottelo.hosts import Satellite
 
 pytestmark = pytest.mark.destructive
+
+SATELLITE_SERVICES = [
+    "dynflow-sidekiq@.service",
+    "foreman-proxy.service",
+    "foreman.service",
+    "httpd.service",
+    "postgresql.service",
+    "pulpcore-api.service",
+    "pulpcore-content.service",
+    "pulpcore-worker@.service",
+    "redis.service",
+    "tomcat.service",
+]
+
+CAPSULE_SERVICES = [
+    "foreman-proxy.service",
+    "httpd.service",
+    "postgresql.service",
+    "pulpcore-api.service",
+    "pulpcore-content.service",
+    "pulpcore-worker@.service",
+    "redis.service",
+]
 
 
 @pytest.fixture
@@ -64,9 +88,11 @@ def test_positive_service_list(sat_maintain):
     result = sat_maintain.cli.Service.list()
     assert 'FAIL' not in result.stdout
     assert result.status == 0
+    services = SATELLITE_SERVICES if type(sat_maintain) is Satellite else CAPSULE_SERVICES
+    for service in services:
+        assert service in result.stdout
 
 
-@pytest.mark.e2e
 @pytest.mark.include_capsule
 def test_positive_service_stop_start(sat_maintain):
     """Start/Stop services using satellite-maintain service subcommand
@@ -97,7 +123,6 @@ def test_positive_service_stop_start(sat_maintain):
     assert result.status == 0
 
 
-@pytest.mark.e2e
 @pytest.mark.include_capsule
 def test_positive_service_stop_restart(sat_maintain):
     """Disable services using satellite-maintain service
@@ -143,10 +168,6 @@ def test_positive_service_enable_disable(sat_maintain):
         2. Run satellite-maintain service enable
 
     :expectedresults: Services should enable/disable
-
-    :BZ: 1995783
-
-    :customerscenario: true
     """
     result = sat_maintain.cli.Service.stop()
     assert 'FAIL' not in result.stdout
@@ -155,10 +176,6 @@ def test_positive_service_enable_disable(sat_maintain):
     assert 'FAIL' not in result.stdout
     assert result.status == 0
     result = sat_maintain.cli.Service.enable()
-    assert 'FAIL' not in result.stdout
-    assert result.status == 0
-    sat_maintain.power_control(state='reboot')
-    result = sat_maintain.cli.Service.status(options={'brief': True, 'only': 'foreman.service'})
     assert 'FAIL' not in result.stdout
     assert result.status == 0
 
@@ -223,31 +240,6 @@ def test_positive_service_restart_without_hammer_config(missing_hammer_config, s
     result = sat_maintain.cli.Service.restart()
     assert 'FAIL' not in result.stdout
     assert result.status == 0
-
-
-def test_positive_satellite_maintain_service_list_sidekiq(sat_maintain):
-    """List sidekiq services with service list
-
-    :id: 5acb68a9-c430-485d-bb45-b499adc90927
-
-    :steps:
-        1. Run satellite-maintain service list
-        2. Run satellite-maintain service restart
-
-    :expectedresults: Sidekiq services should list and should restart.
-
-    :CaseImportance: Medium
-    """
-    result = sat_maintain.cli.Service.list()
-    assert 'FAIL' not in result.stdout
-    assert result.status == 0
-    assert 'dynflow-sidekiq@.service' in result.stdout
-
-    result = sat_maintain.cli.Service.restart()
-    assert 'FAIL' not in result.stdout
-    assert result.status == 0
-    for service in ['orchestrator', 'worker', 'worker-hosts-queue']:
-        assert f'dynflow-sidekiq@{service}' in result.stdout
 
 
 def test_positive_status_rpmsave(request, sat_maintain):

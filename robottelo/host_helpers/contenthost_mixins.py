@@ -20,10 +20,21 @@ class VersionedContent:
 
     @cached_property
     def REPOSET(self):
-        return {
-            'rhel': constants.REPOSET[f'rhel{self._v_major}'],
-            'rhst': constants.REPOSET[f'rhst{self._v_major}'],
-        }
+        try:
+            if self._v_major > 7:
+                sys_reposets = {
+                    'rhel_bos': constants.REPOSET[f'rhel{self._v_major}_bos'],
+                    'rhel_aps': constants.REPOSET[f'rhel{self._v_major}_aps'],
+                }
+            else:
+                sys_reposets = {
+                    'rhel': constants.REPOSET[f'rhel{self._v_major}'],
+                    'rhscl': constants.REPOSET[f'rhscl{self._v_major}'],
+                }
+            reposets = {'rhst': constants.REPOSET[f'rhst{self._v_major}']}
+        except KeyError as err:
+            raise ValueError(f'Unsupported system version: {self._v_major}') from err
+        return sys_reposets | reposets
 
     @cached_property
     def REPOS(self):
@@ -67,10 +78,11 @@ class VersionedContent:
                 product = self.__class__.__name__.lower()
         repo = repo or product  # if repo is not specified, set it to the same as the product is
         release = self.satellite.version if not release else str(release)
+        # issue warning if requesting repofile of different version than the product is
         settings_release = settings.server.version.release.split('.')
         if len(settings_release) == 2:
             settings_release.append('0')
-        settings_release = '.'.join(settings_release[:3])  # keep only major.minor.patch
+        settings_release = '.'.join(settings_release)
         if product != 'client' and release != settings_release:
             logger.warning(
                 'Satellite release in settings differs from the one passed to the function '

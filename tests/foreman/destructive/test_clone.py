@@ -27,7 +27,6 @@ pytestmark = pytest.mark.destructive
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize("sat_ready_rhel", [8], indirect=True)
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
 @pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
 def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pulp):
@@ -51,7 +50,7 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
     :customerscenario: true
     """
     rhel_version = sat_ready_rhel._v_major
-    sat_version = target_sat.version
+    sat_version = 'stream' if target_sat.is_stream else target_sat.version
 
     # SATELLITE PART - SOURCE SERVER
     # Enabling and starting services

@@ -1,0 +1,19 @@
+# Tier Codeowners for framework based changes
+
+* @SatelliteQE/robottelo-tier-1-reviewers
+
+/* @SatelliteQE/robottelo-tier-2-reviewers
+
+/.github/ @SatelliteQE/robottelo-tier-2-reviewers
+
+/conf/ @SatelliteQE/robottelo-tier-2-reviewers
+
+/pytest_fixtures/ @SatelliteQE/robottelo-tier-2-reviewers
+
+/pytest_plugins/ @SatelliteQE/robottelo-tier-2-reviewers
+
+/robottelo/ @SatelliteQE/robottelo-tier-2-reviewers
+
+/scripts/ @SatelliteQE/robottelo-tier-2-reviewers
+
+/tests/foreman/sanity/ @SatelliteQE/robottelo-tier-2-reviewers

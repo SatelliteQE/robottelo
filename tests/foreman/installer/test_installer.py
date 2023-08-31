@@ -17,10 +17,15 @@
 :Upstream: No
 """
 import pytest
+import requests
 
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import FOREMAN_SETTINGS_YML
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
 from robottelo.hosts import setup_capsule
 from robottelo.utils.installer import InstallerCommand
 
@@ -319,6 +324,7 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--foreman-proxy-logs',
     '--foreman-proxy-logs-listen-on',
     '--foreman-proxy-manage-puppet-group',
+    '--foreman-proxy-manage-service',
     '--foreman-proxy-oauth-consumer-key',
     '--foreman-proxy-oauth-consumer-secret',
     '--foreman-proxy-oauth-effective-user',
@@ -903,6 +909,7 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-foreman-proxy-logs',
     '--reset-foreman-proxy-logs-listen-on',
     '--reset-foreman-proxy-manage-puppet-group',
+    '--reset-foreman-proxy-manage-service',
     '--reset-foreman-proxy-oauth-consumer-key',
     '--reset-foreman-proxy-oauth-consumer-secret',
     '--reset-foreman-proxy-oauth-effective-user',
@@ -1321,6 +1328,185 @@ def extract_help(filter='params'):
                     yield token.replace(',', '')
 
 
+def common_sat_install_assertions(satellite):
+    sat_version = 'stream' if satellite.is_stream else satellite.version
+    assert settings.server.version.release == sat_version
+    result = satellite.execute(
+        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/satellite.log'
+    )
+    assert len(result.stdout) == 0
+    result = satellite.cli.Health.check()
+    assert 'FAIL' not in result.stdout
+
+
+def install_satellite(satellite, installer_args):
+    # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
+    satellite.register_to_cdn()
+    satellite.download_repofile(product='satellite', release=settings.server.version.release)
+    satellite.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
+    # Configure Satellite firewall to open communication
+    satellite.execute(
+        'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
+    )
+    # Install Satellite
+    satellite.execute(
+        InstallerCommand(installer_args=installer_args).get_command(),
+        timeout='30m',
+    )
+    common_sat_install_assertions(satellite)
+
+
+@pytest.fixture(scope='module')
+def sat_default_install(module_sat_ready_rhels):
+    """Install Satellite with default options"""
+    installer_args = [
+        'scenario satellite',
+        f'foreman-initial-admin-password {settings.server.admin_password}',
+    ]
+    install_satellite(module_sat_ready_rhels[0], installer_args)
+    return module_sat_ready_rhels[0]
+
+
+@pytest.fixture(scope='module')
+def sat_non_default_install(module_sat_ready_rhels):
+    """Install Satellite with various options"""
+    installer_args = [
+        'scenario satellite',
+        f'foreman-initial-admin-password {settings.server.admin_password}',
+        'foreman-rails-cache-store type:redis',
+        'foreman-proxy-content-pulpcore-hide-guarded-distributions false',
+    ]
+    install_satellite(module_sat_ready_rhels[1], installer_args)
+    return module_sat_ready_rhels[1]
+
+
+@pytest.mark.e2e
+@pytest.mark.tier1
+def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
+    """Run a basic Capsule installation
+
+    :id: 64fa85b6-96e6-4fea-bea4-a30539d59e65
+
+    :steps:
+        1. Get a Satellite
+        2. Configure capsule repos
+        3. Enable capsule module
+        4. Install and setup capsule
+
+    :expectedresults:
+        1. Capsule is installed and setup correctly
+
+    :CaseImportance: Critical
+    """
+    # Get Capsule repofile, and enable and download satellite-capsule
+    cap_ready_rhel.register_to_cdn()
+    cap_ready_rhel.download_repofile(product='capsule', release=settings.server.version.release)
+    cap_ready_rhel.execute(
+        'dnf -y module enable satellite-capsule:el8 && dnf -y install satellite-capsule'
+    )
+    # Setup Capsule
+    org = sat_default_install.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[
+        0
+    ]
+    setup_capsule(sat_default_install, cap_ready_rhel, org)
+    assert sat_default_install.api.Capsule().search(
+        query={'search': f'name={cap_ready_rhel.hostname}'}
+    )[0]
+    result = cap_ready_rhel.execute(
+        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/satellite.log'
+    )
+    assert len(result.stdout) == 0
+    result = cap_ready_rhel.execute(
+        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/capsule.log'
+    )
+    assert len(result.stdout) == 0
+    result = cap_ready_rhel.cli.Health.check()
+    assert 'FAIL' not in result.stdout
+
+
+@pytest.mark.e2e
+@pytest.mark.tier1
+def test_foreman_rails_cache_store(sat_non_default_install):
+    """Test foreman-rails-cache-store option
+
+    :id: 379a2fe8-1085-4a7f-8ac3-24c421412f12
+
+    :steps:
+        1. Install Satellite.
+        2. Verify that foreman-redis package is installed.
+        3. Check /etc/foreman/settings.yaml
+
+    :CaseImportance: Medium
+
+    :customerscenario: true
+
+    :BZ: 2063717, 2165092
+    """
+    # Verify foreman-rails-cache-store option works
+    assert sat_non_default_install.execute('rpm -q foreman-redis').status == 0
+    settings_file = sat_non_default_install.load_remote_yaml_file(FOREMAN_SETTINGS_YML)
+    assert settings_file.rails_cache_store.type == 'redis'
+
+
+@pytest.mark.e2e
+@pytest.mark.tier1
+def test_content_guarded_distributions_option(
+    sat_default_install, sat_non_default_install, module_sca_manifest
+):
+    """Verify foreman-proxy-content-pulpcore-hide-guarded-distributions option works
+
+    :id: a9ceefbc-fc2d-415e-9461-1811fabc63dc
+
+    :steps:
+        1. Install Satellite.
+        2. Verify that no content is listed on https://sat-fqdn/pulp/content/
+            with default Satellite installation.
+        3. Verify that content is not downloadable when content guard setting is disabled.
+
+    :expectedresults:
+        1. no content is listed on https://sat-fqdn/pulp/content/
+
+    :CaseImportance: Medium
+
+    :customerscenario: true
+
+    :BZ: 2063717, 2088559
+    """
+    # Verify that no content is listed on https://sat-fqdn/pulp/content/.
+    result = requests.get(f'https://{sat_default_install.hostname}/pulp/content/', verify=False)
+    assert 'Default_Organization' not in result.text
+    # Verify that content is not downloadable when content guard setting is disabled.
+    org = sat_non_default_install.api.Organization().create()
+    sat_non_default_install.upload_manifest(org.id, module_sca_manifest.content)
+    # sync ansible repo
+    product = sat_non_default_install.api.Product(name=PRDS['rhae'], organization=org.id).search()[
+        0
+    ]
+    r_set = sat_non_default_install.api.RepositorySet(
+        name=REPOSET['rhae2.9_el8'], product=product
+    ).search()[0]
+    r_set.enable(
+        data={
+            'basearch': 'x86_64',
+            'name': REPOSET['rhae2.9_el8'],
+            'organization-id': org.id,
+            'product_id': product.id,
+            'releasever': '8',
+        }
+    )
+    rh_repo = sat_non_default_install.api.Repository(name=REPOS['rhae2.9_el8']['name']).search(
+        query={'organization_id': org.id}
+    )[0]
+    rh_repo.sync()
+    assert (
+        "403: [('PEM routines', 'get_name', 'no start line')]"
+        in sat_non_default_install.execute(
+            f'curl https://{sat_non_default_install.hostname}/pulp/content/{org.label}'
+            f'/Library/content/dist/layered/rhel8/x86_64/ansible/2.9/os/'
+        ).stdout
+    )
+
+
 @pytest.mark.upgrade
 @pytest.mark.tier1
 def test_positive_selinux_foreman_module(target_sat):
@@ -1427,80 +1613,6 @@ def test_installer_options_and_sections(filter):
     added.sort()
     msg = f"###Removed {filter}:\n{removed}\n###Added {filter}:\n{added}"
     assert previous == current, msg
-
-
-@pytest.mark.e2e
-@pytest.mark.tier1
-@pytest.mark.parametrize("sat_ready_rhel", [settings.server.version.rhel_version], indirect=True)
-def test_satellite_and_capsule_installation(sat_ready_rhel, cap_ready_rhel):
-    """Run a basic Satellite installation
-
-    :id: bbab30a6-6861-494f-96dd-23b883c2c906
-
-    :steps:
-        1. Get 2 RHEL hosts
-        2. Configure satellite repos
-        3. Enable satellite module
-        4. Install satellite
-        5. Run satellite-installer
-        6. Configure capsule repos
-        7. Enable capsule module
-        8. Install and setup capsule
-
-    :expectedresults:
-        1. Correct satellite packaged is installed
-        2. satellite-installer runs successfully
-        3. satellite-maintain health check runs successfully
-        4. Capsule is installed and setup correctly
-
-    :CaseImportance: High
-    """
-    sat_version = settings.server.version.release
-    # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
-    sat_ready_rhel.register_to_cdn()
-    sat_ready_rhel.download_repofile(product='satellite', release=settings.server.version.release)
-    sat_ready_rhel.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
-    installed_version = sat_ready_rhel.execute('rpm --query satellite').stdout
-    assert sat_version in installed_version
-    # Install Satellite
-    sat_ready_rhel.execute(
-        InstallerCommand(
-            installer_args=[
-                'scenario satellite',
-                f'foreman-initial-admin-password {settings.server.admin_password}',
-            ]
-        ).get_command(),
-        timeout='30m',
-    )
-    result = sat_ready_rhel.execute(
-        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/satellite.log'
-    )
-    assert len(result.stdout) == 0
-    result = sat_ready_rhel.cli.Health.check()
-    assert 'FAIL' not in result.stdout
-    # Get Capsule repofile, and enable and download satellite-capsule
-    cap_ready_rhel.register_to_cdn()
-    cap_ready_rhel.download_repofile(product='capsule', release=settings.server.version.release)
-    cap_ready_rhel.execute(
-        'dnf -y module enable satellite-capsule:el8 && dnf -y install satellite-capsule'
-    )
-    # Configure Satellite firewall to open communication
-    sat_ready_rhel.execute(
-        'firewall-cmd --permanent --add-service RH-Satellite-6 && '
-        'firewall-cmd --add-service RH-Satellite-6'
-    )
-    # Setup Capsule
-    org = sat_ready_rhel.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
-    setup_capsule(sat_ready_rhel, cap_ready_rhel, org)
-    assert sat_ready_rhel.api.Capsule().search(query={'search': f'name={cap_ready_rhel.hostname}'})[
-        0
-    ]
-    result = cap_ready_rhel.execute(
-        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/satellite.log'
-    )
-    assert len(result.stdout) == 0
-    result = cap_ready_rhel.cli.Health.check()
-    assert 'FAIL' not in result.stdout
 
 
 @pytest.mark.stubbed
@@ -1819,55 +1931,27 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
     assert 'Success!' in command_output.stdout
 
 
-@pytest.mark.e2e
 @pytest.mark.tier1
-@pytest.mark.parametrize("sat_ready_rhel", [settings.server.version.rhel_version], indirect=True)
-def test_satellite_installation_with_options(sat_ready_rhel):
-    """Run Satellite installation with different options
+@pytest.mark.build_sanity
+@pytest.mark.first_sanity
+def test_satellite_installation(installer_satellite):
+    """Run a basic Satellite installation
 
-    :id: fa315028-d9fd-42b3-a07b-53166203abdc
+    :id: 661206f3-2eec-403c-af26-3c5cadcd5766
 
     :steps:
-        1. Get a RHEL host
+        1. Get RHEL Host
         2. Configure satellite repos
         3. Enable satellite module
         4. Install satellite
-        5. Run satellite-installer with required options
+        5. Run satellite-installer
 
     :expectedresults:
         1. Correct satellite packaged is installed
         2. satellite-installer runs successfully
         3. satellite-maintain health check runs successfully
 
-    :CaseImportance: High
+    :CaseImportance: Critical
 
-    :customerscenario: true
-
-    :BZ: 2063717, 2165092
     """
-    sat_version = settings.server.version.release
-    # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
-    sat_ready_rhel.register_to_cdn()
-    sat_ready_rhel.download_repofile(product='satellite', release=settings.server.version.release)
-    sat_ready_rhel.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
-    installed_version = sat_ready_rhel.execute('rpm --query satellite').stdout
-    assert sat_version in installed_version
-    # Install Satellite
-    sat_ready_rhel.execute(
-        InstallerCommand(
-            installer_args=[
-                'scenario satellite',
-                f'foreman-initial-admin-password {settings.server.admin_password}',
-                'foreman-rails-cache-store type:redis',
-            ]
-        ).get_command(),
-        timeout='30m',
-    )
-    result = sat_ready_rhel.execute(
-        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/satellite.log'
-    )
-    assert len(result.stdout) == 0
-    result = sat_ready_rhel.cli.Health.check()
-    assert 'FAIL' not in result.stdout
-    assert sat_ready_rhel.execute('rpm -q foreman-redis').status == 0
-    assert sat_ready_rhel.execute('grep "type: redis" /etc/foreman/settings.yaml').status == 0
+    common_sat_install_assertions(installer_satellite)

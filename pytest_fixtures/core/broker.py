@@ -3,33 +3,20 @@ from contextlib import contextmanager
 import pytest
 from box import Box
 from broker import Broker
-from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.hosts import Capsule
+from robottelo.hosts import ContentHostError
+from robottelo.hosts import lru_sat_ready_rhel
 from robottelo.hosts import Satellite
-from robottelo.logging import logger
-
-
-def _resolve_deploy_args(args_dict):
-    # TODO: https://github.com/rochacbruno/dynaconf/issues/690
-    for key, val in args_dict.copy().to_dict().items():
-        if isinstance(val, str) and val.startswith('this.'):
-            # Args transformed into small letters and existing capital args removed
-            args_dict[key.lower()] = settings.get(args_dict.pop(key).replace('this.', ''))
-    return args_dict
 
 
 @pytest.fixture(scope='session')
 def _default_sat(align_to_satellite):
     """Returns a Satellite object for settings.server.hostname"""
     if settings.server.hostname:
-        hosts = Broker(host_class=Satellite).from_inventory(
-            filter=f'@inv.hostname == "{settings.server.hostname}"'
-        )
-        if hosts:
-            return hosts[0]
-        else:
+        try:
+            return Satellite.get_host_by_hostname(settings.server.hostname)
+        except ContentHostError:
             return Satellite()
 
 
@@ -41,6 +28,10 @@ def _target_sat_imp(request, _default_sat, satellite_factory):
         yield new_sat
         new_sat.teardown()
         Broker(hosts=[new_sat]).checkin()
+    elif 'sanity' in request.config.option.markexpr:
+        installer_sat = lru_sat_ready_rhel(settings.server.version.rhel_version)
+        settings.set('server.hostname', installer_sat.hostname)
+        yield installer_sat
     else:
         yield _default_sat
 
@@ -67,54 +58,6 @@ def session_target_sat(request, _default_sat, satellite_factory):
 def class_target_sat(request, _default_sat, satellite_factory):
     with _target_sat_imp(request, _default_sat, satellite_factory) as sat:
         yield sat
-
-
-@pytest.fixture(scope='session')
-def satellite_factory():
-    if settings.server.get('deploy_arguments'):
-        logger.debug(f'Original deploy arguments for sat: {settings.server.deploy_arguments}')
-        resolved = _resolve_deploy_args(settings.server.deploy_arguments)
-        settings.set('server.deploy_arguments', resolved)
-        logger.debug(f'Resolved deploy arguments for sat: {settings.server.deploy_arguments}')
-
-    def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
-        if settings.server.deploy_arguments:
-            broker_args.update(settings.server.deploy_arguments)
-            logger.debug(f'Updated broker args for sat: {broker_args}')
-
-        vmb = Broker(
-            host_class=Satellite,
-            workflow=workflow or settings.server.deploy_workflow,
-            **broker_args,
-        )
-        timeout = (1200 + delay) * retry_limit
-        sat = wait_for(vmb.checkout, timeout=timeout, delay=delay, fail_condition=[])
-        return sat.out
-
-    return factory
-
-
-@pytest.fixture(scope='session')
-def capsule_factory():
-    if settings.capsule.get('deploy_arguments'):
-        logger.debug(f'Original deploy arguments for cap: {settings.capsule.deploy_arguments}')
-        resolved = _resolve_deploy_args(settings.capsule.deploy_arguments)
-        settings.set('capsule.deploy_arguments', resolved)
-        logger.debug(f'Resolved deploy arguments for cap: {settings.capsule.deploy_arguments}')
-
-    def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
-        if settings.capsule.deploy_arguments:
-            broker_args.update(settings.capsule.deploy_arguments)
-        vmb = Broker(
-            host_class=Capsule,
-            workflow=workflow or settings.capsule.deploy_workflow,
-            **broker_args,
-        )
-        timeout = (1200 + delay) * retry_limit
-        cap = wait_for(vmb.checkout, timeout=timeout, delay=delay, fail_condition=[])
-        return cap.out
-
-    return factory
 
 
 @pytest.fixture(scope='module')

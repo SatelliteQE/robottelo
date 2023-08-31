@@ -52,9 +52,11 @@ def test_rhel_pxe_provisioning(
         2. Satellite is able to run REX job on the host
         3. Host is registered to Satellite and subscription status is 'Success'
 
-    :BZ: 2105441
+    :BZ: 2105441, 1955861, 1784012
 
     :customerscenario: true
+
+    :parametrized: yes
     """
     host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
     sat = module_provisioning_sat.sat
@@ -102,17 +104,7 @@ def test_rhel_pxe_provisioning(
     provisioning_host.blank = False
 
     # Wait for the host to be rebooted and SSH daemon to be started.
-    try:
-        wait_for(
-            provisioning_host.connect,
-            fail_condition=lambda res: res is not None,
-            handle_exception=True,
-            raise_original=True,
-            timeout=180,
-            delay=1,
-        )
-    except ConnectionRefusedError:
-        raise ConnectionRefusedError("Timed out waiting for SSH daemon to start on the host")
+    provisioning_host.wait_for_connection()
 
     # Perform version check
     host_os = host.operatingsystem.read()
@@ -120,6 +112,10 @@ def test_rhel_pxe_provisioning(
     assert (
         provisioning_host.os_version == expected_rhel_version
     ), 'Different than the expected OS version was installed'
+
+    # Verify provisioning log exists on host at correct path
+    assert provisioning_host.execute('test -s /root/install.post.log').status == 0
+    assert provisioning_host.execute('test -s /mnt/sysimage/root/install.post.log').status == 1
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
     template_id = (
