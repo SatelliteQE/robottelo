@@ -376,7 +376,7 @@ def test_negative_create_report_without_name():
 @pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
 @pytest.mark.no_containers
 def test_positive_applied_errata(
-    module_org, module_location, module_cv, module_lce, rhel_contenthost, target_sat
+    function_org, function_location, function_lce, rhel_contenthost, target_sat
 ):
     """Generate an Applied Errata report
 
@@ -393,21 +393,25 @@ def test_positive_applied_errata(
     :CaseImportance: Medium
     """
     activation_key = target_sat.api.ActivationKey(
-        environment=module_lce, organization=module_org
+        environment=function_lce, organization=function_org
     ).create()
+    cv = target_sat.api.ContentView(organization=function_org).create()
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_9.url,
-            'organization-id': module_org.id,
-            'content-view-id': module_cv.id,
-            'lifecycle-environment-id': module_lce.id,
+            'organization-id': function_org.id,
+            'content-view-id': cv.id,
+            'lifecycle-environment-id': function_lce.id,
             'activationkey-id': activation_key.id,
         }
     )
-    result = rhel_contenthost.register(module_org, module_location, activation_key.name, target_sat)
+    result = rhel_contenthost.register(
+        function_org, function_location, activation_key.name, target_sat
+    )
     assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
+    rhel_contenthost.execute(r'subscription-manager repos --enable \*')
     assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     assert rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
     task_id = target_sat.api.JobInvocation().run(
@@ -416,7 +420,7 @@ def test_positive_applied_errata(
             'inputs': {'errata': ERRATUM_ID},
             'targeting_type': 'static_query',
             'search_query': f'name = {rhel_contenthost.hostname}',
-            'organization_id': module_org.id,
+            'organization_id': function_org.id,
         },
     )['id']
     target_sat.wait_for_tasks(
@@ -431,7 +435,7 @@ def test_positive_applied_errata(
     )
     res = rt.generate(
         data={
-            'organization_id': module_org.id,
+            'organization_id': function_org.id,
             'report_format': 'json',
             'input_values': {
                 'Filter Errata Type': 'all',
@@ -758,10 +762,10 @@ def test_positive_installable_errata(
     assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
 
-    rhel_contenthost.execute(r'subscription-manager repos --enable \*')
     # Remove package if already installed on this host
     rhel_contenthost.execute(f'yum remove -y {FAKE_1_CUSTOM_PACKAGE_NAME}')
     # Install the outdated package version
+    rhel_contenthost.execute(r'subscription-manager repos --enable \*')
     assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     assert (
         rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}').stdout.strip()
@@ -801,6 +805,7 @@ def test_positive_installable_errata(
     }
 
     # Gather Errata using the template 'Available Errata', may take some time
+    # When condition is met, newest Report Template will have Errata entries
     wait_for(
         lambda: (
             module_target_sat.api.ReportTemplate()
@@ -818,7 +823,7 @@ def test_positive_installable_errata(
         .read()
         .generate(data=_rt_input_data)
     )
-    assert len(report) > 0
+    assert report
     installable_errata = report[0]
     assert FAKE_1_CUSTOM_PACKAGE_NAME in installable_errata['Packages']
     assert installable_errata['Erratum'] == ERRATUM_ID
