@@ -742,12 +742,12 @@ def test_positive_installable_errata(
     activation_key = module_target_sat.api.ActivationKey(
         environment=module_lce, organization=module_org
     ).create()
-    # ERRATUM_ID = str(settings.repos.yum_6.errata[2])
-    ERRATUM_ID = 'RHEA-2012:0055'
+    ERRATUM_ID = str(settings.repos.yum_6.errata[2])
+    # ERRATUM_ID = 'RHEA-2012:0055'
     module_target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
-            # 'url': settings.repos.yum_6.url,
-            'url': 'https://fixtures.pulpproject.org/rpm-advisory-diff-repo/',
+            'url': settings.repos.yum_6.url,
+            # 'url': 'https://fixtures.pulpproject.org/rpm-advisory-diff-repo/',
             'organization-id': module_org.id,
             'content-view-id': module_cv.id,
             'lifecycle-environment-id': module_lce.id,
@@ -760,9 +760,15 @@ def test_positive_installable_errata(
     assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
 
-    # Install the outdated package version
     rhel_contenthost.execute(r'subscription-manager repos --enable \*')
+    # Remove package if already installed on this host
+    rhel_contenthost.execute(f'yum remove -y {FAKE_1_CUSTOM_PACKAGE_NAME}')
+    # Install the outdated package version
     assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert (
+        rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}').stdout.strip()
+        == FAKE_1_CUSTOM_PACKAGE
+    )
 
     # Install/Apply the errata
     task_id = module_target_sat.api.JobInvocation().run(
@@ -803,18 +809,17 @@ def test_positive_installable_errata(
             .search(query={'search': 'name="Host - Available Errata"'})[0]
             .read()
             .generate(data=_rt_input_data)
+            != []
         ),
         timeout=120,
         delay=10,
     )
-    # Now that a populated report is ready, generate a final time
     report = (
         module_target_sat.api.ReportTemplate()
         .search(query={'search': 'name="Host - Available Errata"'})[0]
         .read()
         .generate(data=_rt_input_data)
     )
-
     assert len(report) > 0
     installable_errata = report[0]
     assert FAKE_1_CUSTOM_PACKAGE_NAME in installable_errata['Packages']
