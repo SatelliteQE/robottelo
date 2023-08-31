@@ -743,11 +743,9 @@ def test_positive_installable_errata(
         environment=module_lce, organization=module_org
     ).create()
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
-    # ERRATUM_ID = 'RHEA-2012:0055'
     module_target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_6.url,
-            # 'url': 'https://fixtures.pulpproject.org/rpm-advisory-diff-repo/',
             'organization-id': module_org.id,
             'content-view-id': module_cv.id,
             'lifecycle-environment-id': module_lce.id,
