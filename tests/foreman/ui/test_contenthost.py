@@ -78,6 +78,7 @@ def vm(module_repos_collection_with_manifest, rhel7_contenthost, target_sat):
     """Virtual machine registered in satellite"""
     module_repos_collection_with_manifest.setup_virtual_machine(rhel7_contenthost)
     rhel7_contenthost.add_rex_key(target_sat)
+    rhel7_contenthost.run(r'subscription-manager repos --enable \*')
     yield rhel7_contenthost
 
 
@@ -139,7 +140,6 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
 
     :CaseImportance: Critical
     """
-    vm.run(r'subscription-manager repos --enable \*')
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     startdate = datetime.utcnow().strftime('%m/%d/%Y')
@@ -253,7 +253,6 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm, target_s
     """
     hc_name = gen_string('alpha')
     description = gen_string('alpha')
-    vm.run(r'subscription-manager repos --enable \*')
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     with session:
