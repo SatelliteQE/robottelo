@@ -220,7 +220,7 @@ def test_positive_create_with_interval(module_org, interval):
 
 @pytest.mark.parametrize('sync_delta', **parametrized(sync_date_deltas))
 @pytest.mark.tier1
-def test_positive_create_with_sync_date(module_org, sync_delta):
+def test_positive_create_with_sync_date(module_org, sync_delta, target_sat):
     """Create a sync plan and update its sync date.
 
     :id: bdb6e0a9-0d3b-4811-83e2-2140b7bb62e3
@@ -232,11 +232,11 @@ def test_positive_create_with_sync_date(module_org, sync_delta):
     :CaseImportance: Critical
     """
     sync_date = datetime.now() + timedelta(seconds=sync_delta)
-    sync_plan = entities.SyncPlan(
+    sync_plan = target_sat.api.SyncPlan(
         enabled=False, organization=module_org, sync_date=sync_date
     ).create()
     sync_plan = sync_plan.read()
-    assert sync_date.strftime('%Y-%m-%d %H:%M:%S UTC') == sync_plan.sync_date
+    assert sync_date.strftime('%Y-%m-%d %H:%M:%S +0000') == sync_plan.sync_date
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
@@ -419,7 +419,7 @@ def test_positive_update_interval_custom_cron(module_org, interval):
 
 @pytest.mark.parametrize('sync_delta', **parametrized(sync_date_deltas))
 @pytest.mark.tier1
-def test_positive_update_sync_date(module_org, sync_delta):
+def test_positive_update_sync_date(module_org, sync_delta, target_sat):
     """Updated sync plan's sync date.
 
     :id: fad472c7-01b4-453b-ae33-0845c9e0dfd4
@@ -431,13 +431,13 @@ def test_positive_update_sync_date(module_org, sync_delta):
     :CaseImportance: Critical
     """
     sync_date = datetime.now() + timedelta(seconds=sync_delta)
-    sync_plan = entities.SyncPlan(
+    sync_plan = target_sat.api.SyncPlan(
         enabled=False, organization=module_org, sync_date=datetime.now() + timedelta(days=10)
     ).create()
     sync_plan.sync_date = sync_date
     sync_plan.update(['sync_date'])
     sync_plan = sync_plan.read()
-    assert sync_date.strftime('%Y-%m-%d %H:%M:%S UTC') == sync_plan.sync_date
+    assert sync_date.strftime('%Y-%m-%d %H:%M:%S +0000') == sync_plan.sync_date
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
@@ -481,7 +481,7 @@ def test_negative_update_interval(module_org, interval):
 
 
 @pytest.mark.tier2
-def test_positive_add_product(module_org):
+def test_positive_add_product(module_org, target_sat):
     """Create a sync plan and add one product to it.
 
     :id: 036dea02-f73d-4fc1-9c41-5515b6659c79
@@ -493,8 +493,9 @@ def test_positive_add_product(module_org):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
-    product = entities.Product(organization=module_org).create()
+    sync_plan = target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
+    product = target_sat.api.Product(organization=module_org).create()
+    target_sat.api.Repository(product=product).create()
     sync_plan.add_products(data={'product_ids': [product.id]})
     sync_plan = sync_plan.read()
     assert len(sync_plan.product) == 1
@@ -502,7 +503,7 @@ def test_positive_add_product(module_org):
 
 
 @pytest.mark.tier2
-def test_positive_add_products(module_org):
+def test_positive_add_products(module_org, target_sat):
     """Create a sync plan and add two products to it.
 
     :id: 2a80ecad-2245-46d8-bbc6-0b802e68d50c
@@ -512,8 +513,9 @@ def test_positive_add_products(module_org):
 
     :CaseLevel: Integration
     """
-    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
-    products = [entities.Product(organization=module_org).create() for _ in range(2)]
+    sync_plan = target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
+    products = [target_sat.api.Product(organization=module_org).create() for _ in range(2)]
+    [target_sat.api.Repository(product=product).create() for product in products]
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     sync_plan = sync_plan.read()
     assert len(sync_plan.product) == 2
@@ -521,7 +523,7 @@ def test_positive_add_products(module_org):
 
 
 @pytest.mark.tier2
-def test_positive_remove_product(module_org):
+def test_positive_remove_product(module_org, target_sat):
     """Create a sync plan with two products and then remove one
     product from it.
 
@@ -534,8 +536,9 @@ def test_positive_remove_product(module_org):
 
     :BZ: 1199150
     """
-    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
-    products = [entities.Product(organization=module_org).create() for _ in range(2)]
+    sync_plan = target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
+    products = [target_sat.api.Product(organization=module_org).create() for _ in range(2)]
+    [target_sat.api.Repository(product=product).create() for product in products]
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     assert len(sync_plan.read().product) == 2
     sync_plan.remove_products(data={'product_ids': [products[0].id]})
@@ -546,7 +549,7 @@ def test_positive_remove_product(module_org):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_remove_products(module_org):
+def test_positive_remove_products(module_org, target_sat):
     """Create a sync plan with two products and then remove both
     products from it.
 
@@ -557,8 +560,9 @@ def test_positive_remove_products(module_org):
 
     :CaseLevel: Integration
     """
-    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
-    products = [entities.Product(organization=module_org).create() for _ in range(2)]
+    sync_plan = target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
+    products = [target_sat.api.Product(organization=module_org).create() for _ in range(2)]
+    [target_sat.api.Repository(product=product).create() for product in products]
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     assert len(sync_plan.read().product) == 2
     sync_plan.remove_products(data={'product_ids': [product.id for product in products]})
@@ -578,9 +582,10 @@ def test_positive_repeatedly_add_remove(module_org, request, target_sat):
 
     :BZ: 1199150
     """
-    sync_plan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = target_sat.api.SyncPlan(organization=module_org).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
-    product = entities.Product(organization=module_org).create()
+    product = target_sat.api.Product(organization=module_org).create()
+    target_sat.api.Repository(product=product).create()
     for _ in range(5):
         sync_plan.add_products(data={'product_ids': [product.id]})
         assert len(sync_plan.read().product) == 1
@@ -602,11 +607,12 @@ def test_positive_add_remove_products_custom_cron(module_org, request, target_sa
     """
     cron_expression = gen_choice(valid_cron_expressions())
 
-    sync_plan = entities.SyncPlan(
+    sync_plan = target_sat.api.SyncPlan(
         organization=module_org, interval='custom cron', cron_expression=cron_expression
     ).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
-    products = [entities.Product(organization=module_org).create() for _ in range(2)]
+    products = [target_sat.api.Product(organization=module_org).create() for _ in range(2)]
+    [target_sat.api.Repository(product=product).create() for product in products]
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     assert len(sync_plan.read().product) == 2
     sync_plan.remove_products(data={'product_ids': [product.id for product in products]})
@@ -1020,7 +1026,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
 
 
 @pytest.mark.tier2
-def test_positive_delete_one_product(module_org):
+def test_positive_delete_one_product(module_org, target_sat):
     """Create a sync plan with one product and delete it.
 
     :id: e565c464-33e2-4bca-8eca-15d5a7d4b155
@@ -1030,8 +1036,9 @@ def test_positive_delete_one_product(module_org):
 
     :CaseLevel: Integration
     """
-    sync_plan = entities.SyncPlan(organization=module_org).create()
-    product = entities.Product(organization=module_org).create()
+    sync_plan = target_sat.api.SyncPlan(organization=module_org).create()
+    product = target_sat.api.Product(organization=module_org).create()
+    target_sat.api.Repository(product=product).create()
     sync_plan.add_products(data={'product_ids': [product.id]})
     sync_plan.delete()
     with pytest.raises(HTTPError):
@@ -1039,7 +1046,7 @@ def test_positive_delete_one_product(module_org):
 
 
 @pytest.mark.tier2
-def test_positive_delete_products(module_org):
+def test_positive_delete_products(module_org, target_sat):
     """Create a sync plan with two products and delete them.
 
     :id: f21bd57f-369e-4acd-a492-5532349a3804
@@ -1049,8 +1056,9 @@ def test_positive_delete_products(module_org):
 
     :CaseLevel: Integration
     """
-    sync_plan = entities.SyncPlan(organization=module_org).create()
-    products = [entities.Product(organization=module_org).create() for _ in range(2)]
+    sync_plan = target_sat.api.SyncPlan(organization=module_org).create()
+    products = [target_sat.api.Product(organization=module_org).create() for _ in range(2)]
+    [target_sat.api.Repository(product=product).create() for product in products]
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     sync_plan.delete()
     with pytest.raises(HTTPError):
