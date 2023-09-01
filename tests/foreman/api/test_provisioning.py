@@ -18,8 +18,9 @@
 """
 import pytest
 from fauxfactory import gen_string
-from packaging.version import Version
 from wait_for import wait_for
+
+from robottelo.config import settings
 
 
 @pytest.mark.e2e
@@ -64,10 +65,6 @@ def test_rhel_pxe_provisioning(
         hostgroup=provisioning_hostgroup,
         organization=module_sca_manifest_org,
         location=module_location,
-        content_facet_attributes={
-            'content_view_id': module_provisioning_rhel_content.cv.id,
-            'lifecycle_environment_id': module_lce_library.id,
-        },
         name=gen_string('alpha').lower(),
         mac=host_mac_addr,
         operatingsystem=module_provisioning_rhel_content.os,
@@ -106,11 +103,25 @@ def test_rhel_pxe_provisioning(
     # Wait for the host to be rebooted and SSH daemon to be started.
     provisioning_host.wait_for_connection()
 
-    # Perform version check
+    # Perform version check and check if root password is properly updated
     host_os = host.operatingsystem.read()
-    expected_rhel_version = Version(f'{host_os.major}.{host_os.minor}')
+    expected_rhel_version = f'{host_os.major}.{host_os.minor}'
+
+    if int(host_os.major) >= 9:
+        assert (
+            provisioning_host.execute(
+                'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+            ).status
+            == 0
+        )
+    host_ssh_os = module_provisioning_sat.sat.execute(
+        f'sshpass -p {settings.provisioning.host_root_password} '
+        'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
+        f'-o UserKnownHostsFile=/dev/null root@{provisioning_host.hostname} cat /etc/redhat-release'
+    )
+    assert host_ssh_os.status == 0
     assert (
-        provisioning_host.os_version == expected_rhel_version
+        expected_rhel_version in host_ssh_os.stdout
     ), 'Different than the expected OS version was installed'
 
     # Verify provisioning log exists on host at correct path
