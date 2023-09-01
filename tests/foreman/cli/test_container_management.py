@@ -322,3 +322,51 @@ class TestDockerClient:
         # 9. Pull in docker image
         result = container_contenthost.execute(docker_pull_command)
         assert result.status == 0
+
+    def test_negative_pull_content_with_longer_name(target_sat, default_org):
+        """Verify that long name CV publish when CV & docker repo both have larger name.
+
+        :id: e0ac0be4-f5ff-4a88-bb29-33aa2d874f46
+
+        :steps:
+
+            1. Create Product,docker repo,CV and LCE with long name product / repo
+            2. Sync the repos
+            3. Add repository to CV, Publish, Promote CV to LCE
+            4. Pull in docker image
+
+        :expectedresults:
+
+            1. Long Product, repository, CV and LCE should create successfully
+            2. Sync repository successfully
+            3. Publish & Promote should success
+            4. Can pull in docker images
+
+        :BZ: 2127470
+
+        :customerscenario: true
+        """
+        pattern_postfix = gen_string('alpha', 50)
+
+        product_name = f'Containers-{pattern_postfix}'
+        repo_name = f'Repo-{pattern_postfix}'
+        lce_name = f'LCE-{pattern_postfix}'
+        cv_name = f'LCE-{pattern_postfix}'
+
+        logger.info("Creating product with longer name")
+        product = make_product_wait({'name': product_name, 'organization-id': default_org.id})
+        logger.info("Creating docker repo with longer name")
+        repo = _repo(product['id'], name=repo_name, upstream_name=CONTAINER_UPSTREAM_NAME)
+        Repository.synchronize({'id': repo['id']})
+
+        logger.info("Creating lce, cv, add repos to cv, publish and promote")
+        lce = make_lifecycle_environment({'name': lce_name, 'organization-id': default_org.id})
+        cv = make_content_view(
+            {'name': cv_name, 'composite': False, 'organization-id': default_org.id}
+        )
+        ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
+        ContentView.publish({'id': cv['id']})
+        cv = ContentView.info({'id': cv['id']})
+        ContentView.version_promote(
+            {'id': cv['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
+        )
