@@ -26,8 +26,6 @@ from robottelo.constants import SATELLITE_ANSWER_FILE
 from robottelo.hosts import Satellite
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = pytest.mark.destructive
-
 SATELLITE_SERVICES = [
     "dynflow-sidekiq@.service",
     "foreman-proxy.service",
@@ -96,6 +94,7 @@ def test_positive_service_list(sat_maintain):
 
 @pytest.mark.e2e
 @pytest.mark.include_capsule
+@pytest.mark.usefixtures('start_satellite_services')
 def test_positive_service_stop_start(sat_maintain):
     """Start/Stop services using satellite-maintain service subcommand
 
@@ -127,6 +126,7 @@ def test_positive_service_stop_start(sat_maintain):
 
 @pytest.mark.e2e
 @pytest.mark.include_capsule
+@pytest.mark.usefixtures('start_satellite_services')
 def test_positive_service_stop_restart(sat_maintain):
     """Disable services using satellite-maintain service
 
@@ -159,6 +159,7 @@ def test_positive_service_stop_restart(sat_maintain):
 
 
 @pytest.mark.include_capsule
+@pytest.mark.usefixtures('start_satellite_services')
 def test_positive_service_enable_disable(sat_maintain):
     """Enable/Disable services using satellite-maintain service subcommand
 
@@ -181,7 +182,8 @@ def test_positive_service_enable_disable(sat_maintain):
     assert result.status == 0
 
 
-def test_positive_foreman_service(request, sat_maintain):
+@pytest.mark.usefixtures('start_satellite_services')
+def test_positive_foreman_service(sat_maintain):
     """Validate httpd service should work as expected even stopping of the foreman service
 
     :id: 08a29ea2-2e49-11eb-a22b-d46d6dd3b5b2
@@ -202,10 +204,7 @@ def test_positive_foreman_service(request, sat_maintain):
     result = sat_maintain.cli.Health.check(options={'assumeyes': True})
     assert result.status == 0
     assert 'foreman' in result.stdout
-
-    @request.addfinalizer
-    def _finalize():
-        assert sat_maintain.cli.Service.start(options={'only': 'foreman'}).status == 0
+    assert sat_maintain.cli.Service.start(options={'only': 'foreman'}).status == 0
 
 
 @pytest.mark.include_capsule

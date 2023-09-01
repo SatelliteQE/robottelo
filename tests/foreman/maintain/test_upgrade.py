@@ -18,7 +18,7 @@
 """
 import pytest
 
-pytestmark = pytest.mark.destructive
+from robottelo.config import settings
 
 
 @pytest.mark.e2e
@@ -54,6 +54,10 @@ def test_positive_satellite_maintain_upgrade_list(sat_maintain):
 
 
 @pytest.mark.include_capsule
+@pytest.mark.skipif(
+    (settings.server.version.release == 'stream'),
+    reason='Upgrade path is not available for stream yet',
+)
 def test_positive_repositories_validate(sat_maintain):
     """Test repositories-validate pre-upgrade check is
      skipped when system is subscribed using custom activationkey.
