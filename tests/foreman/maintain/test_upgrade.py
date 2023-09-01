@@ -21,8 +21,7 @@ import re
 import pytest
 
 from robottelo.config import settings
-
-pytestmark = pytest.mark.destructive
+from robottelo.constants import SATELLITE_VERSION
 
 
 def last_y_stream_version(release):
@@ -76,6 +75,10 @@ def test_positive_satellite_maintain_upgrade_list(sat_maintain):
 
 
 @pytest.mark.include_capsule
+@pytest.mark.skipif(
+    (settings.server.version.release == 'stream'),
+    reason='Upgrade path is not available for stream yet',
+)
 def test_positive_repositories_validate(sat_maintain):
     """Test repositories-validate pre-upgrade check is
      skipped when system is subscribed using custom activationkey.
@@ -116,6 +119,10 @@ def test_positive_repositories_validate(sat_maintain):
     ids=['default', 'medium'],
     indirect=True,
 )
+@pytest.mark.skipif(
+    (settings.server.version.release == 'stream'),
+    reason='Upgrade path is not available for stream yet',
+)
 def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
     """Negative test that verifies a satellite with less than
     tuning profile hardware requirements fails on pre-upgrade check.
@@ -134,7 +141,9 @@ def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
     # Register to CDN for RHEL8 repos, download and enable last y stream's ohsnap repos,
     # and enable the satellite module and install it on the host
     custom_host.register_to_cdn()
-    last_y_stream = last_y_stream_version(settings.server.version.release)
+    last_y_stream = last_y_stream_version(
+        SATELLITE_VERSION if sat_version == 'stream' else sat_version
+    )
     custom_host.download_repofile(product='satellite', release=last_y_stream)
     custom_host.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
     # Install without system checks to get around installer checks
