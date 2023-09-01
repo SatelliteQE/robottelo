@@ -165,7 +165,8 @@ def test_positive_health_check_server_ping(sat_maintain):
     assert 'FAIL' not in result.stdout
 
 
-def test_health_check_server_ping(sat_maintain, request):
+@pytest.mark.usefixtures('start_satellite_services')
+def test_health_check_server_ping(sat_maintain):
     """Verify health check server-ping
 
     :id: ecdc5bfb-2adf-49f6-948d-995dae34bcd3
@@ -184,10 +185,6 @@ def test_health_check_server_ping(sat_maintain, request):
     result = sat_maintain.cli.Health.check(options={'label': 'server-ping', 'assumeyes': True})
     assert result.status == 0
     assert 'FAIL' in result.stdout
-
-    @request.addfinalizer
-    def _finalize():
-        assert sat_maintain.cli.Service.start().status == 0
 
 
 @pytest.mark.include_capsule
@@ -225,7 +222,6 @@ def test_negative_health_check_upstream_repository(sat_maintain, request):
         sat_maintain.execute('dnf clean all')
 
 
-@pytest.mark.include_capsule
 def test_positive_health_check_available_space(sat_maintain):
     """Verify available-space check
 
