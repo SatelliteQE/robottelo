@@ -21,8 +21,6 @@ import yaml
 
 from robottelo.config import robottelo_tmp_dir
 
-pytestmark = pytest.mark.destructive
-
 
 @pytest.mark.e2e
 @pytest.mark.tier2
