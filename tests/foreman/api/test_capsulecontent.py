@@ -1211,7 +1211,7 @@ class TestCapsuleContentManagement:
             4. Publish CV
             5. Promote to lifecycle env
             6. Sync Capsule
-            7. Delete the task using foreman-rake console
+            7. Delete all sync tasks using foreman-rake console
             8. Verify the status of capsule is still synced
 
         :expectedresults:
@@ -1239,35 +1239,30 @@ class TestCapsuleContentManagement:
         cv = cv.read()
 
         cvv = cv.version[-1].read()
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
-        cvv = cvv.read()
-
-        timestamp = (datetime.utcnow()).strftime('%Y-%m-%d %H:%M')
         module_capsule_configured.wait_for_sync()
 
-        search_result = target_sat.wait_for_tasks(
-            search_query='label = Actions::Katello::CapsuleContent::Sync'
-            f' and organization_id = {function_org.id}'
-            f' and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=5,
-        )
-        # Delete the task using UUID (search_result[0].id)
+        # Delete all capsule sync tasks so that we fall back for audits.
         task_result = target_sat.execute(
-            f"""echo "ForemanTasks::Task.find(
-            '{search_result[0].id}').destroy!" | foreman-rake console"""
+            """echo "ForemanTasks::Task.where(action:'Synchronize capsule """
+            f"""\\'{module_capsule_configured.hostname}\\'').delete_all" | foreman-rake console"""
         )
         assert task_result.status == 0
-        # Ensure task record was deleted.
+
+        # Ensure task records were deleted.
         task_result = target_sat.execute(
-            f"""echo "ForemanTasks::Task.find('{search_result[0].id}')" | foreman-rake console"""
+            """echo "ForemanTasks::Task.where(action:'Synchronize capsule """
+            f"""\\'{module_capsule_configured.hostname}\\'')" | foreman-rake console"""
         )
         assert task_result.status == 0
-        assert 'RecordNotFound' in task_result.stdout
+        assert '[]' in task_result.stdout
 
         # Check sync status again, and ensure last_sync_time is still correct
         sync_status = module_capsule_configured.nailgun_capsule.content_get_sync()
-        assert sync_status['last_sync_time'] >= timestamp
+        assert (
+            datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC') >= timestamp
+        )
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
