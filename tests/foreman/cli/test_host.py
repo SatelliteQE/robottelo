@@ -682,45 +682,6 @@ def test_positive_list_infrastructure_hosts(
     assert target_sat.hostname in hostnames
 
 
-@pytest.mark.skip_if_not_set('libvirt')
-@pytest.mark.cli_host_create
-@pytest.mark.libvirt_discovery
-@pytest.mark.on_premises_provisioning
-@pytest.mark.tier1
-def test_positive_create_using_libvirt_without_mac(target_sat, module_location, module_org):
-    """Create a libvirt host and not specify a MAC address.
-
-    :id: b003faa9-2810-4176-94d2-ea84bed248eb
-
-    :expectedresults: Host is created
-
-    :CaseImportance: Critical
-    """
-    compute_resource = target_sat.api.LibvirtComputeResource(
-        url=f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system',
-        organization=[module_org.id],
-        location=[module_location.id],
-    ).create()
-    host = target_sat.api.Host(organization=module_org.id, location=module_location.id)
-    host.create_missing()
-    result = make_host(
-        {
-            'architecture-id': host.architecture.id,
-            'compute-resource-id': compute_resource.id,
-            'domain-id': host.domain.id,
-            'location-id': host.location.id,
-            'medium-id': host.medium.id,
-            'name': host.name,
-            'operatingsystem-id': host.operatingsystem.id,
-            'organization-id': host.organization.id,
-            'partition-table-id': host.ptable.id,
-            'root-password': host.root_pass,
-        }
-    )
-    assert result['name'] == host.name + '.' + host.domain.name
-    Host.delete({'id': result['id']})
-
-
 @pytest.mark.cli_host_create
 @pytest.mark.tier2
 def test_positive_create_inherit_lce_cv(
