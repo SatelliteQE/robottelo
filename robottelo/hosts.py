@@ -346,14 +346,20 @@ class ContentHost(Host, ContentHostMixins):
                 del self.__dict__[name]
 
     def setup(self):
+        logger.debug('START: setting up host %s', self)
         if not self.blank:
             self.remove_katello_ca()
 
+        logger.debug('END: setting up host %s', self)
+
     def teardown(self):
+        logger.debug('START: tearing down host %s', self)
         if not self.blank and not getattr(self, '_skip_context_checkin', False):
             self.unregister()
             if type(self) is not Satellite and self.nailgun_host:
                 self.nailgun_host.delete()
+
+        logger.debug('END: tearing down host %s', self)
 
     def power_control(self, state=VmState.RUNNING, ensure=True):
         """Lookup the host workflow for power on and execute
