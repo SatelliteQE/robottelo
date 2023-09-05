@@ -256,12 +256,10 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_entitlemen
         1. Enabled multiple large Repositories
                 Red Hat Enterprise Linux 8 for x86_64 - AppStream RPMs 8
                 Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8
-                Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.7
-                Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.7
+                Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8
+                Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8
         2. Sync all four repositories at the same time
         3. Assert that the bulk sync succeeds
-
-    :customerscenario: true
 
     :expectedresults: All repositories should sync with no errors
 
@@ -288,8 +286,8 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_entitlemen
             reposet=constants.REPOS['kickstart'][name]['reposet'],
             releasever=constants.REPOS['kickstart'][name]['version'],
         )
-    rh_repos = entities.Repository(id=rh_repo_id).read()
-    rh_products = entities.Product(id=rh_repos.product.id).read()
+    rh_repos = module_target_sat.api.Repository(id=rh_repo_id).read()
+    rh_products = module_target_sat.api.Product(id=rh_repos.product.id).read()
     assert len(rh_products.repository) == 4
     res = module_target_sat.api.ProductBulkAction().sync(
         data={'ids': [rh_products.id]}, timeout=2000
