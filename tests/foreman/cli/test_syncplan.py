@@ -42,7 +42,7 @@ from robottelo.utils.datafactory import invalid_values_list
 from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_data_list
 
-SYNC_DATE_FMT = '%Y-%m-%d %H:%M:%S'
+SYNC_DATE_FMT = '%Y-%m-%d %H:%M:%S UTC'
 
 
 @filtered_datapoint
