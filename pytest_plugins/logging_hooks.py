@@ -73,5 +73,7 @@ def pytest_runtest_logstart(nodeid, location):
     logger.info(f'Started Test: {nodeid}')
 
 
-def pytest_runtest_logfinish(nodeid, location):
-    logger.info(f'Finished Test: {nodeid}')
+def pytest_runtest_logreport(report):
+    """Process the TestReport produced for each of the setup,
+    call and teardown runtest phases of an item."""
+    logger.info('Finished %s for test: %s, result: %s', report.when, report.nodeid, report.outcome)
