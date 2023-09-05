@@ -42,7 +42,7 @@ from robottelo.utils.datafactory import invalid_values_list
 from robottelo.utils.datafactory import parametrized
 from robottelo.utils.datafactory import valid_data_list
 
-SYNC_DATE_FMT = '%Y-%m-%d %H:%M:%S'
+SYNC_DATE_FMT = '%Y-%m-%d %H:%M:%S UTC'
 
 
 @filtered_datapoint
@@ -437,7 +437,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
     sleep(delay / 4)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], module_org.id, max_tries=1)
+        validate_task_status(target_sat, repo['id'], module_org.id, max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Wait until the first recurrence
     logger.info(
@@ -446,7 +446,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
-    validate_task_status(repo['id'], module_org.id)
+    validate_task_status(target_sat, repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
 
 
@@ -552,7 +552,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     )
     for repo in repos:
         with pytest.raises(AssertionError):
-            validate_task_status(repo['id'], module_org.id, max_tries=1)
+            validate_task_status(target_sat, repo['id'], module_org.id, max_tries=1)
     # Associate sync plan with products
     for product in products:
         Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
@@ -565,7 +565,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     # Verify products have not been synced yet
     for repo in repos:
         with pytest.raises(AssertionError):
-            validate_task_status(repo['id'], module_org.id, max_tries=1)
+            validate_task_status(target_sat, repo['id'], module_org.id, max_tries=1)
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 4 / 5)} seconds to check product {products[0]['name']}"
@@ -574,7 +574,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     sleep(delay * 4 / 5)
     # Verify products were synced successfully
     for repo in repos:
-        validate_task_status(repo['id'], module_org.id)
+        validate_task_status(target_sat, repo['id'], module_org.id)
         validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
 
 
@@ -634,7 +634,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
     sleep(delay / 4)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], org.id, max_tries=1)
+        validate_task_status(target_sat, repo['id'], org.id, max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
@@ -643,7 +643,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
-    validate_task_status(repo['id'], org.id)
+    validate_task_status(target_sat, repo['id'], org.id)
     validate_repo_content(repo, ['errata', 'packages'])
 
 
@@ -698,7 +698,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], org.id, max_tries=1)
+        validate_task_status(target_sat, repo['id'], org.id, max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Associate sync plan with product
     Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
@@ -710,7 +710,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     sleep(delay / 5)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], org.id, max_tries=1)
+        validate_task_status(target_sat, repo['id'], org.id, max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
@@ -719,7 +719,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     )
     sleep(delay * 4 / 5)
     # Verify product was synced successfully
-    validate_task_status(repo['id'], org.id)
+    validate_task_status(target_sat, repo['id'], org.id)
     validate_repo_content(repo, ['errata', 'packages'])
 
 
@@ -811,7 +811,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     sleep(delay / 4)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], module_org.id, max_tries=1)
+        validate_task_status(target_sat, repo['id'], module_org.id, max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Wait until the first recurrence
     logger.info(
@@ -820,5 +820,5 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
-    validate_task_status(repo['id'], module_org.id)
+    validate_task_status(target_sat, repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
