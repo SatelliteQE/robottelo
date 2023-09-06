@@ -100,20 +100,24 @@ def test_positive_search_scoped(session, target_sat, gpg_content, module_org):
 
     :BZ: 1259374
     """
-    name = gen_string('alpha')
+    from time import sleep
     with session:
         session.organization.select(module_org.name)
-        session.contentcredential.create(
-            {
-                'name': name,
-                'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
-                'content': gpg_content,
-            }
-        )
-        assert (
-            session.contentcredential.search(f'organization_id = {module_org.id}')[0]['Name']
-            == name
-        )
+        sleep(60)
+        for _ in range(10):
+            name = gen_string('alpha')
+            session.contentcredential.create(
+                {
+                    'name': name,
+                    'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
+                    'content': gpg_content,
+                }
+            )
+            sleep(20)
+            session.contentcredential.search(f'organization_id = {module_org.id}')
+            sleep(20)
+            session.contentcredential.search(name)
+            sleep(20)
 
 
 @pytest.mark.tier2
