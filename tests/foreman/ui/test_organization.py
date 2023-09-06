@@ -115,7 +115,12 @@ def test_positive_end_to_end(session):
         )
         assert session.organization.search(new_name)
         org_values = session.organization.read(new_name, widget_names=widget_list)
-        assert not session.organization.delete(new_name)
+        with pytest.raises(AssertionError) as context:
+            assert not session.organization.delete(new_name)
+        assert (
+            'The current organization cannot be deleted. Please switch to a '
+            'different organization before deleting.' in str(context.value)
+        )
         assert user.login in org_values['users']['resources']['assigned']
         assert media.name in org_values['media']['resources']['assigned']
         assert template.name in org_values['provisioning_templates']['resources']['assigned']
