@@ -157,34 +157,6 @@ def test_rhcloud_inventory_api_hosts_synchronization(
     # To Do: Add support in Nailgun to get Insights and Inventory host properties.
 
 
-@pytest.mark.stubbed
-def test_rhcloud_inventory_mtu_field():
-    """Verify that the hosts having mtu field value as string in foreman's Nic object
-    is present in the inventory report.
-
-    :id: df6d5f4f-5ee1-4f34-bf24-b93fbd089322
-
-    :customerscenario: true
-
-    :Steps:
-        1. Register a content host.
-        2. If value of mtu field is not a string then use foreman-rake to change it.
-        3. Generate inventory report.
-        4. Assert that host is listed in the inventory report.
-        5. Assert that value of mtu field in generated report is a number.
-
-    :CaseImportance: Medium
-
-    :expectedresults:
-        1. Host having string mtu field value is present in the inventory report.
-        2. Value of mtu field in generated inventory report is a number.
-
-    :BZ: 1893439
-
-    :CaseAutomation: ManualOnly
-    """
-
-
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 def test_system_purpose_sla_field(
