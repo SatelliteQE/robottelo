@@ -22,6 +22,7 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo.config import settings
+from robottelo.utils.installer import InstallerCommand
 
 
 upstream_url = {
@@ -544,8 +545,7 @@ def test_positive_health_check_env_proxy(sat_maintain):
     assert 'FAIL' not in result.stdout
 
 
-@pytest.mark.stubbed
-def test_positive_health_check_foreman_proxy_verify_dhcp_config_syntax():
+def test_positive_health_check_foreman_proxy_verify_dhcp_config_syntax(sat_maintain):
     """Verify foreman-proxy-verify-dhcp-config-syntax
 
     :id: 43ca5cc7-9888-490d-b1ba-f3298e737039
@@ -569,8 +569,52 @@ def test_positive_health_check_foreman_proxy_verify_dhcp_config_syntax():
 
     :CaseImportance: Medium
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
     """
+    # Set dhcp.yml to `:use_provider: dhcp_isc`
+    sat_maintain.execute(
+        r"sed -i '/:use_provider: dhcp_infoblox/c\:use_provider: dhcp_isc'"
+        " /etc/foreman-proxy/settings.d/dhcp.yml"
+    )
+    result = sat_maintain.execute("cat /etc/foreman-proxy/settings.d/dhcp.yml")
+    assert ':use_provider: dhcp_isc' in result.stdout
+    # Run health list and check and verify nothing comes back
+    result = sat_maintain.cli.Health.list()
+    assert 'foreman-proxy-verify-dhcp-config-syntax' not in result.stdout
+    result = sat_maintain.cli.Health.check(
+        options={'label': 'foreman-proxy-verify-dhcp-config-syntax'}
+    )
+    assert (
+        'No scenario matching label' and 'foreman-proxy-verify-dhcp-config-syntax' in result.stdout
+    )
+    # Enable DHCP
+    installer = sat_maintain.install(
+        InstallerCommand('enable-foreman-proxy-plugin-dhcp-remote-isc', 'foreman-proxy-dhcp true')
+    )
+    assert 'Success!' in installer.stdout
+    # Run health list and check and verify check is made
+    result = sat_maintain.cli.Health.list()
+    assert 'foreman-proxy-verify-dhcp-config-syntax' in result.stdout
+    result = sat_maintain.cli.Health.check(
+        options={'label': 'foreman-proxy-verify-dhcp-config-syntax'}
+    )
+    assert 'OK' in result.stdout
+    # Set dhcp.yml `:use_provider: dhcp_infoblox`
+    sat_maintain.execute(
+        r"sed -i '/:use_provider: dhcp_isc/c\:use_provider: dhcp_infoblox'"
+        " /etc/foreman-proxy/settings.d/dhcp.yml"
+    )
+    result = sat_maintain.execute("cat /etc/foreman-proxy/settings.d/dhcp.yml")
+    assert ':use_provider: dhcp_infoblox' in result.stdout
+    # Run health list and check and verify nothing comes back
+    result = sat_maintain.cli.Health.list()
+    assert 'foreman-proxy-verify-dhcp-config-syntax' not in result.stdout
+    result = sat_maintain.cli.Health.check(
+        options={'label': 'foreman-proxy-verify-dhcp-config-syntax'}
+    )
+    assert (
+        'No scenario matching label' and 'foreman-proxy-verify-dhcp-config-syntax' in result.stdout
+    )
 
 
 def test_positive_remove_job_file(sat_maintain):
