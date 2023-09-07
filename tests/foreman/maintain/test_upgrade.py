@@ -19,6 +19,7 @@
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import INSTALLER_CONFIG_FILE
 from robottelo.constants import SATELLITE_VERSION
 
 
@@ -136,10 +137,14 @@ def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
     )
     custom_host.download_repofile(product='satellite', release=last_y_stream)
     custom_host.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
-    # Install without system checks to get around installer checks
+    # Install with development tuning profile to get around installer checks
     custom_host.execute(
-        f'satellite-installer --scenario satellite --disable-system-checks --tuning {profile}',
+        'satellite-installer --scenario satellite --tuning development',
         timeout='30m',
+    )
+    # Change to correct tuning profile (default or medium)
+    custom_host.execute(
+        f'sed -i "s/tuning: development/tuning: {profile}/g" {INSTALLER_CONFIG_FILE}'
     )
     # Get current Satellite version's repofile
     custom_host.download_repofile(

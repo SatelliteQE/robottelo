@@ -1739,6 +1739,7 @@ VMWARE_CONSTANTS = {
 HAMMER_CONFIG = "~/.hammer/cli.modules.d/foreman.yml"
 HAMMER_SESSIONS = "~/.hammer/sessions"
 
+INSTALLER_CONFIG_FILE = '/etc/foreman-installer/scenarios.d/satellite.yaml'
 SATELLITE_ANSWER_FILE = "/etc/foreman-installer/scenarios.d/satellite-answers.yaml"
 CAPSULE_ANSWER_FILE = "/etc/foreman-installer/scenarios.d/capsule-answers.yaml"
 MAINTAIN_HAMMER_YML = "/etc/foreman-maintain/foreman-maintain-hammer.yml"
