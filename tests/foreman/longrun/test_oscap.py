@@ -8,7 +8,7 @@
 
 :CaseComponent: SCAPPlugin
 
-:Team: Rocket
+:Team: Endeavour
 
 :TestType: Functional
 
