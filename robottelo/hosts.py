@@ -1991,7 +1991,7 @@ class Satellite(Capsule, SatelliteMixins):
         """Register content host to Satellite and sync repos
 
         :param module_org: Org where contenthost will be registered.
-        :param rhel_contenthost: contenthost to be register with Satellite.
+        :param rhel_contenthost: contenthost to be registered with Satellite.
         :param repo_urls: List of URLs to be synced and made available to contenthost
             via subscription-manager.
         :return: None
@@ -2050,6 +2050,9 @@ class Satellite(Capsule, SatelliteMixins):
             )
             # refresh repository metadata on the host
             rhel_contenthost.execute('subscription-manager repos --list')
+
+        # Override the repos to enabled
+        rhel_contenthost.execute(r'subscription-manager repos --enable \*')
 
     def enroll_ad_and_configure_external_auth(self, ad_data):
         """Enroll Satellite Server to an AD Server.
