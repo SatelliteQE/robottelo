@@ -47,6 +47,12 @@ def create_activation_key(sat, org, lce, cv, subscription_id):
         environment=lce,
     ).create()
     act_key.add_subscriptions(data={'subscription_id': subscription_id})
+    content = sat.cli.ActivationKey.product_content({'id': act_key.id, 'organization-id': org.id})
+    act_key.content_override(
+        data={'content_overrides': [{'content_label': content[0]['label'], 'value': '1'}]}
+    )
+    ak_subscriptions = act_key.product_content()['results']
+    ak_subscriptions[0]['enabled'] = True
     return act_key
 
 
@@ -59,11 +65,11 @@ def update_cv(sat, cv, lce, repos):
     return cv
 
 
-def register_host(sat, act_key, module_org, module_loc, host, ubi=None):
+def register_host(sat, act_key, org, module_loc, host, ubi=None):
     """Register host to satellite"""
     # generate registration command
     command = sat.api.RegistrationCommand(
-        organization=module_org,
+        organization=org,
         activation_keys=[act_key.name],
         location=module_loc,
         insecure=True,
@@ -83,13 +89,21 @@ def ssl_cert(module_target_sat, module_org):
 
 
 @pytest.fixture
-def activation_key_rhel(target_sat, module_org, module_lce, module_promoted_cv, version):
+def activation_key_rhel(
+    module_target_sat, module_entitlement_manifest_org, module_lce, module_promoted_cv, version
+):
     """Create activation key that will be used after conversion for registration"""
-    subs = target_sat.api.Subscription(organization=module_org).search(
-        query={'search': f'{DEFAULT_SUBSCRIPTION_NAME}'}
-    )
+    subs = module_target_sat.api.Subscription(
+        organization=module_entitlement_manifest_org.id
+    ).search(query={'search': f'{DEFAULT_SUBSCRIPTION_NAME}'})
     assert subs
-    return create_activation_key(target_sat, module_org, module_lce, module_promoted_cv, subs[0].id)
+    return create_activation_key(
+        module_target_sat,
+        module_entitlement_manifest_org,
+        module_lce,
+        module_promoted_cv,
+        subs[0].id,
+    )
 
 
 @pytest.fixture(scope='module')
@@ -123,6 +137,8 @@ def enable_rhel_subscriptions(module_target_sat, module_entitlement_manifest_org
         module_target_sat.wait_for_tasks(
             search_query=(f'id = {task["id"]}'),
             poll_timeout=2500,
+            search_rate=20,
+            max_tries=10,
         )
         task_status = module_target_sat.api.ForemanTask(id=task['id']).poll()
         assert task_status['result'] == 'success'
@@ -131,9 +147,9 @@ def enable_rhel_subscriptions(module_target_sat, module_entitlement_manifest_org
 
 @pytest.fixture
 def centos(
-    target_sat,
+    module_target_sat,
     centos_host,
-    module_org,
+    module_entitlement_manifest_org,
     smart_proxy_location,
     module_promoted_cv,
     module_lce,
@@ -144,15 +160,28 @@ def centos(
     # updating centos packages on CentOS 8 is necessary for conversion
     major = version.split('.')[0]
     if major == '8':
-        centos_host.execute("yum update -y centos-*")
+        centos_host.execute('yum -y update centos-*')
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
-    repo = create_repo(target_sat, module_org, repo_url)
-    cv = update_cv(target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo])
-    c2r_sub = target_sat.api.Subscription(organization=module_org, name=repo.product.name).search()[
-        0
-    ]
-    act_key = create_activation_key(target_sat, module_org, module_lce, cv, c2r_sub.id)
-    register_host(target_sat, act_key, module_org, smart_proxy_location, centos_host)
+    repo = create_repo(module_target_sat, module_entitlement_manifest_org, repo_url)
+    cv = update_cv(
+        module_target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo]
+    )
+    c2r_sub = module_target_sat.api.Subscription(
+        organization=module_entitlement_manifest_org.id, name=repo.product.name
+    ).search()[0]
+    act_key = create_activation_key(
+        module_target_sat, module_entitlement_manifest_org, module_lce, cv, c2r_sub.id
+    )
+    register_host(
+        module_target_sat,
+        act_key,
+        module_entitlement_manifest_org,
+        smart_proxy_location,
+        centos_host,
+    )
+    centos_host.execute('yum -y update kernel*')
+    if centos_host.execute('needs-restarting -r').status == 1:
+        centos_host.power_control(state='reboot')
     yield centos_host
     # close ssh session before teardown, because of reboot in conversion it may cause problems
     centos_host.close()
@@ -160,9 +189,9 @@ def centos(
 
 @pytest.fixture
 def oracle(
-    target_sat,
+    module_target_sat,
     oracle_host,
-    module_org,
+    module_entitlement_manifest_org,
     smart_proxy_location,
     module_promoted_cv,
     module_lce,
@@ -183,16 +212,27 @@ def oracle(
     oracle_host.power_control(state='reboot')
     major = version.split('.')[0]
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
-    repo = create_repo(target_sat, module_org, repo_url, ssl_cert)
-    cv = update_cv(target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo])
-    c2r_sub = target_sat.api.Subscription(organization=module_org, name=repo.product.name).search()[
-        0
-    ]
-    act_key = create_activation_key(target_sat, module_org, module_lce, cv, c2r_sub.id)
+    repo = create_repo(module_target_sat, module_entitlement_manifest_org, repo_url, ssl_cert)
+    cv = update_cv(
+        module_target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo]
+    )
+    c2r_sub = module_target_sat.api.Subscription(
+        organization=module_entitlement_manifest_org, name=repo.product.name
+    ).search()[0]
+    act_key = create_activation_key(
+        module_target_sat, module_entitlement_manifest_org, module_lce, cv, c2r_sub.id
+    )
     ubi_url = settings.repos.convert2rhel.ubi7 if major == '7' else settings.repos.convert2rhel.ubi8
-    ubi = create_repo(target_sat, module_org, ubi_url)
+    ubi = create_repo(module_target_sat, module_entitlement_manifest_org, ubi_url)
     ubi_repo = ubi.full_path.replace('https', 'http')
-    register_host(target_sat, act_key, module_org, smart_proxy_location, oracle_host, ubi_repo)
+    register_host(
+        module_target_sat,
+        act_key,
+        module_entitlement_manifest_org,
+        smart_proxy_location,
+        oracle_host,
+        ubi_repo,
+    )
     yield oracle_host
     # close ssh session before teardown, because of reboot in conversion it may cause problems
     oracle_host.close()
@@ -201,7 +241,7 @@ def oracle(
 @pytest.fixture(scope='module')
 def version(request):
     """Version of converted OS"""
-    return settings.content_host.get(request.param).vm.release
+    return settings.content_host.get(request.param).vm.deploy_rhel_version
 
 
 @pytest.mark.e2e
@@ -210,7 +250,7 @@ def version(request):
     ['oracle7', 'oracle8'],
     indirect=True,
 )
-def test_convert2rhel_oracle(target_sat, oracle, activation_key_rhel, version):
+def test_convert2rhel_oracle(module_target_sat, oracle, activation_key_rhel, version):
     """Convert Oracle linux to RHEL
 
     :id: 7fd393f0-551a-4de0-acdd-7f026b485f79
@@ -227,46 +267,42 @@ def test_convert2rhel_oracle(target_sat, oracle, activation_key_rhel, version):
 
     :CaseImportance: Medium
     """
-    host_content = target_sat.api.Host(id=oracle.hostname).read_json()
+    host_content = module_target_sat.api.Host(id=oracle.hostname).read_json()
     assert host_content['operatingsystem_name'] == f"OracleLinux {version}"
 
     # execute job 'Convert 2 RHEL' on host
     template_id = (
-        target_sat.api.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
+        module_target_sat.api.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
     )
-    job = target_sat.api.JobInvocation().run(
+    job = module_target_sat.api.JobInvocation().run(
         synchronous=False,
         data={
             'job_template_id': template_id,
             'inputs': {
                 'Activation Key': activation_key_rhel.id,
                 'Restart': 'yes',
+                'Data telemetry': 'yes',
             },
             'targeting_type': 'static_query',
             'search_query': f'name = {oracle.hostname}',
         },
     )
     # wait for job to complete
-    target_sat.wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
+    module_target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=2500
     )
-    result = target_sat.api.JobInvocation(id=job['id']).read()
+    result = module_target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
 
     # check facts: correct os and valid subscription status
-    host_content = target_sat.api.Host(id=oracle.hostname).read_json()
-    # workaround for BZ 2080347
-    assert (
-        host_content['operatingsystem_name'].startswith(f"RHEL Server {version}")
-        or host_content['operatingsystem_name'].startswith(f"RedHat {version}")
-        or host_content['operatingsystem_name'].startswith(f"RHEL {version}")
-    )
+    host_content = module_target_sat.api.Host(id=oracle.hostname).read_json()
+
     assert host_content['subscription_status'] == 0
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize("version", ['centos7', 'centos8'], indirect=True)
-def test_convert2rhel_centos(target_sat, centos, activation_key_rhel, version):
+@pytest.mark.parametrize('version', ['centos7', 'centos8'], indirect=True)
+def test_convert2rhel_centos(module_target_sat, centos, activation_key_rhel, version):
     """Convert Centos linux to RHEL
 
     :id: 6f698440-7d85-4deb-8dd9-363ea9003b92
@@ -283,39 +319,41 @@ def test_convert2rhel_centos(target_sat, centos, activation_key_rhel, version):
 
     :CaseImportance: Medium
     """
-    host_content = target_sat.api.Host(id=centos.hostname).read_json()
+    host_content = module_target_sat.api.Host(id=centos.hostname).read_json()
     major = version.split('.')[0]
-    assert host_content['operatingsystem_name'] == f"CentOS {major}"
-
+    assert host_content['operatingsystem_name'] == f'CentOS {major}'
     # execute job 'Convert 2 RHEL' on host
     template_id = (
-        target_sat.api.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
+        module_target_sat.api.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
     )
-    job = target_sat.api.JobInvocation().run(
+    job = module_target_sat.api.JobInvocation().run(
         synchronous=False,
         data={
             'job_template_id': template_id,
             'inputs': {
                 'Activation Key': activation_key_rhel.id,
                 'Restart': 'yes',
+                'Data telemetry': 'yes',
             },
             'targeting_type': 'static_query',
             'search_query': f'name = {centos.hostname}',
         },
     )
     # wait for job to complete
-    target_sat.wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
+    module_target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {job["id"]}',
+        poll_timeout=2500,
+        search_rate=20,
     )
-    result = target_sat.api.JobInvocation(id=job['id']).read()
+    result = module_target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
 
     # check facts: correct os and valid subscription status
-    host_content = target_sat.api.Host(id=centos.hostname).read_json()
+    host_content = module_target_sat.api.Host(id=centos.hostname).read_json()
     # workaround for BZ 2080347
     assert (
-        host_content['operatingsystem_name'].startswith(f"RHEL Server {version}")
-        or host_content['operatingsystem_name'].startswith(f"RedHat {version}")
-        or host_content['operatingsystem_name'].startswith(f"RHEL {version}")
+        host_content['operatingsystem_name'].startswith(f'RHEL Server {version}')
+        or host_content['operatingsystem_name'].startswith(f'RedHat {version}')
+        or host_content['operatingsystem_name'].startswith(f'RHEL {version}')
     )
     assert host_content['subscription_status'] == 0
