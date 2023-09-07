@@ -227,15 +227,30 @@ class ContentHost(Host, ContentHostMixins):
         return self._satellite
 
     @property
+    def _sat_host_record(self):
+        """Provide access to this host's Host record if it exists."""
+        hosts = self.satellite.api.Host().search(query={'search': self.hostname})
+        if not hosts:
+            logger.debug('No host record found for %s on Satellite', self.hostname)
+            return None
+        return hosts[0]
+
+    def _delete_host_record(self):
+        """Delete the Host record of this host from Satellite."""
+        if h_record := self._sat_host_record:
+            logger.debug('Deleting host record for %s from Satellite', self.hostname)
+            h_record.delete()
+
+    @property
     def nailgun_host(self):
         """If this host is subscribed, provide access to its nailgun object"""
         if self.identity.get('registered_to') == self.satellite.hostname:
             try:
-                host_list = self.satellite.api.Host().search(query={'search': self.hostname})[0]
+                host = self._sat_host_record
             except Exception as err:
                 logger.error(f'Failed to get nailgun host for {self.hostname}: {err}')
-                host_list = None
-            return host_list
+                host = None
+            return host
         else:
             logger.warning(f'Host {self.hostname} not registered to {self.satellite.hostname}')
 
@@ -383,8 +398,8 @@ class ContentHost(Host, ContentHostMixins):
         logger.debug('START: tearing down host %s', self)
         if not self.blank and not getattr(self, '_skip_context_checkin', False):
             self.unregister()
-            if type(self) is not Satellite and self.nailgun_host:
-                self.nailgun_host.delete()
+            if type(self) is not Satellite:  # do not delete Satellite's host record
+                self._delete_host_record()
 
         logger.debug('END: tearing down host %s', self)
 
