@@ -6,7 +6,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.hosts import get_sat_rhel_version
-from robottelo.hosts import get_sat_version
 from robottelo.logging import collection_logger as logger
 
 FMT_XUNIT_TIME = '%Y-%m-%dT%H:%M:%S'
@@ -59,7 +58,7 @@ team_regex = re.compile(
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_collection_modifyitems(session, items, config):
+def pytest_collection_modifyitems(items, config):
     """Add markers and user_properties for testimony token metadata
 
     user_properties is used by the junit plugin, and thus by many test report systems
@@ -74,7 +73,7 @@ def pytest_collection_modifyitems(session, items, config):
     """
     # get RHEL version of the satellite
     rhel_version = get_sat_rhel_version().base_version
-    sat_version = get_sat_version().base_version
+    sat_version = settings.server.version.get('release')
     snap_version = settings.server.version.get('snap', '')
 
     # split the option string and handle no option, single option, multiple
