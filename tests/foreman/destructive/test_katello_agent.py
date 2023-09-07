@@ -24,6 +24,7 @@ from robottelo.config import settings
 pytestmark = [
     pytest.mark.run_in_one_thread,
     pytest.mark.destructive,
+    pytest.mark.no_containers,
     pytest.mark.tier5,
     pytest.mark.upgrade,
 ]
