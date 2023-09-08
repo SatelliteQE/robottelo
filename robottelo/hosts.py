@@ -708,7 +708,7 @@ class ContentHost(Host, ContentHostMixins):
         """
         result = self.execute('yum install cockpit -y')
         if result.status != 0:
-            raise ContentHostError('Failed to install the cockpit')
+            raise ContentHostError(f'Failed to install the cockpit: {result.stderr}')
 
     def register(
         self,

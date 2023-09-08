@@ -138,14 +138,20 @@ def katello_host_tools_host(target_sat, module_org, rhel_contenthost):
 
 
 @pytest.fixture
-def cockpit_host(class_target_sat, class_org, rhel_contenthost):
+def cockpit_host(class_target_sat, class_org, rhel_contenthost, module_ak_with_cv):
     """Register content host to Satellite and install cockpit on the host."""
     rhelver = rhel_contenthost.os_version.major
     if rhelver > 7:
         repo = [settings.repos[f'rhel{rhelver}_os']['baseos']]
     else:
         repo = [settings.repos['rhel7_os'], settings.repos['rhel7_extras']]
-    class_target_sat.register_host_custom_repo(class_org, rhel_contenthost, repo)
+    rhel_contenthost.register(
+        org=class_org,
+        loc=None,
+        activation_keys=module_ak_with_cv.name,
+        target=class_target_sat,
+        repo=repo,
+    )
     rhel_contenthost.execute(f"hostnamectl set-hostname {rhel_contenthost.hostname} --static")
     rhel_contenthost.install_cockpit()
     rhel_contenthost.add_rex_key(satellite=class_target_sat)
