@@ -142,7 +142,9 @@ def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
         timeout='30m',
     )
     # Get current Satellite version's repofile
-    custom_host.download_repofile(product='satellite', release=sat_version)
+    custom_host.download_repofile(
+        product='satellite', release=sat_version, snap=settings.server.version.snap
+    )
     # Run satellite-maintain to have it self update to the newest version,
     # however, this will not actually execute the command after updating
     custom_host.execute('satellite-maintain upgrade list-versions')
