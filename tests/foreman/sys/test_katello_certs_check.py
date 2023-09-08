@@ -43,7 +43,11 @@ def test_positive_install_sat_with_katello_certs(certs_data, sat_ready_rhel):
 
     :CaseAutomation: Automated
     """
-    sat_ready_rhel.download_repofile(product='satellite', release=settings.server.version.release)
+    sat_ready_rhel.download_repofile(
+        product='satellite',
+        release=settings.server.version.release,
+        snap=settings.server.version.snap,
+    )
     sat_ready_rhel.register_to_cdn()
     sat_ready_rhel.execute('dnf -y update')
     result = sat_ready_rhel.execute(
