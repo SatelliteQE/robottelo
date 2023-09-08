@@ -308,7 +308,11 @@ def installer_satellite(request):
     sat.setup_firewall()
     # # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
     sat.register_to_cdn()
-    sat.download_repofile(product='satellite', release=settings.server.version.release)
+    sat.download_repofile(
+        product='satellite',
+        release=settings.server.version.release,
+        snap=settings.server.version.snap,
+    )
     sat.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
     installed_version = sat.execute('rpm --query satellite').stdout
     assert sat_version in installed_version
