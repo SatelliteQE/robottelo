@@ -46,7 +46,7 @@ def module_provisioning_rhel_content(
     rh_repo_id = ""
     content_view = sat.api.ContentView(organization=module_sca_manifest_org).create()
     for name in repo_names:
-        rh_kickstart_repo_id = module_provisioning_sat.api_factory.enable_rhrepo_and_fetchid(
+        rh_kickstart_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
             org_id=module_sca_manifest_org.id,
             product=constants.REPOS['kickstart'][name]['product'],
@@ -56,7 +56,7 @@ def module_provisioning_rhel_content(
         )
         # do not sync content repos for discovery based provisioning.
         if not module_provisioning_sat.provisioning_type == 'discovery':
-            rh_repo_id = module_provisioning_sat.api_factory.enable_rhrepo_and_fetchid(
+            rh_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
                 basearch=constants.DEFAULT_ARCHITECTURE,
                 org_id=module_sca_manifest_org.id,
                 product=constants.REPOS[name]['product'],
