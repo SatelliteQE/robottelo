@@ -67,7 +67,7 @@ CaseComponent:
     - katello-agent
     - katello-tracer
     - LDAP
-    - Leappintegration
+    - LeappIntegration
     - LifecycleEnvironments
     - LocalizationInternationalization
     - Logging
