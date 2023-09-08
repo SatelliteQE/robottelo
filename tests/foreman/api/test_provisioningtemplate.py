@@ -474,3 +474,37 @@ class TestProvisioningTemplate:
         for template in pxe_templates:
             rendered = host.read_template(data={'template_kind': f'{template}'})['template']
             assert f'ks={ks_param}' in rendered
+
+    def test_positive_template_use_graphical_installer(
+        self, module_target_sat, module_sca_manifest_org, module_location, default_os
+    ):
+        """Check whether use_graphical_installer paremeter is properly rendered
+            in the provisioning templates
+
+        :id: 2decc787-59b0-41e6-96be-5dd9371c8967
+
+        :expectedresults: Rendered template should contain value set as per use_graphical_installer
+                          host parameter for respective rhel hosts.
+
+        :BZ: 2106753
+
+        :customerscenario: true
+        """
+        host = module_target_sat.api.Host(
+            name=gen_string('alpha'),
+            organization=module_sca_manifest_org,
+            location=module_location,
+            operatingsystem=default_os,
+        ).create()
+        # Host will default boot into text mode with kickstart's skipx command
+        render = host.read_template(data={'template_kind': 'provision'})['template']
+        assert 'skipx' in render
+        assert 'text' in render
+        # Using use_graphical_installer host param to override and use graphical mode to boot
+        host.host_parameters_attributes = [
+            {'name': 'use_graphical_installer', 'value': 'true', 'parameter_type': 'boolean'}
+        ]
+        host.update(['host_parameters_attributes'])
+        render = host.read_template(data={'template_kind': 'provision'})['template']
+        assert 'graphical' in render
+        assert 'skipx' not in render
