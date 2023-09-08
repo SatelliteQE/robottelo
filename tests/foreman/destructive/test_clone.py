@@ -94,7 +94,9 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
     # Disabling repositories
     assert sat_ready_rhel.execute('subscription-manager repos --disable=*').status == 0
     # Getting satellite maintenace repo
-    sat_ready_rhel.download_repofile(product='satellite', release=sat_version)
+    sat_ready_rhel.download_repofile(
+        product='satellite', release=sat_version, snap=settings.server.version.snap
+    )
     # Enabling repositories
     for repo in getattr(constants, f"OHSNAP_RHEL{rhel_version}_REPOS"):
         sat_ready_rhel.enable_repo(repo, force=True)

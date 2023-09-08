@@ -1342,7 +1342,11 @@ def common_sat_install_assertions(satellite):
 def install_satellite(satellite, installer_args):
     # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
     satellite.register_to_cdn()
-    satellite.download_repofile(product='satellite', release=settings.server.version.release)
+    satellite.download_repofile(
+        product='satellite',
+        release=settings.server.version.release,
+        snap=settings.server.version.snap,
+    )
     satellite.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
     # Configure Satellite firewall to open communication
     satellite.execute(
@@ -1400,7 +1404,11 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
     """
     # Get Capsule repofile, and enable and download satellite-capsule
     cap_ready_rhel.register_to_cdn()
-    cap_ready_rhel.download_repofile(product='capsule', release=settings.server.version.release)
+    cap_ready_rhel.download_repofile(
+        product='capsule',
+        release=settings.server.version.release,
+        snap=settings.server.version.snap,
+    )
     cap_ready_rhel.execute(
         'dnf -y module enable satellite-capsule:el8 && dnf -y install satellite-capsule'
     )
