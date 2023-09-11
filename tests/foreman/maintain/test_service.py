@@ -123,6 +123,8 @@ def test_positive_service_stop_start(sat_maintain):
     assert result.status == 0
 
 
+@pytest.mark.stream
+@pytest.mark.upgrade
 @pytest.mark.include_capsule
 @pytest.mark.usefixtures('start_satellite_services')
 def test_positive_service_stop_restart(sat_maintain):
@@ -214,11 +216,11 @@ def test_positive_status_clocale(sat_maintain):
     :parametrized: yes
 
     :steps:
-        1. Run LC_ALL=C satellite-maintain service stop
+        1. Run LC_ALL=C.UTF-8 satellite-maintain service status
 
     :expectedresults: service status works with C locale
     """
-    assert sat_maintain.cli.Service.status(env_var='LC_ALL=C').status == 0
+    assert sat_maintain.cli.Service.status(env_var='LC_ALL=C.UTF-8').status == 0
 
 
 def test_positive_service_restart_without_hammer_config(missing_hammer_config, sat_maintain):
