@@ -550,14 +550,14 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--puppet-server',
     '--puppet-server-acceptor-threads',
     '--puppet-server-additional-settings',
-    '--puppet-server-admin-api-whitelist',
+    '--puppet-server-admin-api-allowlist',
     '--puppet-server-allow-header-cert-info',
     '--puppet-server-ca',
     '--puppet-server-ca-allow-auth-extensions',
     '--puppet-server-ca-allow-sans',
     '--puppet-server-ca-auth-required',
     '--puppet-server-ca-client-self-delete',
-    '--puppet-server-ca-client-whitelist',
+    '--puppet-server-ca-client-allowlist',
     '--puppet-server-ca-crl-sync',
     '--puppet-server-ca-enable-infra-crl',
     '--puppet-server-certname',
@@ -591,15 +591,16 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--puppet-server-git-branch-map',
     '--puppet-server-git-repo',
     '--puppet-server-git-repo-group',
-    '--puppet-server-git-repo-mode',
+    '--puppet-server-git-repo-hook-mode',
     '--puppet-server-git-repo-path',
+    '--puppet-server-git-repo-umask',
     '--puppet-server-git-repo-user',
     '--puppet-server-group',
     '--puppet-server-http',
     '--puppet-server-http-port',
     '--puppet-server-idle-timeout',
     '--puppet-server-ip',
-    '--puppet-server-jolokia-metrics-whitelist',
+    '--puppet-server-jolokia-metrics-allowlist',
     '--puppet-server-jruby-gem-home',
     '--puppet-server-jvm-cli-args',
     '--puppet-server-jvm-config',
@@ -1126,14 +1127,14 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-puppet-server',
     '--reset-puppet-server-acceptor-threads',
     '--reset-puppet-server-additional-settings',
-    '--reset-puppet-server-admin-api-whitelist',
+    '--reset-puppet-server-admin-api-allowlist',
     '--reset-puppet-server-allow-header-cert-info',
     '--reset-puppet-server-ca',
     '--reset-puppet-server-ca-allow-auth-extensions',
     '--reset-puppet-server-ca-allow-sans',
     '--reset-puppet-server-ca-auth-required',
     '--reset-puppet-server-ca-client-self-delete',
-    '--reset-puppet-server-ca-client-whitelist',
+    '--reset-puppet-server-ca-client-allowlist',
     '--reset-puppet-server-ca-crl-sync',
     '--reset-puppet-server-ca-enable-infra-crl',
     '--reset-puppet-server-certname',
@@ -1167,15 +1168,16 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-puppet-server-git-branch-map',
     '--reset-puppet-server-git-repo',
     '--reset-puppet-server-git-repo-group',
-    '--reset-puppet-server-git-repo-mode',
+    '--reset-puppet-server-git-repo-hook-mode',
     '--reset-puppet-server-git-repo-path',
+    '--reset-puppet-server-git-repo-umask',
     '--reset-puppet-server-git-repo-user',
     '--reset-puppet-server-group',
     '--reset-puppet-server-http',
     '--reset-puppet-server-http-port',
     '--reset-puppet-server-idle-timeout',
     '--reset-puppet-server-ip',
-    '--reset-puppet-server-jolokia-metrics-whitelist',
+    '--reset-puppet-server-jolokia-metrics-allowlist',
     '--reset-puppet-server-jruby-gem-home',
     '--reset-puppet-server-jvm-cli-args',
     '--reset-puppet-server-jvm-config',
@@ -1342,7 +1344,11 @@ def common_sat_install_assertions(satellite):
 def install_satellite(satellite, installer_args):
     # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
     satellite.register_to_cdn()
-    satellite.download_repofile(product='satellite', release=settings.server.version.release)
+    satellite.download_repofile(
+        product='satellite',
+        release=settings.server.version.release,
+        snap=settings.server.version.snap,
+    )
     satellite.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
     # Configure Satellite firewall to open communication
     satellite.execute(
@@ -1400,7 +1406,11 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
     """
     # Get Capsule repofile, and enable and download satellite-capsule
     cap_ready_rhel.register_to_cdn()
-    cap_ready_rhel.download_repofile(product='capsule', release=settings.server.version.release)
+    cap_ready_rhel.download_repofile(
+        product='capsule',
+        release=settings.server.version.release,
+        snap=settings.server.version.snap,
+    )
     cap_ready_rhel.execute(
         'dnf -y module enable satellite-capsule:el8 && dnf -y install satellite-capsule'
     )

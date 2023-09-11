@@ -523,6 +523,7 @@ def test_positive_backup_restore(
         backup_dir=subdir,
         backup_type=backup_type,
         options={'assumeyes': True, 'plaintext': True, 'skip-pulp-content': skip_pulp},
+        timeout='30m',
     )
     assert result.status == 0
     assert 'FAIL' not in result.stdout
