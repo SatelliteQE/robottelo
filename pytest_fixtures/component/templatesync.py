@@ -24,7 +24,7 @@ def create_import_export_local_dir(target_sat):
         f'mkdir -p {dir_path} && '
         f'chown foreman -R {root_dir} && '
         f'restorecon -R -v {root_dir} && '
-        f'chcon -t httpd_sys_rw_content_t {dir_path} -R'
+        f'chcon -t foreman_lib_t {dir_path} -R'
     )
     if result.status != 0:
         logger.debug(result.stdout)
