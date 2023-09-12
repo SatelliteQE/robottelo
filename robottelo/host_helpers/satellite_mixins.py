@@ -140,13 +140,13 @@ class ContentInfo:
         :returns: the manifest upload result
 
         """
-        if manifest is None:
+        if manifest.content is None:
             manifest = clone()
         if timeout is None:
             # Set the timeout to 1500 seconds to align with the API timeout.
             timeout = 1500000
         if interface == 'CLI':
-            if isinstance(manifest.content, (bytes, io.BytesIO)):
+            if hasattr(manifest, 'path'):
                 self.put(f'{manifest.path}', f'{manifest.name}')
                 result = self.cli.Subscription.upload(
                     {'file': manifest.name, 'organization-id': org_id}, timeout=timeout
