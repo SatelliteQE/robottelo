@@ -23,6 +23,7 @@ from random import choice
 
 import pytest
 from fauxfactory import gen_choice
+from fauxfactory import gen_integer
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
 from nailgun import client
@@ -508,3 +509,60 @@ class TestProvisioningTemplate:
         render = host.read_template(data={'template_kind': 'provision'})['template']
         assert 'graphical' in render
         assert 'skipx' not in render
+
+    @pytest.mark.parametrize('module_sync_kickstart_content', [8], indirect=True)
+    def test_positive_template_check_aap_snippet(
+        self,
+        module_sync_kickstart_content,
+        module_target_sat,
+        module_sca_manifest_org,
+        module_location,
+        module_default_org_view,
+        module_lce_library,
+        default_architecture,
+        default_partitiontable,
+    ):
+        """Read the kickstart default template and verify ansible_provisioning_callback
+         snippet is rendered correctly
+
+        :id: 065ef48f-bec5-4535-8be7-d8527fa21564
+
+        :expectedresults: Rendered template should contain values set for AAP snippet
+                          host parameter for respective rhel hosts.
+
+        :BZ: 2024175
+
+        :customerscenario: true
+        """
+        aap_fqdn = 'env-aap.example.com'
+        template_id = gen_integer(1, 10)
+        extra_vars_dict = '{"package_install": "zsh"}'
+        config_key = gen_string('alpha')
+        host_params = [
+            {'name': 'ansible_tower_provisioning', 'value': 'true', 'parameter_type': 'boolean'},
+            {'name': 'ansible_tower_fqdn', 'value': aap_fqdn, 'parameter_type': 'string'},
+            {'name': 'ansible_host_config_key', 'value': config_key, 'parameter_type': 'string'},
+            {'name': 'ansible_job_template_id', 'value': template_id, 'parameter_type': 'integer'},
+            {'name': 'ansible_extra_vars', 'value': extra_vars_dict, 'parameter_type': 'string'},
+        ]
+        host = module_target_sat.api.Host(
+            organization=module_sca_manifest_org,
+            location=module_location,
+            name=gen_string('alpha').lower(),
+            operatingsystem=module_sync_kickstart_content.os,
+            architecture=default_architecture,
+            domain=module_sync_kickstart_content.domain,
+            root_pass=settings.provisioning.host_root_password,
+            ptable=default_partitiontable,
+            content_facet_attributes={
+                'content_source_id': module_target_sat.nailgun_smart_proxy.id,
+                'content_view_id': module_default_org_view.id,
+                'lifecycle_environment_id': module_lce_library.id,
+            },
+            host_parameters_attributes=host_params,
+        ).create()
+        render = host.read_template(data={'template_kind': 'provision'})['template']
+        assert f'https://{aap_fqdn}/api/v2/job_templates/{template_id}/callback/' in render
+        assert 'systemctl enable ansible-callback' in render
+        assert f'"host_config_key":"{config_key}"' in render
+        assert '{"package_install": "zsh"}' in render
