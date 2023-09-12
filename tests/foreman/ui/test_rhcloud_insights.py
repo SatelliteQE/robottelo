@@ -306,12 +306,8 @@ def test_host_details_page(
         result = session.host.search(rhel_insights_vm.hostname)[0]
         assert result['Name'] == rhel_insights_vm.hostname
         assert int(result['Recommendations']) > 0
-        values = session.host.get_details(rhel_insights_vm.hostname)
-        # Note: Reading host properties adds 'clear' to original value.
-        assert (
-            values['properties']['properties_table']['Inventory']
-            == 'Successfully uploaded to your RH cloud inventory clear'
-        )
+        values = session.host_new.get_host_statuses(rhel_insights_vm.hostname)
+        assert values['Inventory']['Status'] == 'Successfully uploaded to your RH cloud inventory'
         # Read the recommendations listed in Insights tab present on host details page
         insights_recommendations = session.host_new.insights_tab(rhel_insights_vm.hostname)
         for recommendation in insights_recommendations:
@@ -394,8 +390,8 @@ def test_insights_registration_with_capsule(
         rhel_contenthost.execute(cmd)
         assert rhel_contenthost.subscribed
         assert rhel_contenthost.execute('insights-client --test-connection').status == 0
-        values = session.host.get_details(rhel_contenthost.hostname)
-        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
+        values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
+        assert values['Insights']['Status'] == 'Reporting'
         # Clean insights status
         result = module_target_sat.run(
             f'foreman-rake rh_cloud_insights:clean_statuses SEARCH="{rhel_contenthost.hostname}"'
@@ -405,13 +401,12 @@ def test_insights_registration_with_capsule(
         # Workaround for not reading old data.
         session.browser.refresh()
         # Verify that Insights status is cleared.
-        values = session.host.get_details(rhel_contenthost.hostname)
-        with pytest.raises(KeyError):
-            values['properties']['properties_table']['Insights']
+        values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
+        assert values['Insights']['Status'] == 'N/A'
         result = rhel_contenthost.run('insights-client')
         assert result.status == 0
         # Workaround for not reading old data.
         session.browser.refresh()
         # Verify that Insights status again.
-        values = session.host.get_details(rhel_contenthost.hostname)
-        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
+        values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
+        assert values['Insights']['Status'] == 'Reporting'
