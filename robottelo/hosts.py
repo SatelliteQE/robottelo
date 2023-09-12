@@ -1636,6 +1636,19 @@ class Capsule(ContentHost, CapsuleMixins):
         if result.status != 0:
             raise SatelliteHostError(f'Failed to enable pull provider: {result.stdout}')
 
+    def run_installer_arg(self, *args, timeout='20m'):
+        """Run an installer argument on capsule"""
+        installer_args = list(args)
+        installer_command = InstallerCommand(
+            installer_args=installer_args,
+        )
+        result = self.execute(
+            installer_command.get_command(),
+            timeout=timeout,
+        )
+        if result.status != 0:
+            raise SatelliteHostError(f'Failed to execute with argument: {result.stderr}')
+
     def set_mqtt_resend_interval(self, value):
         """Set the time interval in seconds at which the notification should be
         re-sent to the mqtt host until the job is picked up or cancelled"""
