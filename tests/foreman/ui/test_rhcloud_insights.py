@@ -64,7 +64,7 @@ def test_rhcloud_insights_e2e(
 
     :CaseImportance: Critical
 
-    :BZ: 1965901, 1962048
+    :BZ: 1965901, 1962048, 1976754
 
     :customerscenario: true
 
@@ -184,29 +184,6 @@ def test_recommendation_sync_for_satellite():
     :CaseImportance: High
 
     :BZ: 1978182
-
-    :CaseAutomation: ManualOnly
-    """
-
-
-@pytest.mark.stubbed
-def test_allow_auto_insights_sync_setting():
-    """Test "allow_auto_insights_sync" setting.
-
-    :id: ddc4ed5b-43c0-4121-bf2c-b8e040e45379
-
-    :Steps:
-        1. Register few satellite content host with insights.
-        2. Enable "allow_auto_insights_sync" setting.
-        3. Wait for "InsightsScheduledSync" task to run.
-
-    :expectedresults:
-        1. Satellite has "Inventory scheduled sync" recurring logic, which syncs
-            inventory status automatically if "Automatic inventory upload" setting is enabled.
-
-    :CaseImportance: Medium
-
-    :BZ: 1865879
 
     :CaseAutomation: ManualOnly
     """
