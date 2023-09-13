@@ -129,9 +129,9 @@ def setup_capsule(satellite, capsule, registration_args=None, installation_args=
         f'sshpass -p "{capsule.password}" scp -o "StrictHostKeyChecking no" '
         f'{file} root@{capsule.hostname}:{file}'
     )
-    capsule.install_katello_ca(sat_hostname=satellite.hostname)
+    capsule.install_katello_ca(satellite)
     capsule.register_contenthost(**registration_args)
-    return capsule.install(**cmd_args)
+    return capsule.install(cmd_args)
 
 
 class ContentHostError(Exception):

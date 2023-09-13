@@ -20,7 +20,6 @@ import pytest
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG
 from robottelo.hosts import setup_capsule
 
 
@@ -1502,10 +1501,7 @@ def test_satellite_and_capsule_installation(installer_satellite, cap_ready_rhel)
         'firewall-cmd --add-service RH-Satellite-6'
     )
     # Setup Capsule
-    org = installer_satellite.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[
-        0
-    ]
-    setup_capsule(installer_satellite, cap_ready_rhel, org)
+    setup_capsule(installer_satellite, cap_ready_rhel)
     assert installer_satellite.api.Capsule().search(
         query={'search': f'name={cap_ready_rhel.hostname}'}
     )[0]
