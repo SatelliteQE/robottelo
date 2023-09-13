@@ -31,7 +31,7 @@ class TestScenarioPerformanceTuning:
     Test Steps::
 
         1. Before satellite upgrade.
-           - Apply the medium tune size using satellite-installer.
+           - Apply non-default tuning size using satellite-installer.
            - Check the tuning status and their set tuning parameters after applying the new size.
         2. Upgrade the satellite.
         3. Verify the following points.
@@ -49,17 +49,17 @@ class TestScenarioPerformanceTuning:
 
     @pytest.mark.pre_upgrade
     def test_pre_performance_tuning_apply(self, target_sat):
-        """In preupgrade scenario we apply the medium tuning size.
+        """In preupgrade scenario we apply non-default tuning size.
 
         :id: preupgrade-83404326-20b7-11ea-a370-48f17f1fc2e1
 
         :steps:
             1. collect the custom_hira.yaml file before upgrade.
-            2. Update the tuning size to medium.
+            2. Update the tuning size to non-default.
             3. Check the updated tuning size.
             4. If something gets wrong with updated tune size then restore the default tune size.
 
-        :expectedresults: Medium tuning parameter should be applied.
+        :expectedresults: Non-default tuning parameter should be applied.
 
         """
         try:
@@ -67,12 +67,12 @@ class TestScenarioPerformanceTuning:
                 local_path="custom-hiera-before-upgrade.yaml",
                 remote_path="/etc/foreman-installer/custom-hiera.yaml",
             )
-            installer_obj = InstallerCommand(tuning='medium')
+            installer_obj = InstallerCommand(tuning='development')
             command_output = target_sat.execute(installer_obj.get_command(), timeout='30m')
             assert 'Success!' in command_output.stdout
             installer_obj = InstallerCommand(help='tuning')
             command_output = target_sat.execute(installer_obj.get_command())
-            assert 'default: "medium"' in command_output.stdout
+            assert 'default: "development"' in command_output.stdout
 
         except Exception as exp:
             logger.critical(exp)
@@ -92,17 +92,17 @@ class TestScenarioPerformanceTuning:
         :steps:
             1. Check the tuning size.
             2. Compare the custom-hiera.yaml file.
-            3. Change the tuning size from medium to default.
+            3. Change the tuning size from non-default to default.
 
         :expectedresults:
-            1. medium tune parameter should be unchanged after upgrade.
+            1. non-default tuning parameter should be set after upgrade.
             2. custom-hiera.yaml file should be unchanged after upgrade.
             3. tuning parameter update should work after upgrade.
 
         """
         installer_obj = InstallerCommand(help='tuning')
         command_output = target_sat.execute(installer_obj.get_command(), timeout='30m')
-        assert 'default: "medium"' in command_output.stdout
+        assert 'default: "development"' in command_output.stdout
         target_sat.get(
             local_path="custom-hiera-after-upgrade.yaml",
             remote_path="/etc/foreman-installer/custom-hiera.yaml",
