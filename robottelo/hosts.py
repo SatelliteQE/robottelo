@@ -1146,6 +1146,8 @@ class ContentHost(Host, ContentHostMixins):
             # Register client
             if self.execute('insights-client --register').status != 0:
                 raise ContentHostError('Unable to register client to Insights through Satellite')
+            if self.execute('insights-client --test-connection').status != 0:
+                raise ContentHostError('Test connection failed via insights.')
 
     def unregister_insights(self):
         """Unregister insights client.

@@ -209,7 +209,7 @@ def test_max_org_size_variable():
         1. Register few content hosts with satellite.
         2. Change value of max_org_size for testing purpose(See BZ#1962694#c2).
         3. Start report generation and upload using
-            ForemanInventoryUpload::Async::GenerateAllReportsJob.perform_now
+            ForemanTasks.sync_task(ForemanInventoryUpload::Async::GenerateAllReportsJob)
 
     :expectedresults: If organization had more hosts than specified by max_org_size variable
         then report won't be uploaded.
