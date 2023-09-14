@@ -4,7 +4,6 @@ import sys
 
 from robottelo.utils.vault import Vault
 
-
 if __name__ == '__main__':
     with Vault() as vclient:
         if sys.argv[-1] == '--login':

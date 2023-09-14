@@ -1,7 +1,6 @@
 """Global Configurations for py.test runner"""
 import pytest
 
-
 pytest_plugins = [
     # Plugins
     'pytest_plugins.auto_vault',

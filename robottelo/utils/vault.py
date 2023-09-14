@@ -6,8 +6,7 @@ import subprocess
 import sys
 
 from robottelo.exceptions import InvalidVaultURLForOIDC
-from robottelo.logging import logger
-from robottelo.logging import robottelo_root_dir
+from robottelo.logging import logger, robottelo_root_dir
 
 
 class Vault:
@@ -20,7 +19,12 @@ class Vault:
 
     def __init__(self, env_file='.env'):
         self.env_path = robottelo_root_dir.joinpath(env_file)
+
+    def setup(self):
         self.export_vault_addr()
+
+    def teardown(self):
+        del os.environ['VAULT_ADDR']
 
     def export_vault_addr(self):
         envdata = self.env_path.read_text()
@@ -59,10 +63,7 @@ class Vault:
         return vcommand
 
     def login(self, **kwargs):
-        if (
-            re.search(r'\s*#.*VAULT_SECRET_ID_FOR_DYNACONF', self.env_path.read_text())
-            and 'VAULT_SECRET_ID_FOR_DYNACONF' not in os.environ
-        ):
+        if 'VAULT_SECRET_ID_FOR_DYNACONF' not in os.environ:
             if self.status(**kwargs).returncode != 0:
                 logger.warning(
                     "Warning! The browser is about to open for vault OIDC login, "
@@ -105,5 +106,9 @@ class Vault:
             logger.info(str(vstatus.stdout.decode('UTF-8')))
         return vstatus
 
-    def __del__(self):
-        del os.environ['VAULT_ADDR']
+    def __enter__(self):
+        self.setup()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.teardown()
