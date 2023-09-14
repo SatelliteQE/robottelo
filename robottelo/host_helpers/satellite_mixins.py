@@ -141,8 +141,9 @@ class ContentInfo:
         :returns: the manifest upload result
 
         """
-        if manifest.content is None:
-            manifest = clone()
+        if not isinstance(manifest, (bytes, io.BytesIO)):
+            if manifest.content is None:
+                manifest = clone()
         if timeout is None:
             # Set the timeout to 1500 seconds to align with the API timeout.
             timeout = 1500000
