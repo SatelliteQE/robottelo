@@ -31,39 +31,11 @@ from robottelo.utils.virtwho import (
 )
 
 
-@pytest.fixture()
-def form_data(target_sat, default_org):
-    form = {
-        'name': gen_string('alpha'),
-        'debug': 1,
-        'interval': '60',
-        'hypervisor-id': 'hostname',
-        'hypervisor-type': settings.virtwho.ahv.hypervisor_type,
-        'hypervisor-server': settings.virtwho.ahv.hypervisor_server,
-        'organization-id': default_org.id,
-        'filtering-mode': 'none',
-        'satellite-url': target_sat.hostname,
-        'hypervisor-username': settings.virtwho.ahv.hypervisor_username,
-        'hypervisor-password': settings.virtwho.ahv.hypervisor_password,
-        'prism-flavor': settings.virtwho.ahv.prism_flavor,
-        'ahv-internal-debug': 'false',
-    }
-    return form
-
-
-@pytest.fixture()
-def virtwho_config(form_data, target_sat):
-    virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
-    yield virtwho_config
-    target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config['name']})
-    assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
-
-
 class TestVirtWhoConfigforNutanix:
     @pytest.mark.tier2
-    @pytest.mark.parametrize('deploy_type', ['id', 'script'])
+    @pytest.mark.parametrize('deploy_type_cli', ['id', 'script'], indirect=True)
     def test_positive_deploy_configure_by_id_script(
-        self, default_org, form_data, virtwho_config, target_sat, deploy_type
+        self, default_org, virtwho_config_cli, target_sat, deploy_type_cli
     ):
         """Verify "hammer virt-who-config deploy & fetch"
 
@@ -77,20 +49,9 @@ class TestVirtWhoConfigforNutanix:
 
         :CaseImportance: High
         """
-        assert virtwho_config['status'] == 'No Report Yet'
-        if deploy_type == "id":
-            command = get_configure_command(virtwho_config['id'], default_org.name)
-            hypervisor_name, guest_name = deploy_configure_by_command(
-                command, form_data['hypervisor-type'], debug=True, org=default_org.label
-            )
-        elif deploy_type == "script":
-            script = target_sat.cli.VirtWhoConfig.fetch(
-                {'id': virtwho_config['id']}, output_format='base'
-            )
-            hypervisor_name, guest_name = deploy_configure_by_script(
-                script, form_data['hypervisor-type'], debug=True, org=default_org.label
-            )
-        virt_who_instance = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config['id']})[
+        assert virtwho_config_cli['status'] == 'No Report Yet'
+        hypervisor_name, guest_name = deploy_type_cli
+        virt_who_instance = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config_cli['id']})[
             'general-information'
         ]['status']
         assert virt_who_instance == 'OK'
@@ -116,7 +77,7 @@ class TestVirtWhoConfigforNutanix:
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
-        self, default_org, form_data, virtwho_config, target_sat
+        self, default_org, form_data_cli, virtwho_config_cli, target_sat
     ):
         """Verify hypervisor_id option by hammer virt-who-config update"
 
@@ -131,21 +92,21 @@ class TestVirtWhoConfigforNutanix:
         values = ['uuid', 'hostname']
         for value in values:
             target_sat.cli.VirtWhoConfig.update(
-                {'id': virtwho_config['id'], 'hypervisor-id': value}
+                {'id': virtwho_config_cli['id'], 'hypervisor-id': value}
             )
-            result = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config['id']})
+            result = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config_cli['id']})
             assert result['connection']['hypervisor-id'] == value
-            config_file = get_configure_file(virtwho_config['id'])
-            command = get_configure_command(virtwho_config['id'], default_org.name)
+            config_file = get_configure_file(virtwho_config_cli['id'])
+            command = get_configure_command(virtwho_config_cli['id'], default_org.name)
             deploy_configure_by_command(
-                command, form_data['hypervisor-type'], org=default_org.label
+                command, form_data_cli['hypervisor-type'], org=default_org.label
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('deploy_type', ['id', 'script'])
     def test_positive_prism_central_deploy_configure_by_id_script(
-        self, default_org, form_data, target_sat, deploy_type
+        self, default_org, form_data_cli, target_sat, deploy_type
     ):
         """Verify "hammer virt-who-config deploy" on nutanix prism central mode
 
@@ -159,20 +120,20 @@ class TestVirtWhoConfigforNutanix:
 
         :CaseImportance: High
         """
-        form_data['prism-flavor'] = "central"
-        virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
+        form_data_cli['prism-flavor'] = "central"
+        virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data_cli)['general-information']
         assert virtwho_config['status'] == 'No Report Yet'
         if deploy_type == "id":
             command = get_configure_command(virtwho_config['id'], default_org.name)
             hypervisor_name, guest_name = deploy_configure_by_command(
-                command, form_data['hypervisor-type'], debug=True, org=default_org.label
+                command, form_data_cli['hypervisor-type'], debug=True, org=default_org.label
             )
         elif deploy_type == "script":
             script = target_sat.cli.VirtWhoConfig.fetch(
                 {'id': virtwho_config['id']}, output_format='base'
             )
             hypervisor_name, guest_name = deploy_configure_by_script(
-                script, form_data['hypervisor-type'], debug=True, org=default_org.label
+                script, form_data_cli['hypervisor-type'], debug=True, org=default_org.label
             )
         # Check the option "prism_central=true" should be set in etc/virt-who.d/virt-who.conf
         config_file = get_configure_file(virtwho_config['id'])
@@ -203,7 +164,7 @@ class TestVirtWhoConfigforNutanix:
 
     @pytest.mark.tier2
     def test_positive_prism_central_prism_central_option(
-        self, default_org, form_data, virtwho_config, target_sat
+        self, default_org, form_data_cli, virtwho_config_cli, target_sat
     ):
         """Verify prism_central option by hammer virt-who-config update"
 
@@ -217,19 +178,23 @@ class TestVirtWhoConfigforNutanix:
         """
         value = 'central'
         result = target_sat.cli.VirtWhoConfig.update(
-            {'id': virtwho_config['id'], 'prism-flavor': value}
+            {'id': virtwho_config_cli['id'], 'prism-flavor': value}
         )
-        assert result[0]['message'] == f"Virt Who configuration [{virtwho_config['name']}] updated"
-        result = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config['id']})
+        assert (
+            result[0]['message'] == f"Virt Who configuration [{virtwho_config_cli['name']}] updated"
+        )
+        result = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config_cli['id']})
         assert result['general-information']['ahv-prism-flavor'] == value
-        config_file = get_configure_file(virtwho_config['id'])
-        command = get_configure_command(virtwho_config['id'], default_org.name)
-        deploy_configure_by_command(command, form_data['hypervisor-type'], org=default_org.label)
+        config_file = get_configure_file(virtwho_config_cli['id'])
+        command = get_configure_command(virtwho_config_cli['id'], default_org.name)
+        deploy_configure_by_command(
+            command, form_data_cli['hypervisor-type'], org=default_org.label
+        )
         assert get_configure_option("prism_central", config_file) == 'true'
 
     @pytest.mark.tier2
     def test_positive_ahv_internal_debug_option(
-        self, default_org, form_data, virtwho_config, target_sat
+        self, default_org, form_data_cli, virtwho_config_cli, target_sat
     ):
         """Verify ahv_internal_debug option by hammer virt-who-config"
 
@@ -250,14 +215,14 @@ class TestVirtWhoConfigforNutanix:
         :BZ: 2141719
         :customerscenario: true
         """
-        command = get_configure_command(virtwho_config['id'], default_org.name)
+        command = get_configure_command(virtwho_config_cli['id'], default_org.name)
         deploy_configure_by_command(
-            command, form_data['hypervisor-type'], debug=True, org=default_org.label
+            command, form_data_cli['hypervisor-type'], debug=True, org=default_org.label
         )
-        result = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config['id']})
+        result = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config_cli['id']})
         assert result['general-information']['enable-ahv-debug'] == 'no'
         # ahv_internal_debug does not set in virt-who-config-X.conf
-        config_file = get_configure_file(virtwho_config['id'])
+        config_file = get_configure_file(virtwho_config_cli['id'])
         option = 'ahv_internal_debug'
         env_error = f"option {option} is not exist or not be enabled in {config_file}"
         try:
@@ -271,18 +236,22 @@ class TestVirtWhoConfigforNutanix:
         # Update ahv_internal_debug option to true
         value = 'true'
         result = target_sat.cli.VirtWhoConfig.update(
-            {'id': virtwho_config['id'], 'ahv-internal-debug': value}
+            {'id': virtwho_config_cli['id'], 'ahv-internal-debug': value}
         )
-        assert result[0]['message'] == f"Virt Who configuration [{virtwho_config['name']}] updated"
-        command = get_configure_command(virtwho_config['id'], default_org.name)
+        assert (
+            result[0]['message'] == f"Virt Who configuration [{virtwho_config_cli['name']}] updated"
+        )
+        command = get_configure_command(virtwho_config_cli['id'], default_org.name)
         deploy_configure_by_command(
-            command, form_data['hypervisor-type'], debug=True, org=default_org.label
+            command, form_data_cli['hypervisor-type'], debug=True, org=default_org.label
         )
-        assert get_hypervisor_ahv_mapping(form_data['hypervisor-type']) == 'Host UUID found for VM'
-        result = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config['id']})
+        assert (
+            get_hypervisor_ahv_mapping(form_data_cli['hypervisor-type']) == 'Host UUID found for VM'
+        )
+        result = target_sat.cli.VirtWhoConfig.info({'id': virtwho_config_cli['id']})
         assert result['general-information']['enable-ahv-debug'] == 'yes'
         # ahv_internal_debug bas been set to true in virt-who-config-X.conf
-        config_file = get_configure_file(virtwho_config['id'])
+        config_file = get_configure_file(virtwho_config_cli['id'])
         assert get_configure_option("ahv_internal_debug", config_file) == 'true'
         # check message does not exist in log file /var/log/rhsm/rhsm.log
         message = 'Value for "ahv_internal_debug" not set, using default: False'

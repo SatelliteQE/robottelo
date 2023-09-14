@@ -65,6 +65,7 @@ pytest_plugins = [
     'pytest_fixtures.component.templatesync',
     'pytest_fixtures.component.user',
     'pytest_fixtures.component.user_role',
+    'pytest_fixtures.component.virtwho_config',
     # upgrade
     'pytest_plugins.upgrade.scenario_workers',
 ]

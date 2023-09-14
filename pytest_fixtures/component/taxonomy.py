@@ -99,7 +99,7 @@ def module_entitlement_manifest_org(module_org, module_entitlement_manifest, mod
 @pytest.fixture(scope='module')
 def module_sca_manifest_org(module_org, module_sca_manifest, module_target_sat):
     """Creates an organization and uploads an SCA mode manifest generated with manifester"""
-    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
+    module_target_sat.upload_manifest(module_org.id, module_sca_manifest)
     return module_org
 
 
