@@ -4,7 +4,7 @@
 
 :CaseLevel: Integration
 
-:CaseComponent: LeappIntegration
+:CaseComponent: Leappintegration
 
 :Team: Rocket
 
