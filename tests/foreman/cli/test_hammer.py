@@ -30,7 +30,7 @@ from robottelo.logging import logger
 
 HAMMER_COMMANDS = json.loads(DataFile.HAMMER_COMMANDS_JSON.read_text())
 
-pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
+pytestmark = [pytest.mark.tier1]
 
 
 def fetch_command_info(command):
@@ -127,6 +127,7 @@ def test_positive_all_options(target_sat):
         pytest.fail(format_commands_diff(differences))
 
 
+@pytest.mark.upgrade
 def test_positive_disable_hammer_defaults(request, function_product, target_sat):
     """Verify hammer disable defaults command.
 
@@ -166,6 +167,7 @@ def test_positive_disable_hammer_defaults(request, function_product, target_sat)
         assert str(function_product.organization.id) not in result.stdout
 
 
+@pytest.mark.upgrade
 def test_positive_check_debug_log_levels(target_sat):
     """Enabling debug log level in candlepin via hammer logging
 
@@ -193,6 +195,7 @@ def test_positive_check_debug_log_levels(target_sat):
 
 
 @pytest.mark.e2e
+@pytest.mark.upgrade
 def test_positive_hammer_shell(target_sat):
     """Verify that hammer shell runs a command when input is provided via interactive/bash
 
