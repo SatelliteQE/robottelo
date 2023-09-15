@@ -285,6 +285,7 @@ def pxe_loader(request):
     PXE_LOADER_MAP = {
         'bios': {'vm_firmware': 'bios', 'pxe_loader': 'PXELinux BIOS'},
         'uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI'},
+        'ipxe': {'vm_firmware': 'bios', 'pxe_loader': 'iPXE Embedded'},
     }
     return Box(PXE_LOADER_MAP[getattr(request, 'param', 'bios')])
 
