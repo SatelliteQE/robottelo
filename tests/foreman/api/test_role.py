@@ -186,7 +186,7 @@ class TestCannedRole:
             ldap_user_passwd=ad_data['ldap_user_passwd'],
             authsource=entities.AuthSourceLDAP(
                 onthefly_register=True,
-                account=ad_data['ldap_user_name'],
+                account=fr"{ad_data['workgroup']}\{ad_data['ldap_user_name']}",
                 account_password=ad_data['ldap_user_passwd'],
                 base_dn=ad_data['base_dn'],
                 groups_base=ad_data['group_base_dn'],

@@ -666,7 +666,7 @@ class TestActiveDirectoryUser:
             ldap_user_passwd=ad_data['ldap_user_passwd'],
             authsource=module_target_sat.api.AuthSourceLDAP(
                 onthefly_register=True,
-                account=ad_data['ldap_user_name'],
+                account=fr"{ad_data['workgroup']}\{ad_data['ldap_user_name']}",
                 account_password=ad_data['ldap_user_passwd'],
                 base_dn=ad_data['base_dn'],
                 groups_base=ad_data['group_base_dn'],
@@ -741,7 +741,7 @@ class TestActiveDirectoryUser:
 
         :steps:
 
-            1. Create Org Admin and assign taxonomies to it
+            1. Create Org Admin role and assign taxonomies to it
             2. Create LDAP user with same taxonomies as role above
             3. Assign Org Admin role to user above
             4. Login with LDAP user and attempt to access resources
@@ -862,7 +862,7 @@ class TestFreeIPAUser:
 
         :steps:
 
-            1. Create Org Admin and assign taxonomies to it
+            1. Create Org Admin role and assign taxonomies to it
             2. Create FreeIPA user with same taxonomies as role above
             3. Assign Org Admin role to user above
             4. Login with FreeIPA user and attempt to access resources
