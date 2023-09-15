@@ -19,7 +19,7 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import SATELLITE_VERSION
+from robottelo.constants import INSTALLER_CONFIG_FILE, SATELLITE_VERSION
 
 
 def last_y_stream_version(release):
@@ -69,10 +69,6 @@ def test_positive_satellite_maintain_upgrade_list(sat_maintain):
 
 
 @pytest.mark.include_capsule
-@pytest.mark.skipif(
-    (settings.server.version.release == 'stream'),
-    reason='Upgrade path is not available for stream yet',
-)
 def test_positive_repositories_validate(sat_maintain):
     """Test repositories-validate pre-upgrade check is
      skipped when system is subscribed using custom activationkey.
@@ -113,10 +109,6 @@ def test_positive_repositories_validate(sat_maintain):
     ids=['default', 'medium'],
     indirect=True,
 )
-@pytest.mark.skipif(
-    (settings.server.version.release == 'stream'),
-    reason='Upgrade path is not available for stream yet',
-)
 def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
     """Negative test that verifies a satellite with less than
     tuning profile hardware requirements fails on pre-upgrade check.
@@ -140,10 +132,15 @@ def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
     )
     custom_host.download_repofile(product='satellite', release=last_y_stream)
     custom_host.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
-    # Install without system checks to get around installer checks
+    # Install with development tuning profile to get around installer checks
     custom_host.execute(
-        f'satellite-installer --scenario satellite --disable-system-checks --tuning {profile}',
+        'satellite-installer --scenario satellite --tuning development',
         timeout='30m',
+    )
+    # Change to correct tuning profile (default or medium)
+    custom_host.execute(
+        f'sed -i "s/tuning: development/tuning: {profile}/g" {INSTALLER_CONFIG_FILE};'
+        f'satellite-installer'
     )
     # Get current Satellite version's repofile
     custom_host.download_repofile(
@@ -154,10 +151,10 @@ def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
     custom_host.execute('satellite-maintain upgrade list-versions')
     # Check that we can upgrade to the new Y stream version
     result = custom_host.execute('satellite-maintain upgrade list-versions')
-    assert sat_version in result.stdout
+    assert SATELLITE_VERSION in result.stdout
     # Check that the upgrade check fails due to system requirements
     result = custom_host.execute(
-        f'satellite-maintain upgrade check --target-version {sat_version}', timeout='5m'
+        f'satellite-maintain upgrade check --target-version {SATELLITE_VERSION}', timeout='5m'
     )
     assert (
         f'ERROR: The installer is configured to use the {profile} tuning '
