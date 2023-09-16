@@ -20,6 +20,15 @@ def org_module(request, default_org, module_sca_manifest_org):
 
 
 @pytest.fixture()
+def org_session(request, session, session_sca):
+    if 'sca' in request.module.__name__.split('.')[-1]:
+        org_session = session_sca
+    else:
+        org_session = session
+    return org_session
+
+
+@pytest.fixture()
 def form_data_cli(request, target_sat, org_module):
     hypervisor_type = request.module.__name__.split('.')[-1].split('_', 1)[-1]
     if 'esx' in hypervisor_type:
@@ -170,6 +179,61 @@ def form_data_api(request, target_sat, org_module):
 
 
 @pytest.fixture()
+def form_data_ui(request, target_sat, org_module):
+    hypervisor_type = request.module.__name__.split('.')[-1].split('_', 1)[-1]
+    if 'esx' in hypervisor_type:
+        form = {
+            'debug': True,
+            'interval': 'Every hour',
+            'hypervisor_id': 'hostname',
+            'hypervisor_type': settings.virtwho.esx.hypervisor_type,
+            'hypervisor_content.server': settings.virtwho.esx.hypervisor_server,
+            'hypervisor_content.username': settings.virtwho.esx.hypervisor_username,
+            'hypervisor_content.password': settings.virtwho.esx.hypervisor_password,
+        }
+    elif 'hyperv' in hypervisor_type:
+        form = {
+            'debug': True,
+            'interval': 'Every hour',
+            'hypervisor_id': 'hostname',
+            'hypervisor_type': settings.virtwho.hyperv.hypervisor_type,
+            'hypervisor_content.server': settings.virtwho.hyperv.hypervisor_server,
+            'hypervisor_content.username': settings.virtwho.hyperv.hypervisor_username,
+            'hypervisor_content.password': settings.virtwho.hyperv.hypervisor_password,
+        }
+    elif 'kubevirt' in hypervisor_type:
+        form = {
+            'debug': True,
+            'interval': 'Every hour',
+            'hypervisor_id': 'hostname',
+            'hypervisor_type': settings.virtwho.kubevirt.hypervisor_type,
+            'hypervisor_content.kubeconfig': settings.virtwho.kubevirt.hypervisor_config_file,
+        }
+    elif 'libvirt' in hypervisor_type:
+        form = {
+            'debug': True,
+            'interval': 'Every hour',
+            'hypervisor_id': 'hostname',
+            'hypervisor_type': settings.virtwho.libvirt.hypervisor_type,
+            'hypervisor_content.server': settings.virtwho.libvirt.hypervisor_server,
+            'hypervisor_content.username': settings.virtwho.libvirt.hypervisor_username,
+        }
+    elif 'nutanix' in hypervisor_type:
+        form = {
+            'debug': True,
+            'interval': 'Every hour',
+            'hypervisor_id': 'hostname',
+            'hypervisor_type': settings.virtwho.ahv.hypervisor_type,
+            'hypervisor_content.server': settings.virtwho.ahv.hypervisor_server,
+            'hypervisor_content.username': settings.virtwho.ahv.hypervisor_username,
+            'hypervisor_content.password': settings.virtwho.ahv.hypervisor_password,
+            'hypervisor_content.prism_flavor': "Prism Element",
+            'ahv_internal_debug': False,
+        }
+    return form
+
+
+@pytest.fixture()
 def virtwho_config_cli(form_data_cli, target_sat):
     virtwho_config_cli = target_sat.cli.VirtWhoConfig.create(form_data_cli)['general-information']
     yield virtwho_config_cli
@@ -185,6 +249,17 @@ def virtwho_config_api(form_data_api, target_sat):
     assert not target_sat.api.VirtWhoConfig().search(
         query={'search': f"name={form_data_api['name']}"}
     )
+
+
+@pytest.fixture()
+def virtwho_config_ui(form_data_ui, target_sat, org_session):
+    name = gen_string('alpha')
+    form_data_ui['name'] = name
+    with org_session:
+        org_session.virtwho_configure.create(form_data_ui)
+        yield virtwho_config_ui
+        org_session.virtwho_configure.delete(name)
+        assert not org_session.virtwho_configure.search(name)
 
 
 @pytest.fixture()
@@ -234,6 +309,30 @@ def deploy_type_api(
             form_data_api['hypervisor_type'],
             debug=True,
             org=org_module.label,
+        )
+    yield hypervisor_name, guest_name
+
+
+@pytest.fixture()
+def deploy_type_ui(
+    request,
+    org_module,
+    form_data_ui,
+    org_session,
+    virtwho_config_ui,
+    target_sat,
+):
+    deploy_type = request.param.lower()
+    values = org_session.virtwho_configure.read(form_data_ui['name'])
+    if "id" in deploy_type:
+        command = values['deploy']['command']
+        hypervisor_name, guest_name = deploy_configure_by_command(
+            command, form_data_ui['hypervisor_type'], debug=True, org=org_module.label
+        )
+    elif "script" in deploy_type:
+        script = values['deploy']['script']
+        hypervisor_name, guest_name = deploy_configure_by_script(
+            script, form_data_ui['hypervisor_type'], debug=True, org=org_module.label
         )
     yield hypervisor_name, guest_name
 
