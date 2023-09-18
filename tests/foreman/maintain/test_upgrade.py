@@ -171,27 +171,31 @@ def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
     )
 
 
-@pytest.mark.stubbed
 @pytest.mark.include_capsule
-def test_positive_self_update_for_zstream(sat_maintain):
-    """Test satellite-maintain self-upgrade to update maintain packages from zstream repo.
+def test_positive_self_update_maintain_package(sat_maintain):
+    """satellite-maintain attempts to update itself when a command is run
 
     :id: 1c566768-fd73-4fe6-837b-26709a1ebed9
 
     :parametrized: yes
 
     :steps:
-        1. Run satellite-maintain upgrade check/run command.
-        2. Run satellite-maintain upgrade check/run command with disable-self-upgrade option.
+        1. Run satellite-maintain upgrade list-versions/check/run command.
+        2. Run satellite-maintain upgrade list-versions/check/run command
+            with disable-self-upgrade option.
 
     :expectedresults:
-        1. Update satellite-maintain package to latest version and gives message to re-run command.
-        2. If disable-self-upgrade option is used then it should skip self-upgrade step for zstream
+        1. satellite-maintain tries to update rubygem-foreman_maintain to a newer available version
+        2. If disable-self-upgrade option is used then it should skip self-upgrade step
 
     :BZ: 1649329
-
-    :CaseAutomation: ManualOnly
     """
+    result = sat_maintain.cli.Upgrade.list_versions()
+    assert result.status == 0
+    assert 'Checking for new version of satellite-maintain...' in result.stdout
+    result = sat_maintain.cli.Upgrade.list_versions(options={'disable-self-upgrade': True})
+    assert result.status == 0
+    assert 'Checking for new version of satellite-maintain...' not in result.stdout
 
 
 @pytest.mark.stubbed
