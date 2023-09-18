@@ -18,12 +18,10 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.ui.utils import create_fake_host
-
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_location):
+def test_positive_end_to_end(session, module_org, module_location, target_sat):
     """Perform end to end testing for hardware model component
 
     :id: 93663cc9-7c8f-4f43-8050-444be1313bed
@@ -43,7 +41,7 @@ def test_positive_end_to_end(session, module_org, module_location):
     new_name = gen_string('alpha')
     host_template = entities.Host(organization=module_org, location=module_location)
     host_template.create_missing()
-    with session:
+    with target_sat.ui_session() as session:
         # Create new hardware model
         session.hardwaremodel.create(
             {'name': name, 'hardware_model': model, 'vendor_class': vendor_class, 'info': info}
@@ -55,8 +53,8 @@ def test_positive_end_to_end(session, module_org, module_location):
         assert hm_values['vendor_class'] == vendor_class
         assert hm_values['info'] == info
         # Create host with associated hardware model
-        host_name = create_fake_host(
-            session, host_template, extra_values={'additional_information.hardware_model': name}
+        host_name = target_sat.ui_factory(session).create_fake_host(
+            host_template, extra_values={'additional_information.hardware_model': name}
         )
         host_values = session.host.read(host_name, 'additional_information')
         assert host_values['additional_information']['hardware_model'] == name

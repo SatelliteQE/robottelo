@@ -2,6 +2,7 @@ import contextlib
 import os
 import random
 import re
+from functools import cache
 
 import requests
 
@@ -14,6 +15,7 @@ from robottelo.constants import PUPPET_COMMON_INSTALLER_OPTS
 from robottelo.constants import PUPPET_SATELLITE_INSTALLER
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
+from robottelo.host_helpers.ui_factory import UIFactory
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.manifest import clone
@@ -344,3 +346,7 @@ class Factories:
         if not getattr(self, '_api_factory', None):
             self._api_factory = APIFactory(self)
         return self._api_factory
+
+    @cache
+    def ui_factory(self, session):
+        return UIFactory(self, session=session)

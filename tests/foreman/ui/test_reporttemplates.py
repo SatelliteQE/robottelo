@@ -32,7 +32,6 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.ui.utils import create_fake_host
 from robottelo.utils.datafactory import gen_string
 
 
@@ -235,7 +234,7 @@ def test_positive_end_to_end(session, module_org, module_location):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_generate_registered_hosts_report(session, module_org, module_location):
+def test_positive_generate_registered_hosts_report(target_sat, module_org, module_location):
     """Use provided Host - Registered Content Hosts report for testing
 
     :id: b44d4cd8-a78e-47cf-9993-0bb871ac2c96
@@ -249,17 +248,22 @@ def test_positive_generate_registered_hosts_report(session, module_org, module_l
     """
     # generate Host Status report
     os_name = 'comma,' + gen_string('alpha')
-    os = entities.OperatingSystem(name=os_name).create()
+    os = target_sat.api.OperatingSystem(name=os_name).create()
     host_cnt = 3
     host_templates = [
-        entities.Host(organization=module_org, location=module_location, operatingsystem=os)
+        target_sat.api.Host(organization=module_org, location=module_location, operatingsystem=os)
         for i in range(host_cnt)
     ]
     for host_template in host_templates:
         host_template.create_missing()
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(module_location.name)
         # create multiple hosts to test filtering
-        host_names = [create_fake_host(session, host_template) for host_template in host_templates]
+        host_names = [
+            target_sat.ui_factory(session).create_fake_host(host_template)
+            for host_template in host_templates
+        ]
         host_name = host_names[1]  # pick some that is not first and is not last
         file_path = session.reporttemplate.generate(
             'Host - Registered Content Hosts', values={'hosts_filter': host_name}
