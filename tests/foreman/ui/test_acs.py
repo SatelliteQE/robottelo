@@ -89,7 +89,6 @@ def test_acs_positive_end_to_end(session, ui_acs_setup):
         9. Test editing credentials
         10. Test editing products
 
-
     :expectedresults:
         This test should create all supported types (10)
         of the Aleternate Content Sources one by one and asserts that actions
@@ -277,10 +276,10 @@ def test_acs_positive_end_to_end(session, ui_acs_setup):
         # Refresh ACS and check that last refresh time is updated
         session.acs.refresh_acs(acs_name='simpleFile')
         simple_file_refreshed = session.acs.get_row_drawer_content(acs_name='simpleFile')
-        assert (
-            simple_file_refreshed['details']['last_refresh'] == 'less than a minute ago'
-            or '1 minute ago'
-        )
+        assert simple_file_refreshed['details']['last_refresh'] in [
+            'less than a minute ago',
+            '1 minute ago',
+        ]
 
         # Rename and change description of ACS and then check that it was changed
         simple_file_renamed = session.acs.edit_acs_details(
