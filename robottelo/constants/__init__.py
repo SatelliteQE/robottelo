@@ -222,7 +222,8 @@ REPO_TYPE = {
     'yum': "yum",
     'ostree': "ostree",
     'docker': "docker",
-    "ansible_collection": "ansible collection",
+    'ansible_collection': "ansible collection",
+    'file': "file",
 }
 
 DOWNLOAD_POLICIES = {
