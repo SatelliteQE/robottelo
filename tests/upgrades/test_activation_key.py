@@ -73,13 +73,22 @@ class TestActivationKey:
         org_subscriptions = target_sat.api.Subscription(
             organization=activation_key_setup['org']
         ).search()
-        for subscription in org_subscriptions:
-            ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
-        ak_subscriptions = ak.product_content()['results']
-        subscr_id = {subscr['product']['id'] for subscr in ak_subscriptions}
-        assert subscr_id == {activation_key_setup['custom_repo'].product.id}
-        ak.host_collection.append(target_sat.api.HostCollection().create())
-        ak.update(['host_collection'])
+        ak_repos = ak.product_content(data={'id': ak.id, 'content_access_mode_all': 1})['results']
+        ak.content_override(
+            data={
+                'content_overrides': [
+                    {'content_label': ak_repos[0]['content']['label'], 'value': '1'}
+                ]
+            }
+        )
+        ak_results = ak.product_content(data={'id': ak.id, 'content_access_mode_all': 1})['results']
+        assert ak_results[0]['overrides'][0]['name'] == 'enabled'
+        assert ak_results[0]['overrides'][0]['value'] is True
+        assert org_subscriptions[0].name == ak_results[0]['product']['name']
+        ak.host_collection.append(
+            target_sat.api.HostCollection(organization=activation_key_setup['org']).create()
+        )
+        ak.update(['host_collection', 'organization_id'])
         assert len(ak.host_collection) == 1
 
     @pytest.mark.post_upgrade(depend_on=test_pre_create_activation_key)
@@ -107,9 +116,9 @@ class TestActivationKey:
         )
         assert f'{pre_test_name}_ak' == ak[0].name
         assert f'{pre_test_name}_cv' == cv[0].name
-        ak[0].host_collection.append(target_sat.api.HostCollection().create())
-        ak[0].update(['host_collection'])
-        assert len(ak[0].host_collection) == 2
+        ak.host_collection.append(target_sat.api.HostCollection(organization=org).create())
+        ak.update(['host_collection', 'organization_id'])
+        assert len(ak.host_collection) == 2
         custom_repo2 = target_sat.api.Repository(
             product=target_sat.api.Product(organization=org[0]).create()
         ).create()
@@ -117,12 +126,19 @@ class TestActivationKey:
         cv2 = target_sat.api.ContentView(organization=org[0], repository=[custom_repo2.id]).create()
         cv2.publish()
         org_subscriptions = target_sat.api.Subscription(organization=org[0]).search()
-        for subscription in org_subscriptions:
-            provided_products_ids = [prod.id for prod in subscription.read().provided_product]
-            if custom_repo2.product.id in provided_products_ids:
-                ak[0].add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
-        ak_subscriptions = ak[0].product_content()['results']
-        assert custom_repo2.product.id in {subscr['product']['id'] for subscr in ak_subscriptions}
+
+        ak_repos = ak.product_content(data={'id': ak.id, 'content_access_mode_all': 1})['results']
+        ak.content_override(
+            data={
+                'content_overrides': [
+                    {'content_label': ak_repos[1]['content']['label'], 'value': '1'}
+                ]
+            }
+        )
+        ak_results = ak.product_content(data={'id': ak.id, 'content_access_mode_all': 1})['results']
+        assert ak_results[1]['overrides'][0]['name'] == 'enabled'
+        assert ak_results[1]['overrides'][0]['value'] is True
+        assert org_subscriptions[1].name == ak_results[1]['product']['name']
         ak[0].delete()
         with pytest.raises(HTTPError):
             target_sat.api.ActivationKey(id=ak[0].id).read()
