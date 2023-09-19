@@ -78,21 +78,22 @@ def test_acs_positive_end_to_end(session, ui_acs_setup):
     :id: 047452cc-5a9f-4473-96b1-d5b6830b7d6b
 
     :steps:
-    1. Select an organization
-    2. Create ACSes (all supported types/combinations)
-    3. Create ACS on which deletion is going to be tested
-    4. Test deletion
-    5. Test refresh
-    6. Test renaming and changing description
-    7. Test editing capsules
-    8. Test editing urls and subpaths
-    9. Test editing credentials
-    10. Test editing products
+        1. Select an organization
+        2. Create ACSes (all supported types/combinations)
+        3. Create ACS on which deletion is going to be tested
+        4. Test deletion
+        5. Test refresh
+        6. Test renaming and changing description
+        7. Test editing capsules
+        8. Test editing urls and subpaths
+        9. Test editing credentials
+        10. Test editing products
 
 
-    :expectedresults: This test should create all supported types (10)
-    of the Aleternate Content Sources one by one and asserts that actions
-    were made correctly on them.
+    :expectedresults:
+        This test should create all supported types (10)
+        of the Aleternate Content Sources one by one and asserts that actions
+        were made correctly on them.
     """
 
     target_sat, module_sca_manifest_org = ui_acs_setup
