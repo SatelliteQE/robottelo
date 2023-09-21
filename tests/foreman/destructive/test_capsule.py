@@ -8,7 +8,7 @@
 
 :CaseComponent: Capsule
 
-:Team: Endeavour
+:Team: Platform
 
 :TestType: Functional
 
