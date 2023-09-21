@@ -16,14 +16,12 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG
-from robottelo.constants import INSTALL_MEDIUM_URL
-from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.constants import DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
 from robottelo.logging import logger
 
 CUSTOM_REPO_ERRATA_ID = settings.repos.yum_0.errata[0]

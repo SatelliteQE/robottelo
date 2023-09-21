@@ -39,11 +39,11 @@ Usage::
             with locking_function(self.test_to_lock):
                 # do some operations that conflict with test_to_lock
 """
+from contextlib import contextmanager
 import functools
 import inspect
 import os
 import tempfile
-from contextlib import contextmanager
 
 from pytest_services.locks import file_lock
 

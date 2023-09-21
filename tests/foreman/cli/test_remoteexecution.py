@@ -16,20 +16,21 @@
 
 :Upstream: No
 """
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from time import sleep
 
-import pytest
 from broker import Broker
 from fauxfactory import gen_string
+import pytest
 
-from robottelo.cli.factory import make_filter
-from robottelo.cli.factory import make_job_invocation
-from robottelo.cli.factory import make_job_invocation_with_credentials
-from robottelo.cli.factory import make_job_template
-from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_user
+from robottelo.cli.factory import (
+    make_filter,
+    make_job_invocation,
+    make_job_invocation_with_credentials,
+    make_job_template,
+    make_role,
+    make_user,
+)
 from robottelo.cli.filter import Filter
 from robottelo.cli.globalparam import GlobalParameter
 from robottelo.cli.host import Host
@@ -40,9 +41,7 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.task import Task
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.hosts import ContentHost
 from robottelo.utils import ohsnap
 

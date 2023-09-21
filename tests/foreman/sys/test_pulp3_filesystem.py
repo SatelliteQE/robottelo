@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import json
 from datetime import datetime
+import json
 
 import pytest
 

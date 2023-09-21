@@ -18,8 +18,8 @@
 """
 import re
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo import constants
 from robottelo.config import settings

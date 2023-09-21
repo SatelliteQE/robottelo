@@ -16,10 +16,10 @@
 
 :Upstream: No
 """
-import pytest
-import requests
 from fauxfactory import gen_string
 from packaging.version import Version
+import pytest
+import requests
 from wait_for import wait_for
 
 
