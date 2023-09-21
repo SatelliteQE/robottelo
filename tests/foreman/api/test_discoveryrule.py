@@ -16,11 +16,9 @@
 
 :Upstream: No
 """
-import pytest
-from fauxfactory import gen_choice
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
+from fauxfactory import gen_choice, gen_integer, gen_string
 from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.utils.datafactory import valid_data_list

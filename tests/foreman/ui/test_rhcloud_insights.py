@@ -18,8 +18,8 @@
 """
 from datetime import datetime
 
-import pytest
 from airgun.session import Session
+import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings

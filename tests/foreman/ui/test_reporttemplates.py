@@ -19,19 +19,15 @@
 import csv
 import json
 import os
-from pathlib import Path
-from pathlib import PurePath
+from pathlib import Path, PurePath
 
-import pytest
-import yaml
 from lxml import etree
 from nailgun import entities
+import pytest
+import yaml
 
 from robottelo.config import robottelo_tmp_dir
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME, PRDS, REPOS, REPOSET
 from robottelo.utils.datafactory import gen_string
 
 

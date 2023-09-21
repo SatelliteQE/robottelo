@@ -18,34 +18,35 @@
 """
 import copy
 import csv
+from datetime import datetime
 import os
 import random
 import re
-from datetime import datetime
 
-import pytest
-import yaml
-from airgun.exceptions import DisabledWidgetError
-from airgun.exceptions import NoSuchElementException
+from airgun.exceptions import DisabledWidgetError, NoSuchElementException
 from airgun.session import Session
+import pytest
 from wait_for import wait_for
+import yaml
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import ANY_CONTEXT
-from robottelo.constants import DEFAULT_CV
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import ENVIRONMENT
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_8_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_8_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.constants import OSCAP_PERIOD
-from robottelo.constants import OSCAP_WEEKDAY
-from robottelo.constants import PERMISSIONS
-from robottelo.constants import REPO_TYPE
+from robottelo.constants import (
+    ANY_CONTEXT,
+    DEFAULT_CV,
+    DEFAULT_LOC,
+    DEFAULT_SUBSCRIPTION_NAME,
+    ENVIRONMENT,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_7_CUSTOM_PACKAGE,
+    FAKE_8_CUSTOM_PACKAGE,
+    FAKE_8_CUSTOM_PACKAGE_NAME,
+    FOREMAN_PROVIDERS,
+    OSCAP_PERIOD,
+    OSCAP_WEEKDAY,
+    PERMISSIONS,
+    REPO_TYPE,
+)
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.issue_handlers import is_open
 

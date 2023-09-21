@@ -19,8 +19,8 @@
 import datetime
 import time
 
-import pytest
 from broker import Broker
+import pytest
 from wait_for import wait_for
 
 from robottelo.hosts import ContentHost

@@ -18,12 +18,11 @@
 """
 import random
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_realm
+from robottelo.cli.factory import CLIFactoryError, make_realm
 from robottelo.cli.realm import Realm
 
 

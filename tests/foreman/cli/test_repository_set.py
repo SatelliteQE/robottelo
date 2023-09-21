@@ -20,8 +20,7 @@ import pytest
 
 from robottelo.cli.product import Product
 from robottelo.cli.repository_set import RepositorySet
-from robottelo.constants import PRDS
-from robottelo.constants import REPOSET
+from robottelo.constants import PRDS, REPOSET
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.tier1]
 

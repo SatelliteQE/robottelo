@@ -20,18 +20,19 @@ interactions and use capsule.
 import re
 from time import sleep
 
-import pytest
-from nailgun import client
-from nailgun import entities
+from nailgun import client, entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
+import pytest
 
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import DataFile
 from robottelo.constants.repos import ANSIBLE_GALAXY
-from robottelo.content_info import get_repo_files_by_url
-from robottelo.content_info import get_repomd
-from robottelo.content_info import get_repomd_revision
+from robottelo.content_info import (
+    get_repo_files_by_url,
+    get_repomd,
+    get_repomd_revision,
+)
 
 
 @pytest.mark.run_in_one_thread

@@ -19,12 +19,11 @@
 # For ease of use hc refers to host-collection throughout this document
 from time import sleep
 
-import pytest
 from nailgun import entities
+import pytest
 
 from robottelo import constants
-from robottelo.cli.factory import setup_org_for_a_custom_repo
-from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.cli.factory import setup_org_for_a_custom_repo, setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME

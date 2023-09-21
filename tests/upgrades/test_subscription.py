@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from manifester import Manifester
+import pytest
 
 from robottelo import constants
 from robottelo.config import settings

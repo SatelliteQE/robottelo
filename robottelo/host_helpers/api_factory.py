@@ -2,23 +2,23 @@
 It is not meant to be used directly, but as part of a robottelo.hosts.Satellite instance
 example: my_satellite.api_factory.api_method()
 """
-import time
 from contextlib import contextmanager
+import time
 
-from fauxfactory import gen_ipaddr
-from fauxfactory import gen_mac
-from fauxfactory import gen_string
+from fauxfactory import gen_ipaddr, gen_mac, gen_string
 from nailgun import entity_mixins
 from nailgun.client import request
 from nailgun.entity_mixins import call_entity_method_with_timeout
 from requests import HTTPError
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DEFAULT_PTABLE
-from robottelo.constants import DEFAULT_PXE_TEMPLATE
-from robottelo.constants import DEFAULT_TEMPLATE
-from robottelo.constants import REPO_TYPE
+from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    DEFAULT_PTABLE,
+    DEFAULT_PXE_TEMPLATE,
+    DEFAULT_TEMPLATE,
+    REPO_TYPE,
+)
 from robottelo.exceptions import ImproperlyConfigured
 
 

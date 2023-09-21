@@ -15,32 +15,33 @@
 
 :Upstream: No
 """
-import pytest
 from broker import Broker
 from fauxfactory import gen_alpha
+import pytest
 
 from robottelo.cli.activationkey import ActivationKey
-from robottelo.cli.base import Base
-from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.base import Base, CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_activation_key
-from robottelo.cli.factory import make_architecture
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_fake_host
-from robottelo.cli.factory import make_filter
-from robottelo.cli.factory import make_lifecycle_environment
-from robottelo.cli.factory import make_medium
-from robottelo.cli.factory import make_os
-from robottelo.cli.factory import make_partition_table
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_report_template
-from robottelo.cli.factory import make_repository
-from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_template_input
-from robottelo.cli.factory import make_user
-from robottelo.cli.factory import setup_org_for_a_custom_repo
-from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_activation_key,
+    make_architecture,
+    make_content_view,
+    make_fake_host,
+    make_filter,
+    make_lifecycle_environment,
+    make_medium,
+    make_os,
+    make_partition_table,
+    make_product,
+    make_report_template,
+    make_repository,
+    make_role,
+    make_template_input,
+    make_user,
+    setup_org_for_a_custom_repo,
+    setup_org_for_a_rh_repo,
+)
 from robottelo.cli.filter import Filter
 from robottelo.cli.host import Host
 from robottelo.cli.location import Location
@@ -51,17 +52,19 @@ from robottelo.cli.settings import Settings
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DEFAULT_ORG
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import PRDS
-from robottelo.constants import REPORT_TEMPLATE_FILE
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import (
+    DEFAULT_LOC,
+    DEFAULT_ORG,
+    DEFAULT_SUBSCRIPTION_NAME,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_2_CUSTOM_PACKAGE,
+    PRDS,
+    REPORT_TEMPLATE_FILE,
+    REPOS,
+    REPOSET,
+)
 from robottelo.hosts import ContentHost
 
 

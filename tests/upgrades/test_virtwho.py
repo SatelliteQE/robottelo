@@ -16,18 +16,20 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.host import Host
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.utils.issue_handlers import is_open
-from robottelo.utils.virtwho import deploy_configure_by_command
-from robottelo.utils.virtwho import get_configure_command
-from robottelo.utils.virtwho import get_configure_file
-from robottelo.utils.virtwho import get_configure_option
+from robottelo.utils.virtwho import (
+    deploy_configure_by_command,
+    get_configure_command,
+    get_configure_file,
+    get_configure_option,
+)
 
 
 @pytest.fixture

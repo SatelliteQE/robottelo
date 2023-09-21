@@ -1,20 +1,21 @@
+from collections import defaultdict
+from datetime import datetime
 import inspect
 import json
 import re
-from collections import defaultdict
-from datetime import datetime
 
 import pytest
 
 from robottelo.config import settings
 from robottelo.logging import collection_logger as logger
 from robottelo.utils import slugify_component
-from robottelo.utils.issue_handlers import add_workaround
-from robottelo.utils.issue_handlers import bugzilla
-from robottelo.utils.issue_handlers import is_open
-from robottelo.utils.issue_handlers import should_deselect
-from robottelo.utils.version import search_version_key
-from robottelo.utils.version import VersionEncoder
+from robottelo.utils.issue_handlers import (
+    add_workaround,
+    bugzilla,
+    is_open,
+    should_deselect,
+)
+from robottelo.utils.version import VersionEncoder, search_version_key
 
 DEFAULT_BZ_CACHE_FILE = 'bz_cache.json'
 

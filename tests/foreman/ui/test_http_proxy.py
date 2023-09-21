@@ -16,14 +16,11 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
-from fauxfactory import gen_url
 
 from robottelo.config import settings
-from robottelo.constants import DOCKER_REPO_UPSTREAM_NAME
-from robottelo.constants import REPO_TYPE
+from robottelo.constants import DOCKER_REPO_UPSTREAM_NAME, REPO_TYPE
 
 
 @pytest.mark.tier2

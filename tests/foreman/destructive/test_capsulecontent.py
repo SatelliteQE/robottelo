@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_alpha
+import pytest
 
 from robottelo import constants
 

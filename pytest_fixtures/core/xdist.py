@@ -1,12 +1,10 @@
 """Fixtures specific to or relating to pytest's xdist plugin"""
 import random
 
-import pytest
 from broker import Broker
+import pytest
 
-from robottelo.config import configure_airgun
-from robottelo.config import configure_nailgun
-from robottelo.config import settings
+from robottelo.config import configure_airgun, configure_nailgun, settings
 from robottelo.hosts import Satellite
 from robottelo.logging import logger
 

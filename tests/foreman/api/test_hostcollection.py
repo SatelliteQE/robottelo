@@ -16,18 +16,19 @@
 
 :Upstream: No
 """
-from random import choice
-from random import randint
+from random import choice, randint
 
-import pytest
 from broker import Broker
 from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.hosts import ContentHost
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 @pytest.fixture(scope='module')

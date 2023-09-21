@@ -16,15 +16,12 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_string, gen_url
 import pytest
-from fauxfactory import gen_string
-from fauxfactory import gen_url
 from requests import HTTPError
 
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import parametrized, valid_data_list
 from robottelo.utils.issue_handlers import is_open
-
 
 pytestmark = [pytest.mark.run_in_one_thread]
 

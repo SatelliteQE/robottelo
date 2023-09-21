@@ -1,13 +1,10 @@
 # Repository Fixtures
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
+import pytest
 
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import DEFAULT_ARCHITECTURE, PRDS, REPOS, REPOSET
 
 
 @pytest.fixture(scope='module')

@@ -18,18 +18,18 @@
 """
 from datetime import timedelta
 
-import pytest
 from fauxfactory import gen_choice
 from nailgun import entities
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DataFile
-from robottelo.constants import REPO_TYPE
-from robottelo.constants import SYNC_INTERVAL
-from robottelo.utils.datafactory import gen_string
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_cron_expressions
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.constants import REPO_TYPE, SYNC_INTERVAL, DataFile
+from robottelo.utils.datafactory import (
+    gen_string,
+    parametrized,
+    valid_cron_expressions,
+    valid_data_list,
+)
 
 
 @pytest.fixture(scope='module')

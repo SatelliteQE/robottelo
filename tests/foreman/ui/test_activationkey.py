@@ -18,18 +18,17 @@
 """
 import random
 
-import pytest
 from airgun.session import Session
 from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo import constants
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import parametrized, valid_data_list
 
 
 @pytest.mark.tier2
