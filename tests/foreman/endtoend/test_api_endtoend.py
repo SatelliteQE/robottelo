@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import http
-import random
 from collections import defaultdict
 from pprint import pformat
 
@@ -35,7 +34,6 @@ from robottelo.config import settings
 from robottelo.config import user_nailgun_config
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.utils.issue_handlers import is_open
-from robottelo.utils.manifest import clone
 
 
 API_PATHS = {

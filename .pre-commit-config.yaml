@@ -10,22 +10,17 @@ repos:
   hooks:
   - id: trailing-whitespace
     exclude: tests/foreman/data/
-  - id: end-of-file-fixer
   - id: check-yaml
   - id: debug-statements
-- repo: https://github.com/asottile/pyupgrade
-  rev: v3.3.0
-  hooks:
-  - id: pyupgrade
-    args: [--py38-plus]
 - repo: https://github.com/psf/black
   rev: 22.10.0
   hooks:
   - id: black
-- repo: https://github.com/pycqa/flake8
-  rev: 6.0.0
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.0.277
   hooks:
-  - id: flake8
+    - id: ruff
+      args: [--fix, --exit-non-zero-on-fix]
 - repo: local
   hooks:
     - id: fix-uuids

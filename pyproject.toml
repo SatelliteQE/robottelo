@@ -15,6 +15,29 @@ exclude = '''
 )/
 '''
 
+[tool.ruff]
+target-version = "py311"
+fixable = ["ALL"]
+
+select = [
+    # "C90", # mccabe
+    "E",  # pycodestyle
+    "F",  # flake8
+    # "Q",  # flake8-quotes
+    "UP",  # pyupgrade
+    "W",  # pycodestyle
+]
+
+# Allow lines to be as long as 100 characters.
+line-length = 100
+
+
+[tool.ruff.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.mccabe]
+max-complexity = 20
+
 [tool.pytest.ini_options]
 junit_logging = 'all'
 addopts = '--show-capture=no'
