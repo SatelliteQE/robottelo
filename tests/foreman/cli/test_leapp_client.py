@@ -4,7 +4,7 @@
 
 :CaseLevel: Integration
 
-:CaseComponent: LeappIntegration
+:CaseComponent: Leappintegration
 
 :Team: Rocket
 
@@ -176,7 +176,9 @@ def verify_target_repo_on_satellite(
 
 
 @pytest.fixture
-def custom_leapp_host(upgrade_path, module_target_sat, module_sca_manifest_org, function_leapp_ak):
+def custom_leapp_host(
+    upgrade_path, module_target_sat, module_sca_manifest_org, module_location, function_leapp_ak
+):
     """Checkout content host and register with satellite"""
     deploy_args = {}
     deploy_args['deploy_rhel_version'] = upgrade_path['source_version']
@@ -187,7 +189,7 @@ def custom_leapp_host(upgrade_path, module_target_sat, module_sca_manifest_org, 
         deploy_flavor=settings.flavors.default,
     ) as chost:
         result = chost.register(
-            module_sca_manifest_org, None, function_leapp_ak.name, module_target_sat
+            module_sca_manifest_org, module_location, function_leapp_ak.name, module_target_sat
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         yield chost
