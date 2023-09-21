@@ -12,23 +12,21 @@
 
 :Upstream: No
 """
-from random import choice
-from random import randint
-from random import shuffle
+from random import choice, randint, shuffle
 
-import pytest
-from fauxfactory import gen_string
-from fauxfactory import gen_url
+from fauxfactory import gen_string, gen_url
 from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.utils.datafactory import generate_strings_list
-from robottelo.utils.datafactory import invalid_docker_upstream_names
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_docker_repository_names
-from robottelo.utils.datafactory import valid_docker_upstream_names
+from robottelo.constants import CONTAINER_REGISTRY_HUB, CONTAINER_UPSTREAM_NAME
+from robottelo.utils.datafactory import (
+    generate_strings_list,
+    invalid_docker_upstream_names,
+    parametrized,
+    valid_docker_repository_names,
+    valid_docker_upstream_names,
+)
 
 DOCKER_PROVIDER = 'Docker'
 

@@ -9,8 +9,7 @@ from dynaconf.validator import ValidationError
 from nailgun.config import ServerConfig
 
 from robottelo.config.validators import VALIDATORS
-from robottelo.logging import logger
-from robottelo.logging import robottelo_root_dir
+from robottelo.logging import logger, robottelo_root_dir
 
 if not os.getenv('ROBOTTELO_DIR'):
     # dynaconf robottelo file uses ROBOTELLO_DIR for screenshots
@@ -150,8 +149,7 @@ def configure_nailgun():
         of this.
     * Set a default value for ``nailgun.entities.GPGKey.content``.
     """
-    from nailgun import entities
-    from nailgun import entity_mixins
+    from nailgun import entities, entity_mixins
     from nailgun.config import ServerConfig
 
     entity_mixins.CREATE_MISSING = True

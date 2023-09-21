@@ -1,5 +1,5 @@
-import pytest
 from broker import Broker
+import pytest
 
 from robottelo.hosts import Capsule
 from robottelo.logging import logger

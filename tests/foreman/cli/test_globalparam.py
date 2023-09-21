@@ -18,11 +18,10 @@
 """
 from functools import partial
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.globalparam import GlobalParameter
-
 
 pytestmark = [pytest.mark.tier1]
 

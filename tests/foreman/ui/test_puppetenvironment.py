@@ -18,8 +18,7 @@
 """
 import pytest
 
-from robottelo.constants import DEFAULT_CV
-from robottelo.constants import ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.utils.datafactory import gen_string
 
 

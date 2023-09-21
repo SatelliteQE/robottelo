@@ -3,11 +3,9 @@ import json
 import re
 import uuid
 
-import requests
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
-from fauxfactory import gen_url
+from fauxfactory import gen_integer, gen_string, gen_url
 from nailgun import entities
+import requests
 from wait_for import wait_for
 
 from robottelo import ssh

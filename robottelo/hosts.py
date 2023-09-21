@@ -1,69 +1,63 @@
+from configparser import ConfigParser
 import contextlib
+from contextlib import contextmanager
+from datetime import datetime
+from functools import cached_property, lru_cache
 import importlib
 import io
 import json
+from pathlib import Path, PurePath
 import random
 import re
-import time
-from configparser import ConfigParser
-from contextlib import contextmanager
-from datetime import datetime
-from functools import cached_property
-from functools import lru_cache
-from pathlib import Path
-from pathlib import PurePath
 from tempfile import NamedTemporaryFile
-from urllib.parse import urljoin
-from urllib.parse import urlparse
-from urllib.parse import urlunsplit
+import time
+from urllib.parse import urljoin, urlparse, urlunsplit
 
-import requests
-import yaml
 from box import Box
 from broker import Broker
 from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
-from fauxfactory import gen_alpha
-from fauxfactory import gen_string
+from fauxfactory import gen_alpha, gen_string
 from manifester import Manifester
 from nailgun import entities
 from packaging.version import Version
+import requests
 from ssh2.exceptions import AuthenticationError
-from wait_for import TimedOutError
-from wait_for import wait_for
+from wait_for import TimedOutError, wait_for
 from wrapanapi.entities.vm import VmState
+import yaml
 
 from robottelo import constants
 from robottelo.cli.base import Base
 from robottelo.cli.factory import CLIFactoryError
-from robottelo.config import configure_airgun
-from robottelo.config import configure_nailgun
-from robottelo.config import robottelo_tmp_dir
-from robottelo.config import settings
-from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS
-from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
-from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import HAMMER_CONFIG
-from robottelo.constants import KEY_CLOAK_CLI
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.constants import RHSSO_NEW_GROUP
-from robottelo.constants import RHSSO_NEW_USER
-from robottelo.constants import RHSSO_RESET_PASSWORD
-from robottelo.constants import RHSSO_USER_UPDATE
-from robottelo.constants import SATELLITE_VERSION
-from robottelo.exceptions import DownloadFileError
-from robottelo.exceptions import HostPingFailed
-from robottelo.host_helpers import CapsuleMixins
-from robottelo.host_helpers import ContentHostMixins
-from robottelo.host_helpers import SatelliteMixins
+from robottelo.config import (
+    configure_airgun,
+    configure_nailgun,
+    robottelo_tmp_dir,
+    settings,
+)
+from robottelo.constants import (
+    CUSTOM_PUPPET_MODULE_REPOS,
+    CUSTOM_PUPPET_MODULE_REPOS_PATH,
+    CUSTOM_PUPPET_MODULE_REPOS_VERSION,
+    DEFAULT_ARCHITECTURE,
+    HAMMER_CONFIG,
+    KEY_CLOAK_CLI,
+    PRDS,
+    REPOS,
+    REPOSET,
+    RHSSO_NEW_GROUP,
+    RHSSO_NEW_USER,
+    RHSSO_RESET_PASSWORD,
+    RHSSO_USER_UPDATE,
+    SATELLITE_VERSION,
+)
+from robottelo.exceptions import DownloadFileError, HostPingFailed
+from robottelo.host_helpers import CapsuleMixins, ContentHostMixins, SatelliteMixins
 from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
-
 
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
@@ -1266,9 +1260,9 @@ class ContentHost(Host, ContentHostMixins):
         :param bool upload_manifest: whether to upload the organization manifest
         :param list extra_repos: (Optional) repositories dict options to setup additionally.
         """
-        from robottelo.cli.org import Org
         from robottelo.cli import factory as cli_factory
         from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
+        from robottelo.cli.org import Org
         from robottelo.cli.subscription import Subscription
         from robottelo.cli.virt_who_config import VirtWhoConfig
 

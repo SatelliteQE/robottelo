@@ -16,14 +16,11 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
-from fauxfactory import gen_url
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import make_product, make_repository
 from robottelo.cli.http_proxy import HttpProxy
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository

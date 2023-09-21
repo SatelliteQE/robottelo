@@ -16,12 +16,11 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_alpha
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DataFile
-from robottelo.constants import RPM_TO_UPLOAD
+from robottelo.constants import RPM_TO_UPLOAD, DataFile
 
 
 class TestContentView:
