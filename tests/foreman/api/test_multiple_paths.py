@@ -92,7 +92,7 @@ def _get_readable_attributes(entity):
     for field_name in list(attributes.keys()):
         if isinstance(
             entity.get_fields()[field_name],
-            (entity_fields.OneToOneField, entity_fields.OneToManyField),
+            entity_fields.OneToOneField | entity_fields.OneToManyField,
         ):
             del attributes[field_name]
 
