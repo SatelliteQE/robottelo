@@ -78,6 +78,7 @@ def vm(module_repos_collection_with_manifest, rhel7_contenthost, target_sat):
     """Virtual machine registered in satellite"""
     module_repos_collection_with_manifest.setup_virtual_machine(rhel7_contenthost)
     rhel7_contenthost.add_rex_key(target_sat)
+    rhel7_contenthost.run(r'subscription-manager repos --enable \*')
     yield rhel7_contenthost
 
 
