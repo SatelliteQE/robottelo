@@ -127,7 +127,7 @@ class TestReturnTypes:
         ):
             assert isinstance(item, str)
         for item in datafactory.invalid_id_list():
-            if not (isinstance(item, (str, int)) or item is None):
+            if not (isinstance(item, str | int) or item is None):
                 pytest.fail('Unexpected data type')
 
 
