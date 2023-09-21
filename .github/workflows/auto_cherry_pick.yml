@@ -40,6 +40,12 @@ jobs:
         label: ${{ github.event.pull_request.labels.*.name }}
 
     steps:
+      # Needed to avoid out-of-memory error
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 10
+
       ## Robottelo Repo Checkout
       - uses: actions/checkout@v4
         if: ${{ startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}

@@ -316,7 +316,6 @@ REPOSET = {
     'rhel7_extra': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
     'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
-    'rhst7_610': 'Red Hat Satellite Tools 6.10 (for RHEL 7 Server) (RPMs)',
 }
 
 SM_OVERALL_STATUS = {
@@ -858,6 +857,7 @@ CUSTOM_PUPPET_MODULE_REPOS_VERSION = '-0.2.0.tar.gz'
 
 PULP_EXPORT_DIR = '/var/lib/pulp/exports/'
 PULP_IMPORT_DIR = '/var/lib/pulp/imports/'
+EXPORT_LIBRARY_NAME = 'Export-Library'
 
 PUPPET_COMMON_INSTALLER_OPTS = {
     'foreman-proxy-puppetca': 'true',
