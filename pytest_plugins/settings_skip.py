@@ -1,7 +1,6 @@
 import pytest
 
-from robottelo.config import setting_is_set
-from robottelo.config import settings
+from robottelo.config import setting_is_set, settings
 
 
 def pytest_configure(config):

@@ -1,10 +1,9 @@
 # Content Component fixtures
-import pytest
 from manifester import Manifester
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.utils.manifest import clone
 
 

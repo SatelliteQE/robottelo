@@ -16,12 +16,11 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.constants.repos import PULP_FIXTURE_ROOT
-from robottelo.constants.repos import PULP_SUBPATHS_COMBINED
+from robottelo.constants.repos import PULP_FIXTURE_ROOT, PULP_SUBPATHS_COMBINED
 
 
 @pytest.mark.e2e

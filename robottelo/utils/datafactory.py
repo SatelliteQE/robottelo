@@ -1,18 +1,13 @@
 """Data Factory for all entities"""
+from functools import wraps
 import random
 import string
-from functools import wraps
 from urllib.parse import quote_plus
 
-from fauxfactory import gen_alpha
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
-from fauxfactory import gen_url
-from fauxfactory import gen_utf8
+from fauxfactory import gen_alpha, gen_integer, gen_string, gen_url, gen_utf8
 
 from robottelo.config import settings
-from robottelo.constants import DOMAIN
-from robottelo.constants import STRING_TYPES
+from robottelo.constants import DOMAIN, STRING_TYPES
 
 
 class InvalidArgumentError(Exception):

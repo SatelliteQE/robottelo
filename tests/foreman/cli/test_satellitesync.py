@@ -16,31 +16,35 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from manifester import Manifester
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.content_export import ContentExport
 from robottelo.cli.content_import import ContentImport
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_org
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import (
+    make_content_view,
+    make_org,
+    make_product,
+    make_repository,
+)
 from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.cli.settings import Settings
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DEFAULT_CV
-from robottelo.constants import EXPORT_LIBRARY_NAME
-from robottelo.constants import PULP_EXPORT_DIR
-from robottelo.constants import PULP_IMPORT_DIR
-from robottelo.constants import REPO_TYPE
-from robottelo.constants import REPOS
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    DEFAULT_ARCHITECTURE,
+    DEFAULT_CV,
+    EXPORT_LIBRARY_NAME,
+    PULP_EXPORT_DIR,
+    PULP_IMPORT_DIR,
+    REPO_TYPE,
+    REPOS,
+)
 from robottelo.constants.repos import ANSIBLE_GALAXY
 
 

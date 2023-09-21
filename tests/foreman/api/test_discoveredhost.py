@@ -16,14 +16,10 @@
 """
 import re
 
-import pytest
-from fauxfactory import gen_choice
-from fauxfactory import gen_ipaddr
-from fauxfactory import gen_mac
-from fauxfactory import gen_string
+from fauxfactory import gen_choice, gen_ipaddr, gen_mac, gen_string
 from nailgun import entity_mixins
-from wait_for import TimedOutError
-from wait_for import wait_for
+import pytest
+from wait_for import TimedOutError, wait_for
 
 from robottelo.logging import logger
 from robottelo.utils.datafactory import valid_data_list

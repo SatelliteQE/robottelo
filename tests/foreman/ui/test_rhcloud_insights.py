@@ -22,9 +22,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DNF_RECOMMENDATION
-from robottelo.constants import OPENSSH_RECOMMENDATION
+from robottelo.constants import DEFAULT_LOC, DNF_RECOMMENDATION, OPENSSH_RECOMMENDATION
 
 
 def create_insights_vulnerability(insights_vm):

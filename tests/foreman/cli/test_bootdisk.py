@@ -16,9 +16,8 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_mac, gen_string
 import pytest
-from fauxfactory import gen_mac
-from fauxfactory import gen_string
 
 from robottelo.config import settings
 from robottelo.constants import HTTPS_MEDIUM_URL

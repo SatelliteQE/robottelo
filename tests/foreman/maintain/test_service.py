@@ -16,13 +16,15 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import HAMMER_CONFIG
-from robottelo.constants import MAINTAIN_HAMMER_YML
-from robottelo.constants import SATELLITE_ANSWER_FILE
+from robottelo.constants import (
+    HAMMER_CONFIG,
+    MAINTAIN_HAMMER_YML,
+    SATELLITE_ANSWER_FILE,
+)
 from robottelo.hosts import Satellite
 
 SATELLITE_SERVICES = [

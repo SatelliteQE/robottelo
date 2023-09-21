@@ -1,6 +1,6 @@
+from fauxfactory import gen_string
 import pytest
 import requests
-from fauxfactory import gen_string
 
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR

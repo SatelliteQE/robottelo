@@ -1,5 +1,5 @@
-import pytest
 from box import Box
+import pytest
 
 from robottelo.config import settings
 from robottelo.utils.installer import InstallerCommand

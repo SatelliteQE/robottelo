@@ -24,14 +24,16 @@ import pytest
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.settings import Settings
 from robottelo.config import settings
-from robottelo.utils.datafactory import gen_string
-from robottelo.utils.datafactory import generate_strings_list
-from robottelo.utils.datafactory import invalid_boolean_strings
-from robottelo.utils.datafactory import invalid_emails_list
-from robottelo.utils.datafactory import valid_data_list
-from robottelo.utils.datafactory import valid_emails_list
-from robottelo.utils.datafactory import valid_url_list
-from robottelo.utils.datafactory import xdist_adapter
+from robottelo.utils.datafactory import (
+    gen_string,
+    generate_strings_list,
+    invalid_boolean_strings,
+    invalid_emails_list,
+    valid_data_list,
+    valid_emails_list,
+    valid_url_list,
+    xdist_adapter,
+)
 
 
 @pytest.mark.stubbed

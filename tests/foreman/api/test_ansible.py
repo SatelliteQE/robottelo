@@ -16,12 +16,11 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 from wait_for import wait_for
 
-from robottelo.config import settings
-from robottelo.config import user_nailgun_config
+from robottelo.config import settings, user_nailgun_config
 from robottelo.utils.issue_handlers import is_open
 
 

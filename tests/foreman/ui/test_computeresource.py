@@ -16,17 +16,13 @@
 
 :Upstream: No
 """
-import pytest
 from nailgun import entities
+import pytest
 from wait_for import wait_for
 
-from robottelo.config import setting_is_set
-from robottelo.config import settings
-from robottelo.constants import COMPUTE_PROFILE_LARGE
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.config import setting_is_set, settings
+from robottelo.constants import COMPUTE_PROFILE_LARGE, DEFAULT_LOC, FOREMAN_PROVIDERS
 from robottelo.utils.datafactory import gen_string
-
 
 # TODO mark this on the module with a lambda for skip condition
 # so that this is executed during the session at run loop, instead of at module import

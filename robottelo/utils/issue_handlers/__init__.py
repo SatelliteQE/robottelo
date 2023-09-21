@@ -1,7 +1,6 @@
 # Methods related to issue handlers in general
 from robottelo.utils.issue_handlers import bugzilla
 
-
 handler_methods = {'BZ': bugzilla.is_open_bz}
 SUPPORTED_HANDLERS = tuple(f"{handler}:" for handler in handler_methods.keys())
 

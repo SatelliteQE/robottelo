@@ -16,25 +16,25 @@
 
 :Upstream: No
 """
-import http
 from collections import defaultdict
+import http
 from pprint import pformat
 
-import pytest
 from deepdiff import DeepDiff
 from fauxfactory import gen_string
-from nailgun import client
-from nailgun import entities
+from nailgun import client, entities
+import pytest
 
 from robottelo import constants
-from robottelo.config import get_credentials
-from robottelo.config import get_url
-from robottelo.config import setting_is_set
-from robottelo.config import settings
-from robottelo.config import user_nailgun_config
+from robottelo.config import (
+    get_credentials,
+    get_url,
+    setting_is_set,
+    settings,
+    user_nailgun_config,
+)
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.utils.issue_handlers import is_open
-
 
 API_PATHS = {
     # flake8:noqa (line-too-long)
