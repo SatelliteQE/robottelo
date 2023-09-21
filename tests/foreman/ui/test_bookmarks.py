@@ -42,7 +42,7 @@ def ui_entity(module_org, module_location, request):
         # Skip the entities, which can't be tested ATM (not implemented in
         # airgun or have open BZs)
         skip = entity.get('skip_for_ui')
-        if isinstance(skip, (tuple, list)):
+        if isinstance(skip, tuple | list):
             open_issues = {issue for issue in skip if is_open(issue)}
             pytest.skip(f'There is/are an open issue(s) {open_issues} with entity {entity_name}')
         # entities with 1 organization and location
