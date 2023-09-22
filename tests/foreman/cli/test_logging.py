@@ -18,12 +18,11 @@
 """
 import re
 
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import make_product, make_repository
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings

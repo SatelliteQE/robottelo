@@ -16,9 +16,8 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_domain, gen_string
 import pytest
-from fauxfactory import gen_domain
-from fauxfactory import gen_string
 
 from robottelo.config import settings
 from robottelo.utils.installer import InstallerCommand

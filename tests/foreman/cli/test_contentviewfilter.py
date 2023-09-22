@@ -18,19 +18,20 @@
 """
 import random
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.defaults import Defaults
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import make_content_view, make_repository
 from robottelo.cli.repository import Repository
 from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 @pytest.fixture(scope='module')

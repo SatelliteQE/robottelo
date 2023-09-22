@@ -16,20 +16,21 @@
 
 :Upstream: No
 """
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 
-import pytest
 from nailgun import entities
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import ENVIRONMENT
-from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    DEFAULT_SUBSCRIPTION_NAME,
+    ENVIRONMENT,
+    FAKE_4_CUSTOM_PACKAGE,
+    PRDS,
+    REPOS,
+    REPOSET,
+)
 
 pytestmark = [pytest.mark.run_in_one_thread]
 

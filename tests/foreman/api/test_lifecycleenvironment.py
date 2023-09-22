@@ -20,15 +20,17 @@ http://www.katello.org/docs/api/apidoc/lifecycle_environments.html
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.constants import ENVIRONMENT
-from robottelo.utils.datafactory import invalid_names_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    invalid_names_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 @pytest.fixture(scope='module')

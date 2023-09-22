@@ -16,13 +16,12 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DataFile
-from robottelo.constants import RPM_TO_UPLOAD
+from robottelo.constants import RPM_TO_UPLOAD, DataFile
 
 
 @pytest.fixture(scope='module')

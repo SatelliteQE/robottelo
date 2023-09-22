@@ -21,14 +21,9 @@ import requests
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG
-from robottelo.constants import FOREMAN_SETTINGS_YML
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import DEFAULT_ORG, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
 from robottelo.hosts import setup_capsule
 from robottelo.utils.installer import InstallerCommand
-
 
 PREVIOUS_INSTALLER_OPTIONS = {
     '-',

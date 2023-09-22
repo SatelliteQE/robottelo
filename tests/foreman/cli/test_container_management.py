@@ -12,21 +12,25 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 from wait_for import wait_for
 
-from robottelo.cli.factory import ContentView
-from robottelo.cli.factory import LifecycleEnvironment
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_lifecycle_environment
-from robottelo.cli.factory import make_product_wait
-from robottelo.cli.factory import make_repository
-from robottelo.cli.factory import Repository
+from robottelo.cli.factory import (
+    ContentView,
+    LifecycleEnvironment,
+    Repository,
+    make_content_view,
+    make_lifecycle_environment,
+    make_product_wait,
+    make_repository,
+)
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import REPO_TYPE
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+    REPO_TYPE,
+)
 from robottelo.logging import logger
 
 

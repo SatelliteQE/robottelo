@@ -16,12 +16,11 @@
 
 :Upstream: No
 """
-import pytest
 from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.constants import LDAP_ATTR
-from robottelo.constants import LDAP_SERVER_TYPE
+from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.utils.datafactory import generate_strings_list
 
 

@@ -16,17 +16,18 @@
 """
 import base64
 
-import pytest
-import requests
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
+import requests
 
 from robottelo.cli.template import Template
 from robottelo.cli.template_sync import TemplateSync
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
-from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
-
+from robottelo.constants import (
+    FOREMAN_TEMPLATE_IMPORT_URL,
+    FOREMAN_TEMPLATE_TEST_TEMPLATE,
+)
 
 git = settings.git
 
