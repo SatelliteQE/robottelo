@@ -33,12 +33,16 @@ BACKUP_DIR = "/tmp/"
 
 
 BASIC_FILES = {"config_files.tar.gz", ".config.snar", "metadata.yml"}
+OFFLINE_FILES = {"pgsql_data.tar.gz", ".postgres.snar"} | BASIC_FILES
+ONLINE_SAT_FILES = {
+    "candlepin.dump",
+    "foreman.dump",
+    "pulpcore.dump",
+    "pg_globals.dump",
+} | BASIC_FILES
+ONLINE_CAPS_FILES = {"pulpcore.dump"} | BASIC_FILES
 CONTENT_FILES = {"pulp_data.tar", ".pulp.snar"}
-OFFLINE_FILES = {"pgsql_data.tar.gz", ".postgres.snar"}
-ONLINE_SAT_FILES = {"candlepin.dump", "foreman.dump", "pulpcore.dump", "pg_globals.dump"}
-ONLINE_CAPS_FILES = {"pulpcore.dump"}
-REMOTE_SAT_FILES = ONLINE_SAT_FILES - {"pg_globals.dump"}
-
+REMOTEDB_SAT_FILES = ONLINE_SAT_FILES - {"pg_globals.dump"}
 
 NODIR_MSG = "ERROR: parameter 'BACKUP_DIR': no value provided"
 BADDIR_MSG = "The given directory does not contain the required files or has too many files"
@@ -47,22 +51,17 @@ NOPREV_MSG = "ERROR: option '--incremental': Previous backup " "directory does n
 assert_msg = "Some required backup files are missing"
 
 
-def get_exp_files(sat_maintain, backup_type):
+def get_exp_files(sat_maintain, backup_type, skip_pulp=False):
     if type(sat_maintain) is Satellite:
+        # for remote db you get always online backup regardless specified backup type
         if sat_maintain.is_remote_db():
-            expected_files = BASIC_FILES | REMOTE_SAT_FILES
+            expected_files = REMOTEDB_SAT_FILES
         else:
-            expected_files = (
-                BASIC_FILES | OFFLINE_FILES
-                if backup_type == 'offline'
-                else BASIC_FILES | ONLINE_SAT_FILES
-            )
+            expected_files = ONLINE_SAT_FILES if backup_type == 'online' else OFFLINE_FILES
     else:
-        expected_files = (
-            BASIC_FILES | OFFLINE_FILES
-            if backup_type == 'offline'
-            else BASIC_FILES | ONLINE_CAPS_FILES
-        )
+        expected_files = ONLINE_CAPS_FILES if backup_type == 'online' else OFFLINE_FILES
+    if not skip_pulp:
+        expected_files = expected_files | CONTENT_FILES
     return expected_files
 
 
@@ -102,7 +101,7 @@ def test_positive_backup_preserve_directory(
     files = [i for i in files if not re.compile(r'^\.*$').search(i)]
 
     expected_files = get_exp_files(sat_maintain, backup_type)
-    assert set(files).issuperset(expected_files | CONTENT_FILES), assert_msg
+    assert set(files).issuperset(expected_files), assert_msg
 
 
 @pytest.mark.include_capsule
@@ -150,7 +149,7 @@ def test_positive_backup_split_pulp_tar(
     files = [i for i in files if not re.compile(r'^\.*$').search(i)]
 
     expected_files = get_exp_files(sat_maintain, backup_type)
-    assert set(files).issuperset(expected_files | CONTENT_FILES), assert_msg
+    assert set(files).issuperset(expected_files), assert_msg
 
     # Check the split works
     result = sat_maintain.execute(f'du {backup_dir}/pulp_data.tar')
@@ -194,7 +193,7 @@ def test_positive_backup_caspule_features(
     files = [i for i in files if not re.compile(r'^\.*$').search(i)]
 
     expected_files = get_exp_files(sat_maintain, backup_type)
-    assert set(files).issuperset(expected_files | CONTENT_FILES), assert_msg
+    assert set(files).issuperset(expected_files), assert_msg
 
 
 @pytest.mark.include_capsule
@@ -277,12 +276,12 @@ def test_positive_backup_offline_logical(sat_maintain, setup_backup_tests, modul
 
     if type(sat_maintain) is Satellite:
         if sat_maintain.is_remote_db():
-            expected_files = BASIC_FILES | REMOTE_SAT_FILES
+            expected_files = REMOTEDB_SAT_FILES | CONTENT_FILES
         else:
-            expected_files = BASIC_FILES | OFFLINE_FILES | ONLINE_SAT_FILES
+            expected_files = OFFLINE_FILES | ONLINE_SAT_FILES | CONTENT_FILES
     else:
-        expected_files = BASIC_FILES | OFFLINE_FILES | ONLINE_CAPS_FILES
-    assert set(files).issuperset(expected_files | CONTENT_FILES), assert_msg
+        expected_files = OFFLINE_FILES | ONLINE_CAPS_FILES | CONTENT_FILES
+    assert set(files).issuperset(expected_files), assert_msg
 
 
 @pytest.mark.include_capsule
@@ -466,11 +465,8 @@ def test_positive_backup_restore(
     files = sat_maintain.execute(f'ls -a {backup_dir}').stdout.split('\n')
     files = [i for i in files if not re.compile(r'^\.*$').search(i)]
 
-    expected_files = get_exp_files(sat_maintain, backup_type)
-    if not skip_pulp:
-        assert set(files).issuperset(expected_files | CONTENT_FILES), assert_msg
-    else:
-        assert set(files).issuperset(expected_files), assert_msg
+    expected_files = get_exp_files(sat_maintain, backup_type, skip_pulp)
+    assert set(files).issuperset(expected_files), assert_msg
 
     # Run restore
     if not skip_pulp:
@@ -572,15 +568,8 @@ def test_positive_backup_restore_incremental(
     files = sat_maintain.execute(f'ls -a {inc_backup_dir}').stdout.split('\n')
     files = [i for i in files if not re.compile(r'^\.*$').search(i)]
 
-    if sat_maintain.is_remote_db():
-        expected_files = BASIC_FILES | REMOTE_SAT_FILES
-    else:
-        expected_files = (
-            BASIC_FILES | OFFLINE_FILES
-            if backup_type == 'offline'
-            else BASIC_FILES | ONLINE_SAT_FILES
-        )
-    assert set(files).issuperset(expected_files | CONTENT_FILES), assert_msg
+    expected_files = get_exp_files(sat_maintain, backup_type)
+    assert set(files).issuperset(expected_files), assert_msg
 
     # restore initial backup and check system health
     result = sat_maintain.cli.Restore.run(
