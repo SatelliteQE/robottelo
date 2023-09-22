@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-import re
-
 import pytest
 
 from robottelo.config import settings
@@ -66,12 +64,8 @@ def test_positive_satellite_maintain_upgrade_list(sat_maintain):
     result = sat_maintain.cli.Upgrade.list_versions()
     assert result.status == 0
     assert 'FAIL' not in result.stdout
-    # If on stream, check there is no version listed
-    if sat_maintain.is_stream:
-        assert not bool(re.search(r'\d', result.stdout))
-    else:
-        for ver in versions:
-            assert ver in result.stdout
+    for ver in versions:
+        assert ver in result.stdout
 
 
 @pytest.mark.include_capsule
