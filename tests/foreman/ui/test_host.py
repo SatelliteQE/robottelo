@@ -42,7 +42,6 @@ from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import REPO_TYPE
-from robottelo.ui.utils import create_fake_host
 from robottelo.utils.datafactory import gen_string
 
 
@@ -301,9 +300,8 @@ def test_positive_end_to_end(
 
     new_name = 'new{}'.format(gen_string("alpha").lower())
     new_host_name = f'{new_name}.{module_host_template.domain.name}'
-    with session:
-        host_name = create_fake_host(
-            session,
+    with target_sat.ui_session() as session:
+        host_name = target_sat.ui_factory(session).create_fake_host(
             module_host_template,
             host_parameters=host_parameters,
             global_parameters=[overridden_global_parameter],
@@ -335,7 +333,7 @@ def test_positive_end_to_end(
 
 
 @pytest.mark.tier4
-def test_positive_read_from_details_page(session, module_host_template):
+def test_positive_read_from_details_page(session, module_host_template, target_sat):
     """Create new Host and read all its content through details page
 
     :id: ffba5d40-918c-440e-afbb-6b910db3a8fb
@@ -348,8 +346,10 @@ def test_positive_read_from_details_page(session, module_host_template):
         module_host_template.operatingsystem.name, module_host_template.operatingsystem.major
     )
     interface_id = gen_string('alpha')
-    with session:
-        host_name = create_fake_host(session, module_host_template, interface_id)
+    with target_sat.ui_session() as session:
+        host_name = target_sat.ui_factory(session).create_fake_host(
+            module_host_template, interface_id
+        )
         assert session.host.search(host_name)[0]['Name'] == host_name
         values = session.host.get_details(host_name)
         assert values['properties']['properties_table']['Status'] == 'OK'
@@ -375,7 +375,7 @@ def test_positive_read_from_details_page(session, module_host_template):
 
 
 @pytest.mark.tier4
-def test_positive_read_from_edit_page(session, module_host_template):
+def test_positive_read_from_edit_page(session, module_host_template, target_sat):
     """Create new Host and read all its content through edit page
 
     :id: 758fcab3-b363-4bfc-8f5d-173098a7e72d
@@ -388,8 +388,10 @@ def test_positive_read_from_edit_page(session, module_host_template):
         module_host_template.operatingsystem.name, module_host_template.operatingsystem.major
     )
     interface_id = gen_string('alpha')
-    with session:
-        host_name = create_fake_host(session, module_host_template, interface_id)
+    with target_sat.ui_session() as session:
+        host_name = target_sat.ui_factory(session).create_fake_host(
+            module_host_template, interface_id
+        )
         assert session.host.search(host_name)[0]['Name'] == host_name
         values = session.host.read(host_name)
         assert values['host']['name'] == host_name.partition('.')[0]
@@ -578,14 +580,14 @@ def test_positive_create_with_inherited_params(
     )
     host_template.create_missing()
     host_name = f'{host_template.name}.{host_template.domain.name}'
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.update(function_org.name, {'parameters.resources': org_param})
         session.location.update(
             function_location_with_org.name, {'parameters.resources': loc_param}
         )
         session.organization.select(org_name=function_org.name)
         session.location.select(loc_name=function_location_with_org.name)
-        create_fake_host(session, host_template)
+        target_sat.ui_factory(session).create_fake_host(host_template)
         values = session.host.read(host_name, 'parameters')
         expected_params = {
             (org_param['name'], org_param['value']),
@@ -597,7 +599,7 @@ def test_positive_create_with_inherited_params(
 
 
 @pytest.mark.tier4
-def test_negative_delete_primary_interface(session, module_host_template):
+def test_negative_delete_primary_interface(session, module_host_template, target_sat):
     """Attempt to delete primary interface of a host
 
     :id: bc747e2c-38d9-4920-b4ae-6010851f704e
@@ -612,8 +614,10 @@ def test_negative_delete_primary_interface(session, module_host_template):
     :CaseLevel: System
     """
     interface_id = gen_string('alpha')
-    with session:
-        host_name = create_fake_host(session, module_host_template, interface_id=interface_id)
+    with target_sat.ui_session() as session:
+        host_name = target_sat.ui_factory(session).create_fake_host(
+            module_host_template, interface_id=interface_id
+        )
         with pytest.raises(DisabledWidgetError) as context:
             session.host.delete_interface(host_name, interface_id)
         assert 'Interface Delete button is disabled' in str(context.value)
@@ -1877,7 +1881,7 @@ def enable_new_host_details_ui(target_sat, setting_update):
 @pytest.mark.tier4
 @pytest.mark.parametrize('setting_update', ['host_details_ui'], indirect=True)
 def test_positive_read_details_page_from_new_ui(
-    session, module_host_template, enable_new_host_details_ui, setting_update
+    session, module_host_template, enable_new_host_details_ui, setting_update, target_sat
 ):
     """Create new Host and read all its content through details page
 
@@ -1888,9 +1892,9 @@ def test_positive_read_details_page_from_new_ui(
     :CaseLevel: System
     """
     interface_id = gen_string('alpha')
-    with session:
-        host_name = create_fake_host(
-            session, module_host_template, interface_id, new_host_details=True
+    with target_sat.ui_session() as session:
+        host_name = target_sat.ui_factory(session).create_fake_host(
+            module_host_template, interface_id, new_host_details=True
         )
         assert session.host_new.search(host_name)[0]['Name'] == host_name
         values = session.host_new.get_details(host_name)
@@ -2056,8 +2060,7 @@ def test_positive_create_with_puppet_class(
     with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name='Any Location')
-        host_name = create_fake_host(
-            session,
+        host_name = session_puppet_enabled_sat.ui_factory(session).create_fake_host(
             host_template,
             extra_values={
                 'host.puppet_environment': module_env_search.name,
