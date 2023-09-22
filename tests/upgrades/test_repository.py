@@ -19,9 +19,12 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME, FAKE_4_CUSTOM_PACKAGE_NAME
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import REPOS
+from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_4_CUSTOM_PACKAGE_NAME,
+    REPOS,
+)
 from robottelo.hosts import ContentHost
 
 UPSTREAM_USERNAME = 'rTtest123'
@@ -302,6 +305,21 @@ class TestScenarioCustomRepoOverrideCheck:
         assert 'enabled: 1' in result.stdout
         assert f'{org_name}_{product_name}_{repo_name}' in result.stdout
 
+
+class TestScenarioLargeRepoSyncCheck:
+    """Scenario test to verify that large repositories can be synced without
+    failure after an upgrade.
+
+    Test Steps:
+
+        1. Before Satellite upgrade.
+        2. Enable and sync large RH repository.
+        3. Upgrade Satellite.
+        4. Enable and sync a second large repository.
+
+    BZ: 2043144
+    """
+
     @pytest.mark.pre_upgrade
     def test_pre_scenario_sync_large_repo(
         self, target_sat, module_entitlement_manifest_org, save_test_data
@@ -316,8 +334,6 @@ class TestScenarioCustomRepoOverrideCheck:
             2. Sync repository and assert sync succeeds
 
         :expectedresults: Large Repositories should succeed when synced
-
-        :BZ: 2043144
         """
         rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
@@ -345,8 +361,6 @@ class TestScenarioCustomRepoOverrideCheck:
             3. Sync a second large repository in that same organization
 
         :expectedresults: Large repositories should succeed after an upgrade
-
-        :BZ: 2043144
         """
         org_id = pre_upgrade_data.get('org_id')
         rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
