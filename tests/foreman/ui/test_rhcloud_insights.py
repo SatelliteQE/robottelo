@@ -276,22 +276,19 @@ def test_host_details_page(
         session.location.select(loc_name=DEFAULT_LOC)
         # Sync insights recommendations
         session.cloudinsights.sync_hits()
-        result = session.host.host_status(rhel_insights_vm.hostname)
-        assert 'Insights: Reporting' in result
-        assert 'Inventory: Successfully uploaded to your RH cloud inventory' in result
-        result = session.host.search(rhel_insights_vm.hostname)[0]
+        result = session.host_new.get_host_statuses(rhel_insights_vm.hostname)
+        assert result['Insights']['Status'] == 'Reporting'
+        assert result['Inventory']['Status'] == 'Successfully uploaded to your RH cloud inventory'
+        result = session.host_new.search(rhel_insights_vm.hostname)[0]
         assert result['Name'] == rhel_insights_vm.hostname
         assert int(result['Recommendations']) > 0
-        values = session.host.get_details(rhel_insights_vm.hostname)
-        # Note: Reading host properties adds 'clear' to original value.
-        assert (
-            values['properties']['properties_table']['Inventory']
-            == 'Successfully uploaded to your RH cloud inventory clear'
-        )
-        recommendations = session.host.read_insights_recommendations(rhel_insights_vm.hostname)
-        assert len(recommendations), 'No recommendations were found'
-        assert recommendations[0]['Hostname'] == rhel_insights_vm.hostname
-        assert int(result['Recommendations']) == len(recommendations)
+        values = session.host_new.get_host_statuses(rhel_insights_vm.hostname)
+        assert values['Inventory']['Status'] == 'Successfully uploaded to your RH cloud inventory'
+        insights_recommendations = session.host_new.get_insights(rhel_insights_vm.hostname)[
+            'recommendations_table'
+        ]
+        assert len(insights_recommendations), 'No recommendations were found'
+        assert int(result['Recommendations']) == len(insights_recommendations)
 
 
 @pytest.mark.run_in_one_thread
@@ -532,7 +529,8 @@ def test_insights_registration_with_capsule(
     with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
-        cmd = session.host.get_register_command(
+        # Generate host registration command
+        cmd = session.host_new.get_register_command(
             {
                 'general.operating_system': default_os.title,
                 'general.orgnization': org.name,
@@ -549,5 +547,5 @@ def test_insights_registration_with_capsule(
         rhel7_contenthost.execute(cmd)
         assert rhel7_contenthost.subscribed
         assert rhel7_contenthost.execute('insights-client --test-connection').status == 0
-        values = session.host.get_details(rhel7_contenthost.hostname)
-        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
+        values = session.host_new.get_host_statuses(rhel7_contenthost.hostname)
+        assert values['Insights']['Status'] == 'Reporting'
