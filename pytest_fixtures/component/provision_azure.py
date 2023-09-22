@@ -1,15 +1,17 @@
 # Azure CR Fixtures
-import pytest
 from fauxfactory import gen_string
+import pytest
 from wrapanapi import AzureSystem
 
 from robottelo.config import settings
-from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
-from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
-from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
-from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
-from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
-from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import (
+    AZURERM_RHEL7_FT_BYOS_IMG_URN,
+    AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
+    AZURERM_RHEL7_FT_GALLERY_IMG_URN,
+    AZURERM_RHEL7_FT_IMG_URN,
+    AZURERM_RHEL7_UD_IMG_URN,
+    DEFAULT_ARCHITECTURE,
+)
 
 
 @pytest.fixture(scope='session')

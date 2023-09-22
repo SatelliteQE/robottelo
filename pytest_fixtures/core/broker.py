@@ -1,13 +1,11 @@
 from contextlib import contextmanager
 
-import pytest
 from box import Box
 from broker import Broker
+import pytest
 
 from robottelo.config import settings
-from robottelo.hosts import ContentHostError
-from robottelo.hosts import lru_sat_ready_rhel
-from robottelo.hosts import Satellite
+from robottelo.hosts import ContentHostError, Satellite, lru_sat_ready_rhel
 
 
 @pytest.fixture(scope='session')

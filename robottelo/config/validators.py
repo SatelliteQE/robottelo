@@ -1,8 +1,6 @@
 from dynaconf import Validator
 
-from robottelo.constants import AZURERM_VALID_REGIONS
-from robottelo.constants import VALID_GCE_ZONES
-
+from robottelo.constants import AZURERM_VALID_REGIONS, VALID_GCE_ZONES
 
 VALIDATORS = dict(
     supportability=[

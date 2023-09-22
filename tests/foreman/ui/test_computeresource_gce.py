@@ -19,16 +19,18 @@
 import json
 import random
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import COMPUTE_PROFILE_SMALL
-from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.constants import GCE_EXTERNAL_IP_DEFAULT
-from robottelo.constants import GCE_MACHINE_TYPE_DEFAULT
-from robottelo.constants import GCE_NETWORK_DEFAULT
+from robottelo.constants import (
+    COMPUTE_PROFILE_SMALL,
+    FOREMAN_PROVIDERS,
+    GCE_EXTERNAL_IP_DEFAULT,
+    GCE_MACHINE_TYPE_DEFAULT,
+    GCE_NETWORK_DEFAULT,
+)
 
 
 @pytest.mark.tier2

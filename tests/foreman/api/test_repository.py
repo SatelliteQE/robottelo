@@ -17,25 +17,20 @@
 :Upstream: No
 """
 import re
+from string import punctuation
 import tempfile
 import time
-from string import punctuation
-from urllib.parse import urljoin
-from urllib.parse import urlparse
-from urllib.parse import urlunparse
+from urllib.parse import urljoin, urlparse, urlunparse
 
-import pytest
 from fauxfactory import gen_string
-from nailgun import client
-from nailgun import entities
-from nailgun.entity_mixins import call_entity_method_with_timeout
-from nailgun.entity_mixins import TaskFailedError
+from nailgun import client, entities
+from nailgun.entity_mixins import TaskFailedError, call_entity_method_with_timeout
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import DataFile
-from robottelo.constants import repos as repo_constants
+from robottelo.constants import DataFile, repos as repo_constants
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.logging import logger
 from robottelo.utils import datafactory

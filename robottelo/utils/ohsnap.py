@@ -1,12 +1,11 @@
 """Utility module to communicate with Ohsnap API"""
-import requests
 from box import Box
 from packaging.version import Version
+import requests
 from wait_for import wait_for
 
 from robottelo import constants
-from robottelo.exceptions import InvalidArgumentError
-from robottelo.exceptions import RepositoryDataNotFound
+from robottelo.exceptions import InvalidArgumentError, RepositoryDataNotFound
 from robottelo.logging import logger
 
 

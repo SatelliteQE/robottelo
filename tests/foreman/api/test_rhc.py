@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.utils.issue_handlers import is_open
 

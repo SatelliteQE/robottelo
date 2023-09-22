@@ -21,15 +21,16 @@ import random
 import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_user
-from robottelo.cli.factory import make_usergroup
-from robottelo.cli.factory import make_usergroup_external
+from robottelo.cli.factory import (
+    make_role,
+    make_user,
+    make_usergroup,
+    make_usergroup_external,
+)
 from robottelo.cli.ldapauthsource import LDAPAuthSource
 from robottelo.cli.task import Task
 from robottelo.cli.user import User
-from robottelo.cli.usergroup import UserGroup
-from robottelo.cli.usergroup import UserGroupExternal
+from robottelo.cli.usergroup import UserGroup, UserGroupExternal
 from robottelo.utils.datafactory import valid_usernames_list
 
 

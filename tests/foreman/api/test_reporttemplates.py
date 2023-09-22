@@ -16,24 +16,25 @@
 
 :Upstream: No
 """
-import pytest
 from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 from requests import HTTPError
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import (
+    DEFAULT_SUBSCRIPTION_NAME,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_2_CUSTOM_PACKAGE,
+    PRDS,
+    REPOS,
+    REPOSET,
+)
 from robottelo.hosts import ContentHost
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import parametrized, valid_data_list
 from robottelo.utils.issue_handlers import is_open
 
 

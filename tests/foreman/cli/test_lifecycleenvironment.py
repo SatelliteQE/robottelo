@@ -18,12 +18,11 @@
 """
 from math import ceil
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_lifecycle_environment
-from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_lifecycle_environment, make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.constants import ENVIRONMENT
 

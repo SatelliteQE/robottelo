@@ -19,14 +19,13 @@
 from functools import partial
 from random import choice
 
-import pytest
 from box import Box
 from fauxfactory import gen_alphanumeric
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.webhook import Webhook
-from robottelo.constants import WEBHOOK_EVENTS
-from robottelo.constants import WEBHOOK_METHODS
+from robottelo.constants import WEBHOOK_EVENTS, WEBHOOK_METHODS
 
 
 @pytest.fixture(scope='function')

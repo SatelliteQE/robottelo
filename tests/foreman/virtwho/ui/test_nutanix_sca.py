@@ -14,18 +14,20 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.config import settings
-from robottelo.utils.virtwho import check_message_in_rhsm_log
-from robottelo.utils.virtwho import deploy_configure_by_command
-from robottelo.utils.virtwho import deploy_configure_by_script
-from robottelo.utils.virtwho import get_configure_command
-from robottelo.utils.virtwho import get_configure_file
-from robottelo.utils.virtwho import get_configure_id
-from robottelo.utils.virtwho import get_configure_option
-from robottelo.utils.virtwho import get_hypervisor_ahv_mapping
+from robottelo.utils.virtwho import (
+    check_message_in_rhsm_log,
+    deploy_configure_by_command,
+    deploy_configure_by_script,
+    get_configure_command,
+    get_configure_file,
+    get_configure_id,
+    get_configure_option,
+    get_hypervisor_ahv_mapping,
+)
 
 
 @pytest.fixture()

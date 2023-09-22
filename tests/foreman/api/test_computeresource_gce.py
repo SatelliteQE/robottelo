@@ -21,12 +21,11 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 """
 import random
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import GCE_RHEL_CLOUD_PROJECTS
-from robottelo.constants import VALID_GCE_ZONES
+from robottelo.constants import GCE_RHEL_CLOUD_PROJECTS, VALID_GCE_ZONES
 
 
 @pytest.mark.skip_if_not_set('gce')

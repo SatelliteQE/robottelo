@@ -16,22 +16,24 @@
 
 :Upstream: No
 """
-import time
 from tempfile import mkstemp
+import time
 
-import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.constants import VDC_SUBSCRIPTION_NAME
-from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
+from robottelo.constants import (
+    DEFAULT_SUBSCRIPTION_NAME,
+    PRDS,
+    REPOS,
+    REPOSET,
+    VDC_SUBSCRIPTION_NAME,
+    VIRT_WHO_HYPERVISOR_TYPES,
+)
 from robottelo.utils.manifest import clone
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_manifest')]

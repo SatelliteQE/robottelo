@@ -19,11 +19,10 @@ https://theforeman.org/plugins/katello/3.16/api/apidoc/v2/repository_sets.html
 
 :Upstream: No
 """
-import pytest
 from nailgun import entities
+import pytest
 
-from robottelo.constants import PRDS
-from robottelo.constants import REPOSET
+from robottelo.constants import PRDS, REPOSET
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.tier1]
 

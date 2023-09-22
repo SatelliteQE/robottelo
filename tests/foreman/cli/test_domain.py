@@ -16,18 +16,17 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.domain import Domain
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_domain
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_org
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import invalid_id_list
-from robottelo.utils.datafactory import parametrized
+from robottelo.cli.factory import CLIFactoryError, make_domain, make_location, make_org
+from robottelo.utils.datafactory import (
+    filtered_datapoint,
+    invalid_id_list,
+    parametrized,
+)
 
 
 @filtered_datapoint

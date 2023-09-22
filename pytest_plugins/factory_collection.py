@@ -1,5 +1,4 @@
-from inspect import getmembers
-from inspect import isfunction
+from inspect import getmembers, isfunction
 
 
 def pytest_configure(config):

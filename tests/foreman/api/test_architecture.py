@@ -16,14 +16,16 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_choice
 from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.utils.datafactory import invalid_names_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    invalid_names_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 @pytest.mark.tier1

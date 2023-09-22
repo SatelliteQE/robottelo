@@ -16,10 +16,10 @@
 
 :Upstream: No
 """
-import pytest
 from airgun.session import Session
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
+import pytest
 
 from robottelo.config import settings
 from robottelo.constants import FAKE_7_CUSTOM_PACKAGE

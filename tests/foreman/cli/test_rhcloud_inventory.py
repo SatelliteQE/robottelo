@@ -16,15 +16,14 @@
 
 :Upstream: No
 """
-import time
 from datetime import datetime
+import time
 
 import pytest
 from wait_for import wait_for
 
 from robottelo.config import robottelo_tmp_dir
-from robottelo.utils.io import get_local_file_data
-from robottelo.utils.io import get_remote_report_checksum
+from robottelo.utils.io import get_local_file_data, get_remote_report_checksum
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
 generate_report_jobs = 'ForemanInventoryUpload::Async::GenerateAllReportsJob'

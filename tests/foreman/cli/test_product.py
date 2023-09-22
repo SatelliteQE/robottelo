@@ -16,29 +16,30 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_alphanumeric, gen_integer, gen_string, gen_url
 import pytest
-from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
-from fauxfactory import gen_url
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.defaults import Defaults
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_content_credential
-from robottelo.cli.factory import make_org
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
-from robottelo.cli.factory import make_sync_plan
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_content_credential,
+    make_org,
+    make_product,
+    make_repository,
+    make_sync_plan,
+)
 from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
-from robottelo.utils.datafactory import valid_labels_list
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+    valid_labels_list,
+)
 
 
 @pytest.mark.tier1

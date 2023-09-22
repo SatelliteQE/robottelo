@@ -16,10 +16,10 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun.entity_mixins import TaskFailedError
+import pytest
 
 from robottelo.config import get_credentials
 from robottelo.hosts import get_sat_version

@@ -16,16 +16,18 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import AZURERM_FILE_URI
-from robottelo.constants import AZURERM_PLATFORM_DEFAULT
-from robottelo.constants import AZURERM_PREMIUM_OS_Disk
-from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
-from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
-from robottelo.constants import AZURERM_VM_SIZE_DEFAULT
+from robottelo.constants import (
+    AZURERM_FILE_URI,
+    AZURERM_PLATFORM_DEFAULT,
+    AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
+    AZURERM_RHEL7_UD_IMG_URN,
+    AZURERM_VM_SIZE_DEFAULT,
+    AZURERM_PREMIUM_OS_Disk,
+)
 
 
 class TestAzureRMComputeResourceTestCase:

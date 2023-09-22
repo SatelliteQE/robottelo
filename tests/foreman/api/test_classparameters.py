@@ -19,15 +19,12 @@
 import json
 from random import choice
 
+from fauxfactory import gen_boolean, gen_integer, gen_string
 import pytest
-from fauxfactory import gen_boolean
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
 from requests import HTTPError
 
 from robottelo.config import settings
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import filtered_datapoint, parametrized
 
 
 @filtered_datapoint

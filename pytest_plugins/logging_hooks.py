@@ -4,16 +4,17 @@ import logzero
 import pytest
 from xdist import is_xdist_worker
 
-from robottelo.logging import broker_log_setup
-from robottelo.logging import DEFAULT_DATE_FORMAT
-from robottelo.logging import logger
-from robottelo.logging import logging_yaml
-from robottelo.logging import robottelo_log_dir
-from robottelo.logging import robottelo_log_file
+from robottelo.logging import (
+    DEFAULT_DATE_FORMAT,
+    broker_log_setup,
+    logger,
+    logging_yaml,
+    robottelo_log_dir,
+    robottelo_log_file,
+)
 
 try:
-    from pytest_reportportal import RPLogger
-    from pytest_reportportal import RPLogHandler
+    from pytest_reportportal import RPLogger, RPLogHandler
 except ImportError:
     pass
 

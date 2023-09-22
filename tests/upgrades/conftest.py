@@ -86,8 +86,8 @@ import functools
 import json
 import os
 
-import pytest
 from box import Box
+import pytest
 
 from robottelo.logging import logger
 from robottelo.utils.decorators.func_locker import lock_function

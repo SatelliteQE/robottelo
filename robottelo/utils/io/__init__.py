@@ -1,8 +1,8 @@
 # Helper methods for tests requiring I/0
 import hashlib
 import json
-import tarfile
 from pathlib import Path
+import tarfile
 
 
 def get_local_file_data(path):

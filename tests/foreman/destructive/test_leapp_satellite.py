@@ -14,11 +14,10 @@
 
 :Upstream: No
 """
-import pytest
 from broker import Broker
+import pytest
 
-from robottelo.hosts import get_sat_rhel_version
-from robottelo.hosts import get_sat_version
+from robottelo.hosts import get_sat_rhel_version, get_sat_version
 
 
 @pytest.mark.e2e

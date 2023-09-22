@@ -16,31 +16,32 @@
 
 :Upstream: No
 """
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from time import sleep
 
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
-from robottelo.cli.factory import make_sync_plan
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_product,
+    make_repository,
+    make_sync_plan,
+)
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.syncplan import SyncPlan
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.logging import logger
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    filtered_datapoint,
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 SYNC_DATE_FMT = '%Y-%m-%d %H:%M:%S UTC'
 

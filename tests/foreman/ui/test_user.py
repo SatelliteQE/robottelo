@@ -18,14 +18,11 @@
 """
 import random
 
-import pytest
 from airgun.session import Session
-from fauxfactory import gen_email
-from fauxfactory import gen_string
+from fauxfactory import gen_email, gen_string
+import pytest
 
-from robottelo.constants import DEFAULT_ORG
-from robottelo.constants import PERMISSIONS
-from robottelo.constants import ROLES
+from robottelo.constants import DEFAULT_ORG, PERMISSIONS, ROLES
 
 
 @pytest.mark.e2e

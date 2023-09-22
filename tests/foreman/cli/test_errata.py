@@ -16,26 +16,25 @@
 
 :Upstream: No
 """
-from datetime import date
-from datetime import datetime
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from operator import itemgetter
 
-import pytest
 from broker import Broker
 from nailgun import entities
+import pytest
 
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.contentview import ContentView
-from robottelo.cli.contentview import ContentViewFilter
+from robottelo.cli.contentview import ContentView, ContentViewFilter
 from robottelo.cli.erratum import Erratum
-from robottelo.cli.factory import make_content_view_filter
-from robottelo.cli.factory import make_content_view_filter_rule
-from robottelo.cli.factory import make_host_collection
-from robottelo.cli.factory import make_repository
-from robottelo.cli.factory import setup_org_for_a_custom_repo
-from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.cli.factory import (
+    make_content_view_filter,
+    make_content_view_filter_rule,
+    make_host_collection,
+    make_repository,
+    setup_org_for_a_custom_repo,
+    setup_org_for_a_rh_repo,
+)
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.job_invocation import JobInvocation
@@ -43,21 +42,23 @@ from robottelo.cli.package import Package
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
-from robottelo.constants import PRDS
-from robottelo.constants import REAL_0_ERRATA_ID
-from robottelo.constants import REAL_4_ERRATA_CVES
-from robottelo.constants import REAL_4_ERRATA_ID
-from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    DEFAULT_SUBSCRIPTION_NAME,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_2_CUSTOM_PACKAGE,
+    FAKE_2_CUSTOM_PACKAGE_NAME,
+    FAKE_4_CUSTOM_PACKAGE,
+    FAKE_4_CUSTOM_PACKAGE_NAME,
+    FAKE_5_CUSTOM_PACKAGE,
+    PRDS,
+    REAL_0_ERRATA_ID,
+    REAL_4_ERRATA_CVES,
+    REAL_4_ERRATA_ID,
+    REAL_RHEL7_0_2_PACKAGE_NAME,
+    REPOS,
+    REPOSET,
+)
 from robottelo.hosts import ContentHost
 
 PER_PAGE = 10

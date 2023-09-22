@@ -18,14 +18,16 @@
 """
 from random import choice
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import COMPUTE_PROFILE_SMALL
-from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.constants import (
+    COMPUTE_PROFILE_SMALL,
+    FOREMAN_PROVIDERS,
+    LIBVIRT_RESOURCE_URL,
+)
 
 pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
 

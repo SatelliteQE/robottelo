@@ -14,13 +14,12 @@
 
 :Upstream: No
 """
-import re
 from copy import copy
+import re
 
-import pytest
 from nailgun import entity_mixins
-from wait_for import TimedOutError
-from wait_for import wait_for
+import pytest
+from wait_for import TimedOutError, wait_for
 
 from robottelo.logging import logger
 

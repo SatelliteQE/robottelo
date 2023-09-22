@@ -18,22 +18,19 @@
 """
 import http
 
+from fauxfactory import gen_integer, gen_string
+from nailgun import client, entities
 import pytest
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
-from nailgun import client
-from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.config import get_credentials
-from robottelo.config import user_nailgun_config
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import invalid_names_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.config import get_credentials, user_nailgun_config
+from robottelo.constants import PRDS, REPOS, REPOSET
+from robottelo.utils.datafactory import (
+    filtered_datapoint,
+    invalid_names_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 @filtered_datapoint

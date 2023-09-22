@@ -16,11 +16,10 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.fact import Fact
-
 
 pytestmark = [pytest.mark.tier1]
 

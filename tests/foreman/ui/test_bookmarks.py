@@ -16,11 +16,11 @@
 
 :Upstream: No
 """
-import pytest
 from airgun.exceptions import NoSuchElementException
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.config import user_nailgun_config
 from robottelo.constants import BOOKMARK_ENTITIES

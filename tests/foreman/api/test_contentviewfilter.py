@@ -23,19 +23,18 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 import http
 from random import randint
 
+from fauxfactory import gen_integer, gen_string
+from nailgun import client, entities
 import pytest
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
-from nailgun import client
-from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.config import get_credentials
-from robottelo.config import settings
+from robottelo.config import get_credentials, settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.utils.datafactory import invalid_names_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    invalid_names_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 @pytest.fixture(scope='module')

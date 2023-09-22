@@ -16,13 +16,12 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_string
 import pytest
 import yaml
-from fauxfactory import gen_string
 
 from robottelo import constants
-from robottelo.config import robottelo_tmp_dir
-from robottelo.config import settings
+from robottelo.config import robottelo_tmp_dir, settings
 
 
 def test_positive_create_and_delete_variable(target_sat):

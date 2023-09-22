@@ -19,13 +19,9 @@
 import pytest
 import yaml
 
-from robottelo.config import robottelo_tmp_dir
-from robottelo.config import settings
-from robottelo.constants import MAINTAIN_HAMMER_YML
-from robottelo.constants import SAT_NON_GA_VERSIONS
-from robottelo.hosts import get_sat_rhel_version
-from robottelo.hosts import get_sat_version
-
+from robottelo.config import robottelo_tmp_dir, settings
+from robottelo.constants import MAINTAIN_HAMMER_YML, SAT_NON_GA_VERSIONS
+from robottelo.hosts import get_sat_rhel_version, get_sat_version
 
 sat_x_y_release = f'{get_sat_version().major}.{get_sat_version().minor}'
 

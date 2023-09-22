@@ -22,11 +22,10 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 """
 import http
 
-import pytest
 from nailgun import client
+import pytest
 
-from robottelo.config import get_credentials
-from robottelo.config import get_url
+from robottelo.config import get_credentials, get_url
 
 
 @pytest.mark.tier1

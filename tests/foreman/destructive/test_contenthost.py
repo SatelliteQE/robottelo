@@ -19,8 +19,7 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE, FAKE_1_CUSTOM_PACKAGE
 
 pytestmark = pytest.mark.destructive
 

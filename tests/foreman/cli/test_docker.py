@@ -12,34 +12,38 @@
 
 :Upstream: No
 """
-from random import choice
-from random import randint
+from random import choice, randint
 
+from fauxfactory import gen_string, gen_url
 import pytest
-from fauxfactory import gen_string
-from fauxfactory import gen_url
 
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.docker import Docker
-from robottelo.cli.factory import make_activation_key
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_lifecycle_environment
-from robottelo.cli.factory import make_product_wait
-from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import (
+    make_activation_key,
+    make_content_view,
+    make_lifecycle_environment,
+    make_product_wait,
+    make_repository,
+)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_RH_REGISTRY_UPSTREAM_NAME
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import REPO_TYPE
-from robottelo.utils.datafactory import invalid_docker_upstream_names
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_docker_repository_names
-from robottelo.utils.datafactory import valid_docker_upstream_names
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_RH_REGISTRY_UPSTREAM_NAME,
+    CONTAINER_UPSTREAM_NAME,
+    REPO_TYPE,
+)
+from robottelo.utils.datafactory import (
+    invalid_docker_upstream_names,
+    parametrized,
+    valid_docker_repository_names,
+    valid_docker_upstream_names,
+)
 
 
 def _repo(product_id, name=None, upstream_name=None, url=None):

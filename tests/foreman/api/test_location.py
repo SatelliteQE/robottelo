@@ -21,15 +21,16 @@ http://theforeman.org/api/apidoc/v2/locations.html
 """
 from random import randint
 
+from fauxfactory import gen_integer, gen_string
 import pytest
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 
 from robottelo.constants import DEFAULT_LOC
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import (
+    filtered_datapoint,
+    invalid_values_list,
+    parametrized,
+)
 
 
 @filtered_datapoint

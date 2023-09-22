@@ -1,17 +1,17 @@
 from contextlib import contextmanager
 
-import pytest
 from broker import Broker
+import pytest
 from wait_for import wait_for
 
-from robottelo.config import configure_airgun
-from robottelo.config import configure_nailgun
-from robottelo.config import settings
-from robottelo.hosts import Capsule
-from robottelo.hosts import get_sat_rhel_version
-from robottelo.hosts import IPAHost
-from robottelo.hosts import lru_sat_ready_rhel
-from robottelo.hosts import Satellite
+from robottelo.config import configure_airgun, configure_nailgun, settings
+from robottelo.hosts import (
+    Capsule,
+    IPAHost,
+    Satellite,
+    get_sat_rhel_version,
+    lru_sat_ready_rhel,
+)
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 

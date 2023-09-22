@@ -1,18 +1,14 @@
+from collections import defaultdict
 import os
 import subprocess
 import sys
-from collections import defaultdict
 
-import pytest
 from packaging.version import Version
+import pytest
 
 from pytest_plugins.issue_handlers import DEFAULT_BZ_CACHE_FILE
-from robottelo.constants import CLOSED_STATUSES
-from robottelo.constants import OPEN_STATUSES
-from robottelo.constants import WONTFIX_RESOLUTIONS
-from robottelo.utils.issue_handlers import add_workaround
-from robottelo.utils.issue_handlers import is_open
-from robottelo.utils.issue_handlers import should_deselect
+from robottelo.constants import CLOSED_STATUSES, OPEN_STATUSES, WONTFIX_RESOLUTIONS
+from robottelo.utils.issue_handlers import add_workaround, is_open, should_deselect
 
 
 class TestBugzillaIssueHandler:

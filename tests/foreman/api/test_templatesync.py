@@ -18,18 +18,19 @@ import base64
 import json
 import time
 
-import pytest
-import requests
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
+import requests
 
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_API_URL
-from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
-from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
-from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
+from robottelo.constants import (
+    FOREMAN_TEMPLATE_IMPORT_API_URL,
+    FOREMAN_TEMPLATE_IMPORT_URL,
+    FOREMAN_TEMPLATE_ROOT_DIR,
+    FOREMAN_TEMPLATE_TEST_TEMPLATE,
+)
 from robottelo.logging import logger
-
 
 git = settings.git
 

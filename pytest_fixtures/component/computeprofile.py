@@ -1,6 +1,6 @@
 # Compute Profile Fixtures
-import pytest
 from nailgun import entities
+import pytest
 
 
 @pytest.fixture(scope='module')

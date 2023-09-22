@@ -18,15 +18,13 @@
 """
 import re
 
-import pytest
 from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
-from wait_for import TimedOutError
-from wait_for import wait_for
+from wait_for import TimedOutError, wait_for
 
 from robottelo.config import settings
-from robottelo.constants import WEBHOOK_EVENTS
-from robottelo.constants import WEBHOOK_METHODS
+from robottelo.constants import WEBHOOK_EVENTS, WEBHOOK_METHODS
 from robottelo.logging import logger
 from robottelo.utils.datafactory import parametrized
 

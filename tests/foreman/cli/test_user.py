@@ -26,27 +26,30 @@ import datetime
 import random
 from time import sleep
 
-import pytest
-from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_string
+from fauxfactory import gen_alphanumeric, gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_filter
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_org
-from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_user
+from robottelo.cli.factory import (
+    make_filter,
+    make_location,
+    make_org,
+    make_role,
+    make_user,
+)
 from robottelo.cli.filter import Filter
 from robottelo.cli.org import Org
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import LOCALES
 from robottelo.utils import gen_ssh_keypairs
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
-from robottelo.utils.datafactory import valid_emails_list
-from robottelo.utils.datafactory import valid_usernames_list
+from robottelo.utils.datafactory import (
+    parametrized,
+    valid_data_list,
+    valid_emails_list,
+    valid_usernames_list,
+)
 
 
 class TestUser:

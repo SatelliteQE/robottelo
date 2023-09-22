@@ -1,7 +1,5 @@
 import requests
-from tenacity import retry
-from tenacity import stop_after_attempt
-from tenacity import wait_fixed
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 from robottelo.config import settings
 from robottelo.logging import logger

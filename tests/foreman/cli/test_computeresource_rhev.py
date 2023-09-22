@@ -15,15 +15,17 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 from wait_for import wait_for
 from wrapanapi import RHEVMSystem
 
 from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import CLIReturnCodeError
-from robottelo.cli.factory import make_compute_resource
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    CLIReturnCodeError,
+    make_compute_resource,
+)
 from robottelo.cli.host import Host
 from robottelo.config import settings
 

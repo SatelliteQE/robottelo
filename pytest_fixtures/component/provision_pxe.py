@@ -3,11 +3,11 @@ import os
 import re
 from tempfile import mkstemp
 
-import pytest
 from box import Box
 from broker import Broker
 from fauxfactory import gen_string
 from packaging.version import Version
+import pytest
 
 from robottelo import constants
 from robottelo.config import settings

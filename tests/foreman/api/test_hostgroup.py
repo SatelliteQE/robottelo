@@ -18,17 +18,17 @@
 """
 from random import randint
 
-import pytest
 from fauxfactory import gen_string
-from nailgun import client
-from nailgun import entities
-from nailgun import entity_fields
+from nailgun import client, entities, entity_fields
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_hostgroups_list
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_hostgroups_list,
+)
 
 
 @pytest.fixture

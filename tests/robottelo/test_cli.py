@@ -1,14 +1,16 @@
-import unittest
 from functools import partial
+import unittest
 from unittest import mock
 
 import pytest
 
-from robottelo.cli.base import Base
-from robottelo.cli.base import CLIBaseError
-from robottelo.cli.base import CLIDataBaseError
-from robottelo.cli.base import CLIError
-from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.base import (
+    Base,
+    CLIBaseError,
+    CLIDataBaseError,
+    CLIError,
+    CLIReturnCodeError,
+)
 
 
 class CLIClass(Base):

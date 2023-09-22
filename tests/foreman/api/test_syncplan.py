@@ -20,30 +20,24 @@ API reference for sync plans can be found on your Satellite:
 
 :Upstream: No
 """
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from time import sleep
 
+from fauxfactory import gen_choice, gen_string
+from nailgun import client, entities
 import pytest
-from fauxfactory import gen_choice
-from fauxfactory import gen_string
-from nailgun import client
-from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.config import get_credentials
-from robottelo.config import get_url
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.constants import SYNC_INTERVAL
+from robottelo.config import get_credentials, get_url
+from robottelo.constants import PRDS, REPOS, REPOSET, SYNC_INTERVAL
 from robottelo.logging import logger
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_cron_expressions
-from robottelo.utils.datafactory import valid_data_list
-
+from robottelo.utils.datafactory import (
+    filtered_datapoint,
+    invalid_values_list,
+    parametrized,
+    valid_cron_expressions,
+    valid_data_list,
+)
 
 sync_date_deltas = {
     # Today

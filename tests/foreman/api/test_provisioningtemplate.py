@@ -21,18 +21,13 @@ http://theforeman.org/api/apidoc/v2/provisioning_templates.html
 """
 from random import choice
 
-import pytest
-from fauxfactory import gen_choice
-from fauxfactory import gen_integer
-from fauxfactory import gen_mac
-from fauxfactory import gen_string
+from fauxfactory import gen_choice, gen_integer, gen_mac, gen_string
 from nailgun import client
+import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.config import settings
-from robottelo.config import user_nailgun_config
-from robottelo.utils.datafactory import invalid_names_list
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.config import settings, user_nailgun_config
+from robottelo.utils.datafactory import invalid_names_list, valid_data_list
 
 
 @pytest.fixture(scope='module')

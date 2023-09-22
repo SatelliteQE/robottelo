@@ -14,10 +14,9 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_mac, gen_string
 import pytest
 import requests
-from fauxfactory import gen_mac
-from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings

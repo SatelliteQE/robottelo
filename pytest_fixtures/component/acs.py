@@ -1,8 +1,7 @@
 # Alternate Content Sources fixtures
 import pytest
 
-from robottelo.constants.repos import CUSTOM_FILE_REPO
-from robottelo.constants.repos import CUSTOM_RPM_REPO
+from robottelo.constants.repos import CUSTOM_FILE_REPO, CUSTOM_RPM_REPO
 
 
 @pytest.fixture(scope='module')

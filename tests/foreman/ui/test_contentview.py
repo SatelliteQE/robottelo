@@ -22,36 +22,37 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 import datetime
 from random import randint
 
-import pytest
-from airgun.exceptions import InvalidElementStateException
-from airgun.exceptions import NoSuchElementException
+from airgun.exceptions import InvalidElementStateException, NoSuchElementException
 from airgun.session import Session
 from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
 from navmazing import NavigationTriesExceeded
 from productmd.common import parse_nvra
+import pytest
 
 from robottelo import constants
 from robottelo.cli.contentview import ContentView
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DEFAULT_CV
-from robottelo.constants import DEFAULT_PTABLE
-from robottelo.constants import ENVIRONMENT
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
-from robottelo.constants import FILTER_CONTENT_TYPE
-from robottelo.constants import FILTER_ERRATA_TYPE
-from robottelo.constants import FILTER_TYPE
-from robottelo.constants import PERMISSIONS
-from robottelo.constants import PRDS
-from robottelo.constants import REPO_TYPE
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+    DEFAULT_ARCHITECTURE,
+    DEFAULT_CV,
+    DEFAULT_PTABLE,
+    ENVIRONMENT,
+    FAKE_0_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_2_CUSTOM_PACKAGE,
+    FAKE_9_YUM_SECURITY_ERRATUM_COUNT,
+    FILTER_CONTENT_TYPE,
+    FILTER_ERRATA_TYPE,
+    FILTER_TYPE,
+    PERMISSIONS,
+    PRDS,
+    REPO_TYPE,
+    REPOS,
+    REPOSET,
+)
 from robottelo.utils.datafactory import gen_string
 
 VERSION = 'Version 1.0'

@@ -16,31 +16,35 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_integer
 from nailgun import entities
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_architecture
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_domain
-from robottelo.cli.factory import make_environment
-from robottelo.cli.factory import make_hostgroup
-from robottelo.cli.factory import make_lifecycle_environment
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_medium
-from robottelo.cli.factory import make_os
-from robottelo.cli.factory import make_partition_table
-from robottelo.cli.factory import make_subnet
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_architecture,
+    make_content_view,
+    make_domain,
+    make_environment,
+    make_hostgroup,
+    make_lifecycle_environment,
+    make_location,
+    make_medium,
+    make_os,
+    make_partition_table,
+    make_subnet,
+)
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
 from robottelo.config import settings
-from robottelo.utils.datafactory import invalid_id_list
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_hostgroups_list
+from robottelo.utils.datafactory import (
+    invalid_id_list,
+    invalid_values_list,
+    parametrized,
+    valid_hostgroups_list,
+)
 
 pytestmark = [
     pytest.mark.skipif(

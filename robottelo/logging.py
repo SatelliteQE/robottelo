@@ -2,12 +2,11 @@ import logging
 import os
 from pathlib import Path
 
-import logzero
-import yaml
 from box import Box
 from broker.logger import setup_logzero as broker_log_setup
+import logzero
 from manifester.logger import setup_logzero as manifester_log_setup
-
+import yaml
 
 robottelo_root_dir = Path(os.environ.get('ROBOTTELO_DIR', Path(__file__).resolve().parent.parent))
 robottelo_log_dir = robottelo_root_dir.joinpath('logs')

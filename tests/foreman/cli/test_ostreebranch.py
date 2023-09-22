@@ -18,14 +18,16 @@
 """
 import random
 
-import pytest
 from nailgun import entities
+import pytest
 
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_org_with_credentials
-from robottelo.cli.factory import make_product_with_credentials
-from robottelo.cli.factory import make_repository_with_credentials
+from robottelo.cli.factory import (
+    make_content_view,
+    make_org_with_credentials,
+    make_product_with_credentials,
+    make_repository_with_credentials,
+)
 from robottelo.cli.ostreebranch import OstreeBranch
 from robottelo.cli.repository import Repository
 from robottelo.config import settings

@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from inflection import camelize
+import pytest
 
 from robottelo.utils.datafactory import gen_string
 

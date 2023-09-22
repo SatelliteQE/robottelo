@@ -16,28 +16,27 @@
 
 :Upstream: No
 """
-import re
 from math import ceil
 from random import choice
+import re
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
-from robottelo.cli.base import CLIDataBaseError
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_filter
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_org
-from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_user
+from robottelo.cli.base import CLIDataBaseError, CLIReturnCodeError
+from robottelo.cli.factory import (
+    make_filter,
+    make_location,
+    make_org,
+    make_role,
+    make_user,
+)
 from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
 from robottelo.cli.settings import Settings
 from robottelo.cli.user import User
-from robottelo.constants import PERMISSIONS
-from robottelo.constants import ROLES
-from robottelo.utils.datafactory import generate_strings_list
-from robottelo.utils.datafactory import parametrized
+from robottelo.constants import PERMISSIONS, ROLES
+from robottelo.utils.datafactory import generate_strings_list, parametrized
 
 
 class TestRole:

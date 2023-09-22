@@ -18,15 +18,13 @@
 """
 import random
 
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.constants import BOOKMARK_ENTITIES
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import valid_data_list
-
+from robottelo.utils.datafactory import invalid_values_list, valid_data_list
 
 # List of unique bookmark controller values, preserving order
 CONTROLLERS = list(dict.fromkeys(entity['controller'] for entity in BOOKMARK_ENTITIES))

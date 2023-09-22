@@ -22,19 +22,13 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 """
 import http
 
+from fauxfactory import gen_choice, gen_integer, gen_ipaddr, gen_mac, gen_string
+from nailgun import client, entities
 import pytest
-from fauxfactory import gen_choice
-from fauxfactory import gen_integer
-from fauxfactory import gen_ipaddr
-from fauxfactory import gen_mac
-from fauxfactory import gen_string
-from nailgun import client
-from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
-from robottelo.constants import DEFAULT_CV
-from robottelo.constants import ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.utils import datafactory
 
 

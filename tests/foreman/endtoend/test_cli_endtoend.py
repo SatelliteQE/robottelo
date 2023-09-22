@@ -16,9 +16,8 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_alphanumeric, gen_ipaddr
 import pytest
-from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_ipaddr
 
 from robottelo import constants
 from robottelo.cli.activationkey import ActivationKey
@@ -37,8 +36,7 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
-from robottelo.config import setting_is_set
-from robottelo.config import settings
+from robottelo.config import setting_is_set, settings
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 
 

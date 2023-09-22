@@ -23,25 +23,25 @@ http://<satellite-host>/apidoc/v2/users.html
 import json
 import re
 
-import pytest
 from nailgun import entities
 from nailgun.config import ServerConfig
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
-from robottelo.constants import DataFile
-from robottelo.constants import LDAP_ATTR
-from robottelo.constants import LDAP_SERVER_TYPE
+from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE, DataFile
 from robottelo.utils import gen_ssh_keypairs
-from robottelo.utils.datafactory import gen_string
-from robottelo.utils.datafactory import generate_strings_list
-from robottelo.utils.datafactory import invalid_emails_list
-from robottelo.utils.datafactory import invalid_names_list
-from robottelo.utils.datafactory import invalid_usernames_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
-from robottelo.utils.datafactory import valid_emails_list
-from robottelo.utils.datafactory import valid_usernames_list
+from robottelo.utils.datafactory import (
+    gen_string,
+    generate_strings_list,
+    invalid_emails_list,
+    invalid_names_list,
+    invalid_usernames_list,
+    parametrized,
+    valid_data_list,
+    valid_emails_list,
+    valid_usernames_list,
+)
 
 
 @pytest.fixture(scope='module')

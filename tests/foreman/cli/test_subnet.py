@@ -19,20 +19,18 @@
 import random
 import re
 
+from fauxfactory import gen_choice, gen_integer, gen_ipaddr
 import pytest
-from fauxfactory import gen_choice
-from fauxfactory import gen_integer
-from fauxfactory import gen_ipaddr
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_domain
-from robottelo.cli.factory import make_subnet
+from robottelo.cli.factory import CLIFactoryError, make_domain, make_subnet
 from robottelo.cli.subnet import Subnet
 from robottelo.constants import SUBNET_IPAM_TYPES
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    filtered_datapoint,
+    parametrized,
+    valid_data_list,
+)
 
 
 @filtered_datapoint

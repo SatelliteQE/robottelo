@@ -18,8 +18,7 @@
 """
 import pytest
 
-from robottelo.constants import PUPPET_CAPSULE_INSTALLER
-from robottelo.constants import PUPPET_COMMON_INSTALLER_OPTS
+from robottelo.constants import PUPPET_CAPSULE_INSTALLER, PUPPET_COMMON_INSTALLER_OPTS
 from robottelo.hosts import Satellite
 from robottelo.utils.installer import InstallerCommand
 

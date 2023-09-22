@@ -19,16 +19,13 @@
 import os
 from time import sleep
 
+from navmazing import NavigationTriesExceeded
 import pyotp
 import pytest
-from navmazing import NavigationTriesExceeded
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
-from robottelo.constants import CERT_PATH
-from robottelo.constants import HAMMER_CONFIG
-from robottelo.constants import HAMMER_SESSIONS
-from robottelo.constants import LDAP_ATTR
+from robottelo.constants import CERT_PATH, HAMMER_CONFIG, HAMMER_SESSIONS, LDAP_ATTR
 from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
 

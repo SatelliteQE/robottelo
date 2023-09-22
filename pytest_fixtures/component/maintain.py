@@ -6,9 +6,7 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_MAINTAIN_YML
-from robottelo.hosts import Capsule
-from robottelo.hosts import Satellite
-from robottelo.hosts import SatelliteHostError
+from robottelo.hosts import Capsule, Satellite, SatelliteHostError
 from robottelo.logging import logger
 
 synced_repos = pytest.StashKey[dict]

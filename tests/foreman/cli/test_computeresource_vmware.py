@@ -13,8 +13,8 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.factory import make_compute_resource
 from robottelo.cli.org import Org

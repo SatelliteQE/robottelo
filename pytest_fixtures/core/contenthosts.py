@@ -4,13 +4,12 @@ This module is to define pytest functions for content hosts
 The functions in this module are read in the pytest_plugins/fixture_markers.py module
 All functions in this module will be treated as fixtures that apply the contenthost mark
 """
-import pytest
 from broker import Broker
+import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.hosts import ContentHost
-from robottelo.hosts import Satellite
+from robottelo.hosts import ContentHost, Satellite
 
 
 def host_conf(request):

@@ -16,23 +16,22 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.cli.auth import Auth
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_ldap_auth_source
-from robottelo.cli.factory import make_usergroup
-from robottelo.cli.factory import make_usergroup_external
+from robottelo.cli.factory import (
+    make_ldap_auth_source,
+    make_usergroup,
+    make_usergroup_external,
+)
 from robottelo.cli.ldapauthsource import LDAPAuthSource
 from robottelo.cli.role import Role
-from robottelo.cli.usergroup import UserGroup
-from robottelo.cli.usergroup import UserGroupExternal
-from robottelo.constants import LDAP_ATTR
-from robottelo.constants import LDAP_SERVER_TYPE
-from robottelo.utils.datafactory import generate_strings_list
-from robottelo.utils.datafactory import parametrized
+from robottelo.cli.usergroup import UserGroup, UserGroupExternal
+from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
+from robottelo.utils.datafactory import generate_strings_list, parametrized
 
 
 @pytest.fixture()

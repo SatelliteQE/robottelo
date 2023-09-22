@@ -16,33 +16,34 @@
 
 :Upstream: No
 """
-import pytest
 from airgun.session import Session
 from broker import Broker
 from fauxfactory import gen_string
 from manifester import Manifester
 from nailgun import entities
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import FAKE_10_YUM_BUGFIX_ERRATUM
-from robottelo.constants import FAKE_10_YUM_BUGFIX_ERRATUM_COUNT
-from robottelo.constants import FAKE_11_YUM_ENHANCEMENT_ERRATUM
-from robottelo.constants import FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_3_YUM_OUTDATED_PACKAGES
-from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
-from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM
-from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
-from robottelo.constants import PRDS
-from robottelo.constants import REAL_0_RH_PACKAGE
-from robottelo.constants import REAL_4_ERRATA_CVES
-from robottelo.constants import REAL_4_ERRATA_ID
+from robottelo.constants import (
+    DEFAULT_LOC,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_2_CUSTOM_PACKAGE,
+    FAKE_3_YUM_OUTDATED_PACKAGES,
+    FAKE_4_CUSTOM_PACKAGE,
+    FAKE_5_CUSTOM_PACKAGE,
+    FAKE_9_YUM_OUTDATED_PACKAGES,
+    FAKE_9_YUM_SECURITY_ERRATUM,
+    FAKE_9_YUM_SECURITY_ERRATUM_COUNT,
+    FAKE_10_YUM_BUGFIX_ERRATUM,
+    FAKE_10_YUM_BUGFIX_ERRATUM_COUNT,
+    FAKE_11_YUM_ENHANCEMENT_ERRATUM,
+    FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT,
+    PRDS,
+    REAL_0_RH_PACKAGE,
+    REAL_4_ERRATA_CVES,
+    REAL_4_ERRATA_ID,
+)
 from robottelo.hosts import ContentHost
-
 
 CUSTOM_REPO_URL = settings.repos.yum_9.url
 CUSTOM_REPO_ERRATA_ID = settings.repos.yum_9.errata[0]

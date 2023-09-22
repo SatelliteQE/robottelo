@@ -20,19 +20,15 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.cli.subscription import Subscription
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME, PRDS, REPOS, REPOSET
 
 pytestmark = [pytest.mark.run_in_one_thread]
 

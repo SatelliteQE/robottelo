@@ -16,40 +16,41 @@
 
 :Upstream: No
 """
-import re
 from random import choice
+import re
 
-import pytest
 from broker import Broker
-from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_string
+from fauxfactory import gen_alphanumeric, gen_string
+import pytest
 
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.defaults import Defaults
-from robottelo.cli.factory import add_role_permissions
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_activation_key
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_host_collection
-from robottelo.cli.factory import make_lifecycle_environment
-from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_user
-from robottelo.cli.factory import setup_org_for_a_custom_repo
-from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    add_role_permissions,
+    make_activation_key,
+    make_content_view,
+    make_host_collection,
+    make_lifecycle_environment,
+    make_role,
+    make_user,
+    setup_org_for_a_custom_repo,
+    setup_org_for_a_rh_repo,
+)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.hosts import ContentHost
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 from robottelo.utils.issue_handlers import is_open
 
 

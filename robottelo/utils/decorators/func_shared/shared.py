@@ -87,23 +87,20 @@ Usage::
 import datetime
 import functools
 import hashlib
+from importlib import import_module
 import inspect
 import os
 import sys
 import traceback
 import uuid
-from importlib import import_module
 
 from nailgun.entities import Entity
 
-from robottelo.config import setting_is_set
-from robottelo.config import settings
+from robottelo.config import setting_is_set, settings
 from robottelo.logging import logger
-from robottelo.utils.decorators.func_shared import file_storage
-from robottelo.utils.decorators.func_shared import redis_storage
+from robottelo.utils.decorators.func_shared import file_storage, redis_storage
 from robottelo.utils.decorators.func_shared.file_storage import FileStorageHandler
 from robottelo.utils.decorators.func_shared.redis_storage import RedisStorageHandler
-
 
 _storage_handlers = {'file': FileStorageHandler, 'redis': RedisStorageHandler}
 

@@ -1,14 +1,10 @@
 # Host Specific Fixtures
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.cli.factory import setup_org_for_a_rh_repo
-from robottelo.constants import DEFAULT_CV
-from robottelo.constants import ENVIRONMENT
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT, PRDS, REPOS, REPOSET
 
 
 @pytest.fixture

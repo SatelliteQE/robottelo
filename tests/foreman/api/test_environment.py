@@ -20,14 +20,16 @@ http://theforeman.org/api/apidoc/v2/environments.html
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.utils.datafactory import invalid_environments_list
-from robottelo.utils.datafactory import invalid_names_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_environments_list
+from robottelo.utils.datafactory import (
+    invalid_environments_list,
+    invalid_names_list,
+    parametrized,
+    valid_environments_list,
+)
 
 
 @pytest.mark.e2e

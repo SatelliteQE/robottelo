@@ -1,9 +1,7 @@
+from inspect import getmembers, isfunction
 import re
-from inspect import getmembers
-from inspect import isfunction
 
 from robottelo.config import settings
-
 
 TARGET_FIXTURES = [
     'rhel_contenthost',

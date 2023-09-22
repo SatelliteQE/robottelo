@@ -3,10 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from robottelo.config import configure_airgun
-from robottelo.config import configure_nailgun
-from robottelo.config import settings
-
+from robottelo.config import configure_airgun, configure_nailgun, settings
 
 _json_file = 'upgrade_workers.json'
 json_file = Path(_json_file)

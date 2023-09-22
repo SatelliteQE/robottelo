@@ -21,15 +21,17 @@ https://theforeman.org/api/2.0/apidoc/v2/usergroups.html
 """
 from random import randint
 
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
-from robottelo.utils.datafactory import valid_usernames_list
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+    valid_usernames_list,
+)
 
 
 class TestUserGroup:

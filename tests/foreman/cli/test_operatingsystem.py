@@ -16,20 +16,23 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_alphanumeric, gen_string
 import pytest
-from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_architecture
-from robottelo.cli.factory import make_medium
-from robottelo.cli.factory import make_partition_table
-from robottelo.cli.factory import make_template
+from robottelo.cli.factory import (
+    make_architecture,
+    make_medium,
+    make_partition_table,
+    make_template,
+)
 from robottelo.constants import DEFAULT_ORG
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    filtered_datapoint,
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 @filtered_datapoint

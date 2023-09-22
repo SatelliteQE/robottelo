@@ -2,8 +2,8 @@
 # Independent utility functions that doesnt need separate module
 import base64
 import os
-import re
 from pathlib import Path
+import re
 
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization

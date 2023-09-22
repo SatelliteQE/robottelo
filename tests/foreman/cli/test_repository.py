@@ -19,30 +19,29 @@
 from random import choice
 from string import punctuation
 
+from fauxfactory import gen_alphanumeric, gen_integer, gen_string, gen_url
+from nailgun import entities
 import pytest
 import requests
-from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
-from fauxfactory import gen_url
-from nailgun import entities
 from wait_for import wait_for
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.content_export import ContentExport
 from robottelo.cli.content_import import ContentImport
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_content_credential
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_filter
-from robottelo.cli.factory import make_lifecycle_environment
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_org
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
-from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_user
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_content_credential,
+    make_content_view,
+    make_filter,
+    make_lifecycle_environment,
+    make_location,
+    make_org,
+    make_product,
+    make_repository,
+    make_role,
+    make_user,
+)
 from robottelo.cli.file import File
 from robottelo.cli.filter import Filter
 from robottelo.cli.module_stream import ModuleStream
@@ -57,31 +56,37 @@ from robottelo.cli.srpm import Srpm
 from robottelo.cli.task import Task
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import CUSTOM_FILE_REPO_FILES_COUNT
-from robottelo.constants import CUSTOM_LOCAL_FOLDER
-from robottelo.constants import DataFile
-from robottelo.constants import DOWNLOAD_POLICIES
-from robottelo.constants import MIRRORING_POLICIES
-from robottelo.constants import OS_TEMPLATE_DATA_FILE
-from robottelo.constants import REPO_TYPE
-from robottelo.constants import RPM_TO_UPLOAD
-from robottelo.constants import SRPM_TO_UPLOAD
-from robottelo.constants.repos import ANSIBLE_GALAXY
-from robottelo.constants.repos import CUSTOM_3RD_PARTY_REPO
-from robottelo.constants.repos import CUSTOM_FILE_REPO
-from robottelo.constants.repos import CUSTOM_RPM_SHA
-from robottelo.constants.repos import FAKE_5_YUM_REPO
-from robottelo.constants.repos import FAKE_YUM_DRPM_REPO
-from robottelo.constants.repos import FAKE_YUM_MD5_REPO
-from robottelo.constants.repos import FAKE_YUM_SRPM_REPO
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+    CUSTOM_FILE_REPO_FILES_COUNT,
+    CUSTOM_LOCAL_FOLDER,
+    DOWNLOAD_POLICIES,
+    MIRRORING_POLICIES,
+    OS_TEMPLATE_DATA_FILE,
+    REPO_TYPE,
+    RPM_TO_UPLOAD,
+    SRPM_TO_UPLOAD,
+    DataFile,
+)
+from robottelo.constants.repos import (
+    ANSIBLE_GALAXY,
+    CUSTOM_3RD_PARTY_REPO,
+    CUSTOM_FILE_REPO,
+    CUSTOM_RPM_SHA,
+    FAKE_5_YUM_REPO,
+    FAKE_YUM_DRPM_REPO,
+    FAKE_YUM_MD5_REPO,
+    FAKE_YUM_SRPM_REPO,
+)
 from robottelo.logging import logger
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
-from robottelo.utils.datafactory import valid_docker_repository_names
-from robottelo.utils.datafactory import valid_http_credentials
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+    valid_docker_repository_names,
+    valid_http_credentials,
+)
 
 # from robottelo.constants.repos import FEDORA_OSTREE_REPO
 

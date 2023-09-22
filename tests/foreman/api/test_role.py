@@ -20,17 +20,14 @@ http://theforeman.org/api/apidoc/v2/roles.html
 
 :Upstream: No
 """
-import pytest
 from nailgun import entities
 from nailgun.config import ServerConfig
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.cli.ldapauthsource import LDAPAuthSource
-from robottelo.constants import LDAP_ATTR
-from robottelo.constants import LDAP_SERVER_TYPE
-from robottelo.utils.datafactory import gen_string
-from robottelo.utils.datafactory import generate_strings_list
-from robottelo.utils.datafactory import parametrized
+from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
+from robottelo.utils.datafactory import gen_string, generate_strings_list, parametrized
 from robottelo.utils.issue_handlers import is_open
 
 

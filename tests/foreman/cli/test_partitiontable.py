@@ -18,15 +18,13 @@
 """
 from random import randint
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_os
-from robottelo.cli.factory import make_partition_table
+from robottelo.cli.factory import make_os, make_partition_table
 from robottelo.cli.partitiontable import PartitionTable
-from robottelo.utils.datafactory import generate_strings_list
-from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import generate_strings_list, parametrized
 
 
 class TestPartitionTable:

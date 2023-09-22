@@ -20,14 +20,12 @@ from mailbox import mbox
 from re import findall
 from tempfile import mkstemp
 
-import pytest
 from fauxfactory import gen_string
-from wait_for import TimedOutError
-from wait_for import wait_for
+import pytest
+from wait_for import TimedOutError, wait_for
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.utils.issue_handlers import is_open
 
 

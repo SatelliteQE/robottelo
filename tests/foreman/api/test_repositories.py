@@ -16,10 +16,10 @@
 
 :Upstream: No
 """
-import pytest
 from manifester import Manifester
 from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo import constants

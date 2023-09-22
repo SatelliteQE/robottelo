@@ -5,8 +5,7 @@ example: my_satellite.ui_factory(session).ui_method()
 """
 from fauxfactory import gen_string
 
-from robottelo.constants import DEFAULT_CV
-from robottelo.constants import ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 
 
 class UIFactory:

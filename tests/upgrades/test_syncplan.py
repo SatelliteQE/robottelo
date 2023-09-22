@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_choice
+import pytest
 
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.utils.datafactory import valid_cron_expressions

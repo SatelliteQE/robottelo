@@ -18,9 +18,9 @@
 """
 import time
 
-import pytest
 from broker import Broker
 from manifester import Manifester
+import pytest
 
 from robottelo import constants
 from robottelo.config import settings

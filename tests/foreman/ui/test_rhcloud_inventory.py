@@ -16,16 +16,17 @@
 
 :Upstream: No
 """
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import pytest
 from wait_for import wait_for
 
 from robottelo.constants import DEFAULT_LOC
-from robottelo.utils.io import get_local_file_data
-from robottelo.utils.io import get_remote_report_checksum
-from robottelo.utils.io import get_report_data
+from robottelo.utils.io import (
+    get_local_file_data,
+    get_remote_report_checksum,
+    get_report_data,
+)
 
 
 def common_assertion(report_path, inventory_data, org, satellite):

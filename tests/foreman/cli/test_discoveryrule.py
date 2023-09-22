@@ -16,26 +16,24 @@
 
 :Upstream: No
 """
-import random
 from functools import partial
+import random
 
-import pytest
 from box import Box
-from fauxfactory import gen_choice
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
-from nailgun.entities import Role as RoleEntity
-from nailgun.entities import User as UserEntity
+from fauxfactory import gen_choice, gen_integer, gen_string
+from nailgun.entities import Role as RoleEntity, User as UserEntity
+import pytest
 from requests import HTTPError
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_discoveryrule
+from robottelo.cli.factory import CLIFactoryError, make_discoveryrule
 from robottelo.logging import logger
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    filtered_datapoint,
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 @filtered_datapoint

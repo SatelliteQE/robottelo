@@ -16,21 +16,17 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_activation_key
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import make_activation_key, make_product, make_repository
 from robottelo.cli.host import Host
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import PRDS, REPOS, REPOSET
 
 pytestmark = [pytest.mark.run_in_one_thread]
 

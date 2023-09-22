@@ -18,20 +18,16 @@
 """
 import os
 
-import pyotp
-import pytest
 from airgun.session import Session
 from fauxfactory import gen_url
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
+import pyotp
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import ANY_CONTEXT
-from robottelo.constants import CERT_PATH
-from robottelo.constants import LDAP_ATTR
-from robottelo.constants import PERMISSIONS
+from robottelo.constants import ANY_CONTEXT, CERT_PATH, LDAP_ATTR, PERMISSIONS
 from robottelo.utils.datafactory import gen_string
-
 
 pytestmark = [pytest.mark.run_in_one_thread]
 

@@ -16,23 +16,25 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_compute_resource
-from robottelo.cli.factory import make_domain
-from robottelo.cli.factory import make_environment
-from robottelo.cli.factory import make_hostgroup
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_medium
-from robottelo.cli.factory import make_subnet
-from robottelo.cli.factory import make_template
-from robottelo.cli.factory import make_user
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_compute_resource,
+    make_domain,
+    make_environment,
+    make_hostgroup,
+    make_location,
+    make_medium,
+    make_subnet,
+    make_template,
+    make_user,
+)
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.location import Location
 from robottelo.cli.medium import Medium

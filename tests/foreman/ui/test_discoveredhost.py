@@ -14,10 +14,9 @@
 
 :Upstream: No
 """
-import pytest
-from fauxfactory import gen_ipaddr
-from fauxfactory import gen_string
+from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.utils import ssh
 

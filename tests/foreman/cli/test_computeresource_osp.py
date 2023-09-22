@@ -15,9 +15,9 @@
 
 :Upstream: No
 """
-import pytest
 from box import Box
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.factory import CLIReturnCodeError
 from robottelo.config import settings

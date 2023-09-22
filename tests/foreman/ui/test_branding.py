@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from airgun.session import Session
+import pytest
 
 
 @pytest.mark.e2e

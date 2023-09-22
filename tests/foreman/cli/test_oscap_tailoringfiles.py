@@ -16,18 +16,18 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_tailoringfile
+from robottelo.cli.factory import CLIFactoryError, make_tailoringfile
 from robottelo.cli.scap_tailoring_files import TailoringFiles
-from robottelo.constants import DataFile
-from robottelo.constants import SNIPPET_DATA_FILE
-from robottelo.utils.datafactory import invalid_names_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.constants import SNIPPET_DATA_FILE, DataFile
+from robottelo.utils.datafactory import (
+    invalid_names_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 class TestTailoringFiles:

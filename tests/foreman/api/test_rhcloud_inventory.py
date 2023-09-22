@@ -16,14 +16,11 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_alphanumeric, gen_string
 import pytest
-from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_string
 
 from robottelo.config import robottelo_tmp_dir
-from robottelo.utils.io import get_local_file_data
-from robottelo.utils.io import get_report_data
-from robottelo.utils.io import get_report_metadata
+from robottelo.utils.io import get_local_file_data, get_report_data, get_report_metadata
 
 
 def common_assertion(report_path):

@@ -1,6 +1,6 @@
 # Operating System Fixtures
-import pytest
 from nailgun import entities
+import pytest
 
 
 @pytest.fixture(scope='session')

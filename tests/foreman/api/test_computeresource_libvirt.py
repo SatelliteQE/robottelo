@@ -20,16 +20,17 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.constants import LIBVIRT_RESOURCE_URL
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
 

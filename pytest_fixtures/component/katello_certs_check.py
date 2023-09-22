@@ -1,8 +1,8 @@
 # katello_certs_check Fixtures
 from pathlib import Path
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.constants import CERT_DATA as cert_data
 from robottelo.hosts import Capsule
