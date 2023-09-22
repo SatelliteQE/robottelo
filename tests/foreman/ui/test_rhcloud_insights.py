@@ -277,29 +277,28 @@ def test_host_details_page(
             handle_exception=True,
         )
         # Verify Insights status of host.
-        result = session.host.host_status(rhel_insights_vm.hostname)
-        assert 'Insights: Reporting' in result
-        assert 'Inventory: Successfully uploaded to your RH cloud inventory' in result
-        result = session.host.search(rhel_insights_vm.hostname)[0]
+        result = session.host_new.get_host_statuses(rhel_insights_vm.hostname)
+        assert result['Insights']['Status'] == 'Reporting'
+        assert result['Inventory']['Status'] == 'Successfully uploaded to your RH cloud inventory'
+        result = session.host_new.search(rhel_insights_vm.hostname)[0]
         assert result['Name'] == rhel_insights_vm.hostname
         assert int(result['Recommendations']) > 0
-        values = session.host.get_details(rhel_insights_vm.hostname)
-        # Note: Reading host properties adds 'clear' to original value.
-        assert (
-            values['properties']['properties_table']['Inventory']
-            == 'Successfully uploaded to your RH cloud inventory clear'
-        )
+        values = session.host_new.get_host_statuses(rhel_insights_vm.hostname)
+        assert values['Inventory']['Status'] == 'Successfully uploaded to your RH cloud inventory'
         # Read the recommendations listed in Insights tab present on host details page
-        insights_recommendations = session.host_new.insights_tab(rhel_insights_vm.hostname)
+        insights_recommendations = session.host_new.get_insights(rhel_insights_vm.hostname)[
+            'recommendations_table'
+        ]
         for recommendation in insights_recommendations:
-            if recommendation['name'] == DNF_RECOMMENDATION:
-                assert recommendation['label'] == 'Moderate'
-                assert DNF_RECOMMENDATION in recommendation['text']
+            if recommendation['Recommendation'] == DNF_RECOMMENDATION:
+                assert recommendation['Total risk'] == 'Moderate'
+                assert DNF_RECOMMENDATION in recommendation['Recommendation']
                 assert len(insights_recommendations) == int(result['Recommendations'])
         # Test Recommendation button present on host details page
-        recommendations = session.host.read_insights_recommendations(rhel_insights_vm.hostname)
+        recommendations = session.host_new.get_insights(rhel_insights_vm.hostname)[
+            'recommendations_table'
+        ]
         assert len(recommendations), 'No recommendations were found'
-        assert recommendations[0]['Hostname'] == rhel_insights_vm.hostname
         assert int(result['Recommendations']) == len(recommendations)
         # Delete host
         rhel_insights_vm.nailgun_host.delete()
@@ -356,7 +355,7 @@ def test_insights_registration_with_capsule(
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Generate host registration command
-        cmd = session.host.get_register_command(
+        cmd = session.host_new.get_register_command(
             {
                 'general.operating_system': default_os.title,
                 'general.orgnization': org.name,
@@ -371,8 +370,8 @@ def test_insights_registration_with_capsule(
         rhel_contenthost.execute(cmd)
         assert rhel_contenthost.subscribed
         assert rhel_contenthost.execute('insights-client --test-connection').status == 0
-        values = session.host.get_details(rhel_contenthost.hostname)
-        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
+        values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
+        assert values['Insights']['Status'] == 'Reporting'
         # Clean insights status
         result = module_target_sat.run(
             f'foreman-rake rh_cloud_insights:clean_statuses SEARCH="{rhel_contenthost.hostname}"'
@@ -382,13 +381,12 @@ def test_insights_registration_with_capsule(
         # Workaround for not reading old data.
         session.browser.refresh()
         # Verify that Insights status is cleared.
-        values = session.host.get_details(rhel_contenthost.hostname)
-        with pytest.raises(KeyError):
-            values['properties']['properties_table']['Insights']
+        values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
+        assert values['Insights']['Status'] == 'N/A'
         result = rhel_contenthost.run('insights-client')
         assert result.status == 0
         # Workaround for not reading old data.
         session.browser.refresh()
         # Verify that Insights status again.
-        values = session.host.get_details(rhel_contenthost.hostname)
-        assert values['properties']['properties_table']['Insights'] == 'Reporting clear'
+        values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
+        assert values['Insights']['Status'] == 'Reporting'
