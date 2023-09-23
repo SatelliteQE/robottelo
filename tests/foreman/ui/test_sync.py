@@ -16,17 +16,19 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import PRDS
-from robottelo.constants import REPO_TYPE
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+    PRDS,
+    REPO_TYPE,
+    REPOS,
+    REPOSET,
+)
 from robottelo.constants.repos import FEDORA_OSTREE_REPO
 
 

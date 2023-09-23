@@ -16,9 +16,9 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from packaging.version import Version
+import pytest
 from wait_for import wait_for
 
 

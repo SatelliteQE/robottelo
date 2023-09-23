@@ -16,26 +16,28 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_hostgroup
-from robottelo.cli.factory import make_scap_policy
-from robottelo.cli.factory import make_scapcontent
-from robottelo.cli.factory import make_tailoringfile
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_hostgroup,
+    make_scap_policy,
+    make_scapcontent,
+    make_tailoringfile,
+)
 from robottelo.cli.host import Host
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.config import settings
-from robottelo.constants import OSCAP_DEFAULT_CONTENT
-from robottelo.constants import OSCAP_PERIOD
-from robottelo.constants import OSCAP_WEEKDAY
-from robottelo.utils.datafactory import invalid_names_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.constants import OSCAP_DEFAULT_CONTENT, OSCAP_PERIOD, OSCAP_WEEKDAY
+from robottelo.utils.datafactory import (
+    invalid_names_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 class TestOpenScap:

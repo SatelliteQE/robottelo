@@ -16,16 +16,18 @@
 """
 import time
 
-import pytest
 from nailgun import entities
+import pytest
 
 from robottelo.cli.host import Host
 from robottelo.cli.package import Package
 from robottelo.config import settings
-from robottelo.constants import REAL_0_ERRATA_ID
-from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_FILENAME
-from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
-from robottelo.constants import REPOS
+from robottelo.constants import (
+    REAL_0_ERRATA_ID,
+    REAL_RHEL7_0_2_PACKAGE_FILENAME,
+    REAL_RHEL7_0_2_PACKAGE_NAME,
+    REPOS,
+)
 
 pytestmark = [
     pytest.mark.skipif(

@@ -16,12 +16,10 @@
 
 :Upstream: No
 """
-import pytest
 from airgun.session import Session
-from fauxfactory import gen_integer
-from fauxfactory import gen_ipaddr
-from fauxfactory import gen_string
+from fauxfactory import gen_integer, gen_ipaddr, gen_string
 from nailgun import entities
+import pytest
 
 
 @pytest.fixture(scope='module')

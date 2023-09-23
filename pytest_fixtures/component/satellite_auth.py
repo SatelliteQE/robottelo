@@ -1,20 +1,21 @@
 import copy
 import socket
 
-import pytest
 from box import Box
 from nailgun import entities
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import AUDIENCE_MAPPER
-from robottelo.constants import CERT_PATH
-from robottelo.constants import GROUP_MEMBERSHIP_MAPPER
-from robottelo.constants import HAMMER_CONFIG
-from robottelo.constants import HAMMER_SESSIONS
-from robottelo.constants import LDAP_ATTR
-from robottelo.constants import LDAP_SERVER_TYPE
-from robottelo.hosts import IPAHost
-from robottelo.hosts import SSOHost
+from robottelo.constants import (
+    AUDIENCE_MAPPER,
+    CERT_PATH,
+    GROUP_MEMBERSHIP_MAPPER,
+    HAMMER_CONFIG,
+    HAMMER_SESSIONS,
+    LDAP_ATTR,
+    LDAP_SERVER_TYPE,
+)
+from robottelo.hosts import IPAHost, SSOHost
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.issue_handlers import is_open
 

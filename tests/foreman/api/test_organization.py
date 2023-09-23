@@ -23,17 +23,18 @@ import http
 import json
 from random import randint
 
-import pytest
 from fauxfactory import gen_string
-from nailgun import client
-from nailgun import entities
+from nailgun import client, entities
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
 from robottelo.constants import DEFAULT_ORG
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import (
+    filtered_datapoint,
+    invalid_values_list,
+    parametrized,
+)
 
 
 @filtered_datapoint

@@ -19,8 +19,7 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME, FAKE_4_CUSTOM_PACKAGE_NAME
 from robottelo.hosts import ContentHost
 
 UPSTREAM_USERNAME = 'rTtest123'

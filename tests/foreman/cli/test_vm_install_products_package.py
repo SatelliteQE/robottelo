@@ -16,15 +16,17 @@
 
 :Upstream: No
 """
-import pytest
 from broker import Broker
+import pytest
 
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import DISTROS_SUPPORTED
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+    DISTROS_SUPPORTED,
+    FAKE_0_CUSTOM_PACKAGE,
+)
 from robottelo.hosts import ContentHost
 
 

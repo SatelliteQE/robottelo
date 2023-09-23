@@ -16,15 +16,17 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 from requests import HTTPError
 
 from robottelo.constants import DataFile
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 key_content = DataFile.VALID_GPG_KEY_FILE.read_text()
 

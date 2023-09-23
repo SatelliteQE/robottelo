@@ -16,17 +16,15 @@
 
 :Upstream: No
 """
+from datetime import datetime, timedelta
 import time
-from datetime import datetime
-from datetime import timedelta
 
-import pytest
 from fauxfactory import gen_choice
 from nailgun import entities
+import pytest
 
 from robottelo.constants import SYNC_INTERVAL
-from robottelo.utils.datafactory import gen_string
-from robottelo.utils.datafactory import valid_cron_expressions
+from robottelo.utils.datafactory import gen_string, valid_cron_expressions
 
 
 def validate_task_status(sat, repo_id, org_id, max_tries=10):

@@ -16,9 +16,9 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_string
 import pytest
 import requests
-from fauxfactory import gen_string
 
 
 @pytest.mark.e2e

@@ -23,13 +23,22 @@ select = [
     # "C90", # mccabe
     "E",  # pycodestyle
     "F",  # flake8
+    "I", # isort
     # "Q",  # flake8-quotes
     "UP",  # pyupgrade
     "W",  # pycodestyle
 ]
 
-# Allow lines to be as long as 100 characters.
-line-length = 100
+ignore = [
+    "E501",  # line too long - handled by black
+]
+
+[tool.ruff.isort]
+force-sort-within-sections = true
+known-first-party = [
+    "robottelo",
+]
+combine-as-imports = true
 
 
 [tool.ruff.flake8-quotes]

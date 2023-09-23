@@ -18,10 +18,9 @@
 """
 import random
 
-import pytest
-from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_string
+from fauxfactory import gen_alphanumeric, gen_string
 from nailgun import entities
+import pytest
 from wrapanapi.entities.vm import VmState
 
 from robottelo import constants
@@ -42,13 +41,17 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.role import Role
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import DataFile
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
-from robottelo.utils.datafactory import generate_strings_list
-from robottelo.utils.datafactory import invalid_names_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_names_list
+from robottelo.constants import (
+    FAKE_2_CUSTOM_PACKAGE,
+    FAKE_2_CUSTOM_PACKAGE_NAME,
+    DataFile,
+)
+from robottelo.utils.datafactory import (
+    generate_strings_list,
+    invalid_names_list,
+    parametrized,
+    valid_names_list,
+)
 
 
 @pytest.fixture(scope='module')

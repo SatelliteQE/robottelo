@@ -18,13 +18,12 @@
 """
 import random
 
-import pytest
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
+import pytest
 
-from robottelo.constants import PERMISSIONS_UI
-from robottelo.constants import ROLES
+from robottelo.constants import PERMISSIONS_UI, ROLES
 from robottelo.utils.datafactory import gen_string
 
 

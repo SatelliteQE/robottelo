@@ -27,7 +27,6 @@ from robottelo.cli import hammer
 from robottelo.constants import DataFile
 from robottelo.logging import logger
 
-
 HAMMER_COMMANDS = json.loads(DataFile.HAMMER_COMMANDS_JSON.read_text())
 
 pytestmark = [pytest.mark.tier1, pytest.mark.upgrade, pytest.mark.e2e]

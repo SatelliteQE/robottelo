@@ -18,11 +18,10 @@
 """
 import time
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.config import settings
-
 
 upstream_url = {
     'foreman_repo': 'https://yum.theforeman.org/releases/nightly/el8/x86_64/',

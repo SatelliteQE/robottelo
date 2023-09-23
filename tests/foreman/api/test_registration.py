@@ -20,8 +20,7 @@ import uuid
 
 import pytest
 
-from robottelo.constants import CLIENT_PORT
-from robottelo.constants import ENVIRONMENT
+from robottelo.constants import CLIENT_PORT, ENVIRONMENT
 from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.tier1

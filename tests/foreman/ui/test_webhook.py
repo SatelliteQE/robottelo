@@ -16,9 +16,8 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_string, gen_url
 import pytest
-from fauxfactory import gen_string
-from fauxfactory import gen_url
 
 
 @pytest.mark.tier1

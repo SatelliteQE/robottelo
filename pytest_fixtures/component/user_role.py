@@ -1,7 +1,6 @@
-import pytest
-from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_string
+from fauxfactory import gen_alphanumeric, gen_string
 from nailgun import entities
+import pytest
 
 
 @pytest.fixture(scope='class')

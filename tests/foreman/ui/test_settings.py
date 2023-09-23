@@ -18,15 +18,14 @@
 """
 import math
 
-import pytest
 from airgun.session import Session
 from fauxfactory import gen_url
 from nailgun import entities
+import pytest
 
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import gen_string
+from robottelo.utils.datafactory import filtered_datapoint, gen_string
 
 
 @filtered_datapoint

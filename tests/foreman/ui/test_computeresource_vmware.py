@@ -16,21 +16,20 @@
 
 :Upstream: No
 """
-from math import floor
-from math import log10
+from math import floor, log10
 from random import choice
 
-import pytest
 from nailgun import entities
-from wait_for import TimedOutError
-from wait_for import wait_for
-from wrapanapi.systems.virtualcenter import vim
-from wrapanapi.systems.virtualcenter import VMWareSystem
+import pytest
+from wait_for import TimedOutError, wait_for
+from wrapanapi.systems.virtualcenter import VMWareSystem, vim
 
 from robottelo.config import settings
-from robottelo.constants import COMPUTE_PROFILE_LARGE
-from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.constants import VMWARE_CONSTANTS
+from robottelo.constants import (
+    COMPUTE_PROFILE_LARGE,
+    FOREMAN_PROVIDERS,
+    VMWARE_CONSTANTS,
+)
 from robottelo.utils.datafactory import gen_string
 
 pytestmark = [pytest.mark.skip_if_not_set('vmware')]

@@ -16,17 +16,19 @@
 
 :Upstream: No
 """
-import random
 from http.client import NOT_FOUND
+import random
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.constants import OPERATING_SYSTEMS
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 class TestOperatingSystemParameter:

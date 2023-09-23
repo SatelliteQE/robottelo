@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from airgun.exceptions import NoSuchElementException
+import pytest
 
 
 class TestHostCockpit:

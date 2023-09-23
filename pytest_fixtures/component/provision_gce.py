@@ -2,16 +2,18 @@
 import json
 from tempfile import mkstemp
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 from wrapanapi.systems.google import GoogleCloudSystem
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DEFAULT_PTABLE
-from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.constants import GCE_RHEL_CLOUD_PROJECTS
-from robottelo.constants import GCE_TARGET_RHEL_IMAGE_NAME
+from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    DEFAULT_PTABLE,
+    FOREMAN_PROVIDERS,
+    GCE_RHEL_CLOUD_PROJECTS,
+    GCE_TARGET_RHEL_IMAGE_NAME,
+)
 from robottelo.exceptions import GCECertNotFoundError
 
 

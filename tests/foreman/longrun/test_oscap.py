@@ -16,29 +16,29 @@
 
 :Upstream: No
 """
-import pytest
 from broker import Broker
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.cli.ansible import Ansible
 from robottelo.cli.arfreport import Arfreport
-from robottelo.cli.factory import make_hostgroup
-from robottelo.cli.factory import make_scap_policy
+from robottelo.cli.factory import make_hostgroup, make_scap_policy
 from robottelo.cli.host import Host
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.config import settings
-from robottelo.constants import OSCAP_DEFAULT_CONTENT
-from robottelo.constants import OSCAP_PERIOD
-from robottelo.constants import OSCAP_PROFILE
-from robottelo.constants import OSCAP_TARGET_CORES
-from robottelo.constants import OSCAP_TARGET_MEMORY
-from robottelo.constants import OSCAP_WEEKDAY
+from robottelo.constants import (
+    OSCAP_DEFAULT_CONTENT,
+    OSCAP_PERIOD,
+    OSCAP_PROFILE,
+    OSCAP_TARGET_CORES,
+    OSCAP_TARGET_MEMORY,
+    OSCAP_WEEKDAY,
+)
 from robottelo.exceptions import ProxyError
 from robottelo.hosts import ContentHost
-
 
 rhel6_content = OSCAP_DEFAULT_CONTENT['rhel6_content']
 rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']

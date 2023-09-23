@@ -1,5 +1,5 @@
-import pytest
 from broker import Broker
+import pytest
 
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 

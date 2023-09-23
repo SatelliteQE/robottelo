@@ -18,16 +18,12 @@
 """
 import http
 
+from nailgun import client, entities, entity_fields
 import pytest
-from nailgun import client
-from nailgun import entities
-from nailgun import entity_fields
 
-from robottelo.config import get_credentials
-from robottelo.config import user_nailgun_config
+from robottelo.config import get_credentials, user_nailgun_config
 from robottelo.logging import logger
 from robottelo.utils.datafactory import parametrized
-
 
 VALID_ENTITIES = {
     entities.ActivationKey,

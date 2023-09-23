@@ -20,26 +20,26 @@ Satellite 6.8
 """
 from tempfile import mkstemp
 
+from fauxfactory import gen_alphanumeric, gen_choice, gen_integer, gen_string
 import pytest
-from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_choice
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.content_credentials import ContentCredential
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_content_credential
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_content_credential,
+    make_product,
+    make_repository,
+)
 from robottelo.cli.org import Org
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
-from robottelo.constants import DataFile
-from robottelo.constants import DEFAULT_ORG
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.constants import DEFAULT_ORG, DataFile
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 VALID_GPG_KEY_FILE_PATH = DataFile.VALID_GPG_KEY_FILE
 
