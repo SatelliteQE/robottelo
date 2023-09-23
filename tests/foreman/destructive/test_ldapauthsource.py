@@ -24,7 +24,6 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
 
-
 pytestmark = [pytest.mark.destructive]
 
 

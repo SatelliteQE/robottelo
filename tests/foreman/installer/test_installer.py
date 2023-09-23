@@ -22,7 +22,6 @@ from robottelo import ssh
 from robottelo.config import settings
 from robottelo.hosts import setup_capsule
 
-
 PREVIOUS_INSTALLER_OPTIONS = {
     '-',
     '--[no-]colors',

@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 
 @pytest.fixture(scope='session', autouse=True)

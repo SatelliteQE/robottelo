@@ -22,16 +22,17 @@ http://theforeman.org/api/apidoc/v2/ptables.html
 """
 import random
 
+from fauxfactory import gen_integer, gen_string
 import pytest
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 
 from robottelo.constants import OPERATING_SYSTEMS
-from robottelo.utils.datafactory import generate_strings_list
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    generate_strings_list,
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 class TestPartitionTable:

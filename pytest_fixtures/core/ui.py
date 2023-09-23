@@ -1,5 +1,5 @@
-import pytest
 from fauxfactory import gen_string
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.logging import logger

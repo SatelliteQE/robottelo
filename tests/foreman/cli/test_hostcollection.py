@@ -16,26 +16,29 @@
 
 :Upstream: No
 """
-import pytest
 from broker import Broker
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_fake_host
-from robottelo.cli.factory import make_host_collection
-from robottelo.cli.factory import make_org
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_fake_host,
+    make_host_collection,
+    make_org,
+)
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.constants import DEFAULT_CV
-from robottelo.constants import ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.hosts import ContentHost
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 def _make_fake_host_helper(module_org):

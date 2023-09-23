@@ -4,25 +4,26 @@ It is not meant to be used directly, but as part of a robottelo.hosts.Satellite 
 example: my_satellite.cli_factory.make_org()
 """
 import datetime
+from functools import lru_cache, partial
 import inspect
 import os
+from os import chmod
 import pprint
 import random
-from functools import lru_cache
-from functools import partial
-from os import chmod
 from tempfile import mkstemp
 from time import sleep
 
 from box import Box
-from fauxfactory import gen_alpha
-from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_choice
-from fauxfactory import gen_integer
-from fauxfactory import gen_ipaddr
-from fauxfactory import gen_mac
-from fauxfactory import gen_netmask
-from fauxfactory import gen_url
+from fauxfactory import (
+    gen_alpha,
+    gen_alphanumeric,
+    gen_choice,
+    gen_integer,
+    gen_ipaddr,
+    gen_mac,
+    gen_netmask,
+    gen_url,
+)
 
 from robottelo import constants
 from robottelo.cli.base import CLIReturnCodeError

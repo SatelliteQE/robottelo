@@ -2,14 +2,13 @@
 # This Enables and Disables individuals OIDC token to access secrets from vault
 import json
 import os
+from pathlib import Path
 import re
 import subprocess
 import sys
-from pathlib import Path
 
 from robottelo.constants import Colored
 from robottelo.utils import export_vault_env_vars
-
 
 HELP_TEXT = (
     "Vault CLI in not installed in your system, "

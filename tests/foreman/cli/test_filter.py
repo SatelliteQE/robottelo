@@ -19,10 +19,7 @@
 import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_filter
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_org
-from robottelo.cli.factory import make_role
+from robottelo.cli.factory import make_filter, make_location, make_org, make_role
 from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
 
