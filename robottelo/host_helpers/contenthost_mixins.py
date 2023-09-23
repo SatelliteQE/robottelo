@@ -1,14 +1,12 @@
 """A collection of mixins for robottelo.hosts classes"""
-import json
 from functools import cached_property
+import json
 from tempfile import NamedTemporaryFile
 
 from robottelo import constants
-from robottelo.config import robottelo_tmp_dir
-from robottelo.config import settings
+from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.logging import logger
-from robottelo.utils.ohsnap import dogfood_repofile_url
-from robottelo.utils.ohsnap import dogfood_repository
+from robottelo.utils.ohsnap import dogfood_repofile_url, dogfood_repository
 
 
 class VersionedContent:

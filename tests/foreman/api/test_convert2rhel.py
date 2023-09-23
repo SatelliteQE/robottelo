@@ -18,9 +18,7 @@ import pytest
 import requests
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import REPOS
+from robottelo.constants import DEFAULT_ARCHITECTURE, DEFAULT_SUBSCRIPTION_NAME, REPOS
 
 
 def create_repo(sat, org, repo_url, ssl_cert=None):

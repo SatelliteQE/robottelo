@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from nailgun import entities
+import pytest
 
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.utils.datafactory import gen_string

@@ -35,18 +35,15 @@ Subcommands::
 """
 import random
 
+from fauxfactory import gen_string, gen_url
 import pytest
-from fauxfactory import gen_string
-from fauxfactory import gen_url
 from wait_for import wait_for
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.factory import make_compute_resource
-from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_compute_resource, make_location
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.utils.datafactory import parametrized
 
 LIBVIRT_URL = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname

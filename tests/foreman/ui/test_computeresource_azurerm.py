@@ -16,14 +16,16 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import AZURERM_FILE_URI
-from robottelo.constants import AZURERM_PLATFORM_DEFAULT
-from robottelo.constants import AZURERM_VM_SIZE_DEFAULT
-from robottelo.constants import COMPUTE_PROFILE_SMALL
+from robottelo.constants import (
+    AZURERM_FILE_URI,
+    AZURERM_PLATFORM_DEFAULT,
+    AZURERM_VM_SIZE_DEFAULT,
+    COMPUTE_PROFILE_SMALL,
+)
 
 pytestmark = [pytest.mark.skip_if_not_set('azurerm')]
 

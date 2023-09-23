@@ -2,7 +2,6 @@ import pytest
 
 from robottelo.logging import collection_logger as logger
 
-
 non_satCI_components = ['Virt-whoConfigurePlugin']
 
 

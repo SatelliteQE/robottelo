@@ -11,16 +11,14 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 from wrapanapi import VMWareSystem
 
-from robottelo.cli.factory import make_compute_resource
-from robottelo.cli.factory import make_host
+from robottelo.cli.factory import make_compute_resource, make_host
 from robottelo.cli.host import Host
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.constants import VMWARE_CONSTANTS
+from robottelo.constants import FOREMAN_PROVIDERS, VMWARE_CONSTANTS
 
 
 @pytest.fixture(scope="module")

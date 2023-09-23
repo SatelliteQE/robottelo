@@ -20,14 +20,14 @@ http://<satellite-host>/apidoc/v2/permissions.html
 
 :Upstream: No
 """
+from itertools import chain
 import json
 import re
-from itertools import chain
 
-import pytest
 from fauxfactory import gen_alphanumeric
 from nailgun import entities
 from nailgun.entity_fields import OneToManyField
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import user_nailgun_config
