@@ -733,7 +733,7 @@ class TestActiveDirectoryUser:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    def test_positive_access_entities_from_ldap_org_admin(self, create_ldap):
+    def test_positive_access_entities_from_ldap_org_admin(self, create_ldap, module_target_sat):
         """LDAP User can access resources within its taxonomies if assigned
         role has permission for same taxonomies
 
@@ -751,6 +751,16 @@ class TestActiveDirectoryUser:
 
         :CaseLevel: System
         """
+        # Workaround issue where, in an upgrade template, there is already
+        # some auth source present with this user. That auth source instance
+        # doesn't really run and attempting to login as that user
+        # leads to ISE 500 (which is itself a bug, the error should be handled, it is
+        # reported as BZ2240205).
+        for user in module_target_sat.api.User().search(
+            query={'search': f'login={create_ldap["ldap_user_name"]}'}
+        ):
+            user.delete()
+
         role_name = gen_string('alpha')
         default_org_admin = entities.Role().search(query={'search': 'name="Organization admin"'})
         org_admin = entities.Role(id=default_org_admin[0].id).clone(
