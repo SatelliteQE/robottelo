@@ -10,6 +10,7 @@ env:
   assignee: ${{ github.event.pull_request.assignee.login }}
   title: ${{ github.event.pull_request.title }}
   number: ${{ github.event.number }}
+  is_dependabot_pr: ''
 
 jobs:
 
@@ -45,6 +46,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      ## Set env var for dependencies label PR
+      - name: Set env var is_dependabot_pr to `dependencies` to set the label
+        if: contains(github.event.pull_request.labels.*.name, 'dependencies')
+        run: |
+          echo "is_dependabot_pr=dependencies" >> $GITHUB_ENV
+
       ## CherryPicking and AutoMerging
       - name: Cherrypicking to zStream branch
         id: cherrypick
@@ -57,19 +64,7 @@ jobs:
             Auto_Cherry_Picked
             ${{ matrix.label }}
             No-CherryPick
-          assignees: ${{ env.assignee }}
-
-      - name: Add dependencies label, if merged pr author is dependabot[bot]
-        id: dependencies
-        if: |
-          contains(github.event.pull_request.labels.*.name, 'dependencies') &&
-          github.event.pull_request.user.login == 'dependabot[bot]'
-        uses: jyejare/github-cherry-pick-action@main
-        with:
-          token: ${{ secrets.CHERRYPICK_PAT }}
-          branch: ${{ matrix.label }}
-          labels: |
-            dependencies
+            ${{ env.is_dependabot_pr }}
           assignees: ${{ env.assignee }}
 
       - name: Add Parent PR's PRT comment to Auto_Cherry_Picked PR's
