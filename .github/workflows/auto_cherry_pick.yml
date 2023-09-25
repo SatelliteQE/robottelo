@@ -82,10 +82,27 @@ jobs:
               labels: ["AutoMerge_Cherry_Picked"]
             })
 
-      ## Failure Logging to issues and GChat Group
+      - name: Search PRs by Description
+        id: pr-search
+        if: ${{ always() && steps.cherrypick.outcome != 'success' && startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
+        run: |
+          # Search the PR using gh command by description
+          PR_Description = '[${{ matrix.label }}] ${{ env.title }}'
+          PR=$(gh pr list -S $PR_Description)
+
+          # Check if the PRs list contains the message "no pull requests match your search"
+          if echo "$PR" | grep -q "no pull requests match your search"; then
+            echo "No PRs found with 'pr description: $PR_Description'."
+            echo "::set-output name=no_pr_found::true"
+          else
+            echo "PR found with 'pr description: $PR_Description':"
+            echo "$PR"
+            echo "::set-output name=no_pr_found::false"
+
+      ## Failure Logging to issues
       - name: Create Github issue on cherrypick failure
         id: create-issue
-        if: ${{ always() && steps.cherrypick.outcome != 'success' && startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
+        if: ${{ always() && steps.pr-search.outputs.no_pr_found && steps.cherrypick.outcome != 'success' && startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
         uses: dacbd/create-issue-action@main
         with:
           token: ${{ secrets.CHERRYPICK_PAT }}
