@@ -16,6 +16,8 @@
 
 :Upstream: No
 """
+import os
+
 from fauxfactory import gen_string
 import pytest
 
@@ -1668,6 +1670,95 @@ class TestContentViewSync:
             {'name': export_cv_name, 'organization-id': importing_org['id']}
         )['versions']
         assert len(importing_cvv) >= 1
+
+    @pytest.mark.tier3
+    @pytest.mark.parametrize(
+        'function_synced_rhel_repo',
+        ['rhae2'],
+        indirect=True,
+    )
+    def test_positive_export_incremental_syncable_check_content(
+        self,
+        target_sat,
+        export_import_cleanup_function,
+        config_export_import_settings,
+        function_sca_manifest_org,
+        function_synced_rhel_repo,
+    ):
+        """Export complete and incremental CV version in syncable format and assert that all
+        files referenced in the repomd.xml (including productid) are present in the exports.
+
+        :id: 6ff771cd-39ef-4865-8ae8-629f4baf5f98
+
+        :setup:
+            1. Enabled and synced RH repository.
+
+        :steps:
+            1. Create a CV, add the product and publish it.
+            2. Export complete syncable CV version.
+            3. Publish new CV version.
+            4. Export incremental syncable CV version.
+            5. Verify the exports contain all files listed in the repomd.xml.
+
+        :expectedresults:
+            1. Complete and incremental export succeed.
+            2. All files referenced in the repomd.xml files are present in the exports.
+
+        :CaseLevel: System
+
+        :BZ: 2212523
+
+        :customerscenario: true
+        """
+        # Create cv and publish
+        cv_name = gen_string('alpha')
+        cv = target_sat.cli_factory.make_content_view(
+            {'name': cv_name, 'organization-id': function_sca_manifest_org.id}
+        )
+        target_sat.cli.ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': function_sca_manifest_org.id,
+                'repository-id': function_synced_rhel_repo['id'],
+            }
+        )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 1
+        cvv = cv['versions'][0]
+        # Verify export directory is empty
+        assert target_sat.validate_pulp_filepath(function_sca_manifest_org, PULP_EXPORT_DIR) == ''
+        # Export complete and check the export directory
+        target_sat.cli.ContentExport.completeVersion({'id': cvv['id'], 'format': 'syncable'})
+        assert '1.0' in target_sat.validate_pulp_filepath(
+            function_sca_manifest_org, PULP_EXPORT_DIR
+        )
+        # Publish new CV version, export incremental and check the export directory
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 2
+        cvv = max(cv['versions'], key=lambda x: int(x['id']))
+        target_sat.cli.ContentExport.incrementalVersion({'id': cvv['id'], 'format': 'syncable'})
+        assert '2.0' in target_sat.validate_pulp_filepath(
+            function_sca_manifest_org, PULP_EXPORT_DIR
+        )
+        # Verify that the content referenced in repomd.xml files is present in both exports
+        repomd_files = target_sat.execute(
+            f'find {PULP_EXPORT_DIR}{function_sca_manifest_org.name}/{cv_name}/ -name repomd.xml'
+        ).stdout.splitlines()
+        assert len(repomd_files) == 2, 'Unexpected count of exports identified.'
+        for repomd in repomd_files:
+            repodata_dir = os.path.split(repomd)[0]
+            repomd_refs = set(
+                target_sat.execute(
+                    f'''grep -oP '(?<=<location href="repodata/).*?(?=\")' {repomd}'''
+                ).stdout.splitlines()
+            )
+            drive_files = set(target_sat.execute(f'ls {repodata_dir}').stdout.splitlines())
+            assert repomd_refs.issubset(drive_files), (
+                'These files are listed in repomd.xml but missing on drive: '
+                f'{repomd_refs - drive_files}'
+            )
 
 
 class TestInterSatelliteSync:
