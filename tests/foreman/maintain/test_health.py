@@ -96,11 +96,17 @@ def test_positive_health_check(sat_maintain):
         1. Run satellite-maintain health check
 
     :expectedresults: Health check should pass.
+
+    :BZ: 1956210
+
+    :customerscenario: true
     """
     result = sat_maintain.cli.Health.check(options={'assumeyes': True})
     assert result.status == 0
     if 'paused tasks in the system' not in result.stdout:
         assert 'FAIL' not in result.stdout
+    result = sat_maintain.execute('tail /var/log/foreman-proxy/proxy.log')
+    assert 'sslv3 alert bad certificate' not in result.stdout
 
 
 @pytest.mark.include_capsule
