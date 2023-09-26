@@ -15,7 +15,7 @@ python-box==7.1.1
 pytest==7.4.2
 pytest-services==2.2.1
 pytest-mock==3.11.1
-pytest-reportportal==5.2.1
+pytest-reportportal==5.2.2
 pytest-xdist==3.3.1
 pytest-ibutsu==2.2.4
 PyYAML==6.0.1
