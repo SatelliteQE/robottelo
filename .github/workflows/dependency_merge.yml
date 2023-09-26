@@ -1,16 +1,15 @@
-name: Dependabot Auto Merge
-on: pull_request
-
-permissions:
-  pull-requests: write
+name: Dependabot Auto Merge - ZStream
+on:
+  pull_request:
+    branches-ignore:
+      - master
 
 jobs:
   dependabot:
     name: dependabot-auto-merge
     runs-on: ubuntu-latest
     if: |
-      github.event.pull_request.user.login == 'Satellite-QE' &&
-      contains( github.event.pull_request.labels.*.name, 'dependencies')
+      contains(github.event.pull_request.labels.*.name, 'dependencies')
 
     steps:
       - id: find-prt-comment
