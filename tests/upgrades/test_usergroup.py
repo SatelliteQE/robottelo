@@ -16,11 +16,10 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
-from robottelo.constants import LDAP_ATTR
-from robottelo.constants import LDAP_SERVER_TYPE
+from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 
 
 class TestUserGroupMembership:

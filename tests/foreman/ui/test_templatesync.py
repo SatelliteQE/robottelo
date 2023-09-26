@@ -14,14 +14,13 @@
 
 :Upstream: No
 """
-import pytest
-import requests
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
+import requests
 
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
-from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
+from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL, FOREMAN_TEMPLATE_ROOT_DIR
 
 
 @pytest.fixture(scope='module')

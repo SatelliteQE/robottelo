@@ -16,15 +16,17 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import AWS_EC2_FLAVOR_T2_MICRO
-from robottelo.constants import COMPUTE_PROFILE_LARGE
-from robottelo.constants import EC2_REGION_CA_CENTRAL_1
-from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import (
+    AWS_EC2_FLAVOR_T2_MICRO,
+    COMPUTE_PROFILE_LARGE,
+    EC2_REGION_CA_CENTRAL_1,
+    FOREMAN_PROVIDERS,
+)
 
 pytestmark = [pytest.mark.skip_if_not_set('ec2')]
 

@@ -3,8 +3,8 @@ from pathlib import Path
 
 import click
 import deepdiff
-import yaml
 from logzero import logger
+import yaml
 
 
 def merge_nested_dictionaries(original, new, overwrite=False):

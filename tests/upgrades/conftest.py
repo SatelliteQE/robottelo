@@ -86,8 +86,8 @@ import functools
 import json
 import os
 
-import pytest
 from box import Box
+import pytest
 
 from robottelo.logging import logger
 from robottelo.utils.decorators.func_locker import lock_function
@@ -230,7 +230,7 @@ def pre_upgrade_data(request):
     dependant_on_functions = []
     for marker in request.node.iter_markers(POST_UPGRADE_MARK):
         depend_on = marker.kwargs.get('depend_on')
-        if isinstance(depend_on, (list, tuple)):
+        if isinstance(depend_on, list | tuple):
             dependant_on_functions.extend(depend_on)
         elif depend_on is not None:
             dependant_on_functions.append(depend_on)
@@ -373,7 +373,7 @@ def pytest_collection_modifyitems(items, config):
             dependant_on_functions = []
             for marker in item.iter_markers(POST_UPGRADE_MARK):
                 depend_on = marker.kwargs.get('depend_on')
-                if isinstance(depend_on, (list, tuple)):
+                if isinstance(depend_on, list | tuple):
                     dependant_on_functions.extend(depend_on)
                 elif depend_on is not None:
                     dependant_on_functions.append(depend_on)

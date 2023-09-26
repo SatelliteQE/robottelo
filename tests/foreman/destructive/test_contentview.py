@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from nailgun.entity_mixins import TaskFailedError
+import pytest
 
 from robottelo import constants
 

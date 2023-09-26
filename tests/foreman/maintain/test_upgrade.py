@@ -19,8 +19,7 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import INSTALLER_CONFIG_FILE
-from robottelo.constants import SATELLITE_VERSION
+from robottelo.constants import INSTALLER_CONFIG_FILE, SATELLITE_VERSION
 
 
 def last_y_stream_version(release):

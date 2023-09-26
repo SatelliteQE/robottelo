@@ -16,34 +16,31 @@
 
 :Upstream: No
 """
+from datetime import datetime, timedelta
 import re
-from datetime import datetime
-from datetime import timedelta
 from urllib.parse import urlparse
 
-import pytest
 from airgun.session import Session
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
+from fauxfactory import gen_integer, gen_string
 from nailgun import entities
+import pytest
 
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_fake_host
-from robottelo.cli.factory import make_virt_who_config
-from robottelo.config import setting_is_set
-from robottelo.config import settings
-from robottelo.constants import DEFAULT_SYSPURPOSE_ATTRIBUTES
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_ERRATA_ID
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
-from robottelo.constants import VDC_SUBSCRIPTION_NAME
-from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
+from robottelo.cli.factory import CLIFactoryError, make_fake_host, make_virt_who_config
+from robottelo.config import setting_is_set, settings
+from robottelo.constants import (
+    DEFAULT_SYSPURPOSE_ATTRIBUTES,
+    FAKE_0_CUSTOM_PACKAGE,
+    FAKE_0_CUSTOM_PACKAGE_GROUP,
+    FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_1_ERRATA_ID,
+    FAKE_2_CUSTOM_PACKAGE,
+    FAKE_2_CUSTOM_PACKAGE_NAME,
+    VDC_SUBSCRIPTION_NAME,
+    VIRT_WHO_HYPERVISOR_TYPES,
+)
 from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.virtwho import create_fake_hypervisor_content
 
@@ -78,6 +75,7 @@ def vm(module_repos_collection_with_manifest, rhel7_contenthost, target_sat):
     """Virtual machine registered in satellite"""
     module_repos_collection_with_manifest.setup_virtual_machine(rhel7_contenthost)
     rhel7_contenthost.add_rex_key(target_sat)
+    rhel7_contenthost.run(r'subscription-manager repos --enable \*')
     yield rhel7_contenthost
 
 

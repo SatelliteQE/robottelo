@@ -8,7 +8,7 @@
 
 :CaseComponent: Capsule
 
-:Team: Endeavour
+:Team: Platform
 
 :TestType: Functional
 
@@ -19,8 +19,7 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import CLIENT_PORT
-from robottelo.constants import DataFile
+from robottelo.constants import CLIENT_PORT, DataFile
 from robottelo.utils.installer import InstallerCommand
 
 pytestmark = [pytest.mark.no_containers, pytest.mark.destructive]

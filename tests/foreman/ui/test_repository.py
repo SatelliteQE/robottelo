@@ -16,29 +16,31 @@
 
 :Upstream: No
 """
-from datetime import datetime
-from datetime import timedelta
-from random import randint
-from random import shuffle
+from datetime import datetime, timedelta
+from random import randint, shuffle
 
-import pytest
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
+import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import DataFile
-from robottelo.constants import DOWNLOAD_POLICIES
-from robottelo.constants import INVALID_URL
-from robottelo.constants import PRDS
-from robottelo.constants import REPO_TYPE
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.constants.repos import ANSIBLE_GALAXY
-from robottelo.constants.repos import CUSTOM_3RD_PARTY_REPO
-from robottelo.constants.repos import CUSTOM_RPM_SHA
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    DOWNLOAD_POLICIES,
+    INVALID_URL,
+    PRDS,
+    REPO_TYPE,
+    REPOS,
+    REPOSET,
+    DataFile,
+)
+from robottelo.constants.repos import (
+    ANSIBLE_GALAXY,
+    CUSTOM_3RD_PARTY_REPO,
+    CUSTOM_RPM_SHA,
+)
 from robottelo.hosts import get_sat_version
 from robottelo.utils.datafactory import gen_string
 

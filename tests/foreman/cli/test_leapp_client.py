@@ -4,7 +4,7 @@
 
 :CaseLevel: Integration
 
-:CaseComponent: LeappIntegration
+:CaseComponent: Leappintegration
 
 :Team: Rocket
 
@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from broker import Broker
+import pytest
 
 from robottelo.config import settings
 from robottelo.constants import PRDS

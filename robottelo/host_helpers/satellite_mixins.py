@@ -1,19 +1,21 @@
 import contextlib
+from functools import cache
 import io
 import os
 import random
 import re
-from functools import cache
 
 import requests
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
-from robottelo.constants import PULP_EXPORT_DIR
-from robottelo.constants import PULP_IMPORT_DIR
-from robottelo.constants import PUPPET_COMMON_INSTALLER_OPTS
-from robottelo.constants import PUPPET_SATELLITE_INSTALLER
+from robottelo.constants import (
+    PULP_EXPORT_DIR,
+    PULP_IMPORT_DIR,
+    PUPPET_COMMON_INSTALLER_OPTS,
+    PUPPET_SATELLITE_INSTALLER,
+)
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.host_helpers.ui_factory import UIFactory
@@ -143,7 +145,7 @@ class ContentInfo:
         :returns: the manifest upload result
 
         """
-        if not isinstance(manifest, (bytes, io.BytesIO)):
+        if not isinstance(manifest, bytes | io.BytesIO):
             if manifest.content is None:
                 manifest = clone()
         if timeout is None:
@@ -161,7 +163,7 @@ class ContentInfo:
                     {'file': manifest.filename, 'organization-id': org_id}, timeout=timeout
                 )
         else:
-            if not isinstance(manifest, (bytes, io.BytesIO)):
+            if not isinstance(manifest, bytes | io.BytesIO):
                 manifest = manifest.content
             result = self.api.Subscription().upload(
                 data={'organization_id': org_id}, files={'content': manifest}

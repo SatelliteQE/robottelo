@@ -16,13 +16,15 @@
 
 :Upstream: No
 """
-import pytest
 from nailgun import entities
+import pytest
 
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import ENVIRONMENT
-from robottelo.constants import REPO_TYPE
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+    ENVIRONMENT,
+    REPO_TYPE,
+)
 
 
 @pytest.fixture(scope="module")
