@@ -46,18 +46,25 @@ jobs:
 
       - name: Collect Tests
         run: |
+          # To skip vault login in pull request checks
+          export VAULT_SECRET_ID_FOR_DYNACONF=somesecret
           pytest --collect-only --disable-pytest-warnings tests/foreman/ tests/robottelo/
           pytest --collect-only --disable-pytest-warnings -m pre_upgrade tests/upgrades/
           pytest --collect-only --disable-pytest-warnings -m post_upgrade tests/upgrades/
 
       - name: Collect Tests with xdist
         run: |
+          # To skip vault login in pull request checks
+          export VAULT_SECRET_ID_FOR_DYNACONF=somesecret
           pytest --collect-only --setup-plan --disable-pytest-warnings -n 2 tests/foreman/ tests/robottelo/
           pytest --collect-only --setup-plan --disable-pytest-warnings -n 2 -m pre_upgrade tests/upgrades/
           pytest --collect-only --setup-plan --disable-pytest-warnings -n 2 -m post_upgrade tests/upgrades/
 
       - name: Run Robottelo's Tests
-        run: pytest -sv tests/robottelo/
+        run: |
+          # To skip vault login in pull request checks
+          export VAULT_SECRET_ID_FOR_DYNACONF=somesecret
+          pytest -sv tests/robottelo/
 
       - name: Make Docs
         run: |
