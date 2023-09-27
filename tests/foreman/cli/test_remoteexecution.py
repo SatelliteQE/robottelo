@@ -128,8 +128,8 @@ class TestRemoteExecution:
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_run_default_job_template_by_ip(self, module_org, rex_contenthost):
-        """Run default template on host connected by ip and list task
+    def test_positive_run_default_job_template(self, module_org, rex_contenthost):
+        """Run default template on host connected and list task
 
         :id: 811c7747-bec6-4a2d-8e5c-b5045d3fbc0d
 
@@ -169,8 +169,8 @@ class TestRemoteExecution:
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([7, 8, 9])
-    def test_positive_run_job_effective_user_by_ip(self, rex_contenthost):
-        """Run default job template as effective user on a host by ip
+    def test_positive_run_job_effective_user(self, rex_contenthost):
+        """Run default job template as effective user on a host
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
 
@@ -213,8 +213,8 @@ class TestRemoteExecution:
     @pytest.mark.tier3
     @pytest.mark.e2e
     @pytest.mark.rhel_ver_match('[^6].*')
-    def test_positive_run_custom_job_template_by_ip(self, rex_contenthost, module_org, target_sat):
-        """Run custom template on host connected by ip
+    def test_positive_run_custom_job_template(self, rex_contenthost, module_org, target_sat):
+        """Run custom template on host connected
 
         :id: 9740eb1d-59f5-42b2-b3ab-659ca0202c74
 
@@ -245,10 +245,8 @@ class TestRemoteExecution:
     @pytest.mark.upgrade
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_run_default_job_template_multiple_hosts_by_ip(
-        self, registered_hosts, module_org
-    ):
-        """Run default job template against multiple hosts by ip
+    def test_positive_run_default_job_template_multiple_hosts(self, registered_hosts, module_org):
+        """Run default job template against multiple hosts
 
         :id: 694a21d3-243b-4296-8bd0-4bad9663af15
 
@@ -449,8 +447,8 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_run_recurring_job_with_max_iterations_by_ip(self, rex_contenthost):
-        """Run default job template multiple times with max iteration by ip
+    def test_positive_run_recurring_job_with_max_iterations(self, rex_contenthost):
+        """Run default job template multiple times with max iteration
 
         :id: 0a3d1627-95d9-42ab-9478-a908f2a7c509
 
@@ -561,7 +559,7 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_run_scheduled_job_template_by_ip(self, rex_contenthost, target_sat):
+    def test_positive_run_scheduled_job_template(self, rex_contenthost, target_sat):
         """Schedule a job to be ran against a host
 
         :id: 0407e3de-ef59-4706-ae0d-b81172b81e5c
@@ -575,14 +573,6 @@ class TestRemoteExecution:
         system_current_time = target_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout
         current_time_object = datetime.strptime(system_current_time.strip('\n'), '%b %d %Y %I:%M%p')
         plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M")
-        Host.set_parameter(
-            {
-                'host': client.hostname,
-                'name': 'remote_execution_connect_by_ip',
-                'value': 'True',
-                'parameter-type': 'boolean',
-            }
-        )
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
