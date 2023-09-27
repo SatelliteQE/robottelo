@@ -909,6 +909,7 @@ class TestRepository:
         )
 
     @pytest.mark.tier2
+    @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -923,19 +924,19 @@ class TestRepository:
         ),
         indirect=True,
     )
-    def test_verify_checksum_non_yum_repo(self, repo):
-        """Check if Verify Content Checksum can be run on non yum/deb repos
+    def test_verify_checksum_container_repo(self, repo):
+        """Check if Verify Content Checksum can be run on non container repos
 
         :id: c8f0eb45-3cb6-41b2-aad9-52ac847d7bf8
 
         :parametrized: yes
 
-        :customerscenario: true
-
         :expectedresults: Docker repository is created, and can be synced with
             validate-contents set to True
 
         :BZ: 2161209
+
+        :customerscenario: true
         """
         assert repo['sync']['status'] == 'Not Synced'
         Repository.synchronize({'id': repo['id'], 'validate-contents': 'true'})
