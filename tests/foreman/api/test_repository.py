@@ -1562,7 +1562,7 @@ class TestRepositorySync:
         ),
         indirect=True,
     )
-    def test_missing_content_id(self, repo, function_org):
+    def test_missing_content_id(self, repo):
         """Handle several cases of missing content ID correctly
 
         :id: f507790a-933b-4b3f-ac93-cade6967fbd2
@@ -1573,6 +1573,8 @@ class TestRepositorySync:
 
         :BZ:2032040
         """
+        # Wait for async metadata generate task to finish
+        time.sleep(5)
         # Get rid of the URL
         repo.url = ''
         repo = repo.update(['url'])
