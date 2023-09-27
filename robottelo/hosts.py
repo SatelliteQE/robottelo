@@ -1752,6 +1752,18 @@ class Satellite(Capsule, SatelliteMixins):
         self._api = type('api', (), {'_configured': False})
         self._cli = type('cli', (), {'_configured': False})
 
+    def _swap_nailgun(self, new_version):
+        """Install a different version of nailgun from GitHub and invalidate the module cache."""
+        import sys
+
+        from pip._internal import main as pip_main
+
+        pip_main(['uninstall', '-y', 'nailgun'])
+        pip_main(['install', f'https://github.com/SatelliteQE/nailgun/archive/{new_version}.zip'])
+        self._api = type('api', (), {'_configured': False})
+        to_clear = [k for k in sys.modules.keys() if 'nailgun' in k]
+        [sys.modules.pop(k) for k in to_clear]
+
     @property
     def api(self):
         """Import all nailgun entities and wrap them under self.api"""
@@ -1759,7 +1771,7 @@ class Satellite(Capsule, SatelliteMixins):
             self._api = type('api', (), {'_configured': False})
         if self._api._configured:
             return self._api
-
+        from nailgun import entities as _entities  # use a private import
         from nailgun.config import ServerConfig
         from nailgun.entity_mixins import Entity
 
@@ -1779,7 +1791,7 @@ class Satellite(Capsule, SatelliteMixins):
             verify=False,
         )
         # add each nailgun entity to self.api, injecting our server config
-        for name, obj in entities.__dict__.items():
+        for name, obj in _entities.__dict__.items():
             try:
                 if Entity in obj.mro():
                     #  create a copy of the class and inject our server config into the __init__
