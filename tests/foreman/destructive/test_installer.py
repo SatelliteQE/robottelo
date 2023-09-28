@@ -154,3 +154,34 @@ def test_positive_mismatched_satellite_fqdn(target_sat, set_random_fqdn):
     )
     installer_command_output = target_sat.execute('satellite-installer').stderr
     assert warning_message in str(installer_command_output)
+
+
+def test_positive_installer_certs_regenerate(target_sat):
+    """Ensure "satellite-installer --certs-regenerate true" command correctly generates
+    /etc/tomcat/cert-users.properties after editing answers file
+
+    :id: db6152c3-4459-425b-998d-4a7992ca1f72
+
+    :steps:
+        1. Update /etc/foreman-installer/scenarios.d/satellite-answers.yaml
+        2. Fill some empty strings in certs category for 'state'
+        3. Run satellite-installer --certs-regenerate true
+        4. hammer ping
+
+    :expectedresults: Correct generation of /etc/tomcat/cert-users.properties
+
+    :BZ: 1964037
+
+    :customerscenario: true
+    """
+    result = target_sat.install(
+        InstallerCommand(
+            'certs-update-all',
+            'certs-update-server',
+            'certs-update-server-ca',
+            certs_regenerate=['true'],
+            certs_state=['undef'],
+        )
+    )
+    assert result.status == 0
+    assert 'FAIL' not in target_sat.cli.Base.ping()
