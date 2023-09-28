@@ -1684,6 +1684,7 @@ class Capsule(ContentHost, CapsuleMixins):
                     except AttributeError:
                         # not everything has an mro method, we don't care about them
                         pass
+        self._cli._configured = True
         return self._cli
 
 
@@ -1733,6 +1734,7 @@ class Satellite(Capsule, SatelliteMixins):
             except AttributeError:
                 # not everything has an mro method, we don't care about them
                 pass
+        self._api._configured = True
         return self._api
 
     @property
@@ -1762,6 +1764,7 @@ class Satellite(Capsule, SatelliteMixins):
                     except AttributeError:
                         # not everything has an mro method, we don't care about them
                         pass
+        self._cli._configured = True
         return self._cli
 
     @contextmanager
