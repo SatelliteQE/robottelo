@@ -19,12 +19,16 @@
 import pytest
 
 from robottelo.config import settings
+<<<<<<< HEAD
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_4_CUSTOM_PACKAGE_NAME,
     REPOS,
 )
+=======
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME, FAKE_4_CUSTOM_PACKAGE_NAME
+>>>>>>> 4cf5d9913 (removed extra tests)
 from robottelo.hosts import ContentHost
 
 UPSTREAM_USERNAME = 'rTtest123'
