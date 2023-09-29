@@ -15,7 +15,6 @@ updates:
       - "6.14.z"
       - "6.13.z"
       - "6.12.z"
-      - "6.11.z"
 
   # Maintain dependencies for our GitHub Actions
   - package-ecosystem: "github-actions"
@@ -28,4 +27,3 @@ updates:
       - "6.14.z"
       - "6.13.z"
       - "6.12.z"
-      - "6.11.z"
