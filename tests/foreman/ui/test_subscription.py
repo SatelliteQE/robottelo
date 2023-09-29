@@ -96,14 +96,8 @@ def test_positive_end_to_end(session, target_sat):
     """
     expected_message_lines = [
         'Are you sure you want to delete the manifest?',
-        'Note: Deleting a subscription manifest is STRONGLY discouraged. '
-        'Deleting a manifest will:',
-        'Delete all subscriptions that are attached to running hosts.',
-        'Delete all subscriptions attached to activation keys.',
-        'Disable Red Hat Insights.',
-        'Require you to upload the subscription-manifest and re-attach '
-        'subscriptions to hosts and activation keys.',
-        'This action should only be taken in extreme circumstances or for debugging purposes.',
+        'Note: Deleting a subscription manifest is STRONGLY discouraged.',
+        'This action should only be taken for debugging purposes.',
     ]
     org = entities.Organization().create()
     _, temporary_local_manifest_path = mkstemp(prefix='manifest-', suffix='.zip')
@@ -121,14 +115,11 @@ def test_positive_end_to_end(session, target_sat):
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound'],
         )
         assert session.subscription.has_manifest
-        # dashboard check
-        subscription_values = session.dashboard.read('SubscriptionStatus')['subscriptions']
-        assert subscription_values[0]['Subscription Status'] == 'Active Subscriptions'
-        assert int(subscription_values[0]['Count']) >= 1
-        assert subscription_values[1]['Subscription Status'] == 'Subscriptions Expiring in 120 Days'
-        assert int(subscription_values[1]['Count']) == 0
-        assert subscription_values[2]['Subscription Status'] == 'Recently Expired Subscriptions'
-        assert int(subscription_values[2]['Count']) == 0
+        subscriptions = session.subscription.read_subscriptions()
+        assert len(subscriptions) >= 1
+        assert any('Red Hat' in subscription['Name'] for subscription in subscriptions)
+        assert int(subscriptions[0]['Entitlements']) > 0
+        assert int(subscriptions[0]['Consumed']) >= 0
         # manifest delete testing
         delete_message = session.subscription.read_delete_manifest_message()
         assert ' '.join(expected_message_lines) == delete_message
