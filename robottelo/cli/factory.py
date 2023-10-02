@@ -942,6 +942,7 @@ def make_job_invocation_with_credentials(options=None, credentials=None):
         'dynamic': None,
         'effective-user': None,
         'end-time': None,
+        'feature': None,
         'input-files': None,
         'inputs': None,
         'job-template': None,
