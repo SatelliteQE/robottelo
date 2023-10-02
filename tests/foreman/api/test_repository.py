@@ -1549,6 +1549,40 @@ class TestRepositorySync:
         )
         assert len(os)
 
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'repo_options',
+        **datafactory.parametrized(
+            {'yum': {'content_type': 'yum', 'unprotected': True, 'url': 'http://example.com'}}
+        ),
+        indirect=True,
+    )
+    def test_missing_content_id(self, repo):
+        """Handle several cases of missing content ID correctly
+
+        :id: f507790a-933b-4b3f-ac93-cade6967fbd2
+
+        :parametrized: yes
+
+        :expectedresults: Repository URL can be set to something new and the repo can be deleted
+
+        :BZ:2032040
+        """
+        # Wait for async metadata generate task to finish
+        time.sleep(5)
+        # Get rid of the URL
+        repo.url = ''
+        repo = repo.update(['url'])
+        assert repo.url is None
+        # Now change the URL back
+        repo.url = 'http://example.com'
+        repo = repo.update(['url'])
+        assert repo.url == 'http://example.com'
+        # Now delete the Repo
+        repo.delete()
+        with pytest.raises(HTTPError):
+            repo.read()
+
 
 class TestDockerRepository:
     """Tests specific to using ``Docker`` repositories."""
