@@ -59,9 +59,9 @@ def test_different_org_publish(
         4. Publish the content view.
 
     :expectedresults: CV is successfully published with a different location than
-    the subscribed host
+        the subscribed host
 
-    :bz:2190473
+    :BZ:2190473
     """
     cv = target_sat.api.ContentView(organization=module_entitlement_manifest_org).create()
     new_loc = target_sat.api.Location().create()
