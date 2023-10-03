@@ -1,7 +1,7 @@
 # Version updates managed by dependabot
 
 betelgeuse==1.10.0
-broker[docker]==0.4.0
+broker[docker]==0.4.1
 cryptography==41.0.4
 deepdiff==6.5.0
 dynaconf[vault]==3.2.3
