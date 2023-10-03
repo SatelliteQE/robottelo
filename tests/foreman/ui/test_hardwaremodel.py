@@ -14,9 +14,9 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 
 @pytest.mark.e2e

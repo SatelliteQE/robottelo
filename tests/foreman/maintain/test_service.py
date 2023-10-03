@@ -16,16 +16,16 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import HAMMER_CONFIG
-from robottelo.constants import MAINTAIN_HAMMER_YML
-from robottelo.constants import SATELLITE_ANSWER_FILE
+from robottelo.constants import (
+    HAMMER_CONFIG,
+    MAINTAIN_HAMMER_YML,
+    SATELLITE_ANSWER_FILE,
+)
 from robottelo.hosts import Satellite
-
-pytestmark = pytest.mark.destructive
 
 SATELLITE_SERVICES = [
     "dynflow-sidekiq@.service",
@@ -94,6 +94,7 @@ def test_positive_service_list(sat_maintain):
 
 
 @pytest.mark.include_capsule
+@pytest.mark.usefixtures('start_satellite_services')
 def test_positive_service_stop_start(sat_maintain):
     """Start/Stop services using satellite-maintain service subcommand
 
@@ -123,7 +124,10 @@ def test_positive_service_stop_start(sat_maintain):
     assert result.status == 0
 
 
+@pytest.mark.stream
+@pytest.mark.upgrade
 @pytest.mark.include_capsule
+@pytest.mark.usefixtures('start_satellite_services')
 def test_positive_service_stop_restart(sat_maintain):
     """Disable services using satellite-maintain service
 
@@ -156,6 +160,7 @@ def test_positive_service_stop_restart(sat_maintain):
 
 
 @pytest.mark.include_capsule
+@pytest.mark.usefixtures('start_satellite_services')
 def test_positive_service_enable_disable(sat_maintain):
     """Enable/Disable services using satellite-maintain service subcommand
 
@@ -180,7 +185,8 @@ def test_positive_service_enable_disable(sat_maintain):
     assert result.status == 0
 
 
-def test_positive_foreman_service(request, sat_maintain):
+@pytest.mark.usefixtures('start_satellite_services')
+def test_positive_foreman_service(sat_maintain):
     """Validate httpd service should work as expected even stopping of the foreman service
 
     :id: 08a29ea2-2e49-11eb-a22b-d46d6dd3b5b2
@@ -201,10 +207,7 @@ def test_positive_foreman_service(request, sat_maintain):
     result = sat_maintain.cli.Health.check(options={'assumeyes': True})
     assert result.status == 0
     assert 'foreman' in result.stdout
-
-    @request.addfinalizer
-    def _finalize():
-        assert sat_maintain.cli.Service.start(options={'only': 'foreman'}).status == 0
+    assert sat_maintain.cli.Service.start(options={'only': 'foreman'}).status == 0
 
 
 @pytest.mark.include_capsule
@@ -216,11 +219,11 @@ def test_positive_status_clocale(sat_maintain):
     :parametrized: yes
 
     :steps:
-        1. Run LC_ALL=C satellite-maintain service stop
+        1. Run LC_ALL=C.UTF-8 satellite-maintain service status
 
     :expectedresults: service status works with C locale
     """
-    assert sat_maintain.cli.Service.status(env_var='LC_ALL=C').status == 0
+    assert sat_maintain.cli.Service.status(env_var='LC_ALL=C.UTF-8').status == 0
 
 
 def test_positive_service_restart_without_hammer_config(missing_hammer_config, sat_maintain):

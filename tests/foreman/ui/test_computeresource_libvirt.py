@@ -18,13 +18,16 @@
 """
 from random import choice
 
-import pytest
 from fauxfactory import gen_string
+import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import COMPUTE_PROFILE_SMALL
-from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.constants import (
+    COMPUTE_PROFILE_SMALL,
+    FOREMAN_PROVIDERS,
+    LIBVIRT_RESOURCE_URL,
+)
 
 pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
 
@@ -118,3 +121,87 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_loca
         assert cr_profile_values['provider_content']['memory'] == '8192 MB'
         session.computeresource.delete(new_cr_name)
         assert not session.computeresource.search(new_cr_name)
+
+
+@pytest.mark.on_premises_provisioning
+@pytest.mark.tier4
+@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
+def test_positive_provision_end_to_end(
+    request,
+    session,
+    setting_update,
+    module_sca_manifest_org,
+    module_location,
+    provisioning_hostgroup,
+    module_libvirt_provisioning_sat,
+):
+    """Provision Host on libvirt compute resource, and delete it afterwards
+
+    :id: 2678f95f-0c0e-4b46-a3c1-3f9a954d3bde
+
+    :expectedresults: Host is provisioned successfully
+
+    :CaseLevel: System
+
+    :customerscenario: true
+
+    :BZ: 1243223
+
+    :parametrized: yes
+    """
+    sat = module_libvirt_provisioning_sat.sat
+    hostname = gen_string('alpha').lower()
+    cr = sat.api.LibvirtComputeResource(
+        provider=FOREMAN_PROVIDERS['libvirt'],
+        url=LIBVIRT_URL,
+        display_type='VNC',
+        location=[module_location],
+        organization=[module_sca_manifest_org],
+    ).create()
+    with session:
+        session.host.create(
+            {
+                'host.name': hostname,
+                'host.organization': module_sca_manifest_org.name,
+                'host.location': module_location.name,
+                'host.hostgroup': provisioning_hostgroup.name,
+                'host.inherit_deploy_option': False,
+                'host.deploy': f'{cr.name} (Libvirt)',
+                'provider_content.virtual_machine.memory': '6144',
+                'interfaces.interface.network_type': 'Physical (Bridge)',
+                'interfaces.interface.network': f'br-{settings.provisioning.vlan_id}',
+                'additional_information.comment': 'Libvirt provision using valid data',
+            }
+        )
+        name = f'{hostname}.{module_libvirt_provisioning_sat.domain.name}'
+        assert session.host.search(name)[0]['Name'] == name
+
+        # teardown
+        @request.addfinalizer
+        def _finalize():
+            host = sat.api.Host().search(query={'search': f'name="{name}"'})
+            if host:
+                host[0].delete()
+
+        # Check on Libvirt, if VM exists
+        result = sat.execute(
+            f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
+        )
+        assert hostname in result.stdout
+        # Wait for provisioning to complete and report status back to Satellite
+        wait_for(
+            lambda: session.host.get_details(name)['properties']['properties_table']['Build']
+            != 'Pending installation clear',
+            timeout=1800,
+            delay=30,
+            fail_func=session.browser.refresh,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        assert (
+            session.host.get_details(name)['properties']['properties_table']['Build']
+            == 'Installed clear'
+        )
+        session.host.delete(name)
+        assert not sat.api.Host().search(query={'search': f'name="{name}"'})

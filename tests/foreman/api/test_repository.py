@@ -17,25 +17,20 @@
 :Upstream: No
 """
 import re
+from string import punctuation
 import tempfile
 import time
-from string import punctuation
-from urllib.parse import urljoin
-from urllib.parse import urlparse
-from urllib.parse import urlunparse
+from urllib.parse import urljoin, urlparse, urlunparse
 
-import pytest
 from fauxfactory import gen_string
-from nailgun import client
-from nailgun import entities
-from nailgun.entity_mixins import call_entity_method_with_timeout
-from nailgun.entity_mixins import TaskFailedError
+from nailgun import client, entities
+from nailgun.entity_mixins import TaskFailedError, call_entity_method_with_timeout
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import DataFile
-from robottelo.constants import repos as repo_constants
+from robottelo.constants import DataFile, repos as repo_constants
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.logging import logger
 from robottelo.utils import datafactory
@@ -1553,6 +1548,40 @@ class TestRepositorySync:
             query={'search': f'name="RedHat" AND major="{major}" AND minor="{minor}"'}
         )
         assert len(os)
+
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'repo_options',
+        **datafactory.parametrized(
+            {'yum': {'content_type': 'yum', 'unprotected': True, 'url': 'http://example.com'}}
+        ),
+        indirect=True,
+    )
+    def test_missing_content_id(self, repo):
+        """Handle several cases of missing content ID correctly
+
+        :id: f507790a-933b-4b3f-ac93-cade6967fbd2
+
+        :parametrized: yes
+
+        :expectedresults: Repository URL can be set to something new and the repo can be deleted
+
+        :BZ:2032040
+        """
+        # Wait for async metadata generate task to finish
+        time.sleep(5)
+        # Get rid of the URL
+        repo.url = ''
+        repo = repo.update(['url'])
+        assert repo.url is None
+        # Now change the URL back
+        repo.url = 'http://example.com'
+        repo = repo.update(['url'])
+        assert repo.url == 'http://example.com'
+        # Now delete the Repo
+        repo.delete()
+        with pytest.raises(HTTPError):
+            repo.read()
 
 
 class TestDockerRepository:

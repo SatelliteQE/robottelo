@@ -17,22 +17,24 @@
 :Upstream: No
 """
 from calendar import monthrange
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
+import random
 from time import sleep
 
-import pytest
 from broker import Broker
-from dateutil.relativedelta import FR
-from dateutil.relativedelta import relativedelta
+from dateutil.relativedelta import FR, relativedelta
 from fauxfactory import gen_string
+import pytest
 
-from robottelo.cli.factory import make_filter
-from robottelo.cli.factory import make_job_invocation
-from robottelo.cli.factory import make_job_invocation_with_credentials
-from robottelo.cli.factory import make_job_template
-from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_user
+from robottelo import constants
+from robottelo.cli.factory import (
+    make_filter,
+    make_job_invocation,
+    make_job_invocation_with_credentials,
+    make_job_template,
+    make_role,
+    make_user,
+)
 from robottelo.cli.filter import Filter
 from robottelo.cli.globalparam import GlobalParameter
 from robottelo.cli.host import Host
@@ -43,11 +45,24 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.task import Task
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.hosts import ContentHost
 from robottelo.utils import ohsnap
+from robottelo.utils.datafactory import filtered_datapoint, parametrized
+
+
+@filtered_datapoint
+def valid_feature_names():
+    """Returns a list of valid features and their descriptions"""
+    return [
+        {'label': 'katello_package_install', 'jt_name': 'Install Package - Katello Script Default'},
+        {'label': 'katello_package_update', 'jt_name': 'Update Package - Katello Script Default'},
+        {'label': 'katello_package_remove', 'jt_name': 'Remove Package - Katello Script Default'},
+        {'label': 'katello_group_install', 'jt_name': 'Install Group - Katello Script Default'},
+        {'label': 'katello_group_update', 'jt_name': 'Update Group - Katello Script Default'},
+        {'label': 'katello_group_remove', 'jt_name': 'Remove Group - Katello Script Default'},
+        {'label': 'katello_errata_install', 'jt_name': 'Install Errata - Katello Script Default'},
+    ]
 
 
 @pytest.fixture()
@@ -113,8 +128,8 @@ class TestRemoteExecution:
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_run_default_job_template_by_ip(self, module_org, rex_contenthost):
-        """Run default template on host connected by ip and list task
+    def test_positive_run_default_job_template(self, module_org, rex_contenthost):
+        """Run default template on host connected and list task
 
         :id: 811c7747-bec6-4a2d-8e5c-b5045d3fbc0d
 
@@ -154,8 +169,8 @@ class TestRemoteExecution:
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([7, 8, 9])
-    def test_positive_run_job_effective_user_by_ip(self, rex_contenthost):
-        """Run default job template as effective user on a host by ip
+    def test_positive_run_job_effective_user(self, rex_contenthost):
+        """Run default job template as effective user on a host
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
 
@@ -198,8 +213,8 @@ class TestRemoteExecution:
     @pytest.mark.tier3
     @pytest.mark.e2e
     @pytest.mark.rhel_ver_match('[^6].*')
-    def test_positive_run_custom_job_template_by_ip(self, rex_contenthost, module_org, target_sat):
-        """Run custom template on host connected by ip
+    def test_positive_run_custom_job_template(self, rex_contenthost, module_org, target_sat):
+        """Run custom template on host connected
 
         :id: 9740eb1d-59f5-42b2-b3ab-659ca0202c74
 
@@ -230,10 +245,8 @@ class TestRemoteExecution:
     @pytest.mark.upgrade
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_run_default_job_template_multiple_hosts_by_ip(
-        self, registered_hosts, module_org
-    ):
-        """Run default job template against multiple hosts by ip
+    def test_positive_run_default_job_template_multiple_hosts(self, registered_hosts, module_org):
+        """Run default job template against multiple hosts
 
         :id: 694a21d3-243b-4296-8bd0-4bad9663af15
 
@@ -271,15 +284,15 @@ class TestRemoteExecution:
     @pytest.mark.skipif(
         (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
     )
-    def test_positive_install_multiple_packages_with_a_job_by_ip(
+    def test_positive_install_remove_multiple_packages_with_a_job(
         self, rhel_contenthost, module_org, module_ak_with_cv, target_sat
     ):
-        """Run job to install several packages on host by ip
+        """Run job to install and remove several packages on host
 
         :id: 8b73033f-83c9-4024-83c3-5e442a79d320
 
         :expectedresults: Verify the packages were successfully installed
-            on host
+            and removed on a host
 
         :parametrized: yes
         """
@@ -292,21 +305,150 @@ class TestRemoteExecution:
             target_sat,
             repo=settings.repos.yum_3.url,
         )
+        # Install packages
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Install Package - Katello Script Default',
-                'inputs': 'package={} {} {}'.format(*packages),
+                'inputs': f'package={" ".join(packages)}',
                 'search-query': f'name ~ {client.hostname}',
             }
         )
         assert_job_invocation_result(invocation_command['id'], client.hostname)
         result = client.run(f'rpm -q {" ".join(packages)}')
         assert result.status == 0
+        # Update packages
+        pre_versions = result.stdout.splitlines()
+        result = client.run(f'dnf -y downgrade {" ".join(packages)}')
+        assert result.status == 0
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Update Package - Katello Script Default',
+                'inputs': f'package={" ".join(packages)}',
+                'search-query': f'name ~ {client.hostname}',
+            }
+        )
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        post_versions = client.run(f'rpm -q {" ".join(packages)}').stdout.splitlines()
+        assert set(pre_versions) == set(post_versions)
+        # Remove packages
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Remove Package - Katello Script Default',
+                'inputs': f'package={" ".join(packages)}',
+                'search-query': f'name ~ {client.hostname}',
+            }
+        )
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        result = client.run(f'rpm -q {" ".join(packages)}')
+        assert result.status == len(packages)
+
+    @pytest.mark.tier3
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.skipif(
+        (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
+    )
+    def test_positive_install_remove_packagegroup_with_a_job(
+        self, rhel_contenthost, module_org, module_ak_with_cv, target_sat
+    ):
+        """Run job to install and remove several package groups on host
+
+        :id: 5be2a5c0-199a-4655-9784-e95c7ef151f5
+
+        :expectedresults: Verify the package groups were successfully installed
+            and removed on a host
+
+        :parametrized: yes
+        """
+        client = rhel_contenthost
+        groups = ['birds', 'mammals']
+        client.register(
+            module_org,
+            None,
+            module_ak_with_cv.name,
+            target_sat,
+            repo=settings.repos.yum_1.url,
+        )
+        # Install the package groups
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Install Group - Katello Script Default',
+                'inputs': f'package={" ".join(groups)}',
+                'search-query': f'name ~ {client.hostname}',
+            }
+        )
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        result = client.run('dnf grouplist --installed')
+        assert all(item in result.stdout for item in groups)
+        # Remove one of the installed package groups
+        remove = random.choice(groups)
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Remove Group - Katello Script Default',
+                'inputs': f'package={remove}',
+                'search-query': f'name ~ {client.hostname}',
+            }
+        )
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        result = client.run('dnf grouplist --installed')
+        assert remove not in result.stdout
+
+    @pytest.mark.tier3
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.skipif(
+        (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
+    )
+    def test_positive_install_errata_with_a_job(
+        self, rhel_contenthost, module_org, module_ak_with_cv, target_sat
+    ):
+        """Run job to install errata on host
+
+        :id: d906a884-9fd7-48dc-a91b-fa6e8c3311c1
+
+        :expectedresults: Verify the errata was successfully installed on a host
+
+        :parametrized: yes
+        """
+        client = rhel_contenthost
+        client.register(
+            module_org,
+            None,
+            module_ak_with_cv.name,
+            target_sat,
+            repo=settings.repos.yum_1.url,
+        )
+        client.run(f'dnf install -y {constants.FAKE_1_CUSTOM_PACKAGE}')
+        # Install errata
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Install Errata - Katello Script Default',
+                'inputs': f'errata={settings.repos.yum_0.errata[1]}',
+                'search-query': f'name ~ {client.hostname}',
+            }
+        )
+        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        result = client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}')
+        assert result.status == 0
+
+    @pytest.mark.tier3
+    @pytest.mark.parametrize('feature', **parametrized(valid_feature_names()))
+    def test_positive_match_feature_templates(self, target_sat, feature):
+        """Verify the `feature` names match the correct templates
+
+        :id: a7cf23fe-4d3b-4bd2-b921-d31ad3e4d7e9
+
+        :expectedresults: All features exist and match the expected templates
+
+        :parametrized: yes
+        """
+        result = target_sat.cli.RemoteExecutionFeature.info({'id': feature['label']})
+        assert result['job-template-name'] == feature['jt_name']
 
     @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_run_recurring_job_with_max_iterations_by_ip(self, rex_contenthost):
-        """Run default job template multiple times with max iteration by ip
+    def test_positive_run_recurring_job_with_max_iterations(self, rex_contenthost):
+        """Run default job template multiple times with max iteration
 
         :id: 0a3d1627-95d9-42ab-9478-a908f2a7c509
 
@@ -417,7 +559,7 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_run_scheduled_job_template_by_ip(self, rex_contenthost, target_sat):
+    def test_positive_run_scheduled_job_template(self, rex_contenthost, target_sat):
         """Schedule a job to be ran against a host
 
         :id: 0407e3de-ef59-4706-ae0d-b81172b81e5c
@@ -431,14 +573,6 @@ class TestRemoteExecution:
         system_current_time = target_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout
         current_time_object = datetime.strptime(system_current_time.strip('\n'), '%b %d %Y %I:%M%p')
         plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M")
-        Host.set_parameter(
-            {
-                'host': client.hostname,
-                'name': 'remote_execution_connect_by_ip',
-                'value': 'True',
-                'parameter-type': 'boolean',
-            }
-        )
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Script Default',

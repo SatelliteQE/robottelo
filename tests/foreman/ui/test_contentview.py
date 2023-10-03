@@ -15,7 +15,7 @@
 :CaseImportance: High
 
 :Upstream: No
-"""
+
 import pytest
 from fauxfactory import gen_string
 
@@ -45,7 +45,7 @@ def test_positive_create_cv(session, target_sat):
         session.contentview_new.create(dict(name=cv))
         assert session.contentview_new.search(cv)[0]['Name'] == cv
 
-
+        
 @pytest.mark.tier2
 def test_different_org_publish(
     session, target_sat, module_entitlement_manifest_org, module_lce, module_location
@@ -92,3 +92,4 @@ def test_different_org_publish(
         session.organization.select(org_name=module_entitlement_manifest_org.name)
         response = session.contentview_new.publish(cv.name)
         assert response[0]['Version'] == 'Version 2.0'
+

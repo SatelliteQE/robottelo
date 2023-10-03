@@ -15,6 +15,38 @@ exclude = '''
 )/
 '''
 
+[tool.ruff]
+target-version = "py311"
+fixable = ["ALL"]
+
+select = [
+    # "C90", # mccabe
+    "E",  # pycodestyle
+    "F",  # flake8
+    "I", # isort
+    # "Q",  # flake8-quotes
+    "UP",  # pyupgrade
+    "W",  # pycodestyle
+]
+
+ignore = [
+    "E501",  # line too long - handled by black
+]
+
+[tool.ruff.isort]
+force-sort-within-sections = true
+known-first-party = [
+    "robottelo",
+]
+combine-as-imports = true
+
+
+[tool.ruff.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.mccabe]
+max-complexity = 20
+
 [tool.pytest.ini_options]
 junit_logging = 'all'
 addopts = '--show-capture=no'

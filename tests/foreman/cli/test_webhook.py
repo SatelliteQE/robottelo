@@ -19,14 +19,13 @@
 from functools import partial
 from random import choice
 
-import pytest
 from box import Box
 from fauxfactory import gen_alphanumeric
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.webhook import Webhook
-from robottelo.constants import WEBHOOK_EVENTS
-from robottelo.constants import WEBHOOK_METHODS
+from robottelo.constants import WEBHOOK_EVENTS, WEBHOOK_METHODS
 
 
 @pytest.fixture(scope='function')
@@ -57,7 +56,7 @@ def webhook_factory(request, class_org, class_location):
 
 def assert_created(options, hook):
     for option in options.items():
-        if not option[0] in ['event', 'organization-id', 'location-id']:
+        if option[0] not in ['event', 'organization-id', 'location-id']:
             assert hook[option[0]] == option[1]
 
 

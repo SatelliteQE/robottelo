@@ -8,7 +8,7 @@
 
 :CaseComponent: SCAPPlugin
 
-:Team: Rocket
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -16,9 +16,9 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 
 class TestOscapPolicy:

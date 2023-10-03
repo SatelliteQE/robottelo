@@ -1,4 +1,5 @@
 import contextlib
+from functools import cache
 import io
 import os
 import random
@@ -9,12 +10,15 @@ import requests
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
-from robottelo.constants import PULP_EXPORT_DIR
-from robottelo.constants import PULP_IMPORT_DIR
-from robottelo.constants import PUPPET_COMMON_INSTALLER_OPTS
-from robottelo.constants import PUPPET_SATELLITE_INSTALLER
+from robottelo.constants import (
+    PULP_EXPORT_DIR,
+    PULP_IMPORT_DIR,
+    PUPPET_COMMON_INSTALLER_OPTS,
+    PUPPET_SATELLITE_INSTALLER,
+)
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
+from robottelo.host_helpers.ui_factory import UIFactory
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.manifest import clone
@@ -141,13 +145,14 @@ class ContentInfo:
         :returns: the manifest upload result
 
         """
-        if manifest is None:
-            manifest = clone()
+        if not isinstance(manifest, bytes | io.BytesIO):
+            if manifest.content is None:
+                manifest = clone()
         if timeout is None:
             # Set the timeout to 1500 seconds to align with the API timeout.
             timeout = 1500000
         if interface == 'CLI':
-            if isinstance(manifest.content, (bytes, io.BytesIO)):
+            if hasattr(manifest, 'path'):
                 self.put(f'{manifest.path}', f'{manifest.name}')
                 result = self.cli.Subscription.upload(
                     {'file': manifest.name, 'organization-id': org_id}, timeout=timeout
@@ -158,7 +163,7 @@ class ContentInfo:
                     {'file': manifest.filename, 'organization-id': org_id}, timeout=timeout
                 )
         else:
-            if not isinstance(manifest, (bytes, io.BytesIO)):
+            if not isinstance(manifest, bytes | io.BytesIO):
                 manifest = manifest.content
             result = self.api.Subscription().upload(
                 data={'organization_id': org_id}, files={'content': manifest}
@@ -351,3 +356,7 @@ class Factories:
         if not getattr(self, '_api_factory', None):
             self._api_factory = APIFactory(self)
         return self._api_factory
+
+    @cache
+    def ui_factory(self, session):
+        return UIFactory(self, session=session)

@@ -1,6 +1,6 @@
 # Content View Fixtures
-import pytest
 from nailgun.entity_mixins import call_entity_method_with_timeout
+import pytest
 
 from robottelo.constants import DEFAULT_CV
 

@@ -16,31 +16,35 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_compute_resource
-from robottelo.cli.factory import make_domain
-from robottelo.cli.factory import make_hostgroup
-from robottelo.cli.factory import make_lifecycle_environment
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_medium
-from robottelo.cli.factory import make_org
-from robottelo.cli.factory import make_subnet
-from robottelo.cli.factory import make_template
-from robottelo.cli.factory import make_user
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_compute_resource,
+    make_domain,
+    make_hostgroup,
+    make_lifecycle_environment,
+    make_location,
+    make_medium,
+    make_org,
+    make_subnet,
+    make_template,
+    make_user,
+)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
-from robottelo.utils.datafactory import valid_org_names_list
+from robottelo.utils.datafactory import (
+    filtered_datapoint,
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+    valid_org_names_list,
+)
 
 
 @filtered_datapoint

@@ -16,10 +16,12 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
+from wait_for import wait_for
 
-from robottelo.config import settings
+from robottelo.config import settings, user_nailgun_config
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.mark.e2e
@@ -253,3 +255,89 @@ def test_add_and_remove_ansible_role_hostgroup(target_sat):
         target_sat.api.HostGroup(id=hg.id).remove_ansible_role(data={'ansible_role_id': role})
     host_roles = target_sat.api.HostGroup(id=hg.id).list_ansible_roles()
     assert len(host_roles) == 0
+
+
+@pytest.fixture(scope='function')
+def filtered_user(target_sat, module_org, module_location):
+    """
+    :Steps:
+        1. Create a role with a host view filtered
+        2. Create a user with that role
+        3. Setup a host
+    """
+    api = target_sat.api
+    role = api.Role(
+        name=gen_string('alpha'), location=[module_location], organization=[module_org]
+    ).create()
+    # assign view_hosts (with a filter, to test BZ 1699188),
+    # view_hostgroups, view_facts permissions to the role
+    permission_hosts = api.Permission().search(query={'search': 'name="view_hosts"'})
+    permission_hostgroups = api.Permission().search(query={'search': 'name="view_hostgroups"'})
+    permission_facts = api.Permission().search(query={'search': 'name="view_facts"'})
+    api.Filter(permission=permission_hosts, search='name != nonexistent', role=role).create()
+    api.Filter(permission=permission_hostgroups, role=role).create()
+    api.Filter(permission=permission_facts, role=role).create()
+
+    password = gen_string('alpha')
+    user = api.User(
+        role=[role], password=password, location=[module_location], organization=[module_org]
+    ).create()
+
+    return user, password
+
+
+@pytest.fixture(scope='function')
+def rex_host_in_org_and_loc(target_sat, module_org, module_location, rex_contenthost):
+    api = target_sat.api
+    host = api.Host().search(query={'search': f'name={rex_contenthost.hostname}'})[0]
+    host_id = host.id
+    api.Host(id=host_id, organization=[module_org.id]).update(['organization'])
+    api.Host(id=host_id, location=module_location.id).update(['location'])
+    return host
+
+
+@pytest.mark.rhel_ver_match('[78]')
+@pytest.mark.tier2
+def test_positive_read_facts_with_filter(
+    target_sat, rex_contenthost, filtered_user, rex_host_in_org_and_loc
+):
+    """
+    Read host's Ansible facts as a user with a role that has host filter
+
+    :id: 483d5faf-7a4c-4cb7-b14f-369768ad99b0
+
+        1. Run Ansible roles on a host
+        2. Using API, read Ansible facts of that host
+
+    :expectedresults: Ansible facts returned
+
+    :BZ: 1699188
+
+    :customerscenario: true
+    """
+    user, password = filtered_user
+    host = rex_host_in_org_and_loc
+
+    # gather ansible facts by running ansible roles on the host
+    host.play_ansible_roles()
+    if is_open('BZ:2216471'):
+        host_wait = target_sat.api.Host().search(
+            query={'search': f'name={rex_contenthost.hostname}'}
+        )[0]
+        wait_for(
+            lambda: len(host_wait.get_facts()) > 0,
+            timeout=30,
+            delay=2,
+        )
+
+    user_cfg = user_nailgun_config(user.login, password)
+    host = target_sat.api.Host(server_config=user_cfg).search(
+        query={'search': f'name={rex_contenthost.hostname}'}
+    )[0]
+    # get facts through API
+    facts = host.get_facts()
+    assert 'subtotal' in facts
+    assert facts['subtotal'] == 1
+    assert 'results' in facts
+    assert rex_contenthost.hostname in facts['results']
+    assert len(facts['results'][rex_contenthost.hostname]) > 0

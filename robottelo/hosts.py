@@ -1,70 +1,64 @@
+from configparser import ConfigParser
 import contextlib
+from contextlib import contextmanager
+from datetime import datetime
+from functools import cached_property, lru_cache
 import importlib
 import io
 import json
+from pathlib import Path, PurePath
 import random
 import re
-import time
-import warnings
-from configparser import ConfigParser
-from contextlib import contextmanager
-from datetime import datetime
-from functools import cached_property
-from functools import lru_cache
-from pathlib import Path
-from pathlib import PurePath
 from tempfile import NamedTemporaryFile
-from urllib.parse import urljoin
-from urllib.parse import urlparse
-from urllib.parse import urlunsplit
+import time
+from urllib.parse import urljoin, urlparse, urlunsplit
+import warnings
 
-import requests
-import yaml
 from box import Box
 from broker import Broker
 from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
-from fauxfactory import gen_alpha
-from fauxfactory import gen_string
+from fauxfactory import gen_alpha, gen_string
 from manifester import Manifester
 from nailgun import entities
 from packaging.version import Version
+import requests
 from ssh2.exceptions import AuthenticationError
-from wait_for import TimedOutError
-from wait_for import wait_for
+from wait_for import TimedOutError, wait_for
 from wrapanapi.entities.vm import VmState
+import yaml
 
 from robottelo import constants
 from robottelo.cli.base import Base
 from robottelo.cli.factory import CLIFactoryError
-from robottelo.config import configure_airgun
-from robottelo.config import configure_nailgun
-from robottelo.config import robottelo_tmp_dir
-from robottelo.config import settings
-from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS
-from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
-from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import HAMMER_CONFIG
-from robottelo.constants import KEY_CLOAK_CLI
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.constants import RHSSO_NEW_GROUP
-from robottelo.constants import RHSSO_NEW_USER
-from robottelo.constants import RHSSO_RESET_PASSWORD
-from robottelo.constants import RHSSO_USER_UPDATE
-from robottelo.constants import SATELLITE_VERSION
-from robottelo.exceptions import DownloadFileError
-from robottelo.exceptions import HostPingFailed
-from robottelo.host_helpers import CapsuleMixins
-from robottelo.host_helpers import ContentHostMixins
-from robottelo.host_helpers import SatelliteMixins
+from robottelo.config import (
+    configure_airgun,
+    configure_nailgun,
+    robottelo_tmp_dir,
+    settings,
+)
+from robottelo.constants import (
+    CUSTOM_PUPPET_MODULE_REPOS,
+    CUSTOM_PUPPET_MODULE_REPOS_PATH,
+    CUSTOM_PUPPET_MODULE_REPOS_VERSION,
+    DEFAULT_ARCHITECTURE,
+    HAMMER_CONFIG,
+    KEY_CLOAK_CLI,
+    PRDS,
+    REPOS,
+    REPOSET,
+    RHSSO_NEW_GROUP,
+    RHSSO_NEW_USER,
+    RHSSO_RESET_PASSWORD,
+    RHSSO_USER_UPDATE,
+    SATELLITE_VERSION,
+)
+from robottelo.exceptions import DownloadFileError, HostPingFailed
+from robottelo.host_helpers import CapsuleMixins, ContentHostMixins, SatelliteMixins
 from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
-
 
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
@@ -227,15 +221,30 @@ class ContentHost(Host, ContentHostMixins):
         return self._satellite
 
     @property
+    def _sat_host_record(self):
+        """Provide access to this host's Host record if it exists."""
+        hosts = self.satellite.api.Host().search(query={'search': self.hostname})
+        if not hosts:
+            logger.debug('No host record found for %s on Satellite', self.hostname)
+            return None
+        return hosts[0]
+
+    def _delete_host_record(self):
+        """Delete the Host record of this host from Satellite."""
+        if h_record := self._sat_host_record:
+            logger.debug('Deleting host record for %s from Satellite', self.hostname)
+            h_record.delete()
+
+    @property
     def nailgun_host(self):
         """If this host is subscribed, provide access to its nailgun object"""
         if self.identity.get('registered_to') == self.satellite.hostname:
             try:
-                host_list = self.satellite.api.Host().search(query={'search': self.hostname})[0]
+                host = self._sat_host_record
             except Exception as err:
                 logger.error(f'Failed to get nailgun host for {self.hostname}: {err}')
-                host_list = None
-            return host_list
+                host = None
+            return host
         else:
             logger.warning(f'Host {self.hostname} not registered to {self.satellite.hostname}')
 
@@ -373,14 +382,20 @@ class ContentHost(Host, ContentHostMixins):
                 del self.__dict__[name]
 
     def setup(self):
+        logger.debug('START: setting up host %s', self)
         if not self.blank:
             self.remove_katello_ca()
 
+        logger.debug('END: setting up host %s', self)
+
     def teardown(self):
+        logger.debug('START: tearing down host %s', self)
         if not self.blank and not getattr(self, '_skip_context_checkin', False):
             self.unregister()
-            if type(self) is not Satellite and self.nailgun_host:
-                self.nailgun_host.delete()
+            if type(self) is not Satellite:  # do not delete Satellite's host record
+                self._delete_host_record()
+
+        logger.debug('END: tearing down host %s', self)
 
     def power_control(self, state=VmState.RUNNING, ensure=True):
         """Lookup the host workflow for power on and execute
@@ -886,7 +901,7 @@ class ContentHost(Host, ContentHostMixins):
         If local_path is a manifest object, write its contents to a temporary file
         then continue with the upload.
         """
-        if 'utils.Manifest' in str(local_path):
+        if 'utils.manifest' in str(local_path):
             with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
                 content_file.write(local_path.content.read())
                 content_file.flush()
@@ -1137,6 +1152,8 @@ class ContentHost(Host, ContentHostMixins):
             # Register client
             if self.execute('insights-client --register').status != 0:
                 raise ContentHostError('Unable to register client to Insights through Satellite')
+            if self.execute('insights-client --test-connection').status != 0:
+                raise ContentHostError('Test connection failed via insights.')
 
     def unregister_insights(self):
         """Unregister insights client.
@@ -1255,9 +1272,9 @@ class ContentHost(Host, ContentHostMixins):
         :param bool upload_manifest: whether to upload the organization manifest
         :param list extra_repos: (Optional) repositories dict options to setup additionally.
         """
-        from robottelo.cli.org import Org
         from robottelo.cli import factory as cli_factory
         from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
+        from robottelo.cli.org import Org
         from robottelo.cli.subscription import Subscription
         from robottelo.cli.virt_who_config import VirtWhoConfig
 
@@ -1666,6 +1683,19 @@ class Capsule(ContentHost, CapsuleMixins):
         if result.status != 0:
             raise SatelliteHostError(f'Failed to enable pull provider: {result.stdout}')
 
+    def run_installer_arg(self, *args, timeout='20m'):
+        """Run an installer argument on capsule"""
+        installer_args = list(args)
+        installer_command = InstallerCommand(
+            installer_args=installer_args,
+        )
+        result = self.execute(
+            installer_command.get_command(),
+            timeout=timeout,
+        )
+        if result.status != 0:
+            raise SatelliteHostError(f'Failed to execute with argument: {result.stderr}')
+
     def set_mqtt_resend_interval(self, value):
         """Set the time interval in seconds at which the notification should be
         re-sent to the mqtt host until the job is picked up or cancelled"""
@@ -1705,6 +1735,7 @@ class Capsule(ContentHost, CapsuleMixins):
                     except AttributeError:
                         # not everything has an mro method, we don't care about them
                         pass
+        self._cli._configured = True
         return self._cli
 
 
@@ -1757,6 +1788,7 @@ class Satellite(Capsule, SatelliteMixins):
             except AttributeError:
                 # not everything has an mro method, we don't care about them
                 pass
+        self._api._configured = True
         return self._api
 
     @property
@@ -1786,6 +1818,7 @@ class Satellite(Capsule, SatelliteMixins):
                     except AttributeError:
                         # not everything has an mro method, we don't care about them
                         pass
+        self._cli._configured = True
         return self._cli
 
     @contextmanager
@@ -1997,7 +2030,7 @@ class Satellite(Capsule, SatelliteMixins):
         """Register content host to Satellite and sync repos
 
         :param module_org: Org where contenthost will be registered.
-        :param rhel_contenthost: contenthost to be register with Satellite.
+        :param rhel_contenthost: contenthost to be registered with Satellite.
         :param repo_urls: List of URLs to be synced and made available to contenthost
             via subscription-manager.
         :return: None
@@ -2056,6 +2089,9 @@ class Satellite(Capsule, SatelliteMixins):
             )
             # refresh repository metadata on the host
             rhel_contenthost.execute('subscription-manager repos --list')
+
+        # Override the repos to enabled
+        rhel_contenthost.execute(r'subscription-manager repos --enable \*')
 
     def enroll_ad_and_configure_external_auth(self, ad_data):
         """Enroll Satellite Server to an AD Server.

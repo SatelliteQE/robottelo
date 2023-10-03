@@ -16,17 +16,15 @@
 
 :Upstream: No
 """
+from datetime import datetime, timedelta
 import time
-from datetime import datetime
-from datetime import timedelta
 
-import pytest
 from fauxfactory import gen_choice
 from nailgun import entities
+import pytest
 
 from robottelo.constants import SYNC_INTERVAL
-from robottelo.utils.datafactory import gen_string
-from robottelo.utils.datafactory import valid_cron_expressions
+from robottelo.utils.datafactory import gen_string, valid_cron_expressions
 
 
 def validate_repo_content(repo, content_types, after_sync=True):
@@ -54,7 +52,7 @@ def validate_repo_content(repo, content_types, after_sync=True):
 
 
 @pytest.mark.tier2
-def test_positive_end_to_end(session, module_org):
+def test_positive_end_to_end(session, module_org, target_sat):
     """Perform end to end scenario for sync plan component
 
     :id: 39c140a6-ca65-4b6a-a640-4a023a2f0f12
@@ -99,7 +97,8 @@ def test_positive_end_to_end(session, module_org):
         assert syncplan_values['details']['description'] == new_description
         # Create and add two products to sync plan
         for _ in range(2):
-            product = entities.Product(organization=module_org).create()
+            product = target_sat.api.Product(organization=module_org).create()
+            target_sat.api.Repository(product=product).create()
             session.syncplan.add_product(plan_name, product.name)
         # Remove a product and assert syncplan still searchable
         session.syncplan.remove_product(plan_name, product.name)

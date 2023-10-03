@@ -1,5 +1,5 @@
-import subprocess
 from functools import cached_property
+import subprocess
 
 
 class ReqUpdater:

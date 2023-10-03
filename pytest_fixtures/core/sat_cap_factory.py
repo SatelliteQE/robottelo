@@ -1,17 +1,17 @@
 from contextlib import contextmanager
 
-import pytest
 from broker import Broker
+import pytest
 from wait_for import wait_for
 
-from robottelo.config import configure_airgun
-from robottelo.config import configure_nailgun
-from robottelo.config import settings
-from robottelo.hosts import Capsule
-from robottelo.hosts import get_sat_rhel_version
-from robottelo.hosts import IPAHost
-from robottelo.hosts import lru_sat_ready_rhel
-from robottelo.hosts import Satellite
+from robottelo.config import configure_airgun, configure_nailgun, settings
+from robottelo.hosts import (
+    Capsule,
+    IPAHost,
+    Satellite,
+    get_sat_rhel_version,
+    lru_sat_ready_rhel,
+)
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 
@@ -301,7 +301,11 @@ def installer_satellite(request):
     sat.setup_firewall()
     # # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
     sat.register_to_cdn()
-    sat.download_repofile(product='satellite', release=settings.server.version.release)
+    sat.download_repofile(
+        product='satellite',
+        release=settings.server.version.release,
+        snap=settings.server.version.snap,
+    )
     sat.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
     installed_version = sat.execute('rpm --query satellite').stdout
     assert sat_version in installed_version

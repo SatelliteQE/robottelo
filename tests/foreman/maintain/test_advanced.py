@@ -19,70 +19,25 @@
 import pytest
 import yaml
 
-from robottelo.config import robottelo_tmp_dir
-from robottelo.config import settings
-from robottelo.constants import MAINTAIN_HAMMER_YML
+from robottelo.config import robottelo_tmp_dir, settings
+from robottelo.constants import MAINTAIN_HAMMER_YML, SAT_NON_GA_VERSIONS
+from robottelo.hosts import get_sat_rhel_version, get_sat_version
 
-pytestmark = pytest.mark.destructive
+sat_x_y_release = f'{get_sat_version().major}.{get_sat_version().minor}'
 
 
-# Common repositories for Satellite and Capsule
-common_repos = ['rhel-8-for-x86_64-baseos-rpms', 'rhel-8-for-x86_64-appstream-rpms']
-
-# Satellite repositories
-sat_611_repos = [
-    'satellite-6.11-for-rhel-8-x86_64-rpms',
-    'satellite-maintenance-6.11-for-rhel-8-x86_64-rpms',
-] + common_repos
-
-sat_612_repos = [
-    'satellite-6.12-for-rhel-8-x86_64-rpms',
-    'satellite-maintenance-6.12-for-rhel-8-x86_64-rpms',
-] + common_repos
-
-sat_613_repos = [
-    'satellite-6.13-for-rhel-8-x86_64-rpms',
-    'satellite-maintenance-6.13-for-rhel-8-x86_64-rpms',
-] + common_repos
-
-sat_614_repos = [
-    'satellite-6.14-for-rhel-8-x86_64-rpms',
-    'satellite-maintenance-6.14-for-rhel-8-x86_64-rpms',
-] + common_repos
-
-# Capsule repositories
-cap_611_repos = [
-    'satellite-capsule-6.11-for-rhel-8-x86_64-rpms',
-    'satellite-maintenance-6.11-for-rhel-8-x86_64-rpms',
-] + common_repos
-
-cap_612_repos = [
-    'satellite-capsule-6.12-for-rhel-8-x86_64-rpms',
-    'satellite-maintenance-6.12-for-rhel-8-x86_64-rpms',
-] + common_repos
-
-cap_613_repos = [
-    'satellite-capsule-6.13-for-rhel-8-x86_64-rpms',
-    'satellite-maintenance-6.13-for-rhel-8-x86_64-rpms',
-] + common_repos
-
-cap_614_repos = [
-    'satellite-capsule-6.14-for-rhel-8-x86_64-rpms',
-    'satellite-maintenance-6.14-for-rhel-8-x86_64-rpms',
-] + common_repos
-
-sat_repos = {
-    '6.11': sat_611_repos,
-    '6.12': sat_612_repos,
-    '6.13': sat_613_repos,
-    '6.14': sat_614_repos,
-}
-cap_repos = {
-    '6.11': cap_611_repos,
-    '6.12': cap_612_repos,
-    '6.13': cap_613_repos,
-    '6.14': cap_614_repos,
-}
+def get_satellite_capsule_repos(
+    x_y_release=sat_x_y_release, product='satellite', os_major_ver=get_sat_rhel_version().major
+):
+    if product == 'capsule':
+        product = 'satellite-capsule'
+    repos = [
+        f'{product}-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
+        f'satellite-maintenance-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
+        f'rhel-{os_major_ver}-for-x86_64-baseos-rpms',
+        f'rhel-{os_major_ver}-for-x86_64-appstream-rpms',
+    ]
+    return repos
 
 
 def test_positive_advanced_run_service_restart(sat_maintain):
@@ -299,7 +254,7 @@ def test_positive_sync_plan_with_hammer_defaults(request, sat_maintain, module_o
 
     :customerscenario: true
     """
-    sat_maintain.cli.Defaults.add({'param-name': 'organization_id', 'param-value': 1})
+    sat_maintain.cli.Defaults.add({'param-name': 'organization_id', 'param-value': module_org.id})
 
     sync_plans = []
     for name in ['plan1', 'plan2']:
@@ -321,6 +276,11 @@ def test_positive_sync_plan_with_hammer_defaults(request, sat_maintain, module_o
     def _finalize():
         sat_maintain.cli.Defaults.delete({'param-name': 'organization_id'})
         sync_plans[1].delete()
+        sync_plan = sat_maintain.api.SyncPlan(organization=module_org.id).search(
+            query={'search': f'name="{sync_plans[0]}"'}
+        )
+        if sync_plan:
+            sync_plans[0].delete()
 
 
 @pytest.mark.e2e
@@ -336,21 +296,21 @@ def test_positive_satellite_repositories_setup(sat_maintain):
 
     :expectedresults: Required Satellite repositories for install/upgrade should get enabled
     """
-    supported_versions = ['6.11', '6.12', '6.13']
-    for ver in supported_versions:
-        result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': ver})
+    sat_version = ".".join(sat_maintain.version.split('.')[0:2])
+    result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': sat_version})
+    if sat_version not in SAT_NON_GA_VERSIONS:
         assert result.status == 0
         assert 'FAIL' not in result.stdout
         result = sat_maintain.execute('yum repolist')
-        for repo in sat_repos[ver]:
+        for repo in get_satellite_capsule_repos(sat_version):
             assert repo in result.stdout
 
-    # 6.14 till not GA
-    result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': '6.14'})
-    assert result.status == 1
-    assert 'FAIL' in result.stdout
-    for repo in sat_repos['6.14']:
-        assert repo in result.stdout
+    # for non-ga versions
+    else:
+        assert result.status == 1
+        assert 'FAIL' in result.stdout
+        for repo in get_satellite_capsule_repos(sat_version):
+            assert repo in result.stdout
 
 
 @pytest.mark.e2e
@@ -369,36 +329,17 @@ def test_positive_capsule_repositories_setup(sat_maintain):
 
     :expectedresults: Required Capsule repositories should get enabled
     """
-    supported_versions = ['6.11', '6.12']
-    for ver in supported_versions:
-        result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': ver})
+    sat_version = ".".join(sat_maintain.version.split('.')[0:2])
+    result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': sat_version})
+    if sat_version not in SAT_NON_GA_VERSIONS:
         assert result.status == 0
         assert 'FAIL' not in result.stdout
         result = sat_maintain.execute('yum repolist')
-        for repo in cap_repos[ver]:
+        for repo in get_satellite_capsule_repos(sat_version, 'capsule'):
             assert repo in result.stdout
-
-    # 6.13 till not GA
-    result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': '6.13'})
-    assert result.status == 1
-    assert 'FAIL' in result.stdout
-    for repo in cap_repos['6.13']:
-        assert repo in result.stdout
-
-    # Verify that all required beta repositories gets enabled
-    # maintain beta repo is unavailable for EL8 https://bugzilla.redhat.com/show_bug.cgi?id=2106750
-    cap_beta_repo = common_repos
-    missing_beta_el8_repos = [
-        'satellite-capsule-6-beta-for-rhel-8-x86_64-rpms',
-        'satellite-maintenance-6-beta-for-rhel-8-x86_64-rpms',
-    ]
-    result = sat_maintain.cli.Advanced.run_repositories_setup(
-        options={'version': '6.12'}, env_var='FOREMAN_MAINTAIN_USE_BETA=1'
-    )
-    assert result.status != 0
-    assert 'FAIL' in result.stdout
-    for repo in missing_beta_el8_repos:
-        assert f"Error: '{repo}' does not match a valid repository ID" in result.stdout
-    result = sat_maintain.execute('yum repolist')
-    for repo in cap_beta_repo:
-        assert repo in result.stdout
+    # for non-ga versions
+    else:
+        assert result.status == 1
+        assert 'FAIL' in result.stdout
+        for repo in get_satellite_capsule_repos(sat_version, 'capsule'):
+            assert repo in result.stdout

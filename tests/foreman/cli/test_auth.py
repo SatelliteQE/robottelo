@@ -18,11 +18,10 @@
 """
 from time import sleep
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
-from robottelo.cli.auth import Auth
-from robottelo.cli.auth import AuthLogin
+from robottelo.cli.auth import Auth, AuthLogin
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_user
 from robottelo.cli.org import Org
