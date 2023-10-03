@@ -28,6 +28,7 @@ from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
 from navmazing import NavigationTriesExceeded
 from productmd.common import parse_nvra
+import pytest
 
 from robottelo import constants
 from robottelo.cli.contentview import ContentView
