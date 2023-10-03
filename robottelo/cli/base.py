@@ -119,6 +119,16 @@ class Base:
         return cls.execute(cls._construct_command(options))
 
     @classmethod
+    def ping(cls, options=None):
+        """
+        Display status of Satellite.
+        """
+
+        cls.command_sub = 'ping'
+
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
     def create(cls, options=None, timeout=None):
         """
         Creates a new record using the arguments passed via dictionary.
@@ -415,6 +425,6 @@ class Base:
                 if isinstance(val, list):
                     val = ','.join(str(el) for el in val)
                 tail += f' --{key}="{val}"'
-        cmd = f"{cls.command_base} {cls.command_sub or ''} {tail.strip()} {cls.command_end or ''}"
+        cmd = f"{cls.command_base or ''} {cls.command_sub or ''} {tail.strip()} {cls.command_end or ''}"
 
         return cmd
