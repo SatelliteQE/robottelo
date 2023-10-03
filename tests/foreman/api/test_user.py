@@ -23,25 +23,25 @@ http://<satellite-host>/apidoc/v2/users.html
 import json
 import re
 
-import pytest
 from nailgun import entities
 from nailgun.config import ServerConfig
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
-from robottelo.constants import DataFile
-from robottelo.constants import LDAP_ATTR
-from robottelo.constants import LDAP_SERVER_TYPE
+from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE, DataFile
 from robottelo.utils import gen_ssh_keypairs
-from robottelo.utils.datafactory import gen_string
-from robottelo.utils.datafactory import generate_strings_list
-from robottelo.utils.datafactory import invalid_emails_list
-from robottelo.utils.datafactory import invalid_names_list
-from robottelo.utils.datafactory import invalid_usernames_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
-from robottelo.utils.datafactory import valid_emails_list
-from robottelo.utils.datafactory import valid_usernames_list
+from robottelo.utils.datafactory import (
+    gen_string,
+    generate_strings_list,
+    invalid_emails_list,
+    invalid_names_list,
+    invalid_usernames_list,
+    parametrized,
+    valid_data_list,
+    valid_emails_list,
+    valid_usernames_list,
+)
 
 
 @pytest.fixture(scope='module')
@@ -666,7 +666,7 @@ class TestActiveDirectoryUser:
             ldap_user_passwd=ad_data['ldap_user_passwd'],
             authsource=module_target_sat.api.AuthSourceLDAP(
                 onthefly_register=True,
-                account=ad_data['ldap_user_name'],
+                account=fr"{ad_data['workgroup']}\{ad_data['ldap_user_name']}",
                 account_password=ad_data['ldap_user_passwd'],
                 base_dn=ad_data['base_dn'],
                 groups_base=ad_data['group_base_dn'],
@@ -733,7 +733,7 @@ class TestActiveDirectoryUser:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    def test_positive_access_entities_from_ldap_org_admin(self, create_ldap):
+    def test_positive_access_entities_from_ldap_org_admin(self, create_ldap, module_target_sat):
         """LDAP User can access resources within its taxonomies if assigned
         role has permission for same taxonomies
 
@@ -741,7 +741,7 @@ class TestActiveDirectoryUser:
 
         :steps:
 
-            1. Create Org Admin and assign taxonomies to it
+            1. Create Org Admin role and assign taxonomies to it
             2. Create LDAP user with same taxonomies as role above
             3. Assign Org Admin role to user above
             4. Login with LDAP user and attempt to access resources
@@ -751,6 +751,16 @@ class TestActiveDirectoryUser:
 
         :CaseLevel: System
         """
+        # Workaround issue where, in an upgrade template, there is already
+        # some auth source present with this user. That auth source instance
+        # doesn't really run and attempting to login as that user
+        # leads to ISE 500 (which is itself a bug, the error should be handled, it is
+        # reported as BZ2240205).
+        for user in module_target_sat.api.User().search(
+            query={'search': f'login={create_ldap["ldap_user_name"]}'}
+        ):
+            user.delete()
+
         role_name = gen_string('alpha')
         default_org_admin = entities.Role().search(query={'search': 'name="Organization admin"'})
         org_admin = entities.Role(id=default_org_admin[0].id).clone(
@@ -862,7 +872,7 @@ class TestFreeIPAUser:
 
         :steps:
 
-            1. Create Org Admin and assign taxonomies to it
+            1. Create Org Admin role and assign taxonomies to it
             2. Create FreeIPA user with same taxonomies as role above
             3. Assign Org Admin role to user above
             4. Login with FreeIPA user and attempt to access resources

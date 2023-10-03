@@ -18,11 +18,10 @@
 """
 import random
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.cli.base import CLIReturnCodeError
-
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.destructive]
 

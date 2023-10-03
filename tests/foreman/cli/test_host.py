@@ -16,49 +16,48 @@
 
 :Upstream: No
 """
-import re
 from random import choice
+import re
 
+from fauxfactory import gen_choice, gen_integer, gen_ipaddr, gen_mac, gen_string
 import pytest
+from wait_for import TimedOutError, wait_for
 import yaml
-from fauxfactory import gen_choice
-from fauxfactory import gen_integer
-from fauxfactory import gen_ipaddr
-from fauxfactory import gen_mac
-from fauxfactory import gen_string
-from wait_for import TimedOutError
-from wait_for import wait_for
 
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import add_role_permissions
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_fake_host
-from robottelo.cli.factory import make_host
-from robottelo.cli.factory import setup_org_for_a_rh_repo
-from robottelo.cli.host import Host
-from robottelo.cli.host import HostInterface
-from robottelo.cli.host import HostTraces
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    add_role_permissions,
+    make_fake_host,
+    make_host,
+    setup_org_for_a_rh_repo,
+)
+from robottelo.cli.host import Host, HostInterface, HostTraces
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.package import Package
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_8_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_8_CUSTOM_PACKAGE_NAME
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.constants import SM_OVERALL_STATUS
+from robottelo.constants import (
+    DEFAULT_SUBSCRIPTION_NAME,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_2_CUSTOM_PACKAGE,
+    FAKE_7_CUSTOM_PACKAGE,
+    FAKE_8_CUSTOM_PACKAGE,
+    FAKE_8_CUSTOM_PACKAGE_NAME,
+    PRDS,
+    REPOS,
+    REPOSET,
+    SM_OVERALL_STATUS,
+)
 from robottelo.hosts import ContentHostError
 from robottelo.logging import logger
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import valid_data_list
-from robottelo.utils.datafactory import valid_hosts_list
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    valid_data_list,
+    valid_hosts_list,
+)
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -680,45 +679,6 @@ def test_positive_list_infrastructure_hosts(
     assert len(hosts) == 2 if is_open('BZ:1994685') else len(hosts) == 1
     assert rhel7_contenthost.hostname not in hostnames
     assert target_sat.hostname in hostnames
-
-
-@pytest.mark.skip_if_not_set('libvirt')
-@pytest.mark.cli_host_create
-@pytest.mark.libvirt_discovery
-@pytest.mark.on_premises_provisioning
-@pytest.mark.tier1
-def test_positive_create_using_libvirt_without_mac(target_sat, module_location, module_org):
-    """Create a libvirt host and not specify a MAC address.
-
-    :id: b003faa9-2810-4176-94d2-ea84bed248eb
-
-    :expectedresults: Host is created
-
-    :CaseImportance: Critical
-    """
-    compute_resource = target_sat.api.LibvirtComputeResource(
-        url=f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system',
-        organization=[module_org.id],
-        location=[module_location.id],
-    ).create()
-    host = target_sat.api.Host(organization=module_org.id, location=module_location.id)
-    host.create_missing()
-    result = make_host(
-        {
-            'architecture-id': host.architecture.id,
-            'compute-resource-id': compute_resource.id,
-            'domain-id': host.domain.id,
-            'location-id': host.location.id,
-            'medium-id': host.medium.id,
-            'name': host.name,
-            'operatingsystem-id': host.operatingsystem.id,
-            'organization-id': host.organization.id,
-            'partition-table-id': host.ptable.id,
-            'root-password': host.root_pass,
-        }
-    )
-    assert result['name'] == host.name + '.' + host.domain.name
-    Host.delete({'id': result['id']})
 
 
 @pytest.mark.cli_host_create

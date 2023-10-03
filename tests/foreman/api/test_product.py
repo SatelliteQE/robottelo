@@ -19,19 +19,23 @@ http://<sat6>/apidoc/v2/products.html
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import DataFile
-from robottelo.constants import REPO_TYPE
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+    REPO_TYPE,
+    DataFile,
+)
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 @pytest.mark.tier1

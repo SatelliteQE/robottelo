@@ -23,14 +23,16 @@ http://theforeman.org/api/apidoc/v2/1.15.html
 """
 import re
 
-import pytest
 from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.utils.datafactory import gen_string
-from robottelo.utils.datafactory import generate_strings_list
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import (
+    gen_string,
+    generate_strings_list,
+    invalid_values_list,
+    parametrized,
+)
 
 
 @pytest.mark.tier1

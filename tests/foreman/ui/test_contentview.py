@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 
 @pytest.mark.tier2
@@ -57,9 +57,9 @@ def test_no_blank_page_on_language_switch(session, target_sat, module_org):
 
     :CaseLevel: System
 
-    :CaseImportance: High
-
     :BZ: 2163538
+
+    :CaseImportance: High
     """
     user_password = gen_string('alpha')
     user = target_sat.api.User(

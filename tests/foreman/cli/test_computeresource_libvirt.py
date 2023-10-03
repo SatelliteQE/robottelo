@@ -35,18 +35,18 @@ Subcommands::
 """
 import random
 
+from fauxfactory import gen_string, gen_url
 import pytest
-from fauxfactory import gen_string
-from fauxfactory import gen_url
+from wait_for import wait_for
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.factory import make_compute_resource
-from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_compute_resource, make_location
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.utils.datafactory import parametrized
+
+LIBVIRT_URL = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
 
 
 def valid_name_desc_data():
@@ -422,3 +422,84 @@ def test_positive_update_console_password(libvirt_url, set_console_password):
     cr_name = gen_string('utf8')
     ComputeResource.create({'name': cr_name, 'provider': 'Libvirt', 'url': gen_url()})
     ComputeResource.update({'name': cr_name, 'set-console-password': set_console_password})
+
+
+@pytest.mark.e2e
+@pytest.mark.on_premises_provisioning
+@pytest.mark.tier3
+@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
+def test_positive_provision_end_to_end(
+    request,
+    setting_update,
+    module_libvirt_provisioning_sat,
+    module_sca_manifest_org,
+    module_location,
+    provisioning_hostgroup,
+):
+    """Provision a host on Libvirt compute resource with the help of hostgroup.
+
+    :id: b003faa9-2810-4176-94d2-ea84bed248ec
+
+    :setup: Hostgroup and provisioning setup like domain, subnet etc.
+
+    :steps:
+        1. Create a Libvirt compute resource.
+        2. Create a host on Libvirt compute resource using the Hostgroup
+        3. Use compute-attributes parameter to specify key-value parameters
+           regarding the virtual machine.
+        4. Provision the host.
+
+    :expectedresults: Host should be provisioned with hostgroup
+
+    :parametrized: yes
+    """
+    sat = module_libvirt_provisioning_sat.sat
+    cr_name = gen_string('alpha')
+    hostname = gen_string('alpha').lower()
+    libvirt_cr = sat.cli.ComputeResource.create(
+        {
+            'name': cr_name,
+            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'url': LIBVIRT_URL,
+            'organizations': module_sca_manifest_org.name,
+            'locations': module_location.name,
+        }
+    )
+    assert libvirt_cr['name'] == cr_name
+    host = sat.cli.Host.create(
+        {
+            'name': hostname,
+            'location': module_location.name,
+            'organization': module_sca_manifest_org.name,
+            'hostgroup': provisioning_hostgroup.name,
+            'compute-resource-id': libvirt_cr['id'],
+            'ip': None,
+            'mac': None,
+            'compute-attributes': 'cpus=1, memory=6442450944, cpu_mode=default, start=1',
+            'interface': f'compute_type=bridge,compute_bridge=br-{settings.provisioning.vlan_id}',
+            'volume': 'capacity=10',
+            'provision-method': 'build',
+        }
+    )
+    # teardown
+    request.addfinalizer(lambda: sat.cli.Host.delete({'id': host['id']}))
+
+    # checks
+    hostname = f'{hostname}.{module_libvirt_provisioning_sat.domain.name}'
+    assert hostname == host['name']
+    host_info = sat.cli.Host.info({'name': hostname})
+    # Check on Libvirt, if VM exists
+    result = sat.execute(
+        f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
+    )
+    assert hostname in result.stdout
+
+    wait_for(
+        lambda: sat.cli.Host.info({'name': hostname})['status']['build-status']
+        != 'Pending installation',
+        timeout=1800,
+        delay=30,
+    )
+    host_info = sat.cli.Host.info({'id': host['id']})
+    assert host_info['status']['build-status'] == 'Installed'

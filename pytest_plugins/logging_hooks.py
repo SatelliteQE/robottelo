@@ -4,16 +4,17 @@ import logzero
 import pytest
 from xdist import is_xdist_worker
 
-from robottelo.logging import broker_log_setup
-from robottelo.logging import DEFAULT_DATE_FORMAT
-from robottelo.logging import logger
-from robottelo.logging import logging_yaml
-from robottelo.logging import robottelo_log_dir
-from robottelo.logging import robottelo_log_file
+from robottelo.logging import (
+    DEFAULT_DATE_FORMAT,
+    broker_log_setup,
+    logger,
+    logging_yaml,
+    robottelo_log_dir,
+    robottelo_log_file,
+)
 
 try:
-    from pytest_reportportal import RPLogger
-    from pytest_reportportal import RPLogHandler
+    from pytest_reportportal import RPLogger, RPLogHandler
 except ImportError:
     pass
 
@@ -73,5 +74,7 @@ def pytest_runtest_logstart(nodeid, location):
     logger.info(f'Started Test: {nodeid}')
 
 
-def pytest_runtest_logfinish(nodeid, location):
-    logger.info(f'Finished Test: {nodeid}')
+def pytest_runtest_logreport(report):
+    """Process the TestReport produced for each of the setup,
+    call and teardown runtest phases of an item."""
+    logger.info('Finished %s for test: %s, result: %s', report.when, report.nodeid, report.outcome)

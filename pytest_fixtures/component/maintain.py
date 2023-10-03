@@ -6,8 +6,8 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_MAINTAIN_YML
-from robottelo.hosts import Capsule
-from robottelo.hosts import Satellite
+from robottelo.hosts import Capsule, Satellite, SatelliteHostError
+from robottelo.logging import logger
 
 synced_repos = pytest.StashKey[dict]
 
@@ -21,14 +21,25 @@ def module_stash(request):
     yield request.node.stash
 
 
-@pytest.fixture(scope='session')
-def sat_maintain(request, session_target_sat, session_capsule_configured):
+@pytest.fixture(scope='module')
+def sat_maintain(request, module_target_sat, module_capsule_configured):
     if settings.remotedb.server:
         yield Satellite(settings.remotedb.server)
     else:
-        session_target_sat.register_to_cdn(pool_ids=settings.subscription.fm_rhn_poolid.split())
-        hosts = {'satellite': session_target_sat, 'capsule': session_capsule_configured}
+        module_target_sat.register_to_cdn(pool_ids=settings.subscription.fm_rhn_poolid.split())
+        hosts = {'satellite': module_target_sat, 'capsule': module_capsule_configured}
         yield hosts[request.param]
+
+
+@pytest.fixture
+def start_satellite_services(sat_maintain):
+    """Teardown for satellite-maintain tests to ensure that all Satellite services are started"""
+    yield
+    logger.info('Ensuring that all %s services are running', sat_maintain.__class__.__name__)
+    result = sat_maintain.cli.Service.start()
+    if result.status != 0:
+        logger.error('Unable to start all %s services', sat_maintain.__class__.__name__)
+        raise SatelliteHostError('Failed to start Satellite services')
 
 
 @pytest.fixture
@@ -42,9 +53,7 @@ def setup_backup_tests(request, sat_maintain):
 
 
 @pytest.fixture(scope='module')
-def module_synced_repos(
-    sat_maintain, session_capsule_configured, module_sca_manifest, module_stash
-):
+def module_synced_repos(sat_maintain, module_capsule_configured, module_sca_manifest, module_stash):
     if not module_stash[synced_repos]:
         org = sat_maintain.satellite.api.Organization().create()
         sat_maintain.satellite.upload_manifest(org.id, module_sca_manifest.content)
@@ -80,13 +89,13 @@ def module_synced_repos(
         lce = sat_maintain.satellite.api.LifecycleEnvironment(
             organization=module_stash[synced_repos]['org']
         ).search(query={'search': f'name={constants.ENVIRONMENT}'})[0]
-        session_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': lce.id}
         )
-        result = session_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
         assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
         # sync the Capsule
-        sync_status = session_capsule_configured.nailgun_capsule.content_sync()
+        sync_status = module_capsule_configured.nailgun_capsule.content_sync()
         assert sync_status['result'] == 'success'
 
     yield {

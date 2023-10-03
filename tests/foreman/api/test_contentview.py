@@ -18,28 +18,28 @@
 """
 import random
 
-import pytest
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
-from fauxfactory import gen_utf8
+from fauxfactory import gen_integer, gen_string, gen_utf8
 from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.config import settings
-from robottelo.config import user_nailgun_config
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CUSTOM_RPM_SHA_512_FEED_COUNT
-from robottelo.constants import DataFile
-from robottelo.constants import FILTER_ERRATA_TYPE
-from robottelo.constants import PERMISSIONS
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.constants.repos import CUSTOM_RPM_SHA_512
-from robottelo.constants.repos import FEDORA_OSTREE_REPO
-from robottelo.utils.datafactory import invalid_names_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.config import settings, user_nailgun_config
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CUSTOM_RPM_SHA_512_FEED_COUNT,
+    FILTER_ERRATA_TYPE,
+    PERMISSIONS,
+    PRDS,
+    REPOS,
+    REPOSET,
+    DataFile,
+)
+from robottelo.constants.repos import CUSTOM_RPM_SHA_512, FEDORA_OSTREE_REPO
+from robottelo.utils.datafactory import (
+    invalid_names_list,
+    parametrized,
+    valid_data_list,
+)
 
 # Some tests repeatedly publish content views or promote content view versions.
 # How many times should that be done? A higher number means a more interesting

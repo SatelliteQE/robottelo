@@ -3,20 +3,22 @@ Factory object creation for all CLI methods
 """
 import datetime
 import os
+from os import chmod
 import pprint
 import random
-from os import chmod
 from tempfile import mkstemp
 from time import sleep
 
-from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_choice
-from fauxfactory import gen_integer
-from fauxfactory import gen_ipaddr
-from fauxfactory import gen_mac
-from fauxfactory import gen_netmask
-from fauxfactory import gen_string
-from fauxfactory import gen_url
+from fauxfactory import (
+    gen_alphanumeric,
+    gen_choice,
+    gen_integer,
+    gen_ipaddr,
+    gen_mac,
+    gen_netmask,
+    gen_string,
+    gen_url,
+)
 
 from robottelo import constants
 from robottelo.cli.activationkey import ActivationKey
@@ -24,9 +26,11 @@ from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.content_credentials import ContentCredential
-from robottelo.cli.contentview import ContentView
-from robottelo.cli.contentview import ContentViewFilter
-from robottelo.cli.contentview import ContentViewFilterRule
+from robottelo.cli.contentview import (
+    ContentView,
+    ContentViewFilter,
+    ContentViewFilterRule,
+)
 from robottelo.cli.discoveryrule import DiscoveryRule
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
@@ -60,8 +64,7 @@ from robottelo.cli.syncplan import SyncPlan
 from robottelo.cli.template import Template
 from robottelo.cli.template_input import TemplateInput
 from robottelo.cli.user import User
-from robottelo.cli.usergroup import UserGroup
-from robottelo.cli.usergroup import UserGroupExternal
+from robottelo.cli.usergroup import UserGroup, UserGroupExternal
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.logging import logger
@@ -69,7 +72,6 @@ from robottelo.utils import ssh
 from robottelo.utils.datafactory import valid_cron_expressions
 from robottelo.utils.decorators import cacheable
 from robottelo.utils.manifest import clone
-
 
 ORG_KEYS = ['organization', 'organization-id', 'organization-label']
 CONTENT_VIEW_KEYS = ['content-view', 'content-view-id']
@@ -940,6 +942,7 @@ def make_job_invocation_with_credentials(options=None, credentials=None):
         'dynamic': None,
         'effective-user': None,
         'end-time': None,
+        'feature': None,
         'input-files': None,
         'inputs': None,
         'job-template': None,

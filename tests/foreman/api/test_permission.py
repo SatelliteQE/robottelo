@@ -20,14 +20,14 @@ http://<satellite-host>/apidoc/v2/permissions.html
 
 :Upstream: No
 """
+from itertools import chain
 import json
 import re
-from itertools import chain
 
-import pytest
 from fauxfactory import gen_alphanumeric
 from nailgun import entities
 from nailgun.entity_fields import OneToManyField
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import user_nailgun_config
@@ -367,8 +367,18 @@ class TestUserRole:
         new_entity = new_entity.create()
         name = new_entity.get_fields()['name'].gen_value()
         with pytest.raises(HTTPError):
-            entity_cls(self.cfg, id=new_entity.id, name=name).update(['name'])
+            if entity_cls is entities.ActivationKey:
+                entity_cls(self.cfg, id=new_entity.id, name=name, organization=class_org).update(
+                    ['name']
+                )
+            else:
+                entity_cls(self.cfg, id=new_entity.id, name=name).update(['name'])
         self.give_user_permission(_permission_name(entity_cls, 'update'))
         # update() calls read() under the hood, which triggers
         # permission error
-        entity_cls(self.cfg, id=new_entity.id, name=name).update_json(['name'])
+        if entity_cls is entities.ActivationKey:
+            entity_cls(self.cfg, id=new_entity.id, name=name, organization=class_org).update_json(
+                ['name']
+            )
+        else:
+            entity_cls(self.cfg, id=new_entity.id, name=name).update_json(['name'])

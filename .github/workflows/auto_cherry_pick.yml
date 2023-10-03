@@ -10,6 +10,7 @@ env:
   assignee: ${{ github.event.pull_request.assignee.login }}
   title: ${{ github.event.pull_request.title }}
   number: ${{ github.event.number }}
+  is_dependabot_pr: ''
 
 jobs:
 
@@ -40,11 +41,23 @@ jobs:
         label: ${{ github.event.pull_request.labels.*.name }}
 
     steps:
+      # Needed to avoid out-of-memory error
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 10
+
       ## Robottelo Repo Checkout
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         if: ${{ startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
         with:
           fetch-depth: 0
+
+      ## Set env var for dependencies label PR
+      - name: Set env var is_dependabot_pr to `dependencies` to set the label
+        if: contains(github.event.pull_request.labels.*.name, 'dependencies')
+        run: |
+          echo "is_dependabot_pr=dependencies" >> $GITHUB_ENV
 
       ## CherryPicking and AutoMerging
       - name: Cherrypicking to zStream branch
@@ -58,6 +71,7 @@ jobs:
             Auto_Cherry_Picked
             ${{ matrix.label }}
             No-CherryPick
+            ${{ env.is_dependabot_pr }}
           assignees: ${{ env.assignee }}
 
       - name: Add Parent PR's PRT comment to Auto_Cherry_Picked PR's

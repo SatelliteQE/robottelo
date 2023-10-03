@@ -21,14 +21,9 @@ import requests
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG
-from robottelo.constants import FOREMAN_SETTINGS_YML
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import DEFAULT_ORG, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
 from robottelo.hosts import setup_capsule
 from robottelo.utils.installer import InstallerCommand
-
 
 PREVIOUS_INSTALLER_OPTIONS = {
     '-',
@@ -215,7 +210,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--foreman-proxy-content-enable-deb',
     '--foreman-proxy-content-enable-docker',
     '--foreman-proxy-content-enable-file',
-    '--foreman-proxy-content-enable-katello-agent',
     '--foreman-proxy-content-enable-ostree',
     '--foreman-proxy-content-enable-python',
     '--foreman-proxy-content-enable-yum',
@@ -228,6 +222,7 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--foreman-proxy-content-pulpcore-content-service-worker-timeout',
     '--foreman-proxy-content-pulpcore-django-secret-key',
     '--foreman-proxy-content-pulpcore-hide-guarded-distributions',
+    '--foreman-proxy-content-pulpcore-import-workers-percent',
     '--foreman-proxy-content-pulpcore-manage-postgresql',
     '--foreman-proxy-content-pulpcore-mirror',
     '--foreman-proxy-content-pulpcore-postgresql-db-name',
@@ -242,17 +237,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--foreman-proxy-content-pulpcore-postgresql-user',
     '--foreman-proxy-content-pulpcore-telemetry',
     '--foreman-proxy-content-pulpcore-worker-count',
-    '--foreman-proxy-content-qpid-router-agent-addr',
-    '--foreman-proxy-content-qpid-router-agent-port',
-    '--foreman-proxy-content-qpid-router-broker-addr',
-    '--foreman-proxy-content-qpid-router-broker-port',
-    '--foreman-proxy-content-qpid-router-hub-addr',
-    '--foreman-proxy-content-qpid-router-hub-port',
-    '--foreman-proxy-content-qpid-router-logging',
-    '--foreman-proxy-content-qpid-router-logging-level',
-    '--foreman-proxy-content-qpid-router-logging-path',
-    '--foreman-proxy-content-qpid-router-ssl-ciphers',
-    '--foreman-proxy-content-qpid-router-ssl-protocols',
     '--foreman-proxy-content-reverse-proxy',
     '--foreman-proxy-content-reverse-proxy-port',
     '--foreman-proxy-dhcp',
@@ -484,13 +468,11 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--katello-candlepin-db-ssl-ca',
     '--katello-candlepin-db-ssl-verify',
     '--katello-candlepin-db-user',
+    '--katello-candlepin-loggers',
     '--katello-candlepin-manage-db',
     '--katello-candlepin-oauth-key',
     '--katello-candlepin-oauth-secret',
     '--katello-hosts-queue-workers',
-    '--katello-qpid-hostname',
-    '--katello-qpid-interface',
-    '--katello-qpid-wcache-page-size',
     '--katello-rest-client-timeout',
     '--list-scenarios',
     '--log-level',
@@ -550,14 +532,14 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--puppet-server',
     '--puppet-server-acceptor-threads',
     '--puppet-server-additional-settings',
-    '--puppet-server-admin-api-whitelist',
+    '--puppet-server-admin-api-allowlist',
     '--puppet-server-allow-header-cert-info',
     '--puppet-server-ca',
     '--puppet-server-ca-allow-auth-extensions',
     '--puppet-server-ca-allow-sans',
     '--puppet-server-ca-auth-required',
     '--puppet-server-ca-client-self-delete',
-    '--puppet-server-ca-client-whitelist',
+    '--puppet-server-ca-client-allowlist',
     '--puppet-server-ca-crl-sync',
     '--puppet-server-ca-enable-infra-crl',
     '--puppet-server-certname',
@@ -591,15 +573,16 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--puppet-server-git-branch-map',
     '--puppet-server-git-repo',
     '--puppet-server-git-repo-group',
-    '--puppet-server-git-repo-mode',
+    '--puppet-server-git-repo-hook-mode',
     '--puppet-server-git-repo-path',
+    '--puppet-server-git-repo-umask',
     '--puppet-server-git-repo-user',
     '--puppet-server-group',
     '--puppet-server-http',
     '--puppet-server-http-port',
     '--puppet-server-idle-timeout',
     '--puppet-server-ip',
-    '--puppet-server-jolokia-metrics-whitelist',
+    '--puppet-server-jolokia-metrics-allowlist',
     '--puppet-server-jruby-gem-home',
     '--puppet-server-jvm-cli-args',
     '--puppet-server-jvm-config',
@@ -800,7 +783,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-foreman-proxy-content-enable-deb',
     '--reset-foreman-proxy-content-enable-docker',
     '--reset-foreman-proxy-content-enable-file',
-    '--reset-foreman-proxy-content-enable-katello-agent',
     '--reset-foreman-proxy-content-enable-ostree',
     '--reset-foreman-proxy-content-enable-python',
     '--reset-foreman-proxy-content-enable-yum',
@@ -813,6 +795,7 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-foreman-proxy-content-pulpcore-content-service-worker-timeout',
     '--reset-foreman-proxy-content-pulpcore-django-secret-key',
     '--reset-foreman-proxy-content-pulpcore-hide-guarded-distributions',
+    '--reset-foreman-proxy-content-pulpcore-import-workers-percent',
     '--reset-foreman-proxy-content-pulpcore-manage-postgresql',
     '--reset-foreman-proxy-content-pulpcore-mirror',
     '--reset-foreman-proxy-content-pulpcore-postgresql-db-name',
@@ -827,17 +810,6 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-foreman-proxy-content-pulpcore-postgresql-user',
     '--reset-foreman-proxy-content-pulpcore-telemetry',
     '--reset-foreman-proxy-content-pulpcore-worker-count',
-    '--reset-foreman-proxy-content-qpid-router-agent-addr',
-    '--reset-foreman-proxy-content-qpid-router-agent-port',
-    '--reset-foreman-proxy-content-qpid-router-broker-addr',
-    '--reset-foreman-proxy-content-qpid-router-broker-port',
-    '--reset-foreman-proxy-content-qpid-router-hub-addr',
-    '--reset-foreman-proxy-content-qpid-router-hub-port',
-    '--reset-foreman-proxy-content-qpid-router-logging',
-    '--reset-foreman-proxy-content-qpid-router-logging-level',
-    '--reset-foreman-proxy-content-qpid-router-logging-path',
-    '--reset-foreman-proxy-content-qpid-router-ssl-ciphers',
-    '--reset-foreman-proxy-content-qpid-router-ssl-protocols',
     '--reset-foreman-proxy-content-reverse-proxy',
     '--reset-foreman-proxy-content-reverse-proxy-port',
     '--reset-foreman-proxy-dhcp',
@@ -1065,13 +1037,11 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-katello-candlepin-db-ssl-ca',
     '--reset-katello-candlepin-db-ssl-verify',
     '--reset-katello-candlepin-db-user',
+    '--reset-katello-candlepin-loggers',
     '--reset-katello-candlepin-manage-db',
     '--reset-katello-candlepin-oauth-key',
     '--reset-katello-candlepin-oauth-secret',
     '--reset-katello-hosts-queue-workers',
-    '--reset-katello-qpid-hostname',
-    '--reset-katello-qpid-interface',
-    '--reset-katello-qpid-wcache-page-size',
     '--reset-katello-rest-client-timeout',
     '--reset-puppet-additional-settings',
     '--reset-puppet-agent',
@@ -1126,14 +1096,14 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-puppet-server',
     '--reset-puppet-server-acceptor-threads',
     '--reset-puppet-server-additional-settings',
-    '--reset-puppet-server-admin-api-whitelist',
+    '--reset-puppet-server-admin-api-allowlist',
     '--reset-puppet-server-allow-header-cert-info',
     '--reset-puppet-server-ca',
     '--reset-puppet-server-ca-allow-auth-extensions',
     '--reset-puppet-server-ca-allow-sans',
     '--reset-puppet-server-ca-auth-required',
     '--reset-puppet-server-ca-client-self-delete',
-    '--reset-puppet-server-ca-client-whitelist',
+    '--reset-puppet-server-ca-client-allowlist',
     '--reset-puppet-server-ca-crl-sync',
     '--reset-puppet-server-ca-enable-infra-crl',
     '--reset-puppet-server-certname',
@@ -1167,15 +1137,16 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-puppet-server-git-branch-map',
     '--reset-puppet-server-git-repo',
     '--reset-puppet-server-git-repo-group',
-    '--reset-puppet-server-git-repo-mode',
+    '--reset-puppet-server-git-repo-hook-mode',
     '--reset-puppet-server-git-repo-path',
+    '--reset-puppet-server-git-repo-umask',
     '--reset-puppet-server-git-repo-user',
     '--reset-puppet-server-group',
     '--reset-puppet-server-http',
     '--reset-puppet-server-http-port',
     '--reset-puppet-server-idle-timeout',
     '--reset-puppet-server-ip',
-    '--reset-puppet-server-jolokia-metrics-whitelist',
+    '--reset-puppet-server-jolokia-metrics-allowlist',
     '--reset-puppet-server-jruby-gem-home',
     '--reset-puppet-server-jvm-cli-args',
     '--reset-puppet-server-jvm-config',
@@ -1342,7 +1313,11 @@ def common_sat_install_assertions(satellite):
 def install_satellite(satellite, installer_args):
     # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
     satellite.register_to_cdn()
-    satellite.download_repofile(product='satellite', release=settings.server.version.release)
+    satellite.download_repofile(
+        product='satellite',
+        release=settings.server.version.release,
+        snap=settings.server.version.snap,
+    )
     satellite.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
     # Configure Satellite firewall to open communication
     satellite.execute(
@@ -1400,7 +1375,11 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
     """
     # Get Capsule repofile, and enable and download satellite-capsule
     cap_ready_rhel.register_to_cdn()
-    cap_ready_rhel.download_repofile(product='capsule', release=settings.server.version.release)
+    cap_ready_rhel.download_repofile(
+        product='capsule',
+        release=settings.server.version.release,
+        snap=settings.server.version.snap,
+    )
     cap_ready_rhel.execute(
         'dnf -y module enable satellite-capsule:el8 && dnf -y install satellite-capsule'
     )
@@ -1679,132 +1658,6 @@ def test_installer_check_on_ipv6():
     :expectedresults:
         1. Tuning parameter set successfully for medium size.
         2. custom-hiera.yaml related changes should be successfully applied.
-
-    :CaseLevel: System
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier1
-def test_installer_verbose_stdout():
-    """Look for Satellite installer verbose STDOUT
-
-    :id: 5d0fb30a-4a63-41b3-bc6f-c4057942ce3c
-
-    :steps:
-        1. Install satellite package.
-        2. Run Satellite installer
-        3. Observe installer STDOUT.
-
-    :expectedresults:
-        1. Installer STDOUTs following groups hooks completion.
-            pre_migrations, boot, init, pre_values, pre_validations, pre_commit, pre, post
-        2. Installer STDOUTs system configuration completion.
-        3. Finally, Installer informs running satellite url, credentials,
-            external capsule installation pre-requisite, upgrade capsule instruction,
-            running internal capsule url, log file.
-
-    :CaseLevel: System
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier1
-def test_installer_answers_file():
-    """Answers file to configure plugins and hooks
-
-    :id: 5cb40e4b-1acb-49f9-a085-a7dead1664b5
-
-    :steps:
-        1. Install satellte package
-        2. Modify `/etc/foreman-installer/scenarios.d/satellite-answers.yaml` file to
-            configure hook/plugin on satellite
-        3. Run Satellite installer
-
-    :expectedresults: Installer configures plugins and hooks in answers file.
-
-    :CaseLevel: System
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier1
-def test_capsule_installer_verbose_stdout():
-    """Look for Capsule installer verbose STDOUT
-
-    :id: 323e85e3-2ad1-4018-aa35-1d51f1e7f5a2
-
-    :steps:
-        1. Install capsule package.
-        2. Run Satellite installer --scenario capsule
-        3. Observe installer STDOUT.
-
-    :expectedresults:
-        1. Installer STDOUTs following groups hooks completion.
-            pre_migrations, boot, init, pre_values, pre_validations, pre_commit, pre, post
-        2. Installer STDOUTs system configuration completion.
-        3. Finally, Installer informs running capsule url, log file.
-
-    :CaseLevel: System
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_installer_timestamp_logs():
-    """Look for Satellite installer timestamp based logs
-
-    :id: 9b4d32f6-d471-4bdb-8a79-9bb20ecb86aa
-
-    :steps:
-        1. Install satellite package.
-        2. Run Satellite installer
-        3. Observe installer log file `/var/log/foreman-installer/satellite.log`.
-
-    :expectedresults:
-        1. Installer logs satellite installation with timestamps in following format
-            YYYY-MM-DD HH:MM:SS
-
-    :CaseLevel: System
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_positive_capsule_installer_and_register():
-    """Verify the capsule installation and their registration with the satellite.
-
-    :id: efd03442-5a08-445d-b257-e4d346084379
-
-    :steps:
-        1. Install the satellite.
-        2. Add all the required cdn and custom repositories in satellite to
-           install the capsule.
-        3. Create life-cycle environment,content view and activation key.
-        4. Subscribe the capsule with created activation key.
-        5. Run 'yum update -y' on capsule.
-        6. Run 'yum install -y satellite-capsule' on capsule.
-        7. Create a certificate on satellite for new installed capsule.
-        8. Copy capsule certificate from satellite to capsule.
-        9. Run the satellite-installer(copy the satellite-installer command from step7'th
-            generated output) command on capsule to integrate the capsule with satellite.
-        10. Check the newly added capsule is reflected in the satellite or not.
-        11. Check the capsule sync.
-
-    :expectedresults:
-
-        1. Capsule integrate successfully with satellite.
-        2. Capsule sync should be worked properly.
 
     :CaseLevel: System
 

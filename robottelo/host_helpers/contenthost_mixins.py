@@ -1,14 +1,12 @@
 """A collection of mixins for robottelo.hosts classes"""
-import json
 from functools import cached_property
+import json
 from tempfile import NamedTemporaryFile
 
 from robottelo import constants
-from robottelo.config import robottelo_tmp_dir
-from robottelo.config import settings
+from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.logging import logger
-from robottelo.utils.ohsnap import dogfood_repofile_url
-from robottelo.utils.ohsnap import dogfood_repository
+from robottelo.utils.ohsnap import dogfood_repofile_url, dogfood_repository
 
 
 class VersionedContent:
@@ -65,7 +63,7 @@ class VersionedContent:
             'cbrhel': constants.OSCAP_PROFILE[f'cbrhel{self._v_major}'],
         }
 
-    def _dogfood_helper(self, product, release, snap, repo=None):
+    def _dogfood_helper(self, product, release, repo=None):
         """Function to return repository related attributes
         based on the input and the host object
         """
@@ -89,18 +87,17 @@ class VersionedContent:
                 'or the version of the Satellite object. '
                 f'settings: {settings_release}, parameter: {release}'
             )
-        snap = str(snap or settings.server.version.get("snap"))
-        return product, release, snap, v_major, repo
+        return product, release, v_major, repo
 
     def download_repofile(self, product=None, release=None, snap=''):
         """Downloads the tools/client, capsule, or satellite repos on the machine"""
-        product, release, snap, v_major, _ = self._dogfood_helper(product, release, snap)
+        product, release, v_major, _ = self._dogfood_helper(product, release)
         url = dogfood_repofile_url(settings.ohsnap, product, release, v_major, snap)
         self.execute(f'curl -o /etc/yum.repos.d/dogfood.repo -L {url}')
 
     def dogfood_repository(self, repo=None, product=None, release=None, snap=''):
         """Returns a repository definition based on the arguments provided"""
-        product, release, snap, v_major, repo = self._dogfood_helper(product, release, snap, repo)
+        product, release, v_major, repo = self._dogfood_helper(product, release, repo)
         return dogfood_repository(settings.ohsnap, repo, product, release, v_major, snap, self.arch)
 
     def enable_tools_repo(self, organization_id):

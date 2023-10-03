@@ -16,16 +16,16 @@
 
 :Upstream: No
 """
-import pytest
 from manifester import Manifester
 from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo import constants
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
-from robottelo.constants import MIRRORING_POLICIES
+from robottelo.constants import DEFAULT_ARCHITECTURE, MIRRORING_POLICIES, REPOS
 from robottelo.utils.datafactory import parametrized
 
 
@@ -243,3 +243,51 @@ def test_positive_multiple_orgs_with_same_repo(target_sat):
         repo_counts = target_sat.api.Repository(id=repo.id).read().content_counts
         repos.append(repo_counts)
     assert repos[0] == repos[1] == repos[2]
+
+
+def test_positive_sync_mulitple_large_repos(module_target_sat, module_entitlement_manifest_org):
+    """Enable and bulk sync multiple large repositories
+
+    :id: b51c4a3d-d532-4342-be61-e868f7c3a723
+
+    :Steps:
+        1. Enabled multiple large Repositories
+                Red Hat Enterprise Linux 8 for x86_64 - AppStream RPMs 8
+                Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8
+                Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8
+                Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8
+        2. Sync all four repositories at the same time
+        3. Assert that the bulk sync succeeds
+
+    :expectedresults: All repositories should sync with no errors
+
+    :BZ: 2224031
+    """
+    repo_names = ['rhel8_bos', 'rhel8_aps']
+    kickstart_names = ['rhel8_bos', 'rhel8_aps']
+    for name in repo_names:
+        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=module_entitlement_manifest_org.id,
+            product=REPOS[name]['product'],
+            repo=REPOS[name]['name'],
+            reposet=REPOS[name]['reposet'],
+            releasever=REPOS[name]['releasever'],
+        )
+
+    for name in kickstart_names:
+        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=constants.DEFAULT_ARCHITECTURE,
+            org_id=module_entitlement_manifest_org.id,
+            product=constants.REPOS['kickstart'][name]['product'],
+            repo=constants.REPOS['kickstart'][name]['name'],
+            reposet=constants.REPOS['kickstart'][name]['reposet'],
+            releasever=constants.REPOS['kickstart'][name]['version'],
+        )
+    rh_repos = module_target_sat.api.Repository(id=rh_repo_id).read()
+    rh_products = module_target_sat.api.Product(id=rh_repos.product.id).read()
+    assert len(rh_products.repository) == 4
+    res = module_target_sat.api.ProductBulkAction().sync(
+        data={'ids': [rh_products.id]}, timeout=2000
+    )
+    assert res['result'] == 'success'

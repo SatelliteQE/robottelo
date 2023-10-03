@@ -1,5 +1,5 @@
-import pytest
 from box import Box
+import pytest
 
 from robottelo.config import settings
 from robottelo.utils.installer import InstallerCommand
@@ -48,7 +48,9 @@ def katello_agent_client(sat_with_katello_agent, rhel_contenthost):
     org = sat_with_katello_agent.api.Organization().create()
     client_repo = settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
     sat_with_katello_agent.register_host_custom_repo(
-        org, rhel_contenthost, [client_repo, settings.repos.yum_1.url]
+        org,
+        rhel_contenthost,
+        [client_repo, settings.repos.yum_1.url],
     )
     rhel_contenthost.install_katello_agent()
     host_info = sat_with_katello_agent.cli.Host.info({'name': rhel_contenthost.hostname})

@@ -3,11 +3,11 @@ import os
 import re
 from tempfile import mkstemp
 
-import pytest
 from box import Box
 from broker import Broker
 from fauxfactory import gen_string
 from packaging.version import Version
+import pytest
 
 from robottelo import constants
 from robottelo.config import settings
@@ -285,6 +285,7 @@ def pxe_loader(request):
     PXE_LOADER_MAP = {
         'bios': {'vm_firmware': 'bios', 'pxe_loader': 'PXELinux BIOS'},
         'uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI'},
+        'ipxe': {'vm_firmware': 'bios', 'pxe_loader': 'iPXE Embedded'},
     }
     return Box(PXE_LOADER_MAP[getattr(request, 'param', 'bios')])
 

@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9]
+        python-version: [3.11]
     steps:
       - name: Checkout Robottelo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set Up Python-${{ matrix.python-version }}
         uses: actions/setup-python@v4
