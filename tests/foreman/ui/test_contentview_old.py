@@ -22,13 +22,13 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 import datetime
 from random import randint
 
-import pytest
 from airgun.exceptions import InvalidElementStateException, NoSuchElementException
 from airgun.session import Session
 from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
 from navmazing import NavigationTriesExceeded
 from productmd.common import parse_nvra
+import pytest
 
 from robottelo import constants
 from robottelo.cli.contentview import ContentView
