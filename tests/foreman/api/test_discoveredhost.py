@@ -25,6 +25,22 @@ from robottelo.logging import logger
 from robottelo.utils.datafactory import valid_data_list
 
 
+@pytest.fixture(scope='module')
+def module_discovery_hostgroup(default_org, default_location, module_target_sat):
+    host = module_target_sat.api.Host(organization=default_org, location=default_location)
+    host.create_missing()
+    return module_target_sat.api.HostGroup(
+        organization=[default_org],
+        location=[default_location],
+        medium=host.medium,
+        root_pass=gen_string('alpha'),
+        operatingsystem=host.operatingsystem,
+        ptable=host.ptable,
+        domain=host.domain,
+        architecture=host.architecture,
+    ).create()
+
+
 class HostNotDiscoveredException(Exception):
     """Raised when host is not discovered"""
 
@@ -247,8 +263,6 @@ class TestDiscoveredHost:
 
         :expectedresults: Host should be provisioned successfully
 
-        :CaseAutomation: NotAutomated
-
         :CaseImportance: Critical
         """
         sat = module_discovery_sat.sat
@@ -274,9 +288,10 @@ class TestDiscoveredHost:
             assert not sat.api.Host().search(query={"search": f'name={host.name}'})
         pxeless_discovery_host.blank = True
 
-    @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_positive_auto_provision_pxe_host(self):
+    def test_positive_auto_provision_pxe_host(
+        self, module_discovery_hostgroup, module_target_sat, default_org, default_location
+    ):
         """Auto provision a pxe-based host by executing discovery rules
 
         :id: c93fd7c9-41ef-4eb5-8042-f72e87e67e10
@@ -290,12 +305,20 @@ class TestDiscoveredHost:
 
         :expectedresults: Selected Host should be auto-provisioned successfully
 
-        :CaseAutomation: Automated
-
         :CaseImportance: Critical
         """
+        discovered_host = module_target_sat.api_factory.create_discovered_host()
 
-    @pytest.mark.stubbed
+        rule = module_target_sat.api.DiscoveryRule(
+            max_count=1,
+            hostgroup=module_discovery_hostgroup,
+            search_=f'name = {discovered_host["name"]}',
+            location=[default_location],
+            organization=[default_org],
+        ).create()
+        result = module_target_sat.api.DiscoveredHost(id=discovered_host['id']).auto_provision()
+        assert f'provisioned with rule {rule.name}' in result['message']
+
     @pytest.mark.tier3
     def test_positive_auto_provision_all(self):
         """Auto provision all host by executing discovery rules
@@ -337,9 +360,19 @@ class TestDiscoveredHost:
         :CaseImportance: High
         """
 
-    @pytest.mark.stubbed
+    @pytest.mark.on_premises_provisioning
+    @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
+    @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
+    @pytest.mark.rhel_ver_match('9')
     @pytest.mark.tier3
-    def test_positive_reboot_pxe_host(self):
+    def test_positive_reboot_pxe_host(
+        self,
+        module_provisioning_rhel_content,
+        module_discovery_sat,
+        provisioning_host,
+        provisioning_hostgroup,
+        pxe_loader,
+    ):
         """Rebooting a pxe based discovered host
 
         :id: 69c807f8-5646-4aa6-8b3c-5ecab69560fc
@@ -352,10 +385,23 @@ class TestDiscoveredHost:
 
         :expectedresults: Selected host should be rebooted successfully
 
-        :CaseAutomation: Automated
-
         :CaseImportance: Medium
         """
+        sat = module_discovery_sat.sat
+        provisioning_host.power_control(ensure=False)
+        mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
+        wait_for(
+            lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
+            timeout=240,
+            delay=20,
+        )
+        discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+        discovered_host.hostgroup = provisioning_hostgroup
+        discovered_host.location = provisioning_hostgroup.location[0]
+        discovered_host.organization = provisioning_hostgroup.organization[0]
+        discovered_host.build = True
+        result = sat.api.DiscoveredHost(id=discovered_host.id).reboot()
+        assert 'Unable to perform reboot' not in result
 
     @pytest.mark.stubbed
     @pytest.mark.tier3
@@ -380,8 +426,6 @@ class TestDiscoveredHost:
 
 class TestFakeDiscoveryTests:
     """Tests that use fake discovered host.
-
-    :CaseAutomation: Automated
 
     :CaseImportance: High
     """
