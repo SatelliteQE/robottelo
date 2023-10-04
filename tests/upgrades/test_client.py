@@ -21,8 +21,15 @@ sat6-upgrade requires env.satellite_hostname to be set, this is required for the
 """
 import pytest
 
+from robottelo.config import settings
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME, FAKE_4_CUSTOM_PACKAGE_NAME
 from robottelo.hosts import ContentHost
+
+
+@pytest.fixture
+def client_for_upgrade(module_target_sat, rex_contenthost, module_org):
+    rex_contenthost.create_custom_repos(fake_yum=settings.repos.yum_1.url)
+    yield rex_contenthost
 
 
 class TestScenarioUpgradeOldClientAndPackageInstallation:
@@ -39,8 +46,13 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
     """
 
     @pytest.mark.pre_upgrade
+    @pytest.mark.rhel_ver_list([8])
     def test_pre_scenario_pre_client_package_installation(
-        self, katello_agent_client_for_upgrade, module_org, module_target_sat, save_test_data
+        self,
+        client_for_upgrade,
+        module_org,
+        module_target_sat,
+        save_test_data,
     ):
         """Create product and repo, from which a package will be installed
         post upgrade. Create a content host and register it.
@@ -53,7 +65,6 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
                 installed on content host
             2. Add repo to CV and then to Activation key
 
-
         :steps:
 
             1. Create a container as content host and register with Activation key
@@ -64,17 +75,21 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
             2. The new repo is enabled on the content host.
 
         """
-        rhel_client = katello_agent_client_for_upgrade.client
-        module_target_sat.cli.Host.package_install(
-            {'host-id': rhel_client.nailgun_host.id, 'packages': FAKE_4_CUSTOM_PACKAGE_NAME}
+        client_for_upgrade._skip_context_checkin = True
+        module_target_sat.cli_factory.make_job_invocation(
+            {
+                'job-template': 'Install Package - Katello Script Default',
+                'inputs': f'package={FAKE_4_CUSTOM_PACKAGE_NAME}',
+                'search-query': f'name ~ {client_for_upgrade.hostname}',
+            }
         )
-        result = rhel_client.execute(f"rpm -q {FAKE_4_CUSTOM_PACKAGE_NAME}")
+        result = client_for_upgrade.execute(f"rpm -q {FAKE_4_CUSTOM_PACKAGE_NAME}")
         assert FAKE_4_CUSTOM_PACKAGE_NAME in result.stdout
 
         # Save client info to disk for post-upgrade test
         save_test_data(
             {
-                'rhel_client': rhel_client.hostname,
+                'rhel_client': client_for_upgrade.hostname,
                 'org_id': module_org.id,
             }
         )
@@ -93,8 +108,12 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
         """
         client_hostname = pre_upgrade_data.get('rhel_client')
         rhel_client = ContentHost.get_host_by_hostname(client_hostname)
-        module_target_sat.cli.Host.package_install(
-            {'host-id': rhel_client.nailgun_host.id, 'packages': FAKE_0_CUSTOM_PACKAGE_NAME}
+        module_target_sat.cli_factory.make_job_invocation(
+            {
+                'job-template': 'Install Package - Katello Script Default',
+                'inputs': f'package={FAKE_0_CUSTOM_PACKAGE_NAME}',
+                'search-query': f'name ~ {rhel_client.hostname}',
+            }
         )
         # Verify that package is really installed
         result = rhel_client.execute(f"rpm -q {FAKE_0_CUSTOM_PACKAGE_NAME}")
@@ -115,10 +134,11 @@ class TestScenarioUpgradeNewClientAndPackageInstallation:
     """
 
     @pytest.mark.post_upgrade
+    @pytest.mark.rhel_ver_list([8])
     def test_post_scenario_post_client_package_installation(
         self,
         module_target_sat,
-        katello_agent_client_for_upgrade,
+        client_for_upgrade,
     ):
         """Post-upgrade test that creates a client, installs a package on
         the post-upgrade created client and then verifies the package is installed.
@@ -140,10 +160,13 @@ class TestScenarioUpgradeNewClientAndPackageInstallation:
                 the content host is created
             3. The package is installed on post-upgrade client
         """
-        rhel_client = katello_agent_client_for_upgrade.client
-        module_target_sat.cli.Host.package_install(
-            {'host-id': rhel_client.nailgun_host.id, 'packages': FAKE_0_CUSTOM_PACKAGE_NAME}
+        module_target_sat.cli_factory.make_job_invocation(
+            {
+                'job-template': 'Install Package - Katello Script Default',
+                'inputs': f'package={FAKE_0_CUSTOM_PACKAGE_NAME}',
+                'search-query': f'name ~ {client_for_upgrade.hostname}',
+            }
         )
         # Verifies that package is really installed
-        result = rhel_client.execute(f"rpm -q {FAKE_0_CUSTOM_PACKAGE_NAME}")
+        result = client_for_upgrade.execute(f"rpm -q {FAKE_0_CUSTOM_PACKAGE_NAME}")
         assert FAKE_0_CUSTOM_PACKAGE_NAME in result.stdout
