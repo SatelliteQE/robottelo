@@ -365,7 +365,7 @@ class TestScenarioLargeRepoSyncCheck:
         org_id = pre_upgrade_data.get('org_id')
         rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
-            org_id=org_id.id,
+            org_id=org_id,
             product=REPOS['rhel8_aps']['product'],
             repo=REPOS['rhel8_aps']['name'],
             reposet=REPOS['rhel8_aps']['reposet'],
