@@ -73,6 +73,12 @@ def test_rhel_pxe_discovery_provisioning(
             'location-id': discovered_host.location.id,
         }
     )
+    # teardown
+    @request.addfinalizer
+    def _finalize():
+        host.delete()
+        assert not sat.api.Host().search(query={"search": f'name={host.name}'})
+
     assert 'Host created' in result[0]['message']
     host = sat.api.Host().search(query={"search": f'id={discovered_host.id}'})[0]
     assert host
@@ -81,13 +87,8 @@ def test_rhel_pxe_discovery_provisioning(
         timeout=1500,
         delay=10,
     )
-    host = host.read()
-    assert host.build_status_label == 'Installed'
-
-    @request.addfinalizer
-    def _finalize():
-        host.delete()
-        assert not sat.api.Host().search(query={"search": f'id={discovered_host.id}'})
+    assert host.read().build_status_label == 'Installed'
+    assert not sat.api.DiscoveredHost().search(query={'mac': mac})
 
 
 @pytest.mark.e2e
@@ -102,7 +103,7 @@ def test_rhel_pxeless_discovery_provisioning(
     provisioning_hostgroup,
     request,
 ):
-    """Provision a pxe-less discovered hosts with cli
+    """Provision a PXE-less discovered host
 
     :id: e75ee13a-9edc-4182-b02a-6b106a459751
 
@@ -135,6 +136,13 @@ def test_rhel_pxeless_discovery_provisioning(
             'location-id': discovered_host.location.id,
         }
     )
+
+    # teardown
+    @request.addfinalizer
+    def _finalize():
+        host.delete()
+        assert not sat.api.Host().search(query={"search": f'name={host.name}'})
+
     assert 'Host created' in result[0]['message']
     host = sat.api.Host().search(query={"search": f'id={discovered_host.id}'})[0]
     assert host
@@ -143,13 +151,8 @@ def test_rhel_pxeless_discovery_provisioning(
         timeout=1500,
         delay=10,
     )
-    host = host.read()
-    assert host.build_status_label == 'Installed'
-
-    @request.addfinalizer
-    def _finalize():
-        host.delete()
-        assert not sat.api.Host().search(query={"search": f'id={discovered_host.id}'})
+    assert host.read().build_status_label == 'Installed'
+    assert not sat.api.DiscoveredHost().search(query={'mac': mac})
 
 
 @pytest.mark.stubbed
