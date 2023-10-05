@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import pytest
+from wrapanapi import VmState
 
 from robottelo.config import settings
 from robottelo.constants import CLIENT_PORT, DataFile
@@ -174,20 +175,20 @@ def loadbalancer_setup(
 
 
 @pytest.mark.tier1
-def test_loadbalancer_register_client_using_ak_to_ha_proxy(loadbalancer_setup, rhel7_contenthost):
-    """Register the client using ak to the haproxy
+def test_loadbalancer_install_package(
+    loadbalancer_setup, setup_capsules, rhel7_contenthost, module_org, module_location, request
+):
+    r"""Install packages on a content host regardless of the registered capsule being available
 
     :id: bd3c2e50-18e2-4be7-8a7f-c32472e17c61
 
     :Steps:
         1. run `subscription-manager register --org=Your_Organization \
-            --activationkey=Your_Activation_Key \
-            --serverurl=https://loadbalancer.example.com:8443/rhsm \
-            --baseurl=https://loadbalancer.example.com/pulp/content`
-        2. Check which capsule the host got registered.
-        3. Try package installation
-        4. Remove the package and unregister the host
-        5. Again register, verify it's the other capsule this time.
+            --activationkey=Your_Activation_Key \`
+        2. Try package installation
+        3. Check which capsule the host got registered.
+        4. Remove the package
+        5. Take down the capsule that the host was registered to
         6. Try package installation again
 
     :expectedresults: The client should be get the package irrespective of the capsule
@@ -195,20 +196,17 @@ def test_loadbalancer_register_client_using_ak_to_ha_proxy(loadbalancer_setup, r
 
     :CaseLevel: Integration
     """
-    url = f'https://{loadbalancer_setup["setup_haproxy"]["haproxy"].hostname}'
-    server_url = f'{url}:8443/rhsm'
-    base_url = f'{url}/pulp/content'
+    # Register content host
+    result = rhel7_contenthost.register(
+        org=module_org,
+        loc=module_location,
+        activation_keys=loadbalancer_setup['content_for_client']['client_ak'].name,
+        target=setup_capsules['capsule_1'],
+        force=True,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
 
-    result = rhel7_contenthost.download_install_rpm(
-        repo_url=f'{url}/pub', package_name='katello-ca-consumer-latest.noarch'
-    )
-    assert result.status == 0
-    rhel7_contenthost.register_contenthost(
-        org=loadbalancer_setup['module_org'].label,
-        activation_key=loadbalancer_setup['content_for_client']['client_ak'].name,
-        serverurl=server_url,
-        baseurl=base_url,
-    )
+    # Try package installation
     result = rhel7_contenthost.execute('yum install -y tree')
     assert result.status == 0
 
@@ -226,42 +224,21 @@ def test_loadbalancer_register_client_using_ak_to_ha_proxy(loadbalancer_setup, r
         if loadbalancer_setup['setup_capsules']['capsule_1'].hostname in result.stdout
         else loadbalancer_setup['setup_capsules']['capsule_2']
     )
-    # Find the other capsule
-    for capsule in loadbalancer_setup['setup_capsules'].values():
-        if registered_to_capsule != capsule:
-            other_capsule = capsule
 
+    # Remove the packages from the client
     result = rhel7_contenthost.execute('yum remove -y tree')
     assert result.status == 0
 
-    # For other capsule
-    rhel7_contenthost.remove_katello_ca()
-    rhel7_contenthost.unregister()
+    # Power off the capsule that the client is registered to
+    registered_to_capsule.power_control(state=VmState.STOPPED, ensure=True)
 
-    result = rhel7_contenthost.execute('rm -f katello-ca-consumer-latest.noarch.rpm')
-    assert result.status == 0
-
-    result = rhel7_contenthost.download_install_rpm(
-        repo_url=f'{url}/pub', package_name='katello-ca-consumer-latest.noarch'
-    )
-    assert result.status == 0
-
-    rhel7_contenthost.register_contenthost(
-        org=loadbalancer_setup['module_org'].label,
-        activation_key=loadbalancer_setup['content_for_client']['client_ak'].name,
-        serverurl=server_url,
-        baseurl=base_url,
-    )
-    result = rhel7_contenthost.execute('rpm -qa | grep katello-ca-consumer')
-    assert other_capsule.hostname in result.stdout
-
+    # Try package installation again
     result = rhel7_contenthost.execute('yum install -y tree')
     assert result.status == 0
 
-    hosts = loadbalancer_setup['module_target_sat'].cli.Host.list(
-        {'organization-id': loadbalancer_setup['module_org'].id}
-    )
-    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
+    @request.addfinalizer
+    def _finalize():
+        registered_to_capsule.power_control(state=VmState.RUNNING, ensure=True)
 
 
 @pytest.mark.rhel_ver_match('[^6]')
