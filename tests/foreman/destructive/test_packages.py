@@ -21,6 +21,7 @@ import pytest
 pytestmark = pytest.mark.destructive
 
 
+@pytest.mark.include_capsule
 def test_positive_all_packages_update(target_sat):
     """Verify update and check-update work as expected.
 
