@@ -19,11 +19,16 @@ class Vault:
 
     def __init__(self, env_file='.env'):
         self.env_path = robottelo_root_dir.joinpath(env_file)
-        self.envdata = self.env_path.read_text()
-        self.vault_enabled = re.findall('VAULT_ENABLED_FOR_DYNACONF=(.*)', self.envdata)[0]
+        self.envdata = None
+        self.vault_enabled = None
 
     def setup(self):
-        self.export_vault_addr()
+        if self.env_path.exists():
+            self.envdata = self.env_path.read_text()
+            is_enabled = re.findall('\nVAULT_ENABLED_FOR_DYNACONF=(.*)', self.envdata)
+            if is_enabled:
+                self.vault_enabled = is_enabled[0]
+            self.export_vault_addr()
 
     def teardown(self):
         del os.environ['VAULT_ADDR']
@@ -35,7 +40,7 @@ class Vault:
         os.environ['VAULT_ADDR'] = vaulturl
 
         # Dynaconf Vault Env Vars
-        if self.vault_enabled in ['True', 'true']:
+        if self.vault_enabled and self.vault_enabled in ['True', 'true']:
             if 'localhost:8200' in vaulturl:
                 raise InvalidVaultURLForOIDC(
                     f"{vaulturl} doesn't support OIDC login,"
@@ -65,7 +70,8 @@ class Vault:
 
     def login(self, **kwargs):
         if (
-            self.vault_enabled in ['True', 'true']
+            self.vault_enabled
+            and self.vault_enabled in ['True', 'true']
             and 'VAULT_SECRET_ID_FOR_DYNACONF' not in os.environ
         ):
             if self.status(**kwargs).returncode != 0:
