@@ -99,18 +99,6 @@ def get_url():
     return urlunsplit((scheme, hostname, '', '', ''))
 
 
-def get_ssl_cert_verify():
-    """Return the SSL certificate or setting to verify HTTPS requests.
-
-    :return: Certificate path or boolean verify setting
-    :rtype: bool or str
-    """
-    try:
-        return settings.server.verify_ca
-    except AttributeError:
-        return False
-
-
 def user_nailgun_config(username=None, password=None):
     """Return a NailGun configuration file constructed from default values.
 
@@ -122,7 +110,7 @@ def user_nailgun_config(username=None, password=None):
 
     """
     creds = (username, password)
-    return ServerConfig(get_url(), creds, verify=get_ssl_cert_verify())
+    return ServerConfig(get_url(), creds, verify=settings.server.verify_ca)
 
 
 def setting_is_set(option):
@@ -165,7 +153,9 @@ def configure_nailgun():
     from nailgun.config import ServerConfig
 
     entity_mixins.CREATE_MISSING = True
-    entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(get_url(), get_credentials(), verify=get_ssl_cert_verify())
+    entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(
+        get_url(), get_credentials(), verify=settings.server.verify_ca
+    )
     gpgkey_init = entities.GPGKey.__init__
 
     def patched_gpgkey_init(self, server_config=None, **kwargs):

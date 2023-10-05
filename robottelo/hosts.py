@@ -34,7 +34,6 @@ from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import (
     configure_airgun,
     configure_nailgun,
-    get_ssl_cert_verify,
     robottelo_tmp_dir,
     settings,
 )
@@ -1777,7 +1776,7 @@ class Satellite(Capsule, SatelliteMixins):
         self.nailgun_cfg = ServerConfig(
             auth=(settings.server.admin_username, settings.server.admin_password),
             url=f'{self.url}',
-            verify=get_ssl_cert_verify(),
+            verify=settings.server.verify_ca,
         )
         # add each nailgun entity to self.api, injecting our server config
         for name, obj in entities.__dict__.items():

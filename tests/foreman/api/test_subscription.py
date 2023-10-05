@@ -28,7 +28,7 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.cli.subscription import Subscription
-from robottelo.config import get_ssl_cert_verify
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME, PRDS, REPOS, REPOSET
 
 pytestmark = [pytest.mark.run_in_one_thread]
@@ -192,7 +192,7 @@ def test_positive_delete_manifest_as_another_user(
     sc1 = ServerConfig(
         auth=(user1.login, user1_password),
         url=target_sat.url,
-        verify=get_ssl_cert_verify(),
+        verify=settings.server.verify_ca,
     )
     user2_password = gen_string('alphanumeric')
     user2 = target_sat.api.User(
@@ -204,7 +204,7 @@ def test_positive_delete_manifest_as_another_user(
     sc2 = ServerConfig(
         auth=(user2.login, user2_password),
         url=target_sat.url,
-        verify=get_ssl_cert_verify(),
+        verify=settings.server.verify_ca,
     )
     # use the first admin to upload a manifest
     with function_entitlement_manifest as manifest:
