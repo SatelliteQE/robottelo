@@ -302,6 +302,7 @@ class TestCapsuleContentManagement:
         cv = cv.read()
         assert len(cv.version) == 2
 
+        cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
