@@ -1725,16 +1725,14 @@ BOOKMARK_ENTITIES = [
 STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
 
 VMWARE_CONSTANTS = {
-    'cluster': 'Satellite-Engineering',
     'folder': 'vm',
-    'guest_os': 'Red Hat Enterprise Linux 7 (64-bit)',
+    'guest_os': 'Red Hat Enterprise Linux 8 (64-bit)',
     'scsicontroller': 'LSI Logic Parallel',
     'virtualhw_version': 'Default',
     'pool': 'Resources',
     'network_interface_name': 'VMXNET 3',
-    'datastore': 'Local-Ironforge',
-    'network_interfaces': 'qe_%s',
 }
+
 
 HAMMER_CONFIG = "~/.hammer/cli.modules.d/foreman.yml"
 HAMMER_SESSIONS = "~/.hammer/sessions"
