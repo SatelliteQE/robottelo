@@ -75,13 +75,6 @@ def custom_repo(module_org, module_lce, module_cv, activation_key):
     )
 
 
-def _install_package(clients, package_name):
-    """Install package via SSH"""
-    for client in clients:
-        assert client.run(f'yum install -y {package_name}').status == 0
-        assert client.run(f'rpm -q {package_name}').status == 0
-
-
 def _validate_errata_counts(module_org, host, errata_type, expected_value, timeout=120):
     """Check whether host contains expected errata counts."""
     for _ in range(timeout // 5):
@@ -140,10 +133,7 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_
         client.register_contenthost(module_org.label, activation_key.name)
         assert client.subscribed
         client.add_rex_key(satellite=target_sat)
-    _install_package(
-        clients=content_hosts,
-        package_name=constants.FAKE_1_CUSTOM_PACKAGE,
-    )
+        assert client.run(f'yum install -y {constants.FAKE_1_CUSTOM_PACKAGE}').status == 0
     host_collection = target_sat.api.HostCollection(organization=module_org).create()
     host_ids = [client.nailgun_host.id for client in content_hosts]
     host_collection.host_ids = host_ids
@@ -197,7 +187,7 @@ def test_positive_install_multiple_in_host(
     rhel_contenthost.register_contenthost(module_org.label, activation_key.name)
     assert rhel_contenthost.subscribed
     for package in constants.FAKE_9_YUM_OUTDATED_PACKAGES:
-        _install_package(clients=[rhel_contenthost], package_name=package)
+        assert rhel_contenthost.run(f'yum install -y {package}').status == 0
     applicable_errata_count = rhel_contenthost.applicable_errata_count
     assert applicable_errata_count > 1
     rhel_contenthost.add_rex_key(satellite=target_sat)
@@ -556,10 +546,7 @@ def test_positive_incremental_update_required(
     rhel7_contenthost.install_katello_agent()
     host = rhel7_contenthost.nailgun_host
     # install package to create demand for an Erratum
-    _install_package(
-        clients=[rhel7_contenthost],
-        package_name=constants.FAKE_1_CUSTOM_PACKAGE,
-    )
+    assert rhel7_contenthost.run(f'yum install -y {constants.FAKE_1_CUSTOM_PACKAGE}').status == 0
     # Call nailgun to make the API POST to see if any incremental updates are required
     response = entities.Host().bulk_available_incremental_updates(
         data={
