@@ -75,53 +75,6 @@ def custom_repo(module_org, module_lce, module_cv, activation_key):
     )
 
 
-def _install_package(
-    module_org, clients, host_ids, package_name, via_ssh=True, rpm_package_name=None
-):
-    """Install package via SSH CLI if via_ssh is True, otherwise
-    install via http api: PUT /api/v2/hosts/bulk/install_content
-    """
-    if via_ssh:
-        for client in clients:
-            result = client.run(f'yum install -y {package_name}')
-            assert result.status == 0
-            result = client.run(f'rpm -q {package_name}')
-            assert result.status == 0
-    else:
-        entities.Host().install_content(
-            data={
-                'organization_id': module_org.id,
-                'included': {'ids': host_ids},
-                'content_type': 'package',
-                'content': [package_name],
-            }
-        )
-        _validate_package_installed(clients, rpm_package_name)
-
-
-def _validate_package_installed(hosts, package_name, expected_installed=True, timeout=240):
-    """Check whether package was installed on the list of hosts."""
-    for host in hosts:
-        for _ in range(timeout // 15):
-            result = host.run(f'rpm -q {package_name}')
-            if (
-                result.status == 0
-                and expected_installed
-                or result.status != 0
-                and not expected_installed
-            ):
-                break
-            sleep(15)
-        else:
-            pytest.fail(
-                'Package {} was not {} host {}'.format(
-                    package_name,
-                    'installed on' if expected_installed else 'removed from',
-                    host.hostname,
-                )
-            )
-
-
 def _validate_errata_counts(module_org, host, errata_type, expected_value, timeout=120):
     """Check whether host contains expected errata counts."""
     for _ in range(timeout // 5):
@@ -180,13 +133,7 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_
         client.register_contenthost(module_org.label, activation_key.name)
         assert client.subscribed
         client.add_rex_key(satellite=target_sat)
-    host_ids = [client.nailgun_host.id for client in content_hosts]
-    _install_package(
-        module_org,
-        clients=content_hosts,
-        host_ids=host_ids,
-        package_name=constants.FAKE_1_CUSTOM_PACKAGE,
-    )
+        assert client.run(f'yum install -y {constants.FAKE_1_CUSTOM_PACKAGE}').status == 0
     host_collection = target_sat.api.HostCollection(organization=module_org).create()
     host_ids = [client.nailgun_host.id for client in content_hosts]
     host_collection.host_ids = host_ids
@@ -239,11 +186,8 @@ def test_positive_install_multiple_in_host(
     rhel_contenthost.install_katello_ca(target_sat)
     rhel_contenthost.register_contenthost(module_org.label, activation_key.name)
     assert rhel_contenthost.subscribed
-    host = rhel_contenthost.nailgun_host
     for package in constants.FAKE_9_YUM_OUTDATED_PACKAGES:
-        _install_package(
-            module_org, clients=[rhel_contenthost], host_ids=[host.id], package_name=package
-        )
+        assert rhel_contenthost.run(f'yum install -y {package}').status == 0
     applicable_errata_count = rhel_contenthost.applicable_errata_count
     assert applicable_errata_count > 1
     rhel_contenthost.add_rex_key(satellite=target_sat)
@@ -602,14 +546,7 @@ def test_positive_incremental_update_required(
     rhel7_contenthost.install_katello_agent()
     host = rhel7_contenthost.nailgun_host
     # install package to create demand for an Erratum
-    _install_package(
-        module_org,
-        [rhel7_contenthost],
-        [host.id],
-        constants.FAKE_1_CUSTOM_PACKAGE,
-        via_ssh=True,
-        rpm_package_name=constants.FAKE_1_CUSTOM_PACKAGE,
-    )
+    assert rhel7_contenthost.run(f'yum install -y {constants.FAKE_1_CUSTOM_PACKAGE}').status == 0
     # Call nailgun to make the API POST to see if any incremental updates are required
     response = entities.Host().bulk_available_incremental_updates(
         data={
