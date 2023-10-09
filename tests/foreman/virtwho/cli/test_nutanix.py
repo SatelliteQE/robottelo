@@ -16,7 +16,6 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings

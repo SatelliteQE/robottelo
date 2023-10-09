@@ -14,13 +14,10 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string
 import pytest
 
-from robottelo.config import settings
 from robottelo.utils.virtwho import (
     deploy_configure_by_command,
-    deploy_configure_by_script,
     get_configure_command,
     get_configure_file,
     get_configure_option,

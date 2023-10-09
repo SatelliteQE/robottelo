@@ -29,7 +29,6 @@ from robottelo.utils.virtwho import (
     create_http_proxy,
     deploy_configure_by_command,
     deploy_configure_by_command_check,
-    deploy_configure_by_script,
     get_configure_command,
     get_configure_file,
     get_configure_option,
