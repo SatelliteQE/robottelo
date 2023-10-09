@@ -320,7 +320,9 @@ class TestDiscoveredHost:
         assert f'provisioned with rule {rule.name}' in result['message']
 
     @pytest.mark.tier3
-    def test_positive_auto_provision_all(self):
+    def test_positive_auto_provision_all(
+        self, module_discovery_hostgroup, module_target_sat, default_org, default_location
+    ):
         """Auto provision all host by executing discovery rules
 
         :id: 954d3688-62d9-47f7-9106-a4fff8825ffa
@@ -337,6 +339,19 @@ class TestDiscoveredHost:
 
         :CaseImportance: High
         """
+        module_target_sat.api.DiscoveryRule(
+            max_count=25,
+            hostgroup=module_discovery_hostgroup,
+            search_='location = "Default Location"',
+            location=[default_location],
+            organization=[default_org],
+        ).create()
+
+        for _ in range(2):
+            module_target_sat.api_factory.create_discovered_host()
+
+        result = module_target_sat.api.DiscoveredHost().auto_provision_all()
+        assert '2 discovered hosts were provisioned' in result['message']
 
     @pytest.mark.stubbed
     @pytest.mark.tier3
