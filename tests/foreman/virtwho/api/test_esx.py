@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import pytest
+
 from robottelo.config import settings
 from robottelo.utils.virtwho import (
     ETC_VIRTWHO_CONFIG,
@@ -26,7 +27,6 @@ from robottelo.utils.virtwho import (
     get_configure_command,
     get_configure_file,
     get_configure_option,
-    get_guest_info,
 )
 
 

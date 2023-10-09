@@ -16,7 +16,6 @@
 """
 import pytest
 
-from robottelo.config import settings
 from robottelo.utils.virtwho import (
     deploy_configure_by_command,
     get_configure_command,

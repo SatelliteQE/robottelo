@@ -24,7 +24,6 @@ from robottelo.utils.virtwho import (
     get_configure_command,
     get_configure_file,
     get_configure_option,
-    get_guest_info,
 )
 
 
