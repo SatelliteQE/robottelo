@@ -61,7 +61,7 @@ def _get_normalized_size(size):
     return f'{size} {suffixes[suffix_index]}'
 
 
-def _get_vmware_datastore_summary_string(data_store_name=VMWARE_CONSTANTS['datastore']):
+def _get_vmware_datastore_summary_string(data_store_name=settings.vmware.datastore):
     """Return the datastore string summary for data_store_name
 
     For "Local-Ironforge" datastore the string looks Like:
@@ -85,35 +85,8 @@ def _get_vmware_datastore_summary_string(data_store_name=VMWARE_CONSTANTS['datas
     return f'{data_store_name} (free: {free_space}, prov: {prov}, total: {capacity})'
 
 
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_vmware_settings():
-    ret = dict(
-        vcenter=settings.vmware.vcenter,
-        user=settings.vmware.username,
-        password=settings.vmware.password,
-        datacenter=settings.vmware.datacenter,
-        image_name=settings.vmware.image_name,
-        image_arch=settings.vmware.image_arch,
-        image_os=settings.vmware.image_os,
-        image_username=settings.vmware.image_username,
-        image_password=settings.vmware.image_password,
-        vm_name=settings.vmware.vm_name,
-        cluster=settings.vmware.cluster,
-        mac_address=settings.vmware.mac_address,
-        hypervisor=settings.vmware.hypervisor,
-    )
-    if 'INTERFACE' in settings.vmware:
-        ret['interface'] = VMWARE_CONSTANTS['network_interfaces'] % settings.vmware.interface
-    return ret
-
-
 @pytest.mark.tier1
-def test_positive_end_to_end(session, module_org, module_location, module_vmware_settings):
+def test_positive_end_to_end(session, module_org, module_location):
     """Perform end to end testing for compute resource VMware component.
 
     :id: 47fc9e77-5b22-46b4-a76c-3217434fde2f
@@ -136,10 +109,10 @@ def test_positive_end_to_end(session, module_org, module_location, module_vmware
                 'name': cr_name,
                 'description': description,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': module_vmware_settings['vcenter'],
-                'provider_content.user': module_vmware_settings['user'],
-                'provider_content.password': module_vmware_settings['password'],
-                'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.user': settings.vmware.username,
+                'provider_content.password': settings.vmware.password,
+                'provider_content.datacenter.value': settings.vmware.datacenter,
                 'provider_content.display_type': display_type,
                 'provider_content.vnc_console_passwords': vnc_console_passwords,
                 'provider_content.enable_caching': enable_caching,
@@ -151,11 +124,8 @@ def test_positive_end_to_end(session, module_org, module_location, module_vmware
         assert cr_values['name'] == cr_name
         assert cr_values['description'] == description
         assert cr_values['provider'] == FOREMAN_PROVIDERS['vmware']
-        assert cr_values['provider_content']['user'] == module_vmware_settings['user']
-        assert (
-            cr_values['provider_content']['datacenter']['value']
-            == module_vmware_settings['datacenter']
-        )
+        assert cr_values['provider_content']['user'] == settings.vmware.username
+        assert cr_values['provider_content']['datacenter']['value'] == settings.vmware.datacenter
         assert cr_values['provider_content']['display_type'] == display_type
         assert cr_values['provider_content']['vnc_console_passwords'] == vnc_console_passwords
         assert cr_values['provider_content']['enable_caching'] == enable_caching
@@ -189,7 +159,7 @@ def test_positive_end_to_end(session, module_org, module_location, module_vmware
 
 
 @pytest.mark.tier2
-def test_positive_retrieve_virtual_machine_list(session, module_vmware_settings):
+def test_positive_retrieve_virtual_machine_list(session):
     """List the virtual machine list from vmware compute resource
 
     :id: 21ade57a-0caa-4144-9c46-c8e22f33414e
@@ -206,16 +176,16 @@ def test_positive_retrieve_virtual_machine_list(session, module_vmware_settings)
     :CaseLevel: Integration
     """
     cr_name = gen_string('alpha')
-    vm_name = module_vmware_settings['vm_name']
+    vm_name = settings.vmware.vm_name
     with session:
         session.computeresource.create(
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': module_vmware_settings['vcenter'],
-                'provider_content.user': module_vmware_settings['user'],
-                'provider_content.password': module_vmware_settings['password'],
-                'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.user': settings.vmware.username,
+                'provider_content.password': settings.vmware.password,
+                'provider_content.datacenter.value': settings.vmware.datacenter,
             }
         )
         assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
@@ -224,8 +194,9 @@ def test_positive_retrieve_virtual_machine_list(session, module_vmware_settings)
         )
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
-def test_positive_image_end_to_end(session, module_vmware_settings, target_sat):
+def test_positive_image_end_to_end(session, target_sat):
     """Perform end to end testing for compute resource VMware component image.
 
     :id: 6b7949ef-c684-40aa-b181-11f8d4cd39c6
@@ -237,17 +208,17 @@ def test_positive_image_end_to_end(session, module_vmware_settings, target_sat):
     cr_name = gen_string('alpha')
     image_name = gen_string('alpha')
     new_image_name = gen_string('alpha')
-    target_sat.api_factory.check_create_os_with_title(module_vmware_settings['image_os'])
+    os = target_sat.api_factory.check_create_os_with_title(settings.vmware.image_os)
     image_user_data = choice((False, True))
     with session:
         session.computeresource.create(
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': module_vmware_settings['vcenter'],
-                'provider_content.user': module_vmware_settings['user'],
-                'provider_content.password': module_vmware_settings['password'],
-                'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.user': settings.vmware.username,
+                'provider_content.password': settings.vmware.password,
+                'provider_content.datacenter.value': settings.vmware.datacenter,
             }
         )
         assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
@@ -255,21 +226,21 @@ def test_positive_image_end_to_end(session, module_vmware_settings, target_sat):
             cr_name,
             dict(
                 name=image_name,
-                operating_system=module_vmware_settings['image_os'],
-                architecture=module_vmware_settings['image_arch'],
-                username=module_vmware_settings['image_username'],
+                operating_system=os.title,
+                architecture=settings.vmware.image_arch,
+                username=settings.vmware.image_username,
                 user_data=image_user_data,
-                password=module_vmware_settings['image_password'],
-                image=module_vmware_settings['image_name'],
+                password=settings.vmware.image_password,
+                image=settings.vmware.image_name,
             ),
         )
         values = session.computeresource.read_image(cr_name, image_name)
         assert values['name'] == image_name
-        assert values['operating_system'] == module_vmware_settings['image_os']
-        assert values['architecture'] == module_vmware_settings['image_arch']
-        assert values['username'] == module_vmware_settings['image_username']
+        assert values['operating_system'] == os.title
+        assert values['architecture'] == settings.vmware.image_arch
+        assert values['username'] == settings.vmware.image_username
         assert values['user_data'] == image_user_data
-        assert values['image'] == module_vmware_settings['image_name']
+        assert values['image'] == settings.vmware.image_name
         session.computeresource.update_image(cr_name, image_name, dict(name=new_image_name))
         assert session.computeresource.search_images(cr_name, image_name)[0]['Name'] != image_name
         assert (
@@ -285,7 +256,7 @@ def test_positive_image_end_to_end(session, module_vmware_settings, target_sat):
 
 @pytest.mark.tier2
 @pytest.mark.run_in_one_thread
-def test_positive_resource_vm_power_management(session, module_vmware_settings):
+def test_positive_resource_vm_power_management(session):
     """Read current VMware Compute Resource virtual machine power status and
     change it to opposite one
 
@@ -296,16 +267,16 @@ def test_positive_resource_vm_power_management(session, module_vmware_settings):
     :CaseLevel: Integration
     """
     cr_name = gen_string('alpha')
-    vm_name = module_vmware_settings['vm_name']
+    vm_name = settings.vmware.vm_name
     with session:
         session.computeresource.create(
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': module_vmware_settings['vcenter'],
-                'provider_content.user': module_vmware_settings['user'],
-                'provider_content.password': module_vmware_settings['password'],
-                'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.user': settings.vmware.username,
+                'provider_content.password': settings.vmware.password,
+                'provider_content.datacenter.value': settings.vmware.datacenter,
             }
         )
         assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
@@ -329,7 +300,7 @@ def test_positive_resource_vm_power_management(session, module_vmware_settings):
 
 
 @pytest.mark.tier2
-def test_positive_select_vmware_custom_profile_guest_os_rhel7(session, module_vmware_settings):
+def test_positive_select_vmware_custom_profile_guest_os_rhel7(session):
     """Select custom default (3-Large) compute profile guest OS RHEL7.
 
     :id: 24f7bb5f-2aaf-48cb-9a56-d2d0713dfe3d
@@ -360,10 +331,10 @@ def test_positive_select_vmware_custom_profile_guest_os_rhel7(session, module_vm
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': module_vmware_settings['vcenter'],
-                'provider_content.user': module_vmware_settings['user'],
-                'provider_content.password': module_vmware_settings['password'],
-                'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.user': settings.vmware.username,
+                'provider_content.password': settings.vmware.password,
+                'provider_content.datacenter.value': settings.vmware.datacenter,
             }
         )
         assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
@@ -375,7 +346,7 @@ def test_positive_select_vmware_custom_profile_guest_os_rhel7(session, module_vm
 
 
 @pytest.mark.tier2
-def test_positive_access_vmware_with_custom_profile(session, module_vmware_settings):
+def test_positive_access_vmware_with_custom_profile(session):
     """Associate custom default (3-Large) compute profile
 
     :id: 751ef765-5091-4322-a0d9-0c9c73009cc4
@@ -402,7 +373,7 @@ def test_positive_access_vmware_with_custom_profile(session, module_vmware_setti
         cores_per_socket='2',
         memory='1024',
         firmware='EFI',
-        cluster=VMWARE_CONSTANTS.get('cluster'),
+        cluster=settings.vmware.cluster,
         resource_pool=VMWARE_CONSTANTS.get('pool'),
         folder=VMWARE_CONSTANTS.get('folder'),
         guest_os=VMWARE_CONSTANTS.get('guest_os'),
@@ -412,15 +383,15 @@ def test_positive_access_vmware_with_custom_profile(session, module_vmware_setti
         cdrom_drive=True,
         annotation_notes=gen_string('alpha'),
         network_interfaces=[]
-        if 'interface' not in module_vmware_settings
+        if not settings.provisioning.vlan_id
         else [
             dict(
                 nic_type=VMWARE_CONSTANTS.get('network_interface_name'),
-                network=module_vmware_settings['interface'],
+                network='VLAN 1001',  # hardcoding network here as these test won't be doing actual provisioning
             ),
             dict(
                 nic_type=VMWARE_CONSTANTS.get('network_interface_name'),
-                network=module_vmware_settings['interface'],
+                network='VLAN 1001',
             ),
         ],
         storage=[
@@ -458,10 +429,10 @@ def test_positive_access_vmware_with_custom_profile(session, module_vmware_setti
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': module_vmware_settings['vcenter'],
-                'provider_content.user': module_vmware_settings['user'],
-                'provider_content.password': module_vmware_settings['password'],
-                'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.user': settings.vmware.username,
+                'provider_content.password': settings.vmware.password,
+                'provider_content.datacenter.value': settings.vmware.datacenter,
             }
         )
         assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
@@ -507,9 +478,7 @@ def test_positive_access_vmware_with_custom_profile(session, module_vmware_setti
 
 
 @pytest.mark.tier2
-def test_positive_virt_card(
-    session, target_sat, module_vmware_settings, module_location, module_org
-):
+def test_positive_virt_card(session, target_sat, module_location, module_org):
     """Check to see that the Virtualization card appears for an imported VM
 
     :id: 0502d5a6-64c1-422f-a9ba-ac7c2ee7bad2
@@ -574,10 +543,10 @@ def test_positive_virt_card(
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': module_vmware_settings['vcenter'],
-                'provider_content.user': module_vmware_settings['user'],
-                'provider_content.password': module_vmware_settings['password'],
-                'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.user': settings.vmware.username,
+                'provider_content.password': settings.vmware.password,
+                'provider_content.datacenter.value': settings.vmware.datacenter,
                 'locations.resources.assigned': [module_location.name],
                 'organizations.resources.assigned': [module_org.name],
             }
@@ -585,23 +554,19 @@ def test_positive_virt_card(
         session.hostgroup.update(hostgroup_name, {'host_group.deploy': cr_name + " (VMware)"})
         session.computeresource.vm_import(
             cr_name,
-            module_vmware_settings['vm_name'],
+            settings.vmware.vm_name,
             hostgroup_name,
             module_location.name,
-            module_org.name,
-            module_vmware_settings['vm_name'],
         )
-        host_name = module_vmware_settings['vm_name'] + '.' + domain.name
-        power_status = session.computeresource.vm_status(cr_name, module_vmware_settings['vm_name'])
+        host_name = '.'.join([settings.vmware.vm_name, domain.name])
+        power_status = session.computeresource.vm_status(cr_name, settings.vmware.vm_name)
         if power_status is False:
-            session.computeresource.vm_poweron(cr_name, module_vmware_settings['vm_name'])
+            session.computeresource.vm_poweron(cr_name, settings.vmware.vm_name)
             try:
                 wait_for(
                     lambda: (
                         session.browser.refresh(),
-                        session.computeresource.vm_status(
-                            cr_name, module_vmware_settings['vm_name']
-                        ),
+                        session.computeresource.vm_status(cr_name, settings.vmware.vm_name),
                     )[1]
                     is not power_status,
                     timeout=30,
@@ -611,11 +576,11 @@ def test_positive_virt_card(
                 raise AssertionError('Timed out waiting for VM to toggle power state')
 
         virt_card = session.host_new.get_virtualization(host_name)['details']
-        assert virt_card['datacenter'] == module_vmware_settings['datacenter']
-        assert virt_card['cluster'] == module_vmware_settings['cluster']
-        assert virt_card['memory'] == '2 GB'
+        assert virt_card['datacenter'] == settings.vmware.datacenter
+        assert virt_card['cluster'] == settings.vmware.cluster
+        assert virt_card['memory'] == '5 GB'
         assert 'public_ip_address' in virt_card
-        assert virt_card['mac_address'] == module_vmware_settings['mac_address']
+        assert virt_card['mac_address'] == settings.vmware.mac_address
         assert virt_card['cpus'] == '1'
         if 'disk_label' in virt_card:
             assert virt_card['disk_label'] == 'Hard disk 1'
