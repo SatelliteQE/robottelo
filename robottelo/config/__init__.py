@@ -110,7 +110,7 @@ def user_nailgun_config(username=None, password=None):
 
     """
     creds = (username, password)
-    return ServerConfig(get_url(), creds, verify=False)
+    return ServerConfig(get_url(), creds, verify=settings.server.verify_ca)
 
 
 def setting_is_set(option):
@@ -153,7 +153,9 @@ def configure_nailgun():
     from nailgun.config import ServerConfig
 
     entity_mixins.CREATE_MISSING = True
-    entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(get_url(), get_credentials(), verify=False)
+    entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(
+        get_url(), get_credentials(), verify=settings.server.verify_ca
+    )
     gpgkey_init = entities.GPGKey.__init__
 
     def patched_gpgkey_init(self, server_config=None, **kwargs):

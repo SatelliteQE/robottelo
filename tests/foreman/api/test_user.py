@@ -418,7 +418,9 @@ class TestUser:
         user = entities.User(role=existing_roles, password=password).create()
         name = "hosts"
         columns = ["power_status", "name", "comment"]
-        sc = ServerConfig(auth=(user.login, password), url=module_target_sat.url, verify=False)
+        sc = ServerConfig(
+            auth=(user.login, password), url=module_target_sat.url, verify=settings.server.verify_ca
+        )
         entities.TablePreferences(sc, user=user, name=name, columns=columns).create()
         table_preferences = entities.TablePreferences(sc, user=user).search()
         assert len(table_preferences) == 1
@@ -726,7 +728,7 @@ class TestActiveDirectoryUser:
         sc = ServerConfig(
             auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
             url=create_ldap['sat_url'],
-            verify=False,
+            verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
@@ -775,7 +777,7 @@ class TestActiveDirectoryUser:
         sc = ServerConfig(
             auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
             url=create_ldap['sat_url'],
-            verify=False,
+            verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
@@ -857,7 +859,7 @@ class TestFreeIPAUser:
         sc = ServerConfig(
             auth=(create_ldap['username'], create_ldap['ldap_user_passwd']),
             url=create_ldap['sat_url'],
-            verify=False,
+            verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
@@ -896,7 +898,7 @@ class TestFreeIPAUser:
         sc = ServerConfig(
             auth=(create_ldap['username'], create_ldap['ldap_user_passwd']),
             url=create_ldap['sat_url'],
-            verify=False,
+            verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
