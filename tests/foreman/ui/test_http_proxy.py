@@ -110,6 +110,8 @@ def test_positive_assign_http_proxy_to_products_repositories(
     # Create repositories from UI.
     with target_sat.ui_session() as session:
         repo_a1_name = gen_string('alpha')
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
         session.repository.create(
             product_a.name,
             {
