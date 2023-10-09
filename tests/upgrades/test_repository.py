@@ -318,6 +318,8 @@ class TestScenarioLargeRepoSyncCheck:
         4. Enable and sync a second large repository.
 
     BZ: 2043144
+
+    :customerscenario: true
     """
 
     @pytest.mark.pre_upgrade
