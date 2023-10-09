@@ -70,4 +70,4 @@ def test_no_blank_page_on_language_switch(session, target_sat, module_org):
     ).create()
     with target_sat.ui_session(user=user.login, password=user_password) as session:
         session.user.update(user.login, {'user.language': 'Français'})
-        assert session.contentview_new.check_if_blank_in_french()
+        assert session.contentview_new.read_french_lang_cv()
