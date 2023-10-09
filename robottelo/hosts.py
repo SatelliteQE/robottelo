@@ -1722,7 +1722,7 @@ class Satellite(Capsule, SatelliteMixins):
         self.nailgun_cfg = ServerConfig(
             auth=(settings.server.admin_username, settings.server.admin_password),
             url=f'{self.url}',
-            verify=False,
+            verify=settings.server.verify_ca,
         )
         # add each nailgun entity to self.api, injecting our server config
         for name, obj in entities.__dict__.items():
