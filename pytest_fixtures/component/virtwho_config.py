@@ -2,10 +2,12 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.utils.datafactory import gen_string
-from robottelo.utils.virtwho import deploy_configure_by_command
-from robottelo.utils.virtwho import deploy_configure_by_script
-from robottelo.utils.virtwho import get_configure_command
-from robottelo.utils.virtwho import get_guest_info
+from robottelo.utils.virtwho import (
+    deploy_configure_by_command,
+    deploy_configure_by_script,
+    get_configure_command,
+    get_guest_info,
+)
 
 LOGGEDOUT = 'Logged out.'
 
