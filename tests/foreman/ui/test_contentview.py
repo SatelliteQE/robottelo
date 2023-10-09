@@ -59,7 +59,7 @@ def test_no_blank_page_on_language_switch(session, target_sat, module_org):
 
     :BZ: 2163538
 
-    :CaseImportance: High
+    :customerscenario: true
     """
     user_password = gen_string('alpha')
     user = target_sat.api.User(
