@@ -781,7 +781,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ValueError('Global registration method can be used with Satellite/Capsule only')
 
         if lifecycle_environment is not None:
-            options['lifecycle_environment_id'] = lifecycle_environment.id
+            options['lifecycle-environment-id'] = lifecycle_environment.id
         if operating_system is not None:
             options['operatingsystem-id'] = operating_system.id
         if hostgroup is not None:
