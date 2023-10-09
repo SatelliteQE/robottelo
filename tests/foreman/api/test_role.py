@@ -26,6 +26,7 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.cli.ldapauthsource import LDAPAuthSource
+from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.utils.datafactory import gen_string, generate_strings_list, parametrized
 from robottelo.utils.issue_handlers import is_open
@@ -154,7 +155,9 @@ class TestCannedRole:
         :param user: The nailgun.entities.User object of an user with passwd
             parameter
         """
-        return ServerConfig(auth=(user.login, user.passwd), url=satellite.url, verify=False)
+        return ServerConfig(
+            auth=(user.login, user.passwd), url=satellite.url, verify=settings.server.verify_ca
+        )
 
     @pytest.fixture
     def role_taxonomies(self):
@@ -991,7 +994,9 @@ class TestCannedRole:
             location=[role_taxonomies['loc'].id],
         ).create()
         for login, password in ((userone_login, userone_pass), (usertwo_login, usertwo_pass)):
-            sc = ServerConfig(auth=(login, password), url=target_sat.url, verify=False)
+            sc = ServerConfig(
+                auth=(login, password), url=target_sat.url, verify=settings.server.verify_ca
+            )
             try:
                 entities.Domain(sc).search(
                     query={
@@ -1120,7 +1125,9 @@ class TestCannedRole:
             location=[role_taxonomies['loc']],
         ).create()
         assert user_login == user.login
-        sc = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
+        sc = ServerConfig(
+            auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
+        )
         # Getting the domain from user1
         dom = entities.Domain(sc, id=dom.id).read()
         dom.organization = [filter_taxonomies['org']]
@@ -1279,7 +1286,9 @@ class TestCannedRole:
             location=[role_taxonomies['loc']],
         ).create()
         assert user_login == user.login
-        sc = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
+        sc = ServerConfig(
+            auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
+        )
         role_name = gen_string('alpha')
         with pytest.raises(HTTPError):
             entities.Role(
@@ -1344,7 +1353,9 @@ class TestCannedRole:
             location=[role_taxonomies['loc']],
         ).create()
         assert user_login == user.login
-        sc = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
+        sc = ServerConfig(
+            auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
+        )
         with pytest.raises(HTTPError):
             entities.User(sc, id=1).read()
 
@@ -1389,7 +1400,9 @@ class TestCannedRole:
             location=[role_taxonomies['loc']],
         ).create()
         assert user_login == user.login
-        sc_user = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
+        sc_user = ServerConfig(
+            auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
+        )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
         user = entities.User(
@@ -1470,7 +1483,9 @@ class TestCannedRole:
         )
         user.role = [org_admin]
         user = user.update(['role'])
-        sc = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
+        sc = ServerConfig(
+            auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
+        )
         name = gen_string('alphanumeric')
         location = entities.Location(sc, name=name, parent=role_taxonomies['loc'].id).create()
         assert location.name == name
@@ -1534,7 +1549,9 @@ class TestCannedRole:
             location=[role_taxonomies['loc']],
         ).create()
         assert user_login == user.login
-        sc = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
+        sc = ServerConfig(
+            auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
+        )
         with pytest.raises(HTTPError):
             entities.Organization(sc, name=gen_string('alpha')).create()
         if not is_open("BZ:1825698"):
@@ -1578,7 +1595,9 @@ class TestCannedRole:
             location=[role_taxonomies['loc'], filter_taxonomies['loc']],
         ).create()
         assert user_login == user.login
-        sc = ServerConfig(auth=(user_login, user_pass), url=target_sat.url, verify=False)
+        sc = ServerConfig(
+            auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
+        )
         try:
             for entity in [
                 entities.Architecture,
@@ -1627,7 +1646,7 @@ class TestCannedRole:
         sc = ServerConfig(
             auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
             url=create_ldap['sat_url'],
-            verify=False,
+            verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
@@ -1670,7 +1689,7 @@ class TestCannedRole:
         sc = ServerConfig(
             auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
             url=create_ldap['sat_url'],
-            verify=False,
+            verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
@@ -1734,7 +1753,7 @@ class TestCannedRole:
             sc = ServerConfig(
                 auth=(user.login, password),
                 url=create_ldap['sat_url'],
-                verify=False,
+                verify=settings.server.verify_ca,
             )
             # Accessing the Domain resource
             entities.Domain(sc, id=domain.id).read()
@@ -1790,7 +1809,7 @@ class TestCannedRole:
             sc = ServerConfig(
                 auth=(user.login, password),
                 url=create_ldap['sat_url'],
-                verify=False,
+                verify=settings.server.verify_ca,
             )
             # Trying to access the Domain resource
             with pytest.raises(HTTPError):
