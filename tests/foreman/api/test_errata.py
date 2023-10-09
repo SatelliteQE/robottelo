@@ -163,7 +163,7 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_
 @pytest.mark.no_containers
 @pytest.mark.e2e
 def test_positive_install_multiple_in_host(
-    function_org, rhel_contenthost, target_sat, function_lce
+    target_sat, rhel_contenthost, function_org, function_lce
 ):
     """For a host with multiple applicable errata install one and ensure
     the rest of errata is still available
@@ -199,9 +199,14 @@ def test_positive_install_multiple_in_host(
             'activationkey-id': ak.id,
         }
     )
-    # Install katello-ca, register content-host, enable all repos:
-    rhel_contenthost.install_katello_ca(target_sat)
-    rhel_contenthost.register_contenthost(function_org.name, ak.name, function_lce.name)
+    rhel_contenthost.register(
+        org=function_org,
+        activation_keys=ak.name,
+        lifecycle_environment=function_lce,
+        target=target_sat,
+        force=True,
+        loc=None,
+    )
     assert rhel_contenthost.subscribed
     # Installing outdated custom packages:
     for package in constants.FAKE_9_YUM_OUTDATED_PACKAGES:
@@ -209,7 +214,6 @@ def test_positive_install_multiple_in_host(
         assert rhel_contenthost.run(f'yum install -y {package}').status == 0
         assert rhel_contenthost.run(f'rpm -q {package}').status == 0
     rhel_contenthost.add_rex_key(satellite=target_sat)
-    rhel_contenthost.run(r'subscription-manager repos --enable \*')
     # Each errata will be installed sequentially,
     # after each install, applicable-errata-count should drop by one.
     for errata in constants.FAKE_9_YUM_SECURITY_ERRATUM:
@@ -229,7 +233,7 @@ def test_positive_install_multiple_in_host(
             search_rate=20,
             max_tries=15,
         )
-        sleep(10)
+        sleep(20)
         assert rhel_contenthost.applicable_errata_count == pre_errata_count - 1
 
 
