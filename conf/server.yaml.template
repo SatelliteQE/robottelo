@@ -48,6 +48,10 @@ SERVER:
   ADMIN_USERNAME: admin
   # Admin password when accessing API and UI
   ADMIN_PASSWORD: changeme
+  # Set to true to verify against the certificate given in REQUESTS_CA_BUNDLE
+  # Or specify path to certificate path or directory
+  # see: https://requests.readthedocs.io/en/latest/user/advanced/#ssl-cert-verification
+  VERIFY_CA: false
 
   SSH_CLIENT:
     # Specify port number for ssh client, Default: 22
