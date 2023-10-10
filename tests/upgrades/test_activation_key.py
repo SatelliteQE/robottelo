@@ -88,7 +88,7 @@ class TestActivationKey:
         ak.host_collection.append(
             target_sat.api.HostCollection(organization=activation_key_setup['org']).create()
         )
-        ak.update(['host_collection', 'organization_id'])
+        ak.update(['host_collection', 'organization'])
         assert len(ak.host_collection) == 1
 
     @pytest.mark.post_upgrade(depend_on=test_pre_create_activation_key)
