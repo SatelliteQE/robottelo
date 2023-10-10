@@ -23,7 +23,6 @@ from robottelo.constants import REPO_TYPE
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.utils.datafactory import gen_string
 
-
 ssl_name, product_name, product_label, product_description, repository_name = (
     gen_string('alpha') for _ in range(5)
 )
