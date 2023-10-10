@@ -117,7 +117,7 @@ class TestActivationKey:
         assert f'{pre_test_name}_ak' == ak[0].name
         assert f'{pre_test_name}_cv' == cv[0].name
         ak.host_collection.append(target_sat.api.HostCollection(organization=org).create())
-        ak.update(['host_collection', 'organization_id'])
+        ak.update(['host_collection', 'organization'])
         assert len(ak.host_collection) == 2
         custom_repo2 = target_sat.api.Repository(
             product=target_sat.api.Product(organization=org[0]).create()
