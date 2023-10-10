@@ -89,9 +89,7 @@ def test_negative_invalid_repo_fails_publish(
     assert 'Remove the invalid repository before publishing again' in context.value.response.text
 
 
-def test_positive_test_disable_rh_repo_with_basearch(
-    module_target_sat, module_entitlement_manifest_org
-):
+def test_positive_disable_rh_repo_with_basearch(module_target_sat, module_entitlement_manifest_org):
     """Verify that users can disable Red Hat Repositories with basearch
 
     :id: dd3b63b7-1dbf-4d8a-ab66-348de0ad7cf3
@@ -120,11 +118,6 @@ def test_positive_test_disable_rh_repo_with_basearch(
     )
     repo = module_target_sat.api.Repository(id=rh_repo_id).read()
     repo.sync(timeout=2000)
-    module_target_sat.execute(
-        f'hammer repository-set list '
-        f'--organization-id {module_entitlement_manifest_org.id} '
-        f'--name "Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)")'
-    )
     disabled_repo = module_target_sat.execute(
         f'hammer repository-set disable --basearch {DEFAULT_ARCHITECTURE} '
         f'--name "Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)" '
