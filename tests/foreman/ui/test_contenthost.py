@@ -47,6 +47,7 @@ from robottelo.utils.virtwho import create_fake_hypervisor_content
 if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
     pytest.skip('skipping tests due to missing settings', allow_module_level=True)
 
+pytestmark = [pytest.mark.no_containers]
 
 @pytest.fixture(scope='module', autouse=True)
 def host_ui_default():
@@ -1153,7 +1154,7 @@ def test_module_streams_customize_action(session, default_location, vm_module_st
             'YumRepository': [
                 {'url': settings.repos.rhel8_os.baseos},
                 {'url': settings.repos.rhel8_os.appstream},
-                {'url': settings.repos.satutils_repo},
+                {'url': settings.repos.new_satutils_repo},
                 {'url': settings.repos.module_stream_1.url},
             ],
         }
