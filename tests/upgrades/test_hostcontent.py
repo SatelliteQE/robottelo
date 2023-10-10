@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Host-Content
+:CaseComponent: Hosts-Content
 
 :Team: Phoenix-subscriptions
 
