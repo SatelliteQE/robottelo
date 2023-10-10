@@ -25,22 +25,6 @@ from robottelo.logging import logger
 from robottelo.utils.datafactory import valid_data_list
 
 
-@pytest.fixture(scope='module')
-def module_discovery_hostgroup(default_org, default_location, module_target_sat):
-    host = module_target_sat.api.Host(organization=default_org, location=default_location)
-    host.create_missing()
-    return module_target_sat.api.HostGroup(
-        organization=[default_org],
-        location=[default_location],
-        medium=host.medium,
-        root_pass=gen_string('alpha'),
-        operatingsystem=host.operatingsystem,
-        ptable=host.ptable,
-        domain=host.domain,
-        architecture=host.architecture,
-    ).create()
-
-
 class HostNotDiscoveredException(Exception):
     """Raised when host is not discovered"""
 
@@ -290,7 +274,7 @@ class TestDiscoveredHost:
 
     @pytest.mark.tier3
     def test_positive_auto_provision_pxe_host(
-        self, module_discovery_hostgroup, module_target_sat, default_org, default_location
+        self, module_discovery_hostgroup, module_target_sat, discovery_org, discovery_location
     ):
         """Auto provision a pxe-based host by executing discovery rules
 
@@ -313,15 +297,15 @@ class TestDiscoveredHost:
             max_count=1,
             hostgroup=module_discovery_hostgroup,
             search_=f'name = {discovered_host["name"]}',
-            location=[default_location],
-            organization=[default_org],
+            location=[discovery_location],
+            organization=[discovery_org],
         ).create()
         result = module_target_sat.api.DiscoveredHost(id=discovered_host['id']).auto_provision()
         assert f'provisioned with rule {rule.name}' in result['message']
 
     @pytest.mark.tier3
     def test_positive_auto_provision_all(
-        self, module_discovery_hostgroup, module_target_sat, default_org, default_location
+        self, module_discovery_hostgroup, module_target_sat, discovery_org, discovery_location
     ):
         """Auto provision all host by executing discovery rules
 
@@ -342,9 +326,9 @@ class TestDiscoveredHost:
         module_target_sat.api.DiscoveryRule(
             max_count=25,
             hostgroup=module_discovery_hostgroup,
-            search_='location = "Default Location"',
-            location=[default_location],
-            organization=[default_org],
+            search_=f'location = "{discovery_location.name}"',
+            location=[discovery_location],
+            organization=[discovery_org],
         ).create()
 
         for _ in range(2):
