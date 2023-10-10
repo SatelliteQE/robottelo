@@ -14,7 +14,6 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
@@ -23,45 +22,18 @@ from robottelo.utils.virtwho import (
     create_http_proxy,
     deploy_configure_by_command,
     deploy_configure_by_command_check,
-    deploy_configure_by_script,
     get_configure_command,
     get_configure_file,
     get_configure_option,
 )
 
 
-@pytest.fixture()
-def form_data(module_sca_manifest_org, target_sat):
-    form = {
-        'name': gen_string('alpha'),
-        'debug': 1,
-        'interval': '60',
-        'hypervisor_id': 'hostname',
-        'hypervisor_type': settings.virtwho.esx.hypervisor_type,
-        'hypervisor_server': settings.virtwho.esx.hypervisor_server,
-        'organization_id': module_sca_manifest_org.id,
-        'filtering_mode': 'none',
-        'satellite_url': target_sat.hostname,
-        'hypervisor_username': settings.virtwho.esx.hypervisor_username,
-        'hypervisor_password': settings.virtwho.esx.hypervisor_password,
-    }
-    return form
-
-
-@pytest.fixture()
-def virtwho_config(form_data, target_sat):
-    virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
-    yield virtwho_config
-    virtwho_config.delete()
-    assert not target_sat.api.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
-
-
 class TestVirtWhoConfigforEsx:
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('deploy_type', ['id', 'script'])
+    @pytest.mark.parametrize('deploy_type_api', ['id', 'script'], indirect=True)
     def test_positive_deploy_configure_by_id_script(
-        self, module_sca_manifest_org, form_data, virtwho_config, target_sat, deploy_type
+        self, module_sca_manifest_org, target_sat, virtwho_config_api, deploy_type_api
     ):
         """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
@@ -73,30 +45,17 @@ class TestVirtWhoConfigforEsx:
 
         :CaseImportance: High
         """
-        assert virtwho_config.status == 'unknown'
-        if deploy_type == "id":
-            command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
-            deploy_configure_by_command(
-                command, form_data['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
-            )
-        elif deploy_type == "script":
-            script = virtwho_config.deploy_script()
-            deploy_configure_by_script(
-                script['virt_who_config_script'],
-                form_data['hypervisor_type'],
-                debug=True,
-                org=module_sca_manifest_org.label,
-            )
+        assert virtwho_config_api.status == 'unknown'
         virt_who_instance = (
             target_sat.api.VirtWhoConfig()
-            .search(query={'search': f'name={virtwho_config.name}'})[0]
+            .search(query={'search': f'name={virtwho_config_api.name}'})[0]
             .status
         )
         assert virt_who_instance == 'ok'
 
     @pytest.mark.tier2
     def test_positive_debug_option(
-        self, module_sca_manifest_org, form_data, virtwho_config, target_sat
+        self, module_sca_manifest_org, form_data_api, virtwho_config_api, target_sat
     ):
         """Verify debug option by "PUT
 
@@ -112,17 +71,17 @@ class TestVirtWhoConfigforEsx:
         """
         options = {'0': '0', '1': '1', 'false': '0', 'true': '1'}
         for key, value in options.items():
-            virtwho_config.debug = key
-            virtwho_config.update(['debug'])
-            command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
+            virtwho_config_api.debug = key
+            virtwho_config_api.update(['debug'])
+            command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+                command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
             )
             assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == value
 
     @pytest.mark.tier2
     def test_positive_interval_option(
-        self, module_sca_manifest_org, form_data, virtwho_config, target_sat
+        self, module_sca_manifest_org, form_data_api, virtwho_config_api, target_sat
     ):
         """Verify interval option by "PUT
 
@@ -147,17 +106,17 @@ class TestVirtWhoConfigforEsx:
             '4320': '259200',
         }
         for key, value in options.items():
-            virtwho_config.interval = key
-            virtwho_config.update(['interval'])
-            command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
+            virtwho_config_api.interval = key
+            virtwho_config_api.update(['interval'])
+            command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+                command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
             )
             assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
-        self, module_sca_manifest_org, form_data, virtwho_config, target_sat
+        self, module_sca_manifest_org, form_data_api, virtwho_config_api, target_sat
     ):
         """Verify hypervisor_id option by "PUT
 
@@ -172,12 +131,12 @@ class TestVirtWhoConfigforEsx:
         :CaseImportance: Medium
         """
         for value in ['uuid', 'hostname']:
-            virtwho_config.hypervisor_id = value
-            virtwho_config.update(['hypervisor_id'])
-            config_file = get_configure_file(virtwho_config.id)
-            command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
+            virtwho_config_api.hypervisor_id = value
+            virtwho_config_api.update(['hypervisor_id'])
+            config_file = get_configure_file(virtwho_config_api.id)
+            command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+                command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
@@ -185,7 +144,7 @@ class TestVirtWhoConfigforEsx:
     @pytest.mark.parametrize('filter_type', ['whitelist', 'blacklist'])
     @pytest.mark.parametrize('option_type', ['edit', 'create'])
     def test_positive_filter_option(
-        self, module_sca_manifest_org, form_data, target_sat, filter_type, option_type
+        self, module_sca_manifest_org, form_data_api, target_sat, filter_type, option_type
     ):
         """Verify filter option by "PUT
 
@@ -204,7 +163,7 @@ class TestVirtWhoConfigforEsx:
         regex = '.*redhat.com'
         whitelist = {'filtering_mode': '1', 'whitelist': regex}
         blacklist = {'filtering_mode': '2', 'blacklist': regex}
-        virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
+        virtwho_config = target_sat.api.VirtWhoConfig(**form_data_api).create()
         if option_type == "edit":
             if filter_type == "whitelist":
                 whitelist['filter_host_parents'] = regex
@@ -220,7 +179,7 @@ class TestVirtWhoConfigforEsx:
                 virtwho_config.update(blacklist.keys())
             command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+                command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
             )
             config_file = get_configure_file(virtwho_config.id)
             result = target_sat.api.VirtWhoConfig().search(
@@ -245,20 +204,20 @@ class TestVirtWhoConfigforEsx:
         elif option_type == "create":
             virtwho_config.delete()
             assert not target_sat.api.VirtWhoConfig().search(
-                query={'search': f"name={form_data['name']}"}
+                query={'search': f"name={form_data_api['name']}"}
             )
             if filter_type == "whitelist":
-                form_data['filtering_mode'] = 1
-                form_data['whitelist'] = regex
-                form_data['filter_host_parents'] = regex
+                form_data_api['filtering_mode'] = 1
+                form_data_api['whitelist'] = regex
+                form_data_api['filter_host_parents'] = regex
             elif filter_type == "blacklist":
-                form_data['filtering_mode'] = 2
-                form_data['blacklist'] = regex
-                form_data['exclude_host_parents'] = regex
-            virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
+                form_data_api['filtering_mode'] = 2
+                form_data_api['blacklist'] = regex
+                form_data_api['exclude_host_parents'] = regex
+            virtwho_config = target_sat.api.VirtWhoConfig(**form_data_api).create()
             command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+                command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
             )
             config_file = get_configure_file(virtwho_config.id)
             result = target_sat.api.VirtWhoConfig().search(
@@ -283,7 +242,7 @@ class TestVirtWhoConfigforEsx:
                 assert result.exclude_host_parents == regex
 
     @pytest.mark.tier2
-    def test_positive_proxy_option(self, module_sca_manifest_org, form_data, target_sat):
+    def test_positive_proxy_option(self, module_sca_manifest_org, form_data_api, target_sat):
         """Verify http_proxy option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id""
@@ -300,10 +259,10 @@ class TestVirtWhoConfigforEsx:
 
         :BZ: 1902199
         """
-        virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
+        virtwho_config = target_sat.api.VirtWhoConfig(**form_data_api).create()
         command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
         deploy_configure_by_command(
-            command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+            command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
         )
         # Check default NO_PROXY option
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == '*'
@@ -317,7 +276,7 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.update(['http_proxy_id', 'no_proxy'])
         command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
         deploy_configure_by_command(
-            command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+            command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
         )
         assert get_configure_option('http_proxy', ETC_VIRTWHO_CONFIG) == http_proxy_url
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
@@ -332,21 +291,21 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.http_proxy_id = https_proxy_id
         virtwho_config.update(['http_proxy_id'])
         deploy_configure_by_command(
-            command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+            command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
         )
         assert get_configure_option('https_proxy', ETC_VIRTWHO_CONFIG) == https_proxy_url
         virtwho_config.delete()
         assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
+            query={'search': f"name={form_data_api['name']}"}
         )
 
         # Check the http proxy option, create virt-who config via http proxy id
-        form_data['http_proxy_id'] = http_proxy_id
-        form_data['no_proxy'] = no_proxy
-        virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
+        form_data_api['http_proxy_id'] = http_proxy_id
+        form_data_api['no_proxy'] = no_proxy
+        virtwho_config = target_sat.api.VirtWhoConfig(**form_data_api).create()
         command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
         deploy_configure_by_command(
-            command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+            command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
         )
         assert get_configure_option('http_proxy', ETC_VIRTWHO_CONFIG) == http_proxy_url
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
@@ -356,12 +315,12 @@ class TestVirtWhoConfigforEsx:
         assert result.no_proxy == no_proxy
         virtwho_config.delete()
         assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
+            query={'search': f"name={form_data_api['name']}"}
         )
 
     @pytest.mark.tier2
     def test_positive_configure_organization_list(
-        self, module_sca_manifest_org, form_data, virtwho_config, target_sat
+        self, module_sca_manifest_org, form_data_api, virtwho_config_api, target_sat
     ):
         """Verify "GET /foreman_virt_who_configure/
 
@@ -375,16 +334,16 @@ class TestVirtWhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
+        command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
         deploy_configure_by_command(
-            command, form_data['hypervisor_type'], org=module_sca_manifest_org.label
+            command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
         )
-        search_result = virtwho_config.get_organization_configs(data={'per_page': '1000'})
-        assert [item for item in search_result['results'] if item['name'] == form_data['name']]
+        search_result = virtwho_config_api.get_organization_configs(data={'per_page': '1000'})
+        assert [item for item in search_result['results'] if item['name'] == form_data_api['name']]
 
     @pytest.mark.tier2
     def test_positive_deploy_configure_hypervisor_password_with_special_characters(
-        self, module_sca_manifest_org, form_data, target_sat
+        self, module_sca_manifest_org, form_data_api, target_sat
     ):
         """Verify "hammer virt-who-config deploy hypervisor with special characters"
 
@@ -401,8 +360,8 @@ class TestVirtWhoConfigforEsx:
         :customerscenario: true
         """
         # check the hypervisor password contains single quotes
-        form_data['hypervisor_password'] = "Tes't"
-        virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
+        form_data_api['hypervisor_password'] = "Tes't"
+        virtwho_config = target_sat.api.VirtWhoConfig(**form_data_api).create()
         assert virtwho_config.status == 'unknown'
         command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
         deploy_status = deploy_configure_by_command_check(command)
@@ -415,11 +374,11 @@ class TestVirtWhoConfigforEsx:
         )
         virtwho_config.delete()
         assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
+            query={'search': f"name={form_data_api['name']}"}
         )
         # check the hypervisor password contains backtick
-        form_data['hypervisor_password'] = "my`password"
-        virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
+        form_data_api['hypervisor_password'] = "my`password"
+        virtwho_config = target_sat.api.VirtWhoConfig(**form_data_api).create()
         assert virtwho_config.status == 'unknown'
         command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
         deploy_status = deploy_configure_by_command_check(command)
@@ -432,12 +391,12 @@ class TestVirtWhoConfigforEsx:
         )
         virtwho_config.delete()
         assert not target_sat.api.VirtWhoConfig().search(
-            query={'search': f"name={form_data['name']}"}
+            query={'search': f"name={form_data_api['name']}"}
         )
 
     @pytest.mark.tier2
     def test_positive_remove_env_option(
-        self, module_sca_manifest_org, form_data, virtwho_config, target_sat
+        self, module_sca_manifest_org, form_data_api, virtwho_config_api, target_sat
     ):
         """remove option 'env=' from the virt-who configuration file and without any error
 
@@ -456,19 +415,19 @@ class TestVirtWhoConfigforEsx:
         :BZ: 1834897
 
         """
-        command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
+        command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
         deploy_configure_by_command(
-            command, form_data['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
+            command, form_data_api['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
         )
         virt_who_instance = (
             target_sat.api.VirtWhoConfig()
-            .search(query={'search': f'name={virtwho_config.name}'})[0]
+            .search(query={'search': f'name={virtwho_config_api.name}'})[0]
             .status
         )
         assert virt_who_instance == 'ok'
         # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
         option = "env"
-        config_file = get_configure_file(virtwho_config.id)
+        config_file = get_configure_file(virtwho_config_api.id)
         env_error = (
             f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
         )
