@@ -118,12 +118,14 @@ def test_positive_disable_rh_repo_with_basearch(module_target_sat, module_entitl
     )
     repo = module_target_sat.api.Repository(id=rh_repo_id).read()
     repo.sync(timeout=2000)
-    disabled_repo = module_target_sat.execute(
-        f'hammer repository-set disable --basearch {DEFAULT_ARCHITECTURE} '
-        f'--name "Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)" '
-        f'--product-id {repo.product.id} '
-        f'--organization-id {module_entitlement_manifest_org.id} '
-        f'--releasever 8 '
-        f'--repository-id {rh_repo_id}'
+    disabled_repo = module_target_sat.cli.RepositorySet.disable(
+        {
+            'basearch': DEFAULT_ARCHITECTURE,
+            'name': "Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)",
+            'product-id': repo.product.id,
+            'organization-id': module_entitlement_manifest_org.id,
+            'releasever': 8,
+            'repository-id': rh_repo_id,
+        }
     )
-    assert 'Repository disabled' in disabled_repo.stdout
+    assert 'Repository disabled' in disabled_repo[0]['message']
