@@ -225,8 +225,7 @@ def test_positive_install_multiple_in_host(target_sat, rhel_contenthost, module_
             search_rate=20,
             max_tries=15,
         )
-        rhel_contenthost.run('subscription-manager repos')
-        sleep(10)
+        sleep(20)
         assert rhel_contenthost.applicable_errata_count == pre_errata_count - 1
 
 
