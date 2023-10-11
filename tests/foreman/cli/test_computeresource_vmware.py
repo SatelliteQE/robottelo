@@ -56,7 +56,7 @@ def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location):
     )
     assert vmware_cr['name'] == cr_name
     assert vmware_cr['locations'][0] == module_location.name
-    assert vmware_cr['organizations'] == module_org.name
+    assert vmware_cr['organizations'][0] == module_org.name
     assert vmware_cr['server'] == settings.vmware.vcenter
     assert vmware_cr['datacenter'] == settings.vmware.datacenter
     # List

@@ -557,6 +557,7 @@ def test_positive_virt_card(session, target_sat, module_location, module_org):
             settings.vmware.vm_name,
             hostgroup_name,
             module_location.name,
+            name=settings.vmware.vm_name,
         )
         host_name = '.'.join([settings.vmware.vm_name, domain.name])
         power_status = session.computeresource.vm_status(cr_name, settings.vmware.vm_name)
