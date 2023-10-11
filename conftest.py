@@ -38,6 +38,7 @@ pytest_plugins = [
     'pytest_fixtures.component.computeprofile',
     'pytest_fixtures.component.contentview',
     'pytest_fixtures.component.domain',
+    'pytest_fixtures.component.discovery',
     'pytest_fixtures.component.host',
     'pytest_fixtures.component.hostgroup',
     'pytest_fixtures.component.http_proxy',
