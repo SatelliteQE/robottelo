@@ -101,7 +101,7 @@ class TestUserGroupMembership:
             2. Update ldap auth.
 
         :expectedresults: After upgrade, user group membership should remain the same and LDAP
-        auth update should work.
+            auth update should work.
         """
         ad_data = ad_data()
         user_group = target_sat.api.UserGroup().search(

@@ -33,13 +33,12 @@ class TestSatelliteSync:
         :id: preupgrade-f19e4928-94db-4df6-8ce8-b5e4afe34258
 
         :steps:
-
-        1. Create a ContentView
-        2. Publish and promote the Content View
-        3. Check the package count of promoted content view.
+            1. Create a ContentView
+            2. Publish and promote the Content View
+            3. Check the package count of promoted content view.
 
         :expectedresults: Before the upgrade, Content view published and promoted, and  package
-        count should be greater than 0.
+            count should be greater than 0.
         """
         product = target_sat.api.Product(organization=module_org).create()
         repo = target_sat.api.Repository(
