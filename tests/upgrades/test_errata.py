@@ -115,17 +115,15 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         :id: preupgrade-88fd28e6-b4df-46c0-91d6-784859fd1c21
 
         :steps:
-
             1. Create Product and Custom Yum Repo
             2. Create custom tools, rhel repos and sync them
             3. Create content view and publish it
             4. Create activation key and add subscription
             5. Register RHEL host to Satellite
-            7. Generate Errata by installing outdated/older packages
-            8. Check that errata applicability generated expected errata list for the given client.
+            6. Generate Errata by installing outdated/older packages
+            7. Check that errata applicability generated expected errata list for the given client.
 
         :expectedresults:
-
             1. The content host is created
             2. errata count, erratum list will be generated to Satellite content host
             3. All the expected errata are ready-to-be-applied on the client
@@ -204,10 +202,10 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
 
             1. Recover pre_upgrade data for post_upgrade verification
             2. Verify errata count has not changed on Satellite
-            4. Verify the errata_ids
-            5. Verify installation of errata is successfull
-            6. Verify that the errata application updated packages on client
-            7. Verify that all expected erratas were installed on client.
+            3. Verify the errata_ids
+            4. Verify installation of errata is successfull
+            5. Verify that the errata application updated packages on client
+            6. Verify that all expected erratas were installed on client.
 
         :expectedresults:
             1. errata count and erratum list should same after Satellite upgrade
