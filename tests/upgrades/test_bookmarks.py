@@ -77,7 +77,7 @@ class TestPublicDisableBookmark:
             2. Remove the bookmark.
 
         :expectedresults: Public disabled bookmarks details for all the system entities
-        should be unchanged after upgrade.
+            should be unchanged after upgrade.
 
         :CaseImportance: Critical
         """
@@ -106,7 +106,6 @@ class TestPublicEnableBookmark:
         :id: preupgrade-93c419db-66b4-4c9a-a82a-a6a68703881f
 
         :Steps:
-
             1. Create public enable bookmarks before the upgrade for all system entities
             using available bookmark data.
             2. Check the bookmark attribute(controller, name, query public) status
@@ -142,12 +141,11 @@ class TestPublicEnableBookmark:
         :id: postupgrade-93c419db-66b4-4c9a-a82a-a6a68703881f
 
         :Steps:
-
             1. Check the bookmark status after post-upgrade.
             2. Remove the bookmark.
 
         :expectedresults: Public disabled bookmarks details for all the system entities
-        should be unchanged after upgrade.
+            should be unchanged after upgrade.
 
         :CaseImportance: Critical
         """
