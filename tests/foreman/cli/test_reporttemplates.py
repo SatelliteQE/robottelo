@@ -910,7 +910,6 @@ def test_positive_generate_hostpkgcompare(
             assert client.subscribed
             clients.append(client)
             client.enable_repo(REPOS['rhst7']['id'])
-            client.install_katello_agent()
         clients.sort(key=lambda client: client.hostname)
         hosts_info = [Host.info({'name': client.hostname}) for client in clients]
 

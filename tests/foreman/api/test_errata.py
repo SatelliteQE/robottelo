@@ -562,7 +562,6 @@ def test_positive_incremental_update_required(
     rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
     assert rhel7_contenthost.subscribed
     rhel7_contenthost.enable_repo(constants.REPOS['rhst7']['id'])
-    rhel7_contenthost.install_katello_agent()
     host = rhel7_contenthost.nailgun_host
     # install package to create demand for an Erratum
     assert rhel7_contenthost.run(f'yum install -y {constants.FAKE_1_CUSTOM_PACKAGE}').status == 0
@@ -670,9 +669,7 @@ def test_errata_installation_with_swidtags(
             'appstream': settings.repos.rhel8_os.appstream,
         }
     )
-    module_repos_collection_with_manifest.setup_virtual_machine(
-        rhel8_contenthost, install_katello_agent=False
-    )
+    module_repos_collection_with_manifest.setup_virtual_machine(rhel8_contenthost)
 
     # install older module stream
     rhel8_contenthost.add_rex_key(satellite=target_sat)

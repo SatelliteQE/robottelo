@@ -103,7 +103,7 @@ def test_positive_end_to_end_register(
     repos_collection.setup_content(org.id, lce.id, upload_manifest=False)
     ak_name = repos_collection.setup_content_data['activation_key']['name']
 
-    repos_collection.setup_virtual_machine(rhel7_contenthost, install_katello_agent=False)
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)

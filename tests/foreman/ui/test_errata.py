@@ -484,9 +484,7 @@ def test_positive_apply_for_all_hosts(
         nick=module_repos_collection_with_setup.distro, host_class=ContentHost, _count=2
     ) as clients:
         for client in clients:
-            module_repos_collection_with_setup.setup_virtual_machine(
-                client, install_katello_agent=False
-            )
+            module_repos_collection_with_setup.setup_virtual_machine(client)
             client.add_rex_key(satellite=target_sat)
             assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE)
         with session:
@@ -582,9 +580,7 @@ def test_positive_filter_by_environment(
         nick=module_repos_collection_with_setup.distro, host_class=ContentHost, _count=2
     ) as clients:
         for client in clients:
-            module_repos_collection_with_setup.setup_virtual_machine(
-                client, install_katello_agent=False
-            )
+            module_repos_collection_with_setup.setup_virtual_machine(client)
             assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
         # Promote the latest content view version to a new lifecycle environment
         content_view = entities.ContentView(

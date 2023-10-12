@@ -721,18 +721,16 @@ class RepositoryCollection:
         vm,
         location_title=None,
         patch_os_release=False,
-        install_katello_agent=True,
         enable_rh_repos=True,
         enable_custom_repos=False,
         configure_rhel_repo=False,
     ):
         """
         Setup The virtual machine basic task, eg: install katello ca,
-        register vm host, enable rh repos and install katello-agent
+        register vm host and enable rh repos
 
         :param robottelo.hosts.ContentHost vm: The Virtual machine to setup.
         :param bool patch_os_release: whether to patch the VM with os version.
-        :param bool install_katello_agent: whether to install katello-agent
         :param bool enable_rh_repos: whether to enable RH repositories
         :param bool enable_custom_repos: whether to enable custom repositories
         :param bool configure_rhel_repo: Whether to configure the distro Red Hat repository,
@@ -762,7 +760,6 @@ class RepositoryCollection:
             product_label=self.custom_product['label'] if self.custom_product else None,
             activation_key=self._setup_content_data['activation_key']['name'],
             patch_os_release_distro=patch_os_release_distro,
-            install_katello_agent=install_katello_agent,
         )
         if configure_rhel_repo:
             rhel_repo_option_name = f'rhel{constants.DISTROS_MAJOR_VERSION[self.distro]}_os'

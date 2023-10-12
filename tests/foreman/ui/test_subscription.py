@@ -315,7 +315,6 @@ def test_positive_view_vdc_subscription_products(
         target_sat,
         org.label,
         activation_key=repos_collection.setup_content_data['activation_key']['name'],
-        install_katello_agent=False,
     )
     with session:
         session.organization.select(org.name)
