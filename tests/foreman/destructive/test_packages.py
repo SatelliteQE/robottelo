@@ -16,6 +16,8 @@
 
 :Upstream: No
 """
+import re
+
 import pytest
 
 pytestmark = pytest.mark.destructive
@@ -49,5 +51,10 @@ def test_positive_all_packages_update(target_sat):
         target_sat.power_control(state='reboot')
     # Run check-update again to verify there are no more packages available to update
     result = target_sat.cli.Packages.check_update()
+    # Regex to match if there are packages available to update
+    # Matches lines like '\n\nwalrus.noarch        5.21-1        custom_repo\n'
+    pattern = '(\\s+)\\n\\n(\\S+)(\\s+)(\\S+)(\\s+)(\\S+)\\n(\\s+)'
+    matches = re.search(pattern, result.stdout)
+    assert matches is None  # No packages available to update
     assert 'FAIL' not in result.stdout
     assert result.status == 0
