@@ -53,7 +53,7 @@ def test_positive_all_packages_update(target_sat):
     result = target_sat.cli.Packages.check_update()
     # Regex to match if there are packages available to update
     # Matches lines like '\n\nwalrus.noarch        5.21-1        custom_repo\n'
-    pattern = '(\\s+)\\n\\n(\\S+)(\\s+)(\\S+)(\\s+)(\\S+)\\n(\\s+)'
+    pattern = '(\\n){1,2}(\\S+)(\\s+)(\\S+)(\\s+)(\\S+)(\\n)'
     matches = re.search(pattern, result.stdout)
     assert matches is None  # No packages available to update
     assert 'FAIL' not in result.stdout
