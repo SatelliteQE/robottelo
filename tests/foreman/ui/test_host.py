@@ -1389,7 +1389,7 @@ def test_global_registration_with_capsule_host(
         session.location.select(loc_name=module_location.name)
         cmd = session.host.get_register_command(
             {
-                'general.orgnization': module_org.name,
+                'general.organization': module_org.name,
                 'general.location': module_location.name,
                 'general.operating_system': default_os.title,
                 'general.capsule': capsule_configured.hostname,
