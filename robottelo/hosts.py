@@ -1925,7 +1925,7 @@ class Satellite(Capsule, SatelliteMixins):
             for hostgroup in puppet_class.read().hostgroup:
                 hostgroup.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
             # Search and remove puppet class from affected hosts
-            for host in self.api.Host().search(query={'search': f'class={puppet_class.name}'}):
+            for host in self.api.Host(puppetclass=f'{puppet_class.name}').search():
                 host.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
             # Remove puppet class entity
             puppet_class.delete()
