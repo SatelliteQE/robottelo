@@ -51,6 +51,7 @@ class Packages(Base):
     def status(cls, options=None):
         """Build satellite-maintain packages status"""
         cls.command_sub = 'status'
+        cls.command_end = None
         options = options or {}
         return cls.sm_execute(cls._construct_command(options))
 
