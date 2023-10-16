@@ -19,7 +19,7 @@
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.constants import DEFAULT_ARCHITECTURE, REPOS
+from robottelo.constants import DEFAULT_ARCHITECTURE, REPOS, REPOSET
 
 
 @pytest.mark.rhel_ver_match('[^6]')
@@ -117,14 +117,14 @@ def test_positive_disable_rh_repo_with_basearch(module_target_sat, module_entitl
         releasever=REPOS['kickstart']['rhel8_aps']['version'],
     )
     repo = module_target_sat.api.Repository(id=rh_repo_id).read()
-    repo.sync(timeout=2000)
+    repo.sync(timeout=600)
     disabled_repo = module_target_sat.cli.RepositorySet.disable(
         {
             'basearch': DEFAULT_ARCHITECTURE,
-            'name': "Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)",
+            'name': REPOSET['kickstart']['rhel8'],
             'product-id': repo.product.id,
             'organization-id': module_entitlement_manifest_org.id,
-            'releasever': 8,
+            'releasever': REPOS['kickstart']['rhel8_aps']['version'],
             'repository-id': rh_repo_id,
         }
     )
