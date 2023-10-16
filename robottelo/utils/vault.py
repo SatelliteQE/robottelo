@@ -25,7 +25,7 @@ class Vault:
     def setup(self):
         if self.env_path.exists():
             self.envdata = self.env_path.read_text()
-            is_enabled = re.findall('\nVAULT_ENABLED_FOR_DYNACONF=(.*)', self.envdata)
+            is_enabled = re.findall('^(?:.*\n)*VAULT_ENABLED_FOR_DYNACONF=(.*)', self.envdata)
             if is_enabled:
                 self.vault_enabled = is_enabled[0]
             self.export_vault_addr()
