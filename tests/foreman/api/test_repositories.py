@@ -316,7 +316,7 @@ def test_positive_available_repositories_endpoint(module_sca_manifest_org, targe
     rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=constants.DEFAULT_ARCHITECTURE,
         org_id=module_sca_manifest_org.id,
-        product=constants.REPOS['rhel7']['product'],
+        product=constants.REPOS['rhel7_extra']['product'],
         repo=constants.REPOS['rhel7_extra']['name'],
         reposet=constants.REPOS['rhel7_extra']['reposet'],
         releasever=None,
