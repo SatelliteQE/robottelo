@@ -19,7 +19,12 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME, FAKE_4_CUSTOM_PACKAGE_NAME
+from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_4_CUSTOM_PACKAGE_NAME,
+    REPOS,
+)
 from robottelo.hosts import ContentHost
 
 UPSTREAM_USERNAME = 'rTtest123'
@@ -299,3 +304,75 @@ class TestScenarioCustomRepoOverrideCheck:
         result = rhel_client.execute('subscription-manager repo-override --list')
         assert 'enabled: 1' in result.stdout
         assert f'{org_name}_{product_name}_{repo_name}' in result.stdout
+
+
+class TestScenarioLargeRepoSyncCheck:
+    """Scenario test to verify that large repositories can be synced without
+    failure after an upgrade.
+
+    Test Steps:
+
+        1. Before Satellite upgrade.
+        2. Enable and sync large RH repository.
+        3. Upgrade Satellite.
+        4. Enable and sync a second large repository.
+
+    BZ: 2043144
+
+    :customerscenario: true
+    """
+
+    @pytest.mark.pre_upgrade
+    def test_pre_scenario_sync_large_repo(
+        self, target_sat, module_entitlement_manifest_org, save_test_data
+    ):
+        """This is a pre-upgrade scenario to verify that users can sync large repositories
+        before an upgrade
+
+        :id: afb957dc-c509-4009-ac85-4b71b64d3c74
+
+        :steps:
+            1. Enable a large redhat repository
+            2. Sync repository and assert sync succeeds
+
+        :expectedresults: Large Repositories should succeed when synced
+        """
+        rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=module_entitlement_manifest_org.id,
+            product=REPOS['rhel8_bos']['product'],
+            repo=REPOS['rhel8_bos']['name'],
+            reposet=REPOS['rhel8_bos']['reposet'],
+            releasever=REPOS['rhel8_bos']['releasever'],
+        )
+        repo = target_sat.api.Repository(id=rh_repo_id).read()
+        res = repo.sync(timeout=2000)
+        assert res['result'] == 'success'
+        save_test_data({'org_id': module_entitlement_manifest_org.id})
+
+    @pytest.mark.post_upgrade(depend_on=test_pre_scenario_sync_large_repo)
+    def test_post_scenario_sync_large_repo(self, target_sat, pre_upgrade_data):
+        """This is a post-upgrade scenario to verify that large repositories can be
+        synced after an upgrade
+
+        :id: 7bdbb2ac-7197-4e1a-8163-5852943eb49b
+
+        :steps:
+            1. Sync large repository
+            2. Upgrade satellite
+            3. Sync a second large repository in that same organization
+
+        :expectedresults: Large repositories should succeed after an upgrade
+        """
+        org_id = pre_upgrade_data.get('org_id')
+        rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=org_id,
+            product=REPOS['rhel8_aps']['product'],
+            repo=REPOS['rhel8_aps']['name'],
+            reposet=REPOS['rhel8_aps']['reposet'],
+            releasever=REPOS['rhel8_aps']['releasever'],
+        )
+        repo = target_sat.api.Repository(id=rh_repo_id).read()
+        res = repo.sync(timeout=4000)
+        assert res['result'] == 'success'

@@ -158,12 +158,10 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_
 
 
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 @pytest.mark.e2e
-def test_positive_install_multiple_in_host(
-    module_org, activation_key, custom_repo, rhel_contenthost, target_sat
-):
+def test_positive_install_multiple_in_host(target_sat, rhel_contenthost, module_org, module_lce):
     """For a host with multiple applicable errata install one and ensure
     the rest of errata is still available
 
@@ -183,15 +181,36 @@ def test_positive_install_multiple_in_host(
 
     :CaseLevel: System
     """
-    rhel_contenthost.install_katello_ca(target_sat)
-    rhel_contenthost.register_contenthost(module_org.label, activation_key.name)
+    ak = target_sat.api.ActivationKey(
+        organization=module_org,
+        environment=module_lce,
+    ).create()
+    # Associate custom repos with org, lce, ak:
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_9.url,
+            'organization-id': module_org.id,
+            'lifecycle-environment-id': module_lce.id,
+            'activationkey-id': ak.id,
+        }
+    )
+    rhel_contenthost.register(
+        activation_keys=ak.name,
+        target=target_sat,
+        org=module_org,
+        loc=None,
+    )
     assert rhel_contenthost.subscribed
+    # Installing outdated custom packages:
     for package in constants.FAKE_9_YUM_OUTDATED_PACKAGES:
+        rhel_contenthost.run(f'yum remove -y {str(package.split("-", 1)[0])}')
         assert rhel_contenthost.run(f'yum install -y {package}').status == 0
-    applicable_errata_count = rhel_contenthost.applicable_errata_count
-    assert applicable_errata_count > 1
-    rhel_contenthost.add_rex_key(satellite=target_sat)
-    for errata in settings.repos.yum_9.errata[1:4]:
+        assert rhel_contenthost.run(f'rpm -q {package}').status == 0
+    # Each errata will be installed sequentially,
+    # after each install, applicable-errata-count should drop by one.
+    for errata in constants.FAKE_9_YUM_SECURITY_ERRATUM:
+        pre_errata_count = rhel_contenthost.applicable_errata_count
+        assert pre_errata_count >= 1
         task_id = target_sat.api.JobInvocation().run(
             data={
                 'feature': 'katello_errata_install',
@@ -206,8 +225,8 @@ def test_positive_install_multiple_in_host(
             search_rate=20,
             max_tries=15,
         )
-        applicable_errata_count -= 1
-        assert rhel_contenthost.applicable_errata_count == applicable_errata_count
+        sleep(20)
+        assert rhel_contenthost.applicable_errata_count == pre_errata_count - 1
 
 
 @pytest.mark.tier3

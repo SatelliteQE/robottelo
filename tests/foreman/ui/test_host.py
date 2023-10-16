@@ -1313,7 +1313,7 @@ def test_global_registration_form_populate(
 def test_global_registration_with_capsule_host(
     session,
     capsule_configured,
-    rhel7_contenthost,
+    rhel8_contenthost,
     module_org,
     module_location,
     module_product,
@@ -1342,7 +1342,7 @@ def test_global_registration_with_capsule_host(
 
     :CaseAutomation: Automated
     """
-    client = rhel7_contenthost
+    client = rhel8_contenthost
     repo = target_sat.api.Repository(
         url=settings.repos.yum_1.url,
         content_type=REPO_TYPE['yum'],
@@ -1391,7 +1391,7 @@ def test_global_registration_with_capsule_host(
         session.location.select(loc_name=module_location.name)
         cmd = session.host.get_register_command(
             {
-                'general.orgnization': module_org.name,
+                'general.organization': module_org.name,
                 'general.location': module_location.name,
                 'general.operating_system': default_os.title,
                 'general.capsule': capsule_configured.hostname,
@@ -1412,7 +1412,7 @@ def test_global_registration_with_capsule_host(
 @pytest.mark.usefixtures('enable_capsule_for_registration')
 @pytest.mark.no_containers
 def test_global_registration_with_gpg_repo_and_default_package(
-    session, module_activation_key, default_os, default_smart_proxy, rhel7_contenthost
+    session, module_activation_key, default_os, default_smart_proxy, rhel8_contenthost
 ):
     """Host registration form produces a correct registration command and host is
     registered successfully with gpg repo enabled and have default package
@@ -1435,7 +1435,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
     :parametrized: yes
     """
-    client = rhel7_contenthost
+    client = rhel8_contenthost
     repo_name = 'foreman_register'
     repo_url = settings.repos.gr_yum_repo.url
     repo_gpg_url = settings.repos.gr_yum_repo.gpg_url
@@ -1455,7 +1455,15 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
     # rhel repo required for insights client installation,
     # syncing it to the satellite would take too long
-    client.create_custom_repos(rhel7=settings.repos.rhel7_os)
+    rhelver = client.os_version.major
+    if rhelver > 7:
+        repos = {f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']['baseos']}
+    else:
+        repos = {
+            'rhel7_os': settings.repos['rhel7_os'],
+            'rhel7_extras': settings.repos['rhel7_extras'],
+        }
+    client.create_custom_repos(**repos)
     # run curl
     result = client.execute(cmd)
     assert result.status == 0
@@ -1571,7 +1579,7 @@ def test_global_re_registration_host_with_force_ignore_error_options(
 @pytest.mark.tier2
 @pytest.mark.usefixtures('enable_capsule_for_registration')
 def test_global_registration_token_restriction(
-    session, module_activation_key, rhel7_contenthost, default_os, default_smart_proxy, target_sat
+    session, module_activation_key, rhel8_contenthost, default_os, default_smart_proxy, target_sat
 ):
     """Global registration token should be only used for registration call, it
     should be restricted for any other api calls.
@@ -1589,7 +1597,7 @@ def test_global_registration_token_restriction(
 
     :parametrized: yes
     """
-    client = rhel7_contenthost
+    client = rhel8_contenthost
     with session:
         cmd = session.host.get_register_command(
             {
@@ -1609,7 +1617,7 @@ def test_global_registration_token_restriction(
     for curl_cmd in (curl_users, curl_hosts):
         result = client.execute(curl_cmd)
         assert result.status == 0
-        'Unable to authenticate user' in result.stdout
+        assert 'Unable to authenticate user' in result.stdout
 
 
 @pytest.mark.tier4
