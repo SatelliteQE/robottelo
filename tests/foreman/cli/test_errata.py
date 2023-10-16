@@ -26,7 +26,6 @@ import pytest
 
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.contentview import ContentViewFilter
 from robottelo.cli.erratum import Erratum
 from robottelo.cli.factory import (
     make_content_view_filter,
@@ -198,16 +197,10 @@ def register_hosts(
     module_entitlement_manifest_org,
     module_lce,
     module_ak,
-    module_cv,
-    rh_repo,
-    custom_repo,
     module_target_sat,
 ):
     """Register hosts to Satellite"""
     for host in hosts:
-        # host.install_katello_ca(module_target_sat)
-        # host.register_contenthost(module_entitlement_manifest_org.name, module_ak_cv_lce.name)
-        # host.enable_repo(REPOS['rhst7']['id'])
         module_target_sat.cli_factory.setup_org_for_a_custom_repo(
             {
                 'url': REPO_WITH_ERRATA['url'],
@@ -361,40 +354,47 @@ def filter_sort_errata(org, sort_by_date='issued', filter_by_org=None):
         assert errata_ids == sorted_errata_ids
 
 
-def cv_publish_promote(sat, cv, lce):
+def cv_publish_promote(sat, cv, org, lce, force=False):
     """Publish and promote a new version into the given lifecycle environment.
 
     :param cv: content view
     :type cv: entities.ContentView
-    #:param org: organization
-    #:type org: entities.Organization
+    :param org: organization
+    :type org: entities.Organization
     :param lce: lifecycle environment
     :type lce: entities.LifecycleEnvironment
     """
-    cv.publish()
+    sat.cli.ContentView.publish(
+        {
+            'id': cv.id,
+            'organization': org,
+            'lifecycle-environment-ids': lce.id,
+        }
+    )
     cv = cv.read()
     cvv = cv.version[-1].read()
-    cvv.promote(data={'environment_ids': lce.id, 'force': True})
-    """ContentView.version_promote(
+    sat.cli.ContentView.version_promote(
         {
-            'id': cvv['id'],
-            'organization-id': org.id,
+            'id': cvv.id,
+            'organization': org,
+            'content-view-id': cv.id,
             'to-lifecycle-environment-id': lce.id,
-            'activation-key-id': ak.id
+            'force': force,
         }
-    )"""
+    )
 
 
-def cv_filter_cleanup(filter_id, cv, org, lce):
+def cv_filter_cleanup(sat, filter_id, cv, org, lce):
     """Delete the cv filter, then publish and promote an unfiltered version."""
-    ContentViewFilter.delete(
+    sat.cli.ContentViewFilter.delete(
         {
             'content-view-id': cv.id,
             'id': filter_id,
             'organization-id': org.id,
         }
     )
-    cv_publish_promote(cv, org, lce)
+    cv = cv.read()
+    cv_publish_promote(sat, cv, org, lce, force=True)
 
 
 @pytest.mark.tier3
@@ -698,7 +698,6 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     module_cv,
     module_lce,
     errata_hosts,
-    module_ak,
 ):
     """View a list of affected content hosts for an erratum filtered
     with restrict flags. Applicability is calculated using the Library,
@@ -730,7 +729,6 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
 
     :CaseAutomation: Automated
     """
-    applicable_errata_num = {}
     # Uninstall package so that only the first errata applies.
     for host in errata_hosts:
         host.execute(r'subscription-manager repos --enable \*')
@@ -739,11 +737,6 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         host.execute('subscription-manager repos')
         sleep(20)
         target_sat.cli.Host.errata_recalculate({'host-id': host.nailgun_host.id})
-        applicable_errata_num[host.hostname] = host.applicable_errata_count
-
-    for host in errata_hosts:
-        print(applicable_errata_num[host.hostname])
-
     # Create list of uninstallable errata.
     errata = REPO_WITH_ERRATA['errata'][0]
     uninstallable = REPO_WITH_ERRATA['errata_ids'].copy()
@@ -808,6 +801,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     @request.addfinalizer
     def cleanup():
         cv_filter_cleanup(
+            target_sat,
             cv_filter['filter-id'],
             module_cv,
             module_entitlement_manifest_org,
@@ -824,7 +818,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     )
 
     # Publish and promote a new version with the filter
-    cv_publish_promote(sat=target_sat, cv=module_cv, lce=module_lce)
+    cv_publish_promote(target_sat, module_cv, module_entitlement_manifest_org, module_lce)
 
     # Check that the installable erratum is no longer present in the list
     param = {
@@ -994,6 +988,7 @@ def test_host_errata_search_commands(
     @request.addfinalizer
     def cleanup():
         cv_filter_cleanup(
+            target_sat,
             cv_filter['filter-id'],
             module_cv,
             module_entitlement_manifest_org,
