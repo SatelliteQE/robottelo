@@ -316,15 +316,15 @@ def test_positive_available_repositories_endpoint(module_sca_manifest_org, targe
     rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=constants.DEFAULT_ARCHITECTURE,
         org_id=module_sca_manifest_org.id,
-        product=constants.PRDS['rhel8'],
-        repo=constants.REPOS['rhst8']['name'],
-        reposet=constants.REPOSET['rhst8'],
+        product=constants.PRDS['rhel'],
+        repo=constants.REPOS['rhel7_extra']['name'],
+        reposet=constants.REPOSET['rhel7_extra'],
         releasever=None,
     )
     rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
     product = target_sat.api.Product(id=rh_repo.product.id).read()
     reposet = target_sat.api.RepositorySet(
-        name=constants.REPOSET['rhst8'], product=product
+        name=constants.REPOSET['rhel7_extra'], product=product
     ).search()[0]
     touch_endpoint = target_sat.api.RepositorySet.available_repositories(reposet)
     assert touch_endpoint['total'] != 0
