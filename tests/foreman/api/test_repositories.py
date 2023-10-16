@@ -291,3 +291,44 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_entitlemen
         data={'ids': [rh_products.id]}, timeout=2000
     )
     assert res['result'] == 'success'
+
+
+def test_positive_available_repositories_endpoint(module_sca_manifest_org, target_sat):
+    """Attempt to hit the /available_repositories endpoint with no failures
+
+    :id: f4c9d4a0-9a82-4f06-b772-b1f7e3f45e7d
+
+    :Steps:
+        1. Enable a Red Hat Repository
+        2. Attempt to hit the enpoint:
+           GET /katello/api/repository_sets/:id/available_repositories
+        3. Verify Actions::Katello::RepositorySet::ScanCdn task is run
+        4. Verify there are no failures when scanning for repository
+
+
+    :expectedresults: Actions::Katello::RepositorySet::ScanCdn task should succeed and
+        not fail when scanning for repositories
+
+    :customerscenario: true
+
+    :BZ: 2030445
+    """
+    rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+        basearch=constants.DEFAULT_ARCHITECTURE,
+        org_id=module_sca_manifest_org.id,
+        product=constants.REPOS['rhel7_extra']['product'],
+        repo=constants.REPOS['rhel7_extra']['name'],
+        reposet=constants.REPOS['rhel7_extra']['reposet'],
+        releasever=None,
+    )
+    rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
+    product = target_sat.api.Product(id=rh_repo.product.id).read()
+    reposet = target_sat.api.RepositorySet(
+        name=constants.REPOSET['rhel7_extra'], product=product
+    ).search()[0]
+    touch_endpoint = target_sat.api.RepositorySet.available_repositories(reposet)
+    assert touch_endpoint['total'] != 0
+    results = target_sat.execute('tail -15 /var/log/foreman/production.log').stdout
+    assert 'Actions::Katello::RepositorySet::ScanCdn' in results
+    assert 'result: success' in results
+    assert 'Failed at scanning for repository' not in results
