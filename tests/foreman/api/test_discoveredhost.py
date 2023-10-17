@@ -172,7 +172,7 @@ class TestDiscoveredHost:
     @pytest.mark.on_premises_provisioning
     @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
     @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_list([8, 9])
     @pytest.mark.tier3
     def test_positive_provision_pxe_host(
         self,
@@ -204,8 +204,8 @@ class TestDiscoveredHost:
         mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-            timeout=240,
-            delay=20,
+            timeout=600,
+            delay=40,
         )
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
         discovered_host.hostgroup = provisioning_hostgroup
@@ -227,7 +227,7 @@ class TestDiscoveredHost:
     @pytest.mark.on_premises_provisioning
     @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
     @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_list([8, 9])
     @pytest.mark.tier3
     def test_positive_provision_pxe_less_host(
         self,
@@ -254,8 +254,8 @@ class TestDiscoveredHost:
         mac = pxeless_discovery_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-            timeout=240,
-            delay=20,
+            timeout=600,
+            delay=40,
         )
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
         discovered_host.hostgroup = provisioning_hostgroup
