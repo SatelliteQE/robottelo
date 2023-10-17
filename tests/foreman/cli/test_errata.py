@@ -239,7 +239,7 @@ def errata_hosts(register_hosts):
             result = host.execute(f'yum install -y {old_package}')
             if result.status != 0:
                 pytest.fail(f'Failed to install {old_package}: {result.stdout} {result.stderr}')
-        host.execute('subscription-manager repos')
+
     return register_hosts
 
 
