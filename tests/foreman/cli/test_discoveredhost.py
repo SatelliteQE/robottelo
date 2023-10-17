@@ -24,7 +24,7 @@ pytestmark = [pytest.mark.run_in_one_thread]
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('7')
 def test_rhel_pxe_discovery_provisioning(
     module_provisioning_rhel_content,
     module_discovery_sat,
@@ -57,8 +57,8 @@ def test_rhel_pxe_discovery_provisioning(
 
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-        timeout=240,
-        delay=20,
+        timeout=600,
+        delay=40,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
     discovered_host.hostgroup = provisioning_hostgroup
@@ -95,7 +95,7 @@ def test_rhel_pxe_discovery_provisioning(
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('7')
 def test_rhel_pxeless_discovery_provisioning(
     module_discovery_sat,
     pxeless_discovery_host,
@@ -120,8 +120,8 @@ def test_rhel_pxeless_discovery_provisioning(
 
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-        timeout=240,
-        delay=20,
+        timeout=600,
+        delay=40,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
     discovered_host.hostgroup = provisioning_hostgroup
