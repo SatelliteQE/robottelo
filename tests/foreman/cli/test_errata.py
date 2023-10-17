@@ -18,7 +18,6 @@
 """
 from datetime import date, datetime, timedelta
 from operator import itemgetter
-from time import sleep
 
 from broker import Broker
 from nailgun import entities
@@ -224,9 +223,10 @@ def register_hosts(
 def errata_hosts(register_hosts):
     """Ensure that rpm is installed on host."""
     for host in register_hosts:
-        # Remove all packages.
+        # Enable all custom and rh repositories.
         host.execute(r'subscription-manager repos --enable \*')
         host.execute(r'yum-config-manager --enable \*')
+        # Remove all packages.
         for errata in REPO_WITH_ERRATA['errata']:
             # Remove package if present, old or new.
             package_name = errata['package_name']
@@ -372,10 +372,10 @@ def cv_publish_promote(sat, cv, org, lce, force=False):
         }
     )
     cv = cv.read()
-    cvv = cv.version[-1].read()
+    cvv_id = sorted(cvv.id for cvv in cv.version)[-1]
     sat.cli.ContentView.version_promote(
         {
-            'id': cvv.id,
+            'id': cvv_id,
             'organization': org,
             'content-view-id': cv.id,
             'to-lifecycle-environment-id': lce.id,
@@ -394,7 +394,7 @@ def cv_filter_cleanup(sat, filter_id, cv, org, lce):
         }
     )
     cv = cv.read()
-    cv_publish_promote(sat, cv, org, lce, force=True)
+    cv_publish_promote(sat, cv, org, lce)
 
 
 @pytest.mark.tier3
@@ -731,11 +731,8 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     """
     # Uninstall package so that only the first errata applies.
     for host in errata_hosts:
-        host.execute(r'subscription-manager repos --enable \*')
-        host.execute(r'yum-config-manager --enable \*')
         host.execute(f'yum erase -y {REPO_WITH_ERRATA["errata"][1]["package_name"]}')
         host.execute('subscription-manager repos')
-        sleep(20)
         target_sat.cli.Host.errata_recalculate({'host-id': host.nailgun_host.id})
     # Create list of uninstallable errata.
     errata = REPO_WITH_ERRATA['errata'][0]
@@ -762,7 +759,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     }
     errata_ids = get_errata_ids(param)
     assert set(REPO_WITH_ERRATA['errata_ids']).issubset(
-        set(errata_ids)
+        errata_ids
     ), 'Errata not found in list of installable errata'
 
     # Check list of applicable errata
@@ -782,7 +779,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     }
     errata_ids = get_errata_ids(param)
     assert set(REPO_WITH_ERRATA['errata_ids']).issubset(
-        set(errata_ids)
+        errata_ids
     ), 'Errata not found in list of applicable errata'
 
     # Apply a filter and rule to the CV to hide the RPM, thus making erratum not installable
@@ -1005,7 +1002,7 @@ def test_host_errata_search_commands(
     )
 
     # Publish and promote a new version with the filter
-    cv_publish_promote(module_cv, module_entitlement_manifest_org, module_lce)
+    cv_publish_promote(target_sat, module_cv, module_entitlement_manifest_org, module_lce)
 
     # Step 8: Run tests again. Applicable should still be true, installable should now be false.
     # Search for hosts that require the bugfix package.
