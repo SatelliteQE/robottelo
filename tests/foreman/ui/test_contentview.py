@@ -50,8 +50,8 @@ def test_no_blank_page_on_language_switch(session, target_sat, module_org):
     :id: d8745aca-b199-4c7e-a970-b1f0f5c5d56c
 
     :steps:
-        1. Change the Satellite system language to french or czech
-        2. Attempt to view the CV UI, and perform basic action
+        1. Change the Satellite system language to French
+        2. Attempt to view the CV UI, and read the CV table
 
     :expectedresults: CV UI is visible, and isn't a blank page
 
