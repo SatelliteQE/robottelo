@@ -16,7 +16,6 @@
 
 :Upstream: No
 """
-from nailgun import entities
 import pytest
 from requests.exceptions import HTTPError
 
@@ -27,7 +26,9 @@ from robottelo.utils.datafactory import generate_strings_list
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.parametrize('auth_source_type', ['AD', 'IPA'])
-def test_positive_endtoend(auth_source_type, module_org, module_location, ad_data, ipa_data):
+def test_positive_endtoend(
+    auth_source_type, module_org, module_location, ad_data, ipa_data, module_target_sat
+):
     """Create/update/delete LDAP authentication with AD using names of different types
 
     :id: e3607c97-7c48-4cf6-b119-2bfd895d9325
@@ -46,7 +47,7 @@ def test_positive_endtoend(auth_source_type, module_org, module_location, ad_dat
             auth_source_data = ipa_data
             auth_source_data['ldap_user_name'] = auth_source_data['ldap_user_cn']
             auth_type_attr = LDAP_ATTR['login']
-        authsource = entities.AuthSourceLDAP(
+        authsource = module_target_sat.api.AuthSourceLDAP(
             onthefly_register=True,
             account=auth_source_data['ldap_user_cn'],
             account_password=auth_source_data['ldap_user_passwd'],

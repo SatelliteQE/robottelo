@@ -21,7 +21,6 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 :Upstream: No
 """
 from fauxfactory import gen_string
-from nailgun import entities
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
 import pytest
@@ -44,28 +43,30 @@ def rh_repo(module_sca_manifest_org, module_target_sat):
         reposet=REPOSET['rhst7'],
         releasever=None,
     )
-    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
     return rh_repo
 
 
 @pytest.fixture(scope='module')
-def custom_repo(rh_repo, module_sca_manifest_org):
-    custom_repo = entities.Repository(
-        product=entities.Product(organization=module_sca_manifest_org).create(),
+def custom_repo(rh_repo, module_sca_manifest_org, module_target_sat):
+    custom_repo = module_target_sat.api.Repository(
+        product=module_target_sat.api.Product(organization=module_sca_manifest_org).create(),
     ).create()
     custom_repo.sync()
     return custom_repo
 
 
 @pytest.fixture(scope='module')
-def module_ak(module_sca_manifest_org, rh_repo, custom_repo):
+def module_ak(module_sca_manifest_org, rh_repo, custom_repo, module_target_sat):
     """rh_repo and custom_repo are included here to ensure their execution before the AK"""
-    module_ak = entities.ActivationKey(
+    module_ak = module_target_sat.api.ActivationKey(
         content_view=module_sca_manifest_org.default_content_view,
         max_hosts=100,
         organization=module_sca_manifest_org,
-        environment=entities.LifecycleEnvironment(id=module_sca_manifest_org.library.id),
+        environment=module_target_sat.api.LifecycleEnvironment(
+            id=module_sca_manifest_org.library.id
+        ),
         auto_attach=True,
     ).create()
     return module_ak
@@ -82,12 +83,12 @@ def test_positive_create(module_entitlement_manifest, module_target_sat):
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
+    org = module_target_sat.api.Organization().create()
     module_target_sat.upload_manifest(org.id, module_entitlement_manifest.content)
 
 
 @pytest.mark.tier1
-def test_positive_refresh(function_entitlement_manifest_org, request):
+def test_positive_refresh(function_entitlement_manifest_org, request, target_sat):
     """Upload a manifest and refresh it afterwards.
 
     :id: cd195db6-e81b-42cb-a28d-ec0eb8a53341
@@ -97,7 +98,7 @@ def test_positive_refresh(function_entitlement_manifest_org, request):
     :CaseImportance: Critical
     """
     org = function_entitlement_manifest_org
-    sub = entities.Subscription(organization=org)
+    sub = target_sat.api.Subscription(organization=org)
     request.addfinalizer(lambda: sub.delete_manifest(data={'organization_id': org.id}))
     sub.refresh_manifest(data={'organization_id': org.id})
     assert sub.search()
@@ -120,9 +121,9 @@ def test_positive_create_after_refresh(
 
     :CaseImportance: Critical
     """
-    org_sub = entities.Subscription(organization=function_entitlement_manifest_org)
-    new_org = entities.Organization().create()
-    new_org_sub = entities.Subscription(organization=new_org)
+    org_sub = target_sat.api.Subscription(organization=function_entitlement_manifest_org)
+    new_org = target_sat.api.Organization().create()
+    new_org_sub = target_sat.api.Subscription(organization=new_org)
     try:
         org_sub.refresh_manifest(data={'organization_id': function_entitlement_manifest_org.id})
         assert org_sub.search()
@@ -133,7 +134,7 @@ def test_positive_create_after_refresh(
 
 
 @pytest.mark.tier1
-def test_positive_delete(function_entitlement_manifest_org):
+def test_positive_delete(function_entitlement_manifest_org, target_sat):
     """Delete an Uploaded manifest.
 
     :id: 4c21c7c9-2b26-4a65-a304-b978d5ba34fc
@@ -142,7 +143,7 @@ def test_positive_delete(function_entitlement_manifest_org):
 
     :CaseImportance: Critical
     """
-    sub = entities.Subscription(organization=function_entitlement_manifest_org)
+    sub = target_sat.api.Subscription(organization=function_entitlement_manifest_org)
     assert sub.search()
     sub.delete_manifest(data={'organization_id': function_entitlement_manifest_org.id})
     assert len(sub.search()) == 0
@@ -157,12 +158,12 @@ def test_negative_upload(function_entitlement_manifest, target_sat):
     :expectedresults: The manifest is not uploaded to the second
         organization.
     """
-    orgs = [entities.Organization().create() for _ in range(2)]
+    orgs = [target_sat.api.Organization().create() for _ in range(2)]
     with function_entitlement_manifest as manifest:
         target_sat.upload_manifest(orgs[0].id, manifest.content)
         with pytest.raises(TaskFailedError):
             target_sat.upload_manifest(orgs[1].id, manifest.content)
-    assert len(entities.Subscription(organization=orgs[1]).search()) == 0
+    assert len(target_sat.api.Subscription(organization=orgs[1]).search()) == 0
 
 
 @pytest.mark.tier2
@@ -208,11 +209,11 @@ def test_positive_delete_manifest_as_another_user(
     )
     # use the first admin to upload a manifest
     with function_entitlement_manifest as manifest:
-        entities.Subscription(sc1, organization=function_org).upload(
+        target_sat.api.Subscription(sc1, organization=function_org).upload(
             data={'organization_id': function_org.id}, files={'content': manifest.content}
         )
     # try to search and delete the manifest with another admin
-    entities.Subscription(sc2, organization=function_org).delete_manifest(
+    target_sat.api.Subscription(sc2, organization=function_org).delete_manifest(
         data={'organization_id': function_org.id}
     )
     assert len(Subscription.list({'organization-id': function_org.id})) == 0
@@ -238,7 +239,7 @@ def test_positive_subscription_status_disabled(
     rhel_contenthost.install_katello_ca(target_sat)
     rhel_contenthost.register_contenthost(module_sca_manifest_org.label, module_ak.name)
     assert rhel_contenthost.subscribed
-    host_content = entities.Host(id=rhel_contenthost.nailgun_host.id).read_raw().content
+    host_content = target_sat.api.Host(id=rhel_contenthost.nailgun_host.id).read_raw().content
     assert 'Simple Content Access' in str(host_content)
 
 
@@ -266,9 +267,12 @@ def test_sca_end_to_end(
     rhel7_contenthost.register_contenthost(module_sca_manifest_org.label, module_ak.name)
     assert rhel7_contenthost.subscribed
     # Check to see if Organization is in SCA Mode
-    assert entities.Organization(id=module_sca_manifest_org.id).read().simple_content_access is True
+    assert (
+        target_sat.api.Organization(id=module_sca_manifest_org.id).read().simple_content_access
+        is True
+    )
     # Verify that you cannot attach a subscription to an activation key in SCA Mode
-    subscription = entities.Subscription(organization=module_sca_manifest_org).search(
+    subscription = target_sat.api.Subscription(organization=module_sca_manifest_org).search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     with pytest.raises(HTTPError) as ak_context:
@@ -276,12 +280,12 @@ def test_sca_end_to_end(
     assert 'Simple Content Access' in ak_context.value.response.text
     # Verify that you cannot attach a subscription to an Host in SCA Mode
     with pytest.raises(HTTPError) as host_context:
-        entities.HostSubscription(host=rhel7_contenthost.nailgun_host.id).add_subscriptions(
+        target_sat.api.HostSubscription(host=rhel7_contenthost.nailgun_host.id).add_subscriptions(
             data={'subscriptions': [{'id': subscription.id, 'quantity': 1}]}
         )
     assert 'Simple Content Access' in host_context.value.response.text
     # Create a content view with repos and check to see that the client has access
-    content_view = entities.ContentView(organization=module_sca_manifest_org).create()
+    content_view = target_sat.api.ContentView(organization=module_sca_manifest_org).create()
     content_view.repository = [rh_repo, custom_repo]
     content_view.update(['repository'])
     content_view.publish()
@@ -327,34 +331,34 @@ def test_positive_candlepin_events_processed_by_stomp(
 
     :CaseImportance: High
     """
-    repo = entities.Repository(
-        product=entities.Product(organization=function_org).create()
+    repo = target_sat.api.Repository(
+        product=target_sat.api.Product(organization=function_org).create()
     ).create()
     repo.sync()
-    ak = entities.ActivationKey(
+    ak = target_sat.api.ActivationKey(
         content_view=function_org.default_content_view,
         max_hosts=100,
         organization=function_org,
-        environment=entities.LifecycleEnvironment(id=function_org.library.id),
+        environment=target_sat.api.LifecycleEnvironment(id=function_org.library.id),
         auto_attach=True,
     ).create()
     rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(function_org.name, ak.name)
-    host = entities.Host().search(query={'search': f'name={rhel7_contenthost.hostname}'})
+    host = target_sat.api.Host().search(query={'search': f'name={rhel7_contenthost.hostname}'})
     host_id = host[0].id
-    host_content = entities.Host(id=host_id).read_json()
+    host_content = target_sat.api.Host(id=host_id).read_json()
     assert host_content['subscription_status'] == 2
     with function_entitlement_manifest as manifest:
         target_sat.upload_manifest(function_org.id, manifest.content)
-    subscription = entities.Subscription(organization=function_org).search(
+    subscription = target_sat.api.Subscription(organization=function_org).search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
-    entities.HostSubscription(host=host_id).add_subscriptions(
+    target_sat.api.HostSubscription(host=host_id).add_subscriptions(
         data={'subscriptions': [{'id': subscription.cp_id, 'quantity': 1}]}
     )
-    host_content = entities.Host(id=host_id).read_json()
+    host_content = target_sat.api.Host(id=host_id).read_json()
     assert host_content['subscription_status'] == 0
-    response = entities.Ping().search_json()['services']['candlepin_events']
+    response = target_sat.api.Ping().search_json()['services']['candlepin_events']
     assert response['status'] == 'ok'
     assert '0 Failed' in response['message']
 
@@ -386,11 +390,11 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel7_conte
 
     :CaseImportance: High
     """
-    ak = entities.ActivationKey(
+    ak = target_sat.api.ActivationKey(
         content_view=module_sca_manifest_org.default_content_view,
         max_hosts=100,
         organization=module_sca_manifest_org,
-        environment=entities.LifecycleEnvironment(id=module_sca_manifest_org.library.id),
+        environment=target_sat.api.LifecycleEnvironment(id=module_sca_manifest_org.library.id),
         auto_attach=True,
     ).create()
     # registering the content host with no content enabled/synced in the org
@@ -411,7 +415,7 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel7_conte
         reposet=REPOSET['rhst7'],
         releasever=None,
     )
-    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
     # re-registering the host should test whether Candlepin gracefully handles
     # registration of a host with an expired SCA cert

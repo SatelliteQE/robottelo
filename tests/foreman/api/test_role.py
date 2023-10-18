@@ -20,7 +20,6 @@ http://theforeman.org/api/apidoc/v2/roles.html
 
 :Upstream: No
 """
-from nailgun import entities
 from nailgun.config import ServerConfig
 import pytest
 from requests.exceptions import HTTPError
@@ -41,7 +40,7 @@ class TestRole:
         ('name', 'new_name'),
         **parametrized(list(zip(generate_strings_list(), generate_strings_list()))),
     )
-    def test_positive_crud(self, name, new_name):
+    def test_positive_crud(self, name, new_name, target_sat):
         """Create, update and delete role with name ``name_generator()``.
 
         :id: 02c7d04d-a52c-4bc2-9e17-9938ab2ee5b2
@@ -55,7 +54,7 @@ class TestRole:
 
         :CaseImportance: Critical
         """
-        role = entities.Role(name=name).create()
+        role = target_sat.api.Role(name=name).create()
         assert role.name == name
         role.name = new_name
         assert role.update(['name']).name == new_name
@@ -67,7 +66,7 @@ class TestRole:
 class TestCannedRole:
     """Implements Canned Roles tests from API"""
 
-    def create_org_admin_role(self, name=None, orgs=None, locs=None):
+    def create_org_admin_role(self, target_sat, name=None, orgs=None, locs=None):
         """Helper function to create org admin role for particular
         organizations and locations by cloning 'Organization admin' role.
 
@@ -80,17 +79,19 @@ class TestCannedRole:
             data returned from 'clone' function
         """
         name = gen_string('alpha') if not name else name
-        default_org_admin = entities.Role().search(query={'search': 'name="Organization admin"'})
-        org_admin = entities.Role(id=default_org_admin[0].id).clone(
+        default_org_admin = target_sat.api.Role().search(
+            query={'search': 'name="Organization admin"'}
+        )
+        org_admin = target_sat.api.Role(id=default_org_admin[0].id).clone(
             data={
                 'role': {'name': name, 'organization_ids': orgs or [], 'location_ids': locs or []}
             }
         )
         if 'role' in org_admin:
-            return entities.Role(id=org_admin['role']['id']).read()
-        return entities.Role(id=org_admin['id']).read()
+            return target_sat.api.Role(id=org_admin['role']['id']).read()
+        return target_sat.api.Role(id=org_admin['id']).read()
 
-    def create_org_admin_user(self, role_taxos, user_taxos):
+    def create_org_admin_user(self, role_taxos, user_taxos, target_sat):
         """Helper function to create an Org Admin user by assigning org admin
         role and assign taxonomies to Role and User
 
@@ -105,12 +106,12 @@ class TestCannedRole:
         """
         # Create Org Admin Role
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxos['org'].id], locs=[role_taxos['loc'].id]
+            target_sat, orgs=[role_taxos['org'].id], locs=[role_taxos['loc'].id]
         )
         # Create Org Admin User
         user_login = gen_string('alpha')
         user_passwd = gen_string('alphanumeric')
-        user = entities.User(
+        user = target_sat.api.User(
             login=user_login,
             password=user_passwd,
             organization=[user_taxos['org'].id],
@@ -120,7 +121,7 @@ class TestCannedRole:
         user.passwd = user_passwd
         return user
 
-    def create_simple_user(self, filter_taxos, role=None):
+    def create_simple_user(self, target_sat, filter_taxos, role=None):
         """Creates simple user and assigns taxonomies
 
         :param dict filter_taxos: Filter taxonomiest specified as dictionary containing
@@ -130,7 +131,7 @@ class TestCannedRole:
             passwd attr
         """
         user_passwd = gen_string('alphanumeric')
-        user = entities.User(
+        user = target_sat.api.User(
             login=gen_string('alpha'),
             password=user_passwd,
             organization=[filter_taxos['org'].id],
@@ -140,14 +141,16 @@ class TestCannedRole:
         user.passwd = user_passwd
         return user
 
-    def create_domain(self, orgs, locs):
+    def create_domain(self, target_sat, orgs, locs):
         """Creates domain in given orgs and locs
 
         :param list orgs: List of Organization ids
         :param list locs: List of Location ids
         :return Domain: Returns the ```nailgun.entities.Domain``` object
         """
-        return entities.Domain(name=gen_string('alpha'), organization=orgs, location=locs).create()
+        return target_sat.api.Domain(
+            name=gen_string('alpha'), organization=orgs, location=locs
+        ).create()
 
     def user_config(self, user, satellite):
         """Returns The ```nailgun.confin.ServerConfig``` for given user
@@ -160,19 +163,19 @@ class TestCannedRole:
         )
 
     @pytest.fixture
-    def role_taxonomies(self):
+    def role_taxonomies(self, target_sat):
         """Create role taxonomies"""
         return {
-            'org': entities.Organization().create(),
-            'loc': entities.Location().create(),
+            'org': target_sat.api.Organization().create(),
+            'loc': target_sat.api.Location().create(),
         }
 
     @pytest.fixture
-    def filter_taxonomies(self):
+    def filter_taxonomies(self, target_sat):
         """Create filter taxonomies"""
         return {
-            'org': entities.Organization().create(),
-            'loc': entities.Location().create(),
+            'org': target_sat.api.Organization().create(),
+            'loc': target_sat.api.Location().create(),
         }
 
     @pytest.fixture
@@ -184,7 +187,7 @@ class TestCannedRole:
             sat_url=target_sat.url,
             ldap_user_name=ad_data['ldap_user_name'],
             ldap_user_passwd=ad_data['ldap_user_passwd'],
-            authsource=entities.AuthSourceLDAP(
+            authsource=target_sat.api.AuthSourceLDAP(
                 onthefly_register=True,
                 account=fr"{ad_data['workgroup']}\{ad_data['ldap_user_name']}",
                 account_password=ad_data['ldap_user_passwd'],
@@ -210,7 +213,7 @@ class TestCannedRole:
         LDAPAuthSource.delete({'name': authsource_name})
 
     @pytest.mark.tier1
-    def test_positive_create_role_with_taxonomies(self, role_taxonomies):
+    def test_positive_create_role_with_taxonomies(self, role_taxonomies, target_sat):
         """create role with taxonomies
 
         :id: fa449217-889c-429b-89b5-0b6c018ffd9e
@@ -222,7 +225,7 @@ class TestCannedRole:
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role = entities.Role(
+        role = target_sat.api.Role(
             name=role_name,
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
@@ -232,7 +235,7 @@ class TestCannedRole:
         assert role_taxonomies['loc'].id == role.location[0].id
 
     @pytest.mark.tier1
-    def test_positive_create_role_without_taxonomies(self):
+    def test_positive_create_role_without_taxonomies(self, target_sat):
         """Create role without taxonomies
 
         :id: fe65a691-1b04-4bfe-a24b-adb48feb31d1
@@ -244,13 +247,13 @@ class TestCannedRole:
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role = entities.Role(name=role_name, organization=[], location=[]).create()
+        role = target_sat.api.Role(name=role_name, organization=[], location=[]).create()
         assert role.name == role_name
         assert not role.organization
         assert not role.location
 
     @pytest.mark.tier1
-    def test_positive_create_filter_without_override(self, role_taxonomies):
+    def test_positive_create_filter_without_override(self, role_taxonomies, target_sat):
         """Create filter in role w/o overriding it
 
         :id: 1aadb7ea-ff76-4171-850f-188ba6f87021
@@ -269,27 +272,27 @@ class TestCannedRole:
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role = entities.Role(
+        role = target_sat.api.Role(
             name=role_name,
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
         ).create()
         assert role.name == role_name
-        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
-        filtr = entities.Filter(permission=dom_perm, role=role.id).create()
+        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
+        filtr = target_sat.api.Filter(permission=dom_perm, role=role.id).create()
         assert role.id == filtr.role.id
         assert role_taxonomies['org'].id == filtr.organization[0].id
         assert role_taxonomies['loc'].id == filtr.location[0].id
         assert not filtr.override
 
     @pytest.mark.tier1
-    def test_positive_create_non_overridable_filter(self):
+    def test_positive_create_non_overridable_filter(self, target_sat):
         """Create non overridable filter in role
 
         :id: f891e2e1-76f8-4edf-8c96-b41d05483298
 
         :steps: Create a filter to which taxonomies cannot be associated.
-            e.g Architecture filter
+            e.g. Architecture filter
 
         :expectedresults:
 
@@ -299,21 +302,23 @@ class TestCannedRole:
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role = entities.Role(name=role_name).create()
+        role = target_sat.api.Role(name=role_name).create()
         assert role.name == role_name
-        arch_perm = entities.Permission().search(query={'search': 'resource_type="Architecture"'})
-        filtr = entities.Filter(permission=arch_perm, role=role.id).create()
+        arch_perm = target_sat.api.Permission().search(
+            query={'search': 'resource_type="Architecture"'}
+        )
+        filtr = target_sat.api.Filter(permission=arch_perm, role=role.id).create()
         assert role.id == filtr.role.id
         assert not filtr.override
 
     @pytest.mark.tier1
-    def test_negative_override_non_overridable_filter(self, filter_taxonomies):
+    def test_negative_override_non_overridable_filter(self, filter_taxonomies, target_sat):
         """Override non overridable filter
 
         :id: 7793be96-e8eb-451b-a986-51a46a1ab4f9
 
         :steps: Attempt to override a filter to which taxonomies cannot be
-            associated.  e.g Architecture filter
+            associated.  e.g. Architecture filter
 
         :expectedresults: Filter is not overrided as taxonomies cannot be
             applied to that filter
@@ -321,11 +326,13 @@ class TestCannedRole:
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role = entities.Role(name=role_name).create()
+        role = target_sat.api.Role(name=role_name).create()
         assert role.name == role_name
-        arch_perm = entities.Permission().search(query={'search': 'resource_type="Architecture"'})
+        arch_perm = target_sat.api.Permission().search(
+            query={'search': 'resource_type="Architecture"'}
+        )
         with pytest.raises(HTTPError):
-            entities.Filter(
+            target_sat.api.Filter(
                 permission=arch_perm,
                 role=[role.id],
                 override=True,
@@ -335,7 +342,9 @@ class TestCannedRole:
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    def test_positive_create_overridable_filter(self, role_taxonomies, filter_taxonomies):
+    def test_positive_create_overridable_filter(
+        self, role_taxonomies, filter_taxonomies, target_sat
+    ):
         """Create overridable filter in role
 
         :id: c7ea9377-9b9e-495e-accd-3576166d504e
@@ -355,14 +364,14 @@ class TestCannedRole:
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role = entities.Role(
+        role = target_sat.api.Role(
             name=role_name,
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
         ).create()
         assert role.name == role_name
-        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
-        filtr = entities.Filter(
+        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
+        filtr = target_sat.api.Filter(
             permission=dom_perm,
             role=role.id,
             override=True,
@@ -377,7 +386,7 @@ class TestCannedRole:
         assert role_taxonomies['loc'].id != filtr.location[0].id
 
     @pytest.mark.tier1
-    def test_positive_update_role_taxonomies(self, role_taxonomies, filter_taxonomies):
+    def test_positive_update_role_taxonomies(self, role_taxonomies, filter_taxonomies, target_sat):
         """Update role taxonomies which applies to its non-overrided filters
 
         :id: 902dcb32-2126-4ff4-b733-3e86749ccd1e
@@ -390,29 +399,29 @@ class TestCannedRole:
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role = entities.Role(
+        role = target_sat.api.Role(
             name=role_name,
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
         ).create()
         assert role.name == role_name
-        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
-        filtr = entities.Filter(permission=dom_perm, role=role.id).create()
+        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
+        filtr = target_sat.api.Filter(permission=dom_perm, role=role.id).create()
         assert role.id == filtr.role.id
         role.organization = [filter_taxonomies['org']]
         role.location = [filter_taxonomies['loc']]
         role = role.update(['organization', 'location'])
         # Updated Role
-        role = entities.Role(id=role.id).read()
+        role = target_sat.api.Role(id=role.id).read()
         assert filter_taxonomies['org'].id == role.organization[0].id
         assert filter_taxonomies['loc'].id == role.location[0].id
         # Updated Filter
-        filtr = entities.Filter(id=filtr.id).read()
+        filtr = target_sat.api.Filter(id=filtr.id).read()
         assert filter_taxonomies['org'].id == filtr.organization[0].id
         assert filter_taxonomies['loc'].id == filtr.location[0].id
 
     @pytest.mark.tier1
-    def test_negative_update_role_taxonomies(self, role_taxonomies, filter_taxonomies):
+    def test_negative_update_role_taxonomies(self, role_taxonomies, filter_taxonomies, target_sat):
         """Update role taxonomies which doesnt applies to its overrided filters
 
         :id: 9f3bf95a-f71a-4063-b51c-12610bc655f2
@@ -426,14 +435,14 @@ class TestCannedRole:
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role = entities.Role(
+        role = target_sat.api.Role(
             name=role_name,
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
         ).create()
         assert role.name == role_name
-        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
-        filtr = entities.Filter(
+        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
+        filtr = target_sat.api.Filter(
             permission=dom_perm,
             role=role.id,
             override=True,
@@ -442,23 +451,23 @@ class TestCannedRole:
         ).create()
         assert role.id == filtr.role.id
         # Creating new Taxonomies
-        org_new = entities.Organization().create()
-        loc_new = entities.Location().create()
+        org_new = target_sat.api.Organization().create()
+        loc_new = target_sat.api.Location().create()
         # Updating Taxonomies
         role.organization = [org_new]
         role.location = [loc_new]
         role = role.update(['organization', 'location'])
         # Updated Role
-        role = entities.Role(id=role.id).read()
+        role = target_sat.api.Role(id=role.id).read()
         assert org_new.id == role.organization[0].id
         assert loc_new.id == role.location[0].id
         # Updated Filter
-        filtr = entities.Filter(id=filtr.id).read()
+        filtr = target_sat.api.Filter(id=filtr.id).read()
         assert org_new.id != filtr.organization[0].id
         assert loc_new.id != filtr.location[0].id
 
     @pytest.mark.tier1
-    def test_positive_disable_filter_override(self, role_taxonomies, filter_taxonomies):
+    def test_positive_disable_filter_override(self, role_taxonomies, filter_taxonomies, target_sat):
         """Unsetting override flag resets filter taxonomies
 
         :id: eaa7b921-7c12-45c5-989b-d82aa2b6e3a6
@@ -477,14 +486,14 @@ class TestCannedRole:
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role = entities.Role(
+        role = target_sat.api.Role(
             name=role_name,
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
         ).create()
         assert role.name == role_name
-        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
-        filtr = entities.Filter(
+        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
+        filtr = target_sat.api.Filter(
             permission=dom_perm,
             role=role.id,
             override=True,
@@ -500,7 +509,7 @@ class TestCannedRole:
         assert filter_taxonomies['loc'].id != filtr.location[0].id
 
     @pytest.mark.tier1
-    def test_positive_create_org_admin_from_clone(self):
+    def test_positive_create_org_admin_from_clone(self, target_sat):
         """Create Org Admin role which has access to most of the resources
         within organization
 
@@ -515,14 +524,16 @@ class TestCannedRole:
 
         :BZ: 1637436
         """
-        default_org_admin = entities.Role().search(query={'search': 'name="Organization admin"'})
+        default_org_admin = target_sat.api.Role().search(
+            query={'search': 'name="Organization admin"'}
+        )
         org_admin = self.create_org_admin_role()
-        default_filters = entities.Role(id=default_org_admin[0].id).read().filters
-        orgadmin_filters = entities.Role(id=org_admin.id).read().filters
+        default_filters = target_sat.api.Role(id=default_org_admin[0].id).read().filters
+        orgadmin_filters = target_sat.api.Role(id=org_admin.id).read().filters
         assert len(default_filters) == len(orgadmin_filters)
 
     @pytest.mark.tier1
-    def test_positive_create_cloned_role_with_taxonomies(self, role_taxonomies):
+    def test_positive_create_cloned_role_with_taxonomies(self, role_taxonomies, target_sat):
         """Taxonomies can be assigned to cloned role
 
         :id: 31079015-5ede-439a-a062-e20d1ffd66df
@@ -542,7 +553,7 @@ class TestCannedRole:
         org_admin = self.create_org_admin_role(
             orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
-        org_admin = entities.Role(id=org_admin.id).read()
+        org_admin = target_sat.api.Role(id=org_admin.id).read()
         assert role_taxonomies['org'].id == org_admin.organization[0].id
         assert role_taxonomies['loc'].id == org_admin.location[0].id
 
@@ -575,7 +586,7 @@ class TestCannedRole:
         sc = self.user_config(user, target_sat)
         # Getting the domain from user
         with pytest.raises(HTTPError):
-            entities.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(sc, id=domain.id).read()
 
     @pytest.mark.tier3
     def test_negative_access_entities_from_user(
@@ -606,10 +617,10 @@ class TestCannedRole:
         sc = self.user_config(user, target_sat)
         # Getting the domain from user
         with pytest.raises(HTTPError):
-            entities.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(sc, id=domain.id).read()
 
     @pytest.mark.tier2
-    def test_positive_override_cloned_role_filter(self, role_taxonomies):
+    def test_positive_override_cloned_role_filter(self, role_taxonomies, target_sat):
         """Cloned role filter overrides
 
         :id: 8a32ed5f-b93f-4f31-aff4-16602fbe7fab
@@ -625,27 +636,27 @@ class TestCannedRole:
         :CaseLevel: Integration
         """
         role_name = gen_string('alpha')
-        role = entities.Role(name=role_name).create()
-        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
-        entities.Filter(permission=dom_perm, role=role.id).create()
+        role = target_sat.api.Role(name=role_name).create()
+        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
+        target_sat.api.Filter(permission=dom_perm, role=role.id).create()
         cloned_role_name = gen_string('alpha')
-        cloned_role = entities.Role(id=role.id).clone(data={'name': cloned_role_name})
+        cloned_role = target_sat.api.Role(id=role.id).clone(data={'name': cloned_role_name})
         assert cloned_role_name == cloned_role['name']
-        filter_cloned_id = entities.Role(id=cloned_role['id']).read().filters[0].id
-        filter_cloned = entities.Filter(id=filter_cloned_id).read()
+        filter_cloned_id = target_sat.api.Role(id=cloned_role['id']).read().filters[0].id
+        filter_cloned = target_sat.api.Filter(id=filter_cloned_id).read()
         filter_cloned.override = True
         filter_cloned.organization = [role_taxonomies['org']]
         filter_cloned.location = [role_taxonomies['loc']]
         filter_cloned.update(['override', 'organization', 'location'])
         # Updated Filter
-        filter_cloned = entities.Filter(id=filter_cloned_id).read()
+        filter_cloned = target_sat.api.Filter(id=filter_cloned_id).read()
         assert filter_cloned.override
         assert role_taxonomies['org'].id == filter_cloned.organization[0].id
         assert role_taxonomies['loc'].id == filter_cloned.location[0].id
 
     @pytest.mark.tier2
     def test_positive_emptiness_of_filter_taxonomies_on_role_clone(
-        self, role_taxonomies, filter_taxonomies
+        self, role_taxonomies, filter_taxonomies, target_sat
     ):
         """Taxonomies of filters in cloned role are set to None for filters that
         are overridden in parent role
@@ -667,29 +678,29 @@ class TestCannedRole:
 
         :CaseLevel: Integration
         """
-        role = entities.Role(
+        role = target_sat.api.Role(
             name=gen_string('alpha'),
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
         ).create()
-        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
-        entities.Filter(
+        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
+        target_sat.api.Filter(
             permission=dom_perm,
             role=role.id,
             override=True,
             organization=[filter_taxonomies['org']],
             location=[filter_taxonomies['loc']],
         ).create()
-        cloned_role = entities.Role(id=role.id).clone(data={'name': gen_string('alpha')})
-        cloned_role_filter = entities.Role(id=cloned_role['id']).read().filters[0]
-        filter_cloned = entities.Filter(id=cloned_role_filter.id).read()
+        cloned_role = target_sat.api.Role(id=role.id).clone(data={'name': gen_string('alpha')})
+        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
+        filter_cloned = target_sat.api.Filter(id=cloned_role_filter.id).read()
         assert not filter_cloned.organization
         assert not filter_cloned.location
         assert filter_cloned.override
 
     @pytest.mark.tier2
     def test_positive_clone_role_having_overridden_filter_with_taxonomies(
-        self, role_taxonomies, filter_taxonomies
+        self, role_taxonomies, filter_taxonomies, target_sat
     ):
         """When taxonomies assigned to cloned role, Unlimited and Override flag
         sets on filter for filter that is overridden in parent role
@@ -710,34 +721,34 @@ class TestCannedRole:
 
         :CaseLevel: Integration
         """
-        role = entities.Role(
+        role = target_sat.api.Role(
             name=gen_string('alpha'),
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
         ).create()
-        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
-        entities.Filter(
+        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
+        target_sat.api.Filter(
             permission=dom_perm,
             role=role.id,
             override=True,
             organization=[filter_taxonomies['org']],
             location=[filter_taxonomies['loc']],
         ).create()
-        cloned_role = entities.Role(id=role.id).clone(
+        cloned_role = target_sat.api.Role(id=role.id).clone(
             data={
                 'name': gen_string('alpha'),
                 'organization_ids': [role_taxonomies['org'].id],
                 'location_ids': [role_taxonomies['loc'].id],
             }
         )
-        cloned_role_filter = entities.Role(id=cloned_role['id']).read().filters[0]
-        cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
+        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
+        cloned_filter = target_sat.api.Filter(id=cloned_role_filter.id).read()
         assert cloned_filter.unlimited
         assert cloned_filter.override
 
     @pytest.mark.tier2
     def test_positive_clone_role_having_non_overridden_filter_with_taxonomies(
-        self, role_taxonomies
+        self, role_taxonomies, target_sat
     ):
         """When taxonomies assigned to cloned role, Neither unlimited nor
         override sets on filter for filter that is not overridden in parent
@@ -758,27 +769,29 @@ class TestCannedRole:
 
         :CaseLevel: Integration
         """
-        role = entities.Role(
+        role = target_sat.api.Role(
             name=gen_string('alpha'),
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
         ).create()
-        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
-        entities.Filter(permission=dom_perm, role=role.id).create()
-        cloned_role = entities.Role(id=role.id).clone(
+        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
+        target_sat.api.Filter(permission=dom_perm, role=role.id).create()
+        cloned_role = target_sat.api.Role(id=role.id).clone(
             data={
                 'name': gen_string('alpha'),
                 'organization_ids': [role_taxonomies['org'].id],
                 'location_ids': [role_taxonomies['loc'].id],
             }
         )
-        cloned_role_filter = entities.Role(id=cloned_role['id']).read().filters[0]
-        cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
+        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
+        cloned_filter = target_sat.api.Filter(id=cloned_role_filter.id).read()
         assert not cloned_filter.unlimited
         assert not cloned_filter.override
 
     @pytest.mark.tier2
-    def test_positive_clone_role_having_unlimited_filter_with_taxonomies(self, role_taxonomies):
+    def test_positive_clone_role_having_unlimited_filter_with_taxonomies(
+        self, role_taxonomies, target_sat
+    ):
         """When taxonomies assigned to cloned role, Neither unlimited nor
         override sets on filter for filter that is unlimited in parent role
 
@@ -797,28 +810,28 @@ class TestCannedRole:
 
         :CaseLevel: Integration
         """
-        role = entities.Role(
+        role = target_sat.api.Role(
             name=gen_string('alpha'),
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
         ).create()
-        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
-        entities.Filter(permission=dom_perm, role=role.id, unlimited=True).create()
-        cloned_role = entities.Role(id=role.id).clone(
+        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
+        target_sat.api.Filter(permission=dom_perm, role=role.id, unlimited=True).create()
+        cloned_role = target_sat.api.Role(id=role.id).clone(
             data={
                 'name': gen_string('alpha'),
                 'organization_ids': [role_taxonomies['org'].id],
                 'location_ids': [role_taxonomies['loc'].id],
             }
         )
-        cloned_role_filter = entities.Role(id=cloned_role['id']).read().filters[0]
-        cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
+        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
+        cloned_filter = target_sat.api.Filter(id=cloned_role_filter.id).read()
         assert not cloned_filter.unlimited
         assert not cloned_filter.override
 
     @pytest.mark.tier2
     def test_positive_clone_role_having_overridden_filter_without_taxonomies(
-        self, role_taxonomies, filter_taxonomies
+        self, role_taxonomies, filter_taxonomies, target_sat
     ):  # noqa
         """When taxonomies not assigned to cloned role, Unlimited and override
         flags sets on filter for filter that is overridden in parent role
@@ -838,27 +851,29 @@ class TestCannedRole:
 
         :CaseLevel: Integration
         """
-        role = entities.Role(
+        role = target_sat.api.Role(
             name=gen_string('alpha'),
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
         ).create()
-        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
-        entities.Filter(
+        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
+        target_sat.api.Filter(
             permission=dom_perm,
             role=role.id,
             override=True,
             organization=[filter_taxonomies['org']],
             location=[filter_taxonomies['loc']],
         ).create()
-        cloned_role = entities.Role(id=role.id).clone(data={'name': gen_string('alpha')})
-        cloned_role_filter = entities.Role(id=cloned_role['id']).read().filters[0]
-        cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
+        cloned_role = target_sat.api.Role(id=role.id).clone(data={'name': gen_string('alpha')})
+        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
+        cloned_filter = target_sat.api.Filter(id=cloned_role_filter.id).read()
         assert cloned_filter.unlimited
         assert cloned_filter.override
 
     @pytest.mark.tier2
-    def test_positive_clone_role_without_taxonomies_non_overided_filter(self, role_taxonomies):
+    def test_positive_clone_role_without_taxonomies_non_overided_filter(
+        self, role_taxonomies, target_sat
+    ):
         """When taxonomies not assigned to cloned role, only unlimited but not
         override flag sets on filter for filter that is overridden in parent
         role
@@ -881,23 +896,25 @@ class TestCannedRole:
 
         :BZ: 1488908
         """
-        role = entities.Role(
+        role = target_sat.api.Role(
             name=gen_string('alpha'),
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
         ).create()
-        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
-        entities.Filter(permission=dom_perm, role=role.id).create()
-        cloned_role = entities.Role(id=role.id).clone(
+        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
+        target_sat.api.Filter(permission=dom_perm, role=role.id).create()
+        cloned_role = target_sat.api.Role(id=role.id).clone(
             data={'role': {'name': gen_string('alpha'), 'location_ids': [], 'organization_ids': []}}
         )
-        cloned_role_filter = entities.Role(id=cloned_role['id']).read().filters[0]
-        cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
+        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
+        cloned_filter = target_sat.api.Filter(id=cloned_role_filter.id).read()
         assert cloned_filter.unlimited
         assert not cloned_filter.override
 
     @pytest.mark.tier2
-    def test_positive_clone_role_without_taxonomies_unlimited_filter(self, role_taxonomies):
+    def test_positive_clone_role_without_taxonomies_unlimited_filter(
+        self, role_taxonomies, target_sat
+    ):
         """When taxonomies not assigned to cloned role, Unlimited and override
         flags sets on filter for filter that is unlimited in parent role
 
@@ -919,18 +936,18 @@ class TestCannedRole:
 
         :BZ: 1488908
         """
-        role = entities.Role(
+        role = target_sat.api.Role(
             name=gen_string('alpha'),
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
         ).create()
-        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
-        entities.Filter(permission=dom_perm, role=role.id, unlimited=True).create()
-        cloned_role = entities.Role(id=role.id).clone(
+        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
+        target_sat.api.Filter(permission=dom_perm, role=role.id, unlimited=True).create()
+        cloned_role = target_sat.api.Role(id=role.id).clone(
             data={'role': {'name': gen_string('alpha'), 'location_ids': [], 'organization_ids': []}}
         )
-        cloned_role_filter = entities.Role(id=cloned_role['id']).read().filters[0]
-        cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
+        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
+        cloned_filter = target_sat.api.Filter(id=cloned_role_filter.id).read()
         assert cloned_filter.unlimited
         assert not cloned_filter.override
 
@@ -948,7 +965,7 @@ class TestCannedRole:
             2. Assign an organization A and Location A to the Org Admin role
             3. Create two users without assigning roles while creating them
             4. Assign Organization A and Location A to both users
-            5. Create an user group with above two users
+            5. Create a user group with above two users
             6. Assign Org Admin role to User Group
 
         :expectedresults: Both the user should have access to the resources of
@@ -961,7 +978,7 @@ class TestCannedRole:
         )
         userone_login = gen_string('alpha')
         userone_pass = gen_string('alphanumeric')
-        user_one = entities.User(
+        user_one = target_sat.api.User(
             login=userone_login,
             password=userone_pass,
             organization=[role_taxonomies['org'].id],
@@ -970,7 +987,7 @@ class TestCannedRole:
         assert userone_login == user_one.login
         usertwo_login = gen_string('alpha')
         usertwo_pass = gen_string('alphanumeric')
-        user_two = entities.User(
+        user_two = target_sat.api.User(
             login=usertwo_login,
             password=usertwo_pass,
             organization=[role_taxonomies['org'].id],
@@ -978,17 +995,17 @@ class TestCannedRole:
         ).create()
         assert usertwo_login == user_two.login
         ug_name = gen_string('alpha')
-        user_group = entities.UserGroup(
+        user_group = target_sat.api.UserGroup(
             name=ug_name, role=[org_admin.id], user=[user_one.id, user_two.id]
         ).create()
         assert user_group.name == ug_name
         # Creating Subnets and Domains to verify if user really can access them
-        subnet = entities.Subnet(
+        subnet = target_sat.api.Subnet(
             name=gen_string('alpha'),
             organization=[role_taxonomies['org'].id],
             location=[role_taxonomies['loc'].id],
         ).create()
-        domain = entities.Domain(
+        domain = target_sat.api.Domain(
             name=gen_string('alpha'),
             organization=[role_taxonomies['org'].id],
             location=[role_taxonomies['loc'].id],
@@ -998,13 +1015,13 @@ class TestCannedRole:
                 auth=(login, password), url=target_sat.url, verify=settings.server.verify_ca
             )
             try:
-                entities.Domain(sc).search(
+                target_sat.api.Domain(sc).search(
                     query={
                         'organization-id': role_taxonomies['org'].id,
                         'location-id': role_taxonomies['loc'].id,
                     }
                 )
-                entities.Subnet(sc).search(
+                target_sat.api.Subnet(sc).search(
                     query={
                         'organization-id': role_taxonomies['org'].id,
                         'location-id': role_taxonomies['loc'].id,
@@ -1012,8 +1029,8 @@ class TestCannedRole:
                 )
             except HTTPError as err:
                 pytest.fail(str(err))
-            assert domain.id in [dom.id for dom in entities.Domain(sc).search()]
-            assert subnet.id in [sub.id for sub in entities.Subnet(sc).search()]
+            assert domain.id in [dom.id for dom in target_sat.api.Domain(sc).search()]
+            assert subnet.id in [sub.id for sub in target_sat.api.Subnet(sc).search()]
 
     @pytest.mark.tier3
     def test_positive_user_group_users_access_contradict_as_org_admins(self):
@@ -1067,10 +1084,10 @@ class TestCannedRole:
         org_admin = self.create_org_admin_role(
             orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
-        user_one = self.create_simple_user(filter_taxos=filter_taxonomies)
-        user_two = self.create_simple_user(filter_taxos=filter_taxonomies)
+        user_one = self.create_simple_user(target_sat, filter_taxos=filter_taxonomies)
+        user_two = self.create_simple_user(target_sat, filter_taxos=filter_taxonomies)
         ug_name = gen_string('alpha')
-        user_group = entities.UserGroup(
+        user_group = target_sat.api.UserGroup(
             name=ug_name, role=[org_admin.id], user=[user_one.id, user_two.id]
         ).create()
         assert user_group.name == ug_name
@@ -1078,7 +1095,7 @@ class TestCannedRole:
         for user in [user_one, user_two]:
             sc = self.user_config(user, target_sat)
             with pytest.raises(HTTPError):
-                entities.Domain(sc, id=dom.id).read()
+                target_sat.api.Domain(sc, id=dom.id).read()
 
     @pytest.mark.tier2
     def test_negative_assign_taxonomies_by_org_admin(
@@ -1111,13 +1128,13 @@ class TestCannedRole:
         )
         # Creating resource
         dom_name = gen_string('alpha')
-        dom = entities.Domain(
+        dom = target_sat.api.Domain(
             name=dom_name, organization=[role_taxonomies['org']], location=[role_taxonomies['loc']]
         ).create()
         assert dom_name == dom.name
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
-        user = entities.User(
+        user = target_sat.api.User(
             login=user_login,
             password=user_pass,
             role=[org_admin.id],
@@ -1129,13 +1146,13 @@ class TestCannedRole:
             auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
         )
         # Getting the domain from user1
-        dom = entities.Domain(sc, id=dom.id).read()
+        dom = target_sat.api.Domain(sc, id=dom.id).read()
         dom.organization = [filter_taxonomies['org']]
         with pytest.raises(HTTPError):
             dom.update(['organization'])
 
     @pytest.mark.tier1
-    def test_positive_remove_org_admin_role(self, role_taxonomies):
+    def test_positive_remove_org_admin_role(self, role_taxonomies, target_sat):
         """Super Admin user can remove Org Admin role
 
         :id: 03fac76c-22ac-43cf-9068-b96e255b3c3c
@@ -1156,21 +1173,23 @@ class TestCannedRole:
         )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
-        user = entities.User(login=user_login, password=user_pass, role=[org_admin.id]).create()
+        user = target_sat.api.User(
+            login=user_login, password=user_pass, role=[org_admin.id]
+        ).create()
         assert user_login == user.login
         try:
-            entities.Role(id=org_admin.id).delete()
+            target_sat.api.Role(id=org_admin.id).delete()
         except HTTPError as err:
             pytest.fail(str(err))
         # Getting updated user
-        user = entities.User(id=user.id).read()
+        user = target_sat.api.User(id=user.id).read()
         assert org_admin.id not in [role.id for role in user.role]
 
     @pytest.mark.tier2
     def test_positive_taxonomies_control_to_superadmin_with_org_admin(
         self, role_taxonomies, target_sat
     ):
-        """Super Admin can access entities in taxonomies assigned to Org Admin
+        """Super Admin can access target_sat.api in taxonomies assigned to Org Admin
 
         :id: 37db0b40-ed35-4e70-83e8-83cff27caae2
 
@@ -1179,9 +1198,9 @@ class TestCannedRole:
             1. Create Org Admin role and assign organization A and Location A
             2. Create User and assign above Org Admin role
             3. Login with SuperAdmin who created the above Org Admin role and
-                access entities in Organization A and Location A
+                access target_sat.api in Organization A and Location A
 
-        :expectedresults: Super admin should be able to access the entities in
+        :expectedresults: Super admin should be able to access the target_sat.api in
             taxonomies assigned to Org Admin
 
         :CaseLevel: Integration
@@ -1190,7 +1209,7 @@ class TestCannedRole:
         sc = self.user_config(user, target_sat)
         # Creating resource
         dom_name = gen_string('alpha')
-        dom = entities.Domain(
+        dom = target_sat.api.Domain(
             sc,
             name=dom_name,
             organization=[role_taxonomies['org']],
@@ -1198,7 +1217,7 @@ class TestCannedRole:
         ).create()
         assert dom_name == dom.name
         try:
-            entities.Subnet().search(
+            target_sat.api.Subnet().search(
                 query={
                     'organization-id': role_taxonomies['org'].id,
                     'location-id': role_taxonomies['loc'].id,
@@ -1211,7 +1230,7 @@ class TestCannedRole:
     def test_positive_taxonomies_control_to_superadmin_without_org_admin(
         self, role_taxonomies, target_sat
     ):
-        """Super Admin can access entities in taxonomies assigned to Org Admin
+        """Super Admin can access target_sat.api in taxonomies assigned to Org Admin
         after deleting Org Admin role/user
 
         :id: 446f66a5-16e0-4298-b326-262913502955
@@ -1224,7 +1243,7 @@ class TestCannedRole:
             4. Login with SuperAdmin who created the above Org Admin role and
                 access entities in Organization A and Location A
 
-        :expectedresults: Super admin should be able to access the entities in
+        :expectedresults: Super admin should be able to access the target_sat.api in
             taxonomies assigned to Org Admin after deleting Org Admin
 
         :CaseLevel: Integration
@@ -1233,22 +1252,22 @@ class TestCannedRole:
         sc = self.user_config(user, target_sat)
         # Creating resource
         dom_name = gen_string('alpha')
-        dom = entities.Domain(
+        dom = target_sat.api.Domain(
             sc,
             name=dom_name,
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
         ).create()
         assert dom_name == dom.name
-        user_role = entities.Role(id=user.role[0].id).read()
-        entities.Role(id=user_role.id).delete()
-        entities.User(id=user.id).delete()
+        user_role = target_sat.api.Role(id=user.role[0].id).read()
+        target_sat.api.Role(id=user_role.id).delete()
+        target_sat.api.User(id=user.id).delete()
         with pytest.raises(HTTPError):
             user_role.read()
         with pytest.raises(HTTPError):
             user.read()
         try:
-            entities.Domain().search(
+            target_sat.api.Domain().search(
                 query={
                     'organization-id': role_taxonomies['org'].id,
                     'location-id': role_taxonomies['loc'].id,
@@ -1260,7 +1279,7 @@ class TestCannedRole:
     @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_negative_create_roles_by_org_admin(self, role_taxonomies, target_sat):
-        """Org Admin doesnt have permissions to create new roles
+        """Org Admin doesn't have permissions to create new roles
 
         :id: 806ecc16-0dc7-405b-90d3-0584eced27a3
 
@@ -1279,7 +1298,7 @@ class TestCannedRole:
         )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
-        user = entities.User(
+        user = target_sat.api.User(
             login=user_login,
             password=user_pass,
             role=[org_admin.id],
@@ -1292,7 +1311,7 @@ class TestCannedRole:
         )
         role_name = gen_string('alpha')
         with pytest.raises(HTTPError):
-            entities.Role(
+            target_sat.api.Role(
                 sc,
                 name=role_name,
                 organization=[role_taxonomies['org']],
@@ -1316,9 +1335,9 @@ class TestCannedRole:
             existing roles
         """
         user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
-        test_role = entities.Role().create()
+        test_role = target_sat.api.Role().create()
         sc = self.user_config(user, target_sat)
-        test_role = entities.Role(sc, id=test_role.id).read()
+        test_role = target_sat.api.Role(sc, id=test_role.id).read()
         test_role.organization = [role_taxonomies['org']]
         test_role.location = [role_taxonomies['loc']]
         with pytest.raises(HTTPError):
@@ -1346,7 +1365,7 @@ class TestCannedRole:
         )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
-        user = entities.User(
+        user = target_sat.api.User(
             login=user_login,
             password=user_pass,
             role=[org_admin.id],
@@ -1358,7 +1377,7 @@ class TestCannedRole:
             auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
         )
         with pytest.raises(HTTPError):
-            entities.User(sc, id=1).read()
+            target_sat.api.User(sc, id=1).read()
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
@@ -1393,7 +1412,7 @@ class TestCannedRole:
         )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
-        user = entities.User(
+        user = target_sat.api.User(
             login=user_login,
             password=user_pass,
             role=[org_admin.id],
@@ -1406,7 +1425,7 @@ class TestCannedRole:
         )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
-        user = entities.User(
+        user = target_sat.api.User(
             sc_user,
             login=user_login,
             password=user_pass,
@@ -1418,7 +1437,7 @@ class TestCannedRole:
         assert org_admin.id == user.role[0].id
         if not is_open('BZ:1825698'):
             name = gen_string('alphanumeric')
-            location = entities.Location(sc_user, name=name).create()
+            location = target_sat.api.Location(sc_user, name=name).create()
             assert location.name == name
 
     @pytest.mark.tier2
@@ -1446,7 +1465,7 @@ class TestCannedRole:
         test_user = self.create_simple_user(filter_taxos=role_taxonomies)
         sc = self.user_config(user, target_sat)
         try:
-            entities.User(sc, id=test_user.id).read()
+            target_sat.api.User(sc, id=test_user.id).read()
         except HTTPError as err:
             pytest.fail(str(err))
 
@@ -1473,7 +1492,7 @@ class TestCannedRole:
         """
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
-        user = entities.User(
+        user = target_sat.api.User(
             login=user_login,
             password=user_pass,
             organization=[role_taxonomies['org']],
@@ -1488,7 +1507,7 @@ class TestCannedRole:
             auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
         )
         name = gen_string('alphanumeric')
-        location = entities.Location(sc, name=name, parent=role_taxonomies['loc'].id).create()
+        location = target_sat.api.Location(sc, name=name, parent=role_taxonomies['loc'].id).create()
         assert location.name == name
 
     @pytest.mark.tier2
@@ -1518,7 +1537,7 @@ class TestCannedRole:
         test_user = self.create_simple_user(filter_taxos=filter_taxonomies)
         sc = self.user_config(user, target_sat)
         with pytest.raises(HTTPError):
-            entities.User(sc, id=test_user.id).read()
+            target_sat.api.User(sc, id=test_user.id).read()
 
     @pytest.mark.tier1
     def test_negative_create_taxonomies_by_org_admin(self, role_taxonomies, target_sat):
@@ -1542,7 +1561,7 @@ class TestCannedRole:
         org_admin = self.create_org_admin_role(orgs=[role_taxonomies['org'].id])
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
-        user = entities.User(
+        user = target_sat.api.User(
             login=user_login,
             password=user_pass,
             role=[org_admin.id],
@@ -1554,11 +1573,11 @@ class TestCannedRole:
             auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
         )
         with pytest.raises(HTTPError):
-            entities.Organization(sc, name=gen_string('alpha')).create()
+            target_sat.api.Organization(sc, name=gen_string('alpha')).create()
         if not is_open("BZ:1825698"):
             try:
                 loc_name = gen_string('alpha')
-                loc = entities.Location(sc, name=loc_name).create()
+                loc = target_sat.api.Location(sc, name=loc_name).create()
             except HTTPError as err:
                 pytest.fail(str(err))
             assert loc_name == loc.name
@@ -1568,7 +1587,7 @@ class TestCannedRole:
     def test_positive_access_all_global_entities_by_org_admin(
         self, role_taxonomies, filter_taxonomies, target_sat
     ):
-        """Org Admin can access all global entities in any taxonomies
+        """Org Admin can access all global target_sat.api in any taxonomies
         regardless of its own assigned taxonomies
 
         :id: add5feb3-7a3f-45a1-a633-49f1141b029b
@@ -1579,16 +1598,16 @@ class TestCannedRole:
             2. Create new user and assign Org A,B and Location A,B
             3. Assign Org Admin role to User
             4. Login with Org Admin user
-            5. Attempt to create all the global entities in org B and Loc B
-                e.g Architectures, Operating System
+            5. Attempt to create all the global target_sat.api in org B and Loc B
+                e.g. Architectures, Operating System
 
         :expectedresults: Org Admin should have access to all the global
-            entities in any taxonomies
+            target_sat.api in any taxonomies
         """
         org_admin = self.create_org_admin_role(orgs=[role_taxonomies['org'].id])
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
-        user = entities.User(
+        user = target_sat.api.User(
             login=user_login,
             password=user_pass,
             role=[org_admin.id],
@@ -1601,22 +1620,24 @@ class TestCannedRole:
         )
         try:
             for entity in [
-                entities.Architecture,
-                entities.Audit,
-                entities.Bookmark,
-                entities.CommonParameter,
-                entities.LibvirtComputeResource,
-                entities.OVirtComputeResource,
-                entities.VMWareComputeResource,
-                entities.Errata,
-                entities.OperatingSystem,
+                target_sat.api.Architecture,
+                target_sat.api.Audit,
+                target_sat.api.Bookmark,
+                target_sat.api.CommonParameter,
+                target_sat.api.LibvirtComputeResource,
+                target_sat.api.OVirtComputeResource,
+                target_sat.api.VMWareComputeResource,
+                target_sat.api.Errata,
+                target_sat.api.OperatingSystem,
             ]:
                 entity(sc).search()
         except HTTPError as err:
             pytest.fail(str(err))
 
     @pytest.mark.tier3
-    def test_negative_access_entities_from_ldap_org_admin(self, role_taxonomies, create_ldap):
+    def test_negative_access_entities_from_ldap_org_admin(
+        self, role_taxonomies, create_ldap, target_sat
+    ):
         """LDAP User can not access resources in taxonomies assigned to role if
         its own taxonomies are not same as its role
 
@@ -1650,17 +1671,19 @@ class TestCannedRole:
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            entities.Architecture(sc).search()
-        user = entities.User().search(query={'search': f"login={create_ldap['ldap_user_name']}"})[0]
-        user.role = [entities.Role(id=org_admin.id).read()]
+            target_sat.api.Architecture(sc).search()
+        user = target_sat.api.User().search(
+            query={'search': f"login={create_ldap['ldap_user_name']}"}
+        )[0]
+        user.role = [target_sat.api.Role(id=org_admin.id).read()]
         user.update(['role'])
         # Trying to access the domain resource created in org admin role
         with pytest.raises(HTTPError):
-            entities.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(sc, id=domain.id).read()
 
     @pytest.mark.tier3
     def test_negative_access_entities_from_ldap_user(
-        self, role_taxonomies, create_ldap, module_location, module_org
+        self, role_taxonomies, create_ldap, module_location, module_org, target_sat
     ):
         """LDAP User can not access resources within its own taxonomies if
         assigned role does not have permissions for same taxonomies
@@ -1693,16 +1716,20 @@ class TestCannedRole:
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            entities.Architecture(sc).search()
-        user = entities.User().search(query={'search': f"login={create_ldap['ldap_user_name']}"})[0]
-        user.role = [entities.Role(id=org_admin.id).read()]
+            target_sat.api.Architecture(sc).search()
+        user = target_sat.api.User().search(
+            query={'search': f"login={create_ldap['ldap_user_name']}"}
+        )[0]
+        user.role = [target_sat.api.Role(id=org_admin.id).read()]
         user.update(['role'])
         # Trying to access the Domain resource
         with pytest.raises(HTTPError):
-            entities.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(sc, id=domain.id).read()
 
     @pytest.mark.tier3
-    def test_positive_assign_org_admin_to_ldap_user_group(self, role_taxonomies, create_ldap):
+    def test_positive_assign_org_admin_to_ldap_user_group(
+        self, role_taxonomies, create_ldap, target_sat
+    ):
         """Users in LDAP usergroup can access to the resources in taxonomies if
         the taxonomies of Org Admin role are same
 
@@ -1736,7 +1763,7 @@ class TestCannedRole:
             locs=[create_ldap['authsource'].location[0].id],
         )
         users = [
-            entities.User(
+            target_sat.api.User(
                 login=gen_string("alpha"),
                 password=password,
                 organization=create_ldap['authsource'].organization,
@@ -1744,9 +1771,11 @@ class TestCannedRole:
             ).create()
             for _ in range(2)
         ]
-        user_group = entities.UserGroup(name=group_name, user=users, role=[org_admin]).create()
+        user_group = target_sat.api.UserGroup(
+            name=group_name, user=users, role=[org_admin]
+        ).create()
         # Adding LDAP authsource to the usergroup
-        entities.ExternalUserGroup(
+        target_sat.api.ExternalUserGroup(
             name='foobargroup', usergroup=user_group, auth_source=create_ldap['authsource']
         ).create()
 
@@ -1757,10 +1786,12 @@ class TestCannedRole:
                 verify=settings.server.verify_ca,
             )
             # Accessing the Domain resource
-            entities.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(sc, id=domain.id).read()
 
     @pytest.mark.tier3
-    def test_negative_assign_org_admin_to_ldap_user_group(self, create_ldap, role_taxonomies):
+    def test_negative_assign_org_admin_to_ldap_user_group(
+        self, create_ldap, role_taxonomies, target_sat
+    ):
         """Users in LDAP usergroup can not have access to the resources in
         taxonomies if the taxonomies of Org Admin role is not same
 
@@ -1792,7 +1823,7 @@ class TestCannedRole:
             orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         users = [
-            entities.User(
+            target_sat.api.User(
                 login=gen_string("alpha"),
                 password=password,
                 organization=create_ldap['authsource'].organization,
@@ -1800,9 +1831,11 @@ class TestCannedRole:
             ).create()
             for _ in range(2)
         ]
-        user_group = entities.UserGroup(name=group_name, user=users, role=[org_admin]).create()
+        user_group = target_sat.api.UserGroup(
+            name=group_name, user=users, role=[org_admin]
+        ).create()
         # Adding LDAP authsource to usergroup
-        entities.ExternalUserGroup(
+        target_sat.api.ExternalUserGroup(
             name='foobargroup', usergroup=user_group, auth_source=create_ldap['authsource']
         ).create()
 
@@ -1814,7 +1847,7 @@ class TestCannedRole:
             )
             # Trying to access the Domain resource
             with pytest.raises(HTTPError):
-                entities.Domain(sc, id=domain.id).read()
+                target_sat.api.Domain(sc, id=domain.id).read()
 
 
 class TestRoleSearchFilter:

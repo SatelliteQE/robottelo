@@ -17,7 +17,6 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo import constants
@@ -206,7 +205,7 @@ def test_positive_auto_attach_with_http_proxy(
 
 @pytest.mark.e2e
 @pytest.mark.tier2
-def test_positive_assign_http_proxy_to_products():
+def test_positive_assign_http_proxy_to_products(target_sat):
     """Assign http_proxy to Products and check whether http-proxy is
      used during sync.
 
@@ -219,15 +218,15 @@ def test_positive_assign_http_proxy_to_products():
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
+    org = target_sat.api.Organization().create()
     # create HTTP proxies
-    http_proxy_a = entities.HTTPProxy(
+    http_proxy_a = target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.un_auth_proxy_url,
         organization=[org],
     ).create()
 
-    http_proxy_b = entities.HTTPProxy(
+    http_proxy_b = target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.auth_proxy_url,
         username=settings.http_proxy.username,
@@ -236,20 +235,20 @@ def test_positive_assign_http_proxy_to_products():
     ).create()
 
     # Create products and repositories
-    product_a = entities.Product(organization=org).create()
-    product_b = entities.Product(organization=org).create()
-    repo_a1 = entities.Repository(product=product_a, http_proxy_policy='none').create()
-    repo_a2 = entities.Repository(
+    product_a = target_sat.api.Product(organization=org).create()
+    product_b = target_sat.api.Product(organization=org).create()
+    repo_a1 = target_sat.api.Repository(product=product_a, http_proxy_policy='none').create()
+    repo_a2 = target_sat.api.Repository(
         product=product_a,
         http_proxy_policy='use_selected_http_proxy',
         http_proxy_id=http_proxy_a.id,
     ).create()
-    repo_b1 = entities.Repository(product=product_b, http_proxy_policy='none').create()
-    repo_b2 = entities.Repository(
+    repo_b1 = target_sat.api.Repository(product=product_b, http_proxy_policy='none').create()
+    repo_b2 = target_sat.api.Repository(
         product=product_b, http_proxy_policy='global_default_http_proxy'
     ).create()
     # Add http_proxy to products
-    entities.ProductBulkAction().http_proxy(
+    target_sat.api.ProductBulkAction().http_proxy(
         data={
             "ids": [product_a.id, product_b.id],
             "http_proxy_policy": "use_selected_http_proxy",

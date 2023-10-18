@@ -19,7 +19,6 @@
 # For ease of use hc refers to host-collection throughout this document
 from time import sleep
 
-from nailgun import entities
 import pytest
 
 from robottelo import constants
@@ -40,8 +39,8 @@ CUSTOM_REPO_ERRATA_ID = settings.repos.yum_6.errata[2]
 
 
 @pytest.fixture(scope='module')
-def activation_key(module_org, module_lce):
-    activation_key = entities.ActivationKey(
+def activation_key(module_org, module_lce, module_target_sat):
+    activation_key = module_target_sat.api.ActivationKey(
         environment=module_lce, organization=module_org
     ).create()
     return activation_key
@@ -302,7 +301,7 @@ def test_positive_sorted_issue_date_and_filter_by_cve(module_org, custom_repo, t
     :CaseLevel: System
     """
     # Errata is sorted by issued date.
-    erratum_list = entities.Errata(repository=custom_repo['repository-id']).search(
+    erratum_list = target_sat.api.Errata(repository=custom_repo['repository-id']).search(
         query={'order': 'issued ASC', 'per_page': '1000'}
     )
     issued = [errata.issued for errata in erratum_list]
@@ -337,28 +336,28 @@ def setup_content_rhel6(module_entitlement_manifest_org, module_target_sat):
         reposet=constants.REPOSET['rhva6'],
         releasever=constants.DEFAULT_RELEASE_VERSION,
     )
-    rh_repo = entities.Repository(id=rh_repo_id_rhva).read()
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id_rhva).read()
     rh_repo.sync()
 
-    host_tools_product = entities.Product(organization=org).create()
-    host_tools_repo = entities.Repository(
+    host_tools_product = module_target_sat.api.Product(organization=org).create()
+    host_tools_repo = module_target_sat.api.Repository(
         product=host_tools_product,
     ).create()
     host_tools_repo.url = settings.repos.SATCLIENT_REPO.RHEL6
     host_tools_repo = host_tools_repo.update(['url'])
     host_tools_repo.sync()
 
-    custom_product = entities.Product(organization=org).create()
-    custom_repo = entities.Repository(
+    custom_product = module_target_sat.api.Product(organization=org).create()
+    custom_repo = module_target_sat.api.Repository(
         product=custom_product,
     ).create()
     custom_repo.url = CUSTOM_REPO_URL
     custom_repo = custom_repo.update(['url'])
     custom_repo.sync()
 
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
 
-    cv = entities.ContentView(
+    cv = module_target_sat.api.ContentView(
         organization=org,
         repository=[rh_repo_id_rhva, host_tools_repo.id, custom_repo.id],
     ).create()
@@ -366,11 +365,13 @@ def setup_content_rhel6(module_entitlement_manifest_org, module_target_sat):
     cvv = cv.read().version[0].read()
     cvv.promote(data={'environment_ids': lce.id, 'force': False})
 
-    ak = entities.ActivationKey(content_view=cv, organization=org, environment=lce).create()
+    ak = module_target_sat.api.ActivationKey(
+        content_view=cv, organization=org, environment=lce
+    ).create()
 
     sub_list = [DEFAULT_SUBSCRIPTION_NAME, host_tools_product.name, custom_product.name]
     for sub_name in sub_list:
-        subscription = entities.Subscription(organization=org).search(
+        subscription = module_target_sat.api.Subscription(organization=org).search(
             query={'search': f'name="{sub_name}"'}
         )[0]
         ak.add_subscriptions(data={'subscription_id': subscription.id})
@@ -467,7 +468,7 @@ def test_positive_get_applicable_for_host(setup_content_rhel6, rhel6_contenthost
 
 
 @pytest.mark.tier3
-def test_positive_get_diff_for_cv_envs():
+def test_positive_get_diff_for_cv_envs(target_sat):
     """Generate a difference in errata between a set of environments
     for a content view
 
@@ -485,10 +486,10 @@ def test_positive_get_diff_for_cv_envs():
 
     :CaseLevel: System
     """
-    org = entities.Organization().create()
-    env = entities.LifecycleEnvironment(organization=org).create()
-    content_view = entities.ContentView(organization=org).create()
-    activation_key = entities.ActivationKey(environment=env, organization=org).create()
+    org = target_sat.api.Organization().create()
+    env = target_sat.api.LifecycleEnvironment(organization=org).create()
+    content_view = target_sat.api.ContentView(organization=org).create()
+    activation_key = target_sat.api.ActivationKey(environment=env, organization=org).create()
     for repo_url in [settings.repos.yum_9.url, CUSTOM_REPO_URL]:
         setup_org_for_a_custom_repo(
             {
@@ -499,10 +500,10 @@ def test_positive_get_diff_for_cv_envs():
                 'activationkey-id': activation_key.id,
             }
         )
-    new_env = entities.LifecycleEnvironment(organization=org, prior=env).create()
+    new_env = target_sat.api.LifecycleEnvironment(organization=org, prior=env).create()
     cvvs = content_view.read().version[-2:]
     cvvs[-1].promote(data={'environment_ids': new_env.id, 'force': False})
-    result = entities.Errata().compare(
+    result = target_sat.api.Errata().compare(
         data={'content_view_version_ids': [cvv.id for cvv in cvvs], 'per_page': '9999'}
     )
     cvv2_only_errata = next(
@@ -566,7 +567,7 @@ def test_positive_incremental_update_required(
     # install package to create demand for an Erratum
     assert rhel7_contenthost.run(f'yum install -y {constants.FAKE_1_CUSTOM_PACKAGE}').status == 0
     # Call nailgun to make the API POST to see if any incremental updates are required
-    response = entities.Host().bulk_available_incremental_updates(
+    response = target_sat.api.Host().bulk_available_incremental_updates(
         data={
             'organization_id': module_org.id,
             'included': {'ids': [host.id]},
@@ -576,7 +577,7 @@ def test_positive_incremental_update_required(
     assert not response, 'Incremental update should not be required at this point'
     # Add filter of type include but do not include anything
     # this will hide all RPMs from selected erratum before publishing
-    entities.RPMContentViewFilter(
+    target_sat.api.RPMContentViewFilter(
         content_view=module_cv, inclusion=True, name='Include Nothing'
     ).create()
     module_cv.publish()
@@ -586,7 +587,7 @@ def test_positive_incremental_update_required(
     CV1V.promote(data={'environment_ids': module_lce.id, 'force': False})
     module_cv = module_cv.read()
     # Call nailgun to make the API POST to ensure an incremental update is required
-    response = entities.Host().bulk_available_incremental_updates(
+    response = target_sat.api.Host().bulk_available_incremental_updates(
         data={
             'organization_id': module_org.id,
             'included': {'ids': [host.id]},
@@ -726,7 +727,7 @@ def rh_repo_module_manifest(module_entitlement_manifest_org, module_target_sat):
         releasever='None',
     )
     # Sync step because repo is not synced by default
-    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
     return rh_repo
 
@@ -744,11 +745,17 @@ def rhel8_custom_repo_cv(module_entitlement_manifest_org):
 
 @pytest.fixture(scope='module')
 def rhel8_module_ak(
-    module_entitlement_manifest_org, default_lce, rh_repo_module_manifest, rhel8_custom_repo_cv
+    module_entitlement_manifest_org,
+    default_lce,
+    rh_repo_module_manifest,
+    rhel8_custom_repo_cv,
+    module_target_sat,
 ):
-    rhel8_module_ak = entities.ActivationKey(
+    rhel8_module_ak = module_target_sat.api.ActivationKey(
         content_view=module_entitlement_manifest_org.default_content_view,
-        environment=entities.LifecycleEnvironment(id=module_entitlement_manifest_org.library.id),
+        environment=module_target_sat.api.LifecycleEnvironment(
+            id=module_entitlement_manifest_org.library.id
+        ),
         organization=module_entitlement_manifest_org,
     ).create()
     # Ensure tools repo is enabled in the activation key
@@ -758,19 +765,19 @@ def rhel8_module_ak(
         }
     )
     # Fetch available subscriptions
-    subs = entities.Subscription(organization=module_entitlement_manifest_org).search(
+    subs = module_target_sat.api.Subscription(organization=module_entitlement_manifest_org).search(
         query={'search': f'{constants.DEFAULT_SUBSCRIPTION_NAME}'}
     )
     assert subs
     # Add default subscription to activation key
     rhel8_module_ak.add_subscriptions(data={'subscription_id': subs[0].id})
     # Add custom subscription to activation key
-    product = entities.Product(organization=module_entitlement_manifest_org).search(
-        query={'search': "redhat=false"}
+    product = module_target_sat.api.Product(organization=module_entitlement_manifest_org).search(
+        query={'search': 'redhat=false'}
     )
-    custom_sub = entities.Subscription(organization=module_entitlement_manifest_org).search(
-        query={'search': f"name={product[0].name}"}
-    )
+    custom_sub = module_target_sat.api.Subscription(
+        organization=module_entitlement_manifest_org
+    ).search(query={'search': f'name={product[0].name}'})
     rhel8_module_ak.add_subscriptions(data={'subscription_id': custom_sub[0].id})
     return rhel8_module_ak
 
