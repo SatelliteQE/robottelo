@@ -24,7 +24,7 @@ import http
 from random import randint
 
 from fauxfactory import gen_integer, gen_string
-from nailgun import client, entities
+from nailgun import client
 import pytest
 from requests.exceptions import HTTPError
 
@@ -38,15 +38,15 @@ from robottelo.utils.datafactory import (
 
 
 @pytest.fixture(scope='module')
-def sync_repo(module_product):
-    repo = entities.Repository(product=module_product).create()
+def sync_repo(module_product, module_target_sat):
+    repo = module_target_sat.api.Repository(product=module_product).create()
     repo.sync()
     return repo
 
 
 @pytest.fixture(scope='module')
-def sync_repo_module_stream(module_product):
-    repo = entities.Repository(
+def sync_repo_module_stream(module_product, module_target_sat):
+    repo = module_target_sat.api.Repository(
         content_type='yum', product=module_product, url=settings.repos.module_stream_1.url
     ).create()
     repo.sync()
@@ -54,13 +54,15 @@ def sync_repo_module_stream(module_product):
 
 
 @pytest.fixture
-def content_view(module_org, sync_repo):
-    return entities.ContentView(organization=module_org, repository=[sync_repo]).create()
+def content_view(module_org, sync_repo, module_target_sat):
+    return module_target_sat.api.ContentView(
+        organization=module_org, repository=[sync_repo]
+    ).create()
 
 
 @pytest.fixture
-def content_view_module_stream(module_org, sync_repo_module_stream):
-    return entities.ContentView(
+def content_view_module_stream(module_org, sync_repo_module_stream, module_target_sat):
+    return module_target_sat.api.ContentView(
         organization=module_org, repository=[sync_repo_module_stream]
     ).create()
 
@@ -69,7 +71,7 @@ class TestContentViewFilter:
     """Tests for content view filters."""
 
     @pytest.mark.tier2
-    def test_negative_get_with_no_args(self):
+    def test_negative_get_with_no_args(self, target_sat):
         """Issue an HTTP GET to the base content view filters path.
 
         :id: da29fd90-cd96-49f9-b94e-71d4e3a35a57
@@ -82,14 +84,14 @@ class TestContentViewFilter:
         :CaseImportance: Low
         """
         response = client.get(
-            entities.AbstractContentViewFilter().path(),
+            target_sat.api.AbstractContentViewFilter().path(),
             auth=get_credentials(),
             verify=False,
         )
         assert response.status_code == http.client.OK
 
     @pytest.mark.tier2
-    def test_negative_get_with_bad_args(self):
+    def test_negative_get_with_bad_args(self, target_sat):
         """Issue an HTTP GET to the base content view filters path.
 
         :id: e6fea726-930b-4b74-b784-41528811994f
@@ -102,7 +104,7 @@ class TestContentViewFilter:
         :CaseImportance: Low
         """
         response = client.get(
-            entities.AbstractContentViewFilter().path(),
+            target_sat.api.AbstractContentViewFilter().path(),
             auth=get_credentials(),
             verify=False,
             data={'foo': 'bar'},
@@ -111,7 +113,7 @@ class TestContentViewFilter:
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_erratum_with_name(self, name, content_view):
+    def test_positive_create_erratum_with_name(self, name, content_view, target_sat):
         """Create new erratum content filter using different inputs as a name
 
         :id: f78a133f-441f-4fcc-b292-b9eed228d755
@@ -123,13 +125,13 @@ class TestContentViewFilter:
 
         :CaseLevel: Integration
         """
-        cvf = entities.ErratumContentViewFilter(content_view=content_view, name=name).create()
+        cvf = target_sat.api.ErratumContentViewFilter(content_view=content_view, name=name).create()
         assert cvf.name == name
         assert cvf.type == 'erratum'
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_pkg_group_with_name(self, name, content_view):
+    def test_positive_create_pkg_group_with_name(self, name, content_view, target_sat):
         """Create new package group content filter using different inputs as a name
 
         :id: f9bfb6bf-a879-4f1a-970d-8f4df533cd59
@@ -143,7 +145,7 @@ class TestContentViewFilter:
 
         :CaseImportance: Medium
         """
-        cvf = entities.PackageGroupContentViewFilter(
+        cvf = target_sat.api.PackageGroupContentViewFilter(
             content_view=content_view,
             name=name,
         ).create()
@@ -152,7 +154,7 @@ class TestContentViewFilter:
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_rpm_with_name(self, name, content_view):
+    def test_positive_create_rpm_with_name(self, name, content_view, target_sat):
         """Create new RPM content filter using different inputs as a name
 
         :id: f1c88e72-7993-47ac-8fbc-c749d32bc768
@@ -166,13 +168,13 @@ class TestContentViewFilter:
 
         :CaseImportance: Medium
         """
-        cvf = entities.RPMContentViewFilter(content_view=content_view, name=name).create()
+        cvf = target_sat.api.RPMContentViewFilter(content_view=content_view, name=name).create()
         assert cvf.name == name
         assert cvf.type == 'rpm'
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('inclusion', [True, False])
-    def test_positive_create_with_inclusion(self, inclusion, content_view):
+    def test_positive_create_with_inclusion(self, inclusion, content_view, target_sat):
         """Create new content view filter with different inclusion values
 
         :id: 81130dc9-ae33-48bc-96a7-d54d3e99448e
@@ -184,12 +186,14 @@ class TestContentViewFilter:
 
         :CaseLevel: Integration
         """
-        cvf = entities.RPMContentViewFilter(content_view=content_view, inclusion=inclusion).create()
+        cvf = target_sat.api.RPMContentViewFilter(
+            content_view=content_view, inclusion=inclusion
+        ).create()
         assert cvf.inclusion == inclusion
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-    def test_positive_create_with_description(self, description, content_view):
+    def test_positive_create_with_description(self, description, content_view, target_sat):
         """Create new content filter using different inputs as a description
 
         :id: e057083f-e69d-46e7-b336-45faaf67fa52
@@ -203,14 +207,14 @@ class TestContentViewFilter:
 
         :CaseImportance: Low
         """
-        cvf = entities.RPMContentViewFilter(
+        cvf = target_sat.api.RPMContentViewFilter(
             content_view=content_view,
             description=description,
         ).create()
         assert cvf.description == description
 
     @pytest.mark.tier2
-    def test_positive_create_with_repo(self, content_view, sync_repo):
+    def test_positive_create_with_repo(self, content_view, sync_repo, target_sat):
         """Create new content filter with repository assigned
 
         :id: 7207d4cf-3ccf-4d63-a50a-1373b16062e2
@@ -220,7 +224,7 @@ class TestContentViewFilter:
 
         :CaseLevel: Integration
         """
-        cvf = entities.RPMContentViewFilter(
+        cvf = target_sat.api.RPMContentViewFilter(
             content_view=content_view,
             inclusion=True,
             repository=[sync_repo],
@@ -230,7 +234,7 @@ class TestContentViewFilter:
     @pytest.mark.tier2
     @pytest.mark.parametrize('original_packages', [True, False])
     def test_positive_create_with_original_packages(
-        self, original_packages, content_view, sync_repo
+        self, original_packages, content_view, sync_repo, target_sat
     ):
         """Create new content view filter with different 'original packages'
         option values
@@ -246,7 +250,7 @@ class TestContentViewFilter:
 
         :CaseImportance: Medium
         """
-        cvf = entities.RPMContentViewFilter(
+        cvf = target_sat.api.RPMContentViewFilter(
             content_view=content_view,
             inclusion=True,
             repository=[sync_repo],
@@ -255,7 +259,9 @@ class TestContentViewFilter:
         assert cvf.original_packages == original_packages
 
     @pytest.mark.tier2
-    def test_positive_create_with_docker_repos(self, module_product, sync_repo, content_view):
+    def test_positive_create_with_docker_repos(
+        self, module_product, sync_repo, content_view, module_target_sat
+    ):
         """Create new docker repository and add to content view that has yum
         repo already assigned to it. Create new content view filter and assign
         it to the content view.
@@ -267,7 +273,7 @@ class TestContentViewFilter:
 
         :CaseLevel: Integration
         """
-        docker_repository = entities.Repository(
+        docker_repository = module_target_sat.api.Repository(
             content_type='docker',
             docker_upstream_name='busybox',
             product=module_product.id,
@@ -276,7 +282,7 @@ class TestContentViewFilter:
         content_view.repository = [sync_repo, docker_repository]
         content_view.update(['repository'])
 
-        cvf = entities.RPMContentViewFilter(
+        cvf = module_target_sat.api.RPMContentViewFilter(
             content_view=content_view,
             inclusion=True,
             repository=[sync_repo, docker_repository],
@@ -290,7 +296,7 @@ class TestContentViewFilter:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     def test_positive_create_with_module_streams(
-        self, module_product, sync_repo, sync_repo_module_stream, content_view
+        self, module_product, sync_repo, sync_repo_module_stream, content_view, target_sat
     ):
         """Verify Include and Exclude Filters creation for modulemd (module streams)
 
@@ -304,7 +310,7 @@ class TestContentViewFilter:
         content_view.repository += [sync_repo_module_stream]
         content_view.update(['repository'])
         for inclusion in (True, False):
-            cvf = entities.ModuleStreamContentViewFilter(
+            cvf = target_sat.api.ModuleStreamContentViewFilter(
                 content_view=content_view,
                 inclusion=inclusion,
                 repository=[sync_repo, sync_repo_module_stream],
@@ -316,7 +322,7 @@ class TestContentViewFilter:
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    def test_negative_create_with_invalid_name(self, name, content_view):
+    def test_negative_create_with_invalid_name(self, name, content_view, target_sat):
         """Try to create content view filter using invalid names only
 
         :id: 8cf4227b-75c4-4d6f-b94f-88e4eb586435
@@ -330,10 +336,10 @@ class TestContentViewFilter:
         :CaseImportance: Critical
         """
         with pytest.raises(HTTPError):
-            entities.RPMContentViewFilter(content_view=content_view, name=name).create()
+            target_sat.api.RPMContentViewFilter(content_view=content_view, name=name).create()
 
     @pytest.mark.tier2
-    def test_negative_create_with_same_name(self, content_view):
+    def test_negative_create_with_same_name(self, content_view, target_sat):
         """Try to create content view filter using same name twice
 
         :id: 73a64ca7-07a3-49ee-8921-0474a16a23ff
@@ -345,12 +351,12 @@ class TestContentViewFilter:
         :CaseImportance: Low
         """
         kwargs = {'content_view': content_view, 'name': gen_string('alpha')}
-        entities.RPMContentViewFilter(**kwargs).create()
+        target_sat.api.RPMContentViewFilter(**kwargs).create()
         with pytest.raises(HTTPError):
-            entities.RPMContentViewFilter(**kwargs).create()
+            target_sat.api.RPMContentViewFilter(**kwargs).create()
 
     @pytest.mark.tier2
-    def test_negative_create_without_cv(self):
+    def test_negative_create_without_cv(self, target_sat):
         """Try to create content view filter without providing content
         view
 
@@ -363,10 +369,10 @@ class TestContentViewFilter:
         :CaseImportance: Low
         """
         with pytest.raises(HTTPError):
-            entities.RPMContentViewFilter(content_view=None).create()
+            target_sat.api.RPMContentViewFilter(content_view=None).create()
 
     @pytest.mark.tier2
-    def test_negative_create_with_invalid_repo_id(self, content_view):
+    def test_negative_create_with_invalid_repo_id(self, content_view, target_sat):
         """Try to create content view filter using incorrect repository
         id
 
@@ -379,13 +385,13 @@ class TestContentViewFilter:
         :CaseImportance: Low
         """
         with pytest.raises(HTTPError):
-            entities.RPMContentViewFilter(
+            target_sat.api.RPMContentViewFilter(
                 content_view=content_view,
                 repository=[gen_integer(10000, 99999)],
             ).create()
 
     @pytest.mark.tier2
-    def test_positive_delete_by_id(self, content_view):
+    def test_positive_delete_by_id(self, content_view, target_sat):
         """Delete content view filter
 
         :id: 07caeb9d-419d-43f8-996b-456b0cc0f70d
@@ -396,14 +402,14 @@ class TestContentViewFilter:
 
         :CaseImportance: Critical
         """
-        cvf = entities.RPMContentViewFilter(content_view=content_view).create()
+        cvf = target_sat.api.RPMContentViewFilter(content_view=content_view).create()
         cvf.delete()
         with pytest.raises(HTTPError):
             cvf.read()
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_update_name(self, name, content_view):
+    def test_positive_update_name(self, name, content_view, target_sat):
         """Update content view filter with new name
 
         :id: f310c161-00d2-4281-9721-6e45cbc5e4ec
@@ -415,13 +421,13 @@ class TestContentViewFilter:
 
         :CaseLevel: Integration
         """
-        cvf = entities.RPMContentViewFilter(content_view=content_view).create()
+        cvf = target_sat.api.RPMContentViewFilter(content_view=content_view).create()
         cvf.name = name
         assert cvf.update(['name']).name == name
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-    def test_positive_update_description(self, description, content_view):
+    def test_positive_update_description(self, description, content_view, target_sat):
         """Update content view filter with new description
 
         :id: f2c5db28-0163-4cf3-929a-16ba1cb98c34
@@ -435,14 +441,14 @@ class TestContentViewFilter:
 
         :CaseImportance: Low
         """
-        cvf = entities.RPMContentViewFilter(content_view=content_view).create()
+        cvf = target_sat.api.RPMContentViewFilter(content_view=content_view).create()
         cvf.description = description
         cvf = cvf.update(['description'])
         assert cvf.description == description
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('inclusion', [True, False])
-    def test_positive_update_inclusion(self, inclusion, content_view):
+    def test_positive_update_inclusion(self, inclusion, content_view, target_sat):
         """Update content view filter with new inclusion value
 
         :id: 0aedd2d6-d020-4a90-adcd-01694b47c0b0
@@ -454,13 +460,13 @@ class TestContentViewFilter:
 
         :CaseLevel: Integration
         """
-        cvf = entities.RPMContentViewFilter(content_view=content_view).create()
+        cvf = target_sat.api.RPMContentViewFilter(content_view=content_view).create()
         cvf.inclusion = inclusion
         cvf = cvf.update(['inclusion'])
         assert cvf.inclusion == inclusion
 
     @pytest.mark.tier2
-    def test_positive_update_repo(self, module_product, sync_repo, content_view):
+    def test_positive_update_repo(self, module_product, sync_repo, content_view, target_sat):
         """Update content view filter with new repository
 
         :id: 329ef155-c2d0-4aa2-bac3-79087ae49bdf
@@ -470,12 +476,12 @@ class TestContentViewFilter:
 
         :CaseLevel: Integration
         """
-        cvf = entities.RPMContentViewFilter(
+        cvf = target_sat.api.RPMContentViewFilter(
             content_view=content_view,
             inclusion=True,
             repository=[sync_repo],
         ).create()
-        new_repo = entities.Repository(product=module_product).create()
+        new_repo = target_sat.api.Repository(product=module_product).create()
         new_repo.sync()
         content_view.repository = [new_repo]
         content_view.update(['repository'])
@@ -485,7 +491,7 @@ class TestContentViewFilter:
         assert cvf.repository[0].id == new_repo.id
 
     @pytest.mark.tier2
-    def test_positive_update_repos(self, module_product, sync_repo, content_view):
+    def test_positive_update_repos(self, module_product, sync_repo, content_view, target_sat):
         """Update content view filter with multiple repositories
 
         :id: 478fbb1c-fa1d-4fcd-93d6-3a7f47092ed3
@@ -497,12 +503,14 @@ class TestContentViewFilter:
 
         :CaseImportance: Low
         """
-        cvf = entities.RPMContentViewFilter(
+        cvf = target_sat.api.RPMContentViewFilter(
             content_view=content_view,
             inclusion=True,
             repository=[sync_repo],
         ).create()
-        repos = [entities.Repository(product=module_product).create() for _ in range(randint(3, 5))]
+        repos = [
+            target_sat.api.Repository(product=module_product).create() for _ in range(randint(3, 5))
+        ]
         for repo in repos:
             repo.sync()
         content_view.repository = repos
@@ -513,7 +521,9 @@ class TestContentViewFilter:
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('original_packages', [True, False])
-    def test_positive_update_original_packages(self, original_packages, sync_repo, content_view):
+    def test_positive_update_original_packages(
+        self, original_packages, sync_repo, content_view, target_sat
+    ):
         """Update content view filter with new 'original packages' option value
 
         :id: 0c41e57a-afa3-479e-83ba-01f09f0fd2b6
@@ -525,7 +535,7 @@ class TestContentViewFilter:
 
         :CaseLevel: Integration
         """
-        cvf = entities.RPMContentViewFilter(
+        cvf = target_sat.api.RPMContentViewFilter(
             content_view=content_view,
             inclusion=True,
             repository=[sync_repo],
@@ -535,7 +545,9 @@ class TestContentViewFilter:
         assert cvf.original_packages == original_packages
 
     @pytest.mark.tier2
-    def test_positive_update_repo_with_docker(self, module_product, sync_repo, content_view):
+    def test_positive_update_repo_with_docker(
+        self, module_product, sync_repo, content_view, target_sat
+    ):
         """Update existing content view filter which has yum repository
         assigned with new docker repository
 
@@ -546,12 +558,12 @@ class TestContentViewFilter:
 
         :CaseLevel: Integration
         """
-        cvf = entities.RPMContentViewFilter(
+        cvf = target_sat.api.RPMContentViewFilter(
             content_view=content_view,
             inclusion=True,
             repository=[sync_repo],
         ).create()
-        docker_repository = entities.Repository(
+        docker_repository = target_sat.api.Repository(
             content_type='docker',
             docker_upstream_name='busybox',
             product=module_product.id,
@@ -567,7 +579,7 @@ class TestContentViewFilter:
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    def test_negative_update_name(self, name, content_view):
+    def test_negative_update_name(self, name, content_view, target_sat):
         """Try to update content view filter using invalid names only
 
         :id: 9799648a-3900-4186-8271-6b2dedb547ab
@@ -580,13 +592,13 @@ class TestContentViewFilter:
 
         :CaseImportance: Low
         """
-        cvf = entities.RPMContentViewFilter(content_view=content_view).create()
+        cvf = target_sat.api.RPMContentViewFilter(content_view=content_view).create()
         cvf.name = name
         with pytest.raises(HTTPError):
             cvf.update(['name'])
 
     @pytest.mark.tier2
-    def test_negative_update_same_name(self, content_view):
+    def test_negative_update_same_name(self, content_view, target_sat):
         """Try to update content view filter's name to already used one
 
         :id: b68569f1-9f7b-4a95-9e2a-a5da348abff7
@@ -598,14 +610,14 @@ class TestContentViewFilter:
         :CaseImportance: Low
         """
         name = gen_string('alpha', 8)
-        entities.RPMContentViewFilter(content_view=content_view, name=name).create()
-        cvf = entities.RPMContentViewFilter(content_view=content_view).create()
+        target_sat.api.RPMContentViewFilter(content_view=content_view, name=name).create()
+        cvf = target_sat.api.RPMContentViewFilter(content_view=content_view).create()
         cvf.name = name
         with pytest.raises(HTTPError):
             cvf.update(['name'])
 
     @pytest.mark.tier2
-    def test_negative_update_cv_by_id(self, content_view):
+    def test_negative_update_cv_by_id(self, content_view, target_sat):
         """Try to update content view filter using incorrect content
         view ID
 
@@ -615,13 +627,13 @@ class TestContentViewFilter:
 
         :CaseLevel: Integration
         """
-        cvf = entities.RPMContentViewFilter(content_view=content_view).create()
+        cvf = target_sat.api.RPMContentViewFilter(content_view=content_view).create()
         cvf.content_view.id = gen_integer(10000, 99999)
         with pytest.raises(HTTPError):
             cvf.update(['content_view'])
 
     @pytest.mark.tier2
-    def test_negative_update_repo_by_id(self, sync_repo, content_view):
+    def test_negative_update_repo_by_id(self, sync_repo, content_view, target_sat):
         """Try to update content view filter using incorrect repository
         ID
 
@@ -631,7 +643,7 @@ class TestContentViewFilter:
 
         :CaseLevel: Integration
         """
-        cvf = entities.RPMContentViewFilter(
+        cvf = target_sat.api.RPMContentViewFilter(
             content_view=content_view,
             repository=[sync_repo],
         ).create()
@@ -640,7 +652,7 @@ class TestContentViewFilter:
             cvf.update(['repository'])
 
     @pytest.mark.tier2
-    def test_negative_update_repo(self, module_product, sync_repo, content_view):
+    def test_negative_update_repo(self, module_product, sync_repo, content_view, target_sat):
         """Try to update content view filter with new repository which doesn't
         belong to filter's content view
 
@@ -652,12 +664,12 @@ class TestContentViewFilter:
 
         :CaseImportance: Low
         """
-        cvf = entities.RPMContentViewFilter(
+        cvf = target_sat.api.RPMContentViewFilter(
             content_view=content_view,
             inclusion=True,
             repository=[sync_repo],
         ).create()
-        new_repo = entities.Repository(product=module_product).create()
+        new_repo = target_sat.api.Repository(product=module_product).create()
         new_repo.sync()
         cvf.repository = [new_repo]
         with pytest.raises(HTTPError):
@@ -713,7 +725,7 @@ class TestContentViewFilterSearch:
     """Tests that search through content view filters."""
 
     @pytest.mark.tier1
-    def test_positive_search_erratum(self, content_view):
+    def test_positive_search_erratum(self, content_view, target_sat):
         """Search for an erratum content view filter's rules.
 
         :id: 6a86060f-6b4f-4688-8ea9-c198e0aeb3f6
@@ -724,11 +736,11 @@ class TestContentViewFilterSearch:
 
         :BZ: 1242534
         """
-        cv_filter = entities.ErratumContentViewFilter(content_view=content_view).create()
-        entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
+        cv_filter = target_sat.api.ErratumContentViewFilter(content_view=content_view).create()
+        target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter).search()
 
     @pytest.mark.tier1
-    def test_positive_search_package_group(self, content_view):
+    def test_positive_search_package_group(self, content_view, target_sat):
         """Search for an package group content view filter's rules.
 
         :id: 832c50cc-c2c8-48c9-9a23-80956baf5f3c
@@ -737,11 +749,11 @@ class TestContentViewFilterSearch:
 
         :CaseImportance: Critical
         """
-        cv_filter = entities.PackageGroupContentViewFilter(content_view=content_view).create()
-        entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
+        cv_filter = target_sat.api.PackageGroupContentViewFilter(content_view=content_view).create()
+        target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter).search()
 
     @pytest.mark.tier1
-    def test_positive_search_rpm(self, content_view):
+    def test_positive_search_rpm(self, content_view, target_sat):
         """Search for an rpm content view filter's rules.
 
         :id: 1c9058f1-35c4-46f2-9b21-155ef988564a
@@ -750,8 +762,8 @@ class TestContentViewFilterSearch:
 
         :CaseImportance: Critical
         """
-        cv_filter = entities.RPMContentViewFilter(content_view=content_view).create()
-        entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
+        cv_filter = target_sat.api.RPMContentViewFilter(content_view=content_view).create()
+        target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter).search()
 
 
 class TestContentViewFilterRule:
@@ -761,7 +773,9 @@ class TestContentViewFilterRule:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     @pytest.mark.tier2
-    def test_positive_promote_module_stream_filter(self, module_org, content_view_module_stream):
+    def test_positive_promote_module_stream_filter(
+        self, module_org, content_view_module_stream, target_sat
+    ):
         """Verify Module Stream, Errata Count after Promote, Publish for Content View
         with Module Stream Exclude Filter
 
@@ -774,14 +788,14 @@ class TestContentViewFilterRule:
         """
         # Exclude module stream filter
         content_view = content_view_module_stream
-        cv_filter = entities.ModuleStreamContentViewFilter(
+        cv_filter = target_sat.api.ModuleStreamContentViewFilter(
             content_view=content_view,
             inclusion=False,
         ).create()
-        module_streams = entities.ModuleStream().search(
+        module_streams = target_sat.api.ModuleStream().search(
             query={'search': 'name="{}"'.format('duck')}
         )
-        entities.ContentViewFilterRule(
+        target_sat.api.ContentViewFilterRule(
             content_view_filter=cv_filter, module_stream=module_streams
         ).create()
         content_view.publish()
@@ -795,7 +809,7 @@ class TestContentViewFilterRule:
         assert content_view_version_info.errata_counts['total'] == 3
 
         # Promote Content View
-        lce = entities.LifecycleEnvironment(organization=module_org).create()
+        lce = target_sat.api.LifecycleEnvironment(organization=module_org).create()
         content_view.version[0].promote(data={'environment_ids': lce.id, 'force': False})
         content_view = content_view.read()
         content_view_version_info = content_view.version[0].read()
@@ -808,7 +822,9 @@ class TestContentViewFilterRule:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     @pytest.mark.tier2
-    def test_positive_include_exclude_module_stream_filter(self, content_view_module_stream):
+    def test_positive_include_exclude_module_stream_filter(
+        self, content_view_module_stream, target_sat
+    ):
         """Verify Include and Exclude Errata filter(modular errata) automatically force the copy
            of the module streams associated to it.
 
@@ -827,14 +843,14 @@ class TestContentViewFilterRule:
         :CaseLevel: Integration
         """
         content_view = content_view_module_stream
-        cv_filter = entities.ErratumContentViewFilter(
+        cv_filter = target_sat.api.ErratumContentViewFilter(
             content_view=content_view,
             inclusion=True,
         ).create()
-        errata = entities.Errata().search(
+        errata = target_sat.api.Errata().search(
             query={'search': f'errata_id="{settings.repos.module_stream_0.errata[2]}"'}
         )[0]
-        entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
+        target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
         content_view.publish()
         content_view = content_view.read()
@@ -846,14 +862,14 @@ class TestContentViewFilterRule:
 
         # delete the previous content_view_filter
         cv_filter.delete()
-        cv_filter = entities.ErratumContentViewFilter(
+        cv_filter = target_sat.api.ErratumContentViewFilter(
             content_view=content_view,
             inclusion=False,
         ).create()
-        errata = entities.Errata().search(
+        errata = target_sat.api.Errata().search(
             query={'search': f'errata_id="{settings.repos.module_stream_0.errata[2]}"'}
         )[0]
-        entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
+        target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
         content_view.publish()
         content_view_version_info = content_view.read().version[1].read()
@@ -866,7 +882,7 @@ class TestContentViewFilterRule:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     @pytest.mark.tier2
-    def test_positive_multi_level_filters(self, content_view_module_stream):
+    def test_positive_multi_level_filters(self, content_view_module_stream, target_sat):
         """Verify promotion of Content View and Verify count after applying
         multi_filters (errata and module stream)
 
@@ -878,24 +894,24 @@ class TestContentViewFilterRule:
         """
         content_view = content_view_module_stream
         # apply include errata filter
-        cv_filter = entities.ErratumContentViewFilter(
+        cv_filter = target_sat.api.ErratumContentViewFilter(
             content_view=content_view,
             inclusion=True,
         ).create()
-        errata = entities.Errata().search(
+        errata = target_sat.api.Errata().search(
             query={'search': f'errata_id="{settings.repos.module_stream_0.errata[2]}"'}
         )[0]
-        entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
+        target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
         # apply exclude module filter
-        cv_filter = entities.ModuleStreamContentViewFilter(
+        cv_filter = target_sat.api.ModuleStreamContentViewFilter(
             content_view=content_view,
             inclusion=False,
         ).create()
-        module_streams = entities.ModuleStream().search(
+        module_streams = target_sat.api.ModuleStream().search(
             query={'search': 'name="{}"'.format('walrus')}
         )
-        entities.ContentViewFilterRule(
+        target_sat.api.ContentViewFilterRule(
             content_view_filter=cv_filter, module_stream=module_streams
         ).create()
         content_view.publish()
@@ -909,7 +925,9 @@ class TestContentViewFilterRule:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     @pytest.mark.tier2
-    def test_positive_dependency_solving_module_stream_filter(self, content_view_module_stream):
+    def test_positive_dependency_solving_module_stream_filter(
+        self, content_view_module_stream, target_sat
+    ):
         """Verify Module Stream Content View Filter's with Dependency Solve 'Yes'.
         If dependency solving enabled then module streams with deps will not get fetched
         over even if the exclude filter has been applied.
@@ -927,14 +945,14 @@ class TestContentViewFilterRule:
         content_view = content_view_module_stream
         content_view.solve_dependencies = True
         content_view = content_view.update(['solve_dependencies'])
-        cv_filter = entities.ModuleStreamContentViewFilter(
+        cv_filter = target_sat.api.ModuleStreamContentViewFilter(
             content_view=content_view,
             inclusion=False,
         ).create()
-        module_streams = entities.ModuleStream().search(
+        module_streams = target_sat.api.ModuleStream().search(
             query={'search': 'name="{}" and version="{}'.format('duck', '20180704244205')}
         )
-        entities.ContentViewFilterRule(
+        target_sat.api.ContentViewFilterRule(
             content_view_filter=cv_filter, module_stream=module_streams
         ).create()
         content_view.publish()
