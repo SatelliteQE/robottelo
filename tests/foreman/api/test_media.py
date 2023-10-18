@@ -19,7 +19,6 @@
 import random
 
 from fauxfactory import gen_string, gen_url
-from nailgun import entities
 import pytest
 from requests.exceptions import HTTPError
 
@@ -35,8 +34,8 @@ class TestMedia:
     """Tests for ``api/v2/media``."""
 
     @pytest.fixture(scope='class')
-    def class_media(self, module_org):
-        return entities.Media(organization=[module_org]).create()
+    def class_media(self, module_org, class_target_sat):
+        return class_target_sat.api.Media(organization=[module_org]).create()
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
@@ -44,7 +43,7 @@ class TestMedia:
         ('name', 'new_name'),
         **parametrized(list(zip(valid_data_list().values(), valid_data_list().values())))
     )
-    def test_positive_crud_with_name(self, module_org, name, new_name):
+    def test_positive_crud_with_name(self, module_org, name, new_name, module_target_sat):
         """Create, update, delete media with valid name only
 
         :id: b07a4549-7dd5-4b36-a1b4-9f8d48ddfcb5
@@ -55,9 +54,9 @@ class TestMedia:
 
         :CaseImportance: Critical
         """
-        media = entities.Media(organization=[module_org], name=name).create()
+        media = module_target_sat.api.Media(organization=[module_org], name=name).create()
         assert media.name == name
-        media = entities.Media(id=media.id, name=new_name).update(['name'])
+        media = module_target_sat.api.Media(id=media.id, name=new_name).update(['name'])
         assert media.name == new_name
         media.delete()
         with pytest.raises(HTTPError):
@@ -65,7 +64,7 @@ class TestMedia:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('os_family', **parametrized(OPERATING_SYSTEMS))
-    def test_positive_create_update_with_os_family(self, module_org, os_family):
+    def test_positive_create_update_with_os_family(self, module_org, os_family, module_target_sat):
         """Create and update media with every OS family possible
 
         :id: d02404f0-b2ad-412c-b1cd-0548254f7c88
@@ -75,14 +74,14 @@ class TestMedia:
         :expectedresults: Media entity is created and has proper OS family
             assigned
         """
-        media = entities.Media(organization=[module_org], os_family=os_family).create()
+        media = module_target_sat.api.Media(organization=[module_org], os_family=os_family).create()
         assert media.os_family == os_family
         new_os_family = new_os_family = random.choice(OPERATING_SYSTEMS)
         media.os_family = new_os_family
         assert media.update(['os_family']).os_family == new_os_family
 
     @pytest.mark.tier2
-    def test_positive_create_with_location(self, module_org, module_location):
+    def test_positive_create_with_location(self, module_org, module_location, module_target_sat):
         """Create media entity assigned to non-default location
 
         :id: 1c4fa736-c145-46ca-9feb-c4046fc778c6
@@ -91,11 +90,13 @@ class TestMedia:
 
         :CaseLevel: Integration
         """
-        media = entities.Media(organization=[module_org], location=[module_location]).create()
+        media = module_target_sat.api.Media(
+            organization=[module_org], location=[module_location]
+        ).create()
         assert media.location[0].read().name == module_location.name
 
     @pytest.mark.tier2
-    def test_positive_create_with_os(self, module_org):
+    def test_positive_create_with_os(self, module_org, module_target_sat):
         """Create media entity assigned to operation system entity
 
         :id: dec22198-ed07-480c-9306-fa5458baec0b
@@ -104,12 +105,14 @@ class TestMedia:
 
         :CaseLevel: Integration
         """
-        os = entities.OperatingSystem().create()
-        media = entities.Media(organization=[module_org], operatingsystem=[os]).create()
+        os = module_target_sat.api.OperatingSystem().create()
+        media = module_target_sat.api.Media(
+            organization=[module_org], operatingsystem=[os]
+        ).create()
         assert os.read().medium[0].read().name == media.name
 
     @pytest.mark.tier2
-    def test_positive_create_update_url(self, module_org):
+    def test_positive_create_update_url(self, module_org, module_target_sat):
         """Create media entity providing the initial url path, then
         update that url to another valid one.
 
@@ -120,15 +123,15 @@ class TestMedia:
         :CaseImportance: Medium
         """
         url = gen_url(subdomain=gen_string('alpha'))
-        media = entities.Media(organization=[module_org], path_=url).create()
+        media = module_target_sat.api.Media(organization=[module_org], path_=url).create()
         assert media.path_ == url
         new_url = gen_url(subdomain=gen_string('alpha'))
-        media = entities.Media(id=media.id, path_=new_url).update(['path_'])
+        media = module_target_sat.api.Media(id=media.id, path_=new_url).update(['path_'])
         assert media.path_ == new_url
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_invalid_name(self, name):
+    def test_negative_create_with_invalid_name(self, name, target_sat):
         """Try to create media entity providing an invalid name
 
         :id: 0934f4dc-f674-40fe-a639-035761139c83
@@ -140,10 +143,10 @@ class TestMedia:
         :CaseImportance: Medium
         """
         with pytest.raises(HTTPError):
-            entities.Media(name=name).create()
+            target_sat.api.Media(name=name).create()
 
     @pytest.mark.tier1
-    def test_negative_create_with_invalid_url(self):
+    def test_negative_create_with_invalid_url(self, target_sat):
         """Try to create media entity providing an invalid URL
 
         :id: ae00b6bb-37ed-459e-b9f7-acc92ed0b262
@@ -153,10 +156,10 @@ class TestMedia:
         :CaseImportance: Medium
         """
         with pytest.raises(HTTPError):
-            entities.Media(path_='NON_EXISTENT_URL').create()
+            target_sat.api.Media(path_='NON_EXISTENT_URL').create()
 
     @pytest.mark.tier1
-    def test_negative_create_with_invalid_os_family(self):
+    def test_negative_create_with_invalid_os_family(self, target_sat):
         """Try to create media entity providing an invalid OS family
 
         :id: 368b7eac-8c52-4071-89c0-1946d7101291
@@ -166,11 +169,11 @@ class TestMedia:
         :CaseImportance: Medium
         """
         with pytest.raises(HTTPError):
-            entities.Media(os_family='NON_EXISTENT_OS').create()
+            target_sat.api.Media(os_family='NON_EXISTENT_OS').create()
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-    def test_negative_update_name(self, module_org, class_media, new_name):
+    def test_negative_update_name(self, class_media, new_name, target_sat):
         """Create media entity providing the initial name, then try to
         update its name to invalid one.
 
@@ -183,10 +186,10 @@ class TestMedia:
         :CaseImportance: Medium
         """
         with pytest.raises(HTTPError):
-            entities.Media(id=class_media.id, name=new_name).update(['name'])
+            target_sat.api.Media(id=class_media.id, name=new_name).update(['name'])
 
     @pytest.mark.tier1
-    def test_negative_update_url(self, module_org, class_media):
+    def test_negative_update_url(self, class_media, target_sat):
         """Try to update media with invalid url.
 
         :id: 6832f178-4adc-4bb1-957d-0d8d4fd8d9cd
@@ -196,10 +199,10 @@ class TestMedia:
         :CaseImportance: Medium
         """
         with pytest.raises(HTTPError):
-            entities.Media(id=class_media.id, path_='NON_EXISTENT_URL').update(['path_'])
+            target_sat.api.Media(id=class_media.id, path_='NON_EXISTENT_URL').update(['path_'])
 
     @pytest.mark.tier1
-    def test_negative_update_os_family(self, module_org, class_media):
+    def test_negative_update_os_family(self, class_media, target_sat):
         """Try to update media with invalid operation system.
 
         :id: f4c5438d-5f98-40b1-9bc7-c0741e81303a
@@ -209,4 +212,6 @@ class TestMedia:
         :CaseImportance: Medium
         """
         with pytest.raises(HTTPError):
-            entities.Media(id=class_media.id, os_family='NON_EXISTENT_OS').update(['os_family'])
+            target_sat.api.Media(id=class_media.id, os_family='NON_EXISTENT_OS').update(
+                ['os_family']
+            )

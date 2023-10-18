@@ -16,13 +16,12 @@
 
 :Upstream: No
 """
-from nailgun import entities
 import pytest
 from requests.exceptions import HTTPError
 
 
 @pytest.mark.tier1
-def test_negative_fetch_non_existent_task():
+def test_negative_fetch_non_existent_task(target_sat):
     """Fetch a non-existent task.
 
     :id: a2a81ca2-63c4-47f5-9314-5852f5e2617f
@@ -32,13 +31,13 @@ def test_negative_fetch_non_existent_task():
     :CaseImportance: Critical
     """
     with pytest.raises(HTTPError):
-        entities.ForemanTask(id='abc123').read()
+        target_sat.api.ForemanTask(id='abc123').read()
 
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
 @pytest.mark.e2e
-def test_positive_get_summary():
+def test_positive_get_summary(target_sat):
     """Get a summary of foreman tasks.
 
     :id: bdcab413-a25d-4fe1-9db4-b50b5c31ebce
@@ -47,7 +46,7 @@ def test_positive_get_summary():
 
     :CaseImportance: Critical
     """
-    summary = entities.ForemanTask().summary()
+    summary = target_sat.api.ForemanTask().summary()
     assert isinstance(summary, list)
     for item in summary:
         assert isinstance(item, dict)

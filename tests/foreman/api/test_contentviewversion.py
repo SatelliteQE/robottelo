@@ -17,7 +17,6 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 from requests.exceptions import HTTPError
 
@@ -31,11 +30,13 @@ from robottelo.constants import (
 
 
 @pytest.fixture(scope='module')
-def module_lce_cv(module_org):
+def module_lce_cv(module_org, module_target_sat):
     """Create some entities for all tests."""
-    lce1 = entities.LifecycleEnvironment(organization=module_org).create()
-    lce2 = entities.LifecycleEnvironment(organization=module_org, prior=lce1).create()
-    default_cv = entities.ContentView(organization=module_org, name=DEFAULT_CV).search()
+    lce1 = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    lce2 = module_target_sat.api.LifecycleEnvironment(organization=module_org, prior=lce1).create()
+    default_cv = module_target_sat.api.ContentView(
+        organization=module_org, name=DEFAULT_CV
+    ).search()
     default_cvv = default_cv[0].version[0]
     return lce1, lce2, default_cvv
 
@@ -68,7 +69,7 @@ def test_positive_create(module_cv):
 
 
 @pytest.mark.tier2
-def test_negative_create(module_org):
+def test_negative_create(module_org, module_target_sat):
     """Attempt to create content view version using the 'Default Content View'.
 
     :id: 0afd49c6-f3a4-403e-9929-849f51ffa922
@@ -80,7 +81,7 @@ def test_negative_create(module_org):
     :CaseImportance: Critical
     """
     # The default content view cannot be published
-    cv = entities.ContentView(organization=module_org.id, name=DEFAULT_CV).search()
+    cv = module_target_sat.api.ContentView(organization=module_org.id, name=DEFAULT_CV).search()
     # There should be only 1 record returned
     assert len(cv) == 1
     with pytest.raises(HTTPError):
@@ -91,8 +92,8 @@ def test_negative_create(module_org):
 
 
 @pytest.mark.tier2
-def test_positive_promote_valid_environment(module_lce_cv, module_org):
-    """Promote a content view version to 'next in sequence lifecycle environment.
+def test_positive_promote_valid_environment(module_lce_cv, module_org, module_target_sat):
+    """Promote a content view version to next in sequence lifecycle environment.
 
     :id: f205ca06-8ab5-4546-83bd-deac4363d487
 
@@ -103,7 +104,7 @@ def test_positive_promote_valid_environment(module_lce_cv, module_org):
     :CaseImportance: Critical
     """
     # Create a new content view...
-    cv = entities.ContentView(organization=module_org).create()
+    cv = module_target_sat.api.ContentView(organization=module_org).create()
     # ... and promote it.
     cv.publish()
     # Refresh the entity
@@ -123,7 +124,7 @@ def test_positive_promote_valid_environment(module_lce_cv, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_promote_out_of_sequence_environment(module_org, module_lce_cv):
+def test_positive_promote_out_of_sequence_environment(module_org, module_lce_cv, module_target_sat):
     """Promote a content view version to a lifecycle environment
     that is 'out of sequence'.
 
@@ -134,7 +135,7 @@ def test_positive_promote_out_of_sequence_environment(module_org, module_lce_cv)
     :CaseLevel: Integration
     """
     # Create a new content view...
-    cv = entities.ContentView(organization=module_org).create()
+    cv = module_target_sat.api.ContentView(organization=module_org).create()
     # ... and publish it.
     cv.publish()
     # Refresh the entity
@@ -168,7 +169,7 @@ def test_negative_promote_valid_environment(module_lce_cv):
 
 
 @pytest.mark.tier2
-def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org):
+def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org, module_target_sat):
     """Attempt to promote a content view version to a Lifecycle environment
     that is 'out of sequence'.
 
@@ -179,7 +180,7 @@ def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org)
     :CaseLevel: Integration
     """
     # Create a new content view...
-    cv = entities.ContentView(organization=module_org).create()
+    cv = module_target_sat.api.ContentView(organization=module_org).create()
     # ... and publish it.
     cv.publish()
     # Refresh the entity
@@ -197,7 +198,7 @@ def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org)
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_delete(module_org, module_product):
+def test_positive_delete(module_org, module_product, module_target_sat):
     """Create content view and publish it. After that try to
     disassociate content view from 'Library' environment through
     'delete_from_environment' command and delete content view version from
@@ -213,15 +214,15 @@ def test_positive_delete(module_org, module_product):
     :CaseImportance: Critical
     """
     key_content = DataFile.ZOO_CUSTOM_GPG_KEY.read_text()
-    gpgkey = entities.GPGKey(content=key_content, organization=module_org).create()
+    gpgkey = module_target_sat.api.GPGKey(content=key_content, organization=module_org).create()
     # Creates new repository with GPGKey
-    repo = entities.Repository(
+    repo = module_target_sat.api.Repository(
         gpg_key=gpgkey, product=module_product, url=settings.repos.yum_1.url
     ).create()
     # sync repository
     repo.sync()
     # Create content view
-    content_view = entities.ContentView(organization=module_org).create()
+    content_view = module_target_sat.api.ContentView(organization=module_org).create()
     # Associate repository to new content view
     content_view.repository = [repo]
     content_view = content_view.update(['repository'])
@@ -242,7 +243,7 @@ def test_positive_delete(module_org, module_product):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_delete_non_default(module_org):
+def test_positive_delete_non_default(module_org, module_target_sat):
     """Create content view and publish and promote it to new
     environment. After that try to disassociate content view from 'Library'
     and one more non-default environment through 'delete_from_environment'
@@ -256,13 +257,13 @@ def test_positive_delete_non_default(module_org):
 
     :CaseImportance: Critical
     """
-    content_view = entities.ContentView(organization=module_org).create()
+    content_view = module_target_sat.api.ContentView(organization=module_org).create()
     # Publish content view
     content_view.publish()
     content_view = content_view.read()
     assert len(content_view.version) == 1
     assert len(content_view.version[0].read().environment) == 1
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
     content_view.version[0].promote(data={'environment_ids': lce.id, 'force': False})
     cvv = content_view.version[0].read()
     assert len(cvv.environment) == 2
@@ -277,7 +278,7 @@ def test_positive_delete_non_default(module_org):
 @pytest.mark.upgrade
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_delete_composite_version(module_org):
+def test_positive_delete_composite_version(module_org, module_target_sat):
     """Create composite content view and publish it. After that try to
     disassociate content view from 'Library' environment through
     'delete_from_environment' command and delete content view version from
@@ -293,14 +294,16 @@ def test_positive_delete_composite_version(module_org):
     :BZ: 1276479
     """
     # Create product with repository and publish it
-    product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(product=product, url=settings.repos.yum_1.url).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
+    repo = module_target_sat.api.Repository(product=product, url=settings.repos.yum_1.url).create()
     repo.sync()
     # Create and publish content views
-    content_view = entities.ContentView(organization=module_org, repository=[repo]).create()
+    content_view = module_target_sat.api.ContentView(
+        organization=module_org, repository=[repo]
+    ).create()
     content_view.publish()
     # Create and publish composite content view
-    composite_cv = entities.ContentView(
+    composite_cv = module_target_sat.api.ContentView(
         organization=module_org, composite=True, component=[content_view.read().version[0]]
     ).create()
     composite_cv.publish()
@@ -318,7 +321,7 @@ def test_positive_delete_composite_version(module_org):
 
 
 @pytest.mark.tier2
-def test_negative_delete(module_org):
+def test_negative_delete(module_org, module_target_sat):
     """Create content view and publish it. Try to delete content
     view version while content view is still associated with lifecycle
     environment
@@ -331,7 +334,7 @@ def test_negative_delete(module_org):
 
     :CaseImportance: Critical
     """
-    content_view = entities.ContentView(organization=module_org).create()
+    content_view = module_target_sat.api.ContentView(organization=module_org).create()
     # Publish content view
     content_view.publish()
     content_view = content_view.read()
@@ -344,7 +347,7 @@ def test_negative_delete(module_org):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_renamed_cv_version_from_default_env(module_org):
+def test_positive_remove_renamed_cv_version_from_default_env(module_org, module_target_sat):
     """Remove version of renamed content view from Library environment
 
     :id: 7d5961d0-6a9a-4610-979e-cbc4ddbc50ca
@@ -364,11 +367,13 @@ def test_positive_remove_renamed_cv_version_from_default_env(module_org):
     """
     new_name = gen_string('alpha')
     # create yum product and repo
-    product = entities.Product(organization=module_org).create()
-    yum_repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
+    yum_repo = module_target_sat.api.Repository(
+        url=settings.repos.yum_1.url, product=product
+    ).create()
     yum_repo.sync()
     # create a content view and add the yum repo to it
-    content_view = entities.ContentView(organization=module_org).create()
+    content_view = module_target_sat.api.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo]
     content_view = content_view.update(['repository'])
     # publish the content view
@@ -377,7 +382,9 @@ def test_positive_remove_renamed_cv_version_from_default_env(module_org):
     assert len(content_view.version) == 1
     content_view_version = content_view.version[0].read()
     assert len(content_view_version.environment) == 1
-    lce_library = entities.LifecycleEnvironment(id=content_view_version.environment[0].id).read()
+    lce_library = module_target_sat.api.LifecycleEnvironment(
+        id=content_view_version.environment[0].id
+    ).read()
     # ensure that the content view version is promoted to the Library
     # lifecycle environment
     assert lce_library.name == ENVIRONMENT
@@ -393,7 +400,7 @@ def test_positive_remove_renamed_cv_version_from_default_env(module_org):
 
 
 @pytest.mark.tier2
-def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org):
+def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org, module_target_sat):
     """Remove QE promoted content view version from Library environment
 
     :id: c7795762-93bd-419c-ac49-d10dc26b842b
@@ -412,10 +419,12 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org):
 
     :CaseLevel: Integration
     """
-    lce_dev = entities.LifecycleEnvironment(organization=module_org).create()
-    lce_qe = entities.LifecycleEnvironment(organization=module_org, prior=lce_dev).create()
-    product = entities.Product(organization=module_org).create()
-    docker_repo = entities.Repository(
+    lce_dev = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    lce_qe = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce_dev
+    ).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
+    docker_repo = module_target_sat.api.Repository(
         content_type='docker',
         docker_upstream_name='busybox',
         product=product,
@@ -423,7 +432,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org):
     ).create()
     docker_repo.sync()
     # create a content view and add to it the docker repo
-    content_view = entities.ContentView(organization=module_org).create()
+    content_view = module_target_sat.api.ContentView(organization=module_org).create()
     content_view.repository = [docker_repo]
     content_view = content_view.update(['repository'])
     # publish the content view
@@ -432,7 +441,9 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org):
     assert len(content_view.version) == 1
     content_view_version = content_view.version[0].read()
     assert len(content_view_version.environment) == 1
-    lce_library = entities.LifecycleEnvironment(id=content_view_version.environment[0].id).read()
+    lce_library = module_target_sat.api.LifecycleEnvironment(
+        id=content_view_version.environment[0].id
+    ).read()
     assert lce_library.name == ENVIRONMENT
     # promote content view version to DEV and QE lifecycle environments
     for lce in [lce_dev, lce_qe]:
@@ -449,7 +460,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
+def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org, module_target_sat):
     """Remove PROD promoted content view version from Library environment
 
     :id: 24911876-7c2a-4a12-a3aa-98051dfda29d
@@ -468,13 +479,19 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
 
     :CaseLevel: Integration
     """
-    lce_dev = entities.LifecycleEnvironment(organization=module_org).create()
-    lce_qe = entities.LifecycleEnvironment(organization=module_org, prior=lce_dev).create()
-    lce_prod = entities.LifecycleEnvironment(organization=module_org, prior=lce_qe).create()
-    product = entities.Product(organization=module_org).create()
-    yum_repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
+    lce_dev = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    lce_qe = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce_dev
+    ).create()
+    lce_prod = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce_qe
+    ).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
+    yum_repo = module_target_sat.api.Repository(
+        url=settings.repos.yum_1.url, product=product
+    ).create()
     yum_repo.sync()
-    docker_repo = entities.Repository(
+    docker_repo = module_target_sat.api.Repository(
         content_type='docker',
         docker_upstream_name='busybox',
         product=product,
@@ -482,7 +499,7 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
     ).create()
     docker_repo.sync()
     # create a content view and add to it the yum and docker repos
-    content_view = entities.ContentView(organization=module_org).create()
+    content_view = module_target_sat.api.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo, docker_repo]
     content_view = content_view.update(['repository'])
     # publish the content view
@@ -491,7 +508,9 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
     assert len(content_view.version) == 1
     content_view_version = content_view.version[0].read()
     assert len(content_view_version.environment) == 1
-    lce_library = entities.LifecycleEnvironment(id=content_view_version.environment[0].id).read()
+    lce_library = module_target_sat.api.LifecycleEnvironment(
+        id=content_view_version.environment[0].id
+    ).read()
     assert lce_library.name == ENVIRONMENT
     # promote content view version to DEV QE PROD lifecycle environments
     for lce in [lce_dev, lce_qe, lce_prod]:
@@ -510,7 +529,7 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_cv_version_from_env(module_org):
+def test_positive_remove_cv_version_from_env(module_org, module_target_sat):
     """Remove promoted content view version from environment
 
     :id: 17cf18bf-09d5-4641-b0e0-c50e628fa6c8
@@ -532,15 +551,23 @@ def test_positive_remove_cv_version_from_env(module_org):
 
     :CaseLevel: Integration
     """
-    lce_dev = entities.LifecycleEnvironment(organization=module_org).create()
-    lce_qe = entities.LifecycleEnvironment(organization=module_org, prior=lce_dev).create()
-    lce_stage = entities.LifecycleEnvironment(organization=module_org, prior=lce_qe).create()
-    lce_prod = entities.LifecycleEnvironment(organization=module_org, prior=lce_stage).create()
-    product = entities.Product(organization=module_org).create()
-    yum_repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
+    lce_dev = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    lce_qe = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce_dev
+    ).create()
+    lce_stage = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce_qe
+    ).create()
+    lce_prod = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce_stage
+    ).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
+    yum_repo = module_target_sat.api.Repository(
+        url=settings.repos.yum_1.url, product=product
+    ).create()
     yum_repo.sync()
     # docker repo
-    docker_repo = entities.Repository(
+    docker_repo = module_target_sat.api.Repository(
         content_type='docker',
         docker_upstream_name='busybox',
         product=product,
@@ -548,7 +575,7 @@ def test_positive_remove_cv_version_from_env(module_org):
     ).create()
     docker_repo.sync()
     # create a content view and add the yum and docker repo to it
-    content_view = entities.ContentView(organization=module_org).create()
+    content_view = module_target_sat.api.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo, docker_repo]
     content_view = content_view.update(['repository'])
     # publish the content view
@@ -557,7 +584,9 @@ def test_positive_remove_cv_version_from_env(module_org):
     assert len(content_view.version) == 1
     content_view_version = content_view.version[0].read()
     assert len(content_view_version.environment) == 1
-    lce_library = entities.LifecycleEnvironment(id=content_view_version.environment[0].id).read()
+    lce_library = module_target_sat.api.LifecycleEnvironment(
+        id=content_view_version.environment[0].id
+    ).read()
     assert lce_library.name == ENVIRONMENT
     # promote content view version to DEV QE STAGE PROD lifecycle
     # environments
@@ -582,7 +611,7 @@ def test_positive_remove_cv_version_from_env(module_org):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_cv_version_from_multi_env(module_org):
+def test_positive_remove_cv_version_from_multi_env(module_org, module_target_sat):
     """Remove promoted content view version from multiple environments
 
     :id: 18b86a68-8e6a-43ea-b95e-188fba125a26
@@ -602,14 +631,22 @@ def test_positive_remove_cv_version_from_multi_env(module_org):
 
     :CaseImportance: Low
     """
-    lce_dev = entities.LifecycleEnvironment(organization=module_org).create()
-    lce_qe = entities.LifecycleEnvironment(organization=module_org, prior=lce_dev).create()
-    lce_stage = entities.LifecycleEnvironment(organization=module_org, prior=lce_qe).create()
-    lce_prod = entities.LifecycleEnvironment(organization=module_org, prior=lce_stage).create()
-    product = entities.Product(organization=module_org).create()
-    yum_repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
+    lce_dev = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    lce_qe = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce_dev
+    ).create()
+    lce_stage = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce_qe
+    ).create()
+    lce_prod = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce_stage
+    ).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
+    yum_repo = module_target_sat.api.Repository(
+        url=settings.repos.yum_1.url, product=product
+    ).create()
     yum_repo.sync()
-    docker_repo = entities.Repository(
+    docker_repo = module_target_sat.api.Repository(
         content_type='docker',
         docker_upstream_name='busybox',
         product=product,
@@ -617,7 +654,7 @@ def test_positive_remove_cv_version_from_multi_env(module_org):
     ).create()
     docker_repo.sync()
     # create a content view and add the yum repo to it
-    content_view = entities.ContentView(organization=module_org).create()
+    content_view = module_target_sat.api.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo, docker_repo]
     content_view = content_view.update(['repository'])
     # publish the content view
@@ -626,7 +663,9 @@ def test_positive_remove_cv_version_from_multi_env(module_org):
     assert len(content_view.version) == 1
     content_view_version = content_view.version[0].read()
     assert len(content_view_version.environment) == 1
-    lce_library = entities.LifecycleEnvironment(id=content_view_version.environment[0].id).read()
+    lce_library = module_target_sat.api.LifecycleEnvironment(
+        id=content_view_version.environment[0].id
+    ).read()
     assert lce_library.name == ENVIRONMENT
     # promote content view version to DEV QE STAGE PROD lifecycle
     # environments
@@ -648,7 +687,7 @@ def test_positive_remove_cv_version_from_multi_env(module_org):
 @pytest.mark.upgrade
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_delete_cv_promoted_to_multi_env(module_org):
+def test_positive_delete_cv_promoted_to_multi_env(module_org, module_target_sat):
     """Delete published content view with version promoted to multiple
      environments
 
@@ -664,20 +703,28 @@ def test_positive_delete_cv_promoted_to_multi_env(module_org):
         5. Delete the content view, this should delete the content with all
            it's published/promoted versions from all environments
 
-    :expectedresults: The content view doesn't exists
+    :expectedresults: The content view doesn't exist
 
     :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
-    lce_dev = entities.LifecycleEnvironment(organization=module_org).create()
-    lce_qe = entities.LifecycleEnvironment(organization=module_org, prior=lce_dev).create()
-    lce_stage = entities.LifecycleEnvironment(organization=module_org, prior=lce_qe).create()
-    lce_prod = entities.LifecycleEnvironment(organization=module_org, prior=lce_stage).create()
-    product = entities.Product(organization=module_org).create()
-    yum_repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
+    lce_dev = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    lce_qe = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce_dev
+    ).create()
+    lce_stage = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce_qe
+    ).create()
+    lce_prod = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce_stage
+    ).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
+    yum_repo = module_target_sat.api.Repository(
+        url=settings.repos.yum_1.url, product=product
+    ).create()
     yum_repo.sync()
-    docker_repo = entities.Repository(
+    docker_repo = module_target_sat.api.Repository(
         content_type='docker',
         docker_upstream_name='busybox',
         product=product,
@@ -685,7 +732,7 @@ def test_positive_delete_cv_promoted_to_multi_env(module_org):
     ).create()
     docker_repo.sync()
     # create a content view and add the yum repo to it
-    content_view = entities.ContentView(organization=module_org).create()
+    content_view = module_target_sat.api.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo, docker_repo]
     content_view = content_view.update(['repository'])
     # publish the content view
@@ -694,7 +741,9 @@ def test_positive_delete_cv_promoted_to_multi_env(module_org):
     assert len(content_view.version) == 1
     content_view_version = content_view.version[0].read()
     assert len(content_view_version.environment) == 1
-    lce_library = entities.LifecycleEnvironment(id=content_view_version.environment[0].id).read()
+    lce_library = module_target_sat.api.LifecycleEnvironment(
+        id=content_view_version.environment[0].id
+    ).read()
     assert lce_library.name == ENVIRONMENT
     # promote content view version to DEV QE STAGE PROD lifecycle
     # environments
