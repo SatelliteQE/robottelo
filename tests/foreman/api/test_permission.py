@@ -72,7 +72,7 @@ class TestPermission:
         cls.permission_names = list(chain.from_iterable(cls.permissions.values()))
 
     @pytest.mark.tier1
-    def test_positive_search_by_name(self):
+    def test_positive_search_by_name(self, target_sat):
         """Search for a permission by name.
 
         :id: 1b6117f6-599d-4b2d-80a8-1e0764bdc04d
@@ -84,7 +84,9 @@ class TestPermission:
         """
         failures = {}
         for permission_name in self.permission_names:
-            results = entities.Permission().search(query={'search': f'name="{permission_name}"'})
+            results = target_sat.api.Permission().search(
+                query={'search': f'name="{permission_name}"'}
+            )
             if len(results) != 1 or len(results) == 1 and results[0].name != permission_name:
                 failures[permission_name] = {
                     'length': len(results),
@@ -95,7 +97,7 @@ class TestPermission:
             pytest.fail(json.dumps(failures, indent=True, sort_keys=True))
 
     @pytest.mark.tier1
-    def test_positive_search_by_resource_type(self):
+    def test_positive_search_by_resource_type(self, target_sat):
         """Search for permissions by resource type.
 
         :id: 29d9362b-1bf3-4722-b40f-a5e8b4d0d9ba
@@ -109,7 +111,7 @@ class TestPermission:
         for resource_type in self.permission_resource_types:
             if resource_type is None:
                 continue
-            perm_group = entities.Permission().search(
+            perm_group = target_sat.api.Permission().search(
                 query={'search': f'resource_type="{resource_type}"'}
             )
             permissions = {perm.name for perm in perm_group}
@@ -128,7 +130,7 @@ class TestPermission:
             pytest.fail(json.dumps(failures, indent=True, sort_keys=True))
 
     @pytest.mark.tier1
-    def test_positive_search(self):
+    def test_positive_search(self, target_sat):
         """search with no parameters return all permissions
 
         :id: e58308df-19ec-415d-8fa1-63ebf3cd0ad6
@@ -137,7 +139,7 @@ class TestPermission:
 
         :CaseImportance: Critical
         """
-        permissions = entities.Permission().search(query={'per_page': '1000'})
+        permissions = target_sat.api.Permission().search(query={'per_page': '1000'})
         names = {perm.name for perm in permissions}
         resource_types = {perm.resource_type for perm in permissions}
         expected_names = set(self.permission_names)
@@ -206,7 +208,7 @@ class TestUserRole:
             location=[class_location],
         ).create()
 
-    def give_user_permission(self, perm_name):
+    def give_user_permission(self, perm_name, target_sat):
         """Give ``self.user`` the ``perm_name`` permission.
 
         This method creates a role and filter to accomplish the above goal.
@@ -222,10 +224,10 @@ class TestUserRole:
             updating ``self.user``'s roles.
         :returns: Nothing.
         """
-        role = entities.Role().create()
-        permissions = entities.Permission().search(query={'search': f'name="{perm_name}"'})
+        role = target_sat.api.Role().create()
+        permissions = target_sat.api.Permission().search(query={'search': f'name="{perm_name}"'})
         assert len(permissions) == 1
-        entities.Filter(permission=permissions, role=role).create()
+        target_sat.api.Filter(permission=permissions, role=role).create()
         self.user.role += [role]
         self.user = self.user.update(['role'])
 
@@ -347,7 +349,7 @@ class TestUserRole:
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
     )
-    def test_positive_check_update(self, entity_cls, class_org, class_location):
+    def test_positive_check_update(self, entity_cls, class_org, class_location, target_sat):
         """Check whether the "edit_*" role has an effect.
 
         :id: b5de2115-b031-413e-8e5b-eac8cb714174

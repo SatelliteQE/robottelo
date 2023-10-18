@@ -18,7 +18,6 @@
 """
 import re
 
-from nailgun import entities
 import pytest
 from requests.exceptions import HTTPError
 from wait_for import TimedOutError, wait_for
@@ -68,7 +67,7 @@ def assert_event_triggered(channel, event):
 
 class TestWebhook:
     @pytest.mark.tier2
-    def test_negative_invalid_event(self):
+    def test_negative_invalid_event(self, target_sat):
         """Test negative webhook creation with an invalid event
 
         :id: 60cd456a-9943-45cb-a72e-23a83a691499
@@ -78,11 +77,11 @@ class TestWebhook:
         :CaseImportance: High
         """
         with pytest.raises(HTTPError):
-            entities.Webhooks(event='invalid_event').create()
+            target_sat.api.Webhooks(event='invalid_event').create()
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('event', **parametrized(WEBHOOK_EVENTS))
-    def test_positive_valid_event(self, event):
+    def test_positive_valid_event(self, event, target_sat):
         """Test positive webhook creation with a valid event
 
         :id: 9b505f1b-7ee1-4362-b44c-f3107d043a05
@@ -91,11 +90,11 @@ class TestWebhook:
 
         :CaseImportance: High
         """
-        hook = entities.Webhooks(event=event).create()
+        hook = target_sat.api.Webhooks(event=event).create()
         assert event in hook.event
 
     @pytest.mark.tier2
-    def test_negative_invalid_method(self):
+    def test_negative_invalid_method(self, target_sat):
         """Test negative webhook creation with an invalid HTTP method
 
         :id: 573be312-7bf3-4d9e-aca1-e5cac810d04b
@@ -105,11 +104,11 @@ class TestWebhook:
         :CaseImportance: High
         """
         with pytest.raises(HTTPError):
-            entities.Webhooks(http_method='NONE').create()
+            target_sat.api.Webhooks(http_method='NONE').create()
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('method', **parametrized(WEBHOOK_METHODS))
-    def test_positive_valid_method(self, method):
+    def test_positive_valid_method(self, method, target_sat):
         """Test positive webhook creation with a valid HTTP method
 
         :id: cf8f276a-d21e-44d0-92f2-657232240c7e
@@ -118,12 +117,12 @@ class TestWebhook:
 
         :CaseImportance: High
         """
-        hook = entities.Webhooks(http_method=method).create()
+        hook = target_sat.api.Webhooks(http_method=method).create()
         assert hook.http_method == method
 
     @pytest.mark.tier1
     @pytest.mark.e2e
-    def test_positive_end_to_end(self):
+    def test_positive_end_to_end(self, target_sat):
         """Create a new webhook.
 
         :id: 7593a04e-cf7e-414c-9e7e-3fe2936cc32a
@@ -132,7 +131,7 @@ class TestWebhook:
 
         :CaseImportance: Critical
         """
-        hook = entities.Webhooks().create()
+        hook = target_sat.api.Webhooks().create()
         assert hook
         hook.name = "testing"
         hook.http_method = "GET"
@@ -149,7 +148,7 @@ class TestWebhook:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     @pytest.mark.tier2
-    def test_positive_event_triggered(self, module_org, target_sat):
+    def test_positive_event_triggered(self, module_org, module_target_sat):
         """Create a webhook and trigger the event
         associated with it.
 
@@ -160,13 +159,13 @@ class TestWebhook:
 
         :CaseImportance: Critical
         """
-        hook = entities.Webhooks(
+        hook = module_target_sat.api.Webhooks(
             event='actions.katello.repository.sync_succeeded', http_method='GET'
         ).create()
-        repo = entities.Repository(
+        repo = module_target_sat.api.Repository(
             organization=module_org, content_type='yum', url=settings.repos.yum_0.url
         ).create()
-        with target_sat.session.shell() as shell:
+        with module_target_sat.api.session.shell() as shell:
             shell.send('foreman-tail')
             repo.sync()
             assert_event_triggered(shell, hook.event)
