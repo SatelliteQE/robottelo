@@ -19,7 +19,6 @@ https://theforeman.org/plugins/katello/3.16/api/apidoc/v2/repository_sets.html
 
 :Upstream: No
 """
-from nailgun import entities
 import pytest
 
 from robottelo.constants import PRDS, REPOSET
@@ -33,17 +32,17 @@ RELEASE = '6Server'
 
 
 @pytest.fixture
-def product(function_entitlement_manifest_org):
+def product(function_entitlement_manifest_org, module_target_sat):
     """Find and return the product matching PRODUCT_NAME."""
-    return entities.Product(
+    return module_target_sat.api.Product(
         name=PRODUCT_NAME, organization=function_entitlement_manifest_org
     ).search()[0]
 
 
 @pytest.fixture
-def reposet(product):
+def reposet(product, module_target_sat):
     """Find and return the repository set matching REPOSET_NAME and product."""
-    return entities.RepositorySet(name=REPOSET_NAME, product=product).search()[0]
+    return module_target_sat.api.RepositorySet(name=REPOSET_NAME, product=product).search()[0]
 
 
 @pytest.fixture
