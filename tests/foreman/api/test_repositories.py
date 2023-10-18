@@ -17,7 +17,6 @@
 :Upstream: No
 """
 from manifester import Manifester
-from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
 from requests.exceptions import HTTPError
@@ -179,7 +178,7 @@ def test_positive_sync_kickstart_repo(module_entitlement_manifest_org, target_sa
         repo=constants.REPOS['kickstart'][distro]['name'],
         releasever=constants.REPOS['kickstart'][distro]['version'],
     )
-    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
     rh_repo.download_policy = 'immediate'
     rh_repo = rh_repo.update(['download_policy'])

@@ -21,7 +21,7 @@ from datetime import datetime
 import re
 from time import sleep
 
-from nailgun import client, entities
+from nailgun import client
 from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
 
@@ -43,9 +43,13 @@ class TestCapsuleContentManagement:
     interactions and use capsule.
     """
 
-    def update_capsule_download_policy(self, module_capsule_configured, download_policy):
+    def update_capsule_download_policy(
+        self, module_capsule_configured, download_policy, module_target_sat
+    ):
         """Updates capsule's download policy to desired value"""
-        proxy = entities.SmartProxy(id=module_capsule_configured.nailgun_capsule.id).read()
+        proxy = module_target_sat.api.SmartProxy(
+            id=module_capsule_configured.nailgun_capsule.id
+        ).read()
         proxy.download_policy = download_policy
         proxy.update(['download_policy'])
 
@@ -78,7 +82,12 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_uploaded_content_library_sync(
-        self, module_capsule_configured, function_org, function_product, function_lce_library
+        self,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce_library,
+        target_sat,
     ):
         """Ensure custom repo with no upstream url and manually uploaded
         content after publishing to Library is synchronized to capsule
@@ -92,7 +101,7 @@ class TestCapsuleContentManagement:
 
         :expectedresults: custom content is present on external capsule
         """
-        repo = entities.Repository(product=function_product, url=None).create()
+        repo = target_sat.api.Repository(product=function_product, url=None).create()
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': function_lce_library.id}
@@ -103,7 +112,7 @@ class TestCapsuleContentManagement:
         assert function_lce_library.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create a content view with the repository
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
 
         # Upload custom content into the repo
         with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
@@ -134,7 +143,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_checksum_sync(
-        self, module_capsule_configured, function_org, function_product, function_lce
+        self, module_capsule_configured, function_org, function_product, function_lce, target_sat
     ):
         """Synchronize repository to capsule, update repository's checksum
         type, trigger capsule sync and make sure checksum type was updated on
@@ -152,7 +161,7 @@ class TestCapsuleContentManagement:
         :CaseImportance: Critical
         """
         # Create repository with sha256 checksum type
-        repo = entities.Repository(
+        repo = target_sat.api.Repository(
             product=function_product,
             checksum_type='sha256',
             mirroring_policy='additive',
@@ -168,7 +177,7 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Sync, publish and promote a repo
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
         repo.sync()
         repo = repo.read()
         cv.publish()
@@ -227,7 +236,12 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_updated_repo(
-        self, target_sat, module_capsule_configured, function_org, function_product, function_lce
+        self,
+        target_sat,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce,
     ):
         """Sync a custom repo with no upstream url but uploaded content to the Capsule via
         promoted CV, update content of the repo, publish and promote the CV again, resync
@@ -255,7 +269,7 @@ class TestCapsuleContentManagement:
 
         :BZ: 2025494
         """
-        repo = entities.Repository(url=None, product=function_product).create()
+        repo = target_sat.api.Repository(url=None, product=function_product).create()
 
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
@@ -273,7 +287,7 @@ class TestCapsuleContentManagement:
         assert repo.read().content_counts['rpm'] == 1
 
         # Create, publish and promote CV with the repository to the Capsule's LCE
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
         cv.publish()
         cv = cv.read()
         assert len(cv.version) == 1
@@ -327,7 +341,12 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_capsule_sync(
-        self, target_sat, module_capsule_configured, function_org, function_product, function_lce
+        self,
+        target_sat,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce,
     ):
         """Create repository, add it to lifecycle environment, assign lifecycle
         environment with a capsule, sync repository, sync it once again, update
@@ -351,7 +370,7 @@ class TestCapsuleContentManagement:
                capsule
         """
         repo_url = settings.repos.yum_1.url
-        repo = entities.Repository(product=function_product, url=repo_url).create()
+        repo = target_sat.api.Repository(product=function_product, url=repo_url).create()
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': function_lce.id}
@@ -362,7 +381,7 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create a content view with the repository
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
         # Sync repository
         repo.sync()
         repo = repo.read()
@@ -489,12 +508,12 @@ class TestCapsuleContentManagement:
             reposet=constants.REPOSET['rhsc7_iso'],
             releasever=None,
         )
-        rh_repo = entities.Repository(id=rh_repo_id).read()
+        rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
         call_entity_method_with_timeout(rh_repo.sync, timeout=2500)
         # Find "Library" lifecycle env for specific organization
-        lce = entities.LifecycleEnvironment(organization=module_entitlement_manifest_org).search(
-            query={'search': f'name={constants.ENVIRONMENT}'}
-        )[0]
+        lce = module_target_sat.api.LifecycleEnvironment(
+            organization=module_entitlement_manifest_org
+        ).search(query={'search': f'name={constants.ENVIRONMENT}'})[0]
 
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
@@ -506,7 +525,7 @@ class TestCapsuleContentManagement:
         assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create a content view with the repository
-        cv = entities.ContentView(
+        cv = module_target_sat.api.ContentView(
             organization=module_entitlement_manifest_org, repository=[rh_repo]
         ).create()
         # Publish new version of the content view
@@ -534,7 +553,12 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_on_demand_sync(
-        self, target_sat, module_capsule_configured, function_org, function_product, function_lce
+        self,
+        target_sat,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce,
     ):
         """Create a repository with 'on_demand' policy, add it to a CV,
         promote to an 'on_demand' Capsule's LCE, download a published package,
@@ -553,7 +577,7 @@ class TestCapsuleContentManagement:
         repo_url = settings.repos.yum_3.url
         packages_count = constants.FAKE_3_YUM_REPOS_COUNT
         package = constants.FAKE_3_YUM_REPO_RPMS[0]
-        repo = entities.Repository(
+        repo = target_sat.api.Repository(
             download_policy='on_demand',
             mirroring_policy='mirror_complete',
             product=function_product,
@@ -572,7 +596,7 @@ class TestCapsuleContentManagement:
         self.update_capsule_download_policy(module_capsule_configured, 'on_demand')
 
         # Create a content view with the repository
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
         # Sync repository
         repo.sync()
         repo = repo.read()
@@ -614,7 +638,12 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_update_with_immediate_sync(
-        self, target_sat, module_capsule_configured, function_org, function_product, function_lce
+        self,
+        target_sat,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce,
     ):
         """Create a repository with on_demand download policy, associate it
         with capsule, sync repo, update download policy to immediate, sync once
@@ -631,7 +660,7 @@ class TestCapsuleContentManagement:
         """
         repo_url = settings.repos.yum_1.url
         packages_count = constants.FAKE_1_YUM_REPOS_COUNT
-        repo = entities.Repository(
+        repo = target_sat.api.Repository(
             download_policy='on_demand',
             mirroring_policy='mirror_complete',
             product=function_product,
@@ -649,7 +678,7 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create a content view with the repository
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
         # Sync repository
         repo.sync()
         repo = repo.read()
@@ -762,8 +791,10 @@ class TestCapsuleContentManagement:
             repo=constants.REPOS['kickstart'][distro]['name'],
             releasever=constants.REPOS['kickstart'][distro]['version'],
         )
-        repo = entities.Repository(id=repo_id).read()
-        lce = entities.LifecycleEnvironment(organization=function_entitlement_manifest_org).create()
+        repo = target_sat.api.Repository(id=repo_id).read()
+        lce = target_sat.api.LifecycleEnvironment(
+            organization=function_entitlement_manifest_org
+        ).create()
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': lce.id}
@@ -777,7 +808,7 @@ class TestCapsuleContentManagement:
         self.update_capsule_download_policy(module_capsule_configured, 'on_demand')
 
         # Create a content view with the repository
-        cv = entities.ContentView(
+        cv = target_sat.api.ContentView(
             organization=function_entitlement_manifest_org, repository=[repo]
         ).create()
         # Sync repository
@@ -865,7 +896,7 @@ class TestCapsuleContentManagement:
         repos = []
 
         for ups_name in upstream_names:
-            repo = entities.Repository(
+            repo = target_sat.api.Repository(
                 content_type='docker',
                 docker_upstream_name=ups_name,
                 product=function_product,
@@ -883,7 +914,7 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create and publish a content view with all repositories
-        cv = entities.ContentView(organization=function_org, repository=repos).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=repos).create()
         cv.publish()
         cv = cv.read()
         assert len(cv.version) == 1
@@ -992,7 +1023,7 @@ class TestCapsuleContentManagement:
         - name: theforeman.operations
           version: "0.1.0"
         '''
-        repo = entities.Repository(
+        repo = target_sat.api.Repository(
             content_type='ansible_collection',
             ansible_collection_requirements=requirements,
             product=function_product,
@@ -1063,7 +1094,7 @@ class TestCapsuleContentManagement:
 
         :BZ: 1985122
         """
-        repo = entities.Repository(
+        repo = target_sat.api.Repository(
             content_type='file',
             product=function_product,
             url=constants.FAKE_FILE_LARGE_URL,
@@ -1083,7 +1114,7 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create and publish a content view with all repositories
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
         cv.publish()
         cv = cv.read()
         assert len(cv.version) == 1

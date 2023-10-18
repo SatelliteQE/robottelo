@@ -16,16 +16,34 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_choice, gen_integer
+from fauxfactory import gen_choice, gen_integer, gen_string
 import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.utils.datafactory import valid_data_list
 
 
+@pytest.fixture(scope='module')
+def module_hostgroup(module_org, module_target_sat):
+    module_hostgroup = module_target_sat.api.HostGroup(organization=[module_org]).create()
+    module_hostgroup.delete()
+
+
+@pytest.fixture(scope='module')
+def module_location(module_location):
+    yield module_location
+    module_location.delete()
+
+
+@pytest.fixture(scope='module')
+def module_org(module_org):
+    yield module_org
+    module_org.delete()
+
+
 @pytest.mark.tier1
 @pytest.mark.e2e
-def test_positive_end_to_end_crud(module_org, module_location, module_hostgroup, target_sat):
+def test_positive_end_to_end_crud(module_org, module_location, module_hostgroup, module_target_sat):
     """Create a new discovery rule with several attributes, update them
     and delete the rule itself.
 
@@ -47,7 +65,7 @@ def test_positive_end_to_end_crud(module_org, module_location, module_hostgroup,
     name = gen_choice(list(valid_data_list().values()))
     search = gen_choice(searches)
     hostname = 'myhost-<%= rand(99999) %>'
-    discovery_rule = target_sat.api.DiscoveryRule(
+    discovery_rule = module_target_sat.api.DiscoveryRule(
         name=name,
         search_=search,
         hostname=hostname,
@@ -83,6 +101,21 @@ def test_positive_end_to_end_crud(module_org, module_location, module_hostgroup,
         discovery_rule.read()
 
 
+@pytest.mark.tier1
+def test_negative_create_with_invalid_host_limit_and_priority(module_target_sat):
+    """Create a discovery rule with invalid host limit and priority
+
+    :id: e3c7acb1-ac56-496b-ac04-2a83f66ec290
+
+    :expectedresults: Validation error should be raised
+    """
+    with pytest.raises(HTTPError):
+        module_target_sat.api.DiscoveryRule(max_count=gen_string('alpha')).create()
+    with pytest.raises(HTTPError):
+        module_target_sat.api.DiscoveryRule(priority=gen_string('alpha')).create()
+
+
+@pytest.mark.stubbed
 @pytest.mark.tier3
 def test_positive_update_and_provision_with_rule_priority(
     module_target_sat, module_discovery_hostgroup, discovery_location, discovery_org

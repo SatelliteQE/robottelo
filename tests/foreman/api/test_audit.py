@@ -16,14 +16,13 @@
 
 :Upstream: No
 """
-from nailgun import entities
 import pytest
 
 from robottelo.utils.datafactory import gen_string
 
 
 @pytest.mark.tier1
-def test_positive_create_by_type():
+def test_positive_create_by_type(target_sat):
     """Create entities of different types and check audit logs for these
     events using entity type as search criteria
 
@@ -39,45 +38,49 @@ def test_positive_create_by_type():
     :CaseImportance: Medium
     """
     for entity_item in [
-        {'entity': entities.Architecture()},
+        {'entity': target_sat.api.Architecture()},
         {
-            'entity': entities.AuthSourceLDAP(),
+            'entity': target_sat.api.AuthSourceLDAP(),
             'entity_type': 'auth_source',
             'value_template': 'LDAP-{entity.name}',
         },
-        {'entity': entities.ComputeProfile(), 'entity_type': 'compute_profile'},
+        {'entity': target_sat.api.ComputeProfile(), 'entity_type': 'compute_profile'},
         {
-            'entity': entities.LibvirtComputeResource(),
+            'entity': target_sat.api.LibvirtComputeResource(),
             'entity_type': 'compute_resource',
             'value_template': '{entity.name} (Libvirt)',
         },
-        {'entity': entities.Domain()},
-        {'entity': entities.Host()},
-        {'entity': entities.HostGroup()},
-        {'entity': entities.Image(compute_resource=entities.LibvirtComputeResource().create())},
-        {'entity': entities.Location()},
-        {'entity': entities.Media(), 'entity_type': 'medium'},
+        {'entity': target_sat.api.Domain()},
+        {'entity': target_sat.api.Host()},
+        {'entity': target_sat.api.HostGroup()},
         {
-            'entity': entities.OperatingSystem(),
+            'entity': target_sat.api.Image(
+                compute_resource=target_sat.api.LibvirtComputeResource().create()
+            )
+        },
+        {'entity': target_sat.api.Location()},
+        {'entity': target_sat.api.Media(), 'entity_type': 'medium'},
+        {
+            'entity': target_sat.api.OperatingSystem(),
             'entity_type': 'os',
             'value_template': '{entity.name} {entity.major}',
         },
-        {'entity': entities.PartitionTable(), 'entity_type': 'ptable'},
-        {'entity': entities.Role()},
+        {'entity': target_sat.api.PartitionTable(), 'entity_type': 'ptable'},
+        {'entity': target_sat.api.Role()},
         {
-            'entity': entities.Subnet(),
+            'entity': target_sat.api.Subnet(),
             'value_template': '{entity.name} ({entity.network}/{entity.cidr})',
         },
-        {'entity': entities.ProvisioningTemplate(), 'entity_type': 'provisioning_template'},
-        {'entity': entities.User(), 'value_template': '{entity.login}'},
-        {'entity': entities.UserGroup()},
-        {'entity': entities.ContentView(), 'entity_type': 'katello/content_view'},
-        {'entity': entities.LifecycleEnvironment(), 'entity_type': 'katello/kt_environment'},
-        {'entity': entities.ActivationKey(), 'entity_type': 'katello/activation_key'},
-        {'entity': entities.HostCollection(), 'entity_type': 'katello/host_collection'},
-        {'entity': entities.Product(), 'entity_type': 'katello/product'},
+        {'entity': target_sat.api.ProvisioningTemplate(), 'entity_type': 'provisioning_template'},
+        {'entity': target_sat.api.User(), 'value_template': '{entity.login}'},
+        {'entity': target_sat.api.UserGroup()},
+        {'entity': target_sat.api.ContentView(), 'entity_type': 'katello/content_view'},
+        {'entity': target_sat.api.LifecycleEnvironment(), 'entity_type': 'katello/kt_environment'},
+        {'entity': target_sat.api.ActivationKey(), 'entity_type': 'katello/activation_key'},
+        {'entity': target_sat.api.HostCollection(), 'entity_type': 'katello/host_collection'},
+        {'entity': target_sat.api.Product(), 'entity_type': 'katello/product'},
         {
-            'entity': entities.SyncPlan(organization=entities.Organization(id=1)),
+            'entity': target_sat.api.SyncPlan(organization=target_sat.api.Organization(id=1)),
             'entity_type': 'katello/sync_plan',
         },
     ]:
@@ -85,7 +88,7 @@ def test_positive_create_by_type():
         entity_type = entity_item.get('entity_type', created_entity.__class__.__name__.lower())
         value_template = entity_item.get('value_template', '{entity.name}')
         entity_value = value_template.format(entity=created_entity)
-        audits = entities.Audit().search(query={'search': f'type={entity_type}'})
+        audits = target_sat.api.Audit().search(query={'search': f'type={entity_type}'})
         entity_audits = [entry for entry in audits if entry.auditable_name == entity_value]
         assert entity_audits, (
             f'audit not found by name "{entity_value}" for entity: '
@@ -98,7 +101,7 @@ def test_positive_create_by_type():
 
 
 @pytest.mark.tier1
-def test_positive_update_by_type():
+def test_positive_update_by_type(target_sat):
     """Update some entities of different types and check audit logs for
     these events using entity type as search criteria
 
@@ -110,19 +113,19 @@ def test_positive_update_by_type():
     :CaseImportance: Medium
     """
     for entity in [
-        entities.Architecture(),
-        entities.Domain(),
-        entities.HostGroup(),
-        entities.Location(),
-        entities.Role(),
-        entities.UserGroup(),
+        target_sat.api.Architecture(),
+        target_sat.api.Domain(),
+        target_sat.api.HostGroup(),
+        target_sat.api.Location(),
+        target_sat.api.Role(),
+        target_sat.api.UserGroup(),
     ]:
         created_entity = entity.create()
         name = created_entity.name
         new_name = gen_string('alpha')
         created_entity.name = new_name
         created_entity = created_entity.update(['name'])
-        audits = entities.Audit().search(
+        audits = target_sat.api.Audit().search(
             query={'search': f'type={created_entity.__class__.__name__.lower()}'}
         )
         entity_audits = [entry for entry in audits if entry.auditable_name == name]
@@ -135,7 +138,7 @@ def test_positive_update_by_type():
 
 
 @pytest.mark.tier1
-def test_positive_delete_by_type():
+def test_positive_delete_by_type(target_sat):
     """Delete some entities of different types and check audit logs for
     these events using entity type as search criteria
 
@@ -147,17 +150,17 @@ def test_positive_delete_by_type():
     :CaseImportance: Medium
     """
     for entity in [
-        entities.Architecture(),
-        entities.Domain(),
-        entities.Host(),
-        entities.HostGroup(),
-        entities.Location(),
-        entities.Role(),
-        entities.UserGroup(),
+        target_sat.api.Architecture(),
+        target_sat.api.Domain(),
+        target_sat.api.Host(),
+        target_sat.api.HostGroup(),
+        target_sat.api.Location(),
+        target_sat.api.Role(),
+        target_sat.api.UserGroup(),
     ]:
         created_entity = entity.create()
         created_entity.delete()
-        audits = entities.Audit().search(
+        audits = target_sat.api.Audit().search(
             query={'search': f'type={created_entity.__class__.__name__.lower()}'}
         )
         entity_audits = [entry for entry in audits if entry.auditable_name == created_entity.name]

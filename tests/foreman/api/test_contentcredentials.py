@@ -19,7 +19,6 @@
 from copy import copy
 
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 from requests import HTTPError
 
@@ -35,7 +34,7 @@ key_content = DataFile.VALID_GPG_KEY_FILE.read_text()
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_create_with_name(module_org, name):
+def test_positive_create_with_name(module_org, name, module_target_sat):
     """Create a GPG key with valid name.
 
     :id: 741d969b-28ef-481f-bcf7-ed4cd920b030
@@ -46,12 +45,12 @@ def test_positive_create_with_name(module_org, name):
 
     :CaseImportance: Critical
     """
-    gpg_key = entities.GPGKey(organization=module_org, name=name).create()
+    gpg_key = module_target_sat.api.GPGKey(organization=module_org, name=name).create()
     assert name == gpg_key.name
 
 
 @pytest.mark.tier1
-def test_positive_create_with_content(module_org):
+def test_positive_create_with_content(module_org, module_target_sat):
     """Create a GPG key with valid name and valid gpg key text.
 
     :id: cfa6690e-fed7-49cf-94f9-fd2deed941c0
@@ -60,13 +59,13 @@ def test_positive_create_with_content(module_org):
 
     :CaseImportance: Critical
     """
-    gpg_key = entities.GPGKey(organization=module_org, content=key_content).create()
+    gpg_key = module_target_sat.api.GPGKey(organization=module_org, content=key_content).create()
     assert key_content == gpg_key.content
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 @pytest.mark.tier1
-def test_negative_create_name(module_org, name):
+def test_negative_create_name(module_org, name, module_target_sat):
     """Attempt to create GPG key with invalid names only.
 
     :id: 904a3ed0-7d50-495e-a700-b4f1ae913599
@@ -78,13 +77,13 @@ def test_negative_create_name(module_org, name):
     :CaseImportance: Critical
     """
     with pytest.raises(HTTPError) as error:
-        entities.GPGKey(organization=module_org, name=name).create()
+        module_target_sat.api.GPGKey(organization=module_org, name=name).create()
     assert error.value.response.status_code == 422
     assert 'Validation failed:' in error.value.response.text
 
 
 @pytest.mark.tier1
-def test_negative_create_with_same_name(module_org):
+def test_negative_create_with_same_name(module_org, module_target_sat):
     """Attempt to create a GPG key providing a name of already existent
     entity
 
@@ -95,15 +94,15 @@ def test_negative_create_with_same_name(module_org):
     :CaseImportance: Critical
     """
     name = gen_string('alphanumeric')
-    entities.GPGKey(organization=module_org, name=name).create()
+    module_target_sat.api.GPGKey(organization=module_org, name=name).create()
     with pytest.raises(HTTPError) as error:
-        entities.GPGKey(organization=module_org, name=name).create()
+        module_target_sat.api.GPGKey(organization=module_org, name=name).create()
     assert error.value.response.status_code == 422
     assert 'Validation failed:' in error.value.response.text
 
 
 @pytest.mark.tier1
-def test_negative_create_with_content(module_org):
+def test_negative_create_with_content(module_org, module_target_sat):
     """Attempt to create GPG key with empty content.
 
     :id: fc79c840-6bcb-4d97-9145-c0008d5b028d
@@ -113,14 +112,14 @@ def test_negative_create_with_content(module_org):
     :CaseImportance: Critical
     """
     with pytest.raises(HTTPError) as error:
-        entities.GPGKey(organization=module_org, content='').create()
+        module_target_sat.api.GPGKey(organization=module_org, content='').create()
     assert error.value.response.status_code == 422
     assert 'Validation failed:' in error.value.response.text
 
 
 @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_update_name(module_org, new_name):
+def test_positive_update_name(module_org, new_name, module_target_sat):
     """Update GPG key name to another valid name.
 
     :id: 9868025d-5346-42c9-b850-916ce37a9541
@@ -131,14 +130,14 @@ def test_positive_update_name(module_org, new_name):
 
     :CaseImportance: Critical
     """
-    gpg_key = entities.GPGKey(organization=module_org).create()
+    gpg_key = module_target_sat.api.GPGKey(organization=module_org).create()
     gpg_key.name = new_name
     gpg_key = gpg_key.update(['name'])
     assert new_name == gpg_key.name
 
 
 @pytest.mark.tier1
-def test_positive_update_content(module_org):
+def test_positive_update_content(module_org, module_target_sat):
     """Update GPG key content text to another valid one.
 
     :id: 62fdaf55-c931-4be6-9857-68cc816046ad
@@ -147,7 +146,7 @@ def test_positive_update_content(module_org):
 
     :CaseImportance: Critical
     """
-    gpg_key = entities.GPGKey(
+    gpg_key = module_target_sat.api.GPGKey(
         organization=module_org,
         content=DataFile.VALID_GPG_KEY_BETA_FILE.read_text(),
     ).create()
@@ -158,7 +157,7 @@ def test_positive_update_content(module_org):
 
 @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
 @pytest.mark.tier1
-def test_negative_update_name(module_org, new_name):
+def test_negative_update_name(module_org, new_name, module_target_sat):
     """Attempt to update GPG key name to invalid one
 
     :id: 1a43f610-8969-4f08-967f-fb6af0fca31b
@@ -169,7 +168,7 @@ def test_negative_update_name(module_org, new_name):
 
     :CaseImportance: Critical
     """
-    gpg_key = entities.GPGKey(organization=module_org).create()
+    gpg_key = module_target_sat.api.GPGKey(organization=module_org).create()
     gpg_key.name = new_name
     with pytest.raises(HTTPError) as error:
         gpg_key.update(['name'])
@@ -178,7 +177,7 @@ def test_negative_update_name(module_org, new_name):
 
 
 @pytest.mark.tier1
-def test_negative_update_same_name(module_org):
+def test_negative_update_same_name(module_org, module_target_sat):
     """Attempt to update GPG key name to the name of existing GPG key
     entity
 
@@ -189,8 +188,8 @@ def test_negative_update_same_name(module_org):
     :CaseImportance: Critical
     """
     name = gen_string('alpha')
-    entities.GPGKey(organization=module_org, name=name).create()
-    new_gpg_key = entities.GPGKey(organization=module_org).create()
+    module_target_sat.api.GPGKey(organization=module_org, name=name).create()
+    new_gpg_key = module_target_sat.api.GPGKey(organization=module_org).create()
     new_gpg_key.name = name
     with pytest.raises(HTTPError) as error:
         new_gpg_key.update(['name'])
@@ -199,7 +198,7 @@ def test_negative_update_same_name(module_org):
 
 
 @pytest.mark.tier1
-def test_negative_update_content(module_org):
+def test_negative_update_content(module_org, module_target_sat):
     """Attempt to update GPG key content to invalid one
 
     :id: fee30ef8-370a-4fdd-9e45-e7ab95dade8b
@@ -208,7 +207,7 @@ def test_negative_update_content(module_org):
 
     :CaseImportance: Critical
     """
-    gpg_key = entities.GPGKey(organization=module_org, content=key_content).create()
+    gpg_key = module_target_sat.api.GPGKey(organization=module_org, content=key_content).create()
     gpg_key.content = ''
     with pytest.raises(HTTPError) as error:
         gpg_key.update(['content'])
@@ -218,7 +217,7 @@ def test_negative_update_content(module_org):
 
 
 @pytest.mark.tier1
-def test_positive_delete(module_org):
+def test_positive_delete(module_org, module_target_sat):
     """Create a GPG key with different names and then delete it.
 
     :id: b06d211f-2827-40f7-b627-8b1fbaee2eb4
@@ -227,7 +226,7 @@ def test_positive_delete(module_org):
 
     :CaseImportance: Critical
     """
-    gpg_key = entities.GPGKey(organization=module_org).create()
+    gpg_key = module_target_sat.api.GPGKey(organization=module_org).create()
     gpg_key.delete()
     with pytest.raises(HTTPError):
         gpg_key.read()

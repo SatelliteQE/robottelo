@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 from time import sleep
 
 from fauxfactory import gen_choice, gen_string
-from nailgun import client, entities
+from nailgun import client
 import pytest
 from requests.exceptions import HTTPError
 
@@ -101,7 +101,7 @@ def validate_repo_content(repo, content_types, after_sync=True):
 
 
 @pytest.mark.tier1
-def test_positive_get_routes():
+def test_positive_get_routes(target_sat):
     """Issue an HTTP GET response to both available routes.
 
     :id: 9e40ea7f-71ea-4ced-94ba-cde03620c654
@@ -112,8 +112,8 @@ def test_positive_get_routes():
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
-    entities.SyncPlan(organization=org).create()
+    org = target_sat.api.Organization().create()
+    target_sat.api.SyncPlan(organization=org).create()
     response1 = client.get(
         f'{get_url()}/katello/api/v2/sync_plans',
         auth=get_credentials(),
@@ -144,7 +144,7 @@ def test_positive_create_enabled_disabled(module_org, enabled, request, target_s
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(enabled=enabled, organization=module_org).create()
+    sync_plan = target_sat.api.SyncPlan(enabled=enabled, organization=module_org).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan = sync_plan.read()
     assert sync_plan.enabled == enabled
@@ -152,7 +152,7 @@ def test_positive_create_enabled_disabled(module_org, enabled, request, target_s
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_create_with_name(module_org, name):
+def test_positive_create_with_name(module_org, name, module_target_sat):
     """Create a sync plan with a random name.
 
     :id: c1263134-0d7c-425a-82fd-df5274e1f9ba
@@ -163,14 +163,16 @@ def test_positive_create_with_name(module_org, name):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(enabled=False, name=name, organization=module_org).create()
+    sync_plan = module_target_sat.api.SyncPlan(
+        enabled=False, name=name, organization=module_org
+    ).create()
     sync_plan = sync_plan.read()
     assert sync_plan.name == name
 
 
 @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_create_with_description(module_org, description):
+def test_positive_create_with_description(module_org, description, module_target_sat):
     """Create a sync plan with a random description.
 
     :id: 3e5745e8-838d-44a5-ad61-7e56829ad47c
@@ -182,7 +184,7 @@ def test_positive_create_with_description(module_org, description):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(
+    sync_plan = module_target_sat.api.SyncPlan(
         enabled=False, description=description, organization=module_org
     ).create()
     sync_plan = sync_plan.read()
@@ -191,7 +193,7 @@ def test_positive_create_with_description(module_org, description):
 
 @pytest.mark.parametrize('interval', **parametrized(valid_sync_interval()))
 @pytest.mark.tier1
-def test_positive_create_with_interval(module_org, interval):
+def test_positive_create_with_interval(module_org, interval, module_target_sat):
     """Create a sync plan with a random interval.
 
     :id: d160ed1c-b698-42dc-be0b-67ac693c7840
@@ -202,7 +204,7 @@ def test_positive_create_with_interval(module_org, interval):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(
+    sync_plan = module_target_sat.api.SyncPlan(
         enabled=False, description=gen_string('alpha'), organization=module_org, interval=interval
     )
     if interval == SYNC_INTERVAL['custom']:
@@ -214,7 +216,7 @@ def test_positive_create_with_interval(module_org, interval):
 
 @pytest.mark.parametrize('sync_delta', **parametrized(sync_date_deltas))
 @pytest.mark.tier1
-def test_positive_create_with_sync_date(module_org, sync_delta):
+def test_positive_create_with_sync_date(module_org, sync_delta, module_target_sat):
     """Create a sync plan and update its sync date.
 
     :id: bdb6e0a9-0d3b-4811-83e2-2140b7bb62e3
@@ -226,7 +228,7 @@ def test_positive_create_with_sync_date(module_org, sync_delta):
     :CaseImportance: Critical
     """
     sync_date = datetime.now() + timedelta(seconds=sync_delta)
-    sync_plan = entities.SyncPlan(
+    sync_plan = module_target_sat.api.SyncPlan(
         enabled=False, organization=module_org, sync_date=sync_date
     ).create()
     sync_plan = sync_plan.read()
@@ -235,7 +237,7 @@ def test_positive_create_with_sync_date(module_org, sync_delta):
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 @pytest.mark.tier1
-def test_negative_create_with_invalid_name(module_org, name):
+def test_negative_create_with_invalid_name(module_org, name, module_target_sat):
     """Create a sync plan with an invalid name.
 
     :id: a3a0f844-2f81-4f87-9f68-c25506c29ce2
@@ -248,12 +250,12 @@ def test_negative_create_with_invalid_name(module_org, name):
     :CaseImportance: Critical
     """
     with pytest.raises(HTTPError):
-        entities.SyncPlan(name=name, organization=module_org).create()
+        module_target_sat.api.SyncPlan(name=name, organization=module_org).create()
 
 
 @pytest.mark.parametrize('interval', **parametrized(invalid_values_list()))
 @pytest.mark.tier1
-def test_negative_create_with_invalid_interval(module_org, interval):
+def test_negative_create_with_invalid_interval(module_org, interval, module_target_sat):
     """Create a sync plan with invalid interval specified.
 
     :id: f5844526-9f58-4be3-8a96-3849a465fc02
@@ -266,11 +268,11 @@ def test_negative_create_with_invalid_interval(module_org, interval):
     :CaseImportance: Critical
     """
     with pytest.raises(HTTPError):
-        entities.SyncPlan(interval=interval, organization=module_org).create()
+        module_target_sat.api.SyncPlan(interval=interval, organization=module_org).create()
 
 
 @pytest.mark.tier1
-def test_negative_create_with_empty_interval(module_org):
+def test_negative_create_with_empty_interval(module_org, module_target_sat):
     """Create a sync plan with no interval specified.
 
     :id: b4686463-69c8-4538-b040-6fb5246a7b00
@@ -280,7 +282,7 @@ def test_negative_create_with_empty_interval(module_org):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(organization=module_org)
+    sync_plan = module_target_sat.api.SyncPlan(organization=module_org)
     sync_plan.create_missing()
     del sync_plan.interval
     with pytest.raises(HTTPError):
@@ -300,7 +302,7 @@ def test_positive_update_enabled(module_org, enabled, request, target_sat):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(enabled=not enabled, organization=module_org).create()
+    sync_plan = target_sat.api.SyncPlan(enabled=not enabled, organization=module_org).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan.enabled = enabled
     sync_plan.update(['enabled'])
@@ -310,7 +312,7 @@ def test_positive_update_enabled(module_org, enabled, request, target_sat):
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_update_name(module_org, name):
+def test_positive_update_name(module_org, name, module_target_sat):
     """Create a sync plan and update its name.
 
     :id: dbfadf4f-50af-4aa8-8d7d-43988dc4528f
@@ -322,7 +324,7 @@ def test_positive_update_name(module_org, name):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
+    sync_plan = module_target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
     sync_plan.name = name
     sync_plan.update(['name'])
     sync_plan = sync_plan.read()
@@ -331,7 +333,7 @@ def test_positive_update_name(module_org, name):
 
 @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
 @pytest.mark.tier2
-def test_positive_update_description(module_org, description):
+def test_positive_update_description(module_org, description, module_target_sat):
     """Create a sync plan and update its description.
 
     :id: 4769fe9c-9eec-40c8-b015-1e3d7e570bec
@@ -341,7 +343,7 @@ def test_positive_update_description(module_org, description):
     :expectedresults: A sync plan is created and its description can be
         updated with the specified description.
     """
-    sync_plan = entities.SyncPlan(
+    sync_plan = module_target_sat.api.SyncPlan(
         enabled=False, description=gen_string('alpha'), organization=module_org
     ).create()
     sync_plan.description = description
@@ -352,7 +354,7 @@ def test_positive_update_description(module_org, description):
 
 @pytest.mark.parametrize('interval', **parametrized(valid_sync_interval()))
 @pytest.mark.tier1
-def test_positive_update_interval(module_org, interval):
+def test_positive_update_interval(module_org, interval, module_target_sat):
     """Create a sync plan and update its interval.
 
     :id: cf2eddf8-b4db-430e-a9b0-83c626b45068
@@ -364,7 +366,7 @@ def test_positive_update_interval(module_org, interval):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(
+    sync_plan = module_target_sat.api.SyncPlan(
         enabled=False, description=gen_string('alpha'), organization=module_org, interval=interval
     )
     if interval == SYNC_INTERVAL['custom']:
@@ -384,7 +386,7 @@ def test_positive_update_interval(module_org, interval):
 
 @pytest.mark.parametrize('interval', **parametrized(valid_sync_interval()))
 @pytest.mark.tier1
-def test_positive_update_interval_custom_cron(module_org, interval):
+def test_positive_update_interval_custom_cron(module_org, interval, module_target_sat):
     """Create a sync plan and update its interval to custom cron.
 
     :id: 26c58319-cae0-4b0c-b388-2a1fe3f22344
@@ -397,7 +399,7 @@ def test_positive_update_interval_custom_cron(module_org, interval):
     :CaseImportance: Critical
     """
     if interval != SYNC_INTERVAL['custom']:
-        sync_plan = entities.SyncPlan(
+        sync_plan = module_target_sat.api.SyncPlan(
             enabled=False,
             description=gen_string('alpha'),
             organization=module_org,
@@ -413,7 +415,7 @@ def test_positive_update_interval_custom_cron(module_org, interval):
 
 @pytest.mark.parametrize('sync_delta', **parametrized(sync_date_deltas))
 @pytest.mark.tier1
-def test_positive_update_sync_date(module_org, sync_delta):
+def test_positive_update_sync_date(module_org, sync_delta, module_target_sat):
     """Updated sync plan's sync date.
 
     :id: fad472c7-01b4-453b-ae33-0845c9e0dfd4
@@ -425,7 +427,7 @@ def test_positive_update_sync_date(module_org, sync_delta):
     :CaseImportance: Critical
     """
     sync_date = datetime.now() + timedelta(seconds=sync_delta)
-    sync_plan = entities.SyncPlan(
+    sync_plan = module_target_sat.api.SyncPlan(
         enabled=False, organization=module_org, sync_date=datetime.now() + timedelta(days=10)
     ).create()
     sync_plan.sync_date = sync_date
@@ -436,7 +438,7 @@ def test_positive_update_sync_date(module_org, sync_delta):
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 @pytest.mark.tier1
-def test_negative_update_name(module_org, name):
+def test_negative_update_name(module_org, name, module_target_sat):
     """Try to update a sync plan with an invalid name.
 
     :id: ae502053-9d3c-4cad-aee4-821f846ceae5
@@ -448,7 +450,7 @@ def test_negative_update_name(module_org, name):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
+    sync_plan = module_target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
     sync_plan.name = name
     with pytest.raises(HTTPError):
         sync_plan.update(['name'])
@@ -456,7 +458,7 @@ def test_negative_update_name(module_org, name):
 
 @pytest.mark.parametrize('interval', **parametrized(invalid_values_list()))
 @pytest.mark.tier1
-def test_negative_update_interval(module_org, interval):
+def test_negative_update_interval(module_org, interval, module_target_sat):
     """Try to update a sync plan with invalid interval.
 
     :id: 8c981174-6f55-49c0-8baa-40e5c3fc598c
@@ -468,14 +470,14 @@ def test_negative_update_interval(module_org, interval):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
+    sync_plan = module_target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
     sync_plan.interval = interval
     with pytest.raises(HTTPError):
         sync_plan.update(['interval'])
 
 
 @pytest.mark.tier2
-def test_positive_add_product(module_org):
+def test_positive_add_product(module_org, module_target_sat):
     """Create a sync plan and add one product to it.
 
     :id: 036dea02-f73d-4fc1-9c41-5515b6659c79
@@ -487,8 +489,8 @@ def test_positive_add_product(module_org):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
-    product = entities.Product(organization=module_org).create()
+    sync_plan = module_target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
     sync_plan.add_products(data={'product_ids': [product.id]})
     sync_plan = sync_plan.read()
     assert len(sync_plan.product) == 1
@@ -496,7 +498,7 @@ def test_positive_add_product(module_org):
 
 
 @pytest.mark.tier2
-def test_positive_add_products(module_org):
+def test_positive_add_products(module_org, module_target_sat):
     """Create a sync plan and add two products to it.
 
     :id: 2a80ecad-2245-46d8-bbc6-0b802e68d50c
@@ -506,8 +508,8 @@ def test_positive_add_products(module_org):
 
     :CaseLevel: Integration
     """
-    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
-    products = [entities.Product(organization=module_org).create() for _ in range(2)]
+    sync_plan = module_target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
+    products = [module_target_sat.api.Product(organization=module_org).create() for _ in range(2)]
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     sync_plan = sync_plan.read()
     assert len(sync_plan.product) == 2
@@ -515,7 +517,7 @@ def test_positive_add_products(module_org):
 
 
 @pytest.mark.tier2
-def test_positive_remove_product(module_org):
+def test_positive_remove_product(module_org, module_target_sat):
     """Create a sync plan with two products and then remove one
     product from it.
 
@@ -528,8 +530,8 @@ def test_positive_remove_product(module_org):
 
     :BZ: 1199150
     """
-    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
-    products = [entities.Product(organization=module_org).create() for _ in range(2)]
+    sync_plan = module_target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
+    products = [module_target_sat.api.Product(organization=module_org).create() for _ in range(2)]
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     assert len(sync_plan.read().product) == 2
     sync_plan.remove_products(data={'product_ids': [products[0].id]})
@@ -540,7 +542,7 @@ def test_positive_remove_product(module_org):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_remove_products(module_org):
+def test_positive_remove_products(module_org, module_target_sat):
     """Create a sync plan with two products and then remove both
     products from it.
 
@@ -551,8 +553,8 @@ def test_positive_remove_products(module_org):
 
     :CaseLevel: Integration
     """
-    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
-    products = [entities.Product(organization=module_org).create() for _ in range(2)]
+    sync_plan = module_target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
+    products = [module_target_sat.api.Product(organization=module_org).create() for _ in range(2)]
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     assert len(sync_plan.read().product) == 2
     sync_plan.remove_products(data={'product_ids': [product.id for product in products]})
@@ -560,7 +562,7 @@ def test_positive_remove_products(module_org):
 
 
 @pytest.mark.tier2
-def test_positive_repeatedly_add_remove(module_org, request, target_sat):
+def test_positive_repeatedly_add_remove(module_org, request, module_target_sat):
     """Repeatedly add and remove a product from a sync plan.
 
     :id: b67536ba-3a36-4bb7-a405-0e12081d5a7e
@@ -572,9 +574,9 @@ def test_positive_repeatedly_add_remove(module_org, request, target_sat):
 
     :BZ: 1199150
     """
-    sync_plan = entities.SyncPlan(organization=module_org).create()
-    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
-    product = entities.Product(organization=module_org).create()
+    sync_plan = module_target_sat.api.SyncPlan(organization=module_org).create()
+    request.addfinalizer(lambda: module_target_sat.api_factory.disable_syncplan(sync_plan))
+    product = module_target_sat.api.Product(organization=module_org).create()
     for _ in range(5):
         sync_plan.add_products(data={'product_ids': [product.id]})
         assert len(sync_plan.read().product) == 1
@@ -583,7 +585,7 @@ def test_positive_repeatedly_add_remove(module_org, request, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_add_remove_products_custom_cron(module_org, request, target_sat):
+def test_positive_add_remove_products_custom_cron(module_org, request, module_target_sat):
     """Create a sync plan with two products having custom cron interval
     and then remove both products from it.
 
@@ -596,11 +598,11 @@ def test_positive_add_remove_products_custom_cron(module_org, request, target_sa
     """
     cron_expression = gen_choice(valid_cron_expressions())
 
-    sync_plan = entities.SyncPlan(
+    sync_plan = module_target_sat.api.SyncPlan(
         organization=module_org, interval='custom cron', cron_expression=cron_expression
     ).create()
-    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
-    products = [entities.Product(organization=module_org).create() for _ in range(2)]
+    request.addfinalizer(lambda: module_target_sat.api_factory.disable_syncplan(sync_plan))
+    products = [module_target_sat.api.Product(organization=module_org).create() for _ in range(2)]
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     assert len(sync_plan.read().product) == 2
     sync_plan.remove_products(data={'product_ids': [product.id for product in products]})
@@ -620,14 +622,14 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org, request,
 
     :CaseLevel: System
     """
-    product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(product=product).create()
+    product = target_sat.api.Product(organization=module_org).create()
+    repo = target_sat.api.Repository(product=product).create()
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
         validate_task_status(target_sat, repo.id, module_org.id, max_tries=2)
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
     # Create and Associate sync plan with product
-    sync_plan = entities.SyncPlan(
+    sync_plan = target_sat.api.SyncPlan(
         organization=module_org, enabled=True, sync_date=datetime.utcnow().replace(second=0)
     ).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
@@ -654,10 +656,10 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
     """
     interval = 60 * 60  # 'hourly' sync interval in seconds
     delay = 2 * 60
-    product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(product=product).create()
+    product = target_sat.api.Product(organization=module_org).create()
+    repo = target_sat.api.Repository(product=product).create()
     # Create and Associate sync plan with product
-    sync_plan = entities.SyncPlan(
+    sync_plan = target_sat.api.SyncPlan(
         organization=module_org,
         enabled=True,
         interval='hourly',
@@ -700,8 +702,8 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     :BZ: 1655595, 1695733
     """
     delay = 2 * 60  # delay for sync date in seconds
-    product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(product=product).create()
+    product = target_sat.api.Product(organization=module_org).create()
+    repo = target_sat.api.Repository(product=product).create()
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
         validate_task_status(target_sat, repo.id, module_org.id, max_tries=1)
@@ -710,7 +712,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     # BZ:1695733 is closed WONTFIX so apply this workaround
     logger.info('Need to set seconds to zero because BZ#1695733')
     sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
-    sync_plan = entities.SyncPlan(
+    sync_plan = target_sat.api.SyncPlan(
         organization=module_org, enabled=True, sync_date=sync_date
     ).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
@@ -752,9 +754,11 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     """
     # Test with multiple products and multiple repos needs more delay.
     delay = 8 * 60  # delay for sync date in seconds
-    products = [entities.Product(organization=module_org).create() for _ in range(2)]
+    products = [target_sat.api.Product(organization=module_org).create() for _ in range(2)]
     repos = [
-        entities.Repository(product=product).create() for product in products for _ in range(2)
+        target_sat.api.Repository(product=product).create()
+        for product in products
+        for _ in range(2)
     ]
     # Verify products have not been synced yet
     logger.info(
@@ -768,7 +772,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     # BZ:1695733 is closed WONTFIX so apply this workaround
     logger.info('Need to set seconds to zero because BZ#1695733')
     sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
-    sync_plan = entities.SyncPlan(
+    sync_plan = target_sat.api.SyncPlan(
         organization=module_org, enabled=True, sync_date=sync_date
     ).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
@@ -825,9 +829,9 @@ def test_positive_synchronize_rh_product_past_sync_date(
         reposet=REPOSET['rhst7'],
         releasever=None,
     )
-    product = entities.Product(name=PRDS['rhel'], organization=org).search()[0]
-    repo = entities.Repository(id=repo_id).read()
-    sync_plan = entities.SyncPlan(
+    product = target_sat.api.Product(name=PRDS['rhel'], organization=org).search()[0]
+    repo = target_sat.api.Repository(id=repo_id).read()
+    sync_plan = target_sat.SyncPlan(
         organization=org,
         enabled=True,
         interval='hourly',
@@ -858,7 +862,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
     # Add disassociate RH product from sync plan check for BZ#1879537
     assert len(sync_plan.read().product) == 1
     # Disable the reposet
-    reposet = entities.RepositorySet(name=REPOSET['rhst7'], product=product).search()[0]
+    reposet = target_sat.api.RepositorySet(name=REPOSET['rhst7'], product=product).search()[0]
     reposet.disable(data={'basearch': 'x86_64', 'releasever': None, 'product_id': product.id})
     # Assert that the Sync Plan now has no product associated with it
     assert len(sync_plan.read().product) == 0
@@ -889,12 +893,12 @@ def test_positive_synchronize_rh_product_future_sync_date(
         reposet=REPOSET['rhst7'],
         releasever=None,
     )
-    product = entities.Product(name=PRDS['rhel'], organization=org).search()[0]
-    repo = entities.Repository(id=repo_id).read()
+    product = target_sat.api.Product(name=PRDS['rhel'], organization=org).search()[0]
+    repo = target_sat.api.Repository(id=repo_id).read()
     # BZ:1695733 is closed WONTFIX so apply this workaround
     logger.info('Need to set seconds to zero because BZ#1695733')
     sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
-    sync_plan = entities.SyncPlan(
+    sync_plan = target_sat.api.SyncPlan(
         organization=org, enabled=True, interval='hourly', sync_date=sync_date
     ).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
@@ -938,11 +942,11 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org, reques
     :CaseLevel: System
     """
     delay = 2 * 60
-    product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(product=product).create()
+    product = target_sat.api.Product(organization=module_org).create()
+    repo = target_sat.api.Repository(product=product).create()
     start_date = datetime.utcnow().replace(second=0) - timedelta(days=1) + timedelta(seconds=delay)
     # Create and Associate sync plan with product
-    sync_plan = entities.SyncPlan(
+    sync_plan = target_sat.api.SyncPlan(
         organization=module_org, enabled=True, interval='daily', sync_date=start_date
     ).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
@@ -983,11 +987,11 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     :CaseLevel: System
     """
     delay = 2 * 60
-    product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(product=product).create()
+    product = target_sat.api.Product(organization=module_org).create()
+    repo = target_sat.api.Repository(product=product).create()
     start_date = datetime.utcnow().replace(second=0) - timedelta(weeks=1) + timedelta(seconds=delay)
     # Create and Associate sync plan with product
-    sync_plan = entities.SyncPlan(
+    sync_plan = target_sat.api.SyncPlan(
         organization=module_org, enabled=True, interval='weekly', sync_date=start_date
     ).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
@@ -1014,7 +1018,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
 
 
 @pytest.mark.tier2
-def test_positive_delete_one_product(module_org):
+def test_positive_delete_one_product(module_org, module_target_sat):
     """Create a sync plan with one product and delete it.
 
     :id: e565c464-33e2-4bca-8eca-15d5a7d4b155
@@ -1024,8 +1028,8 @@ def test_positive_delete_one_product(module_org):
 
     :CaseLevel: Integration
     """
-    sync_plan = entities.SyncPlan(organization=module_org).create()
-    product = entities.Product(organization=module_org).create()
+    sync_plan = module_target_sat.api.SyncPlan(organization=module_org).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
     sync_plan.add_products(data={'product_ids': [product.id]})
     sync_plan.delete()
     with pytest.raises(HTTPError):
@@ -1033,7 +1037,7 @@ def test_positive_delete_one_product(module_org):
 
 
 @pytest.mark.tier2
-def test_positive_delete_products(module_org):
+def test_positive_delete_products(module_org, module_target_sat):
     """Create a sync plan with two products and delete them.
 
     :id: f21bd57f-369e-4acd-a492-5532349a3804
@@ -1043,8 +1047,8 @@ def test_positive_delete_products(module_org):
 
     :CaseLevel: Integration
     """
-    sync_plan = entities.SyncPlan(organization=module_org).create()
-    products = [entities.Product(organization=module_org).create() for _ in range(2)]
+    sync_plan = module_target_sat.api.SyncPlan(organization=module_org).create()
+    products = [module_target_sat.api.Product(organization=module_org).create() for _ in range(2)]
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     sync_plan.delete()
     with pytest.raises(HTTPError):
@@ -1053,7 +1057,7 @@ def test_positive_delete_products(module_org):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_delete_synced_product(module_org):
+def test_positive_delete_synced_product(module_org, module_target_sat):
     """Create a sync plan with one synced product and delete it.
 
     :id: 195d8fec-1fa0-42ab-84a5-32dd81a285ca
@@ -1063,9 +1067,9 @@ def test_positive_delete_synced_product(module_org):
 
     :CaseLevel: Integration
     """
-    sync_plan = entities.SyncPlan(organization=module_org).create()
-    product = entities.Product(organization=module_org).create()
-    entities.Repository(product=product).create()
+    sync_plan = module_target_sat.api.SyncPlan(organization=module_org).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
+    module_target_sat.api.Repository(product=product).create()
     sync_plan.add_products(data={'product_ids': [product.id]})
     product.sync()
     sync_plan.delete()
@@ -1075,7 +1079,7 @@ def test_positive_delete_synced_product(module_org):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_delete_synced_product_custom_cron(module_org):
+def test_positive_delete_synced_product_custom_cron(module_org, module_target_sat):
     """Create a sync plan with custom cron with one synced
     product and delete it.
 
@@ -1086,13 +1090,13 @@ def test_positive_delete_synced_product_custom_cron(module_org):
 
     :CaseLevel: Integration
     """
-    sync_plan = entities.SyncPlan(
+    sync_plan = module_target_sat.api.SyncPlan(
         organization=module_org,
         interval='custom cron',
         cron_expression=gen_choice(valid_cron_expressions()),
     ).create()
-    product = entities.Product(organization=module_org).create()
-    entities.Repository(product=product).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
+    module_target_sat.api.Repository(product=product).create()
     sync_plan.add_products(data={'product_ids': [product.id]})
     product.sync()
     product = product.read()
