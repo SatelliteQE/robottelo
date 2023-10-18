@@ -18,7 +18,6 @@
 """
 from broker import Broker
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 from requests import HTTPError
 from wait_for import wait_for
@@ -49,24 +48,24 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
         reposet=REPOSET['rhst7'],
         releasever=None,
     )
-    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
-    custom_repo = entities.Repository(
-        product=entities.Product(organization=org).create(),
+    custom_repo = module_target_sat.api.Repository(
+        product=module_target_sat.api.Product(organization=org).create(),
     ).create()
     custom_repo.sync()
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    cv = entities.ContentView(
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
+    cv = module_target_sat.api.ContentView(
         organization=org,
         repository=[rh_repo_id, custom_repo.id],
     ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
     cvv.promote(data={'environment_ids': lce.id, 'force': False})
-    ak = entities.ActivationKey(
+    ak = module_target_sat.api.ActivationKey(
         content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
     ).create()
-    subscription = entities.Subscription(organization=org).search(
+    subscription = module_target_sat.api.Subscription(organization=org).search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
@@ -78,7 +77,7 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_CRUDL(name):
+def test_positive_CRUDL(name, target_sat):
     """Create, Read, Update, Delete, List
 
     :id: a2a577db-144e-4761-a42e-e83885464786
@@ -101,27 +100,27 @@ def test_positive_CRUDL(name):
     """
     # Create
     template1 = gen_string('alpha')
-    rt = entities.ReportTemplate(name=name, template=template1).create()
+    rt = target_sat.api.ReportTemplate(name=name, template=template1).create()
     # List
-    res = entities.ReportTemplate().search(query={'search': f'name="{name}"'})
+    res = target_sat.api.ReportTemplate().search(query={'search': f'name="{name}"'})
     assert name in list(map(lambda x: x.name, res))
     # Read
-    rt = entities.ReportTemplate(id=rt.id).read()
+    rt = target_sat.api.ReportTemplate(id=rt.id).read()
     assert name == rt.name
     assert template1 == rt.template
     # Update
     template2 = gen_string('alpha')
-    entities.ReportTemplate(id=rt.id, template=template2).update(['template'])
-    rt = entities.ReportTemplate(id=rt.id).read()
+    target_sat.api.ReportTemplate(id=rt.id, template=template2).update(['template'])
+    rt = target_sat.api.ReportTemplate(id=rt.id).read()
     assert template2 == rt.template
     # Delete
-    entities.ReportTemplate(id=rt.id).delete()
+    target_sat.api.ReportTemplate(id=rt.id).delete()
     with pytest.raises(HTTPError):
-        rt = entities.ReportTemplate(id=rt.id).read()
+        rt = target_sat.api.ReportTemplate(id=rt.id).read()
 
 
 @pytest.mark.tier1
-def test_positive_generate_report_nofilter():
+def test_positive_generate_report_nofilter(target_sat):
     """Generate Host - Statuses report
 
     :id: a4b687db-144e-4761-a42e-e93887464986
@@ -137,8 +136,10 @@ def test_positive_generate_report_nofilter():
     :CaseImportance: Critical
     """
     host_name = gen_string('alpha').lower()
-    entities.Host(name=host_name).create()
-    rt = entities.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
+    target_sat.api.Host(name=host_name).create()
+    rt = (
+        target_sat.api.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
+    )
     res = rt.generate()
     for column_name in [
         'Name',
@@ -164,7 +165,7 @@ def test_positive_generate_report_nofilter():
 
 
 @pytest.mark.tier2
-def test_positive_generate_report_filter():
+def test_positive_generate_report_filter(target_sat):
     """Generate Host - Statuses report
 
     :id: a4b677cb-144e-4761-a42e-e93887464986
@@ -181,9 +182,11 @@ def test_positive_generate_report_filter():
     """
     host1_name = gen_string('alpha').lower()
     host2_name = gen_string('alpha').lower()
-    entities.Host(name=host1_name).create()
-    entities.Host(name=host2_name).create()
-    rt = entities.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
+    target_sat.api.Host(name=host1_name).create()
+    target_sat.api.Host(name=host2_name).create()
+    rt = (
+        target_sat.api.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
+    )
     res = rt.generate(data={"input_values": {"hosts": host2_name}})
     for column_name in [
         'Name',
@@ -210,7 +213,7 @@ def test_positive_generate_report_filter():
 
 
 @pytest.mark.tier2
-def test_positive_report_add_userinput():
+def test_positive_report_add_userinput(target_sat):
     """Add user input to template, use it in template, generate template
 
     :id: a4a577db-144e-4761-a42e-e86887464986
@@ -230,21 +233,21 @@ def test_positive_report_add_userinput():
     input_value = gen_string('alpha').lower()
     template_name = gen_string('alpha').lower()
     template = f'<%= "value=\\"" %><%= input(\'{input_name}\') %><%= "\\"" %>'
-    entities.Host(name=host_name).create()
-    rt = entities.ReportTemplate(name=template_name, template=template).create()
-    entities.TemplateInput(
+    target_sat.api.Host(name=host_name).create()
+    rt = target_sat.api.ReportTemplate(name=template_name, template=template).create()
+    target_sat.api.TemplateInput(
         name=input_name,
         input_type="user",
         template=rt.id,
     ).create()
-    ti = entities.TemplateInput(template=rt.id).search()[0].read()
+    ti = target_sat.api.TemplateInput(template=rt.id).search()[0].read()
     assert input_name == ti.name
     res = rt.generate(data={"input_values": {input_name: input_value}})
     assert f'value="{input_value}"' in res
 
 
 @pytest.mark.tier2
-def test_positive_lock_clone_nodelete_unlock_report():
+def test_positive_lock_clone_nodelete_unlock_report(target_sat):
     """Lock report template. Check it can be cloned and can't be deleted or edited.
        Unlock. Check it can be deleted and edited.
 
@@ -274,15 +277,15 @@ def test_positive_lock_clone_nodelete_unlock_report():
     template_clone_name = gen_string('alpha').lower()
     template1 = gen_string('alpha')
     template2 = gen_string('alpha')
-    rt = entities.ReportTemplate(name=template_name, template=template1).create()
+    rt = target_sat.api.ReportTemplate(name=template_name, template=template1).create()
     # 2. Lock template
-    entities.ReportTemplate(id=rt.id, locked=True).update(["locked"])
+    target_sat.api.ReportTemplate(id=rt.id, locked=True).update(["locked"])
     rt = rt.read()
     assert rt.locked is True
     # 3. Clone template, check cloned data
     rt.clone(data={'name': template_clone_name})
     cloned_rt = (
-        entities.ReportTemplate()
+        target_sat.api.ReportTemplate()
         .search(query={'search': f'name="{template_clone_name}"'})[0]
         .read()
     )
@@ -294,24 +297,28 @@ def test_positive_lock_clone_nodelete_unlock_report():
             rt.delete()
         # In BZ1680458, exception is thrown but template is deleted anyway
         assert (
-            len(entities.ReportTemplate().search(query={'search': f'name="{template_name}"'})) != 0
+            len(target_sat.api.ReportTemplate().search(query={'search': f'name="{template_name}"'}))
+            != 0
         )
     # 5. Try to edit template
     with pytest.raises(HTTPError):
-        entities.ReportTemplate(id=rt.id, template=template2).update(["template"])
+        target_sat.api.ReportTemplate(id=rt.id, template=template2).update(["template"])
     rt = rt.read()
     assert template1 == rt.template
     # 6. Unlock template
-    entities.ReportTemplate(id=rt.id, locked=False).update(["locked"])
+    target_sat.api.ReportTemplate(id=rt.id, locked=False).update(["locked"])
     rt = rt.read()
     assert rt.locked is False
     # 7. Edit template
-    entities.ReportTemplate(id=rt.id, template=template2).update(["template"])
+    target_sat.api.ReportTemplate(id=rt.id, template=template2).update(["template"])
     rt = rt.read()
     assert template2 == rt.template
     # 8. Delete template
     rt.delete()
-    assert len(entities.ReportTemplate().search(query={'search': f'name="{template_name}"'})) == 0
+    assert (
+        len(target_sat.api.ReportTemplate().search(query={'search': f'name="{template_name}"'}))
+        == 0
+    )
 
 
 @pytest.mark.tier2
@@ -593,7 +600,7 @@ def test_positive_generate_entitlements_report(setup_content, target_sat):
         vm.register_contenthost(org.label, ak.name)
         assert vm.subscribed
         rt = (
-            entities.ReportTemplate()
+            target_sat.api.ReportTemplate()
             .search(query={'search': 'name="Subscription - Entitlement Report"'})[0]
             .read()
         )
@@ -632,7 +639,7 @@ def test_positive_schedule_entitlements_report(setup_content, target_sat):
         vm.register_contenthost(org.label, ak.name)
         assert vm.subscribed
         rt = (
-            entities.ReportTemplate()
+            target_sat.api.ReportTemplate()
             .search(query={'search': 'name="Subscription - Entitlement Report"'})[0]
             .read()
         )
