@@ -411,7 +411,7 @@ class TestEntityRead:
         assert isinstance(entity_cls(id=entity_id).read(), entity_cls)
 
     @pytest.mark.tier1
-    def test_positive_architecture_read(self):
+    def test_positive_architecture_read(self, target_sat):
         """Create an arch that points to an OS, and read the arch.
 
         :id: e4c7babe-11d8-4f85-8382-5267a49046e9
@@ -421,14 +421,14 @@ class TestEntityRead:
 
         :CaseImportance: Critical
         """
-        os_id = entities.OperatingSystem().create_json()['id']
-        arch_id = entities.Architecture(operatingsystem=[os_id]).create_json()['id']
-        architecture = entities.Architecture(id=arch_id).read()
+        os_id = target_sat.api.OperatingSystem().create_json()['id']
+        arch_id = target_sat.api.Architecture(operatingsystem=[os_id]).create_json()['id']
+        architecture = target_sat.api.Architecture(id=arch_id).read()
         assert len(architecture.operatingsystem) == 1
         assert architecture.operatingsystem[0].id == os_id
 
     @pytest.mark.tier1
-    def test_positive_syncplan_read(self):
+    def test_positive_syncplan_read(self, target_sat):
         """Create a SyncPlan and read it back using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
@@ -439,14 +439,14 @@ class TestEntityRead:
 
         :CaseImportance: Critical
         """
-        org_id = entities.Organization().create_json()['id']
-        syncplan_id = entities.SyncPlan(organization=org_id).create_json()['id']
+        org_id = target_sat.api.Organization().create_json()['id']
+        syncplan_id = target_sat.api.SyncPlan(organization=org_id).create_json()['id']
         assert isinstance(
-            entities.SyncPlan(organization=org_id, id=syncplan_id).read(), entities.SyncPlan
+            target_sat.api.SyncPlan(organization=org_id, id=syncplan_id).read(), entities.SyncPlan
         )
 
     @pytest.mark.tier1
-    def test_positive_osparameter_read(self):
+    def test_positive_osparameter_read(self, target_sat):
         """Create an OperatingSystemParameter and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
@@ -457,15 +457,15 @@ class TestEntityRead:
 
         :CaseImportance: Critical
         """
-        os_id = entities.OperatingSystem().create_json()['id']
-        osp_id = entities.OperatingSystemParameter(operatingsystem=os_id).create_json()['id']
+        os_id = target_sat.api.OperatingSystem().create_json()['id']
+        osp_id = target_sat.api.OperatingSystemParameter(operatingsystem=os_id).create_json()['id']
         assert isinstance(
-            entities.OperatingSystemParameter(id=osp_id, operatingsystem=os_id).read(),
-            entities.OperatingSystemParameter,
+            target_sat.api.OperatingSystemParameter(id=osp_id, operatingsystem=os_id).read(),
+            target_sat.api.OperatingSystemParameter,
         )
 
     @pytest.mark.tier1
-    def test_positive_permission_read(self):
+    def test_positive_permission_read(self, target_sat):
         """Create an Permission entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
@@ -476,12 +476,12 @@ class TestEntityRead:
 
         :CaseImportance: Critical
         """
-        perm = entities.Permission().search(query={'per_page': '1'})[0]
+        perm = target_sat.api.Permission().search(query={'per_page': '1'})[0]
         assert perm.name
         assert perm.resource_type
 
     @pytest.mark.tier1
-    def test_positive_media_read(self):
+    def test_positive_media_read(self, target_sat):
         """Create a media pointing at an OS and read the media.
 
         :id: 67b656fe-9302-457a-b544-3addb11c85e0
@@ -490,8 +490,8 @@ class TestEntityRead:
 
         :CaseImportance: Critical
         """
-        os_id = entities.OperatingSystem().create_json()['id']
-        media_id = entities.Media(operatingsystem=[os_id]).create_json()['id']
-        media = entities.Media(id=media_id).read()
+        os_id = target_sat.api.OperatingSystem().create_json()['id']
+        media_id = target_sat.api.Media(operatingsystem=[os_id]).create_json()['id']
+        media = target_sat.api.Media(id=media_id).read()
         assert len(media.operatingsystem) == 1
         assert media.operatingsystem[0].id == os_id
