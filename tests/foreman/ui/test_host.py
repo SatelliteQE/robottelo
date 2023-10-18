@@ -1271,9 +1271,9 @@ def test_global_registration_form_populate(
         4. Open the global registration form and select the same host-group
         5. check host registration form should be populated automatically based on the host-group
 
-    :BZ: 2056469
+    :BZ: 2056469, 1994654
 
-    :CaseAutomation: Automated
+    :customerscenario: true
     """
     hg_name = gen_string('alpha')
     iface = gen_string('alpha')
@@ -1287,6 +1287,8 @@ def test_global_registration_form_populate(
         content_view=module_promoted_cv,
         group_parameters_attributes=[group_params],
     ).create()
+    new_org = target_sat.api.Organization().create()
+    new_ak = target_sat.api.ActivationKey(organization=new_org).create()
     with session:
         session.hostgroup.update(
             hg_name,
@@ -1302,11 +1304,22 @@ def test_global_registration_form_populate(
             },
             full_read=True,
         )
-
         assert hg_name in cmd['general']['host_group']
         assert module_ak_with_cv.name in cmd['general']['activation_key_helper']
         assert module_lce.name in cmd['advanced']['life_cycle_env_helper']
         assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages_helper']
+
+        session.organization.select(org_name=new_org.name)
+        cmd = session.host.get_register_command(
+            {
+                'general.organization': new_org.name,
+                'general.operating_system': default_os.title,
+                'general.insecure': True,
+            },
+            full_read=True,
+        )
+        assert new_org.name in cmd['general']['organization']
+        assert new_ak.name in cmd['general']['activation_keys']
 
 
 @pytest.mark.tier2
