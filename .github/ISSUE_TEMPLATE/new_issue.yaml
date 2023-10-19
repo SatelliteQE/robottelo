@@ -1,0 +1,21 @@
+name: "Create a new issue"
+description: "Please provide more information about the problem"
+title: "[robottelo]"
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of the problem
+      description: A brief description of the question or issue or exisiting PR, also include what you tried and what didn't work.
+      placeholder: '[Provide a clear and concise description of the problem or issue]'
+    validations:
+      required: true
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional information
+      description: Include any additional information, context, dependancy, or notes that may be relevant to this PR.
+      placeholder: '[Link to any related GitHub issues or pull requests, also include any error, output, log if needed]'
+      value: 'GitHub issue | Pull Request | Error | Output | Log'
+    validations:
+      required: false
