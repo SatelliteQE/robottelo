@@ -157,7 +157,7 @@ def assert_discovered_host_provisioned(channel, ksrepo):
         raise AssertionError(f'Timed out waiting for {pattern} from VM')
 
 
-@pytest.fixture()
+@pytest.fixture
 def discovered_host_cleanup(target_sat):
     hosts = target_sat.api.DiscoveredHost().search()
     for host in hosts:

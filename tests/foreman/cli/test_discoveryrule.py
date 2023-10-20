@@ -68,7 +68,7 @@ def gen_int32(min_value=1):
 class TestDiscoveryRule:
     """Implements Foreman discovery Rules tests in CLI."""
 
-    @pytest.fixture(scope='function')
+    @pytest.fixture
     def discoveryrule_factory(self, class_org, class_location, class_hostgroup):
         def _create_discoveryrule(org, loc, hostgroup, options=None):
             """Makes a new discovery rule and asserts its success"""

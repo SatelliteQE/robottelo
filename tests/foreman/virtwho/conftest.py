@@ -36,7 +36,7 @@ def module_user(request, module_target_sat, default_org, default_location):
         logger.warning('Unable to delete session user: %s', str(err))
 
 
-@pytest.fixture()
+@pytest.fixture
 def session(test_name, module_user):
     """Session fixture which automatically initializes (but does not start!)
     airgun UI session and correctly passes current test name to it. Uses shared

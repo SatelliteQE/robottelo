@@ -366,6 +366,10 @@ class TestUserRole:
         new_entity = self.set_taxonomies(entity_cls(), class_org, class_location)
         new_entity = new_entity.create()
         name = new_entity.get_fields()['name'].gen_value()
+        if entity_cls is entities.ActivationKey:
+            entity_cls(self.cfg, id=new_entity.id, name=name, organization=class_org)
+        else:
+            entity_cls(self.cfg, id=new_entity.id, name=name)
         with pytest.raises(HTTPError):
             entity_cls(self.cfg, id=new_entity.id, name=name).update(['name'])
         self.give_user_permission(_permission_name(entity_cls, 'update'))

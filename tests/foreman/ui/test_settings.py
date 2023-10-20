@@ -83,10 +83,10 @@ def test_positive_update_restrict_composite_view(session, setting_update, repo_s
                     session.contentview.promote(
                         composite_cv.name, 'Version 1.0', repo_setup['lce'].name
                     )
-                    assert (
-                        'Administrator -> Settings -> Content page using the '
-                        'restrict_composite_view flag.' in str(context.value)
-                    )
+                assert (
+                    'Administrator -> Settings -> Content page using the '
+                    'restrict_composite_view flag.' in str(context.value)
+                )
             else:
                 result = session.contentview.promote(
                     composite_cv.name, 'Version 1.0', repo_setup['lce'].name
@@ -140,7 +140,7 @@ def test_negative_validate_foreman_url_error_message(session, setting_update):
         invalid_value = [invalid_value for invalid_value in invalid_settings_values()][0]
         with pytest.raises(AssertionError) as context:
             session.settings.update(f'name = {property_name}', invalid_value)
-            assert 'Value is invalid: must be integer' in str(context.value)
+        assert 'Value is invalid: must be integer' in str(context.value)
 
 
 @pytest.mark.tier2
@@ -497,7 +497,7 @@ def test_negative_update_hostname_with_empty_fact(session, setting_update):
     with session:
         with pytest.raises(AssertionError) as context:
             session.settings.update(property_name, new_hostname)
-            assert 'can\'t be blank' in str(context.value)
+        assert 'can\'t be blank' in str(context.value)
 
 
 @pytest.mark.run_in_one_thread

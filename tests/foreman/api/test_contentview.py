@@ -240,8 +240,8 @@ class TestContentView:
         yum_repo = entities.Repository(product=module_product).create()
         yum_repo.sync()
         assert len(content_view.repository) == 0
+        content_view.repository = [yum_repo, yum_repo]
         with pytest.raises(HTTPError):
-            content_view.repository = [yum_repo, yum_repo]
             content_view.update(['repository'])
         assert len(content_view.read().repository) == 0
 
@@ -757,7 +757,7 @@ class TestContentViewUpdate:
     """Tests for updating content views."""
 
     @pytest.mark.parametrize(
-        'key, value',
+        ('key', 'value'),
         **(lambda x: {'argvalues': list(x.items()), 'ids': list(x.keys())})(
             {'description': gen_utf8(), 'name': gen_utf8()}
         ),
@@ -811,8 +811,8 @@ class TestContentViewUpdate:
 
         :CaseImportance: Critical
         """
+        module_cv.name = new_name
         with pytest.raises(HTTPError):
-            module_cv.name = new_name
             module_cv.update(['name'])
         cv = module_cv.read()
         assert cv.name != new_name

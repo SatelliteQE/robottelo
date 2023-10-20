@@ -73,7 +73,7 @@ def rhel_insights_vm(rhcloud_sat_host, organization_ak_setup, rhel_contenthost):
         org=org.label,
         rhel_distro=f"rhel{rhel_contenthost.os_version.major}",
     )
-    yield rhel_contenthost
+    return rhel_contenthost
 
 
 @pytest.fixture
@@ -93,4 +93,4 @@ def inventory_settings(rhcloud_sat_host):
 def rhcloud_capsule(capsule_host, rhcloud_sat_host):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
     capsule_host.capsule_setup(sat_host=rhcloud_sat_host)
-    yield capsule_host
+    return capsule_host

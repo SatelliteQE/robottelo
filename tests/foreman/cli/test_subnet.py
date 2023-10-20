@@ -210,10 +210,10 @@ def test_negative_update_attributes(options):
     options['id'] = subnet['id']
     with pytest.raises(CLIReturnCodeError, match='Could not update the subnet:'):
         Subnet.update(options)
-        # check - subnet is not updated
-        result = Subnet.info({'id': subnet['id']})
-        for key in options.keys():
-            assert subnet[key] == result[key]
+    # check - subnet is not updated
+    result = Subnet.info({'id': subnet['id']})
+    for key in options.keys():
+        assert subnet[key] == result[key]
 
 
 @pytest.mark.tier2

@@ -165,8 +165,8 @@ def test_negative_update_name(module_lce, new_name):
 
     :parametrized: yes
     """
+    module_lce.name = new_name
     with pytest.raises(HTTPError):
-        module_lce.name = new_name
         module_lce.update(['name'])
     lce = module_lce.read()
     assert lce.name != new_name

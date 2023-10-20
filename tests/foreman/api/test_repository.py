@@ -1187,7 +1187,8 @@ class TestRepository:
             f' --key /etc/pki/katello/private/pulp-client.key'
         )
         command_output = target_sat.execute('foreman-rake katello:correct_repositories COMMIT=true')
-        assert 'Recreating' in command_output.stdout and 'TaskError' not in command_output.stdout
+        assert 'Recreating' in command_output.stdout
+        assert 'TaskError' not in command_output.stdout
 
     @pytest.mark.tier2
     def test_positive_mirroring_policy(self, target_sat):

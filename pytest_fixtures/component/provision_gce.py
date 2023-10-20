@@ -20,22 +20,22 @@ from robottelo.exceptions import GCECertNotFoundError
 @pytest.fixture(scope='session')
 def sat_gce(request, session_puppet_enabled_sat, session_target_sat):
     hosts = {'sat': session_target_sat, 'puppet_sat': session_puppet_enabled_sat}
-    yield hosts[getattr(request, 'param', 'sat')]
+    return hosts[getattr(request, 'param', 'sat')]
 
 
 @pytest.fixture(scope='module')
 def sat_gce_org(sat_gce):
-    yield sat_gce.api.Organization().create()
+    return sat_gce.api.Organization().create()
 
 
 @pytest.fixture(scope='module')
 def sat_gce_loc(sat_gce):
-    yield sat_gce.api.Location().create()
+    return sat_gce.api.Location().create()
 
 
 @pytest.fixture(scope='module')
 def sat_gce_domain(sat_gce, sat_gce_loc, sat_gce_org):
-    yield sat_gce.api.Domain(location=[sat_gce_loc], organization=[sat_gce_org]).create()
+    return sat_gce.api.Domain(location=[sat_gce_loc], organization=[sat_gce_org]).create()
 
 
 @pytest.fixture(scope='module')
@@ -284,7 +284,7 @@ def module_gce_finishimg(
     return finish_image
 
 
-@pytest.fixture()
+@pytest.fixture
 def gce_setting_update(sat_gce):
     sat_gce.update_setting('destroy_vm_on_host_delete', True)
     yield

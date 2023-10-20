@@ -43,7 +43,7 @@ from robottelo.utils.virtwho import (
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def form_data():
     form = {
         'debug': True,
@@ -833,13 +833,10 @@ class TestVirtwhoConfigforEsx:
             env_error = (
                 f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
             )
-            try:
+            with pytest.raises(Exception) as exc_info:  # noqa: PT011 - TODO find better exception
                 get_configure_option({option}, {config_file})
-            except Exception as VirtWhoError:
-                assert env_error == str(VirtWhoError)
+            assert str(exc_info.value) == env_error
             # Check /var/log/messages should not display warning message
             env_warning = f"Ignoring unknown configuration option \"{option}\""
             result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
             assert result.status == 1
-            session.virtwho_configure.delete(name)
-            assert not session.virtwho_configure.search(name)

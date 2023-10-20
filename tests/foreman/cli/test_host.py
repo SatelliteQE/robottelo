@@ -67,7 +67,7 @@ def module_default_proxy(module_target_sat):
     return module_target_sat.cli.Proxy.list({'search': f'url = {module_target_sat.url}:9090'})[0]
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def function_host(target_sat):
     host_template = target_sat.api.Host()
     host_template.create_missing()
@@ -90,7 +90,7 @@ def function_host(target_sat):
     Host.delete({'id': host['id']})
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def function_user(target_sat, function_host):
     """
     Returns dict with user object and with password to this user
@@ -116,7 +116,7 @@ def function_user(target_sat, function_host):
     user.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def tracer_host(katello_host_tools_tracer_host):
     # create a custom, rhel version-specific mock-service repo
     rhelver = katello_host_tools_tracer_host.os_version.major
@@ -132,7 +132,7 @@ def tracer_host(katello_host_tools_tracer_host):
     )
     katello_host_tools_tracer_host.execute(f'systemctl start {settings.repos["MOCK_SERVICE_RPM"]}')
 
-    yield katello_host_tools_tracer_host
+    return katello_host_tools_tracer_host
 
 
 def update_smart_proxy(sat, location, smart_proxy):
@@ -1542,7 +1542,7 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
     """
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def setup_custom_repo(target_sat, module_org, katello_host_tools_host):
     """Create custom repository content"""
     # get package details
@@ -1587,7 +1587,7 @@ def setup_custom_repo(target_sat, module_org, katello_host_tools_host):
     return details
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def yum_security_plugin(katello_host_tools_host):
     """Enable yum-security-plugin if the distro version requires it.
     Rhel6 yum version does not support updating of a specific advisory out of the box.
@@ -1856,10 +1856,10 @@ def test_positive_install_package_via_rex(
 
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND FIXTURES --------------------------
 @pytest.mark.skip_if_not_set('clients')
-@pytest.fixture(scope="function")
+@pytest.fixture
 def host_subscription_client(rhel7_contenthost, target_sat):
     rhel7_contenthost.install_katello_ca(target_sat)
-    yield rhel7_contenthost
+    return rhel7_contenthost
 
 
 @pytest.fixture
@@ -2533,14 +2533,14 @@ def test_positive_host_with_puppet(
     session_puppet_enabled_sat.cli.Host.delete({'id': host['id']})
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def function_proxy(session_puppet_enabled_sat, puppet_proxy_port_range):
     proxy = session_puppet_enabled_sat.cli_factory.make_proxy()
     yield proxy
     session_puppet_enabled_sat.cli.Proxy.delete({'id': proxy['id']})
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def function_host_content_source(
     session_puppet_enabled_sat,
     session_puppet_enabled_proxy,

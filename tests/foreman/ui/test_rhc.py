@@ -63,7 +63,7 @@ def module_rhc_org(module_target_sat):
     return org
 
 
-@pytest.fixture()
+@pytest.fixture
 def fixture_setup_rhc_satellite(
     request, module_target_sat, module_rhc_org, module_entitlement_manifest, target_sat
 ):

@@ -124,7 +124,8 @@ def test_rhcloud_inventory_api_e2e(
     infrastructure_type = [
         host['system_profile']['infrastructure_type'] for host in json_data['hosts']
     ]
-    assert 'physical' and 'virtual' in infrastructure_type
+    assert 'physical'
+    assert 'virtual' in infrastructure_type
 
     all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
     for host_profiles in all_host_profiles:
@@ -351,7 +352,7 @@ def test_include_parameter_tags_setting(
     for host in json_data['hosts']:
         for tag in host['tags']:
             if tag['namespace'] == 'satellite_parameter':
-                assert type(tag['value']) is str
+                assert isinstance(tag['value'], str)
                 break
 
 

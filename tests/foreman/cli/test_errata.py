@@ -193,7 +193,7 @@ def hosts(request):
     """Deploy hosts via broker."""
     num_hosts = getattr(request, 'param', 2)
     with Broker(nick='rhel7', host_class=ContentHost, _count=num_hosts) as hosts:
-        if type(hosts) is not list or len(hosts) != num_hosts:
+        if not isinstance(hosts, list) or len(hosts) != num_hosts:
             pytest.fail('Failed to provision the expected number of hosts.')
         yield hosts
 
@@ -381,9 +381,9 @@ def cv_filter_cleanup(filter_id, cv, org, lce):
 
 
 @pytest.mark.tier3
-@pytest.mark.parametrize('filter_by_hc', ('id', 'name'), ids=('hc_id', 'hc_name'))
+@pytest.mark.parametrize('filter_by_hc', ['id', 'name'], ids=('hc_id', 'hc_name'))
 @pytest.mark.parametrize(
-    'filter_by_org', ('id', 'name', 'title'), ids=('org_id', 'org_name', 'org_title')
+    'filter_by_org', ['id', 'name', 'title'], ids=('org_id', 'org_name', 'org_title')
 )
 @pytest.mark.no_containers
 def test_positive_install_by_host_collection_and_org(
@@ -1009,10 +1009,10 @@ def test_host_errata_search_commands(
 
 
 @pytest.mark.tier3
-@pytest.mark.parametrize('sort_by_date', ('issued', 'updated'), ids=('issued_date', 'updated_date'))
+@pytest.mark.parametrize('sort_by_date', ['issued', 'updated'], ids=('issued_date', 'updated_date'))
 @pytest.mark.parametrize(
     'filter_by_org',
-    ('id', 'name', 'label', None),
+    ['id', 'name', 'label', None],
     ids=('org_id', 'org_name', 'org_label', 'no_org_filter'),
 )
 def test_positive_list_filter_by_org_sort_by_date(
@@ -1059,9 +1059,9 @@ def test_positive_list_filter_by_product_id(products_with_repos):
 
 
 @pytest.mark.tier3
-@pytest.mark.parametrize('filter_by_product', ('id', 'name'), ids=('product_id', 'product_name'))
+@pytest.mark.parametrize('filter_by_product', ['id', 'name'], ids=('product_id', 'product_name'))
 @pytest.mark.parametrize(
-    'filter_by_org', ('id', 'name', 'label'), ids=('org_id', 'org_name', 'org_label')
+    'filter_by_org', ['id', 'name', 'label'], ids=('org_id', 'org_name', 'org_label')
 )
 def test_positive_list_filter_by_product_and_org(
     products_with_repos, filter_by_product, filter_by_org
@@ -1125,7 +1125,7 @@ def test_negative_list_filter_by_product_name(products_with_repos):
 
 @pytest.mark.tier3
 @pytest.mark.parametrize(
-    'filter_by_org', ('id', 'name', 'label'), ids=('org_id', 'org_name', 'org_label')
+    'filter_by_org', ['id', 'name', 'label'], ids=('org_id', 'org_name', 'org_label')
 )
 def test_positive_list_filter_by_org(products_with_repos, filter_by_org):
     """Filter errata by org id, name, or label.

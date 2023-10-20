@@ -30,7 +30,7 @@ from robottelo.utils.virtwho import (
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def form_data():
     form = {
         'debug': True,

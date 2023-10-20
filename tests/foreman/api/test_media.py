@@ -41,7 +41,7 @@ class TestMedia:
     @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
-        'name, new_name',
+        ('name', 'new_name'),
         **parametrized(list(zip(valid_data_list().values(), valid_data_list().values())))
     )
     def test_positive_crud_with_name(self, module_org, name, new_name):

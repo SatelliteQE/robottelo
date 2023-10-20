@@ -3,7 +3,7 @@ import pytest
 from robottelo.config import settings
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def setup_http_proxy(request, module_manifest_org, target_sat):
     """Create a new HTTP proxy and set related settings based on proxy"""
     http_proxy = target_sat.api_factory.make_http_proxy(module_manifest_org, request.param)

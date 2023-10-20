@@ -343,8 +343,8 @@ def test_negative_update_parameter(new_name):
     sub_param = entities.Parameter(
         name=gen_string('utf8'), subnet=subnet.id, value=gen_string('utf8')
     ).create()
+    sub_param.name = new_name
     with pytest.raises(HTTPError):
-        sub_param.name = new_name
         sub_param.update(['name'])
 
 

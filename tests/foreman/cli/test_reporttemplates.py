@@ -988,4 +988,4 @@ def test_negative_generate_hostpkgcompare_nonexistent_host():
                 'inputs': 'Host 1 = nonexistent1, ' 'Host 2 = nonexistent2',
             }
         )
-        assert "At least one of the hosts couldn't be found" in cm.exception.stderr
+    assert "At least one of the hosts couldn't be found" in cm.exception.stderr

@@ -66,7 +66,7 @@ def config_export_import_settings():
     Settings.set({'name': 'subscription_connection_enabled', 'value': subs_conn_enabled_value})
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def export_import_cleanup_function(target_sat, function_org):
     """Deletes export/import dirs of function org"""
     yield
@@ -75,7 +75,7 @@ def export_import_cleanup_function(target_sat, function_org):
     )
 
 
-@pytest.fixture(scope='function')  # perform the cleanup after each testcase of a module
+@pytest.fixture  # perform the cleanup after each testcase of a module
 def export_import_cleanup_module(target_sat, module_org):
     """Deletes export/import dirs of module_org"""
     yield
@@ -84,19 +84,19 @@ def export_import_cleanup_module(target_sat, module_org):
     )
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_import_org(target_sat):
     """Creates an Organization for content import."""
     org = target_sat.api.Organization().create()
-    yield org
+    return org
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_import_org_with_manifest(target_sat, function_import_org):
     """Creates and sets an Organization with a brand-new manifest for content import."""
     with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
         target_sat.upload_manifest(function_import_org.id, manifest)
-    yield function_import_org
+    return function_import_org
 
 
 @pytest.fixture(scope='module')
@@ -110,10 +110,10 @@ def module_synced_custom_repo(module_target_sat, module_org, module_product):
         }
     )
     module_target_sat.cli.Repository.synchronize({'id': repo['id']})
-    yield repo
+    return repo
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_synced_custom_repo(target_sat, function_org, function_product):
     repo = target_sat.cli_factory.make_repository(
         {
@@ -124,10 +124,10 @@ def function_synced_custom_repo(target_sat, function_org, function_product):
         }
     )
     target_sat.cli.Repository.synchronize({'id': repo['id']})
-    yield repo
+    return repo
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_synced_rhel_repo(request, target_sat, function_sca_manifest_org):
     """Enable and synchronize rhel content with immediate policy"""
     repo_dict = (
@@ -164,7 +164,7 @@ def function_synced_rhel_repo(request, target_sat, function_sca_manifest_org):
     return repo
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_synced_file_repo(target_sat, function_org, function_product):
     repo = target_sat.cli_factory.make_repository(
         {
@@ -175,10 +175,10 @@ def function_synced_file_repo(target_sat, function_org, function_product):
         }
     )
     target_sat.cli.Repository.synchronize({'id': repo['id']})
-    yield repo
+    return repo
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_synced_docker_repo(target_sat, function_org):
     product = target_sat.cli_factory.make_product({'organization-id': function_org.id})
     repo = target_sat.cli_factory.make_repository(
@@ -192,10 +192,10 @@ def function_synced_docker_repo(target_sat, function_org):
         }
     )
     target_sat.cli.Repository.synchronize({'id': repo['id']})
-    yield repo
+    return repo
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_synced_AC_repo(target_sat, function_org, function_product):
     repo = target_sat.cli_factory.make_repository(
         {
@@ -209,7 +209,7 @@ def function_synced_AC_repo(target_sat, function_org, function_product):
         }
     )
     target_sat.cli.Repository.synchronize({'id': repo['id']})
-    yield repo
+    return repo
 
 
 @pytest.mark.run_in_one_thread

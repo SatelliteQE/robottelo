@@ -34,7 +34,7 @@ def module_vm_client_by_ip(rhel7_contenthost, module_org, smart_proxy_location, 
     target_sat.api_factory.update_vm_host_location(
         rhel7_contenthost, location_id=smart_proxy_location.id
     )
-    yield rhel7_contenthost
+    return rhel7_contenthost
 
 
 @pytest.mark.tier3

@@ -899,8 +899,8 @@ class TestDockerContentView:
         cvv = content_view.read().version[0]
         lce = entities.LifecycleEnvironment(organization=module_org).create()
         cvv.promote(data={'environment_ids': lce.id, 'force': False})
+        lce.registry_name_pattern = new_pattern
         with pytest.raises(HTTPError):
-            lce.registry_name_pattern = new_pattern
             lce.update(['registry_name_pattern'])
 
 

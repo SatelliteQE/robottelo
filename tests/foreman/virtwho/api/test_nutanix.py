@@ -29,7 +29,7 @@ from robottelo.utils.virtwho import (
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def form_data(default_org, target_sat):
     form = {
         'name': gen_string('alpha'),
@@ -48,7 +48,7 @@ def form_data(default_org, target_sat):
     return form
 
 
-@pytest.fixture()
+@pytest.fixture
 def virtwho_config(form_data, target_sat):
     virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
     yield virtwho_config

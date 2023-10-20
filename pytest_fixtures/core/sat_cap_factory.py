@@ -150,28 +150,28 @@ def session_capsule_host(request, capsule_factory):
 def capsule_configured(capsule_host, target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
     capsule_host.capsule_setup(sat_host=target_sat)
-    yield capsule_host
+    return capsule_host
 
 
 @pytest.fixture
 def large_capsule_configured(large_capsule_host, target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
     large_capsule_host.capsule_setup(sat_host=target_sat)
-    yield large_capsule_host
+    return large_capsule_host
 
 
 @pytest.fixture(scope='module')
 def module_capsule_configured(module_capsule_host, module_target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
     module_capsule_host.capsule_setup(sat_host=module_target_sat)
-    yield module_capsule_host
+    return module_capsule_host
 
 
 @pytest.fixture(scope='session')
 def session_capsule_configured(session_capsule_host, session_target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
     session_capsule_host.capsule_setup(sat_host=session_target_sat)
-    yield session_capsule_host
+    return session_capsule_host
 
 
 @pytest.fixture(scope='module')
@@ -191,7 +191,7 @@ def module_capsule_configured_mqtt(module_capsule_configured):
     )
     result = module_capsule_configured.cli.Service.restart(options={'only': 'foreman-proxy'})
     assert result.status == 0, 'foreman-proxy restart unsuccessful'
-    yield module_capsule_configured
+    return module_capsule_configured
 
 
 @pytest.fixture(scope='module')
@@ -223,7 +223,7 @@ def module_capsule_configured_async_ssh(module_capsule_configured):
     """Configure the capsule instance with the satellite from settings.server.hostname,
     enable MQTT broker"""
     module_capsule_configured.set_rex_script_mode_provider('ssh-async')
-    yield module_capsule_configured
+    return module_capsule_configured
 
 
 @pytest.fixture(scope='module')
