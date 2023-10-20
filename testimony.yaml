@@ -65,7 +65,6 @@ CaseComponent:
     - Infrastructure
     - Installer
     - InterSatelliteSync
-    - katello-agent
     - katello-tracer
     - LDAP
     - Leappintegration
