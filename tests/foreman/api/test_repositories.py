@@ -218,3 +218,29 @@ def test_negative_upload_expired_manifest(module_org, target_sat):
         'Please create a new Subscription Allocation and import the new manifest'
         in error.value.stderr
     )
+
+
+@pytest.mark.tier1
+def test_positive_multiple_orgs_with_same_repo(target_sat):
+    """Test that multiple organizations with the same repository synced have matching metadata
+
+    :id: 39cff8ea-969d-4b8f-9fb4-33b1ba768ff2
+
+    :Steps:
+        1. Create multiple organizations
+        2. Sync the same repository to each organization
+        3. Assert that each repository from each organization contain the same content counts
+
+    :expectedresults: Each repository in each organziation should have the same content counts
+    """
+    repos = []
+    orgs = [target_sat.api.Organization().create() for _ in range(3)]
+    for org in orgs:
+        product = target_sat.api.Product(organization=org).create()
+        repo = target_sat.api.Repository(
+            content_type='yum', product=product, url=settings.repos.module_stream_1.url
+        ).create()
+        repo.sync()
+        repo_counts = target_sat.api.Repository(id=repo.id).read().content_counts
+        repos.append(repo_counts)
+    assert repos[0] == repos[1] == repos[2]
