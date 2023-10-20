@@ -37,7 +37,7 @@ class TestRole:
     @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
-        'name, new_name',
+        ('name', 'new_name'),
         **parametrized(list(zip(generate_strings_list(), generate_strings_list()))),
     )
     def test_positive_crud(self, name, new_name, target_sat):
@@ -1264,6 +1264,7 @@ class TestCannedRole:
         target_sat.api.User(id=user.id).delete()
         with pytest.raises(HTTPError):
             user_role.read()
+        with pytest.raises(HTTPError):
             user.read()
         try:
             target_sat.api.Domain().search(
@@ -1340,8 +1341,6 @@ class TestCannedRole:
         test_role.organization = [role_taxonomies['org']]
         test_role.location = [role_taxonomies['loc']]
         with pytest.raises(HTTPError):
-            test_role.organization = [role_taxonomies['org']]
-            test_role.location = [role_taxonomies['loc']]
             test_role.update(['organization', 'location'])
 
     @pytest.mark.tier2

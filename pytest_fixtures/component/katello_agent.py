@@ -21,7 +21,7 @@ def sat_with_katello_agent(module_target_sat):
             InstallerCommand('foreman-proxy-content-enable-katello-agent true')
         )
         assert result.status == 0
-    yield module_target_sat
+    return module_target_sat
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def katello_agent_client_for_upgrade(sat_with_katello_agent, sat_upgrade_chost, 
     )
     sat_upgrade_chost.install_katello_agent()
     host_info = sat_with_katello_agent.cli.Host.info({'name': sat_upgrade_chost.hostname})
-    yield Box(
+    return Box(
         {
             'client': sat_upgrade_chost,
             'host_info': host_info,
@@ -52,4 +52,4 @@ def katello_agent_client(sat_with_katello_agent, rhel_contenthost):
     )
     rhel_contenthost.install_katello_agent()
     host_info = sat_with_katello_agent.cli.Host.info({'name': rhel_contenthost.hostname})
-    yield Box({'client': rhel_contenthost, 'host_info': host_info, 'sat': sat_with_katello_agent})
+    return Box({'client': rhel_contenthost, 'host_info': host_info, 'sat': sat_with_katello_agent})

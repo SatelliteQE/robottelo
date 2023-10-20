@@ -35,7 +35,7 @@ def default_ipa_host(module_target_sat):
     return IPAHost(module_target_sat)
 
 
-@pytest.fixture()
+@pytest.fixture
 def ldap_cleanup():
     """this is an extra step taken to clean any existing ldap source"""
     ldap_auth_sources = entities.AuthSourceLDAP().search()
@@ -44,7 +44,7 @@ def ldap_cleanup():
         for user in users:
             user.delete()
         ldap_auth.delete()
-    yield
+    return
 
 
 @pytest.fixture(scope='session')
@@ -104,7 +104,7 @@ def open_ldap_data():
     }
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def auth_source(ldap_cleanup, module_org, module_location, ad_data):
     ad_data = ad_data()
     return entities.AuthSourceLDAP(
@@ -127,7 +127,7 @@ def auth_source(ldap_cleanup, module_org, module_location, ad_data):
     ).create()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def auth_source_ipa(ldap_cleanup, default_ipa_host, module_org, module_location):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
@@ -149,7 +149,7 @@ def auth_source_ipa(ldap_cleanup, default_ipa_host, module_org, module_location)
     ).create()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def auth_source_open_ldap(ldap_cleanup, module_org, module_location, open_ldap_data):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
@@ -259,7 +259,7 @@ def ldap_auth_source(
     else:
         ldap_data['server_type'] = LDAP_SERVER_TYPE['UI']['posix']
         ldap_data['attr_login'] = LDAP_ATTR['login']
-    yield ldap_data, auth_source
+    return ldap_data, auth_source
 
 
 @pytest.fixture
@@ -459,7 +459,7 @@ def configure_hammer_no_negotiate(parametrized_enrolled_sat):
 
 
 @pytest.mark.external_auth
-@pytest.fixture(scope='function')
+@pytest.fixture
 def hammer_logout(parametrized_enrolled_sat):
     """Logout in Hammer."""
     result = parametrized_enrolled_sat.cli.Auth.logout()

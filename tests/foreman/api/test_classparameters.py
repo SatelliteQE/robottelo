@@ -137,10 +137,10 @@ class TestSmartClassParameters:
             2. Error raised for invalid default value.
         """
         sc_param = module_puppet['sc_params'].pop()
+        sc_param.override = True
+        sc_param.parameter_type = test_data['sc_type']
+        sc_param.default_value = test_data['value']
         with pytest.raises(HTTPError) as context:
-            sc_param.override = True
-            sc_param.parameter_type = test_data['sc_type']
-            sc_param.default_value = test_data['value']
             sc_param.update(['override', 'parameter_type', 'default_value'])
         assert sc_param.read().default_value != test_data['value']
         assert 'Validation failed: Default value is invalid' in context.value.response.text
@@ -370,9 +370,9 @@ class TestSmartClassParameters:
         session_puppet_enabled_sat.api.OverrideValue(
             smart_class_parameter=sc_param, match='domain=example.com', value=gen_string('alpha')
         ).create()
+        sc_param.parameter_type = 'boolean'
+        sc_param.default_value = gen_string('alpha')
         with pytest.raises(HTTPError) as context:
-            sc_param.parameter_type = 'boolean'
-            sc_param.default_value = gen_string('alpha')
             sc_param.update(['parameter_type', 'default_value'])
         assert (
             'Validation failed: Default value is invalid, Lookup values is invalid'

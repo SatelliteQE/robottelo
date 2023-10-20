@@ -2473,7 +2473,7 @@ class TestContentView:
         # role info (note: view_roles is not in the required permissions)
         with pytest.raises(CLIReturnCodeError) as context:
             Role.with_user(user_name, user_password).info({'id': role['id']})
-            assert '403 Forbidden' in str(context)
+        assert '403 Forbidden' in str(context)
         # Create a lifecycle environment
         env = cli_factory.make_lifecycle_environment({'organization-id': org['id']})
         # Create a product
