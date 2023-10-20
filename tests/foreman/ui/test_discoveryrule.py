@@ -180,7 +180,7 @@ def test_negative_delete_rule_with_non_admin_user(
         hostgroup=hg, organization=[module_org], location=[module_location]
     ).create()
     with Session(test_name, user=reader_user.login, password=reader_user.password) as session:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             session.discoveryrule.delete(dr.name)
         dr_val = session.discoveryrule.read_all()
         assert dr.name in [rule['Name'] for rule in dr_val]

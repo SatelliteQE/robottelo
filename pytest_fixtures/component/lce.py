@@ -16,7 +16,7 @@ def module_lce(module_org, module_target_sat):
     return module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_lce(function_org, target_sat):
     return target_sat.api.LifecycleEnvironment(organization=function_org).create()
 
@@ -31,7 +31,7 @@ def module_lce_library(module_org, module_target_sat):
     )
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_lce_library(function_org, target_sat):
     """Returns the Library lifecycle environment from chosen organization"""
     return (

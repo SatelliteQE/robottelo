@@ -1199,7 +1199,7 @@ class TestCapsuleContentManagement:
         result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
         # there can and will be LCEs from other tests and orgs, but len() >= 2
         assert len(result['results']) >= 2
-        assert lce1.id and lce2.id in [capsule_lce['id'] for capsule_lce in result['results']]
+        assert {lce1.id, lce2.id}.issubset([capsule_lce['id'] for capsule_lce in result['results']])
 
         # Create a Content View, add the repository and publish it.
         cv = target_sat.api.ContentView(

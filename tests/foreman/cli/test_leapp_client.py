@@ -78,7 +78,7 @@ def module_stash(request):
     # Please refer the documentation for more details on stash
     # https://docs.pytest.org/en/latest/reference/reference.html#stash
     request.node.stash[synced_repos] = {}
-    yield request.node.stash
+    return request.node.stash
 
 
 @pytest.fixture(scope='module')

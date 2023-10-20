@@ -74,7 +74,7 @@ def set_certificate_in_satellite(server_type, sat, hostname=None):
         raise AssertionError(f'Failed to restart the httpd after applying {server_type} cert')
 
 
-@pytest.fixture()
+@pytest.fixture
 def ldap_tear_down(module_target_sat):
     """Teardown the all ldap settings user, usergroup and ldap delete"""
     yield
@@ -86,14 +86,14 @@ def ldap_tear_down(module_target_sat):
         ldap_auth.delete()
 
 
-@pytest.fixture()
+@pytest.fixture
 def external_user_count(module_target_sat):
     """return the external auth source user count"""
     users = module_target_sat.api.User().search()
-    yield len([user for user in users if user.auth_source_name == 'External'])
+    return len([user for user in users if user.auth_source_name == 'External'])
 
 
-@pytest.fixture()
+@pytest.fixture
 def groups_teardown(module_target_sat):
     """teardown for groups created for external/remote groups"""
     yield
@@ -106,7 +106,7 @@ def groups_teardown(module_target_sat):
             user_groups[0].delete()
 
 
-@pytest.fixture()
+@pytest.fixture
 def rhsso_groups_teardown(module_target_sat, default_sso_host):
     """Teardown the rhsso groups"""
     yield
@@ -365,6 +365,7 @@ def test_external_new_user_login_and_check_count_rhsso(
     with module_target_sat.ui_session(login=False) as rhsso_session:
         with pytest.raises(NavigationTriesExceeded) as error:
             rhsso_session.rhsso_login.login(login_details)
+        with pytest.raises(NavigationTriesExceeded) as error:
             rhsso_session.task.read_all()
         assert error.typename == 'NavigationTriesExceeded'
 
@@ -411,6 +412,7 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
     with module_target_sat.ui_session(login=False) as rhsso_session:
         with pytest.raises(NavigationTriesExceeded) as error:
             rhsso_session.rhsso_login.login(login_details)
+        with pytest.raises(NavigationTriesExceeded) as error:
             rhsso_session.task.read_all()
         assert error.typename == 'NavigationTriesExceeded'
 

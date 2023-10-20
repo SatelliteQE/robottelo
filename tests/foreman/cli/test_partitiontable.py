@@ -51,7 +51,7 @@ class TestPartitionTable:
     @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
-        'name, new_name',
+        ('name', 'new_name'),
         **parametrized(
             list(
                 zip(

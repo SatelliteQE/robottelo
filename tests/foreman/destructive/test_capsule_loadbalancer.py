@@ -83,7 +83,7 @@ def setup_capsules(
             {'id': capsule_id, 'organization-id': module_org.id}
         )
 
-    yield {
+    return {
         'capsule_1': module_lb_capsule[0],
         'capsule_2': module_lb_capsule[1],
     }

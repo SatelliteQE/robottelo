@@ -28,7 +28,7 @@ from robottelo.cli.webhook import Webhook
 from robottelo.constants import WEBHOOK_EVENTS, WEBHOOK_METHODS
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def webhook_factory(request, class_org, class_location):
     def _create_webhook(org, loc, options=None):
         """Function for creating a new Webhook

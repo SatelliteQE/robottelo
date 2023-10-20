@@ -91,7 +91,7 @@ infoblox_plugin_opts = {
 
 @pytest.mark.tier4
 @pytest.mark.parametrize(
-    'command_args,command_opts,rpm_command',
+    ('command_args', 'command_opts', 'rpm_command'),
     params,
     ids=['isc_dhcp', 'infoblox_dhcp', 'infoblox_dns'],
 )

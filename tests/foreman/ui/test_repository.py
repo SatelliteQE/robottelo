@@ -227,8 +227,8 @@ def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_na
     with Session(test_name, user_login, user_password) as session:
         # ensure that the created user is not a global admin user
         # check administer->users page
+        pswd = gen_string('alphanumeric')
         with pytest.raises(NavigationTriesExceeded):
-            pswd = gen_string('alphanumeric')
             session.user.create(
                 {
                     'user.login': gen_string('alphanumeric'),
@@ -748,7 +748,8 @@ def test_positive_reposet_disable(session, target_sat, function_entitlement_mani
                 )
             ]
         )
-        assert results and all([result == 'Syncing Complete.' for result in results])
+        assert results
+        assert all([result == 'Syncing Complete.' for result in results])
         session.redhatrepository.disable(repository_name)
         assert not session.redhatrepository.search(
             f'name = "{repository_name}"', category='Enabled'
@@ -799,7 +800,8 @@ def test_positive_reposet_disable_after_manifest_deleted(
                 )
             ]
         )
-        assert results and all([result == 'Syncing Complete.' for result in results])
+        assert results
+        assert all([result == 'Syncing Complete.' for result in results])
         # Delete manifest
         sub.delete_manifest(data={'organization_id': org.id})
         # Verify that the displayed repository name is correct
@@ -878,7 +880,8 @@ def test_positive_delete_rhel_repo(session, module_entitlement_manifest_org, tar
                 )
             ]
         )
-        assert results and all([result == 'Syncing Complete.' for result in results])
+        assert results
+        assert all([result == 'Syncing Complete.' for result in results])
         session.repository.delete(product_name, repository_name)
         assert not session.redhatrepository.search(
             f'name = "{repository_name}"', category='Enabled'

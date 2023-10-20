@@ -60,7 +60,7 @@ class TestPartitionTable:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'name, new_name',
+        ('name', 'new_name'),
         **parametrized(
             list(
                 zip(
@@ -95,7 +95,7 @@ class TestPartitionTable:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'layout, new_layout', **parametrized(list(zip(valid_data_list(), valid_data_list())))
+        ('layout', 'new_layout'), **parametrized(list(zip(valid_data_list(), valid_data_list())))
     )
     def test_positive_create_update_with_layout(self, target_sat, layout, new_layout):
         """Create new and update partition tables using different inputs as a

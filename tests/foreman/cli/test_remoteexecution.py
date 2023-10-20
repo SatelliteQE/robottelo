@@ -47,7 +47,7 @@ from robottelo.hosts import ContentHost
 from robottelo.utils import ohsnap
 
 
-@pytest.fixture()
+@pytest.fixture
 def fixture_sca_vmsetup(request, module_sca_manifest_org, target_sat):
     """Create VM and register content host to Simple Content Access organization"""
     if '_count' in request.param.keys():
@@ -65,10 +65,10 @@ def fixture_sca_vmsetup(request, module_sca_manifest_org, target_sat):
             yield client
 
 
-@pytest.fixture()
+@pytest.fixture
 def infra_host(request, target_sat, module_capsule_configured):
     infra_hosts = {'target_sat': target_sat, 'module_capsule_configured': module_capsule_configured}
-    yield infra_hosts[request.param]
+    return infra_hosts[request.param]
 
 
 def assert_job_invocation_result(invocation_command_id, client_hostname, expected_result='success'):
@@ -715,7 +715,7 @@ class TestRexUsers:
         rexmanager = gen_string('alpha')
         make_user({'login': rexmanager, 'password': password, 'organization-ids': module_org.id})
         User.add_role({'login': rexmanager, 'role': 'Remote Execution Manager'})
-        yield (rexmanager, password)
+        return (rexmanager, password)
 
     @pytest.fixture(scope='class')
     def class_rexinfra_user(self, module_org):
@@ -741,7 +741,7 @@ class TestRexUsers:
         make_filter({'role-id': role['id'], 'permissions': permissions})
         User.add_role({'login': rexinfra, 'role': role['name']})
         User.add_role({'login': rexinfra, 'role': 'Remote Execution Manager'})
-        yield (rexinfra, password)
+        return (rexinfra, password)
 
     @pytest.mark.tier3
     @pytest.mark.upgrade

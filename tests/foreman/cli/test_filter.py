@@ -34,7 +34,7 @@ def module_perms():
     return perms
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_role():
     """Create a role that a filter would be assigned"""
     return make_role()
