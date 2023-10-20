@@ -26,7 +26,7 @@ class TestActivationKey:
     operated/modified.
     """
 
-    @pytest.fixture(scope='function')
+    @pytest.fixture
     def activation_key_setup(self, request, target_sat):
         """
         The purpose of this fixture is to setup the activation key based on the provided
@@ -45,7 +45,7 @@ class TestActivationKey:
             content_view=cv, organization=org, name=f"{request.param}_ak"
         ).create()
         ak_details = {'org': org, "cv": cv, 'ak': ak, 'custom_repo': custom_repo}
-        yield ak_details
+        return ak_details
 
     @pytest.mark.pre_upgrade
     @pytest.mark.parametrize(

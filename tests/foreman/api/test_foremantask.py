@@ -49,4 +49,4 @@ def test_positive_get_summary(target_sat):
     summary = target_sat.api.ForemanTask().summary()
     assert isinstance(summary, list)
     for item in summary:
-        assert type(item) is dict
+        assert isinstance(item, dict)

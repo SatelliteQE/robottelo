@@ -18,7 +18,7 @@ def module_stash(request):
     # Please refer the documentation for more details on stash
     # https://docs.pytest.org/en/latest/reference/reference.html#stash
     request.node.stash[synced_repos] = {}
-    yield request.node.stash
+    return request.node.stash
 
 
 @pytest.fixture(scope='module')
@@ -98,7 +98,7 @@ def module_synced_repos(sat_maintain, module_capsule_configured, module_sca_mani
         sync_status = module_capsule_configured.nailgun_capsule.content_sync()
         assert sync_status['result'] == 'success'
 
-    yield {
+    return {
         'custom': module_stash[synced_repos]['cust_repo'],
         'rh': module_stash[synced_repos]['rh_repo'],
     }
