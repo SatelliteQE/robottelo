@@ -167,7 +167,7 @@ def test_positive_delete_with_lock_and_unlock(session):
         )
         assert session.partitiontable.search(name)[0]['Name'] == name
         session.partitiontable.lock(name)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011 - TODO determine better exception
             session.partitiontable.delete(name)
         session.partitiontable.unlock(name)
         session.partitiontable.delete(name)

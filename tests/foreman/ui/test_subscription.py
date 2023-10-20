@@ -397,7 +397,8 @@ def test_positive_view_vdc_guest_subscription_products(
             f'subscription_name = "{VDC_SUBSCRIPTION_NAME}" '
             f'and name = "{virt_who_hypervisor_host["name"]}"'
         )
-        assert content_hosts and content_hosts[0]['Name'] == virt_who_hypervisor_host['name']
+        assert content_hosts
+        assert content_hosts[0]['Name'] == virt_who_hypervisor_host['name']
         # ensure that hypervisor guests subscription provided products list is not empty and
         # that the product is in provided products.
         provided_products = session.subscription.provided_products(

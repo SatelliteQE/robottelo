@@ -65,10 +65,10 @@ def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, ta
     with pytest.raises(HTTPError) as error:
         reposet.disable(data=data)
         # assert error.value.response.status_code == 500
-        assert (
-            'Repository cannot be deleted since it has already been '
-            'included in a published Content View' in error.value.response.text
-        )
+    assert (
+        'Repository cannot be deleted since it has already been '
+        'included in a published Content View' in error.value.response.text
+    )
 
 
 @pytest.mark.tier1

@@ -59,7 +59,7 @@ def set_certificate_in_satellite(server_type, target_sat, hostname=None):
         raise AssertionError(f'Failed to restart the httpd after applying {server_type} cert')
 
 
-@pytest.fixture()
+@pytest.fixture
 def ldap_usergroup_name():
     """Return some random usergroup name,
     and attempt to delete such usergroup when test finishes.
@@ -71,7 +71,7 @@ def ldap_usergroup_name():
         user_groups[0].delete()
 
 
-@pytest.fixture()
+@pytest.fixture
 def ldap_tear_down():
     """Teardown the all ldap settings user, usergroup and ldap delete"""
     yield
@@ -83,14 +83,14 @@ def ldap_tear_down():
         ldap_auth.delete()
 
 
-@pytest.fixture()
+@pytest.fixture
 def external_user_count():
     """return the external auth source user count"""
     users = entities.User().search()
-    yield len([user for user in users if user.auth_source_name == 'External'])
+    return len([user for user in users if user.auth_source_name == 'External'])
 
 
-@pytest.fixture()
+@pytest.fixture
 def groups_teardown():
     """teardown for groups created for external/remote groups"""
     yield
@@ -101,7 +101,7 @@ def groups_teardown():
             user_groups[0].delete()
 
 
-@pytest.fixture()
+@pytest.fixture
 def rhsso_groups_teardown(default_sso_host):
     """Teardown the rhsso groups"""
     yield
@@ -109,7 +109,7 @@ def rhsso_groups_teardown(default_sso_host):
         default_sso_host.delete_rhsso_group(group_name)
 
 
-@pytest.fixture()
+@pytest.fixture
 def multigroup_setting_cleanup(default_ipa_host):
     """Adding and removing the user to/from ipa group"""
     sat_users = settings.ipa.groups
@@ -119,7 +119,7 @@ def multigroup_setting_cleanup(default_ipa_host):
     default_ipa_host.remove_user_from_usergroup(idm_users[1], sat_users[0])
 
 
-@pytest.fixture()
+@pytest.fixture
 def ipa_add_user(default_ipa_host):
     """Create an IPA user and delete it"""
     test_user = gen_string('alpha')

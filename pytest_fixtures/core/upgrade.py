@@ -5,7 +5,7 @@ from robottelo.hosts import Capsule
 from robottelo.logging import logger
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def dependent_scenario_name(request):
     """
     This fixture is used to collect the dependent test case name.
@@ -15,7 +15,7 @@ def dependent_scenario_name(request):
         for mark in request.node.own_markers
         if 'depend_on' in mark.kwargs
     ][0]
-    yield depend_test_name
+    return depend_test_name
 
 
 @pytest.fixture(scope="session")

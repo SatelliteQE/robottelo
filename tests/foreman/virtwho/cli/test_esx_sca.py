@@ -36,7 +36,7 @@ from robottelo.utils.virtwho import (
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def form_data(target_sat, module_sca_manifest_org):
     form = {
         'name': gen_string('alpha'),
@@ -54,7 +54,7 @@ def form_data(target_sat, module_sca_manifest_org):
     return form
 
 
-@pytest.fixture()
+@pytest.fixture
 def virtwho_config(form_data, target_sat):
     virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
     yield virtwho_config
@@ -545,10 +545,9 @@ class TestVirtWhoConfigforEsx:
         env_error = (
             f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
         )
-        try:
+        with pytest.raises(Exception) as exc_info:  # noqa: PT011 - TODO determine better exception
             get_configure_option({option}, {config_file})
-        except Exception as VirtWhoError:
-            assert env_error == str(VirtWhoError)
+        assert str(exc_info.value) == env_error
         # Check /var/log/messages should not display warning message
         env_warning = f"Ignoring unknown configuration option \"{option}\""
         result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')

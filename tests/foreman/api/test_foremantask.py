@@ -48,6 +48,6 @@ def test_positive_get_summary():
     :CaseImportance: Critical
     """
     summary = entities.ForemanTask().summary()
-    assert type(summary) is list
+    assert isinstance(summary, list)
     for item in summary:
-        assert type(item) is dict
+        assert isinstance(item, dict)

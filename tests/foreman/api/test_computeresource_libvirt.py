@@ -244,8 +244,8 @@ def test_negative_update_invalid_name(
         location=[module_location], name=name, organization=[module_org], url=LIBVIRT_URL
     ).create()
     request.addfinalizer(compresource.delete)
+    compresource.name = new_name
     with pytest.raises(HTTPError):
-        compresource.name = new_name
         compresource.update(['name'])
     assert compresource.read().name == name
 
@@ -269,8 +269,8 @@ def test_negative_update_same_name(request, module_target_sat, module_org, modul
     new_compresource = module_target_sat.api.LibvirtComputeResource(
         location=[module_location], organization=[module_org], url=LIBVIRT_URL
     ).create()
+    new_compresource.name = name
     with pytest.raises(HTTPError):
-        new_compresource.name = name
         new_compresource.update(['name'])
     assert new_compresource.read().name != name
 
@@ -299,7 +299,7 @@ def test_negative_update_url(url, request, module_target_sat, module_org, module
         location=[module_location], organization=[module_org], url=LIBVIRT_URL
     ).create()
     request.addfinalizer(compresource.delete)
+    compresource.url = url
     with pytest.raises(HTTPError):
-        compresource.url = url
         compresource.update(['url'])
     assert compresource.read().url != url
