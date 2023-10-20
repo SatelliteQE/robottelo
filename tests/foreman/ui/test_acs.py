@@ -30,7 +30,7 @@ repos_to_enable = ['rhae2.9_el8']
 
 
 @pytest.fixture(scope='class')
-def acs_setup(class_target_sat, module_sca_manifest_org):
+def acs_setup(class_target_sat, class_sca_manifest_org):
     """
     This fixture creates all the necessary data for the test to run.
     It creates an organization, content credentials, product and repositories.
@@ -38,12 +38,12 @@ def acs_setup(class_target_sat, module_sca_manifest_org):
     class_target_sat.api.ContentCredential(
         name=ssl_name,
         content=gen_string('alpha'),
-        organization=module_sca_manifest_org.id,
+        organization=class_sca_manifest_org.id,
         content_type="cert",
     ).create()
 
     product = class_target_sat.api.Product(
-        name=product_name, organization=module_sca_manifest_org.id
+        name=product_name, organization=class_sca_manifest_org.id
     ).create()
 
     class_target_sat.api.Repository(
@@ -53,7 +53,7 @@ def acs_setup(class_target_sat, module_sca_manifest_org):
     for repo in repos_to_enable:
         class_target_sat.cli.RepositorySet.enable(
             {
-                'organization-id': module_sca_manifest_org.id,
+                'organization-id': class_sca_manifest_org.id,
                 'name': constants.REPOS[repo]['reposet'],
                 'product': constants.REPOS[repo]['product'],
                 'releasever': constants.REPOS[repo]['version'],
@@ -61,7 +61,7 @@ def acs_setup(class_target_sat, module_sca_manifest_org):
             }
         )
 
-    return class_target_sat, module_sca_manifest_org
+    return class_target_sat, class_sca_manifest_org
 
 
 class TestAllAcsTypes:
@@ -72,206 +72,164 @@ class TestAllAcsTypes:
 
     pytestmark = pytest.mark.usefixtures('acs_setup')
 
-    @pytest.mark.parametrize('cnt_type', ['yum', 'file'])
-    @pytest.mark.parametrize('acs_type', ['custom', 'simplified', 'rhui'])
-    def test_check_all_acs_types_can_be_created(self, session, cnt_type, acs_type, acs_setup):
+    def gen_params():
+        """
+        This function generates parameters that are used in test_check_all_acs_types_can_be_created.
+        """
+
+        parameters_dict = {
+            '_common': {
+                'use_http_proxies': True,
+            },
+            'custom': {
+                '_common': {
+                    'custom_type': True,
+                    'base_url': 'https://test.com/',
+                    'subpaths': ['test/'],
+                    'capsules_to_add': 'class_target_sat.hostname',
+                },
+                'yum_manual_auth': {
+                    'content_type': 'yum',
+                    'name': 'customYumManualAuth',
+                    'description': 'customYumManualAuthDesc',
+                    'manual_auth': True,
+                    'verify_ssl': True,
+                    'ca_cert': ssl_name,
+                    'username': 'test',
+                    'password': 'test',
+                },
+                'yum_content_auth': {
+                    'content_type': 'yum',
+                    'name': 'customYumContentAuth',
+                    'description': 'customYumContentAuthDesc',
+                    'content_credentials_auth': True,
+                    'ssl_client_cert': ssl_name,
+                    'ssl_client_key': ssl_name,
+                    'verify_ssl': True,
+                    'ca_cert': ssl_name,
+                },
+                'yum_none_auth': {
+                    'content_type': 'yum',
+                    'name': 'customYumNoneAuth',
+                    'description': 'customYumNoneAuthDesc',
+                    'none_auth': True,
+                },
+                'file_manual_auth': {
+                    'content_type': 'file',
+                    'name': 'customFileManualAuth',
+                    'description': 'customFileManualAuthDesc',
+                    'manual_auth': True,
+                    'verify_ssl': True,
+                    'ca_cert': ssl_name,
+                    'username': 'test',
+                    'password': 'test',
+                },
+                'file_content_auth': {
+                    'content_type': 'file',
+                    'name': 'customFileContentAuth',
+                    'description': 'customFileContentAuthDesc',
+                    'content_credentials_auth': True,
+                    'ssl_client_cert': ssl_name,
+                    'ssl_client_key': ssl_name,
+                    'verify_ssl': True,
+                    'ca_cert': ssl_name,
+                },
+                'file_none_auth': {
+                    'content_type': 'file',
+                    'name': 'customFileNoneAuth',
+                    'description': 'customFileNoneAuthDesc',
+                    'none_auth': True,
+                },
+            },
+            'simplified': {
+                '_common': {'simplified_type': True},
+                'yum': {
+                    'content_type': 'yum',
+                    'name': 'simpleYum',
+                    'description': 'simpleYumDesc',
+                    'capsules_to_add': 'class_target_sat.hostname',
+                    'products_to_add': [
+                        constants.REPOS[repo]['product'] for repo in repos_to_enable
+                    ],
+                },
+                'file': {
+                    'content_type': 'file',
+                    'name': 'simpleFile',
+                    'description': 'simpleFileDesc',
+                    'add_all_capsules': True,
+                    'products_to_add': product_name,
+                },
+            },
+            'rhui': {
+                '_common': {
+                    'rhui_type': True,
+                    'base_url': 'https://test.com/pulp/content',
+                    'subpaths': ['test/', 'test2/'],
+                    'verify_ssl': True,
+                    'ca_cert': ssl_name,
+                    'capsules_to_add': 'class_target_sat.hostname',
+                },
+                'yum_none_auth': {
+                    'name': 'rhuiYumNoneAuth',
+                    'description': 'rhuiYumNoneAuthDesc',
+                    'none_auth': True,
+                },
+                'yum_content_auth': {
+                    'name': 'rhuiYumContentAuth',
+                    'description': 'rhuiYumContentAuthDesc',
+                    'content_credentials_auth': True,
+                    'ssl_client_cert': ssl_name,
+                    'ssl_client_key': ssl_name,
+                },
+            },
+        }
+
+        ids = []
+        vals = []
+        # This code creates a list of scenario IDs and values for each scenario.
+        # It loops through the keys in the parameters dictionary, and uses the keys to create a scenario ID
+        # and then it uses the scenario ID to access the scenario values from the parameters dictionary.
+        # The code then adds the scenario values to the list of scenario values.
+        for acs in parameters_dict.keys():
+            if not acs.startswith('_'):
+                for cnt in parameters_dict[acs]:
+                    if not cnt.startswith('_'):
+                        scenario = (
+                            parameters_dict[acs][cnt]
+                            | parameters_dict.get('_common', {})
+                            | parameters_dict[acs].get('_common', {})
+                        )
+                        ids.append(f'{acs}_{cnt}')
+                        vals.append(scenario)
+        return (vals, ids)
+
+    @pytest.mark.parametrize('scenario', gen_params()[0], ids=gen_params()[1])
+    def test_check_all_acs_types_can_be_created(session, scenario, acs_setup):
         """
         This test creates all possible ACS types.
 
-        :id: cbd0f4e6-2151-446a-90d3-69c6935a0c91
+        :id: 6bfad272-3ff8-4780-b346-1229d70524b1
 
         :parametrized: yes
 
         :steps:
             1. Select an organization
-            2. Create ACSes (randomly selected ones)
-            3. Test refresh
-            4. Test renaming and changing description
-            5. Test editing capsules
-            6. Test editing urls and subpaths
-            7. Test editing credentials
-            8. Test editing products
-            9. Create ACS on which deletion is going to be tested
-            10. Test deletion
+            2. Create ACSes
         :expectedresults:
-            This test should create some
-            Aleternate Content Sources and asserts that actions
-            were made correctly on them.
-
+            This test should create all Aleternate Content Sources
         """
 
-        if acs_type == 'rhui' and cnt_type == 'file':
-            pytest.skip('Unsupported parameter combination.')
+        class_target_sat, class_sca_manifest_org = acs_setup
+        vals = scenario
 
-        class_target_sat, module_sca_manifest_org = acs_setup
+        # Replace the placeholder in 'capsules_to_add' with the hostname of the Satellite under test
+        for val in vals:
+            if 'capsules_to_add' in val:
+                vals['capsules_to_add'] = class_target_sat.hostname
+
         with class_target_sat.ui_session() as session:
-            session.organization.select(org_name=module_sca_manifest_org.name)
-
-            match acs_type:
-                case 'simplified':
-
-                    if cnt_type == 'yum':
-                        # Create ACS using "Simplified" option with content type of "Yum"
-                        session.acs.create_new_acs(
-                            simplified_type=True,
-                            content_type='yum',
-                            name='simpleYum',
-                            description='simpleYumDesc',
-                            capsules_to_add=class_target_sat.hostname,
-                            use_http_proxies=True,
-                            products_to_add=[
-                                constants.REPOS[repo]['product'] for repo in repos_to_enable
-                            ],
-                        )
-
-                    if cnt_type == 'file':
-                        # Create ACS using "Simplified" option with content type of "File"
-                        session.acs.create_new_acs(
-                            simplified_type=True,
-                            content_type='file',
-                            name='simpleFile',
-                            description='simpleFileDesc',
-                            add_all_capsules=True,
-                            use_http_proxies=True,
-                            products_to_add=product_name,
-                        )
-
-                case 'custom':
-
-                    if cnt_type == 'yum':
-                        # Create ACS using "Custom" option with content type of "Yum"
-                        # and using manual authentication
-                        session.acs.create_new_acs(
-                            custom_type=True,
-                            content_type='yum',
-                            name='customYumManualAuth',
-                            description='customYumManualAuthDesc',
-                            capsules_to_add=class_target_sat.hostname,
-                            use_http_proxies=True,
-                            base_url='https://test.com',
-                            subpaths=['test/'],
-                            manual_auth=True,
-                            username='test',
-                            password='test',
-                            verify_ssl=True,
-                            ca_cert=ssl_name,
-                        )
-
-                        # Create ACS using "Custom" option with content type of "Yum"
-                        # and using content credentials authentication
-                        session.acs.create_new_acs(
-                            custom_type=True,
-                            content_type='yum',
-                            name='customYumContentAuth',
-                            description='customYumContentAuthDesc',
-                            capsules_to_add=class_target_sat.hostname,
-                            use_http_proxies=True,
-                            base_url='https://test.com',
-                            subpaths=['test/'],
-                            content_credentials_auth=True,
-                            ssl_client_cert=ssl_name,
-                            ssl_client_key=ssl_name,
-                            verify_ssl=True,
-                            ca_cert=ssl_name,
-                        )
-
-                        # Create ACS using "Custom" option with content type of "Yum"
-                        # and using NO authentication
-                        session.acs.create_new_acs(
-                            custom_type=True,
-                            content_type='yum',
-                            name='customYumNoneAuth',
-                            description='customYumNoneAuthDesc',
-                            capsules_to_add=class_target_sat.hostname,
-                            use_http_proxies=True,
-                            base_url='https://test.com',
-                            subpaths=['test/'],
-                            none_auth=True,
-                        )
-
-                    if cnt_type == 'file':
-                        # Create ACS using "Custom" option with content type of "File"
-                        # and using content credentials authentication
-                        session.acs.create_new_acs(
-                            custom_type=True,
-                            content_type='file',
-                            name='customFileContentAuth',
-                            description='customFileContentAuthDesc',
-                            capsules_to_add=class_target_sat.hostname,
-                            use_http_proxies=True,
-                            base_url='https://test.com',
-                            subpaths=['test/'],
-                            content_credentials_auth=True,
-                            ssl_client_cert=ssl_name,
-                            ssl_client_key=ssl_name,
-                            verify_ssl=True,
-                            ca_cert=ssl_name,
-                        )
-
-                        # Create ACS using "Custom" option with content type of "File"
-                        # and using NO authentication
-                        session.acs.create_new_acs(
-                            custom_type=True,
-                            content_type='file',
-                            name='customFileNoneAuth',
-                            description='customFileNoneAuthDesc',
-                            capsules_to_add=class_target_sat.hostname,
-                            use_http_proxies=True,
-                            base_url='https://test.com',
-                            subpaths=['test/'],
-                            none_auth=True,
-                        )
-
-                        # Create ACS using "Custom" option with content type of "File"
-                        # and using manual authentication
-                        session.acs.create_new_acs(
-                            custom_type=True,
-                            content_type='file',
-                            name='customFileManualAuth',
-                            description='customFileManualAuthDesc',
-                            capsules_to_add=class_target_sat.hostname,
-                            use_http_proxies=True,
-                            base_url='https://test.com',
-                            subpaths=['test/'],
-                            manual_auth=True,
-                            username='test',
-                            password='test',
-                            verify_ssl=True,
-                            ca_cert=ssl_name,
-                        )
-
-                case 'rhui':
-                    # Create ACS using "RHUI" option
-                    # and using content credentials authentication
-                    session.acs.create_new_acs(
-                        rhui_type=True,
-                        name='rhuiYumContentAuth',
-                        description='rhuiYumContentAuthDesc',
-                        capsules_to_add=class_target_sat.hostname,
-                        use_http_proxies=True,
-                        base_url='https://test.com/pulp/content',
-                        subpaths=['test/', 'test2/'],
-                        content_credentials_auth=True,
-                        ssl_client_cert=ssl_name,
-                        ssl_client_key=ssl_name,
-                        verify_ssl=True,
-                        ca_cert=ssl_name,
-                    )
-
-                    # Create ACS using "RHUI" option
-                    # and using NO authentication
-                    session.acs.create_new_acs(
-                        rhui_type=True,
-                        name='rhuiYumNoneAuth',
-                        description='rhuiYumNoneAuthDesc',
-                        capsules_to_add=class_target_sat.hostname,
-                        use_http_proxies=True,
-                        base_url='https://test.com/pulp/content',
-                        subpaths=['test/', 'test2/'],
-                        none_auth=True,
-                        verify_ssl=True,
-                        ca_cert=ssl_name,
-                    )
+            session.organization.select(org_name=class_sca_manifest_org.name)
+            session.acs.create_new_acs(**vals)
 
 
 class TestAcsE2e:
@@ -306,17 +264,17 @@ class TestAcsE2e:
             were made correctly on them.
         """
 
-        class_target_sat, module_sca_manifest_org = acs_setup
+        class_target_sat, class_sca_manifest_org = acs_setup
 
         with class_target_sat.ui_session() as session:
-            session.organization.select(org_name=module_sca_manifest_org.name)
+            session.organization.select(org_name=class_sca_manifest_org.name)
 
             # Create ACS using "Simplified" option with content type of "File"
             session.acs.create_new_acs(
                 simplified_type=True,
                 content_type='file',
-                name='simpleFile',
-                description='simpleFileDesc',
+                name='simpleFileTest',
+                description='simpleFileTestDesc',
                 add_all_capsules=True,
                 use_http_proxies=True,
                 products_to_add=product_name,
@@ -326,8 +284,8 @@ class TestAcsE2e:
             session.acs.create_new_acs(
                 simplified_type=True,
                 content_type='yum',
-                name='simpleYum',
-                description='simpleYumDesc',
+                name='simpleYumTest',
+                description='simpleYumTestDesc',
                 capsules_to_add=class_target_sat.hostname,
                 use_http_proxies=True,
                 products_to_add=[constants.REPOS[repo]['product'] for repo in repos_to_enable],
@@ -338,8 +296,8 @@ class TestAcsE2e:
             session.acs.create_new_acs(
                 custom_type=True,
                 content_type='file',
-                name='customFileManualAuth',
-                description='customFileManualAuthDesc',
+                name='customFileManualTestAuth',
+                description='customFileManualTestAuthDesc',
                 capsules_to_add=class_target_sat.hostname,
                 use_http_proxies=True,
                 base_url='https://test.com',
@@ -356,8 +314,8 @@ class TestAcsE2e:
             session.acs.create_new_acs(
                 custom_type=True,
                 content_type='file',
-                name='customFileContentAuth',
-                description='customFileContentAuthDesc',
+                name='customFileContentAuthTest',
+                description='customFileContentAuthTestDesc',
                 capsules_to_add=class_target_sat.hostname,
                 use_http_proxies=True,
                 base_url='https://test.com',
@@ -374,8 +332,8 @@ class TestAcsE2e:
             session.acs.create_new_acs(
                 custom_type=True,
                 content_type='yum',
-                name='customYumNoneAuth',
-                description='customYumNoneAuthDesc',
+                name='customYumNoneAuthTest',
+                description='customYumNoneAuthTestDesc',
                 capsules_to_add=class_target_sat.hostname,
                 use_http_proxies=True,
                 base_url='https://test.com',
@@ -384,8 +342,8 @@ class TestAcsE2e:
             )
 
             # Refresh ACS and check that last refresh time is updated
-            session.acs.refresh_acs(acs_name='simpleFile')
-            simple_file_refreshed = session.acs.get_row_drawer_content(acs_name='simpleFile')
+            session.acs.refresh_acs(acs_name='simpleFileTest')
+            simple_file_refreshed = session.acs.get_row_drawer_content(acs_name='simpleFileTest')
             assert simple_file_refreshed['details']['last_refresh'] in [
                 'less than a minute ago',
                 '1 minute ago',
@@ -393,26 +351,30 @@ class TestAcsE2e:
 
             # Rename and change description of ACS and then check that it was changed
             simple_file_renamed = session.acs.edit_acs_details(
-                acs_name_to_edit='simpleFile',
-                new_acs_name='simpleFileRenamed',
-                new_description='simpleFileRenamedDesc',
+                acs_name_to_edit='simpleFileTest',
+                new_acs_name='simpleFileTestRenamed',
+                new_description='simpleFileTestRenamedDesc',
             )
-            simple_file_renamed = session.acs.get_row_drawer_content(acs_name='simpleFileRenamed')
+            simple_file_renamed = session.acs.get_row_drawer_content(
+                acs_name='simpleFileTestRenamed'
+            )
             assert (
                 simple_file_renamed['details']['details_stack_content']['name']
-                == 'simpleFileRenamed'
+                == 'simpleFileTestRenamed'
             )
             assert (
                 simple_file_renamed['details']['details_stack_content']['description']
-                == 'simpleFileRenamedDesc'
+                == 'simpleFileTestRenamedDesc'
             )
 
             # Edit ACS capsules
             custom_file_edited_capsules = session.acs.edit_capsules(
-                acs_name_to_edit='customFileContentAuth', remove_all=True, use_http_proxies=False
+                acs_name_to_edit='customFileContentAuthTest',
+                remove_all=True,
+                use_http_proxies=False,
             )
             custom_file_edited_capsules = session.acs.get_row_drawer_content(
-                acs_name='customFileContentAuth'
+                acs_name='customFileContentAuthTest'
             )
             assert (
                 custom_file_edited_capsules['capsules']['capsules_stack_content']['capsules_list']
@@ -427,11 +389,13 @@ class TestAcsE2e:
 
             # Edit ACS urls and subpaths
             custom_yum_edited_url = session.acs.edit_url_subpaths(
-                acs_name_to_edit='customYumNoneAuth',
+                acs_name_to_edit='customYumNoneAuthTest',
                 new_url='https://testNEW.com',
                 new_subpaths=['test/', 'testNEW/'],
             )
-            custom_yum_edited_url = session.acs.get_row_drawer_content(acs_name='customYumNoneAuth')
+            custom_yum_edited_url = session.acs.get_row_drawer_content(
+                acs_name='customYumNoneAuthTest'
+            )
             assert (
                 custom_yum_edited_url['url_and_subpaths']['url_and_subpaths_stack_content']['url']
                 == 'https://testNEW.com'
@@ -445,13 +409,13 @@ class TestAcsE2e:
 
             # Edit ACS credentials
             custom_file_edited_credentials = session.acs.edit_credentials(
-                acs_name_to_edit='customFileManualAuth',
+                acs_name_to_edit='customFileManualTestAuth',
                 verify_ssl=False,
                 manual_auth=True,
                 username='changedUserName',
             )
             custom_file_edited_credentials = session.acs.get_row_drawer_content(
-                acs_name='customFileManualAuth'
+                acs_name='customFileManualTestAuth'
             )
             assert (
                 custom_file_edited_credentials['credentials']['credentials_stack_content'][
@@ -468,10 +432,12 @@ class TestAcsE2e:
 
             # Edit ACS products
             simple_yum_edited_products = session.acs.edit_products(
-                acs_name_to_edit='simpleYum',
+                acs_name_to_edit='simpleYumTest',
                 remove_all=True,
             )
-            simple_yum_edited_products = session.acs.get_row_drawer_content(acs_name='simpleYum')
+            simple_yum_edited_products = session.acs.get_row_drawer_content(
+                acs_name='simpleYumTest'
+            )
             assert (
                 simple_yum_edited_products['products']['products_stack_content']['products_list']
                 == []
