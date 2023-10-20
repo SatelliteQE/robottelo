@@ -74,7 +74,7 @@ def vm_content_hosts(smart_proxy_location, module_repos_collection, module_targe
     distro = module_repos_collection.distro
     with Broker(nick=distro, host_class=ContentHost, _count=2) as clients:
         for client in clients:
-            module_repos_collection.setup_virtual_machine(client, install_katello_agent=False)
+            module_repos_collection.setup_virtual_machine(client)
             client.add_rex_key(satellite=module_target_sat)
             module_target_sat.api_factory.update_vm_host_location(client, smart_proxy_location.id)
         yield clients
@@ -86,9 +86,7 @@ def vm_content_hosts_module_stream(
 ):
     with Broker(nick='rhel8', host_class=ContentHost, _count=2) as clients:
         for client in clients:
-            module_repos_collection_with_manifest.setup_virtual_machine(
-                client, install_katello_agent=False
-            )
+            module_repos_collection_with_manifest.setup_virtual_machine(client)
             client.add_rex_key(satellite=module_target_sat)
             module_target_sat.api_factory.update_vm_host_location(client, smart_proxy_location.id)
         yield clients
@@ -567,8 +565,7 @@ def test_positive_change_assigned_content(
     :steps:
         1. Setup activation key with content view that contain product
            repositories
-        2. Prepare hosts (minimum 2) and subscribe them to activation key,
-           katello agent must be also installed and running on each host
+        2. Prepare hosts (minimum 2) and subscribe them to activation key
         3. Create a host collection and add the hosts to it
         4. Run "subscription-manager repos" command on each host to notice
            the repos urls current values

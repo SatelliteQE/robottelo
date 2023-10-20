@@ -1948,9 +1948,9 @@ def test_positive_attach(
         }
     )
     host_subscription_client.enable_repo(module_rhst_repo)
-    # ensure that katello agent can be installed
+    # ensure that katello-host-tools can be installed
     try:
-        host_subscription_client.install_katello_agent()
+        host_subscription_client.install_katello_host_tools()
     except ContentHostError:
         pytest.fail('ContentHostError raised unexpectedly!')
 
@@ -1995,9 +1995,9 @@ def test_positive_attach_with_lce(
         }
     )
     host_subscription_client.enable_repo(module_rhst_repo)
-    # ensure that katello agent can be installed
+    # ensure that katello-host-tools can be installed
     try:
-        host_subscription_client.install_katello_agent()
+        host_subscription_client.install_katello_host_tools()
     except ContentHostError:
         pytest.fail('ContentHostError raised unexpectedly!')
 
@@ -2209,9 +2209,9 @@ def test_positive_auto_attach(
     )
     Host.subscription_auto_attach({'host-id': host['id']})
     host_subscription_client.enable_repo(module_rhst_repo)
-    # ensure that katello agent can be installed
+    # ensure that katello-host-tools can be installed
     try:
-        host_subscription_client.install_katello_agent()
+        host_subscription_client.install_katello_host_tools()
     except ContentHostError:
         pytest.fail('ContentHostError raised unexpectedly!')
 

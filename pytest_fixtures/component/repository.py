@@ -69,6 +69,7 @@ def module_rhst_repo(module_target_sat, module_org_with_manifest, module_promote
     )
     cv.publish()
     cv = cv.read()
+    cv.version.sort(key=lambda version: version.id)
     cv.version[-1].promote(data={'environment_ids': module_lce.id})
     return REPOS['rhst7']['id']
 
