@@ -1729,7 +1729,7 @@ STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'ht
 
 VMWARE_CONSTANTS = {
     'folder': 'vm',
-    'guest_os': 'Red Hat Enterprise Linux 8 (64-bit)',
+    'guest_os': 'Red Hat Enterprise Linux 8 (64 bit)',
     'scsicontroller': 'LSI Logic Parallel',
     'virtualhw_version': 'Default',
     'pool': 'Resources',
