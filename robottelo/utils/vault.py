@@ -25,7 +25,7 @@ class Vault:
     def setup(self):
         if self.env_path.exists():
             self.envdata = self.env_path.read_text()
-            is_enabled = re.findall('\nVAULT_ENABLED_FOR_DYNACONF=(.*)', self.envdata)
+            is_enabled = re.findall('^VAULT_ENABLED_FOR_DYNACONF=(.*)', self.envdata, re.MULTILINE)
             if is_enabled:
                 self.vault_enabled = is_enabled[0]
             self.export_vault_addr()
@@ -34,7 +34,7 @@ class Vault:
         del os.environ['VAULT_ADDR']
 
     def export_vault_addr(self):
-        vaulturl = re.findall('VAULT_URL_FOR_DYNACONF=(.*)', self.envdata)[0]
+        vaulturl = re.findall('^VAULT_URL_FOR_DYNACONF=(.*)', self.envdata, re.MULTILINE)[0]
 
         # Set Vault CLI Env Var
         os.environ['VAULT_ADDR'] = vaulturl
