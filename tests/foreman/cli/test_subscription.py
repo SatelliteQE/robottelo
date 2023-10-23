@@ -284,3 +284,27 @@ def test_positive_auto_attach_disabled_golden_ticket(
     with pytest.raises(CLIReturnCodeError) as context:
         target_sat.cli.Host.subscription_auto_attach({'host-id': host_id})
     assert "This host's organization is in Simple Content Access mode" in str(context.value)
+
+
+@pytest.mark.tier2
+def test_positive_prepare_for_sca_only_hammer(function_org, target_sat):
+    """Verify that upon certain actions, Hammer notifies users that Simple Content Access
+        will be required for all organizations in Satellite 6.16
+
+    :id: 8753adb9-28ff-4a16-b04e-0af532452f32
+
+    :expectedresults: Hammer returns a message notifying users that Simple Content Access
+        will be required for all organizations in Satellite 6.16
+    """
+    org_results = target_sat.execute(
+        f'hammer organization update --id {function_org.id} --simple-content-access false'
+    )
+    assert 'Simple Content Access will be required for all organizations in Katello 4.12' in str(
+        org_results.stderr
+    )
+    sca_results = target_sat.execute(
+        f'hammer simple-content-access disable --organization-id {function_org.id}'
+    )
+    assert 'Simple Content Access will be required for all organizations in Katello 4.12' in str(
+        sca_results.stderr
+    )
