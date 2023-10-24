@@ -27,8 +27,12 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import DataFile
-from robottelo.constants.repos import ANSIBLE_GALAXY
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+    DataFile,
+)
+from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 from robottelo.content_info import (
     get_repo_files_by_url,
     get_repomd,
@@ -1453,3 +1457,181 @@ class TestCapsuleContentManagement:
         assert len(cvv.environment) == 2
 
         module_capsule_configured.wait_for_sync()
+
+    @pytest.mark.stream
+    @pytest.mark.parametrize(
+        'repos_collection',
+        [
+            {
+                'distro': 'rhel8',
+                'YumRepository': {'url': settings.repos.module_stream_1.url},
+                'FileRepository': {'url': CUSTOM_FILE_REPO},
+                'DockerRepository': {
+                    'url': CONTAINER_REGISTRY_HUB,
+                    'upstream_name': CONTAINER_UPSTREAM_NAME,
+                },
+                'AnsibleRepository': {
+                    'url': ANSIBLE_GALAXY,
+                    'requirements': [
+                        {'name': 'theforeman.foreman', 'version': '2.1.0'},
+                        {'name': 'theforeman.operations', 'version': '0.1.0'},
+                    ],
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize('filtered', [False, True], ids=['unfiltered', 'filtered'])
+    def test_positive_content_counts_for_mixed_cv(
+        self,
+        target_sat,
+        module_capsule_configured,
+        repos_collection,
+        function_org,
+        function_lce,
+        function_lce_library,
+        filtered,
+    ):
+        """Verify the content counts for a mixed-content CV
+
+        :id: d8a0dea1-d30c-4c30-b3b1-46316de4ff29
+
+        :parametrized: yes
+
+        :setup:
+            1. A content view with repos of all content types (currently yum, file, docker, AC)
+               published into (unfiltered and filtered) CVV and promoted to an LCE.
+
+        :steps:
+            1. Assign the Capsule with Library and the LCE where the setup CVV is promoted to.
+            2. Check the capsule doesn't provide any content counts for the setup CVV until synced.
+            3. Sync the Capsule and get the content counts again. We should get counts for every
+               repo in the CVV multiplied by shared LCEs (LCEs where the CVV is promoted to and
+               synced to the Capsule, including Library).
+            4. Get the content counts from Satellite side and compare them with Capsule.
+
+        :expectedresults:
+            1. Capsule doesn't return any counts for CVV until it is synced.
+            2. After sync, content counts from Capsule match those from Satellite.
+        """
+        expected_keys = {
+            'yum': {'rpm', 'package_group', 'module_stream', 'erratum'},
+            'file': {'file'},
+            'docker': {'docker_tag', 'docker_manifest', 'docker_manifest_list'},
+            'ansible_collection': {'ansible_collection'},
+        }
+
+        repos_collection.setup_content(function_org.id, function_lce.id, upload_manifest=False)
+        cv_id = repos_collection.setup_content_data['content_view']['id']
+        cv = target_sat.api.ContentView(id=cv_id).read()
+
+        if filtered:
+            for filter_type in ['rpm', 'docker']:
+                cvf = target_sat.api.AbstractContentViewFilter(
+                    type=filter_type,
+                    content_view=cv,
+                    inclusion=True,
+                ).create()
+                target_sat.api.ContentViewFilterRule(
+                    content_view_filter=cvf, name='cat' if filter_type == 'rpm' else 'latest'
+                ).create()
+            cv.publish()
+            cv = cv.read()
+            cv.version.sort(key=lambda version: version.id)
+
+        cvv = cv.version[-1].read()
+
+        # Assign the Capsule with both content LCEs
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': [function_lce.id, function_lce_library.id]}
+        )
+        capsule_lces = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()[
+            'results'
+        ]
+        assert len(capsule_lces)
+        assert {function_lce.id, function_lce_library.id}.issubset(
+            [lce['id'] for lce in capsule_lces]
+        )
+
+        # Check the counts for CVV are not present at the Capsule side before sync.
+        caps_counts = module_capsule_configured.nailgun_capsule.content_counts()
+        assert caps_counts is None or cvv.id not in caps_counts['content_view_versions'].keys()
+
+        # Sync, wait for counts to be updated and get them from the Capsule.
+        sync_status = module_capsule_configured.nailgun_capsule.content_sync()
+        assert sync_status['result'] == 'success', 'Capsule sync task failed.'
+
+        target_sat.wait_for_tasks(
+            search_query=('label = Actions::Katello::CapsuleContent::UpdateContentCounts'),
+            search_rate=5,
+            max_tries=10,
+        )
+
+        caps_counts = module_capsule_configured.nailgun_capsule.content_counts()[
+            'content_view_versions'
+        ]
+        assert str(cvv.id) in caps_counts.keys(), 'CVV is missing in content counts.'
+        caps_counts = caps_counts[str(cvv.id)]
+
+        # Every "environment repo" (the one promoted to an LCE and synced to the Capsule)
+        # is shown in the content_counts, so we get N-times more for every shared lce.
+        shared_lces = {env.id for env in cvv.environment} & {env['id'] for env in capsule_lces}
+        assert len(caps_counts['repositories']) == len(cvv.repository) * len(
+            shared_lces
+        ), 'Repositories count does not match.'
+
+        # Read the environment repos from Satellite side and compare the counts with Capsule.
+        sat_repos = [
+            target_sat.api.Repository(id=repo).read() for repo in caps_counts['repositories']
+        ]
+        for repo in sat_repos:
+            cnt = caps_counts['repositories'][str(repo.id)]
+            assert repo.content_type == cnt['metadata']['content_type']
+            common_keys = set(repo.content_counts.keys()) & set(cnt['counts'].keys())
+            assert len(common_keys), f'No common keys found for type "{repo.content_type}".'
+            assert expected_keys[repo.content_type].issubset(common_keys), (
+                'Some fields are missing: expected '
+                f'{expected_keys[repo.content_type]} but found {common_keys}'
+            )
+            assert all(
+                [repo.content_counts.get(key) == cnt['counts'].get(key) for key in common_keys]
+            )
+
+    @pytest.mark.stream
+    @pytest.mark.order(1)
+    def test_positive_content_counts_blank_update(
+        self,
+        target_sat,
+        module_capsule_configured,
+    ):
+        """Verify the content counts and update endpoint for a blank Capsule.
+
+        :id: da9c993e-258e-4215-9d8f-f0feced412d0
+
+        :setup:
+            1. A blank unsynced Capsule.
+
+        :steps:
+            1. Get content counts from a blank capsule.
+            2. Run content counts update via API.
+            3. Check no content counts yet.
+
+        :expectedresults:
+            1. Capsule returns None for content counts.
+            2. Content update task is created and succeeds.
+            3. Capsule keeps returning None or empty list for content counts.
+
+        :CaseImportance: Medium
+        """
+        counts = module_capsule_configured.nailgun_capsule.content_counts()
+        assert counts is None
+
+        task = module_capsule_configured.nailgun_capsule.content_update_counts()
+        assert task, 'No task was created for content update.'
+        assert 'Actions::Katello::CapsuleContent::UpdateContentCounts' in task['label']
+        assert 'success' in task['result']
+
+        counts = module_capsule_configured.nailgun_capsule.content_counts()
+        assert (
+            counts is None or len(counts['content_view_versions']) == 0
+        ), f"No content counts expected, but got:\n{counts['content_view_versions']}."
