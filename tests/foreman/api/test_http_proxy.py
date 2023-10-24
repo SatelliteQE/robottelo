@@ -34,7 +34,7 @@ from robottelo.config import settings
     indirect=True,
     ids=['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'],
 )
-def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifest_org):
+def test_positive_end_to_end(setup_http_proxy, module_target_sat, function_sca_manifest_org):
     """End-to-end test for HTTP Proxy related scenarios.
 
     :id: 38df5479-9127-49f3-a30e-26b33655971a
@@ -64,7 +64,7 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
     # Assign http_proxy to Redhat repository and perform repository sync.
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=constants.DEFAULT_ARCHITECTURE,
-        org_id=module_manifest_org.id,
+        org_id=function_sca_manifest_org.id,
         product=constants.PRDS['rhae'],
         repo=constants.REPOS['rhae2']['name'],
         reposet=constants.REPOSET['rhae2'],
@@ -106,9 +106,9 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
 
     # test scenario for yum type repo discovery.
     repo_name = 'fakerepo01'
-    yum_repo = module_target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
+    yum_repo = module_target_sat.api.Organization(id=function_sca_manifest_org.id).repo_discover(
         data={
-            "id": module_manifest_org.id,
+            "id": function_sca_manifest_org.id,
             "url": settings.repos.repo_discovery.url,
             "content_type": "yum",
         }
@@ -117,9 +117,9 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
     assert yum_repo['output'][0] == f'{settings.repos.repo_discovery.url}/{repo_name}/'
 
     # test scenario for docker type repo discovery.
-    yum_repo = module_target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
+    yum_repo = module_target_sat.api.Organization(id=function_sca_manifest_org.id).repo_discover(
         data={
-            "id": module_manifest_org.id,
+            "id": function_sca_manifest_org.id,
             "url": 'quay.io',
             "content_type": "docker",
             "search": 'quay/busybox',
