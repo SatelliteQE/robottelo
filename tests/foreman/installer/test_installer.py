@@ -1307,11 +1307,9 @@ def common_sat_install_assertions(satellite):
     sat_version = 'stream' if satellite.is_stream else satellite.version
     assert settings.server.version.release == sat_version
 
-    # no errors/failures in /var/log/messages
-    # ignore warnings (some messages contain string "error" but they're still only warnings)
-    # ignore "kernel: GPT: Use GNU Parted to correct GPT errors."
+    # no errors/failures in journald
     result = satellite.execute(
-        r'grep -i "error" /var/log/messages | grep -v "\] WARNING" | grep -v GPT'
+        r'journalctl -q --no-pager -b -p err -u "pulpcore" -u "foreman" -u "foreman-proxy" -u "httpd" -u "postgresql" -u "pulpcore-api" -u "pulpcore-worker"'
     )
     assert len(result.stdout) == 0
     # no errors/failures in /var/log/foreman/production.log
@@ -1416,11 +1414,9 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
         query={'search': f'name={cap_ready_rhel.hostname}'}
     )[0]
 
-    # no errors/failures in  /var/log/messages
-    # ignore warnings (some messages contain string "error" but they're still only warnings)
-    # ignore "kernel: GPT: Use GNU Parted to correct GPT errors."
+    # no errors/failures in journald
     result = cap_ready_rhel.execute(
-        r'grep -i "error" /var/log/messages | grep -v "\] WARNING" | grep -v GPT'
+        r'journalctl -q --no-pager -b -p err -u "pulpcore" -u "foreman" -u "foreman-proxy" -u "httpd" -u "postgresql" -u "pulpcore-api" -u "pulpcore-worker"'
     )
     assert len(result.stdout) == 0
     # no errors/failures /var/log/foreman-installer/satellite.log
