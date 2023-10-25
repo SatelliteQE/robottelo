@@ -25,7 +25,7 @@ class Vault:
     def setup(self):
         if self.env_path.exists():
             self.envdata = self.env_path.read_text()
-            is_enabled = re.findall('\nVAULT_ENABLED_FOR_DYNACONF=(.*)', self.envdata)
+            is_enabled = re.findall('^(?:.*\n)*VAULT_ENABLED_FOR_DYNACONF=(.*)', self.envdata)
             if is_enabled:
                 self.vault_enabled = is_enabled[0]
             self.export_vault_addr()
@@ -53,7 +53,7 @@ class Vault:
         :param comamnd str: The vault CLI command
         :param kwargs dict: Arguments to the subprocess run command to customize the run behavior
         """
-        vcommand = subprocess.run(command, shell=True, **kwargs)  # capture_output=True
+        vcommand = subprocess.run(command, shell=True, capture_output=True, **kwargs)
         if vcommand.returncode != 0:
             verror = str(vcommand.stderr)
             if vcommand.returncode == 127:
@@ -63,7 +63,7 @@ class Vault:
                 if 'Error revoking token' in verror:
                     logger.info("Token is alredy revoked!")
                 elif 'Error looking up token' in verror:
-                    logger.warning("Warning! Vault not logged in!")
+                    logger.info("Vault is not logged in!")
                 else:
                     logger.error(f"Error! {verror}")
         return vcommand
@@ -75,7 +75,7 @@ class Vault:
             and 'VAULT_SECRET_ID_FOR_DYNACONF' not in os.environ
         ):
             if self.status(**kwargs).returncode != 0:
-                logger.warning(
+                logger.info(
                     "Warning! The browser is about to open for vault OIDC login, "
                     "close the tab once the sign-in is done!"
                 )
@@ -86,9 +86,7 @@ class Vault:
                     self.exec_vault_command(command="vault token renew -i 10h", **kwargs)
                     logger.info("Success! Vault OIDC Logged-In and extended for 10 hours!")
                 # Fetching tokens
-                token = self.exec_vault_command(
-                    "vault token lookup --format json", capture_output=True
-                ).stdout
+                token = self.exec_vault_command("vault token lookup --format json").stdout
                 token = json.loads(str(token.decode('UTF-8')))['data']['id']
                 # Setting new token in env file
                 _envdata = re.sub(
@@ -107,8 +105,9 @@ class Vault:
             '.*VAULT_TOKEN_FOR_DYNACONF=.*', "# VAULT_TOKEN_FOR_DYNACONF=myroot", self.envdata
         )
         self.env_path.write_text(_envdata)
-        self.exec_vault_command('vault token revoke -self')
-        logger.info("Success! OIDC token removed from Env file successfully!")
+        vstatus = self.exec_vault_command('vault token revoke -self')
+        if vstatus.returncode == 0:
+            logger.info("Success! OIDC token removed from Env file successfully!")
 
     def status(self, **kwargs):
         vstatus = self.exec_vault_command('vault token lookup', **kwargs)
