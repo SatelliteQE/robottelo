@@ -630,14 +630,15 @@ class CLIFactory:
             raise CLIFactoryError(f'Failed to publish new version of content view\n{err.msg}')
         # Get the version id
         cv_info = self._satellite.cli.ContentView.info({'id': cv_id})
+        assert len(cv_info['versions']) > 0
+        cvv_id = sorted(cvv['id'] for cvv in cv_info['versions'])[-1]
         lce_promoted = cv_info['lifecycle-environments']
-        cvv = cv_info['versions'][-1]
         # Promote version to next env
         try:
             if env_id not in [int(lce['id']) for lce in lce_promoted]:
                 self._satellite.cli.ContentView.version_promote(
                     {
-                        'id': cvv['id'],
+                        'id': cvv_id,
                         'organization-id': org_id,
                         'to-lifecycle-environment-id': env_id,
                     }
