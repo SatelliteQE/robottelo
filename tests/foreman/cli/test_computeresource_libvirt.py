@@ -45,6 +45,7 @@ from robottelo.cli.factory import make_compute_resource, make_location
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.utils.datafactory import parametrized
+from robottelo.utils.issue_handlers import is_open
 
 LIBVIRT_URL = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
 
@@ -436,6 +437,7 @@ def test_positive_provision_end_to_end(
     module_sca_manifest_org,
     module_location,
     provisioning_hostgroup,
+    module_provisioning_rhel_content,
 ):
     """Provision a host on Libvirt compute resource with the help of hostgroup.
 
@@ -453,10 +455,14 @@ def test_positive_provision_end_to_end(
     :expectedresults: Host should be provisioned with hostgroup
 
     :parametrized: yes
+
+    :BZ: 2236693
     """
     sat = module_libvirt_provisioning_sat.sat
     cr_name = gen_string('alpha')
     hostname = gen_string('alpha').lower()
+    os_major_ver = module_provisioning_rhel_content.os.major
+    cpu_mode = 'host-passthrough' if is_open('BZ:2236693') and os_major_ver == '9' else 'default'
     libvirt_cr = sat.cli.ComputeResource.create(
         {
             'name': cr_name,
@@ -476,7 +482,7 @@ def test_positive_provision_end_to_end(
             'compute-resource-id': libvirt_cr['id'],
             'ip': None,
             'mac': None,
-            'compute-attributes': 'cpus=1, memory=6442450944, cpu_mode=default, start=1',
+            'compute-attributes': f'cpus=1, memory=6442450944, cpu_mode={cpu_mode}, start=1',
             'interface': f'compute_type=bridge,compute_bridge=br-{settings.provisioning.vlan_id}',
             'volume': 'capacity=10',
             'provision-method': 'build',
