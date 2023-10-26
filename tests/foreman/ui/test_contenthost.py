@@ -47,6 +47,8 @@ from robottelo.utils.virtwho import create_fake_hypervisor_content
 if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
     pytest.skip('skipping tests due to missing settings', allow_module_level=True)
 
+pytestmark = [pytest.mark.no_containers]
+
 
 @pytest.fixture(scope='module', autouse=True)
 def host_ui_default():
@@ -82,7 +84,9 @@ def vm(module_repos_collection_with_manifest, rhel7_contenthost, target_sat):
 @pytest.fixture
 def vm_module_streams(module_repos_collection_with_manifest, rhel8_contenthost, target_sat):
     """Virtual machine registered in satellite"""
-    module_repos_collection_with_manifest.setup_virtual_machine(rhel8_contenthost)
+    module_repos_collection_with_manifest.setup_virtual_machine(
+        rhel8_contenthost, enable_custom_repos=True
+    )
     rhel8_contenthost.add_rex_key(satellite=target_sat)
     yield rhel8_contenthost
 
