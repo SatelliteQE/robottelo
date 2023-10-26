@@ -13,7 +13,7 @@ def pytest_addoption(parser):
 
         example: pytest tests/foreman --uses-fixtures target_sat module_target_sat
     '''
-    parser.addoption("--uses-fixtures", nargs='+', help=help_text)
+    parser.addoption("--uses-fixtures", nargs='?', help=help_text)
 
 
 def pytest_collection_modifyitems(items, config):
@@ -22,17 +22,18 @@ def pytest_collection_modifyitems(items, config):
         return
 
     filter_fixtures = config.getvalue('uses_fixtures')
+    fixtures_list = filter_fixtures.split(',') if ',' in filter_fixtures else [filter_fixtures]
     selected = []
     deselected = []
 
     for item in items:
-        if set(item.fixturenames).intersection(set(filter_fixtures)):
+        if set(item.fixturenames).intersection(set(fixtures_list)):
             selected.append(item)
         else:
             deselected.append(item)
     logger.debug(
         f'Selected {len(selected)} and deselected {len(deselected)} '
-        f'tests based on given fixtures {filter_fixtures} used by tests'
+        f'tests based on given fixtures {fixtures_list} used by tests'
     )
     config.hook.pytest_deselected(items=deselected)
     items[:] = selected
