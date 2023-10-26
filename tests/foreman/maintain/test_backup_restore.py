@@ -611,30 +611,3 @@ def test_positive_backup_restore_incremental(
         query={'search': f'name="{secondary_repo.name}"'}
     )[0]
     assert repo.id == secondary_repo.id
-
-
-@pytest.mark.stubbed
-def test_positive_backup_restore_snapshot():
-    """Take the snapshot backup of a server, restore it, check for content
-
-    :id: dcf3b815-97ed-4c2e-9f2d-5eedd8591c98
-
-    :setup:
-        1. satellite installed on an LVM-based storage with sufficient free extents
-
-    :steps:
-        1. create the snapshot backup (with/without pulp)
-        2. check that appropriate files are created
-        3. restore the backup (installer --reset-data is run in this step)
-        4. check system health
-        5. check the content was restored
-
-    :expectedresults:
-        1. backup succeeds
-        2. expected files are present in the backup
-        3. restore succeeds
-        4. system health check succeeds
-        5. content is present after restore
-
-    :CaseAutomation: NotAutomated
-    """
