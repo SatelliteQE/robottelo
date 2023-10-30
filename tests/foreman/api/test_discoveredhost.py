@@ -401,10 +401,11 @@ class TestDiscoveredHost:
         result = sat.api.DiscoveredHost(id=discovered_host.id).reboot()
         assert 'Unable to perform reboot' not in result
 
-    # @pytest.mark.on_premises_provisioning
+    @pytest.mark.on_premises_provisioning
     @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
     @pytest.mark.parametrize('pxe_loader', ['bios'], indirect=True)
     @pytest.mark.rhel_ver_match('9')
+    @pytest.mark.parametrize('provision_multiple_hosts', [2])
     @pytest.mark.tier3
     def test_positive_reboot_all_pxe_hosts(
         self,
@@ -413,6 +414,7 @@ class TestDiscoveredHost:
         provision_multiple_hosts,
         provisioning_hostgroup,
         pxe_loader,
+        count,
     ):
         """Rebooting all pxe-based discovered hosts
 
