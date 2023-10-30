@@ -561,3 +561,82 @@ class TestProvisioningTemplate:
         assert 'systemctl enable ansible-callback' in render
         assert f'"host_config_key":"{config_key}"' in render
         assert '{"package_install": "zsh"}' in render
+
+    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    def test_positive_template_check_rex_snippet(
+        self,
+        module_sync_kickstart_content,
+        module_target_sat,
+        module_provisioning_capsule,
+        module_sca_manifest_org,
+        module_location,
+        module_default_org_view,
+        module_lce_library,
+        default_architecture,
+        default_partitiontable,
+    ):
+        """Read the provision template and verify the host params and home directory permissions for the rex user are properly set and rendered.
+
+        :id: e5212c46-d269-4bce-8e03-9d00c086e69e
+
+        :steps:
+            1. Create a host by setting host params remote_execution_ssh_user, remote_execution_create_user, remote_execution_effective_user_method and remote_execution_ssh_keys
+            2. Read the provision templete to verify host params
+
+        :expectedresults: The rendered template has the host params set and correct home directory permissions for the rex user.
+
+        :BZ: 2243679
+
+        :customerscenario: true
+
+        :parametrized: yes
+        """
+        macaddress = gen_mac(multicast=False)
+        rex_user = gen_string('alpha')
+        ssh_key = gen_string('alphanumeric')
+        host = module_target_sat.api.Host(
+            organization=module_sca_manifest_org,
+            location=module_location,
+            name=gen_string('alpha').lower(),
+            mac=macaddress,
+            operatingsystem=module_sync_kickstart_content.os,
+            architecture=default_architecture,
+            domain=module_sync_kickstart_content.domain,
+            root_pass=settings.provisioning.host_root_password,
+            ptable=default_partitiontable,
+            content_facet_attributes={
+                'content_source_id': module_provisioning_capsule.id,
+                'content_view_id': module_default_org_view.id,
+                'lifecycle_environment_id': module_lce_library.id,
+            },
+            host_parameters_attributes=[
+                {
+                    'name': 'remote_execution_ssh_user',
+                    'value': rex_user,
+                    'parameter_type': 'string',
+                },
+                {
+                    'name': 'remote_execution_create_user',
+                    'value': 'true',
+                    'parameter_type': 'boolean',
+                },
+                {
+                    'name': 'remote_execution_effective_user_method',
+                    'value': 'sudo',
+                    'parameter_type': 'string',
+                },
+                {
+                    'name': 'remote_execution_ssh_keys',
+                    'value': ssh_key,
+                    'parameter_type': 'string',
+                },
+            ],
+        ).create()
+        rex_snippet = host.read_template(data={'template_kind': 'provision'})['template']
+        assert f'chown -R {rex_user}: ~{rex_user}' in rex_snippet
+        assert f'chown -R {rex_user}: ~{rex_user}/.ssh' in rex_snippet
+        assert (
+            f'echo "{rex_user} ALL = (root) NOPASSWD : ALL\nDefaults:{rex_user} !requiretty" > /etc/sudoers.d/{rex_user}'
+            in rex_snippet
+        )
+        assert ssh_key in rex_snippet
