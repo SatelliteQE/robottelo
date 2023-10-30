@@ -200,6 +200,7 @@ class ContentInfo:
         sets ownership, returns import path
         """
         self.execute(
+            f'rm -rf {PULP_IMPORT_DIR}/{org.name} &&'
             f'mv {PULP_EXPORT_DIR}/{org.name} {PULP_IMPORT_DIR} && '
             f'chown -R pulp:pulp {PULP_IMPORT_DIR}'
         )
