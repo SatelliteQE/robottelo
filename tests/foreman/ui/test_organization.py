@@ -362,3 +362,23 @@ def test_positive_product_view_organization_switch(session, module_org, module_p
         assert session.product.search(module_product.name)
         session.organization.select(org_name="Default Organization")
         assert not session.product.search(module_product.name) == module_product.name
+
+
+def test_positive_prepare_for_sca_only_organization(target_sat, function_entitlement_manifest_org):
+    """Verify that the organization details page notifies users that Simple Content Access
+        will be required for all organizations in Satellite 6.16
+
+    :id: 3a6a848b-3c16-4dbb-8f52-5ea57a9a97ef
+
+    :expectedresults: The Organization details page notifies users that Simple Content Access will
+        be required for all organizations in Satellite 6.16
+    """
+    with target_sat.ui_session() as session:
+        session.organization.select(function_entitlement_manifest_org.name)
+        sca_alert = session.organization.read(
+            function_entitlement_manifest_org.name, widget_names='primary'
+        )
+        assert (
+            'Simple Content Access will be required for all organizations in Katello 4.12.'
+            in sca_alert['primary']['sca_alert']
+        )
