@@ -552,3 +552,21 @@ def test_positive_candlepin_events_processed_by_STOMP(
         response = entities.Ping().search_json()['services']['candlepin_events']
         assert response['status'] == 'ok'
         assert '0 Failed' in response['message']
+
+
+def test_positive_prepare_for_sca_only_subscription(target_sat, function_entitlement_manifest_org):
+    """Verify that the Subcsription page notifies users that Simple Content Access
+        will be required for all organizations in Satellite 6.16
+
+    :id: cb6fdfdd-04ee-4acb-9460-c78556cef11e
+
+    :expectedresults: The Subscription page notifies users that Simple Content Access will
+        be required for all organizations in Satellite 6.16
+    """
+    with target_sat.ui_session() as session:
+        session.organization.select(function_entitlement_manifest_org.name)
+        sca_alert = session.subscription.sca_alert()
+        assert (
+            'This organization is not using Simple Content Access. Entitlement-based subscription management is deprecated and will be removed in Katello 4.12.'
+            in sca_alert
+        )

@@ -1229,3 +1229,22 @@ def test_positive_ak_with_custom_product_on_rhel6(session, rhel6_contenthost, ta
         ak = session.activationkey.read(ak.name, widget_names='content_hosts')
         assert len(ak['content_hosts']['table']) == 1
         assert ak['content_hosts']['table'][0]['Name'] == rhel6_contenthost.hostname
+
+
+def test_positive_prepare_for_sca_only_ak(target_sat, function_entitlement_manifest_org):
+    """Verify that the ActivationKey details page notifies users that Simple Content Access
+        will be required for all organizations in Satellite 6.16
+
+    :id: 417a8331-3c66-473f-938c-bbf01deb6031
+
+    :expectedresults: The ActivationKey page notifies users that Simple Content Access will
+        be required for all organizations in Satellite 6.16
+    """
+    ak = target_sat.api.ActivationKey(organization=function_entitlement_manifest_org).create()
+    with target_sat.ui_session() as session:
+        session.organization.select(function_entitlement_manifest_org.name)
+        ak = session.activationkey.read(ak.name)
+        assert (
+            'This organization is not using Simple Content Access. Entitlement-based subscription management is deprecated and will be removed in Katello 4.12.'
+            in ak['sca_alert']
+        )
