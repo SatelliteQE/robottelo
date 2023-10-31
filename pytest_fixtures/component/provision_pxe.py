@@ -238,6 +238,33 @@ def provisioning_host(module_ssh_key_file, pxe_loader):
 
 
 @pytest.fixture
+def provision_multiple_hosts(module_ssh_key_file, pxe_loader, request):
+    """Fixture to check out two blank VMs"""
+    vlan_id = settings.provisioning.vlan_id
+    cd_iso = (
+        ""  # TODO: Make this an optional fixture parameter (update vm_firmware when adding this)
+    )
+    # Keeping the default value to 2
+    count = request.param if request.param is not None else 2
+
+    with Broker(
+        workflow="deploy-configure-pxe-provisioning-host-rhv",
+        host_class=ContentHost,
+        _count=count,
+        target_vlan_id=vlan_id,
+        target_vm_firmware=pxe_loader.vm_firmware,
+        target_vm_cd_iso=cd_iso,
+        blank=True,
+        target_memory='6GiB',
+        auth=module_ssh_key_file,
+    ) as hosts:
+        yield hosts
+
+        for prov_host in hosts:
+            prov_host.blank = getattr(prov_host, 'blank', False)
+
+
+@pytest.fixture
 def provisioning_hostgroup(
     module_provisioning_sat,
     module_sca_manifest_org,
