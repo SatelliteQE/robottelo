@@ -1312,9 +1312,8 @@ def common_sat_install_assertions(satellite):
         r'journalctl -q --no-pager -b -p err -u "pulpcore" -u "foreman" -u "foreman-proxy" -u "httpd" -u "postgresql" -u "pulpcore-api" -u "pulpcore-worker"'
     )
     assert len(result.stdout) == 0
-    # no errors/failures in /var/log/foreman/production.log
-    # ignore warnings
-    result = satellite.execute(r'grep -i "error" /var/log/foreman/production.log | grep -v "\[W\|"')
+    # no errors in /var/log/foreman/production.log
+    result = satellite.execute(r'grep -E "\[E\|" /var/log/foreman/production.log')
     assert len(result.stdout) == 0
     # no errors/failures in /var/log/foreman-installer/satellite.log
     result = satellite.execute(
@@ -1392,6 +1391,8 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
 
     :expectedresults:
         1. Capsule is installed and setup correctly
+        2. no unexpected errors in logs
+        3. health check runs successfully
 
     :CaseImportance: Critical
     """
