@@ -1353,3 +1353,72 @@ class TestCapsuleContentManagement:
             'ls /var/lib/pulp/media/artifact/*/* | xargs file | grep RPM'
         )
         assert result.status, 'RPM artifacts are still present. They should be gone.'
+
+    @pytest.mark.skip_if_not_set('capsule')
+    def test_positive_capsule_sync_openstack_container_repos(
+        self,
+        module_target_sat,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce,
+    ):
+        """Synchronize openstack container repositories to capsule
+
+        :id: 23e64385-7f34-4ab9-bd63-72306e5a4de0
+
+        :setup:
+            1. A blank external capsule that has not been synced yet.
+
+        :steps:
+            1. Enable and sync openstack container repos.
+
+        :expectedresults:
+            1. container repos should sync on capsule.
+
+        :customerscenario: true
+
+        :BZ: 2154734
+
+        """
+        upstream_names = [
+            'rhosp13/openstack-cinder-api',
+            'rhosp13/openstack-neutron-server',
+            'rhosp13/openstack-neutron-dhcp-agent',
+            'rhosp13/openstack-nova-api',
+        ]
+        repos = []
+
+        for ups_name in upstream_names:
+            repo = module_target_sat.api.Repository(
+                content_type='docker',
+                docker_upstream_name=ups_name,
+                product=function_product,
+                url=constants.RH_CONTAINER_REGISTRY_HUB,
+                upstream_username=settings.subscription.rhn_username,
+                upstream_password=settings.subscription.rhn_password,
+            ).create()
+            repo.sync(timeout=1800)
+            repos.append(repo)
+
+        # Associate LCE with the capsule
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce.id}
+        )
+        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert len(result['results'])
+        assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Create and publish a content view with all repositories
+        cv = module_target_sat.api.ContentView(organization=function_org, repository=repos).create()
+        cv.publish()
+        cv = cv.read()
+        assert len(cv.version) == 1
+
+        # Promote the latest CV version into capsule's LCE
+        cvv = cv.version[-1].read()
+        cvv.promote(data={'environment_ids': function_lce.id})
+        cvv = cvv.read()
+        assert len(cvv.environment) == 2
+
+        module_capsule_configured.wait_for_sync()
