@@ -1295,6 +1295,42 @@ class TestRepository:
             f'{repo.full_path}.treeinfo'
         ), 'The treeinfo file is missing in the KS repo but it should be there.'
 
+    @pytest.mark.tier3
+    @pytest.mark.parametrize('client_repo', ['rhsclient7', 'rhsclient8', 'rhsclient9'])
+    def test_positive_katello_agent_availability(
+        self, target_sat, function_sca_manifest_org, client_repo
+    ):
+        """Verify katello-agent package remains available in the RH Satellite Client repos
+        for older Satellite versions (Sat 6.14 is the last one supporting it).
+
+        :id: cd5b4e5b-e4f1-4d00-b171-30cd5b1e7ce8
+
+        :parametrized: yes
+
+        :steps:
+            1. Enable RH Satellite Client repo and sync it.
+            2. Read the repo packages.
+
+        :expectedresults:
+            1. Katello-agent remains available in the Client repos.
+
+        """
+        # Enable RH Satellite Client repo and sync it.
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=function_sca_manifest_org.id,
+            product=constants.REPOS[client_repo]['product'],
+            reposet=constants.REPOS[client_repo]['reposet'],
+            repo=constants.REPOS[client_repo]['name'],
+            releasever=constants.REPOS[client_repo]['version'],
+        )
+        repo = target_sat.api.Repository(id=repo_id).read()
+        repo.sync()
+        # Make sure katello-agent lives in the repo happily.
+        repo_pkgs = target_sat.api.Repository(id=repo_id).packages()['results']
+        agent_pkgs = [pkg['filename'] for pkg in repo_pkgs if 'katello-agent' in pkg['name']]
+        assert len(agent_pkgs), 'Katello-agent package is missing from the RH Client repo!'
+
 
 @pytest.mark.run_in_one_thread
 class TestRepositorySync:
