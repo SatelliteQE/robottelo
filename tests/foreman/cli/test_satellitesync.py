@@ -39,6 +39,7 @@ from robottelo.cli.settings import Settings
 from robottelo.config import settings
 from robottelo.constants import (
     CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     EXPORT_LIBRARY_NAME,
@@ -68,9 +69,8 @@ def config_export_import_settings():
 def export_import_cleanup_function(target_sat, function_org):
     """Deletes export/import dirs of function org"""
     yield
-    # Deletes directories created for export/import test
     target_sat.execute(
-        f'rm -rf {PULP_EXPORT_DIR}/{function_org.name} {PULP_IMPORT_DIR}/{function_org.name}',
+        f'rm -rf {PULP_EXPORT_DIR}/{function_org.name} {PULP_IMPORT_DIR}/{function_org.name}'
     )
 
 
@@ -78,7 +78,6 @@ def export_import_cleanup_function(target_sat, function_org):
 def export_import_cleanup_module(target_sat, module_org):
     """Deletes export/import dirs of module_org"""
     yield
-    # Deletes directories created for export/import test
     target_sat.execute(
         f'rm -rf {PULP_EXPORT_DIR}/{module_org.name} {PULP_IMPORT_DIR}/{module_org.name}'
     )
@@ -97,23 +96,6 @@ def function_import_org_with_manifest(target_sat, function_import_org):
     with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
         target_sat.upload_manifest(function_import_org.id, manifest)
     yield function_import_org
-
-
-@pytest.fixture(scope='class')
-def docker_repo(module_target_sat, module_org):
-    product = make_product({'organization-id': module_org.id})
-    repo = make_repository(
-        {
-            'organization-id': module_org.id,
-            'product-id': product['id'],
-            'content-type': REPO_TYPE['docker'],
-            'download-policy': 'immediate',
-            'url': 'https://quay.io',
-            'docker-upstream-name': 'quay/busybox',
-        }
-    )
-    Repository.synchronize({'id': repo['id']})
-    yield repo
 
 
 @pytest.fixture(scope='module')
@@ -181,6 +163,54 @@ def function_synced_rhel_repo(request, target_sat, function_sca_manifest_org):
     return repo
 
 
+@pytest.fixture(scope='function')
+def function_synced_file_repo(target_sat, function_org, function_product):
+    repo = target_sat.cli_factory.make_repository(
+        {
+            'organization-id': function_org.id,
+            'product-id': function_product.id,
+            'content-type': 'file',
+            'url': settings.repos.file_type_repo.url,
+        }
+    )
+    target_sat.cli.Repository.synchronize({'id': repo['id']})
+    yield repo
+
+
+@pytest.fixture(scope='function')
+def function_synced_docker_repo(target_sat, function_org):
+    product = target_sat.cli_factory.make_product({'organization-id': function_org.id})
+    repo = target_sat.cli_factory.make_repository(
+        {
+            'organization-id': function_org.id,
+            'product-id': product['id'],
+            'content-type': REPO_TYPE['docker'],
+            'download-policy': 'immediate',
+            'url': CONTAINER_REGISTRY_HUB,
+            'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+        }
+    )
+    target_sat.cli.Repository.synchronize({'id': repo['id']})
+    yield repo
+
+
+@pytest.fixture(scope='function')
+def function_synced_AC_repo(target_sat, function_org, function_product):
+    repo = target_sat.cli_factory.make_repository(
+        {
+            'organization-id': function_org.id,
+            'product-id': function_product.id,
+            'content-type': 'ansible_collection',
+            'url': ANSIBLE_GALAXY,
+            'ansible-collection-requirements': '{collections: [ \
+                    { name: theforeman.foreman, version: "2.1.0" }, \
+                    { name: theforeman.operations, version: "0.1.0"} ]}',
+        }
+    )
+    target_sat.cli.Repository.synchronize({'id': repo['id']})
+    yield repo
+
+
 @pytest.mark.run_in_one_thread
 class TestRepositoryExport:
     """Tests for exporting a repository via CLI"""
@@ -239,7 +269,7 @@ class TestRepositoryExport:
         target_sat.cli.ContentView.publish({'id': cv['id']})
         cv = target_sat.cli.ContentView.info({'id': cv['id']})
         assert len(cv['versions']) == 2
-        cvv = cv['versions'][1]
+        cvv = max(cv['versions'], key=lambda x: int(x['id']))
         target_sat.cli.ContentExport.incrementalVersion(
             {'id': cvv['id'], 'organization-id': module_org.id}
         )
@@ -342,7 +372,7 @@ class TestRepositoryExport:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_repository_docker(
-        self, target_sat, export_import_cleanup_module, module_org, docker_repo
+        self, target_sat, export_import_cleanup_function, function_org, function_synced_docker_repo
     ):
         """Export docker repo via complete and incremental repository.
 
@@ -364,18 +394,20 @@ class TestRepositoryExport:
         :customerscenario: true
         """
         # Verify export directory is empty
-        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
         # Export complete and check the export directory
-        target_sat.cli.ContentExport.completeRepository({'id': docker_repo['id']})
-        assert '1.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
+        target_sat.cli.ContentExport.completeRepository({'id': function_synced_docker_repo['id']})
+        assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
         # Export incremental and check the export directory
-        target_sat.cli.ContentExport.incrementalRepository({'id': docker_repo['id']})
-        assert '2.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
+        target_sat.cli.ContentExport.incrementalRepository(
+            {'id': function_synced_docker_repo['id']}
+        )
+        assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_version_docker(
-        self, target_sat, export_import_cleanup_module, module_org, docker_repo
+        self, target_sat, export_import_cleanup_function, function_org, function_synced_docker_repo
     ):
         """Export CV with docker repo via complete and incremental version.
 
@@ -400,12 +432,12 @@ class TestRepositoryExport:
         """
         # Create CV and publish
         cv_name = gen_string('alpha')
-        cv = make_content_view({'name': cv_name, 'organization-id': module_org.id})
+        cv = make_content_view({'name': cv_name, 'organization-id': function_org.id})
         target_sat.cli.ContentView.add_repository(
             {
                 'id': cv['id'],
-                'organization-id': module_org.id,
-                'repository-id': docker_repo['id'],
+                'organization-id': function_org.id,
+                'repository-id': function_synced_docker_repo['id'],
             }
         )
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -413,21 +445,21 @@ class TestRepositoryExport:
         assert len(cv['versions']) == 1
         cvv = cv['versions'][0]
         # Verify export directory is empty
-        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
         # Export complete and check the export directory
         target_sat.cli.ContentExport.completeVersion(
-            {'id': cvv['id'], 'organization-id': module_org.id}
+            {'id': cvv['id'], 'organization-id': function_org.id}
         )
-        assert '1.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
+        assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
         # Publish new CVV, export incremental and check the export directory
         target_sat.cli.ContentView.publish({'id': cv['id']})
         cv = target_sat.cli.ContentView.info({'id': cv['id']})
         assert len(cv['versions']) == 2
-        cvv = cv['versions'][1]
+        cvv = max(cv['versions'], key=lambda x: int(x['id']))
         target_sat.cli.ContentExport.incrementalVersion(
-            {'id': cvv['id'], 'organization-id': module_org.id}
+            {'id': cvv['id'], 'organization-id': function_org.id}
         )
-        assert '2.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
+        assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
 
 @pytest.fixture(scope='class')
@@ -1174,149 +1206,127 @@ class TestContentViewSync:
 
     @pytest.mark.tier3
     def test_postive_export_cv_with_mixed_content_repos(
-        self, class_export_entities, export_import_cleanup_module, target_sat, module_org
+        self,
+        export_import_cleanup_function,
+        target_sat,
+        function_org,
+        function_synced_custom_repo,
+        function_synced_file_repo,
+        function_synced_docker_repo,
+        function_synced_AC_repo,
     ):
         """Exporting CV version having yum and non-yum(docker) is successful
 
         :id: ffcdbbc6-f787-4978-80a7-4b44c389bf49
 
-        :steps:
+        :setup:
+            1. Synced repositories of each content type: yum, file, docker, AC
 
-            1. Create product with yum and non-yum(docker) repos
-            2. Sync the repositories
-            3. Create CV with above product and publish
-            4. Export CV version contents to a directory
+        :steps:
+            1. Create CV, add all setup repos and publish.
+            2. Export CV version contents to a directory.
 
         :expectedresults:
-            1. Export will succeed, however the export wont contain non-yum repo.
-            No warning is printed (see BZ 1775383)
+            1. Export succeeds and content is exported.
 
         :BZ: 1726457
 
         :customerscenario: true
 
         """
-        product = make_product(
-            {
-                'organization-id': module_org.id,
-                'name': gen_string('alpha'),
-            }
+        content_view = target_sat.cli_factory.make_content_view(
+            {'organization-id': function_org.id}
         )
-        nonyum_repo = make_repository(
-            {
-                'content-type': 'docker',
-                'docker-upstream-name': 'quay/busybox',
-                'organization-id': module_org.id,
-                'product-id': product['id'],
-                'url': CONTAINER_REGISTRY_HUB,
-            },
+        repos = [
+            function_synced_custom_repo,
+            function_synced_file_repo,
+            function_synced_docker_repo,
+            function_synced_AC_repo,
+        ]
+        for repo in repos:
+            target_sat.cli.ContentView.add_repository(
+                {
+                    'id': content_view['id'],
+                    'organization-id': function_org.id,
+                    'repository-id': repo['id'],
+                }
+            )
+        target_sat.cli.ContentView.publish({'id': content_view['id']})
+        exporting_cv = target_sat.cli.ContentView.info({'id': content_view['id']})
+        assert len(exporting_cv['versions']) == 1
+        exporting_cvv = target_sat.cli.ContentView.version_info(
+            {'id': exporting_cv['versions'][0]['id']}
         )
-        Repository.synchronize({'id': nonyum_repo['id']})
-        yum_repo = make_repository(
-            {
-                'name': gen_string('alpha'),
-                'download-policy': 'immediate',
-                'mirror-on-sync': 'no',
-                'product-id': product['id'],
-            }
-        )
-        Repository.synchronize({'id': yum_repo['id']})
-        content_view = make_content_view({'organization-id': module_org.id})
-        # Add docker and yum repo
-        ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': module_org.id,
-                'repository-id': nonyum_repo['id'],
-            }
-        )
-        ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': module_org.id,
-                'repository-id': yum_repo['id'],
-            }
-        )
-        ContentView.publish({'id': content_view['id']})
-        exporting_cv_id = ContentView.info({'id': content_view['id']})
-        assert len(exporting_cv_id['versions']) == 1
-        exporting_cvv_id = exporting_cv_id['versions'][0]
+        assert len(exporting_cvv['repositories']) == len(repos)
         # check packages
-        exported_packages = Package.list({'content-view-version-id': exporting_cvv_id['id']})
+        exported_packages = target_sat.cli.Package.list(
+            {'content-view-version-id': exporting_cvv['id']}
+        )
         assert len(exported_packages)
         # Verify export directory is empty
-        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
         # Export cv
-        ContentExport.completeVersion(
-            {'id': exporting_cvv_id['id'], 'organization-id': module_org.id}
+        target_sat.cli.ContentExport.completeVersion(
+            {'id': exporting_cvv['id'], 'organization-id': function_org.id}
         )
         # Verify export directory is not empty
-        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) != ''
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
 
     @pytest.mark.tier3
     def test_postive_export_import_cv_with_file_content(
         self,
         target_sat,
         config_export_import_settings,
-        export_import_cleanup_module,
-        module_org,
+        export_import_cleanup_function,
+        function_org,
+        function_synced_file_repo,
         function_import_org,
     ):
         """Exporting and Importing cv with file content
 
         :id: d00739f0-dedf-4303-8929-889dc23260a4
 
+        :setup:
+            1. Product with synced file-type repository.
+
         :steps:
-            1. Create custom product and custom repo with file type
-            2. Sync repo
-            3. Create cv and add file repo created in step 1 and publish
-            4. Export cv and import cv into another satellite.
-            5. Check imported cv has files in it.
+            3. Create CV, add the file repo and publish.
+            4. Export the CV and import it into another organization.
+            5. Check the imported CV has files in it.
 
         :expectedresults:
-            1. Imported cv should have the files present in the cv of the imported system.
+            1. Imported CV should have the files present.
 
         :BZ: 1995827
 
         :customerscenario: true
         """
-        # setup custom repo
+        # Create CV, add the file repo and publish.
         cv_name = import_cv_name = gen_string('alpha')
-        product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
-        file_repo = target_sat.cli_factory.make_repository(
-            {
-                'organization-id': module_org.id,
-                'product-id': product['id'],
-                'content-type': 'file',
-                'url': settings.repos.file_type_repo.url,
-            }
-        )
-        target_sat.cli.Repository.synchronize({'id': file_repo['id']})
-        # create cv and publish
         cv = target_sat.cli_factory.make_content_view(
-            {'name': cv_name, 'organization-id': module_org.id}
+            {'name': cv_name, 'organization-id': function_org.id}
         )
         target_sat.cli.ContentView.add_repository(
             {
                 'id': cv['id'],
-                'organization-id': module_org.id,
-                'repository-id': file_repo['id'],
+                'organization-id': function_org.id,
+                'repository-id': function_synced_file_repo['id'],
             }
         )
         target_sat.cli.ContentView.publish({'id': cv['id']})
-        exporting_cv_id = target_sat.cli.ContentView.info({'id': cv['id']})
-        assert len(exporting_cv_id['versions']) == 1
-        exporting_cvv_id = exporting_cv_id['versions'][0]['id']
+        exporting_cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(exporting_cv['versions']) == 1
+        exporting_cvv_id = exporting_cv['versions'][0]['id']
         # check files
         exported_files = target_sat.cli.File.list({'content-view-version-id': exporting_cvv_id})
         assert len(exported_files)
         # Verify export directory is empty
-        assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
-        # Export cv
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
+        # Export the CV
         export = target_sat.cli.ContentExport.completeVersion(
-            {'id': exporting_cvv_id, 'organization-id': module_org.id}
+            {'id': exporting_cvv_id, 'organization-id': function_org.id}
         )
-        import_path = target_sat.move_pulp_archive(module_org, export['message'])
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
         # Check that files are present in import_path
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
