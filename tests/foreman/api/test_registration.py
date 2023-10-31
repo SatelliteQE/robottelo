@@ -89,7 +89,6 @@ def test_host_registration_end_to_end(
 
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
-@pytest.mark.skip_if_open("BZ:2229112")
 def test_positive_allow_reregistration_when_dmi_uuid_changed(
     module_org, rhel_contenthost, target_sat, module_ak_with_synced_repo, module_location
 ):
