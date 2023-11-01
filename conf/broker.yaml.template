@@ -1,7 +1,5 @@
 BROKER:
-    # The path where your broker settings and inventory are located
-    # If you leave it blank, the default is the output of `broker --version`
-    BROKER_DIRECTORY:
+    # Broker has its own config which you can find by running `broker --version`
     HOST_WORKFLOWS:
         POWER_CONTROL: vm-power-operation
         EXTEND: extend-vm
