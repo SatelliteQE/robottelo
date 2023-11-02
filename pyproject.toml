@@ -25,12 +25,15 @@ select = [
     "F",  # flake8
     "I", # isort
     # "Q",  # flake8-quotes
+    "PT",  # flake8-pytest
     "UP",  # pyupgrade
     "W",  # pycodestyle
 ]
 
 ignore = [
     "E501",  # line too long - handled by black
+    "PT004", # pytest underscrore prefix for non-return fixtures
+    "PT005", # pytest no underscrore prefix for return fixtures
 ]
 
 [tool.ruff.isort]
@@ -40,6 +43,9 @@ known-first-party = [
 ]
 combine-as-imports = true
 
+[tool.ruff.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
 
 [tool.ruff.flake8-quotes]
 inline-quotes = "single"

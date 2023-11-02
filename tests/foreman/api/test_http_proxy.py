@@ -293,7 +293,7 @@ def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, m
     # Create and fetch new cerfiticate
     target_sat.custom_cert_generate(proxy_host)
     cacert = target_sat.execute(f'cat {cacert_path}').stdout
-    assert 'BEGIN CERTIFICATE' and 'END CERTIFICATE' in cacert
+    assert 'END CERTIFICATE' in cacert
 
     # Create http-proxy and repository
     http_proxy = target_sat.api.HTTPProxy(

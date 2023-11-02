@@ -51,7 +51,7 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
     """
 
     @pytest.fixture(scope="class")
-    def _setup_scenario(self, class_target_sat):
+    def setup_scenario(self, class_target_sat):
         """Import some parametrized puppet classes. This is required to make
         sure that we have smart class variable available.
         Read all available smart class parameters for imported puppet class to
@@ -100,7 +100,7 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
     @pytest.mark.pre_upgrade
     @pytest.mark.parametrize('count', list(range(1, 10)))
     def test_pre_puppet_class_parameter_data_and_type(
-        self, class_target_sat, count, _setup_scenario, save_test_data
+        self, class_target_sat, count, setup_scenario, save_test_data
     ):
         """Puppet Class parameters with different data type are created
 
@@ -116,7 +116,7 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
 
         :expectedresults: The parameters are updated with different data types
         """
-        save_test_data(_setup_scenario)
+        save_test_data(setup_scenario)
         data = _valid_sc_parameters_data()[count - 1]
         sc_param = class_target_sat.api.SmartClassParameters().search(
             query={'search': f'parameter="api_classparameters_scp_00{count}"'}
@@ -130,9 +130,10 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
         self._validate_value(data, sc_param)
 
     @pytest.mark.post_upgrade(depend_on=test_pre_puppet_class_parameter_data_and_type)
+    @pytest.mark.usefixtures('_clean_scenario')
     @pytest.mark.parametrize('count', list(range(1, 10)))
     def test_post_puppet_class_parameter_data_and_type(
-        self, count, _clean_scenario, class_pre_upgrade_data, class_target_sat
+        self, count, class_pre_upgrade_data, class_target_sat
     ):
         """Puppet Class Parameters value and type is intact post upgrade
 

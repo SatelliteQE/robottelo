@@ -589,9 +589,8 @@ def test_positive_health_check_foreman_proxy_verify_dhcp_config_syntax(sat_maint
     result = sat_maintain.cli.Health.check(
         options={'label': 'foreman-proxy-verify-dhcp-config-syntax'}
     )
-    assert (
-        'No scenario matching label' and 'foreman-proxy-verify-dhcp-config-syntax' in result.stdout
-    )
+    assert 'No scenario matching label'
+    assert 'foreman-proxy-verify-dhcp-config-syntax' in result.stdout
     # Enable DHCP
     installer = sat_maintain.install(
         InstallerCommand('enable-foreman-proxy-plugin-dhcp-remote-isc', 'foreman-proxy-dhcp true')
@@ -617,9 +616,8 @@ def test_positive_health_check_foreman_proxy_verify_dhcp_config_syntax(sat_maint
     result = sat_maintain.cli.Health.check(
         options={'label': 'foreman-proxy-verify-dhcp-config-syntax'}
     )
-    assert (
-        'No scenario matching label' and 'foreman-proxy-verify-dhcp-config-syntax' in result.stdout
-    )
+    assert 'No scenario matching label'
+    assert 'foreman-proxy-verify-dhcp-config-syntax' in result.stdout
 
 
 def test_positive_remove_job_file(sat_maintain):

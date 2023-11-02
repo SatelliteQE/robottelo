@@ -188,7 +188,7 @@ class TestKatelloCertsCheck:
         result = target_sat.execute(command)
         self.validate_output(result, cert_data)
 
-    @pytest.mark.parametrize('error, cert_file, key_file, ca_file', invalid_inputs)
+    @pytest.mark.parametrize(('error', 'cert_file', 'key_file', 'ca_file'), invalid_inputs)
     @pytest.mark.tier1
     def test_katello_certs_check_output_invalid_input(
         self,
@@ -264,7 +264,7 @@ class TestKatelloCertsCheck:
                     assert message == check
                     break
             else:
-                assert False, f'Failed, Unable to find message "{message}" in result'
+                pytest.fail(f'Failed, Unable to find message "{message}" in result')
         target_sat.execute("date -s 'last year'")
 
     @pytest.mark.stubbed

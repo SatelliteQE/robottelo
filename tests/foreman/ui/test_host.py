@@ -64,7 +64,7 @@ def ui_user(ui_user, smart_proxy_location, module_target_sat):
         id=ui_user.id,
         default_location=smart_proxy_location,
     ).update(['default_location'])
-    yield ui_user
+    return ui_user
 
 
 @pytest.fixture
@@ -133,7 +133,7 @@ def tracer_install_host(rex_contenthost, target_sat):
         rex_contenthost.create_custom_repos(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
-    yield rex_contenthost
+    return rex_contenthost
 
 
 @pytest.mark.e2e
@@ -750,9 +750,9 @@ def test_positive_check_permissions_affect_create_procedure(
     ]
     with Session(test_name, user=user.login, password=user_password) as session:
         for host_field in host_fields:
+            values = {host_field['name']: host_field['unexpected_value']}
+            values.update(host_field.get('other_fields_values', {}))
             with pytest.raises(NoSuchElementException) as context:
-                values = {host_field['name']: host_field['unexpected_value']}
-                values.update(host_field.get('other_fields_values', {}))
                 session.host.helper.read_create_view(values)
             error_message = str(context.value)
             assert host_field['unexpected_value'] in error_message

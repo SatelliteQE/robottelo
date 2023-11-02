@@ -342,8 +342,8 @@ class TestBugzillaIssueHandler:
     @pytest.mark.parametrize('issue', ["BZ123456", "XX:123456", "KK:89456", "123456", 999999])
     def test_invalid_handler(self, issue):
         """Assert is_open w/ invalid handlers raise AttributeError"""
+        issue_deselect = should_deselect(issue)
         with pytest.raises(AttributeError):
-            issue_deselect = should_deselect(issue)
             is_open(issue)
         assert issue_deselect is None
 

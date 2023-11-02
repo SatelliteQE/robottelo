@@ -54,7 +54,7 @@ def puppet_proxy_port_range(session_puppet_enabled_sat):
 @pytest.fixture(scope='class')
 def class_cockpit_sat(class_subscribe_satellite):
     class_subscribe_satellite.install_cockpit()
-    yield class_subscribe_satellite
+    return class_subscribe_satellite
 
 
 @pytest.fixture(scope='module')

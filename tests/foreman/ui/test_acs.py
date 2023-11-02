@@ -459,5 +459,5 @@ class TestAcsE2e:
 
             # Delete ACS and check if trying to read it afterwards fails
             session.acs.delete_acs(acs_name='testAcsToBeDeleted')
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError):  # noqa: PT011 - TODO Ladislav find better exception
                 session.acs.get_row_drawer_content(acs_name='testAcsToBeDeleted')
