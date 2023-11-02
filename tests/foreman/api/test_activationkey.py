@@ -296,7 +296,7 @@ def test_positive_get_releases_content():
     act_key = entities.ActivationKey().create()
     response = client.get(act_key.path('releases'), auth=get_credentials(), verify=False).json()
     assert 'results' in response.keys()
-    assert type(response['results']) == list
+    assert isinstance(response['results'], list)
 
 
 @pytest.mark.tier2

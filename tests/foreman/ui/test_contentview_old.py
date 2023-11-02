@@ -2063,7 +2063,8 @@ def test_positive_update_inclusive_filter_package_version(session, module_org, t
             cv.name, VERSION, 'name = "{}" and version = "{}"'.format(package_name, '0.71')
         )
         assert len(packages) == 1
-        assert packages[0]['Name'] == package_name and packages[0]['Version'] == '0.71'
+        assert packages[0]['Name'] == package_name
+        assert packages[0]['Version'] == '0.71'
         packages = session.contentview.search_version_package(
             cv.name, VERSION, 'name = "{}" and version = "{}"'.format(package_name, '5.21')
         )
@@ -2084,7 +2085,8 @@ def test_positive_update_inclusive_filter_package_version(session, module_org, t
             cv.name, new_version, 'name = "{}" and version = "{}"'.format(package_name, '5.21')
         )
         assert len(packages) == 1
-        assert packages[0]['Name'] == package_name and packages[0]['Version'] == '5.21'
+        assert packages[0]['Name'] == package_name
+        assert packages[0]['Version'] == '5.21'
 
 
 @pytest.mark.skip_if_open('BZ:2086957')
@@ -2125,7 +2127,8 @@ def test_positive_update_exclusive_filter_package_version(session, module_org, t
             cv.name, VERSION, 'name = "{}" and version = "{}"'.format(package_name, '5.21')
         )
         assert len(packages) == 1
-        assert packages[0]['Name'] == package_name and packages[0]['Version'] == '5.21'
+        assert packages[0]['Name'] == package_name
+        assert packages[0]['Version'] == '5.21'
         packages = session.contentview.search_version_package(
             cv.name, VERSION, 'name = "{}" and version = "{}"'.format(package_name, '0.71')
         )
@@ -2146,7 +2149,8 @@ def test_positive_update_exclusive_filter_package_version(session, module_org, t
             cv.name, new_version, 'name = "{}" and version = "{}"'.format(package_name, '0.71')
         )
         assert len(packages) == 1
-        assert packages[0]['Name'] == package_name and packages[0]['Version'] == '0.71'
+        assert packages[0]['Name'] == package_name
+        assert packages[0]['Version'] == '0.71'
 
 
 @pytest.mark.skip_if_open('BZ:2086957')
@@ -2516,7 +2520,8 @@ def test_positive_update_filter_affected_repos(session, module_org, target_sat):
             cv.name, VERSION, 'name = "{}" and version = "{}"'.format(repo1_package_name, '4.2.8')
         )
         assert len(packages) == 1
-        assert packages[0]['Name'] == repo1_package_name and packages[0]['Version'] == '4.2.8'
+        assert packages[0]['Name'] == repo1_package_name
+        assert packages[0]['Version'] == '4.2.8'
         packages = session.contentview.search_version_package(
             cv.name, VERSION, 'name = "{}" and version = "{}"'.format(repo1_package_name, '4.2.9')
         )
@@ -2529,7 +2534,8 @@ def test_positive_update_filter_affected_repos(session, module_org, target_sat):
             'name = "{}" and version = "{}"'.format(repo2_package_name, '3.10.232'),
         )
         assert len(packages) == 1
-        assert packages[0]['Name'] == repo2_package_name and packages[0]['Version'] == '3.10.232'
+        assert packages[0]['Name'] == repo2_package_name
+        assert packages[0]['Version'] == '3.10.232'
 
 
 @pytest.mark.tier3
@@ -3040,10 +3046,8 @@ def test_positive_search_module_streams_in_content_view(session, module_org, tar
                 f'name = "{module_stream}" and stream = "{module_version}"',
             )
             assert len(module_streams) == 1
-            assert (
-                module_streams[0]['Name'] == module_stream
-                and module_streams[0]['Stream'] == module_version
-            )
+            assert module_streams[0]['Name'] == module_stream
+            assert module_streams[0]['Stream'] == module_version
 
 
 @pytest.mark.tier2

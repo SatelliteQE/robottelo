@@ -44,7 +44,7 @@ class TestRole:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'name, new_name',
+        ('name', 'new_name'),
         **parametrized(
             list(zip(generate_strings_list(length=10), generate_strings_list(length=10)))
         ),
@@ -147,14 +147,13 @@ class TestRole:
 
         :BZ: 1296782
         """
-        with pytest.raises(CLIReturnCodeError) as err:
-            try:
-                Role.filters()
-            except CLIDataBaseError as err:
-                pytest.fail(err)
+        with pytest.raises(CLIReturnCodeError, CLIDataBaseError) as err:
+            Role.filters()
+        if isinstance(err.type, CLIDataBaseError):
+            pytest.fail(err)
         assert re.search('At least one of options .* is required', err.value.msg)
 
-    @pytest.fixture()
+    @pytest.fixture
     def make_role_with_permissions(self):
         """Create new role with a filter"""
         role = make_role()

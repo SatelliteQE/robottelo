@@ -90,7 +90,7 @@ class TestScenarioPositiveGCEHostComputeResource:
             image=module_gce_finishimg,
             root_pass=gen_string('alphanumeric'),
         ).create()
-        yield host
+        return host
 
     def google_host(self, googleclient):
         """Returns the Google Client Host object to perform the assertions"""

@@ -46,7 +46,7 @@ class TestOSPComputeResourceTestCase:
     @pytest.fixture
     def osp_version(request):
         versions = {'osp16': settings.osp.api_url.osp16, 'osp17': settings.osp.api_url.osp17}
-        yield versions[getattr(request, 'param', 'osp16')]
+        return versions[getattr(request, 'param', 'osp16')]
 
     @pytest.mark.upgrade
     @pytest.mark.tier3

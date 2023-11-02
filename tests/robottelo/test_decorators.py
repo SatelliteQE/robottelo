@@ -9,7 +9,7 @@ from robottelo.utils import decorators
 class TestCacheable:
     """Tests for :func:`robottelo.utils.decorators.cacheable`."""
 
-    @pytest.fixture(scope="function")
+    @pytest.fixture
     def make_foo(self):
         mocked_object_cache_patcher = mock.patch.dict('robottelo.utils.decorators.OBJECT_CACHE')
         mocked_object_cache_patcher.start()

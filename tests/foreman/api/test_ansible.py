@@ -257,7 +257,7 @@ def test_add_and_remove_ansible_role_hostgroup(target_sat):
     assert len(host_roles) == 0
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def filtered_user(target_sat, module_org, module_location):
     """
     :Steps:
@@ -286,7 +286,7 @@ def filtered_user(target_sat, module_org, module_location):
     return user, password
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def rex_host_in_org_and_loc(target_sat, module_org, module_location, rex_contenthost):
     api = target_sat.api
     host = api.Host().search(query={'search': f'name={rex_contenthost.hostname}'})[0]

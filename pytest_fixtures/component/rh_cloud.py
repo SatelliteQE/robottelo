@@ -25,7 +25,7 @@ def rhcloud_activation_key(module_target_sat, rhcloud_manifest_org):
         purpose_role='test-role',
         auto_attach=False,
     ).create()
-    yield ak
+    return ak
 
 
 @pytest.fixture(scope='module')
@@ -62,7 +62,7 @@ def rhel_insights_vm(
     module_target_sat.generate_inventory_report(rhcloud_manifest_org)
     # Sync inventory status
     module_target_sat.sync_inventory_status(rhcloud_manifest_org)
-    yield rhel_contenthost
+    return rhel_contenthost
 
 
 @pytest.fixture
@@ -90,4 +90,4 @@ def rhcloud_capsule(module_capsule_host, module_target_sat, rhcloud_manifest_org
             'location-ids': default_location.id,
         }
     )
-    yield module_capsule_host
+    return module_capsule_host

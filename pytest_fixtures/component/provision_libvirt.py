@@ -18,4 +18,4 @@ def module_libvirt_image(module_target_sat, module_cr_libvirt):
 def module_libvirt_provisioning_sat(module_provisioning_sat):
     # Configure Libvirt CR for provisioning
     module_provisioning_sat.sat.configure_libvirt_cr()
-    yield module_provisioning_sat
+    return module_provisioning_sat

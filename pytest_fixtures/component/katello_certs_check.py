@@ -13,7 +13,7 @@ def certs_data(sat_ready_rhel):
     cert_data['key_file_name'] = f'{sat_ready_rhel.hostname}/{sat_ready_rhel.hostname}.key'
     cert_data['cert_file_name'] = f'{sat_ready_rhel.hostname}/{sat_ready_rhel.hostname}.crt'
     sat_ready_rhel.custom_cert_generate(cert_data['capsule_hostname'])
-    yield cert_data
+    return cert_data
 
 
 @pytest.fixture
