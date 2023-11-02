@@ -31,7 +31,8 @@ class Vault:
             self.export_vault_addr()
 
     def teardown(self):
-        del os.environ['VAULT_ADDR']
+        if os.environ.get('VAULT_ADDR') is not None:
+            del os.environ['VAULT_ADDR']
 
     def export_vault_addr(self):
         vaulturl = re.findall('VAULT_URL_FOR_DYNACONF=(.*)', self.envdata)[0]
