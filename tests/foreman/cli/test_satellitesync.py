@@ -17,10 +17,12 @@
 :Upstream: No
 """
 import os
+from time import sleep
 
 from fauxfactory import gen_string
 from manifester import Manifester
 import pytest
+from wait_for import wait_for
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.content_export import ContentExport
@@ -516,41 +518,6 @@ def _create_cv(cv_name, repo, module_org, publish=True):
         content_view = ContentView.info({'id': content_view['id']})
         cvv_id = content_view['versions'][0]['id']
     return content_view, cvv_id
-
-
-def _import_entities(product, repo, cv, mos='no'):
-    """Sets same CV, product and repository in importing organization as
-    exporting organization
-
-    :param str product: The product name same as exporting product
-    :param str repo: The repo name same as exporting repo
-    :param str cv: The cv name same as exporting cv
-    :param str mos: Mirror on Sync repo, by default 'no' can override to 'yes'
-    :returns dictionary with CLI entities created in this function
-    """
-    importing_org = make_org()
-    importing_prod = make_product({'organization-id': importing_org['id'], 'name': product})
-    importing_repo = make_repository(
-        {
-            'name': repo,
-            'mirror-on-sync': mos,
-            'download-policy': 'immediate',
-            'product-id': importing_prod['id'],
-        }
-    )
-    importing_cv = make_content_view({'name': cv, 'organization-id': importing_org['id']})
-    ContentView.add_repository(
-        {
-            'id': importing_cv['id'],
-            'organization-id': importing_org['id'],
-            'repository-id': importing_repo['id'],
-        }
-    )
-    return {
-        'importing_org': importing_org,
-        'importing_repo': importing_repo,
-        'importing_cv': importing_cv,
-    }
 
 
 class TestContentViewSync:
@@ -1343,6 +1310,107 @@ class TestContentViewSync:
         assert len(imported_files)
         assert len(exported_files) == len(imported_files)
 
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'function_synced_rhel_repo',
+        ['rhae2'],
+        indirect=True,
+    )
+    def test_positive_export_rerun_failed_import(
+        self,
+        target_sat,
+        config_export_import_settings,
+        export_import_cleanup_function,
+        function_synced_rhel_repo,
+        function_sca_manifest_org,
+        function_import_org_with_manifest,
+    ):
+        """Verify that import can be rerun successfully after failed import.
+
+        :id: 73e7cece-9a93-4203-9c2c-813d5a8d7700
+
+        :parametrized: yes
+
+        :setup:
+            1. Enabled and synced RH repository.
+
+        :steps:
+            1. Create CV, add repo from the setup, publish it and run export.
+            2. Start import of the CV into another organization and kill it before it's done.
+            3. Rerun the import again, let it finish and check the CVV was imported.
+
+        :expectedresults:
+            1. First import should fail, no CVV should be added.
+            2. Second import should succeed without errors and should contain the CVV.
+
+        :CaseImportance: Medium
+
+        :BZ: 2058905
+
+        :customerscenario: true
+        """
+        # Create CV and publish
+        cv_name = gen_string('alpha')
+        cv = target_sat.cli_factory.make_content_view(
+            {'name': cv_name, 'organization-id': function_sca_manifest_org.id}
+        )
+        target_sat.cli.ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': function_sca_manifest_org.id,
+                'repository-id': function_synced_rhel_repo['id'],
+            }
+        )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 1
+        cvv = cv['versions'][0]
+        # Verify export directory is empty
+        assert target_sat.validate_pulp_filepath(function_sca_manifest_org, PULP_EXPORT_DIR) == ''
+        # Export the CV
+        export = target_sat.cli.ContentExport.completeVersion(
+            {'id': cvv['id'], 'organization-id': function_sca_manifest_org.id}
+        )
+        import_path = target_sat.move_pulp_archive(function_sca_manifest_org, export['message'])
+        assert target_sat.execute(f'ls {import_path}').stdout != ''
+        # Run the import asynchronously
+        task_id = target_sat.cli.ContentImport.version(
+            {
+                'organization-id': function_import_org_with_manifest.id,
+                'path': import_path,
+                'async': True,
+            }
+        )['id']
+        # Wait for the CV creation on import and make the import fail
+        wait_for(
+            lambda: target_sat.cli.ContentView.info(
+                {'name': cv_name, 'organization-id': function_import_org_with_manifest.id}
+            )
+        )
+        target_sat.cli.Service.restart()
+        sleep(30)
+        # Assert that the initial import task did not succeed and CVV was removed
+        assert (
+            target_sat.api.ForemanTask()
+            .search(
+                query={'search': f'Actions::Katello::ContentViewVersion::Import and id = {task_id}'}
+            )[0]
+            .result
+            != 'success'
+        )
+        importing_cvv = target_sat.cli.ContentView.info(
+            {'name': cv_name, 'organization-id': function_import_org_with_manifest.id}
+        )['versions']
+        assert len(importing_cvv) == 0
+        # Rerun the import and let it finish
+        target_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org_with_manifest.id, 'path': import_path}
+        )
+        importing_cvv = target_sat.cli.ContentView.info(
+            {'name': cv_name, 'organization-id': function_import_org_with_manifest.id}
+        )['versions']
+        assert len(importing_cvv) == 1
+
     @pytest.mark.tier3
     def test_postive_export_import_ansible_collection_repo(
         self,
@@ -1490,13 +1558,15 @@ class TestContentViewSync:
             1. Product with synced custom repository, published in a CV.
 
         :steps:
-            1. Run complete export of the CV.
-            2. On Disconnected satellite, create a cv with same name as cv on 2 and with
-               'import-only' selected.
-            3. Run the import command.
+            1. Run complete export of the CV from setup.
+            2. On Disconnected satellite, create a CV with the same name as setup CV and with
+               'import-only' set to False and run the import command.
+            3. On Disconnected satellite, create a CV with the same name as setup CV and with
+               'import-only' set to True and run the import command.
 
         :expectedresults:
-            1. Import should run successfully
+            1. Import should fail with correct message when existing CV has 'import-only' set False.
+            2. Import should succeed when existing CV has 'import-only' set True.
 
         :bz: 2030101
 
@@ -1515,7 +1585,27 @@ class TestContentViewSync:
         result = target_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import section
-        # Create cv with 'import-only' set to true
+        # Create cv with 'import-only' set to False
+        cv = target_sat.cli_factory.make_content_view(
+            {
+                'name': export_cv_name,
+                'import-only': False,
+                'organization-id': function_import_org.id,
+            }
+        )
+        with pytest.raises(CLIReturnCodeError) as error:
+            target_sat.cli.ContentImport.version(
+                {'organization-id': function_import_org.id, 'path': import_path}
+            )
+        assert (
+            f"Unable to import in to Content View specified in the metadata - '{export_cv_name}'. "
+            "The 'import_only' attribute for the content view is set to false. To mark this "
+            "Content View as importable, have your system administrator run the following command "
+            f"on the server. \n  foreman-rake katello:set_content_view_import_only ID={cv.id}"
+        ) in error.value.message
+        target_sat.cli.ContentView.remove({'id': cv.id, 'destroy-content-view': 'yes'})
+
+        # Create cv with 'import-only' set to True
         target_sat.cli_factory.make_content_view(
             {'name': export_cv_name, 'import-only': True, 'organization-id': function_import_org.id}
         )
