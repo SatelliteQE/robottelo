@@ -49,7 +49,6 @@ from robottelo.constants import (
     PULP_IMPORT_DIR,
     REPO_TYPE,
     REPOS,
-    DataFile,
 )
 from robottelo.constants.repos import ANSIBLE_GALAXY
 
