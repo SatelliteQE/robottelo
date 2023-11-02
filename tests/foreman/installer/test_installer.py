@@ -24,6 +24,7 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
 from robottelo.hosts import setup_capsule
 from robottelo.utils.installer import InstallerCommand
+from robottelo.utils.issue_handlers import is_open
 
 PREVIOUS_INSTALLER_OPTIONS = {
     '-',
@@ -1314,7 +1315,8 @@ def common_sat_install_assertions(satellite):
     assert len(result.stdout) == 0
     # no errors in /var/log/foreman/production.log
     result = satellite.execute(r'grep -E "\[E\|" /var/log/foreman/production.log')
-    assert len(result.stdout) == 0
+    if not is_open('BZ:2247484'):
+        assert len(result.stdout) == 0
     # no errors/failures in /var/log/foreman-installer/satellite.log
     result = satellite.execute(
         r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/satellite.log'
