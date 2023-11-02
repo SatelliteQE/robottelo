@@ -1813,3 +1813,44 @@ def test_search_for_virt_who_hypervisors(session, default_location):
         # Search with hypervisor=false gives the correct result.
         content_hosts = [host['Name'] for host in session.contenthost.search('hypervisor = false')]
         assert hypervisor_display_name not in content_hosts
+
+
+@pytest.mark.rhel_ver_match('[^6]')
+def test_positive_prepare_for_sca_only_content_host(
+    session,
+    function_entitlement_manifest_org,
+    default_location,
+    rhel_contenthost,
+    target_sat,
+):
+    """Verify that the Content Host page notifies users that Entitlement-based subscription
+        management is deprecated and will be removed in Satellite 6.16
+
+    :id: 1a725675-2cf5-4f84-a755-c25f19ef5fd1
+
+    :expectedresults: The Content Host page notifies users that Entitlement-based subscription
+        management is deprecated and will be removed in Satellite 6.16
+    """
+    lce = target_sat.api.LifecycleEnvironment(
+        organization=function_entitlement_manifest_org
+    ).create()
+    cv = target_sat.api.ContentView(
+        organization=function_entitlement_manifest_org, environment=[lce]
+    ).create()
+    cv.publish()
+    cvv = cv.read().version[0].read()
+    cvv.promote(data={'environment_ids': lce.id, 'force': False})
+    ak = target_sat.api.ActivationKey(
+        organization=function_entitlement_manifest_org, content_view=cv, environment=lce
+    ).create()
+    rhel_contenthost.register(
+        function_entitlement_manifest_org, default_location, ak.name, target_sat
+    )
+    with session:
+        session.organization.select(function_entitlement_manifest_org.name)
+        session.location.select(default_location.name)
+        host_details = session.contenthost.read(rhel_contenthost.hostname, widget_names='details')
+        assert (
+            'This organization is not using Simple Content Access. Entitlement-based subscription management is deprecated and will be removed in Katello 4.12.'
+            in host_details['details']['sca_alert']
+        )
