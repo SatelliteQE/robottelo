@@ -9,3 +9,23 @@ DOCKER:
   PRIVATE_REGISTRY_USERNAME:
   # Private docker registry password
   PRIVATE_REGISTRY_PASSWORD:
+  # Image Pass Registry
+  IMAGE_REGISTRY:
+    # image repository URL
+    URL:
+    # Pull a non-namespace image using the image pass registry proxy
+    NON_NAMESPACE:
+      # Proxy for the non-namespace image
+      PROXY:
+      # Username for the non-namespace image pass registry proxy
+      USERNAME:
+      # Password for the non-namespace image pass registry proxy
+      PASSWORD:
+    # Pull a namespace image using the image pass registry proxy
+    NAMESPACE:
+      # proxy for the namespace image
+      PROXY:
+      # Username for the namespace image pass registry proxy
+      USERNAME:
+      # Password for the namespace image pass registry proxy
+      PASSWORD:
