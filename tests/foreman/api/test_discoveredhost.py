@@ -339,7 +339,7 @@ class TestDiscoveredHost:
 
     @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_positive_refresh_facts_pxe_host(self):
+    def test_positive_refresh_facts_pxe_host(self, module_target_sat):
         """Refresh the facts of pxe based discovered hosts by adding a new NIC
 
         :id: 413fb608-cd5c-441d-af86-fd2d40346d96
@@ -354,14 +354,12 @@ class TestDiscoveredHost:
         :expectedresults: Added Fact should be displayed on refreshing the
             facts
 
-        :CaseAutomation: NotAutomated
-
         :CaseImportance: High
         """
 
     @pytest.mark.on_premises_provisioning
     @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
-    @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
+    @pytest.mark.parametrize('pxe_loader', ['uefi'], indirect=True)
     @pytest.mark.rhel_ver_match('9')
     @pytest.mark.tier3
     def test_positive_reboot_pxe_host(
@@ -394,6 +392,7 @@ class TestDiscoveredHost:
             timeout=240,
             delay=20,
         )
+
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
         discovered_host.hostgroup = provisioning_hostgroup
         discovered_host.location = provisioning_hostgroup.location[0]
@@ -402,25 +401,51 @@ class TestDiscoveredHost:
         result = sat.api.DiscoveredHost(id=discovered_host.id).reboot()
         assert 'Unable to perform reboot' not in result
 
-    @pytest.mark.stubbed
+    @pytest.mark.on_premises_provisioning
+    @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
+    @pytest.mark.parametrize('pxe_loader', ['bios'], indirect=True)
+    @pytest.mark.rhel_ver_match('9')
+    @pytest.mark.parametrize('provision_multiple_hosts', [2])
     @pytest.mark.tier3
-    def test_positive_reboot_all_pxe_hosts(self):
+    def test_positive_reboot_all_pxe_hosts(
+        self,
+        module_provisioning_rhel_content,
+        module_discovery_sat,
+        provision_multiple_hosts,
+        provisioning_hostgroup,
+        pxe_loader,
+        count,
+    ):
         """Rebooting all pxe-based discovered hosts
 
         :id: 69c807f8-5646-4aa6-8b3c-5ecdb69560ed
 
         :parametrized: yes
 
-        :Setup: Provisioning should be configured and a hosts should be discovered via PXE boot.
+        :Setup: Provisioning should be configured and hosts should be discovered via PXE boot.
 
         :Steps: PUT /api/v2/discovered_hosts/reboot_all
 
-        :expectedresults: All disdcovered host should be rebooted successfully
-
-        :CaseAutomation: Automated
+        :expectedresults: All discovered hosst should be rebooted successfully
 
         :CaseImportance: Medium
         """
+        sat = module_discovery_sat.sat
+        for host in provision_multiple_hosts:
+            host.power_control(ensure=False)
+            mac = host._broker_args['provisioning_nic_mac_addr']
+            wait_for(
+                lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
+                timeout=240,
+                delay=20,
+            )
+            discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+            discovered_host.hostgroup = provisioning_hostgroup
+            discovered_host.location = provisioning_hostgroup.location[0]
+            discovered_host.organization = provisioning_hostgroup.organization[0]
+            discovered_host.build = True
+        result = sat.api.DiscoveredHost().reboot_all()
+        assert 'Discovered hosts are rebooting now' in result['message']
 
 
 class TestFakeDiscoveryTests:
