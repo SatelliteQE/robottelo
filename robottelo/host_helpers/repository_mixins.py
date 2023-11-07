@@ -129,6 +129,53 @@ class FileRepository(BaseRepository):
     _type = constants.REPO_TYPE['file']
 
 
+class DebianRepository(BaseRepository):
+    """Custom Debian repository."""
+
+    _type = constants.REPO_TYPE["deb"]
+
+    def __init__(
+        self, url=None, distro=None, content_type=None, deb_errata_url=None, deb_releases=None
+    ):
+        super().__init__(url=url, distro=distro, content_type=content_type)
+        self._deb_errata_url = deb_errata_url
+        self._deb_releases = deb_releases
+
+    @property
+    def deb_errata_url(self):
+        return self._deb_errata_url
+
+    @property
+    def deb_releases(self):
+        return self._deb_releases
+
+    def create(
+        self,
+        organization_id,
+        product_id,
+        download_policy=None,
+        synchronize=True,
+    ):
+        """Create the repository for the supplied product id"""
+        create_options = {
+            'product-id': product_id,
+            'content-type': self.content_type,
+            'url': self.url,
+            'deb-releases': self._deb_releases,
+        }
+
+        if self._deb_errata_url is not None:
+            create_options['deb-errata-url'] = self._deb_errata_url
+
+        repo_info = self.satellite.cli_factory.make_repository(create_options)
+        self._repo_info = repo_info
+
+        if synchronize:
+            self.synchronize()
+
+        return repo_info
+
+
 class DockerRepository(BaseRepository):
     """Custom Docker repository"""
 
