@@ -219,6 +219,7 @@ ENVIRONMENT = "Library"
 SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "custom cron"}
 
 REPO_TYPE = {
+    "deb": "deb",
     'yum': "yum",
     'ostree': "ostree",
     'docker': "docker",
