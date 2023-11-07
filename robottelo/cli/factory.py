@@ -1692,9 +1692,10 @@ def setup_org_for_a_custom_repo(options=None):
         raise CLIFactoryError(f'Failed to publish new version of content view\n{err.msg}')
     # Get the content view info
     cv_info = ContentView.info({'id': cv_id})
-    lce_promoted = cv_info['lifecycle-environments']
     assert len(cv_info['versions']) > 0
-    cvv = sorted(cvv['id'] for cvv in cv_info['versions'])[-1]
+    cv_info['versions'].sort(key=lambda version: version['id'])
+    cvv = cv_info['versions'][-1]
+    lce_promoted = cv_info['lifecycle-environments']
     # Promote version to next env
     try:
         if env_id not in [int(lce['id']) for lce in lce_promoted]:

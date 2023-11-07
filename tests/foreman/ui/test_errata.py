@@ -174,7 +174,7 @@ def registered_contenthost(
     rhel_contenthost,
     module_org,
     module_lce,
-    module_cv,
+    module_published_cv,
     module_target_sat,
     request,
     repos=[CUSTOM_REPO_URL],
@@ -185,8 +185,6 @@ def registered_contenthost(
     :param repos: list of upstream URLs for custom repositories,
         default to CUSTOM_REPO_URL
     """
-    module_cv.environment = [module_lce]
-    module_cv.update(['environment'])
     activation_key = module_target_sat.api.ActivationKey(
         organization=module_org,
         environment=module_lce,
@@ -196,19 +194,24 @@ def registered_contenthost(
     custom_repos = []
     for repo_url in repos:
         rhel_contenthost.create_custom_repos(custom_repo=repo_url)
-        # Publishes and promotes a new cvv to lce
-        # Associate org, ak, cv, with custom repo:
+        # Publishes a new cvv, associates org, ak, cv, with custom repo:
         custom_repo_info = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
             {
                 'url': repo_url,
                 'organization-id': module_org.id,
                 'lifecycle-environment-id': module_lce.id,
                 'activationkey-id': activation_key.id,
-                'content-view-id': module_cv.id,
+                'content-view-id': module_published_cv.id,
             }
         )
         custom_products.append(custom_repo_info['product-id'])
         custom_repos.append(custom_repo_info['repository-id'])
+
+    # Promote newest version with all content
+    module_published_cv = module_published_cv.read()
+    module_published_cv.version.sort(key=lambda version: version.id)
+    module_published_cv.version[-1].promote(data={'environment_ids': module_lce.id})
+    module_published_cv = module_published_cv.read()
 
     result = rhel_contenthost.register(
         activation_keys=activation_key.name,
@@ -227,9 +230,47 @@ def registered_contenthost(
             len(result['errors']) == 0
         ), f'Failed to sync custom repository [id: {custom_repo_id}]:\n{str(result["errors"])}'
 
-    # TODO: @request.addfinalizer: Cleanup to remove created ak,
-    # contentview versions, products & repositories.
-    return rhel_contenthost
+    yield rhel_contenthost
+
+    @request.addfinalizer
+    # Cleanup for in between parameterized runs
+    def cleanup():
+        nonlocal rhel_contenthost, module_published_cv, custom_repos, custom_products, activation_key
+        rhel_contenthost.unregister()
+        activation_key.delete()
+        # Remove CV from all lifecycle-environments
+        module_target_sat.cli.ContentView.remove_from_environment(
+            {
+                'id': module_published_cv.id,
+                'organization-id': module_org.id,
+                'lifecycle-environment-id': module_lce.id,
+            }
+        )
+        module_target_sat.cli.ContentView.remove_from_environment(
+            {
+                'id': module_published_cv.id,
+                'organization-id': module_org.id,
+                'lifecycle-environment': 'Library',
+            }
+        )
+        # Delete all CV versions
+        module_published_cv = module_published_cv.read()
+        for version in module_published_cv.version:
+            version.delete()
+        # Remove repos from CV, delete all custom repos and products
+        for repo_id in custom_repos:
+            module_target_sat.cli.ContentView.remove_repository(
+                {
+                    'id': module_published_cv.id,
+                    'repository-id': repo_id,
+                }
+            )
+            module_target_sat.api.Repository(id=repo_id).delete()
+        for product_id in custom_products:
+            module_target_sat.api.Product(id=product_id).delete()
+        # Publish a new CV version with no content
+        module_published_cv = module_published_cv.read()
+        module_published_cv.publish()
 
 
 @pytest.mark.e2e
@@ -241,7 +282,7 @@ def test_end_to_end(
     request,
     module_org,
     module_lce,
-    module_cv,
+    module_published_cv,
     module_target_sat,
     registered_contenthost,
 ):
@@ -291,7 +332,6 @@ def test_end_to_end(
     assert len(product_list) > 0
     product_list.sort(key=lambda product: product.id)
     _product = product_list[-1].read()
-    # _product = module_target_sat.api.Product(id=product_id).read()
     assert len(_product.repository) == 1
     _repository = _product.repository[0].read()
     # Remove custom package if present, install outdated version
