@@ -148,7 +148,9 @@ class TestWebhook:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     @pytest.mark.tier2
-    def test_positive_event_triggered(self, module_org, module_target_sat):
+    @pytest.mark.e2e
+    @pytest.mark.parametrize('setting_update', ['safemode_render=False'], indirect=True)
+    def test_positive_event_triggered(self, module_org, target_sat, setting_update):
         """Create a webhook and trigger the event
         associated with it.
 
@@ -159,13 +161,14 @@ class TestWebhook:
 
         :CaseImportance: Critical
         """
-        hook = module_target_sat.api.Webhooks(
+        hook = target_sat.api.Webhooks(
             event='actions.katello.repository.sync_succeeded', http_method='GET'
         ).create()
-        repo = module_target_sat.api.Repository(
+        repo = target_sat.api.Repository(
             organization=module_org, content_type='yum', url=settings.repos.yum_0.url
         ).create()
-        with module_target_sat.api.session.shell() as shell:
+        with target_sat.api.session.shell() as shell:
             shell.send('foreman-tail')
             repo.sync()
             assert_event_triggered(shell, hook.event)
+        target_sat.wait_for_tasks(f'Deliver webhook {hook.name}')
