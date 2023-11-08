@@ -26,7 +26,7 @@ pytestmark = pytest.mark.destructive
 
 
 @pytest.mark.include_capsule
-def test_positive_all_packages_update(target_sat):
+def test_positive_all_packages_update(sat_maintain):
     """Verify update and check-update work as expected.
 
     :id: eb8a5611-b1a8-4a18-b80e-56b045c0d2f6
@@ -44,15 +44,15 @@ def test_positive_all_packages_update(target_sat):
     :customerscenario: true
     """
     # Register to CDN for package updates
-    target_sat.register_to_cdn()
+    sat_maintain.register_to_cdn()
     # Update packages with yum
-    result = target_sat.execute('yum update -y --disableplugin=foreman-protector')
+    result = sat_maintain.execute('yum update -y --disableplugin=foreman-protector')
     assert result.status == 0
     # Reboot
-    if target_sat.execute('needs-restarting -r').status == 1:
-        target_sat.power_control(state='reboot')
+    if sat_maintain.execute('needs-restarting -r').status == 1:
+        sat_maintain.power_control(state='reboot')
     # Run check-update again to verify there are no more packages available to update
-    result = target_sat.cli.Packages.check_update()
+    result = sat_maintain.cli.Packages.check_update()
     # Regex to match if there are packages available to update
     # Matches lines like '\n\nwalrus.noarch        5.21-1        custom_repo\n'
     pattern = '(\\n){1,2}(\\S+)(\\s+)(\\S+)(\\s+)(\\S+)(\\n)'
@@ -63,7 +63,7 @@ def test_positive_all_packages_update(target_sat):
 
 
 @pytest.mark.include_capsule
-def test_negative_remove_satellite_packages(target_sat):
+def test_negative_remove_satellite_packages(sat_maintain):
     """Ensure user can't remove satellite or its dependent packages
 
     :id: af150302-418a-4d42-8d01-bb0e6b90f81f
@@ -79,14 +79,14 @@ def test_negative_remove_satellite_packages(target_sat):
     """
     # Packages include satellite direct dependencies like foreman,
     # but also dependency of dependencies like wget for foreman
-    if isinstance(target_sat, Satellite):
+    if isinstance(sat_maintain, Satellite):
         package_list = ['foreman', 'foreman-proxy', 'katello', 'wget', 'satellite']
     else:
         package_list = ['foreman-proxy', 'satellite-capsule']
     for package in package_list:
-        result = target_sat.execute(f'yum remove {package}')
+        result = sat_maintain.execute(f'yum remove {package}')
         assert result.status != 0
         assert (
             'Problem: The operation would result in removing the following protected packages: satellite'
-            in result.stdout
+            in str(result.stderr[1])
         )
