@@ -378,7 +378,7 @@ def test_positive_prepare_for_sca_only_deprecation(target_sat):
             {
                 'name': gen_string('alpha'),
                 'label': gen_string('alpha'),
-                'simple_content_access': False,
+                'sca': False,
             }
         )
         results = target_sat.execute('tail -100 /var/log/foreman/production.log').stdout
