@@ -20,6 +20,8 @@ import re
 
 import pytest
 
+from robottelo.hosts import Satellite
+
 pytestmark = pytest.mark.destructive
 
 
@@ -58,3 +60,33 @@ def test_positive_all_packages_update(target_sat):
     assert matches is None  # No packages available to update
     assert 'FAIL' not in result.stdout
     assert result.status == 0
+
+
+@pytest.mark.include_capsule
+def test_negative_remove_satellite_packages(target_sat):
+    """Ensure user can't remove satellite or its dependent packages
+
+    :id: af150302-418a-4d42-8d01-bb0e6b90f81f
+
+    :steps:
+        1. yum remove <satellite or other dependency>
+
+    :expectedresults: removal should fail due to protecting the satellite package
+
+    :BZ: 1884395
+
+    :customerscenario: true
+    """
+    # Packages include satellite direct dependencies like foreman,
+    # but also dependency of dependencies like wget for foreman
+    if isinstance(target_sat, Satellite):
+        package_list = ['foreman', 'foreman-proxy', 'katello', 'wget', 'satellite']
+    else:
+        package_list = ['foreman-proxy', 'satellite-capsule']
+    for package in package_list:
+        result = target_sat.execute(f'yum remove {package}')
+        assert result.status != 0
+        assert (
+            'Problem: The operation would result in removing the following protected packages: satellite'
+            in result.stdout
+        )
