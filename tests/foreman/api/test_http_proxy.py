@@ -96,12 +96,13 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
     # Use global_default_http_proxy
     repo_options['http_proxy_policy'] = 'global_default_http_proxy'
     repo_2 = module_target_sat.api.Repository(**repo_options).create()
+    repo_2.sync()
     assert repo_2.http_proxy_policy == 'global_default_http_proxy'
 
     # Update to selected_http_proxy
     repo_2.http_proxy_policy = 'none'
     repo_2.update(['http_proxy_policy'])
-    assert repo_2.http_proxy_policy == 'none'
+    assert repo_2.read().http_proxy_policy == 'none'
 
     # test scenario for yum type repo discovery.
     repo_name = 'fakerepo01'
