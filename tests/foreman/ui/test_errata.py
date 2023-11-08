@@ -64,30 +64,6 @@ def _generate_errata_applicability(hostname):
     host.errata_applicability(synchronous=False)
 
 
-def _install_client_package(client, package):
-    """Install a package in virtual machine client.
-    Errata applicability regenerated after successful yum execution.
-
-    :param client: The Virtual machine client.
-    :param package: the package to install in virtual machine client.
-    :returns: True if package installed successfully, False otherwise.
-    """
-    result = client.execute(f'yum install -y {package}')
-    return result.status == 0
-
-
-def _remove_client_package(client, package):
-    """Remove a package in virtual machine client.
-    Errata applicability regenerated after successful yum execution.
-
-    :param client: The Virtual machine client.
-    :param package: the package (full version, or name) to remove from virtual machine client.
-    :returns: True if a package was removed successfully, False otherwise.
-    """
-    result = client.execute(f'yum erase -y {package}')
-    return result.status == 0
-
-
 def _set_setting_value(setting_entity, value):
     """Set setting value.
 
@@ -174,7 +150,7 @@ def registered_contenthost(
     rhel_contenthost,
     module_org,
     module_lce,
-    module_published_cv,
+    module_cv,
     module_target_sat,
     request,
     repos=[CUSTOM_REPO_URL],
@@ -193,7 +169,6 @@ def registered_contenthost(
     custom_products = []
     custom_repos = []
     for repo_url in repos:
-        rhel_contenthost.create_custom_repos(custom_repo=repo_url)
         # Publishes a new cvv, associates org, ak, cv, with custom repo:
         custom_repo_info = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
             {
@@ -201,17 +176,17 @@ def registered_contenthost(
                 'organization-id': module_org.id,
                 'lifecycle-environment-id': module_lce.id,
                 'activationkey-id': activation_key.id,
-                'content-view-id': module_published_cv.id,
+                'content-view-id': module_cv.id,
             }
         )
         custom_products.append(custom_repo_info['product-id'])
         custom_repos.append(custom_repo_info['repository-id'])
 
     # Promote newest version with all content
-    module_published_cv = module_published_cv.read()
-    module_published_cv.version.sort(key=lambda version: version.id)
-    module_published_cv.version[-1].promote(data={'environment_ids': module_lce.id})
-    module_published_cv = module_published_cv.read()
+    module_cv = module_cv.read()
+    module_cv.version.sort(key=lambda version: version.id)
+    module_cv.version[-1].promote(data={'environment_ids': module_lce.id})
+    module_cv = module_cv.read()
 
     result = rhel_contenthost.register(
         activation_keys=activation_key.name,
@@ -235,33 +210,33 @@ def registered_contenthost(
     @request.addfinalizer
     # Cleanup for in between parameterized runs
     def cleanup():
-        nonlocal rhel_contenthost, module_published_cv, custom_repos, custom_products, activation_key
+        nonlocal rhel_contenthost, module_cv, custom_repos, custom_products, activation_key
         rhel_contenthost.unregister()
         activation_key.delete()
         # Remove CV from all lifecycle-environments
         module_target_sat.cli.ContentView.remove_from_environment(
             {
-                'id': module_published_cv.id,
+                'id': module_cv.id,
                 'organization-id': module_org.id,
                 'lifecycle-environment-id': module_lce.id,
             }
         )
         module_target_sat.cli.ContentView.remove_from_environment(
             {
-                'id': module_published_cv.id,
+                'id': module_cv.id,
                 'organization-id': module_org.id,
                 'lifecycle-environment': 'Library',
             }
         )
         # Delete all CV versions
-        module_published_cv = module_published_cv.read()
-        for version in module_published_cv.version:
+        module_cv = module_cv.read()
+        for version in module_cv.version:
             version.delete()
         # Remove repos from CV, delete all custom repos and products
         for repo_id in custom_repos:
             module_target_sat.cli.ContentView.remove_repository(
                 {
-                    'id': module_published_cv.id,
+                    'id': module_cv.id,
                     'repository-id': repo_id,
                 }
             )
@@ -269,8 +244,8 @@ def registered_contenthost(
         for product_id in custom_products:
             module_target_sat.api.Product(id=product_id).delete()
         # Publish a new CV version with no content
-        module_published_cv = module_published_cv.read()
-        module_published_cv.publish()
+        module_cv = module_cv.read()
+        module_cv.publish()
 
 
 @pytest.mark.e2e
@@ -335,8 +310,9 @@ def test_end_to_end(
     assert len(_product.repository) == 1
     _repository = _product.repository[0].read()
     # Remove custom package if present, install outdated version
-    _remove_client_package(registered_contenthost, FAKE_1_CUSTOM_PACKAGE_NAME)
-    assert _install_client_package(registered_contenthost, FAKE_1_CUSTOM_PACKAGE)
+    registered_contenthost.execute(f'yum remove -y {FAKE_1_CUSTOM_PACKAGE_NAME}')
+    result = registered_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+    assert result.status == 0, f'Failed to install package {FAKE_1_CUSTOM_PACKAGE}.'
     applicable_errata = registered_contenthost.applicable_errata_count
     assert (
         applicable_errata == 1
@@ -398,7 +374,7 @@ def test_end_to_end(
         # Find bulk generate applicability task
         results = module_target_sat.wait_for_tasks(
             search_query=(
-                f'"Bulk generate applicability for host {registered_contenthost.hostname}"'
+                f'Bulk generate applicability for host {registered_contenthost.hostname}'
             ),
             search_rate=2,
             max_tries=60,
@@ -475,7 +451,7 @@ def test_content_host_errata_page_pagination(session, function_org_with_paramete
         client.add_rex_key(satellite=target_sat)
         # Add repo and install packages that need errata
         repos_collection.setup_virtual_machine(client)
-        assert _install_client_package(client, pkgs)
+        assert client.execute(f'yum install -y {pkgs}').status == 0
         with session:
             # Go to content host's Errata tab and read the page's pagination widgets
             session.organization.select(org_name=org.name)
@@ -649,7 +625,7 @@ def test_positive_apply_for_all_hosts(
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(client)
             client.add_rex_key(satellite=target_sat)
-            assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE)
+            assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
         with session:
             session.location.select(loc_name=DEFAULT_LOC)
             for client in clients:
@@ -744,7 +720,7 @@ def test_positive_filter_by_environment(
     ) as clients:
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(client)
-            assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
+            assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
         # Promote the latest content view version to a new lifecycle environment
         content_view = entities.ContentView(
             id=module_repos_collection_with_setup.setup_content_data['content_view']['id']
@@ -817,7 +793,7 @@ def test_positive_content_host_previous_env(
     """
     module_org = module_org_with_parameter
     hostname = vm.hostname
-    assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
+    assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     # Promote the latest content view version to a new lifecycle environment
     content_view = entities.ContentView(
         id=module_repos_collection_with_setup.setup_content_data['content_view']['id']
@@ -874,7 +850,7 @@ def test_positive_content_host_library(session, module_org_with_parameter, vm):
     :CaseLevel: System
     """
     hostname = vm.hostname
-    assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
+    assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         content_host_erratum = session.contenthost.search_errata(
@@ -916,7 +892,7 @@ def test_positive_content_host_search_type(session, erratatype_vm):
     """
 
     pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-    assert _install_client_package(erratatype_vm, pkgs, errata_applicability=True)
+    assert erratatype_vm.execute(f'yum install -y {pkgs}').status == 0
 
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
@@ -1002,7 +978,7 @@ def test_positive_show_count_on_content_host_page(
             assert int(installable_errata[errata_type]) == 0
 
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-        assert _install_client_package(vm, pkgs, errata_applicability=True)
+        assert vm.execute(f'yum install -y {pkgs}').status == 0
 
         content_host_values = session.contenthost.search(hostname)
         assert content_host_values[0]['Name'] == hostname
@@ -1055,7 +1031,7 @@ def test_positive_show_count_on_content_host_details_page(
             assert int(content_host_values['details'][errata_type]) == 0
 
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-        assert _install_client_package(vm, pkgs, errata_applicability=True)
+        assert vm.execute(f'yum install -y {pkgs}').status == 0
 
         # navigate to content host main page by making a search, to refresh the details page
         session.contenthost.search(hostname)
@@ -1118,7 +1094,7 @@ def test_positive_filtered_errata_status_installable_param(
     repos_collection.setup_content(org.id, lce.id)
     with Broker(nick=repos_collection.distro, host_class=ContentHost) as client:
         repos_collection.setup_virtual_machine(client)
-        assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
+        assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
         # Adding content view filter and content view filter rule to exclude errata for the
         # installed package.
         content_view = entities.ContentView(
@@ -1155,9 +1131,7 @@ def test_positive_filtered_errata_status_installable_param(
                 assert expected_values[key] in actual_values[key], 'Expected text not found'
             property_value = 'Yes'
             session.settings.update(f'name = {setting_update.name}', property_value)
-            assert _install_client_package(
-                client, FAKE_9_YUM_OUTDATED_PACKAGES[1], errata_applicability=True
-            )
+            assert client.execute(f'yum install -y {FAKE_9_YUM_OUTDATED_PACKAGES[1]}').status == 0
             expected_values = {
                 'Status': 'Error',
                 'Errata': 'Security errata installable',
@@ -1222,13 +1196,10 @@ def test_content_host_errata_search_commands(
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(client)
         # Install pkg walrus-0.71-1.noarch to create need for RHSA on client 1
-        assert _install_client_package(
-            clients[0], FAKE_1_CUSTOM_PACKAGE, errata_applicability=False
-        )
+        assert clients[0].execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
         # Install pkg kangaroo-0.1-1.noarch to create need for RHBA on client 2
-        assert _install_client_package(
-            clients[1], FAKE_4_CUSTOM_PACKAGE, errata_applicability=False
-        )
+        assert clients[1].execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE}').status == 0
+
         with session:
             session.location.select(loc_name=DEFAULT_LOC)
             # Search for hosts needing RHSA security errata
