@@ -1726,6 +1726,7 @@ class Satellite(Capsule, SatelliteMixins):
         # create dummy classes for later population
         self._api = type('api', (), {'_configured': False})
         self._cli = type('cli', (), {'_configured': False})
+        self.record_property = None
 
     def _swap_nailgun(self, new_version):
         """Install a different version of nailgun from GitHub and invalidate the module cache."""
@@ -1814,6 +1815,7 @@ class Satellite(Capsule, SatelliteMixins):
         yield
         self.omitting_credentials = False
 
+    @contextmanager
     def ui_session(self, testname=None, user=None, password=None, url=None, login=True):
         """Initialize an airgun Session object and store it as self.ui_session"""
 
@@ -1826,14 +1828,24 @@ class Satellite(Capsule, SatelliteMixins):
                 if frame.function.startswith('test_'):
                     return frame.function
 
-        return Session(
-            session_name=testname or get_caller(),
-            user=user or settings.server.admin_username,
-            password=password or settings.server.admin_password,
-            url=url,
-            hostname=self.hostname,
-            login=login,
-        )
+        try:
+            ui_session = Session(
+                session_name=testname or get_caller(),
+                user=user or settings.server.admin_username,
+                password=password or settings.server.admin_password,
+                url=url,
+                hostname=self.hostname,
+                login=login,
+            )
+            yield ui_session
+        except Exception:
+            raise
+        finally:
+            video_url = settings.ui.grid_url.replace(
+                ':4444', f'/videos/{ui_session.ui_session_id}.mp4'
+            )
+            self.record_property('video_url', video_url)
+            self.record_property('session_id', ui_session.ui_session_id)
 
     @property
     def satellite(self):
