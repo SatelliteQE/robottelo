@@ -167,7 +167,7 @@ class TestWebhook:
         repo = target_sat.api.Repository(
             organization=module_org, content_type='yum', url=settings.repos.yum_0.url
         ).create()
-        with target_sat.api.session.shell() as shell:
+        with target_sat.session.shell() as shell:
             shell.send('foreman-tail')
             repo.sync()
             assert_event_triggered(shell, hook.event)
