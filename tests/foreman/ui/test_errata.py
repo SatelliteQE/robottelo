@@ -16,6 +16,8 @@
 
 :Upstream: No
 """
+from datetime import datetime
+
 from airgun.session import Session
 from broker import Broker
 from fauxfactory import gen_string
@@ -27,6 +29,7 @@ from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_LOC,
     FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_3_YUM_OUTDATED_PACKAGES,
     FAKE_4_CUSTOM_PACKAGE,
@@ -59,20 +62,6 @@ def _generate_errata_applicability(hostname):
     """Force host to generate errata applicability"""
     host = entities.Host().search(query={'search': f'name={hostname}'})[0].read()
     host.errata_applicability(synchronous=False)
-
-
-def _install_client_package(client, package, errata_applicability=False):
-    """Install a package in virtual machine client.
-
-    :param client: The Virtual machine client.
-    :param package: the package to install in virtual machine client.
-    :param errata_applicability: If True, force host to generate errata applicability.
-    :returns: True if package installed successfully, False otherwise.
-    """
-    result = client.execute(f'yum install -y {package}')
-    if errata_applicability:
-        _generate_errata_applicability(client.hostname)
-    return result.status == 0
 
 
 def _set_setting_value(setting_entity, value):
@@ -124,13 +113,6 @@ def function_org_with_parameter(target_sat, function_manifest):
     return org
 
 
-@pytest.fixture(scope='module')
-def module_lce(module_target_sat, module_org_with_parameter):
-    return module_target_sat.api.LifecycleEnvironment(
-        organization=module_org_with_parameter
-    ).create()
-
-
 @pytest.fixture
 def lce(target_sat, function_org_with_parameter):
     return target_sat.api.LifecycleEnvironment(organization=function_org_with_parameter).create()
@@ -163,37 +145,132 @@ def vm(module_repos_collection_with_setup, rhel7_contenthost, target_sat):
     return rhel7_contenthost
 
 
+@pytest.fixture
+def registered_contenthost(
+    rhel_contenthost,
+    module_org,
+    module_lce,
+    module_cv,
+    module_target_sat,
+    request,
+    repos=[CUSTOM_REPO_URL],
+):
+    """RHEL ContentHost registered in satellite,
+    Using SCA and global registration.
+
+    :param repos: list of upstream URLs for custom repositories,
+        default to CUSTOM_REPO_URL
+    """
+    activation_key = module_target_sat.api.ActivationKey(
+        organization=module_org,
+        environment=module_lce,
+    ).create()
+
+    custom_products = []
+    custom_repos = []
+    for repo_url in repos:
+        # Publishes a new cvv, associates org, ak, cv, with custom repo:
+        custom_repo_info = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
+            {
+                'url': repo_url,
+                'organization-id': module_org.id,
+                'lifecycle-environment-id': module_lce.id,
+                'activationkey-id': activation_key.id,
+                'content-view-id': module_cv.id,
+            }
+        )
+        custom_products.append(custom_repo_info['product-id'])
+        custom_repos.append(custom_repo_info['repository-id'])
+
+    # Promote newest version with all content
+    module_cv = module_cv.read()
+    module_cv.version.sort(key=lambda version: version.id)
+    module_cv.version[-1].promote(data={'environment_ids': module_lce.id})
+    module_cv = module_cv.read()
+
+    result = rhel_contenthost.register(
+        activation_keys=activation_key.name,
+        target=module_target_sat,
+        org=module_org,
+        loc=None,
+    )
+    assert result.status == 0, f'Failed to register host:\n{result.stderr}'
+    assert rhel_contenthost.subscribed
+
+    for custom_repo_id in custom_repos:
+        custom_repo = module_target_sat.api.Repository(id=custom_repo_id).read()
+        assert custom_repo
+        result = custom_repo.sync()['humanized']
+        assert (
+            len(result['errors']) == 0
+        ), f'Failed to sync custom repository [id: {custom_repo_id}]:\n{str(result["errors"])}'
+
+    yield rhel_contenthost
+
+    @request.addfinalizer
+    # Cleanup for in between parameterized runs
+    def cleanup():
+        nonlocal rhel_contenthost, module_cv, custom_repos, custom_products, activation_key
+        rhel_contenthost.unregister()
+        activation_key.delete()
+        # Remove CV from all lifecycle-environments
+        module_target_sat.cli.ContentView.remove_from_environment(
+            {
+                'id': module_cv.id,
+                'organization-id': module_org.id,
+                'lifecycle-environment-id': module_lce.id,
+            }
+        )
+        module_target_sat.cli.ContentView.remove_from_environment(
+            {
+                'id': module_cv.id,
+                'organization-id': module_org.id,
+                'lifecycle-environment': 'Library',
+            }
+        )
+        # Delete all CV versions
+        module_cv = module_cv.read()
+        for version in module_cv.version:
+            version.delete()
+        # Remove repos from CV, delete all custom repos and products
+        for repo_id in custom_repos:
+            module_target_sat.cli.ContentView.remove_repository(
+                {
+                    'id': module_cv.id,
+                    'repository-id': repo_id,
+                }
+            )
+            module_target_sat.api.Repository(id=repo_id).delete()
+        for product_id in custom_products:
+            module_target_sat.api.Product(id=product_id).delete()
+        # Publish a new CV version with no content
+        module_cv = module_cv.read()
+        module_cv.publish()
+
+
 @pytest.mark.e2e
 @pytest.mark.tier3
-@pytest.mark.parametrize('setting_update', ['remote_execution_by_default'], indirect=True)
-@pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel7',
-            'SatelliteToolsRepository': {},
-            'RHELAnsibleEngineRepository': {},
-            'YumRepository': {'url': CUSTOM_REPO_URL},
-        }
-    ],
-    indirect=True,
-)
+@pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 def test_end_to_end(
     session,
-    module_org_with_parameter,
-    module_repos_collection_with_setup,
-    vm,
-    target_sat,
-    setting_update,
+    request,
+    module_org,
+    module_lce,
+    module_published_cv,
+    module_target_sat,
+    registered_contenthost,
 ):
     """Create all entities required for errata, set up applicable host,
-    read errata details and apply it to host
+    read errata details and apply it to host.
 
     :id: a26182fc-f31a-493f-b094-3f5f8d2ece47
 
+    :setup: A host with content from a custom repo,
+        contains some outdated packages applicable errata.
+
     :expectedresults: Errata details are the same as expected, errata
-        installation is successful
+        installation is successful.
 
     :parametrized: yes
 
@@ -203,11 +280,14 @@ def test_end_to_end(
 
     :CaseLevel: System
     """
+
     ERRATA_DETAILS = {
         'advisory': 'RHSA-2012:0055',
         'cves': 'N/A',
         'type': 'Security Advisory',
         'severity': 'N/A',
+        'issued': 'January 27, 2012 at 12:00 AM',
+        'last_updated_on': 'January 27, 2012 at 12:00 AM',
         'reboot_suggested': 'No',
         'topic': '',
         'description': 'Sea_Erratum',
@@ -221,23 +301,41 @@ def test_end_to_end(
         ],
         'module_stream_packages': [],
     }
-    assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE)
+    _UTC_format = '%Y-%m-%d %H:%M:%S UTC'
+    # Capture newest product and repository with the desired content
+    product_list = module_target_sat.api.Product(organization=module_org).search()
+    assert len(product_list) > 0
+    product_list.sort(key=lambda product: product.id)
+    _product = product_list[-1].read()
+    assert len(_product.repository) == 1
+    _repository = _product.repository[0].read()
+    # Remove custom package if present, install outdated version
+    registered_contenthost.execute(f'yum remove -y {FAKE_1_CUSTOM_PACKAGE_NAME}')
+    result = registered_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+    assert result.status == 0, f'Failed to install package {FAKE_1_CUSTOM_PACKAGE}.'
+    applicable_errata = registered_contenthost.applicable_errata_count
+    assert (
+        applicable_errata == 1
+    ), f'Expected 1 applicable errata: {CUSTOM_REPO_ERRATA_ID}, after setup. Got {applicable_errata}'
+
     with session:
-        property_value = 'Yes'
-        session.settings.update(f'name = {setting_update.name}', property_value)  # BZ 2029192
+
+        datetime_utc_start = datetime.utcnow()
         # Check selection box function for BZ#1688636
         session.location.select(loc_name=DEFAULT_LOC)
-        assert session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=True)[0]['Errata ID']
-        assert session.errata.search(CUSTOM_REPO_ERRATA_ID, installable=True)[0]['Errata ID']
-        # Check all tabs of Errata Details page
+        session.organization.select(org_name=module_org.name)
+        assert session.errata.search_content_hosts(
+            CUSTOM_REPO_ERRATA_ID, registered_contenthost.hostname, environment=module_lce.name
+        ), 'Errata ID not found on registered contenthost or the host lifecycle-environment.'
         errata = session.errata.read(CUSTOM_REPO_ERRATA_ID)
-        # We ignore issued date and updated date in ERRATA_DETAILS, so we don't perform an
-        # equality check here.
-        # TODO: Find a way to account for browser time zone, so that the errata dates displayed
-        # in the UI can be compared to the UTC values in ERRATA_DETAILS.
+        assert errata['repositories']['table'][-1]['Name'] == _repository.name
+        assert errata['repositories']['table'][-1]['Product'] == _product.name
+        # Check all tabs of Errata Details page
         assert (
             not ERRATA_DETAILS.items() - errata['details'].items()
         ), 'Errata details do not match expected values.'
+        assert errata['details']['issued'] == ERRATA_DETAILS['issued']
+        assert errata['details']['last_updated_on'] == ERRATA_DETAILS['last_updated_on']
         assert set(errata['packages']['independent_packages']) == set(
             ERRATA_PACKAGES['independent_packages']
         )
@@ -245,22 +343,63 @@ def test_end_to_end(
             errata['packages']['module_stream_packages']
             == ERRATA_PACKAGES['module_stream_packages']
         )
+
+        # Apply Errata, find REX install task
+        session.host_new.apply_erratas(
+            entity_name=registered_contenthost.hostname,
+            search=f"errata_id == {CUSTOM_REPO_ERRATA_ID}",
+        )
+        results = module_target_sat.wait_for_tasks(
+            search_query=(
+                f'"Install errata errata_id == {CUSTOM_REPO_ERRATA_ID}'
+                f' on {registered_contenthost.hostname}"'
+            ),
+            search_rate=2,
+            max_tries=60,
+        )
+        results.sort(key=lambda res: res.id)
+        task_status = module_target_sat.api.ForemanTask(id=results[-1].id).poll()
         assert (
-            errata['repositories']['table'][-1]['Name']
-            == module_repos_collection_with_setup.custom_repos_info[-1]['name']
-        )
+            task_status['result'] == 'success'
+        ), f'Errata Installation task failed:\n{task_status}'
         assert (
-            errata['repositories']['table'][-1]['Product']
-            == module_repos_collection_with_setup.custom_product['name']
+            registered_contenthost.applicable_errata_count == 0
+        ), 'Unexpected applicable errata found after install.'
+        # UTC timing for install task and session
+        install_start = datetime.strptime(task_status['started_at'], _UTC_format)
+        install_end = datetime.strptime(task_status['ended_at'], _UTC_format)
+        assert (install_end - install_start).total_seconds() <= 60
+        assert (install_end - datetime_utc_start).total_seconds() <= 600
+
+        # Find bulk generate applicability task
+        results = module_target_sat.wait_for_tasks(
+            search_query=(
+                f'Bulk generate applicability for host {registered_contenthost.hostname}'
+            ),
+            search_rate=2,
+            max_tries=60,
         )
-        status = session.contenthost.install_errata(
-            vm.hostname, CUSTOM_REPO_ERRATA_ID, install_via='rex'
+        results.sort(key=lambda res: res.id)
+        task_status = module_target_sat.api.ForemanTask(id=results[-1].id).poll()
+        assert (
+            task_status['result'] == 'success'
+        ), f'Bulk Generate Errata Applicability task failed:\n{task_status}'
+        # UTC timing for generate applicability task
+        bulk_gen_start = datetime.strptime(task_status['started_at'], _UTC_format)
+        bulk_gen_end = datetime.strptime(task_status['ended_at'], _UTC_format)
+        assert (bulk_gen_start - install_end).total_seconds() <= 30
+        assert (bulk_gen_end - bulk_gen_start).total_seconds() <= 60
+
+        # Errata should still be visible on satellite, but not on contenthost
+        assert session.errata.read(CUSTOM_REPO_ERRATA_ID)
+        assert not session.errata.search_content_hosts(
+            CUSTOM_REPO_ERRATA_ID, registered_contenthost.hostname, environment=module_lce.name
         )
-        assert status['overview']['job_status'] == 'Success'
-        assert status['overview']['job_status_progress'] == '100%'
-        _generate_errata_applicability(vm.hostname)
-        vm = vm.nailgun_host.read()
-        assert vm.applicable_errata_count == 0
+        # Check package version was updated on contenthost
+        _package_version = registered_contenthost.execute(
+            f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}'
+        ).stdout
+        assert FAKE_2_CUSTOM_PACKAGE in _package_version
 
 
 @pytest.mark.tier2
@@ -312,7 +451,7 @@ def test_content_host_errata_page_pagination(session, function_org_with_paramete
         client.add_rex_key(satellite=target_sat)
         # Add repo and install packages that need errata
         repos_collection.setup_virtual_machine(client)
-        assert _install_client_package(client, pkgs)
+        assert client.execute(f'yum install -y {pkgs}').status == 0
         with session:
             # Go to content host's Errata tab and read the page's pagination widgets
             session.organization.select(org_name=org.name)
@@ -486,7 +625,7 @@ def test_positive_apply_for_all_hosts(
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(client)
             client.add_rex_key(satellite=target_sat)
-            assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE)
+            assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
         with session:
             session.location.select(loc_name=DEFAULT_LOC)
             for client in clients:
@@ -581,7 +720,7 @@ def test_positive_filter_by_environment(
     ) as clients:
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(client)
-            assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
+            assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
         # Promote the latest content view version to a new lifecycle environment
         content_view = entities.ContentView(
             id=module_repos_collection_with_setup.setup_content_data['content_view']['id']
@@ -654,7 +793,7 @@ def test_positive_content_host_previous_env(
     """
     module_org = module_org_with_parameter
     hostname = vm.hostname
-    assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
+    assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     # Promote the latest content view version to a new lifecycle environment
     content_view = entities.ContentView(
         id=module_repos_collection_with_setup.setup_content_data['content_view']['id']
@@ -711,7 +850,7 @@ def test_positive_content_host_library(session, module_org_with_parameter, vm):
     :CaseLevel: System
     """
     hostname = vm.hostname
-    assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
+    assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         content_host_erratum = session.contenthost.search_errata(
@@ -753,7 +892,7 @@ def test_positive_content_host_search_type(session, erratatype_vm):
     """
 
     pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-    assert _install_client_package(erratatype_vm, pkgs, errata_applicability=True)
+    assert erratatype_vm.execute(f'yum install -y {pkgs}').status == 0
 
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
@@ -839,7 +978,7 @@ def test_positive_show_count_on_content_host_page(
             assert int(installable_errata[errata_type]) == 0
 
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-        assert _install_client_package(vm, pkgs, errata_applicability=True)
+        assert vm.execute(f'yum install -y {pkgs}').status == 0
 
         content_host_values = session.contenthost.search(hostname)
         assert content_host_values[0]['Name'] == hostname
@@ -892,7 +1031,7 @@ def test_positive_show_count_on_content_host_details_page(
             assert int(content_host_values['details'][errata_type]) == 0
 
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-        assert _install_client_package(vm, pkgs, errata_applicability=True)
+        assert vm.execute(f'yum install -y {pkgs}').status == 0
 
         # navigate to content host main page by making a search, to refresh the details page
         session.contenthost.search(hostname)
@@ -955,7 +1094,7 @@ def test_positive_filtered_errata_status_installable_param(
     repos_collection.setup_content(org.id, lce.id)
     with Broker(nick=repos_collection.distro, host_class=ContentHost) as client:
         repos_collection.setup_virtual_machine(client)
-        assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
+        assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
         # Adding content view filter and content view filter rule to exclude errata for the
         # installed package.
         content_view = entities.ContentView(
@@ -992,9 +1131,7 @@ def test_positive_filtered_errata_status_installable_param(
                 assert expected_values[key] in actual_values[key], 'Expected text not found'
             property_value = 'Yes'
             session.settings.update(f'name = {setting_update.name}', property_value)
-            assert _install_client_package(
-                client, FAKE_9_YUM_OUTDATED_PACKAGES[1], errata_applicability=True
-            )
+            assert client.execute(f'yum install -y {FAKE_9_YUM_OUTDATED_PACKAGES[1]}').status == 0
             expected_values = {
                 'Status': 'Error',
                 'Errata': 'Security errata installable',
@@ -1059,13 +1196,10 @@ def test_content_host_errata_search_commands(
         for client in clients:
             module_repos_collection_with_setup.setup_virtual_machine(client)
         # Install pkg walrus-0.71-1.noarch to create need for RHSA on client 1
-        assert _install_client_package(
-            clients[0], FAKE_1_CUSTOM_PACKAGE, errata_applicability=False
-        )
+        assert clients[0].execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
         # Install pkg kangaroo-0.1-1.noarch to create need for RHBA on client 2
-        assert _install_client_package(
-            clients[1], FAKE_4_CUSTOM_PACKAGE, errata_applicability=False
-        )
+        assert clients[1].execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE}').status == 0
+
         with session:
             session.location.select(loc_name=DEFAULT_LOC)
             # Search for hosts needing RHSA security errata
