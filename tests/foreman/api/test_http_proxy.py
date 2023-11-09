@@ -69,6 +69,7 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
         reposet=constants.REPOSET['rhae2'],
         releasever=None,
     )
+    module_target_sat.api.Repository(id=rh_repo_id).sync()
     rh_repo = module_target_sat.api.Repository(
         id=rh_repo_id,
         http_proxy_policy=http_proxy_policy,
