@@ -38,7 +38,17 @@ def test_pagination(session):
         assert view.table.pagination.current_page == 1
         assert view.table.pagination.total_pages > 0
 
-        # Pagination in a view with Table
+        # Pagination in a view with Table, Pagination disabled
+        view = session.location.navigate_to(session.location, 'All')
+        assert view.pagination.is_enabled is False
+        assert view.pagination.current_page == 1
+        assert view.pagination.total_pages > 0
+
+        # Create dummy locations to fill table
+        for i in range(0, 21):
+            session.location.create({'name': f'location{i}'})
+
+        # Pagination in a view with Table, Pagination enabled
         view = session.location.navigate_to(session.location, 'All')
         assert view.pagination.is_enabled is True
         assert view.pagination.current_page == 1
