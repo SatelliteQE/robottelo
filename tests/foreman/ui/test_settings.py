@@ -549,3 +549,39 @@ def test_positive_entries_per_page(session, setting_update):
         total_pages_str = page_content["Pagination"]['_items'].split()[-2]
         total_pages = math.ceil(int(total_pages_str.split()[-1]) / property_value)
         assert str(total_pages) == page_content["Pagination"]['_total_pages'].split()[-1]
+
+
+@pytest.mark.tier2
+@pytest.mark.stream
+def test_positive_setting_display_fqdn_for_hosts(session, target_sat):
+    """Verify setting display_fqdn_for_hosts set as Yes/No, and FQDN is used for host's name
+    if it's set to Yes else not, according to setting set.
+
+    :id: b1a51594-43e6-49d8-918b-9bc306f3a1a4
+
+    :steps:
+        1. Navigate to Monitor -> Dashboard
+        2. Verify NewHosts table view contains host_name is w/ or w/o FQDN value
+        3. Navigate to Hosts -> All Hosts -> <host> details page
+        4. Verify host_name in breadcrumbs is w/ or w/o FQDN value
+
+    :expectedresults: FQDN is used for hostname if setting is set to Yes(default),
+        else hostname is present without FQDN.
+    """
+    host_name, domain_name = target_sat.hostname.split('.', 1)
+    default_value = target_sat.update_setting('display_fqdn_for_hosts', 'No')
+    with target_sat.ui_session() as session:
+        dashboard_hosts = session.dashboard.read('NewHosts')
+        assert host_name in [h['Host'] for h in dashboard_hosts['hosts'] if h['Host'] == host_name]
+
+        values = session.host_new.get_details(host_name, widget_names='breadcrumb')
+        assert values['breadcrumb'] == host_name
+
+        # Verify with display_fqdn_for_hosts=Yes
+        target_sat.update_setting('display_fqdn_for_hosts', default_value)
+        full_name = '.'.join((host_name, domain_name))
+        dashboard_hosts = session.dashboard.read('NewHosts')
+        assert full_name in [h['Host'] for h in dashboard_hosts['hosts'] if h['Host'] == full_name]
+
+        values = session.host_new.get_details(target_sat.hostname, widget_names='breadcrumb')
+        assert values['breadcrumb'] == full_name
