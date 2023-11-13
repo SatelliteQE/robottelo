@@ -27,9 +27,9 @@ pytestmark = pytest.mark.tier1
 @pytest.mark.e2e
 @pytest.mark.no_containers
 def test_host_registration_end_to_end(
-    module_org,
+    module_entitlement_manifest_org,
     module_location,
-    module_ak_with_synced_repo,
+    module_activation_key,
     module_target_sat,
     module_capsule_configured,
     rhel_contenthost,
@@ -47,8 +47,9 @@ def test_host_registration_end_to_end(
 
     :customerscenario: true
     """
+    org = module_entitlement_manifest_org
     result = rhel_contenthost.register(
-        module_org, module_location, module_ak_with_synced_repo.name, module_target_sat
+        org, module_location, [module_activation_key.name], module_target_sat
     )
 
     rc = 1 if rhel_contenthost.os_version.major == 6 else 0
@@ -62,14 +63,14 @@ def test_host_registration_end_to_end(
     module_target_sat.cli.Capsule.update(
         {
             'name': module_capsule_configured.hostname,
-            'organization-ids': module_org.id,
+            'organization-ids': org.id,
             'location-ids': module_location.id,
         }
     )
     result = rhel_contenthost.register(
-        module_org,
+        org,
         module_location,
-        module_ak_with_synced_repo.name,
+        [module_activation_key.name],
         module_capsule_configured,
         force=True,
     )
