@@ -1310,16 +1310,16 @@ def common_sat_install_assertions(satellite):
 
     # no errors/failures in journald
     result = satellite.execute(
-        r'journalctl -q --no-pager -b -p err -u "pulpcore" -u "foreman" -u "foreman-proxy" -u "httpd" -u "postgresql" -u "pulpcore-api" -u "pulpcore-worker"'
+        r'journalctl --quiet --no-pager --boot --priority err -u "dynflow-sidekiq*" -u "foreman-proxy" -u "foreman" -u "httpd" -u "postgresql" -u "pulpcore-api" -u "pulpcore-content" -u "pulpcore-worker*" -u "redis" -u "tomcat"'
     )
     assert len(result.stdout) == 0
     # no errors in /var/log/foreman/production.log
-    result = satellite.execute(r'grep -E "\[E\|" /var/log/foreman/production.log')
+    result = satellite.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
     if not is_open('BZ:2247484'):
         assert len(result.stdout) == 0
     # no errors/failures in /var/log/foreman-installer/satellite.log
     result = satellite.execute(
-        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/satellite.log'
+        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
     )
     assert len(result.stdout) == 0
     # no errors/failures in /var/log/httpd/*
@@ -1361,7 +1361,8 @@ def sat_default_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
     install_satellite(module_sat_ready_rhels[0], installer_args)
-    return module_sat_ready_rhels[0]
+    yield module_sat_ready_rhels[0]
+    common_sat_install_assertions(module_sat_ready_rhels[0])
 
 
 @pytest.fixture(scope='module')
@@ -1374,7 +1375,8 @@ def sat_non_default_install(module_sat_ready_rhels):
         'foreman-proxy-content-pulpcore-hide-guarded-distributions false',
     ]
     install_satellite(module_sat_ready_rhels[1], installer_args)
-    return module_sat_ready_rhels[1]
+    yield module_sat_ready_rhels[1]
+    common_sat_install_assertions(module_sat_ready_rhels[1])
 
 
 @pytest.mark.e2e
@@ -1419,17 +1421,17 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
 
     # no errors/failures in journald
     result = cap_ready_rhel.execute(
-        r'journalctl -q --no-pager -b -p err -u "pulpcore" -u "foreman" -u "foreman-proxy" -u "httpd" -u "postgresql" -u "pulpcore-api" -u "pulpcore-worker"'
+        r'journalctl --quiet --no-pager --boot --priority err -u foreman-proxy -u httpd -u postgresql -u pulpcore-api -u pulpcore-content -u pulpcore-worker* -u redis'
     )
     assert len(result.stdout) == 0
     # no errors/failures /var/log/foreman-installer/satellite.log
     result = cap_ready_rhel.execute(
-        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/satellite.log'
+        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
     )
     assert len(result.stdout) == 0
     # no errors/failures /var/log/foreman-installer/capsule.log
     result = cap_ready_rhel.execute(
-        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/capsule.log'
+        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/capsule.log'
     )
     assert len(result.stdout) == 0
     # no errors/failures in /var/log/httpd/*
