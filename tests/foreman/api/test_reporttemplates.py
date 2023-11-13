@@ -16,6 +16,8 @@
 
 :Upstream: No
 """
+import re
+
 from broker import Broker
 from fauxfactory import gen_string
 import pytest
@@ -24,6 +26,7 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
     DEFAULT_SUBSCRIPTION_NAME,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
@@ -836,3 +839,86 @@ def test_positive_installable_errata(
     installable_errata = report[0]
     assert FAKE_1_CUSTOM_PACKAGE_NAME in installable_errata['Packages']
     assert installable_errata['Erratum'] == ERRATUM_ID
+
+
+@pytest.mark.tier2
+@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+def test_positive_installed_products(
+    target_sat,
+    rhel_contenthost,
+    default_location,
+    function_sca_manifest_org,
+):
+    """Generate 'Host - Installed Products' report for an SCA host.
+
+    :id: d290daa2-aaba-4f4d-8eee-d8a540415320
+
+    :parametrized: yes
+
+    :setup:
+        1. RH content published in a CV, promoted to LCE, AK created.
+           All inside an SCA-enabled organization.
+        2. A RHEL content host.
+
+    :steps:
+        1. Register the content host using the AK.
+        2. Generate 'Host - Installed Products' report.
+        3. Verify the report generated from the template.
+
+    :expectedresults:
+        1. Report is generated with correct values.
+
+    :CaseImportance: Medium
+    """
+    org = function_sca_manifest_org
+    lce_name = gen_string('alpha')
+    cv_name = gen_string('alpha')
+
+    rh_repo = {
+        'basearch': DEFAULT_ARCHITECTURE,
+        'product': REPOS['rhae2']['product'],
+        'name': REPOS['rhae2']['name'],
+        'reposet': REPOS['rhae2']['reposet'],
+        'releasever': None,
+    }
+    repo_id = target_sat.api_factory.enable_sync_redhat_repo(rh_repo, org.id)
+    cv = target_sat.api_factory.cv_publish_promote(cv_name, lce_name, repo_id, org.id)
+    ak = target_sat.api.ActivationKey(
+        content_view=cv, organization=org, environment=cv.environment[-1]
+    ).create()
+
+    rhel_contenthost.register(org, default_location, ak.name, target_sat)
+    assert rhel_contenthost.subscribed, 'Host registration failed.'
+
+    input_data = {
+        'organization_id': org.id,
+        'report_format': "json",
+        'input_values': {
+            'hosts': rhel_contenthost.hostname,
+        },
+    }
+    report = (
+        target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Installed Products"'})[0]
+        .read()
+        .generate(data=input_data)
+    )
+    assert report
+    assert report[0]['Host Name'] == rhel_contenthost.hostname, 'Incorrect host was reported.'
+    assert report[0]['Organization'] == org.name, 'Incorrect org was reported.'
+    assert report[0]['Lifecycle Environment'] == lce_name, 'Incorrect LCE was reported.'
+    assert report[0]['Content View'] == cv_name, 'Incorrect CV was reported.'
+
+    # Get the installed products via rake and compare them with report
+    rake = target_sat.execute(
+        f'echo "Host.find_by(name: \'{rhel_contenthost.hostname}\').'
+        'subscription_facet.installed_products" | foreman-rake console'
+    )
+    assert rake.status == 0, f'Rake call failed with this output:\n({rake.stdout}).'
+
+    pattern = re.compile(r'name: "(.*?)".*?cp_product_id: "(.*?)"')
+    matches = pattern.findall(rake.stdout)
+    products = [f"{match[0]} ({match[1]})" for match in matches]
+    assert len(products), 'No installed products to compare.'
+
+    assert set(products) == set(report[0]['Products']), 'Reported products do not match.'
