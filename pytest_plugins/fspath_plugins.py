@@ -12,5 +12,5 @@ def pytest_collection_modifyitems(session, items, config):
         if item.nodeid.startswith('tests/robottelo/') or item.nodeid.startswith('tests/upgrades/'):
             continue
 
-        endpoint = endpoint_regex.findall(item.location[0])[0]
-        item.user_properties.append(('endpoint', endpoint))
+        if endpoints := endpoint_regex.findall(item.location[0]):
+            item.user_properties.append(('endpoint', endpoints[0]))
