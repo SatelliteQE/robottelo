@@ -873,6 +873,12 @@ def test_positive_installed_products(
     org = function_sca_manifest_org
     lce_name = gen_string('alpha')
     cv_name = gen_string('alpha')
+    sys_tags = {'role': gen_string('alpha'), 'usage': gen_string('alpha')}
+
+    for key, val in sys_tags.items():
+        assert (
+            rhel_contenthost.execute(f'subscription-manager {key} --set {val}').status == 0
+        ), f'Setting of {key} failed.'
 
     rh_repo = {
         'basearch': DEFAULT_ARCHITECTURE,
@@ -903,11 +909,13 @@ def test_positive_installed_products(
         .read()
         .generate(data=input_data)
     )
-    assert report
+    assert report, 'No report generated.'
     assert report[0]['Host Name'] == rhel_contenthost.hostname, 'Incorrect host was reported.'
     assert report[0]['Organization'] == org.name, 'Incorrect org was reported.'
     assert report[0]['Lifecycle Environment'] == lce_name, 'Incorrect LCE was reported.'
     assert report[0]['Content View'] == cv_name, 'Incorrect CV was reported.'
+    assert report[0]['Role'] == sys_tags['role'], 'Incorrect role was reported.'
+    assert report[0]['Usage'] == sys_tags['usage'], 'Incorrect usage was reported.'
 
     # Get the installed products via rake and compare them with report
     rake = target_sat.execute(
