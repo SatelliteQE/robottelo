@@ -236,10 +236,9 @@ class TestVirtwhoConfigforNutanix:
         # ahv_internal_debug does not set in virt-who-config-X.conf
         option = 'ahv_internal_debug'
         env_error = f"option {option} is not exist or not be enabled in {config_file}"
-        try:
+        with pytest.raises(Exception) as exc_info:  # noqa: PT011 - TODO determine better exception
             get_configure_option("ahv_internal_debug", config_file)
-        except Exception as VirtWhoError:
-            assert env_error == str(VirtWhoError)
+        assert str(exc_info.value) == env_error
         # check message exist in log file /var/log/rhsm/rhsm.log
         message = 'Value for "ahv_internal_debug" not set, using default: False'
         assert check_message_in_rhsm_log(message) == message

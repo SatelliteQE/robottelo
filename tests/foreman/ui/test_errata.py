@@ -155,12 +155,12 @@ def errata_status_installable():
     _set_setting_value(errata_status_installable, original_value)
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def vm(module_repos_collection_with_setup, rhel7_contenthost, target_sat):
     """Virtual machine registered in satellite"""
     module_repos_collection_with_setup.setup_virtual_machine(rhel7_contenthost)
     rhel7_contenthost.add_rex_key(satellite=target_sat)
-    yield rhel7_contenthost
+    return rhel7_contenthost
 
 
 @pytest.mark.e2e

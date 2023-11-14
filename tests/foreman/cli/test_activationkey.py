@@ -269,15 +269,15 @@ def test_negative_create_with_usage_limit_with_not_integers(module_org, limit):
     # invalid_values.append(0.5)
     with pytest.raises(CLIFactoryError) as raise_ctx:
         make_activation_key({'organization-id': module_org.id, 'max-hosts': limit})
-    if type(limit) is int:
+    if isinstance(limit, int):
         if limit < 1:
             assert 'Max hosts cannot be less than one' in str(raise_ctx)
-    if type(limit) is str:
+    if isinstance(limit, str):
         assert 'Numeric value is required.' in str(raise_ctx)
 
 
 @pytest.mark.tier3
-@pytest.mark.parametrize('invalid_values', ('-1', '-500', 0))
+@pytest.mark.parametrize('invalid_values', ['-1', '-500', 0])
 def test_negative_create_with_usage_limit_with_invalid_integers(module_org, invalid_values):
     """Create Activation key with invalid integers Usage Limit
 

@@ -94,7 +94,7 @@ def rhel9_contenthost(request):
         yield host
 
 
-@pytest.fixture()
+@pytest.fixture
 def content_hosts(request):
     """A function-level fixture that provides two rhel content hosts object"""
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
@@ -110,7 +110,7 @@ def mod_content_hosts(request):
         yield hosts
 
 
-@pytest.fixture()
+@pytest.fixture
 def registered_hosts(request, target_sat, module_org, module_ak_with_cv):
     """Fixture that registers content hosts to Satellite, based on rh_cloud setup"""
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
@@ -134,7 +134,7 @@ def katello_host_tools_host(target_sat, module_org, rhel_contenthost):
 
     rhel_contenthost.register(module_org, None, ak.name, target_sat, repo=repo)
     rhel_contenthost.install_katello_host_tools()
-    yield rhel_contenthost
+    return rhel_contenthost
 
 
 @pytest.fixture
@@ -149,7 +149,7 @@ def cockpit_host(class_target_sat, class_org, rhel_contenthost):
     rhel_contenthost.execute(f"hostnamectl set-hostname {rhel_contenthost.hostname} --static")
     rhel_contenthost.install_cockpit()
     rhel_contenthost.add_rex_key(satellite=class_target_sat)
-    yield rhel_contenthost
+    return rhel_contenthost
 
 
 @pytest.fixture
@@ -174,7 +174,7 @@ def katello_host_tools_tracer_host(rex_contenthost, target_sat):
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
     rex_contenthost.install_tracer()
-    yield rex_contenthost
+    return rex_contenthost
 
 
 @pytest.fixture

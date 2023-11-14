@@ -34,7 +34,7 @@ from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.utils.datafactory import generate_strings_list, parametrized
 
 
-@pytest.fixture()
+@pytest.fixture
 def ldap_tear_down():
     """Teardown the all ldap settings user, usergroup and ldap delete"""
     yield

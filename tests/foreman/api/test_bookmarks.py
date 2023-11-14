@@ -82,7 +82,7 @@ def test_positive_create_with_query(controller, target_sat):
 
 
 @pytest.mark.tier1
-@pytest.mark.parametrize('public', (True, False))
+@pytest.mark.parametrize('public', [True, False])
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_positive_create_public(controller, public, target_sat):
     """Create a public bookmark
@@ -367,7 +367,7 @@ def test_negative_update_empty_query(controller, target_sat):
 
 
 @pytest.mark.tier1
-@pytest.mark.parametrize('public', (True, False))
+@pytest.mark.parametrize('public', [True, False])
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_positive_update_public(controller, public, target_sat):
     """Update a bookmark public state to private and vice versa

@@ -27,7 +27,7 @@ def template_data():
     return DataFile.OS_TEMPLATE_DATA_FILE.read_text()
 
 
-@pytest.fixture()
+@pytest.fixture
 def clone_setup(target_sat, module_org, module_location):
     name = gen_string('alpha')
     content = gen_string('alpha')
