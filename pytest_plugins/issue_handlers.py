@@ -214,7 +214,9 @@ def generate_issue_collection(items, config):  # pragma: no cover
         filepath, lineno, testcase = item.location
         # Component and importance marks are determined by testimony tokens
         # Testimony.yaml as of writing has both as required, so any
-        component_mark = item.get_closest_marker('component').args[0]
+        if not (components := item.get_closest_marker('component')):
+            continue
+        component_mark = components.args[0]
         component_slug = slugify_component(component_mark, False)
         importance_mark = item.get_closest_marker('importance').args[0]
         for marker in item.iter_markers():
