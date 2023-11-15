@@ -24,7 +24,7 @@ import json
 from random import randint
 
 from fauxfactory import gen_string
-from nailgun import client, entities
+from nailgun import client
 import pytest
 from requests.exceptions import HTTPError
 
@@ -44,7 +44,7 @@ def valid_org_data_list():
 
     Note: The maximum allowed length of org name is 242 only. This is an
     intended behavior (Also note that 255 is the standard across other
-    entities.)
+    entities)
     """
     return dict(
         alpha=gen_string('alpha', randint(1, 242)),
@@ -61,7 +61,7 @@ class TestOrganization:
     """Tests for the ``organizations`` path."""
 
     @pytest.mark.tier1
-    def test_positive_create(self):
+    def test_positive_create(self, target_sat):
         """Create an organization using a 'text/plain' content-type.
 
         :id: 6f67a3f0-0c1d-498c-9a35-28207b0faec2
@@ -70,7 +70,7 @@ class TestOrganization:
 
         :CaseImportance: Critical
         """
-        organization = entities.Organization()
+        organization = target_sat.api.Organization()
         organization.create_missing()
         response = client.post(
             organization.path(),
@@ -87,7 +87,7 @@ class TestOrganization:
     @pytest.mark.tier1
     @pytest.mark.build_sanity
     @pytest.mark.parametrize('name', **parametrized(valid_org_data_list()))
-    def test_positive_create_with_name_and_description(self, name):
+    def test_positive_create_with_name_and_description(self, name, target_sat):
         """Create an organization and provide a name and description.
 
         :id: afeea84b-61ca-40bf-bb16-476432919115
@@ -99,7 +99,7 @@ class TestOrganization:
 
         :parametrized: yes
         """
-        org = entities.Organization(name=name, description=name).create()
+        org = target_sat.api.Organization(name=name, description=name).create()
         assert org.name == name
         assert org.description == name
 
@@ -110,7 +110,7 @@ class TestOrganization:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_invalid_name(self, name):
+    def test_negative_create_with_invalid_name(self, name, target_sat):
         """Create an org with an incorrect name.
 
         :id: 9c6a4b45-a98a-4d76-9865-92d992fa1a22
@@ -120,10 +120,10 @@ class TestOrganization:
         :parametrized: yes
         """
         with pytest.raises(HTTPError):
-            entities.Organization(name=name).create()
+            target_sat.api.Organization(name=name).create()
 
     @pytest.mark.tier1
-    def test_negative_create_with_same_name(self):
+    def test_negative_create_with_same_name(self, target_sat):
         """Create two organizations with identical names.
 
         :id: a0f5333c-cc83-403c-9bf7-08fb372909dc
@@ -132,9 +132,9 @@ class TestOrganization:
 
         :CaseImportance: Critical
         """
-        name = entities.Organization().create().name
+        name = target_sat.api.Organization().create().name
         with pytest.raises(HTTPError):
-            entities.Organization(name=name).create()
+            target_sat.api.Organization(name=name).create()
 
     @pytest.mark.tier1
     def test_negative_check_org_endpoint(self, module_entitlement_manifest_org):
@@ -155,7 +155,7 @@ class TestOrganization:
         assert 'BEGIN RSA PRIVATE KEY' not in orgstring
 
     @pytest.mark.tier1
-    def test_positive_search(self):
+    def test_positive_search(self, target_sat):
         """Create an organization, then search for it by name.
 
         :id: f6f1d839-21f2-4676-8683-9f899cbdec4c
@@ -164,14 +164,14 @@ class TestOrganization:
 
         :CaseImportance: High
         """
-        org = entities.Organization().create()
-        orgs = entities.Organization().search(query={'search': f'name="{org.name}"'})
+        org = target_sat.api.Organization().create()
+        orgs = target_sat.api.Organization().search(query={'search': f'name="{org.name}"'})
         assert len(orgs) == 1
         assert orgs[0].id == org.id
         assert orgs[0].name == org.name
 
     @pytest.mark.tier1
-    def test_negative_create_with_wrong_path(self):
+    def test_negative_create_with_wrong_path(self, target_sat):
         """Attempt to create an organization using foreman API path
         (``api/v2/organizations``)
 
@@ -184,7 +184,7 @@ class TestOrganization:
 
         :CaseImportance: Critical
         """
-        org = entities.Organization()
+        org = target_sat.api.Organization()
         org._meta['api_path'] = 'api/v2/organizations'
         with pytest.raises(HTTPError) as err:
             org.create()
@@ -192,7 +192,7 @@ class TestOrganization:
         assert 'Route overriden by Katello' in err.value.response.text
 
     @pytest.mark.tier2
-    def test_default_org_id_check(self):
+    def test_default_org_id_check(self, target_sat):
         """test to check the default_organization id
 
         :id: df066396-a069-4e9e-b3c1-c6d34a755ec0
@@ -204,7 +204,7 @@ class TestOrganization:
         :CaseImportance: Low
         """
         default_org_id = (
-            entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0].id
+            target_sat.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0].id
         )
         assert default_org_id == 1
 
@@ -213,9 +213,9 @@ class TestOrganizationUpdate:
     """Tests for the ``organizations`` path."""
 
     @pytest.fixture
-    def module_org(self):
+    def module_org(self, target_sat):
         """Create an organization."""
-        return entities.Organization().create()
+        return target_sat.api.Organization().create()
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_org_data_list()))
@@ -252,7 +252,7 @@ class TestOrganizationUpdate:
         assert module_org.description == desc
 
     @pytest.mark.tier2
-    def test_positive_update_user(self, module_org):
+    def test_positive_update_user(self, module_org, target_sat):
         """Update an organization, associate user with it.
 
         :id: 2c0c0061-5b4e-4007-9f54-b61d6e65ef58
@@ -261,14 +261,14 @@ class TestOrganizationUpdate:
 
         :CaseLevel: Integration
         """
-        user = entities.User().create()
+        user = target_sat.api.User().create()
         module_org.user = [user]
         module_org = module_org.update(['user'])
         assert len(module_org.user) == 1
         assert module_org.user[0].id == user.id
 
     @pytest.mark.tier2
-    def test_positive_update_subnet(self, module_org):
+    def test_positive_update_subnet(self, module_org, target_sat):
         """Update an organization, associate subnet with it.
 
         :id: 3aa0b9cb-37f7-4e7e-a6ec-c1b407225e54
@@ -277,14 +277,14 @@ class TestOrganizationUpdate:
 
         :CaseLevel: Integration
         """
-        subnet = entities.Subnet().create()
+        subnet = target_sat.api.Subnet().create()
         module_org.subnet = [subnet]
         module_org = module_org.update(['subnet'])
         assert len(module_org.subnet) == 1
         assert module_org.subnet[0].id == subnet.id
 
     @pytest.mark.tier2
-    def test_positive_add_and_remove_hostgroup(self):
+    def test_positive_add_and_remove_hostgroup(self, target_sat):
         """Add a hostgroup to an organization and then remove it
 
         :id: 7eb1aca7-fd7b-404f-ab18-21be5052a11f
@@ -297,8 +297,8 @@ class TestOrganizationUpdate:
 
         :CaseImportance: Medium
         """
-        org = entities.Organization().create()
-        hostgroup = entities.HostGroup().create()
+        org = target_sat.api.Organization().create()
+        hostgroup = target_sat.api.HostGroup().create()
         org.hostgroup = [hostgroup]
         org = org.update(['hostgroup'])
         assert len(org.hostgroup) == 1
@@ -348,7 +348,7 @@ class TestOrganizationUpdate:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('update_field', ['name', 'label'])
-    def test_negative_update(self, module_org, update_field):
+    def test_negative_update(self, module_org, update_field, target_sat):
         """Update an organization's attributes with invalid values.
 
         :id: b7152d0b-5ab0-4d68-bfdf-f3eabcb5fbc6
@@ -367,4 +367,4 @@ class TestOrganizationUpdate:
             update_field: gen_string(str_type='utf8', length=256 if update_field == 'name' else 10)
         }
         with pytest.raises(HTTPError):
-            entities.Organization(id=module_org.id, **update_dict).update([update_field])
+            target_sat.api.Organization(id=module_org.id, **update_dict).update([update_field])

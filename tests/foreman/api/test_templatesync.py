@@ -19,7 +19,6 @@ import json
 import time
 
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 import requests
 
@@ -67,7 +66,9 @@ class TestTemplateSyncTestCase:
         )
 
     @pytest.mark.tier2
-    def test_positive_import_filtered_templates_from_git(self, module_org, module_location):
+    def test_positive_import_filtered_templates_from_git(
+        self, module_org, module_location, module_target_sat
+    ):
         """Assure only templates with a given filter regex are pulled from
         git repo.
 
@@ -91,7 +92,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: High
         """
         prefix = gen_string('alpha')
-        filtered_imported_templates = entities.Template().imports(
+        filtered_imported_templates = module_target_sat.api.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'automation',
@@ -105,7 +106,7 @@ class TestTemplateSyncTestCase:
             template['imported'] for template in filtered_imported_templates['message']['templates']
         ].count(True)
         assert imported_count == 8
-        ptemplates = entities.ProvisioningTemplate().search(
+        ptemplates = module_target_sat.api.ProvisioningTemplate().search(
             query={
                 'per_page': '100',
                 'search': f'name~{prefix}',
@@ -114,7 +115,7 @@ class TestTemplateSyncTestCase:
             }
         )
         assert len(ptemplates) == 5
-        ptables = entities.PartitionTable().search(
+        ptables = module_target_sat.api.PartitionTable().search(
             query={
                 'per_page': '100',
                 'search': f'name~{prefix}',
@@ -123,7 +124,7 @@ class TestTemplateSyncTestCase:
             }
         )
         assert len(ptables) == 1
-        jtemplates = entities.JobTemplate().search(
+        jtemplates = module_target_sat.api.JobTemplate().search(
             query={
                 'per_page': '100',
                 'search': f'name~{prefix}',
@@ -132,7 +133,7 @@ class TestTemplateSyncTestCase:
             }
         )
         assert len(jtemplates) == 1
-        rtemplates = entities.ReportTemplate().search(
+        rtemplates = module_target_sat.api.ReportTemplate().search(
             query={
                 'per_page': '10',
                 'search': f'name~{prefix}',
@@ -143,7 +144,7 @@ class TestTemplateSyncTestCase:
         assert len(rtemplates) == 1
 
     @pytest.mark.tier2
-    def test_import_filtered_templates_from_git_with_negate(self, module_org):
+    def test_import_filtered_templates_from_git_with_negate(self, module_org, module_target_sat):
         """Assure templates with a given filter regex are NOT pulled from
         git repo.
 
@@ -162,7 +163,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Medium
         """
         prefix = gen_string('alpha')
-        filtered_imported_templates = entities.Template().imports(
+        filtered_imported_templates = module_target_sat.api.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'automation',
@@ -176,15 +177,15 @@ class TestTemplateSyncTestCase:
             template['imported'] for template in filtered_imported_templates['message']['templates']
         ].count(False)
         assert not_imported_count == 9
-        ptemplates = entities.ProvisioningTemplate().search(
+        ptemplates = module_target_sat.api.ProvisioningTemplate().search(
             query={'per_page': '100', 'search': 'name~jenkins', 'organization_id': module_org.id}
         )
         assert len(ptemplates) == 6
-        ptables = entities.PartitionTable().search(
+        ptables = module_target_sat.api.PartitionTable().search(
             query={'per_page': '100', 'search': 'name~jenkins', 'organization_id': module_org.id}
         )
         assert len(ptables) == 1
-        rtemplates = entities.ReportTemplate().search(
+        rtemplates = module_target_sat.api.ReportTemplate().search(
             query={'per_page': '100', 'search': 'name~jenkins', 'organization_id': module_org.id}
         )
         assert len(rtemplates) == 1
@@ -267,7 +268,7 @@ class TestTemplateSyncTestCase:
         prefix = gen_string('alpha')
         _, dir_path = create_import_export_local_dir
         # Associate Never
-        entities.Template().imports(
+        target_sat.api.Template().imports(
             data={
                 'repo': dir_path,
                 'prefix': prefix,
@@ -277,7 +278,7 @@ class TestTemplateSyncTestCase:
             }
         )
         # - Template 1 imported in X and Y taxonomies
-        ptemplate = entities.ProvisioningTemplate().search(
+        ptemplate = target_sat.api.ProvisioningTemplate().search(
             query={
                 'per_page': '10',
                 'search': f'name~{prefix}',
@@ -288,7 +289,7 @@ class TestTemplateSyncTestCase:
         assert ptemplate
         assert len(ptemplate[0].read().organization) == 1
         # - Template 1 not imported in metadata taxonomies
-        ptemplate = entities.ProvisioningTemplate().search(
+        ptemplate = target_sat.api.ProvisioningTemplate().search(
             query={
                 'per_page': '10',
                 'search': f'name~{prefix}',
@@ -302,7 +303,7 @@ class TestTemplateSyncTestCase:
             f'cp {dir_path}/example_template.erb {dir_path}/another_template.erb && '
             f'sed -ie "s/name: .*/name: another_template/" {dir_path}/another_template.erb'
         )
-        entities.Template().imports(
+        target_sat.api.Template().imports(
             data={
                 'repo': dir_path,
                 'prefix': prefix,
@@ -312,7 +313,7 @@ class TestTemplateSyncTestCase:
             }
         )
         # - Template 1 taxonomies are not changed
-        ptemplate = entities.ProvisioningTemplate().search(
+        ptemplate = target_sat.api.ProvisioningTemplate().search(
             query={
                 'per_page': '10',
                 'search': f'name~{prefix}example_template',
@@ -323,7 +324,7 @@ class TestTemplateSyncTestCase:
         assert ptemplate
         assert len(ptemplate[0].read().organization) == 1
         # - Template 2 should be imported in importing taxonomies
-        ptemplate = entities.ProvisioningTemplate().search(
+        ptemplate = target_sat.api.ProvisioningTemplate().search(
             query={
                 'per_page': '10',
                 'search': f'name~{prefix}another_template',
@@ -334,7 +335,7 @@ class TestTemplateSyncTestCase:
         assert ptemplate
         assert len(ptemplate[0].read().organization) == 1
         # Associate Always
-        entities.Template().imports(
+        target_sat.api.Template().imports(
             data={
                 'repo': dir_path,
                 'prefix': prefix,
@@ -344,7 +345,7 @@ class TestTemplateSyncTestCase:
             }
         )
         # - Template 1 taxonomies are not changed
-        ptemplate = entities.ProvisioningTemplate().search(
+        ptemplate = target_sat.api.ProvisioningTemplate().search(
             query={
                 'per_page': '10',
                 'search': f'name~{prefix}example_template',
@@ -355,7 +356,7 @@ class TestTemplateSyncTestCase:
         assert ptemplate
         assert len(ptemplate[0].read().organization) == 1
         # - Template 2 taxonomies are not changed
-        ptemplate = entities.ProvisioningTemplate().search(
+        ptemplate = target_sat.api.ProvisioningTemplate().search(
             query={
                 'per_page': '10',
                 'search': f'name~{prefix}another_template',
@@ -367,7 +368,7 @@ class TestTemplateSyncTestCase:
         assert len(ptemplate[0].read().organization) == 1
 
     @pytest.mark.tier2
-    def test_positive_import_from_subdirectory(self, module_org):
+    def test_positive_import_from_subdirectory(self, module_org, module_target_sat):
         """Assure templates are imported from specific repositories subdirectory
 
         :id: 8ea11a1a-165e-4834-9387-7accb4c94e77
@@ -384,7 +385,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Medium
         """
         prefix = gen_string('alpha')
-        filtered_imported_templates = entities.Template().imports(
+        filtered_imported_templates = module_target_sat.api.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'automation',
@@ -423,7 +424,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Low
         """
         dir_name, dir_path = create_import_export_local_dir
-        exported_temps = entities.Template().exports(
+        exported_temps = target_sat.api.Template().exports(
             data={
                 'repo': FOREMAN_TEMPLATE_ROOT_DIR,
                 'dirname': dir_name,
@@ -459,7 +460,7 @@ class TestTemplateSyncTestCase:
         """
         # Export some filtered templates to local dir
         _, dir_path = create_import_export_local_dir
-        entities.Template().exports(
+        target_sat.api.Template().exports(
             data={
                 'repo': dir_path,
                 'organization_ids': [module_org.id],
@@ -498,7 +499,7 @@ class TestTemplateSyncTestCase:
         ex_template = 'example_template.erb'
         prefix = gen_string('alpha')
         _, dir_path = create_import_export_local_dir
-        entities.Template().imports(
+        target_sat.api.Template().imports(
             data={
                 'repo': dir_path,
                 'location_ids': [module_location.id],
@@ -508,7 +509,7 @@ class TestTemplateSyncTestCase:
         )
         export_file = f'{prefix.lower()}{ex_template}'
         # Export same template to local dir with refreshed metadata
-        entities.Template().exports(
+        target_sat.api.Template().exports(
             data={
                 'metadata_export_mode': 'refresh',
                 'repo': dir_path,
@@ -522,7 +523,7 @@ class TestTemplateSyncTestCase:
         )
         assert result.status == 0
         # Export same template to local dir with keeping metadata
-        entities.Template().exports(
+        target_sat.api.Template().exports(
             data={
                 'metadata_export_mode': 'keep',
                 'repo': dir_path,
@@ -536,7 +537,7 @@ class TestTemplateSyncTestCase:
         )
         assert result.status == 1
         # Export same template to local dir with removed metadata
-        entities.Template().exports(
+        target_sat.api.Template().exports(
             data={
                 'metadata_export_mode': 'remove',
                 'repo': dir_path,
@@ -553,7 +554,7 @@ class TestTemplateSyncTestCase:
     # Take Templates out of Tech Preview Feature Tests
     @pytest.mark.tier3
     @pytest.mark.parametrize('verbose', [True, False])
-    def test_positive_import_json_output_verbose(self, module_org, verbose):
+    def test_positive_import_json_output_verbose(self, module_org, verbose, module_target_sat):
         """Assert all the required fields displayed in import output when
         verbose is True and False
 
@@ -575,7 +576,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Low
         """
         prefix = gen_string('alpha')
-        templates = entities.Template().imports(
+        templates = module_target_sat.api.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'master',
@@ -628,19 +629,19 @@ class TestTemplateSyncTestCase:
         """
         prefix = gen_string('alpha')
         _, dir_path = create_import_export_local_dir
-        pre_template = entities.Template().imports(
+        pre_template = target_sat.api.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id], 'prefix': prefix}
         )
         assert bool(pre_template['message']['templates'][0]['imported'])
         target_sat.execute(f'echo " Updating Template data." >> {dir_path}/example_template.erb')
-        post_template = entities.Template().imports(
+        post_template = target_sat.api.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id], 'prefix': prefix}
         )
         assert bool(post_template['message']['templates'][0]['changed'])
 
     @pytest.mark.tier2
     def test_positive_import_json_output_changed_key_false(
-        self, create_import_export_local_dir, module_org
+        self, create_import_export_local_dir, module_org, module_target_sat
     ):
         """Assert template imports output `changed` key returns `False` when
         template data gets updated
@@ -663,11 +664,11 @@ class TestTemplateSyncTestCase:
         """
         prefix = gen_string('alpha')
         _, dir_path = create_import_export_local_dir
-        pre_template = entities.Template().imports(
+        pre_template = module_target_sat.api.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id], 'prefix': prefix}
         )
         assert bool(pre_template['message']['templates'][0]['imported'])
-        post_template = entities.Template().imports(
+        post_template = module_target_sat.api.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id], 'prefix': prefix}
         )
         assert not bool(post_template['message']['templates'][0]['changed'])
@@ -697,7 +698,7 @@ class TestTemplateSyncTestCase:
         target_sat.execute(
             f'sed -ie "s/name: .*/name: {template_name}/" {dir_path}/example_template.erb'
         )
-        template = entities.Template().imports(
+        template = target_sat.api.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id]}
         )
         assert 'name' in template['message']['templates'][0].keys()
@@ -705,7 +706,7 @@ class TestTemplateSyncTestCase:
 
     @pytest.mark.tier2
     def test_positive_import_json_output_imported_key(
-        self, create_import_export_local_dir, module_org
+        self, create_import_export_local_dir, module_org, module_target_sat
     ):
         """Assert template imports output `imported` key returns `True` on
         successful import
@@ -725,13 +726,15 @@ class TestTemplateSyncTestCase:
         """
         prefix = gen_string('alpha')
         _, dir_path = create_import_export_local_dir
-        template = entities.Template().imports(
+        template = module_target_sat.api.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id], 'prefix': prefix}
         )
         assert bool(template['message']['templates'][0]['imported'])
 
     @pytest.mark.tier2
-    def test_positive_import_json_output_file_key(self, create_import_export_local_dir, module_org):
+    def test_positive_import_json_output_file_key(
+        self, create_import_export_local_dir, module_org, module_target_sat
+    ):
         """Assert template imports output `file` key returns correct file name
         from where the template is imported
 
@@ -750,7 +753,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Low
         """
         _, dir_path = create_import_export_local_dir
-        template = entities.Template().imports(
+        template = module_target_sat.api.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id]}
         )
         assert 'example_template.erb' == template['message']['templates'][0]['file']
@@ -780,7 +783,7 @@ class TestTemplateSyncTestCase:
         """
         _, dir_path = create_import_export_local_dir
         target_sat.execute(f'sed -ie "s/<%#/$#$#@%^$^@@RT$$/" {dir_path}/example_template.erb')
-        template = entities.Template().imports(
+        template = target_sat.api.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id]}
         )
         assert not bool(template['message']['templates'][0]['imported'])
@@ -791,7 +794,7 @@ class TestTemplateSyncTestCase:
     @pytest.mark.skip_if_open('BZ:1787355')
     @pytest.mark.tier2
     def test_positive_import_json_output_filtered_skip_message(
-        self, create_import_export_local_dir, module_org
+        self, create_import_export_local_dir, module_org, module_target_sat
     ):
         """Assert template imports output returns template import skipped info
         for templates whose name doesnt match the filter
@@ -812,7 +815,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Low
         """
         _, dir_path = create_import_export_local_dir
-        template = entities.Template().imports(
+        template = module_target_sat.api.Template().imports(
             data={
                 'repo': dir_path,
                 'organization_ids': [module_org.id],
@@ -850,7 +853,7 @@ class TestTemplateSyncTestCase:
         """
         _, dir_path = create_import_export_local_dir
         target_sat.execute(f'sed -ie "s/name: .*/name: /" {dir_path}/example_template.erb')
-        template = entities.Template().imports(
+        template = target_sat.api.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id]}
         )
         assert not bool(template['message']['templates'][0]['imported'])
@@ -884,7 +887,7 @@ class TestTemplateSyncTestCase:
         """
         _, dir_path = create_import_export_local_dir
         target_sat.execute(f'sed -ie "/model: .*/d" {dir_path}/example_template.erb')
-        template = entities.Template().imports(
+        template = target_sat.api.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id]}
         )
         assert not bool(template['message']['templates'][0]['imported'])
@@ -918,7 +921,7 @@ class TestTemplateSyncTestCase:
         """
         _, dir_path = create_import_export_local_dir
         target_sat.execute(f'sed -ie "s/model: .*/model: /" {dir_path}/example_template.erb')
-        template = entities.Template().imports(
+        template = target_sat.api.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id]}
         )
         assert not bool(template['message']['templates'][0]['imported'])
@@ -948,7 +951,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Low
         """
         prefix = gen_string('alpha')
-        imported_templates = entities.Template().imports(
+        imported_templates = target_sat.api.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'automation',
@@ -963,7 +966,7 @@ class TestTemplateSyncTestCase:
         assert imported_count == 17  # Total Count
         # Export some filtered templates to local dir
         _, dir_path = create_import_export_local_dir
-        exported_templates = entities.Template().exports(
+        exported_templates = target_sat.api.Template().exports(
             data={'repo': dir_path, 'organization_ids': [module_org.id], 'filter': prefix}
         )
         exported_count = [
@@ -1000,7 +1003,7 @@ class TestTemplateSyncTestCase:
 
         :CaseImportance: Low
         """
-        entities.Template().imports(
+        target_sat.api.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'master',
@@ -1038,7 +1041,7 @@ class TestTemplateSyncTestCase:
 
         :CaseImportance: Low
         """
-        entities.Template().imports(
+        target_sat.api.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'master',
@@ -1047,7 +1050,7 @@ class TestTemplateSyncTestCase:
             }
         )
         _, dir_path = create_import_export_local_dir
-        entities.Template().exports(
+        target_sat.api.Template().exports(
             data={'repo': dir_path, 'organization_ids': [module_org.id], 'filter': 'empty'}
         )
         time.sleep(5)
@@ -1076,7 +1079,7 @@ class TestTemplateSyncTestCase:
         ids=['non_empty_repo', 'empty_repo'],
     )
     def test_positive_export_all_templates_to_repo(
-        self, module_org, git_repository, git_branch, url
+        self, module_org, git_repository, git_branch, url, module_target_sat
     ):
         """Assure all templates are exported if no filter is specified.
 
@@ -1094,7 +1097,7 @@ class TestTemplateSyncTestCase:
 
         :CaseImportance: Low
         """
-        output = entities.Template().exports(
+        output = module_target_sat.api.Template().exports(
             data={
                 'repo': f'{url}/{git.username}/{git_repository["name"]}',
                 'branch': git_branch,
@@ -1118,7 +1121,7 @@ class TestTemplateSyncTestCase:
         assert len(output['message']['templates']) == git_count
 
     @pytest.mark.tier2
-    def test_positive_import_all_templates_from_repo(self, module_org):
+    def test_positive_import_all_templates_from_repo(self, module_org, module_target_sat):
         """Assure all templates are imported if no filter is specified.
 
         :id: 95ac9543-d989-44f4-b4d9-18f20a0b58b9
@@ -1131,7 +1134,7 @@ class TestTemplateSyncTestCase:
 
         :CaseImportance: Low
         """
-        output = entities.Template().imports(
+        output = module_target_sat.api.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'master',
@@ -1150,7 +1153,7 @@ class TestTemplateSyncTestCase:
         assert len(output['message']['templates']) == git_count
 
     @pytest.mark.tier2
-    def test_negative_import_locked_template(self, module_org):
+    def test_negative_import_locked_template(self, module_org, module_target_sat):
         """Assure locked templates are not pulled from repository.
 
         :id: 88e21cad-448e-45e0-add2-94493a1319c5
@@ -1164,7 +1167,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Medium
         """
         # import template with lock
-        output = entities.Template().imports(
+        output = module_target_sat.api.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'locked',
@@ -1176,7 +1179,7 @@ class TestTemplateSyncTestCase:
         )
         assert output['message']['templates'][0]['imported']
         # try to import same template with changed content
-        output = entities.Template().imports(
+        output = module_target_sat.api.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'locked',
@@ -1193,13 +1196,13 @@ class TestTemplateSyncTestCase:
         )
         res.raise_for_status()
         git_content = base64.b64decode(json.loads(res.text)['content'])
-        sat_content = entities.ProvisioningTemplate(
+        sat_content = module_target_sat.api.ProvisioningTemplate(
             id=output['message']['templates'][0]['id']
         ).read()
         assert git_content.decode('utf-8') == sat_content.template
 
     @pytest.mark.tier2
-    def test_positive_import_locked_template(self, module_org):
+    def test_positive_import_locked_template(self, module_org, module_target_sat):
         """Assure locked templates are pulled from repository while using force parameter.
 
         :id: 936c91cc-1947-45b0-8bf0-79ba4be87b97
@@ -1213,7 +1216,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Medium
         """
         # import template with lock
-        output = entities.Template().imports(
+        output = module_target_sat.api.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'locked',
@@ -1225,7 +1228,7 @@ class TestTemplateSyncTestCase:
         )
         assert output['message']['templates'][0]['imported']
         # force import same template with changed content
-        output = entities.Template().imports(
+        output = module_target_sat.api.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'locked',
@@ -1244,7 +1247,7 @@ class TestTemplateSyncTestCase:
         )
         res.raise_for_status()
         git_content = base64.b64decode(json.loads(res.text)['content'])
-        sat_content = entities.ProvisioningTemplate(
+        sat_content = module_target_sat.api.ProvisioningTemplate(
             id=output['message']['templates'][0]['id']
         ).read()
         assert git_content.decode('utf-8') == sat_content.template
