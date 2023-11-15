@@ -124,7 +124,7 @@ def test_rhcloud_inventory_api_e2e(
     infrastructure_type = [
         host['system_profile']['infrastructure_type'] for host in json_data['hosts']
     ]
-    assert 'physical'
+    assert 'physical' in infrastructure_type
     assert 'virtual' in infrastructure_type
 
     all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
