@@ -33,7 +33,7 @@ from robottelo.utils.datafactory import (
 class TestModel:
     """Test class for Model CLI"""
 
-    @pytest.fixture()
+    @pytest.fixture
     def class_model(self):
         """Shared model for tests"""
         return make_model()
@@ -41,7 +41,7 @@ class TestModel:
     @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
-        'name, new_name',
+        ('name', 'new_name'),
         **parametrized(list(zip(valid_data_list().values(), valid_data_list().values())))
     )
     def test_positive_crud_with_name(self, name, new_name):

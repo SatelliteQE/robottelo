@@ -34,11 +34,11 @@ from robottelo.cli.usergroup import UserGroup, UserGroupExternal
 from robottelo.utils.datafactory import valid_usernames_list
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_user_group():
     """Create new usergroup per each test"""
     user_group = make_usergroup()
-    yield user_group
+    return user_group
 
 
 @pytest.mark.tier1
@@ -241,10 +241,10 @@ def test_negative_automate_bz1437578(ldap_auth_source, function_user_group):
                 'name': 'Domain Users',
             }
         )
-        assert (
-            'Could not create external user group: '
-            'Name is not found in the authentication source'
-            'Name Domain Users is a special group in AD.'
-            ' Unfortunately, we cannot obtain membership information'
-            ' from a LDAP search and therefore sync it.' == result
-        )
+    assert (
+        'Could not create external user group: '
+        'Name is not found in the authentication source'
+        'Name Domain Users is a special group in AD.'
+        ' Unfortunately, we cannot obtain membership information'
+        ' from a LDAP search and therefore sync it.' == result
+    )

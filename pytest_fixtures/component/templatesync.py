@@ -7,7 +7,7 @@ from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
 from robottelo.logging import logger
 
 
-@pytest.fixture()
+@pytest.fixture
 def create_import_export_local_dir(target_sat):
     """Creates a local directory inside root_dir on satellite from where the templates will
         be imported from or exported to.
@@ -76,7 +76,7 @@ def git_pub_key(session_target_sat, git_port):
     res.raise_for_status()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def git_repository(git_port, git_pub_key, request):
     """Creates a new repository on git provider for exporting templates.
 
@@ -96,7 +96,7 @@ def git_repository(git_port, git_pub_key, request):
     res.raise_for_status()
 
 
-@pytest.fixture()
+@pytest.fixture
 def git_branch(git_repository):
     """Creates a new branch in the git repository for exporting templates.
 

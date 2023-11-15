@@ -301,7 +301,7 @@ class BaseCliTestCase(unittest.TestCase):
         assert 1 == response
 
     @mock.patch('robottelo.cli.base.Base.command_requires_org')
-    def test_info_requires_organization_id(self, _):
+    def test_info_requires_organization_id(self, _):  # noqa: PT019 - not a fixture
         """Check info raises CLIError with organization-id is not present in
         options
         """

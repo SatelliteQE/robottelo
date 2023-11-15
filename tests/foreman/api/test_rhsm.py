@@ -49,4 +49,4 @@ def test_positive_path():
     response = client.get(path, auth=get_credentials(), verify=False)
     assert response.status_code == http.client.OK
     assert 'application/json' in response.headers['content-type']
-    assert type(response.json()) is list
+    assert isinstance(response.json(), list)

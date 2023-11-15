@@ -31,7 +31,7 @@ from robottelo.utils.virtwho import (
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def form_data(target_sat, default_org):
     form = {
         'name': gen_string('alpha'),
@@ -51,7 +51,7 @@ def form_data(target_sat, default_org):
     return form
 
 
-@pytest.fixture()
+@pytest.fixture
 def virtwho_config(form_data, target_sat):
     virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data)['general-information']
     yield virtwho_config
@@ -260,10 +260,9 @@ class TestVirtWhoConfigforNutanix:
         config_file = get_configure_file(virtwho_config['id'])
         option = 'ahv_internal_debug'
         env_error = f"option {option} is not exist or not be enabled in {config_file}"
-        try:
+        with pytest.raises(Exception) as exc_info:  # noqa: PT011 - TODO determine better exception
             get_configure_option("ahv_internal_debug", config_file)
-        except Exception as VirtWhoError:
-            assert env_error == str(VirtWhoError)
+        assert str(exc_info.value) == env_error
         # check message exist in log file /var/log/rhsm/rhsm.log
         message = 'Value for "ahv_internal_debug" not set, using default: False'
         assert check_message_in_rhsm_log(message) == message

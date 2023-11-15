@@ -197,7 +197,7 @@ def module_sca_manifest():
         yield manifest
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_entitlement_manifest():
     """Yields a manifest in entitlement mode with subscriptions determined by the
     `manifest_category.entitlement` setting in conf/manifest.yaml."""
@@ -205,7 +205,7 @@ def function_entitlement_manifest():
         yield manifest
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_secondary_entitlement_manifest():
     """Yields a manifest in entitlement mode with subscriptions determined by the
     `manifest_category.entitlement` setting in conf/manifest.yaml.
@@ -214,7 +214,7 @@ def function_secondary_entitlement_manifest():
         yield manifest
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_sca_manifest():
     """Yields a manifest in Simple Content Access mode with subscriptions determined by the
     `manifest_category.golden_ticket` setting in conf/manifest.yaml."""
@@ -230,7 +230,7 @@ def smart_proxy_location(module_org, module_target_sat, default_smart_proxy):
     return location
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def upgrade_entitlement_manifest():
     """Returns a manifest in entitlement mode with subscriptions determined by the
     `manifest_category.entitlement` setting in conf/manifest.yaml. used only for

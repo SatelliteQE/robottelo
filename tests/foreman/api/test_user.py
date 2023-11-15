@@ -207,8 +207,8 @@ class TestUser:
 
         :CaseImportance: Critical
         """
+        create_user.login = login
         with pytest.raises(HTTPError):
-            create_user.login = login
             create_user.update(['login'])
 
     @pytest.mark.tier1
@@ -283,8 +283,8 @@ class TestUser:
 
         :CaseImportance: Critical
         """
+        create_user.mail = mail
         with pytest.raises(HTTPError):
-            create_user.mail = mail
             create_user.update(['mail'])
 
     @pytest.mark.tier1

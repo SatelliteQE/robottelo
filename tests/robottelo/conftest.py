@@ -13,13 +13,13 @@ def align_to_satellite():
     pass
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def dummy_test(request):
     """This should be indirectly parametrized to provide dynamic dummy_tests to exec_test"""
     return request.param
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def exec_test(request, dummy_test):
     """Create a temporary file with the string provided by dummy_test, and run it with pytest.main
 
