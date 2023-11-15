@@ -861,9 +861,10 @@ def test_positive_installed_products(
         2. A RHEL content host.
 
     :steps:
-        1. Register the content host using the AK.
-        2. Generate 'Host - Installed Products' report.
-        3. Verify the report generated from the template.
+        1. Set syspurpose tags of the content host via subman.
+        2. Register the content host using the AK.
+        3. Generate 'Host - Installed Products' report.
+        4. Verify the report generated from the template.
 
     :expectedresults:
         1. Report is generated with correct values.
@@ -917,7 +918,7 @@ def test_positive_installed_products(
     assert report[0]['Role'] == sys_tags['role'], 'Incorrect role was reported.'
     assert report[0]['Usage'] == sys_tags['usage'], 'Incorrect usage was reported.'
 
-    # Get the installed products via rake and compare them with report
+    # Get the installed products via rake and compare them with generated report
     rake = target_sat.execute(
         f'echo "Host.find_by(name: \'{rhel_contenthost.hostname}\').'
         'subscription_facet.installed_products" | foreman-rake console'
@@ -926,7 +927,7 @@ def test_positive_installed_products(
 
     pattern = re.compile(r'name: "(.*?)".*?cp_product_id: "(.*?)"')
     matches = pattern.findall(rake.stdout)
-    products = [f"{match[0]} ({match[1]})" for match in matches]
+    products = [f'{match[0]} ({match[1]})' for match in matches]
     assert len(products), 'No installed products to compare.'
 
     assert set(products) == set(report[0]['Products']), 'Reported products do not match.'
