@@ -2475,7 +2475,7 @@ def test_positive_host_registration_with_non_admin_user(
 
 
 @pytest.mark.tier2
-def test_all_hosts_delete(session, target_sat, default_org, default_location, new_host_ui):
+def test_all_hosts_delete(session, target_sat, function_org, function_location, new_host_ui):
     """Create a host and delete it through All Hosts UI
 
     :id: 42b4560c-bb57-4c58-928e-e5fd5046b93f
@@ -2488,8 +2488,10 @@ def test_all_hosts_delete(session, target_sat, default_org, default_location, ne
 
     :CaseLevel: System
     """
-    host = target_sat.api.Host(organization=default_org, location=default_location).create()
+    host = target_sat.api.Host(organization=function_org, location=function_location).create()
     with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        session.location.select(function_location.name)
         session.all_hosts.delete(host.name)
         assert session.all_hosts.search(host.name) is None
 
