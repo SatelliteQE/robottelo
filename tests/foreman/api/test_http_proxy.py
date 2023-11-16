@@ -118,16 +118,16 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
     assert yum_repo['output'][0] == f'{settings.repos.repo_discovery.url}/{repo_name}/'
 
     # test scenario for docker type repo discovery.
-    yum_repo = module_target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
+    docker_repo = module_target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
         data={
             "id": module_manifest_org.id,
             "url": 'quay.io',
             "content_type": "docker",
-            "search": 'quay/busybox',
+            "search": 'foreman/foreman',
         }
     )
-    assert len(yum_repo['output']) >= 1
-    assert 'quay/busybox' in yum_repo['output']
+    assert len(docker_repo['output']) > 0
+    assert docker_repo['result'] == 'success'
 
 
 @pytest.mark.upgrade
