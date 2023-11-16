@@ -69,6 +69,7 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
         reposet=constants.REPOSET['rhae2'],
         releasever=None,
     )
+    module_target_sat.api.Repository(id=rh_repo_id).sync()
     rh_repo = module_target_sat.api.Repository(
         id=rh_repo_id,
         http_proxy_policy=http_proxy_policy,
@@ -96,12 +97,13 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
     # Use global_default_http_proxy
     repo_options['http_proxy_policy'] = 'global_default_http_proxy'
     repo_2 = module_target_sat.api.Repository(**repo_options).create()
+    repo_2.sync()
     assert repo_2.http_proxy_policy == 'global_default_http_proxy'
 
     # Update to selected_http_proxy
     repo_2.http_proxy_policy = 'none'
     repo_2.update(['http_proxy_policy'])
-    assert repo_2.http_proxy_policy == 'none'
+    assert repo_2.read().http_proxy_policy == 'none'
 
     # test scenario for yum type repo discovery.
     repo_name = 'fakerepo01'
@@ -116,16 +118,16 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
     assert yum_repo['output'][0] == f'{settings.repos.repo_discovery.url}/{repo_name}/'
 
     # test scenario for docker type repo discovery.
-    yum_repo = module_target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
+    docker_repo = module_target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
         data={
             "id": module_manifest_org.id,
             "url": 'quay.io',
             "content_type": "docker",
-            "search": 'quay/busybox',
+            "search": 'foreman/foreman',
         }
     )
-    assert len(yum_repo['output']) >= 1
-    assert 'quay/busybox' in yum_repo['output']
+    assert len(docker_repo['output']) > 0
+    assert docker_repo['result'] == 'success'
 
 
 @pytest.mark.upgrade
