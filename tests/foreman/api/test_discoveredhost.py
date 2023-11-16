@@ -414,7 +414,6 @@ class TestDiscoveredHost:
         provision_multiple_hosts,
         provisioning_hostgroup,
         pxe_loader,
-        count,
     ):
         """Rebooting all pxe-based discovered hosts
 
