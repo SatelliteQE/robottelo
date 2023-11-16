@@ -16,7 +16,7 @@ pytest==7.4.3
 pytest-services==2.2.1
 pytest-mock==3.12.0
 pytest-reportportal==5.3.0
-pytest-xdist==3.3.1
+pytest-xdist==3.4.0
 pytest-ibutsu==2.2.4
 PyYAML==6.0.1
 requests==2.31.0
