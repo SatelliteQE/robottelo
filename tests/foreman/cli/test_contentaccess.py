@@ -23,10 +23,13 @@ from robottelo.cli.host import Host
 from robottelo.cli.package import Package
 from robottelo.config import settings
 from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    PRDS,
     REAL_0_ERRATA_ID,
     REAL_RHEL7_0_2_PACKAGE_FILENAME,
     REAL_RHEL7_0_2_PACKAGE_NAME,
     REPOS,
+    REPOSET,
 )
 
 pytestmark = [
@@ -38,42 +41,48 @@ pytestmark = [
 
 
 @pytest.fixture(scope='module')
-def module_lce(module_sca_manifest_org):
-    return entities.LifecycleEnvironment(organization=module_sca_manifest_org).create()
+def rh_repo_setup_ak(module_sca_manifest_org, module_target_sat):
+    """Use module sca manifest org, creates rhst repo & syncs it,
+    also create CV, LCE & AK and return AK"""
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=module_sca_manifest_org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+        releasever=None,
+    )
+    # Sync step because repo is not synced by default
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
 
-
-@pytest.fixture(scope="module")
-def rh_repo_cv(module_sca_manifest_org, rh_repo_gt_manifest, module_lce):
-    rh_repo_cv = entities.ContentView(organization=module_sca_manifest_org).create()
+    # Create CV, LCE and AK
+    cv = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=module_sca_manifest_org).create()
     # Add CV to AK
-    rh_repo_cv.repository = [rh_repo_gt_manifest]
-    rh_repo_cv.update(['repository'])
-    rh_repo_cv.publish()
-    rh_repo_cv = rh_repo_cv.read()
+    cv.repository = [rh_repo]
+    cv.update(['repository'])
+    cv.publish()
+    cv = cv.read()
     # promote the last version published into the module lce
-    rh_repo_cv.version[-1].promote(data={'environment_ids': module_lce.id, 'force': False})
-    return rh_repo_cv
+    cv.version[-1].promote(data={'environment_ids': lce.id, 'force': False})
 
-
-@pytest.fixture(scope="module")
-def module_ak(rh_repo_cv, module_sca_manifest_org, module_lce):
-    module_ak = entities.ActivationKey(
-        content_view=rh_repo_cv,
-        environment=module_lce,
+    ak = module_target_sat.api.ActivationKey(
+        content_view=cv,
+        environment=lce,
         organization=module_sca_manifest_org,
     ).create()
     # Ensure tools repo is enabled in the activation key
-    module_ak.content_override(
+    ak.content_override(
         data={'content_overrides': [{'content_label': REPOS['rhst7']['id'], 'value': '1'}]}
     )
-    return module_ak
+    return ak
 
 
 @pytest.fixture(scope="module")
 def vm(
-    rh_repo_gt_manifest,
+    rh_repo_setup_ak,
     module_sca_manifest_org,
-    module_ak,
     rhel7_contenthost_module,
     module_target_sat,
 ):
@@ -82,8 +91,9 @@ def vm(
         'rpm -Uvh https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/p/'
         'python2-psutil-5.6.7-1.el7.x86_64.rpm'
     )
-    rhel7_contenthost_module.install_katello_ca(module_target_sat)
-    rhel7_contenthost_module.register_contenthost(module_sca_manifest_org.label, module_ak.name)
+    rhel7_contenthost_module.register(
+        module_sca_manifest_org, None, rh_repo_setup_ak.name, module_target_sat
+    )
     host = entities.Host().search(query={'search': f'name={rhel7_contenthost_module.hostname}'})
     host_id = host[0].id
     host_content = entities.Host(id=host_id).read_json()
