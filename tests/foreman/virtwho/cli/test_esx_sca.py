@@ -35,7 +35,6 @@ from robottelo.utils.virtwho import (
 )
 
 
-
 class TestVirtWhoConfigforEsx:
     @pytest.mark.tier2
     @pytest.mark.upgrade
