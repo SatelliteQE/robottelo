@@ -34,7 +34,7 @@ from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.utils.datafactory import generate_strings_list, parametrized
 
 
-@pytest.fixture()
+@pytest.fixture
 def ldap_tear_down():
     """Teardown the all ldap settings user, usergroup and ldap delete"""
     yield
@@ -127,7 +127,7 @@ class TestADAuthSource:
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': ad_data['ldap_user_name'],
+                'account': fr"{ad_data['workgroup']}\{ad_data['ldap_user_name']}",
                 'account-password': ad_data['ldap_user_passwd'],
                 'base-dn': ad_data['base_dn'],
             }

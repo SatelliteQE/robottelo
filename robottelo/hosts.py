@@ -599,26 +599,6 @@ class ContentHost(Host, ContentHostMixins):
             raise ValueError('not supported major version')
         return baseurl
 
-    def install_katello_agent(self):
-        """Install katello-agent on the virtual machine.
-
-        :return: None.
-        :raises ContentHostError: if katello-agent is not installed.
-        """
-        result = self.execute('yum install -y katello-agent')
-        if result.status != 0:
-            raise ContentHostError(f'Failed to install katello-agent: {result.stdout}')
-        if getattr(self, '_cont_inst', None):
-            # We're running in a container, goferd won't be running as a service
-            # so let's run it in the foreground, then detach from the exec
-            self._cont_inst.exec_run('goferd -f', detach=True)
-        else:
-            # We're in a traditional VM, so goferd should be running after katello-agent install
-            try:
-                wait_for(lambda: self.execute('service goferd status').status == 0)
-            except TimedOutError:
-                raise ContentHostError('katello-agent is not running')
-
     def install_katello_host_tools(self):
         """Installs Katello host tools on the broker virtual machine
 
@@ -781,7 +761,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ValueError('Global registration method can be used with Satellite/Capsule only')
 
         if lifecycle_environment is not None:
-            options['lifecycle_environment_id'] = lifecycle_environment.id
+            options['lifecycle-environment-id'] = lifecycle_environment.id
         if operating_system is not None:
             options['operatingsystem-id'] = operating_system.id
         if hostgroup is not None:
@@ -1203,7 +1183,6 @@ class ContentHost(Host, ContentHostMixins):
         lce=None,
         activation_key=None,
         patch_os_release_distro=None,
-        install_katello_agent=True,
     ):
         """
         Setup a Content Host with basic components and tasks.
@@ -1215,7 +1194,6 @@ class ContentHost(Host, ContentHostMixins):
         :param str lce: Lifecycle environment label if applicable.
         :param str activation_key: Activation key name if applicable.
         :param str patch_os_release_distro: distro name, to patch the VM with os version.
-        :param bool install_katello_agent: whether to install katello agent.
         """
         rh_repo_ids = rh_repo_ids or []
         repo_labels = repo_labels or []
@@ -1241,8 +1219,6 @@ class ContentHost(Host, ContentHostMixins):
                     raise CLIFactoryError(
                         f'Failed to enable custom repository {repo_label!s}\n{result.stderr}'
                     )
-        if install_katello_agent:
-            self.install_katello_agent()
 
     def virt_who_hypervisor_config(
         self,
@@ -1312,7 +1288,6 @@ class ContentHost(Host, ContentHostMixins):
             activation_key=activation_key['name'],
             patch_os_release_distro='rhel7',
             rh_repo_ids=[repo['repository-id'] for repo in repos if repo['cdn']],
-            install_katello_agent=False,
         )
         # configure manually RHEL custom repo url as sync time is very big
         # (more than 2 hours for RHEL 7Server) and not critical in this context.
@@ -1752,6 +1727,18 @@ class Satellite(Capsule, SatelliteMixins):
         self._api = type('api', (), {'_configured': False})
         self._cli = type('cli', (), {'_configured': False})
 
+    def _swap_nailgun(self, new_version):
+        """Install a different version of nailgun from GitHub and invalidate the module cache."""
+        import sys
+
+        from pip._internal import main as pip_main
+
+        pip_main(['uninstall', '-y', 'nailgun'])
+        pip_main(['install', f'https://github.com/SatelliteQE/nailgun/archive/{new_version}.zip'])
+        self._api = type('api', (), {'_configured': False})
+        to_clear = [k for k in sys.modules.keys() if 'nailgun' in k]
+        [sys.modules.pop(k) for k in to_clear]
+
     @property
     def api(self):
         """Import all nailgun entities and wrap them under self.api"""
@@ -1759,7 +1746,7 @@ class Satellite(Capsule, SatelliteMixins):
             self._api = type('api', (), {'_configured': False})
         if self._api._configured:
             return self._api
-
+        from nailgun import entities as _entities  # use a private import
         from nailgun.config import ServerConfig
         from nailgun.entity_mixins import Entity
 
@@ -1776,10 +1763,10 @@ class Satellite(Capsule, SatelliteMixins):
         self.nailgun_cfg = ServerConfig(
             auth=(settings.server.admin_username, settings.server.admin_password),
             url=f'{self.url}',
-            verify=False,
+            verify=settings.server.verify_ca,
         )
         # add each nailgun entity to self.api, injecting our server config
-        for name, obj in entities.__dict__.items():
+        for name, obj in _entities.__dict__.items():
             try:
                 if Entity in obj.mro():
                     #  create a copy of the class and inject our server config into the __init__
@@ -1968,7 +1955,7 @@ class Satellite(Capsule, SatelliteMixins):
             for hostgroup in puppet_class.read().hostgroup:
                 hostgroup.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
             # Search and remove puppet class from affected hosts
-            for host in self.api.Host().search(query={'search': f'class={puppet_class.name}'}):
+            for host in self.api.Host(puppetclass=f'{puppet_class.name}').search():
                 host.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
             # Remove puppet class entity
             puppet_class.delete()

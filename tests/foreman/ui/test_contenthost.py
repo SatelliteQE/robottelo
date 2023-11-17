@@ -76,17 +76,15 @@ def vm(module_repos_collection_with_manifest, rhel7_contenthost, target_sat):
     module_repos_collection_with_manifest.setup_virtual_machine(rhel7_contenthost)
     rhel7_contenthost.add_rex_key(target_sat)
     rhel7_contenthost.run(r'subscription-manager repos --enable \*')
-    yield rhel7_contenthost
+    return rhel7_contenthost
 
 
 @pytest.fixture
 def vm_module_streams(module_repos_collection_with_manifest, rhel8_contenthost, target_sat):
-    """Virtual machine registered in satellite without katello-agent installed"""
-    module_repos_collection_with_manifest.setup_virtual_machine(
-        rhel8_contenthost, install_katello_agent=False
-    )
+    """Virtual machine registered in satellite"""
+    module_repos_collection_with_manifest.setup_virtual_machine(rhel8_contenthost)
     rhel8_contenthost.add_rex_key(satellite=target_sat)
-    yield rhel8_contenthost
+    return rhel8_contenthost
 
 
 def set_ignore_facts_for_os(value=False):
@@ -1008,7 +1006,8 @@ def test_module_stream_actions_on_content_host(session, default_location, vm_mod
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
-        assert 'Enabled' and 'Installed' in module_stream[0]['Status']
+        assert 'Enabled' in module_stream[0]['Status']
+        assert 'Installed' in module_stream[0]['Status']
 
         # remove Module Stream
         result = session.contenthost.execute_module_stream_action(

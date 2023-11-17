@@ -154,6 +154,7 @@ class HostInfo:
     @property
     def applicable_errata_count(self):
         """return the applicable errata count for a host"""
+        self.run('subscription-manager repos')
         return self.nailgun_host.read().content_facet_attributes['errata_counts']['total']
 
 

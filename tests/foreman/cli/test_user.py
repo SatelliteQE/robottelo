@@ -72,7 +72,7 @@ class TestUser:
                 yield make_role({'name': role_name})
 
         stubbed_roles = {role['id']: role for role in roles_helper()}
-        yield stubbed_roles
+        return stubbed_roles
 
     @pytest.mark.parametrize('email', **parametrized(valid_emails_list()))
     @pytest.mark.tier2

@@ -78,7 +78,12 @@ def test_positive_end_to_end_crud(session, module_org):
     indirect=True,
 )
 def test_positive_end_to_end_register(
-    session, function_entitlement_manifest_org, repos_collection, rhel7_contenthost, target_sat
+    session,
+    function_entitlement_manifest_org,
+    default_location,
+    repos_collection,
+    rhel7_contenthost,
+    target_sat,
 ):
     """Create activation key and use it during content host registering
 
@@ -101,7 +106,10 @@ def test_positive_end_to_end_register(
     repos_collection.setup_virtual_machine(rhel7_contenthost)
     with session:
         session.organization.select(org.name)
-        chost = session.contenthost.read(rhel7_contenthost.hostname, widget_names='details')
+        session.location.select(default_location.name)
+        chost = session.contenthost.read_legacy_ui(
+            rhel7_contenthost.hostname, widget_names='details'
+        )
         assert chost['details']['registered_by'] == f'Activation Key {ak_name}'
         ak_values = session.activationkey.read(ak_name, widget_names='content_hosts')
         assert len(ak_values['content_hosts']['table']) == 1

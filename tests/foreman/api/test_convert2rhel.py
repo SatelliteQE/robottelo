@@ -61,6 +61,7 @@ def update_cv(sat, cv, lce, repos):
     cv = sat.api.ContentView(id=cv.id, repository=repos).update(["repository"])
     cv.publish()
     cv = cv.read()
+    cv.version.sort(key=lambda version: version.id)
     cv.version[-1].promote(data={'environment_ids': lce.id, 'force': False})
     return cv
 

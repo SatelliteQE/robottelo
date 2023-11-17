@@ -29,7 +29,7 @@ from robottelo.hosts import ContentHost
 @pytest.fixture
 def client_for_upgrade(module_target_sat, rex_contenthost, module_org):
     rex_contenthost.create_custom_repos(fake_yum=settings.repos.yum_1.url)
-    yield rex_contenthost
+    return rex_contenthost
 
 
 class TestScenarioUpgradeOldClientAndPackageInstallation:

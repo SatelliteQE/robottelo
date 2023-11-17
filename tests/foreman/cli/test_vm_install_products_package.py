@@ -67,10 +67,8 @@ def test_vm_install_package(repos_collection, function_entitlement_manifest_org,
     # Create repos, content view, and activation key.
     repos_collection.setup_content(function_entitlement_manifest_org.id, lce['id'])
     with Broker(nick=distro, host_class=ContentHost) as host:
-        # install katello-agent
-        repos_collection.setup_virtual_machine(
-            host, enable_custom_repos=True, install_katello_agent=False
-        )
+        # enable custom repos
+        repos_collection.setup_virtual_machine(host, enable_custom_repos=True)
         # install a package from custom repo
         result = host.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')
         assert result.status == 0

@@ -26,7 +26,7 @@ class TestActivationKey:
     operated/modified.
     """
 
-    @pytest.fixture(scope='function')
+    @pytest.fixture
     def activation_key_setup(self, request, target_sat):
         """
         The purpose of this fixture is to setup the activation key based on the provided
@@ -45,7 +45,7 @@ class TestActivationKey:
             content_view=cv, organization=org, name=f"{request.param}_ak"
         ).create()
         ak_details = {'org': org, "cv": cv, 'ak': ak, 'custom_repo': custom_repo}
-        yield ak_details
+        return ak_details
 
     @pytest.mark.pre_upgrade
     @pytest.mark.parametrize(
@@ -60,14 +60,14 @@ class TestActivationKey:
         :steps:
             1. Create the activation key.
             2. Add subscription in the activation key.
-            3: Check the subscription id of the activation key and compare it with custom_repos
-            product id.
+            3. Check the subscription id of the activation key and compare it with custom_repos
+                product id.
             4. Update the host collection in the activation key.
 
         :parametrized: yes
 
         :expectedresults: Activation key should be created successfully and it's subscription id
-        should be same with custom repos product id.
+            should be same with custom repos product id.
         """
         ak = activation_key_setup['ak']
         org_subscriptions = target_sat.api.Subscription(
@@ -95,7 +95,7 @@ class TestActivationKey:
             3. Delete activation key.
 
         :expectedresults: Activation key's entities should be same after upgrade and activation
-        key update and delete should work.
+            key update and delete should work.
         """
         pre_test_name = dependent_scenario_name
         org = target_sat.api.Organization().search(query={'search': f'name={pre_test_name}_org'})

@@ -17,7 +17,6 @@
 :Upstream: No
 """
 from fauxfactory import gen_choice
-from nailgun import entities
 import pytest
 from requests.exceptions import HTTPError
 
@@ -29,7 +28,7 @@ from robottelo.utils.datafactory import (
 
 
 @pytest.mark.tier1
-def test_positive_CRUD(default_os):
+def test_positive_CRUD(default_os, target_sat):
     """Create a new Architecture with several attributes, update the name
     and delete the Architecture itself.
 
@@ -43,13 +42,13 @@ def test_positive_CRUD(default_os):
 
     # Create
     name = gen_choice(list(valid_data_list().values()))
-    arch = entities.Architecture(name=name, operatingsystem=[default_os]).create()
+    arch = target_sat.api.Architecture(name=name, operatingsystem=[default_os]).create()
     assert {default_os.id} == {os.id for os in arch.operatingsystem}
     assert name == arch.name
 
     # Update
     name = gen_choice(list(valid_data_list().values()))
-    arch = entities.Architecture(id=arch.id, name=name).update(['name'])
+    arch = target_sat.api.Architecture(id=arch.id, name=name).update(['name'])
     assert name == arch.name
 
     # Delete
@@ -60,7 +59,7 @@ def test_positive_CRUD(default_os):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-def test_negative_create_with_invalid_name(name):
+def test_negative_create_with_invalid_name(name, target_sat):
     """Create architecture providing an invalid initial name.
 
     :id: 0fa6377d-063a-4e24-b606-b342e0d9108b
@@ -74,12 +73,12 @@ def test_negative_create_with_invalid_name(name):
     :BZ: 1401519
     """
     with pytest.raises(HTTPError):
-        entities.Architecture(name=name).create()
+        target_sat.api.Architecture(name=name).create()
 
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-def test_negative_update_with_invalid_name(name, module_architecture):
+def test_negative_update_with_invalid_name(name, module_architecture, module_target_sat):
     """Update architecture's name to an invalid name.
 
     :id: cb27b69b-14e0-42d0-9e44-e09d68324803
@@ -91,6 +90,6 @@ def test_negative_update_with_invalid_name(name, module_architecture):
     :CaseImportance: Medium
     """
     with pytest.raises(HTTPError):
-        entities.Architecture(id=module_architecture.id, name=name).update(['name'])
-    arch = entities.Architecture(id=module_architecture.id).read()
+        module_target_sat.api.Architecture(id=module_architecture.id, name=name).update(['name'])
+    arch = module_target_sat.api.Architecture(id=module_architecture.id).read()
     assert arch.name != name

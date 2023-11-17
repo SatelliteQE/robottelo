@@ -18,7 +18,6 @@
 """
 import random
 
-from nailgun import entities
 import pytest
 from requests.exceptions import HTTPError
 
@@ -188,7 +187,7 @@ def test_negative_discover_host_with_invalid_prefix():
 @pytest.mark.tier2
 @pytest.mark.parametrize('download_policy', ["immediate", "on_demand"])
 @pytest.mark.parametrize('setting_update', ['default_download_policy'], indirect=True)
-def test_positive_custom_repo_download_policy(setting_update, download_policy):
+def test_positive_custom_repo_download_policy(setting_update, download_policy, target_sat):
     """Check the set custom repository download policy for newly created custom repository.
 
     :id: d5150cce-ba85-4ea0-a8d1-6a54d0d29571
@@ -209,11 +208,11 @@ def test_positive_custom_repo_download_policy(setting_update, download_policy):
 
     :CaseLevel: Acceptance
     """
-    org = entities.Organization().create()
-    prod = entities.Product(organization=org).create()
+    org = target_sat.api.Organization().create()
+    prod = target_sat.api.Product(organization=org).create()
     setting_update.value = download_policy
     setting_update.update({'value'})
-    repo = entities.Repository(product=prod, content_type='yum', organization=org).create()
+    repo = target_sat.api.Repository(product=prod, content_type='yum', organization=org).create()
     assert repo.download_policy == download_policy
     repo.delete()
     prod.delete()

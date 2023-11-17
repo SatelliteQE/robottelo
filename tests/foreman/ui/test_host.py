@@ -64,7 +64,7 @@ def ui_user(ui_user, smart_proxy_location, module_target_sat):
         id=ui_user.id,
         default_location=smart_proxy_location,
     ).update(['default_location'])
-    yield ui_user
+    return ui_user
 
 
 @pytest.fixture
@@ -133,7 +133,7 @@ def tracer_install_host(rex_contenthost, target_sat):
         rex_contenthost.create_custom_repos(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
-    yield rex_contenthost
+    return rex_contenthost
 
 
 @pytest.mark.e2e
@@ -750,9 +750,9 @@ def test_positive_check_permissions_affect_create_procedure(
     ]
     with Session(test_name, user=user.login, password=user_password) as session:
         for host_field in host_fields:
+            values = {host_field['name']: host_field['unexpected_value']}
+            values.update(host_field.get('other_fields_values', {}))
             with pytest.raises(NoSuchElementException) as context:
-                values = {host_field['name']: host_field['unexpected_value']}
-                values.update(host_field.get('other_fields_values', {}))
                 session.host.helper.read_create_view(values)
             error_message = str(context.value)
             assert host_field['unexpected_value'] in error_message
@@ -1271,9 +1271,9 @@ def test_global_registration_form_populate(
         4. Open the global registration form and select the same host-group
         5. check host registration form should be populated automatically based on the host-group
 
-    :BZ: 2056469
+    :BZ: 2056469, 1994654
 
-    :CaseAutomation: Automated
+    :customerscenario: true
     """
     hg_name = gen_string('alpha')
     iface = gen_string('alpha')
@@ -1287,6 +1287,8 @@ def test_global_registration_form_populate(
         content_view=module_promoted_cv,
         group_parameters_attributes=[group_params],
     ).create()
+    new_org = target_sat.api.Organization().create()
+    new_ak = target_sat.api.ActivationKey(organization=new_org).create()
     with session:
         session.hostgroup.update(
             hg_name,
@@ -1302,18 +1304,29 @@ def test_global_registration_form_populate(
             },
             full_read=True,
         )
-
         assert hg_name in cmd['general']['host_group']
         assert module_ak_with_cv.name in cmd['general']['activation_key_helper']
         assert module_lce.name in cmd['advanced']['life_cycle_env_helper']
         assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages_helper']
+
+        session.organization.select(org_name=new_org.name)
+        cmd = session.host.get_register_command(
+            {
+                'general.organization': new_org.name,
+                'general.operating_system': default_os.title,
+                'general.insecure': True,
+            },
+            full_read=True,
+        )
+        assert new_org.name in cmd['general']['organization']
+        assert new_ak.name in cmd['general']['activation_keys']
 
 
 @pytest.mark.tier2
 def test_global_registration_with_capsule_host(
     session,
     capsule_configured,
-    rhel7_contenthost,
+    rhel8_contenthost,
     module_org,
     module_location,
     module_product,
@@ -1342,7 +1355,7 @@ def test_global_registration_with_capsule_host(
 
     :CaseAutomation: Automated
     """
-    client = rhel7_contenthost
+    client = rhel8_contenthost
     repo = target_sat.api.Repository(
         url=settings.repos.yum_1.url,
         content_type=REPO_TYPE['yum'],
@@ -1391,7 +1404,7 @@ def test_global_registration_with_capsule_host(
         session.location.select(loc_name=module_location.name)
         cmd = session.host.get_register_command(
             {
-                'general.orgnization': module_org.name,
+                'general.organization': module_org.name,
                 'general.location': module_location.name,
                 'general.operating_system': default_os.title,
                 'general.capsule': capsule_configured.hostname,
@@ -1412,7 +1425,7 @@ def test_global_registration_with_capsule_host(
 @pytest.mark.usefixtures('enable_capsule_for_registration')
 @pytest.mark.no_containers
 def test_global_registration_with_gpg_repo_and_default_package(
-    session, module_activation_key, default_os, default_smart_proxy, rhel7_contenthost
+    session, module_activation_key, default_os, default_smart_proxy, rhel8_contenthost
 ):
     """Host registration form produces a correct registration command and host is
     registered successfully with gpg repo enabled and have default package
@@ -1435,7 +1448,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
     :parametrized: yes
     """
-    client = rhel7_contenthost
+    client = rhel8_contenthost
     repo_name = 'foreman_register'
     repo_url = settings.repos.gr_yum_repo.url
     repo_gpg_url = settings.repos.gr_yum_repo.gpg_url
@@ -1455,7 +1468,15 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
     # rhel repo required for insights client installation,
     # syncing it to the satellite would take too long
-    client.create_custom_repos(rhel7=settings.repos.rhel7_os)
+    rhelver = client.os_version.major
+    if rhelver > 7:
+        repos = {f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']['baseos']}
+    else:
+        repos = {
+            'rhel7_os': settings.repos['rhel7_os'],
+            'rhel7_extras': settings.repos['rhel7_extras'],
+        }
+    client.create_custom_repos(**repos)
     # run curl
     result = client.execute(cmd)
     assert result.status == 0
@@ -1571,7 +1592,7 @@ def test_global_re_registration_host_with_force_ignore_error_options(
 @pytest.mark.tier2
 @pytest.mark.usefixtures('enable_capsule_for_registration')
 def test_global_registration_token_restriction(
-    session, module_activation_key, rhel7_contenthost, default_os, default_smart_proxy, target_sat
+    session, module_activation_key, rhel8_contenthost, default_os, default_smart_proxy, target_sat
 ):
     """Global registration token should be only used for registration call, it
     should be restricted for any other api calls.
@@ -1589,7 +1610,7 @@ def test_global_registration_token_restriction(
 
     :parametrized: yes
     """
-    client = rhel7_contenthost
+    client = rhel8_contenthost
     with session:
         cmd = session.host.get_register_command(
             {
@@ -1609,7 +1630,7 @@ def test_global_registration_token_restriction(
     for curl_cmd in (curl_users, curl_hosts):
         result = client.execute(curl_cmd)
         assert result.status == 0
-        'Unable to authenticate user' in result.stdout
+        assert 'Unable to authenticate user' in result.stdout
 
 
 @pytest.mark.tier4
@@ -1837,9 +1858,7 @@ def test_positive_update_delete_package(
     """
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(
-        client, target_sat, install_katello_agent=False
-    )
+    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         if not is_open('BZ:2132680'):
@@ -1958,9 +1977,7 @@ def test_positive_apply_erratum(
     # install package
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(
-        client, target_sat, install_katello_agent=False
-    )
+    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
     errata_id = settings.repos.yum_3.errata[25]
     client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
@@ -2041,9 +2058,7 @@ def test_positive_crud_module_streams(
     module_name = 'duck'
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(
-        client, target_sat, install_katello_agent=False
-    )
+    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         streams = session.host_new.get_module_streams(client.hostname, module_name)

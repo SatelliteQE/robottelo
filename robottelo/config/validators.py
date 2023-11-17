@@ -29,6 +29,7 @@ VALIDATORS = dict(
         Validator('server.port', default=443),
         Validator('server.ssh_username', default='root'),
         Validator('server.ssh_password', default=None),
+        Validator('server.verify_ca', default=False),
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),

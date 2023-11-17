@@ -910,7 +910,6 @@ def test_positive_generate_hostpkgcompare(
             assert client.subscribed
             clients.append(client)
             client.enable_repo(REPOS['rhst7']['id'])
-            client.install_katello_agent()
         clients.sort(key=lambda client: client.hostname)
         hosts_info = [Host.info({'name': client.hostname}) for client in clients]
 
@@ -988,7 +987,7 @@ def test_negative_generate_hostpkgcompare_nonexistent_host():
                 'inputs': 'Host 1 = nonexistent1, ' 'Host 2 = nonexistent2',
             }
         )
-        assert "At least one of the hosts couldn't be found" in cm.exception.stderr
+    assert "At least one of the hosts couldn't be found" in cm.exception.stderr
 
 
 @pytest.mark.rhel_ver_list([7, 8, 9])

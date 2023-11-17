@@ -261,7 +261,7 @@ def test_positive_user_access_with_host_filter(
         rhel_contenthost.add_rex_key(target_sat)
         repos_collection.setup_content(org.id, lce.id, upload_manifest=False)
         repos_collection.setup_virtual_machine(
-            rhel_contenthost, location_title=module_location.name, install_katello_agent=False
+            rhel_contenthost, location_title=module_location.name
         )
         rhel_contenthost.run('subscription-manager repos --enable "*"')
         result = rhel_contenthost.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')

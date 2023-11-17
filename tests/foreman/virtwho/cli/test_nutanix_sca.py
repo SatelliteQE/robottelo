@@ -27,6 +27,7 @@ from robottelo.utils.virtwho import (
 )
 
 
+
 class TestVirtWhoConfigforNutanix:
     @pytest.mark.tier2
     @pytest.mark.parametrize('deploy_type_cli', ['id', 'script'], indirect=True)
