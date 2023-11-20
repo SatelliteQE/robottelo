@@ -5,7 +5,7 @@ import re
 import requests
 
 from robottelo import ssh
-from robottelo.cli.base import CLIReturnCodeError
+from robottelo.exceptions import CLIReturnCodeError
 
 
 def get_repo_files(repo_path, extension='rpm', hostname=None):

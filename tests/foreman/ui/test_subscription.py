@@ -24,7 +24,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 import pytest
 
-from robottelo.cli.factory import make_virt_who_config
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
@@ -370,7 +369,7 @@ def test_positive_view_vdc_guest_subscription_products(
     rh_product_repository = target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)
     product_name = rh_product_repository.data['product']
     # Create a new virt-who config
-    virt_who_config = make_virt_who_config(
+    virt_who_config = target_sat.cli_factory.virt_who_config(
         {
             'organization-id': org.id,
             'hypervisor-type': VIRT_WHO_HYPERVISOR_TYPES['libvirt'],

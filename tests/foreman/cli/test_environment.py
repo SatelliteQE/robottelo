@@ -21,8 +21,8 @@ from random import choice
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
+from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import (
     invalid_id_list,
     invalid_values_list,

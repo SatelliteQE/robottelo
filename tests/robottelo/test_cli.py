@@ -4,8 +4,8 @@ from unittest import mock
 
 import pytest
 
-from robottelo.cli.base import (
-    Base,
+from robottelo.cli.base import Base
+from robottelo.exceptions import (
     CLIBaseError,
     CLIDataBaseError,
     CLIError,

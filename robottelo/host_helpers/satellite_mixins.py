@@ -7,7 +7,6 @@ import re
 
 import requests
 
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
 from robottelo.constants import (
@@ -16,6 +15,7 @@ from robottelo.constants import (
     PUPPET_COMMON_INSTALLER_OPTS,
     PUPPET_SATELLITE_INSTALLER,
 )
+from robottelo.exceptions import CLIReturnCodeError
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.host_helpers.ui_factory import UIFactory

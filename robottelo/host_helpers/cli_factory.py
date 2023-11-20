@@ -26,15 +26,11 @@ from fauxfactory import (
 )
 
 from robottelo import constants
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
+from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
 from robottelo.utils.manifest import clone
-
-
-class CLIFactoryError(Exception):
-    """Indicates an error occurred while creating an entity using hammer"""
 
 
 def create_object(cli_object, options, values=None, credentials=None):

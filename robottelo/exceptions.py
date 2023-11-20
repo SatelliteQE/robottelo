@@ -65,3 +65,56 @@ class ProxyError(Exception):
 
 class DownloadFileError(Exception):
     """Indicates an error when failure in downloading file from server."""
+
+
+class CLIFactoryError(Exception):
+    """Indicates an error occurred while creating an entity using hammer"""
+
+
+class CLIError(Exception):
+    """Indicates that a CLI command could not be run."""
+
+
+class CLIBaseError(Exception):
+    """Indicates that a CLI command has finished with return code different
+    from zero.
+
+    :param status: CLI command return code
+    :param stderr: contents of the ``stderr``
+    :param msg: explanation of the error
+
+    """
+
+    def __init__(self, status, stderr, msg):
+        self.status = status
+        self.stderr = stderr
+        self.msg = msg
+        super().__init__(msg)
+        self.message = msg
+
+    def __str__(self):
+        """Include class name, status, stderr and msg to string repr so
+        assertRaisesRegexp can be used to assert error present on any
+        attribute
+        """
+        return repr(self)
+
+    def __repr__(self):
+        """Include class name status, stderr and msg to improve logging"""
+        return '{}(status={!r}, stderr={!r}, msg={!r}'.format(
+            type(self).__name__, self.status, self.stderr, self.msg
+        )
+
+
+class CLIReturnCodeError(CLIBaseError):
+    """Error to be raised when an error occurs due to some validation error
+    when execution hammer cli.
+    See: https://github.com/SatelliteQE/robottelo/issues/3790 for more details
+    """
+
+
+class CLIDataBaseError(CLIBaseError):
+    """Error to be raised when an error occurs due to some missing parameter
+    which cause a data base error on hammer
+    See: https://github.com/SatelliteQE/robottelo/issues/3790 for more details
+    """

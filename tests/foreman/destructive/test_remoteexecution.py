@@ -121,7 +121,7 @@ def test_positive_use_alternate_directory(
     assert result.status == 0
 
     command = f'echo {gen_string("alpha")}'
-    invocation_command = target_sat.cli_factory.make_job_invocation(
+    invocation_command = target_sat.cli_factory.job_invocation(
         {
             'job-template': 'Run Command - Script Default',
             'inputs': f'command={command}',

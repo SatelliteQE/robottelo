@@ -1000,7 +1000,7 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
     target_sat.cli.Ansible.roles_sync(
         {'role-names': SELECTED_ROLE, 'proxy-id': target_sat.nailgun_smart_proxy.id}
     )
-    hostgroup = target_sat.cli_factory.make_hostgroup(
+    hostgroup = target_sat.cli_factory.hostgroup(
         {
             'content-view-id': cv.id,
             'lifecycle-environment-id': lce.id,
@@ -1209,7 +1209,7 @@ def test_positive_global_registration_end_to_end(
     ).create()
     # run insights-client via REX
     command = "insights-client --status"
-    invocation_command = target_sat.cli_factory.make_job_invocation(
+    invocation_command = target_sat.cli_factory.job_invocation(
         {
             'job-template': 'Run Command - Script Default',
             'inputs': f'command={command}',

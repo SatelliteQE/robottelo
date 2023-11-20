@@ -111,7 +111,7 @@ def setup_sync_plan(request, sat_maintain):
     """
     org = sat_maintain.api.Organization().create()
     # Setup sync-plan
-    new_sync_plan = sat_maintain.cli_factory.make_sync_plan(
+    new_sync_plan = sat_maintain.cli_factory.sync_plan(
         {
             'enabled': 'true',
             'interval': 'weekly',
