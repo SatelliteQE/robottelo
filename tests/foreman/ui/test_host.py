@@ -1000,7 +1000,7 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
     target_sat.cli.Ansible.roles_sync(
         {'role-names': SELECTED_ROLE, 'proxy-id': target_sat.nailgun_smart_proxy.id}
     )
-    hostgroup = target_sat.cli_factory.make_hostgroup(
+    hostgroup = target_sat.cli_factory.hostgroup(
         {
             'content-view-id': cv.id,
             'lifecycle-environment-id': lce.id,
@@ -1209,7 +1209,7 @@ def test_positive_global_registration_end_to_end(
     ).create()
     # run insights-client via REX
     command = "insights-client --status"
-    invocation_command = target_sat.cli_factory.make_job_invocation(
+    invocation_command = target_sat.cli_factory.job_invocation(
         {
             'job-template': 'Run Command - Script Default',
             'inputs': f'command={command}',
@@ -2403,3 +2403,51 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
         )
         tracer = session.host_new.get_tracer(tracer_install_host.hostname)
         assert tracer['title'] == "No applications to restart"
+
+
+def test_positive_host_registration_with_non_admin_user(
+    test_name,
+    module_entitlement_manifest_org,
+    module_location,
+    target_sat,
+    rhel8_contenthost,
+    module_activation_key,
+):
+    """Register hosts from a non-admin user with only register_hosts, edit_hosts
+    and view_organization permissions
+
+    :id: 35458bbc-4556-41b9-ba26-ae0b15179731
+
+    :expectedresults: User with register hosts permission able to do it.
+
+    :CaseLevel: System
+    """
+    user_password = gen_string('alpha')
+    org = module_entitlement_manifest_org
+    role = target_sat.api.Role(organization=[org]).create()
+    target_sat.api_factory.create_role_permissions(
+        role, {'Organization': ['view_organizations'], 'Host': ['view_hosts', 'register_hosts']}
+    )
+    user = target_sat.api.User(
+        role=[role],
+        admin=False,
+        password=user_password,
+        organization=[org],
+        location=[module_location],
+        default_organization=org,
+        default_location=module_location,
+    ).create()
+    # created_host = target_sat.api.Host(location=module_location, organization=org).create()
+    with Session(test_name, user=user.login, password=user_password) as session:
+        host = session.host.get_details(rhel8_contenthost.name, widget_names='breadcrumb')
+        assert host['breadcrumb'] == rhel8_contenthost.name
+
+        cmd = session.host.get_register_command(
+            {
+                'general.insecure': True,
+                'general.activation_keys': module_activation_key.name,
+            }
+        )
+
+        result = rhel8_contenthost.execute(cmd)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
