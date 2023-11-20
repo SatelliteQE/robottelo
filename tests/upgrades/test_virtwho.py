@@ -19,9 +19,6 @@
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.cli.host import Host
-from robottelo.cli.subscription import Subscription
-from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.virtwho import (
@@ -100,8 +97,10 @@ class TestScenarioPositiveVirtWho:
             (guest_name, f'product_id={settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'),
         ]
         for hostname, sku in hosts:
-            host = Host.list({'search': hostname})[0]
-            subscriptions = Subscription.list({'organization-id': org.id, 'search': sku})
+            host = target_sat.cli.Host.list({'search': hostname})[0]
+            subscriptions = target_sat.cli.Subscription.list(
+                {'organization-id': org.id, 'search': sku}
+            )
             vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
@@ -153,8 +152,13 @@ class TestScenarioPositiveVirtWho:
         if not is_open('BZ:1802395'):
             assert vhd.status == 'ok'
         # Verify virt-who status via CLI as we cannot check it via API now
-        vhd_cli = VirtWhoConfig.exists(search=('name', form_data['name']))
-        assert VirtWhoConfig.info({'id': vhd_cli['id']})['general-information']['status'] == 'OK'
+        vhd_cli = target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
+        assert (
+            target_sat.cli.VirtWhoConfig.info({'id': vhd_cli['id']})['general-information'][
+                'status'
+            ]
+            == 'OK'
+        )
 
         # Vefify the connection of the guest on Content host
         hypervisor_name = pre_upgrade_data.get('hypervisor_name')

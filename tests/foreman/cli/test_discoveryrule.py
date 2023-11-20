@@ -25,15 +25,8 @@ from nailgun.entities import Role as RoleEntity, User as UserEntity
 import pytest
 from requests import HTTPError
 
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.discoveryrule import DiscoveryRule
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_discoveryrule,
-    make_hostgroup,
-    make_location,
-    make_org,
-)
+from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
 from robottelo.utils.datafactory import (
     filtered_datapoint,
@@ -69,7 +62,7 @@ class TestDiscoveryRule:
     """Implements Foreman discovery Rules tests in CLI."""
 
     @pytest.fixture
-    def discoveryrule_factory(self, class_org, class_location, class_hostgroup):
+    def discoveryrule_factory(self, class_org, class_location, class_hostgroup, target_sat):
         def _create_discoveryrule(org, loc, hostgroup, options=None):
             """Makes a new discovery rule and asserts its success"""
             options = options or {}
@@ -96,7 +89,7 @@ class TestDiscoveryRule:
 
             # create a simple object from the dictionary that the CLI factory provides
             # This allows for consistent attributized access of all fixture entities in the tests
-            return Box(make_discoveryrule(options))
+            return Box(target_sat.cli_factory.discoveryrule(options))
 
         return partial(
             _create_discoveryrule, org=class_org, loc=class_location, hostgroup=class_hostgroup
@@ -342,7 +335,7 @@ class TestDiscoveryRule:
         assert rule.name == new_name
 
     @pytest.mark.tier2
-    def test_positive_update_org_loc_by_id(self, discoveryrule_factory):
+    def test_positive_update_org_loc_by_id(self, discoveryrule_factory, target_sat):
         """Update org and location of selected discovery rule using org/loc ids
 
         :id: 26da79aa-30e5-4052-98ae-141de071a68a
@@ -353,10 +346,12 @@ class TestDiscoveryRule:
 
         :CaseLevel: Component
         """
-        new_org = Box(make_org())
-        new_loc = Box(make_location())
+        new_org = Box(target_sat.cli_factory.make_org())
+        new_loc = Box(target_sat.cli_factory.make_location())
         new_hostgroup = Box(
-            make_hostgroup({'organization-ids': new_org.id, 'location-ids': new_loc.id})
+            target_sat.cli_factory.make_hostgroup(
+                {'organization-ids': new_org.id, 'location-ids': new_loc.id}
+            )
         )
         rule = discoveryrule_factory()
         DiscoveryRule.update(
@@ -372,7 +367,7 @@ class TestDiscoveryRule:
         assert new_loc.name in rule.locations
 
     @pytest.mark.tier3
-    def test_positive_update_org_loc_by_name(self, discoveryrule_factory):
+    def test_positive_update_org_loc_by_name(self, discoveryrule_factory, target_sat):
         """Update org and location of selected discovery rule using org/loc
         names
 
@@ -386,10 +381,12 @@ class TestDiscoveryRule:
 
         :CaseImportance: Medium
         """
-        new_org = Box(make_org())
-        new_loc = Box(make_location())
+        new_org = Box(target_sat.cli_factory.make_org())
+        new_loc = Box(target_sat.cli_factory.make_location())
         new_hostgroup = Box(
-            make_hostgroup({'organization-ids': new_org.id, 'location-ids': new_loc.id})
+            target_sat.cli_factory.make_hostgroup(
+                {'organization-ids': new_org.id, 'location-ids': new_loc.id}
+            )
         )
         rule = discoveryrule_factory()
         DiscoveryRule.update(
@@ -421,7 +418,7 @@ class TestDiscoveryRule:
         assert rule.search == new_query
 
     @pytest.mark.tier2
-    def test_positive_update_hostgroup(self, discoveryrule_factory, class_org):
+    def test_positive_update_hostgroup(self, discoveryrule_factory, class_org, target_sat):
         """Update discovery rule host group
 
         :id: 07992a3f-2aa9-4e45-b2e8-ef3d2f255292
@@ -430,7 +427,9 @@ class TestDiscoveryRule:
 
         :CaseLevel: Component
         """
-        new_hostgroup = Box(make_hostgroup({'organization-ids': class_org.id}))
+        new_hostgroup = Box(
+            target_sat.cli_factory.make_hostgroup({'organization-ids': class_org.id})
+        )
         rule = discoveryrule_factory()
         DiscoveryRule.update({'id': rule.id, 'hostgroup': new_hostgroup.name})
         rule = DiscoveryRule.info({'id': rule.id})
@@ -683,7 +682,13 @@ class TestDiscoveryRuleRole:
 
     @pytest.mark.tier2
     def test_positive_view_existing_rule_with_non_admin_user(
-        self, class_org, class_location, class_user_password, class_user_reader, class_hostgroup
+        self,
+        class_org,
+        class_location,
+        class_user_password,
+        class_user_reader,
+        class_hostgroup,
+        target_sat,
     ):
         """Existing rule should be viewed to non-admin user by associating
         discovery_reader role.
@@ -702,7 +707,7 @@ class TestDiscoveryRuleRole:
         """
         rule_name = gen_string('alpha')
         rule = Box(
-            make_discoveryrule(
+            target_sat.cli_factory.make_discoveryrule(
                 {
                     'name': rule_name,
                     'enabled': 'false',
@@ -722,7 +727,13 @@ class TestDiscoveryRuleRole:
 
     @pytest.mark.tier2
     def test_negative_delete_rule_with_non_admin_user(
-        self, class_org, class_location, class_user_password, class_user_reader, class_hostgroup
+        self,
+        class_org,
+        class_location,
+        class_user_password,
+        class_user_reader,
+        class_hostgroup,
+        target_sat,
     ):
         """Delete rule with non-admin user by associating discovery_reader role
 
@@ -734,7 +745,7 @@ class TestDiscoveryRuleRole:
         :CaseLevel: Integration
         """
         rule = Box(
-            make_discoveryrule(
+            target_sat.cli_factory.make_discoveryrule(
                 {
                     'enabled': 'false',
                     'search': "last_report = Today",

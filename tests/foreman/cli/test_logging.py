@@ -22,9 +22,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 import pytest
 
-from robottelo.cli.factory import make_product, make_repository
-from robottelo.cli.product import Product
-from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.logging import logger
 
@@ -238,10 +235,10 @@ def test_positive_logging_from_pulp3(module_org, target_sat):
     name = product_name
     label = product_name
     desc = product_name
-    product = make_product(
+    product = target_sat.cli_factory.make_product(
         {'description': desc, 'label': label, 'name': name, 'organization-id': module_org.id},
     )
-    repo = make_repository(
+    repo = target_sat.cli_factory.make_repository(
         {
             'organization-id': module_org.id,
             'product-id': product['id'],
@@ -249,8 +246,8 @@ def test_positive_logging_from_pulp3(module_org, target_sat):
         },
     )
     # Synchronize the repository
-    Product.synchronize({'id': product['id'], 'organization-id': module_org.id})
-    Repository.synchronize({'id': repo['id']})
+    target_sat.cli.Product.synchronize({'id': product['id'], 'organization-id': module_org.id})
+    target_sat.cli.Repository.synchronize({'id': repo['id']})
     # Get the id of repository sync from task
     task_out = target_sat.execute(
         "hammer task list | grep -F \'Synchronize repository {\"text\"=>\"repository\'"

@@ -24,7 +24,6 @@ from nailgun.config import ServerConfig
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.cli.ldapauthsource import LDAPAuthSource
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.utils.datafactory import gen_string, generate_strings_list, parametrized
@@ -210,7 +209,7 @@ class TestCannedRole:
             query={'search': f'login={ad_data["ldap_user_name"]}'}
         ):
             user.delete()
-        LDAPAuthSource.delete({'name': authsource_name})
+        target_sat.cli.LDAPAuthSource.delete({'name': authsource_name})
 
     @pytest.mark.tier1
     def test_positive_create_role_with_taxonomies(self, role_taxonomies, target_sat):

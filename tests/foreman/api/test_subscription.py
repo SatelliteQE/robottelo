@@ -26,7 +26,6 @@ from nailgun.entity_mixins import TaskFailedError
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME, PRDS, REPOS, REPOSET
 
@@ -216,7 +215,7 @@ def test_positive_delete_manifest_as_another_user(
     target_sat.api.Subscription(sc2, organization=function_org).delete_manifest(
         data={'organization_id': function_org.id}
     )
-    assert len(Subscription.list({'organization-id': function_org.id})) == 0
+    assert len(target_sat.cli.Subscription.list({'organization-id': function_org.id})) == 0
 
 
 @pytest.mark.tier2

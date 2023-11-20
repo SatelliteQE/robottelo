@@ -23,7 +23,6 @@ from fauxfactory import gen_url
 from nailgun import entities
 import pytest
 
-from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.utils.datafactory import filtered_datapoint, gen_string
 
@@ -238,7 +237,7 @@ def test_positive_update_login_page_footer_text(session, setting_update):
 
 
 @pytest.mark.tier3
-def test_negative_settings_access_to_non_admin():
+def test_negative_settings_access_to_non_admin(module_target_sat):
     """Check non admin users can't access Administer -> Settings tab
 
     :id: 34bb9376-c5fe-431a-ac0d-ef030c0ab50e
@@ -268,7 +267,7 @@ def test_negative_settings_access_to_non_admin():
                 'from a Satellite administrator: view_settings Back'
             )
     finally:
-        User.delete({'login': login})
+        module_target_sat.cli.User.delete({'login': login})
 
 
 @pytest.mark.stubbed

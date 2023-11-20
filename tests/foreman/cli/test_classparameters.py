@@ -18,8 +18,8 @@
 """
 import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
+from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import gen_string
 
 
@@ -90,7 +90,7 @@ class TestSmartClassParameters:
             environment=module_puppet['env'].name,
         ).create()
         host.add_puppetclass(data={'puppetclass_id': module_puppet['class']['id']})
-        hostgroup = session_puppet_enabled_sat.cli_factory.make_hostgroup(
+        hostgroup = session_puppet_enabled_sat.cli_factory.hostgroup(
             {
                 'puppet-environment-id': module_puppet['env'].id,
                 'puppet-class-ids': module_puppet['class']['id'],
@@ -149,9 +149,7 @@ class TestSmartClassParameters:
                 ]
             },
         }
-        user = session_puppet_enabled_sat.cli_factory.make_user(
-            {'admin': '0', 'password': password}
-        )
+        user = session_puppet_enabled_sat.cli_factory.user({'admin': '0', 'password': password})
         role = session_puppet_enabled_sat.cli_factory.make_role()
         session_puppet_enabled_sat.cli_factory.add_role_permissions(
             role['id'], required_user_permissions

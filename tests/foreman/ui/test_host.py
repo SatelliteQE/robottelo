@@ -1172,7 +1172,7 @@ def test_positive_global_registration_end_to_end(
     ).create()
     # run insights-client via REX
     command = "insights-client --status"
-    invocation_command = target_sat.cli_factory.make_job_invocation(
+    invocation_command = target_sat.cli_factory.job_invocation(
         {
             'job-template': 'Run Command - Script Default',
             'inputs': f'command={command}',

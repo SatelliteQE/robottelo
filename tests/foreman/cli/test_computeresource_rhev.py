@@ -20,14 +20,8 @@ import pytest
 from wait_for import wait_for
 from wrapanapi import RHEVMSystem
 
-from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    CLIReturnCodeError,
-    make_compute_resource,
-)
-from robottelo.cli.host import Host
 from robottelo.config import settings
+from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 
 
 @pytest.fixture(scope='module')
@@ -47,7 +41,7 @@ def rhev():
 
 
 @pytest.mark.tier1
-def test_positive_create_rhev_with_valid_name(rhev):
+def test_positive_create_rhev_with_valid_name(rhev, module_target_sat):
     """Create Compute Resource of type Rhev with valid name
 
     :id: 92a577db-144e-4761-a52e-e83887464986
@@ -58,7 +52,7 @@ def test_positive_create_rhev_with_valid_name(rhev):
 
     :BZ: 1602835
     """
-    ComputeResource.create(
+    module_target_sat.cli.ComputeResource.create(
         {
             'name': f'cr {gen_string(str_type="alpha")}',
             'provider': 'Ovirt',
@@ -71,7 +65,7 @@ def test_positive_create_rhev_with_valid_name(rhev):
 
 
 @pytest.mark.tier1
-def test_positive_rhev_info(rhev):
+def test_positive_rhev_info(rhev, module_target_sat):
     """List the info of RHEV compute resource
 
     :id: 1b18f6e8-c431-41ab-ae49-a2bbb74712f2
@@ -83,7 +77,7 @@ def test_positive_rhev_info(rhev):
     :BZ: 1602835
     """
     name = gen_string('utf8')
-    compute_resource = make_compute_resource(
+    compute_resource = module_target_sat.cli_factory.compute_resource(
         {
             'name': name,
             'provider': 'Ovirt',
@@ -97,7 +91,7 @@ def test_positive_rhev_info(rhev):
 
 
 @pytest.mark.tier1
-def test_positive_delete_by_name(rhev):
+def test_positive_delete_by_name(rhev, module_target_sat):
     """Delete the RHEV compute resource by name
 
     :id: ac84acbe-3e02-4f49-9695-b668df28b353
@@ -108,7 +102,7 @@ def test_positive_delete_by_name(rhev):
 
     :BZ: 1602835
     """
-    comp_res = make_compute_resource(
+    comp_res = module_target_sat.cli_factory.compute_resource(
         {
             'provider': 'Ovirt',
             'user': rhev.username,
@@ -118,13 +112,13 @@ def test_positive_delete_by_name(rhev):
         }
     )
     assert comp_res['name']
-    ComputeResource.delete({'name': comp_res['name']})
-    result = ComputeResource.exists(search=('name', comp_res['name']))
+    module_target_sat.cli.ComputeResource.delete({'name': comp_res['name']})
+    result = module_target_sat.cli.ComputeResource.exists(search=('name', comp_res['name']))
     assert not result
 
 
 @pytest.mark.tier1
-def test_positive_delete_by_id(rhev):
+def test_positive_delete_by_id(rhev, module_target_sat):
     """Delete the RHEV compute resource by id
 
     :id: 4bcd4fa3-df8b-4773-b142-e47458116552
@@ -135,7 +129,7 @@ def test_positive_delete_by_id(rhev):
 
     :BZ: 1602835
     """
-    comp_res = make_compute_resource(
+    comp_res = module_target_sat.cli_factory.compute_resource(
         {
             'provider': 'Ovirt',
             'user': rhev.username,
@@ -145,13 +139,13 @@ def test_positive_delete_by_id(rhev):
         }
     )
     assert comp_res['name']
-    ComputeResource.delete({'id': comp_res['id']})
-    result = ComputeResource.exists(search=('name', comp_res['name']))
+    module_target_sat.cli.ComputeResource.delete({'id': comp_res['id']})
+    result = module_target_sat.cli.ComputeResource.exists(search=('name', comp_res['name']))
     assert not result
 
 
 @pytest.mark.tier2
-def test_negative_create_rhev_with_url(rhev):
+def test_negative_create_rhev_with_url(rhev, module_target_sat):
     """RHEV compute resource negative create with invalid values
 
     :id: 1f318a4b-8dca-491b-b56d-cff773ed624e
@@ -161,7 +155,7 @@ def test_negative_create_rhev_with_url(rhev):
     :CaseImportance: High
     """
     with pytest.raises(CLIReturnCodeError):
-        ComputeResource.create(
+        module_target_sat.cli.ComputeResource.create(
             {
                 'provider': 'Ovirt',
                 'user': rhev.username,
@@ -173,7 +167,7 @@ def test_negative_create_rhev_with_url(rhev):
 
 
 @pytest.mark.tier2
-def test_negative_create_with_same_name(rhev):
+def test_negative_create_with_same_name(rhev, module_target_sat):
     """RHEV compute resource negative create with the same name
 
     :id: f00813ef-df31-462c-aa87-479b8272aea3
@@ -188,7 +182,7 @@ def test_negative_create_with_same_name(rhev):
     :CaseImportance: High
     """
     name = gen_string('alpha')
-    compute_resource = make_compute_resource(
+    compute_resource = module_target_sat.cli_factory.compute_resource(
         {
             'name': name,
             'provider': 'Ovirt',
@@ -200,7 +194,7 @@ def test_negative_create_with_same_name(rhev):
     )
     assert compute_resource['name'] == name
     with pytest.raises(CLIFactoryError):
-        make_compute_resource(
+        module_target_sat.cli_factory.compute_resource(
             {
                 'name': name,
                 'provider': 'Ovirt',
@@ -214,7 +208,7 @@ def test_negative_create_with_same_name(rhev):
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_update_name(rhev):
+def test_positive_update_name(rhev, module_target_sat):
     """RHEV compute resource positive update
 
     :id: 5ca29b81-d1f0-409f-843d-aa5daf957d7f
@@ -231,7 +225,7 @@ def test_positive_update_name(rhev):
     :BZ: 1602835
     """
     new_name = gen_string('alpha')
-    comp_res = make_compute_resource(
+    comp_res = module_target_sat.cli_factory.compute_resource(
         {
             'provider': 'Ovirt',
             'user': rhev.username,
@@ -241,12 +235,12 @@ def test_positive_update_name(rhev):
         }
     )
     assert comp_res['name']
-    ComputeResource.update({'name': comp_res['name'], 'new-name': new_name})
-    assert new_name == ComputeResource.info({'id': comp_res['id']})['name']
+    module_target_sat.cli.ComputeResource.update({'name': comp_res['name'], 'new-name': new_name})
+    assert new_name == module_target_sat.cli.ComputeResource.info({'id': comp_res['id']})['name']
 
 
 @pytest.mark.tier2
-def test_positive_add_image_rhev_with_name(rhev, module_os):
+def test_positive_add_image_rhev_with_name(rhev, module_os, module_target_sat):
     """Add images to the RHEV compute resource
 
     :id: 2da84165-a56f-4282-9343-94828fa69c13
@@ -265,7 +259,7 @@ def test_positive_add_image_rhev_with_name(rhev, module_os):
     if rhev.image_uuid is None:
         pytest.skip('Missing configuration for rhev.image_uuid')
 
-    comp_res = make_compute_resource(
+    comp_res = module_target_sat.cli_factory.compute_resource(
         {
             'provider': 'Ovirt',
             'user': rhev.username,
@@ -275,7 +269,7 @@ def test_positive_add_image_rhev_with_name(rhev, module_os):
         }
     )
     assert comp_res['name']
-    ComputeResource.image_create(
+    module_target_sat.cli.ComputeResource.image_create(
         {
             'compute-resource': comp_res['name'],
             'name': f'img {gen_string(str_type="alpha")}',
@@ -285,13 +279,15 @@ def test_positive_add_image_rhev_with_name(rhev, module_os):
             'username': "root",
         }
     )
-    result = ComputeResource.image_list({'compute-resource': comp_res['name']})
+    result = module_target_sat.cli.ComputeResource.image_list(
+        {'compute-resource': comp_res['name']}
+    )
     assert result[0]['uuid'] == rhev.image_uuid
 
 
 @pytest.mark.skip_if_open("BZ:1829239")
 @pytest.mark.tier2
-def test_negative_add_image_rhev_with_invalid_uuid(rhev, module_os):
+def test_negative_add_image_rhev_with_invalid_uuid(rhev, module_os, module_target_sat):
     """Attempt to add invalid image to the RHEV compute resource
 
     :id: e8a653f9-9749-4c76-95ed-2411a7c0a117
@@ -309,7 +305,7 @@ def test_negative_add_image_rhev_with_invalid_uuid(rhev, module_os):
 
     :BZ: 1829239
     """
-    comp_res = make_compute_resource(
+    comp_res = module_target_sat.cli_factory.compute_resource(
         {
             'provider': 'Ovirt',
             'user': rhev.username,
@@ -320,7 +316,7 @@ def test_negative_add_image_rhev_with_invalid_uuid(rhev, module_os):
     )
     assert comp_res['name']
     with pytest.raises(CLIReturnCodeError):
-        ComputeResource.image_create(
+        module_target_sat.cli.ComputeResource.image_create(
             {
                 'compute-resource': comp_res['name'],
                 'name': f'img {gen_string(str_type="alpha")}',
@@ -333,7 +329,7 @@ def test_negative_add_image_rhev_with_invalid_uuid(rhev, module_os):
 
 
 @pytest.mark.tier2
-def test_negative_add_image_rhev_with_invalid_name(rhev, module_os):
+def test_negative_add_image_rhev_with_invalid_name(rhev, module_os, module_target_sat):
     """Attempt to add invalid image name to the RHEV compute resource
 
     :id: 873a7d79-1e89-4e4f-81ca-b6db1e0246da
@@ -353,7 +349,7 @@ def test_negative_add_image_rhev_with_invalid_name(rhev, module_os):
     if rhev.image_uuid is None:
         pytest.skip('Missing configuration for rhev.image_uuid')
 
-    comp_res = make_compute_resource(
+    comp_res = module_target_sat.cli_factory.compute_resource(
         {
             'provider': 'Ovirt',
             'user': rhev.username,
@@ -365,7 +361,7 @@ def test_negative_add_image_rhev_with_invalid_name(rhev, module_os):
 
     assert comp_res['name']
     with pytest.raises(CLIReturnCodeError):
-        ComputeResource.image_create(
+        module_target_sat.cli.ComputeResource.image_create(
             {
                 'compute-resource': comp_res['name'],
                 # too long string (>255 chars)
@@ -493,7 +489,7 @@ def test_positive_provision_rhev_with_host_group(
     # checks
     hostname = f'{host_name}.{domain_name}'
     assert hostname == host['name']
-    host_info = Host.info({'name': hostname})
+    host_info = cli.Host.info({'name': hostname})
     # Check on RHV, if VM exists
     assert rhev.rhv_api.does_vm_exist(hostname)
     # Get the information of created VM
@@ -658,7 +654,7 @@ def test_positive_provision_rhev_image_based_and_disassociate(
         )
         hostname = f'{host_name}.{domain_name}'
         assert hostname == host['name']
-        host_info = Host.info({'name': hostname})
+        host_info = cli.Host.info({'name': hostname})
         # Check on RHV, if VM exists
         assert rhev.rhv_api.does_vm_exist(hostname)
         # Get the information of created VM

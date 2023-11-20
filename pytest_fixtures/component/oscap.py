@@ -4,7 +4,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 import pytest
 
-from robottelo.cli.factory import make_scapcontent
 from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import OSCAP_PROFILE, OSCAP_TAILORING_FILE, DataFile
 
@@ -29,9 +28,11 @@ def oscap_content_path(session_target_sat):
 
 
 @pytest.fixture(scope="module")
-def scap_content(import_ansible_roles):
+def scap_content(import_ansible_roles, module_target_sat):
     title = f"rhel-content-{gen_string('alpha')}"
-    scap_info = make_scapcontent({'title': title, 'scap-file': f'{settings.oscap.content_path}'})
+    scap_info = module_target_sat.cli_factory.scapcontent(
+        {'title': title, 'scap-file': f'{settings.oscap.content_path}'}
+    )
     scap_id = scap_info['id']
     scap_info = entities.ScapContents(id=scap_id).read()
 
