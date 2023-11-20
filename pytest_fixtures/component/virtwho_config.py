@@ -12,7 +12,7 @@ from robottelo.utils.virtwho import (
 LOGGEDOUT = 'Logged out.'
 
 
-@pytest.fixture()
+@pytest.fixture
 def org_module(request, default_org, module_sca_manifest_org):
     if 'sca' in request.module.__name__.split('.')[-1]:
         org_module = module_sca_manifest_org
@@ -21,7 +21,7 @@ def org_module(request, default_org, module_sca_manifest_org):
     return org_module
 
 
-@pytest.fixture()
+@pytest.fixture
 def org_session(request, session, session_sca):
     if 'sca' in request.module.__name__.split('.')[-1]:
         org_session = session_sca
@@ -30,7 +30,7 @@ def org_session(request, session, session_sca):
     return org_session
 
 
-@pytest.fixture()
+@pytest.fixture
 def form_data_cli(request, target_sat, org_module):
     hypervisor_type = request.module.__name__.split('.')[-1].split('_', 1)[-1]
     if 'esx' in hypervisor_type:
@@ -105,7 +105,7 @@ def form_data_cli(request, target_sat, org_module):
     return form
 
 
-@pytest.fixture()
+@pytest.fixture
 def form_data_api(request, target_sat, org_module):
     hypervisor_type = request.module.__name__.split('.')[-1].split('_', 1)[-1]
     if 'esx' in hypervisor_type:
@@ -180,7 +180,7 @@ def form_data_api(request, target_sat, org_module):
     return form
 
 
-@pytest.fixture()
+@pytest.fixture
 def form_data_ui(request, target_sat, org_module):
     hypervisor_type = request.module.__name__.split('.')[-1].split('_', 1)[-1]
     if 'esx' in hypervisor_type:
@@ -235,7 +235,7 @@ def form_data_ui(request, target_sat, org_module):
     return form
 
 
-@pytest.fixture()
+@pytest.fixture
 def virtwho_config_cli(form_data_cli, target_sat):
     virtwho_config_cli = target_sat.cli.VirtWhoConfig.create(form_data_cli)['general-information']
     yield virtwho_config_cli
@@ -243,7 +243,7 @@ def virtwho_config_cli(form_data_cli, target_sat):
     assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data_cli['name']))
 
 
-@pytest.fixture()
+@pytest.fixture
 def virtwho_config_api(form_data_api, target_sat):
     virtwho_config_api = target_sat.api.VirtWhoConfig(**form_data_api).create()
     yield virtwho_config_api
@@ -253,7 +253,7 @@ def virtwho_config_api(form_data_api, target_sat):
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def virtwho_config_ui(form_data_ui, target_sat, org_session):
     name = gen_string('alpha')
     form_data_ui['name'] = name
@@ -264,7 +264,7 @@ def virtwho_config_ui(form_data_ui, target_sat, org_session):
         assert not org_session.virtwho_configure.search(name)
 
 
-@pytest.fixture()
+@pytest.fixture
 def deploy_type_cli(
     request,
     org_module,
@@ -286,10 +286,10 @@ def deploy_type_cli(
         hypervisor_name, guest_name = deploy_configure_by_script(
             script, form_data_cli['hypervisor-type'], debug=True, org=org_module.label
         )
-    yield hypervisor_name, guest_name
+    return hypervisor_name, guest_name
 
 
-@pytest.fixture()
+@pytest.fixture
 def deploy_type_api(
     request,
     org_module,
@@ -312,10 +312,10 @@ def deploy_type_api(
             debug=True,
             org=org_module.label,
         )
-    yield hypervisor_name, guest_name
+    return hypervisor_name, guest_name
 
 
-@pytest.fixture()
+@pytest.fixture
 def deploy_type_ui(
     request,
     org_module,
@@ -336,10 +336,10 @@ def deploy_type_ui(
         hypervisor_name, guest_name = deploy_configure_by_script(
             script, form_data_ui['hypervisor_type'], debug=True, org=org_module.label
         )
-    yield hypervisor_name, guest_name
+    return hypervisor_name, guest_name
 
 
-@pytest.fixture()
+@pytest.fixture
 def delete_host(form_data, target_sat):
     guest_name, _ = get_guest_info(form_data['hypervisor_type'])
     results = target_sat.api.Host().search(query={'search': guest_name})
