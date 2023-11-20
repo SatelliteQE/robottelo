@@ -313,6 +313,7 @@ def pxe_loader(request):
         'bios': {'vm_firmware': 'bios', 'pxe_loader': 'PXELinux BIOS'},
         'uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI'},
         'ipxe': {'vm_firmware': 'bios', 'pxe_loader': 'iPXE Embedded'},
+        'http_uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI HTTP'},
     }
     return Box(PXE_LOADER_MAP[getattr(request, 'param', 'bios')])
 
