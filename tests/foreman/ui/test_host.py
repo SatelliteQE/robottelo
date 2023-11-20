@@ -111,6 +111,20 @@ def tracer_install_host(rex_contenthost, target_sat):
     return rex_contenthost
 
 
+@pytest.fixture
+def new_host_ui(target_sat):
+    """Changes the setting to use the New All Host UI
+    then returns it back to the normal value"""
+    all_hosts_setting = target_sat.api.Setting().search(
+        query={'search': f'name={"new_hosts_page"}'}
+    )[0]
+    all_hosts_setting.value = 'True'
+    all_hosts_setting.update({'value'})
+    yield
+    all_hosts_setting.value = 'False'
+    all_hosts_setting.update({'value'})
+
+
 @pytest.mark.e2e
 @pytest.mark.tier2
 def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_options):
@@ -2433,3 +2447,46 @@ def test_positive_host_registration_with_non_admin_user(
         # Verify server.hostname and server.port from subscription-manager config
         assert target_sat.hostname == rhel8_contenthost.subscription_config['server']['hostname']
         assert constants.CLIENT_PORT == rhel8_contenthost.subscription_config['server']['port']
+
+
+@pytest.mark.tier2
+def test_all_hosts_delete(session, target_sat, function_org, function_location, new_host_ui):
+    """Create a host and delete it through All Hosts UI
+
+    :id: 42b4560c-bb57-4c58-928e-e5fd5046b93f
+
+    :expectedresults: Successful deletion of a host through the table dropdown
+
+    :CaseComponent:Hosts-Content
+
+    :Team: Phoenix-subscriptions
+
+    :CaseLevel: System
+    """
+    host = target_sat.api.Host(organization=function_org, location=function_location).create()
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        session.location.select(function_location.name)
+        assert session.all_hosts.delete(host.name)
+
+
+@pytest.mark.tier2
+def test_all_hosts_bulk_delete(session, target_sat, function_org, function_location, new_host_ui):
+    """Create several hosts, and delete them via Bulk Actions in All Hosts UI
+
+    :id: af1b4a66-dd83-47c3-904b-e8627119cc53
+
+    :expectedresults: Successful deletion of multiple hosts at once through Bulk Action
+
+    :CaseComponent:Hosts-Content
+
+    :Team: Phoenix-subscriptions
+
+    :CaseLevel: System
+    """
+    for _ in range(10):
+        target_sat.api.Host(organization=function_org, location=function_location).create()
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        session.location.select(function_location.name)
+        assert session.all_hosts.bulk_delete_all()
