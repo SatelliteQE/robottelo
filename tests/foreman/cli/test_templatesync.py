@@ -21,8 +21,6 @@ from nailgun import entities
 import pytest
 import requests
 
-from robottelo.cli.template import Template
-from robottelo.cli.template_sync import TemplateSync
 from robottelo.config import settings
 from robottelo.constants import (
     FOREMAN_TEMPLATE_IMPORT_URL,
@@ -83,7 +81,7 @@ class TestTemplateSyncTestCase:
         """
         prefix = gen_string('alpha')
         _, dir_path = create_import_export_local_dir
-        TemplateSync.imports(
+        target_sat.cli.TemplateSync.imports(
             {'repo': dir_path, 'prefix': prefix, 'organization-ids': module_org.id, 'lock': 'true'}
         )
         ptemplate = entities.ProvisioningTemplate().search(
@@ -93,11 +91,13 @@ class TestTemplateSyncTestCase:
             assert ptemplate[0].read().locked
             update_txt = 'updated a little'
             target_sat.execute(f"echo {update_txt} >> {dir_path}/example_template.erb")
-            TemplateSync.imports(
+            target_sat.cli.TemplateSync.imports(
                 {'repo': dir_path, 'prefix': prefix, 'organization-id': module_org.id}
             )
-            assert update_txt not in Template.dump({'name': f'{prefix}example template'})
-            TemplateSync.imports(
+            assert update_txt not in target_sat.cli.Template.dump(
+                {'name': f'{prefix}example template'}
+            )
+            target_sat.cli.TemplateSync.imports(
                 {
                     'repo': dir_path,
                     'prefix': prefix,
@@ -105,7 +105,7 @@ class TestTemplateSyncTestCase:
                     'force': 'true',
                 }
             )
-            assert update_txt in Template.dump({'name': f'{prefix}example template'})
+            assert update_txt in target_sat.cli.Template.dump({'name': f'{prefix}example template'})
         else:
             pytest.fail('The template is not imported for force test')
 
@@ -126,7 +126,9 @@ class TestTemplateSyncTestCase:
         indirect=True,
         ids=['non_empty_repo'],
     )
-    def test_positive_update_templates_in_git(self, module_org, git_repository, git_branch, url):
+    def test_positive_update_templates_in_git(
+        self, module_org, git_repository, git_branch, url, module_target_sat
+    ):
         """Assure only templates with a given filter are pushed to
         git repository and existing template file is updated.
 
@@ -159,7 +161,7 @@ class TestTemplateSyncTestCase:
         assert res.status_code == 201
         # export template to git
         url = f'{url}/{git.username}/{git_repository["name"]}'
-        output = TemplateSync.exports(
+        output = module_target_sat.cli.TemplateSync.exports(
             {
                 'repo': url,
                 'branch': git_branch,
@@ -192,7 +194,7 @@ class TestTemplateSyncTestCase:
         ids=['non_empty_repo', 'empty_repo'],
     )
     def test_positive_export_filtered_templates_to_git(
-        self, module_org, git_repository, git_branch, url
+        self, module_org, git_repository, git_branch, url, module_target_sat
     ):
         """Assure only templates with a given filter regex are pushed to
         git repository.
@@ -213,7 +215,7 @@ class TestTemplateSyncTestCase:
         """
         dirname = 'export'
         url = f'{url}/{git.username}/{git_repository["name"]}'
-        output = TemplateSync.exports(
+        output = module_target_sat.cli.TemplateSync.exports(
             {
                 'repo': url,
                 'branch': git_branch,
@@ -247,7 +249,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Medium
         """
         dir_path = '/tmp'
-        output = TemplateSync.exports(
+        output = target_sat.cli.TemplateSync.exports(
             {'repo': dir_path, 'organization-id': module_org.id, 'filter': 'ansible'}
         ).split('\n')
         exported_count = [row == 'Exported: true' for row in output].count(True)

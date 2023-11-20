@@ -20,9 +20,9 @@ from time import sleep
 
 import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
+from robottelo.exceptions import CLIReturnCodeError
 
 pytestmark = [pytest.mark.destructive]
 

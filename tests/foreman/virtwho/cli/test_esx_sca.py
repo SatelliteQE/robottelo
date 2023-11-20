@@ -20,7 +20,6 @@ from fauxfactory import gen_string
 import pytest
 import requests
 
-from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.utils.virtwho import (
     ETC_VIRTWHO_CONFIG,
@@ -399,7 +398,7 @@ class TestVirtWhoConfigforEsx:
             command, form_data['hypervisor-type'], org=module_sca_manifest_org.label
         )
         rhsm_username = get_configure_option('rhsm_username', config_file)
-        assert not User.exists(search=('login', rhsm_username))
+        assert not target_sat.cli.User.exists(search=('login', rhsm_username))
         assert get_configure_option('rhsm_hostname', config_file) == target_sat.hostname
         assert get_configure_option('rhsm_prefix', config_file) == '/rhsm'
 

@@ -19,7 +19,6 @@
 from broker import Broker
 import pytest
 
-from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.config import settings
 from robottelo.constants import (
     CONTAINER_REGISTRY_HUB,
@@ -31,8 +30,10 @@ from robottelo.hosts import ContentHost
 
 
 @pytest.fixture
-def lce(function_entitlement_manifest_org):
-    return make_lifecycle_environment({'organization-id': function_entitlement_manifest_org.id})
+def lce(function_entitlement_manifest_org, target_sat):
+    return target_sat.cli_factory.make_lifecycle_environment(
+        {'organization-id': function_entitlement_manifest_org.id}
+    )
 
 
 @pytest.mark.tier4
