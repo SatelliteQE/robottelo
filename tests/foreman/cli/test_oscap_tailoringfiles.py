@@ -19,10 +19,8 @@
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError, make_tailoringfile
-from robottelo.cli.scap_tailoring_files import TailoringFiles
 from robottelo.constants import SNIPPET_DATA_FILE, DataFile
+from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
     invalid_names_list,
     parametrized,
@@ -35,7 +33,7 @@ class TestTailoringFiles:
 
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     @pytest.mark.tier1
-    def test_positive_create(self, tailoring_file_path, name):
+    def test_positive_create(self, tailoring_file_path, name, module_target_sat):
         """Create new Tailoring Files using different values types as name
 
         :id: e1bb4de2-1b64-4904-bc7c-f0befa9dbd6f
@@ -48,17 +46,17 @@ class TestTailoringFiles:
 
         :parametrized: yes
         """
-        tailoring_file = make_tailoringfile(
+        tailoring_file = module_target_sat.cli_factory.tailoringfile(
             {'name': name, 'scap-file': tailoring_file_path['satellite']}
         )
         assert tailoring_file['name'] == name
         # Delete tailoring files which created for all valid input (ex- latin1, cjk, utf-8, etc.)
-        TailoringFiles.delete({'id': tailoring_file['id']})
+        module_target_sat.cli.TailoringFiles.delete({'id': tailoring_file['id']})
         with pytest.raises(CLIReturnCodeError):
-            TailoringFiles.info({'id': tailoring_file['id']})
+            module_target_sat.cli.TailoringFiles.info({'id': tailoring_file['id']})
 
     @pytest.mark.tier1
-    def test_positive_create_with_space(self, tailoring_file_path):
+    def test_positive_create_with_space(self, tailoring_file_path, module_target_sat):
         """Create tailoring files with space in name
 
         :id: c98ef4e7-41c5-4a8b-8a0b-8d53100b75a8
@@ -72,13 +70,13 @@ class TestTailoringFiles:
         :CaseImportance: Medium
         """
         name = gen_string('alphanumeric') + ' ' + gen_string('alphanumeric')
-        tailoring_file = make_tailoringfile(
+        tailoring_file = module_target_sat.cli_factory.tailoringfile(
             {'name': name, 'scap-file': tailoring_file_path['satellite']}
         )
         assert tailoring_file['name'] == name
 
     @pytest.mark.tier1
-    def test_positive_get_info_of_tailoring_file(self, tailoring_file_path):
+    def test_positive_get_info_of_tailoring_file(self, tailoring_file_path, module_target_sat):
         """Get information of tailoring file
 
         :id: bc201194-e8c8-4385-a577-09f3455f5a4d
@@ -96,12 +94,14 @@ class TestTailoringFiles:
         :CaseImportance: Medium
         """
         name = gen_string('alphanumeric')
-        make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
-        result = TailoringFiles.info({'name': name})
+        module_target_sat.cli_factory.tailoringfile(
+            {'name': name, 'scap-file': tailoring_file_path['satellite']}
+        )
+        result = module_target_sat.cli.TailoringFiles.info({'name': name})
         assert result['name'] == name
 
     @pytest.mark.tier1
-    def test_positive_list_tailoring_file(self, tailoring_file_path):
+    def test_positive_list_tailoring_file(self, tailoring_file_path, module_target_sat):
         """List all created tailoring files
 
         :id: 2ea63c4b-eebe-468d-8153-807e86d1b6a2
@@ -118,8 +118,10 @@ class TestTailoringFiles:
         :CaseImportance: Medium
         """
         name = gen_string('utf8', length=5)
-        make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
-        result = TailoringFiles.list()
+        module_target_sat.cli_factory.tailoringfile(
+            {'name': name, 'scap-file': tailoring_file_path['satellite']}
+        )
+        result = module_target_sat.cli.TailoringFiles.list()
         assert name in [tailoringfile['name'] for tailoringfile in result]
 
     @pytest.mark.tier1
@@ -139,11 +141,13 @@ class TestTailoringFiles:
         target_sat.put(DataFile.SNIPPET_DATA_FILE, f'/tmp/{SNIPPET_DATA_FILE}')
         name = gen_string('alphanumeric')
         with pytest.raises(CLIFactoryError):
-            make_tailoringfile({'name': name, 'scap-file': f'/tmp/{SNIPPET_DATA_FILE}'})
+            target_sat.cli_factory.tailoringfile(
+                {'name': name, 'scap-file': f'/tmp/{SNIPPET_DATA_FILE}'}
+            )
 
     @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
     @pytest.mark.tier1
-    def test_negative_create_with_invalid_name(self, tailoring_file_path, name):
+    def test_negative_create_with_invalid_name(self, tailoring_file_path, name, module_target_sat):
         """Create Tailoring files with invalid name
 
         :id: 973eee82-9735-49bb-b534-0de619aa0279
@@ -159,7 +163,9 @@ class TestTailoringFiles:
         :CaseImportance: Medium
         """
         with pytest.raises(CLIFactoryError):
-            make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
+            module_target_sat.cli_factory.tailoringfile(
+                {'name': name, 'scap-file': tailoring_file_path['satellite']}
+            )
 
     @pytest.mark.stubbed
     @pytest.mark.tier2
@@ -202,11 +208,13 @@ class TestTailoringFiles:
         """
         name = gen_string('alphanumeric')
         file_path = f'/var{tailoring_file_path["satellite"]}'
-        tailoring_file = make_tailoringfile(
+        tailoring_file = target_sat.cli_factory.tailoringfile(
             {'name': name, 'scap-file': tailoring_file_path['satellite']}
         )
         assert tailoring_file['name'] == name
-        result = TailoringFiles.download_tailoring_file({'name': name, 'path': '/var/tmp/'})
+        result = target_sat.cli.TailoringFiles.download_tailoring_file(
+            {'name': name, 'path': '/var/tmp/'}
+        )
         assert file_path in result
         result = target_sat.execute(f'find {file_path} 2> /dev/null')
         assert result.status == 0
@@ -214,7 +222,7 @@ class TestTailoringFiles:
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    def test_positive_delete_tailoring_file(self, tailoring_file_path):
+    def test_positive_delete_tailoring_file(self, tailoring_file_path, module_target_sat):
         """Delete tailoring file
 
         :id: 8bab5478-1ef1-484f-aafd-98e5cba7b1e7
@@ -228,10 +236,12 @@ class TestTailoringFiles:
 
         :CaseImportance: Medium
         """
-        tailoring_file = make_tailoringfile({'scap-file': tailoring_file_path['satellite']})
-        TailoringFiles.delete({'id': tailoring_file['id']})
+        tailoring_file = module_target_sat.cli_factory.tailoringfile(
+            {'scap-file': tailoring_file_path['satellite']}
+        )
+        module_target_sat.cli.TailoringFiles.delete({'id': tailoring_file['id']})
         with pytest.raises(CLIReturnCodeError):
-            TailoringFiles.info({'id': tailoring_file['id']})
+            module_target_sat.cli.TailoringFiles.info({'id': tailoring_file['id']})
 
     @pytest.mark.stubbed
     @pytest.mark.tier4

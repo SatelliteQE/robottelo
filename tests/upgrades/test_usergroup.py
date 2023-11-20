@@ -43,7 +43,7 @@ class TestUserGroupMembership:
         ad_data = ad_data()
         member_group = 'foobargroup'
         LOGEDIN_MSG = "Using configured credentials for user '{0}'."
-        auth_source = target_sat.cli_factory.make_ldap_auth_source(
+        auth_source = target_sat.cli_factory.ldap_auth_source(
             {
                 'name': gen_string('alpha'),
                 'onthefly-register': 'true',
@@ -59,8 +59,8 @@ class TestUserGroupMembership:
             }
         )
         viewer_role = target_sat.cli.Role.info({'name': 'Viewer'})
-        user_group = target_sat.cli_factory.make_usergroup()
-        target_sat.cli_factory.make_usergroup_external(
+        user_group = target_sat.cli_factory.usergroup()
+        target_sat.cli_factory.usergroup_external(
             {
                 'auth-source-id': auth_source['server']['id'],
                 'user-group-id': user_group['id'],

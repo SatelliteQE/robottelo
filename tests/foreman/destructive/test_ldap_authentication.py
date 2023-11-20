@@ -23,9 +23,9 @@ from navmazing import NavigationTriesExceeded
 import pyotp
 import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import CERT_PATH, HAMMER_CONFIG, HAMMER_SESSIONS, LDAP_ATTR
+from robottelo.exceptions import CLIReturnCodeError
 from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
 
@@ -475,9 +475,9 @@ def test_user_permissions_rhsso_user_after_group_delete(
     default_sso_host.update_rhsso_user(username, group_name=group_name)
 
     # creating satellite external group
-    user_group = module_target_sat.cli_factory.make_usergroup({'admin': 1, 'name': group_name})
+    user_group = module_target_sat.cli_factory.usergroup({'admin': 1, 'name': group_name})
     external_auth_source = module_target_sat.cli.ExternalAuthSource.info({'name': "External"})
-    module_target_sat.cli_factory.make_usergroup_external(
+    module_target_sat.cli_factory.usergroup_external(
         {
             'auth-source-id': external_auth_source['id'],
             'user-group-id': user_group['id'],
@@ -555,8 +555,8 @@ def test_user_permissions_rhsso_user_multiple_group(
         argument['name'] = group_name
 
         # creating satellite external groups
-        user_group = module_target_sat.cli_factory.make_usergroup(argument)
-        module_target_sat.cli_factory.make_usergroup_external(
+        user_group = module_target_sat.cli_factory.usergroup(argument)
+        module_target_sat.cli_factory.usergroup_external(
             {
                 'auth-source-id': external_auth_source['id'],
                 'user-group-id': user_group['id'],

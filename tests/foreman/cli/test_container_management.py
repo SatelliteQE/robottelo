@@ -16,15 +16,6 @@ from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
 
-from robottelo.cli.factory import (
-    ContentView,
-    LifecycleEnvironment,
-    Repository,
-    make_content_view,
-    make_lifecycle_environment,
-    make_product_wait,
-    make_repository,
-)
 from robottelo.config import settings
 from robottelo.constants import (
     CONTAINER_REGISTRY_HUB,
@@ -34,7 +25,7 @@ from robottelo.constants import (
 from robottelo.logging import logger
 
 
-def _repo(product_id, name=None, upstream_name=None, url=None):
+def _repo(sat, product_id, name=None, upstream_name=None, url=None):
     """Creates a Docker-based repository.
 
     :param product_id: ID of the ``Product``.
@@ -46,7 +37,7 @@ def _repo(product_id, name=None, upstream_name=None, url=None):
         CONTAINER_REGISTRY_HUB constant.
     :return: A ``Repository`` object.
     """
-    return make_repository(
+    return sat.cli_factory.make_repository(
         {
             'content-type': REPO_TYPE['docker'],
             'docker-upstream-name': upstream_name or CONTAINER_UPSTREAM_NAME,
@@ -82,10 +73,10 @@ class TestDockerClient:
 
         :parametrized: yes
         """
-        product = make_product_wait({'organization-id': module_org.id})
-        repo = _repo(product['id'])
-        Repository.synchronize({'id': repo['id']})
-        repo = Repository.info({'id': repo['id']})
+        product = target_sat.cli_factory.make_product_wait({'organization-id': module_org.id})
+        repo = _repo(target_sat, product['id'])
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         try:
             result = container_contenthost.execute(
                 f'docker login -u {settings.server.admin_username}'
@@ -155,18 +146,22 @@ class TestDockerClient:
         # Satellite setup: create product and add Docker repository;
         # create content view and add Docker repository;
         # create lifecycle environment and promote content view to it
-        lce = make_lifecycle_environment({'organization-id': module_org.id})
-        product = make_product_wait({'organization-id': module_org.id})
-        repo = _repo(product['id'], upstream_name=CONTAINER_UPSTREAM_NAME)
-        Repository.synchronize({'id': repo['id']})
-        content_view = make_content_view({'composite': False, 'organization-id': module_org.id})
-        ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
-        ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({'id': content_view['id']})
-        ContentView.version_promote(
+        lce = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        product = target_sat.cli_factory.make_product_wait({'organization-id': module_org.id})
+        repo = _repo(target_sat, product['id'], upstream_name=CONTAINER_UPSTREAM_NAME)
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        content_view = target_sat.cli_factory.make_content_view(
+            {'composite': False, 'organization-id': module_org.id}
+        )
+        target_sat.cli.ContentView.add_repository(
+            {'id': content_view['id'], 'repository-id': repo['id']}
+        )
+        target_sat.cli.ContentView.publish({'id': content_view['id']})
+        content_view = target_sat.cli.ContentView.info({'id': content_view['id']})
+        target_sat.cli.ContentView.version_promote(
             {'id': content_view['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
         )
-        LifecycleEnvironment.update(
+        target_sat.cli.LifecycleEnvironment.update(
             {
                 'registry-name-pattern': registry_name_pattern,
                 'registry-unauthenticated-pull': 'false',
@@ -207,7 +202,7 @@ class TestDockerClient:
         assert docker_repo_uri not in result.stdout
 
         # 8. Set 'Unauthenticated Pull' option to true
-        LifecycleEnvironment.update(
+        target_sat.cli.LifecycleEnvironment.update(
             {
                 'registry-unauthenticated-pull': 'true',
                 'id': lce['id'],
@@ -259,18 +254,22 @@ class TestDockerClient:
         # Satellite setup: create product and add Docker repository;
         # create content view and add Docker repository;
         # create lifecycle environment and promote content view to it
-        lce = make_lifecycle_environment({'organization-id': module_org.id})
-        product = make_product_wait({'organization-id': module_org.id})
-        repo = _repo(product['id'], upstream_name=docker_upstream_name)
-        Repository.synchronize({'id': repo['id']})
-        content_view = make_content_view({'composite': False, 'organization-id': module_org.id})
-        ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
-        ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({'id': content_view['id']})
-        ContentView.version_promote(
+        lce = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        product = target_sat.cli_factory.make_product_wait({'organization-id': module_org.id})
+        repo = _repo(target_sat, product['id'], upstream_name=docker_upstream_name)
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        content_view = target_sat.cli_factory.make_content_view(
+            {'composite': False, 'organization-id': module_org.id}
+        )
+        target_sat.cli.ContentView.add_repository(
+            {'id': content_view['id'], 'repository-id': repo['id']}
+        )
+        target_sat.cli.ContentView.publish({'id': content_view['id']})
+        content_view = target_sat.cli.ContentView.info({'id': content_view['id']})
+        target_sat.cli.ContentView.version_promote(
             {'id': content_view['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
         )
-        LifecycleEnvironment.update(
+        target_sat.cli.LifecycleEnvironment.update(
             {
                 'registry-name-pattern': registry_name_pattern,
                 'registry-unauthenticated-pull': 'false',
@@ -315,7 +314,7 @@ class TestDockerClient:
         assert result.status == 1
 
         # 8. Set 'Unauthenticated Pull' option to true
-        LifecycleEnvironment.update(
+        target_sat.cli.LifecycleEnvironment.update(
             {
                 'registry-unauthenticated-pull': 'true',
                 'id': lce['id'],
@@ -364,7 +363,9 @@ class TestDockerClient:
             {'name': product_name, 'organization-id': module_org.id}
         )
 
-        repo = _repo(product['id'], name=repo_name, upstream_name=CONTAINER_UPSTREAM_NAME)
+        repo = _repo(
+            target_sat, product['id'], name=repo_name, upstream_name=CONTAINER_UPSTREAM_NAME
+        )
 
         # 2. Sync the repos
         target_sat.cli.Repository.synchronize({'id': repo['id']})
