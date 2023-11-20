@@ -2492,30 +2492,26 @@ def test_all_hosts_delete(session, target_sat, function_org, function_location, 
     with target_sat.ui_session() as session:
         session.organization.select(function_org.name)
         session.location.select(function_location.name)
-        session.all_hosts.delete(host.name)
-        assert session.all_hosts.search(host.name) is None
+        assert session.all_hosts.delete(host.name)
 
 
 @pytest.mark.tier2
 def test_all_hosts_bulk_delete(session, target_sat, function_org, function_location, new_host_ui):
     """Create several hosts, and delete them via Bulk Actions in All Hosts UI
+
     :id: af1b4a66-dd83-47c3-904b-e8627119cc53
 
     :expectedresults: Successful deletion of multiple hosts at once through Bulk Action
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent:Hosts-Content
 
     :Team: Phoenix-content
 
     :CaseLevel: System
     """
-    hosts = [
+    for _ in range(10):
         target_sat.api.Host(organization=function_org, location=function_location).create()
-        for _ in range(3)
-    ]
     with target_sat.ui_session() as session:
         session.organization.select(function_org.name)
         session.location.select(function_location.name)
-        session.all_hosts.bulk_delete_all()
-        for host in hosts:
-            assert session.all_hosts.search(host.name) is None
+        assert session.all_hosts.bulk_delete_all()
