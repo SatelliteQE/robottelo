@@ -20,6 +20,7 @@ from datetime import datetime
 
 from airgun.session import Session
 from broker import Broker
+from dateutil.parser import parse
 from fauxfactory import gen_string
 from manifester import Manifester
 from nailgun import entities
@@ -286,8 +287,6 @@ def test_end_to_end(
         'cves': 'N/A',
         'type': 'Security Advisory',
         'severity': 'N/A',
-        'issued': 'January 27, 2012 at 12:00 AM',
-        'last_updated_on': 'January 27, 2012 at 12:00 AM',
         'reboot_suggested': 'No',
         'topic': '',
         'description': 'Sea_Erratum',
@@ -334,8 +333,8 @@ def test_end_to_end(
         assert (
             not ERRATA_DETAILS.items() - errata['details'].items()
         ), 'Errata details do not match expected values.'
-        assert errata['details']['issued'] == ERRATA_DETAILS['issued']
-        assert errata['details']['last_updated_on'] == ERRATA_DETAILS['last_updated_on']
+        assert parse(errata['details']['issued']) == parse('2012-01-27 12:00:00 AM')
+        assert parse(errata['details']['last_updated_on']) == parse('2012-01-27 12:00:00 AM')
         assert set(errata['packages']['independent_packages']) == set(
             ERRATA_PACKAGES['independent_packages']
         )
