@@ -20,7 +20,8 @@ import uuid
 
 import pytest
 
-from robottelo.constants import CLIENT_PORT
+from robottelo import constants
+from robottelo.config import settings
 
 pytestmark = pytest.mark.tier1
 
@@ -60,7 +61,7 @@ def test_host_registration_end_to_end(
 
     # Verify server.hostname and server.port from subscription-manager config
     assert module_target_sat.hostname == rhel_contenthost.subscription_config['server']['hostname']
-    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+    assert constants.CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
 
     # Update module_capsule_configured to include module_org/module_location
     nc = module_capsule_configured.nailgun_smart_proxy
@@ -84,7 +85,7 @@ def test_host_registration_end_to_end(
         module_capsule_configured.hostname
         == rhel_contenthost.subscription_config['server']['hostname']
     )
-    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+    assert constants.CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
 
 
 @pytest.mark.tier3
@@ -124,4 +125,36 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
         location=module_location,
     ).create()
     result = rhel_contenthost.execute(command)
+    assert result.status == 0
+
+
+def test_positive_update_packages_registration(
+    module_target_sat,
+    module_entitlement_manifest_org,
+    module_location,
+    rhel8_contenthost,
+    module_activation_key,
+):
+    """Test package update on host post registration
+
+    :id: 3d0a3252-ab81-4acf-bca6-253b746f26bb
+
+    :expectedresults: Package update is successful on host post registration.
+
+    :CaseLevel: Component
+    """
+    org = module_entitlement_manifest_org
+    command = module_target_sat.api.RegistrationCommand(
+        organization=org,
+        location=module_location,
+        activation_keys=[module_activation_key.name],
+        update_packages=True,
+    ).create()
+    result = rhel8_contenthost.execute(command)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    package = constants.FAKE_7_CUSTOM_PACKAGE
+    repo_url = settings.repos.yum_3['url']
+    rhel8_contenthost.create_custom_repos(fake_yum=repo_url)
+    result = rhel8_contenthost.execute(f"yum install -y {package}")
     assert result.status == 0
