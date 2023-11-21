@@ -69,11 +69,12 @@ POWER_OPERATIONS = {
 
 @lru_cache
 def lru_sat_ready_rhel(rhel_ver):
+    rhel_version = rhel_ver or settings.server.version.rhel_version
     deploy_args = {
-        'deploy_rhel_version': rhel_ver or settings.server.version.rhel_version,
+        'deploy_rhel_version': rhel_version,
         'deploy_flavor': settings.flavors.default,
         'promtail_config_template_file': 'config_sat.j2',
-        'workflow': 'deploy-rhel',
+        'workflow': settings.content_host.get(f'rhel{Version(rhel_version).major}').vm.workflow,
     }
     sat_ready_rhel = Broker(**deploy_args, host_class=Satellite).checkout()
     return sat_ready_rhel
