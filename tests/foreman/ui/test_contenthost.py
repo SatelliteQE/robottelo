@@ -1851,6 +1851,7 @@ def test_positive_prepare_for_sca_only_content_host(
         session.location.select(default_location.name)
         host_details = session.contenthost.read(rhel_contenthost.hostname, widget_names='details')
         assert (
-            'This organization is not using Simple Content Access. Entitlement-based subscription management is deprecated and will be removed in Katello 4.12.'
+            'This organization is not using Simple Content Access. Entitlement-based subscription '
+            'management is deprecated and will be removed in Satellite 6.16.'
             in host_details['details']['sca_alert']
         )
