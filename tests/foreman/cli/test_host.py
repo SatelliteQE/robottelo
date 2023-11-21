@@ -1498,9 +1498,8 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
 def setup_custom_repo(target_sat, module_org, katello_host_tools_host, request):
     """Create custom repository content"""
 
-    if sca_eligible := module_org.sca_eligible().get('simple_content_access_eligible', False):
-        sca_enabled = module_org.simple_content_access
-        module_org.sca_disable()
+    sca_enabled = module_org.simple_content_access
+    module_org.sca_disable()
 
     # get package details
     details = {}
@@ -1546,9 +1545,9 @@ def setup_custom_repo(target_sat, module_org, katello_host_tools_host, request):
     )
     # refresh repository metadata
     katello_host_tools_host.subscription_manager_list_repos()
-    if sca_eligible:
-        yield
-        module_org.sca_enable() if sca_enabled else module_org.sca_disable()
+    if sca_enabled:
+        yield details
+        module_org.sca_enable()
     else:
         return details
 
