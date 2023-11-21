@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 
 from broker import Broker
+from packaging.version import Version
 import pytest
 from wait_for import wait_for
 
@@ -244,11 +245,12 @@ def parametrized_enrolled_sat(
 
 
 def get_deploy_args(request):
+    rhel_version = get_sat_rhel_version()
     deploy_args = {
-        'deploy_rhel_version': get_sat_rhel_version().base_version,
+        'deploy_rhel_version': rhel_version.base_version,
         'deploy_flavor': settings.flavors.default,
         'promtail_config_template_file': 'config_sat.j2',
-        'workflow': 'deploy-rhel',
+        'workflow': settings.content_host.get(f'rhel{rhel_version.major}').vm.workflow,
     }
     if hasattr(request, 'param'):
         if isinstance(request.param, dict):
@@ -267,11 +269,12 @@ def sat_ready_rhel(request):
 
 @pytest.fixture
 def cap_ready_rhel():
-    rhel8 = settings.content_host.rhel8.vm
+    rhel_version = Version(settings.capsule.version.release)
+    settings.content_host.get(f'rhel{rhel_version.major}').vm.workflow
     deploy_args = {
-        'deploy_rhel_version': rhel8.deploy_rhel_version,
-        'deploy_flavor': 'satqe-ssd.standard.std',
-        'workflow': rhel8.workflow,
+        'deploy_rhel_version': rhel_version.base_version,
+        'deploy_flavor': settings.flavors.default,
+        'workflow': settings.content_host.get(f'rhel{rhel_version.major}').vm.workflow,
     }
     with Broker(**deploy_args, host_class=Capsule) as host:
         yield host
