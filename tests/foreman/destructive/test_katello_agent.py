@@ -20,7 +20,6 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.content_info import get_repo_files_by_url
 
 pytestmark = [
     pytest.mark.run_in_one_thread,
@@ -163,34 +162,35 @@ def test_positive_upgrade_warning(sat_with_katello_agent):
     ver = sat.version.split('.')
     target_ver = f'{ver[0]}.{int(ver[1]) + 1}'
     warning = (
-        "The katello-agent feature is enabled on this system. As of Satellite 6.15, katello-agent "
-        "is removed and will no longer function. Before proceeding with the upgrade, you should "
-        "ensure that you have deployed and configured an alternative tool for remote package "
-        "management and patching for content hosts, such as Remote Execution (REX) with pull-based "
-        "transport. See the Managing Hosts guide in the Satellite documentation for more info. "
-        "Disable katello-agent with the command `satellite-installer --foreman-proxy-content-enable"
-        "-katello-agent false` before proceeding with the upgrade. Alternatively, you may skip "
-        "this check and proceed by running satellite-maintain again with the `--whitelist` option, "
-        "which will automatically uninstall katello-agent."
+        'The katello-agent feature is enabled on this system. As of Satellite 6.15, katello-agent '
+        'is removed and will no longer function. Before proceeding with the upgrade, you should '
+        'ensure that you have deployed and configured an alternative tool for remote package '
+        'management and patching for content hosts, such as Remote Execution (REX) with pull-based '
+        'transport. See the Managing Hosts guide in the Satellite documentation for more info. '
+        'Disable katello-agent with the command `satellite-installer --foreman-proxy-content-enable'
+        '-katello-agent false` before proceeding with the upgrade. Alternatively, you may skip '
+        'this check and proceed by running satellite-maintain again with the `--whitelist` option, '
+        'which will automatically uninstall katello-agent.'
     )
 
-    upstream_url = 'https://yum.theforeman.org/releases/nightly/el8/x86_64/'
-    upstream_files = get_repo_files_by_url(upstream_url)
-    fm_rpm = [item for item in upstream_files if 'foreman_maintain' in item]
-    assert fm_rpm, 'no upstream foreman-maintain package found'
+    upstream_rpms = sat.get_repo_files_by_url(constants.FOREMAN_NIGHTLY_URL)
+    fm_rpm = [rpm for rpm in upstream_rpms if 'foreman_maintain' in rpm]
+    assert fm_rpm, 'No upstream foreman-maintain package found'
 
     for rpm in fm_rpm:
-        res = sat.execute(f'yum -y install {upstream_url}{rpm}')
+        res = sat.execute(f'yum -y install {constants.FOREMAN_NIGHTLY_URL}{rpm}')
         assert res.status == 0, f'{rpm} installation failed'
 
-    sat.execute('satellite-maintain upgrade list-versions')
-    res = sat.execute('satellite-maintain upgrade list-versions')
-    assert res.status == 0, 'list-versions command failed'
-    assert target_ver in res.stdout, 'target version unavailable'
+    res = sat.cli.Upgrade.list_versions()
+    assert res.status == 0, 'Upgrade list-versions command failed'
+    assert target_ver in res.stdout, 'Target version or Scenario not found'
 
-    res = sat.execute(
-        f'satellite-maintain upgrade check --target-version="{target_ver}" '
-        '--whitelist="repositories-setup,repositories-validate" --assumeyes'
+    res = sat.cli.Upgrade.check(
+        options={
+            'target-version': target_ver,
+            'whitelist': 'repositories-setup,repositories-validate',
+            'assumeyes': True,
+        }
     )
-    assert res.status, 'upgrade check passed unexpectedly'
-    assert warning in res.stdout, 'warning message missing or changed'
+    assert res.status, 'Upgrade check passed unexpectedly'
+    assert warning in res.stdout, 'Katello-agent warning message missing or changed'
