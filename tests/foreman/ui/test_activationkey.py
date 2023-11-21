@@ -1244,6 +1244,6 @@ def test_positive_prepare_for_sca_only_ak(target_sat, function_entitlement_manif
         session.organization.select(function_entitlement_manifest_org.name)
         ak = session.activationkey.read(ak.name)
         assert (
-            'This organization is not using Simple Content Access. Entitlement-based subscription management is deprecated and will be removed in Katello 4.12.'
-            in ak['sca_alert']
+            'This organization is not using Simple Content Access. Entitlement-based subscription '
+            'management is deprecated and will be removed in Satellite 6.16.' in ak['sca_alert']
         )
