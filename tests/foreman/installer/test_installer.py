@@ -24,6 +24,7 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
 from robottelo.hosts import setup_capsule
 from robottelo.utils.installer import InstallerCommand
+from robottelo.utils.issue_handlers import is_open
 
 PREVIOUS_INSTALLER_OPTIONS = {
     '-',
@@ -1324,10 +1325,28 @@ def extract_help(filter='params'):
 def common_sat_install_assertions(satellite):
     sat_version = 'stream' if satellite.is_stream else satellite.version
     assert settings.server.version.release == sat_version
+
+    # no errors/failures in journald
     result = satellite.execute(
-        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/satellite.log'
+        r'journalctl --quiet --no-pager --boot --priority err -u "dynflow-sidekiq*" -u "foreman-proxy" -u "foreman" -u "httpd" -u "postgresql" -u "pulpcore-api" -u "pulpcore-content" -u "pulpcore-worker*" -u "redis" -u "tomcat"'
     )
     assert len(result.stdout) == 0
+    # no errors in /var/log/foreman/production.log
+    result = satellite.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
+    if not is_open('BZ:2247484'):
+        assert len(result.stdout) == 0
+    # no errors/failures in /var/log/foreman-installer/satellite.log
+    result = satellite.execute(
+        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
+    )
+    assert len(result.stdout) == 0
+    # no errors/failures in /var/log/httpd/*
+    result = satellite.execute(r'grep -iR "error" /var/log/httpd/*')
+    assert len(result.stdout) == 0
+    # no errors/failures in /var/log/candlepin/*
+    result = satellite.execute(r'grep -iR "error" /var/log/candlepin/*')
+    assert len(result.stdout) == 0
+
     result = satellite.cli.Health.check()
     assert 'FAIL' not in result.stdout
 
@@ -1350,7 +1369,6 @@ def install_satellite(satellite, installer_args):
         InstallerCommand(installer_args=installer_args).get_command(),
         timeout='30m',
     )
-    common_sat_install_assertions(satellite)
 
 
 @pytest.fixture(scope='module')
@@ -1361,7 +1379,8 @@ def sat_default_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
     install_satellite(module_sat_ready_rhels[0], installer_args)
-    return module_sat_ready_rhels[0]
+    yield module_sat_ready_rhels[0]
+    common_sat_install_assertions(module_sat_ready_rhels[0])
 
 
 @pytest.fixture(scope='module')
@@ -1374,11 +1393,13 @@ def sat_non_default_install(module_sat_ready_rhels):
         'foreman-proxy-content-pulpcore-hide-guarded-distributions false',
     ]
     install_satellite(module_sat_ready_rhels[1], installer_args)
-    return module_sat_ready_rhels[1]
+    yield module_sat_ready_rhels[1]
+    common_sat_install_assertions(module_sat_ready_rhels[1])
 
 
 @pytest.mark.e2e
 @pytest.mark.tier1
+@pytest.mark.pit_client
 def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
     """Run a basic Capsule installation
 
@@ -1392,6 +1413,8 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
 
     :expectedresults:
         1. Capsule is installed and setup correctly
+        2. no unexpected errors in logs
+        3. health check runs successfully
 
     :CaseImportance: Critical
     """
@@ -1413,14 +1436,29 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
     assert sat_default_install.api.Capsule().search(
         query={'search': f'name={cap_ready_rhel.hostname}'}
     )[0]
+
+    # no errors/failures in journald
     result = cap_ready_rhel.execute(
-        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/satellite.log'
+        r'journalctl --quiet --no-pager --boot --priority err -u foreman-proxy -u httpd -u postgresql -u pulpcore-api -u pulpcore-content -u pulpcore-worker* -u redis'
     )
     assert len(result.stdout) == 0
+    # no errors/failures /var/log/foreman-installer/satellite.log
     result = cap_ready_rhel.execute(
-        r'grep "\[ERROR" --after-context=100 /var/log/foreman-installer/capsule.log'
+        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
     )
     assert len(result.stdout) == 0
+    # no errors/failures /var/log/foreman-installer/capsule.log
+    result = cap_ready_rhel.execute(
+        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/capsule.log'
+    )
+    assert len(result.stdout) == 0
+    # no errors/failures in /var/log/httpd/*
+    result = cap_ready_rhel.execute(r'grep -iR "error" /var/log/httpd/*')
+    assert len(result.stdout) == 0
+    # no errors/failures in /var/log/foreman-proxy/*
+    result = cap_ready_rhel.execute(r'grep -iR "error" /var/log/foreman-proxy/*')
+    assert len(result.stdout) == 0
+
     result = cap_ready_rhel.cli.Health.check()
     assert 'FAIL' not in result.stdout
 
@@ -1687,71 +1725,6 @@ def test_installer_check_on_ipv6():
     """
 
 
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_positive_satellite_installer_logfile_check():
-    """Verify the no ERROR or FATAL messages appears in the log file during the satellite
-    installation
-
-    :id: c2f10f43-c52e-4f32-b3e9-7bc4b07e3b00
-
-    :steps:
-        1. Configure all the repositories(custom and cdn) for satellite installation.
-        2. Run yum update -y
-        3. Run satellite-installer -y
-        4. Check all the relevant log-files for ERROR/FATAL
-
-    :expectedresults: No Unexpected ERROR/FATAL message should appear in the following log
-        files during the satellite-installation.
-
-        1. /var/log/messages,
-        2. /var/log/foreman/production.log
-        3. /var/log/foreman-installer/satellite.log
-        4. /var/log/httpd,
-        5. /var/log/candlepin
-
-    :CaseLevel: System
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_positive_capsule_installer_logfile_check():
-    """Verify the no ERROR or FATAL messages appears in the log file during the capsule
-        installation
-
-    :id: cd505a5e-141e-47eb-98d8-a05acd74c3b3
-
-    :steps:
-        1. Install the satellite.
-        2. Add all the required cdn and custom repositories in satellite to install
-            the capsule.
-        3. Create life-cycle environment,content view and activation key.
-        4. Subscribe the capsule with created activation key.
-        5. Run 'yum update -y' on capsule.
-        6. Run 'yum install -y satellite-capsule' on capsule.
-        7. Create a certificate on satellite for new installed capsule.
-        8. Copy capsule certificate from satellite to capsule.
-        9. Run the satellite-installer(copy the satellite-installer command from step-7'th
-            generated output) command on capsule to integrate the capsule with satellite.
-        10. Check all the relevant log-files for ERROR/FATAL
-
-    :expectedresults: No Unexpected ERROR/FATAL message should appear in the following log
-        files during the capsule-installation.
-
-        1. /var/log/messages
-        2. /var/log/foreman-installer/capsule.log
-        3. /var/log/httpd
-        4. /var/log/foreman-proxy
-
-    :CaseLevel: System
-
-    :CaseAutomation: NotAutomated
-    """
-
-
 @pytest.mark.tier3
 def test_installer_cap_pub_directory_accessibility(capsule_configured):
     """Verify the public directory accessibility from capsule url after disabling it from the
@@ -1809,6 +1782,7 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
 @pytest.mark.tier1
 @pytest.mark.build_sanity
 @pytest.mark.first_sanity
+@pytest.mark.pit_client
 def test_satellite_installation(installer_satellite):
     """Run a basic Satellite installation
 
@@ -1824,7 +1798,8 @@ def test_satellite_installation(installer_satellite):
     :expectedresults:
         1. Correct satellite packaged is installed
         2. satellite-installer runs successfully
-        3. satellite-maintain health check runs successfully
+        3. no unexpected errors in logs
+        4. satellite-maintain health check runs successfully
 
     :CaseImportance: Critical
 
