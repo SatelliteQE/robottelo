@@ -510,7 +510,7 @@ def test_positive_view_hosts_with_non_admin_user(
     :expectedresults: user with only view_hosts, edit_hosts and view_organization permissions
         is able to read content hosts and hosts
 
-    :CaseLevel: System
+    :CaseLevel: Component
     """
     user_password = gen_string('alpha')
     role = target_sat.api.Role(organization=[module_org]).create()
@@ -2418,16 +2418,19 @@ def test_positive_host_registration_with_non_admin_user(
 
     :id: 35458bbc-4556-41b9-ba26-ae0b15179731
 
-    :expectedresults: User with register hosts permission able to do it.
+    :expectedresults: User with register hosts permission able to register hosts.
 
-    :CaseLevel: System
+    :CaseLevel: Component
     """
     user_password = gen_string('alpha')
     org = module_entitlement_manifest_org
     role = target_sat.api.Role(organization=[org]).create()
-    target_sat.api_factory.create_role_permissions(
-        role, {'Organization': ['view_organizations'], 'Host': ['view_hosts', 'register_hosts']}
-    )
+
+    user_permissions = {
+        'Organization': ['view_organizations'],
+        'Host': ['view_hosts'],
+    }
+    target_sat.api_factory.create_role_permissions(role, user_permissions)
     user = target_sat.api.User(
         role=[role],
         admin=False,
@@ -2437,12 +2440,12 @@ def test_positive_host_registration_with_non_admin_user(
         default_organization=org,
         default_location=module_location,
     ).create()
-    # created_host = target_sat.api.Host(location=module_location, organization=org).create()
-    with Session(test_name, user=user.login, password=user_password) as session:
-        host = session.host.get_details(rhel8_contenthost.name, widget_names='breadcrumb')
-        assert host['breadcrumb'] == rhel8_contenthost.name
+    role = target_sat.cli.Role.info({'name': 'Register hosts'})
+    target_sat.cli.User.add_role({'id': user.id, 'role-id': role['id']})
 
-        cmd = session.host.get_register_command(
+    with Session(test_name, user=user.login, password=user_password) as session:
+
+        cmd = session.host_new.get_register_command(
             {
                 'general.insecure': True,
                 'general.activation_keys': module_activation_key.name,
@@ -2451,3 +2454,7 @@ def test_positive_host_registration_with_non_admin_user(
 
         result = rhel8_contenthost.execute(cmd)
         assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+        # Verify server.hostname and server.port from subscription-manager config
+        assert target_sat.hostname == rhel8_contenthost.subscription_config['server']['hostname']
+        assert constants.CLIENT_PORT == rhel8_contenthost.subscription_config['server']['port']
