@@ -363,7 +363,7 @@ class TestProvisioningTemplate:
         :expectedresults: The rendered templates should contain the "vlan" parameter
                           expected for respective rhel hosts.
 
-        :BZ: 1607706
+        :BZ: 1607706, 2075358
 
         :customerscenario: true
 
@@ -409,7 +409,7 @@ class TestProvisioningTemplate:
         provision_template = host.read_template(data={'template_kind': 'provision'})['template']
         assert f'interfacename=vlan{tag}' in provision_template
         ipxe_template = host.read_template(data={'template_kind': 'iPXE'})['template']
-        assert f'vlan=vlan{tag}:{identifier}' in ipxe_template
+        assert f'vlan={identifier}.{tag}:{identifier}' in ipxe_template
 
     @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
     @pytest.mark.parametrize('pxe_loader', ['uefi'], indirect=True)
