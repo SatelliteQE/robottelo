@@ -102,8 +102,38 @@ def run_remote_command_on_content_host(command, vm_module_streams):
     return result
 
 
+def get_supported_rhel_versions():
+    """Helper to get the supported base rhel versions for contenthost.
+    return: a list of integers
+    """
+    return [
+        ver for ver in settings.supportability.content_hosts.rhel.versions if isinstance(ver, int)
+    ]
+
+
+def get_rhel_lifecycle_support(rhel_version):
+    """Helper to get what the Lifecycle Support Status should be,
+       based on provided rhel version.
+    :param rhel_version: integer of the current base rhel version
+    :return: string with the expected status of rhel version support
+    """
+    rhels = get_supported_rhel_versions()
+    rhel_lifecycle_status = 'Unknown'
+    if rhel_version not in rhels:
+        return rhel_lifecycle_status
+    elif (len(rhels) - 1) - rhels.index(rhel_version) <= 1:
+        rhel_lifecycle_status = 'Full support'
+    elif (len(rhels) - 1) - rhels.index(rhel_version) == 2:
+        rhel_lifecycle_status = 'Approaching end of maintenance support'
+    elif (len(rhels) - 1) - rhels.index(rhel_version) >= 3:
+        rhel_lifecycle_status = 'End of maintenance support'
+
+    return rhel_lifecycle_status
+
+
 @pytest.mark.e2e
 @pytest.mark.tier3
+@pytest.mark.parametrize('setting_update', ['new_hosts_page'], indirect=True)
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -120,7 +150,14 @@ def run_remote_command_on_content_host(command, vm_module_streams):
     indirect=True,
 )
 @pytest.mark.no_containers
-def test_positive_end_to_end(session, default_location, module_repos_collection_with_manifest, vm):
+def test_positive_end_to_end(
+    vm,
+    session,
+    module_org,
+    setting_update,
+    default_location,
+    module_repos_collection_with_manifest,
+):
     """Create all entities required for content host, set up host, register it
     as a content host, read content host details, install package and errata.
 
@@ -135,11 +172,27 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
 
     :CaseImportance: Critical
     """
+    property_name = setting_update.name
+    _distro = module_repos_collection_with_manifest.distro
+    host_rhel_version = None
+    if _distro.startswith('rhel'):
+        host_rhel_version = int(_distro[4:])
+    rhel_status = get_rhel_lifecycle_support(host_rhel_version if not None else 0)
+
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     startdate = datetime.utcnow().strftime('%m/%d/%Y')
     with session:
+        session.settings.update(f'name = {property_name}', 'Yes')
         session.location.select(default_location.name)
+        session.organization.select(module_org.name)
+        # Use new hosts UI, only check the details and host status
+        host_details = session.host.get_details(vm.hostname, widget_names='properties')
+        host_status = session.host_new.get_host_statuses(vm.hostname)
+        # Use old hosts UI for remainder
+        session.settings.update(f'name = {property_name}', 'No')
+        assert rhel_status in host_status['RHEL lifecycle']['Status']
+        assert rhel_status in host_details['properties']['properties_table']['RHEL lifecycle']
         # Ensure content host is searchable
         assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
         chost = session.contenthost.read(
