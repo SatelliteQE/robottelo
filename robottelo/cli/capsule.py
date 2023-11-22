@@ -106,6 +106,16 @@ class Capsule(Base):
         return result
 
     @classmethod
+    def content_update_counts(cls, options):
+        """Trigger content counts update."""
+
+        cls.command_sub = 'content update-counts'
+
+        result = cls.execute(cls._construct_command(options), output_format='json')
+
+        return result
+
+    @classmethod
     def import_classes(cls, options):
         """Import puppet classes from puppet Capsule."""
 
