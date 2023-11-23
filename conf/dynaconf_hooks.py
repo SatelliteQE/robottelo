@@ -1,5 +1,9 @@
+from inspect import getmembers, isfunction
 import json
 from pathlib import Path
+import sys
+
+from box import Box
 
 from robottelo.logging import logger
 from robottelo.utils.ohsnap import dogfood_repository
@@ -22,6 +26,7 @@ def post(settings):
             )
             data = get_repos_config(settings)
             write_cache(settings_cache_path, data)
+    config_migrations(settings, data)
     data['dynaconf_merge'] = True
     return data
 
@@ -33,7 +38,32 @@ def write_cache(path, data):
 
 def read_cache(path):
     logger.info(f'Using settings cache file: {path}')
-    return json.loads(path.read_text())
+    return Box(json.loads(path.read_text()))
+
+
+def config_migrations(settings, data):
+    """Run config migrations
+
+    Fetch the config migrations from the conf/migrations.py file and run them.
+
+    :param settings: dynaconf settings object
+    :type settings: LazySettings
+    :param data: settings data to be merged with the rest of the settings
+    :type data: dict
+    """
+    logger.info('Running config migration hooks')
+    sys.path.append(str(Path(__file__).parent))
+    from conf import migrations
+
+    migration_functions = [
+        mf for mf in getmembers(migrations, isfunction) if mf[0].startswith('migration_')
+    ]
+    # migration_functions is a sorted list of tuples (name, function)
+    for name, func in migration_functions:
+        logger.debug(f'Running {name}')
+        func(settings, data)
+        logger.debug(f'Finished running {name}')
+    logger.info('Finished running config migration hooks')
 
 
 def get_repos_config(settings):
@@ -46,7 +76,7 @@ def get_repos_config(settings):
             'The Ohsnap URL is invalid! Post-configuration hooks will not run. '
             'Default configuration will be used.'
         )
-    return {'REPOS': data}
+    return Box({'REPOS': data})
 
 
 def get_ohsnap_repos(settings):
