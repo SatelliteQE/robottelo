@@ -230,7 +230,7 @@ class TestRemoteExecution:
         invocation_command = target_sat.cli_factory.job_invocation(
             {'job-template': template_name, 'search-query': f'name ~ {client.hostname}'}
         )
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -320,7 +320,7 @@ class TestRemoteExecution:
                 'search-query': f'name ~ {client.hostname}',
             }
         )
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
         post_versions = client.run(f'rpm -q {" ".join(packages)}').stdout.splitlines()
         assert set(pre_versions) == set(post_versions)
         # Remove packages
@@ -808,7 +808,7 @@ class TestAnsibleREX:
                 'search-query': f'name ~ {client.hostname}',
             }
         )
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
         result = client.run(f'rpm -q {" ".join(packages)}')
         assert result.status == 0
 
@@ -821,7 +821,7 @@ class TestAnsibleREX:
                 'search-query': f"name ~ {client.hostname}",
             }
         )
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
         result = client.execute(f'systemctl status {service}')
         assert result.status == 3
 
@@ -833,7 +833,7 @@ class TestAnsibleREX:
                 'search-query': f'name ~ {client.hostname}',
             }
         )
-        assert_job_invocation_result(invocation_command['id'], client.hostname)
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
         result = client.execute(f'systemctl status {service}')
         assert result.status == 0
 
@@ -1116,7 +1116,9 @@ class TestAsyncSSHProviderRex:
                 'search-query': f"name ~ {rhel_contenthost.hostname}",
             }
         )
-        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+        assert_job_invocation_result(
+            module_target_sat, invocation_command['id'], rhel_contenthost.hostname
+        )
 
 
 class TestPullProviderRex:
@@ -1189,7 +1191,9 @@ class TestPullProviderRex:
                 'search-query': f"name ~ {rhel_contenthost.hostname}",
             }
         )
-        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+        assert_job_invocation_result(
+            module_target_sat, invocation_command['id'], rhel_contenthost.hostname
+        )
         # check katello-agent runs along ygdrassil (SAT-1671)
         result = rhel_contenthost.execute('systemctl status goferd')
         assert result.status == 0, 'Failed to start goferd on client'
@@ -1218,7 +1222,9 @@ class TestPullProviderRex:
                 'search-query': f"name ~ {rhel_contenthost.hostname}",
             }
         )
-        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+        assert_job_invocation_result(
+            module_target_sat, invocation_command['id'], rhel_contenthost.hostname
+        )
         result = module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
 
     @pytest.mark.tier3
@@ -1234,7 +1240,6 @@ class TestPullProviderRex:
         module_ak_with_cv,
         module_capsule_configured_mqtt,
         rhel_contenthost,
-        target_sat,
     ):
         """Run custom template on host registered to mqtt, check effective user setting
 
@@ -1279,25 +1284,29 @@ class TestPullProviderRex:
         result = rhel_contenthost.execute('systemctl status yggdrasild')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         # run script provider rex command
-        invocation_command = target_sat.cli_factory.job_invocation(
+        invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Service Action - Script Default',
                 'inputs': 'action=status, service=yggdrasild',
                 'search-query': f"name ~ {rhel_contenthost.hostname}",
             }
         )
-        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+        assert_job_invocation_result(
+            module_target_sat, invocation_command['id'], rhel_contenthost.hostname
+        )
         # create user on host
         username = gen_string('alpha')
         filename = gen_string('alpha')
-        make_user_job = target_sat.cli_factory.job_invocation(
+        make_user_job = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': f"command=useradd -m {username}",
                 'search-query': f"name ~ {rhel_contenthost.hostname}",
             }
         )
-        assert_job_invocation_result(make_user_job['id'], rhel_contenthost.hostname)
+        assert_job_invocation_result(
+            module_target_sat, make_user_job['id'], rhel_contenthost.hostname
+        )
         # create a file as new user
         invocation_command = module_target_sat.make_job_invocation(
             {
@@ -1307,7 +1316,9 @@ class TestPullProviderRex:
                 'effective-user': f'{username}',
             }
         )
-        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+        assert_job_invocation_result(
+            module_target_sat, invocation_command['id'], rhel_contenthost.hostname
+        )
         # check the file owner
         result = rhel_contenthost.execute(
             f'''stat -c '%U' /home/{username}/{filename}''',
@@ -1387,4 +1398,6 @@ class TestPullProviderRex:
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         # wait twice the mqtt_resend_interval (set in module_capsule_configured_mqtt)
         sleep(60)
-        assert_job_invocation_result(invocation_command['id'], rhel_contenthost.hostname)
+        assert_job_invocation_result(
+            module_target_sat, invocation_command['id'], rhel_contenthost.hostname
+        )
