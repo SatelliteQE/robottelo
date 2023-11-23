@@ -172,3 +172,28 @@ class TestWebhook:
             repo.sync()
             assert_event_triggered(shell, hook.event)
         target_sat.wait_for_tasks(f'Deliver webhook {hook.name}')
+
+    @pytest.mark.parametrize('setting_update', ['safemode_render=False'], indirect=True)
+    def test_negative_event_task_failed(self, module_org, target_sat, setting_update):
+        """Create a webhook with unreachable target and assert the associated task
+        failed
+
+        :id: d4a49556-9413-46e8-bcb5-7afd0184bdb2
+
+        :expectedresults: Deliver webhook task fails
+
+        :CaseImportance: High
+        """
+        hook = target_sat.api.Webhooks(
+            event='actions.katello.repository.sync_succeeded',
+            http_method='GET',
+            target_url="http://localhost/target",
+        ).create()
+        repo = target_sat.api.Repository(
+            organization=module_org, content_type='yum', url=settings.repos.yum_0.url
+        ).create()
+        with target_sat.session.shell() as shell:
+            shell.send('foreman-tail')
+            repo.sync()
+            assert_event_triggered(shell, hook.event)
+        target_sat.wait_for_tasks(f'Deliver webhook {hook.name}', must_succeed=False)
