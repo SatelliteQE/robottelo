@@ -147,3 +147,50 @@ def test_positive_install_and_remove_package_group(katello_agent_client):
     sat.cli.Host.package_group_remove(hammer_args)
     for package in constants.FAKE_0_CUSTOM_PACKAGE_GROUP:
         assert client.run(f'rpm -q {package}').status != 0
+
+
+def test_positive_upgrade_warning(sat_with_katello_agent):
+    """Ensure a warning is dispayed when upgrading with katello-agent enabled.
+
+    :id: 2bfc5e3e-e147-4e7a-a25c-85be22ef6921
+
+    :expectedresults: Upgrade check fails and warning with proper message is displayed.
+
+    :CaseLevel: System
+    """
+    sat = sat_with_katello_agent
+    ver = sat.version.split('.')
+    target_ver = f'{ver[0]}.{int(ver[1]) + 1}'
+    warning = (
+        'The katello-agent feature is enabled on this system. As of Satellite 6.15, katello-agent '
+        'is removed and will no longer function. Before proceeding with the upgrade, you should '
+        'ensure that you have deployed and configured an alternative tool for remote package '
+        'management and patching for content hosts, such as Remote Execution (REX) with pull-based '
+        'transport. See the Managing Hosts guide in the Satellite documentation for more info. '
+        'Disable katello-agent with the command `satellite-installer --foreman-proxy-content-enable'
+        '-katello-agent false` before proceeding with the upgrade. Alternatively, you may skip '
+        'this check and proceed by running satellite-maintain again with the `--whitelist` option, '
+        'which will automatically uninstall katello-agent.'
+    )
+
+    upstream_rpms = sat.get_repo_files_by_url(constants.FOREMAN_NIGHTLY_URL)
+    fm_rpm = [rpm for rpm in upstream_rpms if 'foreman_maintain' in rpm]
+    assert fm_rpm, 'No upstream foreman-maintain package found'
+
+    for rpm in fm_rpm:
+        res = sat.execute(f'yum -y install {constants.FOREMAN_NIGHTLY_URL}{rpm}')
+        assert res.status == 0, f'{rpm} installation failed'
+
+    res = sat.cli.Upgrade.list_versions()
+    assert res.status == 0, 'Upgrade list-versions command failed'
+    assert target_ver in res.stdout, 'Target version or Scenario not found'
+
+    res = sat.cli.Upgrade.check(
+        options={
+            'target-version': target_ver,
+            'whitelist': 'repositories-setup,repositories-validate',
+            'assumeyes': True,
+        }
+    )
+    assert res.status, 'Upgrade check passed unexpectedly'
+    assert warning in res.stdout, 'Katello-agent warning message missing or changed'
