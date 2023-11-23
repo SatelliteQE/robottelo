@@ -293,6 +293,31 @@ class TestRemoteExecution:
         assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
         result = client.run(f'rpm -q {" ".join(packages)}')
         assert result.status == 0
+        # Update packages
+        pre_versions = result.stdout.splitlines()
+        result = client.run(f'dnf -y downgrade {" ".join(packages)}')
+        assert result.status == 0
+        invocation_command = target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Update Package - Katello Script Default',
+                'inputs': f'package={" ".join(packages)}',
+                'search-query': f'name ~ {client.hostname}',
+            }
+        )
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
+        post_versions = client.run(f'rpm -q {" ".join(packages)}').stdout.splitlines()
+        assert set(pre_versions) == set(post_versions)
+        # Remove packages
+        invocation_command = target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Remove Package - Katello Script Default',
+                'inputs': f'package={" ".join(packages)}',
+                'search-query': f'name ~ {client.hostname}',
+            }
+        )
+        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
+        result = client.run(f'rpm -q {" ".join(packages)}')
+        assert result.status == len(packages)
 
     @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([8])
@@ -1095,7 +1120,7 @@ class TestPullProviderRex:
         assert_job_invocation_result(
             module_target_sat, invocation_command['id'], rhel_contenthost.hostname
         )
-        module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
+        result = module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -1110,7 +1135,6 @@ class TestPullProviderRex:
         module_ak_with_cv,
         module_capsule_configured_mqtt,
         rhel_contenthost,
-        target_sat,
     ):
         """Run custom template on host registered to mqtt, check effective user setting
 
@@ -1155,7 +1179,7 @@ class TestPullProviderRex:
         result = rhel_contenthost.execute('systemctl status yggdrasild')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         # run script provider rex command
-        invocation_command = target_sat.cli_factory.job_invocation(
+        invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Service Action - Script Default',
                 'inputs': 'action=status, service=yggdrasild',
@@ -1163,12 +1187,12 @@ class TestPullProviderRex:
             }
         )
         assert_job_invocation_result(
-            target_sat, invocation_command['id'], rhel_contenthost.hostname
+            module_target_sat, invocation_command['id'], rhel_contenthost.hostname
         )
         # create user on host
         username = gen_string('alpha')
         filename = gen_string('alpha')
-        make_user_job = target_sat.cli_factory.job_invocation(
+        make_user_job = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': f"command=useradd -m {username}",
