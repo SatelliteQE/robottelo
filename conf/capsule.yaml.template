@@ -10,6 +10,8 @@ CAPSULE:
     # The base os rhel version where the capsule installed
     # RHEL_VERSION:
   # The Ansible Tower workflow used to deploy a capsule
-  DEPLOY_WORKFLOW: deploy-capsule
+  DEPLOY_WORKFLOWS:
+    PRODUCT: deploy-capsule  # workflow to deploy OS with product running on top of it
+    OS: deploy-rhel  # workflow to deploy OS that is ready to run the product
   # Dictionary of arguments which should be passed along to the deploy workflow
   DEPLOY_ARGUMENTS:

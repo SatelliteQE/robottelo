@@ -74,7 +74,7 @@ def lru_sat_ready_rhel(rhel_ver):
         'deploy_rhel_version': rhel_version,
         'deploy_flavor': settings.flavors.default,
         'promtail_config_template_file': 'config_sat.j2',
-        'workflow': settings.content_host.get(f'rhel{Version(rhel_version).major}').vm.workflow,
+        'workflow': settings.server.deploy_workflows.os,
     }
     sat_ready_rhel = Broker(**deploy_args, host_class=Satellite).checkout()
     return sat_ready_rhel
