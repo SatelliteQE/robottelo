@@ -125,7 +125,6 @@ def test_positive_service_stop_start(sat_maintain):
     assert result.status == 0
 
 
-@pytest.mark.stream
 @pytest.mark.upgrade
 @pytest.mark.include_capsule
 @pytest.mark.usefixtures('start_satellite_services')
