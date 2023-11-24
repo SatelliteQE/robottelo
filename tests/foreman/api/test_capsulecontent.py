@@ -1458,7 +1458,6 @@ class TestCapsuleContentManagement:
 
         module_capsule_configured.wait_for_sync()
 
-    @pytest.mark.stream
     @pytest.mark.parametrize(
         'repos_collection',
         [
@@ -1597,7 +1596,6 @@ class TestCapsuleContentManagement:
                 [repo.content_counts.get(key) == cnt['counts'].get(key) for key in common_keys]
             )
 
-    @pytest.mark.stream
     @pytest.mark.order(1)
     def test_positive_content_counts_blank_update(
         self,

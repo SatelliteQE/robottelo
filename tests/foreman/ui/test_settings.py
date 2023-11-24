@@ -551,7 +551,6 @@ def test_positive_entries_per_page(session, setting_update):
 
 
 @pytest.mark.tier2
-@pytest.mark.stream
 def test_positive_setting_display_fqdn_for_hosts(session, target_sat):
     """Verify setting display_fqdn_for_hosts set as Yes/No, and FQDN is used for host's name
     if it's set to Yes else not, according to setting set.

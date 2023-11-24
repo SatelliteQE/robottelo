@@ -16,9 +16,9 @@ class Colored(Box):
 
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.15"
+SATELLITE_VERSION = "6.16"
 SATELLITE_OS_VERSION = "8"
-SAT_NON_GA_VERSIONS = ['6.14', '6.15']
+SAT_NON_GA_VERSIONS = ['6.15', '6.16']
 
 # Default system ports
 HTTPS_PORT = '443'
