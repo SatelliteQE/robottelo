@@ -267,7 +267,7 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_entitlemen
     repo_names = ['rhel8_bos', 'rhel8_aps']
     kickstart_names = ['rhel8_bos', 'rhel8_aps']
     for name in repo_names:
-        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+        module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
             org_id=module_entitlement_manifest_org.id,
             product=REPOS[name]['product'],
@@ -286,9 +286,9 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_entitlemen
             releasever=constants.REPOS['kickstart'][name]['version'],
         )
     rh_repos = module_target_sat.api.Repository(id=rh_repo_id).read()
-    rh_products = module_target_sat.api.Product(id=rh_repos.product.id).read()
-    assert len(rh_products.repository) == 4
+    rh_product = module_target_sat.api.Product(id=rh_repos.product.id).read()
+    assert len(rh_product.repository) == 4
     res = module_target_sat.api.ProductBulkAction().sync(
-        data={'ids': [rh_products.id]}, timeout=2000
+        data={'ids': [rh_product.id]}, timeout=2000
     )
     assert res['result'] == 'success'
