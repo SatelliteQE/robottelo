@@ -382,4 +382,6 @@ def test_positive_prepare_for_sca_only_deprecation(target_sat):
             }
         )
         results = target_sat.execute('tail -100 /var/log/foreman/production.log').stdout
-    assert 'Simple Content Access will be required for all organizations in Satellite 6.16' in results
+    assert (
+        'Simple Content Access will be required for all organizations in Satellite 6.16' in results
+    )
