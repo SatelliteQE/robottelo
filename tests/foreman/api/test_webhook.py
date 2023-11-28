@@ -162,7 +162,9 @@ class TestWebhook:
         :CaseImportance: Critical
         """
         hook = target_sat.api.Webhooks(
-            event='actions.katello.repository.sync_succeeded', http_method='GET'
+            event='actions.katello.repository.sync_succeeded',
+            http_method='GET',
+            target_url=settings.repos.yum_0.url,
         ).create()
         repo = target_sat.api.Repository(
             organization=module_org, content_type='yum', url=settings.repos.yum_0.url
