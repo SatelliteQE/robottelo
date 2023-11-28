@@ -224,8 +224,11 @@ def test_positive_install_multiple_in_host(target_sat, rhel_contenthost, module_
             search_rate=20,
             max_tries=15,
         )
+        rhel_contenthost.execute('subscription-manager repos')
         sleep(20)
-        assert rhel_contenthost.applicable_errata_count == pre_errata_count - 1
+        assert (
+            rhel_contenthost.applicable_errata_count == pre_errata_count - 1
+        ), f'Host applicable errata did not decrease by one, after installation of {errata}'
 
 
 @pytest.mark.tier3
