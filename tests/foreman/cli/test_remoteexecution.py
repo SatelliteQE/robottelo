@@ -750,6 +750,78 @@ class TestAnsibleREX:
         assert len(target_sat.cli.GlobalParameter().list({'search': param_name})) == 0
 
     @pytest.mark.tier3
+    @pytest.mark.no_containers
+    def test_positive_run_serial(self, registered_hosts, target_sat):
+        """Tests subtasks in a job run one by one when concurrency level set to 1
+
+        :id: 5ce39447-82d0-42df-81be-16ed3d67a2a4
+
+        :Setup:
+            0. Create 2 hosts
+
+        :Steps:
+
+            0. Run a bash command job with concurrency level 1
+
+        :expectedresults: First subtask should run immediately, second one after the first one finishes
+
+        :CaseAutomation: Automated
+
+        :CaseLevel: System
+
+        :parametrized: yes
+        """
+        hosts = registered_hosts
+        output_msgs = []
+        template_file = f"/root/{gen_string('alpha')}.template"
+        target_sat.execute(
+            f"echo 'rm /root/test-<%= @host %>; echo $(date +%s) >> /root/test-<%= @host %>; sleep 120; echo $(date +%s) >> /root/test-<%= @host %>' > {template_file}"
+        )
+        template = target_sat.cli.JobTemplate.create(
+            {
+                'name': gen_string('alpha'),
+                'file': template_file,
+                'job-category': 'Commands',
+                'provider-type': 'script',
+            }
+        )
+        invocation = target_sat.cli_factory.job_invocation(
+            {
+                'job-template': template['name'],
+                'search-query': f'name ~ {hosts[0].hostname} or name ~ {hosts[1].hostname}',
+                'concurrency-level': 1,
+            }
+        )
+        for vm in hosts:
+            output_msgs.append(
+                'host output from {}: {}'.format(
+                    vm.hostname,
+                    ' '.join(
+                        target_sat.cli.JobInvocation.get_output(
+                            {'id': invocation['id'], 'host': vm.hostname}
+                        )
+                    ),
+                )
+            )
+        result = target_sat.cli.JobInvocation.info({'id': invocation['id']})
+        assert result['success'] == '2', output_msgs
+        # assert for time diffs
+        file1 = hosts[0].execute('cat /root/test-$(hostname)').stdout
+        file2 = hosts[1].execute('cat /root/test-$(hostname)').stdout
+        file1_start, file1_end = map(int, file1.rstrip().split('\n'))
+        file2_start, file2_end = map(int, file2.rstrip().split('\n'))
+        if file1_start > file2_start:
+            file1_start, file1_end, file2_start, file2_end = (
+                file2_start,
+                file2_end,
+                file1_start,
+                file1_end,
+            )
+        assert file1_end - file1_start >= 120
+        assert file2_end - file2_start >= 120
+        assert file2_start >= file1_end  # the jobs did NOT run concurrently
+
+    @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.e2e
     @pytest.mark.no_containers
