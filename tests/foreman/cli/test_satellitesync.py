@@ -1994,7 +1994,7 @@ class TestInterSatelliteSync:
         import_path = target_sat.move_pulp_archive(function_sca_manifest_org, export['message'])
         target_sat.cli.ContentImport.repository(
             {'organization-id': function_import_org_with_manifest.id, 'path': import_path},
-            timeout=300000,
+            timeout='5m',
         )
         import_repo = target_sat.cli.Repository.info(
             {
@@ -2021,7 +2021,7 @@ class TestInterSatelliteSync:
         )
         target_sat.cli.ContentImport.repository(
             {'organization-id': function_import_org_with_manifest.id, 'path': import_path},
-            timeout=300000,
+            timeout='5m',
         )
 
         # Verify that both import tasks succeeded
