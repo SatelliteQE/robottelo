@@ -2207,11 +2207,13 @@ class Satellite(Capsule, SatelliteMixins):
             self.execute('systemctl daemon-reload && systemctl restart httpd.service').status == 0
         )
 
-    def generate_inventory_report(self, org):
+    def generate_inventory_report(self, org, disconnected='false'):
         """Function to perform inventory upload."""
         generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-        self.api.Organization(id=org.id).rh_cloud_generate_report()
+        self.api.Organization(id=org.id).rh_cloud_generate_report(
+            data={'disconnected': disconnected}
+        )
         wait_for(
             lambda: self.api.ForemanTask()
             .search(query={'search': f'{generate_report_task} and started_at >= "{timestamp}"'})[0]
