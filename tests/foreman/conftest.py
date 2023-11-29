@@ -57,7 +57,12 @@ def ui_session_record_property(request, record_property):
         request: The pytest request object.
         record_property: The value to set for the record_property attribute.
     """
-    test_directories = ['tests/foreman/destructive', 'tests/foreman/ui']
+    test_directories = [
+        'tests/foreman/destructive',
+        'tests/foreman/ui',
+        'tests/foreman/sanity',
+        'tests/foreman/virtwho',
+    ]
     test_file_path = request.node.fspath.strpath
     if any(directory in test_file_path for directory in test_directories):
         for fixture in request.node.fixturenames:
