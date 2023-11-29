@@ -32,13 +32,22 @@ from robottelo.utils.virtwho import (
     get_configure_file,
     get_configure_id,
     get_configure_option,
+    get_guest_info,
     get_virtwho_status,
     restart_virtwho_service,
     update_configure_option,
 )
 
 
-@pytest.mark.delete_host
+@pytest.fixture(autouse=True)
+def delete_host(form_data_api, target_sat):
+    guest_name, _ = get_guest_info(form_data_api['hypervisor_type'])
+    results = target_sat.api.Host().search(query={'search': guest_name})
+    if results:
+        target_sat.api.Host(id=results[0].read_json()['id']).delete()
+
+
+@pytest.mark.usefixtures('delete_host')
 class TestVirtwhoConfigforEsx:
     @pytest.mark.tier2
     @pytest.mark.upgrade

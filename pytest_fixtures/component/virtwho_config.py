@@ -6,7 +6,6 @@ from robottelo.utils.virtwho import (
     deploy_configure_by_command,
     deploy_configure_by_script,
     get_configure_command,
-    get_guest_info,
 )
 
 LOGGEDOUT = 'Logged out.'
@@ -337,11 +336,3 @@ def deploy_type_ui(
             script, form_data_ui['hypervisor_type'], debug=True, org=org_module.label
         )
     return hypervisor_name, guest_name
-
-
-@pytest.fixture
-def delete_host(form_data, target_sat):
-    guest_name, _ = get_guest_info(form_data['hypervisor_type'])
-    results = target_sat.api.Host().search(query={'search': guest_name})
-    if results:
-        target_sat.api.Host(id=results[0].read_json()['id']).delete()
