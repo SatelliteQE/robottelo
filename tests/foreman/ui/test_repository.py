@@ -900,10 +900,10 @@ def test_positive_recommended_repos(session, module_entitlement_manifest_org):
         cap_tool_repos = [
             repo['name']
             for repo in rrepos_on
-            if 'Tools' in repo['name'] or 'Capsule' in repo['name']
+            if 'Utils' in repo['name'] or 'Capsule' in repo['name']
         ]
         cap_tools_repos = [repo for repo in cap_tool_repos if repo.split()[4] != sat_version]
-        assert not cap_tools_repos, 'Tools/Capsule repos do not match with Satellite version'
+        assert not cap_tools_repos, 'Utils/Capsule repos do not match with Satellite version'
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
         assert len(rrepos_off) > len(rrepos_on)
 
