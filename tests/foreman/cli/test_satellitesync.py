@@ -1967,6 +1967,135 @@ class TestInterSatelliteSync:
             ['success' in task['result'] for task in tasks]
         ), 'Not every import task succeeded'
 
+    @pytest.mark.tier3
+    @pytest.mark.parametrize(
+        'function_synced_rhel_repo',
+        ['rhae2'],
+        indirect=True,
+    )
+    def test_positive_custom_cdn_with_credential(
+        self,
+        request,
+        target_sat,
+        export_import_cleanup_function,
+        config_export_import_settings,
+        function_sca_manifest_org,
+        function_synced_rhel_repo,  # TODO rename this to `function_synced_rh_repo`
+        satellite_host,
+        function_sca_manifest,
+    ):
+        """Export and sync repository using custom cert for custom CDN.
+
+        :id: de1f4b06-267a-4bad-9a90-665f2906ef5f
+
+        :parametrized: yes
+
+        :setup:
+            1. Upstream Satellite with enabled and synced RH yum repository.
+            2. Downstream Satellite to sync from Upstream Satellite.
+
+        :steps:
+            On the Upstream Satellite:
+                1. Export the repository in syncable format and move it
+                   to /var/www/html/pub/repos to mimic custom CDN.
+            On the Downstream Satellite:
+                2. Create new Organization, import manifest.
+                3. Create Content Credentials with Upstream Satellite's katello-server-ca.crt.
+                4. Set the CDN configuration to custom CDN and use the url and CC from above.
+                5. Enable and sync the repository.
+
+        :expectedresults:
+            1. Repository can be enabled and synced from Upstream to Downstream Satellite.
+
+        :CaseLevel: System
+
+        :BZ: 2112098
+
+        :customerscenario: true
+        """
+        meta_file = 'metadata.json'
+        crt_file = 'source.crt'
+        pub_dir = '/var/www/html/pub/repos'
+
+        # Export the repository in syncable format and move it
+        # to /var/www/html/pub/repos to mimic custom CDN.
+        target_sat.cli.ContentExport.completeRepository(
+            {'id': function_synced_rhel_repo['id'], 'format': 'syncable'}
+        )
+        assert '1.0' in target_sat.validate_pulp_filepath(
+            function_sca_manifest_org, PULP_EXPORT_DIR
+        )
+        exp_dir = target_sat.execute(
+            f'find {PULP_EXPORT_DIR}{function_sca_manifest_org.name}/ -name {meta_file}'
+        ).stdout.splitlines()
+        assert len(exp_dir) == 1
+        exp_dir = exp_dir[0].replace(meta_file, '')
+
+        assert target_sat.execute(f'mv {exp_dir} {pub_dir}').status == 0
+        request.addfinalizer(lambda: target_sat.execute(f'rm -rf {pub_dir}'))
+        target_sat.execute(f'semanage fcontext -a -t httpd_sys_content_t "{pub_dir}(/.*)?"')
+        target_sat.execute(f'restorecon -R {pub_dir}')
+
+        # Create new Organization, import manifest.
+        import_org = satellite_host.api.Organization().create()
+        satellite_host.upload_manifest(import_org.id, function_sca_manifest.content)
+
+        # Create Content Credentials with Upstream Satellite's katello-server-ca.crt.
+        satellite_host.execute(
+            f'curl -o {crt_file} http://{target_sat.hostname}/pub/katello-server-ca.crt'
+        )
+        cc = satellite_host.cli.ContentCredential.create(
+            {
+                'name': gen_string('alpha'),
+                'organization-id': import_org.id,
+                'path': crt_file,
+                'content-type': 'cert',
+            }
+        )
+        assert cc, 'No content credential created'
+
+        # Set the CDN configuration to custom CDN and use the url and CC from above.
+        res = satellite_host.cli.Org.configure_cdn(
+            {
+                'id': import_org.id,
+                'type': 'custom_cdn',
+                'ssl-ca-credential-id': cc['id'],
+                'url': f'https://{target_sat.hostname}/pub/repos/',
+            }
+        )
+        assert 'Updated CDN configuration' in res
+
+        # Enable and sync the repository.
+        reposet = satellite_host.cli.RepositorySet.list(
+            {
+                'organization-id': import_org.id,
+                'search': f'content_label={function_synced_rhel_repo["content-label"]}',
+            }
+        )
+        assert (
+            len(reposet) == 1
+        ), f'Expected just one reposet for "{function_synced_rhel_repo["content-label"]}"'
+        res = satellite_host.cli.RepositorySet.enable(
+            {
+                'organization-id': import_org.id,
+                'id': reposet[0]['id'],
+                'basearch': DEFAULT_ARCHITECTURE,
+            }
+        )
+        assert 'Repository enabled' in str(res)
+
+        repos = satellite_host.cli.Repository.list({'organization-id': import_org.id})
+        assert len(repos) == 1, 'Expected 1 repo enabled'
+        repo = repos[0]
+        satellite_host.cli.Repository.synchronize({'id': repo['id']})
+
+        repo = satellite_host.cli.Repository.info({'id': repo['id']})
+        assert (
+            f'{target_sat.hostname}/pub/repos/' in repo['url']
+        ), 'Enabled repo does not point to the upstream Satellite'
+        assert 'Success' in repo['sync']['status'], 'Sync did not succeed'
+        assert int(repo['content-counts']['packages']) > 0, 'No synced packages downstream'
+
     @pytest.mark.stubbed
     @pytest.mark.tier3
     @pytest.mark.upgrade
