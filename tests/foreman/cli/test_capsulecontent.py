@@ -66,7 +66,8 @@ def test_positive_content_counts_for_mixed_cv(
 
     :steps:
         1. Assign the Capsule with the LCE where the setup CVV is promoted to.
-        2. Check the capsule lists correct LCE, CV and repo names, but no content count before sync.
+        2. Check the capsule lists correct LCE, CV and repo names and appropriate
+           warning message (no content counts) before sync.
         3. Sync the Capsule and get the content counts again.
         4. Get the content counts from Satellite side and compare them with Capsule.
         5. Remove the LCE from Capsule and ensure it's not listed.
@@ -76,7 +77,7 @@ def test_positive_content_counts_for_mixed_cv(
         2. After sync the content counts from Capsule match those from Satellite.
         3. After LCE removal it's not listed anymore.
 
-    :BZ: 2251019
+    # :BZ: 2251019  TODO uncomment when BZ#2251019 is resolved
 
     """
     expected_keys = {
@@ -101,7 +102,8 @@ def test_positive_content_counts_for_mixed_cv(
     )
     assert 'environment successfully added' in str(res)
 
-    # Check the capsule lists correct LCE, CV and repo names, but no content count before sync.
+    # Check the capsule lists correct LCE, CV and repo names and appropriate
+    # warning message (no content counts) before sync.
     info = target_sat.cli.Capsule.content_info(
         {'id': module_capsule_configured.nailgun_capsule.id, 'organization-id': function_org.id}
     )
@@ -154,14 +156,14 @@ def test_positive_content_counts_for_mixed_cv(
         assert len(common_keys), f'''No common keys found for type "{s_repo['content-type']}".'''
         assert expected_keys[s_repo['content-type']].issubset(common_keys), (
             'Some fields are missing: expected '
-            f'''{expected_keys[s_repo['content-type']]} but found {common_keys}'''
+            f"{expected_keys[s_repo['content-type']]} but found {common_keys}"
         )
         assert all(
             [
                 s_repo['content-counts'].get(key) == c_repo['content-counts'].get(key)
                 for key in common_keys
             ]
-        )
+        ), 'Some of the content counts do not match'
 
     # Remove the LCE from Capsule and ensure it's not listed.
     res = target_sat.cli.Capsule.content_remove_lifecycle_environment(
