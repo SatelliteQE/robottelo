@@ -221,6 +221,7 @@ def test_inventory_upload_with_http_proxy():
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
+@pytest.mark.e2e
 def test_include_parameter_tags_setting(
     inventory_settings,
     rhcloud_manifest_org,
@@ -237,7 +238,7 @@ def test_include_parameter_tags_setting(
         2. Register a content host with satellite.
         3. Create a host parameter with long text value.
         4. Create Hostcollection with name containing double quotes.
-        5. Generate inventory report.
+        5. Generate inventory report with disconnected option.
         6. Assert that generated report contains valid json file.
         7. Observe the tag generated from the parameter.
 
@@ -272,7 +273,7 @@ def test_include_parameter_tags_setting(
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     # Enable include_parameter_tags setting
     module_target_sat.update_setting('include_parameter_tags', True)
-    module_target_sat.generate_inventory_report(org)
+    module_target_sat.generate_inventory_report(org, disconnected='true')
     # Download report
     module_target_sat.api.Organization(id=org.id).rh_cloud_download_report(
         destination=local_report_path
