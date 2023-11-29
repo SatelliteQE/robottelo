@@ -17,7 +17,6 @@ pytest_plugins = [
     'pytest_plugins.settings_skip',
     'pytest_plugins.rerun_rp.rerun_rp',
     'pytest_plugins.fspath_plugins',
-    'pytest_plugins.fixture_collection',
     'pytest_plugins.factory_collection',
     'pytest_plugins.requirements.update_requirements',
     'pytest_plugins.sanity_plugin',
