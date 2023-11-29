@@ -16,9 +16,9 @@ class Colored(Box):
 
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.15"
+SATELLITE_VERSION = "6.16"
 SATELLITE_OS_VERSION = "8"
-SAT_NON_GA_VERSIONS = ['6.14', '6.15']
+SAT_NON_GA_VERSIONS = ['6.15', '6.16']
 
 # Default system ports
 HTTPS_PORT = '443'
@@ -219,10 +219,12 @@ ENVIRONMENT = "Library"
 SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "custom cron"}
 
 REPO_TYPE = {
+    "deb": "deb",
     'yum': "yum",
     'ostree': "ostree",
     'docker': "docker",
-    "ansible_collection": "ansible collection",
+    'ansible_collection': "ansible_collection",
+    'file': "file",
 }
 
 DOWNLOAD_POLICIES = {
@@ -288,9 +290,9 @@ REPOSET = {
     'rhsc7': 'Red Hat Satellite Capsule 6.11 (for RHEL 7 Server) (RPMs)',
     'rhsc8': 'Red Hat Satellite Capsule 6.13 for RHEL 8 x86_64 (RPMs)',
     'rhsc7_iso': 'Red Hat Satellite Capsule 6.4 (for RHEL 7 Server) (ISOs)',
-    'rhsclient7': 'Red Hat Satellite Client 6 for RHEL 7 Server RPMs x86_64',
-    'rhsclient8': 'Red Hat Satellite Client 6 for RHEL 8 x86_64 RPMs',
-    'rhsclient9': 'Red Hat Satellite Client 6 for RHEL 9 x86_64 RPMs',
+    'rhsclient7': 'Red Hat Satellite Client 6 (for RHEL 7 Server) (RPMs)',
+    'rhsclient8': 'Red Hat Satellite Client 6 for RHEL 8 x86_64 (RPMs)',
+    'rhsclient9': 'Red Hat Satellite Client 6 for RHEL 9 x86_64 (RPMs)',
     'rhst7': 'Red Hat Satellite Tools 6.9 (for RHEL 7 Server) (RPMs)',
     'rhst7_610': 'Red Hat Satellite Tools 6.10 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.9 (for RHEL 6 Server) (RPMs)',
@@ -407,7 +409,7 @@ REPOS = {
         'name': ('Red Hat Satellite Client 6 for RHEL 8 x86_64 RPMs'),
         'version': '6',
         'reposet': REPOSET['rhsclient8'],
-        'product': PRDS['rhel'],
+        'product': PRDS['rhel8'],
         'distro': 'rhel8',
         'key': PRODUCT_KEY_SAT_CLIENT,
     },
@@ -416,7 +418,7 @@ REPOS = {
         'name': ('Red Hat Satellite Client 6 for RHEL 9 x86_64 RPMs'),
         'version': '6',
         'reposet': REPOSET['rhsclient9'],
-        'product': PRDS['rhel'],
+        'product': PRDS['rhel9'],
         'distro': 'rhel9',
         'key': PRODUCT_KEY_SAT_CLIENT,
     },
@@ -529,32 +531,32 @@ REPOS = {
         },
         'rhel8_bos': {
             'id': 'rhel-8-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.8',
-            'version': '8.8',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.9',
+            'version': '8.9',
             'reposet': REPOSET['kickstart']['rhel8'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
         },
         'rhel8_aps': {
             'id': 'rhel-8-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.8',
-            'version': '8.8',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.9',
+            'version': '8.9',
             'reposet': REPOSET['kickstart']['rhel8_aps'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.2',
-            'version': '9.2',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.3',
+            'version': '9.3',
             'reposet': REPOSET['kickstart']['rhel9'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.2',
-            'version': '9.2',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.3',
+            'version': '9.3',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
@@ -1726,7 +1728,7 @@ STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'ht
 
 VMWARE_CONSTANTS = {
     'folder': 'vm',
-    'guest_os': 'Red Hat Enterprise Linux 8 (64-bit)',
+    'guest_os': 'Red Hat Enterprise Linux 8 (64 bit)',
     'scsicontroller': 'LSI Logic Parallel',
     'virtualhw_version': 'Default',
     'pool': 'Resources',

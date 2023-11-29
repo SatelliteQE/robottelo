@@ -19,8 +19,8 @@ from box import Box
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.cli.factory import CLIReturnCodeError
 from robottelo.config import settings
+from robottelo.exceptions import CLIReturnCodeError
 
 OSP_SETTINGS = Box(
     username=settings.osp.username,
@@ -46,7 +46,7 @@ class TestOSPComputeResourceTestCase:
     @pytest.fixture
     def osp_version(request):
         versions = {'osp16': settings.osp.api_url.osp16, 'osp17': settings.osp.api_url.osp17}
-        yield versions[getattr(request, 'param', 'osp16')]
+        return versions[getattr(request, 'param', 'osp16')]
 
     @pytest.mark.upgrade
     @pytest.mark.tier3

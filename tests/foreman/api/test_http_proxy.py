@@ -17,7 +17,6 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo import constants
@@ -70,6 +69,7 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
         reposet=constants.REPOSET['rhae2'],
         releasever=None,
     )
+    module_target_sat.api.Repository(id=rh_repo_id).sync()
     rh_repo = module_target_sat.api.Repository(
         id=rh_repo_id,
         http_proxy_policy=http_proxy_policy,
@@ -97,12 +97,13 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
     # Use global_default_http_proxy
     repo_options['http_proxy_policy'] = 'global_default_http_proxy'
     repo_2 = module_target_sat.api.Repository(**repo_options).create()
+    repo_2.sync()
     assert repo_2.http_proxy_policy == 'global_default_http_proxy'
 
     # Update to selected_http_proxy
     repo_2.http_proxy_policy = 'none'
     repo_2.update(['http_proxy_policy'])
-    assert repo_2.http_proxy_policy == 'none'
+    assert repo_2.read().http_proxy_policy == 'none'
 
     # test scenario for yum type repo discovery.
     repo_name = 'fakerepo01'
@@ -117,16 +118,16 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
     assert yum_repo['output'][0] == f'{settings.repos.repo_discovery.url}/{repo_name}/'
 
     # test scenario for docker type repo discovery.
-    yum_repo = module_target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
+    docker_repo = module_target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
         data={
             "id": module_manifest_org.id,
             "url": 'quay.io',
             "content_type": "docker",
-            "search": 'quay/busybox',
+            "search": 'foreman/foreman',
         }
     )
-    assert len(yum_repo['output']) >= 1
-    assert 'quay/busybox' in yum_repo['output']
+    assert len(docker_repo['output']) > 0
+    assert docker_repo['result'] == 'success'
 
 
 @pytest.mark.upgrade
@@ -206,7 +207,7 @@ def test_positive_auto_attach_with_http_proxy(
 
 @pytest.mark.e2e
 @pytest.mark.tier2
-def test_positive_assign_http_proxy_to_products():
+def test_positive_assign_http_proxy_to_products(target_sat):
     """Assign http_proxy to Products and check whether http-proxy is
      used during sync.
 
@@ -219,15 +220,15 @@ def test_positive_assign_http_proxy_to_products():
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
+    org = target_sat.api.Organization().create()
     # create HTTP proxies
-    http_proxy_a = entities.HTTPProxy(
+    http_proxy_a = target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.un_auth_proxy_url,
         organization=[org],
     ).create()
 
-    http_proxy_b = entities.HTTPProxy(
+    http_proxy_b = target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.auth_proxy_url,
         username=settings.http_proxy.username,
@@ -236,20 +237,20 @@ def test_positive_assign_http_proxy_to_products():
     ).create()
 
     # Create products and repositories
-    product_a = entities.Product(organization=org).create()
-    product_b = entities.Product(organization=org).create()
-    repo_a1 = entities.Repository(product=product_a, http_proxy_policy='none').create()
-    repo_a2 = entities.Repository(
+    product_a = target_sat.api.Product(organization=org).create()
+    product_b = target_sat.api.Product(organization=org).create()
+    repo_a1 = target_sat.api.Repository(product=product_a, http_proxy_policy='none').create()
+    repo_a2 = target_sat.api.Repository(
         product=product_a,
         http_proxy_policy='use_selected_http_proxy',
         http_proxy_id=http_proxy_a.id,
     ).create()
-    repo_b1 = entities.Repository(product=product_b, http_proxy_policy='none').create()
-    repo_b2 = entities.Repository(
+    repo_b1 = target_sat.api.Repository(product=product_b, http_proxy_policy='none').create()
+    repo_b2 = target_sat.api.Repository(
         product=product_b, http_proxy_policy='global_default_http_proxy'
     ).create()
     # Add http_proxy to products
-    entities.ProductBulkAction().http_proxy(
+    target_sat.api.ProductBulkAction().http_proxy(
         data={
             "ids": [product_a.id, product_b.id],
             "http_proxy_policy": "use_selected_http_proxy",
@@ -293,7 +294,7 @@ def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, m
     # Create and fetch new cerfiticate
     target_sat.custom_cert_generate(proxy_host)
     cacert = target_sat.execute(f'cat {cacert_path}').stdout
-    assert 'BEGIN CERTIFICATE' and 'END CERTIFICATE' in cacert
+    assert 'END CERTIFICATE' in cacert
 
     # Create http-proxy and repository
     http_proxy = target_sat.api.HTTPProxy(

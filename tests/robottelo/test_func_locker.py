@@ -193,7 +193,7 @@ def simple_function_not_locked():
 
 
 class TestFuncLocker:
-    @pytest.fixture(scope="function", autouse=True)
+    @pytest.fixture(autouse=True)
     def count_and_pool(self):
         global counter_file
         counter_file.write('0')
@@ -371,7 +371,9 @@ class TestFuncLocker:
         """Ensure that recursive calls to locked function is detected using
         lock_function decorator"""
         res = count_and_pool.apply_async(recursive_function, ())
-        with pytest.raises(func_locker.FunctionLockerError, match=r'.*recursion detected.*'):
+        with pytest.raises(  # noqa: PT012
+            func_locker.FunctionLockerError, match=r'.*recursion detected.*'
+        ):
             try:
                 res.get(timeout=5)
             except multiprocessing.TimeoutError:

@@ -23,13 +23,12 @@ from box import Box
 from fauxfactory import gen_alphanumeric
 import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.webhook import Webhook
 from robottelo.constants import WEBHOOK_EVENTS, WEBHOOK_METHODS
+from robottelo.exceptions import CLIReturnCodeError
 
 
-@pytest.fixture(scope='function')
-def webhook_factory(request, class_org, class_location):
+@pytest.fixture
+def webhook_factory(request, class_org, class_location, class_target_sat):
     def _create_webhook(org, loc, options=None):
         """Function for creating a new Webhook
 
@@ -49,7 +48,7 @@ def webhook_factory(request, class_org, class_location):
         if options.get('target-url') is None:
             options['target-url'] = 'http://localhost/some-path'
 
-        return Box(Webhook.create(options))
+        return Box(class_target_sat.cli.Webhook.create(options))
 
     return partial(_create_webhook, org=class_org, loc=class_location)
 
@@ -63,7 +62,7 @@ def assert_created(options, hook):
 class TestWebhook:
     @pytest.mark.tier3
     @pytest.mark.e2e
-    def test_positive_end_to_end(self, webhook_factory):
+    def test_positive_end_to_end(self, webhook_factory, class_target_sat):
         """Test creation, list, update and removal of webhook
 
         :id: d893d176-cbe9-421b-8631-7c7a1a462ea5
@@ -81,22 +80,28 @@ class TestWebhook:
         assert webhook_options['event'] == webhook_item['event'].rsplit('.', 2)[0]
 
         # Find webhook by name
-        webhook_search = Webhook.info({'name': webhook_options['name']})
+        webhook_search = class_target_sat.cli.Webhook.info({'name': webhook_options['name']})
         # A non empty dict has been returned
         assert webhook_search
 
         # Test that webhook gets updated
         different_url = 'http://localhost/different-path'
-        Webhook.update({'name': webhook_options['name'], 'target-url': different_url})
-        webhook_search_after_update = Webhook.info({'name': webhook_options['name']})
+        class_target_sat.cli.Webhook.update(
+            {'name': webhook_options['name'], 'target-url': different_url}
+        )
+        webhook_search_after_update = class_target_sat.cli.Webhook.info(
+            {'name': webhook_options['name']}
+        )
         assert webhook_search_after_update['target-url'] == different_url
 
         # Test that webhook is deleted
-        Webhook.delete({'name': webhook_options['name']})
-        webhook_deleted_search = Webhook.list({'search': webhook_options['name']})
+        class_target_sat.cli.Webhook.delete({'name': webhook_options['name']})
+        webhook_deleted_search = class_target_sat.cli.Webhook.list(
+            {'search': webhook_options['name']}
+        )
         assert len(webhook_deleted_search) == 0
 
-    def test_webhook_disabled_enabled(self, webhook_factory):
+    def test_webhook_disabled_enabled(self, webhook_factory, class_target_sat):
         """Test disable/enable the webhook
 
         :id: 4fef4320-0655-440d-90e7-150ffcdcd043
@@ -106,17 +111,17 @@ class TestWebhook:
         hook = webhook_factory()
 
         # The new webhook is enabled by default on creation
-        assert Webhook.info({'name': hook.name})['enabled'] == 'yes'
+        assert class_target_sat.cli.Webhook.info({'name': hook.name})['enabled'] == 'yes'
 
-        Webhook.update({'name': hook.name, 'enabled': 'no'})
+        class_target_sat.cli.Webhook.update({'name': hook.name, 'enabled': 'no'})
         # The webhook should be disabled now
-        assert Webhook.info({'name': hook.name})['enabled'] == 'no'
+        assert class_target_sat.cli.Webhook.info({'name': hook.name})['enabled'] == 'no'
 
-        Webhook.update({'name': hook.name, 'enabled': 'yes'})
+        class_target_sat.cli.Webhook.update({'name': hook.name, 'enabled': 'yes'})
         # The webhook should be enabled again
-        assert Webhook.info({'name': hook.name})['enabled'] == 'yes'
+        assert class_target_sat.cli.Webhook.info({'name': hook.name})['enabled'] == 'yes'
 
-    def test_negative_update_invalid_url(self, webhook_factory):
+    def test_negative_update_invalid_url(self, webhook_factory, class_target_sat):
         """Test webhook negative update - invalid target URL fails
 
         :id: 7a6c87f5-0e6c-4a55-b495-b1bfb24607bd
@@ -129,4 +134,4 @@ class TestWebhook:
 
         invalid_url = '$%^##@***'
         with pytest.raises(CLIReturnCodeError):
-            Webhook.update({'name': hook.name, 'target-url': invalid_url})
+            class_target_sat.cli.Webhook.update({'name': hook.name, 'target-url': invalid_url})

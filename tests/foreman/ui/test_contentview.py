@@ -91,3 +91,35 @@ def test_different_org_publish(
         session.organization.select(org_name=module_entitlement_manifest_org.name)
         response = session.contentview_new.publish(cv.name)
         assert response[0]['Version'] == 'Version 2.0'
+
+        
+def test_no_blank_page_on_language_switch(session, target_sat, module_org):
+    """Able to view the new CV UI when the language is set to something other
+    than English
+
+    :id: d8745aca-b199-4c7e-a970-b1f0f5c5d56c
+
+    :steps:
+        1. Change the Satellite system language to French
+        2. Attempt to view the CV UI, and read the CV table
+
+    :expectedresults: CV UI is visible, and isn't a blank page
+
+    :CaseLevel: System
+
+    :BZ: 2163538
+
+    :customerscenario: true
+    """
+    user_password = gen_string('alpha')
+    user = target_sat.api.User(
+        default_organization=module_org,
+        organization=[module_org],
+        password=user_password,
+        admin=True,
+    ).create()
+    cv = target_sat.api.ContentView(organization=module_org).create()
+    cv.publish()
+    with target_sat.ui_session(user=user.login, password=user_password) as session:
+        session.user.update(user.login, {'user.language': 'Français'})
+        assert session.contentview_new.read_french_lang_cv()

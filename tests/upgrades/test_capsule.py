@@ -59,8 +59,7 @@ class TestCapsuleSync:
         :expectedresults:
             1. The repo/rpm should be synced to satellite
             2. Activation key's environment id should be available in the content views environment
-            id's list
-
+                id's list
         """
         ak_name = (
             settings.upgrade.capsule_ak[settings.upgrade.os]

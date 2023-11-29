@@ -23,7 +23,6 @@ from fauxfactory import gen_url
 from nailgun import entities
 import pytest
 
-from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.utils.datafactory import filtered_datapoint, gen_string
 
@@ -83,10 +82,10 @@ def test_positive_update_restrict_composite_view(session, setting_update, repo_s
                     session.contentview.promote(
                         composite_cv.name, 'Version 1.0', repo_setup['lce'].name
                     )
-                    assert (
-                        'Administrator -> Settings -> Content page using the '
-                        'restrict_composite_view flag.' in str(context.value)
-                    )
+                assert (
+                    'Administrator -> Settings -> Content page using the '
+                    'restrict_composite_view flag.' in str(context.value)
+                )
             else:
                 result = session.contentview.promote(
                     composite_cv.name, 'Version 1.0', repo_setup['lce'].name
@@ -139,7 +138,7 @@ def test_negative_validate_foreman_url_error_message(session, setting_update):
         invalid_value = [invalid_value for invalid_value in invalid_settings_values()][0]
         with pytest.raises(AssertionError) as context:
             session.settings.update(f'name = {property_name}', invalid_value)
-            assert 'Value is invalid: must be integer' in str(context.value)
+        assert 'Value is invalid: must be integer' in str(context.value)
 
 
 @pytest.mark.tier2
@@ -252,7 +251,7 @@ def test_positive_update_login_page_footer_text(session, setting_update):
 
 
 @pytest.mark.tier3
-def test_negative_settings_access_to_non_admin():
+def test_negative_settings_access_to_non_admin(module_target_sat):
     """Check non admin users can't access Administer -> Settings tab
 
     :id: 34bb9376-c5fe-431a-ac0d-ef030c0ab50e
@@ -282,7 +281,7 @@ def test_negative_settings_access_to_non_admin():
                 'from a Satellite administrator: view_settings Back'
             )
     finally:
-        User.delete({'login': login})
+        module_target_sat.cli.User.delete({'login': login})
 
 
 @pytest.mark.stubbed
@@ -509,7 +508,7 @@ def test_negative_update_hostname_with_empty_fact(session, setting_update):
     with session:
         with pytest.raises(AssertionError) as context:
             session.settings.update(property_name, new_hostname)
-            assert 'can\'t be blank' in str(context.value)
+        assert 'can\'t be blank' in str(context.value)
 
 
 @pytest.mark.run_in_one_thread
@@ -549,3 +548,38 @@ def test_positive_entries_per_page(session, setting_update):
         total_pages_str = page_content["Pagination"]['_items'].split()[-2]
         total_pages = math.ceil(int(total_pages_str.split()[-1]) / property_value)
         assert str(total_pages) == page_content["Pagination"]['_total_pages'].split()[-1]
+
+
+@pytest.mark.tier2
+def test_positive_setting_display_fqdn_for_hosts(session, target_sat):
+    """Verify setting display_fqdn_for_hosts set as Yes/No, and FQDN is used for host's name
+    if it's set to Yes else not, according to setting set.
+
+    :id: b1a51594-43e6-49d8-918b-9bc306f3a1a4
+
+    :steps:
+        1. Navigate to Monitor -> Dashboard
+        2. Verify NewHosts table view contains host_name is w/ or w/o FQDN value
+        3. Navigate to Hosts -> All Hosts -> <host> details page
+        4. Verify host_name in breadcrumbs is w/ or w/o FQDN value
+
+    :expectedresults: FQDN is used for hostname if setting is set to Yes(default),
+        else hostname is present without FQDN.
+    """
+    host_name, domain_name = target_sat.hostname.split('.', 1)
+    default_value = target_sat.update_setting('display_fqdn_for_hosts', 'No')
+    with target_sat.ui_session() as session:
+        dashboard_hosts = session.dashboard.read('NewHosts')
+        assert host_name in [h['Host'] for h in dashboard_hosts['hosts'] if h['Host'] == host_name]
+
+        values = session.host_new.get_details(host_name, widget_names='breadcrumb')
+        assert values['breadcrumb'] == host_name
+
+        # Verify with display_fqdn_for_hosts=Yes
+        target_sat.update_setting('display_fqdn_for_hosts', default_value)
+        full_name = '.'.join((host_name, domain_name))
+        dashboard_hosts = session.dashboard.read('NewHosts')
+        assert full_name in [h['Host'] for h in dashboard_hosts['hosts'] if h['Host'] == full_name]
+
+        values = session.host_new.get_details(target_sat.hostname, widget_names='breadcrumb')
+        assert values['breadcrumb'] == full_name

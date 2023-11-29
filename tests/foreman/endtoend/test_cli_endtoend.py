@@ -20,22 +20,6 @@ from fauxfactory import gen_alphanumeric, gen_ipaddr
 import pytest
 
 from robottelo import constants
-from robottelo.cli.activationkey import ActivationKey
-from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.contentview import ContentView
-from robottelo.cli.domain import Domain
-from robottelo.cli.factory import make_user
-from robottelo.cli.host import Host
-from robottelo.cli.hostgroup import HostGroup
-from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.cli.location import Location
-from robottelo.cli.org import Org
-from robottelo.cli.product import Product
-from robottelo.cli.repository import Repository
-from robottelo.cli.repository_set import RepositorySet
-from robottelo.cli.subnet import Subnet
-from robottelo.cli.subscription import Subscription
-from robottelo.cli.user import User
 from robottelo.config import setting_is_set, settings
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 
@@ -47,40 +31,40 @@ def fake_manifest_is_set():
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_cli_find_default_org():
+def test_positive_cli_find_default_org(module_target_sat):
     """Check if 'Default Organization' is present
 
     :id: 95ffeb7a-134e-4273-bccc-fe8a3a336b2a
 
     :expectedresults: 'Default Organization' is found
     """
-    result = Org.info({'name': constants.DEFAULT_ORG})
+    result = module_target_sat.cli.Org.info({'name': constants.DEFAULT_ORG})
     assert result['name'] == constants.DEFAULT_ORG
 
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_cli_find_default_loc():
+def test_positive_cli_find_default_loc(module_target_sat):
     """Check if 'Default Location' is present
 
     :id: 11cf0d06-78ff-47e8-9d50-407a2ea31988
 
     :expectedresults: 'Default Location' is found
     """
-    result = Location.info({'name': constants.DEFAULT_LOC})
+    result = module_target_sat.cli.Location.info({'name': constants.DEFAULT_LOC})
     assert result['name'] == constants.DEFAULT_LOC
 
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_cli_find_admin_user():
+def test_positive_cli_find_admin_user(module_target_sat):
     """Check if Admin User is present
 
     :id: f6755189-05a6-4d2f-a3b8-98be0cfacaee
 
     :expectedresults: Admin User is found and has Admin role
     """
-    result = User.info({'login': 'admin'})
+    result = module_target_sat.cli.User.info({'login': 'admin'})
     assert result['login'] == 'admin'
     assert result['admin'] == 'yes'
 
@@ -126,34 +110,36 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     """
     # step 1: Create a new user with admin permissions
     password = gen_alphanumeric()
-    user = make_user({'admin': 'true', 'password': password})
+    user = target_sat.cli_factory.user({'admin': 'true', 'password': password})
     user['password'] = password
 
     # step 2.1: Create a new organization
-    org = _create(user, Org, {'name': gen_alphanumeric()})
+    org = _create(user, target_sat.cli.Org, {'name': gen_alphanumeric()})
     target_sat.cli.SimpleContentAccess.disable({'organization-id': org['id']})
 
     # step 2.2: Clone and upload manifest
     target_sat.put(f'{function_entitlement_manifest.path}', f'{function_entitlement_manifest.name}')
-    Subscription.upload(
+    target_sat.cli.Subscription.upload(
         {'file': f'{function_entitlement_manifest.name}', 'organization-id': org['id']}
     )
 
     # step 2.3: Create a new lifecycle environment
     lifecycle_environment = _create(
         user,
-        LifecycleEnvironment,
+        target_sat.cli.LifecycleEnvironment,
         {'name': gen_alphanumeric(), 'organization-id': org['id'], 'prior': 'Library'},
     )
 
     # step 2.4: Create a custom product
-    product = _create(user, Product, {'name': gen_alphanumeric(), 'organization-id': org['id']})
+    product = _create(
+        user, target_sat.cli.Product, {'name': gen_alphanumeric(), 'organization-id': org['id']}
+    )
     repositories = []
 
     # step 2.5: Create custom YUM repository
     custom_repo = _create(
         user,
-        Repository,
+        target_sat.cli.Repository,
         {
             'content-type': 'yum',
             'name': gen_alphanumeric(),
@@ -165,7 +151,7 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     repositories.append(custom_repo)
 
     # step 2.6: Enable a Red Hat repository
-    RepositorySet.enable(
+    target_sat.cli.RepositorySet.enable(
         {
             'basearch': 'x86_64',
             'name': constants.REPOSET['rhst7'],
@@ -174,7 +160,7 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
             'releasever': None,
         }
     )
-    rhel_repo = Repository.info(
+    rhel_repo = target_sat.cli.Repository.info(
         {
             'name': constants.REPOS['rhst7']['name'],
             'organization-id': org['id'],
@@ -185,16 +171,18 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
 
     # step 2.7: Synchronize these two repositories
     for repo in repositories:
-        Repository.with_user(user['login'], user['password']).synchronize({'id': repo['id']})
+        target_sat.cli.Repository.with_user(user['login'], user['password']).synchronize(
+            {'id': repo['id']}
+        )
 
     # step 2.8: Create content view
     content_view = _create(
-        user, ContentView, {'name': gen_alphanumeric(), 'organization-id': org['id']}
+        user, target_sat.cli.ContentView, {'name': gen_alphanumeric(), 'organization-id': org['id']}
     )
 
     # step 2.9: Associate the YUM and Red Hat repositories to new content view
     for repo in repositories:
-        ContentView.add_repository(
+        target_sat.cli.ContentView.add_repository(
             {
                 'id': content_view['id'],
                 'organization-id': org['id'],
@@ -203,26 +191,28 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
         )
 
     # step 2.10: Publish content view
-    ContentView.with_user(user['login'], user['password']).publish({'id': content_view['id']})
+    target_sat.cli.ContentView.with_user(user['login'], user['password']).publish(
+        {'id': content_view['id']}
+    )
 
     # step 2.11: Promote content view to the lifecycle environment
-    content_view = ContentView.with_user(user['login'], user['password']).info(
+    content_view = target_sat.cli.ContentView.with_user(user['login'], user['password']).info(
         {'id': content_view['id']}
     )
     assert len(content_view['versions']) == 1
-    cv_version = ContentView.with_user(user['login'], user['password']).version_info(
+    cv_version = target_sat.cli.ContentView.with_user(user['login'], user['password']).version_info(
         {'id': content_view['versions'][0]['id']}
     )
     assert len(cv_version['lifecycle-environments']) == 1
-    ContentView.with_user(user['login'], user['password']).version_promote(
+    target_sat.cli.ContentView.with_user(user['login'], user['password']).version_promote(
         {'id': cv_version['id'], 'to-lifecycle-environment-id': lifecycle_environment['id']}
     )
     # check that content view exists in lifecycle
-    content_view = ContentView.with_user(user['login'], user['password']).info(
+    content_view = target_sat.cli.ContentView.with_user(user['login'], user['password']).info(
         {'id': content_view['id']}
     )
     assert len(content_view['versions']) == 1
-    cv_version = ContentView.with_user(user['login'], user['password']).version_info(
+    cv_version = target_sat.cli.ContentView.with_user(user['login'], user['password']).version_info(
         {'id': content_view['versions'][0]['id']}
     )
     assert len(cv_version['lifecycle-environments']) == 2
@@ -231,7 +221,7 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     # step 2.12: Create a new activation key
     activation_key = _create(
         user,
-        ActivationKey,
+        target_sat.cli.ActivationKey,
         {
             'content-view-id': content_view['id'],
             'lifecycle-environment-id': lifecycle_environment['id'],
@@ -241,12 +231,14 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     )
 
     # step 2.13: Add the products to the activation key
-    subscription_list = Subscription.with_user(user['login'], user['password']).list(
+    subscription_list = target_sat.cli.Subscription.with_user(user['login'], user['password']).list(
         {'organization-id': org['id']}, per_page=False
     )
     for subscription in subscription_list:
         if subscription['name'] == constants.DEFAULT_SUBSCRIPTION_NAME:
-            ActivationKey.with_user(user['login'], user['password']).add_subscription(
+            target_sat.cli.ActivationKey.with_user(
+                user['login'], user['password']
+            ).add_subscription(
                 {
                     'id': activation_key['id'],
                     'quantity': 1,
@@ -255,7 +247,7 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
             )
 
     # step 2.13.1: Enable product content
-    ActivationKey.with_user(user['login'], user['password']).content_override(
+    target_sat.cli.ActivationKey.with_user(user['login'], user['password']).content_override(
         {
             'content-label': constants.REPOS['rhst7']['id'],
             'id': activation_key['id'],
@@ -267,7 +259,9 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     # BONUS: Create a content host and associate it with promoted
     # content view and last lifecycle where it exists
     content_host_name = gen_alphanumeric()
-    content_host = Host.with_user(user['login'], user['password']).subscription_register(
+    content_host = target_sat.cli.Host.with_user(
+        user['login'], user['password']
+    ).subscription_register(
         {
             'content-view-id': content_view['id'],
             'lifecycle-environment-id': lifecycle_environment['id'],
@@ -276,7 +270,9 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
         }
     )
 
-    content_host = Host.with_user(user['login'], user['password']).info({'id': content_host['id']})
+    content_host = target_sat.cli.Host.with_user(user['login'], user['password']).info(
+        {'id': content_host['id']}
+    )
     # check that content view matches what we passed
     assert content_host['content-information']['content-view']['name'] == content_view['name']
 
@@ -289,7 +285,7 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     # step 2.14: Create a new libvirt compute resource
     _create(
         user,
-        ComputeResource,
+        target_sat.cli.ComputeResource,
         {
             'name': gen_alphanumeric(),
             'provider': 'Libvirt',
@@ -300,7 +296,7 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     # step 2.15: Create a new subnet
     subnet = _create(
         user,
-        Subnet,
+        target_sat.cli.Subnet,
         {
             'name': gen_alphanumeric(),
             'network': gen_ipaddr(ip3=True),
@@ -309,15 +305,15 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     )
 
     # step 2.16: Create a new domain
-    domain = _create(user, Domain, {'name': gen_alphanumeric()})
+    domain = _create(user, target_sat.cli.Domain, {'name': gen_alphanumeric()})
 
     # step 2.17: Create a new hostgroup and associate previous entities to it
     host_group = _create(
         user,
-        HostGroup,
+        target_sat.cli.HostGroup,
         {'domain-id': domain['id'], 'name': gen_alphanumeric(), 'subnet-id': subnet['id']},
     )
-    HostGroup.with_user(user['login'], user['password']).update(
+    target_sat.cli.HostGroup.with_user(user['login'], user['password']).update(
         {
             'id': host_group['id'],
             'organization-ids': org['id'],

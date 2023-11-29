@@ -24,19 +24,6 @@ import pytest
 from wait_for import TimedOutError, wait_for
 import yaml
 
-from robottelo.cli.activationkey import ActivationKey
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    add_role_permissions,
-    make_fake_host,
-    make_host,
-    setup_org_for_a_rh_repo,
-)
-from robottelo.cli.host import Host, HostInterface, HostTraces
-from robottelo.cli.job_invocation import JobInvocation
-from robottelo.cli.package import Package
-from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
@@ -51,6 +38,7 @@ from robottelo.constants import (
     REPOSET,
     SM_OVERALL_STATUS,
 )
+from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.hosts import ContentHostError
 from robottelo.logging import logger
 from robottelo.utils.datafactory import (
@@ -67,12 +55,12 @@ def module_default_proxy(module_target_sat):
     return module_target_sat.cli.Proxy.list({'search': f'url = {module_target_sat.url}:9090'})[0]
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def function_host(target_sat):
     host_template = target_sat.api.Host()
     host_template.create_missing()
     # using CLI to create host
-    host = make_host(
+    host = target_sat.cli_factory.make_host(
         {
             'architecture-id': host_template.architecture.id,
             'domain-id': host_template.domain.id,
@@ -87,10 +75,10 @@ def function_host(target_sat):
         }
     )
     yield host
-    Host.delete({'id': host['id']})
+    target_sat.cli.Host.delete({'id': host['id']})
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def function_user(target_sat, function_host):
     """
     Returns dict with user object and with password to this user
@@ -116,7 +104,7 @@ def function_user(target_sat, function_host):
     user.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def tracer_host(katello_host_tools_tracer_host):
     # create a custom, rhel version-specific mock-service repo
     rhelver = katello_host_tools_tracer_host.os_version.major
@@ -132,7 +120,7 @@ def tracer_host(katello_host_tools_tracer_host):
     )
     katello_host_tools_tracer_host.execute(f'systemctl start {settings.repos["MOCK_SERVICE_RPM"]}')
 
-    yield katello_host_tools_tracer_host
+    return katello_host_tools_tracer_host
 
 
 def update_smart_proxy(sat, location, smart_proxy):
@@ -261,7 +249,7 @@ def parse_cli_entity_list_help_message(help_message):
     return parsed_dict
 
 
-def test_positive_search_all_field_sets():
+def test_positive_search_all_field_sets(module_target_sat):
     """All fields in predefined field sets from hammer host list --help message are shown
     when specified as --fields in hammer host list command
     Note: host was created, so we there will always be at least 1 host
@@ -283,12 +271,14 @@ def test_positive_search_all_field_sets():
 
     :customerscenario: true
     """
-    new_host = make_fake_host()
-    host_help_yaml = Host.list(options={'help': ''}, output_format='yaml')
+    new_host = module_target_sat.cli_factory.make_fake_host()
+    host_help_yaml = module_target_sat.cli.Host.list(options={'help': ''}, output_format='yaml')
     host_help = yaml.load(host_help_yaml, yaml.SafeLoader)
     parsed_dict = parse_cli_entity_list_help_message(host_help[':message'])
     help_field_sets = parsed_dict['Predefined field sets']
-    output_field_sets = Host.list(options={'fields': ','.join(help_field_sets)})
+    output_field_sets = module_target_sat.cli.Host.list(
+        options={'fields': ','.join(help_field_sets)}
+    )
 
     # get list index of the created host in the output_field_sets
     [host_idx] = [idx for idx, host in enumerate(output_field_sets) if new_host['id'] == host['id']]
@@ -324,7 +314,7 @@ def test_positive_create_and_delete(target_sat, module_lce_library, module_publi
         'type=interface,mac={},identifier=eth0,name={},domain_id={},'
         'ip={},primary=true,provision=true'
     ).format(host.mac, gen_string('alpha'), host.domain.id, gen_ipaddr())
-    new_host = make_host(
+    new_host = target_sat.cli_factory.make_host(
         {
             'architecture-id': host.architecture.id,
             'content-view-id': module_published_cv.id,
@@ -347,14 +337,14 @@ def test_positive_create_and_delete(target_sat, module_lce_library, module_publi
     assert (
         new_host['content-information']['lifecycle-environment']['name'] == module_lce_library.name
     )
-    host_interface = HostInterface.info(
+    host_interface = target_sat.cli.HostInterface.info(
         {'host-id': new_host['id'], 'id': new_host['network-interfaces'][0]['id']}
     )
     assert host_interface['domain'] == host.domain.read().name
 
-    Host.delete({'id': new_host['id']})
+    target_sat.cli.Host.delete({'id': new_host['id']})
     with pytest.raises(CLIReturnCodeError):
-        Host.info({'id': new_host['id']})
+        target_sat.cli.Host.info({'id': new_host['id']})
 
 
 @pytest.mark.e2e
@@ -373,14 +363,14 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
     domain = target_sat.api.Domain(location=[default_location], organization=[default_org]).create()
 
     mac = gen_mac(multicast=False)
-    host = make_fake_host({'domain-id': domain.id})
-    number_of_interfaces = len(HostInterface.list({'host-id': host['id']}))
+    host = target_sat.cli_factory.make_fake_host({'domain-id': domain.id})
+    number_of_interfaces = len(target_sat.cliHostInterface.list({'host-id': host['id']}))
 
-    HostInterface.create(
+    target_sat.cliHostInterface.create(
         {'host-id': host['id'], 'domain-id': domain.id, 'mac': mac, 'type': 'interface'}
     )
-    host = Host.info({'id': host['id']})
-    host_interface = HostInterface.info(
+    host = target_sat.cli.Host.info({'id': host['id']})
+    host_interface = target_sat.cliHostInterface.info(
         {
             'host-id': host['id'],
             'id': [ni for ni in host['network-interfaces'] if ni['mac-address'] == mac][0]['id'],
@@ -388,13 +378,15 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
     )
     assert host_interface['domain'] == domain.name
     assert host_interface['mac-address'] == mac
-    assert len(HostInterface.list({'host-id': host['id']})) == number_of_interfaces + 1
+    assert (
+        len(target_sat.cliHostInterface.list({'host-id': host['id']})) == number_of_interfaces + 1
+    )
 
     new_domain = target_sat.api.Domain(
         location=[default_location], organization=[default_org]
     ).create()
     new_mac = gen_mac(multicast=False)
-    HostInterface.update(
+    target_sat.cliHostInterface.update(
         {
             'host-id': host['id'],
             'id': host_interface['id'],
@@ -402,7 +394,7 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
             'mac': new_mac,
         }
     )
-    host_interface = HostInterface.info(
+    host_interface = target_sat.cliHostInterface.info(
         {
             'host-id': host['id'],
             'id': [ni for ni in host['network-interfaces'] if ni['mac-address'] == mac][0]['id'],
@@ -411,15 +403,17 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
     assert host_interface['domain'] == new_domain.name
     assert host_interface['mac-address'] == new_mac
 
-    HostInterface.delete({'host-id': host['id'], 'id': host_interface['id']})
-    assert len(HostInterface.list({'host-id': host['id']})) == number_of_interfaces
+    target_sat.cliHostInterface.delete({'host-id': host['id'], 'id': host_interface['id']})
+    assert len(target_sat.cliHostInterface.list({'host-id': host['id']})) == number_of_interfaces
     with pytest.raises(CLIReturnCodeError):
-        HostInterface.info({'host-id': host['id'], 'id': host_interface['id']})
+        target_sat.cliHostInterface.info({'host-id': host['id'], 'id': host_interface['id']})
 
 
 @pytest.mark.cli_host_create
 @pytest.mark.tier2
-def test_negative_create_with_content_source(module_lce_library, module_org, module_published_cv):
+def test_negative_create_with_content_source(
+    module_lce_library, module_org, module_published_cv, module_target_sat
+):
     """Attempt to create a host with invalid content source specified
 
     :id: d92d6aff-4ad3-467c-88a8-5a5e56614f58
@@ -431,7 +425,7 @@ def test_negative_create_with_content_source(module_lce_library, module_org, mod
     :CaseImportance: Medium
     """
     with pytest.raises(CLIFactoryError):
-        make_fake_host(
+        module_target_sat.cli_factory.make_fake_host(
             {
                 'content-source-id': gen_integer(10000, 99999),
                 'content-view-id': module_published_cv.id,
@@ -444,7 +438,7 @@ def test_negative_create_with_content_source(module_lce_library, module_org, mod
 @pytest.mark.cli_host_create
 @pytest.mark.tier2
 def test_negative_update_content_source(
-    module_default_proxy, module_lce_library, module_org, module_published_cv
+    module_default_proxy, module_lce_library, module_org, module_published_cv, module_target_sat
 ):
     """Attempt to update host's content source with invalid value
 
@@ -459,7 +453,7 @@ def test_negative_update_content_source(
 
     :CaseImportance: Medium
     """
-    host = make_fake_host(
+    host = module_target_sat.cli_factory.make_fake_host(
         {
             'content-source-id': module_default_proxy['id'],
             'content-view-id': module_published_cv.id,
@@ -468,14 +462,18 @@ def test_negative_update_content_source(
         }
     )
     with pytest.raises(CLIReturnCodeError):
-        Host.update({'id': host['id'], 'content-source-id': gen_integer(10000, 99999)})
-    host = Host.info({'id': host['id']})
+        module_target_sat.cli.Host.update(
+            {'id': host['id'], 'content-source-id': gen_integer(10000, 99999)}
+        )
+    host = module_target_sat.cli.Host.info({'id': host['id']})
     assert host['content-information']['content-source']['name'] == module_default_proxy['name']
 
 
 @pytest.mark.cli_host_create
 @pytest.mark.tier1
-def test_positive_create_with_lce_and_cv(module_lce, module_org, module_promoted_cv):
+def test_positive_create_with_lce_and_cv(
+    module_lce, module_org, module_promoted_cv, module_target_sat
+):
     """Check if host can be created with new lifecycle and
         new content view
 
@@ -488,7 +486,7 @@ def test_positive_create_with_lce_and_cv(module_lce, module_org, module_promoted
 
     :CaseImportance: Critical
     """
-    new_host = make_fake_host(
+    new_host = module_target_sat.cli_factory.make_fake_host(
         {
             'content-view-id': module_promoted_cv.id,
             'lifecycle-environment-id': module_lce.id,
@@ -501,7 +499,9 @@ def test_positive_create_with_lce_and_cv(module_lce, module_org, module_promoted
 
 @pytest.mark.cli_host_create
 @pytest.mark.tier2
-def test_positive_create_with_openscap_proxy_id(module_default_proxy, module_org):
+def test_positive_create_with_openscap_proxy_id(
+    module_default_proxy, module_org, module_target_sat
+):
     """Check if host can be created with OpenSCAP Proxy id
 
     :id: 3774ba08-3b18-4e64-b07f-53f6aa0504f3
@@ -510,7 +510,7 @@ def test_positive_create_with_openscap_proxy_id(module_default_proxy, module_org
 
     :CaseImportance: Medium
     """
-    host = make_fake_host(
+    host = module_target_sat.cli_factory.make_fake_host(
         {'organization-id': module_org.id, 'openscap-proxy-id': module_default_proxy['id']}
     )
     assert host['openscap-proxy'] == module_default_proxy['id']
@@ -518,7 +518,9 @@ def test_positive_create_with_openscap_proxy_id(module_default_proxy, module_org
 
 @pytest.mark.cli_host_create
 @pytest.mark.tier1
-def test_negative_create_with_name(module_lce_library, module_org, module_published_cv):
+def test_negative_create_with_name(
+    module_lce_library, module_org, module_published_cv, module_target_sat
+):
     """Check if host can be created with random long names
 
     :id: f92b6070-b2d1-4e3e-975c-39f1b1096697
@@ -529,7 +531,7 @@ def test_negative_create_with_name(module_lce_library, module_org, module_publis
     """
     name = gen_choice(invalid_values_list())
     with pytest.raises(CLIFactoryError):
-        make_fake_host(
+        module_target_sat.cli_factory.make_fake_host(
             {
                 'name': name,
                 'organization-id': module_org.id,
@@ -541,7 +543,7 @@ def test_negative_create_with_name(module_lce_library, module_org, module_publis
 
 @pytest.mark.cli_host_create
 @pytest.mark.tier1
-def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv):
+def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv, module_target_sat):
     """Check if host can be created using unpublished cv
 
     :id: 9997383d-3c27-4f14-94f9-4b8b51180eb6
@@ -551,7 +553,7 @@ def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv):
     :CaseImportance: Critical
     """
     with pytest.raises(CLIFactoryError):
-        make_fake_host(
+        module_target_sat.cli_factory.make_fake_host(
             {
                 'content-view-id': module_cv.id,
                 'lifecycle-environment-id': module_lce.id,
@@ -563,7 +565,7 @@ def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv):
 @pytest.mark.cli_host_create
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_katello_and_openscap_loaded():
+def test_positive_katello_and_openscap_loaded(target_sat):
     """Verify that command line arguments from both Katello
     and foreman_openscap plugins are loaded and available
     at the same time
@@ -582,7 +584,7 @@ def test_positive_katello_and_openscap_loaded():
 
     :BZ: 1671148
     """
-    help_output = Host.execute('host update --help')
+    help_output = target_sat.cli.Host.execute('host update --help')
     for arg in ['lifecycle-environment[-id]', 'openscap-proxy-id']:
         assert any(
             f'--{arg}' in line for line in help_output.split('\n')
@@ -607,11 +609,11 @@ def test_positive_list_and_unregister(
     """
     rhel7_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert rhel7_contenthost.subscribed
-    hosts = Host.list({'organization-id': module_org.id})
+    hosts = target_sat.cli.Host.list({'organization-id': module_org.id})
     assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
     result = rhel7_contenthost.unregister()
     assert result.status == 0
-    hosts = Host.list({'organization-id': module_org.id})
+    hosts = target_sat.cli.Host.list({'organization-id': module_org.id})
     assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
 
 
@@ -640,7 +642,9 @@ def test_positive_list_by_last_checkin(
         lce=f'{module_lce.label}/{module_promoted_cv.label}',
     )
     assert rhel7_contenthost.subscribed
-    hosts = Host.list({'search': 'last_checkin = "Today" or last_checkin = "Yesterday"'})
+    hosts = target_sat.cli.Host.list(
+        {'search': 'last_checkin = "Today" or last_checkin = "Yesterday"'}
+    )
     assert len(hosts) >= 1
     assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
 
@@ -666,15 +670,15 @@ def test_positive_list_infrastructure_hosts(
         lce=f'{module_lce.label}/{module_promoted_cv.label}',
     )
     assert rhel7_contenthost.subscribed
-    Host.update({'name': target_sat.hostname, 'new-organization-id': module_org.id})
+    target_sat.cli.Host.update({'name': target_sat.hostname, 'new-organization-id': module_org.id})
     # list satellite hosts
-    hosts = Host.list({'search': 'infrastructure_facet.foreman=true'})
+    hosts = target_sat.cli.Host.list({'search': 'infrastructure_facet.foreman=true'})
     assert len(hosts) == 2 if is_open('BZ:1994685') else len(hosts) == 1
     hostnames = [host['name'] for host in hosts]
     assert rhel7_contenthost.hostname not in hostnames
     assert target_sat.hostname in hostnames
     # list capsule hosts
-    hosts = Host.list({'search': 'infrastructure_facet.smart_proxy_id=1'})
+    hosts = target_sat.cli.Host.list({'search': 'infrastructure_facet.smart_proxy_id=1'})
     hostnames = [host['name'] for host in hosts]
     assert len(hosts) == 2 if is_open('BZ:1994685') else len(hosts) == 1
     assert rhel7_contenthost.hostname not in hostnames
@@ -703,7 +707,9 @@ def test_positive_create_inherit_lce_cv(
         lifecycle_environment=module_lce_library,
         organization=[module_org],
     ).create()
-    host = make_fake_host({'hostgroup-id': hostgroup.id, 'organization-id': module_org.id})
+    host = target_sat.cli_factory.make_fake_host(
+        {'hostgroup-id': hostgroup.id, 'organization-id': module_org.id}
+    )
     assert (
         int(host['content-information']['lifecycle-environment']['id'])
         == hostgroup.lifecycle_environment.id
@@ -758,7 +764,7 @@ def test_positive_create_inherit_nested_hostgroup(target_sat):
         ).create()
         nested_hostgroups.append(nested_hg)
 
-    host = make_host(
+    host = target_sat.cli_factory.make_host(
         {
             'hostgroup-title': f'{parent_hostgroups[0].name}/{nested_hostgroups[0].name}',
             'location-id': options.location.id,
@@ -812,7 +818,7 @@ def test_positive_list_with_nested_hostgroup(target_sat):
         organization=[options.organization],
         parent=parent_hg,
     ).create()
-    make_host(
+    target_sat.cli_factory.make_host(
         {
             'hostgroup-id': nested_hg.id,
             'location-id': options.location.id,
@@ -820,9 +826,9 @@ def test_positive_list_with_nested_hostgroup(target_sat):
             'name': host_name,
         }
     )
-    hosts = Host.list({'organization-id': options.organization.id})
+    hosts = target_sat.cli.Host.list({'organization-id': options.organization.id})
     assert f'{parent_hg_name}/{nested_hg_name}' == hosts[0]['host-group']
-    host = Host.info({'id': hosts[0]['id']})
+    host = target_sat.cli.Host.info({'id': hosts[0]['id']})
     logger.info(f'Host info: {host}')
     assert host['operating-system']['medium'] == options.medium.name
     assert host['operating-system']['partition-table'] == options.ptable.name  # inherited
@@ -910,7 +916,7 @@ def test_positive_update_parameters_by_name(
         organization=[organization],
         operatingsystem=[new_os],
     ).create()
-    Host.update(
+    target_sat.cli.Host.update(
         {
             'architecture': module_architecture.name,
             'domain': new_domain.name,
@@ -922,7 +928,7 @@ def test_positive_update_parameters_by_name(
             'new-location-id': new_loc.id,
         }
     )
-    host = Host.info({'id': function_host['id']})
+    host = target_sat.cli.Host.info({'id': function_host['id']})
     assert '{}.{}'.format(new_name, host['network']['domain']) == host['name']
     assert host['location'] == new_loc.name
     assert host['network']['mac'] == new_mac
@@ -934,7 +940,7 @@ def test_positive_update_parameters_by_name(
 
 @pytest.mark.tier1
 @pytest.mark.cli_host_update
-def test_negative_update_name(function_host):
+def test_negative_update_name(function_host, target_sat):
     """A host can not be updated with invalid or empty name
 
     :id: e8068d2a-6a51-4627-908b-60a516c67032
@@ -945,14 +951,14 @@ def test_negative_update_name(function_host):
     """
     new_name = gen_choice(invalid_values_list())
     with pytest.raises(CLIReturnCodeError):
-        Host.update({'id': function_host['id'], 'new-name': new_name})
-    host = Host.info({'id': function_host['id']})
+        target_sat.cli.Host.update({'id': function_host['id'], 'new-name': new_name})
+    host = target_sat.cli.Host.info({'id': function_host['id']})
     assert '{}.{}'.format(new_name, host['network']['domain']).lower() != host['name']
 
 
 @pytest.mark.tier1
 @pytest.mark.cli_host_update
-def test_negative_update_mac(function_host):
+def test_negative_update_mac(function_host, target_sat):
     """A host can not be updated with invalid or empty MAC address
 
     :id: 2f03032d-789d-419f-9ff2-a6f3561444da
@@ -963,14 +969,14 @@ def test_negative_update_mac(function_host):
     """
     new_mac = gen_choice(invalid_values_list())
     with pytest.raises(CLIReturnCodeError):
-        Host.update({'id': function_host['id'], 'mac': new_mac})
-    host = Host.info({'id': function_host['id']})
+        target_sat.cli.Host.update({'id': function_host['id'], 'mac': new_mac})
+    host = target_sat.cli.Host.info({'id': function_host['id']})
     assert host['network']['mac'] != new_mac
 
 
 @pytest.mark.tier2
 @pytest.mark.cli_host_update
-def test_negative_update_arch(function_host, module_architecture):
+def test_negative_update_arch(function_host, module_architecture, target_sat):
     """A host can not be updated with a architecture, which does not
     belong to host's operating system
 
@@ -981,8 +987,10 @@ def test_negative_update_arch(function_host, module_architecture):
     :CaseLevel: Integration
     """
     with pytest.raises(CLIReturnCodeError):
-        Host.update({'architecture': module_architecture.name, 'id': function_host['id']})
-    host = Host.info({'id': function_host['id']})
+        target_sat.cli.Host.update(
+            {'architecture': module_architecture.name, 'id': function_host['id']}
+        )
+    host = target_sat.cli.Host.info({'id': function_host['id']})
     assert host['operating-system']['architecture'] != module_architecture.name
 
 
@@ -1007,14 +1015,14 @@ def test_negative_update_os(target_sat, function_host, module_architecture):
         ptable=[p_table.id],
     ).create()
     with pytest.raises(CLIReturnCodeError):
-        Host.update(
+        target_sat.cli.Host.update(
             {
                 'architecture': module_architecture.name,
                 'id': function_host['id'],
                 'operatingsystem': new_os.title,
             }
         )
-    host = Host.info({'id': function_host['id']})
+    host = target_sat.cli.Host.info({'id': function_host['id']})
     assert host['operating-system']['operating-system'] != new_os.title
 
 
@@ -1042,25 +1050,27 @@ def test_hammer_host_info_output(target_sat, module_user):
     user = target_sat.api.User().search(
         query={'search': f'login={settings.server.admin_username}'}
     )[0]
-    Host.update({'owner': settings.server.admin_username, 'owner-type': 'User', 'id': '1'})
-    result_info = Host.info(options={'id': '1', 'fields': 'Additional info'})
+    target_sat.cli.Host.update(
+        {'owner': settings.server.admin_username, 'owner-type': 'User', 'id': '1'}
+    )
+    result_info = target_sat.cli.Host.info(options={'id': '1', 'fields': 'Additional info'})
     assert int(result_info['additional-info']['owner-id']) == user.id
-    host = Host.info({'id': '1'})
-    User.update(
+    host = target_sat.cli.Host.info({'id': '1'})
+    target_sat.cli.User.update(
         {
             'id': module_user.id,
             'organizations': [host['organization']],
             'locations': [host['location']],
         }
     )
-    Host.update({'owner-id': module_user.id, 'id': '1'})
-    result_info = Host.info(options={'id': '1', 'fields': 'Additional info'})
+    target_sat.cli.Host.update({'owner-id': module_user.id, 'id': '1'})
+    result_info = target_sat.cli.Host.info(options={'id': '1', 'fields': 'Additional info'})
     assert int(result_info['additional-info']['owner-id']) == module_user.id
 
 
 @pytest.mark.cli_host_parameter
 @pytest.mark.tier1
-def test_positive_parameter_crud(function_host):
+def test_positive_parameter_crud(function_host, target_sat):
     """Add, update and remove host parameter with valid name.
 
     :id: 76034424-cf18-4ced-916b-ee9798c311bc
@@ -1072,26 +1082,28 @@ def test_positive_parameter_crud(function_host):
     """
     name = next(iter(valid_data_list()))
     value = valid_data_list()[name]
-    Host.set_parameter({'host-id': function_host['id'], 'name': name, 'value': value})
-    host = Host.info({'id': function_host['id']})
+    target_sat.cli.Host.set_parameter(
+        {'host-id': function_host['id'], 'name': name, 'value': value}
+    )
+    host = target_sat.cli.Host.info({'id': function_host['id']})
     assert name in host['parameters'].keys()
     assert value == host['parameters'][name]
 
     new_value = valid_data_list()[name]
-    Host.set_parameter({'host-id': host['id'], 'name': name, 'value': new_value})
-    host = Host.info({'id': host['id']})
+    target_sat.cli.Host.set_parameter({'host-id': host['id'], 'name': name, 'value': new_value})
+    host = target_sat.cli.Host.info({'id': host['id']})
     assert name in host['parameters'].keys()
     assert new_value == host['parameters'][name]
 
-    Host.delete_parameter({'host-id': host['id'], 'name': name})
-    host = Host.info({'id': host['id']})
+    target_sat.cli.Host.delete_parameter({'host-id': host['id'], 'name': name})
+    host = target_sat.cli.Host.info({'id': host['id']})
     assert name not in host['parameters'].keys()
 
 
 # -------------------------- HOST PARAMETER SCENARIOS -------------------------
 @pytest.mark.cli_host_parameter
 @pytest.mark.tier1
-def test_negative_add_parameter(function_host):
+def test_negative_add_parameter(function_host, target_sat):
     """Try to add host parameter with different invalid names.
 
     :id: 473f8c3f-b66e-4526-88af-e139cc3dabcb
@@ -1103,14 +1115,14 @@ def test_negative_add_parameter(function_host):
     """
     name = gen_choice(invalid_values_list()).lower()
     with pytest.raises(CLIReturnCodeError):
-        Host.set_parameter(
+        target_sat.cli.Host.set_parameter(
             {
                 'host-id': function_host['id'],
                 'name': name,
                 'value': gen_string('alphanumeric'),
             }
         )
-    host = Host.info({'id': function_host['id']})
+    host = target_sat.cli.Host.info({'id': function_host['id']})
     assert name not in host['parameters'].keys()
 
 
@@ -1138,19 +1150,21 @@ def test_negative_view_parameter_by_non_admin_user(target_sat, function_host, fu
     """
     param_name = gen_string('alpha').lower()
     param_value = gen_string('alphanumeric')
-    Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
-    host = Host.info({'id': function_host['id']})
+    target_sat.cli.Host.set_parameter(
+        {'host-id': function_host['id'], 'name': param_name, 'value': param_value}
+    )
+    host = target_sat.cli.Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
     role = target_sat.api.Role(name=gen_string('alphanumeric')).create()
-    add_role_permissions(
+    target_sat.cli_factory.add_role_permissions(
         role.id,
         resource_permissions={
             'Host': {'permissions': ['view_hosts']},
             'Organization': {'permissions': ['view_organizations']},
         },
     )
-    User.add_role({'id': function_user['user'].id, 'role-id': role.id})
-    host = Host.with_user(
+    target_sat.cli.User.add_role({'id': function_user['user'].id, 'role-id': role.id})
+    host = target_sat.cli.Host.with_user(
         username=function_user['user'].login, password=function_user['password']
     ).info({'id': host['id']})
     assert not host.get('parameters')
@@ -1181,11 +1195,13 @@ def test_positive_view_parameter_by_non_admin_user(target_sat, function_host, fu
     """
     param_name = gen_string('alpha').lower()
     param_value = gen_string('alphanumeric')
-    Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
-    host = Host.info({'id': function_host['id']})
+    target_sat.cli.Host.set_parameter(
+        {'host-id': function_host['id'], 'name': param_name, 'value': param_value}
+    )
+    host = target_sat.cli.Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
     role = target_sat.api.Role(name=gen_string('alphanumeric')).create()
-    add_role_permissions(
+    target_sat.cli_factory.add_role_permissions(
         role.id,
         resource_permissions={
             'Host': {'permissions': ['view_hosts']},
@@ -1193,8 +1209,8 @@ def test_positive_view_parameter_by_non_admin_user(target_sat, function_host, fu
             'Parameter': {'permissions': ['view_params']},
         },
     )
-    User.add_role({'id': function_user['user'].id, 'role-id': role.id})
-    host = Host.with_user(
+    target_sat.cli.User.add_role({'id': function_user['user'].id, 'role-id': role.id})
+    host = target_sat.cli.Host.with_user(
         username=function_user['user'].login, password=function_user['password']
     ).info({'id': host['id']})
     assert param_name in host['parameters']
@@ -1226,11 +1242,13 @@ def test_negative_edit_parameter_by_non_admin_user(target_sat, function_host, fu
     """
     param_name = gen_string('alpha').lower()
     param_value = gen_string('alphanumeric')
-    Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
-    host = Host.info({'id': function_host['id']})
+    target_sat.cli.Host.set_parameter(
+        {'host-id': function_host['id'], 'name': param_name, 'value': param_value}
+    )
+    host = target_sat.cli.Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
     role = target_sat.api.Role(name=gen_string('alphanumeric')).create()
-    add_role_permissions(
+    target_sat.cli_factory.add_role_permissions(
         role.id,
         resource_permissions={
             'Host': {'permissions': ['view_hosts']},
@@ -1238,21 +1256,21 @@ def test_negative_edit_parameter_by_non_admin_user(target_sat, function_host, fu
             'Parameter': {'permissions': ['view_params']},
         },
     )
-    User.add_role({'id': function_user['user'].id, 'role-id': role.id})
+    target_sat.cli.User.add_role({'id': function_user['user'].id, 'role-id': role.id})
     param_new_value = gen_string('alphanumeric')
     with pytest.raises(CLIReturnCodeError):
-        Host.with_user(
+        target_sat.cli.Host.with_user(
             username=function_user['user'].login, password=function_user['password']
         ).set_parameter(
             {'host-id': function_host['id'], 'name': param_name, 'value': param_new_value}
         )
-    host = Host.info({'id': function_host['id']})
+    host = target_sat.cli.Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
 
 
 @pytest.mark.cli_host_parameter
 @pytest.mark.tier2
-def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host):
+def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host, target_sat):
     """Check that host parameter value with multi-line and spaces is
     correctly restored from yaml format
 
@@ -1276,15 +1294,17 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host):
         'account     include                  password-auth'
     )
     # count parameters of a host
-    response = Host.info(
+    response = target_sat.cli.Host.info(
         {'id': function_host['id']}, output_format='yaml', return_raw_response=True
     )
     assert response.status == 0
     yaml_content = yaml.load(response.stdout, yaml.SafeLoader)
     host_initial_params = yaml_content.get('Parameters')
     # set parameter
-    Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
-    response = Host.info(
+    target_sat.cli.Host.set_parameter(
+        {'host-id': function_host['id'], 'name': param_name, 'value': param_value}
+    )
+    response = target_sat.cli.Host.info(
         {'id': function_host['id']}, output_format='yaml', return_raw_response=True
     )
     assert response.status == 0
@@ -1494,18 +1514,12 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
     """
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def setup_custom_repo(target_sat, module_org, katello_host_tools_host, request):
     """Create custom repository content"""
 
-    def restore_sca_setting():
-        """Restore the original SCA setting for module_org"""
-        module_org.sca_enable() if sca_enabled else module_org.sca_disable()
-
-    if module_org.sca_eligible().get('simple_content_access_eligible', False):
-        sca_enabled = module_org.simple_content_access
-        module_org.sca_disable()
-        request.addfinalizer(restore_sca_setting)
+    sca_enabled = module_org.simple_content_access
+    module_org.sca_disable()
 
     # get package details
     details = {}
@@ -1551,10 +1565,14 @@ def setup_custom_repo(target_sat, module_org, katello_host_tools_host, request):
     )
     # refresh repository metadata
     katello_host_tools_host.subscription_manager_list_repos()
-    return details
+    if sca_enabled:
+        yield details
+        module_org.sca_enable()
+    else:
+        return details
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def yum_security_plugin(katello_host_tools_host):
     """Enable yum-security-plugin if the distro version requires it.
     Rhel6 yum version does not support updating of a specific advisory out of the box.
@@ -1572,7 +1590,9 @@ def yum_security_plugin(katello_host_tools_host):
 @pytest.mark.e2e
 @pytest.mark.cli_katello_host_tools
 @pytest.mark.tier3
-def test_positive_report_package_installed_removed(katello_host_tools_host, setup_custom_repo):
+def test_positive_report_package_installed_removed(
+    katello_host_tools_host, setup_custom_repo, target_sat
+):
     """Ensure installed/removed package is reported to satellite
 
     :id: fa5dc238-74c3-4c8a-aa6f-e0a91ba543e3
@@ -1598,18 +1618,18 @@ def test_positive_report_package_installed_removed(katello_host_tools_host, setu
     :CaseLevel: System
     """
     client = katello_host_tools_host
-    host_info = Host.info({'name': client.hostname})
+    host_info = target_sat.cli.Host.info({'name': client.hostname})
     client.run(f'yum install -y {setup_custom_repo["package"]}')
     result = client.run(f'rpm -q {setup_custom_repo["package"]}')
     assert result.status == 0
-    installed_packages = Host.package_list(
+    installed_packages = target_sat.cli.Host.package_list(
         {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
     )
     assert len(installed_packages) == 1
     assert installed_packages[0]['nvra'] == setup_custom_repo["package"]
     result = client.run(f'yum remove -y {setup_custom_repo["package"]}')
     assert result.status == 0
-    installed_packages = Host.package_list(
+    installed_packages = target_sat.cli.Host.package_list(
         {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
     )
     assert len(installed_packages) == 0
@@ -1617,7 +1637,7 @@ def test_positive_report_package_installed_removed(katello_host_tools_host, setu
 
 @pytest.mark.cli_katello_host_tools
 @pytest.mark.tier3
-def test_positive_package_applicability(katello_host_tools_host, setup_custom_repo):
+def test_positive_package_applicability(katello_host_tools_host, setup_custom_repo, target_sat):
     """Ensure packages applicability is functioning properly
 
     :id: d283b65b-19c1-4eba-87ea-f929b0ee4116
@@ -1644,12 +1664,12 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
     :CaseLevel: System
     """
     client = katello_host_tools_host
-    host_info = Host.info({'name': client.hostname})
+    host_info = target_sat.cli.Host.info({'name': client.hostname})
     client.run(f'yum install -y {setup_custom_repo["package"]}')
     result = client.run(f'rpm -q {setup_custom_repo["package"]}')
     assert result.status == 0
     applicable_packages, _ = wait_for(
-        lambda: Package.list(
+        lambda: target_sat.cli.Package.list(
             {
                 'host-id': host_info['id'],
                 'packages-restrict-applicable': 'true',
@@ -1667,7 +1687,7 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
     client.run(f'yum install -y {setup_custom_repo["new_package"]}')
     result = client.run(f'rpm -q {setup_custom_repo["new_package"]}')
     assert result.status == 0
-    applicable_packages = Package.list(
+    applicable_packages = target_sat.cli.Package.list(
         {
             'host-id': host_info['id'],
             'packages-restrict-applicable': 'true',
@@ -1683,7 +1703,7 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
 @pytest.mark.pit_server
 @pytest.mark.tier3
 def test_positive_erratum_applicability(
-    katello_host_tools_host, setup_custom_repo, yum_security_plugin
+    katello_host_tools_host, setup_custom_repo, yum_security_plugin, target_sat
 ):
     """Ensure erratum applicability is functioning properly
 
@@ -1708,12 +1728,12 @@ def test_positive_erratum_applicability(
     :CaseLevel: System
     """
     client = katello_host_tools_host
-    host_info = Host.info({'name': client.hostname})
+    host_info = target_sat.cli.Host.info({'name': client.hostname})
     client.run(f'yum install -y {setup_custom_repo["package"]}')
     result = client.run(f'rpm -q {setup_custom_repo["package"]}')
     client.subscription_manager_list_repos()
     applicable_errata, _ = wait_for(
-        lambda: Host.errata_list({'host-id': host_info['id']}),
+        lambda: target_sat.cli.Host.errata_list({'host-id': host_info['id']}),
         handle_exception=True,
         fail_condition=[],
         timeout=120,
@@ -1735,7 +1755,7 @@ def test_positive_erratum_applicability(
             lambda: setup_custom_repo["security_errata"]
             not in [
                 errata['erratum-id']
-                for errata in Host.errata_list({'host-id': host_info['id']})
+                for errata in target_sat.cli.Host.errata_list({'host-id': host_info['id']})
                 if errata['installable'] == 'true'
             ],
             handle_exception=True,
@@ -1751,7 +1771,7 @@ def test_positive_erratum_applicability(
 
 @pytest.mark.cli_katello_host_tools
 @pytest.mark.tier3
-def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_repo):
+def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_repo, target_sat):
     """Apply security erratum to a host
 
     :id: 4d1095c8-d354-42ac-af44-adf6dbb46deb
@@ -1768,12 +1788,12 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
     :parametrized: yes
     """
     client = katello_host_tools_host
-    host_info = Host.info({'name': client.hostname})
+    host_info = target_sat.cli.Host.info({'name': client.hostname})
     client.run(f'yum install -y {setup_custom_repo["new_package"]}')
     client.run(f'yum downgrade -y {setup_custom_repo["package_name"]}')
     # Check that host has applicable errata
     host_erratum, _ = wait_for(
-        lambda: Host.errata_list({'host-id': host_info['id']})[0],
+        lambda: target_sat.cli.Host.errata_list({'host-id': host_info['id']})[0],
         handle_exception=True,
         timeout=120,
         delay=5,
@@ -1804,10 +1824,10 @@ def test_positive_install_package_via_rex(
     :parametrized: yes
     """
     client = katello_host_tools_host
-    host_info = Host.info({'name': client.hostname})
+    host_info = target_sat.cli.Host.info({'name': client.hostname})
     client.configure_rex(satellite=target_sat, org=module_org, register=False)
     # Apply errata to the host collection using job invocation
-    JobInvocation.create(
+    target_sat.cli.JobInvocation.create(
         {
             'feature': 'katello_package_install',
             'search-query': f'name ~ {client.hostname}',
@@ -1817,7 +1837,7 @@ def test_positive_install_package_via_rex(
     )
     result = client.run(f'rpm -q {setup_custom_repo["package"]}')
     assert result.status == 0
-    installed_packages = Host.package_list(
+    installed_packages = target_sat.cli.Host.package_list(
         {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
     )
     assert len(installed_packages) == 1
@@ -1825,10 +1845,10 @@ def test_positive_install_package_via_rex(
 
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND FIXTURES --------------------------
 @pytest.mark.skip_if_not_set('clients')
-@pytest.fixture(scope="function")
+@pytest.fixture
 def host_subscription_client(rhel7_contenthost, target_sat):
     rhel7_contenthost.install_katello_ca(target_sat)
-    yield rhel7_contenthost
+    return rhel7_contenthost
 
 
 @pytest.fixture
@@ -1849,7 +1869,12 @@ def ak_with_subscription(
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_positive_register(
-    module_org, module_promoted_cv, module_lce, module_ak_with_cv, host_subscription_client
+    module_org,
+    module_promoted_cv,
+    module_lce,
+    module_ak_with_cv,
+    host_subscription_client,
+    target_sat,
 ):
     """Attempt to register a host
 
@@ -1861,14 +1886,14 @@ def test_positive_register(
 
     :CaseLevel: System
     """
-    hosts = Host.list(
+    hosts = target_sat.cli.Host.list(
         {
             'organization-id': module_org.id,
             'search': host_subscription_client.hostname,
         }
     )
     assert len(hosts) == 0
-    Host.subscription_register(
+    target_sat.cli.Host.subscription_register(
         {
             'organization-id': module_org.id,
             'content-view-id': module_promoted_cv.id,
@@ -1876,18 +1901,18 @@ def test_positive_register(
             'name': host_subscription_client.hostname,
         }
     )
-    hosts = Host.list(
+    hosts = target_sat.cli.Host.list(
         {
             'organization-id': module_org.id,
             'search': host_subscription_client.hostname,
         }
     )
     assert len(hosts) > 0
-    host = Host.info({'id': hosts[0]['id']})
+    host = target_sat.cli.Host.info({'id': hosts[0]['id']})
     assert host['name'] == host_subscription_client.hostname
     # note: when not registered the following command lead to exception,
     # see unregister
-    host_subscriptions = ActivationKey.subscriptions(
+    host_subscriptions = target_sat.cli.ActivationKey.subscriptions(
         {
             'organization-id': module_org.id,
             'id': module_ak_with_cv.id,
@@ -1908,6 +1933,7 @@ def test_positive_attach(
     module_rhst_repo,
     default_subscription,
     host_subscription_client,
+    target_sat,
 ):
     """Attempt to attach a subscription to host
 
@@ -1926,7 +1952,7 @@ def test_positive_attach(
     """
     # create an activation key without subscriptions
     # register the client host
-    Host.subscription_register(
+    target_sat.cli.Host.subscription_register(
         {
             'organization-id': module_org.id,
             'content-view-id': module_promoted_cv.id,
@@ -1934,13 +1960,13 @@ def test_positive_attach(
             'name': host_subscription_client.hostname,
         }
     )
-    host = Host.info({'name': host_subscription_client.hostname})
+    host = target_sat.cli.Host.info({'name': host_subscription_client.hostname})
     host_subscription_client.register_contenthost(
         module_org.name, activation_key=module_ak_with_cv.name
     )
     assert host_subscription_client.subscribed
     # attach the subscription to host
-    Host.subscription_attach(
+    target_sat.cli.Host.subscription_attach(
         {
             'host-id': host['id'],
             'subscription-id': default_subscription.id,
@@ -1948,9 +1974,9 @@ def test_positive_attach(
         }
     )
     host_subscription_client.enable_repo(module_rhst_repo)
-    # ensure that katello agent can be installed
+    # ensure that katello-host-tools can be installed
     try:
-        host_subscription_client.install_katello_agent()
+        host_subscription_client.install_katello_host_tools()
     except ContentHostError:
         pytest.fail('ContentHostError raised unexpectedly!')
 
@@ -1964,6 +1990,7 @@ def test_positive_attach_with_lce(
     module_rhst_repo,
     default_subscription,
     host_subscription_client,
+    target_sat,
 ):
     """Attempt to attach a subscription to host, registered by lce
 
@@ -1986,8 +2013,8 @@ def test_positive_attach_with_lce(
         auto_attach=False,
     )
     assert host_subscription_client.subscribed
-    host = Host.info({'name': host_subscription_client.hostname})
-    Host.subscription_attach(
+    host = target_sat.cli.Host.info({'name': host_subscription_client.hostname})
+    target_sat.cli.Host.subscription_attach(
         {
             'host-id': host['id'],
             'subscription-id': default_subscription.id,
@@ -1995,9 +2022,9 @@ def test_positive_attach_with_lce(
         }
     )
     host_subscription_client.enable_repo(module_rhst_repo)
-    # ensure that katello agent can be installed
+    # ensure that katello-host-tools can be installed
     try:
-        host_subscription_client.install_katello_agent()
+        host_subscription_client.install_katello_host_tools()
     except ContentHostError:
         pytest.fail('ContentHostError raised unexpectedly!')
 
@@ -2005,7 +2032,7 @@ def test_positive_attach_with_lce(
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_negative_without_attach(
-    module_org, module_promoted_cv, module_lce, host_subscription_client
+    module_org, module_promoted_cv, module_lce, host_subscription_client, target_sat
 ):
     """Register content host from satellite, register client to uuid
     of that content host, as there was no attach on the client,
@@ -2019,7 +2046,7 @@ def test_negative_without_attach(
 
     :CaseLevel: System
     """
-    Host.subscription_register(
+    target_sat.cli.Host.subscription_register(
         {
             'organization-id': module_org.id,
             'content-view-id': module_promoted_cv.id,
@@ -2027,7 +2054,7 @@ def test_negative_without_attach(
             'name': host_subscription_client.hostname,
         }
     )
-    host = Host.info({'name': host_subscription_client.hostname})
+    host = target_sat.cli.Host.info({'name': host_subscription_client.hostname})
     host_subscription_client.register_contenthost(
         module_org.name,
         lce=None,  # required, to jump into right branch in register_contenthost method
@@ -2063,7 +2090,7 @@ def test_negative_without_attach_with_lce(
         environment=function_lce,
         organization=function_org,
     ).create()
-    setup_org_for_a_rh_repo(
+    target_sat.cli_factory.setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
@@ -2110,6 +2137,7 @@ def test_positive_remove(
     ak_with_subscription,
     default_subscription,
     host_subscription_client,
+    target_sat,
 ):
     """Attempt to remove a subscription from content host
 
@@ -2121,7 +2149,7 @@ def test_positive_remove(
 
     :CaseLevel: System
     """
-    Host.subscription_register(
+    target_sat.cli.Host.subscription_register(
         {
             'organization-id': module_org.id,
             'content-view-id': module_promoted_cv.id,
@@ -2129,8 +2157,8 @@ def test_positive_remove(
             'name': host_subscription_client.hostname,
         }
     )
-    host = Host.info({'name': host_subscription_client.hostname})
-    host_subscriptions = ActivationKey.subscriptions(
+    host = target_sat.cli.Host.info({'name': host_subscription_client.hostname})
+    host_subscriptions = target_sat.cli.ActivationKey.subscriptions(
         {
             'organization-id': module_org.id,
             'id': ak_with_subscription.id,
@@ -2142,13 +2170,13 @@ def test_positive_remove(
     host_subscription_client.register_contenthost(
         module_org.name, activation_key=ak_with_subscription.name
     )
-    Host.subscription_attach(
+    target_sat.cli.Host.subscription_attach(
         {
             'host-id': host['id'],
             'subscription-id': default_subscription.id,
         }
     )
-    host_subscriptions = ActivationKey.subscriptions(
+    host_subscriptions = target_sat.cli.ActivationKey.subscriptions(
         {
             'organization-id': module_org.id,
             'id': ak_with_subscription.id,
@@ -2157,13 +2185,13 @@ def test_positive_remove(
         output_format='json',
     )
     assert default_subscription.name in [sub['name'] for sub in host_subscriptions]
-    Host.subscription_remove(
+    target_sat.cli.Host.subscription_remove(
         {
             'host-id': host['id'],
             'subscription-id': default_subscription.id,
         }
     )
-    host_subscriptions = ActivationKey.subscriptions(
+    host_subscriptions = target_sat.cli.ActivationKey.subscriptions(
         {
             'organization-id': module_org.id,
             'id': ak_with_subscription.id,
@@ -2183,6 +2211,7 @@ def test_positive_auto_attach(
     module_rhst_repo,
     ak_with_subscription,
     host_subscription_client,
+    target_sat,
 ):
     """Attempt to auto attach a subscription to content host
 
@@ -2195,7 +2224,7 @@ def test_positive_auto_attach(
 
     :CaseLevel: System
     """
-    Host.subscription_register(
+    target_sat.cli.Host.subscription_register(
         {
             'organization-id': module_org.id,
             'content-view-id': module_promoted_cv.id,
@@ -2203,15 +2232,15 @@ def test_positive_auto_attach(
             'name': host_subscription_client.hostname,
         }
     )
-    host = Host.info({'name': host_subscription_client.hostname})
+    host = target_sat.cli.Host.info({'name': host_subscription_client.hostname})
     host_subscription_client.register_contenthost(
         module_org.name, activation_key=ak_with_subscription.name
     )
-    Host.subscription_auto_attach({'host-id': host['id']})
+    target_sat.cli.Host.subscription_auto_attach({'host-id': host['id']})
     host_subscription_client.enable_repo(module_rhst_repo)
-    # ensure that katello agent can be installed
+    # ensure that katello-host-tools can be installed
     try:
-        host_subscription_client.install_katello_agent()
+        host_subscription_client.install_katello_host_tools()
     except ContentHostError:
         pytest.fail('ContentHostError raised unexpectedly!')
 
@@ -2219,7 +2248,7 @@ def test_positive_auto_attach(
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_positive_unregister_host_subscription(
-    module_org, module_rhst_repo, ak_with_subscription, host_subscription_client
+    module_org, module_rhst_repo, ak_with_subscription, host_subscription_client, target_sat
 ):
     """Attempt to unregister host subscription
 
@@ -2240,8 +2269,8 @@ def test_positive_unregister_host_subscription(
     host_subscription_client.run('subscription-manager attach --auto')
     host_subscription_client.enable_repo(module_rhst_repo)
     assert host_subscription_client.subscribed
-    host = Host.info({'name': host_subscription_client.hostname})
-    host_subscriptions = ActivationKey.subscriptions(
+    host = target_sat.cli.Host.info({'name': host_subscription_client.hostname})
+    host_subscriptions = target_sat.cli.ActivationKey.subscriptions(
         {
             'organization-id': module_org.id,
             'id': ak_with_subscription.id,
@@ -2250,11 +2279,11 @@ def test_positive_unregister_host_subscription(
         output_format='json',
     )
     assert len(host_subscriptions) > 0
-    Host.subscription_unregister({'host': host_subscription_client.hostname})
+    target_sat.cli.Host.subscription_unregister({'host': host_subscription_client.hostname})
     with pytest.raises(CLIReturnCodeError):
         # raise error that the host was not registered by
         # subscription-manager register
-        ActivationKey.subscriptions(
+        target_sat.cli.ActivationKey.subscriptions(
             {
                 'organization-id': module_org.id,
                 'id': ak_with_subscription.id,
@@ -2300,7 +2329,7 @@ def test_syspurpose_end_to_end(
         purpose_usage="test-usage",
         service_level="Self-Support",
     ).create()
-    ActivationKey.add_subscription(
+    target_sat.cli.ActivationKey.add_subscription(
         {
             'organization-id': module_org.id,
             'id': activation_key.id,
@@ -2314,14 +2343,14 @@ def test_syspurpose_end_to_end(
     assert host_subscription_client.subscribed
     host_subscription_client.run('subscription-manager attach --auto')
     host_subscription_client.enable_repo(module_rhst_repo)
-    host = Host.info({'name': host_subscription_client.hostname})
+    host = target_sat.cli.Host.info({'name': host_subscription_client.hostname})
     # Assert system purpose values are set in the host as expected
     assert host['subscription-information']['system-purpose']['purpose-addons'] == purpose_addons
     assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role"
     assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage"
     assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support"
     # Change system purpose values in the host
-    Host.update(
+    target_sat.cli.Host.update(
         {
             'purpose-addons': "test-addon3",
             'purpose-role': "test-role2",
@@ -2330,13 +2359,13 @@ def test_syspurpose_end_to_end(
             'id': host['id'],
         }
     )
-    host = Host.info({'id': host['id']})
+    host = target_sat.cli.Host.info({'id': host['id']})
     # Assert system purpose values have been updated in the host as expected
     assert host['subscription-information']['system-purpose']['purpose-addons'] == "test-addon3"
     assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role2"
     assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage2"
     assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support2"
-    host_subscriptions = ActivationKey.subscriptions(
+    host_subscriptions = target_sat.cli.ActivationKey.subscriptions(
         {
             'organization-id': module_org.id,
             'id': activation_key.id,
@@ -2347,11 +2376,11 @@ def test_syspurpose_end_to_end(
     assert len(host_subscriptions) > 0
     assert host_subscriptions[0]['name'] == default_subscription.name
     # Unregister host
-    Host.subscription_unregister({'host': host_subscription_client.hostname})
+    target_sat.cli.Host.subscription_unregister({'host': host_subscription_client.hostname})
     with pytest.raises(CLIReturnCodeError):
         # raise error that the host was not registered by
         # subscription-manager register
-        ActivationKey.subscriptions(
+        target_sat.cli.ActivationKey.subscriptions(
             {
                 'organization-id': module_org.id,
                 'id': activation_key.id,
@@ -2374,8 +2403,8 @@ def test_positive_errata_list_of_sat_server(target_sat):
     :CaseImportance: Critical
     """
     hostname = target_sat.execute('hostname').stdout.strip()
-    host = Host.info({'name': hostname})
-    assert isinstance(Host.errata_list({'host-id': host['id']}), list)
+    host = target_sat.cli.Host.info({'name': hostname})
+    assert isinstance(target_sat.cli.Host.errata_list({'host-id': host['id']}), list)
 
 
 # -------------------------- HOST ENC SUBCOMMAND SCENARIOS -------------------------
@@ -2393,7 +2422,7 @@ def test_positive_dump_enc_yaml(target_sat):
 
     :CaseImportance: Critical
     """
-    enc_dump = Host.enc_dump({'name': target_sat.hostname})
+    enc_dump = target_sat.cli.Host.enc_dump({'name': target_sat.hostname})
     assert f'fqdn: {target_sat.hostname}' in enc_dump
     assert f'ip: {target_sat.ip_addr}' in enc_dump
     assert 'ssh-rsa' in enc_dump
@@ -2402,7 +2431,7 @@ def test_positive_dump_enc_yaml(target_sat):
 # -------------------------- HOST TRACE SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6].*')
-def test_positive_tracer_list_and_resolve(tracer_host):
+def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
     """Install tracer on client, downgrade the service, check from the satellite
     that tracer shows and resolves the problem. The test works with a package specified
     in settings. This package is expected to install a systemd service which is expected
@@ -2426,7 +2455,7 @@ def test_positive_tracer_list_and_resolve(tracer_host):
     """
     client = tracer_host
     package = settings.repos["MOCK_SERVICE_RPM"]
-    host_info = Host.info({'name': client.hostname})
+    host_info = target_sat.cli.Host.info({'name': client.hostname})
 
     # mark the service log messages for later comparison and downgrade the pkg version
     service_ver_log_old = tracer_host.execute(f'cat /var/log/{package}/service.log')
@@ -2434,12 +2463,12 @@ def test_positive_tracer_list_and_resolve(tracer_host):
     assert package_downgrade.status == 0
 
     # tracer should detect a new trace
-    traces = HostTraces.list({'host-id': host_info['id']})[0]
+    traces = target_sat.cli.HostTraces.list({'host-id': host_info['id']})[0]
     assert package == traces['application']
 
     # resolve traces and make sure that they disappear
-    HostTraces.resolve({'host-id': host_info['id'], 'trace-ids': traces['trace-id']})
-    traces = HostTraces.list({'host-id': host_info['id']})
+    target_sat.cli.HostTraces.resolve({'host-id': host_info['id'], 'trace-ids': traces['trace-id']})
+    traces = target_sat.cli.HostTraces.list({'host-id': host_info['id']})
     assert not traces
 
     # verify on the host end, that the service was really restarted
@@ -2492,25 +2521,25 @@ def test_positive_host_with_puppet(
         location=[host_template.location],
     ).update(['location', 'organization'])
 
-    session_puppet_enabled_sat.cli.Host.update(
+    session_puppet_enabled_sat.cli.target_sat.cli.Host.update(
         {
             'name': host.name,
             'puppet-environment': module_puppet_environment.name,
         }
     )
-    host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
+    host = session_puppet_enabled_sat.cli.target_sat.cli.Host.info({'id': host['id']})
     assert host['puppet-environment'] == module_puppet_environment.name
-    session_puppet_enabled_sat.cli.Host.delete({'id': host['id']})
+    session_puppet_enabled_sat.cli.target_sat.cli.Host.delete({'id': host['id']})
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def function_proxy(session_puppet_enabled_sat, puppet_proxy_port_range):
     proxy = session_puppet_enabled_sat.cli_factory.make_proxy()
     yield proxy
     session_puppet_enabled_sat.cli.Proxy.delete({'id': proxy['id']})
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def function_host_content_source(
     session_puppet_enabled_sat,
     session_puppet_enabled_proxy,
@@ -2527,7 +2556,7 @@ def function_host_content_source(
         }
     )
     yield host
-    session_puppet_enabled_sat.cli.Host.delete({'id': host['id']})
+    session_puppet_enabled_sat.cli.target_sat.cli.Host.delete({'id': host['id']})
 
 
 @pytest.mark.tier2
@@ -2574,7 +2603,9 @@ def test_positive_list_scparams(
     scp_id = choice(sc_params_list)['id']
     session_puppet_enabled_sat.cli.SmartClassParameter.update({'id': scp_id, 'override': 1})
     # Verify that affected sc-param is listed
-    host_scparams = session_puppet_enabled_sat.cli.Host.sc_params({'host': host['name']})
+    host_scparams = session_puppet_enabled_sat.cli.target_sat.cli.Host.sc_params(
+        {'host': host['name']}
+    )
     assert scp_id in [scp['id'] for scp in host_scparams]
 
 
@@ -2609,7 +2640,9 @@ def test_positive_create_with_puppet_class_name(
             'puppet-proxy-id': session_puppet_enabled_proxy.id,
         }
     )
-    host_classes = session_puppet_enabled_sat.cli.Host.puppetclasses({'host': host['name']})
+    host_classes = session_puppet_enabled_sat.cli.target_sat.cli.Host.puppetclasses(
+        {'host': host['name']}
+    )
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
 
@@ -2650,17 +2683,21 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
             'puppet-proxy-id': session_puppet_enabled_proxy.id,
         }
     )
-    host_classes = session_puppet_enabled_sat.cli.Host.puppetclasses({'host': host['name']})
+    host_classes = session_puppet_enabled_sat.cli.target_sat.cli.Host.puppetclasses(
+        {'host': host['name']}
+    )
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
-    session_puppet_enabled_sat.cli.Host.update(
+    session_puppet_enabled_sat.cli.target_sat.cli.Host.update(
         {'id': host['id'], 'owner': module_puppet_user.login, 'owner-type': 'User'}
     )
-    host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
+    host = session_puppet_enabled_sat.cli.target_sat.cli.Host.info({'id': host['id']})
     assert int(host['additional-info']['owner-id']) == module_puppet_user.id
     assert host['additional-info']['owner-type'] == 'User'
 
-    host_classes = session_puppet_enabled_sat.cli.Host.puppetclasses({'host': host['name']})
+    host_classes = session_puppet_enabled_sat.cli.target_sat.cli.Host.puppetclasses(
+        {'host': host['name']}
+    )
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
 
@@ -2692,8 +2729,8 @@ def test_positive_create_and_update_with_content_source(
         host['content-information']['content-source']['name'] == session_puppet_enabled_proxy.name
     )
     new_content_source = function_proxy
-    session_puppet_enabled_sat.cli.Host.update(
+    session_puppet_enabled_sat.cli.target_sat.cli.Host.update(
         {'id': host['id'], 'content-source-id': new_content_source.id}
     )
-    host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
+    host = session_puppet_enabled_sat.cli.target_sat.cli.Host.info({'id': host['id']})
     assert host['content-information']['content-source']['name'] == new_content_source.name

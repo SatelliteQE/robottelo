@@ -103,6 +103,13 @@ def module_sca_manifest_org(module_org, module_sca_manifest, module_target_sat):
     return module_org
 
 
+@pytest.fixture(scope='class')
+def class_sca_manifest_org(class_org, class_sca_manifest, class_target_sat):
+    """Creates an organization and uploads an SCA mode manifest generated with manifester"""
+    class_target_sat.upload_manifest(class_org.id, class_sca_manifest.content)
+    return class_org
+
+
 @pytest.fixture(scope='module')
 def module_extra_rhel_entitlement_manifest_org(
     module_target_sat,
@@ -197,7 +204,15 @@ def module_sca_manifest():
         yield manifest
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='class')
+def class_sca_manifest():
+    """Yields a manifest in Simple Content Access mode with subscriptions determined by the
+    `manifest_category.golden_ticket` setting in conf/manifest.yaml."""
+    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+        yield manifest
+
+
+@pytest.fixture
 def function_entitlement_manifest():
     """Yields a manifest in entitlement mode with subscriptions determined by the
     `manifest_category.entitlement` setting in conf/manifest.yaml."""
@@ -205,7 +220,7 @@ def function_entitlement_manifest():
         yield manifest
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_secondary_entitlement_manifest():
     """Yields a manifest in entitlement mode with subscriptions determined by the
     `manifest_category.entitlement` setting in conf/manifest.yaml.
@@ -214,7 +229,7 @@ def function_secondary_entitlement_manifest():
         yield manifest
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_sca_manifest():
     """Yields a manifest in Simple Content Access mode with subscriptions determined by the
     `manifest_category.golden_ticket` setting in conf/manifest.yaml."""
@@ -230,7 +245,7 @@ def smart_proxy_location(module_org, module_target_sat, default_smart_proxy):
     return location
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def upgrade_entitlement_manifest():
     """Returns a manifest in entitlement mode with subscriptions determined by the
     `manifest_category.entitlement` setting in conf/manifest.yaml. used only for

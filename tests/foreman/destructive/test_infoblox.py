@@ -91,7 +91,7 @@ infoblox_plugin_opts = {
 
 @pytest.mark.tier4
 @pytest.mark.parametrize(
-    'command_args,command_opts,rpm_command',
+    ('command_args', 'command_opts', 'rpm_command'),
     params,
     ids=['isc_dhcp', 'infoblox_dhcp', 'infoblox_dns'],
 )
@@ -116,7 +116,6 @@ def test_plugin_installation(target_sat, command_args, command_opts, rpm_command
     assert target_sat.execute(rpm_command).status == 0
 
 
-@pytest.mark.stream
 @pytest.mark.e2e
 @pytest.mark.parametrize('module_sync_kickstart_content', [8], indirect=True)
 def test_infoblox_end_to_end(

@@ -30,19 +30,9 @@ from fauxfactory import gen_alphanumeric, gen_string
 from nailgun import entities
 import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    make_filter,
-    make_location,
-    make_org,
-    make_role,
-    make_user,
-)
-from robottelo.cli.filter import Filter
-from robottelo.cli.org import Org
-from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import LOCALES
+from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils import gen_ssh_keypairs
 from robottelo.utils.datafactory import (
     parametrized,
@@ -56,7 +46,7 @@ class TestUser:
     """Implements Users tests in CLI"""
 
     @pytest.fixture(scope='module')
-    def module_roles(self):
+    def module_roles(self, module_target_sat):
         """
         Initializes class attribute ``dct_roles`` with several random roles
         saved on sat. roles is a dict so keys are role's id respective value is
@@ -69,14 +59,14 @@ class TestUser:
             tests
             """
             for role_name in valid_usernames_list() + include_list:
-                yield make_role({'name': role_name})
+                yield module_target_sat.cli_factory.make_role({'name': role_name})
 
         stubbed_roles = {role['id']: role for role in roles_helper()}
-        yield stubbed_roles
+        return stubbed_roles
 
     @pytest.mark.parametrize('email', **parametrized(valid_emails_list()))
     @pytest.mark.tier2
-    def test_positive_CRUD(self, email):
+    def test_positive_CRUD(self, email, module_target_sat):
         """Create User with various parameters, updating and deleting
 
         :id: 2d430243-8512-46ee-8d21-7ccf0c7af807
@@ -99,7 +89,7 @@ class TestUser:
             'mail': mail.replace('"', r'\"').replace('`', r'\`'),
             'description': random.choice(list(valid_data_list().values())),
         }
-        user = make_user(user_params)
+        user = module_target_sat.cli_factory.user(user_params)
         user['firstname'], user['lastname'] = user['name'].split()
         user_params.pop('mail')
         user_params['email'] = mail
@@ -107,14 +97,18 @@ class TestUser:
             assert user_params[key] == user[key], f'values for key "{key}" do not match'
 
         # list by firstname and lastname
-        result = User.list({'search': 'firstname = {}'.format(user_params['firstname'])})
+        result = module_target_sat.cli.User.list(
+            {'search': 'firstname = {}'.format(user_params['firstname'])}
+        )
         # make sure user is in list result
         assert {user['id'], user['login'], user['name']} == {
             result[0]['id'],
             result[0]['login'],
             result[0]['name'],
         }
-        result = User.list({'search': 'lastname = {}'.format(user_params['lastname'])})
+        result = module_target_sat.cli.User.list(
+            {'search': 'lastname = {}'.format(user_params['lastname'])}
+        )
         # make sure user is in list result
         assert {user['id'], user['login'], user['name']} == {
             result[0]['id'],
@@ -130,21 +124,21 @@ class TestUser:
             'description': random.choice(list(valid_data_list().values())),
         }
         user_params.update({'id': user['id']})
-        User.update(user_params)
-        user = User.info({'login': user['login']})
+        module_target_sat.cli.User.update(user_params)
+        user = module_target_sat.cli.User.info({'login': user['login']})
         user['firstname'], user['lastname'] = user['name'].split()
         user_params.pop('mail')
         user_params['email'] = new_mail
         for key in user_params:
             assert user_params[key] == user[key], f'values for key "{key}" do not match'
         # delete
-        User.delete({'login': user['login']})
+        module_target_sat.cli.User.delete({'login': user['login']})
         with pytest.raises(CLIReturnCodeError):
-            User.info({'login': user['login']})
+            module_target_sat.cli.User.info({'login': user['login']})
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    def test_positive_CRUD_admin(self):
+    def test_positive_CRUD_admin(self, target_sat):
         """Create an Admin user
 
         :id: 0d0384ad-d85a-492e-8630-7f48912a4fd5
@@ -153,23 +147,23 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        user = make_user({'admin': '1'})
+        user = target_sat.cli_factory.user({'admin': '1'})
         assert user['admin'] == 'yes'
         # update to non admin by id
-        User.update({'id': user['id'], 'admin': '0'})
-        user = User.info({'id': user['id']})
+        target_sat.cli.User.update({'id': user['id'], 'admin': '0'})
+        user = target_sat.cli.User.info({'id': user['id']})
         assert user['admin'] == 'no'
         # update back to admin by name
-        User.update({'login': user['login'], 'admin': '1'})
-        user = User.info({'login': user['login']})
+        target_sat.cli.User.update({'login': user['login'], 'admin': '1'})
+        user = target_sat.cli.User.info({'login': user['login']})
         assert user['admin'] == 'yes'
         # delete user
-        User.delete({'login': user['login']})
+        target_sat.cli.User.delete({'login': user['login']})
         with pytest.raises(CLIReturnCodeError):
-            User.info({'id': user['id']})
+            target_sat.cli.User.info({'id': user['id']})
 
     @pytest.mark.tier1
-    def test_positive_create_with_default_loc(self):
+    def test_positive_create_with_default_loc(self, target_sat):
         """Check if user with default location can be created
 
         :id: efe7256d-8c8f-444c-8d59-43500e1319c3
@@ -178,13 +172,15 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        location = make_location()
-        user = make_user({'default-location-id': location['id'], 'location-ids': location['id']})
+        location = target_sat.cli_factory.make_location()
+        user = target_sat.cli_factory.user(
+            {'default-location-id': location['id'], 'location-ids': location['id']}
+        )
         assert location['name'] in user['locations']
         assert location['name'] == user['default-location']
 
     @pytest.mark.tier1
-    def test_positive_create_with_defaut_org(self):
+    def test_positive_create_with_defaut_org(self, module_target_sat):
         """Check if user with default organization can be created
 
         :id: cc692b6f-2519-429b-8ecb-c4bb51ed3544
@@ -194,13 +190,15 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        org = make_org()
-        user = make_user({'default-organization-id': org['id'], 'organization-ids': org['id']})
+        org = module_target_sat.cli_factory.make_org()
+        user = module_target_sat.cli_factory.user(
+            {'default-organization-id': org['id'], 'organization-ids': org['id']}
+        )
         assert org['name'] in user['organizations']
         assert org['name'] == user['default-organization']
 
     @pytest.mark.tier2
-    def test_positive_create_with_orgs_and_update(self):
+    def test_positive_create_with_orgs_and_update(self, module_target_sat):
         """Create User associated to multiple Organizations, update them
 
         :id: f537296c-a8a8-45ef-8996-c1d32b8f64de
@@ -210,19 +208,21 @@ class TestUser:
         :CaseLevel: Integration
         """
         orgs_amount = 2
-        orgs = [make_org() for _ in range(orgs_amount)]
-        user = make_user({'organization-ids': [org['id'] for org in orgs]})
+        orgs = [module_target_sat.cli_factory.make_org() for _ in range(orgs_amount)]
+        user = module_target_sat.cli_factory.user({'organization-ids': [org['id'] for org in orgs]})
         assert len(user['organizations']) == orgs_amount
         for org in orgs:
             assert org['name'] in user['organizations']
-        orgs = [make_org() for _ in range(orgs_amount)]
-        User.update({'id': user['id'], 'organization-ids': [org['id'] for org in orgs]})
-        user = User.info({'id': user['id']})
+        orgs = [module_target_sat.cli_factory.make_org() for _ in range(orgs_amount)]
+        module_target_sat.cli.User.update(
+            {'id': user['id'], 'organization-ids': [org['id'] for org in orgs]}
+        )
+        user = module_target_sat.cli.User.info({'id': user['id']})
         for org in orgs:
             assert org['name'] in user['organizations']
 
     @pytest.mark.tier1
-    def test_negative_delete_internal_admin(self):
+    def test_negative_delete_internal_admin(self, module_target_sat):
         """Attempt to delete internal admin user
 
         :id: 4fc92958-9e75-4bd2-bcbe-32f906e432f5
@@ -232,11 +232,11 @@ class TestUser:
         :CaseImportance: Critical
         """
         with pytest.raises(CLIReturnCodeError):
-            User.delete({'login': settings.server.admin_username})
-        assert User.info({'login': settings.server.admin_username})
+            module_target_sat.cli.User.delete({'login': settings.server.admin_username})
+        assert module_target_sat.cli.User.info({'login': settings.server.admin_username})
 
     @pytest.mark.tier2
-    def test_positive_last_login_for_new_user(self):
+    def test_positive_last_login_for_new_user(self, module_target_sat):
         """Create new user with admin role and check last login updated for that user
 
         :id: 967282d3-92d0-42ce-9ef3-e542d2883408
@@ -253,17 +253,19 @@ class TestUser:
         password = gen_string('alpha')
         org_name = gen_string('alpha')
 
-        make_user({'login': login, 'password': password})
-        User.add_role({'login': login, 'role': 'System admin'})
-        result_before_login = User.list({'search': f'login = {login}'})
+        module_target_sat.cli_factory.user({'login': login, 'password': password})
+        module_target_sat.cli.User.add_role({'login': login, 'role': 'System admin'})
+        result_before_login = module_target_sat.cli.User.list({'search': f'login = {login}'})
 
         # this is because satellite uses the UTC timezone
         before_login_time = datetime.datetime.utcnow()
         assert result_before_login[0]['login'] == login
         assert result_before_login[0]['last-login'] == ""
 
-        Org.with_user(username=login, password=password).create({'name': org_name})
-        result_after_login = User.list({'search': f'login = {login}'})
+        module_target_sat.cli.Org.with_user(username=login, password=password).create(
+            {'name': org_name}
+        )
+        result_after_login = module_target_sat.cli.User.list({'search': f'login = {login}'})
 
         # checking user last login should not be empty
         assert result_after_login[0]['last-login'] != ""
@@ -273,7 +275,7 @@ class TestUser:
         assert after_login_time > before_login_time
 
     @pytest.mark.tier1
-    def test_positive_update_all_locales(self):
+    def test_positive_update_all_locales(self, module_target_sat):
         """Update Language in My Account
 
         :id: f0993495-5117-461d-a116-44867b820139
@@ -286,14 +288,14 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        user = make_user()
+        user = module_target_sat.cli_factory.user()
         for locale in LOCALES:
-            User.update({'id': user['id'], 'locale': locale})
-            assert locale == User.info({'id': user['id']})['locale']
+            module_target_sat.cli.User.update({'id': user['id'], 'locale': locale})
+            assert locale == module_target_sat.cli.User.info({'id': user['id']})['locale']
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_add_and_delete_roles(self, module_roles):
+    def test_positive_add_and_delete_roles(self, module_roles, module_target_sat):
         """Add multiple roles to User, then delete them
 
         For now add-role user sub command does not allow multiple role ids
@@ -309,15 +311,15 @@ class TestUser:
 
         :CaseLevel: Integration
         """
-        user = make_user()
+        user = module_target_sat.cli_factory.user()
         original_role_names = set(user['roles'])
         expected_role_names = set(original_role_names)
 
         for role_id, role in module_roles.items():
-            User.add_role({'login': user['login'], 'role-id': role_id})
+            module_target_sat.cli.User.add_role({'login': user['login'], 'role-id': role_id})
             expected_role_names.add(role['name'])
 
-        user_roles = User.info({'id': user['id']})['roles']
+        user_roles = module_target_sat.cli.User.info({'id': user['id']})['roles']
         assert len(expected_role_names) == len(user_roles)
         for role in expected_role_names:
             assert role in user_roles
@@ -325,11 +327,11 @@ class TestUser:
         roles_to_remove = expected_role_names - original_role_names
         for role_name in roles_to_remove:
             user_credentials = {'login': user['login'], 'role': role_name}
-            User.remove_role(user_credentials)
-            user = User.info({'id': user['id']})
+            module_target_sat.cli.User.remove_role(user_credentials)
+            user = module_target_sat.cli.User.info({'id': user['id']})
             assert role_name not in user['roles']
 
-        user_roles = User.info({'id': user['id']})['roles']
+        user_roles = module_target_sat.cli.User.info({'id': user['id']})['roles']
         assert len(original_role_names) == len(user_roles)
         for role in original_role_names:
             assert role in user_roles
@@ -346,7 +348,7 @@ class TestSshKeyInUser:
         return entities.User().create()
 
     @pytest.mark.tier1
-    def test_positive_CRD_ssh_key(self, module_user):
+    def test_positive_CRD_ssh_key(self, module_user, module_target_sat):
         """SSH Key can be added to a User, listed and deletd
 
         :id: 57304fca-8e0d-454a-be31-34423345c8b2
@@ -357,13 +359,19 @@ class TestSshKeyInUser:
         :CaseImportance: Critical
         """
         ssh_name = gen_string('alpha')
-        User.ssh_keys_add({'user': module_user.login, 'key': self.ssh_key, 'name': ssh_name})
-        result = User.ssh_keys_list({'user-id': module_user.id})
+        module_target_sat.cli.User.ssh_keys_add(
+            {'user': module_user.login, 'key': self.ssh_key, 'name': ssh_name}
+        )
+        result = module_target_sat.cli.User.ssh_keys_list({'user-id': module_user.id})
         assert ssh_name in [i['name'] for i in result]
-        result = User.ssh_keys_info({'user-id': module_user.id, 'name': ssh_name})
+        result = module_target_sat.cli.User.ssh_keys_info(
+            {'user-id': module_user.id, 'name': ssh_name}
+        )
         assert self.ssh_key in result[0]['public-key']
-        result = User.ssh_keys_delete({'user-id': module_user.id, 'name': ssh_name})
-        result = User.ssh_keys_list({'user-id': module_user.id})
+        result = module_target_sat.cli.User.ssh_keys_delete(
+            {'user-id': module_user.id, 'name': ssh_name}
+        )
+        result = module_target_sat.cli.User.ssh_keys_list({'user-id': module_user.id})
         assert ssh_name not in [i['name'] for i in result]
 
     @pytest.mark.tier1
@@ -380,10 +388,12 @@ class TestSshKeyInUser:
         ssh_name = gen_string('alpha')
         result = target_sat.execute(f"echo '{self.ssh_key}' > test_key.pub")
         assert result.status == 0, 'key file not created'
-        User.ssh_keys_add({'user': 'admin', 'key-file': 'test_key.pub', 'name': ssh_name})
-        result = User.ssh_keys_list({'user': 'admin'})
+        target_sat.cli.User.ssh_keys_add(
+            {'user': 'admin', 'key-file': 'test_key.pub', 'name': ssh_name}
+        )
+        result = target_sat.cli.User.ssh_keys_list({'user': 'admin'})
         assert ssh_name in [i['name'] for i in result]
-        result = User.ssh_keys_info({'user': 'admin', 'name': ssh_name})
+        result = target_sat.cli.User.ssh_keys_info({'user': 'admin', 'name': ssh_name})
         assert self.ssh_key == result[0]['public-key']
 
 
@@ -409,9 +419,9 @@ class TestPersonalAccessToken:
 
         :CaseImportance: High
         """
-        user = make_user({'admin': '1'})
+        user = target_sat.cli_factory.user({'admin': '1'})
         token_name = gen_alphanumeric()
-        result = User.access_token(
+        result = target_sat.cli.User.access_token(
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
         token_value = result[0]['message'].split(':')[-1]
@@ -419,7 +429,9 @@ class TestPersonalAccessToken:
         command_output = target_sat.execute(curl_command)
         assert user['login'] in command_output.stdout
         assert user['email'] in command_output.stdout
-        User.access_token(action="revoke", options={'name': token_name, 'user-id': user['id']})
+        target_sat.cli.User.access_token(
+            action="revoke", options={'name': token_name, 'user-id': user['id']}
+        )
         command_output = target_sat.execute(curl_command)
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
 
@@ -445,10 +457,10 @@ class TestPersonalAccessToken:
 
         :CaseImportance: High
         """
-        user = make_user()
-        User.add_role({'login': user['login'], 'role': 'Viewer'})
+        user = target_sat.cli_factory.user()
+        target_sat.cli.User.add_role({'login': user['login'], 'role': 'Viewer'})
         token_name = gen_alphanumeric()
-        result = User.access_token(
+        result = target_sat.cli.User.access_token(
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
         token_value = result[0]['message'].split(':')[-1]
@@ -479,13 +491,13 @@ class TestPersonalAccessToken:
 
         :CaseImportance: Medium
         """
-        user = make_user()
-        User.add_role({'login': user['login'], 'role': 'Viewer'})
+        user = target_sat.cli_factory.user()
+        target_sat.cli.User.add_role({'login': user['login'], 'role': 'Viewer'})
         token_name = gen_alphanumeric()
         datetime_now = datetime.datetime.utcnow()
         datetime_expire = datetime_now + datetime.timedelta(seconds=20)
         datetime_expire = datetime_expire.strftime("%Y-%m-%d %H:%M:%S")
-        result = User.access_token(
+        result = target_sat.cli.User.access_token(
             action="create",
             options={'name': token_name, 'user-id': user['id'], 'expires-at': datetime_expire},
         )
@@ -521,20 +533,20 @@ class TestPersonalAccessToken:
 
         :BZ: 1974685, 1996048
         """
-        role = make_role()
+        role = target_sat.cli_factory.make_role()
         permissions = [
             permission['name']
-            for permission in Filter.available_permissions(
+            for permission in target_sat.cli.Filter.available_permissions(
                 {'search': 'resource_type=PersonalAccessToken'}
             )
         ]
         permissions = ','.join(permissions)
-        make_filter({'role-id': role['id'], 'permissions': permissions})
-        make_filter({'role-id': role['id'], 'permissions': 'view_users'})
-        user = make_user()
-        User.add_role({'login': user['login'], 'role': role['name']})
+        target_sat.cli_factory.make_filter({'role-id': role['id'], 'permissions': permissions})
+        target_sat.cli_factory.make_filter({'role-id': role['id'], 'permissions': 'view_users'})
+        user = target_sat.cli_factory.user()
+        target_sat.cli.User.add_role({'login': user['login'], 'role': role['name']})
         token_name = gen_alphanumeric()
-        result = User.access_token(
+        result = target_sat.cli.User.access_token(
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
         token_value = result[0]['message'].split(':')[-1]
@@ -543,7 +555,9 @@ class TestPersonalAccessToken:
         )
         assert user['login'] in command_output.stdout
         assert user['email'] in command_output.stdout
-        User.access_token(action="revoke", options={'name': token_name, 'user-id': user['id']})
+        target_sat.cli.User.access_token(
+            action="revoke", options={'name': token_name, 'user-id': user['id']}
+        )
         command_output = target_sat.execute(
             f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/v2/users'
         )
@@ -567,7 +581,7 @@ class TestPersonalAccessToken:
 
         :BZ: 2231814
         """
-        user = target_sat.cli_factory.make_user()
+        user = target_sat.cli_factory.user()
         target_sat.cli.User.add_role({'login': user['login'], 'role': 'Viewer'})
         token_name = gen_alphanumeric()
         # check for invalid datetime

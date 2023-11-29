@@ -23,7 +23,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo import constants
-from robottelo.cli.base import CLIReturnCodeError
+from robottelo.exceptions import CLIReturnCodeError
 
 
 @pytest.fixture(scope='module')

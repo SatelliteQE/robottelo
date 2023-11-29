@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 
 from broker import Broker
+from packaging.version import Version
 import pytest
 from wait_for import wait_for
 
@@ -150,28 +151,28 @@ def session_capsule_host(request, capsule_factory):
 def capsule_configured(capsule_host, target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
     capsule_host.capsule_setup(sat_host=target_sat)
-    yield capsule_host
+    return capsule_host
 
 
 @pytest.fixture
 def large_capsule_configured(large_capsule_host, target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
     large_capsule_host.capsule_setup(sat_host=target_sat)
-    yield large_capsule_host
+    return large_capsule_host
 
 
 @pytest.fixture(scope='module')
 def module_capsule_configured(module_capsule_host, module_target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
     module_capsule_host.capsule_setup(sat_host=module_target_sat)
-    yield module_capsule_host
+    return module_capsule_host
 
 
 @pytest.fixture(scope='session')
 def session_capsule_configured(session_capsule_host, session_target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
     session_capsule_host.capsule_setup(sat_host=session_target_sat)
-    yield session_capsule_host
+    return session_capsule_host
 
 
 @pytest.fixture(scope='module')
@@ -186,7 +187,7 @@ def module_capsule_configured_mqtt(module_capsule_configured):
     result = module_capsule_configured.execute('firewall-cmd --permanent --add-port="1883/tcp"')
     assert result.status == 0, 'Failed to open mqtt port on capsule'
     module_capsule_configured.execute('firewall-cmd --reload')
-    yield module_capsule_configured
+    return module_capsule_configured
 
 
 @pytest.fixture(scope='module')
@@ -218,7 +219,7 @@ def module_capsule_configured_async_ssh(module_capsule_configured):
     """Configure the capsule instance with the satellite from settings.server.hostname,
     enable MQTT broker"""
     module_capsule_configured.set_rex_script_mode_provider('ssh-async')
-    yield module_capsule_configured
+    return module_capsule_configured
 
 
 @pytest.fixture(scope='module', params=['IDM', 'AD'])
@@ -244,11 +245,12 @@ def parametrized_enrolled_sat(
 
 
 def get_deploy_args(request):
+    rhel_version = get_sat_rhel_version()
     deploy_args = {
-        'deploy_rhel_version': get_sat_rhel_version().base_version,
+        'deploy_rhel_version': rhel_version.base_version,
         'deploy_flavor': settings.flavors.default,
         'promtail_config_template_file': 'config_sat.j2',
-        'workflow': 'deploy-rhel',
+        'workflow': settings.content_host.get(f'rhel{rhel_version.major}').vm.workflow,
     }
     if hasattr(request, 'param'):
         if isinstance(request.param, dict):
@@ -274,11 +276,12 @@ def module_sat_ready_rhels(request):
 
 @pytest.fixture
 def cap_ready_rhel():
-    rhel8 = settings.content_host.rhel8.vm
+    rhel_version = Version(settings.capsule.version.release)
+    settings.content_host.get(f'rhel{rhel_version.major}').vm.workflow
     deploy_args = {
-        'deploy_rhel_version': rhel8.deploy_rhel_version,
-        'deploy_flavor': 'satqe-ssd.standard.std',
-        'workflow': rhel8.workflow,
+        'deploy_rhel_version': rhel_version.base_version,
+        'deploy_flavor': settings.flavors.default,
+        'workflow': settings.content_host.get(f'rhel{rhel_version.major}').vm.workflow,
     }
     with Broker(**deploy_args, host_class=Capsule) as host:
         yield host

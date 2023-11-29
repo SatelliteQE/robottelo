@@ -29,7 +29,7 @@ from robottelo.hosts import ContentHost
 @pytest.fixture
 def client_for_upgrade(module_target_sat, rex_contenthost, module_org):
     rex_contenthost.create_custom_repos(fake_yum=settings.repos.yum_1.url)
-    yield rex_contenthost
+    return rex_contenthost
 
 
 class TestScenarioUpgradeOldClientAndPackageInstallation:
@@ -76,7 +76,7 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
 
         """
         client_for_upgrade._skip_context_checkin = True
-        module_target_sat.cli_factory.make_job_invocation(
+        module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Install Package - Katello Script Default',
                 'inputs': f'package={FAKE_4_CUSTOM_PACKAGE_NAME}',
@@ -108,7 +108,7 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
         """
         client_hostname = pre_upgrade_data.get('rhel_client')
         rhel_client = ContentHost.get_host_by_hostname(client_hostname)
-        module_target_sat.cli_factory.make_job_invocation(
+        module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Install Package - Katello Script Default',
                 'inputs': f'package={FAKE_0_CUSTOM_PACKAGE_NAME}',
@@ -160,7 +160,7 @@ class TestScenarioUpgradeNewClientAndPackageInstallation:
                 the content host is created
             3. The package is installed on post-upgrade client
         """
-        module_target_sat.cli_factory.make_job_invocation(
+        module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Install Package - Katello Script Default',
                 'inputs': f'package={FAKE_0_CUSTOM_PACKAGE_NAME}',

@@ -123,6 +123,59 @@ class YumRepository(BaseRepository):
     _type = constants.REPO_TYPE['yum']
 
 
+class FileRepository(BaseRepository):
+    """Custom File repository"""
+
+    _type = constants.REPO_TYPE['file']
+
+
+class DebianRepository(BaseRepository):
+    """Custom Debian repository."""
+
+    _type = constants.REPO_TYPE["deb"]
+
+    def __init__(
+        self, url=None, distro=None, content_type=None, deb_errata_url=None, deb_releases=None
+    ):
+        super().__init__(url=url, distro=distro, content_type=content_type)
+        self._deb_errata_url = deb_errata_url
+        self._deb_releases = deb_releases
+
+    @property
+    def deb_errata_url(self):
+        return self._deb_errata_url
+
+    @property
+    def deb_releases(self):
+        return self._deb_releases
+
+    def create(
+        self,
+        organization_id,
+        product_id,
+        download_policy=None,
+        synchronize=True,
+    ):
+        """Create the repository for the supplied product id"""
+        create_options = {
+            'product-id': product_id,
+            'content-type': self.content_type,
+            'url': self.url,
+            'deb-releases': self._deb_releases,
+        }
+
+        if self._deb_errata_url is not None:
+            create_options['deb-errata-url'] = self._deb_errata_url
+
+        repo_info = self.satellite.cli_factory.make_repository(create_options)
+        self._repo_info = repo_info
+
+        if synchronize:
+            self.synchronize()
+
+        return repo_info
+
+
 class DockerRepository(BaseRepository):
     """Custom Docker repository"""
 
@@ -143,6 +196,34 @@ class DockerRepository(BaseRepository):
                 'content-type': self.content_type,
                 'url': self.url,
                 'docker-upstream-name': self.upstream_name,
+            }
+        )
+        self._repo_info = repo_info
+        if synchronize:
+            self.synchronize()
+        return repo_info
+
+
+class AnsibleRepository(BaseRepository):
+    """Custom Ansible Collection repository"""
+
+    _type = constants.REPO_TYPE['ansible_collection']
+
+    def __init__(self, url=None, distro=None, requirements=None):
+        self._requirements = requirements
+        super().__init__(url=url, distro=distro)
+
+    @property
+    def requirements(self):
+        return self._requirements
+
+    def create(self, organization_id, product_id, download_policy=None, synchronize=True):
+        repo_info = self.satellite.cli_factory.make_repository(
+            {
+                'product-id': product_id,
+                'content-type': self.content_type,
+                'url': self.url,
+                'ansible-collection-requirements': f'{{collections: {self.requirements}}}',
             }
         )
         self._repo_info = repo_info
@@ -721,18 +802,16 @@ class RepositoryCollection:
         vm,
         location_title=None,
         patch_os_release=False,
-        install_katello_agent=True,
         enable_rh_repos=True,
         enable_custom_repos=False,
         configure_rhel_repo=False,
     ):
         """
         Setup The virtual machine basic task, eg: install katello ca,
-        register vm host, enable rh repos and install katello-agent
+        register vm host and enable rh repos
 
         :param robottelo.hosts.ContentHost vm: The Virtual machine to setup.
         :param bool patch_os_release: whether to patch the VM with os version.
-        :param bool install_katello_agent: whether to install katello-agent
         :param bool enable_rh_repos: whether to enable RH repositories
         :param bool enable_custom_repos: whether to enable custom repositories
         :param bool configure_rhel_repo: Whether to configure the distro Red Hat repository,
@@ -762,7 +841,6 @@ class RepositoryCollection:
             product_label=self.custom_product['label'] if self.custom_product else None,
             activation_key=self._setup_content_data['activation_key']['name'],
             patch_os_release_distro=patch_os_release_distro,
-            install_katello_agent=install_katello_agent,
         )
         if configure_rhel_repo:
             rhel_repo_option_name = f'rhel{constants.DISTROS_MAJOR_VERSION[self.distro]}_os'

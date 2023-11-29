@@ -25,7 +25,6 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 import pytest
 
-from robottelo.cli.factory import CLIFactoryError, make_fake_host, make_virt_who_config
 from robottelo.config import setting_is_set, settings
 from robottelo.constants import (
     DEFAULT_SYSPURPOSE_ATTRIBUTES,
@@ -41,6 +40,7 @@ from robottelo.constants import (
     VDC_SUBSCRIPTION_NAME,
     VIRT_WHO_HYPERVISOR_TYPES,
 )
+from robottelo.exceptions import CLIFactoryError
 from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.virtwho import create_fake_hypervisor_content
 
@@ -76,17 +76,15 @@ def vm(module_repos_collection_with_manifest, rhel7_contenthost, target_sat):
     module_repos_collection_with_manifest.setup_virtual_machine(rhel7_contenthost)
     rhel7_contenthost.add_rex_key(target_sat)
     rhel7_contenthost.run(r'subscription-manager repos --enable \*')
-    yield rhel7_contenthost
+    return rhel7_contenthost
 
 
 @pytest.fixture
 def vm_module_streams(module_repos_collection_with_manifest, rhel8_contenthost, target_sat):
-    """Virtual machine registered in satellite without katello-agent installed"""
-    module_repos_collection_with_manifest.setup_virtual_machine(
-        rhel8_contenthost, install_katello_agent=False
-    )
+    """Virtual machine registered in satellite"""
+    module_repos_collection_with_manifest.setup_virtual_machine(rhel8_contenthost)
     rhel8_contenthost.add_rex_key(satellite=target_sat)
-    yield rhel8_contenthost
+    return rhel8_contenthost
 
 
 def set_ignore_facts_for_os(value=False):
@@ -902,7 +900,7 @@ def test_positive_virt_who_hypervisor_subscription_status(
     # TODO move this to either hack around virt-who service or use an env-* compute resource
     provisioning_server = settings.libvirt.libvirt_hostname
     # Create a new virt-who config
-    virt_who_config = make_virt_who_config(
+    virt_who_config = target_sat.cli_factory.virt_who_config(
         {
             'organization-id': org.id,
             'hypervisor-type': VIRT_WHO_HYPERVISOR_TYPES['libvirt'],
@@ -1008,7 +1006,8 @@ def test_module_stream_actions_on_content_host(session, default_location, vm_mod
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
-        assert 'Enabled' and 'Installed' in module_stream[0]['Status']
+        assert 'Enabled' in module_stream[0]['Status']
+        assert 'Installed' in module_stream[0]['Status']
 
         # remove Module Stream
         result = session.contenthost.execute_module_stream_action(
@@ -1725,7 +1724,7 @@ def test_syspurpose_mismatched(session, default_location, vm_module_streams):
 
 
 @pytest.mark.tier3
-def test_pagination_multiple_hosts_multiple_pages(session, module_host_template):
+def test_pagination_multiple_hosts_multiple_pages(session, module_host_template, target_sat):
     """Create hosts to fill more than one page, sort on OS, check pagination.
 
     Search for hosts based on operating system and assert that more than one page
@@ -1750,7 +1749,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
     # Create more than one page of fake hosts. Need two digits in name to ensure sort order.
     for count in range(host_num):
         host_name = f'test-{count + 1:0>2}'
-        make_fake_host(
+        target_sat.cli_factory.make_fake_host(
             {
                 'name': host_name,
                 'organization-id': module_host_template.organization.id,

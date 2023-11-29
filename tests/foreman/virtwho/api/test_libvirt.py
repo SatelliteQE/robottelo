@@ -16,49 +16,22 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
 from robottelo.utils.virtwho import (
     deploy_configure_by_command,
-    deploy_configure_by_script,
     get_configure_command,
     get_configure_file,
     get_configure_option,
 )
 
 
-@pytest.fixture()
-def form_data(default_org, target_sat):
-    form = {
-        'name': gen_string('alpha'),
-        'debug': 1,
-        'interval': '60',
-        'hypervisor_id': 'hostname',
-        'hypervisor_type': settings.virtwho.libvirt.hypervisor_type,
-        'hypervisor_server': settings.virtwho.libvirt.hypervisor_server,
-        'organization_id': default_org.id,
-        'filtering_mode': 'none',
-        'satellite_url': target_sat.hostname,
-        'hypervisor_username': settings.virtwho.libvirt.hypervisor_username,
-    }
-    return form
-
-
-@pytest.fixture()
-def virtwho_config(form_data, target_sat):
-    virtwho_config = target_sat.api.VirtWhoConfig(**form_data).create()
-    yield virtwho_config
-    virtwho_config.delete()
-    assert not target_sat.api.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
-
-
 class TestVirtWhoConfigforLibvirt:
     @pytest.mark.tier2
-    @pytest.mark.parametrize('deploy_type', ['id', 'script'])
+    @pytest.mark.parametrize('deploy_type_api', ['id', 'script'], indirect=True)
     def test_positive_deploy_configure_by_id_script(
-        self, default_org, form_data, virtwho_config, target_sat, deploy_type
+        self, default_org, virtwho_config_api, target_sat, deploy_type_api
     ):
         """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
@@ -70,23 +43,11 @@ class TestVirtWhoConfigforLibvirt:
 
         :CaseImportance: High
         """
-        assert virtwho_config.status == 'unknown'
-        if deploy_type == "id":
-            command = get_configure_command(virtwho_config.id, default_org.name)
-            hypervisor_name, guest_name = deploy_configure_by_command(
-                command, form_data['hypervisor_type'], debug=True, org=default_org.label
-            )
-        elif deploy_type == "script":
-            script = virtwho_config.deploy_script()
-            hypervisor_name, guest_name = deploy_configure_by_script(
-                script['virt_who_config_script'],
-                form_data['hypervisor_type'],
-                debug=True,
-                org=default_org.label,
-            )
+        assert virtwho_config_api.status == 'unknown'
+        hypervisor_name, guest_name = deploy_type_api
         virt_who_instance = (
             target_sat.api.VirtWhoConfig()
-            .search(query={'search': f'name={virtwho_config.name}'})[0]
+            .search(query={'search': f'name={virtwho_config_api.name}'})[0]
             .status
         )
         assert virt_who_instance == 'ok'
@@ -119,7 +80,7 @@ class TestVirtWhoConfigforLibvirt:
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
-        self, default_org, form_data, virtwho_config, target_sat
+        self, default_org, form_data_api, virtwho_config_api, target_sat
     ):
         """Verify hypervisor_id option by "PUT
 
@@ -135,11 +96,11 @@ class TestVirtWhoConfigforLibvirt:
         """
         values = ['uuid', 'hostname']
         for value in values:
-            virtwho_config.hypervisor_id = value
-            virtwho_config.update(['hypervisor_id'])
-            config_file = get_configure_file(virtwho_config.id)
-            command = get_configure_command(virtwho_config.id, default_org.name)
+            virtwho_config_api.hypervisor_id = value
+            virtwho_config_api.update(['hypervisor_id'])
+            config_file = get_configure_file(virtwho_config_api.id)
+            command = get_configure_command(virtwho_config_api.id, default_org.name)
             deploy_configure_by_command(
-                command, form_data['hypervisor_type'], org=default_org.label
+                command, form_data_api['hypervisor_type'], org=default_org.label
             )
             assert get_configure_option('hypervisor_id', config_file) == value

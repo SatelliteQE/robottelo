@@ -24,7 +24,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 import pytest
 
-from robottelo.cli.factory import make_virt_who_config
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
@@ -315,7 +314,6 @@ def test_positive_view_vdc_subscription_products(
         target_sat,
         org.label,
         activation_key=repos_collection.setup_content_data['activation_key']['name'],
-        install_katello_agent=False,
     )
     with session:
         session.organization.select(org.name)
@@ -370,7 +368,7 @@ def test_positive_view_vdc_guest_subscription_products(
     rh_product_repository = target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)
     product_name = rh_product_repository.data['product']
     # Create a new virt-who config
-    virt_who_config = make_virt_who_config(
+    virt_who_config = target_sat.cli_factory.virt_who_config(
         {
             'organization-id': org.id,
             'hypervisor-type': VIRT_WHO_HYPERVISOR_TYPES['libvirt'],
@@ -398,7 +396,8 @@ def test_positive_view_vdc_guest_subscription_products(
             f'subscription_name = "{VDC_SUBSCRIPTION_NAME}" '
             f'and name = "{virt_who_hypervisor_host["name"]}"'
         )
-        assert content_hosts and content_hosts[0]['Name'] == virt_who_hypervisor_host['name']
+        assert content_hosts
+        assert content_hosts[0]['Name'] == virt_who_hypervisor_host['name']
         # ensure that hypervisor guests subscription provided products list is not empty and
         # that the product is in provided products.
         provided_products = session.subscription.provided_products(

@@ -41,7 +41,6 @@ class TestSyncPlan:
             3. Assign sync plan to product and sync the repo
 
         :expectedresults: Run sync plan create, get, assign and verify it should pass
-
         """
         org = target_sat.api.Organization(name=f'{request.node.name}_org').create()
         sync_plan = target_sat.api.SyncPlan(
@@ -71,7 +70,7 @@ class TestSyncPlan:
             5. Re enable the sync plan
 
         :expectedresults: Sync plan is created and assigned to a product. The associated recurring
-        logic is cancelled and then the plan is re-enabled so that it gets a new recurring logic.
+            logic is cancelled and then the plan is re-enabled so that it gets a new recurring logic.
 
         :BZ: 1887511
 
@@ -114,8 +113,7 @@ class TestSyncPlan:
             2. Check the all available sync_interval type update with pre-created sync_plan
 
         :expectedresults: After upgrade, the sync plan should remain the same with their all
-        target_sat.api and sync_interval updated with their all supported sync interval type.
-
+            target_sat.api and sync_interval updated with their all supported sync interval type.
         """
         pre_test_name = dependent_scenario_name
         org = target_sat.api.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[
@@ -156,7 +154,7 @@ class TestSyncPlan:
             2. Check the all available sync_interval type update with pre-created sync_plan.
 
         :expectedresults: Update proceedes without any errors. After upgrade, the sync plan
-        should remain the same with all entities
+            should remain the same with all entities
 
         :BZ: 1887511
 

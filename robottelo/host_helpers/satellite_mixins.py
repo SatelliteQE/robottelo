@@ -7,7 +7,6 @@ import re
 
 import requests
 
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
 from robottelo.constants import (
@@ -16,6 +15,7 @@ from robottelo.constants import (
     PUPPET_COMMON_INSTALLER_OPTS,
     PUPPET_SATELLITE_INSTALLER,
 )
+from robottelo.exceptions import CLIReturnCodeError
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.host_helpers.ui_factory import UIFactory
@@ -200,6 +200,7 @@ class ContentInfo:
         sets ownership, returns import path
         """
         self.execute(
+            f'rm -rf {PULP_IMPORT_DIR}/{org.name} &&'
             f'mv {PULP_EXPORT_DIR}/{org.name} {PULP_IMPORT_DIR} && '
             f'chown -R pulp:pulp {PULP_IMPORT_DIR}'
         )

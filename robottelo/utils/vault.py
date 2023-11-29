@@ -19,25 +19,32 @@ class Vault:
 
     def __init__(self, env_file='.env'):
         self.env_path = robottelo_root_dir.joinpath(env_file)
+        self.envdata = None
+        self.vault_enabled = None
 
     def setup(self):
-        self.export_vault_addr()
+        if self.env_path.exists():
+            self.envdata = self.env_path.read_text()
+            is_enabled = re.findall('^(?:.*\n)*VAULT_ENABLED_FOR_DYNACONF=(.*)', self.envdata)
+            if is_enabled:
+                self.vault_enabled = is_enabled[0]
+            self.export_vault_addr()
 
     def teardown(self):
-        del os.environ['VAULT_ADDR']
+        if os.environ.get('VAULT_ADDR') is not None:
+            del os.environ['VAULT_ADDR']
 
     def export_vault_addr(self):
-        envdata = self.env_path.read_text()
-        vaulturl = re.findall('VAULT_URL_FOR_DYNACONF=(.*)', envdata)[0]
+        vaulturl = re.findall('VAULT_URL_FOR_DYNACONF=(.*)', self.envdata)[0]
 
         # Set Vault CLI Env Var
         os.environ['VAULT_ADDR'] = vaulturl
 
         # Dynaconf Vault Env Vars
-        if re.findall('VAULT_ENABLED_FOR_DYNACONF=(.*)', envdata)[0] == 'true':
+        if self.vault_enabled and self.vault_enabled in ['True', 'true']:
             if 'localhost:8200' in vaulturl:
                 raise InvalidVaultURLForOIDC(
-                    f"{vaulturl} doesnt supports OIDC login,"
+                    f"{vaulturl} doesn't support OIDC login,"
                     "please change url to corp vault in env file!"
                 )
 
@@ -47,7 +54,7 @@ class Vault:
         :param comamnd str: The vault CLI command
         :param kwargs dict: Arguments to the subprocess run command to customize the run behavior
         """
-        vcommand = subprocess.run(command, shell=True, **kwargs)  # capture_output=True
+        vcommand = subprocess.run(command, shell=True, capture_output=True, **kwargs)
         if vcommand.returncode != 0:
             verror = str(vcommand.stderr)
             if vcommand.returncode == 127:
@@ -57,15 +64,19 @@ class Vault:
                 if 'Error revoking token' in verror:
                     logger.info("Token is alredy revoked!")
                 elif 'Error looking up token' in verror:
-                    logger.warning("Warning! Vault not logged in!")
+                    logger.info("Vault is not logged in!")
                 else:
                     logger.error(f"Error! {verror}")
         return vcommand
 
     def login(self, **kwargs):
-        if 'VAULT_SECRET_ID_FOR_DYNACONF' not in os.environ:
+        if (
+            self.vault_enabled
+            and self.vault_enabled in ['True', 'true']
+            and 'VAULT_SECRET_ID_FOR_DYNACONF' not in os.environ
+        ):
             if self.status(**kwargs).returncode != 0:
-                logger.warning(
+                logger.info(
                     "Warning! The browser is about to open for vault OIDC login, "
                     "close the tab once the sign-in is done!"
                 )
@@ -76,29 +87,28 @@ class Vault:
                     self.exec_vault_command(command="vault token renew -i 10h", **kwargs)
                     logger.info("Success! Vault OIDC Logged-In and extended for 10 hours!")
                 # Fetching tokens
-                token = self.exec_vault_command(
-                    "vault token lookup --format json", capture_output=True
-                ).stdout
+                token = self.exec_vault_command("vault token lookup --format json").stdout
                 token = json.loads(str(token.decode('UTF-8')))['data']['id']
                 # Setting new token in env file
-                envdata = self.env_path.read_text()
-                envdata = re.sub(
-                    '.*VAULT_TOKEN_FOR_DYNACONF=.*', f"VAULT_TOKEN_FOR_DYNACONF={token}", envdata
+                _envdata = re.sub(
+                    '.*VAULT_TOKEN_FOR_DYNACONF=.*',
+                    f"VAULT_TOKEN_FOR_DYNACONF={token}",
+                    self.envdata,
                 )
-                self.env_path.write_text(envdata)
+                self.env_path.write_text(_envdata)
                 logger.info(
                     "Success! New OIDC token added to .env file to access secrets from vault!"
                 )
 
     def logout(self):
         # Teardown - Setting dymmy token in env file
-        envdata = self.env_path.read_text()
-        envdata = re.sub(
-            '.*VAULT_TOKEN_FOR_DYNACONF=.*', "# VAULT_TOKEN_FOR_DYNACONF=myroot", envdata
+        _envdata = re.sub(
+            '.*VAULT_TOKEN_FOR_DYNACONF=.*', "# VAULT_TOKEN_FOR_DYNACONF=myroot", self.envdata
         )
-        self.env_path.write_text(envdata)
-        self.exec_vault_command('vault token revoke -self')
-        logger.info("Success! OIDC token removed from Env file successfully!")
+        self.env_path.write_text(_envdata)
+        vstatus = self.exec_vault_command('vault token revoke -self')
+        if vstatus.returncode == 0:
+            logger.info("Success! OIDC token removed from Env file successfully!")
 
     def status(self, **kwargs):
         vstatus = self.exec_vault_command('vault token lookup', **kwargs)

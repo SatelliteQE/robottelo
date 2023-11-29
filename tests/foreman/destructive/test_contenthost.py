@@ -53,7 +53,7 @@ def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=False, override=True)
-    repos_collection.setup_virtual_machine(rhel7_contenthost, install_katello_agent=False)
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
     result = rhel7_contenthost.execute(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     assert target_sat.cli.Service.stop(options={'only': 'foreman'}).status == 0

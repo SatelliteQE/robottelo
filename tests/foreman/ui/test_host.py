@@ -64,7 +64,7 @@ def ui_user(ui_user, smart_proxy_location, module_target_sat):
         id=ui_user.id,
         default_location=smart_proxy_location,
     ).update(['default_location'])
-    yield ui_user
+    return ui_user
 
 
 @pytest.fixture
@@ -133,7 +133,21 @@ def tracer_install_host(rex_contenthost, target_sat):
         rex_contenthost.create_custom_repos(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
-    yield rex_contenthost
+    return rex_contenthost
+
+
+@pytest.fixture
+def new_host_ui(target_sat):
+    """Changes the setting to use the New All Host UI
+    then returns it back to the normal value"""
+    all_hosts_setting = target_sat.api.Setting().search(
+        query={'search': f'name={"new_hosts_page"}'}
+    )[0]
+    all_hosts_setting.value = 'True'
+    all_hosts_setting.update({'value'})
+    yield
+    all_hosts_setting.value = 'False'
+    all_hosts_setting.update({'value'})
 
 
 @pytest.mark.e2e
@@ -510,7 +524,7 @@ def test_positive_view_hosts_with_non_admin_user(
     :expectedresults: user with only view_hosts, edit_hosts and view_organization permissions
         is able to read content hosts and hosts
 
-    :CaseLevel: System
+    :CaseLevel: Component
     """
     user_password = gen_string('alpha')
     role = target_sat.api.Role(organization=[module_org]).create()
@@ -750,9 +764,9 @@ def test_positive_check_permissions_affect_create_procedure(
     ]
     with Session(test_name, user=user.login, password=user_password) as session:
         for host_field in host_fields:
+            values = {host_field['name']: host_field['unexpected_value']}
+            values.update(host_field.get('other_fields_values', {}))
             with pytest.raises(NoSuchElementException) as context:
-                values = {host_field['name']: host_field['unexpected_value']}
-                values.update(host_field.get('other_fields_values', {}))
                 session.host.helper.read_create_view(values)
             error_message = str(context.value)
             assert host_field['unexpected_value'] in error_message
@@ -1000,7 +1014,7 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
     target_sat.cli.Ansible.roles_sync(
         {'role-names': SELECTED_ROLE, 'proxy-id': target_sat.nailgun_smart_proxy.id}
     )
-    hostgroup = target_sat.cli_factory.make_hostgroup(
+    hostgroup = target_sat.cli_factory.hostgroup(
         {
             'content-view-id': cv.id,
             'lifecycle-environment-id': lce.id,
@@ -1209,7 +1223,7 @@ def test_positive_global_registration_end_to_end(
     ).create()
     # run insights-client via REX
     command = "insights-client --status"
-    invocation_command = target_sat.cli_factory.make_job_invocation(
+    invocation_command = target_sat.cli_factory.job_invocation(
         {
             'job-template': 'Run Command - Script Default',
             'inputs': f'command={command}',
@@ -1271,9 +1285,9 @@ def test_global_registration_form_populate(
         4. Open the global registration form and select the same host-group
         5. check host registration form should be populated automatically based on the host-group
 
-    :BZ: 2056469
+    :BZ: 2056469, 1994654
 
-    :CaseAutomation: Automated
+    :customerscenario: true
     """
     hg_name = gen_string('alpha')
     iface = gen_string('alpha')
@@ -1287,6 +1301,8 @@ def test_global_registration_form_populate(
         content_view=module_promoted_cv,
         group_parameters_attributes=[group_params],
     ).create()
+    new_org = target_sat.api.Organization().create()
+    new_ak = target_sat.api.ActivationKey(organization=new_org).create()
     with session:
         session.hostgroup.update(
             hg_name,
@@ -1302,18 +1318,29 @@ def test_global_registration_form_populate(
             },
             full_read=True,
         )
-
         assert hg_name in cmd['general']['host_group']
         assert module_ak_with_cv.name in cmd['general']['activation_key_helper']
         assert module_lce.name in cmd['advanced']['life_cycle_env_helper']
         assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages_helper']
+
+        session.organization.select(org_name=new_org.name)
+        cmd = session.host.get_register_command(
+            {
+                'general.organization': new_org.name,
+                'general.operating_system': default_os.title,
+                'general.insecure': True,
+            },
+            full_read=True,
+        )
+        assert new_org.name in cmd['general']['organization']
+        assert new_ak.name in cmd['general']['activation_keys']
 
 
 @pytest.mark.tier2
 def test_global_registration_with_capsule_host(
     session,
     capsule_configured,
-    rhel7_contenthost,
+    rhel8_contenthost,
     module_org,
     module_location,
     module_product,
@@ -1342,7 +1369,7 @@ def test_global_registration_with_capsule_host(
 
     :CaseAutomation: Automated
     """
-    client = rhel7_contenthost
+    client = rhel8_contenthost
     repo = target_sat.api.Repository(
         url=settings.repos.yum_1.url,
         content_type=REPO_TYPE['yum'],
@@ -1391,7 +1418,7 @@ def test_global_registration_with_capsule_host(
         session.location.select(loc_name=module_location.name)
         cmd = session.host.get_register_command(
             {
-                'general.orgnization': module_org.name,
+                'general.organization': module_org.name,
                 'general.location': module_location.name,
                 'general.operating_system': default_os.title,
                 'general.capsule': capsule_configured.hostname,
@@ -1412,7 +1439,7 @@ def test_global_registration_with_capsule_host(
 @pytest.mark.usefixtures('enable_capsule_for_registration')
 @pytest.mark.no_containers
 def test_global_registration_with_gpg_repo_and_default_package(
-    session, module_activation_key, default_os, default_smart_proxy, rhel7_contenthost
+    session, module_activation_key, default_os, default_smart_proxy, rhel8_contenthost
 ):
     """Host registration form produces a correct registration command and host is
     registered successfully with gpg repo enabled and have default package
@@ -1435,7 +1462,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
     :parametrized: yes
     """
-    client = rhel7_contenthost
+    client = rhel8_contenthost
     repo_name = 'foreman_register'
     repo_url = settings.repos.gr_yum_repo.url
     repo_gpg_url = settings.repos.gr_yum_repo.gpg_url
@@ -1455,7 +1482,15 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
     # rhel repo required for insights client installation,
     # syncing it to the satellite would take too long
-    client.create_custom_repos(rhel7=settings.repos.rhel7_os)
+    rhelver = client.os_version.major
+    if rhelver > 7:
+        repos = {f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']['baseos']}
+    else:
+        repos = {
+            'rhel7_os': settings.repos['rhel7_os'],
+            'rhel7_extras': settings.repos['rhel7_extras'],
+        }
+    client.create_custom_repos(**repos)
     # run curl
     result = client.execute(cmd)
     assert result.status == 0
@@ -1571,7 +1606,7 @@ def test_global_re_registration_host_with_force_ignore_error_options(
 @pytest.mark.tier2
 @pytest.mark.usefixtures('enable_capsule_for_registration')
 def test_global_registration_token_restriction(
-    session, module_activation_key, rhel7_contenthost, default_os, default_smart_proxy, target_sat
+    session, module_activation_key, rhel8_contenthost, default_os, default_smart_proxy, target_sat
 ):
     """Global registration token should be only used for registration call, it
     should be restricted for any other api calls.
@@ -1589,7 +1624,7 @@ def test_global_registration_token_restriction(
 
     :parametrized: yes
     """
-    client = rhel7_contenthost
+    client = rhel8_contenthost
     with session:
         cmd = session.host.get_register_command(
             {
@@ -1609,7 +1644,7 @@ def test_global_registration_token_restriction(
     for curl_cmd in (curl_users, curl_hosts):
         result = client.execute(curl_cmd)
         assert result.status == 0
-        'Unable to authenticate user' in result.stdout
+        assert 'Unable to authenticate user' in result.stdout
 
 
 @pytest.mark.tier4
@@ -1837,9 +1872,7 @@ def test_positive_update_delete_package(
     """
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(
-        client, target_sat, install_katello_agent=False
-    )
+    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         if not is_open('BZ:2132680'):
@@ -1958,9 +1991,7 @@ def test_positive_apply_erratum(
     # install package
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(
-        client, target_sat, install_katello_agent=False
-    )
+    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
     errata_id = settings.repos.yum_3.errata[25]
     client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
@@ -2041,9 +2072,7 @@ def test_positive_crud_module_streams(
     module_name = 'duck'
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(
-        client, target_sat, install_katello_agent=False
-    )
+    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         streams = session.host_new.get_module_streams(client.hostname, module_name)
@@ -2388,3 +2417,101 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
         )
         tracer = session.host_new.get_tracer(tracer_install_host.hostname)
         assert tracer['title'] == "No applications to restart"
+
+
+def test_positive_host_registration_with_non_admin_user(
+    test_name,
+    module_entitlement_manifest_org,
+    module_location,
+    target_sat,
+    rhel8_contenthost,
+    module_activation_key,
+):
+    """Register hosts from a non-admin user with only register_hosts, edit_hosts
+    and view_organization permissions
+
+    :id: 35458bbc-4556-41b9-ba26-ae0b15179731
+
+    :expectedresults: User with register hosts permission able to register hosts.
+
+    :CaseLevel: Component
+    """
+    user_password = gen_string('alpha')
+    org = module_entitlement_manifest_org
+    role = target_sat.api.Role(organization=[org]).create()
+
+    user_permissions = {
+        'Organization': ['view_organizations'],
+        'Host': ['view_hosts'],
+    }
+    target_sat.api_factory.create_role_permissions(role, user_permissions)
+    user = target_sat.api.User(
+        role=[role],
+        admin=False,
+        password=user_password,
+        organization=[org],
+        location=[module_location],
+        default_organization=org,
+        default_location=module_location,
+    ).create()
+    role = target_sat.cli.Role.info({'name': 'Register hosts'})
+    target_sat.cli.User.add_role({'id': user.id, 'role-id': role['id']})
+
+    with Session(test_name, user=user.login, password=user_password) as session:
+
+        cmd = session.host_new.get_register_command(
+            {
+                'general.insecure': True,
+                'general.activation_keys': module_activation_key.name,
+            }
+        )
+
+        result = rhel8_contenthost.execute(cmd)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+        # Verify server.hostname and server.port from subscription-manager config
+        assert target_sat.hostname == rhel8_contenthost.subscription_config['server']['hostname']
+        assert constants.CLIENT_PORT == rhel8_contenthost.subscription_config['server']['port']
+
+
+@pytest.mark.tier2
+def test_all_hosts_delete(session, target_sat, function_org, function_location, new_host_ui):
+    """Create a host and delete it through All Hosts UI
+
+    :id: 42b4560c-bb57-4c58-928e-e5fd5046b93f
+
+    :expectedresults: Successful deletion of a host through the table dropdown
+
+    :CaseComponent:Hosts-Content
+
+    :Team: Phoenix-content
+
+    :CaseLevel: System
+    """
+    host = target_sat.api.Host(organization=function_org, location=function_location).create()
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        session.location.select(function_location.name)
+        assert session.all_hosts.delete(host.name)
+
+
+@pytest.mark.tier2
+def test_all_hosts_bulk_delete(session, target_sat, function_org, function_location, new_host_ui):
+    """Create several hosts, and delete them via Bulk Actions in All Hosts UI
+
+    :id: af1b4a66-dd83-47c3-904b-e8627119cc53
+
+    :expectedresults: Successful deletion of multiple hosts at once through Bulk Action
+
+    :CaseComponent:Hosts-Content
+
+    :Team: Phoenix-content
+
+    :CaseLevel: System
+    """
+    for _ in range(10):
+        target_sat.api.Host(organization=function_org, location=function_location).create()
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        session.location.select(function_location.name)
+        assert session.all_hosts.bulk_delete_all()

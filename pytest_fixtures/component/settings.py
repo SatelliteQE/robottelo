@@ -2,7 +2,7 @@
 import pytest
 
 
-@pytest.fixture()
+@pytest.fixture
 def setting_update(request, target_sat):
     """
     This fixture is used to create an object of the provided settings parameter that we use in

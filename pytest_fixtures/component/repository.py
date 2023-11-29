@@ -22,7 +22,7 @@ def module_repo(module_repo_options, module_target_sat):
     return module_target_sat.api.Repository(**module_repo_options).create()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_product(function_org):
     return entities.Product(organization=function_org).create()
 
@@ -30,24 +30,6 @@ def function_product(function_org):
 @pytest.fixture(scope='module')
 def module_product(module_org, module_target_sat):
     return module_target_sat.api.Product(organization=module_org).create()
-
-
-@pytest.fixture(scope='module')
-def rh_repo_gt_manifest(module_gt_manifest_org, module_target_sat):
-    """Use GT manifest org, creates RH tools repo, syncs and returns RH repo."""
-    # enable rhel repo and return its ID
-    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-        basearch=DEFAULT_ARCHITECTURE,
-        org_id=module_gt_manifest_org.id,
-        product=PRDS['rhel'],
-        repo=REPOS['rhst7']['name'],
-        reposet=REPOSET['rhst7'],
-        releasever=None,
-    )
-    # Sync step because repo is not synced by default
-    rh_repo = entities.Repository(id=rh_repo_id).read()
-    rh_repo.sync()
-    return rh_repo
 
 
 @pytest.fixture(scope='module')
@@ -69,11 +51,12 @@ def module_rhst_repo(module_target_sat, module_org_with_manifest, module_promote
     )
     cv.publish()
     cv = cv.read()
+    cv.version.sort(key=lambda version: version.id)
     cv.version[-1].promote(data={'environment_ids': module_lce.id})
     return REPOS['rhst7']['id']
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def repo_setup():
     """
     This fixture is used to create an organization, product, repository, and lifecycle environment
@@ -85,7 +68,7 @@ def repo_setup():
     repo = entities.Repository(name=repo_name, product=product).create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     details = {'org': org, 'product': product, 'repo': repo, 'lce': lce}
-    yield details
+    return details
 
 
 @pytest.fixture(scope='module')

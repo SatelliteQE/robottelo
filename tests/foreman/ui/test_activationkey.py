@@ -25,7 +25,6 @@ from nailgun import entities
 import pytest
 
 from robottelo import constants
-from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import parametrized, valid_data_list
@@ -78,7 +77,12 @@ def test_positive_end_to_end_crud(session, module_org):
     indirect=True,
 )
 def test_positive_end_to_end_register(
-    session, function_entitlement_manifest_org, repos_collection, rhel7_contenthost, target_sat
+    session,
+    function_entitlement_manifest_org,
+    default_location,
+    repos_collection,
+    rhel7_contenthost,
+    target_sat,
 ):
     """Create activation key and use it during content host registering
 
@@ -101,7 +105,10 @@ def test_positive_end_to_end_register(
     repos_collection.setup_virtual_machine(rhel7_contenthost)
     with session:
         session.organization.select(org.name)
-        chost = session.contenthost.read(rhel7_contenthost.hostname, widget_names='details')
+        session.location.select(default_location.name)
+        chost = session.contenthost.read_legacy_ui(
+            rhel7_contenthost.hostname, widget_names='details'
+        )
         assert chost['details']['registered_by'] == f'Activation Key {ak_name}'
         ak_values = session.activationkey.read(ak_name, widget_names='content_hosts')
         assert len(ak_values['content_hosts']['table']) == 1
@@ -1043,7 +1050,7 @@ def test_positive_host_associations(session, target_sat):
     :CaseLevel: System
     """
     org = entities.Organization().create()
-    org_entities = setup_org_for_a_custom_repo(
+    org_entities = target_sat.cli_factory.setup_org_for_a_custom_repo(
         {'url': settings.repos.yum_1.url, 'organization-id': org.id}
     )
     ak1 = entities.ActivationKey(id=org_entities['activationkey-id']).read()
@@ -1107,7 +1114,7 @@ def test_positive_service_level_subscription_with_custom_product(
     :CaseLevel: System
     """
     org = function_entitlement_manifest_org
-    entities_ids = setup_org_for_a_custom_repo(
+    entities_ids = target_sat.cli_factory.setup_org_for_a_custom_repo(
         {'url': settings.repos.yum_1.url, 'organization-id': org.id}
     )
     product = entities.Product(id=entities_ids['product-id']).read()

@@ -155,7 +155,7 @@ def test_negative_delete_rule_with_non_admin_user(
         location=[module_location],
     ).create()
     with Session(user=reader_user.login, password=reader_user.password) as session:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011 - TODO Adarsh determine better exception
             session.discoveryrule.delete(dr.name)
         dr_val = session.discoveryrule.read_all()
         assert dr.name in [rule['Name'] for rule in dr_val]
