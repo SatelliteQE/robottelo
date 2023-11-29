@@ -125,6 +125,7 @@ ENTITY_FIELDS = {
         '_entity_cls': 'Repository',
         'name': gen_alpha,
         'url': settings.repos.yum_1.url,
+        'content-type': 'yum',
     },
     'role': {'name': gen_alphanumeric},
     'filter': {},
