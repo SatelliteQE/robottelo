@@ -24,29 +24,9 @@ from fauxfactory import gen_string
 from nailgun import entities
 import pytest
 
-from robottelo.cli.activationkey import ActivationKey
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.contentview import ContentView, ContentViewFilter
 from robottelo.cli.erratum import Erratum
-from robottelo.cli.factory import (
-    make_content_view_filter,
-    make_content_view_filter_rule,
-    make_filter,
-    make_host_collection,
-    make_repository,
-    make_role,
-    make_user,
-    setup_org_for_a_custom_repo,
-    setup_org_for_a_rh_repo,
-)
 from robottelo.cli.filter import Filter
-from robottelo.cli.host import Host
-from robottelo.cli.hostcollection import HostCollection
-from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.org import Org
-from robottelo.cli.package import Package
-from robottelo.cli.repository import Repository
-from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import (
@@ -66,6 +46,7 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
+from robottelo.exceptions import CLIReturnCodeError
 from robottelo.hosts import ContentHost
 
 PER_PAGE = 10
@@ -135,7 +116,7 @@ def orgs():
 
 
 @pytest.fixture(scope='module')
-def products_with_repos(orgs):
+def products_with_repos(orgs, module_target_sat):
     """Create and return a list of products. For each product, create and sync a single repo."""
     products = []
     # Create one product for each org, and a second product for the last org.
@@ -145,7 +126,7 @@ def products_with_repos(orgs):
         # with the one we already have.
         product.organization = org
         products.append(product)
-        repo = make_repository(
+        repo = module_target_sat.cli_factory.make_repository(
             {
                 'download-policy': 'immediate',
                 'organization-id': product.organization.id,
@@ -153,15 +134,17 @@ def products_with_repos(orgs):
                 'url': params['url'],
             }
         )
-        Repository.synchronize({'id': repo['id']})
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
 
     return products
 
 
 @pytest.fixture(scope='module')
-def rh_repo(module_entitlement_manifest_org, module_lce, module_cv, module_ak_cv_lce):
+def rh_repo(
+    module_entitlement_manifest_org, module_lce, module_cv, module_ak_cv_lce, module_target_sat
+):
     """Add a subscription for the Satellite Tools repo to activation key."""
-    setup_org_for_a_rh_repo(
+    module_target_sat.cli_factory.setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
@@ -175,9 +158,11 @@ def rh_repo(module_entitlement_manifest_org, module_lce, module_cv, module_ak_cv
 
 
 @pytest.fixture(scope='module')
-def custom_repo(module_entitlement_manifest_org, module_lce, module_cv, module_ak_cv_lce):
+def custom_repo(
+    module_entitlement_manifest_org, module_lce, module_cv, module_ak_cv_lce, module_target_sat
+):
     """Create custom repo and add a subscription to activation key."""
-    setup_org_for_a_custom_repo(
+    module_target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': REPO_WITH_ERRATA['url'],
             'organization-id': module_entitlement_manifest_org.id,
@@ -237,18 +222,24 @@ def errata_hosts(register_hosts):
 
 
 @pytest.fixture(scope='module')
-def host_collection(module_entitlement_manifest_org, module_ak_cv_lce, register_hosts):
+def host_collection(
+    module_entitlement_manifest_org, module_ak_cv_lce, register_hosts, module_target_sat
+):
     """Create and setup host collection."""
-    host_collection = make_host_collection({'organization-id': module_entitlement_manifest_org.id})
-    host_ids = [Host.info({'name': host.hostname})['id'] for host in register_hosts]
-    HostCollection.add_host(
+    host_collection = module_target_sat.cli_factory.make_host_collection(
+        {'organization-id': module_entitlement_manifest_org.id}
+    )
+    host_ids = [
+        module_target_sat.cli.Host.info({'name': host.hostname})['id'] for host in register_hosts
+    ]
+    module_target_sat.cli.HostCollection.add_host(
         {
             'id': host_collection['id'],
             'organization-id': module_entitlement_manifest_org.id,
             'host-ids': host_ids,
         }
     )
-    ActivationKey.add_host_collection(
+    module_target_sat.cli.ActivationKey.add_host_collection(
         {
             'id': module_ak_cv_lce.id,
             'host-collection-id': host_collection['id'],
@@ -269,7 +260,7 @@ def is_rpm_installed(host, rpm=None):
     return not host.execute(f'rpm -q {rpm}').status
 
 
-def get_sorted_errata_info_by_id(errata_ids, sort_by='issued', sort_reversed=False):
+def get_sorted_errata_info_by_id(sat, errata_ids, sort_by='issued', sort_reversed=False):
     """Query hammer for erratum ids info
 
     :param errata_ids: a list of errata id
@@ -285,14 +276,17 @@ def get_sorted_errata_info_by_id(errata_ids, sort_by='issued', sort_reversed=Fal
     if len(errata_ids) > PER_PAGE:
         raise Exception('Errata ids length exceeded')
     errata_info = [
-        Erratum.info(options={'id': errata_id}, output_format='json') for errata_id in errata_ids
+        sat.cli.Erratum.info(options={'id': errata_id}, output_format='json')
+        for errata_id in errata_ids
     ]
     return sorted(errata_info, key=itemgetter(sort_by), reverse=sort_reversed)
 
 
-def get_errata_ids(*params):
+def get_errata_ids(sat, *params):
     """Return list of sets of errata ids corresponding to the provided params."""
-    errata_ids = [{errata['errata-id'] for errata in Erratum.list(param)} for param in params]
+    errata_ids = [
+        {errata['errata-id'] for errata in sat.cli.Erratum.list(param)} for param in params
+    ]
     return errata_ids[0] if len(errata_ids) == 1 else errata_ids
 
 
@@ -307,7 +301,7 @@ def check_errata(errata_ids, by_org=False):
         assert repo_with_errata['errata_id'] in ids
 
 
-def filter_sort_errata(org, sort_by_date='issued', filter_by_org=None):
+def filter_sort_errata(sat, org, sort_by_date='issued', filter_by_org=None):
     """Compare the list of errata returned by `hammer erratum {list|info}` to the expected
     values, subject to the date sort and organization filter options.
 
@@ -330,13 +324,13 @@ def filter_sort_errata(org, sort_by_date='issued', filter_by_org=None):
 
         sort_reversed = True if sort_order == 'DESC' else False
 
-        errata_list = Erratum.list(list_param)
+        errata_list = sat.cli.Erratum.list(list_param)
         assert len(errata_list) > 0
 
         # Build a sorted errata info list, which also contains the sort field.
         errata_internal_ids = [errata['id'] for errata in errata_list]
         sorted_errata_info = get_sorted_errata_info_by_id(
-            errata_internal_ids, sort_by=sort_by_date, sort_reversed=sort_reversed
+            sat, errata_internal_ids, sort_by=sort_by_date, sort_reversed=sort_reversed
         )
 
         sort_field_values = [errata[sort_by_date] for errata in sorted_errata_info]
@@ -347,7 +341,7 @@ def filter_sort_errata(org, sort_by_date='issued', filter_by_org=None):
         assert errata_ids == sorted_errata_ids
 
 
-def cv_publish_promote(cv, org, lce):
+def cv_publish_promote(sat, cv, org, lce):
     """Publish and promote a new version into the given lifecycle environment.
 
     :param cv: content view
@@ -357,27 +351,27 @@ def cv_publish_promote(cv, org, lce):
     :param lce: lifecycle environment
     :type lce: entities.LifecycleEnvironment
     """
-    ContentView.publish({'id': cv.id})
-    cvv = ContentView.info({'id': cv.id})['versions'][-1]
-    ContentView.version_promote(
+    sat.cli.ContentView.publish({'id': cv.id})
+    sat.cli.ContentView.info({'id': cv.id})['versions'][-1]
+    sat.cli.ContentView.version_promote(
         {
-            'id': cvv['id'],
-            'organization-id': org.id,
+            'id': cv.id,
+            'organization-id': org,
             'to-lifecycle-environment-id': lce.id,
         }
     )
 
 
-def cv_filter_cleanup(filter_id, cv, org, lce):
+def cv_filter_cleanup(sat, filter_id, cv, org, lce):
     """Delete the cv filter, then publish and promote an unfiltered version."""
-    ContentViewFilter.delete(
+    sat.cli.ContentViewFilter.delete(
         {
             'content-view-id': cv.id,
             'id': filter_id,
             'organization-id': org.id,
         }
     )
-    cv_publish_promote(cv, org, lce)
+    cv_publish_promote(sat, cv, org, lce)
 
 
 @pytest.mark.tier3
@@ -436,7 +430,7 @@ def test_positive_install_by_host_collection_and_org(
         organization_key = 'organization-title'
         organization_value = module_entitlement_manifest_org.title
 
-    JobInvocation.create(
+    target_sat.cli.JobInvocation.create(
         {
             'feature': 'katello_errata_install',
             'search-query': host_collection_query,
@@ -451,7 +445,7 @@ def test_positive_install_by_host_collection_and_org(
 
 @pytest.mark.tier3
 def test_negative_install_by_hc_id_without_errata_info(
-    module_entitlement_manifest_org, host_collection, errata_hosts
+    module_entitlement_manifest_org, host_collection, errata_hosts, target_sat
 ):
     """Attempt to install an erratum on a host collection by host collection id but no errata info
     specified.
@@ -470,7 +464,7 @@ def test_negative_install_by_hc_id_without_errata_info(
     :CaseLevel: System
     """
     with pytest.raises(CLIReturnCodeError, match="Error: Option '--errata' is required"):
-        HostCollection.erratum_install(
+        target_sat.cli.HostCollection.erratum_install(
             {
                 'id': host_collection['id'],
                 'organization-id': module_entitlement_manifest_org.id,
@@ -480,7 +474,7 @@ def test_negative_install_by_hc_id_without_errata_info(
 
 @pytest.mark.tier3
 def test_negative_install_by_hc_name_without_errata_info(
-    module_entitlement_manifest_org, host_collection, errata_hosts
+    module_entitlement_manifest_org, host_collection, errata_hosts, target_sat
 ):
     """Attempt to install an erratum on a host collection by host collection name but no errata
     info specified.
@@ -499,7 +493,7 @@ def test_negative_install_by_hc_name_without_errata_info(
     :CaseLevel: System
     """
     with pytest.raises(CLIReturnCodeError, match="Error: Option '--errata' is required"):
-        HostCollection.erratum_install(
+        target_sat.cli.HostCollection.erratum_install(
             {
                 'name': host_collection['name'],
                 'organization-id': module_entitlement_manifest_org.id,
@@ -508,7 +502,9 @@ def test_negative_install_by_hc_name_without_errata_info(
 
 
 @pytest.mark.tier3
-def test_negative_install_without_hc_info(module_entitlement_manifest_org, host_collection):
+def test_negative_install_without_hc_info(
+    module_entitlement_manifest_org, host_collection, module_target_sat
+):
     """Attempt to install an erratum on a host collection without specifying host collection info.
     This test only works with two or more host collections (BZ#1928281).
     We have the one from the fixture, just need to create one more at the start of the test.
@@ -528,9 +524,11 @@ def test_negative_install_without_hc_info(module_entitlement_manifest_org, host_
 
     :CaseLevel: System
     """
-    make_host_collection({'organization-id': module_entitlement_manifest_org.id})
+    module_target_sat.cli_factory.make_host_collection(
+        {'organization-id': module_entitlement_manifest_org.id}
+    )
     with pytest.raises(CLIReturnCodeError):
-        HostCollection.erratum_install(
+        module_target_sat.cli.HostCollection.erratum_install(
             {
                 'organization-id': module_entitlement_manifest_org.id,
                 'errata': [REPO_WITH_ERRATA['errata'][0]['id']],
@@ -540,7 +538,7 @@ def test_negative_install_without_hc_info(module_entitlement_manifest_org, host_
 
 @pytest.mark.tier3
 def test_negative_install_by_hc_id_without_org_info(
-    module_entitlement_manifest_org, host_collection
+    module_entitlement_manifest_org, host_collection, module_target_sat
 ):
     """Attempt to install an erratum on a host collection by host collection id but without
     specifying any org info.
@@ -558,14 +556,14 @@ def test_negative_install_by_hc_id_without_org_info(
     :CaseLevel: System
     """
     with pytest.raises(CLIReturnCodeError, match='Error: Could not find organization'):
-        HostCollection.erratum_install(
+        module_target_sat.cli.HostCollection.erratum_install(
             {'id': host_collection['id'], 'errata': [REPO_WITH_ERRATA['errata'][0]['id']]}
         )
 
 
 @pytest.mark.tier3
 def test_negative_install_by_hc_name_without_org_info(
-    module_entitlement_manifest_org, host_collection
+    module_entitlement_manifest_org, host_collection, module_target_sat
 ):
     """Attempt to install an erratum on a host collection by host collection name but without
     specifying any org info.
@@ -583,14 +581,14 @@ def test_negative_install_by_hc_name_without_org_info(
     :CaseLevel: System
     """
     with pytest.raises(CLIReturnCodeError, match='Error: Could not find organization'):
-        HostCollection.erratum_install(
+        module_target_sat.cli.HostCollection.erratum_install(
             {'name': host_collection['name'], 'errata': [REPO_WITH_ERRATA['errata'][0]['id']]}
         )
 
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_list_affected_chosts(module_entitlement_manifest_org, errata_hosts):
+def test_positive_list_affected_chosts(module_entitlement_manifest_org, errata_hosts, target_sat):
     """View a list of affected content hosts for an erratum.
 
     :id: 3b592253-52c0-4165-9a48-ba55287e9ee9
@@ -605,7 +603,7 @@ def test_positive_list_affected_chosts(module_entitlement_manifest_org, errata_h
 
     :CaseAutomation: Automated
     """
-    result = Host.list(
+    result = target_sat.cli.Host.list(
         {
             'search': f'applicable_errata = {REPO_WITH_ERRATA["errata"][0]["id"]}',
             'organization-id': module_entitlement_manifest_org.id,
@@ -654,7 +652,7 @@ def test_install_errata_to_one_host(
     # Add ssh keys
     for host in errata_hosts:
         host.add_rex_key(satellite=target_sat)
-        Host.errata_recalculate({'host-id': host.nailgun_host.id})
+        target_sat.cli.Host.errata_recalculate({'host-id': host.nailgun_host.id})
     timestamp = (datetime.utcnow() - timedelta(minutes=1)).strftime(TIMESTAMP_FMT)
     target_sat.wait_for_tasks(
         search_query=(
@@ -675,7 +673,7 @@ def test_install_errata_to_one_host(
 @pytest.mark.tier3
 @pytest.mark.e2e
 def test_positive_list_affected_chosts_by_erratum_restrict_flag(
-    request, module_entitlement_manifest_org, module_cv, module_lce, errata_hosts
+    request, module_entitlement_manifest_org, module_cv, module_lce, errata_hosts, target_sat
 ):
     """View a list of affected content hosts for an erratum filtered
     with restrict flags. Applicability is calculated using the Library,
@@ -725,7 +723,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         'organization-id': module_entitlement_manifest_org.id,
         'per-page': PER_PAGE_LARGE,
     }
-    errata_ids = get_errata_ids(param)
+    errata_ids = get_errata_ids(target_sat, param)
     assert errata['id'] in errata_ids, 'Errata not found in list of installable errata'
     assert not set(uninstallable) & set(errata_ids), 'Unexpected errata found'
 
@@ -737,7 +735,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         'organization-id': module_entitlement_manifest_org.id,
         'per-page': PER_PAGE_LARGE,
     }
-    errata_ids = get_errata_ids(param)
+    errata_ids = get_errata_ids(target_sat, param)
     assert set(REPO_WITH_ERRATA['errata_ids']).issubset(
         errata_ids
     ), 'Errata not found in list of installable errata'
@@ -748,7 +746,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         'organization-id': module_entitlement_manifest_org.id,
         'per-page': PER_PAGE_LARGE,
     }
-    errata_ids = get_errata_ids(param)
+    errata_ids = get_errata_ids(target_sat, param)
     assert errata['id'] in errata_ids, 'Errata not found in list of applicable errata'
 
     # Check search of errata is not affected by applicable=0 restrict flag
@@ -757,14 +755,14 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         'organization-id': module_entitlement_manifest_org.id,
         'per-page': PER_PAGE_LARGE,
     }
-    errata_ids = get_errata_ids(param)
+    errata_ids = get_errata_ids(target_sat, param)
     assert set(REPO_WITH_ERRATA['errata_ids']).issubset(
         errata_ids
     ), 'Errata not found in list of applicable errata'
 
     # Apply a filter and rule to the CV to hide the RPM, thus making erratum not installable
     # Make RPM exclude filter
-    cv_filter = make_content_view_filter(
+    cv_filter = target_sat.cli_factory.make_content_view_filter(
         {
             'content-view-id': module_cv.id,
             'name': 'erratum_restrict_test',
@@ -778,6 +776,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     @request.addfinalizer
     def cleanup():
         cv_filter_cleanup(
+            target_sat,
             cv_filter['filter-id'],
             module_cv,
             module_entitlement_manifest_org,
@@ -785,7 +784,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         )
 
     # Make rule to hide the RPM that creates the need for the installable erratum
-    make_content_view_filter_rule(
+    target_sat.cli_factory.content_view_filter_rule(
         {
             'content-view-id': module_cv.id,
             'content-view-filter-id': cv_filter['filter-id'],
@@ -804,7 +803,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         'organization-id': module_entitlement_manifest_org.id,
         'per-page': PER_PAGE_LARGE,
     }
-    errata_ids = get_errata_ids(param)
+    errata_ids = get_errata_ids(target_sat, param)
     assert errata['id'] not in errata_ids, 'Errata not found in list of installable errata'
 
     # Check errata still applicable
@@ -813,7 +812,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         'organization-id': module_entitlement_manifest_org.id,
         'per-page': PER_PAGE_LARGE,
     }
-    errata_ids = get_errata_ids(param)
+    errata_ids = get_errata_ids(target_sat, param)
     assert errata['id'] in errata_ids, 'Errata not found in list of applicable errata'
 
 
@@ -865,7 +864,7 @@ def test_host_errata_search_commands(
 
     for host in errata_hosts:
         timestamp = (datetime.utcnow() - timedelta(minutes=1)).strftime(TIMESTAMP_FMT)
-        Host.errata_recalculate({'host-id': host.nailgun_host.id})
+        target_sat.cli.Host.errata_recalculate({'host-id': host.nailgun_host.id})
         # Wait for upload profile event (in case Satellite system slow)
         target_sat.wait_for_tasks(
             search_query=(
@@ -877,7 +876,7 @@ def test_host_errata_search_commands(
         )
 
     # Step 1: Search for hosts that require bugfix advisories
-    result = Host.list(
+    result = target_sat.cli.Host.list(
         {
             'search': 'errata_status = errata_needed',
             'organization-id': module_entitlement_manifest_org.id,
@@ -889,7 +888,7 @@ def test_host_errata_search_commands(
     assert errata_hosts[1].hostname not in result
 
     # Step 2: Search for hosts that require security advisories
-    result = Host.list(
+    result = target_sat.cli.Host.list(
         {
             'search': 'errata_status = security_needed',
             'organization-id': module_entitlement_manifest_org.id,
@@ -901,7 +900,7 @@ def test_host_errata_search_commands(
     assert errata_hosts[1].hostname in result
 
     # Step 3: Search for hosts that require the specified bugfix advisory
-    result = Host.list(
+    result = target_sat.cli.Host.list(
         {
             'search': f'applicable_errata = {errata[1]["id"]}',
             'organization-id': module_entitlement_manifest_org.id,
@@ -913,7 +912,7 @@ def test_host_errata_search_commands(
     assert errata_hosts[1].hostname not in result
 
     # Step 4: Search for hosts that require the specified security advisory
-    result = Host.list(
+    result = target_sat.cli.Host.list(
         {
             'search': f'applicable_errata = {errata[0]["id"]}',
             'organization-id': module_entitlement_manifest_org.id,
@@ -925,7 +924,7 @@ def test_host_errata_search_commands(
     assert errata_hosts[1].hostname in result
 
     # Step 5: Search for hosts that require the specified bugfix package
-    result = Host.list(
+    result = target_sat.cli.Host.list(
         {
             'search': f'applicable_rpms = {errata[1]["new_package"]}',
             'organization-id': module_entitlement_manifest_org.id,
@@ -937,7 +936,7 @@ def test_host_errata_search_commands(
     assert errata_hosts[1].hostname not in result
 
     # Step 6: Search for hosts that require the specified security package
-    result = Host.list(
+    result = target_sat.cli.Host.list(
         {
             'search': f'applicable_rpms = {errata[0]["new_package"]}',
             'organization-id': module_entitlement_manifest_org.id,
@@ -950,7 +949,7 @@ def test_host_errata_search_commands(
 
     # Step 7: Apply filter and rule to CV to hide RPM, thus making erratum not installable
     # Make RPM exclude filter
-    cv_filter = make_content_view_filter(
+    cv_filter = target_sat.cli_factory.make_content_view_filter(
         {
             'content-view-id': module_cv.id,
             'name': 'erratum_search_test',
@@ -964,6 +963,7 @@ def test_host_errata_search_commands(
     @request.addfinalizer
     def cleanup():
         cv_filter_cleanup(
+            target_sat,
             cv_filter['filter-id'],
             module_cv,
             module_entitlement_manifest_org,
@@ -971,7 +971,7 @@ def test_host_errata_search_commands(
         )
 
     # Make rule to exclude the specified bugfix package
-    make_content_view_filter_rule(
+    target_sat.cli_factory.content_view_filter_rule(
         {
             'content-view-id': module_cv.id,
             'content-view-filter-id': cv_filter['filter-id'],
@@ -984,7 +984,7 @@ def test_host_errata_search_commands(
 
     # Step 8: Run tests again. Applicable should still be true, installable should now be false.
     # Search for hosts that require the bugfix package.
-    result = Host.list(
+    result = target_sat.cli.Host.list(
         {
             'search': f'applicable_rpms = {errata[1]["new_package"]}',
             'organization-id': module_entitlement_manifest_org.id,
@@ -996,7 +996,7 @@ def test_host_errata_search_commands(
     assert errata_hosts[1].hostname not in result
 
     # Search for hosts that require the specified bugfix advisory.
-    result = Host.list(
+    result = target_sat.cli.Host.list(
         {
             'search': f'installable_errata = {errata[1]["id"]}',
             'organization-id': module_entitlement_manifest_org.id,
@@ -1016,7 +1016,7 @@ def test_host_errata_search_commands(
     ids=('org_id', 'org_name', 'org_label', 'no_org_filter'),
 )
 def test_positive_list_filter_by_org_sort_by_date(
-    module_entitlement_manifest_org, rh_repo, custom_repo, filter_by_org, sort_by_date
+    module_entitlement_manifest_org, rh_repo, custom_repo, filter_by_org, sort_by_date, target_sat
 ):
     """Filter by organization and sort by date.
 
@@ -1033,6 +1033,7 @@ def test_positive_list_filter_by_org_sort_by_date(
     :expectedresults: Errata are filtered by org and sorted by date.
     """
     filter_sort_errata(
+        target_sat,
         module_entitlement_manifest_org,
         sort_by_date=sort_by_date,
         filter_by_org=filter_by_org,
@@ -1102,7 +1103,7 @@ def test_positive_list_filter_by_product_and_org(
 
 
 @pytest.mark.tier3
-def test_negative_list_filter_by_product_name(products_with_repos):
+def test_negative_list_filter_by_product_name(products_with_repos, module_target_sat):
     """Attempt to Filter errata by product name
 
     :id: c7a5988b-668f-4c48-bc1e-97cb968a2563
@@ -1120,7 +1121,9 @@ def test_negative_list_filter_by_product_name(products_with_repos):
     :CaseLevel: System
     """
     with pytest.raises(CLIReturnCodeError):
-        Erratum.list({'product': products_with_repos[0].name, 'per-page': PER_PAGE_LARGE})
+        module_target_sat.cli.Erratum.list(
+            {'product': products_with_repos[0].name, 'per-page': PER_PAGE_LARGE}
+        )
 
 
 @pytest.mark.tier3
@@ -1160,7 +1163,7 @@ def test_positive_list_filter_by_org(products_with_repos, filter_by_org):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_positive_list_filter_by_cve(module_entitlement_manifest_org, rh_repo):
+def test_positive_list_filter_by_cve(module_entitlement_manifest_org, rh_repo, target_sat):
     """Filter errata by CVE
 
     :id: 7791137c-95a7-4518-a56b-766a5680c5fb
@@ -1172,7 +1175,7 @@ def test_positive_list_filter_by_cve(module_entitlement_manifest_org, rh_repo):
     :expectedresults: Errata is filtered by CVE.
 
     """
-    RepositorySet.enable(
+    target_sat.cli.RepositorySet.enable(
         {
             'name': REPOSET['rhva6'],
             'organization-id': module_entitlement_manifest_org.id,
@@ -1181,14 +1184,14 @@ def test_positive_list_filter_by_cve(module_entitlement_manifest_org, rh_repo):
             'basearch': 'x86_64',
         }
     )
-    Repository.synchronize(
+    target_sat.cli.Repository.synchronize(
         {
             'name': REPOS['rhva6']['name'],
             'organization-id': module_entitlement_manifest_org.id,
             'product': PRDS['rhel'],
         }
     )
-    repository_info = Repository.info(
+    repository_info = target_sat.cli.Repository.info(
         {
             'name': REPOS['rhva6']['name'],
             'organization-id': module_entitlement_manifest_org.id,
@@ -1197,18 +1200,19 @@ def test_positive_list_filter_by_cve(module_entitlement_manifest_org, rh_repo):
     )
 
     assert REAL_4_ERRATA_ID in {
-        errata['errata-id'] for errata in Erratum.list({'repository-id': repository_info['id']})
+        errata['errata-id']
+        for errata in target_sat.cli.Erratum.list({'repository-id': repository_info['id']})
     }
 
     for errata_cve in REAL_4_ERRATA_CVES:
         assert REAL_4_ERRATA_ID in {
-            errata['errata-id'] for errata in Erratum.list({'cve': errata_cve})
+            errata['errata-id'] for errata in target_sat.cli.Erratum.list({'cve': errata_cve})
         }
 
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_user_permission(products_with_repos):
+def test_positive_user_permission(products_with_repos, target_sat):
     """Show errata only if the User has permissions to view them
 
     :id: f350c13b-8cf9-4aa5-8c3a-1c48397ea514
@@ -1245,11 +1249,11 @@ def test_positive_user_permission(products_with_repos):
     assert len(user_required_permissions_ids) > 0
 
     # create a role
-    role = make_role({'organization-ids': org.id})
+    role = target_sat.cli_factory.make_role({'organization-ids': org.id})
 
     # create a filter with the required permissions for role with product
     # one only
-    make_filter(
+    target_sat.cli_factory.make_filter(
         {
             'permission-ids': user_required_permissions_ids,
             'role-id': role['id'],
@@ -1258,7 +1262,7 @@ def test_positive_user_permission(products_with_repos):
     )
 
     # create a new user and assign him the created role permissions
-    user = make_user(
+    user = target_sat.cli_factory.make_user(
         {
             'admin': False,
             'login': user_name,
@@ -1309,7 +1313,7 @@ def test_positive_user_permission(products_with_repos):
 
 
 @pytest.mark.tier3
-def test_positive_check_errata_dates(module_entitlement_manifest_org):
+def test_positive_check_errata_dates(module_entitlement_manifest_org, module_target_sat):
     """Check for errata dates in `hammer erratum list`
 
     :id: b19286ae-bdb4-4319-87d0-5d3ff06c5f38
@@ -1323,19 +1327,19 @@ def test_positive_check_errata_dates(module_entitlement_manifest_org):
     :BZ: 1695163
     """
     product = entities.Product(organization=module_entitlement_manifest_org).create()
-    repo = make_repository(
+    repo = module_target_sat.cli_factory.make_repository(
         {'content-type': 'yum', 'product-id': product.id, 'url': REPO_WITH_ERRATA['url']}
     )
     # Synchronize custom repository
-    Repository.synchronize({'id': repo['id']})
-    result = Erratum.list(options={'per-page': '5', 'fields': 'Issued'})
+    module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+    result = module_target_sat.cli.Erratum.list(options={'per-page': '5', 'fields': 'Issued'})
     assert 'issued' in result[0]
 
     # Verify any errata ISSUED date from stdout
     validate_issued_date = datetime.strptime(result[0]['issued'], '%Y-%m-%d').date()
     assert isinstance(validate_issued_date, date)
 
-    result = Erratum.list(options={'per-page': '5', 'fields': 'Updated'})
+    result = module_target_sat.cli.Erratum.list(options={'per-page': '5', 'fields': 'Updated'})
     assert 'updated' in result[0]
 
     # Verify any errata UPDATED date from stdout
@@ -1437,11 +1441,13 @@ def test_apply_errata_using_default_content_view(errata_host, target_sat):
     :CaseImportance: High
     """
     # check that package errata is applicable
-    erratum = Host.errata_list({'host': errata_host.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'})
+    erratum = target_sat.cli.Host.errata_list(
+        {'host': errata_host.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'}
+    )
     assert len(erratum) == 1
     assert erratum[0]['installable'] == 'true'
     # Update errata from Library, i.e. Default CV
-    result = JobInvocation.create(
+    result = target_sat.cli.JobInvocation.create(
         {
             'feature': 'katello_errata_install',
             'search-query': f'name = {errata_host.hostname}',
@@ -1451,7 +1457,7 @@ def test_apply_errata_using_default_content_view(errata_host, target_sat):
     )[1]['id']
     assert 'success' in result
     timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
-    Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
+    target_sat.cli.Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
     target_sat.wait_for_tasks(
         search_query=(
             'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
@@ -1462,7 +1468,9 @@ def test_apply_errata_using_default_content_view(errata_host, target_sat):
     )
 
     # Assert that the erratum is no longer applicable
-    erratum = Host.errata_list({'host': errata_host.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'})
+    erratum = target_sat.cli.Host.errata_list(
+        {'host': errata_host.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'}
+    )
     assert len(erratum) == 0
 
 
@@ -1488,7 +1496,7 @@ def test_update_applicable_package_using_default_content_view(errata_host, targe
     :CaseImportance: High
     """
     # check that package is applicable
-    applicable_packages = Package.list(
+    applicable_packages = target_sat.cli.Package.list(
         {
             'host-id': errata_host.nailgun_host.id,
             'packages-restrict-applicable': 'true',
@@ -1496,7 +1504,7 @@ def test_update_applicable_package_using_default_content_view(errata_host, targe
         }
     )
     timestamp = (datetime.utcnow()).strftime(TIMESTAMP_FMT)
-    Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
+    target_sat.cli.Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
     target_sat.wait_for_tasks(
         search_query=(
             'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
@@ -1508,7 +1516,7 @@ def test_update_applicable_package_using_default_content_view(errata_host, targe
     assert len(applicable_packages) == 1
     assert REAL_RHEL7_0_2_PACKAGE_NAME in applicable_packages[0]['filename']
     # Update package from Library, i.e. Default CV
-    result = JobInvocation.create(
+    result = target_sat.cli.JobInvocation.create(
         {
             'feature': 'katello_errata_install',
             'search-query': f'name = {errata_host.hostname}',
@@ -1519,7 +1527,7 @@ def test_update_applicable_package_using_default_content_view(errata_host, targe
     assert 'success' in result
     # note time for later wait_for_tasks include 2 mins margin of safety.
     timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
-    Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
+    target_sat.cli.Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
 
     # Wait for upload profile event (in case Satellite system slow)
     target_sat.wait_for_tasks(
@@ -1532,8 +1540,8 @@ def test_update_applicable_package_using_default_content_view(errata_host, targe
     )
 
     # Assert that the package is no longer applicable
-    Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
-    applicable_packages = Package.list(
+    target_sat.cli.Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
+    applicable_packages = target_sat.cli.Package.list(
         {
             'host-id': errata_host.nailgun_host.id,
             'packages-restrict-applicable': 'true',
@@ -1568,7 +1576,7 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host, ta
     # Update package from Library, i.e. Default CV
     errata_host.run(f'yum -y update {REAL_RHEL7_0_2_PACKAGE_NAME}')
     # Assert that the package is not applicable
-    applicable_packages = Package.list(
+    applicable_packages = target_sat.cli.Package.list(
         {
             'host-id': errata_host.nailgun_host.id,
             'packages-restrict-applicable': 'true',
@@ -1581,7 +1589,7 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host, ta
     errata_host.run(f'curl -O {settings.repos.epel_repo.url}/{PSUTIL_RPM}')
     timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     errata_host.run(f'yum -y downgrade {PSUTIL_RPM}')
-    Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
+    target_sat.cli.Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
     # Wait for upload profile event (in case Satellite system slow)
     target_sat.wait_for_tasks(
         search_query=(
@@ -1592,7 +1600,7 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host, ta
         max_tries=10,
     )
     # check that package is applicable
-    applicable_packages = Package.list(
+    applicable_packages = target_sat.cli.Package.list(
         {
             'host-id': errata_host.nailgun_host.id,
             'packages-restrict-applicable': 'true',
@@ -1624,8 +1632,8 @@ def test_install_applicable_package_to_registerd_host(chost, target_sat):
     :CaseImportance: Medium
     """
     # Assert that the package is not applicable
-    Host.errata_recalculate({'host-id': chost.nailgun_host.id})
-    applicable_packages = Package.list(
+    target_sat.cli.Host.errata_recalculate({'host-id': chost.nailgun_host.id})
+    applicable_packages = target_sat.cli.Package.list(
         {
             'host-id': chost.nailgun_host.id,
             'packages-restrict-applicable': 'true',
@@ -1647,10 +1655,10 @@ def test_install_applicable_package_to_registerd_host(chost, target_sat):
         search_rate=15,
         max_tries=10,
     )
-    Host.errata_recalculate({'host-id': chost.nailgun_host.id})
+    target_sat.cli.Host.errata_recalculate({'host-id': chost.nailgun_host.id})
 
     # check that package is applicable
-    applicable_packages = Package.list(
+    applicable_packages = target_sat.cli.Package.list(
         {
             'host-id': chost.nailgun_host.id,
             'packages-restrict-applicable': 'true',
@@ -1688,7 +1696,7 @@ def test_downgrading_package_shows_errata_from_library(
     # Update package from Library, i.e. Default CV
     errata_host.run(f'yum -y update {REAL_RHEL7_0_2_PACKAGE_NAME}')
     # Assert that the package is not applicable
-    applicable_packages = Package.list(
+    applicable_packages = target_sat.cli.Package.list(
         {
             'host-id': errata_host.nailgun_host.id,
             'packages-restrict-applicable': 'true',
@@ -1702,7 +1710,7 @@ def test_downgrading_package_shows_errata_from_library(
     errata_host.run(f'curl -O {settings.repos.epel_repo.url}/{PSUTIL_RPM}')
     errata_host.run(f'yum -y downgrade {PSUTIL_RPM}')
     # Wait for upload profile event (in case Satellite system slow)
-    Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
+    target_sat.cli.Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
     # Wait for upload profile event (in case Satellite system slow)
     target_sat.wait_for_tasks(
         search_query=(
@@ -1724,7 +1732,7 @@ def test_downgrading_package_shows_errata_from_library(
 
 @pytest.mark.skip_if_open('BZ:1785146')
 @pytest.mark.tier2
-def test_errata_list_by_contentview_filter(module_entitlement_manifest_org):
+def test_errata_list_by_contentview_filter(module_entitlement_manifest_org, module_target_sat):
     """Hammer command to list errata should take filter ID into consideration.
 
     :id: e9355a92-8354-4853-a806-d388ed32d73e
@@ -1745,17 +1753,17 @@ def test_errata_list_by_contentview_filter(module_entitlement_manifest_org):
     :BZ: 1785146
     """
     product = entities.Product(organization=module_entitlement_manifest_org).create()
-    repo = make_repository(
+    repo = module_target_sat.cli_factory.make_repository(
         {'content-type': 'yum', 'product-id': product.id, 'url': REPO_WITH_ERRATA['url']}
     )
-    Repository.synchronize({'id': repo['id']})
+    module_target_sat.cli.Repository.synchronize({'id': repo['id']})
     lce = entities.LifecycleEnvironment(organization=module_entitlement_manifest_org).create()
     cv = entities.ContentView(
         organization=module_entitlement_manifest_org, repository=[repo['id']]
     ).create()
     cv_publish_promote(cv, module_entitlement_manifest_org, lce)
     errata_count = len(
-        Erratum.list(
+        module_target_sat.cli.Erratum.list(
             {
                 'organization-id': module_entitlement_manifest_org.id,
                 'content-view-id': cv.id,
@@ -1770,7 +1778,7 @@ def test_errata_list_by_contentview_filter(module_entitlement_manifest_org):
     cv.publish()
     cv_version_info = cv.read().version[1].read()
     errata_count_cvf = len(
-        Erratum.list(
+        module_target_sat.cli.Erratum.list(
             {
                 'organization-id': module_entitlement_manifest_org.id,
                 'content-view-id': cv.id,

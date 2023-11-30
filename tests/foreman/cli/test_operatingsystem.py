@@ -19,14 +19,8 @@
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    make_architecture,
-    make_medium,
-    make_partition_table,
-    make_template,
-)
 from robottelo.constants import DEFAULT_ORG
+from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import (
     filtered_datapoint,
     invalid_values_list,
@@ -114,10 +108,10 @@ class TestOperatingSystem:
         new_pass_hash = 'SHA256'
         new_minor_version = gen_string('numeric', 1)
         new_major_version = gen_string('numeric', 1)
-        new_architecture = make_architecture()
-        new_medium = make_medium()
-        new_ptable = make_partition_table()
-        new_template = make_template()
+        new_architecture = target_sat.cli_factory.make_architecture()
+        new_medium = target_sat.cli_factory.make_medium()
+        new_ptable = target_sat.cli_factory.make_partition_table()
+        new_template = target_sat.cli_factory.make_template()
         os = target_sat.cli.OperatingSys.update(
             {
                 'id': os['id'],

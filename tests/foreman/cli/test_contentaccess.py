@@ -19,8 +19,6 @@ import time
 from nailgun import entities
 import pytest
 
-from robottelo.cli.host import Host
-from robottelo.cli.package import Package
 from robottelo.config import settings
 from robottelo.constants import (
     REAL_0_ERRATA_ID,
@@ -95,7 +93,7 @@ def vm(
 @pytest.mark.tier2
 @pytest.mark.pit_client
 @pytest.mark.pit_server
-def test_positive_list_installable_updates(vm):
+def test_positive_list_installable_updates(vm, module_target_sat):
     """Ensure packages applicability is functioning properly.
 
     :id: 4feb692c-165b-4f96-bb97-c8447bd2cf6e
@@ -119,7 +117,7 @@ def test_positive_list_installable_updates(vm):
     :CaseImportance: Critical
     """
     for _ in range(30):
-        applicable_packages = Package.list(
+        applicable_packages = module_target_sat.cli.Package.list(
             {
                 'host': vm.hostname,
                 'packages-restrict-applicable': 'true',
@@ -139,7 +137,7 @@ def test_positive_list_installable_updates(vm):
 @pytest.mark.upgrade
 @pytest.mark.pit_client
 @pytest.mark.pit_server
-def test_positive_erratum_installable(vm):
+def test_positive_erratum_installable(vm, module_target_sat):
     """Ensure erratum applicability is showing properly, without attaching
     any subscription.
 
@@ -161,7 +159,9 @@ def test_positive_erratum_installable(vm):
     """
     # check that package errata is applicable
     for _ in range(30):
-        erratum = Host.errata_list({'host': vm.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'})
+        erratum = module_target_sat.cli.Host.errata_list(
+            {'host': vm.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'}
+        )
         if erratum:
             break
         time.sleep(10)

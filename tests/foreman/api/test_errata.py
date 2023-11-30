@@ -23,8 +23,6 @@ from nailgun import entities
 import pytest
 
 from robottelo import constants
-from robottelo.cli.factory import setup_org_for_a_custom_repo, setup_org_for_a_rh_repo
-from robottelo.cli.host import Host
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 
@@ -48,8 +46,10 @@ def activation_key(module_org, module_lce, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def rh_repo(module_entitlement_manifest_org, module_lce, module_cv, activation_key):
-    return setup_org_for_a_rh_repo(
+def rh_repo(
+    module_entitlement_manifest_org, module_lce, module_cv, activation_key, module_target_sat
+):
+    return module_target_sat.cli_factory.setup_org_for_a_rh_repo(
         {
             'product': constants.PRDS['rhel'],
             'repository-set': constants.REPOSET['rhst7'],
@@ -63,8 +63,8 @@ def rh_repo(module_entitlement_manifest_org, module_lce, module_cv, activation_k
 
 
 @pytest.fixture(scope='module')
-def custom_repo(module_org, module_lce, module_cv, activation_key):
-    return setup_org_for_a_custom_repo(
+def custom_repo(module_org, module_lce, module_cv, activation_key, module_target_sat):
+    return module_target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_9.url,
             'organization-id': module_org.id,
@@ -579,7 +579,7 @@ def test_positive_get_diff_for_cv_envs(target_sat):
     content_view = target_sat.api.ContentView(organization=org).create()
     activation_key = target_sat.api.ActivationKey(environment=env, organization=org).create()
     for repo_url in [settings.repos.yum_9.url, CUSTOM_REPO_URL]:
-        setup_org_for_a_custom_repo(
+        target_sat.cli_factory.setup_org_for_a_custom_repo(
             {
                 'url': repo_url,
                 'organization-id': org.id,
@@ -776,7 +776,7 @@ def test_errata_installation_with_swidtags(
     _run_remote_command_on_content_host(
         module_org, f'dnf -y module install {module_name}:0:{version}', rhel8_contenthost
     )
-    Host.errata_recalculate({'host-id': rhel8_contenthost.nailgun_host.id})
+    target_sat.cli.Host.errata_recalculate({'host-id': rhel8_contenthost.nailgun_host.id})
     # validate swid tags Installed
     before_errata_apply_result = _run_remote_command_on_content_host(
         module_org,
@@ -793,7 +793,7 @@ def test_errata_installation_with_swidtags(
         module_org, f'dnf -y module update {module_name}', rhel8_contenthost
     )
     _run_remote_command_on_content_host(module_org, 'dnf -y upload-profile', rhel8_contenthost)
-    Host.errata_recalculate({'host-id': rhel8_contenthost.nailgun_host.id})
+    target_sat.cli.Host.errata_recalculate({'host-id': rhel8_contenthost.nailgun_host.id})
     applicable_errata_count -= 1
     assert rhel8_contenthost.applicable_errata_count == applicable_errata_count
     after_errata_apply_result = _run_remote_command_on_content_host(
@@ -831,9 +831,9 @@ def rh_repo_module_manifest(module_entitlement_manifest_org, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def rhel8_custom_repo_cv(module_entitlement_manifest_org):
+def rhel8_custom_repo_cv(module_entitlement_manifest_org, module_target_sat):
     """Create repo and publish CV so that packages are in Library"""
-    return setup_org_for_a_custom_repo(
+    return module_target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.module_stream_1.url,
             'organization-id': module_entitlement_manifest_org.id,
@@ -937,7 +937,7 @@ def test_apply_modular_errata_using_default_content_view(
     assert result.status == 0
     # Check that there is now two errata applicable
     errata = _fetch_available_errata(module_entitlement_manifest_org, host, 2)
-    Host.errata_recalculate({'host-id': rhel8_contenthost.nailgun_host.id})
+    target_sat.cli.Host.errata_recalculate({'host-id': rhel8_contenthost.nailgun_host.id})
     assert len(errata) == 2
     # Assert that errata package is required
     assert constants.FAKE_3_CUSTOM_PACKAGE in errata[0]['module_streams'][0]['packages']

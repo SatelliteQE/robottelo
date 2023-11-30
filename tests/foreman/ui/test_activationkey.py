@@ -25,7 +25,6 @@ from nailgun import entities
 import pytest
 
 from robottelo import constants
-from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import parametrized, valid_data_list
@@ -1040,7 +1039,7 @@ def test_positive_host_associations(session, target_sat):
     :CaseLevel: System
     """
     org = entities.Organization().create()
-    org_entities = setup_org_for_a_custom_repo(
+    org_entities = target_sat.cli_factory.setup_org_for_a_custom_repo(
         {'url': settings.repos.yum_1.url, 'organization-id': org.id}
     )
     ak1 = entities.ActivationKey(id=org_entities['activationkey-id']).read()
@@ -1104,7 +1103,7 @@ def test_positive_service_level_subscription_with_custom_product(
     :CaseLevel: System
     """
     org = function_entitlement_manifest_org
-    entities_ids = setup_org_for_a_custom_repo(
+    entities_ids = target_sat.cli_factory.setup_org_for_a_custom_repo(
         {'url': settings.repos.yum_1.url, 'organization-id': org.id}
     )
     product = entities.Product(id=entities_ids['product-id']).read()

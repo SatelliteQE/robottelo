@@ -19,8 +19,8 @@ from box import Box
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.cli.factory import CLIReturnCodeError
 from robottelo.config import settings
+from robottelo.exceptions import CLIReturnCodeError
 
 OSP_SETTINGS = Box(
     username=settings.osp.username,

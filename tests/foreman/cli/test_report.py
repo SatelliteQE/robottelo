@@ -20,7 +20,7 @@ import random
 
 import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
+from robottelo.exceptions import CLIReturnCodeError
 
 pytestmark = pytest.mark.e2e
 
