@@ -39,11 +39,9 @@ from fauxfactory import gen_string, gen_url
 import pytest
 from wait_for import wait_for
 
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.factory import make_compute_resource, make_location
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
+from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import parametrized
 from robottelo.utils.issue_handlers import is_open
 
@@ -114,7 +112,7 @@ def libvirt_url():
 
 
 @pytest.mark.tier1
-def test_positive_create_with_name(libvirt_url):
+def test_positive_create_with_name(libvirt_url, module_target_sat):
     """Create Compute Resource
 
     :id: 6460bcc7-d7f7-406a-aecb-b3d54d51e697
@@ -125,7 +123,7 @@ def test_positive_create_with_name(libvirt_url):
 
     :CaseLevel: Component
     """
-    ComputeResource.create(
+    module_target_sat.cli.ComputeResource.create(
         {
             'name': f'cr {gen_string("alpha")}',
             'provider': 'Libvirt',
@@ -135,7 +133,7 @@ def test_positive_create_with_name(libvirt_url):
 
 
 @pytest.mark.tier1
-def test_positive_info(libvirt_url):
+def test_positive_info(libvirt_url, module_target_sat):
     """Test Compute Resource Info
 
     :id: f54af041-4471-4d8e-9429-45d821df0440
@@ -147,7 +145,7 @@ def test_positive_info(libvirt_url):
     :CaseLevel: Component
     """
     name = gen_string('utf8')
-    compute_resource = make_compute_resource(
+    compute_resource = module_target_sat.cli_factory.compute_resource(
         {
             'name': name,
             'provider': FOREMAN_PROVIDERS['libvirt'],
@@ -159,7 +157,7 @@ def test_positive_info(libvirt_url):
 
 
 @pytest.mark.tier1
-def test_positive_list(libvirt_url):
+def test_positive_list(libvirt_url, module_target_sat):
     """Test Compute Resource List
 
     :id: 11123361-ffbc-4c59-a0df-a4af3408af7a
@@ -170,17 +168,21 @@ def test_positive_list(libvirt_url):
 
     :CaseLevel: Component
     """
-    comp_res = make_compute_resource({'provider': FOREMAN_PROVIDERS['libvirt'], 'url': libvirt_url})
+    comp_res = module_target_sat.cli_factory.compute_resource(
+        {'provider': FOREMAN_PROVIDERS['libvirt'], 'url': libvirt_url}
+    )
     assert comp_res['name']
-    result_list = ComputeResource.list({'search': 'name=%s' % comp_res['name']})
+    result_list = module_target_sat.cli.ComputeResource.list(
+        {'search': 'name=%s' % comp_res['name']}
+    )
     assert len(result_list) > 0
-    result = ComputeResource.exists(search=('name', comp_res['name']))
+    result = module_target_sat.cli.ComputeResource.exists(search=('name', comp_res['name']))
     assert result
 
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_delete_by_name(libvirt_url):
+def test_positive_delete_by_name(libvirt_url, module_target_sat):
     """Test Compute Resource delete
 
     :id: 7fcc0b66-f1c1-4194-8a4b-7f04b1dd439a
@@ -191,10 +193,12 @@ def test_positive_delete_by_name(libvirt_url):
 
     :CaseLevel: Component
     """
-    comp_res = make_compute_resource({'provider': FOREMAN_PROVIDERS['libvirt'], 'url': libvirt_url})
+    comp_res = module_target_sat.cli_factory.compute_resource(
+        {'provider': FOREMAN_PROVIDERS['libvirt'], 'url': libvirt_url}
+    )
     assert comp_res['name']
-    ComputeResource.delete({'name': comp_res['name']})
-    result = ComputeResource.exists(search=('name', comp_res['name']))
+    module_target_sat.cli.ComputeResource.delete({'name': comp_res['name']})
+    result = module_target_sat.cli.ComputeResource.exists(search=('name', comp_res['name']))
     assert len(result) == 0
 
 
@@ -202,7 +206,7 @@ def test_positive_delete_by_name(libvirt_url):
 @pytest.mark.tier1
 @pytest.mark.upgrade
 @pytest.mark.parametrize('options', **parametrized(valid_name_desc_data()))
-def test_positive_create_with_libvirt(libvirt_url, options):
+def test_positive_create_with_libvirt(libvirt_url, options, target_sat):
     """Test Compute Resource create
 
     :id: adc6f4f8-6420-4044-89d1-c69e0bfeeab9
@@ -215,7 +219,7 @@ def test_positive_create_with_libvirt(libvirt_url, options):
 
     :parametrized: yes
     """
-    ComputeResource.create(
+    target_sat.cli.ComputeResource.create(
         {
             'description': options['description'],
             'name': options['name'],
@@ -226,7 +230,7 @@ def test_positive_create_with_libvirt(libvirt_url, options):
 
 
 @pytest.mark.tier2
-def test_positive_create_with_loc(libvirt_url):
+def test_positive_create_with_loc(libvirt_url, module_target_sat):
     """Create Compute Resource with location
 
     :id: 224c7cbc-6bac-4a94-8141-d6249896f5a2
@@ -237,14 +241,14 @@ def test_positive_create_with_loc(libvirt_url):
 
     :CaseLevel: Integration
     """
-    location = make_location()
-    comp_resource = make_compute_resource({'location-ids': location['id']})
+    location = module_target_sat.cli_factory.make_location()
+    comp_resource = module_target_sat.cli_factory.compute_resource({'location-ids': location['id']})
     assert len(comp_resource['locations']) == 1
     assert comp_resource['locations'][0] == location['name']
 
 
 @pytest.mark.tier2
-def test_positive_create_with_locs(libvirt_url):
+def test_positive_create_with_locs(libvirt_url, module_target_sat):
     """Create Compute Resource with multiple locations
 
     :id: f665c586-39bf-480a-a0fc-81d9e1eb7c54
@@ -257,8 +261,8 @@ def test_positive_create_with_locs(libvirt_url):
     :CaseLevel: Integration
     """
     locations_amount = random.randint(3, 5)
-    locations = [make_location() for _ in range(locations_amount)]
-    comp_resource = make_compute_resource(
+    locations = [module_target_sat.cli_factory.make_location() for _ in range(locations_amount)]
+    comp_resource = module_target_sat.cli_factory.compute_resource(
         {'location-ids': [location['id'] for location in locations]}
     )
     assert len(comp_resource['locations']) == locations_amount
@@ -271,7 +275,7 @@ def test_positive_create_with_locs(libvirt_url):
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_create_data()))
-def test_negative_create_with_name_url(libvirt_url, options):
+def test_negative_create_with_name_url(libvirt_url, options, target_sat):
     """Compute Resource negative create with invalid values
 
     :id: cd432ff3-b3b9-49cd-9a16-ed00d81679dd
@@ -285,7 +289,7 @@ def test_negative_create_with_name_url(libvirt_url, options):
     :parametrized: yes
     """
     with pytest.raises(CLIReturnCodeError):
-        ComputeResource.create(
+        target_sat.cli.ComputeResource.create(
             {
                 'name': options.get('name', gen_string(str_type='alphanumeric')),
                 'provider': FOREMAN_PROVIDERS['libvirt'],
@@ -295,7 +299,7 @@ def test_negative_create_with_name_url(libvirt_url, options):
 
 
 @pytest.mark.tier2
-def test_negative_create_with_same_name(libvirt_url):
+def test_negative_create_with_same_name(libvirt_url, module_target_sat):
     """Compute Resource negative create with the same name
 
     :id: ddb5c45b-1ea3-46d0-b248-56c0388d2e4b
@@ -306,9 +310,9 @@ def test_negative_create_with_same_name(libvirt_url):
 
     :CaseLevel: Component
     """
-    comp_res = make_compute_resource()
+    comp_res = module_target_sat.cli_factory.compute_resource()
     with pytest.raises(CLIReturnCodeError):
-        ComputeResource.create(
+        module_target_sat.cli.ComputeResource.create(
             {
                 'name': comp_res['name'],
                 'provider': FOREMAN_PROVIDERS['libvirt'],
@@ -322,7 +326,7 @@ def test_negative_create_with_same_name(libvirt_url):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('options', **parametrized(valid_update_data()))
-def test_positive_update_name(libvirt_url, options):
+def test_positive_update_name(libvirt_url, options, module_target_sat):
     """Compute Resource positive update
 
     :id: 213d7f04-4c54-4985-8ca0-d2a1a9e3b305
@@ -335,12 +339,12 @@ def test_positive_update_name(libvirt_url, options):
 
     :parametrized: yes
     """
-    comp_res = make_compute_resource()
+    comp_res = module_target_sat.cli_factory.compute_resource()
     options.update({'name': comp_res['name']})
     # update Compute Resource
-    ComputeResource.update(options)
+    module_target_sat.cli.ComputeResource.update(options)
     # check updated values
-    result = ComputeResource.info({'id': comp_res['id']})
+    result = module_target_sat.cli.ComputeResource.info({'id': comp_res['id']})
     assert result['description'] == options.get('description', comp_res['description'])
     assert result['name'] == options.get('new-name', comp_res['name'])
     assert result['url'] == options.get('url', comp_res['url'])
@@ -352,7 +356,7 @@ def test_positive_update_name(libvirt_url, options):
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_update_data()))
-def test_negative_update(libvirt_url, options):
+def test_negative_update(libvirt_url, options, module_target_sat):
     """Compute Resource negative update
 
     :id: e7aa9b39-dd01-4f65-8e89-ff5a6f4ee0e3
@@ -365,10 +369,10 @@ def test_negative_update(libvirt_url, options):
 
     :parametrized: yes
     """
-    comp_res = make_compute_resource()
+    comp_res = module_target_sat.cli_factory.compute_resource()
     with pytest.raises(CLIReturnCodeError):
-        ComputeResource.update(dict({'name': comp_res['name']}, **options))
-    result = ComputeResource.info({'id': comp_res['id']})
+        module_target_sat.cli.ComputeResource.update(dict({'name': comp_res['name']}, **options))
+    result = module_target_sat.cli.ComputeResource.info({'id': comp_res['id']})
     # check attributes have not changed
     assert result['name'] == comp_res['name']
     options.pop('new-name', None)
@@ -378,7 +382,9 @@ def test_negative_update(libvirt_url, options):
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('set_console_password', ['true', 'false'])
-def test_positive_create_with_console_password_and_name(libvirt_url, set_console_password):
+def test_positive_create_with_console_password_and_name(
+    libvirt_url, set_console_password, module_target_sat
+):
     """Create a compute resource with ``--set-console-password``.
 
     :id: 5b4c838a-0265-4c71-a73d-305fecbe508a
@@ -393,7 +399,7 @@ def test_positive_create_with_console_password_and_name(libvirt_url, set_console
 
     :parametrized: yes
     """
-    ComputeResource.create(
+    module_target_sat.cli.ComputeResource.create(
         {
             'name': gen_string('utf8'),
             'provider': 'Libvirt',
@@ -405,7 +411,7 @@ def test_positive_create_with_console_password_and_name(libvirt_url, set_console
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('set_console_password', ['true', 'false'])
-def test_positive_update_console_password(libvirt_url, set_console_password):
+def test_positive_update_console_password(libvirt_url, set_console_password, module_target_sat):
     """Update a compute resource with ``--set-console-password``.
 
     :id: ef09351e-dcd3-4b4f-8d3b-995e9e5873b3
@@ -421,8 +427,12 @@ def test_positive_update_console_password(libvirt_url, set_console_password):
     :parametrized: yes
     """
     cr_name = gen_string('utf8')
-    ComputeResource.create({'name': cr_name, 'provider': 'Libvirt', 'url': gen_url()})
-    ComputeResource.update({'name': cr_name, 'set-console-password': set_console_password})
+    module_target_sat.cli.ComputeResource.create(
+        {'name': cr_name, 'provider': 'Libvirt', 'url': gen_url()}
+    )
+    module_target_sat.cli.ComputeResource.update(
+        {'name': cr_name, 'set-console-password': set_console_password}
+    )
 
 
 @pytest.mark.e2e

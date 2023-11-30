@@ -19,8 +19,8 @@
 from fauxfactory import gen_alphanumeric
 import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.constants.repos import PULP_FIXTURE_ROOT, PULP_SUBPATHS_COMBINED
+from robottelo.exceptions import CLIReturnCodeError
 
 ACS_UPDATED = 'Alternate Content Source updated.'
 ACS_DELETED = 'Alternate Content Source deleted.'

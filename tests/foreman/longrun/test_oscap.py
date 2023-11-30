@@ -21,13 +21,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 import pytest
 
-from robottelo.cli.ansible import Ansible
-from robottelo.cli.arfreport import Arfreport
-from robottelo.cli.factory import make_hostgroup, make_scap_policy
-from robottelo.cli.host import Host
-from robottelo.cli.job_invocation import JobInvocation
-from robottelo.cli.proxy import Proxy
-from robottelo.cli.scapcontent import Scapcontent
 from robottelo.config import settings
 from robottelo.constants import (
     OSCAP_DEFAULT_CONTENT,
@@ -48,7 +41,7 @@ ak_name = {
 }
 
 
-def fetch_scap_and_profile_id(scap_name, scap_profile):
+def fetch_scap_and_profile_id(scap_name, scap_profile, sat):
     """Extracts the scap ID and scap profile id
 
     :param scap_name: Scap title
@@ -57,7 +50,7 @@ def fetch_scap_and_profile_id(scap_name, scap_profile):
     :returns: scap_id and scap_profile_id
     """
 
-    default_content = Scapcontent.info({'title': scap_name}, output_format='json')
+    default_content = sat.cli.Scapcontent.info({'title': scap_name}, output_format='json')
     scap_id = default_content['id']
     scap_profile_ids = [
         profile['id']
@@ -70,7 +63,7 @@ def fetch_scap_and_profile_id(scap_name, scap_profile):
 @pytest.fixture(scope='module')
 def default_proxy(module_target_sat):
     """Returns default capsule/proxy id"""
-    proxy = Proxy.list({'search': module_target_sat.hostname})[0]
+    proxy = module_target_sat.cli.Proxy.list({'search': module_target_sat.hostname})[0]
     p_features = set(proxy.get('features').split(', '))
     if {'Ansible', 'Openscap'}.issubset(p_features):
         proxy_id = proxy.get('id')
@@ -173,7 +166,7 @@ def test_positive_oscap_run_via_ansible(
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
     # Creates host_group for rhel7
-    make_hostgroup(
+    target_sat.cli_factory.hostgroup(
         {
             'content-source-id': default_proxy,
             'name': hgrp_name,
@@ -181,11 +174,11 @@ def test_positive_oscap_run_via_ansible(
         }
     )
     # Creates oscap_policy.
-    scap_id, scap_profile_id = fetch_scap_and_profile_id(content, profile)
-    Ansible.roles_import({'proxy-id': default_proxy})
-    Ansible.variables_import({'proxy-id': default_proxy})
-    role_id = Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
-    make_scap_policy(
+    scap_id, scap_profile_id = fetch_scap_and_profile_id(target_sat, content, profile)
+    target_sat.cli.Ansible.roles_import({'proxy-id': default_proxy})
+    target_sat.cli.Ansible.variables_import({'proxy-id': default_proxy})
+    role_id = target_sat.cli.Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
+    target_sat.cli_factory.make_scap_policy(
         {
             'scap-content-id': scap_id,
             'hostgroups': hgrp_name,
@@ -204,7 +197,7 @@ def test_positive_oscap_run_via_ansible(
             vm.create_custom_repos(**rhel_repo)
         else:
             vm.create_custom_repos(**{distro: rhel_repo})
-        Host.update(
+        target_sat.cli.Host.update(
             {
                 'name': vm.hostname.lower(),
                 'lifecycle-environment': lifecycle_env.name,
@@ -215,15 +208,17 @@ def test_positive_oscap_run_via_ansible(
                 'ansible-role-ids': role_id,
             }
         )
-        job_id = Host.ansible_roles_play({'name': vm.hostname.lower()})[0].get('id')
+        job_id = target_sat.cli.Host.ansible_roles_play({'name': vm.hostname.lower()})[0].get('id')
         target_sat.wait_for_tasks(
             f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
         )
         try:
-            result = JobInvocation.info({'id': job_id})['success']
+            result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
             assert result == '1'
         except AssertionError:
-            output = ' '.join(JobInvocation.get_output({'id': job_id, 'host': vm.hostname}))
+            output = ' '.join(
+                target_sat.cli.JobInvocation.get_output({'id': job_id, 'host': vm.hostname})
+            )
             result = f'host output: {output}'
             raise AssertionError(result)
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
@@ -233,7 +228,7 @@ def test_positive_oscap_run_via_ansible(
         vm.execute_foreman_scap_client()
         # Assert whether oscap reports are uploaded to
         # Satellite6.
-        result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})
+        result = target_sat.cli.Arfreport.list({'search': f'host={vm.hostname.lower()}'})
         assert result is not None
 
 
@@ -270,7 +265,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
     # Creates host_group for rhel7
-    make_hostgroup(
+    target_sat.cli_factory.hostgroup(
         {
             'content-source-id': default_proxy,
             'name': hgrp_name,
@@ -279,12 +274,12 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
     )
     # Creates oscap_policy.
     scap_id, scap_profile_id = fetch_scap_and_profile_id(
-        OSCAP_DEFAULT_CONTENT['rhel7_content'], OSCAP_PROFILE['dsrhel7']
+        target_sat, OSCAP_DEFAULT_CONTENT['rhel7_content'], OSCAP_PROFILE['dsrhel7']
     )
-    Ansible.roles_import({'proxy-id': default_proxy})
-    Ansible.variables_import({'proxy-id': default_proxy})
-    role_id = Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
-    make_scap_policy(
+    target_sat.cli.Ansible.roles_import({'proxy-id': default_proxy})
+    target_sat.cli.Ansible.variables_import({'proxy-id': default_proxy})
+    role_id = target_sat.cli.Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
+    target_sat.cli_factory.make_scap_policy(
         {
             'scap-content-id': scap_id,
             'hostgroups': hgrp_name,
@@ -307,7 +302,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
             '--fetch-remote-resources --results-arf results.xml '
             '/usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml',
         )
-        Host.update(
+        target_sat.cli.Host.update(
             {
                 'name': vm.hostname.lower(),
                 'lifecycle-environment': lifecycle_env.name,
@@ -318,15 +313,17 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
                 'ansible-role-ids': role_id,
             }
         )
-        job_id = Host.ansible_roles_play({'name': vm.hostname.lower()})[0].get('id')
+        job_id = target_sat.cli.Host.ansible_roles_play({'name': vm.hostname.lower()})[0].get('id')
         target_sat.wait_for_tasks(
             f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
         )
         try:
-            result = JobInvocation.info({'id': job_id})['success']
+            result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
             assert result == '1'
         except AssertionError:
-            output = ' '.join(JobInvocation.get_output({'id': job_id, 'host': vm.hostname}))
+            output = ' '.join(
+                target_sat.cli.JobInvocation.get_output({'id': job_id, 'host': vm.hostname})
+            )
             result = f'host output: {output}'
             raise AssertionError(result)
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
@@ -336,7 +333,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         vm.execute_foreman_scap_client()
         # Assert whether oscap reports are uploaded to
         # Satellite6.
-        result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})
+        result = target_sat.cli.Arfreport.list({'search': f'host={vm.hostname.lower()}'})
         assert result is not None
 
 
@@ -497,7 +494,7 @@ def test_positive_oscap_run_via_local_files(
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
 
-    module_target_sat.cli_factory.make_hostgroup(
+    module_target_sat.cli_factory.hostgroup(
         {
             'content-source-id': default_proxy,
             'name': hgrp_name,
@@ -505,7 +502,7 @@ def test_positive_oscap_run_via_local_files(
         }
     )
     # Creates oscap_policy.
-    scap_id, scap_profile_id = fetch_scap_and_profile_id(content, profile)
+    scap_id, scap_profile_id = fetch_scap_and_profile_id(module_target_sat, content, profile)
     with Broker(
         nick=distro,
         host_class=ContentHost,
