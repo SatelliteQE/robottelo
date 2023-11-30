@@ -30,7 +30,7 @@ from robottelo.utils.virtwho import (
 )
 
 
-@pytest.mark.delete_host
+@pytest.mark.usefixtures('delete_host')
 class TestVirtWhoConfigforNutanix:
     @pytest.mark.tier2
     @pytest.mark.parametrize('deploy_type_api', ['id', 'script'], indirect=True)
