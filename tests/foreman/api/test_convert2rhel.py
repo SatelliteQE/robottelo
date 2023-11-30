@@ -6,6 +6,8 @@
 
 :CaseComponent: Registration
 
+:CaseImportance: Critical
+
 :Team: Rocket
 
 """
@@ -53,7 +55,7 @@ def create_activation_key(sat, org, lce, cv, subscription_id):
 
 def update_cv(sat, cv, lce, repos):
     """Update and publish Content view with repos"""
-    cv = sat.api.ContentView(id=cv.id, repository=repos).update(["repository"])
+    cv = sat.api.ContentView(id=cv.id, repository=repos).update(['repository'])
     cv.publish()
     cv = cv.read()
     cv.version.sort(key=lambda version: version.id)
@@ -61,26 +63,13 @@ def update_cv(sat, cv, lce, repos):
     return cv
 
 
-def register_host(sat, act_key, org, module_loc, host, ubi=None):
-    """Register host to satellite"""
-    # generate registration command
-    command = sat.api.RegistrationCommand(
-        organization=org,
-        activation_keys=[act_key.name],
-        location=module_loc,
-        insecure=True,
-        repo=ubi,
-    ).create()
-    assert host.execute(command).status == 0
-
-
 @pytest.fixture(scope='module')
-def ssl_cert(module_target_sat, module_org):
+def ssl_cert(module_target_sat, module_entitlement_manifest_org):
     """Create credetial with SSL cert for Oracle Linux"""
     res = requests.get(settings.repos.convert2rhel.ssl_cert_oracle)
     res.raise_for_status()
     return module_target_sat.api.ContentCredential(
-        content=res.text, organization=module_org, content_type='cert'
+        content=res.text, organization=module_entitlement_manifest_org, content_type='cert'
     ).create()
 
 
@@ -153,10 +142,8 @@ def centos(
     enable_rhel_subscriptions,
 ):
     """Deploy and register Centos host"""
-    # updating centos packages on CentOS 8 is necessary for conversion
     major = version.split('.')[0]
-    if major == '8':
-        centos_host.execute('yum -y update centos-*')
+    assert centos_host.execute('yum -y update').status == 0
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
     repo = create_repo(module_target_sat, module_entitlement_manifest_org, repo_url)
     cv = update_cv(
@@ -168,16 +155,19 @@ def centos(
     act_key = create_activation_key(
         module_target_sat, module_entitlement_manifest_org, module_lce, cv, c2r_sub.id
     )
-    register_host(
-        module_target_sat,
-        act_key,
-        module_entitlement_manifest_org,
-        smart_proxy_location,
-        centos_host,
-    )
-    centos_host.execute('yum -y update kernel*')
+
+    # Register CentOS host with Satellite
+    command = module_target_sat.api.RegistrationCommand(
+        organization=module_entitlement_manifest_org,
+        activation_keys=[act_key.name],
+        location=smart_proxy_location,
+        insecure=True,
+    ).create()
+    assert centos_host.execute(command).status == 0
+
     if centos_host.execute('needs-restarting -r').status == 1:
         centos_host.power_control(state='reboot')
+
     yield centos_host
     # close ssh session before teardown, because of reboot in conversion it may cause problems
     centos_host.close()
@@ -196,17 +186,33 @@ def oracle(
     enable_rhel_subscriptions,
 ):
     """Deploy and register Oracle host"""
+    major = version.split('.')[0]
+    assert oracle_host.execute('yum -y update').status == 0
     # disable rhn-client-tools because it obsoletes the subscription manager package
     oracle_host.execute('echo "exclude=rhn-client-tools" >> /etc/yum.conf')
-    # install and set correct kernel, based on convert2rhel docs
+
+    # Install and set correct RHEL compatible kernel and using non-UEK kernel, based on C2R docs
     result = oracle_host.execute(
         'yum install -y kernel && '
         'grubby --set-default /boot/vmlinuz-'
         '`rpm -q --qf "%{BUILDTIME}\t%{EVR}.%{ARCH}\n" kernel | sort -nr | head -1 | cut -f2`'
     )
     assert result.status == 0
-    oracle_host.power_control(state='reboot')
-    major = version.split('.')[0]
+
+    if major == '8':
+        # needs-restarting missing in OEL8
+        assert oracle_host.execute('dnf install -y yum-utils').status == 0
+        # Fix inhibitor CHECK_FIREWALLD_AVAILABILITY::FIREWALLD_MODULES_CLEANUP_ON_EXIT_CONFIG -
+        # Firewalld is set to cleanup modules after exit
+        result = oracle_host.execute(
+            'sed -i -- "s/CleanupModulesOnExit=yes/CleanupModulesOnExit=no/g" '
+            '/etc/firewalld/firewalld.conf && firewall-cmd --reload'
+        )
+        assert result.status == 0
+
+    if oracle_host.execute('needs-restarting -r').status == 1:
+        oracle_host.power_control(state='reboot')
+
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
     repo = create_repo(module_target_sat, module_entitlement_manifest_org, repo_url, ssl_cert)
     cv = update_cv(
@@ -218,17 +224,19 @@ def oracle(
     act_key = create_activation_key(
         module_target_sat, module_entitlement_manifest_org, module_lce, cv, c2r_sub.id
     )
+    # UBI repo required for subscription-manager packages on Oracle
     ubi_url = settings.repos.convert2rhel.ubi7 if major == '7' else settings.repos.convert2rhel.ubi8
-    ubi = create_repo(module_target_sat, module_entitlement_manifest_org, ubi_url)
-    ubi_repo = ubi.full_path.replace('https', 'http')
-    register_host(
-        module_target_sat,
-        act_key,
-        module_entitlement_manifest_org,
-        smart_proxy_location,
-        oracle_host,
-        ubi_repo,
-    )
+
+    # Register Oracle host with Satellite
+    command = module_target_sat.api.RegistrationCommand(
+        organization=module_entitlement_manifest_org,
+        activation_keys=[act_key.name],
+        location=smart_proxy_location,
+        insecure=True,
+        repo=ubi_url,
+    ).create()
+    assert oracle_host.execute(command).status == 0
+
     yield oracle_host
     # close ssh session before teardown, because of reboot in conversion it may cause problems
     oracle_host.close()
@@ -241,11 +249,7 @@ def version(request):
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize(
-    "version",
-    ['oracle7', 'oracle8'],
-    indirect=True,
-)
+@pytest.mark.parametrize('version', ['oracle7', 'oracle8'], indirect=True)
 def test_convert2rhel_oracle(module_target_sat, oracle, activation_key_rhel, version):
     """Convert Oracle linux to RHEL
 
@@ -260,9 +264,16 @@ def test_convert2rhel_oracle(module_target_sat, oracle, activation_key_rhel, ver
         and subscription status
 
     :parametrized: yes
-
-    :CaseImportance: Medium
     """
+    major = version.split('.')[0]
+    assert oracle.execute('yum -y update').status == 0
+    if major == '8':
+        # Fix inhibitor TAINTED_KMODS::TAINTED_KMODS_DETECTED - Tainted kernel modules detected
+        blacklist_cfg = '/etc/modprobe.d/blacklist.conf'
+        assert oracle.execute('modprobe -r nvme_tcp').status == 0
+        assert oracle.execute(f'echo "blacklist nvme_tcp" >> {blacklist_cfg}').status == 0
+        assert oracle.execute(f'echo "install nvme_tcp /bin/false" >> {blacklist_cfg}').status == 0
+
     host_content = module_target_sat.api.Host(id=oracle.hostname).read_json()
     assert host_content['operatingsystem_name'] == f"OracleLinux {version}"
 
@@ -292,14 +303,19 @@ def test_convert2rhel_oracle(module_target_sat, oracle, activation_key_rhel, ver
 
     # check facts: correct os and valid subscription status
     host_content = module_target_sat.api.Host(id=oracle.hostname).read_json()
-
+    # workaround for BZ 2080347
+    assert (
+        host_content['operatingsystem_name'].startswith(f'RHEL Server {version}')
+        or host_content['operatingsystem_name'].startswith(f'RedHat {version}')
+        or host_content['operatingsystem_name'].startswith(f'RHEL {version}')
+    )
     assert host_content['subscription_status'] == 0
 
 
 @pytest.mark.e2e
 @pytest.mark.parametrize('version', ['centos7', 'centos8'], indirect=True)
 def test_convert2rhel_centos(module_target_sat, centos, activation_key_rhel, version):
-    """Convert Centos linux to RHEL
+    """Convert CentOS linux to RHEL
 
     :id: 6f698440-7d85-4deb-8dd9-363ea9003b92
 
@@ -312,8 +328,6 @@ def test_convert2rhel_centos(module_target_sat, centos, activation_key_rhel, ver
         and subscription status
 
     :parametrized: yes
-
-    :CaseImportance: Medium
     """
     host_content = module_target_sat.api.Host(id=centos.hostname).read_json()
     major = version.split('.')[0]
