@@ -25,7 +25,6 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 import pytest
 
-from robottelo.cli.factory import CLIFactoryError, make_fake_host, make_virt_who_config
 from robottelo.config import setting_is_set, settings
 from robottelo.constants import (
     DEFAULT_SYSPURPOSE_ATTRIBUTES,
@@ -41,6 +40,7 @@ from robottelo.constants import (
     VDC_SUBSCRIPTION_NAME,
     VIRT_WHO_HYPERVISOR_TYPES,
 )
+from robottelo.exceptions import CLIFactoryError
 from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.virtwho import create_fake_hypervisor_content
 
@@ -902,7 +902,7 @@ def test_positive_virt_who_hypervisor_subscription_status(
     # TODO move this to either hack around virt-who service or use an env-* compute resource
     provisioning_server = settings.libvirt.libvirt_hostname
     # Create a new virt-who config
-    virt_who_config = make_virt_who_config(
+    virt_who_config = target_sat.cli_factory.virt_who_config(
         {
             'organization-id': org.id,
             'hypervisor-type': VIRT_WHO_HYPERVISOR_TYPES['libvirt'],
@@ -1726,7 +1726,7 @@ def test_syspurpose_mismatched(session, default_location, vm_module_streams):
 
 
 @pytest.mark.tier3
-def test_pagination_multiple_hosts_multiple_pages(session, module_host_template):
+def test_pagination_multiple_hosts_multiple_pages(session, module_host_template, target_sat):
     """Create hosts to fill more than one page, sort on OS, check pagination.
 
     Search for hosts based on operating system and assert that more than one page
@@ -1751,7 +1751,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
     # Create more than one page of fake hosts. Need two digits in name to ensure sort order.
     for count in range(host_num):
         host_name = f'test-{count + 1:0>2}'
-        make_fake_host(
+        target_sat.cli_factory.make_fake_host(
             {
                 'name': host_name,
                 'organization-id': module_host_template.organization.id,

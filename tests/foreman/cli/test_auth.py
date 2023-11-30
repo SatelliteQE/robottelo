@@ -21,14 +21,9 @@ from time import sleep
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.cli.auth import Auth, AuthLogin
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_user
-from robottelo.cli.org import Org
-from robottelo.cli.settings import Settings
-from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
+from robottelo.exceptions import CLIReturnCodeError
 
 LOGEDIN_MSG = "Session exists, currently logged in as '{0}'"
 NOTCONF_MSG = "Credentials are not configured."
@@ -52,18 +47,20 @@ def configure_sessions(satellite, enable=True, add_default_creds=False):
 
 
 @pytest.fixture(scope='module')
-def admin_user():
+def admin_user(module_target_sat):
     """create the admin role user for tests"""
     uname_admin = gen_string('alpha')
-    return make_user({'login': uname_admin, 'password': password, 'admin': '1'})
+    return module_target_sat.cli_factory.user(
+        {'login': uname_admin, 'password': password, 'admin': '1'}
+    )
 
 
 @pytest.fixture(scope='module')
-def non_admin_user():
+def non_admin_user(module_target_sat):
     """create the non-admin role user for tests"""
     uname_viewer = gen_string('alpha')
-    user = make_user({'login': uname_viewer, 'password': password})
-    User.add_role({'login': uname_viewer, 'role': 'Viewer'})
+    user = module_target_sat.cli_factory.user({'login': uname_viewer, 'password': password})
+    module_target_sat.cli.User.add_role({'login': uname_viewer, 'role': 'Viewer'})
     return user
 
 
@@ -85,24 +82,24 @@ def test_positive_create_session(admin_user, target_sat):
         expires after specified time
     """
     try:
-        idle_timeout = Settings.list({'search': 'name=idle_timeout'})[0]['value']
-        Settings.set({'name': 'idle_timeout', 'value': 1})
+        idle_timeout = target_sat.cli.Settings.list({'search': 'name=idle_timeout'})[0]['value']
+        target_sat.cli.Settings.set({'name': 'idle_timeout', 'value': 1})
         result = configure_sessions(target_sat)
         assert result == 0, 'Failed to configure hammer sessions'
-        AuthLogin.basic({'username': admin_user['login'], 'password': password})
-        result = Auth.with_user().status()
+        target_sat.cli.AuthLogin.basic({'username': admin_user['login'], 'password': password})
+        result = target_sat.cli.Auth.with_user().status()
         assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
         # list organizations without supplying credentials
-        assert Org.with_user().list()
+        assert target_sat.cli.Org.with_user().list()
         # wait until session expires
         sleep(70)
         with pytest.raises(CLIReturnCodeError):
-            Org.with_user().list()
-        result = Auth.with_user().status()
+            target_sat.cli.Org.with_user().list()
+        result = target_sat.cli.Auth.with_user().status()
         assert NOTCONF_MSG in result[0]['message']
     finally:
         # reset timeout to default
-        Settings.set({'name': 'idle_timeout', 'value': f'{idle_timeout}'})
+        target_sat.cli.Settings.set({'name': 'idle_timeout', 'value': f'{idle_timeout}'})
 
 
 @pytest.mark.tier1
@@ -124,18 +121,18 @@ def test_positive_disable_session(admin_user, target_sat):
     """
     result = configure_sessions(target_sat)
     assert result == 0, 'Failed to configure hammer sessions'
-    AuthLogin.basic({'username': admin_user['login'], 'password': password})
-    result = Auth.with_user().status()
+    target_sat.cli.AuthLogin.basic({'username': admin_user['login'], 'password': password})
+    result = target_sat.cli.Auth.with_user().status()
     assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
     # list organizations without supplying credentials
-    assert Org.with_user().list()
+    assert target_sat.cli.Org.with_user().list()
     # disabling sessions
     result = configure_sessions(satellite=target_sat, enable=False)
     assert result == 0, 'Failed to configure hammer sessions'
-    result = Auth.with_user().status()
+    result = target_sat.cli.Auth.with_user().status()
     assert NOTCONF_MSG in result[0]['message']
     with pytest.raises(CLIReturnCodeError):
-        Org.with_user().list()
+        target_sat.cli.Org.with_user().list()
 
 
 @pytest.mark.tier1
@@ -156,16 +153,16 @@ def test_positive_log_out_from_session(admin_user, target_sat):
     """
     result = configure_sessions(target_sat)
     assert result == 0, 'Failed to configure hammer sessions'
-    AuthLogin.basic({'username': admin_user['login'], 'password': password})
-    result = Auth.with_user().status()
+    target_sat.cli.AuthLogin.basic({'username': admin_user['login'], 'password': password})
+    result = target_sat.cli.Auth.with_user().status()
     assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
     # list organizations without supplying credentials
-    assert Org.with_user().list()
-    Auth.logout()
-    result = Auth.with_user().status()
+    assert target_sat.cli.Org.with_user().list()
+    target_sat.cli.Auth.logout()
+    result = target_sat.cli.Auth.with_user().status()
     assert NOTCONF_MSG in result[0]['message']
     with pytest.raises(CLIReturnCodeError):
-        Org.with_user().list()
+        target_sat.cli.Org.with_user().list()
 
 
 @pytest.mark.tier1
@@ -188,15 +185,15 @@ def test_positive_change_session(admin_user, non_admin_user, target_sat):
     """
     result = configure_sessions(target_sat)
     assert result == 0, 'Failed to configure hammer sessions'
-    AuthLogin.basic({'username': admin_user['login'], 'password': password})
-    result = Auth.with_user().status()
+    target_sat.cli.AuthLogin.basic({'username': admin_user['login'], 'password': password})
+    result = target_sat.cli.Auth.with_user().status()
     assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
     # list organizations without supplying credentials
-    assert User.with_user().list()
-    AuthLogin.basic({'username': non_admin_user['login'], 'password': password})
-    result = Auth.with_user().status()
+    assert target_sat.cli.User.with_user().list()
+    target_sat.cli.AuthLogin.basic({'username': non_admin_user['login'], 'password': password})
+    result = target_sat.cli.Auth.with_user().status()
     assert LOGEDIN_MSG.format(non_admin_user['login']) in result[0]['message']
-    assert User.with_user().list()
+    assert target_sat.cli.User.with_user().list()
 
 
 @pytest.mark.tier1
@@ -219,16 +216,16 @@ def test_positive_session_survives_unauthenticated_call(admin_user, target_sat):
     """
     result = configure_sessions(target_sat)
     assert result == 0, 'Failed to configure hammer sessions'
-    AuthLogin.basic({'username': admin_user['login'], 'password': password})
-    result = Auth.with_user().status()
+    target_sat.cli.AuthLogin.basic({'username': admin_user['login'], 'password': password})
+    result = target_sat.cli.Auth.with_user().status()
     assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
     # list organizations without supplying credentials
-    Org.with_user().list()
+    target_sat.cli.Org.with_user().list()
     result = target_sat.execute('hammer ping')
     assert result.status == 0, 'Failed to run hammer ping'
-    result = Auth.with_user().status()
+    result = target_sat.cli.Auth.with_user().status()
     assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
-    Org.with_user().list()
+    target_sat.cli.Org.with_user().list()
 
 
 @pytest.mark.tier1
@@ -251,17 +248,19 @@ def test_positive_session_survives_failed_login(admin_user, non_admin_user, targ
     """
     result = configure_sessions(target_sat)
     assert result == 0, 'Failed to configure hammer sessions'
-    AuthLogin.basic({'username': admin_user['login'], 'password': password})
-    result = Auth.with_user().status()
+    target_sat.cli.AuthLogin.basic({'username': admin_user['login'], 'password': password})
+    result = target_sat.cli.Auth.with_user().status()
     assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
-    Org.with_user().list()
+    target_sat.cli.Org.with_user().list()
     # using invalid password
     with pytest.raises(CLIReturnCodeError):
-        AuthLogin.basic({'username': non_admin_user['login'], 'password': gen_string('alpha')})
+        target_sat.cli.AuthLogin.basic(
+            {'username': non_admin_user['login'], 'password': gen_string('alpha')}
+        )
     # checking the session status again
-    result = Auth.with_user().status()
+    result = target_sat.cli.Auth.with_user().status()
     assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
-    Org.with_user().list()
+    target_sat.cli.Org.with_user().list()
 
 
 @pytest.mark.e2e
@@ -289,20 +288,20 @@ def test_positive_session_preceeds_saved_credentials(admin_user, target_sat):
 
     """
     try:
-        idle_timeout = Settings.list({'search': 'name=idle_timeout'})[0]['value']
-        Settings.set({'name': 'idle_timeout', 'value': 1})
+        idle_timeout = target_sat.cli.Settings.list({'search': 'name=idle_timeout'})[0]['value']
+        target_sat.cli.Settings.set({'name': 'idle_timeout', 'value': 1})
         result = configure_sessions(satellite=target_sat, add_default_creds=True)
         assert result == 0, 'Failed to configure hammer sessions'
-        AuthLogin.basic({'username': admin_user['login'], 'password': password})
-        result = Auth.with_user().status()
+        target_sat.cli.AuthLogin.basic({'username': admin_user['login'], 'password': password})
+        result = target_sat.cli.Auth.with_user().status()
         assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
         # list organizations without supplying credentials
         sleep(70)
         with pytest.raises(CLIReturnCodeError):
-            Org.with_user().list()
+            target_sat.cli.Org.with_user().list()
     finally:
         # reset timeout to default
-        Settings.set({'name': 'idle_timeout', 'value': f'{idle_timeout}'})
+        target_sat.cli.Settings.set({'name': 'idle_timeout', 'value': f'{idle_timeout}'})
 
 
 @pytest.mark.tier1
@@ -317,10 +316,10 @@ def test_negative_no_credentials(target_sat):
     """
     result = configure_sessions(satellite=target_sat, enable=False)
     assert result == 0, 'Failed to configure hammer sessions'
-    result = Auth.with_user().status()
+    result = target_sat.cli.Auth.with_user().status()
     assert NOTCONF_MSG in result[0]['message']
     with pytest.raises(CLIReturnCodeError):
-        Org.with_user().list()
+        target_sat.cli.Org.with_user().list()
 
 
 @pytest.mark.tier1
@@ -336,9 +335,11 @@ def test_negative_no_permissions(admin_user, non_admin_user, target_sat):
     """
     result = configure_sessions(target_sat)
     assert result == 0, 'Failed to configure hammer sessions'
-    AuthLogin.basic({'username': non_admin_user['login'], 'password': password})
-    result = Auth.with_user().status()
+    target_sat.cli.AuthLogin.basic({'username': non_admin_user['login'], 'password': password})
+    result = target_sat.cli.Auth.with_user().status()
     assert LOGEDIN_MSG.format(non_admin_user['login']) in result[0]['message']
     # try to update user from viewer's session
     with pytest.raises(CLIReturnCodeError):
-        User.with_user().update({'login': admin_user['login'], 'new-login': gen_string('alpha')})
+        target_sat.cli.User.with_user().update(
+            {'login': admin_user['login'], 'new-login': gen_string('alpha')}
+        )
