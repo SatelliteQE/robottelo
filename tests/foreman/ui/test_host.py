@@ -1763,6 +1763,7 @@ def test_positive_manage_table_columns(session, current_sat_org, current_sat_loc
         'Last report': False,
         'Comment': False,
         'Installable updates': True,
+        'RHEL Lifecycle status': False,
         'Registered': True,
         'Last checkin': True,
         'IPv4': True,
