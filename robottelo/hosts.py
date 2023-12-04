@@ -1656,6 +1656,12 @@ class Capsule(ContentHost, CapsuleMixins):
                 f'A core service is not running at capsule host\n{result.stdout}'
             )
 
+    def update_download_policy(self, policy):
+        """Updates capsule's download policy to desired value"""
+        proxy = self.nailgun_smart_proxy.read()
+        proxy.download_policy = policy
+        proxy.update(['download_policy'])
+
     def set_rex_script_mode_provider(self, mode='ssh'):
         """Set provider for remote execution script mode. One of: ssh(default),
         pull-mqtt, ssh-async"""
