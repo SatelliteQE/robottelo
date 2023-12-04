@@ -467,6 +467,8 @@ def test_positive_provision_end_to_end(
     :parametrized: yes
 
     :BZ: 2236693
+
+    :customerscenario: true
     """
     sat = module_libvirt_provisioning_sat.sat
     cr_name = gen_string('alpha')
