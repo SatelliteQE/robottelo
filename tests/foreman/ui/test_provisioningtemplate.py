@@ -182,3 +182,41 @@ def test_positive_end_to_end(module_org, module_location, template_data, target_
         assert not target_sat.api.ProvisioningTemplate().search(
             query={'search': f'name=={new_name}'}
         ), f'Provisioning template {new_name} expected to be removed but is included in the search'
+
+
+@pytest.mark.tier2
+def test_positive_verify_supported_templates_rhlogo(target_sat, module_org, module_location):
+    """Verify presense of RH logo on supported provisioning template
+
+    :id: 2df8550a-fe7d-405f-ab48-2896554cda14
+
+    :Steps:
+        1.  Go to Provisioning template UI
+        2.  Choose a any provisioning template and check if its supported or not
+
+    :expectedresults: Supported templates will have the RH logo and not supported will have no logo.
+
+    :BZ: 2211210, 2238346
+    """
+    template_name = '"Kickstart default"'
+    pt = target_sat.api.ProvisioningTemplate().search(query={'search': f'name={template_name}'})[0]
+    pt_clone = pt.clone(data={'name': f'{pt.name} {gen_string("alpha")}'})
+
+    random_templates = {
+        'ansible_provisioning_callback': {'supported': True, 'locked': True},
+        pt.name: {'supported': True, 'locked': True},
+        pt_clone['name']: {'supported': False, 'locked': False},
+        'Windows default provision': {'supported': False, 'locked': True},
+    }
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        for template in random_templates.keys():
+            assert (
+                session.provisioningtemplate.is_locked(template)
+                == random_templates[template]['locked']
+            )
+            assert (
+                session.provisioningtemplate.is_supported(template)
+                == random_templates[template]['supported']
+            )
