@@ -11,7 +11,6 @@
 :CaseImportance: High
 
 """
-from airgun.session import Session
 from fauxfactory import gen_integer, gen_ipaddr, gen_string
 import pytest
 
@@ -82,7 +81,9 @@ def test_positive_crud_with_non_admin_user(
     new_priority = str(gen_integer(101, 200))
     hg = module_target_sat.api.HostGroup(organization=[module_org]).create()
     new_hg_name = module_target_sat.api.HostGroup(organization=[module_org]).create()
-    with Session(user=manager_user.login, password=manager_user.password) as session:
+    with module_target_sat.ui_session(
+        user=manager_user.login, password=manager_user.password
+    ) as session:
         session.location.select(loc_name=module_location.name)
         session.discoveryrule.create(
             {
@@ -145,7 +146,9 @@ def test_negative_delete_rule_with_non_admin_user(
         organization=[module_org],
         location=[module_location],
     ).create()
-    with Session(user=reader_user.login, password=reader_user.password) as session:
+    with module_target_sat.ui_session(
+        user=reader_user.login, password=reader_user.password
+    ) as session:
         with pytest.raises(ValueError):  # noqa: PT011 - TODO Adarsh determine better exception
             session.discoveryrule.delete(dr.name)
         dr_val = session.discoveryrule.read_all()
