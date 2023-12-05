@@ -1729,7 +1729,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template,
 
     Search for hosts based on operating system and assert that more than one page
     is reported to exist and that more than one page can be accessed. Make some
-    additonal asserts to ensure the pagination widget is working as expected.
+    additional asserts to ensure the pagination widget is working as expected.
 
     To avoid requiring more than 20 fakes hosts to overcome default page setting of 20,
     this test will set a new per_page default (see new_per_page_setting).
