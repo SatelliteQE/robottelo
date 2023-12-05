@@ -21,8 +21,8 @@ SERVER:
   # If an inventory filter is set and the xdist-behavior is on-demand
   # then broker will attempt to find hosts matching the filter defined
   # before checking out a new host
-  # Filter format follows Broker's specification: "hostname<sat"
-  INVENTORY_FILTER: "name<sat"
+  # Filter format follows Broker's specification: "'sat' in @inv.name"
+  INVENTORY_FILTER: "'sat' in @inv.name"
   # If one or more Satellites are provisioned,
   # this setting determines if they will be automatically checked in
   AUTO_CHECKIN: False
@@ -48,6 +48,10 @@ SERVER:
   ADMIN_USERNAME: admin
   # Admin password when accessing API and UI
   ADMIN_PASSWORD: changeme
+  # Set to true to verify against the certificate given in REQUESTS_CA_BUNDLE
+  # Or specify path to certificate path or directory
+  # see: https://requests.readthedocs.io/en/latest/user/advanced/#ssl-cert-verification
+  VERIFY_CA: false
 
   SSH_CLIENT:
     # Specify port number for ssh client, Default: 22

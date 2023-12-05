@@ -3,11 +3,11 @@ import os
 import re
 from tempfile import mkstemp
 
-import pytest
 from box import Box
 from broker import Broker
 from fauxfactory import gen_string
 from packaging.version import Version
+import pytest
 
 from robottelo import constants
 from robottelo.config import settings
@@ -124,6 +124,12 @@ def module_provisioning_rhel_content(
         environment=module_lce_library,
     ).create()
 
+    # Ensure client repo is enabled in the activation key
+    content = ak.product_content(data={'content_access_mode_all': '1'})['results']
+    client_repo_label = [repo['label'] for repo in content if repo['name'] == client_repo.name][0]
+    ak.content_override(
+        data={'content_overrides': [{'content_label': client_repo_label, 'value': '1'}]}
+    )
     return Box(os=os, ak=ak, ksrepo=ksrepo, cv=content_view)
 
 
@@ -146,12 +152,12 @@ def module_provisioning_sat(
     provisioning_domain_name = f"{gen_string('alpha').lower()}.foo"
 
     broker_data_out = Broker().execute(
-        workflow="configure-install-sat-provisioning-rhv",
-        artifacts="last",
+        workflow='configure-install-sat-provisioning-rhv',
+        artifacts='last',
         target_vlan_id=settings.provisioning.vlan_id,
         target_host=sat.name,
         provisioning_dns_zone=provisioning_domain_name,
-        sat_version=sat.version,
+        sat_version='stream' if sat.is_stream else sat.version,
     )
 
     broker_data_out = Box(**broker_data_out['data_out'])
@@ -232,6 +238,33 @@ def provisioning_host(module_ssh_key_file, pxe_loader):
 
 
 @pytest.fixture
+def provision_multiple_hosts(module_ssh_key_file, pxe_loader, request):
+    """Fixture to check out two blank VMs"""
+    vlan_id = settings.provisioning.vlan_id
+    cd_iso = (
+        ""  # TODO: Make this an optional fixture parameter (update vm_firmware when adding this)
+    )
+    # Keeping the default value to 2
+    count = request.param if request.param is not None else 2
+
+    with Broker(
+        workflow="deploy-configure-pxe-provisioning-host-rhv",
+        host_class=ContentHost,
+        _count=count,
+        target_vlan_id=vlan_id,
+        target_vm_firmware=pxe_loader.vm_firmware,
+        target_vm_cd_iso=cd_iso,
+        blank=True,
+        target_memory='6GiB',
+        auth=module_ssh_key_file,
+    ) as hosts:
+        yield hosts
+
+        for prov_host in hosts:
+            prov_host.blank = getattr(prov_host, 'blank', False)
+
+
+@pytest.fixture
 def provisioning_hostgroup(
     module_provisioning_sat,
     module_sca_manifest_org,
@@ -279,6 +312,8 @@ def pxe_loader(request):
     PXE_LOADER_MAP = {
         'bios': {'vm_firmware': 'bios', 'pxe_loader': 'PXELinux BIOS'},
         'uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI'},
+        'ipxe': {'vm_firmware': 'bios', 'pxe_loader': 'iPXE Embedded'},
+        'http_uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI HTTP'},
     }
     return Box(PXE_LOADER_MAP[getattr(request, 'param', 'bios')])
 

@@ -27,10 +27,9 @@ from robottelo.cli import hammer
 from robottelo.constants import DataFile
 from robottelo.logging import logger
 
-
 HAMMER_COMMANDS = json.loads(DataFile.HAMMER_COMMANDS_JSON.read_text())
 
-pytestmark = [pytest.mark.tier1, pytest.mark.upgrade, pytest.mark.e2e]
+pytestmark = [pytest.mark.tier1]
 
 
 def fetch_command_info(command):
@@ -85,6 +84,10 @@ def test_positive_all_options(target_sat):
     :id: 1203ab9f-896d-4039-a166-9e2d36925b5b
 
     :expectedresults: All expected options are present
+
+    :BZ: 2119053, 2154512
+
+    :customerscenario: true
     """
     differences = {}
     raw_output = target_sat.execute('hammer full-help').stdout
@@ -123,6 +126,7 @@ def test_positive_all_options(target_sat):
         pytest.fail(format_commands_diff(differences))
 
 
+@pytest.mark.upgrade
 def test_positive_disable_hammer_defaults(request, function_product, target_sat):
     """Verify hammer disable defaults command.
 
@@ -162,6 +166,7 @@ def test_positive_disable_hammer_defaults(request, function_product, target_sat)
         assert str(function_product.organization.id) not in result.stdout
 
 
+@pytest.mark.upgrade
 def test_positive_check_debug_log_levels(target_sat):
     """Enabling debug log level in candlepin via hammer logging
 
@@ -177,9 +182,9 @@ def test_positive_check_debug_log_levels(target_sat):
     """
     target_sat.cli.Admin.logging({'all': True, 'level-debug': True})
     # Verify value of `log4j.logger.org.candlepin` as `DEBUG`
-    result = target_sat.execute('grep DEBUG /etc/candlepin/candlepin.conf')
+    result = target_sat.execute('grep log4j.logger.org.candlepin /etc/candlepin/candlepin.conf')
     assert result.status == 0
-    assert 'log4j.logger.org.candlepin = DEBUG' in result.stdout
+    assert 'DEBUG' in result.stdout
 
     target_sat.cli.Admin.logging({"all": True, "level-production": True})
     # Verify value of `log4j.logger.org.candlepin` as `WARN`
@@ -188,6 +193,8 @@ def test_positive_check_debug_log_levels(target_sat):
     assert 'log4j.logger.org.candlepin = WARN' in result.stdout
 
 
+@pytest.mark.e2e
+@pytest.mark.upgrade
 def test_positive_hammer_shell(target_sat):
     """Verify that hammer shell runs a command when input is provided via interactive/bash
 

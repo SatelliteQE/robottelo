@@ -20,10 +20,9 @@ from time import sleep
 
 import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
-
+from robottelo.exceptions import CLIReturnCodeError
 
 pytestmark = [pytest.mark.destructive]
 
@@ -35,20 +34,16 @@ def configure_hammer_session(sat, enable=True):
     sat.execute(f"echo '  :use_sessions: {'true' if enable else 'false'}' >> {HAMMER_CONFIG}")
 
 
-@pytest.fixture()
+@pytest.fixture
 def rh_sso_hammer_auth_setup(module_target_sat, default_sso_host, request):
     """rh_sso hammer setup before running the auth login tests"""
     configure_hammer_session(module_target_sat)
     client_config = {'publicClient': 'true'}
     default_sso_host.update_client_configuration(client_config)
-
-    def rh_sso_hammer_auth_cleanup():
-        """restore the hammer config backup file and rhsso client settings"""
-        module_target_sat.execute(f'mv {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
-        client_config = {'publicClient': 'false'}
-        default_sso_host.update_client_configuration(client_config, module_target_sat)
-
-    request.addfinalizer(rh_sso_hammer_auth_cleanup)
+    yield
+    module_target_sat.execute(f'mv {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
+    client_config = {'publicClient': 'false'}
+    default_sso_host.update_client_configuration(client_config)
 
 
 def test_rhsso_login_using_hammer(

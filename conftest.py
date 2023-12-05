@@ -3,6 +3,7 @@ import pytest
 
 pytest_plugins = [
     # Plugins
+    'pytest_plugins.auto_vault',
     'pytest_plugins.disable_rp_params',
     'pytest_plugins.external_logging',
     'pytest_plugins.fixture_markers',
@@ -16,8 +17,9 @@ pytest_plugins = [
     'pytest_plugins.settings_skip',
     'pytest_plugins.rerun_rp.rerun_rp',
     'pytest_plugins.fspath_plugins',
-    'pytest_plugins.fixture_collection',
     'pytest_plugins.factory_collection',
+    'pytest_plugins.requirements.update_requirements',
+    'pytest_plugins.sanity_plugin',
     # Fixtures
     'pytest_fixtures.core.broker',
     'pytest_fixtures.core.sat_cap_factory',
@@ -28,16 +30,17 @@ pytest_plugins = [
     'pytest_fixtures.core.xdist',
     'pytest_fixtures.core.ui',
     # Component Fixtures
+    'pytest_fixtures.component.acs',
     'pytest_fixtures.component.activationkey',
     'pytest_fixtures.component.ansible',
     'pytest_fixtures.component.architecture',
     'pytest_fixtures.component.computeprofile',
     'pytest_fixtures.component.contentview',
     'pytest_fixtures.component.domain',
+    'pytest_fixtures.component.discovery',
     'pytest_fixtures.component.host',
     'pytest_fixtures.component.hostgroup',
     'pytest_fixtures.component.http_proxy',
-    'pytest_fixtures.component.katello_agent',
     'pytest_fixtures.component.katello_certs_check',
     'pytest_fixtures.component.lce',
     'pytest_fixtures.component.maintain',
@@ -48,6 +51,7 @@ pytest_plugins = [
     'pytest_fixtures.component.provision_gce',
     'pytest_fixtures.component.provision_libvirt',
     'pytest_fixtures.component.provision_pxe',
+    'pytest_fixtures.component.provision_vmware',
     'pytest_fixtures.component.provisioning_template',
     'pytest_fixtures.component.puppet',
     'pytest_fixtures.component.repository',
@@ -61,6 +65,7 @@ pytest_plugins = [
     'pytest_fixtures.component.templatesync',
     'pytest_fixtures.component.user',
     'pytest_fixtures.component.user_role',
+    'pytest_fixtures.component.virtwho_config',
     # upgrade
     'pytest_plugins.upgrade.scenario_workers',
 ]

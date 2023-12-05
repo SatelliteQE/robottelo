@@ -16,16 +16,12 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo import ssh
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_job_template
-from robottelo.cli.job_template import JobTemplate
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
+from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
+from robottelo.utils.datafactory import invalid_values_list, parametrized
 
 TEMPLATE_FILE = 'template_file.txt'
 TEMPLATE_FILE_EMPTY = 'template_file_empty.txt'
@@ -38,7 +34,7 @@ def module_template():
 
 
 @pytest.mark.tier1
-def test_positive_create_job_template(module_org):
+def test_positive_create_job_template(module_org, module_target_sat):
     """Create a simple Job Template
 
     :id: a5a67b10-61b0-4362-b671-9d9f095c452c
@@ -48,19 +44,19 @@ def test_positive_create_job_template(module_org):
     :CaseImportance: Critical
     """
     template_name = gen_string('alpha', 7)
-    make_job_template(
+    module_target_sat.cli_factory.job_template(
         {
             'organizations': module_org.name,
             'name': template_name,
             'file': TEMPLATE_FILE,
         }
     )
-    assert JobTemplate.info({'name': template_name}) is not None
+    assert module_target_sat.cli.JobTemplate.info({'name': template_name}) is not None
 
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_job_template_with_invalid_name(module_org, name):
+def test_negative_create_job_template_with_invalid_name(module_org, name, module_target_sat):
     """Create Job Template with invalid name
 
     :id: eb51afd4-e7b3-42c3-81c3-6e18ef3d7efe
@@ -73,7 +69,7 @@ def test_negative_create_job_template_with_invalid_name(module_org, name):
     :CaseImportance: Critical
     """
     with pytest.raises(CLIFactoryError, match='Could not create the job template:'):
-        make_job_template(
+        module_target_sat.cli_factory.job_template(
             {
                 'organizations': module_org.name,
                 'name': name,
@@ -83,7 +79,7 @@ def test_negative_create_job_template_with_invalid_name(module_org, name):
 
 
 @pytest.mark.tier1
-def test_negative_create_job_template_with_same_name(module_org):
+def test_negative_create_job_template_with_same_name(module_org, module_target_sat):
     """Create Job Template with duplicate name
 
     :id: 66100c82-97f5-4300-a0c9-8cf041f7789f
@@ -93,7 +89,7 @@ def test_negative_create_job_template_with_same_name(module_org):
     :CaseImportance: Critical
     """
     template_name = gen_string('alpha', 7)
-    make_job_template(
+    module_target_sat.cli_factory.job_template(
         {
             'organizations': module_org.name,
             'name': template_name,
@@ -101,7 +97,7 @@ def test_negative_create_job_template_with_same_name(module_org):
         }
     )
     with pytest.raises(CLIFactoryError, match='Could not create the job template:'):
-        make_job_template(
+        module_target_sat.cli_factory.job_template(
             {
                 'organizations': module_org.name,
                 'name': template_name,
@@ -111,7 +107,7 @@ def test_negative_create_job_template_with_same_name(module_org):
 
 
 @pytest.mark.tier1
-def test_negative_create_empty_job_template(module_org):
+def test_negative_create_empty_job_template(module_org, module_target_sat):
     """Create Job Template with empty template file
 
     :id: 749be863-94ae-4008-a242-c23f353ca404
@@ -122,7 +118,7 @@ def test_negative_create_empty_job_template(module_org):
     """
     template_name = gen_string('alpha', 7)
     with pytest.raises(CLIFactoryError, match='Could not create the job template:'):
-        make_job_template(
+        module_target_sat.cli_factory.job_template(
             {
                 'organizations': module_org.name,
                 'name': template_name,
@@ -133,7 +129,7 @@ def test_negative_create_empty_job_template(module_org):
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_delete_job_template(module_org):
+def test_positive_delete_job_template(module_org, module_target_sat):
     """Delete a job template
 
     :id: 33104c04-20e9-47aa-99da-4bf3414ea31a
@@ -143,20 +139,20 @@ def test_positive_delete_job_template(module_org):
     :CaseImportance: Critical
     """
     template_name = gen_string('alpha', 7)
-    make_job_template(
+    module_target_sat.cli_factory.job_template(
         {
             'organizations': module_org.name,
             'name': template_name,
             'file': TEMPLATE_FILE,
         }
     )
-    JobTemplate.delete({'name': template_name})
+    module_target_sat.cli.JobTemplate.delete({'name': template_name})
     with pytest.raises(CLIReturnCodeError):
-        JobTemplate.info({'name': template_name})
+        module_target_sat.cli.JobTemplate.info({'name': template_name})
 
 
 @pytest.mark.tier2
-def test_positive_view_dump(module_org):
+def test_positive_view_dump(module_org, module_target_sat):
     """Export contents of a job template
 
     :id: 25fcfcaa-fc4c-425e-919e-330e36195c4a
@@ -165,12 +161,12 @@ def test_positive_view_dump(module_org):
 
     """
     template_name = gen_string('alpha', 7)
-    make_job_template(
+    module_target_sat.cli_factory.job_template(
         {
             'organizations': module_org.name,
             'name': template_name,
             'file': TEMPLATE_FILE,
         }
     )
-    dumped_content = JobTemplate.dump({'name': template_name})
+    dumped_content = module_target_sat.cli.JobTemplate.dump({'name': template_name})
     assert len(dumped_content) > 0

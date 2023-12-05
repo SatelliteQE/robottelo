@@ -16,13 +16,12 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DataFile
-from robottelo.constants import RPM_TO_UPLOAD
+from robottelo.constants import RPM_TO_UPLOAD, DataFile
 
 
 @pytest.fixture(scope='module')
@@ -60,12 +59,11 @@ def module_yum_repo2(module_product):
 
 
 @pytest.fixture(scope='module')
-def module_rh_repo(module_org, module_target_sat):
-    module_target_sat.upload_manifest(module_org.id)
+def module_rh_repo(module_entitlement_manifest_org, module_target_sat):
     rhst = module_target_sat.cli_factory.SatelliteToolsRepository(cdn=True)
     repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=rhst.data['arch'],
-        org_id=module_org.id,
+        org_id=module_entitlement_manifest_org.id,
         product=rhst.data['product'],
         repo=rhst.data['repository'],
         reposet=rhst.data['repository-set'],

@@ -13,11 +13,6 @@ def default_smart_proxy(session_target_sat):
     return session_target_sat.api.SmartProxy(id=smart_proxy.id).read()
 
 
-@pytest.fixture(scope='session')
-def import_puppet_classes(default_smart_proxy):
-    default_smart_proxy.import_puppetclasses(environment='production')
-
-
 @pytest.fixture(scope='module')
 def module_fake_proxy(request, module_target_sat):
     """Create a Proxy and register the cleanup function"""

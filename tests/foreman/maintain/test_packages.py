@@ -141,6 +141,9 @@ def test_positive_lock_package_versions_with_installer(sat_maintain):
 
 
 @pytest.mark.e2e
+@pytest.mark.upgrade
+@pytest.mark.pit_client
+@pytest.mark.pit_server
 @pytest.mark.include_capsule
 def test_positive_fm_packages_install(request, sat_maintain):
     """Verify whether packages install/update work as expected.
@@ -270,22 +273,3 @@ def test_positive_fm_packages_update(request, sat_maintain):
     def _finalize():
         assert sat_maintain.execute('dnf remove -y walrus').status == 0
         sat_maintain.execute('rm -rf /etc/yum.repos.d/custom_repo.repo')
-
-
-@pytest.mark.stubbed
-def test_positive_fm_packages_sat_installer(sat_maintain):
-    """Verify satellite-installer is not executed after install/update
-    of satellite-maintain/rubygem-foreman_maintain package
-
-    :id: d73971a1-68b4-4ab2-a87c-76cc5ff80a39
-
-    :steps:
-        1. satellite-maintain packages install/update satellite-maintain/rubygem-foreman_maintain
-
-    :BZ: 1825841
-
-    :expectedresults: satellite-installer shouldn't be executed after install/update
-        of satellite-maintain/rubygem-foreman_maintain package
-
-    :CaseAutomation: ManualOnly
-    """

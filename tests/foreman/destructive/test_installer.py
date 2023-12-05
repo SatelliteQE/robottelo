@@ -16,11 +16,10 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_domain, gen_string
 import pytest
-from fauxfactory import gen_domain
-from fauxfactory import gen_string
 
-from robottelo.config import settings
+from robottelo.constants import SATELLITE_ANSWER_FILE
 from robottelo.utils.installer import InstallerCommand
 
 pytestmark = pytest.mark.destructive
@@ -89,46 +88,6 @@ def test_installer_sat_pub_directory_accessibility(target_sat):
     assert 'Success!' in command_output.stdout
 
 
-def test_installer_inventory_plugin_update(target_sat):
-    """DB consistency should not break after enabling the inventory plugin flags
-
-    :id: a2b66d38-e819-428f-9529-23bed398c916
-
-    :steps:
-        1. Enable the cloud inventory plugin flag
-
-    :expectedresults: inventory flag should be updated successfully without any db consistency
-        error.
-
-    :CaseImportance: High
-
-    :CaseLevel: System
-
-    :BZ: 1863597
-
-    :customerscenario: true
-
-    """
-    target_sat.create_custom_repos(rhel7=settings.repos.rhel7_os)
-    installer_cmd = target_sat.install(
-        InstallerCommand(
-            'enable-foreman-plugin-rh-cloud',
-            foreman_proxy_plugin_remote_execution_script_install_key=['true'],
-        )
-    )
-    assert 'Success!' in installer_cmd.stdout
-    verify_rhcloud_flag = target_sat.install(
-        InstallerCommand(help='|grep "\'foreman_plugin_rh_cloud\' puppet module (default: true)"')
-    )
-    assert 'true' in verify_rhcloud_flag.stdout
-    verify_proxy_plugin_flag = target_sat.install(
-        InstallerCommand(
-            **{'full-help': '| grep -A1 foreman-proxy-plugin-remote-execution-script-install-key'}
-        )
-    )
-    assert '(current: true)' in verify_proxy_plugin_flag.stdout
-
-
 def test_positive_mismatched_satellite_fqdn(target_sat, set_random_fqdn):
     """The satellite-installer should display the mismatched FQDN
 
@@ -155,3 +114,36 @@ def test_positive_mismatched_satellite_fqdn(target_sat, set_random_fqdn):
     )
     installer_command_output = target_sat.execute('satellite-installer').stderr
     assert warning_message in str(installer_command_output)
+
+
+def test_positive_installer_certs_regenerate(target_sat):
+    """Ensure "satellite-installer --certs-regenerate true" command correctly generates
+    /etc/tomcat/cert-users.properties after editing answers file
+
+    :id: db6152c3-4459-425b-998d-4a7992ca1f72
+
+    :steps:
+        1. Update /etc/foreman-installer/scenarios.d/satellite-answers.yaml
+        2. Fill some empty strings in certs category for 'state'
+        3. Run satellite-installer --certs-regenerate true
+        4. hammer ping
+
+    :expectedresults: Correct generation of /etc/tomcat/cert-users.properties
+
+    :BZ: 1964037
+
+    :customerscenario: true
+    """
+    target_sat.execute(f'sed -i "s/state: North Carolina/state: \'\'/g" {SATELLITE_ANSWER_FILE}')
+    result = target_sat.execute(f'grep state: {SATELLITE_ANSWER_FILE}')
+    assert "state: ''" in result.stdout
+    result = target_sat.install(
+        InstallerCommand(
+            'certs-update-all',
+            'certs-update-server',
+            'certs-update-server-ca',
+            certs_regenerate=['true'],
+        )
+    )
+    assert result.status == 0
+    assert 'FAIL' not in target_sat.cli.Base.ping()

@@ -16,18 +16,18 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
-from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.host import Host
 from robottelo.config import settings
-from robottelo.constants import AZURERM_FILE_URI
-from robottelo.constants import AZURERM_PLATFORM_DEFAULT
-from robottelo.constants import AZURERM_PREMIUM_OS_Disk
-from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
-from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
-from robottelo.constants import AZURERM_VM_SIZE_DEFAULT
+from robottelo.constants import (
+    AZURERM_FILE_URI,
+    AZURERM_PLATFORM_DEFAULT,
+    AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
+    AZURERM_RHEL7_UD_IMG_URN,
+    AZURERM_VM_SIZE_DEFAULT,
+    AZURERM_PREMIUM_OS_Disk,
+)
 
 
 @pytest.fixture(scope='class')
@@ -115,7 +115,7 @@ class TestAzureRMComputeResourceTestCase:
 
         # Delete CR
         sat_azure.cli.ComputeResource.delete({'name': result['name']})
-        assert not ComputeResource.exists(search=('name', result['name']))
+        assert not sat_azure.cli.ComputeResource.exists(search=('name', result['name']))
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
@@ -375,14 +375,15 @@ class TestAzureRMFinishTemplateProvisioning:
                 )
                 yield host
                 with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
-                    if Host.exists(search=('name', host['name'])):
-                        Host.delete({'name': self.fullhostname}, timeout=1800000)
+                    if sat_azure.cli.Host.exists(search=('name', host['name'])):
+                        sat_azure.cli.Host.delete({'name': self.fullhostname}, timeout=1800000)
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_ft):
         """Returns the AzureRM Client Host object to perform the assertions"""
         return azurermclient.get_vm(name=class_host_ft['name'].split('.')[0])
 
+    @pytest.mark.e2e
     @pytest.mark.upgrade
     @pytest.mark.tier3
     @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
@@ -502,8 +503,8 @@ class TestAzureRMUserDataProvisioning:
                 )
                 yield host
                 with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
-                    if Host.exists(search=('name', host['name'])):
-                        Host.delete({'name': self.fullhostname}, timeout=1800000)
+                    if sat_azure.cli.Host.exists(search=('name', host['name'])):
+                        sat_azure.cli.Host.delete({'name': self.fullhostname}, timeout=1800000)
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_ud):

@@ -16,18 +16,20 @@
 
 :Upstream: No
 """
-import pytest
 from airgun.session import Session
 from navmazing import NavigationTriesExceeded
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import ENVIRONMENT
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_3_CUSTOM_PACKAGE_NAME
+from robottelo.constants import (
+    ENVIRONMENT,
+    FAKE_0_CUSTOM_PACKAGE,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_2_CUSTOM_PACKAGE,
+    FAKE_3_CUSTOM_PACKAGE_NAME,
+)
 from robottelo.utils.datafactory import gen_string
 
 

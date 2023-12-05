@@ -17,10 +17,7 @@
 :Upstream: No
 """
 import pytest
-from airgun.session import Session
-from nailgun import entities
 
-from robottelo.config import settings
 from robottelo.constants import DataFile
 from robottelo.utils.datafactory import gen_string
 
@@ -30,13 +27,13 @@ def template_data():
     return DataFile.OS_TEMPLATE_DATA_FILE.read_text()
 
 
-@pytest.fixture()
-def clone_setup(module_org, module_location):
+@pytest.fixture
+def clone_setup(target_sat, module_org, module_location):
     name = gen_string('alpha')
     content = gen_string('alpha')
-    os_list = [entities.OperatingSystem().create().title for _ in range(2)]
+    os_list = [target_sat.api.OperatingSystem().create().title for _ in range(2)]
     return {
-        'pt': entities.ProvisioningTemplate(
+        'pt': target_sat.api.ProvisioningTemplate(
             name=name,
             organization=[module_org],
             location=[module_location],
@@ -48,7 +45,7 @@ def clone_setup(module_org, module_location):
 
 
 @pytest.mark.tier2
-def test_positive_clone(session, clone_setup):
+def test_positive_clone(module_org, module_location, target_sat, clone_setup):
     """Assure ability to clone a provisioning template
 
     :id: 912f1619-4bb0-4e0f-88ce-88b5726fdbe0
@@ -62,7 +59,9 @@ def test_positive_clone(session, clone_setup):
     :CaseLevel: Integration
     """
     clone_name = gen_string('alpha')
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
         session.provisioningtemplate.clone(
             clone_setup['pt'].name,
             {
@@ -70,19 +69,43 @@ def test_positive_clone(session, clone_setup):
                 'association.applicable_os.assigned': clone_setup['os_list'],
             },
         )
-        pt = entities.ProvisioningTemplate().search(query={'search': f'name=={clone_name}'})
+        pt = target_sat.api.ProvisioningTemplate().search(query={'search': f'name=={clone_name}'})
         assigned_oses = [os.read() for os in pt[0].read().operatingsystem]
-        assert (
-            pt
-        ), 'Template {} expected to exist but is not included in the search' 'results'.format(
-            clone_name
-        )
+        assert pt, f'Template {clone_name} expected to exist but is not included in the search'
         assert set(clone_setup['os_list']) == {f'{os.name} {os.major}' for os in assigned_oses}
 
 
 @pytest.mark.tier2
+def test_positive_clone_locked(target_sat):
+    """Assure ability to clone a locked provisioning template
+
+    :id: 2df8550a-fe7d-405f-ab48-2896554cda12
+
+    :Steps:
+        1.  Go to Provisioning template UI
+        2.  Choose a locked provisioning template and attempt to clone it
+
+    :expectedresults: The template is cloned
+
+    :CaseLevel: Integration
+    """
+    clone_name = gen_string('alpha')
+    with target_sat.ui_session() as session:
+        session.provisioningtemplate.clone(
+            'Kickstart default',
+            {
+                'template.name': clone_name,
+            },
+        )
+        assert target_sat.api.ProvisioningTemplate().search(
+            query={'search': f'name=={clone_name}'}
+        ), f'Template {clone_name} expected to exist but is not included in the search'
+
+
+@pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_location, template_data, target_sat):
+@pytest.mark.e2e
+def test_positive_end_to_end(module_org, module_location, template_data, target_sat):
     """Perform end to end testing for provisioning template component
 
     :id: b44d4cc8-b78e-47cf-9993-0bb871ac2c96
@@ -110,7 +133,9 @@ def test_positive_end_to_end(session, module_org, module_location, template_data
             'input_content.description': gen_string('alpha'),
         }
     ]
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
         session.provisioningtemplate.create(
             {
                 'template.name': name,
@@ -126,10 +151,9 @@ def test_positive_end_to_end(session, module_org, module_location, template_data
                 'locations.resources.assigned': [module_location.name],
             }
         )
-        assert target_sat.api.ProvisioningTemplate().search(query={'search': f'name=={name}'}), (
-            'Provisioning template {} expected to exist but is not included in the search'
-            'results'.format(name)
-        )
+        assert target_sat.api.ProvisioningTemplate().search(
+            query={'search': f'name=={name}'}
+        ), f'Provisioning template {name} expected to exist but is not included in the search'
         pt = session.provisioningtemplate.read(name)
         assert pt['template']['name'] == name
         assert pt['template']['default'] is True
@@ -148,54 +172,51 @@ def test_positive_end_to_end(session, module_org, module_location, template_data
         updated_pt = target_sat.api.ProvisioningTemplate().search(
             query={'search': f'name=={new_name}'}
         )
-        assert updated_pt, (
-            'Provisioning template {} expected to exist but is not included in the search'
-            'results'.format(new_name)
-        )
+        assert (
+            updated_pt
+        ), f'Provisioning template {new_name} expected to exist but is not included in the search'
         updated_pt = updated_pt[0].read()
         assert updated_pt.snippet is True, 'Snippet attribute not updated for Provisioning Template'
-        assert not updated_pt.template_kind, 'Snippet template is {}'.format(
-            updated_pt.template_kind
-        )
+        assert not updated_pt.template_kind, f'Snippet template is {updated_pt.template_kind}'
         session.provisioningtemplate.delete(new_name)
         assert not target_sat.api.ProvisioningTemplate().search(
             query={'search': f'name=={new_name}'}
-        ), (
-            'Provisioning template {} expected to be removed but is included in the search '
-            'results'.format(new_name)
-        )
+        ), f'Provisioning template {new_name} expected to be removed but is included in the search'
 
 
-@pytest.mark.skip_if_open("BZ:1767040")
-@pytest.mark.tier3
-def test_negative_template_search_using_url():
-    """Satellite should not show full trace on web_browser after invalid search in url
+@pytest.mark.tier2
+def test_positive_verify_supported_templates_rhlogo(target_sat, module_org, module_location):
+    """Verify presense of RH logo on supported provisioning template
 
-    :id: aeb365dc-49de-11eb-bf99-d46d6dd3b5b2
+    :id: 2df8550a-fe7d-405f-ab48-2896554cda14
 
-    :customerscenario: true
+    :Steps:
+        1.  Go to Provisioning template UI
+        2.  Choose a any provisioning template and check if its supported or not
 
-    :expectedresults: Satellite should not show full trace and show correct error message
+    :expectedresults: Supported templates will have the RH logo and not supported will have no logo.
 
-    :CaseLevel: Integration
-
-    :CaseImportance: High
-
-    :BZ: 1767040
+    :BZ: 2211210, 2238346
     """
-    with Session(
-        url='/templates/provisioning_templates?search=&page=1"sadfasf', login=False
-    ) as session:
-        login_details = {
-            'username': settings.server.admin_username,
-            'password': settings.server.admin_password,
-        }
-        session.login.login(login_details)
-        error_page = session.browser.selenium.page_source
-        error_helper_message = (
-            "Please include in your report the full error log that can be acquired by running"
-        )
-        trace_link_word = "Full trace"
-        assert error_helper_message in error_page
-        assert trace_link_word not in error_page
-        assert "foreman-rake errors:fetch_log request_id=" in error_page
+    template_name = '"Kickstart default"'
+    pt = target_sat.api.ProvisioningTemplate().search(query={'search': f'name={template_name}'})[0]
+    pt_clone = pt.clone(data={'name': f'{pt.name} {gen_string("alpha")}'})
+
+    random_templates = {
+        'ansible_provisioning_callback': {'supported': True, 'locked': True},
+        pt.name: {'supported': True, 'locked': True},
+        pt_clone['name']: {'supported': False, 'locked': False},
+        'Windows default provision': {'supported': False, 'locked': True},
+    }
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        for template in random_templates.keys():
+            assert (
+                session.provisioningtemplate.is_locked(template)
+                == random_templates[template]['locked']
+            )
+            assert (
+                session.provisioningtemplate.is_supported(template)
+                == random_templates[template]['supported']
+            )

@@ -18,11 +18,10 @@
 """
 import random
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
-
+from robottelo.exceptions import CLIReturnCodeError
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.destructive]
 
@@ -40,7 +39,7 @@ def test_positive_delete_by_name(
 
     :expectedresults: Realm is deleted
     """
-    realm = module_target_sat.cli_factory.make_realm(
+    realm = module_target_sat.cli_factory.realm(
         {'realm-proxy-id': module_fake_proxy.id, 'realm-type': 'Active Directory'}
     )
     module_target_sat.cli.Realm.delete({'name': realm['name']})
@@ -61,7 +60,7 @@ def test_positive_delete_by_id(
 
     :expectedresults: Realm is deleted
     """
-    realm = module_target_sat.cli_factory.make_realm(
+    realm = module_target_sat.cli_factory.realm(
         {'realm-proxy-id': module_fake_proxy.id, 'realm-type': 'Active Directory'}
     )
     module_target_sat.cli.Realm.delete({'id': realm['id']})
@@ -83,7 +82,7 @@ def test_positive_realm_info_name(
 
     :expectedresults: Realm information obtained by name is correct
     """
-    realm = module_target_sat.cli_factory.make_realm(
+    realm = module_target_sat.cli_factory.realm(
         {
             'name': gen_string('alpha', random.randint(1, 30)),
             'realm-proxy-id': module_fake_proxy.id,
@@ -111,7 +110,7 @@ def test_positive_realm_info_id(
 
     :expectedresults: Realm information obtained by ID is correct
     """
-    realm = module_target_sat.cli_factory.make_realm(
+    realm = module_target_sat.cli_factory.realm(
         {
             'name': gen_string('alpha', random.randint(1, 30)),
             'realm-proxy-id': module_fake_proxy.id,
@@ -126,6 +125,7 @@ def test_positive_realm_info_id(
     assert info == module_target_sat.cli.Realm.info({'id': realm['id']})
 
 
+@pytest.mark.e2e
 def test_positive_realm_update_name(
     module_subscribe_satellite,
     module_enroll_idm_and_configure_external_auth,
@@ -142,7 +142,7 @@ def test_positive_realm_update_name(
     """
     realm_name = gen_string('alpha', random.randint(1, 30))
     new_realm_name = gen_string('alpha', random.randint(1, 30))
-    realm = module_target_sat.cli_factory.make_realm(
+    realm = module_target_sat.cli_factory.realm(
         {
             'name': realm_name,
             'realm-proxy-id': module_fake_proxy.id,
@@ -174,7 +174,7 @@ def test_negative_realm_update_invalid_type(
     """
     realm_type = 'Red Hat Identity Management'
     new_realm_type = gen_string('alpha')
-    realm = module_target_sat.cli_factory.make_realm(
+    realm = module_target_sat.cli_factory.realm(
         {
             'name': gen_string('alpha', random.randint(1, 30)),
             'realm-proxy-id': module_fake_proxy.id,

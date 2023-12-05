@@ -22,9 +22,9 @@ def allow_repo_discovery(target_sat):
 
 
 @pytest.fixture(autouse=True, scope="session")
-def relax_bfa(session_target_sat):
+def relax_bfa(request, session_target_sat):
     """Relax BFA protection against failed login attempts"""
-    if session_target_sat:
+    if session_target_sat and 'sanity' not in request.config.option.markexpr:
         session_target_sat.cli.Settings.set({'name': 'failed_login_attempts_limit', 'value': '0'})
 
 
@@ -54,7 +54,7 @@ def puppet_proxy_port_range(session_puppet_enabled_sat):
 @pytest.fixture(scope='class')
 def class_cockpit_sat(class_subscribe_satellite):
     class_subscribe_satellite.install_cockpit()
-    yield class_subscribe_satellite
+    return class_subscribe_satellite
 
 
 @pytest.fixture(scope='module')

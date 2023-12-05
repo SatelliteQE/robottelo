@@ -27,7 +27,6 @@ pytestmark = pytest.mark.destructive
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize("sat_ready_rhel", [8], indirect=True)
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
 @pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
 def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pulp):
@@ -51,7 +50,7 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
     :customerscenario: true
     """
     rhel_version = sat_ready_rhel._v_major
-    sat_version = target_sat.version
+    sat_version = 'stream' if target_sat.is_stream else target_sat.version
 
     # SATELLITE PART - SOURCE SERVER
     # Enabling and starting services
@@ -95,7 +94,9 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
     # Disabling repositories
     assert sat_ready_rhel.execute('subscription-manager repos --disable=*').status == 0
     # Getting satellite maintenace repo
-    sat_ready_rhel.download_repofile(product='satellite', release=sat_version)
+    sat_ready_rhel.download_repofile(
+        product='satellite', release=sat_version, snap=settings.server.version.snap
+    )
     # Enabling repositories
     for repo in getattr(constants, f"OHSNAP_RHEL{rhel_version}_REPOS"):
         sat_ready_rhel.enable_repo(repo, force=True)
@@ -111,7 +112,7 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
         == 0
     )
     # Assert clone won't fail due to BZ
-    assert sat_ready_rhel.execute('satellite-clone --list-tasks').status == 0
+    assert sat_ready_rhel.execute('satellite-clone --assume-yes --list-tasks').status == 0
     # Run satellite-clone
     assert sat_ready_rhel.execute('satellite-clone -y', timeout='3h').status == 0
     cloned_sat = Satellite(sat_ready_rhel.hostname)
@@ -128,12 +129,12 @@ def test_positive_list_tasks(target_sat):
 
     :steps:
         1. Install satellite-clone
-        2. Run satellite-clone --list-tasks
+        2. Run satellite-clone --assume-yes --list-tasks
 
     :expectedresult:
         1. Satellite-clone ran successfully
     """
     result = target_sat.execute('dnf install -y --disableplugin=foreman-protector satellite-clone')
     assert result.status == 0
-    result = target_sat.execute('satellite-clone --list-tasks')
+    result = target_sat.execute('satellite-clone --assume-yes --list-tasks')
     assert result.status == 0

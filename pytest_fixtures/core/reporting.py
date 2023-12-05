@@ -1,12 +1,10 @@
 import datetime
 
-import pytest
 from _pytest.junitxml import xml_key
+import pytest
 from xdist import get_xdist_worker_id
 
-from robottelo.config import setting_is_set
-from robottelo.config import settings
-
+from robottelo.config import setting_is_set, settings
 
 FMT_XUNIT_TIME = '%Y-%m-%dT%H:%M:%S'
 

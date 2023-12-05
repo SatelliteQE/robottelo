@@ -7,12 +7,14 @@ import sys
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.exceptions import DistroNotSupportedError
-from robottelo.exceptions import OnlyOneOSRepositoryAllowed
-from robottelo.exceptions import ReposContentSetupWasNotPerformed
-from robottelo.exceptions import RepositoryAlreadyCreated
-from robottelo.exceptions import RepositoryAlreadyDefinedError
-from robottelo.exceptions import RepositoryDataNotFound
+from robottelo.exceptions import (
+    DistroNotSupportedError,
+    OnlyOneOSRepositoryAllowed,
+    ReposContentSetupWasNotPerformed,
+    RepositoryAlreadyCreated,
+    RepositoryAlreadyDefinedError,
+    RepositoryDataNotFound,
+)
 
 
 def initiate_repo_helpers(satellite):
@@ -121,6 +123,59 @@ class YumRepository(BaseRepository):
     _type = constants.REPO_TYPE['yum']
 
 
+class FileRepository(BaseRepository):
+    """Custom File repository"""
+
+    _type = constants.REPO_TYPE['file']
+
+
+class DebianRepository(BaseRepository):
+    """Custom Debian repository."""
+
+    _type = constants.REPO_TYPE["deb"]
+
+    def __init__(
+        self, url=None, distro=None, content_type=None, deb_errata_url=None, deb_releases=None
+    ):
+        super().__init__(url=url, distro=distro, content_type=content_type)
+        self._deb_errata_url = deb_errata_url
+        self._deb_releases = deb_releases
+
+    @property
+    def deb_errata_url(self):
+        return self._deb_errata_url
+
+    @property
+    def deb_releases(self):
+        return self._deb_releases
+
+    def create(
+        self,
+        organization_id,
+        product_id,
+        download_policy=None,
+        synchronize=True,
+    ):
+        """Create the repository for the supplied product id"""
+        create_options = {
+            'product-id': product_id,
+            'content-type': self.content_type,
+            'url': self.url,
+            'deb-releases': self._deb_releases,
+        }
+
+        if self._deb_errata_url is not None:
+            create_options['deb-errata-url'] = self._deb_errata_url
+
+        repo_info = self.satellite.cli_factory.make_repository(create_options)
+        self._repo_info = repo_info
+
+        if synchronize:
+            self.synchronize()
+
+        return repo_info
+
+
 class DockerRepository(BaseRepository):
     """Custom Docker repository"""
 
@@ -141,6 +196,34 @@ class DockerRepository(BaseRepository):
                 'content-type': self.content_type,
                 'url': self.url,
                 'docker-upstream-name': self.upstream_name,
+            }
+        )
+        self._repo_info = repo_info
+        if synchronize:
+            self.synchronize()
+        return repo_info
+
+
+class AnsibleRepository(BaseRepository):
+    """Custom Ansible Collection repository"""
+
+    _type = constants.REPO_TYPE['ansible_collection']
+
+    def __init__(self, url=None, distro=None, requirements=None):
+        self._requirements = requirements
+        super().__init__(url=url, distro=distro)
+
+    @property
+    def requirements(self):
+        return self._requirements
+
+    def create(self, organization_id, product_id, download_policy=None, synchronize=True):
+        repo_info = self.satellite.cli_factory.make_repository(
+            {
+                'product-id': product_id,
+                'content-type': self.content_type,
+                'url': self.url,
+                'ansible-collection-requirements': f'{{collections: {self.requirements}}}',
             }
         )
         self._repo_info = repo_info
@@ -408,6 +491,12 @@ class RHELAnsibleEngineRepository(GenericRHRepository):
     _key = constants.PRODUCT_KEY_ANSIBLE_ENGINE
 
 
+class RHELServerExtras(GenericRHRepository):
+    """Red Hat Server Extras Repository"""
+
+    _key = constants.PRODUCT_KEY_RHEL_EXTRAS
+
+
 class RepositoryCollection:
     """Repository collection"""
 
@@ -584,7 +673,9 @@ class RepositoryCollection:
         content_view = self.satellite.cli.ContentView.info({'id': content_view['id']})
         return content_view, lce
 
-    def setup_activation_key(self, org_id, content_view_id, lce_id, subscription_names=None):
+    def setup_activation_key(
+        self, org_id, content_view_id, lce_id, subscription_names=None, override=None
+    ):
         """Create activation and associate content-view,
         lifecycle environment and subscriptions"""
         if subscription_names is None:
@@ -596,6 +687,19 @@ class RepositoryCollection:
                 'content-view-id': content_view_id,
             }
         )
+        if override is not None:
+            for repo in self.satellite.cli.ActivationKey.product_content(
+                {'id': activation_key['id'], 'content-access-mode-all': 1}
+            ):
+                self.satellite.cli.ActivationKey.content_override(
+                    {
+                        'id': activation_key['id'],
+                        'content-label': repo['label'],
+                        'value': int(override),
+                    }
+                )
+        if self.satellite.is_sca_mode_enabled(org_id):
+            return activation_key
         # Add subscriptions to activation-key
         # Get organization subscriptions
         subscriptions = self.satellite.cli.Subscription.list(
@@ -640,17 +744,18 @@ class RepositoryCollection:
         upload_manifest=False,
         download_policy='on_demand',
         rh_subscriptions=None,
+        override=None,
     ):
         """
         Setup content view and activation key of all the repositories.
 
         :param org_id: The organization id
-        :param lce_id:  The lifecycle environment id
+        :param lce_id: The lifecycle environment id
         :param upload_manifest: Whether to upload the manifest (The manifest is
             uploaded only if needed)
         :param download_policy: The repositories download policy
-        :param rh_subscriptions: The RH subscriptions to be added to activation
-            key
+        :param rh_subscriptions: The RH subscriptions to be added to activation key
+        :param override: Content override (True = enable, False = disable, None = no action)
         """
         if self._repos_info:
             raise RepositoryAlreadyCreated('Repositories already created can not setup content')
@@ -659,7 +764,7 @@ class RepositoryCollection:
         if self.need_subscription:
             # upload manifest only when needed
             if upload_manifest and not self.organization_has_manifest(org_id):
-                self.satellite.upload_manifest(org_id, interface='CLI')
+                self.satellite.upload_manifest(org_id, interface='API')
             if not rh_subscriptions:
                 # add the default subscription if no subscription provided
                 rh_subscriptions = [constants.DEFAULT_SUBSCRIPTION_NAME]
@@ -669,9 +774,18 @@ class RepositoryCollection:
         subscription_names = list(rh_subscriptions)
         if custom_product_name:
             subscription_names.append(custom_product_name)
-        activation_key = self.setup_activation_key(
-            org_id, content_view['id'], lce_id, subscription_names=subscription_names
-        )
+        if not self.satellite.is_sca_mode_enabled(org_id):
+            activation_key = self.setup_activation_key(
+                org_id,
+                content_view['id'],
+                lce_id,
+                subscription_names=subscription_names,
+                override=override,
+            )
+        else:
+            activation_key = self.setup_activation_key(
+                org_id, content_view['id'], lce_id, override=override
+            )
         setup_content_data = dict(
             activation_key=activation_key,
             content_view=content_view,
@@ -688,18 +802,16 @@ class RepositoryCollection:
         vm,
         location_title=None,
         patch_os_release=False,
-        install_katello_agent=True,
         enable_rh_repos=True,
         enable_custom_repos=False,
         configure_rhel_repo=False,
     ):
         """
         Setup The virtual machine basic task, eg: install katello ca,
-        register vm host, enable rh repos and install katello-agent
+        register vm host and enable rh repos
 
         :param robottelo.hosts.ContentHost vm: The Virtual machine to setup.
         :param bool patch_os_release: whether to patch the VM with os version.
-        :param bool install_katello_agent: whether to install katello-agent
         :param bool enable_rh_repos: whether to enable RH repositories
         :param bool enable_custom_repos: whether to enable custom repositories
         :param bool configure_rhel_repo: Whether to configure the distro Red Hat repository,
@@ -720,7 +832,6 @@ class RepositoryCollection:
             repo_labels = [
                 repo['label'] for repo in self.custom_repos_info if repo['content-type'] == 'yum'
             ]
-
         vm.contenthost_setup(
             self.satellite,
             self.organization['label'],
@@ -730,7 +841,6 @@ class RepositoryCollection:
             product_label=self.custom_product['label'] if self.custom_product else None,
             activation_key=self._setup_content_data['activation_key']['name'],
             patch_os_release_distro=patch_os_release_distro,
-            install_katello_agent=install_katello_agent,
         )
         if configure_rhel_repo:
             rhel_repo_option_name = f'rhel{constants.DISTROS_MAJOR_VERSION[self.distro]}_os'

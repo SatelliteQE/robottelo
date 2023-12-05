@@ -16,10 +16,10 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun.entity_mixins import TaskFailedError
+import pytest
 
 from robottelo.config import get_credentials
 from robottelo.hosts import get_sat_version
@@ -105,7 +105,7 @@ def test_positive_use_alternate_directory(
             'auto-attach': False,
         }
     )
-    result = client.register(default_org, default_location, ak.name, satellite=target_sat)
+    result = client.register(default_org, default_location, ak.name, target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     testdir = gen_string('alpha')
     result = client.run(f'mkdir /{testdir}')
@@ -121,7 +121,7 @@ def test_positive_use_alternate_directory(
     assert result.status == 0
 
     command = f'echo {gen_string("alpha")}'
-    invocation_command = target_sat.cli_factory.make_job_invocation(
+    invocation_command = target_sat.cli_factory.job_invocation(
         {
             'job-template': 'Run Command - Script Default',
             'inputs': f'command={command}',

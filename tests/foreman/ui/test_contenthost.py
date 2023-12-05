@@ -16,33 +16,31 @@
 
 :Upstream: No
 """
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
+import re
 from urllib.parse import urlparse
 
-import pytest
 from airgun.session import Session
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
+from fauxfactory import gen_integer, gen_string
 from nailgun import entities
+import pytest
 
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_fake_host
-from robottelo.cli.factory import make_virt_who_config
-from robottelo.config import setting_is_set
-from robottelo.config import settings
-from robottelo.constants import DEFAULT_SYSPURPOSE_ATTRIBUTES
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_ERRATA_ID
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
-from robottelo.constants import VDC_SUBSCRIPTION_NAME
-from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
+from robottelo.config import setting_is_set, settings
+from robottelo.constants import (
+    DEFAULT_SYSPURPOSE_ATTRIBUTES,
+    FAKE_0_CUSTOM_PACKAGE,
+    FAKE_0_CUSTOM_PACKAGE_GROUP,
+    FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_1_ERRATA_ID,
+    FAKE_2_CUSTOM_PACKAGE,
+    FAKE_2_CUSTOM_PACKAGE_NAME,
+    VDC_SUBSCRIPTION_NAME,
+    VIRT_WHO_HYPERVISOR_TYPES,
+)
+from robottelo.exceptions import CLIFactoryError
 from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.virtwho import create_fake_hypervisor_content
 
@@ -50,9 +48,19 @@ if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
     pytest.skip('skipping tests due to missing settings', allow_module_level=True)
 
 
+@pytest.fixture(scope='module', autouse=True)
+def host_ui_default():
+    settings_object = entities.Setting().search(query={'search': 'name=host_details_ui'})[0]
+    settings_object.value = 'No'
+    settings_object.update({'value'})
+    yield
+    settings_object.value = 'Yes'
+    settings_object.update({'value'})
+
+
 @pytest.fixture(scope='module')
 def module_org():
-    org = entities.Organization().create()
+    org = entities.Organization(simple_content_access=False).create()
     # adding remote_execution_connect_by_ip=Yes at org level
     entities.Parameter(
         name='remote_execution_connect_by_ip',
@@ -67,17 +75,16 @@ def vm(module_repos_collection_with_manifest, rhel7_contenthost, target_sat):
     """Virtual machine registered in satellite"""
     module_repos_collection_with_manifest.setup_virtual_machine(rhel7_contenthost)
     rhel7_contenthost.add_rex_key(target_sat)
-    yield rhel7_contenthost
+    rhel7_contenthost.run(r'subscription-manager repos --enable \*')
+    return rhel7_contenthost
 
 
 @pytest.fixture
 def vm_module_streams(module_repos_collection_with_manifest, rhel8_contenthost, target_sat):
-    """Virtual machine registered in satellite without katello-agent installed"""
-    module_repos_collection_with_manifest.setup_virtual_machine(
-        rhel8_contenthost, install_katello_agent=False
-    )
+    """Virtual machine registered in satellite"""
+    module_repos_collection_with_manifest.setup_virtual_machine(rhel8_contenthost)
     rhel8_contenthost.add_rex_key(satellite=target_sat)
-    yield rhel8_contenthost
+    return rhel8_contenthost
 
 
 def set_ignore_facts_for_os(value=False):
@@ -95,6 +102,7 @@ def run_remote_command_on_content_host(command, vm_module_streams):
     return result
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -892,7 +900,7 @@ def test_positive_virt_who_hypervisor_subscription_status(
     # TODO move this to either hack around virt-who service or use an env-* compute resource
     provisioning_server = settings.libvirt.libvirt_hostname
     # Create a new virt-who config
-    virt_who_config = make_virt_who_config(
+    virt_who_config = target_sat.cli_factory.virt_who_config(
         {
             'organization-id': org.id,
             'hypervisor-type': VIRT_WHO_HYPERVISOR_TYPES['libvirt'],
@@ -998,7 +1006,8 @@ def test_module_stream_actions_on_content_host(session, default_location, vm_mod
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
-        assert 'Enabled' and 'Installed' in module_stream[0]['Status']
+        assert 'Enabled' in module_stream[0]['Status']
+        assert 'Installed' in module_stream[0]['Status']
 
         # remove Module Stream
         result = session.contenthost.execute_module_stream_action(
@@ -1715,7 +1724,7 @@ def test_syspurpose_mismatched(session, default_location, vm_module_streams):
 
 
 @pytest.mark.tier3
-def test_pagination_multiple_hosts_multiple_pages(session, module_host_template):
+def test_pagination_multiple_hosts_multiple_pages(session, module_host_template, target_sat):
     """Create hosts to fill more than one page, sort on OS, check pagination.
 
     Search for hosts based on operating system and assert that more than one page
@@ -1740,7 +1749,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
     # Create more than one page of fake hosts. Need two digits in name to ensure sort order.
     for count in range(host_num):
         host_name = f'test-{count + 1:0>2}'
-        make_fake_host(
+        target_sat.cli_factory.make_fake_host(
             {
                 'name': host_name,
                 'organization-id': module_host_template.organization.id,
@@ -1793,7 +1802,7 @@ def test_search_for_virt_who_hypervisors(session, default_location):
         assert not session.contenthost.search('hypervisor = true')
         # create virt-who hypervisor through the fake json conf
         data = create_fake_hypervisor_content(org.label, hypervisors=1, guests=1)
-        hypervisor_name = data['hypervisors'][0]['hypervisorId']
+        hypervisor_name = data['hypervisors'][0]['name']
         hypervisor_display_name = f'virt-who-{hypervisor_name}-{org.id}'
         # Search with hypervisor=True gives the correct result.
         assert (

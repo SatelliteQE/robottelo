@@ -16,20 +16,27 @@
 
 :Upstream: No
 """
-import pytest
+import re
+
 from broker import Broker
 from fauxfactory import gen_string
-from nailgun import entities
+import pytest
 from requests import HTTPError
 from wait_for import wait_for
 
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.config import settings
+from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    DEFAULT_SUBSCRIPTION_NAME,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_2_CUSTOM_PACKAGE,
+    PRDS,
+    REPOS,
+    REPOSET,
+)
 from robottelo.hosts import ContentHost
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import parametrized, valid_data_list
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -44,24 +51,24 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
         reposet=REPOSET['rhst7'],
         releasever=None,
     )
-    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
-    custom_repo = entities.Repository(
-        product=entities.Product(organization=org).create(),
+    custom_repo = module_target_sat.api.Repository(
+        product=module_target_sat.api.Product(organization=org).create(),
     ).create()
     custom_repo.sync()
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    cv = entities.ContentView(
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
+    cv = module_target_sat.api.ContentView(
         organization=org,
         repository=[rh_repo_id, custom_repo.id],
     ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
     cvv.promote(data={'environment_ids': lce.id, 'force': False})
-    ak = entities.ActivationKey(
+    ak = module_target_sat.api.ActivationKey(
         content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
     ).create()
-    subscription = entities.Subscription(organization=org).search(
+    subscription = module_target_sat.api.Subscription(organization=org).search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
@@ -73,7 +80,7 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_CRUDL(name):
+def test_positive_CRUDL(name, target_sat):
     """Create, Read, Update, Delete, List
 
     :id: a2a577db-144e-4761-a42e-e83885464786
@@ -96,27 +103,27 @@ def test_positive_CRUDL(name):
     """
     # Create
     template1 = gen_string('alpha')
-    rt = entities.ReportTemplate(name=name, template=template1).create()
+    rt = target_sat.api.ReportTemplate(name=name, template=template1).create()
     # List
-    res = entities.ReportTemplate().search(query={'search': f'name="{name}"'})
+    res = target_sat.api.ReportTemplate().search(query={'search': f'name="{name}"'})
     assert name in list(map(lambda x: x.name, res))
     # Read
-    rt = entities.ReportTemplate(id=rt.id).read()
+    rt = target_sat.api.ReportTemplate(id=rt.id).read()
     assert name == rt.name
     assert template1 == rt.template
     # Update
     template2 = gen_string('alpha')
-    entities.ReportTemplate(id=rt.id, template=template2).update(['template'])
-    rt = entities.ReportTemplate(id=rt.id).read()
+    target_sat.api.ReportTemplate(id=rt.id, template=template2).update(['template'])
+    rt = target_sat.api.ReportTemplate(id=rt.id).read()
     assert template2 == rt.template
     # Delete
-    entities.ReportTemplate(id=rt.id).delete()
+    target_sat.api.ReportTemplate(id=rt.id).delete()
     with pytest.raises(HTTPError):
-        rt = entities.ReportTemplate(id=rt.id).read()
+        rt = target_sat.api.ReportTemplate(id=rt.id).read()
 
 
 @pytest.mark.tier1
-def test_positive_generate_report_nofilter():
+def test_positive_generate_report_nofilter(target_sat):
     """Generate Host - Statuses report
 
     :id: a4b687db-144e-4761-a42e-e93887464986
@@ -132,8 +139,10 @@ def test_positive_generate_report_nofilter():
     :CaseImportance: Critical
     """
     host_name = gen_string('alpha').lower()
-    entities.Host(name=host_name).create()
-    rt = entities.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
+    target_sat.api.Host(name=host_name).create()
+    rt = (
+        target_sat.api.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
+    )
     res = rt.generate()
     for column_name in [
         'Name',
@@ -147,6 +156,7 @@ def test_positive_generate_report_nofilter():
         'Insights',
         'Inventory',
         'OVAL scan',
+        'RHEL lifecycle',
         'Role',
         'Service level',
         'Subscription',
@@ -159,7 +169,7 @@ def test_positive_generate_report_nofilter():
 
 
 @pytest.mark.tier2
-def test_positive_generate_report_filter():
+def test_positive_generate_report_filter(target_sat):
     """Generate Host - Statuses report
 
     :id: a4b677cb-144e-4761-a42e-e93887464986
@@ -176,9 +186,11 @@ def test_positive_generate_report_filter():
     """
     host1_name = gen_string('alpha').lower()
     host2_name = gen_string('alpha').lower()
-    entities.Host(name=host1_name).create()
-    entities.Host(name=host2_name).create()
-    rt = entities.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
+    target_sat.api.Host(name=host1_name).create()
+    target_sat.api.Host(name=host2_name).create()
+    rt = (
+        target_sat.api.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
+    )
     res = rt.generate(data={"input_values": {"hosts": host2_name}})
     for column_name in [
         'Name',
@@ -192,6 +204,7 @@ def test_positive_generate_report_filter():
         'Insights',
         'Inventory',
         'OVAL scan',
+        'RHEL lifecycle',
         'Role',
         'Service level',
         'Subscription',
@@ -205,7 +218,7 @@ def test_positive_generate_report_filter():
 
 
 @pytest.mark.tier2
-def test_positive_report_add_userinput():
+def test_positive_report_add_userinput(target_sat):
     """Add user input to template, use it in template, generate template
 
     :id: a4a577db-144e-4761-a42e-e86887464986
@@ -225,21 +238,21 @@ def test_positive_report_add_userinput():
     input_value = gen_string('alpha').lower()
     template_name = gen_string('alpha').lower()
     template = f'<%= "value=\\"" %><%= input(\'{input_name}\') %><%= "\\"" %>'
-    entities.Host(name=host_name).create()
-    rt = entities.ReportTemplate(name=template_name, template=template).create()
-    entities.TemplateInput(
+    target_sat.api.Host(name=host_name).create()
+    rt = target_sat.api.ReportTemplate(name=template_name, template=template).create()
+    target_sat.api.TemplateInput(
         name=input_name,
         input_type="user",
         template=rt.id,
     ).create()
-    ti = entities.TemplateInput(template=rt.id).search()[0].read()
+    ti = target_sat.api.TemplateInput(template=rt.id).search()[0].read()
     assert input_name == ti.name
     res = rt.generate(data={"input_values": {input_name: input_value}})
     assert f'value="{input_value}"' in res
 
 
 @pytest.mark.tier2
-def test_positive_lock_clone_nodelete_unlock_report():
+def test_positive_lock_clone_nodelete_unlock_report(target_sat):
     """Lock report template. Check it can be cloned and can't be deleted or edited.
        Unlock. Check it can be deleted and edited.
 
@@ -269,15 +282,15 @@ def test_positive_lock_clone_nodelete_unlock_report():
     template_clone_name = gen_string('alpha').lower()
     template1 = gen_string('alpha')
     template2 = gen_string('alpha')
-    rt = entities.ReportTemplate(name=template_name, template=template1).create()
+    rt = target_sat.api.ReportTemplate(name=template_name, template=template1).create()
     # 2. Lock template
-    entities.ReportTemplate(id=rt.id, locked=True).update(["locked"])
+    target_sat.api.ReportTemplate(id=rt.id, locked=True).update(["locked"])
     rt = rt.read()
     assert rt.locked is True
     # 3. Clone template, check cloned data
     rt.clone(data={'name': template_clone_name})
     cloned_rt = (
-        entities.ReportTemplate()
+        target_sat.api.ReportTemplate()
         .search(query={'search': f'name="{template_clone_name}"'})[0]
         .read()
     )
@@ -289,24 +302,28 @@ def test_positive_lock_clone_nodelete_unlock_report():
             rt.delete()
         # In BZ1680458, exception is thrown but template is deleted anyway
         assert (
-            len(entities.ReportTemplate().search(query={'search': f'name="{template_name}"'})) != 0
+            len(target_sat.api.ReportTemplate().search(query={'search': f'name="{template_name}"'}))
+            != 0
         )
     # 5. Try to edit template
     with pytest.raises(HTTPError):
-        entities.ReportTemplate(id=rt.id, template=template2).update(["template"])
+        target_sat.api.ReportTemplate(id=rt.id, template=template2).update(["template"])
     rt = rt.read()
     assert template1 == rt.template
     # 6. Unlock template
-    entities.ReportTemplate(id=rt.id, locked=False).update(["locked"])
+    target_sat.api.ReportTemplate(id=rt.id, locked=False).update(["locked"])
     rt = rt.read()
     assert rt.locked is False
     # 7. Edit template
-    entities.ReportTemplate(id=rt.id, template=template2).update(["template"])
+    target_sat.api.ReportTemplate(id=rt.id, template=template2).update(["template"])
     rt = rt.read()
     assert template2 == rt.template
     # 8. Delete template
     rt.delete()
-    assert len(entities.ReportTemplate().search(query={'search': f'name="{template_name}"'})) == 0
+    assert (
+        len(target_sat.api.ReportTemplate().search(query={'search': f'name="{template_name}"'}))
+        == 0
+    )
 
 
 @pytest.mark.tier2
@@ -369,22 +386,79 @@ def test_negative_create_report_without_name():
 
 
 @pytest.mark.tier2
-@pytest.mark.stubbed
-def test_positive_applied_errata():
+@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+@pytest.mark.no_containers
+def test_positive_applied_errata(
+    function_org, function_location, function_lce, rhel_contenthost, target_sat
+):
     """Generate an Applied Errata report
 
     :id: a4b577db-141e-4871-a42e-e93887464986
 
-    :setup: User with reporting access rights, some host with applied errata
+    :setup: A Host with some applied errata.
 
     :steps:
 
-        1. POST /api/report_templates/:id/generate
+        1. Generate an Applied Errata report
 
     :expectedresults: A report is generated with all applied errata listed
 
     :CaseImportance: Medium
     """
+    activation_key = target_sat.api.ActivationKey(
+        environment=function_lce, organization=function_org
+    ).create()
+    cv = target_sat.api.ContentView(organization=function_org).create()
+    ERRATUM_ID = str(settings.repos.yum_6.errata[2])
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_9.url,
+            'organization-id': function_org.id,
+            'content-view-id': cv.id,
+            'lifecycle-environment-id': function_lce.id,
+            'activationkey-id': activation_key.id,
+        }
+    )
+    result = rhel_contenthost.register(
+        function_org, function_location, activation_key.name, target_sat
+    )
+    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    assert rhel_contenthost.subscribed
+    rhel_contenthost.execute(r'subscription-manager repos --enable \*')
+    assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    task_id = target_sat.api.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install',
+            'inputs': {'errata': ERRATUM_ID},
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+            'organization_id': function_org.id,
+        },
+    )['id']
+    target_sat.wait_for_tasks(
+        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+        search_rate=15,
+        max_tries=10,
+    )
+    rt = (
+        target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Applied Errata"'})[0]
+        .read()
+    )
+    res = rt.generate(
+        data={
+            'organization_id': function_org.id,
+            'report_format': 'json',
+            'input_values': {
+                'Filter Errata Type': 'all',
+                'Include Last Reboot': 'no',
+                'Status': 'all',
+            },
+        }
+    )
+    assert res[0]['erratum_id'] == ERRATUM_ID
+    assert res[0]['issued']
 
 
 @pytest.mark.tier2
@@ -531,7 +605,7 @@ def test_positive_generate_entitlements_report(setup_content, target_sat):
         vm.register_contenthost(org.label, ak.name)
         assert vm.subscribed
         rt = (
-            entities.ReportTemplate()
+            target_sat.api.ReportTemplate()
             .search(query={'search': 'name="Subscription - Entitlement Report"'})[0]
             .read()
         )
@@ -570,7 +644,7 @@ def test_positive_schedule_entitlements_report(setup_content, target_sat):
         vm.register_contenthost(org.label, ak.name)
         assert vm.subscribed
         rt = (
-            entities.ReportTemplate()
+            target_sat.api.ReportTemplate()
             .search(query={'search': 'name="Subscription - Entitlement Report"'})[0]
             .read()
         )
@@ -652,3 +726,210 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
     )
     assert res[0]['Host'] == rhel7_contenthost.hostname
     assert '/root' in res[0]['stdout']
+
+
+@pytest.mark.tier2
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+def test_positive_installable_errata(
+    target_sat, function_org, function_lce, function_location, rhel_contenthost
+):
+    """Generate an Installable Errata report using the Report Template - Available Errata,
+        with the option of 'Installable'.
+
+    :id: 6263a0fa-5021-4553-939b-84fb71c81d59
+
+    :setup: A Host with some applied errata
+
+    :steps:
+        1. Install an outdated package version
+        2. Apply some errata which updates the package
+        3. Downgrade the package impacted by the erratum
+        4. Perform a search for any Available Errata
+        5. Generate an Installable Report from the Available Errata
+
+    :expectedresults: A report is generated with the installable errata listed
+
+    :CaseImportance: Medium
+
+    :customerscenario: true
+
+    :BZ: 1726504
+    """
+    activation_key = target_sat.api.ActivationKey(
+        environment=function_lce, organization=function_org
+    ).create()
+    custom_cv = target_sat.api.ContentView(organization=function_org).create()
+    ERRATUM_ID = str(settings.repos.yum_6.errata[2])
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_6.url,
+            'organization-id': function_org.id,
+            'content-view-id': custom_cv.id,
+            'lifecycle-environment-id': function_lce.id,
+            'activationkey-id': activation_key.id,
+        }
+    )
+    result = rhel_contenthost.register(
+        function_org, function_location, activation_key.name, target_sat
+    )
+    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    assert rhel_contenthost.subscribed
+
+    # Remove package if already installed on this host
+    rhel_contenthost.execute(f'yum remove -y {FAKE_1_CUSTOM_PACKAGE_NAME}')
+    # Install the outdated package version
+    rhel_contenthost.execute(r'subscription-manager repos --enable \*')
+    assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert (
+        rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}').stdout.strip()
+        == FAKE_1_CUSTOM_PACKAGE
+    )
+
+    # Install/Apply the errata
+    task_id = target_sat.api.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install',
+            'inputs': {'errata': ERRATUM_ID},
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+            'organization_id': function_org.id,
+        },
+    )['id']
+    target_sat.wait_for_tasks(
+        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+        search_rate=15,
+        max_tries=10,
+    )
+    # Check that applying erratum updated the package
+    assert (
+        rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}').stdout.strip()
+        == FAKE_2_CUSTOM_PACKAGE
+    )
+    # Downgrade the package
+    assert rhel_contenthost.execute(f'yum downgrade -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+
+    # Data to generate Installable Errata report
+    _rt_input_data = {
+        'organization_id': function_org.id,
+        'report_format': "json",
+        'input_values': {
+            'Installability': 'installable',
+        },
+    }
+
+    # Gather Errata using the template 'Available Errata', may take some time
+    # When condition is met, newest Report Template will have Errata entries
+    wait_for(
+        lambda: (
+            target_sat.api.ReportTemplate()
+            .search(query={'search': 'name="Host - Available Errata"'})[0]
+            .read()
+            .generate(data=_rt_input_data)
+            != []
+        ),
+        timeout=120,
+        delay=10,
+    )
+    report = (
+        target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Available Errata"'})[0]
+        .read()
+        .generate(data=_rt_input_data)
+    )
+    assert report
+    installable_errata = report[0]
+    assert FAKE_1_CUSTOM_PACKAGE_NAME in installable_errata['Packages']
+    assert installable_errata['Erratum'] == ERRATUM_ID
+
+
+@pytest.mark.tier2
+@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+def test_positive_installed_products(
+    target_sat,
+    rhel_contenthost,
+    default_location,
+    function_sca_manifest_org,
+):
+    """Generate 'Host - Installed Products' report for an SCA host.
+
+    :id: d290daa2-aaba-4f4d-8eee-d8a540415320
+
+    :parametrized: yes
+
+    :setup:
+        1. RH content published in a CV, promoted to LCE, AK created.
+           All inside an SCA-enabled organization.
+        2. A RHEL content host.
+
+    :steps:
+        1. Set syspurpose tags of the content host via subman.
+        2. Register the content host using the AK.
+        3. Generate 'Host - Installed Products' report.
+        4. Verify the report generated from the template.
+
+    :expectedresults:
+        1. Report is generated with correct values.
+
+    :CaseImportance: Medium
+    """
+    org = function_sca_manifest_org
+    lce_name = gen_string('alpha')
+    cv_name = gen_string('alpha')
+    sys_tags = {'role': gen_string('alpha'), 'usage': gen_string('alpha')}
+
+    for key, val in sys_tags.items():
+        assert (
+            rhel_contenthost.execute(f'subscription-manager {key} --set {val}').status == 0
+        ), f'Setting of {key} failed.'
+
+    rh_repo = {
+        'basearch': DEFAULT_ARCHITECTURE,
+        'product': REPOS['rhae2']['product'],
+        'name': REPOS['rhae2']['name'],
+        'reposet': REPOS['rhae2']['reposet'],
+        'releasever': None,
+    }
+    repo_id = target_sat.api_factory.enable_sync_redhat_repo(rh_repo, org.id)
+    cv = target_sat.api_factory.cv_publish_promote(cv_name, lce_name, repo_id, org.id)
+    ak = target_sat.api.ActivationKey(
+        content_view=cv, organization=org, environment=cv.environment[-1]
+    ).create()
+
+    rhel_contenthost.register(org, default_location, ak.name, target_sat)
+    assert rhel_contenthost.subscribed, 'Host registration failed.'
+
+    input_data = {
+        'organization_id': org.id,
+        'report_format': "json",
+        'input_values': {
+            'hosts': rhel_contenthost.hostname,
+        },
+    }
+    report = (
+        target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Installed Products"'})[0]
+        .read()
+        .generate(data=input_data)
+    )
+    assert report, 'No report generated.'
+    assert report[0]['Host Name'] == rhel_contenthost.hostname, 'Incorrect host was reported.'
+    assert report[0]['Organization'] == org.name, 'Incorrect org was reported.'
+    assert report[0]['Lifecycle Environment'] == lce_name, 'Incorrect LCE was reported.'
+    assert report[0]['Content View'] == cv_name, 'Incorrect CV was reported.'
+    assert report[0]['Role'] == sys_tags['role'], 'Incorrect role was reported.'
+    assert report[0]['Usage'] == sys_tags['usage'], 'Incorrect usage was reported.'
+
+    # Get the installed products via rake and compare them with generated report
+    rake = target_sat.execute(
+        f'echo "Host.find_by(name: \'{rhel_contenthost.hostname}\').'
+        'subscription_facet.installed_products" | foreman-rake console'
+    )
+    assert rake.status == 0, f'Rake call failed with this output:\n({rake.stdout}).'
+
+    pattern = re.compile(r'name: "(.*?)".*?cp_product_id: "(.*?)"')
+    matches = pattern.findall(rake.stdout)
+    products = [f'{match[0]} ({match[1]})' for match in matches]
+    assert len(products), 'No installed products to compare.'
+
+    assert set(products) == set(report[0]['Products']), 'Reported products do not match.'

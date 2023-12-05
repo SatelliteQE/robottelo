@@ -1,18 +1,14 @@
+from collections import defaultdict
 import os
 import subprocess
 import sys
-from collections import defaultdict
 
-import pytest
 from packaging.version import Version
+import pytest
 
 from pytest_plugins.issue_handlers import DEFAULT_BZ_CACHE_FILE
-from robottelo.constants import CLOSED_STATUSES
-from robottelo.constants import OPEN_STATUSES
-from robottelo.constants import WONTFIX_RESOLUTIONS
-from robottelo.utils.issue_handlers import add_workaround
-from robottelo.utils.issue_handlers import is_open
-from robottelo.utils.issue_handlers import should_deselect
+from robottelo.constants import CLOSED_STATUSES, OPEN_STATUSES, WONTFIX_RESOLUTIONS
+from robottelo.utils.issue_handlers import add_workaround, is_open, should_deselect
 
 
 class TestBugzillaIssueHandler:
@@ -346,8 +342,8 @@ class TestBugzillaIssueHandler:
     @pytest.mark.parametrize('issue', ["BZ123456", "XX:123456", "KK:89456", "123456", 999999])
     def test_invalid_handler(self, issue):
         """Assert is_open w/ invalid handlers raise AttributeError"""
+        issue_deselect = should_deselect(issue)
         with pytest.raises(AttributeError):
-            issue_deselect = should_deselect(issue)
             is_open(issue)
         assert issue_deselect is None
 

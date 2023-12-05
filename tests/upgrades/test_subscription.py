@@ -8,7 +8,7 @@
 
 :CaseComponent: SubscriptionManagement
 
-:team: Phoenix-subscriptions
+:Team: Phoenix-subscriptions
 
 :TestType: Functional
 
@@ -16,12 +16,12 @@
 
 :Upstream: No
 """
-import pytest
-from broker import Broker
 from manifester import Manifester
+import pytest
 
 from robottelo import constants
 from robottelo.config import settings
+from robottelo.hosts import ContentHost
 
 
 class TestManifestScenarioRefresh:
@@ -84,7 +84,7 @@ class TestSubscriptionAutoAttach:
     upgrade.
     """
 
-    @pytest.mark.rhel_ver_list('8')
+    @pytest.mark.rhel_ver_list([7, 8, 9])
     @pytest.mark.no_containers
     @pytest.mark.pre_upgrade
     def test_pre_subscription_scenario_auto_attach(
@@ -113,9 +113,14 @@ class TestSubscriptionAutoAttach:
         org = upgrade_entitlement_manifest_org
         rhel_contenthost._skip_context_checkin = True
         lce = target_sat.api.LifecycleEnvironment(organization=org).create()
-        rh_repo_id = target_sat.api_factory.enable_sync_redhat_repo(
-            constants.REPOS['rhel8_bos'], org.id
-        )
+        if rhel_contenthost.os_version.major > 7:
+            rh_repo_id = target_sat.api_factory.enable_sync_redhat_repo(
+                constants.REPOS[f'rhel{rhel_contenthost.os_version.major}_bos'], org.id
+            )
+        else:
+            rh_repo_id = target_sat.api_factory.enable_sync_redhat_repo(
+                constants.REPOS[f'rhel{rhel_contenthost.os_version.major}'], org.id
+            )
         rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
         assert rh_repo.content_counts['rpm'] >= 1
         content_view = target_sat.publish_content_view(org, rh_repo)
@@ -142,6 +147,7 @@ class TestSubscriptionAutoAttach:
             }
         )
 
+    @pytest.mark.parametrize('pre_upgrade_data', ['rhel7', 'rhel8', 'rhel9'], indirect=True)
     @pytest.mark.post_upgrade(depend_on=test_pre_subscription_scenario_auto_attach)
     def test_post_subscription_scenario_auto_attach(self, request, target_sat, pre_upgrade_data):
         """Run subscription auto-attach on pre-upgrade content host registered
@@ -157,9 +163,7 @@ class TestSubscriptionAutoAttach:
             1. Pre-upgrade content host should get subscribed.
             2. All the cleanup should be completed successfully.
         """
-        rhel_contenthost = Broker().from_inventory(
-            filter=f'hostname={pre_upgrade_data.rhel_client}'
-        )[0]
+        rhel_contenthost = ContentHost.get_host_by_hostname(pre_upgrade_data.rhel_client)
         host = target_sat.api.Host().search(query={'search': f'name={rhel_contenthost.hostname}'})[
             0
         ]

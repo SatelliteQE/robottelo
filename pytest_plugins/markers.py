@@ -14,6 +14,7 @@ def pytest_configure(config):
         "destructive: Destructive tests",
         "upgrade: Upgrade tests",
         "e2e: End to end tests",
+        "stream: Tests unique to stream builds; purged when robottelo is branched.",
         "pit_server: PIT server scenario tests",
         "pit_client: PIT client scenario tests",
         "run_in_one_thread: Sequential tests",

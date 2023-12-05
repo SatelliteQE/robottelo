@@ -13,7 +13,7 @@ from robottelo.utils import datafactory
 class TestFilteredDataPoint:
     """Tests for :meth:`robottelo.utils.datafactory.filtered_datapoint` decorator"""
 
-    @pytest.fixture(scope="function")
+    @pytest.fixture
     def run_one_datapoint(self, request):
         # Modify run_one_datapoint on settings singleton based on the indirect param
         # default to false when not parametrized
@@ -127,7 +127,7 @@ class TestReturnTypes:
         ):
             assert isinstance(item, str)
         for item in datafactory.invalid_id_list():
-            if not (isinstance(item, (str, int)) or item is None):
+            if not (isinstance(item, str | int) or item is None):
                 pytest.fail('Unexpected data type')
 
 

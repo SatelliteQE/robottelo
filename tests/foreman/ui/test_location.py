@@ -16,17 +16,15 @@
 
 :Upstream: No
 """
-import pytest
-from fauxfactory import gen_ipaddr
-from fauxfactory import gen_string
+from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import ANY_CONTEXT
-from robottelo.constants import INSTALL_MEDIUM_URL
-from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.constants import ANY_CONTEXT, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session):

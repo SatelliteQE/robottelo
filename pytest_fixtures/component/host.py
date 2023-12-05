@@ -1,14 +1,9 @@
 # Host Specific Fixtures
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
-from robottelo.cli.factory import setup_org_for_a_rh_repo
-from robottelo.constants import DEFAULT_CV
-from robottelo.constants import ENVIRONMENT
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT, PRDS, REPOS, REPOSET
 
 
 @pytest.fixture
@@ -28,7 +23,7 @@ def module_model():
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.fixture(scope="module")
-def setup_rhst_repo():
+def setup_rhst_repo(module_target_sat):
     """Prepare Satellite tools repository for usage in specified organization"""
     org = entities.Organization().create()
     cv = entities.ContentView(organization=org).create()
@@ -38,7 +33,7 @@ def setup_rhst_repo():
         organization=org,
     ).create()
     repo_name = 'rhst7'
-    setup_org_for_a_rh_repo(
+    module_target_sat.cli_factory.setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
             'repository-set': REPOSET[repo_name],

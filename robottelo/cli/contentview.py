@@ -34,8 +34,7 @@ Options::
     -h, --help                    print help
 """
 from robottelo.cli import hammer
-from robottelo.cli.base import Base
-from robottelo.cli.base import CLIError
+from robottelo.cli.base import Base, CLIError
 
 
 class ContentViewFilterRule(Base):
@@ -164,6 +163,12 @@ class ContentView(Base):
     def version_delete(cls, options):
         """Removes content-view version."""
         cls.command_sub = 'version delete'
+        return cls.execute(cls._construct_command(options), ignore_stderr=True)
+
+    @classmethod
+    def version_republish_repositories(cls, options):
+        """Removes content-view version."""
+        cls.command_sub = 'version republish-repositories'
         return cls.execute(cls._construct_command(options), ignore_stderr=True)
 
     @classmethod

@@ -6,9 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Host-Content
+:CaseComponent: Hosts-Content
 
-:team: Phoenix-subscriptions
+:Team: Phoenix-subscriptions
 
 :TestType: Functional
 

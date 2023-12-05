@@ -14,14 +14,13 @@
 
 :Upstream: No
 """
-import pytest
-import requests
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
+import requests
 
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
-from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
+from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL, FOREMAN_TEMPLATE_ROOT_DIR
 
 
 @pytest.fixture(scope='module')
@@ -170,7 +169,7 @@ def test_positive_export_filtered_templates_to_git(session, git_repository, git_
     :expectedresults:
         1. Assert matching templates are exported to git repo.
 
-    :BZ: 1785613
+    :BZ: 1785613, 2013759
 
     :parametrized: yes
 
@@ -189,7 +188,10 @@ def test_positive_export_filtered_templates_to_git(session, git_repository, git_
                 'template.dirname': dirname,
             }
         )
-        assert export_title == f'Export to {url} and branch {git_branch} as user {session._user}'
+        assert (
+            export_title == f'Export to {url.replace(git.password, "*****")} '
+            f'and branch {git_branch} as user {session._user}'
+        )
         path = f"{dirname}/provisioning_templates/provision"
         auth = (git.username, git.password)
         api_url = f"http://{git.hostname}:{git.http_port}/api/v1/repos/{git.username}"

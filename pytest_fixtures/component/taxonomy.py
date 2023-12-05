@@ -1,10 +1,9 @@
 # Content Component fixtures
-import pytest
 from manifester import Manifester
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.utils.manifest import clone
 
 
@@ -18,6 +17,20 @@ def default_org(session_target_sat):
 @pytest.fixture(scope='session')
 def default_location(session_target_sat):
     return session_target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
+
+
+@pytest.fixture
+def current_sat_org(target_sat):
+    """Return the current organization assigned to the Satellite host"""
+    sat_host = target_sat.api.Host().search(query={'search': f'name={target_sat.hostname}'})[0]
+    return sat_host.organization.read().name
+
+
+@pytest.fixture
+def current_sat_location(target_sat):
+    """Return the current location assigned to the Satellite host"""
+    sat_host = target_sat.api.Host().search(query={'search': f'name={target_sat.hostname}'})[0]
+    return sat_host.location.read().name
 
 
 @pytest.fixture
@@ -88,6 +101,13 @@ def module_sca_manifest_org(module_org, module_sca_manifest, module_target_sat):
     """Creates an organization and uploads an SCA mode manifest generated with manifester"""
     module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
     return module_org
+
+
+@pytest.fixture(scope='class')
+def class_sca_manifest_org(class_org, class_sca_manifest, class_target_sat):
+    """Creates an organization and uploads an SCA mode manifest generated with manifester"""
+    class_target_sat.upload_manifest(class_org.id, class_sca_manifest.content)
+    return class_org
 
 
 @pytest.fixture(scope='module')
@@ -184,7 +204,15 @@ def module_sca_manifest():
         yield manifest
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='class')
+def class_sca_manifest():
+    """Yields a manifest in Simple Content Access mode with subscriptions determined by the
+    `manifest_category.golden_ticket` setting in conf/manifest.yaml."""
+    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+        yield manifest
+
+
+@pytest.fixture
 def function_entitlement_manifest():
     """Yields a manifest in entitlement mode with subscriptions determined by the
     `manifest_category.entitlement` setting in conf/manifest.yaml."""
@@ -192,7 +220,16 @@ def function_entitlement_manifest():
         yield manifest
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
+def function_secondary_entitlement_manifest():
+    """Yields a manifest in entitlement mode with subscriptions determined by the
+    `manifest_category.entitlement` setting in conf/manifest.yaml.
+    A different one than is used in `function_entitlement_manifest_org`."""
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
+        yield manifest
+
+
+@pytest.fixture
 def function_sca_manifest():
     """Yields a manifest in Simple Content Access mode with subscriptions determined by the
     `manifest_category.golden_ticket` setting in conf/manifest.yaml."""
@@ -208,7 +245,7 @@ def smart_proxy_location(module_org, module_target_sat, default_smart_proxy):
     return location
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def upgrade_entitlement_manifest():
     """Returns a manifest in entitlement mode with subscriptions determined by the
     `manifest_category.entitlement` setting in conf/manifest.yaml. used only for

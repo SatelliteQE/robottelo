@@ -36,15 +36,3 @@ def test_positive_server_installer_from_iso():
 
     :CaseAutomation: NotAutomated
     """
-
-
-def test_positive_disconnected_util_installer():
-    """Can install  satellite disconnected utility successfully
-    via RPM
-
-    :id: b738cf2a-9c5f-4865-b134-102a4688534c
-
-    :expectedresults: Install of disconnected utility successful.
-
-    :CaseAutomation: NotAutomated
-    """

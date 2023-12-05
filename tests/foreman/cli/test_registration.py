@@ -20,7 +20,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import CLIENT_PORT
-from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.tier1
 
@@ -49,13 +48,11 @@ def test_host_registration_end_to_end(
     :customerscenario: true
     """
     result = rhel_contenthost.register(
-        module_org, module_location, module_ak_with_synced_repo.name, satellite=module_target_sat
+        module_org, module_location, module_ak_with_synced_repo.name, module_target_sat
     )
 
-    if is_open('BZ:2156926') and rhel_contenthost.os_version.major == 6:
-        assert result.status == 1, f'Failed to register host: {result.stderr}'
-    else:
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+    rc = 1 if rhel_contenthost.os_version.major == 6 else 0
+    assert result.status == rc, f'Failed to register host: {result.stderr}'
 
     # Verify server.hostname and server.port from subscription-manager config
     assert module_target_sat.hostname == rhel_contenthost.subscription_config['server']['hostname']
@@ -73,14 +70,11 @@ def test_host_registration_end_to_end(
         module_org,
         module_location,
         module_ak_with_synced_repo.name,
-        target=module_capsule_configured,
-        satellite=module_target_sat,
+        module_capsule_configured,
         force=True,
     )
-    if is_open('BZ:2156926') and rhel_contenthost.os_version.major == 6:
-        assert result.status == 1, f'Failed to register host: {result.stderr}'
-    else:
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+    rc = 1 if rhel_contenthost.os_version.major == 6 else 0
+    assert result.status == rc, f'Failed to register host: {result.stderr}'
 
     # Verify server.hostname and server.port from subscription-manager config
     assert (
@@ -153,3 +147,26 @@ def test_upgrade_katello_ca_consumer_rpm(
     result = vm.execute('subscription-manager identity')
     # Result will be 0 if registered
     assert result.status == 0
+
+
+@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.tier3
+def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost, target_sat):
+    """Attempt to register a host twice to Satellite
+
+    :id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
+
+    :expectedresults: host cannot be registered twice
+
+    :parametrized: yes
+
+    :CaseLevel: System
+    """
+    rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+    assert rhel_contenthost.subscribed
+    result = rhel_contenthost.register(
+        module_org, None, module_ak_with_cv.name, target_sat, force=False
+    )
+    # host being already registered.
+    assert result.status == 1
+    assert 'This system is already registered' in str(result.stderr)

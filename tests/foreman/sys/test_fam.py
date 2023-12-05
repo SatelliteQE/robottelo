@@ -18,9 +18,7 @@
 """
 import pytest
 
-from robottelo.constants import FAM_MODULE_PATH
-from robottelo.constants import FOREMAN_ANSIBLE_MODULES
-from robottelo.constants import RH_SAT_ROLES
+from robottelo.constants import FAM_MODULE_PATH, FOREMAN_ANSIBLE_MODULES, RH_SAT_ROLES
 
 
 @pytest.fixture

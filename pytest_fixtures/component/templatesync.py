@@ -1,13 +1,13 @@
+from fauxfactory import gen_string
 import pytest
 import requests
-from fauxfactory import gen_string
 
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
 from robottelo.logging import logger
 
 
-@pytest.fixture()
+@pytest.fixture
 def create_import_export_local_dir(target_sat):
     """Creates a local directory inside root_dir on satellite from where the templates will
         be imported from or exported to.
@@ -24,7 +24,7 @@ def create_import_export_local_dir(target_sat):
         f'mkdir -p {dir_path} && '
         f'chown foreman -R {root_dir} && '
         f'restorecon -R -v {root_dir} && '
-        f'chcon -t httpd_sys_rw_content_t {dir_path} -R'
+        f'chcon -t foreman_lib_t {dir_path} -R'
     )
     if result.status != 0:
         logger.debug(result.stdout)
@@ -76,7 +76,7 @@ def git_pub_key(session_target_sat, git_port):
     res.raise_for_status()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def git_repository(git_port, git_pub_key, request):
     """Creates a new repository on git provider for exporting templates.
 
@@ -96,7 +96,7 @@ def git_repository(git_port, git_pub_key, request):
     res.raise_for_status()
 
 
-@pytest.fixture()
+@pytest.fixture
 def git_branch(git_repository):
     """Creates a new branch in the git repository for exporting templates.
 

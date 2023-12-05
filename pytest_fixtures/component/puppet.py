@@ -2,38 +2,38 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import COMMON_INSTALLER_OPTS as common_opts
 from robottelo.constants import ENVIRONMENT
-from robottelo.utils.installer import InstallerCommand
-
-
-enable_capsule_cmd = InstallerCommand(
-    installer_args=[
-        'enable-puppet',
-    ],
-    installer_opts=common_opts,
-)
 
 
 @pytest.fixture(scope='session')
 def session_puppet_enabled_sat(session_satellite_host):
     """Satellite with enabled puppet plugin"""
-    yield session_satellite_host.enable_puppet()
+    if session_satellite_host:
+        yield session_satellite_host.enable_puppet_satellite()
+    else:
+        yield
+
+
+@pytest.fixture(scope='session')
+def session_puppet_enabled_capsule(session_capsule_host, session_puppet_enabled_sat):
+    """Capsule with enabled puppet plugin"""
+    session_capsule_host.capsule_setup(sat_host=session_puppet_enabled_sat)
+    return session_capsule_host.enable_puppet_capsule(satellite=session_puppet_enabled_sat)
 
 
 @pytest.fixture(scope='module')
 def module_puppet_org(session_puppet_enabled_sat):
-    yield session_puppet_enabled_sat.api.Organization().create()
+    return session_puppet_enabled_sat.api.Organization().create()
 
 
 @pytest.fixture(scope='module')
 def module_puppet_loc(session_puppet_enabled_sat):
-    yield session_puppet_enabled_sat.api.Location().create()
+    return session_puppet_enabled_sat.api.Location().create()
 
 
 @pytest.fixture(scope='module')
 def module_puppet_domain(session_puppet_enabled_sat, module_puppet_loc, module_puppet_org):
-    yield session_puppet_enabled_sat.api.Domain(
+    return session_puppet_enabled_sat.api.Domain(
         location=[module_puppet_loc], organization=[module_puppet_org]
     ).create()
 

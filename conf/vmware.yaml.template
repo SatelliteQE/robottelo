@@ -1,26 +1,31 @@
 VMWARE:
-  # Vmware to be added as a compute resource
-  # vmware vcenter URL, e.g. example.com
+  # VMware to be added as a compute resource
+  # VCENTER: vmware vcenter URL
   VCENTER:
-  # Login for vmware
+  # USERNAME: Login for vmware
   USERNAME:
-  # Password for vmware
+  # PASSWORD: Password for vmware
   PASSWORD:
-  # vmware datacenter
+  # DATACENTER: vmware datacenter
   DATACENTER:
-  # Name of VM that should be used
+  # CLUSTER: vmware cluster
+  CLUSTER:
+  # DATASTORE: vmware datastore
+  DATASTORE:
+  # VM_NAME: Name of VM to power On/Off & delete
   VM_NAME:
-
-  # Vmware Compute resource image data
-  # Operating system of the image
+  # MAC_ADDRESS: Mac address of the vm
+  MAC_ADDRESS:
+  # HYPERVISOR: IP address or hostname of the hypervisor
+  HYPERVISOR:
+  # VMware Compute resource image data
+  # IMAGE_OS: Operating system of the image
   IMAGE_OS:
-  # Architecture of the image
+  # IMAGE_ARCH: Architecture of the image
   IMAGE_ARCH:
-  # Login to the image
+  # IMAGE_USERNAME: Login to the image
   IMAGE_USERNAME:
-  # Password of that user
+  # IMAGE_PASSWORD: Password to the image
   IMAGE_PASSWORD:
-  # Image name on the external provider
+  # IMAGE_NAME: Image name on the external provider
   IMAGE_NAME:
-  # Interface used for some tests; not required to work with provisioning, not required to be in VLAN
-  INTERFACE:

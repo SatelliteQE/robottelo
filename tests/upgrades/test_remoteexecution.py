@@ -18,8 +18,6 @@
 """
 import pytest
 
-from robottelo.hosts import Capsule
-
 
 class TestScenarioREXCapsule:
     """Test Remote Execution job created before migration runs successfully
@@ -35,7 +33,7 @@ class TestScenarioREXCapsule:
         4. Check if REX job still getting success.
     """
 
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.rhel_ver_list([7, 8, 9])
     @pytest.mark.no_containers
     @pytest.mark.pre_upgrade
     def test_pre_scenario_remote_execution_external_capsule(
@@ -45,6 +43,7 @@ class TestScenarioREXCapsule:
         module_org,
         smart_proxy_location,
         module_ak_with_cv,
+        pre_configured_capsule,
         save_test_data,
     ):
         """
@@ -65,10 +64,9 @@ class TestScenarioREXCapsule:
 
         """
         rhel_contenthost._skip_context_checkin = True
-        capsule = Capsule(target_sat.api.SmartProxy(id=2).read().name)
         target_sat.cli.Capsule.update(
             {
-                'name': capsule.hostname,
+                'name': pre_configured_capsule.hostname,
                 'organization-ids': module_org.id,
                 'location-ids': smart_proxy_location.id,
             }
@@ -78,8 +76,7 @@ class TestScenarioREXCapsule:
             module_org,
             smart_proxy_location,
             module_ak_with_cv.name,
-            target=capsule,
-            satellite=target_sat,
+            pre_configured_capsule,
             packages=['katello-agent'],
         )
         assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
@@ -113,6 +110,7 @@ class TestScenarioREXCapsule:
             }
         )
 
+    @pytest.mark.parametrize('pre_upgrade_data', ['rhel7', 'rhel8', 'rhel9'], indirect=True)
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_remote_execution_external_capsule)
     def test_post_scenario_remote_execution_external_capsule(self, target_sat, pre_upgrade_data):
         """Run a REX job on pre-upgrade created client registered
@@ -157,7 +155,7 @@ class TestScenarioREXSatellite:
         7. Check if REX job still getting success.
     """
 
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.rhel_ver_list([7, 8, 9])
     @pytest.mark.no_containers
     @pytest.mark.pre_upgrade
     def test_pre_scenario_remote_execution_satellite(
@@ -189,8 +187,7 @@ class TestScenarioREXSatellite:
             module_org,
             smart_proxy_location,
             module_ak_with_cv.name,
-            target=target_sat,
-            satellite=target_sat,
+            target_sat,
             packages=['katello-agent'],
         )
         assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
@@ -224,6 +221,7 @@ class TestScenarioREXSatellite:
             }
         )
 
+    @pytest.mark.parametrize('pre_upgrade_data', ['rhel7', 'rhel8', 'rhel9'], indirect=True)
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_remote_execution_satellite)
     def test_post_scenario_remote_execution_satellite(self, target_sat, pre_upgrade_data):
         """Run a REX job on pre-upgrade created client registered

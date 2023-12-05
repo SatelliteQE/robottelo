@@ -16,15 +16,15 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_CV
-from robottelo.constants import ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 def test_positive_end_to_end(session, module_org, module_location):
     """Perform end to end testing for host group component

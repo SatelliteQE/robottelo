@@ -18,17 +18,14 @@
 """
 from functools import partial
 
-import pytest
 from fauxfactory import gen_string
-
-from robottelo.cli.globalparam import GlobalParameter
-
+import pytest
 
 pytestmark = [pytest.mark.tier1]
 
 
 @pytest.mark.upgrade
-def test_positive_list_delete_by_name():
+def test_positive_list_delete_by_name(module_target_sat):
     """Test Global Param List
 
     :id: 8dd6c4e8-4ec9-4bee-8a04-f5788960973a
@@ -41,13 +38,13 @@ def test_positive_list_delete_by_name():
     value = f'val-{alphastring()} {alphastring()}'
 
     # Create
-    GlobalParameter().set({'name': name, 'value': value})
+    module_target_sat.cli.GlobalParameter().set({'name': name, 'value': value})
 
     # List by name
-    result = GlobalParameter().list({'search': name})
+    result = module_target_sat.cli.GlobalParameter().list({'search': name})
     assert len(result) == 1
     assert result[0]['value'] == value
 
     # Delete
-    GlobalParameter().delete({'name': name})
-    assert len(GlobalParameter().list({'search': name})) == 0
+    module_target_sat.cli.GlobalParameter().delete({'name': name})
+    assert len(module_target_sat.cli.GlobalParameter().list({'search': name})) == 0

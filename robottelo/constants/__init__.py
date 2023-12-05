@@ -12,11 +12,13 @@ class Colored(Box):
     REDDARK = '\033[1;31m'
     GREEN = '\033[1;32m'
     WHITELIGHT = '\033[1;30m'
+    RESET = '\033[0m'
 
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.14"
+SATELLITE_VERSION = "6.16"
 SATELLITE_OS_VERSION = "8"
+SAT_NON_GA_VERSIONS = ['6.15', '6.16']
 
 # Default system ports
 HTTPS_PORT = '443'
@@ -42,7 +44,7 @@ LOCALES = (
 
 
 DISTRO_DEFAULT = 'rhel7'
-DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8, rhel9']
+DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8', 'rhel9']
 DISTROS_MAJOR_VERSION = {
     'rhel6': 6,
     'rhel7': 7,
@@ -57,7 +59,6 @@ FOREMAN_PROVIDERS = {
     'ec2': 'EC2',
     'vmware': 'VMware',
     'openstack': 'RHEL OpenStack Platform',
-    'rackspace': 'Rackspace',
     'google': 'Google',
     'azurerm': 'Azure Resource Manager',
 }
@@ -115,6 +116,8 @@ LATEST_RHEL7_GCE_IMG_UUID = '7726764279310511390'
 GCE_MACHINE_TYPE_DEFAULT = 'f1-micro'
 GCE_NETWORK_DEFAULT = 'default'
 GCE_EXTERNAL_IP_DEFAULT = True
+GCE_RHEL_CLOUD_PROJECTS = ['rhel-cloud', 'rhel-sap-cloud']
+GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-7'
 
 # AzureRM specific constants
 AZURERM_VALID_REGIONS = [
@@ -198,6 +201,8 @@ SNIPPET_URL = 'https://gist.github.com/sghai/8434467/raw'
 
 INSTALL_MEDIUM_URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 
+HTTPS_MEDIUM_URL = "https://partha.fedorapeople.org/test-repos/kickstart-zoo"
+
 VALID_GPG_KEY_FILE = "valid_gpg_key.txt"
 
 ZOO_CUSTOM_GPG_KEY = "zoo_custom_gpgkey.txt"
@@ -214,10 +219,12 @@ ENVIRONMENT = "Library"
 SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "custom cron"}
 
 REPO_TYPE = {
+    "deb": "deb",
     'yum': "yum",
     'ostree': "ostree",
     'docker': "docker",
-    "ansible_collection": "ansible collection",
+    'ansible_collection': "ansible_collection",
+    'file': "file",
 }
 
 DOWNLOAD_POLICIES = {
@@ -238,6 +245,7 @@ PRODUCT_KEY_SAT_CLIENT = 'rhsclient'
 PRODUCT_KEY_VIRT_AGENTS = 'rhva6'
 PRODUCT_KEY_CLOUD_FORMS_TOOLS = 'rhct6'
 PRODUCT_KEY_ANSIBLE_ENGINE = 'rhae2'
+PRODUCT_KEY_RHEL_EXTRAS = 'rhel7_extra'
 
 HASH_TYPE = {'sha256': "SHA256", 'sha512': "SHA512", 'base64': "Base64", 'md5': "MD5"}
 
@@ -254,9 +262,6 @@ OHSNAP_RHEL8_REPOS = (
     'rhel-8-for-x86_64-baseos-rpms',
     'rhel-8-for-x86_64-appstream-rpms',
 )
-
-INSTALL_RHEL7_STEPS = 'yum -y install satellite'
-INSTALL_RHEL8_STEPS = 'dnf -y module enable satellite:el8 && dnf -y install satellite'
 
 # On importing manifests, Red Hat repositories are listed like this:
 # Product -> RepositorySet -> Repository
@@ -281,12 +286,13 @@ REPOSET = {
     'rhel7': 'Red Hat Enterprise Linux 7 Server (RPMs)',
     'rhva6': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'),
     'rhs7': 'Red Hat Satellite 6.11 (for RHEL 7 Server) (RPMs)',
-    'rhsc7': 'Red Hat Satellite Capsule 6.9 (for RHEL 7 Server) (RPMs)',
+    'rhs8': 'Red Hat Satellite 6.13 for RHEL 8 x86_64 (RPMs)',
+    'rhsc7': 'Red Hat Satellite Capsule 6.11 (for RHEL 7 Server) (RPMs)',
+    'rhsc8': 'Red Hat Satellite Capsule 6.13 for RHEL 8 x86_64 (RPMs)',
     'rhsc7_iso': 'Red Hat Satellite Capsule 6.4 (for RHEL 7 Server) (ISOs)',
-    'rhsc6': 'Red Hat Satellite Capsule 6.9 (for RHEL 6 Server) (RPMs)',
-    'rhsclient7': 'Red Hat Satellite Client 6 for RHEL 7 Server RPMs x86_64',
-    'rhsclient8': 'Red Hat Satellite Client 6 for RHEL 8 x86_64 RPMs',
-    'rhsclient9': 'Red Hat Satellite Client 6 for RHEL 9 x86_64 RPMs',
+    'rhsclient7': 'Red Hat Satellite Client 6 (for RHEL 7 Server) (RPMs)',
+    'rhsclient8': 'Red Hat Satellite Client 6 for RHEL 8 x86_64 (RPMs)',
+    'rhsclient9': 'Red Hat Satellite Client 6 for RHEL 9 x86_64 (RPMs)',
     'rhst7': 'Red Hat Satellite Tools 6.9 (for RHEL 7 Server) (RPMs)',
     'rhst7_610': 'Red Hat Satellite Tools 6.10 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.9 (for RHEL 6 Server) (RPMs)',
@@ -312,7 +318,6 @@ REPOSET = {
     'rhel7_extra': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
     'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
-    'rhst7_610': 'Red Hat Satellite Tools 6.10 (for RHEL 7 Server) (RPMs)',
 }
 
 SM_OVERALL_STATUS = {
@@ -350,6 +355,15 @@ REPOS = {
         'key': 'rhel',
         'version': '6.8',
     },
+    'rhs8': {
+        'id': 'satellite-6.13-for-rhel-8-x86_64-rpms',
+        'name': ('Red Hat Satellite 6.13 for RHEL 8 x86_64 RPMs'),
+        'version': '6.13',
+        'reposet': REPOSET['rhs8'],
+        'product': PRDS['rhs'],
+        'distro': 'rhel8',
+        'key': 'rhs',
+    },
     'rhs7': {
         'id': 'rhel-7-server-satellite-6.11-rpms',
         'name': ('Red Hat Satellite 6.11 for RHEL 7 Server RPMs x86_64'),
@@ -359,10 +373,19 @@ REPOS = {
         'distro': 'rhel7',
         'key': 'rhs',
     },
+    'rhsc8': {
+        'id': 'satellite-capsule-6.13-for-rhel-8-x86_64-rpms',
+        'name': ('Red Hat Satellite Capsule 6.13 for RHEL 8 x86_64 RPMs'),
+        'version': '6.13',
+        'reposet': REPOSET['rhsc8'],
+        'product': PRDS['rhsc'],
+        'distro': 'rhel8',
+        'key': 'rhsc',
+    },
     'rhsc7': {
-        'id': 'rhel-7-server-satellite-capsule-6.9-rpms',
-        'name': ('Red Hat Satellite Capsule 6.9 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.9',
+        'id': 'rhel-7-server-satellite-capsule-6.11-rpms',
+        'name': ('Red Hat Satellite Capsule 6.11 for RHEL 7 Server RPMs x86_64'),
+        'version': '6.11',
         'reposet': REPOSET['rhsc7'],
         'product': PRDS['rhsc'],
         'distro': 'rhel7',
@@ -371,15 +394,6 @@ REPOS = {
     'rhsc7_iso': {
         'id': 'rhel-7-server-satellite-capsule-6.4-isos',
         'name': ('Red Hat Satellite Capsule 6.4 for RHEL 7 Server ISOs x86_64'),
-    },
-    'rhsc6': {
-        'id': 'rhel-6-server-satellite-capsule-6.9-rpms',
-        'name': ('Red Hat Satellite Capsule 6.9 for RHEL 6 Server RPMs x86_64'),
-        'version': '6.8',
-        'reposet': REPOSET['rhsc6'],
-        'product': PRDS['rhsc'],
-        'distro': 'rhel6',
-        'key': 'rhsc',
     },
     'rhsclient7': {
         'id': 'rhel-7-server-satellite-client-6-rpms',
@@ -395,7 +409,7 @@ REPOS = {
         'name': ('Red Hat Satellite Client 6 for RHEL 8 x86_64 RPMs'),
         'version': '6',
         'reposet': REPOSET['rhsclient8'],
-        'product': PRDS['rhel'],
+        'product': PRDS['rhel8'],
         'distro': 'rhel8',
         'key': PRODUCT_KEY_SAT_CLIENT,
     },
@@ -404,7 +418,7 @@ REPOS = {
         'name': ('Red Hat Satellite Client 6 for RHEL 9 x86_64 RPMs'),
         'version': '6',
         'reposet': REPOSET['rhsclient9'],
-        'product': PRDS['rhel'],
+        'product': PRDS['rhel9'],
         'distro': 'rhel9',
         'key': PRODUCT_KEY_SAT_CLIENT,
     },
@@ -517,32 +531,32 @@ REPOS = {
         },
         'rhel8_bos': {
             'id': 'rhel-8-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.7',
-            'version': '8.7',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.9',
+            'version': '8.9',
             'reposet': REPOSET['kickstart']['rhel8'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
         },
         'rhel8_aps': {
             'id': 'rhel-8-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.7',
-            'version': '8.7',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.9',
+            'version': '8.9',
             'reposet': REPOSET['kickstart']['rhel8_aps'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.1',
-            'version': '9.1',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.3',
+            'version': '9.3',
             'reposet': REPOSET['kickstart']['rhel9'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.1',
-            'version': '9.1',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.3',
+            'version': '9.3',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
@@ -824,7 +838,6 @@ FAKE_3_YUM_REPO_RPMS = [
     'seal-1.0.10-1.noarch.rpm',
 ]
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS = {'rpm': 35, 'package_group': 2, 'erratum': 4}
-PULP_PUBLISHED_YUM_REPOS_PATH = '/var/lib/pulp/published/yum/http/repos'
 
 FAKE_FILE_LARGE_URL = 'https://fixtures.pulpproject.org/file-large/'
 FAKE_FILE_LARGE_COUNT = 10
@@ -846,13 +859,25 @@ CUSTOM_PUPPET_MODULE_REPOS_VERSION = '-0.2.0.tar.gz'
 
 PULP_EXPORT_DIR = '/var/lib/pulp/exports/'
 PULP_IMPORT_DIR = '/var/lib/pulp/imports/'
-COMMON_INSTALLER_OPTS = {
+EXPORT_LIBRARY_NAME = 'Export-Library'
+
+PUPPET_COMMON_INSTALLER_OPTS = {
     'foreman-proxy-puppetca': 'true',
     'foreman-proxy-puppet': 'true',
     'puppet-server': 'true',
     # Options for puppetbootstrap test
     'foreman-proxy-templates': 'true',
     'foreman-proxy-http': 'true',
+}
+PUPPET_SATELLITE_INSTALLER = [
+    'enable-puppet',
+    'enable-foreman-plugin-puppet',
+    'enable-foreman-cli-puppet',
+]
+PUPPET_CAPSULE_INSTALLER = ['enable-puppet']
+CAPSULE_REGISTRATION_OPTS = {
+    'foreman-proxy-registration': 'true',
+    'foreman-proxy-templates': 'true',
 }
 
 KICKSTART_CONTENT = [
@@ -1517,8 +1542,6 @@ LDAP_ATTR = {
     'mail': 'mail',
 }
 
-OSCAP_TARGET_CORES = 4
-OSCAP_TARGET_MEMORY = '16GiB'
 OSCAP_PERIOD = {'weekly': 'Weekly', 'monthly': 'Monthly', 'custom': 'Custom'}
 OSCAP_TAILORING_FILE = 'ssg-rhel7-ds-tailoring.xml'
 
@@ -1546,7 +1569,7 @@ OSCAP_PROFILE = {
     'dsrhel8': '[DRAFT] DISA STIG for Red Hat Enterprise Linux 8',
     'esp': 'Example Server Profile',
     'rhccp': 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)',
-    'firefox': 'Upstream Firefox STIG',
+    'firefox': 'Mozilla Firefox STIG',
     'tailoring_rhel7': (
         'Standard System Security Profile for Red Hat Enterprise Linux 7 [CUSTOMIZED]'
     ),
@@ -1704,23 +1727,24 @@ BOOKMARK_ENTITIES = [
 STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
 
 VMWARE_CONSTANTS = {
-    'cluster': 'Satellite-Engineering',
     'folder': 'vm',
-    'guest_os': 'Red Hat Enterprise Linux 7 (64-bit)',
+    'guest_os': 'Red Hat Enterprise Linux 8 (64 bit)',
     'scsicontroller': 'LSI Logic Parallel',
     'virtualhw_version': 'Default',
     'pool': 'Resources',
     'network_interface_name': 'VMXNET 3',
-    'datastore': 'Local-Ironforge',
-    'network_interfaces': 'qe_%s',
 }
+
 
 HAMMER_CONFIG = "~/.hammer/cli.modules.d/foreman.yml"
 HAMMER_SESSIONS = "~/.hammer/sessions"
 
+INSTALLER_CONFIG_FILE = '/etc/foreman-installer/scenarios.d/satellite.yaml'
 SATELLITE_ANSWER_FILE = "/etc/foreman-installer/scenarios.d/satellite-answers.yaml"
+CAPSULE_ANSWER_FILE = "/etc/foreman-installer/scenarios.d/capsule-answers.yaml"
 MAINTAIN_HAMMER_YML = "/etc/foreman-maintain/foreman-maintain-hammer.yml"
 SATELLITE_MAINTAIN_YML = "/etc/foreman-maintain/foreman_maintain.yml"
+FOREMAN_SETTINGS_YML = '/etc/foreman/settings.yaml'
 
 FOREMAN_TEMPLATE_IMPORT_URL = 'https://github.com/SatelliteQE/foreman_templates.git'
 FOREMAN_TEMPLATE_IMPORT_API_URL = 'http://api.github.com/repos/SatelliteQE/foreman_templates'
@@ -1942,6 +1966,12 @@ WEBHOOK_METHODS = [
     "DELETE",
     "PATCH",
 ]
+
+OPENSSH_RECOMMENDATION = 'Decreased security: OpenSSH config permissions'
+DNF_RECOMMENDATION = (
+    'The dnf installs lower versions of packages when the "best" '
+    'option is not present in the /etc/dnf/dnf.conf'
+)
 
 
 # Data File Paths

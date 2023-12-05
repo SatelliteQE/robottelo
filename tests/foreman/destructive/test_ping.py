@@ -29,7 +29,7 @@ def tomcat_service_teardown(request, module_target_sat):
     def _finalize():
         assert module_target_sat.cli.Service.start(options={'only': 'tomcat.service'}).status == 0
 
-    yield module_target_sat
+    return module_target_sat
 
 
 def test_negative_cli_ping_fail_status(tomcat_service_teardown):

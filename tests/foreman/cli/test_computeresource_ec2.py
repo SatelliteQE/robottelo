@@ -13,24 +13,19 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
-from robottelo.cli.factory import make_compute_resource
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_org
-from robottelo.cli.org import Org
 from robottelo.config import settings
-from robottelo.constants import EC2_REGION_CA_CENTRAL_1
-from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import EC2_REGION_CA_CENTRAL_1, FOREMAN_PROVIDERS
 
 
 @pytest.fixture(scope='module')
-def aws():
+def aws(module_target_sat):
     aws = type('rhev', (object,), {})()
-    aws.org = make_org()
-    aws.loc = make_location()
-    Org.add_location({'id': aws.org['id'], 'location-id': aws.loc['id']})
+    aws.org = module_target_sat.cli_factory.make_org()
+    aws.loc = module_target_sat.cli_factory.make_location()
+    module_target_sat.cli.Org.add_location({'id': aws.org['id'], 'location-id': aws.loc['id']})
     aws.aws_access_key = settings.ec2.access_key
     aws.aws_secret_key = settings.ec2.secret_key
     aws.aws_region = settings.ec2.region
@@ -44,7 +39,7 @@ def aws():
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_create_ec2_with_custom_region(aws):
+def test_positive_create_ec2_with_custom_region(aws, module_target_sat):
     """Create a new ec2 compute resource with custom region
 
     :id: 28eb592d-ebf0-4659-900a-87112b3b2ad7
@@ -63,7 +58,7 @@ def test_positive_create_ec2_with_custom_region(aws):
     """
     cr_name = gen_string(str_type='alpha')
     cr_description = gen_string(str_type='alpha')
-    cr = make_compute_resource(
+    cr = module_target_sat.cli_factory.compute_resource(
         {
             'name': cr_name,
             'description': cr_description,

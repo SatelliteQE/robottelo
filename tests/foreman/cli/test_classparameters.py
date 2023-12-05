@@ -18,8 +18,8 @@
 """
 import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
+from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import gen_string
 
 
@@ -59,15 +59,16 @@ def module_sc_params(session_puppet_enabled_sat, module_puppet):
     return {'list': sc_params_list, 'ids': sc_params_ids_list}
 
 
+@pytest.mark.tier1
+@pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
-@pytest.mark.e2e
 @pytest.mark.skipif(
     not settings.robottelo.REPOS_HOSTING_URL, reason="repos_hosting_url is not defined"
 )
 class TestSmartClassParameters:
     """Implements Smart Class Parameter tests in CLI"""
 
-    @pytest.mark.tier1
+    @pytest.mark.e2e
     def test_positive_list(
         self,
         session_puppet_enabled_sat,
@@ -90,7 +91,7 @@ class TestSmartClassParameters:
             environment=module_puppet['env'].name,
         ).create()
         host.add_puppetclass(data={'puppetclass_id': module_puppet['class']['id']})
-        hostgroup = session_puppet_enabled_sat.cli_factory.make_hostgroup(
+        hostgroup = session_puppet_enabled_sat.cli_factory.hostgroup(
             {
                 'puppet-environment-id': module_puppet['env'].id,
                 'puppet-class-ids': module_puppet['class']['id'],
@@ -127,7 +128,6 @@ class TestSmartClassParameters:
                 {scp['id'] for scp in sc_params}
             ), f'Not only unique results returned for query: {query}'
 
-    @pytest.mark.tier1
     def test_positive_list_with_non_admin_user(self, session_puppet_enabled_sat, module_puppet):
         """List all the parameters for specific puppet class by id.
 
@@ -149,9 +149,7 @@ class TestSmartClassParameters:
                 ]
             },
         }
-        user = session_puppet_enabled_sat.cli_factory.make_user(
-            {'admin': '0', 'password': password}
-        )
+        user = session_puppet_enabled_sat.cli_factory.user({'admin': '0', 'password': password})
         role = session_puppet_enabled_sat.cli_factory.make_role()
         session_puppet_enabled_sat.cli_factory.add_role_permissions(
             role['id'], required_user_permissions
@@ -166,8 +164,7 @@ class TestSmartClassParameters:
         # Check that only unique results are returned
         assert len(sc_params) == len({scp['id'] for scp in sc_params})
 
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
+    @pytest.mark.e2e
     def test_positive_override(self, session_puppet_enabled_sat, module_puppet, module_sc_params):
         """Override the Default Parameter value.
 
@@ -197,14 +194,12 @@ class TestSmartClassParameters:
         assert sc_param['default-value'] == value
         assert sc_param['omit'] is True
 
-    @pytest.mark.tier1
     def test_negative_override(self, session_puppet_enabled_sat, module_sc_params):
         """Override the Default Parameter value - override Unchecked.
 
         :id: eb24c44d-0e34-40a3-aa3e-05a3cd4ed1ea
 
         :steps:
-
             1.  Don't override the parameter.
             2.  Set the new valid Default Value.
             3.  Attempt to submit the changes.
@@ -221,7 +216,6 @@ class TestSmartClassParameters:
                 {'default-value': gen_string('alpha'), 'id': sc_param_id}
             )
 
-    @pytest.mark.tier1
     def test_negative_validate_default_value_with_list(
         self, session_puppet_enabled_sat, module_puppet, module_sc_params
     ):
@@ -257,7 +251,7 @@ class TestSmartClassParameters:
         )
         assert sc_param['default-value'] != value
 
-    @pytest.mark.tier1
+    @pytest.mark.e2e
     def test_positive_validate_default_value_with_list(
         self, session_puppet_enabled_sat, module_puppet, module_sc_params
     ):
@@ -296,7 +290,6 @@ class TestSmartClassParameters:
         assert sc_param['validator']['type'] == 'list'
         assert sc_param['validator']['rule'] == '5, test'
 
-    @pytest.mark.tier1
     def test_negative_validate_matcher_non_existing_attribute(
         self, session_puppet_enabled_sat, module_sc_params
     ):
@@ -322,8 +315,7 @@ class TestSmartClassParameters:
                 }
             )
 
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
+    @pytest.mark.e2e
     def test_positive_create_and_remove_matcher(
         self, session_puppet_enabled_sat, module_puppet, module_sc_params
     ):
@@ -332,7 +324,6 @@ class TestSmartClassParameters:
         :id: 37fe299b-1e81-4faf-b1c3-2edfc3d53dc1
 
         :steps:
-
             1.  Override the parameter.
             2.  Set some default Value.
             3.  Create a matcher with all valid values.
@@ -368,17 +359,15 @@ class TestSmartClassParameters:
         )
         assert len(sc_param['override-values']['values']) == 0
 
-    @pytest.mark.tier1
+    @pytest.mark.e2e
     def test_positive_create_matcher_puppet_default_value(
         self, session_puppet_enabled_sat, module_puppet, module_sc_params
     ):
-        """Create matcher for attribute in parameter,
-        Where Value is puppet default value.
+        """Create matcher for attribute in parameter, where Value is puppet default value
 
         :id: c08fcf25-e5c7-411e-beed-3741a24496fd
 
         :steps:
-
             1.  Override the parameter.
             2.  Set some default Value.
             3.  Create matcher with valid attribute type, name and puppet
@@ -399,8 +388,7 @@ class TestSmartClassParameters:
         )
         assert sc_param['override-values']['values']['1']['match'] == 'domain=test.com'
 
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
+    @pytest.mark.e2e
     def test_positive_test_hidden_parameter_value(
         self, session_puppet_enabled_sat, module_puppet, module_sc_params
     ):
@@ -409,7 +397,6 @@ class TestSmartClassParameters:
         :id: 3daf662f-a0dd-469c-8088-262bfaa5246a
 
         :steps:
-
             1. Set the override flag for the parameter.
             2. Set some valid default value.
             3. Set 'Hidden Value' to true and submit.

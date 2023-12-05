@@ -16,9 +16,9 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
 from robottelo.utils.datafactory import valid_domain_names
 
@@ -123,6 +123,7 @@ def test_positive_remove_parameter(session, valid_domain_name):
         assert param_name not in [param['name'] for param in params]
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_location, valid_domain_name):

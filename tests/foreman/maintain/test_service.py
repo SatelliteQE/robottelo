@@ -16,16 +16,40 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import HAMMER_CONFIG
-from robottelo.constants import MAINTAIN_HAMMER_YML
-from robottelo.constants import SATELLITE_ANSWER_FILE
-from robottelo.utils.issue_handlers import is_open
+from robottelo.constants import (
+    HAMMER_CONFIG,
+    MAINTAIN_HAMMER_YML,
+    SATELLITE_ANSWER_FILE,
+)
+from robottelo.hosts import Satellite
 
-pytestmark = pytest.mark.destructive
+SATELLITE_SERVICES = [
+    "dynflow-sidekiq@.service",
+    "foreman-proxy.service",
+    "foreman.service",
+    "httpd.service",
+    "postgresql.service",
+    "pulpcore-api.service",
+    "pulpcore-content.service",
+    "pulpcore-worker@.service",
+    "redis.service",
+    "tomcat.service",
+]
+
+CAPSULE_SERVICES = [
+    "foreman-proxy.service",
+    "httpd.service",
+    "postgresql.service",
+    "pulpcore-api.service",
+    "pulpcore-content.service",
+    "pulpcore-worker@.service",
+    "redis.service",
+]
 
 
 @pytest.fixture
@@ -65,10 +89,13 @@ def test_positive_service_list(sat_maintain):
     result = sat_maintain.cli.Service.list()
     assert 'FAIL' not in result.stdout
     assert result.status == 0
+    services = SATELLITE_SERVICES if type(sat_maintain) is Satellite else CAPSULE_SERVICES
+    for service in services:
+        assert service in result.stdout
 
 
-@pytest.mark.e2e
 @pytest.mark.include_capsule
+@pytest.mark.usefixtures('start_satellite_services')
 def test_positive_service_stop_start(sat_maintain):
     """Start/Stop services using satellite-maintain service subcommand
 
@@ -98,8 +125,9 @@ def test_positive_service_stop_start(sat_maintain):
     assert result.status == 0
 
 
-@pytest.mark.e2e
+@pytest.mark.upgrade
 @pytest.mark.include_capsule
+@pytest.mark.usefixtures('start_satellite_services')
 def test_positive_service_stop_restart(sat_maintain):
     """Disable services using satellite-maintain service
 
@@ -132,6 +160,7 @@ def test_positive_service_stop_restart(sat_maintain):
 
 
 @pytest.mark.include_capsule
+@pytest.mark.usefixtures('start_satellite_services')
 def test_positive_service_enable_disable(sat_maintain):
     """Enable/Disable services using satellite-maintain service subcommand
 
@@ -144,17 +173,46 @@ def test_positive_service_enable_disable(sat_maintain):
         2. Run satellite-maintain service enable
 
     :expectedresults: Services should enable/disable
+
+    :BZ: 1995783, 2055790
+
+    :customerscenario: true
     """
-    if not is_open('BZ:1995783'):
-        result = sat_maintain.cli.Service.disable()
-        assert 'FAIL' not in result.stdout
-        assert result.status == 0
+    result = sat_maintain.cli.Service.stop()
+    assert 'FAIL' not in result.stdout
+    assert result.status == 0
+    result = sat_maintain.cli.Service.disable()
+    assert 'FAIL' not in result.stdout
+    assert result.status == 0
     result = sat_maintain.cli.Service.enable()
+    assert 'FAIL' not in result.stdout
+    assert result.status == 0
+    sat_maintain.power_control(state='reboot')
+    if isinstance(sat_maintain, Satellite):
+        result, _ = wait_for(
+            sat_maintain.cli.Service.status,
+            func_kwargs={'options': {'brief': True, 'only': 'foreman.service'}},
+            fail_condition=lambda res: "FAIL" in res.stdout,
+            handle_exception=True,
+            delay=30,
+            timeout=300,
+        )
+        assert 'FAIL' not in sat_maintain.cli.Base.ping()
+    else:
+        result, _ = wait_for(
+            sat_maintain.cli.Service.status,
+            func_kwargs={'options': {'brief': True}},
+            fail_condition=lambda res: "FAIL" in res.stdout,
+            handle_exception=True,
+            delay=30,
+            timeout=300,
+        )
     assert 'FAIL' not in result.stdout
     assert result.status == 0
 
 
-def test_positive_foreman_service(request, sat_maintain):
+@pytest.mark.usefixtures('start_satellite_services')
+def test_positive_foreman_service(sat_maintain):
     """Validate httpd service should work as expected even stopping of the foreman service
 
     :id: 08a29ea2-2e49-11eb-a22b-d46d6dd3b5b2
@@ -175,10 +233,7 @@ def test_positive_foreman_service(request, sat_maintain):
     result = sat_maintain.cli.Health.check(options={'assumeyes': True})
     assert result.status == 0
     assert 'foreman' in result.stdout
-
-    @request.addfinalizer
-    def _finalize():
-        assert sat_maintain.cli.Service.start(options={'only': 'foreman'}).status == 0
+    assert sat_maintain.cli.Service.start(options={'only': 'foreman'}).status == 0
 
 
 @pytest.mark.include_capsule
@@ -190,11 +245,11 @@ def test_positive_status_clocale(sat_maintain):
     :parametrized: yes
 
     :steps:
-        1. Run LC_ALL=C satellite-maintain service stop
+        1. Run LC_ALL=C.UTF-8 satellite-maintain service status
 
     :expectedresults: service status works with C locale
     """
-    assert sat_maintain.cli.Service.status(env_var='LC_ALL=C').status == 0
+    assert sat_maintain.cli.Service.status(env_var='LC_ALL=C.UTF-8').status == 0
 
 
 def test_positive_service_restart_without_hammer_config(missing_hammer_config, sat_maintain):
@@ -214,31 +269,6 @@ def test_positive_service_restart_without_hammer_config(missing_hammer_config, s
     result = sat_maintain.cli.Service.restart()
     assert 'FAIL' not in result.stdout
     assert result.status == 0
-
-
-def test_positive_satellite_maintain_service_list_sidekiq(sat_maintain):
-    """List sidekiq services with service list
-
-    :id: 5acb68a9-c430-485d-bb45-b499adc90927
-
-    :steps:
-        1. Run satellite-maintain service list
-        2. Run satellite-maintain service restart
-
-    :expectedresults: Sidekiq services should list and should restart.
-
-    :CaseImportance: Medium
-    """
-    result = sat_maintain.cli.Service.list()
-    assert 'FAIL' not in result.stdout
-    assert result.status == 0
-    assert 'dynflow-sidekiq@.service' in result.stdout
-
-    result = sat_maintain.cli.Service.restart()
-    assert 'FAIL' not in result.stdout
-    assert result.status == 0
-    for service in ['orchestrator', 'worker', 'worker-hosts-queue']:
-        assert f'dynflow-sidekiq@{service}' in result.stdout
 
 
 def test_positive_status_rpmsave(request, sat_maintain):

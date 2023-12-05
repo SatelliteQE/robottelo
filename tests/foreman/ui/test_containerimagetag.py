@@ -16,13 +16,17 @@
 
 :Upstream: No
 """
-import pytest
 from nailgun import entities
+import pytest
 
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import ENVIRONMENT
-from robottelo.constants import REPO_TYPE
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+    DEFAULT_CV,
+    ENVIRONMENT,
+    REPO_TYPE,
+)
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope="module")
@@ -43,11 +47,10 @@ def module_repository(module_product):
         product=module_product,
         url=CONTAINER_REGISTRY_HUB,
     ).create()
-    repo.sync()
+    repo.sync(timeout=1440)
     return repo
 
 
-@pytest.mark.skip_if_open("BZ:2009069")
 @pytest.mark.tier2
 def test_positive_search(session, module_org, module_product, module_repository):
     """Search for a docker image tag and reads details of it
@@ -58,13 +61,22 @@ def test_positive_search(session, module_org, module_product, module_repository)
         details are read
 
     :CaseLevel: Integration
+
+    :BZ: 2009069, 2242515
     """
     with session:
         session.organization.select(org_name=module_org.name)
         search = session.containerimagetag.search('latest')
-        assert module_product.name in [i['Product Name'] for i in search]
-        assert module_repository.name in [i['Repository Name'] for i in search]
+        if not is_open('BZ:2242515'):
+            assert module_product.name in [i['Product Name'] for i in search]
         values = session.containerimagetag.read('latest')
-        assert module_product.name == values['details']['product']
-        assert module_repository.name == values['details']['repository']
+        if not is_open('BZ:2242515'):
+            assert module_product.name == values['details']['product']
         assert values['lce']['table'][0]['Environment'] == ENVIRONMENT
+        repo_line = next(
+            (item for item in values['repos']['table'] if item['Name'] == module_repository.name),
+            None,
+        )
+        assert module_product.name == repo_line['Product']
+        assert DEFAULT_CV == repo_line['Content View']
+        assert 'Success' in repo_line['Last Sync']

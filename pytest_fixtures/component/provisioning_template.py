@@ -1,13 +1,11 @@
 # Provisioning Template Fixtures
-import pytest
 from box import Box
 from nailgun import entities
 from packaging.version import Version
+import pytest
 
 from robottelo import constants
-from robottelo.constants import DEFAULT_PTABLE
-from robottelo.constants import DEFAULT_PXE_TEMPLATE
-from robottelo.constants import DEFAULT_TEMPLATE
+from robottelo.constants import DEFAULT_PTABLE, DEFAULT_PXE_TEMPLATE, DEFAULT_TEMPLATE
 
 
 @pytest.fixture(scope='module')

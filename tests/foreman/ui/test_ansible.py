@@ -16,41 +16,12 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_string
 import pytest
 import yaml
-from fauxfactory import gen_string
 
 from robottelo import constants
-from robottelo.config import robottelo_tmp_dir
-from robottelo.config import settings
-
-
-def test_positive_import_all_roles(target_sat):
-    """Import all Ansible roles available by default.
-
-    :id: 53fe3857-a08f-493d-93c7-3fed331ed391
-
-    :Steps:
-
-        1. Navigate to the Configure > Roles page.
-        2. Click the `Import from [hostname]` button.
-        3. Get total number of importable roles from pagination.
-        4. Fill the `Select All` checkbox.
-        5. Click the `Submit` button.
-        6. Verify that number of imported roles == number of importable roles from step 3.
-        7. Verify that Ansible variables have been imported along with roles.
-        8. Delete an imported role.
-        9. Verify that the role was successfully deleted.
-
-    :expectedresults: All roles are imported successfully. One role is deleted successfully.
-    """
-    with target_sat.ui_session() as session:
-        assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
-        assert int(session.ansiblevariables.read_total_variables()) > 0
-        # The choice of role to be deleted is arbitrary; any of the roles present on Satellite
-        # by default should work here.
-        session.ansibleroles.delete('theforeman.foreman_scap_client')
-        assert not session.ansibleroles.search('theforeman.foreman_scap_client')
+from robottelo.config import robottelo_tmp_dir, settings
 
 
 def test_positive_create_and_delete_variable(target_sat):
@@ -69,14 +40,15 @@ def test_positive_create_and_delete_variable(target_sat):
     :expectedresults: The variable is successfully created and deleted.
     """
     key = gen_string('alpha')
-    role = 'redhat.satellite.activation_keys'
+
+    SELECTED_ROLE = 'redhat.satellite.activation_keys'
+    proxy_id = target_sat.nailgun_smart_proxy.id
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]})
     with target_sat.ui_session() as session:
-        if not session.ansibleroles.imported_roles_count:
-            session.ansibleroles.import_all_roles()
         session.ansiblevariables.create(
             {
                 'key': key,
-                'ansible_role': role,
+                'ansible_role': SELECTED_ROLE,
             }
         )
         assert session.ansiblevariables.search(key)[0]['Name'] == key
@@ -98,15 +70,16 @@ def test_positive_create_variable_with_overrides(target_sat):
     :expectedresults: The variable is successfully created.
     """
     key = gen_string('alpha')
-    role = 'redhat.satellite.activation_keys'
+
+    SELECTED_ROLE = 'redhat.satellite.activation_keys'
+    proxy_id = target_sat.nailgun_smart_proxy.id
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]})
     with target_sat.ui_session() as session:
-        if not session.ansibleroles.imported_roles_count:
-            session.ansibleroles.import_all_roles()
         session.ansiblevariables.create_with_overrides(
             {
                 'key': key,
                 'description': 'this is a description',
-                'ansible_role': role,
+                'ansible_role': SELECTED_ROLE,
                 'parameter_type': 'integer',
                 'default_value': '11',
                 'validator_type': 'list',

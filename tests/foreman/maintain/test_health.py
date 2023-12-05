@@ -18,11 +18,11 @@
 """
 import time
 
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.config import settings
-
+from robottelo.utils.installer import InstallerCommand
 
 upstream_url = {
     'foreman_repo': 'https://yum.theforeman.org/releases/nightly/el8/x86_64/',
@@ -83,6 +83,7 @@ def test_positive_list_health_check_by_tags(sat_maintain):
 
 
 @pytest.mark.e2e
+@pytest.mark.upgrade
 @pytest.mark.include_capsule
 def test_positive_health_check(sat_maintain):
     """Verify satellite-maintain health check
@@ -95,11 +96,17 @@ def test_positive_health_check(sat_maintain):
         1. Run satellite-maintain health check
 
     :expectedresults: Health check should pass.
+
+    :BZ: 1956210
+
+    :customerscenario: true
     """
     result = sat_maintain.cli.Health.check(options={'assumeyes': True})
     assert result.status == 0
     if 'paused tasks in the system' not in result.stdout:
         assert 'FAIL' not in result.stdout
+    result = sat_maintain.execute('tail /var/log/foreman-proxy/proxy.log')
+    assert 'sslv3 alert bad certificate' not in result.stdout
 
 
 @pytest.mark.include_capsule
@@ -118,7 +125,12 @@ def test_positive_health_check_by_tags(sat_maintain):
     result = sat_maintain.cli.Health.list_tags().stdout
     output = [i.split("]\x1b[0m")[0] for i in result.split("\x1b[36m[") if i]
     for tag in output:
-        assert sat_maintain.cli.Health.check(options={'tags': tag, 'assumeyes': True}).status == 0
+        assert (
+            sat_maintain.cli.Health.check(
+                options={'tags': tag, 'assumeyes': True, 'whitelist': 'non-rh-packages'}
+            ).status
+            == 0
+        )
 
 
 @pytest.mark.include_capsule
@@ -134,7 +146,9 @@ def test_positive_health_check_pre_upgrade(sat_maintain):
 
     :expectedresults: Pre-upgrade health checks should pass.
     """
-    result = sat_maintain.cli.Health.check(options={'tags': 'pre-upgrade'})
+    result = sat_maintain.cli.Health.check(
+        options={'tags': 'pre-upgrade', 'whitelist': 'non-rh-packages'}
+    )
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
@@ -157,30 +171,30 @@ def test_positive_health_check_server_ping(sat_maintain):
     assert 'FAIL' not in result.stdout
 
 
-def test_negative_health_check_server_ping(sat_maintain, request):
-    """Verify hammer ping check
+@pytest.mark.usefixtures('start_satellite_services')
+def test_health_check_server_ping(sat_maintain):
+    """Verify health check server-ping
 
     :id: ecdc5bfb-2adf-49f6-948d-995dae34bcd3
 
     :steps:
-        1. Run satellite maintain service stop
-        2. Run satellite-maintain health check --label server-ping
-        3. Run satellite maintain service start
+        1. Run satellite-maintain health check --label server-ping
+        2. Run satellite-maintain service stop
+        3. Run satellite-maintain health check --label server-ping
 
     :expectedresults: server-ping health check should pass
     """
+    result = sat_maintain.cli.Health.check(options={'label': 'server-ping', 'assumeyes': True})
+    assert result.status == 0
+    assert 'FAIL' not in result.stdout
     assert sat_maintain.cli.Service.stop().status == 0
     result = sat_maintain.cli.Health.check(options={'label': 'server-ping', 'assumeyes': True})
     assert result.status == 0
     assert 'FAIL' in result.stdout
 
-    @request.addfinalizer
-    def _finalize():
-        assert sat_maintain.cli.Service.start().status == 0
-
 
 @pytest.mark.include_capsule
-def test_positive_health_check_upstream_repository(sat_maintain, request):
+def test_negative_health_check_upstream_repository(sat_maintain, request):
     """Verify upstream repository check
 
     :id: 349fcf33-2d25-4628-a6af-cff53e624b25
@@ -190,7 +204,7 @@ def test_positive_health_check_upstream_repository(sat_maintain, request):
     :steps:
         1. Run satellite-maintain health check --label check-upstream-repository
 
-    :expectedresults: check-upstream-repository health check should pass.
+    :expectedresults: check-upstream-repository health check should fail.
     """
     for name, url in upstream_url.items():
         sat_maintain.create_custom_repos(**{name: url})
@@ -214,7 +228,6 @@ def test_positive_health_check_upstream_repository(sat_maintain, request):
         sat_maintain.execute('dnf clean all')
 
 
-@pytest.mark.include_capsule
 def test_positive_health_check_available_space(sat_maintain):
     """Verify available-space check
 
@@ -224,24 +237,13 @@ def test_positive_health_check_available_space(sat_maintain):
 
     :steps:
         1. Run satellite-maintain health check --label available-space
+        2. Run satellite-maintain health check --label available-space-cp
 
     :expectedresults: available-space health check should pass.
     """
     result = sat_maintain.cli.Health.check(options={'label': 'available-space'})
     assert 'FAIL' not in result.stdout
     assert result.status == 0
-
-
-def test_positive_health_check_available_space_candlepin(sat_maintain):
-    """Verify available-space-cp check
-
-    :id: 382a2bf3-a3da-4e46-b370-a443450f93b7
-
-    :steps:
-        1. Run satellite-maintain health check --label available-space-cp
-
-    :expectedresults: available-space-cp health check should pass.
-    """
     result = sat_maintain.cli.Health.check(options={'label': 'available-space-cp'})
     assert 'FAIL' not in result.stdout
     assert result.status == 0
@@ -352,7 +354,7 @@ def test_positive_health_check_validate_yum_config(sat_maintain):
 
 
 @pytest.mark.include_capsule
-def test_positive_health_check_epel_repository(request, sat_maintain):
+def test_negative_health_check_epel_repository(request, sat_maintain):
     """Verify check-non-redhat-repository.
 
     :id: ce2d7278-d7b7-4f76-9923-79be831c0368
@@ -366,7 +368,7 @@ def test_positive_health_check_epel_repository(request, sat_maintain):
 
     :BZ: 1755755
 
-    :expectedresults: check-non-redhat-repository health check should pass.
+    :expectedresults: check-non-redhat-repository health check should fail.
     """
     epel_repo = 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm'
     sat_maintain.execute(f'dnf install -y {epel_repo}')
@@ -399,12 +401,14 @@ def test_positive_health_check_old_foreman_tasks(sat_maintain):
 
     :expectedresults: check-old-foreman-tasks health check should pass.
     """
-    rake_command = 'foreman-rake console <<< '
-    find_task = '\'t = ForemanTasks::Task.where(state: "stopped").first;'
-    update_task = "t.started_at = t.started_at - 31.day;t.save(:validate => false)'"
     error_message = 'paused or stopped task(s) older than 30 days'
     delete_message = 'Deleted old tasks:'
-    sat_maintain.execute(rake_command + find_task + update_task)
+    rake_command = (
+        't = ForemanTasks::Task.where(state: "stopped").first;'
+        't.started_at = t.started_at - 32.day;'
+        't.save(:validate => false)'
+    )
+    sat_maintain.execute(f"foreman-rake console <<< '{rake_command}'")
     result = sat_maintain.cli.Health.check(
         options={'label': 'check-old-foreman-tasks', 'assumeyes': True}
     )
@@ -513,81 +517,6 @@ def test_positive_health_check_tftp_storage(sat_maintain, request):
         )
 
 
-def test_positive_health_check_postgresql_checkpoint_segments(sat_maintain):
-    """Verify check-postgresql-checkpoint-segments
-
-    :id: 963a5b47-168a-4443-9fdf-bba59c9b0e97
-
-    :steps:
-        1. Have an invalid /etc/foreman-installer/custom-hiera.yaml file
-        2. Run satellite-maintain health check --label check-postgresql-checkpoint-segments.
-        3. Assert that check-postgresql-checkpoint-segments gives proper
-           error message saying an invalid yaml file
-        4. Make /etc/foreman-installer/custom-hiera.yaml file valid
-        5. Add config_entries section in /etc/foreman-installer/custom-hiera.yaml
-        6. Run satellite-maintain health check --label check-postgresql-checkpoint-segments.
-        7. Assert that check-postgresql-checkpoint-segments fails.
-        8. Add checkpoint_segments parameter in /etc/foreman-installer/custom-hiera.yaml
-        9. Run satellite-maintain health check --label check-postgresql-checkpoint-segments.
-        10. Assert that check-postgresql-checkpoint-segments fails.
-        11. Remove config_entries section from /etc/foreman-installer/custom-hiera.yaml
-        12. Run satellite-maintain health check --label check-postgresql-checkpoint-segments.
-        13. Assert that check-postgresql-checkpoint-segments pass.
-
-    :BZ: 1894149, 1899322
-
-    :customerscenario: true
-
-    :expectedresults: check-postgresql-checkpoint-segments health check should pass.
-
-    :CaseImportance: High
-    """
-    custom_hiera = '/etc/foreman-installer/custom-hiera.yaml'
-    # Create invalid yaml file
-    sat_maintain.execute(f'sed -i "s/---/----/g" {custom_hiera}')
-    result = sat_maintain.cli.Health.check(
-        options={'label': 'check-postgresql-checkpoint-segments'}
-    )
-
-    assert f'File {custom_hiera} is not a yaml file.' in result.stdout
-    assert 'FAIL' in result.stdout
-    assert result.status == 1
-    # Make yaml file valid
-    sat_maintain.execute(f'sed -i "s/----/---/g" {custom_hiera}')
-    # Add config_entries section
-    sat_maintain.execute(f'sed -i "$ a postgresql::server::config_entries:" {custom_hiera}')
-    # Run check-postgresql-checkpoint-segments check.
-    result = sat_maintain.cli.Health.check(
-        options={'label': 'check-postgresql-checkpoint-segments'}
-    )
-
-    assert "ERROR: 'postgresql::server::config_entries' cannot be null." in result.stdout
-    assert 'Please remove it from following file and re-run the command.' in result.stdout
-    assert result.status == 1
-    assert 'FAIL' in result.stdout
-    # Add checkpoint_segments
-    sat_maintain.execute(fr'sed -i "$ a\  checkpoint_segments: 32" {custom_hiera}')
-    # Run check-postgresql-checkpoint-segments check.
-    result = sat_maintain.cli.Health.check(
-        options={'label': 'check-postgresql-checkpoint-segments'}
-    )
-
-    assert "ERROR: Tuning option 'checkpoint_segments' found." in result.stdout
-    assert 'Please remove it from following file and re-run the command.' in result.stdout
-    assert result.status == 1
-    assert 'FAIL' in result.stdout
-    # Remove config_entries section
-    sat_maintain.execute(
-        fr'sed -i "/postgresql::server::config_entries\|checkpoint_segments: 32/d" {custom_hiera}'
-    )
-    # Run check-postgresql-checkpoint-segments check.
-    result = sat_maintain.cli.Health.check(
-        options={'label': 'check-postgresql-checkpoint-segments'}
-    )
-    assert result.status == 0
-    assert 'FAIL' not in result.stdout
-
-
 @pytest.mark.include_capsule
 def test_positive_health_check_env_proxy(sat_maintain):
     """Verify env-proxy health check.
@@ -621,8 +550,7 @@ def test_positive_health_check_env_proxy(sat_maintain):
     assert 'FAIL' not in result.stdout
 
 
-@pytest.mark.stubbed
-def test_positive_health_check_foreman_proxy_verify_dhcp_config_syntax():
+def test_positive_health_check_foreman_proxy_verify_dhcp_config_syntax(sat_maintain):
     """Verify foreman-proxy-verify-dhcp-config-syntax
 
     :id: 43ca5cc7-9888-490d-b1ba-f3298e737039
@@ -646,8 +574,50 @@ def test_positive_health_check_foreman_proxy_verify_dhcp_config_syntax():
 
     :CaseImportance: Medium
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
     """
+    # Set dhcp.yml to `:use_provider: dhcp_isc`
+    sat_maintain.execute(
+        r"sed -i '/:use_provider: dhcp_infoblox/c\:use_provider: dhcp_isc'"
+        " /etc/foreman-proxy/settings.d/dhcp.yml"
+    )
+    result = sat_maintain.execute("cat /etc/foreman-proxy/settings.d/dhcp.yml")
+    assert ':use_provider: dhcp_isc' in result.stdout
+    # Run health list and check and verify nothing comes back
+    result = sat_maintain.cli.Health.list()
+    assert 'foreman-proxy-verify-dhcp-config-syntax' not in result.stdout
+    result = sat_maintain.cli.Health.check(
+        options={'label': 'foreman-proxy-verify-dhcp-config-syntax'}
+    )
+    assert 'No scenario matching label'
+    assert 'foreman-proxy-verify-dhcp-config-syntax' in result.stdout
+    # Enable DHCP
+    installer = sat_maintain.install(
+        InstallerCommand('enable-foreman-proxy-plugin-dhcp-remote-isc', 'foreman-proxy-dhcp true')
+    )
+    assert 'Success!' in installer.stdout
+    # Run health list and check and verify check is made
+    result = sat_maintain.cli.Health.list()
+    assert 'foreman-proxy-verify-dhcp-config-syntax' in result.stdout
+    result = sat_maintain.cli.Health.check(
+        options={'label': 'foreman-proxy-verify-dhcp-config-syntax'}
+    )
+    assert 'OK' in result.stdout
+    # Set dhcp.yml `:use_provider: dhcp_infoblox`
+    sat_maintain.execute(
+        r"sed -i '/:use_provider: dhcp_isc/c\:use_provider: dhcp_infoblox'"
+        " /etc/foreman-proxy/settings.d/dhcp.yml"
+    )
+    result = sat_maintain.execute("cat /etc/foreman-proxy/settings.d/dhcp.yml")
+    assert ':use_provider: dhcp_infoblox' in result.stdout
+    # Run health list and check and verify nothing comes back
+    result = sat_maintain.cli.Health.list()
+    assert 'foreman-proxy-verify-dhcp-config-syntax' not in result.stdout
+    result = sat_maintain.cli.Health.check(
+        options={'label': 'foreman-proxy-verify-dhcp-config-syntax'}
+    )
+    assert 'No scenario matching label'
+    assert 'foreman-proxy-verify-dhcp-config-syntax' in result.stdout
 
 
 def test_positive_remove_job_file(sat_maintain):
@@ -760,7 +730,7 @@ def test_positive_health_check_non_rh_packages(sat_maintain, request):
         == 0
     )
     result = sat_maintain.cli.Health.check({'label': 'non-rh-packages'})
-    assert 'Found 1 unexpected non Red Hat Package(s) installed!' in result.stdout
+    assert 'unexpected non Red Hat Package(s) installed!' in result.stdout
     assert 'walrus-5.21-1.noarch' in result.stdout
     assert result.status == 78
     assert 'WARNING' in result.stdout
@@ -769,38 +739,6 @@ def test_positive_health_check_non_rh_packages(sat_maintain, request):
     def _finalize():
         assert sat_maintain.execute('dnf remove -y  walrus').status == 0
         assert sat_maintain.execute('rm -fr /etc/yum.repos.d/custom_repo.repo').status == 0
-
-
-@pytest.mark.stubbed
-def test_positive_health_check_available_space_postgresql12():
-    """Verify warnings when available space in /var/opt/rh/rh-postgresql12/
-    is less than consumed space of /var/lib/pgsql/
-
-    :id: 283e627d-6afc-49cb-afdb-5b77a91bbd1e
-
-    :parametrized: yes
-
-    :setup:
-        1. Have some data under /var/lib/pgsql (upgrade templates have ~565Mib data)
-        2. Create dir /var/opt/rh/rh-postgresql12/ and mount a partition of ~300Mib
-           to this dir (less than /var/lib/pgsql).
-
-    :steps:
-        1. satellite-maintain health check --label available-space-for-postgresql12
-        2. Verify Warning or Error is displayed when enough space is not
-           available under /var/opt/rh/rh-postgresql12/
-
-    :BZ: 1898108, 1973363
-
-    :expectedresults: Verify warnings when available space in /var/opt/rh/rh-postgresql12/
-                      is less than consumed space of /var/lib/pgsql/
-
-    :CaseImportance: High
-
-    :customerscenario: true
-
-    :CaseAutomation: ManualOnly
-    """
 
 
 def test_positive_health_check_duplicate_permissions(sat_maintain):

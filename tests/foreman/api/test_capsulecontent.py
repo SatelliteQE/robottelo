@@ -5,7 +5,7 @@ interactions and use capsule.
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
+:CaseLevel: System
 
 :CaseComponent: Capsule-Content
 
@@ -17,39 +17,28 @@ interactions and use capsule.
 
 :Upstream: No
 """
-import re
 from datetime import datetime
+import re
+from time import sleep
 
-import pytest
 from nailgun import client
-from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
+import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import DataFile
-from robottelo.constants.repos import ANSIBLE_GALAXY
-from robottelo.content_info import get_repo_files_by_url
-from robottelo.content_info import get_repomd
-from robottelo.content_info import get_repomd_revision
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+    DataFile,
+)
+from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
+from robottelo.content_info import (
+    get_repo_files_by_url,
+    get_repomd,
+    get_repomd_revision,
+)
 from robottelo.utils.issue_handlers import is_open
-
-
-def get_published_repo_url(capsule, org, prod, repo, lce=None, cv=None):
-    """Forms url of a repo or CV published on a Satellite or Capsule.
-
-    :param object capsule: Capsule or Satellite object providing its url
-    :param str org: organization label
-    :param str prod: product label
-    :param str repo: repository label
-    :param str lce: lifecycle environment label
-    :param str cv: content view label
-    :return: url of the specific repo or CV
-    """
-    if lce and cv:
-        return f'{capsule.url}/pulp/content/{org}/{lce}/{cv}/custom/{prod}/{repo}/'
-    else:
-        return f'{capsule.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'
 
 
 @pytest.mark.run_in_one_thread
@@ -57,28 +46,6 @@ class TestCapsuleContentManagement:
     """Content Management related tests, which exercise katello with pulp
     interactions and use capsule.
     """
-
-    def update_capsule_download_policy(self, module_capsule_configured, download_policy):
-        """Updates capsule's download policy to desired value"""
-        proxy = entities.SmartProxy(id=module_capsule_configured.nailgun_capsule.id).read()
-        proxy.download_policy = download_policy
-        proxy.update(['download_policy'])
-
-    def wait_for_sync(self, capsule, timeout=600, start_time=datetime.utcnow()):
-        # Assert that a task to sync lifecycle environment to the capsule
-        # is started (or finished already)
-        sync_status = capsule.nailgun_capsule.content_get_sync()
-        assert (
-            len(sync_status['active_sync_tasks'])
-            or datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC')
-            > start_time
-        )
-
-        # Wait till capsule sync finishes and assert the sync task succeeded
-        for task in sync_status['active_sync_tasks']:
-            entities.ForemanTask(id=task['id']).poll(timeout=timeout)
-        sync_status = capsule.nailgun_capsule.content_get_sync()
-        assert len(sync_status['last_failed_sync_tasks']) == 0
 
     @pytest.mark.tier3
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
@@ -99,8 +66,6 @@ class TestCapsuleContentManagement:
         :expectedresults: `redhat-access-insights-puppet` package is delivered
             in capsule repo and is available for installation on capsule via
             yum
-
-        :CaseLevel: System
         """
         package_name = 'redhat-access-insights-puppet'
         result = module_capsule_configured.run(f'yum list {package_name} | grep @capsule')
@@ -111,7 +76,12 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_uploaded_content_library_sync(
-        self, module_capsule_configured, function_org, function_product, function_lce_library
+        self,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce_library,
+        target_sat,
     ):
         """Ensure custom repo with no upstream url and manually uploaded
         content after publishing to Library is synchronized to capsule
@@ -124,10 +94,8 @@ class TestCapsuleContentManagement:
         :BZ: 1340686
 
         :expectedresults: custom content is present on external capsule
-
-        :CaseLevel: System
         """
-        repo = entities.Repository(product=function_product, url=None).create()
+        repo = target_sat.api.Repository(product=function_product, url=None).create()
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': function_lce_library.id}
@@ -138,7 +106,7 @@ class TestCapsuleContentManagement:
         assert function_lce_library.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create a content view with the repository
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
 
         # Upload custom content into the repo
         with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
@@ -152,11 +120,10 @@ class TestCapsuleContentManagement:
 
         assert len(cv.version) == 1
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Verify the RPM published on Capsule
-        caps_repo_url = get_published_repo_url(
-            module_capsule_configured,
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce_library.label,
             cv=cv.label,
@@ -170,7 +137,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_checksum_sync(
-        self, module_capsule_configured, function_org, function_product, function_lce
+        self, module_capsule_configured, function_org, function_product, function_lce, target_sat
     ):
         """Synchronize repository to capsule, update repository's checksum
         type, trigger capsule sync and make sure checksum type was updated on
@@ -185,12 +152,10 @@ class TestCapsuleContentManagement:
         :expectedresults: checksum type is updated in repodata of corresponding
             repository on capsule
 
-        :CaseLevel: System
-
         :CaseImportance: Critical
         """
         # Create repository with sha256 checksum type
-        repo = entities.Repository(
+        repo = target_sat.api.Repository(
             product=function_product,
             checksum_type='sha256',
             mirroring_policy='additive',
@@ -206,7 +171,7 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Sync, publish and promote a repo
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
         repo.sync()
         repo = repo.read()
         cv.publish()
@@ -220,11 +185,10 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Verify repodata's checksum type is sha256, not sha1 on capsule
-        repo_url = get_published_repo_url(
-            module_capsule_configured,
+        repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             prod=function_product.label,
             repo=repo.label,
@@ -254,7 +218,7 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Verify repodata's checksum type has updated to sha1 on capsule
         repomd = get_repomd(repo_url)
@@ -263,10 +227,16 @@ class TestCapsuleContentManagement:
         assert "sha256" not in checksum_types
 
     @pytest.mark.skip_if_open("BZ:2025494")
+    @pytest.mark.e2e
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_updated_repo(
-        self, target_sat, module_capsule_configured, function_org, function_product, function_lce
+        self,
+        target_sat,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce,
     ):
         """Sync a custom repo with no upstream url but uploaded content to the Capsule via
         promoted CV, update content of the repo, publish and promote the CV again, resync
@@ -290,13 +260,11 @@ class TestCapsuleContentManagement:
             1. Capsule is synced successfully.
             2. Content is present at the Capsule side.
 
-        :CaseLevel: Integration
-
         :customerscenario: true
 
         :BZ: 2025494
         """
-        repo = entities.Repository(url=None, product=function_product).create()
+        repo = target_sat.api.Repository(url=None, product=function_product).create()
 
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
@@ -314,7 +282,7 @@ class TestCapsuleContentManagement:
         assert repo.read().content_counts['rpm'] == 1
 
         # Create, publish and promote CV with the repository to the Capsule's LCE
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
         cv.publish()
         cv = cv.read()
         assert len(cv.version) == 1
@@ -324,7 +292,7 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Upload more content to the repository
         with open(DataFile.SRPM_TO_UPLOAD, 'rb') as handle:
@@ -337,24 +305,23 @@ class TestCapsuleContentManagement:
         cv = cv.read()
         assert len(cv.version) == 2
 
+        cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         cvv.promote(data={'environment_ids': function_lce.id})
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Check the content is synced on the Capsule side properly
-        sat_repo_url = get_published_repo_url(
-            target_sat,
+        sat_repo_url = target_sat.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
             prod=function_product.label,
             repo=repo.label,
         )
-        caps_repo_url = get_published_repo_url(
-            module_capsule_configured,
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
@@ -366,10 +333,16 @@ class TestCapsuleContentManagement:
         assert sat_files == caps_files
         assert len(caps_files) == 2
 
+    @pytest.mark.e2e
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_capsule_sync(
-        self, target_sat, module_capsule_configured, function_org, function_product, function_lce
+        self,
+        target_sat,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce,
     ):
         """Create repository, add it to lifecycle environment, assign lifecycle
         environment with a capsule, sync repository, sync it once again, update
@@ -391,11 +364,9 @@ class TestCapsuleContentManagement:
                second repo sync with no changes
             5. Syncing repository which was updated will update the content on
                capsule
-
-        :CaseLevel: System
         """
         repo_url = settings.repos.yum_1.url
-        repo = entities.Repository(product=function_product, url=repo_url).create()
+        repo = target_sat.api.Repository(product=function_product, url=repo_url).create()
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': function_lce.id}
@@ -406,7 +377,7 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create a content view with the repository
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
         # Sync repository
         repo.sync()
         repo = repo.read()
@@ -428,20 +399,18 @@ class TestCapsuleContentManagement:
         # repository
         assert repo.content_counts['rpm'] == cvv.package_count
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Assert that the content published on the capsule is exactly the
         # same as in repository on satellite
-        sat_repo_url = get_published_repo_url(
-            target_sat,
+        sat_repo_url = target_sat.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
             prod=function_product.label,
             repo=repo.label,
         )
-        caps_repo_url = get_published_repo_url(
-            module_capsule_configured,
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
@@ -472,7 +441,7 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Assert that the value of repomd revision of repository in
         # lifecycle environment on the capsule has not changed
@@ -502,7 +471,7 @@ class TestCapsuleContentManagement:
         # repository
         assert repo.content_counts['rpm'] == cvv.package_count
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Assert that the content published on the capsule is exactly the
         # same as in the repository
@@ -525,8 +494,6 @@ class TestCapsuleContentManagement:
         :BZ: 1303102, 1480358, 1303103, 1734312
 
         :expectedresults: ISOs are present on external capsule
-
-        :CaseLevel: System
         """
         # Enable & sync RH repository with ISOs
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
@@ -537,12 +504,12 @@ class TestCapsuleContentManagement:
             reposet=constants.REPOSET['rhsc7_iso'],
             releasever=None,
         )
-        rh_repo = entities.Repository(id=rh_repo_id).read()
+        rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
         call_entity_method_with_timeout(rh_repo.sync, timeout=2500)
         # Find "Library" lifecycle env for specific organization
-        lce = entities.LifecycleEnvironment(organization=module_entitlement_manifest_org).search(
-            query={'search': f'name={constants.ENVIRONMENT}'}
-        )[0]
+        lce = module_target_sat.api.LifecycleEnvironment(
+            organization=module_entitlement_manifest_org
+        ).search(query={'search': f'name={constants.ENVIRONMENT}'})[0]
 
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
@@ -554,7 +521,7 @@ class TestCapsuleContentManagement:
         assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create a content view with the repository
-        cv = entities.ContentView(
+        cv = module_target_sat.api.ContentView(
             organization=module_entitlement_manifest_org, repository=[rh_repo]
         ).create()
         # Publish new version of the content view
@@ -567,7 +534,7 @@ class TestCapsuleContentManagement:
         sat_isos = get_repo_files_by_url(rh_repo.full_path, extension='iso')
         assert len(sat_isos) == 4
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Verify all the ISOs are present on capsule
         caps_path = (
@@ -582,7 +549,12 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_on_demand_sync(
-        self, target_sat, module_capsule_configured, function_org, function_product, function_lce
+        self,
+        target_sat,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce,
     ):
         """Create a repository with 'on_demand' policy, add it to a CV,
         promote to an 'on_demand' Capsule's LCE, download a published package,
@@ -597,13 +569,11 @@ class TestCapsuleContentManagement:
                is automatically synced to the Capsule
             3. Package is successfully downloaded from the Capsule, its checksum matches
                the original package from the upstream repo
-
-        :CaseLevel: System
         """
         repo_url = settings.repos.yum_3.url
         packages_count = constants.FAKE_3_YUM_REPOS_COUNT
         package = constants.FAKE_3_YUM_REPO_RPMS[0]
-        repo = entities.Repository(
+        repo = target_sat.api.Repository(
             download_policy='on_demand',
             mirroring_policy='mirror_complete',
             product=function_product,
@@ -619,10 +589,10 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Update capsule's download policy to on_demand
-        self.update_capsule_download_policy(module_capsule_configured, 'on_demand')
+        module_capsule_configured.update_download_policy('on_demand')
 
         # Create a content view with the repository
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
         # Sync repository
         repo.sync()
         repo = repo.read()
@@ -639,11 +609,10 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Verify packages on Capsule match the source
-        caps_repo_url = get_published_repo_url(
-            module_capsule_configured,
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
@@ -665,7 +634,12 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_update_with_immediate_sync(
-        self, target_sat, module_capsule_configured, function_org, function_product, function_lce
+        self,
+        target_sat,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce,
     ):
         """Create a repository with on_demand download policy, associate it
         with capsule, sync repo, update download policy to immediate, sync once
@@ -679,19 +653,17 @@ class TestCapsuleContentManagement:
 
         :expectedresults: content was successfully synchronized - capsule
             filesystem contains valid links to packages
-
-        :CaseLevel: System
         """
         repo_url = settings.repos.yum_1.url
         packages_count = constants.FAKE_1_YUM_REPOS_COUNT
-        repo = entities.Repository(
+        repo = target_sat.api.Repository(
             download_policy='on_demand',
             mirroring_policy='mirror_complete',
             product=function_product,
             url=repo_url,
         ).create()
         # Update capsule's download policy to on_demand to match repository's policy
-        self.update_capsule_download_policy(module_capsule_configured, 'on_demand')
+        module_capsule_configured.update_download_policy('on_demand')
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': function_lce.id}
@@ -702,7 +674,7 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create a content view with the repository
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
         # Sync repository
         repo.sync()
         repo = repo.read()
@@ -719,7 +691,7 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Update download policy to 'immediate'
         repo.download_policy = 'immediate'
@@ -728,7 +700,7 @@ class TestCapsuleContentManagement:
         assert repo.download_policy == 'immediate'
 
         # Update capsule's download policy as well
-        self.update_capsule_download_policy(module_capsule_configured, 'immediate')
+        module_capsule_configured.update_download_policy('immediate')
 
         # Sync repository once again
         repo.sync()
@@ -747,11 +719,10 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Verify the count of RPMs published on Capsule
-        caps_repo_url = get_published_repo_url(
-            module_capsule_configured,
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
@@ -774,8 +745,6 @@ class TestCapsuleContentManagement:
         :expectedresults: capsule pub url is accessible
 
         :BZ: 1463810, 2122780
-
-        :CaseLevel: System
         """
         https_pub_url = f'https://{module_capsule_configured.ip_addr}/pub'
         http_pub_url = f'http://{module_capsule_configured.ip_addr}/pub'
@@ -787,6 +756,7 @@ class TestCapsuleContentManagement:
             # check that one of the files is in the content
             assert b'katello-server-ca.crt' in response.content
 
+    @pytest.mark.e2e
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
@@ -808,8 +778,6 @@ class TestCapsuleContentManagement:
         :expectedresults:
             1. The kickstart repo is successfully synced to the Capsule.
 
-        :CaseLevel: Integration
-
         :BZ: 1992329
         """
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
@@ -820,8 +788,10 @@ class TestCapsuleContentManagement:
             repo=constants.REPOS['kickstart'][distro]['name'],
             releasever=constants.REPOS['kickstart'][distro]['version'],
         )
-        repo = entities.Repository(id=repo_id).read()
-        lce = entities.LifecycleEnvironment(organization=function_entitlement_manifest_org).create()
+        repo = target_sat.api.Repository(id=repo_id).read()
+        lce = target_sat.api.LifecycleEnvironment(
+            organization=function_entitlement_manifest_org
+        ).create()
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': lce.id}
@@ -832,10 +802,10 @@ class TestCapsuleContentManagement:
         assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Update capsule's download policy to on_demand
-        self.update_capsule_download_policy(module_capsule_configured, 'on_demand')
+        module_capsule_configured.update_download_policy('on_demand')
 
         # Create a content view with the repository
-        cv = entities.ContentView(
+        cv = target_sat.api.ContentView(
             organization=function_entitlement_manifest_org, repository=[repo]
         ).create()
         # Sync repository
@@ -854,7 +824,7 @@ class TestCapsuleContentManagement:
 
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Check for kickstart content on SAT and CAPS
         tail = (
@@ -911,8 +881,6 @@ class TestCapsuleContentManagement:
 
         :parametrized: yes
 
-        :CaseLevel: Integration
-
         :BZ: 2125244, 2148813
 
         :customerscenario: true
@@ -925,7 +893,7 @@ class TestCapsuleContentManagement:
         repos = []
 
         for ups_name in upstream_names:
-            repo = entities.Repository(
+            repo = target_sat.api.Repository(
                 content_type='docker',
                 docker_upstream_name=ups_name,
                 product=function_product,
@@ -943,7 +911,7 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create and publish a content view with all repositories
-        cv = entities.ContentView(organization=function_org, repository=repos).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=repos).create()
         cv.publish()
         cv = cv.read()
         assert len(cv.version) == 1
@@ -954,7 +922,7 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Pull the images from capsule to the content host
         repo_paths = [
@@ -1002,6 +970,8 @@ class TestCapsuleContentManagement:
                 id=function_lce.id, registry_unauthenticated_pull='true'
             ).update(['registry_unauthenticated_pull'])
 
+            sleep(20)
+
             skopeo_cmd = 'skopeo --debug inspect docker://'
             for path in repo_paths:
                 result = module_capsule_configured.execute(
@@ -1013,14 +983,13 @@ class TestCapsuleContentManagement:
                 )
                 assert result.status == 0
 
-    @pytest.mark.skip_if_open("BZ:2121583")
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_collection_repo(
         self,
+        request,
         target_sat,
         module_capsule_configured,
-        rhel7_contenthost,
         function_product,
         function_lce_library,
     ):
@@ -1041,8 +1010,6 @@ class TestCapsuleContentManagement:
 
         :parametrized: yes
 
-        :CaseLevel: Integration
-
         :BZ: 2121583
         """
         requirements = '''
@@ -1053,7 +1020,7 @@ class TestCapsuleContentManagement:
         - name: theforeman.operations
           version: "0.1.0"
         '''
-        repo = entities.Repository(
+        repo = target_sat.api.Repository(
             content_type='ansible_collection',
             ansible_collection_requirements=requirements,
             product=function_product,
@@ -1072,22 +1039,11 @@ class TestCapsuleContentManagement:
         repo.sync(timeout=600)
         repo = repo.read()
         assert repo.content_counts['ansible_collection'] == 2
-
-        self.wait_for_sync(module_capsule_configured)
-
-        # Configure the content host to fetch collections from capsule
-        rhel7_contenthost.install_katello_ca(module_capsule_configured)
-        rhel7_contenthost.create_custom_repos(
-            **{
-                'server': settings.repos.rhel7_os,
-                'ansible': settings.repos.ansible_repo,
-            }
-        )
-        result = rhel7_contenthost.execute('yum -y install ansible')
-        assert result.status == 0
+        module_capsule_configured.wait_for_sync()
 
         repo_path = repo.full_path.replace(target_sat.hostname, module_capsule_configured.hostname)
         coll_path = './collections'
+        cfg_path = './ansible.cfg'
         cfg = (
             '[defaults]\n'
             f'collections_paths = {coll_path}\n\n'
@@ -1096,16 +1052,18 @@ class TestCapsuleContentManagement:
             '[galaxy_server.capsule_galaxy]\n'
             f'url={repo_path}\n'
         )
-        rhel7_contenthost.execute(f'echo "{cfg}" > ./ansible.cfg')
+
+        request.addfinalizer(lambda: target_sat.execute(f'rm -rf {cfg_path} {coll_path}'))
 
         # Try to install collections from the Capsule
-        result = rhel7_contenthost.execute(
+        target_sat.execute(f'echo "{cfg}" > {cfg_path}')
+        result = target_sat.execute(
             'ansible-galaxy collection install theforeman.foreman theforeman.operations'
         )
         assert result.status == 0
         assert 'error' not in result.stdout.lower()
 
-        result = rhel7_contenthost.execute(f'ls {coll_path}/ansible_collections/theforeman/')
+        result = target_sat.execute(f'ls {coll_path}/ansible_collections/theforeman/')
         assert result.status == 0
         assert 'foreman' in result.stdout
         assert 'operations' in result.stdout
@@ -1131,11 +1089,9 @@ class TestCapsuleContentManagement:
             1. Both capsule syncs succeed.
             2. Content is accessible on both, Satellite and Capsule.
 
-        :CaseLevel: Integration
-
         :BZ: 1985122
         """
-        repo = entities.Repository(
+        repo = target_sat.api.Repository(
             content_type='file',
             product=function_product,
             url=constants.FAKE_FILE_LARGE_URL,
@@ -1155,7 +1111,7 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create and publish a content view with all repositories
-        cv = entities.ContentView(organization=function_org, repository=[repo]).create()
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
         cv.publish()
         cv = cv.read()
         assert len(cv.version) == 1
@@ -1166,23 +1122,21 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
         # Run one more sync, check for status (BZ#1985122)
         sync_status = module_capsule_configured.nailgun_capsule.content_sync()
         assert sync_status['result'] == 'success'
 
         # Check for content on SAT and CAPS
-        sat_repo_url = get_published_repo_url(
-            target_sat,
+        sat_repo_url = target_sat.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
             prod=function_product.label,
             repo=repo.label,
         )
-        caps_repo_url = get_published_repo_url(
-            module_capsule_configured,
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
@@ -1221,8 +1175,6 @@ class TestCapsuleContentManagement:
         :expectedresults:
             1. All capsule syncs succeed.
 
-        :CaseLevel: Integration
-
         :customerscenario: true
 
         :BZ: 1830403
@@ -1250,7 +1202,7 @@ class TestCapsuleContentManagement:
         result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
         # there can and will be LCEs from other tests and orgs, but len() >= 2
         assert len(result['results']) >= 2
-        assert lce1.id and lce2.id in [capsule_lce['id'] for capsule_lce in result['results']]
+        assert {lce1.id, lce2.id}.issubset([capsule_lce['id'] for capsule_lce in result['results']])
 
         # Create a Content View, add the repository and publish it.
         cv = target_sat.api.ContentView(
@@ -1270,7 +1222,7 @@ class TestCapsuleContentManagement:
         assert len(cvv.environment) == 3
 
         # Check all sync tasks finished without errors.
-        self.wait_for_sync(module_capsule_configured)
+        module_capsule_configured.wait_for_sync()
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
@@ -1289,7 +1241,7 @@ class TestCapsuleContentManagement:
             4. Publish CV
             5. Promote to lifecycle env
             6. Sync Capsule
-            7. Delete the task using foreman-rake console
+            7. Delete all sync tasks using foreman-rake console
             8. Verify the status of capsule is still synced
 
         :bz: 1956985
@@ -1312,32 +1264,362 @@ class TestCapsuleContentManagement:
         cv = cv.read()
 
         cvv = cv.version[-1].read()
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
-        cvv = cvv.read()
+        module_capsule_configured.wait_for_sync()
 
-        timestamp = (datetime.utcnow()).strftime('%Y-%m-%d %H:%M')
-        self.wait_for_sync(module_capsule_configured)
-
-        search_result = target_sat.wait_for_tasks(
-            search_query='label = Actions::Katello::CapsuleContent::Sync'
-            f' and organization_id = {function_org.id}'
-            f' and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=5,
-        )
-        # Delete the task using UUID (search_result[0].id)
+        # Delete all capsule sync tasks so that we fall back for audits.
         task_result = target_sat.execute(
-            f"""echo "ForemanTasks::Task.find(
-            '{search_result[0].id}').destroy!" | foreman-rake console"""
+            """echo "ForemanTasks::Task.where(action:'Synchronize capsule """
+            f"""\\'{module_capsule_configured.hostname}\\'').delete_all" | foreman-rake console"""
         )
         assert task_result.status == 0
-        # Ensure task record was deleted.
+
+        # Ensure task records were deleted.
         task_result = target_sat.execute(
-            f"""echo "ForemanTasks::Task.find('{search_result[0].id}')" | foreman-rake console"""
+            """echo "ForemanTasks::Task.where(action:'Synchronize capsule """
+            f"""\\'{module_capsule_configured.hostname}\\'')" | foreman-rake console"""
         )
         assert task_result.status == 0
-        assert 'RecordNotFound' in task_result.stdout
+        assert '[]' in task_result.stdout
 
         # Check sync status again, and ensure last_sync_time is still correct
         sync_status = module_capsule_configured.nailgun_capsule.content_get_sync()
-        assert sync_status['last_sync_time'] >= timestamp
+        assert (
+            datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC') >= timestamp
+        )
+
+    @pytest.mark.tier4
+    @pytest.mark.skip_if_not_set('capsule')
+    def test_positive_remove_capsule_orphans(
+        self,
+        target_sat,
+        capsule_configured,
+        function_entitlement_manifest_org,
+        function_lce_library,
+    ):
+        """Synchronize RPM content to the capsule, disassociate the capsule form the content
+        source and resync, run orphan cleanup and ensure the RPM artifacts were removed.
+
+        :id: 7089a36e-ea68-47ad-86ac-9945b732b0c4
+
+        :setup:
+            1. A blank external capsule that has not been synced yet with immediate download policy.
+
+        :steps:
+            1. Enable RHST repo and sync it to the Library LCE.
+            2. Set immediate download policy to the capsule, assign it the Library LCE and sync it.
+               Ensure the RPM artifacts were created.
+            3. Remove the Library LCE from the capsule and resync it.
+            4. Run orphan cleanup for the capsule.
+            5. Ensure the artifacts were removed.
+
+        :expectedresults:
+            1. RPM artifacts are created after capsule sync.
+            2. RPM artifacts are removed after orphan cleanup.
+
+        :customerscenario: true
+
+        :BZ: 22043089, 2211962
+
+        """
+        # Enable RHST repo and sync it to the Library LCE.
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=function_entitlement_manifest_org.id,
+            product=constants.REPOS['rhst8']['product'],
+            repo=constants.REPOS['rhst8']['name'],
+            reposet=constants.REPOSET['rhst8'],
+        )
+        repo = target_sat.api.Repository(id=repo_id).read()
+        repo.sync()
+
+        # Set immediate download policy to the capsule, assign it the Library LCE and sync it.
+        proxy = capsule_configured.nailgun_smart_proxy.read()
+        proxy.download_policy = 'immediate'
+        proxy.update(['download_policy'])
+
+        capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce_library.id}
+        )
+        result = capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert len(result['results']) == 1
+        assert result['results'][0]['id'] == function_lce_library.id
+
+        sync_status = capsule_configured.nailgun_capsule.content_sync()
+        assert sync_status['result'] == 'success', 'Capsule sync task failed.'
+
+        # Ensure the RPM artifacts were created.
+        result = capsule_configured.execute(
+            'ls /var/lib/pulp/media/artifact/*/* | xargs file | grep RPM'
+        )
+        assert not result.status, 'RPM artifacts are missing after capsule sync.'
+
+        # Remove the Library LCE from the capsule and resync it.
+        capsule_configured.nailgun_capsule.content_delete_lifecycle_environment(
+            data={'environment_id': function_lce_library.id}
+        )
+        sync_status = capsule_configured.nailgun_capsule.content_sync()
+        assert sync_status['result'] == 'success', 'Capsule sync task failed.'
+
+        # Run orphan cleanup for the capsule.
+        target_sat.execute(
+            'foreman-rake katello:delete_orphaned_content RAILS_ENV=production '
+            f'SMART_PROXY_ID={capsule_configured.nailgun_capsule.id}'
+        )
+        target_sat.wait_for_tasks(
+            search_query=('label = Actions::Katello::OrphanCleanup::RemoveOrphans'),
+            search_rate=5,
+            max_tries=10,
+        )
+
+        # Ensure the artifacts were removed.
+        result = capsule_configured.execute(
+            'ls /var/lib/pulp/media/artifact/*/* | xargs file | grep RPM'
+        )
+        assert result.status, 'RPM artifacts are still present. They should be gone.'
+
+    @pytest.mark.skip_if_not_set('capsule')
+    def test_positive_capsule_sync_openstack_container_repos(
+        self,
+        module_target_sat,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce,
+    ):
+        """Synchronize openstack container repositories to capsule
+
+        :id: 23e64385-7f34-4ab9-bd63-72306e5a4de0
+
+        :setup:
+            1. A blank external capsule that has not been synced yet.
+
+        :steps:
+            1. Enable and sync openstack container repos.
+
+        :expectedresults:
+            1. container repos should sync on capsule.
+
+        :customerscenario: true
+
+        :BZ: 2154734
+
+        """
+        upstream_names = [
+            'rhosp13/openstack-cinder-api',
+            'rhosp13/openstack-neutron-server',
+            'rhosp13/openstack-neutron-dhcp-agent',
+            'rhosp13/openstack-nova-api',
+        ]
+        repos = []
+
+        for ups_name in upstream_names:
+            repo = module_target_sat.api.Repository(
+                content_type='docker',
+                docker_upstream_name=ups_name,
+                product=function_product,
+                url=constants.RH_CONTAINER_REGISTRY_HUB,
+                upstream_username=settings.subscription.rhn_username,
+                upstream_password=settings.subscription.rhn_password,
+            ).create()
+            repo.sync(timeout=1800)
+            repos.append(repo)
+
+        # Associate LCE with the capsule
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce.id}
+        )
+        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert len(result['results'])
+        assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Create and publish a content view with all repositories
+        cv = module_target_sat.api.ContentView(organization=function_org, repository=repos).create()
+        cv.publish()
+        cv = cv.read()
+        assert len(cv.version) == 1
+
+        # Promote the latest CV version into capsule's LCE
+        cvv = cv.version[-1].read()
+        cvv.promote(data={'environment_ids': function_lce.id})
+        cvv = cvv.read()
+        assert len(cvv.environment) == 2
+
+        module_capsule_configured.wait_for_sync()
+
+    @pytest.mark.parametrize(
+        'repos_collection',
+        [
+            {
+                'distro': 'rhel8',
+                'YumRepository': {'url': settings.repos.module_stream_1.url},
+                'FileRepository': {'url': CUSTOM_FILE_REPO},
+                'DockerRepository': {
+                    'url': CONTAINER_REGISTRY_HUB,
+                    'upstream_name': CONTAINER_UPSTREAM_NAME,
+                },
+                'AnsibleRepository': {
+                    'url': ANSIBLE_GALAXY,
+                    'requirements': [
+                        {'name': 'theforeman.foreman', 'version': '2.1.0'},
+                        {'name': 'theforeman.operations', 'version': '0.1.0'},
+                    ],
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize('filtered', [False, True], ids=['unfiltered', 'filtered'])
+    def test_positive_content_counts_for_mixed_cv(
+        self,
+        target_sat,
+        module_capsule_configured,
+        repos_collection,
+        function_org,
+        function_lce,
+        function_lce_library,
+        filtered,
+    ):
+        """Verify the content counts for a mixed-content CV
+
+        :id: d8a0dea1-d30c-4c30-b3b1-46316de4ff29
+
+        :parametrized: yes
+
+        :setup:
+            1. A content view with repos of all content types (currently yum, file, docker, AC)
+               published into (unfiltered and filtered) CVV and promoted to an LCE.
+
+        :steps:
+            1. Assign the Capsule with Library and the LCE where the setup CVV is promoted to.
+            2. Check the capsule doesn't provide any content counts for the setup CVV until synced.
+            3. Sync the Capsule and get the content counts again. We should get counts for every
+               repo in the CVV multiplied by shared LCEs (LCEs where the CVV is promoted to and
+               synced to the Capsule, including Library).
+            4. Get the content counts from Satellite side and compare them with Capsule.
+
+        :expectedresults:
+            1. Capsule doesn't return any counts for CVV until it is synced.
+            2. After sync, content counts from Capsule match those from Satellite.
+        """
+        expected_keys = {
+            'yum': {'rpm', 'package_group', 'module_stream', 'erratum'},
+            'file': {'file'},
+            'docker': {'docker_tag', 'docker_manifest', 'docker_manifest_list'},
+            'ansible_collection': {'ansible_collection'},
+        }
+
+        repos_collection.setup_content(function_org.id, function_lce.id, upload_manifest=False)
+        cv_id = repos_collection.setup_content_data['content_view']['id']
+        cv = target_sat.api.ContentView(id=cv_id).read()
+
+        if filtered:
+            for filter_type in ['rpm', 'docker']:
+                cvf = target_sat.api.AbstractContentViewFilter(
+                    type=filter_type,
+                    content_view=cv,
+                    inclusion=True,
+                ).create()
+                target_sat.api.ContentViewFilterRule(
+                    content_view_filter=cvf, name='cat' if filter_type == 'rpm' else 'latest'
+                ).create()
+            cv.publish()
+            cv = cv.read()
+            cv.version.sort(key=lambda version: version.id)
+
+        cvv = cv.version[-1].read()
+
+        # Assign the Capsule with both content LCEs
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': [function_lce.id, function_lce_library.id]}
+        )
+        capsule_lces = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()[
+            'results'
+        ]
+        assert len(capsule_lces)
+        assert {function_lce.id, function_lce_library.id}.issubset(
+            [lce['id'] for lce in capsule_lces]
+        )
+
+        # Check the counts for CVV are not present at the Capsule side before sync.
+        caps_counts = module_capsule_configured.nailgun_capsule.content_counts()
+        assert caps_counts is None or cvv.id not in caps_counts['content_view_versions'].keys()
+
+        # Sync, wait for counts to be updated and get them from the Capsule.
+        sync_status = module_capsule_configured.nailgun_capsule.content_sync()
+        assert sync_status['result'] == 'success', 'Capsule sync task failed.'
+
+        target_sat.wait_for_tasks(
+            search_query=('label = Actions::Katello::CapsuleContent::UpdateContentCounts'),
+            search_rate=5,
+            max_tries=10,
+        )
+
+        caps_counts = module_capsule_configured.nailgun_capsule.content_counts()[
+            'content_view_versions'
+        ]
+        assert str(cvv.id) in caps_counts.keys(), 'CVV is missing in content counts.'
+        caps_counts = caps_counts[str(cvv.id)]
+
+        # Every "environment repo" (the one promoted to an LCE and synced to the Capsule)
+        # is shown in the content_counts, so we get N-times more for every shared lce.
+        shared_lces = {env.id for env in cvv.environment} & {env['id'] for env in capsule_lces}
+        assert len(caps_counts['repositories']) == len(cvv.repository) * len(
+            shared_lces
+        ), 'Repositories count does not match.'
+
+        # Read the environment repos from Satellite side and compare the counts with Capsule.
+        sat_repos = [
+            target_sat.api.Repository(id=repo).read() for repo in caps_counts['repositories']
+        ]
+        for repo in sat_repos:
+            cnt = caps_counts['repositories'][str(repo.id)]
+            assert repo.content_type == cnt['metadata']['content_type']
+            common_keys = set(repo.content_counts.keys()) & set(cnt['counts'].keys())
+            assert len(common_keys), f'No common keys found for type "{repo.content_type}".'
+            assert expected_keys[repo.content_type].issubset(common_keys), (
+                'Some fields are missing: expected '
+                f'{expected_keys[repo.content_type]} but found {common_keys}'
+            )
+            assert all(
+                [repo.content_counts.get(key) == cnt['counts'].get(key) for key in common_keys]
+            )
+
+    @pytest.mark.order(1)
+    def test_positive_content_counts_blank_update(
+        self,
+        target_sat,
+        module_capsule_configured,
+    ):
+        """Verify the content counts and update endpoint for a blank Capsule.
+
+        :id: da9c993e-258e-4215-9d8f-f0feced412d0
+
+        :setup:
+            1. A blank unsynced Capsule.
+
+        :steps:
+            1. Get content counts from a blank capsule.
+            2. Run content counts update via API.
+            3. Check no content counts yet.
+
+        :expectedresults:
+            1. Capsule returns None for content counts.
+            2. Content update task is created and succeeds.
+            3. Capsule keeps returning None or empty list for content counts.
+
+        :CaseImportance: Medium
+        """
+        counts = module_capsule_configured.nailgun_capsule.content_counts()
+        assert counts is None
+
+        task = module_capsule_configured.nailgun_capsule.content_update_counts()
+        assert task, 'No task was created for content update.'
+        assert 'Actions::Katello::CapsuleContent::UpdateContentCounts' in task['label']
+        assert 'success' in task['result']
+
+        counts = module_capsule_configured.nailgun_capsule.content_counts()
+        assert (
+            counts is None or len(counts['content_view_versions']) == 0
+        ), f"No content counts expected, but got:\n{counts['content_view_versions']}."

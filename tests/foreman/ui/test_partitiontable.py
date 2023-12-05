@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
+import pytest
 
 from robottelo.constants import DataFile
 
@@ -167,7 +167,7 @@ def test_positive_delete_with_lock_and_unlock(session):
         )
         assert session.partitiontable.search(name)[0]['Name'] == name
         session.partitiontable.lock(name)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011 - TODO determine better exception
             session.partitiontable.delete(name)
         session.partitiontable.unlock(name)
         session.partitiontable.delete(name)
@@ -210,6 +210,7 @@ def test_positive_clone(session):
 
 
 @pytest.mark.tier2
+@pytest.mark.e2e
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_location, template_data):
     """Perform end to end testing for partition table component

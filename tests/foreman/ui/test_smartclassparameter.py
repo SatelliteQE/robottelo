@@ -16,8 +16,7 @@
 
 :Upstream: No
 """
-from random import choice
-from random import uniform
+from random import choice, uniform
 
 import pytest
 import yaml

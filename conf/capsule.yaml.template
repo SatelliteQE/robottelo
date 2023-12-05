@@ -1,7 +1,4 @@
 CAPSULE:
-  # Capsule name to be used in the CapsuleVirtualMachine class (will be deprecated)
-  SATELLITE_VERSION_TAG: "@jinja {{this.robottelo.satellite_version | replace('.', '')}}"
-  INSTANCE_NAME: "@format qe-sat{this[capsule].satellite_version_tag}-rhel7-tierX-capsule"
   VERSION:
     # The full release version (6.9.2)
     RELEASE:  # populate with capsule version
@@ -13,6 +10,6 @@ CAPSULE:
     # The base os rhel version where the capsule installed
     # RHEL_VERSION:
   # The Ansible Tower workflow used to deploy a capsule
-  DEPLOY_WORKFLOW: deploy-sat-capsule
+  DEPLOY_WORKFLOW: deploy-capsule
   # Dictionary of arguments which should be passed along to the deploy workflow
-  # DEPLOY_ARGUMENTS:
+  DEPLOY_ARGUMENTS:

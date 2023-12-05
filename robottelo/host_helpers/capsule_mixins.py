@@ -1,4 +1,26 @@
+from datetime import datetime
 import time
+
+from robottelo.constants import PUPPET_CAPSULE_INSTALLER, PUPPET_COMMON_INSTALLER_OPTS
+from robottelo.logging import logger
+from robottelo.utils.installer import InstallerCommand
+
+
+class EnablePluginsCapsule:
+    """Miscellaneous settings helper methods"""
+
+    def enable_puppet_capsule(self, satellite=None):
+        # Set Satellite URL for puppet-server-foreman-url
+        if satellite is not None:
+            satellite_url = f'https://{satellite.hostname}'
+            PUPPET_COMMON_INSTALLER_OPTS['puppet-server-foreman-url'] = satellite_url
+        enable_capsule_cmd = InstallerCommand(
+            installer_args=PUPPET_CAPSULE_INSTALLER, installer_opts=PUPPET_COMMON_INSTALLER_OPTS
+        )
+        result = self.execute(enable_capsule_cmd.get_command(), timeout='20m')
+        assert result.status == 0
+        assert 'Success!' in result.stdout
+        return self
 
 
 class CapsuleInfo:
@@ -24,11 +46,11 @@ class CapsuleInfo:
         :param poll_timeout: Maximum number of seconds to wait until timing out.
             Parameter for ``sat.api.ForemanTask.poll()`` method.
         :param must_succeed: Assert success result on finished task.
-        :return: List of ``sat.api.ForemanTasks`` entities.
+        :return: List of ``sat.api.ForemanTask`` entities.
         :raises: ``AssertionError``. If not tasks were found until timeout.
         """
         for _ in range(max_tries):
-            tasks = self.api.ForemanTask().search(query={'search': search_query})
+            tasks = self.satellite.api.ForemanTask().search(query={'search': search_query})
             if tasks:
                 for task in tasks:
                     task.poll(poll_rate=poll_rate, timeout=poll_timeout, must_succeed=must_succeed)
@@ -38,3 +60,37 @@ class CapsuleInfo:
         else:
             raise AssertionError(f"No task was found using query '{search_query}'")
         return tasks
+
+    def wait_for_sync(self, timeout=600, start_time=datetime.utcnow()):
+        """Wait for capsule sync to finish and assert the sync task succeeded"""
+        # Assert that a task to sync lifecycle environment to the capsule
+        # is started (or finished already)
+        logger.info(f"Waiting for capsule {self.hostname} sync to finish ...")
+        sync_status = self.nailgun_capsule.content_get_sync()
+        logger.info(f"Active tasks {sync_status['active_sync_tasks']}")
+        assert (
+            len(sync_status['active_sync_tasks'])
+            or datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC')
+            > start_time
+        )
+
+        # Wait till capsule sync finishes and assert the sync task succeeded
+        for task in sync_status['active_sync_tasks']:
+            self.satellite.api.ForemanTask(id=task['id']).poll(timeout=timeout)
+        sync_status = self.nailgun_capsule.content_get_sync()
+        assert len(sync_status['last_failed_sync_tasks']) == 0
+
+    def get_published_repo_url(self, org, prod, repo, lce=None, cv=None):
+        """Forms url of a repo or CV published on a Satellite or Capsule.
+
+        :param str org: organization label
+        :param str prod: product label
+        :param str repo: repository label
+        :param str lce: lifecycle environment label
+        :param str cv: content view label
+        :return: url of the specific repo or CV
+        """
+        if lce and cv:
+            return f'{self.url}/pulp/content/{org}/{lce}/{cv}/custom/{prod}/{repo}/'
+        else:
+            return f'{self.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'

@@ -16,33 +16,24 @@
 
 :Upstream: No
 """
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from time import sleep
 
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
-from robottelo.cli.factory import make_sync_plan
-from robottelo.cli.product import Product
-from robottelo.cli.repository import Repository
-from robottelo.cli.repository_set import RepositorySet
-from robottelo.cli.syncplan import SyncPlan
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import PRDS, REPOS, REPOSET
+from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    filtered_datapoint,
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
-SYNC_DATE_FMT = '%Y-%m-%d %H:%M:%S'
+SYNC_DATE_FMT = '%Y-%m-%d %H:%M:%S UTC'
 
 
 @filtered_datapoint
@@ -112,7 +103,7 @@ def validate_task_status(sat, repo_id, org_id, max_tries=10):
     )
 
 
-def validate_repo_content(repo, content_types, after_sync=True):
+def validate_repo_content(sat, repo, content_types, after_sync=True):
     """Check whether corresponding content is present in repository before
     or after synchronization is performed
 
@@ -122,7 +113,7 @@ def validate_repo_content(repo, content_types, after_sync=True):
     :param bool after_sync: Specify whether you perform validation before
         synchronization procedure is happened or after
     """
-    repo = Repository.info({'id': repo['id']})
+    repo = sat.cli.Repository.info({'id': repo['id']})
     for content in content_types:
         count = int(repo['content-counts'][content])
         assert count > 0 if after_sync else count == 0
@@ -130,7 +121,7 @@ def validate_repo_content(repo, content_types, after_sync=True):
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_create_with_name(module_org, name):
+def test_positive_create_with_name(module_org, name, module_target_sat):
     """Check if syncplan can be created with random names
 
     :id: dc0a86f7-4219-427e-92fd-29352dbdbfce
@@ -141,14 +132,16 @@ def test_positive_create_with_name(module_org, name):
 
     :CaseImportance: Critical
     """
-    sync_plan = make_sync_plan({'enabled': 'false', 'name': name, 'organization-id': module_org.id})
-    result = SyncPlan.info({'id': sync_plan['id']})
+    sync_plan = module_target_sat.cli_factory.sync_plan(
+        {'enabled': 'false', 'name': name, 'organization-id': module_org.id}
+    )
+    result = module_target_sat.cli.SyncPlan.info({'id': sync_plan['id']})
     assert result['name'] == name
 
 
 @pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_create_with_description(module_org, desc):
+def test_positive_create_with_description(module_org, desc, module_target_sat):
     """Check if syncplan can be created with random description
 
     :id: a1bbe81b-60f5-4a19-b400-a02a23fa1dfa
@@ -159,16 +152,16 @@ def test_positive_create_with_description(module_org, desc):
 
     :CaseImportance: Critical
     """
-    new_sync_plan = make_sync_plan(
+    new_sync_plan = module_target_sat.cli_factory.sync_plan(
         {'enabled': 'false', 'description': desc, 'organization-id': module_org.id}
     )
-    result = SyncPlan.info({'id': new_sync_plan['id']})
+    result = module_target_sat.cli.SyncPlan.info({'id': new_sync_plan['id']})
     assert result['description'] == desc
 
 
 @pytest.mark.parametrize('test_data', **parametrized(valid_name_interval_create_tests()))
 @pytest.mark.tier1
-def test_positive_create_with_interval(module_org, test_data):
+def test_positive_create_with_interval(module_org, test_data, module_target_sat):
     """Check if syncplan can be created with varied intervals
 
     :id: 32eb0c1d-0c9a-4fb5-a185-68d0d705fbce
@@ -179,7 +172,7 @@ def test_positive_create_with_interval(module_org, test_data):
 
     :CaseImportance: Critical
     """
-    new_sync_plan = make_sync_plan(
+    new_sync_plan = module_target_sat.cli_factory.sync_plan(
         {
             'enabled': 'false',
             'interval': test_data['interval'],
@@ -187,14 +180,14 @@ def test_positive_create_with_interval(module_org, test_data):
             'organization-id': module_org.id,
         }
     )
-    result = SyncPlan.info({'id': new_sync_plan['id']})
+    result = module_target_sat.cli.SyncPlan.info({'id': new_sync_plan['id']})
     assert result['name'] == test_data['name']
     assert result['interval'] == test_data['interval']
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 @pytest.mark.tier1
-def test_negative_create_with_name(module_org, name):
+def test_negative_create_with_name(module_org, name, module_target_sat):
     """Check if syncplan can be created with random invalid names
 
     :id: 4c1aee35-271e-4ed8-9369-d2abfea8cfd9
@@ -206,12 +199,14 @@ def test_negative_create_with_name(module_org, name):
     :CaseImportance: Critical
     """
     with pytest.raises(CLIFactoryError, match='Could not create the sync plan:'):
-        make_sync_plan({'enabled': 'false', 'name': name, 'organization-id': module_org.id})
+        module_target_sat.cli_factory.sync_plan(
+            {'enabled': 'false', 'name': name, 'organization-id': module_org.id}
+        )
 
 
 @pytest.mark.parametrize('new_desc', **parametrized(valid_data_list()))
 @pytest.mark.tier2
-def test_positive_update_description(module_org, new_desc):
+def test_positive_update_description(module_org, new_desc, module_target_sat):
     """Check if syncplan description can be updated
 
     :id: 00a279cd-1f49-4ebb-a59a-6f0b4e4cb83c
@@ -220,9 +215,11 @@ def test_positive_update_description(module_org, new_desc):
 
     :expectedresults: Sync plan is created and description is updated
     """
-    new_sync_plan = make_sync_plan({'enabled': 'false', 'organization-id': module_org.id})
-    SyncPlan.update({'description': new_desc, 'id': new_sync_plan['id']})
-    result = SyncPlan.info({'id': new_sync_plan['id']})
+    new_sync_plan = module_target_sat.cli_factory.sync_plan(
+        {'enabled': 'false', 'organization-id': module_org.id}
+    )
+    module_target_sat.cli.SyncPlan.update({'description': new_desc, 'id': new_sync_plan['id']})
+    result = module_target_sat.cli.SyncPlan.info({'id': new_sync_plan['id']})
     assert result['description'] == new_desc
 
 
@@ -239,7 +236,7 @@ def test_positive_update_interval(module_org, test_data, request, target_sat):
 
     :CaseImportance: Critical
     """
-    new_sync_plan = make_sync_plan(
+    new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'enabled': 'false',
             'interval': test_data['interval'],
@@ -249,8 +246,10 @@ def test_positive_update_interval(module_org, test_data, request, target_sat):
     )
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
-    SyncPlan.update({'id': new_sync_plan['id'], 'interval': test_data['new-interval']})
-    result = SyncPlan.info({'id': new_sync_plan['id']})
+    target_sat.cli.SyncPlan.update(
+        {'id': new_sync_plan['id'], 'interval': test_data['new-interval']}
+    )
+    result = target_sat.cli.SyncPlan.info({'id': new_sync_plan['id']})
     assert result['interval'] == test_data['new-interval']
 
 
@@ -270,7 +269,7 @@ def test_positive_update_sync_date(module_org, request, target_sat):
     # Set the sync date to today/right now
     today = datetime.now()
     sync_plan_name = gen_string('alphanumeric')
-    new_sync_plan = make_sync_plan(
+    new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'name': sync_plan_name,
             'sync-date': today.strftime(SYNC_DATE_FMT),
@@ -284,9 +283,11 @@ def test_positive_update_sync_date(module_org, request, target_sat):
     # Set sync date 5 days in the future
     future_date = today + timedelta(days=5)
     # Update sync interval
-    SyncPlan.update({'id': new_sync_plan['id'], 'sync-date': future_date.strftime(SYNC_DATE_FMT)})
+    target_sat.cli.SyncPlan.update(
+        {'id': new_sync_plan['id'], 'sync-date': future_date.strftime(SYNC_DATE_FMT)}
+    )
     # Fetch it
-    result = SyncPlan.info({'id': new_sync_plan['id']})
+    result = target_sat.cli.SyncPlan.info({'id': new_sync_plan['id']})
     assert result['start-date'] != new_sync_plan['start-date']
     assert datetime.strptime(result['start-date'], '%Y/%m/%d %H:%M:%S') > datetime.strptime(
         new_sync_plan['start-date'], '%Y/%m/%d %H:%M:%S'
@@ -296,7 +297,7 @@ def test_positive_update_sync_date(module_org, request, target_sat):
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_delete_by_id(module_org, name):
+def test_positive_delete_by_id(module_org, module_target_sat, name):
     """Check if syncplan can be created and deleted
 
     :id: b5d97c6b-aead-422b-8d9f-4a192bbe4a3b
@@ -307,10 +308,12 @@ def test_positive_delete_by_id(module_org, name):
 
     :CaseImportance: Critical
     """
-    new_sync_plan = make_sync_plan({'name': name, 'organization-id': module_org.id})
-    SyncPlan.delete({'id': new_sync_plan['id']})
+    new_sync_plan = module_target_sat.cli_factory.sync_plan(
+        {'name': name, 'organization-id': module_org.id}
+    )
+    module_target_sat.cli.SyncPlan.delete({'id': new_sync_plan['id']})
     with pytest.raises(CLIReturnCodeError):
-        SyncPlan.info({'id': new_sync_plan['id']})
+        module_target_sat.cli.SyncPlan.info({'id': new_sync_plan['id']})
 
 
 @pytest.mark.tier1
@@ -323,16 +326,16 @@ def test_positive_info_enabled_field_is_displayed(module_org, request, target_sa
 
     :CaseImportance: Critical
     """
-    new_sync_plan = make_sync_plan({'organization-id': module_org.id})
+    new_sync_plan = target_sat.cli_factory.sync_plan({'organization-id': module_org.id})
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
-    result = SyncPlan.info({'id': new_sync_plan['id']})
+    result = target_sat.cli.SyncPlan.info({'id': new_sync_plan['id']})
     assert result.get('enabled') is not None
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_info_with_assigned_product(module_org):
+def test_positive_info_with_assigned_product(module_org, module_target_sat):
     """Verify that sync plan info command returns list of products which
     are assigned to that sync plan
 
@@ -351,7 +354,7 @@ def test_positive_info_with_assigned_product(module_org):
     """
     prod1 = gen_string('alpha')
     prod2 = gen_string('alpha')
-    sync_plan = make_sync_plan(
+    sync_plan = module_target_sat.cli_factory.sync_plan(
         {
             'enabled': 'false',
             'organization-id': module_org.id,
@@ -359,9 +362,13 @@ def test_positive_info_with_assigned_product(module_org):
         }
     )
     for prod_name in [prod1, prod2]:
-        product = make_product({'organization-id': module_org.id, 'name': prod_name})
-        Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
-    updated_plan = SyncPlan.info({'id': sync_plan['id']})
+        product = module_target_sat.cli_factory.make_product(
+            {'organization-id': module_org.id, 'name': prod_name}
+        )
+        module_target_sat.cli.Product.set_sync_plan(
+            {'id': product['id'], 'sync-plan-id': sync_plan['id']}
+        )
+    updated_plan = module_target_sat.info({'id': sync_plan['id']})
     assert len(updated_plan['products']) == 2
     assert {prod['name'] for prod in updated_plan['products']} == {prod1, prod2}
 
@@ -380,7 +387,7 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org, request,
 
     :CaseLevel: System
     """
-    new_sync_plan = make_sync_plan(
+    new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'enabled': 'true',
             'organization-id': module_org.id,
@@ -389,9 +396,9 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org, request,
     )
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
-    product = make_product({'organization-id': module_org.id})
-    repo = make_repository({'product-id': product['id']})
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    repo = target_sat.cli_factory.make_repository({'product-id': product['id']})
+    target_sat.cli.Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     with pytest.raises(AssertionError):
         validate_task_status(target_sat, repo['id'], module_org.id, max_tries=2)
 
@@ -413,9 +420,9 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
     """
     interval = 60 * 60  # 'hourly' sync interval in seconds
     delay = 2 * 60
-    product = make_product({'organization-id': module_org.id})
-    repo = make_repository({'product-id': product['id']})
-    new_sync_plan = make_sync_plan(
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    repo = target_sat.cli_factory.make_repository({'product-id': product['id']})
+    new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'enabled': 'true',
             'interval': 'hourly',
@@ -428,7 +435,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Associate sync plan with product
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
+    target_sat.cli.Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
     logger.info(
         f"Waiting {(delay / 4)} seconds to check product {product['name']}"
@@ -437,8 +444,8 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
     sleep(delay / 4)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], module_org.id, max_tries=1)
-    validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
+        validate_task_status(target_sat, repo['id'], module_org.id, max_tries=1)
+    validate_repo_content(target_sat, repo, ['errata', 'packages'], after_sync=False)
     # Wait until the first recurrence
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
@@ -446,8 +453,8 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
-    validate_task_status(repo['id'], module_org.id)
-    validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
+    validate_task_status(target_sat, repo['id'], module_org.id)
+    validate_repo_content(target_sat, repo, ['errata', 'package-groups', 'packages'])
 
 
 @pytest.mark.tier4
@@ -467,12 +474,12 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     cron_multiple = 5  # sync event is on every multiple of this value, starting from 00 mins
     delay = (cron_multiple) * 60  # delay for sync date in seconds
     guardtime = 180  # do not start test less than 3 mins before the next sync event
-    product = make_product({'organization-id': module_org.id})
-    repo = make_repository({'product-id': product['id']})
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    repo = target_sat.cli_factory.make_repository({'product-id': product['id']})
     # if < 3 mins before the target event rather wait 3 mins for the next test window
     if int(datetime.utcnow().strftime('%M')) % (cron_multiple) > int(guardtime / 60):
         sleep(guardtime)
-    new_sync_plan = make_sync_plan(
+    new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'enabled': 'true',
             'organization-id': module_org.id,
@@ -485,9 +492,9 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Verify product is not synced and doesn't have any content
-    validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
+    validate_repo_content(target_sat, repo, ['errata', 'packages'], after_sync=False)
     # Associate sync plan with product
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
+    target_sat.cli.Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
     logger.info(
         f"Waiting {(delay / 4)} seconds to check product {product['name']}"
@@ -497,7 +504,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
         validate_task_status(target_sat, repo['id'], module_org.id, max_tries=1)
-    validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
+    validate_repo_content(target_sat, repo, ['errata', 'packages'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
@@ -506,7 +513,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(target_sat, repo['id'], module_org.id)
-    validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
+    validate_repo_content(target_sat, repo, ['errata', 'package-groups', 'packages'])
 
 
 @pytest.mark.tier4
@@ -526,14 +533,18 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     cron_multiple = 5  # sync event is on every multiple of this value, starting from 00 mins
     delay = (cron_multiple) * 60  # delay for sync date in seconds
     guardtime = 210  # do not start test less than 3.5 mins before the next sync event
-    products = [make_product({'organization-id': module_org.id}) for _ in range(2)]
+    products = [
+        target_sat.cli_factory.make_product({'organization-id': module_org.id}) for _ in range(2)
+    ]
     repos = [
-        make_repository({'product-id': product['id']}) for product in products for _ in range(2)
+        target_sat.cli_factory.make_repository({'product-id': product['id']})
+        for product in products
+        for _ in range(2)
     ]
     # if < 3 mins before the target event rather wait 3 mins for the next test window
     if int(datetime.utcnow().strftime('%M')) % (cron_multiple) > int(guardtime / 60):
         sleep(guardtime)
-    new_sync_plan = make_sync_plan(
+    new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'enabled': 'true',
             'organization-id': module_org.id,
@@ -552,10 +563,12 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     )
     for repo in repos:
         with pytest.raises(AssertionError):
-            validate_task_status(repo['id'], module_org.id, max_tries=1)
+            validate_task_status(target_sat, repo['id'], module_org.id, max_tries=1)
     # Associate sync plan with products
     for product in products:
-        Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
+        target_sat.cli.Product.set_sync_plan(
+            {'id': product['id'], 'sync-plan-id': new_sync_plan['id']}
+        )
     # Wait fifth of expected time
     logger.info(
         f"Waiting {(delay / 5)} seconds to check products {products[0]['name']}"
@@ -565,7 +578,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     # Verify products have not been synced yet
     for repo in repos:
         with pytest.raises(AssertionError):
-            validate_task_status(repo['id'], module_org.id, max_tries=1)
+            validate_task_status(target_sat, repo['id'], module_org.id, max_tries=1)
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 4 / 5)} seconds to check product {products[0]['name']}"
@@ -574,8 +587,8 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     sleep(delay * 4 / 5)
     # Verify products were synced successfully
     for repo in repos:
-        validate_task_status(repo['id'], module_org.id)
-        validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
+        validate_task_status(target_sat, repo['id'], module_org.id)
+        validate_repo_content(target_sat, repo, ['errata', 'package-groups', 'packages'])
 
 
 @pytest.mark.run_in_one_thread
@@ -599,7 +612,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
     interval = 60 * 60  # 'hourly' sync interval in seconds
     delay = 2 * 60
     org = function_entitlement_manifest_org
-    RepositorySet.enable(
+    target_sat.cli.RepositorySet.enable(
         {
             'name': REPOSET['rhva6'],
             'organization-id': org.id,
@@ -608,11 +621,11 @@ def test_positive_synchronize_rh_product_past_sync_date(
             'basearch': 'x86_64',
         }
     )
-    product = Product.info({'name': PRDS['rhel'], 'organization-id': org.id})
-    repo = Repository.info(
+    product = target_sat.cli.Product.info({'name': PRDS['rhel'], 'organization-id': org.id})
+    repo = target_sat.cli.Repository.info(
         {'name': REPOS['rhva6']['name'], 'product': product['name'], 'organization-id': org.id}
     )
-    new_sync_plan = make_sync_plan(
+    new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'enabled': 'true',
             'interval': 'hourly',
@@ -625,7 +638,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
     sync_plan = entities.SyncPlan(organization=org.id, id=new_sync_plan['id']).read()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Associate sync plan with product
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
+    target_sat.cli.Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
     logger.info(
         f"Waiting {(delay / 4)} seconds to check product {product['name']}"
@@ -634,8 +647,8 @@ def test_positive_synchronize_rh_product_past_sync_date(
     sleep(delay / 4)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], org.id, max_tries=1)
-    validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
+        validate_task_status(target_sat, repo['id'], org.id, max_tries=1)
+    validate_repo_content(target_sat, repo, ['errata', 'packages'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
@@ -643,8 +656,8 @@ def test_positive_synchronize_rh_product_past_sync_date(
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
-    validate_task_status(repo['id'], org.id)
-    validate_repo_content(repo, ['errata', 'packages'])
+    validate_task_status(target_sat, repo['id'], org.id)
+    validate_repo_content(target_sat, repo, ['errata', 'packages'])
 
 
 @pytest.mark.run_in_one_thread
@@ -668,7 +681,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     delay = (cron_multiple) * 60  # delay for sync date in seconds
     guardtime = 180  # do not start test less than 2 mins before the next sync event
     org = function_entitlement_manifest_org
-    RepositorySet.enable(
+    target_sat.cli.RepositorySet.enable(
         {
             'name': REPOSET['rhva6'],
             'organization-id': org.id,
@@ -677,14 +690,14 @@ def test_positive_synchronize_rh_product_future_sync_date(
             'basearch': 'x86_64',
         }
     )
-    product = Product.info({'name': PRDS['rhel'], 'organization-id': org.id})
-    repo = Repository.info(
+    product = target_sat.cli.Product.info({'name': PRDS['rhel'], 'organization-id': org.id})
+    repo = target_sat.cli.Repository.info(
         {'name': REPOS['rhva6']['name'], 'product': product['name'], 'organization-id': org.id}
     )
     # if < 3 mins before the target event rather wait 3 mins for the next test window
     if int(datetime.utcnow().strftime('%M')) % (cron_multiple) > int(guardtime / 60):
         sleep(guardtime)
-    new_sync_plan = make_sync_plan(
+    new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'enabled': 'true',
             'organization-id': org.id,
@@ -698,10 +711,10 @@ def test_positive_synchronize_rh_product_future_sync_date(
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], org.id, max_tries=1)
-    validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
+        validate_task_status(target_sat, repo['id'], org.id, max_tries=1)
+    validate_repo_content(target_sat, repo, ['errata', 'packages'], after_sync=False)
     # Associate sync plan with product
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
+    target_sat.cli.Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait fifth of expected time
     logger.info(
         f"Waiting {(delay / 5)} seconds to check product {product['name']}"
@@ -710,7 +723,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     sleep(delay / 5)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], org.id, max_tries=1)
+        validate_task_status(target_sat, repo['id'], org.id, max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
@@ -719,7 +732,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     )
     sleep(delay * 4 / 5)
     # Verify product was synced successfully
-    validate_task_status(repo['id'], org.id)
+    validate_task_status(target_sat, repo['id'], org.id)
     validate_repo_content(repo, ['errata', 'packages'])
 
 
@@ -737,10 +750,10 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org, reques
     :CaseLevel: System
     """
     delay = 2 * 60
-    product = make_product({'organization-id': module_org.id})
-    repo = make_repository({'product-id': product['id']})
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    repo = target_sat.cli_factory.make_repository({'product-id': product['id']})
     start_date = datetime.utcnow() - timedelta(days=1) + timedelta(seconds=delay)
-    new_sync_plan = make_sync_plan(
+    new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'enabled': 'true',
             'interval': 'daily',
@@ -751,7 +764,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org, reques
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Associate sync plan with product
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
+    target_sat.cli.Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
     logger.info(
         f"Waiting {(delay / 4)} seconds to check product {product['name']}"
@@ -761,7 +774,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org, reques
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
         validate_task_status(target_sat, repo['id'], module_org.id, max_tries=1)
-    validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
+    validate_repo_content(target_sat, repo, ['errata', 'packages'], after_sync=False)
     # Wait until the first recurrence
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
@@ -770,7 +783,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org, reques
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(target_sat, repo['id'], module_org.id)
-    validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
+    validate_repo_content(target_sat, repo, ['errata', 'package-groups', 'packages'])
 
 
 @pytest.mark.tier3
@@ -788,10 +801,10 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     :CaseLevel: System
     """
     delay = 2 * 60
-    product = make_product({'organization-id': module_org.id})
-    repo = make_repository({'product-id': product['id']})
+    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    repo = target_sat.cli_factory.make_repository({'product-id': product['id']})
     start_date = datetime.utcnow() - timedelta(weeks=1) + timedelta(seconds=delay)
-    new_sync_plan = make_sync_plan(
+    new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'enabled': 'true',
             'interval': 'weekly',
@@ -802,7 +815,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     sync_plan = entities.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Associate sync plan with product
-    Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
+    target_sat.cli.Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
     # Wait quarter of expected time
     logger.info(
         f"Waiting {(delay / 4)} seconds to check product {product['name']}"
@@ -811,8 +824,8 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     sleep(delay / 4)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], module_org.id, max_tries=1)
-    validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
+        validate_task_status(target_sat, repo['id'], module_org.id, max_tries=1)
+    validate_repo_content(target_sat, repo, ['errata', 'packages'], after_sync=False)
     # Wait until the first recurrence
     logger.info(
         f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
@@ -820,5 +833,5 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
-    validate_task_status(repo['id'], module_org.id)
-    validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
+    validate_task_status(target_sat, repo['id'], module_org.id)
+    validate_repo_content(target_sat, repo, ['errata', 'package-groups', 'packages'])

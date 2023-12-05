@@ -1,14 +1,16 @@
-import unittest
 from functools import partial
+import unittest
 from unittest import mock
 
 import pytest
 
 from robottelo.cli.base import Base
-from robottelo.cli.base import CLIBaseError
-from robottelo.cli.base import CLIDataBaseError
-from robottelo.cli.base import CLIError
-from robottelo.cli.base import CLIReturnCodeError
+from robottelo.exceptions import (
+    CLIBaseError,
+    CLIDataBaseError,
+    CLIError,
+    CLIReturnCodeError,
+)
 
 
 class CLIClass(Base):
@@ -299,7 +301,7 @@ class BaseCliTestCase(unittest.TestCase):
         assert 1 == response
 
     @mock.patch('robottelo.cli.base.Base.command_requires_org')
-    def test_info_requires_organization_id(self, _):
+    def test_info_requires_organization_id(self, _):  # noqa: PT019 - not a fixture
         """Check info raises CLIError with organization-id is not present in
         options
         """

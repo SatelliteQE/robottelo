@@ -22,11 +22,10 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 """
 import http
 
-import pytest
 from nailgun import client
+import pytest
 
-from robottelo.config import get_credentials
-from robottelo.config import get_url
+from robottelo.config import get_credentials, get_url
 
 
 @pytest.mark.tier1
@@ -50,4 +49,4 @@ def test_positive_path():
     response = client.get(path, auth=get_credentials(), verify=False)
     assert response.status_code == http.client.OK
     assert 'application/json' in response.headers['content-type']
-    assert type(response.json()) is list
+    assert isinstance(response.json(), list)

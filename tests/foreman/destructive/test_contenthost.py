@@ -19,8 +19,7 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE, FAKE_1_CUSTOM_PACKAGE
 
 pytestmark = pytest.mark.destructive
 
@@ -46,13 +45,6 @@ def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
     """
     org = target_sat.api.Organization().create()
     org.sca_disable()
-    # adding remote_execution_connect_by_ip=Yes at org level
-    target_sat.api.Parameter(
-        name='remote_execution_connect_by_ip',
-        value='Yes',
-        parameter_type='boolean',
-        organization=org.id,
-    ).create()
     lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel7',
@@ -60,8 +52,8 @@ def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
             target_sat.cli_factory.YumRepository(url=settings.repos.yum_1.url),
         ],
     )
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=False)
-    repos_collection.setup_virtual_machine(rhel7_contenthost, install_katello_agent=False)
+    repos_collection.setup_content(org.id, lce.id, upload_manifest=False, override=True)
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
     result = rhel7_contenthost.execute(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     assert target_sat.cli.Service.stop(options={'only': 'foreman'}).status == 0

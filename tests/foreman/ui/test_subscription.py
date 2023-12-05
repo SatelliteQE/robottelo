@@ -16,22 +16,23 @@
 
 :Upstream: No
 """
-import time
 from tempfile import mkstemp
+import time
 
-import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
+import pytest
 
-from robottelo.cli.factory import make_virt_who_config
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.constants import VDC_SUBSCRIPTION_NAME
-from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
+from robottelo.constants import (
+    DEFAULT_SUBSCRIPTION_NAME,
+    PRDS,
+    REPOS,
+    REPOSET,
+    VDC_SUBSCRIPTION_NAME,
+    VIRT_WHO_HYPERVISOR_TYPES,
+)
 from robottelo.utils.manifest import clone
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_manifest')]
@@ -65,6 +66,7 @@ def golden_ticket_host_setup(function_entitlement_manifest_org, module_target_sa
     return org, ak
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, target_sat):
@@ -93,14 +95,8 @@ def test_positive_end_to_end(session, target_sat):
     """
     expected_message_lines = [
         'Are you sure you want to delete the manifest?',
-        'Note: Deleting a subscription manifest is STRONGLY discouraged. '
-        'Deleting a manifest will:',
-        'Delete all subscriptions that are attached to running hosts.',
-        'Delete all subscriptions attached to activation keys.',
-        'Disable Red Hat Insights.',
-        'Require you to upload the subscription-manifest and re-attach '
-        'subscriptions to hosts and activation keys.',
-        'This action should only be taken in extreme circumstances or for debugging purposes.',
+        'Note: Deleting a subscription manifest is STRONGLY discouraged.',
+        'This action should only be taken for debugging purposes.',
     ]
     org = entities.Organization().create()
     _, temporary_local_manifest_path = mkstemp(prefix='manifest-', suffix='.zip')
@@ -118,14 +114,11 @@ def test_positive_end_to_end(session, target_sat):
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound'],
         )
         assert session.subscription.has_manifest
-        # dashboard check
-        subscription_values = session.dashboard.read('SubscriptionStatus')['subscriptions']
-        assert subscription_values[0]['Subscription Status'] == 'Active Subscriptions'
-        assert int(subscription_values[0]['Count']) >= 1
-        assert subscription_values[1]['Subscription Status'] == 'Subscriptions Expiring in 120 Days'
-        assert int(subscription_values[1]['Count']) == 0
-        assert subscription_values[2]['Subscription Status'] == 'Recently Expired Subscriptions'
-        assert int(subscription_values[2]['Count']) == 0
+        subscriptions = session.subscription.read_subscriptions()
+        assert len(subscriptions) >= 1
+        assert any('Red Hat' in subscription['Name'] for subscription in subscriptions)
+        assert int(subscriptions[0]['Entitlements']) > 0
+        assert int(subscriptions[0]['Consumed']) >= 0
         # manifest delete testing
         delete_message = session.subscription.read_delete_manifest_message()
         assert ' '.join(expected_message_lines) == delete_message
@@ -230,7 +223,9 @@ def test_positive_access_with_non_admin_user_with_manifest(
 
 
 @pytest.mark.tier2
-def test_positive_access_manifest_as_another_admin_user(test_name, target_sat):
+def test_positive_access_manifest_as_another_admin_user(
+    test_name, target_sat, function_entitlement_manifest
+):
     """Other admin users should be able to access and manage a manifest
     uploaded by a different admin.
 
@@ -257,7 +252,7 @@ def test_positive_access_manifest_as_another_admin_user(test_name, target_sat):
     ).create()
     # use the first admin to upload a manifest
     with Session(test_name, user=user1.login, password=user1_password) as session:
-        target_sat.upload_manifest(org.id)
+        target_sat.upload_manifest(org.id, function_entitlement_manifest.content)
         assert session.subscription.has_manifest
         # store subscriptions that have "Red Hat" in the name for later
         rh_subs = session.subscription.search("Red Hat")
@@ -272,7 +267,9 @@ def test_positive_access_manifest_as_another_admin_user(test_name, target_sat):
 
 
 @pytest.mark.tier3
-def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, target_sat):
+def test_positive_view_vdc_subscription_products(
+    session, rhel7_contenthost, target_sat, function_entitlement_manifest_org
+):
     """Ensure that Virtual Datacenters subscription provided products is
     not empty and that a consumed product exist in content products.
 
@@ -305,21 +302,18 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, tar
 
     :CaseLevel: System
     """
-    org = entities.Organization().create()
+    org = function_entitlement_manifest_org
     lce = entities.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel7',
         repositories=[target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)],
     )
     product_name = repos_collection.rh_repos[0].data['product']
-    repos_collection.setup_content(
-        org.id, lce.id, upload_manifest=True, rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME]
-    )
+    repos_collection.setup_content(org.id, lce.id, rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME])
     rhel7_contenthost.contenthost_setup(
         target_sat,
         org.label,
         activation_key=repos_collection.setup_content_data['activation_key']['name'],
-        install_katello_agent=False,
     )
     with session:
         session.organization.select(org.name)
@@ -336,7 +330,9 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, tar
 
 @pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.tier3
-def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthost, target_sat):
+def test_positive_view_vdc_guest_subscription_products(
+    session, rhel7_contenthost, target_sat, function_entitlement_manifest_org
+):
     """Ensure that Virtual Data Centers guest subscription Provided
     Products and Content Products are not empty.
 
@@ -366,13 +362,13 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
 
     :CaseLevel: System
     """
-    org = entities.Organization().create()
+    org = function_entitlement_manifest_org
     lce = entities.LifecycleEnvironment(organization=org).create()
     provisioning_server = settings.libvirt.libvirt_hostname
     rh_product_repository = target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)
     product_name = rh_product_repository.data['product']
     # Create a new virt-who config
-    virt_who_config = make_virt_who_config(
+    virt_who_config = target_sat.cli_factory.virt_who_config(
         {
             'organization-id': org.id,
             'hypervisor-type': VIRT_WHO_HYPERVISOR_TYPES['libvirt'],
@@ -389,6 +385,7 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
         hypervisor_hostname=provisioning_server,
         configure_ssh=True,
         subscription_name=VDC_SUBSCRIPTION_NAME,
+        upload_manifest=False,
         extra_repos=[rh_product_repository.data],
     )
     virt_who_hypervisor_host = virt_who_data['virt_who_hypervisor_host']
@@ -399,7 +396,8 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
             f'subscription_name = "{VDC_SUBSCRIPTION_NAME}" '
             f'and name = "{virt_who_hypervisor_host["name"]}"'
         )
-        assert content_hosts and content_hosts[0]['Name'] == virt_who_hypervisor_host['name']
+        assert content_hosts
+        assert content_hosts[0]['Name'] == virt_who_hypervisor_host['name']
         # ensure that hypervisor guests subscription provided products list is not empty and
         # that the product is in provided products.
         provided_products = session.subscription.provided_products(
@@ -415,7 +413,9 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
 
 
 @pytest.mark.tier3
-def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
+def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
+    session, function_org, function_entitlement_manifest
+):
     """Ensures that no column headers from checkboxes show up in the table after
     unticking everything from selectable customizable column
 
@@ -449,28 +449,20 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
         'Consumed': False,
         'Entitlements': False,
     }
-    org = entities.Organization().create()
-    _, temporary_local_manifest_path = mkstemp(prefix='manifest-', suffix='.zip')
-    with clone() as manifest:
-        with open(temporary_local_manifest_path, 'wb') as file_handler:
-            file_handler.write(manifest.content.read())
-
+    org = function_org
     with session:
         session.organization.select(org.name)
-        # Ignore "Danger alert: Katello::Errors::UpstreamConsumerNotFound" as server will connect
-        # to upstream subscription service to verify
-        # the consumer uuid, that will be displayed in flash error messages
-        # Note: this happen only when using clone manifest.
         session.subscription.add_manifest(
-            temporary_local_manifest_path,
+            function_entitlement_manifest.path,
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound'],
         )
         headers = session.subscription.filter_columns(checkbox_dict)
-        assert not headers
+        assert headers == ('Select all rows',)
         assert len(checkbox_dict) == 9
         time.sleep(3)
         checkbox_dict.update((k, True) for k in checkbox_dict)
         col = session.subscription.filter_columns(checkbox_dict)
+        checkbox_dict.update({'Select all rows': ''})
         assert set(col) == set(checkbox_dict)
 
 

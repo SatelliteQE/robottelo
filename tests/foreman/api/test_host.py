@@ -22,50 +22,24 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 """
 import http
 
-import pytest
-from fauxfactory import gen_choice
-from fauxfactory import gen_integer
-from fauxfactory import gen_ipaddr
-from fauxfactory import gen_mac
-from fauxfactory import gen_string
+from fauxfactory import gen_choice, gen_integer, gen_ipaddr, gen_mac, gen_string
 from nailgun import client
-from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
-from robottelo.config import settings
-from robottelo.constants import DEFAULT_CV
-from robottelo.constants import ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.utils import datafactory
 
 
-@pytest.fixture(scope='function')
-def tracer_host(katello_host_tools_tracer_host):
-    # create a custom, rhel version-specific mock-service repo
-    rhelver = katello_host_tools_tracer_host.os_version.major
-    katello_host_tools_tracer_host.create_custom_repos(
-        **{f'mock_service_rhel{rhelver}': settings.repos['MOCK_SERVICE_REPO'][f'rhel{rhelver}']}
-    )
-    katello_host_tools_tracer_host.execute(f'yum -y install {settings.repos["MOCK_SERVICE_RPM"]}')
-    assert (
-        katello_host_tools_tracer_host.execute(
-            f'rpm -q {settings.repos["MOCK_SERVICE_RPM"]}'
-        ).status
-        == 0
-    )
-    katello_host_tools_tracer_host.execute(f'systemctl start {settings.repos["MOCK_SERVICE_RPM"]}')
-
-    yield katello_host_tools_tracer_host
-
-
-def update_smart_proxy(location, smart_proxy):
-    if location.id not in [location.id for location in smart_proxy.location]:
-        smart_proxy.location.append(entities.Location(id=location.id))
-    smart_proxy.update(['location'])
+def update_smart_proxy(smart_proxy_location, smart_proxy):
+    if smart_proxy_location.id not in [location.id for location in smart_proxy.location]:
+        smart_proxy.location.append(smart_proxy_location)
+        smart_proxy.update(['location'])
 
 
 @pytest.mark.tier1
-def test_positive_get_search():
+def test_positive_get_search(target_sat):
     """GET ``api/v2/hosts`` and specify the ``search`` parameter.
 
     :id: d63f87e5-66e6-4886-8b44-4129259493a6
@@ -76,7 +50,7 @@ def test_positive_get_search():
     """
     query = gen_string('utf8', gen_integer(1, 100))
     response = client.get(
-        entities.Host().path(),
+        target_sat.api.Host().path(),
         auth=get_credentials(),
         data={'search': query},
         verify=False,
@@ -86,7 +60,7 @@ def test_positive_get_search():
 
 
 @pytest.mark.tier1
-def test_positive_get_per_page():
+def test_positive_get_per_page(target_sat):
     """GET ``api/v2/hosts`` and specify the ``per_page`` parameter.
 
     :id: 9086f41c-b3b9-4af2-b6c4-46b80b4d1cfd
@@ -98,7 +72,7 @@ def test_positive_get_per_page():
     """
     per_page = gen_integer(1, 1000)
     response = client.get(
-        entities.Host().path(),
+        target_sat.api.Host().path(),
         auth=get_credentials(),
         data={'per_page': str(per_page)},
         verify=False,
@@ -108,7 +82,7 @@ def test_positive_get_per_page():
 
 
 @pytest.mark.tier2
-def test_positive_search_by_org_id():
+def test_positive_search_by_org_id(target_sat):
     """Search for host by specifying host's organization id
 
     :id: 56353f7c-b77e-4b6c-9ec3-51b58f9a18d8
@@ -122,9 +96,9 @@ def test_positive_search_by_org_id():
 
     :CaseLevel: Integration
     """
-    host = entities.Host().create()
+    host = target_sat.api.Host().create()
     # adding org id as GET parameter for correspondence with BZ
-    query = entities.Host()
+    query = target_sat.api.Host()
     query._meta['api_path'] += f'?organization_id={host.organization.id}'
     results = query.search()
     assert len(results) == 1
@@ -133,7 +107,7 @@ def test_positive_search_by_org_id():
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('owner_type', ['User', 'Usergroup'])
-def test_negative_create_with_owner_type(owner_type):
+def test_negative_create_with_owner_type(owner_type, target_sat):
     """Create a host and specify only ``owner_type``.
 
     :id: cdf9d16f-1c47-498a-be48-901355385dde
@@ -145,13 +119,15 @@ def test_negative_create_with_owner_type(owner_type):
     :CaseImportance: Critical
     """
     with pytest.raises(HTTPError) as error:
-        entities.Host(owner_type=owner_type).create()
+        target_sat.api.Host(owner_type=owner_type).create()
     assert str(422) in str(error)
 
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('owner_type', ['User', 'Usergroup'])
-def test_positive_update_owner_type(owner_type, module_org, module_location, module_user):
+def test_positive_update_owner_type(
+    owner_type, module_org, module_location, module_user, module_target_sat
+):
     """Update a host's ``owner_type``.
 
     :id: b72cd8ef-3a0b-4d2d-94f9-9b64908d699a
@@ -167,9 +143,9 @@ def test_positive_update_owner_type(owner_type, module_org, module_location, mod
     """
     owners = {
         'User': module_user,
-        'Usergroup': entities.UserGroup().create(),
+        'Usergroup': module_target_sat.api.UserGroup().create(),
     }
-    host = entities.Host(organization=module_org, location=module_location).create()
+    host = module_target_sat.api.Host(organization=module_org, location=module_location).create()
     host.owner_type = owner_type
     host.owner = owners[owner_type]
     host = host.update(['owner_type', 'owner'])
@@ -177,9 +153,8 @@ def test_positive_update_owner_type(owner_type, module_org, module_location, mod
     assert host.owner.read() == owners[owner_type]
 
 
-@pytest.mark.build_sanity
 @pytest.mark.tier1
-def test_positive_create_and_update_with_name():
+def test_positive_create_and_update_with_name(target_sat):
     """Create and update a host with different names and minimal input parameters
 
     :id: a7c0e8ec-3816-4092-88b1-0324cb271752
@@ -189,7 +164,7 @@ def test_positive_create_and_update_with_name():
     :CaseImportance: Critical
     """
     name = gen_choice(datafactory.valid_hosts_list())
-    host = entities.Host(name=name).create()
+    host = target_sat.api.Host(name=name).create()
     assert host.name == f'{name}.{host.domain.read().name}'
     new_name = gen_choice(datafactory.valid_hosts_list())
     host.name = new_name
@@ -198,7 +173,7 @@ def test_positive_create_and_update_with_name():
 
 
 @pytest.mark.tier1
-def test_positive_create_and_update_with_ip():
+def test_positive_create_and_update_with_ip(target_sat):
     """Create and update host with IP address specified
 
     :id: 3f266906-c509-42ce-9b20-def448bf8d86
@@ -208,7 +183,7 @@ def test_positive_create_and_update_with_ip():
     :CaseImportance: Critical
     """
     ip_addr = gen_ipaddr()
-    host = entities.Host(ip=ip_addr).create()
+    host = target_sat.api.Host(ip=ip_addr).create()
     assert host.ip == ip_addr
     new_ip_addr = gen_ipaddr()
     host.ip = new_ip_addr
@@ -217,7 +192,7 @@ def test_positive_create_and_update_with_ip():
 
 
 @pytest.mark.tier1
-def test_positive_create_and_update_mac():
+def test_positive_create_and_update_mac(target_sat):
     """Create host with MAC address and update it
 
     :id: 72e3b020-7347-4500-8669-c6ddf6dfd0b6
@@ -228,7 +203,7 @@ def test_positive_create_and_update_mac():
     """
 
     mac = gen_mac(multicast=False)
-    host = entities.Host(mac=mac).create()
+    host = target_sat.api.Host(mac=mac).create()
     assert host.mac == mac
     new_mac = gen_mac(multicast=False)
     host.mac = new_mac
@@ -238,7 +213,7 @@ def test_positive_create_and_update_mac():
 
 @pytest.mark.tier2
 def test_positive_create_and_update_with_hostgroup(
-    module_org, module_location, module_lce, module_published_cv
+    module_org, module_location, module_lce, module_published_cv, module_target_sat
 ):
     """Create and update host with hostgroup specified
 
@@ -249,8 +224,10 @@ def test_positive_create_and_update_with_hostgroup(
     :CaseLevel: Integration
     """
     module_published_cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
-    hostgroup = entities.HostGroup(location=[module_location], organization=[module_org]).create()
-    host = entities.Host(
+    hostgroup = module_target_sat.api.HostGroup(
+        location=[module_location], organization=[module_org]
+    ).create()
+    host = module_target_sat.api.Host(
         hostgroup=hostgroup,
         location=module_location,
         organization=module_org,
@@ -260,7 +237,7 @@ def test_positive_create_and_update_with_hostgroup(
         },
     ).create()
     assert host.hostgroup.read().name == hostgroup.name
-    new_hostgroup = entities.HostGroup(
+    new_hostgroup = module_target_sat.api.HostGroup(
         location=[host.location], organization=[host.organization]
     ).create()
     host.hostgroup = new_hostgroup
@@ -273,7 +250,9 @@ def test_positive_create_and_update_with_hostgroup(
 
 
 @pytest.mark.tier2
-def test_positive_create_inherit_lce_cv(module_default_org_view, module_lce_library, module_org):
+def test_positive_create_inherit_lce_cv(
+    module_default_org_view, module_lce_library, module_org, module_target_sat
+):
     """Create a host with hostgroup specified. Make sure host inherited
     hostgroup's lifecycle environment and content-view
 
@@ -286,12 +265,12 @@ def test_positive_create_inherit_lce_cv(module_default_org_view, module_lce_libr
 
     :BZ: 1391656
     """
-    hostgroup = entities.HostGroup(
+    hostgroup = module_target_sat.api.HostGroup(
         content_view=module_default_org_view,
         lifecycle_environment=module_lce_library,
         organization=[module_org],
     ).create()
-    host = entities.Host(hostgroup=hostgroup, organization=module_org).create()
+    host = module_target_sat.api.Host(hostgroup=hostgroup, organization=module_org).create()
     assert (
         host.content_facet_attributes['lifecycle_environment_id']
         == hostgroup.lifecycle_environment.id
@@ -300,7 +279,7 @@ def test_positive_create_inherit_lce_cv(module_default_org_view, module_lce_libr
 
 
 @pytest.mark.tier2
-def test_positive_create_with_inherited_params(module_org, module_location):
+def test_positive_create_with_inherited_params(module_org, module_location, module_target_sat):
     """Create a new Host in organization and location with parameters
 
     :BZ: 1287223
@@ -314,18 +293,20 @@ def test_positive_create_with_inherited_params(module_org, module_location):
 
     :CaseImportance: High
     """
-    org_param = entities.Parameter(organization=module_org).create()
-    loc_param = entities.Parameter(location=module_location).create()
-    host = entities.Host(location=module_location, organization=module_org).create()
+    org_param = module_target_sat.api.Parameter(organization=module_org).create()
+    loc_param = module_target_sat.api.Parameter(location=module_location).create()
+    host = module_target_sat.api.Host(location=module_location, organization=module_org).create()
     # get global parameters
-    glob_param_list = {(param.name, param.value) for param in entities.CommonParameter().search()}
+    glob_param_list = {
+        (param.name, param.value) for param in module_target_sat.api.CommonParameter().search()
+    }
     # if there are no global parameters, create one
     if len(glob_param_list) == 0:
         param_name = gen_string('alpha')
         param_global_value = gen_string('numeric')
-        entities.CommonParameter(name=param_name, value=param_global_value).create()
+        module_target_sat.api.CommonParameter(name=param_name, value=param_global_value).create()
         glob_param_list = {
-            (param.name, param.value) for param in entities.CommonParameter().search()
+            (param.name, param.value) for param in module_target_sat.api.CommonParameter().search()
         }
     assert len(host.all_parameters) == 2 + len(glob_param_list)
     innerited_params = {(org_param.name, org_param.value), (loc_param.name, loc_param.value)}
@@ -424,7 +405,9 @@ def test_positive_end_to_end_with_puppet_class(
 
 
 @pytest.mark.tier2
-def test_positive_create_and_update_with_subnet(module_location, module_org, module_default_subnet):
+def test_positive_create_and_update_with_subnet(
+    module_location, module_org, module_default_subnet, module_target_sat
+):
     """Create and update a host with subnet specified
 
     :id: 9aa97aff-8439-4027-89ee-01c643fbf7d1
@@ -433,20 +416,21 @@ def test_positive_create_and_update_with_subnet(module_location, module_org, mod
 
     :CaseLevel: Integration
     """
-    host = entities.Host(
+    host = module_target_sat.api.Host(
         location=module_location, organization=module_org, subnet=module_default_subnet
     ).create()
     assert host.subnet.read().name == module_default_subnet.name
-    new_subnet = entities.Subnet(location=[module_location], organization=[module_org]).create()
+    new_subnet = module_target_sat.api.Subnet(
+        location=[module_location], organization=[module_org]
+    ).create()
     host.subnet = new_subnet
     host = host.update(['subnet'])
     assert host.subnet.read().name == new_subnet.name
 
 
 @pytest.mark.tier2
-@pytest.mark.on_premises_provisioning
 def test_positive_create_and_update_with_compresource(
-    module_org, module_location, module_cr_libvirt
+    module_org, module_location, module_cr_libvirt, module_target_sat
 ):
     """Create and update a host with compute resource specified
 
@@ -457,11 +441,11 @@ def test_positive_create_and_update_with_compresource(
 
     :CaseLevel: Integration
     """
-    host = entities.Host(
+    host = module_target_sat.api.Host(
         compute_resource=module_cr_libvirt, location=module_location, organization=module_org
     ).create()
     assert host.compute_resource.read().name == module_cr_libvirt.name
-    new_compresource = entities.LibvirtComputeResource(
+    new_compresource = module_target_sat.api.LibvirtComputeResource(
         location=[host.location], organization=[host.organization]
     ).create()
     host.compute_resource = new_compresource
@@ -470,7 +454,7 @@ def test_positive_create_and_update_with_compresource(
 
 
 @pytest.mark.tier2
-def test_positive_create_and_update_with_model(module_model):
+def test_positive_create_and_update_with_model(module_model, module_target_sat):
     """Create and update a host with model specified
 
     :id: 7a912a19-71e4-4843-87fd-bab98c156f4a
@@ -479,16 +463,18 @@ def test_positive_create_and_update_with_model(module_model):
 
     :CaseLevel: Integration
     """
-    host = entities.Host(model=module_model).create()
+    host = module_target_sat.api.Host(model=module_model).create()
     assert host.model.read().name == module_model.name
-    new_model = entities.Model().create()
+    new_model = module_target_sat.api.Model().create()
     host.model = new_model
     host = host.update(['model'])
     assert host.model.read().name == new_model.name
 
 
 @pytest.mark.tier2
-def test_positive_create_and_update_with_user(module_org, module_location, module_user):
+def test_positive_create_and_update_with_user(
+    module_org, module_location, module_user, module_target_sat
+):
     """Create and update host with user specified
 
     :id: 72e20f8f-17dc-4e38-8ac1-d08df8758f56
@@ -497,18 +483,22 @@ def test_positive_create_and_update_with_user(module_org, module_location, modul
 
     :CaseLevel: Integration
     """
-    host = entities.Host(
+    host = module_target_sat.api.Host(
         owner=module_user, owner_type='User', organization=module_org, location=module_location
     ).create()
     assert host.owner.read() == module_user
-    new_user = entities.User(organization=[module_org], location=[module_location]).create()
+    new_user = module_target_sat.api.User(
+        organization=[module_org], location=[module_location]
+    ).create()
     host.owner = new_user
     host = host.update(['owner'])
     assert host.owner.read() == new_user
 
 
 @pytest.mark.tier2
-def test_positive_create_and_update_with_usergroup(module_org, module_location, function_role):
+def test_positive_create_and_update_with_usergroup(
+    module_org, module_location, function_role, module_target_sat
+):
     """Create and update host with user group specified
 
     :id: 706e860c-8c05-4ddc-be20-0ecd9f0da813
@@ -517,18 +507,18 @@ def test_positive_create_and_update_with_usergroup(module_org, module_location, 
 
     :CaseLevel: Integration
     """
-    user = entities.User(
+    user = module_target_sat.api.User(
         location=[module_location], organization=[module_org], role=[function_role]
     ).create()
-    usergroup = entities.UserGroup(role=[function_role], user=[user]).create()
-    host = entities.Host(
+    usergroup = module_target_sat.api.UserGroup(role=[function_role], user=[user]).create()
+    host = module_target_sat.api.Host(
         location=module_location,
         organization=module_org,
         owner=usergroup,
         owner_type='Usergroup',
     ).create()
     assert host.owner.read().name == usergroup.name
-    new_usergroup = entities.UserGroup(role=[function_role], user=[user]).create()
+    new_usergroup = module_target_sat.api.UserGroup(role=[function_role], user=[user]).create()
     host.owner = new_usergroup
     host = host.update(['owner'])
     assert host.owner.read().name == new_usergroup.name
@@ -536,7 +526,7 @@ def test_positive_create_and_update_with_usergroup(module_org, module_location, 
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('build', [True, False])
-def test_positive_create_and_update_with_build_parameter(build):
+def test_positive_create_and_update_with_build_parameter(build, target_sat):
     """Create and update a host with 'build' parameter specified.
     Build parameter determines whether to enable the host for provisioning
 
@@ -549,7 +539,7 @@ def test_positive_create_and_update_with_build_parameter(build):
 
     :CaseImportance: Critical
     """
-    host = entities.Host(build=build).create()
+    host = target_sat.api.Host(build=build).create()
     assert host.build == build
     host.build = not build
     host = host.update(['build'])
@@ -558,7 +548,7 @@ def test_positive_create_and_update_with_build_parameter(build):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('enabled', [True, False], ids=['enabled', 'disabled'])
-def test_positive_create_and_update_with_enabled_parameter(enabled):
+def test_positive_create_and_update_with_enabled_parameter(enabled, target_sat):
     """Create and update a host with 'enabled' parameter specified.
     Enabled parameter determines whether to include the host within
     Satellite 6 reporting
@@ -572,7 +562,7 @@ def test_positive_create_and_update_with_enabled_parameter(enabled):
 
     :CaseImportance: Critical
     """
-    host = entities.Host(enabled=enabled).create()
+    host = target_sat.api.Host(enabled=enabled).create()
     assert host.enabled == enabled
     host.enabled = not enabled
     host = host.update(['enabled'])
@@ -581,7 +571,7 @@ def test_positive_create_and_update_with_enabled_parameter(enabled):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('managed', [True, False], ids=['managed', 'unmanaged'])
-def test_positive_create_and_update_with_managed_parameter(managed):
+def test_positive_create_and_update_with_managed_parameter(managed, target_sat):
     """Create and update a host with managed parameter specified.
     Managed flag shows whether the host is managed or unmanaged and
     determines whether some extra parameters are required
@@ -595,7 +585,7 @@ def test_positive_create_and_update_with_managed_parameter(managed):
 
     :CaseImportance: Critical
     """
-    host = entities.Host(managed=managed).create()
+    host = target_sat.api.Host(managed=managed).create()
     assert host.managed == managed
     host.managed = not managed
     host = host.update(['managed'])
@@ -603,7 +593,7 @@ def test_positive_create_and_update_with_managed_parameter(managed):
 
 
 @pytest.mark.tier1
-def test_positive_create_and_update_with_comment():
+def test_positive_create_and_update_with_comment(target_sat):
     """Create and update a host with a comment
 
     :id: 9b78663f-139c-4d0b-9115-180624b0d41b
@@ -613,7 +603,7 @@ def test_positive_create_and_update_with_comment():
     :CaseImportance: Critical
     """
     comment = gen_choice(list(datafactory.valid_data_list().values()))
-    host = entities.Host(comment=comment).create()
+    host = target_sat.api.Host(comment=comment).create()
     assert host.comment == comment
     new_comment = gen_choice(list(datafactory.valid_data_list().values()))
     host.comment = new_comment
@@ -622,7 +612,7 @@ def test_positive_create_and_update_with_comment():
 
 
 @pytest.mark.tier2
-def test_positive_create_and_update_with_compute_profile(module_compute_profile):
+def test_positive_create_and_update_with_compute_profile(module_compute_profile, module_target_sat):
     """Create and update a host with a compute profile specified
 
     :id: 94be25e8-035d-42c5-b1f3-3aa20030410d
@@ -632,9 +622,9 @@ def test_positive_create_and_update_with_compute_profile(module_compute_profile)
 
     :CaseLevel: Integration
     """
-    host = entities.Host(compute_profile=module_compute_profile).create()
+    host = module_target_sat.api.Host(compute_profile=module_compute_profile).create()
     assert host.compute_profile.read().name == module_compute_profile.name
-    new_cprofile = entities.ComputeProfile().create()
+    new_cprofile = module_target_sat.api.ComputeProfile().create()
     host.compute_profile = new_cprofile
     host = host.update(['compute_profile'])
     assert host.compute_profile.read().name == new_cprofile.name
@@ -642,7 +632,7 @@ def test_positive_create_and_update_with_compute_profile(module_compute_profile)
 
 @pytest.mark.tier2
 def test_positive_create_and_update_with_content_view(
-    module_org, module_location, module_default_org_view, module_lce_library
+    module_org, module_location, module_default_org_view, module_lce_library, module_target_sat
 ):
     """Create and update host with a content view specified
 
@@ -652,7 +642,7 @@ def test_positive_create_and_update_with_content_view(
 
     :CaseLevel: Integration
     """
-    host = entities.Host(
+    host = module_target_sat.api.Host(
         organization=module_org,
         location=module_location,
         content_facet_attributes={
@@ -674,7 +664,7 @@ def test_positive_create_and_update_with_content_view(
 
 @pytest.mark.tier1
 @pytest.mark.e2e
-def test_positive_end_to_end_with_host_parameters(module_org, module_location):
+def test_positive_end_to_end_with_host_parameters(module_org, module_location, module_target_sat):
     """Create a host with a host parameters specified
     then remove and update with the newly specified parameters
 
@@ -686,7 +676,7 @@ def test_positive_end_to_end_with_host_parameters(module_org, module_location):
     :CaseImportance: Critical
     """
     parameters = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
-    host = entities.Host(
+    host = module_target_sat.api.Host(
         organization=module_org,
         location=module_location,
         host_parameters_attributes=parameters,
@@ -710,9 +700,8 @@ def test_positive_end_to_end_with_host_parameters(module_org, module_location):
 
 @pytest.mark.tier2
 @pytest.mark.e2e
-@pytest.mark.on_premises_provisioning
 def test_positive_end_to_end_with_image(
-    module_org, module_location, module_cr_libvirt, module_libvirt_image
+    module_org, module_location, module_cr_libvirt, module_libvirt_image, module_target_sat
 ):
     """Create a host with an image specified then remove it
     and update the host with the same image afterwards
@@ -724,7 +713,7 @@ def test_positive_end_to_end_with_image(
 
     :CaseLevel: Integration
     """
-    host = entities.Host(
+    host = module_target_sat.api.Host(
         organization=module_org,
         location=module_location,
         compute_resource=module_cr_libvirt,
@@ -742,10 +731,9 @@ def test_positive_end_to_end_with_image(
 
 
 @pytest.mark.tier1
-@pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('method', ['build', 'image'])
 def test_positive_create_with_provision_method(
-    method, module_org, module_location, module_cr_libvirt
+    method, module_org, module_location, module_cr_libvirt, module_target_sat
 ):
     """Create a host with provision method specified
 
@@ -758,7 +746,7 @@ def test_positive_create_with_provision_method(
     :CaseImportance: Critical
     """
     # Compute resource is required for 'image' method
-    host = entities.Host(
+    host = module_target_sat.api.Host(
         organization=module_org,
         location=module_location,
         compute_resource=module_cr_libvirt,
@@ -768,7 +756,7 @@ def test_positive_create_with_provision_method(
 
 
 @pytest.mark.tier1
-def test_positive_delete():
+def test_positive_delete(target_sat):
     """Delete a host
 
     :id: ec725359-a75e-498c-9da8-f5abd2343dd3
@@ -777,14 +765,16 @@ def test_positive_delete():
 
     :CaseImportance: Critical
     """
-    host = entities.Host().create()
+    host = target_sat.api.Host().create()
     host.delete()
     with pytest.raises(HTTPError):
         host.read()
 
 
 @pytest.mark.tier2
-def test_positive_create_and_update_domain(module_org, module_location, module_domain):
+def test_positive_create_and_update_domain(
+    module_org, module_location, module_domain, module_target_sat
+):
     """Create and update a host with a domain
 
     :id: 8ca9f67c-4c11-40f9-b434-4f200bad000f
@@ -793,12 +783,14 @@ def test_positive_create_and_update_domain(module_org, module_location, module_d
 
     :CaseLevel: Integration
     """
-    host = entities.Host(
+    host = module_target_sat.api.Host(
         organization=module_org, location=module_location, domain=module_domain
     ).create()
     assert host.domain.read().name == module_domain.name
 
-    new_domain = entities.Domain(organization=[module_org], location=[module_location]).create()
+    new_domain = module_target_sat.api.Domain(
+        organization=[module_org], location=[module_location]
+    ).create()
     host.domain = new_domain
     host = host.update(['domain'])
     assert host.domain.read().name == new_domain.name
@@ -832,7 +824,7 @@ def test_positive_create_and_update_env(
 
 
 @pytest.mark.tier2
-def test_positive_create_and_update_arch(module_architecture):
+def test_positive_create_and_update_arch(module_architecture, module_target_sat):
     """Create and update a host with an architecture
 
     :id: 5f190b14-e6db-46e1-8cd1-e94e048e6a77
@@ -841,17 +833,17 @@ def test_positive_create_and_update_arch(module_architecture):
 
     :CaseLevel: Integration
     """
-    host = entities.Host(architecture=module_architecture).create()
+    host = module_target_sat.api.Host(architecture=module_architecture).create()
     assert host.architecture.read().name == module_architecture.name
 
-    new_arch = entities.Architecture(operatingsystem=[host.operatingsystem]).create()
+    new_arch = module_target_sat.api.Architecture(operatingsystem=[host.operatingsystem]).create()
     host.architecture = new_arch
     host = host.update(['architecture'])
     assert host.architecture.read().name == new_arch.name
 
 
 @pytest.mark.tier2
-def test_positive_create_and_update_os(module_os):
+def test_positive_create_and_update_os(module_os, module_target_sat):
     """Create and update a host with an operating system
 
     :id: 46edced1-8909-4066-b196-b8e22512341f
@@ -860,13 +852,13 @@ def test_positive_create_and_update_os(module_os):
 
     :CaseLevel: Integration
     """
-    host = entities.Host(operatingsystem=module_os).create()
+    host = module_target_sat.api.Host(operatingsystem=module_os).create()
     assert host.operatingsystem.read().name == module_os.name
 
-    new_os = entities.OperatingSystem(
+    new_os = module_target_sat.api.OperatingSystem(
         architecture=[host.architecture], ptable=[host.ptable]
     ).create()
-    medium = entities.Media(id=host.medium.id).read()
+    medium = module_target_sat.api.Media(id=host.medium.id).read()
     medium.operatingsystem.append(new_os)
     medium.update(['operatingsystem'])
     host.operatingsystem = new_os
@@ -875,7 +867,7 @@ def test_positive_create_and_update_os(module_os):
 
 
 @pytest.mark.tier2
-def test_positive_create_and_update_medium(module_org, module_location):
+def test_positive_create_and_update_medium(module_org, module_location, module_target_sat):
     """Create and update a host with a medium
 
     :id: d81cb65c-48b3-4ce3-971e-51b9dd123697
@@ -884,11 +876,13 @@ def test_positive_create_and_update_medium(module_org, module_location):
 
     :CaseLevel: Integration
     """
-    medium = entities.Media(organization=[module_org], location=[module_location]).create()
-    host = entities.Host(medium=medium).create()
+    medium = module_target_sat.api.Media(
+        organization=[module_org], location=[module_location]
+    ).create()
+    host = module_target_sat.api.Host(medium=medium).create()
     assert host.medium.read().name == medium.name
 
-    new_medium = entities.Media(
+    new_medium = module_target_sat.api.Media(
         operatingsystem=[host.operatingsystem],
         location=[host.location],
         organization=[host.organization],
@@ -937,7 +931,7 @@ def test_negative_update_mac(module_host):
 
 
 @pytest.mark.tier2
-def test_negative_update_arch(module_architecture):
+def test_negative_update_arch(module_architecture, module_target_sat):
     """Attempt to update a host with an architecture, which does not belong
     to host's operating system
 
@@ -947,7 +941,7 @@ def test_negative_update_arch(module_architecture):
 
     :CaseLevel: Integration
     """
-    host = entities.Host().create()
+    host = module_target_sat.api.Host().create()
     host.architecture = module_architecture
     with pytest.raises(HTTPError):
         host = host.update(['architecture'])
@@ -955,7 +949,7 @@ def test_negative_update_arch(module_architecture):
 
 
 @pytest.mark.tier2
-def test_negative_update_os():
+def test_negative_update_os(target_sat):
     """Attempt to update a host with an operating system, which is not
     associated with host's medium
 
@@ -965,8 +959,8 @@ def test_negative_update_os():
 
     :CaseLevel: Integration
     """
-    host = entities.Host().create()
-    new_os = entities.OperatingSystem(
+    host = target_sat.api.Host().create()
+    new_os = target_sat.api.OperatingSystem(
         architecture=[host.architecture], ptable=[host.ptable]
     ).create()
     host.operatingsystem = new_os
@@ -993,9 +987,9 @@ def test_positive_read_content_source_id(
 
     :CaseLevel: System
     """
-    proxy = entities.SmartProxy().search(query={'url': f'{target_sat.url}:9090'})[0].read()
+    proxy = target_sat.api.SmartProxy().search(query={'url': f'{target_sat.url}:9090'})[0].read()
     module_published_cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
-    host = entities.Host(
+    host = target_sat.api.Host(
         organization=module_org,
         location=module_location,
         content_facet_attributes={
@@ -1407,12 +1401,37 @@ def test_positive_read_puppet_ca_proxy_name(
     assert session_puppet_enabled_proxy.name == host['puppet_ca_proxy_name']
 
 
+@pytest.mark.tier2
+def test_positive_list_hosts_thin_all(module_target_sat):
+    """List hosts with thin=true and per_page=all
+
+    :id: 00b7e603-aed5-4b19-bfec-1a179fad6743
+
+    :expectedresults: Hosts listed without ISE
+
+    :BZ: 1969263, 1644750
+
+    :customerscenario: true
+    """
+    hosts = module_target_sat.api.Host().search(query={'thin': 'true', 'per_page': 'all'})
+    assert module_target_sat.hostname in [host.name for host in hosts]
+    keys = dir(hosts[0])
+    assert 'id' in keys
+    assert 'name' in keys
+    # Can't check for only id and name being present because the framework adds
+    # some data the API doesn't actually return (currently, it adds empty Environment).
+    # Instead, check for some data to be missing, as opposed to non-thin.
+    assert 'domain' not in keys
+    assert 'ip' not in keys
+    assert 'architecture' not in keys
+
+
 class TestHostInterface:
     """Tests for Host Interfaces"""
 
     @pytest.mark.tier1
     @pytest.mark.e2e
-    def test_positive_create_end_to_end(self, module_host):
+    def test_positive_create_end_to_end(self, module_host, target_sat):
         """Create update and delete an interface with different names and minimal input
         parameters
 
@@ -1423,7 +1442,7 @@ class TestHostInterface:
         :CaseImportance: Critical
         """
         name = gen_choice(datafactory.valid_interfaces_list())
-        interface = entities.Interface(host=module_host, name=name).create()
+        interface = target_sat.api.Interface(host=module_host, name=name).create()
         assert interface.name == name
         new_name = gen_choice(datafactory.valid_interfaces_list())
         interface.name = new_name
@@ -1434,7 +1453,7 @@ class TestHostInterface:
             interface.read()
 
     @pytest.mark.tier1
-    def test_negative_end_to_end(self, module_host):
+    def test_negative_end_to_end(self, module_host, target_sat):
         """Attempt to create and update an interface with different invalid entries as names
         (>255 chars, unsupported string types), at the end attempt to remove primary interface
 
@@ -1447,9 +1466,9 @@ class TestHostInterface:
         """
         name = gen_choice(datafactory.invalid_interfaces_list())
         with pytest.raises(HTTPError) as error:
-            entities.Interface(host=module_host, name=name).create()
+            target_sat.api.Interface(host=module_host, name=name).create()
         assert str(422) in str(error)
-        interface = entities.Interface(host=module_host).create()
+        interface = target_sat.api.Interface(host=module_host).create()
         interface.name = name
         with pytest.raises(HTTPError) as error:
             interface.update(['name'])
@@ -1468,7 +1487,7 @@ class TestHostInterface:
 
     @pytest.mark.upgrade
     @pytest.mark.tier1
-    def test_positive_delete_and_check_host(self):
+    def test_positive_delete_and_check_host(self, target_sat):
         """Delete host's interface (not primary) and make sure the host was not
         accidentally removed altogether with the interface
 
@@ -1481,8 +1500,8 @@ class TestHostInterface:
 
         :CaseImportance: Critical
         """
-        host = entities.Host().create()
-        interface = entities.Interface(host=host, primary=False).create()
+        host = target_sat.api.Host().create()
+        interface = target_sat.api.Interface(host=host, primary=False).create()
         interface.delete()
         with pytest.raises(HTTPError):
             interface.read()
@@ -1496,7 +1515,7 @@ class TestHostBulkAction:
     """Tests for host bulk actions."""
 
     @pytest.mark.tier2
-    def test_positive_bulk_destroy(self, module_org):
+    def test_positive_bulk_destroy(self, module_org, module_target_sat):
         """Destroy multiple hosts make sure that hosts were removed,
         or were not removed when host is excluded from the list.
 
@@ -1511,10 +1530,10 @@ class TestHostBulkAction:
         host_ids = []
         for _ in range(3):
             name = gen_choice(datafactory.valid_hosts_list())
-            host = entities.Host(name=name, organization=module_org).create()
+            host = module_target_sat.api.Host(name=name, organization=module_org).create()
             host_ids.append(host.id)
 
-        entities.Host().bulk_destroy(
+        module_target_sat.api.Host().bulk_destroy(
             data={
                 'organization_id': module_org.id,
                 'included': {'ids': host_ids},
@@ -1522,62 +1541,15 @@ class TestHostBulkAction:
             }
         )
         for host_id in host_ids[:-1]:
-            result = entities.Host(id=host_id).read()
+            result = module_target_sat.api.Host(id=host_id).read()
             assert result.id == host_id
 
         with pytest.raises(HTTPError):
-            entities.Host(id=host_ids[-1]).read()
+            module_target_sat.api.Host(id=host_ids[-1]).read()
 
-        entities.Host().bulk_destroy(
+        module_target_sat.api.Host().bulk_destroy(
             data={'organization_id': module_org.id, 'included': {'ids': host_ids[:-1]}}
         )
         for host_id in host_ids[:-1]:
             with pytest.raises(HTTPError):
-                entities.Host(id=host_id).read()
-
-
-class TestHostTraces:
-    """Tests for host tracer"""
-
-    @pytest.mark.tier4
-    @pytest.mark.rhel_ver_match('[^6].*')
-    def test_positive_tracer_list_and_resolve(self, tracer_host):
-        """Install tracer on client, downgrade the service, check from the satellite
-        that tracer shows and resolves the problem. The test works with a package specified
-        in settings. This package is expected to install a systemd service which is expected
-        to log its version to /var/log/{package}/service.log.
-        The rpm is not supposed to start the service upon install.
-
-        :id: 552fc212-536a-11ec-865d-98fa9b6ecd5a
-
-        :expectedresults: Tracer detected and resolved the problem,
-            the affected service was restarted
-
-        :parametrized: yes
-
-        :CaseImportance: Medium
-        """
-        host = tracer_host.nailgun_host
-        package = settings.repos["MOCK_SERVICE_RPM"]
-        # mark the service log messages for later comparison and downgrade the pkg version
-        service_ver_log_old = tracer_host.execute(f'cat /var/log/{package}/service.log')
-        package_downgrade = tracer_host.execute(f'yum -y downgrade {package}')
-        assert package_downgrade.status == 0
-
-        # tracer should detect a new trace
-        traces = host.traces(data={'host_id': host.id})
-        assert (
-            len(traces['results']) == 1
-        ), f'only one trace trace should be found, there is: {traces["results"]}'
-        assert package == traces['results'][0]['application']
-
-        # resolve traces and make sure that they disappear
-        host.resolve_traces(data={'host_id': host.id, 'trace_ids': traces['results'][0]['id']})
-        traces = host.traces(data={'host_id': host.id})
-        assert not traces['results']
-
-        # verify on the host end, that the service was really restarted
-        service_ver_log_new = tracer_host.execute(f'cat /var/log/{package}/service.log')
-        assert (
-            service_ver_log_new != service_ver_log_old
-        ), f'The service {package} did not seem to be restarted'
+                module_target_sat.api.Host(id=host_id).read()

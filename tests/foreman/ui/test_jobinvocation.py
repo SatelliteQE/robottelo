@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from inflection import camelize
+import pytest
 
 from robottelo.utils.datafactory import gen_string
 
@@ -29,7 +29,7 @@ def module_rhel_client_by_ip(module_org, smart_proxy_location, rhel7_contenthost
     target_sat.api_factory.update_vm_host_location(
         rhel7_contenthost, location_id=smart_proxy_location.id
     )
-    yield rhel7_contenthost
+    return rhel7_contenthost
 
 
 @pytest.mark.tier4

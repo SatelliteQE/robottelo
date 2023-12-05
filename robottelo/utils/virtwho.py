@@ -3,11 +3,9 @@ import json
 import re
 import uuid
 
-import requests
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
-from fauxfactory import gen_url
+from fauxfactory import gen_integer, gen_string, gen_url
 from nailgun import entities
+import requests
 from wait_for import wait_for
 
 from robottelo import ssh
@@ -468,7 +466,8 @@ def hypervisor_json_create(hypervisors, guests):
                     "attributes": {"active": 1, "virtWhoType": "esx"},
                 }
             )
-        hypervisor = {"guestIds": guest_list}
+        name = str(uuid.uuid4())
+        hypervisor = {"guestIds": guest_list, "name": name, "hypervisorId": {"hypervisorId": name}}
         hypervisors_list.append(hypervisor)
     mapping = {"hypervisors": hypervisors_list}
     return mapping

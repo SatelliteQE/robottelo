@@ -1,20 +1,21 @@
+from collections import defaultdict
+from datetime import datetime
 import inspect
 import json
 import re
-from collections import defaultdict
-from datetime import datetime
 
 import pytest
 
 from robottelo.config import settings
 from robottelo.logging import collection_logger as logger
 from robottelo.utils import slugify_component
-from robottelo.utils.issue_handlers import add_workaround
-from robottelo.utils.issue_handlers import bugzilla
-from robottelo.utils.issue_handlers import is_open
-from robottelo.utils.issue_handlers import should_deselect
-from robottelo.utils.version import search_version_key
-from robottelo.utils.version import VersionEncoder
+from robottelo.utils.issue_handlers import (
+    add_workaround,
+    bugzilla,
+    is_open,
+    should_deselect,
+)
+from robottelo.utils.version import VersionEncoder, search_version_key
 
 DEFAULT_BZ_CACHE_FILE = 'bz_cache.json'
 
@@ -213,7 +214,9 @@ def generate_issue_collection(items, config):  # pragma: no cover
         filepath, lineno, testcase = item.location
         # Component and importance marks are determined by testimony tokens
         # Testimony.yaml as of writing has both as required, so any
-        component_mark = item.get_closest_marker('component').args[0]
+        if not (components := item.get_closest_marker('component')):
+            continue
+        component_mark = components.args[0]
         component_slug = slugify_component(component_mark, False)
         importance_mark = item.get_closest_marker('importance').args[0]
         for marker in item.iter_markers():

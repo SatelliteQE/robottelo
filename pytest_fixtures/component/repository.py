@@ -1,13 +1,10 @@
 # Repository Fixtures
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
+import pytest
 
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
+from robottelo.constants import DEFAULT_ARCHITECTURE, PRDS, REPOS, REPOSET
 
 
 @pytest.fixture(scope='module')
@@ -25,7 +22,7 @@ def module_repo(module_repo_options, module_target_sat):
     return module_target_sat.api.Repository(**module_repo_options).create()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def function_product(function_org):
     return entities.Product(organization=function_org).create()
 
@@ -33,24 +30,6 @@ def function_product(function_org):
 @pytest.fixture(scope='module')
 def module_product(module_org, module_target_sat):
     return module_target_sat.api.Product(organization=module_org).create()
-
-
-@pytest.fixture(scope='module')
-def rh_repo_gt_manifest(module_gt_manifest_org, module_target_sat):
-    """Use GT manifest org, creates RH tools repo, syncs and returns RH repo."""
-    # enable rhel repo and return its ID
-    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-        basearch=DEFAULT_ARCHITECTURE,
-        org_id=module_gt_manifest_org.id,
-        product=PRDS['rhel'],
-        repo=REPOS['rhst7']['name'],
-        reposet=REPOSET['rhst7'],
-        releasever=None,
-    )
-    # Sync step because repo is not synced by default
-    rh_repo = entities.Repository(id=rh_repo_id).read()
-    rh_repo.sync()
-    return rh_repo
 
 
 @pytest.fixture(scope='module')
@@ -72,11 +51,12 @@ def module_rhst_repo(module_target_sat, module_org_with_manifest, module_promote
     )
     cv.publish()
     cv = cv.read()
+    cv.version.sort(key=lambda version: version.id)
     cv.version[-1].promote(data={'environment_ids': module_lce.id})
     return REPOS['rhst7']['id']
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def repo_setup():
     """
     This fixture is used to create an organization, product, repository, and lifecycle environment
@@ -88,7 +68,31 @@ def repo_setup():
     repo = entities.Repository(name=repo_name, product=product).create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     details = {'org': org, 'product': product, 'repo': repo, 'lce': lce}
-    yield details
+    return details
+
+
+@pytest.fixture(scope='module')
+def setup_content(module_org):
+    """This fixture is used to setup an activation key with a custom product attached. Used for
+    registering a host
+    """
+    org = module_org
+    custom_repo = entities.Repository(
+        product=entities.Product(organization=org).create(),
+    ).create()
+    custom_repo.sync()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    cv = entities.ContentView(
+        organization=org,
+        repository=[custom_repo.id],
+    ).create()
+    cv.publish()
+    cvv = cv.read().version[0].read()
+    cvv.promote(data={'environment_ids': lce.id, 'force': False})
+    ak = entities.ActivationKey(
+        content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
+    ).create()
+    return ak, org, custom_repo
 
 
 @pytest.fixture(scope='module')
@@ -211,7 +215,9 @@ def module_repos_collection_with_setup(request, module_target_sat, module_org, m
 
 
 @pytest.fixture(scope='module')
-def module_repos_collection_with_manifest(request, module_target_sat, module_org, module_lce):
+def module_repos_collection_with_manifest(
+    request, module_target_sat, module_entitlement_manifest_org, module_lce
+):
     """This fixture and its usage is very similar to repos_collection fixture above with extra
     setup_content and uploaded manifest capabilities using module_org and module_lce fixtures
 
@@ -229,5 +235,5 @@ def module_repos_collection_with_manifest(request, module_target_sat, module_org
             for repo_name, repo_params in repo.items()
         ],
     )
-    _repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
+    _repos_collection.setup_content(module_entitlement_manifest_org.id, module_lce.id)
     return _repos_collection

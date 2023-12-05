@@ -4,13 +4,12 @@ This module is to define pytest functions for content hosts
 The functions in this module are read in the pytest_plugins/fixture_markers.py module
 All functions in this module will be treated as fixtures that apply the contenthost mark
 """
-import pytest
 from broker import Broker
+import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.hosts import ContentHost
-from robottelo.hosts import Satellite
+from robottelo.hosts import ContentHost, Satellite
 
 
 def host_conf(request):
@@ -88,7 +87,14 @@ def rhel6_contenthost(request):
         yield host
 
 
-@pytest.fixture()
+@pytest.fixture(params=[{'rhel_version': '9'}])
+def rhel9_contenthost(request):
+    """A fixture that provides a rhel9 content host object"""
+    with Broker(**host_conf(request), host_class=ContentHost) as host:
+        yield host
+
+
+@pytest.fixture
 def content_hosts(request):
     """A function-level fixture that provides two rhel content hosts object"""
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
@@ -104,15 +110,13 @@ def mod_content_hosts(request):
         yield hosts
 
 
-@pytest.fixture()
-def registered_hosts(request, target_sat, module_org):
+@pytest.fixture
+def registered_hosts(request, target_sat, module_org, module_ak_with_cv):
     """Fixture that registers content hosts to Satellite, based on rh_cloud setup"""
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
         for vm in hosts:
             repo = settings.repos['SATCLIENT_REPO'][f'RHEL{vm.os_version.major}']
-            target_sat.register_host_custom_repo(module_org, vm, [repo])
-            vm.install_katello_host_tools()
-            vm.add_rex_key(target_sat)
+            vm.register(module_org, None, module_ak_with_cv.name, target_sat, repo=repo)
         yield hosts
 
 
@@ -120,9 +124,17 @@ def registered_hosts(request, target_sat, module_org):
 def katello_host_tools_host(target_sat, module_org, rhel_contenthost):
     """Register content host to Satellite and install katello-host-tools on the host."""
     repo = settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
-    target_sat.register_host_custom_repo(module_org, rhel_contenthost, [repo])
+    ak = target_sat.api.ActivationKey(
+        content_view=module_org.default_content_view,
+        max_hosts=100,
+        organization=module_org,
+        environment=target_sat.api.LifecycleEnvironment(id=module_org.library.id),
+        auto_attach=True,
+    ).create()
+
+    rhel_contenthost.register(module_org, None, ak.name, target_sat, repo=repo)
     rhel_contenthost.install_katello_host_tools()
-    yield rhel_contenthost
+    return rhel_contenthost
 
 
 @pytest.fixture
@@ -137,18 +149,15 @@ def cockpit_host(class_target_sat, class_org, rhel_contenthost):
     rhel_contenthost.execute(f"hostnamectl set-hostname {rhel_contenthost.hostname} --static")
     rhel_contenthost.install_cockpit()
     rhel_contenthost.add_rex_key(satellite=class_target_sat)
-    yield rhel_contenthost
+    return rhel_contenthost
 
 
 @pytest.fixture
-def rex_contenthost(request, module_org, target_sat):
+def rex_contenthost(request, module_org, target_sat, module_ak_with_cv):
     request.param['no_containers'] = True
     with Broker(**host_conf(request), host_class=ContentHost) as host:
-        # Register content host to Satellite
         repo = settings.repos['SATCLIENT_REPO'][f'RHEL{host.os_version.major}']
-        target_sat.register_host_custom_repo(module_org, host, [repo])
-        # Enable remote execution on the host
-        host.add_rex_key(satellite=target_sat)
+        host.register(module_org, None, module_ak_with_cv.name, target_sat, repo=repo)
         yield host
 
 
@@ -165,7 +174,7 @@ def katello_host_tools_tracer_host(rex_contenthost, target_sat):
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
     rex_contenthost.install_tracer()
-    yield rex_contenthost
+    return rex_contenthost
 
 
 @pytest.fixture
@@ -209,20 +218,6 @@ def oracle_host(request, version):
         "no_containers": True,
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
-        yield host
-
-
-@pytest.fixture
-def sat_ready_rhel(request):
-    request.param = {
-        "rhel_version": request.param,
-        "no_containers": True,
-        "promtail_config_template_file": "config_sat.j2",
-    }
-    deploy_args = host_conf(request)
-    deploy_args['target_cores'] = 6
-    deploy_args['target_memory'] = '20GiB'
-    with Broker(**deploy_args, host_class=ContentHost) as host:
         yield host
 
 
@@ -275,6 +270,6 @@ def custom_host(request):
     deploy_args = request.param
     # if 'deploy_rhel_version' is not set, let's default to RHEL 8
     deploy_args['deploy_rhel_version'] = deploy_args.get('deploy_rhel_version', '8')
-    deploy_args['workflow'] = 'deploy-base-rhel'
+    deploy_args['workflow'] = 'deploy-rhel'
     with Broker(**deploy_args, host_class=Satellite) as host:
         yield host

@@ -16,21 +16,24 @@
 
 :Upstream: No
 """
-import pytest
 from broker import Broker
+import pytest
 
-from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import DISTROS_SUPPORTED
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+    DISTROS_SUPPORTED,
+    FAKE_0_CUSTOM_PACKAGE,
+)
 from robottelo.hosts import ContentHost
 
 
 @pytest.fixture
-def lce(function_entitlement_manifest_org):
-    return make_lifecycle_environment({'organization-id': function_entitlement_manifest_org.id})
+def lce(function_entitlement_manifest_org, target_sat):
+    return target_sat.cli_factory.make_lifecycle_environment(
+        {'organization-id': function_entitlement_manifest_org.id}
+    )
 
 
 @pytest.mark.tier4
@@ -65,10 +68,8 @@ def test_vm_install_package(repos_collection, function_entitlement_manifest_org,
     # Create repos, content view, and activation key.
     repos_collection.setup_content(function_entitlement_manifest_org.id, lce['id'])
     with Broker(nick=distro, host_class=ContentHost) as host:
-        # install katello-agent
-        repos_collection.setup_virtual_machine(
-            host, enable_custom_repos=True, install_katello_agent=False
-        )
+        # enable custom repos
+        repos_collection.setup_virtual_machine(host, enable_custom_repos=True)
         # install a package from custom repo
         result = host.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')
         assert result.status == 0

@@ -9,8 +9,7 @@ command provided by the make file in the parent directory.
 """
 import inspect
 
-from nailgun import entities
-from nailgun import entity_mixins
+from nailgun import entities, entity_mixins
 
 
 def graph():

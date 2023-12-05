@@ -12,6 +12,10 @@ updates:
     labels:
       - "CherryPick"
       - "dependencies"
+      - "6.15.z"
+      - "6.14.z"
+      - "6.13.z"
+      - "6.12.z"
 
   # Maintain dependencies for our GitHub Actions
   - package-ecosystem: "github-actions"
@@ -21,3 +25,7 @@ updates:
     labels:
       - "CherryPick"
       - "dependencies"
+      - "6.15.z"
+      - "6.14.z"
+      - "6.13.z"
+      - "6.12.z"

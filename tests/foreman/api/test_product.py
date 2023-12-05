@@ -19,24 +19,27 @@ http://<sat6>/apidoc/v2/products.html
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
-from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import DataFile
-from robottelo.constants import REPO_TYPE
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+    REPO_TYPE,
+    DataFile,
+)
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_name(request, name, module_org):
+def test_positive_create_with_name(request, name, module_org, module_target_sat):
     """Create a product providing different valid names
 
     :id: 3d873b73-6919-4fda-84df-0e26bdf0c1dc
@@ -47,12 +50,12 @@ def test_positive_create_with_name(request, name, module_org):
 
     :CaseImportance: Critical
     """
-    product = entities.Product(name=name, organization=module_org).create()
+    product = module_target_sat.api.Product(name=name, organization=module_org).create()
     assert product.name == name
 
 
 @pytest.mark.tier1
-def test_positive_create_with_label(module_org):
+def test_positive_create_with_label(module_org, module_target_sat):
     """Create a product providing label which is different from its name
 
     :id: 95cf8e05-fd09-422e-bf6f-8b1dde762976
@@ -62,14 +65,14 @@ def test_positive_create_with_label(module_org):
     :CaseImportance: Critical
     """
     label = gen_string('alphanumeric')
-    product = entities.Product(label=label, organization=module_org).create()
+    product = module_target_sat.api.Product(label=label, organization=module_org).create()
     assert product.label == label
     assert product.name != label
 
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-def test_positive_create_with_description(description, module_org):
+def test_positive_create_with_description(description, module_org, module_target_sat):
     """Create a product providing different descriptions
 
     :id: f3e2df77-6711-440b-800a-9cebbbec36c5
@@ -80,12 +83,14 @@ def test_positive_create_with_description(description, module_org):
 
     :CaseImportance: Critical
     """
-    product = entities.Product(description=description, organization=module_org).create()
+    product = module_target_sat.api.Product(
+        description=description, organization=module_org
+    ).create()
     assert product.description == description
 
 
 @pytest.mark.tier2
-def test_positive_create_with_gpg(module_org):
+def test_positive_create_with_gpg(module_org, module_target_sat):
     """Create a product and provide a GPG key.
 
     :id: 57331c1f-15dd-4c9f-b8fc-3010847b2975
@@ -94,17 +99,17 @@ def test_positive_create_with_gpg(module_org):
 
     :CaseLevel: Integration
     """
-    gpg_key = entities.GPGKey(
+    gpg_key = module_target_sat.api.GPGKey(
         content=DataFile.VALID_GPG_KEY_FILE.read_text(),
         organization=module_org,
     ).create()
-    product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
+    product = module_target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
     assert product.gpg_key.id == gpg_key.id
 
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_name(name, module_org):
+def test_negative_create_with_name(name, module_org, module_target_sat):
     """Create a product providing invalid names only
 
     :id: 76531f53-09ff-4ee9-89b9-09a697526fb1
@@ -116,11 +121,11 @@ def test_negative_create_with_name(name, module_org):
     :CaseImportance: Critical
     """
     with pytest.raises(HTTPError):
-        entities.Product(name=name, organization=module_org).create()
+        module_target_sat.api.Product(name=name, organization=module_org).create()
 
 
 @pytest.mark.tier1
-def test_negative_create_with_same_name(module_org):
+def test_negative_create_with_same_name(module_org, module_target_sat):
     """Create a product providing a name of already existent entity
 
     :id: 039269c5-607a-4b70-91dd-b8fed8e50cc6
@@ -130,13 +135,13 @@ def test_negative_create_with_same_name(module_org):
     :CaseImportance: Critical
     """
     name = gen_string('alphanumeric')
-    entities.Product(name=name, organization=module_org).create()
+    module_target_sat.api.Product(name=name, organization=module_org).create()
     with pytest.raises(HTTPError):
-        entities.Product(name=name, organization=module_org).create()
+        module_target_sat.api.Product(name=name, organization=module_org).create()
 
 
 @pytest.mark.tier1
-def test_negative_create_with_label(module_org):
+def test_negative_create_with_label(module_org, module_target_sat):
     """Create a product providing invalid label
 
     :id: 30b1a737-07f1-4786-b68a-734e57c33a62
@@ -146,12 +151,12 @@ def test_negative_create_with_label(module_org):
     :CaseImportance: Critical
     """
     with pytest.raises(HTTPError):
-        entities.Product(label=gen_string('utf8'), organization=module_org).create()
+        module_target_sat.api.Product(label=gen_string('utf8'), organization=module_org).create()
 
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_update_name(name, module_org):
+def test_positive_update_name(name, module_org, module_target_sat):
     """Update product name to another valid name.
 
     :id: 1a9f6e0d-43fb-42e2-9dbd-e880f03b0297
@@ -162,7 +167,7 @@ def test_positive_update_name(name, module_org):
 
     :CaseImportance: Critical
     """
-    product = entities.Product(organization=module_org).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
     product.name = name
     product = product.update(['name'])
     assert product.name == name
@@ -170,7 +175,7 @@ def test_positive_update_name(name, module_org):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-def test_positive_update_description(description, module_org):
+def test_positive_update_description(description, module_org, module_target_sat):
     """Update product description to another valid one.
 
     :id: c960c326-2e9f-4ee7-bdec-35a705305067
@@ -181,14 +186,14 @@ def test_positive_update_description(description, module_org):
 
     :CaseImportance: Critical
     """
-    product = entities.Product(organization=module_org).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
     product.description = description
     product = product.update(['description'])
     assert product.description == description
 
 
 @pytest.mark.tier1
-def test_positive_update_name_to_original(module_org):
+def test_positive_update_name_to_original(module_org, module_target_sat):
     """Rename Product back to original name
 
     :id: 3075f17f-4475-4b64-9fbd-1e41ced9142d
@@ -197,7 +202,7 @@ def test_positive_update_name_to_original(module_org):
 
     :CaseImportance: Critical
     """
-    product = entities.Product(organization=module_org).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
     old_name = product.name
 
     # Update product name
@@ -214,7 +219,7 @@ def test_positive_update_name_to_original(module_org):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_update_gpg(module_org):
+def test_positive_update_gpg(module_org, module_target_sat):
     """Create a product and update its GPGKey
 
     :id: 3b08f155-a0d6-4987-b281-dc02e8d5a03e
@@ -224,14 +229,14 @@ def test_positive_update_gpg(module_org):
     :CaseLevel: Integration
     """
     # Create a product and make it point to a GPG key.
-    gpg_key_1 = entities.GPGKey(
+    gpg_key_1 = module_target_sat.api.GPGKey(
         content=DataFile.VALID_GPG_KEY_FILE.read_text(),
         organization=module_org,
     ).create()
-    product = entities.Product(gpg_key=gpg_key_1, organization=module_org).create()
+    product = module_target_sat.api.Product(gpg_key=gpg_key_1, organization=module_org).create()
 
     # Update the product and make it point to a new GPG key.
-    gpg_key_2 = entities.GPGKey(
+    gpg_key_2 = module_target_sat.api.GPGKey(
         content=DataFile.VALID_GPG_KEY_BETA_FILE.read_text(),
         organization=module_org,
     ).create()
@@ -242,7 +247,7 @@ def test_positive_update_gpg(module_org):
 
 @pytest.mark.skip_if_open("BZ:1310422")
 @pytest.mark.tier2
-def test_positive_update_organization(module_org):
+def test_positive_update_organization(module_org, module_target_sat):
     """Create a product and update its organization
 
     :id: b298957a-2cdb-4f17-a934-098612f3b659
@@ -253,9 +258,9 @@ def test_positive_update_organization(module_org):
 
     :BZ: 1310422
     """
-    product = entities.Product(organization=module_org).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
     # Update the product and make it point to a new organization.
-    new_org = entities.Organization().create()
+    new_org = module_target_sat.api.Organization().create()
     product.organization = new_org
     product = product.update()
     assert product.organization.id == new_org.id
@@ -263,7 +268,7 @@ def test_positive_update_organization(module_org):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_update_name(name, module_org):
+def test_negative_update_name(name, module_org, module_target_sat):
     """Attempt to update product name to invalid one
 
     :id: 3eb61fa8-3524-4872-8f1b-4e88004f66f5
@@ -274,13 +279,13 @@ def test_negative_update_name(name, module_org):
 
     :CaseImportance: Critical
     """
-    product = entities.Product(organization=module_org).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
     with pytest.raises(HTTPError):
-        entities.Product(id=product.id, name=name).update(['name'])
+        module_target_sat.api.Product(id=product.id, name=name).update(['name'])
 
 
 @pytest.mark.tier1
-def test_negative_update_label(module_org):
+def test_negative_update_label(module_org, module_target_sat):
     """Attempt to update product label to another one.
 
     :id: 065cd673-8d10-46c7-800c-b731b06a5359
@@ -289,7 +294,7 @@ def test_negative_update_label(module_org):
 
     :CaseImportance: Critical
     """
-    product = entities.Product(organization=module_org).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
     product.label = gen_string('alpha')
     with pytest.raises(HTTPError):
         product.update(['label'])
@@ -297,7 +302,7 @@ def test_negative_update_label(module_org):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_delete(name, module_org):
+def test_positive_delete(name, module_org, module_target_sat):
     """Create product and then delete it.
 
     :id: 30df95f5-0a4e-41ee-a99f-b418c5c5f2f3
@@ -308,7 +313,7 @@ def test_positive_delete(name, module_org):
 
     :CaseImportance: Critical
     """
-    product = entities.Product(name=name, organization=module_org).create()
+    product = module_target_sat.api.Product(name=name, organization=module_org).create()
     product.delete()
     with pytest.raises(HTTPError):
         product.read()
@@ -316,7 +321,7 @@ def test_positive_delete(name, module_org):
 
 @pytest.mark.tier1
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_sync(module_org):
+def test_positive_sync(module_org, module_target_sat):
     """Sync product (repository within a product)
 
     :id: 860e00a1-c370-4bd0-8987-449338071d56
@@ -325,8 +330,8 @@ def test_positive_sync(module_org):
 
     :CaseImportance: Critical
     """
-    product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(
+    product = module_target_sat.api.Product(organization=module_org).create()
+    repo = module_target_sat.api.Repository(
         product=product, content_type='yum', url=settings.repos.yum_1.url
     ).create()
     assert repo.read().content_counts['rpm'] == 0
@@ -337,7 +342,7 @@ def test_positive_sync(module_org):
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_sync_several_repos(module_org):
+def test_positive_sync_several_repos(module_org, module_target_sat):
     """Sync product (all repositories within a product)
 
     :id: 07918442-b72f-4db5-96b6-975564f3663a
@@ -349,11 +354,11 @@ def test_positive_sync_several_repos(module_org):
 
     :BZ: 1389543
     """
-    product = entities.Product(organization=module_org).create()
-    rpm_repo = entities.Repository(
+    product = module_target_sat.api.Product(organization=module_org).create()
+    rpm_repo = module_target_sat.api.Repository(
         product=product, content_type='yum', url=settings.repos.yum_1.url
     ).create()
-    docker_repo = entities.Repository(
+    docker_repo = module_target_sat.api.Repository(
         content_type=REPO_TYPE['docker'],
         docker_upstream_name=CONTAINER_UPSTREAM_NAME,
         product=product,
@@ -368,7 +373,7 @@ def test_positive_sync_several_repos(module_org):
 
 
 @pytest.mark.tier2
-def test_positive_filter_product_list(module_entitlement_manifest_org):
+def test_positive_filter_product_list(module_entitlement_manifest_org, module_target_sat):
     """Filter products based on param 'custom/redhat_only'
 
     :id: e61fb63a-4552-4915-b13d-23ab80138249
@@ -380,9 +385,9 @@ def test_positive_filter_product_list(module_entitlement_manifest_org):
     :BZ: 1667129
     """
     org = module_entitlement_manifest_org
-    product = entities.Product(organization=org).create()
-    custom_products = entities.Product(organization=org).search(query={'custom': True})
-    rh_products = entities.Product(organization=org).search(
+    product = module_target_sat.api.Product(organization=org).create()
+    custom_products = module_target_sat.api.Product(organization=org).search(query={'custom': True})
+    rh_products = module_target_sat.api.Product(organization=org).search(
         query={'redhat_only': True, 'per_page': 1000}
     )
 

@@ -30,6 +30,7 @@ class Packages(Base):
     def lock(cls, options=None):
         """Build satellite-maintain packages lock"""
         cls.command_sub = 'lock'
+        cls.command_end = None
         options = options or {}
         return cls.sm_execute(cls._construct_command(options))
 
@@ -37,6 +38,7 @@ class Packages(Base):
     def unlock(cls, options=None):
         """Build satellite-maintain packages unlock"""
         cls.command_sub = 'unlock'
+        cls.command_end = None
         options = options or {}
         return cls.sm_execute(cls._construct_command(options))
 
@@ -44,6 +46,7 @@ class Packages(Base):
     def is_locked(cls, options=None):
         """Build satellite-maintain packages is-locked"""
         cls.command_sub = 'is-locked'
+        cls.command_end = None
         options = options or {}
         return cls.sm_execute(cls._construct_command(options))
 
@@ -51,6 +54,7 @@ class Packages(Base):
     def status(cls, options=None):
         """Build satellite-maintain packages status"""
         cls.command_sub = 'status'
+        cls.command_end = None
         options = options or {}
         return cls.sm_execute(cls._construct_command(options))
 
@@ -74,5 +78,6 @@ class Packages(Base):
     def check_update(cls, options=None):
         """Build satellite-maintain packages check-update"""
         cls.command_sub = 'check-update'
+        cls.command_end = None
         options = options or {}
         return cls.sm_execute(cls._construct_command(options))

@@ -1,3 +1,4 @@
+import builtins
 import logging
 import os
 from pathlib import Path
@@ -8,8 +9,7 @@ from dynaconf.validator import ValidationError
 from nailgun.config import ServerConfig
 
 from robottelo.config.validators import VALIDATORS
-from robottelo.logging import logger
-from robottelo.logging import robottelo_root_dir
+from robottelo.logging import logger, robottelo_root_dir
 
 if not os.getenv('ROBOTTELO_DIR'):
     # dynaconf robottelo file uses ROBOTELLO_DIR for screenshots
@@ -21,34 +21,33 @@ def get_settings():
 
     :return: A validated Lazy settings object
     """
-    settings = LazySettings(
-        envvar_prefix="ROBOTTELO",
-        core_loaders=["YAML"],
-        settings_file="settings.yaml",
-        preload=["conf/*.yaml"],
-        includes=["settings.local.yaml", ".secrets.yaml", ".secrets_*.yaml"],
-        envless_mode=True,
-        lowercase_read=True,
-        load_dotenv=True,
-    )
-    settings.validators.register(**VALIDATORS)
-
     try:
-        settings.validators.validate()
-    except ValidationError as err:
-        logger.warning(f'Dynaconf validation failed, continuing for the sake of unit tests\n{err}')
+        if builtins.__sphinx_build__:
+            settings = None
+    except AttributeError:
+        settings = LazySettings(
+            envvar_prefix="ROBOTTELO",
+            core_loaders=["YAML"],
+            settings_file="settings.yaml",
+            preload=["conf/*.yaml"],
+            includes=["settings.local.yaml", ".secrets.yaml", ".secrets_*.yaml"],
+            envless_mode=True,
+            lowercase_read=True,
+            load_dotenv=True,
+        )
+        settings.validators.register(**VALIDATORS)
 
-    return settings
+        try:
+            settings.validators.validate()
+        except ValidationError as err:
+            logger.warning(
+                f'Dynaconf validation failed, continuing for the sake of unit tests\n{err}'
+            )
+
+        return settings
 
 
 settings = get_settings()
-
-
-if not os.getenv('BROKER_DIRECTORY'):
-    # set the BROKER_DIRECTORY envar so broker knows where to operate from
-    os.environ['BROKER_DIRECTORY'] = settings.broker.get('broker_directory')
-
-
 robottelo_tmp_dir = Path(settings.robottelo.tmp_dir)
 robottelo_tmp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -102,7 +101,7 @@ def user_nailgun_config(username=None, password=None):
 
     """
     creds = (username, password)
-    return ServerConfig(get_url(), creds, verify=False)
+    return ServerConfig(get_url(), creds, verify=settings.server.verify_ca)
 
 
 def setting_is_set(option):
@@ -141,12 +140,13 @@ def configure_nailgun():
         of this.
     * Set a default value for ``nailgun.entities.GPGKey.content``.
     """
-    from nailgun import entities
-    from nailgun import entity_mixins
+    from nailgun import entities, entity_mixins
     from nailgun.config import ServerConfig
 
     entity_mixins.CREATE_MISSING = True
-    entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(get_url(), get_credentials(), verify=False)
+    entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(
+        get_url(), get_credentials(), verify=settings.server.verify_ca
+    )
     gpgkey_init = entities.GPGKey.__init__
 
     def patched_gpgkey_init(self, server_config=None, **kwargs):

@@ -8,7 +8,7 @@
 
 :CaseComponent: SCAPPlugin
 
-:Team: Rocket
+:Team: Endeavour
 
 :TestType: Functional
 
@@ -20,8 +20,7 @@ import os
 
 import pytest
 
-from robottelo.config import robottelo_tmp_dir
-from robottelo.config import settings
+from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import DataFile
 from robottelo.utils.datafactory import gen_string
 

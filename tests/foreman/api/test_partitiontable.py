@@ -22,16 +22,17 @@ http://theforeman.org/api/apidoc/v2/ptables.html
 """
 import random
 
+from fauxfactory import gen_integer, gen_string
 import pytest
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 
 from robottelo.constants import OPERATING_SYSTEMS
-from robottelo.utils.datafactory import generate_strings_list
-from robottelo.utils.datafactory import invalid_values_list
-from robottelo.utils.datafactory import parametrized
-from robottelo.utils.datafactory import valid_data_list
+from robottelo.utils.datafactory import (
+    generate_strings_list,
+    invalid_values_list,
+    parametrized,
+    valid_data_list,
+)
 
 
 class TestPartitionTable:
@@ -59,7 +60,7 @@ class TestPartitionTable:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'name, new_name',
+        ('name', 'new_name'),
         **parametrized(
             list(
                 zip(
@@ -94,7 +95,7 @@ class TestPartitionTable:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'layout, new_layout', **parametrized(list(zip(valid_data_list(), valid_data_list())))
+        ('layout', 'new_layout'), **parametrized(list(zip(valid_data_list(), valid_data_list())))
     )
     def test_positive_create_update_with_layout(self, target_sat, layout, new_layout):
         """Create new and update partition tables using different inputs as a

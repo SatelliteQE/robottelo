@@ -1,36 +1,38 @@
 # Azure CR Fixtures
-import pytest
 from fauxfactory import gen_string
+import pytest
 from wrapanapi import AzureSystem
 
 from robottelo.config import settings
-from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
-from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
-from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
-from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
-from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
-from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import (
+    AZURERM_RHEL7_FT_BYOS_IMG_URN,
+    AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
+    AZURERM_RHEL7_FT_GALLERY_IMG_URN,
+    AZURERM_RHEL7_FT_IMG_URN,
+    AZURERM_RHEL7_UD_IMG_URN,
+    DEFAULT_ARCHITECTURE,
+)
 
 
 @pytest.fixture(scope='session')
 def sat_azure(request, session_puppet_enabled_sat, session_target_sat):
     hosts = {'sat': session_target_sat, 'puppet_sat': session_puppet_enabled_sat}
-    yield hosts[request.param]
+    return hosts[request.param]
 
 
 @pytest.fixture(scope='module')
 def sat_azure_org(sat_azure):
-    yield sat_azure.api.Organization().create()
+    return sat_azure.api.Organization().create()
 
 
 @pytest.fixture(scope='module')
 def sat_azure_loc(sat_azure):
-    yield sat_azure.api.Location().create()
+    return sat_azure.api.Location().create()
 
 
 @pytest.fixture(scope='module')
 def sat_azure_domain(sat_azure, sat_azure_loc, sat_azure_org):
-    yield sat_azure.api.Domain(location=[sat_azure_loc], organization=[sat_azure_org]).create()
+    return sat_azure.api.Domain(location=[sat_azure_loc], organization=[sat_azure_org]).create()
 
 
 @pytest.fixture(scope='module')

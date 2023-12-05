@@ -1,5 +1,5 @@
-import pytest
 from fauxfactory import gen_string
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.logging import logger
@@ -49,7 +49,8 @@ def session(target_sat, test_name, ui_user, request):
                 session.architecture.create({'name': 'bar'})
 
     """
-    return target_sat.ui_session(test_name, ui_user.login, ui_user.password)
+    with target_sat.ui_session(test_name, ui_user.login, ui_user.password) as session:
+        yield session
 
 
 @pytest.fixture

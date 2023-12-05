@@ -19,15 +19,12 @@
 import json
 from random import choice
 
+from fauxfactory import gen_boolean, gen_integer, gen_string
 import pytest
-from fauxfactory import gen_boolean
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
 from requests import HTTPError
 
 from robottelo.config import settings
-from robottelo.utils.datafactory import filtered_datapoint
-from robottelo.utils.datafactory import parametrized
+from robottelo.utils.datafactory import filtered_datapoint, parametrized
 
 
 @filtered_datapoint
@@ -79,16 +76,15 @@ def module_puppet(session_puppet_enabled_sat):
     session_puppet_enabled_sat.destroy_custom_environment(env_name)
 
 
+@pytest.mark.tier1
+@pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
-@pytest.mark.e2e
 @pytest.mark.skipif(
     not settings.robottelo.repos_hosting_url, reason='repos_hosting_url is not defined'
 )
 class TestSmartClassParameters:
     """Implements Smart Class Parameter tests in API"""
 
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
     @pytest.mark.parametrize('data', **parametrized(valid_sc_parameters_data()))
     def test_positive_update_parameter_type(self, data, module_puppet):
         """Positive Parameter Update for parameter types - Valid Value.
@@ -121,7 +117,6 @@ class TestSmartClassParameters:
         else:
             assert sc_param.default_value == data['value']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('test_data', **parametrized(invalid_sc_parameters_data()))
     def test_negative_update_parameter_type(self, test_data, module_puppet):
         """Negative Parameter Update for parameter types - Invalid Value.
@@ -142,15 +137,15 @@ class TestSmartClassParameters:
             2. Error raised for invalid default value.
         """
         sc_param = module_puppet['sc_params'].pop()
+        sc_param.override = True
+        sc_param.parameter_type = test_data['sc_type']
+        sc_param.default_value = test_data['value']
         with pytest.raises(HTTPError) as context:
-            sc_param.override = True
-            sc_param.parameter_type = test_data['sc_type']
-            sc_param.default_value = test_data['value']
             sc_param.update(['override', 'parameter_type', 'default_value'])
         assert sc_param.read().default_value != test_data['value']
         assert 'Validation failed: Default value is invalid' in context.value.response.text
 
-    @pytest.mark.tier1
+    @pytest.mark.e2e
     def test_positive_validate_default_value_required_check(
         self, session_puppet_enabled_sat, module_puppet
     ):
@@ -184,7 +179,6 @@ class TestSmartClassParameters:
         assert sc_param.required is True
         assert sc_param.override_values[0]['value'] is False
 
-    @pytest.mark.tier1
     def test_negative_validate_matcher_value_required_check(
         self, session_puppet_enabled_sat, module_puppet
     ):
@@ -210,7 +204,6 @@ class TestSmartClassParameters:
             ).create()
         assert "Validation failed: Value can't be blank" in context.value.response.text
 
-    @pytest.mark.tier1
     def test_negative_validate_default_value_with_regex(self, module_puppet):
         """Error is raised for default value not matching with regex.
 
@@ -237,7 +230,7 @@ class TestSmartClassParameters:
         assert 'Validation failed: Default value is invalid' in context.value.response.text
         assert sc_param.read().default_value != value
 
-    @pytest.mark.tier1
+    @pytest.mark.e2e
     def test_positive_validate_default_value_with_regex(
         self, session_puppet_enabled_sat, module_puppet
     ):
@@ -277,7 +270,6 @@ class TestSmartClassParameters:
         sc_param.update(['override', 'default_value', 'validator_type', 'validator_rule'])
         assert sc_param.read().default_value == value
 
-    @pytest.mark.tier1
     def test_negative_validate_matcher_value_with_list(
         self, session_puppet_enabled_sat, module_puppet
     ):
@@ -305,7 +297,7 @@ class TestSmartClassParameters:
         assert 'Validation failed: Lookup values is invalid' in context.value.response.text
         assert sc_param.read().default_value != 50
 
-    @pytest.mark.tier1
+    @pytest.mark.e2e
     def test_positive_validate_matcher_value_with_list(
         self, session_puppet_enabled_sat, module_puppet
     ):
@@ -331,7 +323,7 @@ class TestSmartClassParameters:
         sc_param.update(['override', 'default_value', 'validator_type', 'validator_rule'])
         assert sc_param.read().default_value == 'example'
 
-    @pytest.mark.tier1
+    @pytest.mark.e2e
     def test_positive_validate_matcher_value_with_default_type(
         self, session_puppet_enabled_sat, module_puppet
     ):
@@ -358,7 +350,6 @@ class TestSmartClassParameters:
         assert sc_param.override_values[0]['value'] is False
         assert sc_param.override_values[0]['match'] == 'domain=example.com'
 
-    @pytest.mark.tier1
     def test_negative_validate_matcher_and_default_value(
         self, session_puppet_enabled_sat, module_puppet
     ):
@@ -379,16 +370,16 @@ class TestSmartClassParameters:
         session_puppet_enabled_sat.api.OverrideValue(
             smart_class_parameter=sc_param, match='domain=example.com', value=gen_string('alpha')
         ).create()
+        sc_param.parameter_type = 'boolean'
+        sc_param.default_value = gen_string('alpha')
         with pytest.raises(HTTPError) as context:
-            sc_param.parameter_type = 'boolean'
-            sc_param.default_value = gen_string('alpha')
             sc_param.update(['parameter_type', 'default_value'])
         assert (
             'Validation failed: Default value is invalid, Lookup values is invalid'
             in context.value.response.text
         )
 
-    @pytest.mark.tier1
+    @pytest.mark.e2e
     def test_positive_create_and_remove_matcher_puppet_default_value(
         self, session_puppet_enabled_sat, module_puppet
     ):
@@ -398,7 +389,6 @@ class TestSmartClassParameters:
         :id: 2b205e9c-e50c-48cd-8ebb-3b6bea09be77
 
         :steps:
-
             1. Set override to True.
             2. Set some default Value.
             3. Create matcher with valid attribute type, name and puppet
@@ -421,7 +411,7 @@ class TestSmartClassParameters:
         override.delete()
         assert len(sc_param.read().override_values) == 0
 
-    @pytest.mark.tier1
+    @pytest.mark.e2e
     def test_positive_enable_merge_overrides_default_checkboxes(self, module_puppet):
         """Enable Merge Overrides, Merge Default checkbox for supported types.
 
@@ -444,7 +434,6 @@ class TestSmartClassParameters:
         assert sc_param.merge_overrides is True
         assert sc_param.merge_default is True
 
-    @pytest.mark.tier1
     def test_negative_enable_merge_overrides_default_checkboxes(
         self, session_puppet_enabled_sat, module_puppet
     ):
@@ -478,7 +467,7 @@ class TestSmartClassParameters:
         assert sc_param.merge_overrides is False
         assert sc_param.merge_default is False
 
-    @pytest.mark.tier1
+    @pytest.mark.e2e
     def test_positive_enable_avoid_duplicates_checkbox(self, module_puppet):
         """Enable Avoid duplicates checkbox for supported type- array.
 
@@ -501,7 +490,6 @@ class TestSmartClassParameters:
         )
         assert sc_param.read().avoid_duplicates is True
 
-    @pytest.mark.tier1
     def test_negative_enable_avoid_duplicates_checkbox(self, module_puppet):
         """Disable Avoid duplicates checkbox for non supported types.
 
@@ -526,7 +514,7 @@ class TestSmartClassParameters:
         ) in context.value.response.text
         assert sc_param.read().avoid_duplicates is False
 
-    @pytest.mark.tier2
+    @pytest.mark.e2e
     def test_positive_impact_parameter_delete_attribute(
         self, session_puppet_enabled_sat, module_puppet
     ):

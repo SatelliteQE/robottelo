@@ -4,36 +4,33 @@ It is not meant to be used directly, but as part of a robottelo.hosts.Satellite 
 example: my_satellite.cli_factory.make_org()
 """
 import datetime
+from functools import lru_cache, partial
 import inspect
 import os
+from os import chmod
 import pprint
 import random
-from functools import lru_cache
-from functools import partial
-from os import chmod
 from tempfile import mkstemp
 from time import sleep
 
 from box import Box
-from fauxfactory import gen_alpha
-from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_choice
-from fauxfactory import gen_integer
-from fauxfactory import gen_ipaddr
-from fauxfactory import gen_mac
-from fauxfactory import gen_netmask
-from fauxfactory import gen_url
+from fauxfactory import (
+    gen_alpha,
+    gen_alphanumeric,
+    gen_choice,
+    gen_integer,
+    gen_ipaddr,
+    gen_mac,
+    gen_netmask,
+    gen_url,
+)
 
 from robottelo import constants
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
+from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
 from robottelo.utils.manifest import clone
-
-
-class CLIFactoryError(Exception):
-    """Indicates an error occurred while creating an entity using hammer"""
 
 
 def create_object(cli_object, options, values=None, credentials=None):
@@ -128,6 +125,7 @@ ENTITY_FIELDS = {
         '_entity_cls': 'Repository',
         'name': gen_alpha,
         'url': settings.repos.yum_1.url,
+        'content-type': 'yum',
     },
     'role': {'name': gen_alphanumeric},
     'filter': {},
@@ -195,6 +193,7 @@ ENTITY_FIELDS = {
         'name': gen_alphanumeric,
     },
     'os': {
+        '_entity_cls': 'OperatingSys',
         'major': partial(random.randint, 0, 10),
         'minor': partial(random.randint, 0, 10),
         'name': gen_alphanumeric,
@@ -585,6 +584,7 @@ class CLIFactory:
         4. Checks if activation key was given, otherwise creates a new one and
             associates it with the content view.
         5. Adds the custom repo subscription to the activation key
+        6. Override custom product to true ( turned off by default in 6.14 )
 
         :return: A dictionary with the entity ids of Activation key, Content view,
             Lifecycle Environment, Organization, Product and Repository
@@ -626,12 +626,21 @@ class CLIFactory:
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to publish new version of content view\n{err.msg}')
         # Get the version id
-        cvv = self._satellite.cli.ContentView.info({'id': cv_id})['versions'][-1]
+        cv_info = self._satellite.cli.ContentView.info({'id': cv_id})
+        assert len(cv_info['versions']) > 0
+        cv_info['versions'].sort(key=lambda version: version['id'])
+        cvv = cv_info['versions'][-1]
+        lce_promoted = cv_info['lifecycle-environments']
         # Promote version to next env
         try:
-            self._satellite.cli.ContentView.version_promote(
-                {'id': cvv['id'], 'organization-id': org_id, 'to-lifecycle-environment-id': env_id}
-            )
+            if env_id not in [int(lce['id']) for lce in lce_promoted]:
+                self._satellite.cli.ContentView.version_promote(
+                    {
+                        'id': cvv['id'],
+                        'organization-id': org_id,
+                        'to-lifecycle-environment-id': env_id,
+                    }
+                )
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to promote version to next environment\n{err.msg}')
         # Create activation key if needed and associate content view with it
@@ -663,6 +672,11 @@ class CLIFactory:
                     'subscription': custom_product['name'],
                 }
             )
+        # Override custom product to true ( turned off by default in 6.14 )
+        custom_repo = self._satellite.cli.Repository.info({'id': custom_repo['id']})
+        self._satellite.cli.ActivationKey.content_override(
+            {'id': activationkey_id, 'content-label': custom_repo['content-label'], 'value': 'true'}
+        )
         return {
             'activationkey-id': activationkey_id,
             'content-view-id': cv_id,

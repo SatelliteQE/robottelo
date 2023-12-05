@@ -16,14 +16,11 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
-from fauxfactory import gen_url
 
 from robottelo.config import settings
-from robottelo.constants import DOCKER_REPO_UPSTREAM_NAME
-from robottelo.constants import REPO_TYPE
+from robottelo.constants import DOCKER_REPO_UPSTREAM_NAME, REPO_TYPE
 
 
 @pytest.mark.tier2
@@ -73,6 +70,7 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
         assert not target_sat.api.HTTPProxy().search(query={'search': f'name={updated_proxy_name}'})
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_assign_http_proxy_to_products_repositories(
@@ -112,6 +110,8 @@ def test_positive_assign_http_proxy_to_products_repositories(
     # Create repositories from UI.
     with target_sat.ui_session() as session:
         repo_a1_name = gen_string('alpha')
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
         session.repository.create(
             product_a.name,
             {
@@ -213,7 +213,6 @@ def test_set_default_http_proxy(module_org, module_location, setting_update, tar
 
     :CaseLevel: Acceptance
     """
-
     property_name = setting_update.name
 
     http_proxy_a = target_sat.api.HTTPProxy(
@@ -224,6 +223,8 @@ def test_set_default_http_proxy(module_org, module_location, setting_update, tar
     ).create()
 
     with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
         session.settings.update(
             f'name = {property_name}', f'{http_proxy_a.name} ({http_proxy_a.url})'
         )

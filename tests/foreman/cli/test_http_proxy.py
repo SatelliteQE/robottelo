@@ -16,19 +16,12 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
-from fauxfactory import gen_integer
-from fauxfactory import gen_string
-from fauxfactory import gen_url
 
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
-from robottelo.cli.http_proxy import HttpProxy
-from robottelo.cli.product import Product
-from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT
+from robottelo.exceptions import CLIReturnCodeError
 
 
 @pytest.mark.tier1
@@ -206,9 +199,10 @@ def test_positive_environment_variable_unset_set():
     """
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_assign_http_proxy_to_products(module_org):
+def test_positive_assign_http_proxy_to_products(module_org, module_target_sat):
     """Assign http_proxy to Products and perform product sync.
 
     :id: 6af7b2b8-15d5-4d9f-9f87-e76b404a966f
@@ -219,14 +213,14 @@ def test_positive_assign_http_proxy_to_products(module_org):
     :CaseImportance: High
     """
     # create HTTP proxies
-    http_proxy_a = HttpProxy.create(
+    http_proxy_a = module_target_sat.cli.HttpProxy.create(
         {
             'name': gen_string('alpha', 15),
             'url': settings.http_proxy.un_auth_proxy_url,
             'organization-id': module_org.id,
         },
     )
-    http_proxy_b = HttpProxy.create(
+    http_proxy_b = module_target_sat.cli.HttpProxy.create(
         {
             'name': gen_string('alpha', 15),
             'url': settings.http_proxy.auth_proxy_url,
@@ -236,9 +230,9 @@ def test_positive_assign_http_proxy_to_products(module_org):
         },
     )
     # Create products and repositories
-    product_a = make_product({'organization-id': module_org.id})
-    product_b = make_product({'organization-id': module_org.id})
-    repo_a1 = make_repository(
+    product_a = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    product_b = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    repo_a1 = module_target_sat.cli_factory.make_repository(
         {
             'organization-id': module_org.id,
             'product-id': product_a['id'],
@@ -246,7 +240,7 @@ def test_positive_assign_http_proxy_to_products(module_org):
             'http-proxy-policy': 'none',
         },
     )
-    repo_a2 = make_repository(
+    repo_a2 = module_target_sat.cli_factory.make_repository(
         {
             'organization-id': module_org.id,
             'product-id': product_a['id'],
@@ -255,7 +249,7 @@ def test_positive_assign_http_proxy_to_products(module_org):
             'http-proxy-id': http_proxy_a['id'],
         },
     )
-    repo_b1 = make_repository(
+    repo_b1 = module_target_sat.cli_factory.make_repository(
         {
             'organization-id': module_org.id,
             'product-id': product_b['id'],
@@ -263,7 +257,7 @@ def test_positive_assign_http_proxy_to_products(module_org):
             'http-proxy-policy': 'none',
         },
     )
-    repo_b2 = make_repository(
+    repo_b2 = module_target_sat.cli_factory.make_repository(
         {
             'organization-id': module_org.id,
             'product-id': product_b['id'],
@@ -271,7 +265,7 @@ def test_positive_assign_http_proxy_to_products(module_org):
         },
     )
     # Add http_proxy to products
-    Product.update_proxy(
+    module_target_sat.cli.Product.update_proxy(
         {
             'ids': f"{product_a['id']},{product_b['id']}",
             'http-proxy-policy': 'use_selected_http_proxy',
@@ -279,18 +273,22 @@ def test_positive_assign_http_proxy_to_products(module_org):
         }
     )
     for repo in repo_a1, repo_a2, repo_b1, repo_b2:
-        result = Repository.info({'id': repo['id']})
+        result = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert result['http-proxy']['http-proxy-policy'] == 'use_selected_http_proxy'
         assert result['http-proxy']['id'] == http_proxy_b['id']
     # Perform sync and verify packages count
-    Product.synchronize({'id': product_a['id'], 'organization-id': module_org.id})
-    Product.synchronize({'id': product_b['id'], 'organization-id': module_org.id})
+    module_target_sat.cli.Product.synchronize(
+        {'id': product_a['id'], 'organization-id': module_org.id}
+    )
+    module_target_sat.cli.Product.synchronize(
+        {'id': product_b['id'], 'organization-id': module_org.id}
+    )
 
-    Product.update_proxy(
+    module_target_sat.cli.Product.update_proxy(
         {'ids': f"{product_a['id']},{product_b['id']}", 'http-proxy-policy': 'none'}
     )
 
     for repo in repo_a1, repo_a2, repo_b1, repo_b2:
-        result = Repository.info({'id': repo['id']})
+        result = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert result['http-proxy']['http-proxy-policy'] == 'none'
         assert int(result['content-counts']['packages']) == FAKE_0_YUM_REPO_PACKAGES_COUNT

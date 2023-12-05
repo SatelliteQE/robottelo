@@ -19,8 +19,7 @@
 import pytest
 
 from robottelo.config import settings
-
-pytestmark = pytest.mark.destructive
+from robottelo.constants import INSTALLER_CONFIG_FILE, SATELLITE_VERSION
 
 
 def last_y_stream_version(release):
@@ -57,6 +56,10 @@ def test_positive_satellite_maintain_upgrade_list(sat_maintain):
         versions = [f'{previous_xy_version}.z', xy_version]
     else:
         versions = ['Unsupported Satellite/Capsule version']
+
+    # Reboot if needed
+    if sat_maintain.execute('needs-restarting -r').status == 1:
+        sat_maintain.power_control(state='reboot')
 
     result = sat_maintain.cli.Upgrade.list_versions()
     assert result.status == 0
@@ -124,25 +127,34 @@ def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
     # Register to CDN for RHEL8 repos, download and enable last y stream's ohsnap repos,
     # and enable the satellite module and install it on the host
     custom_host.register_to_cdn()
-    last_y_stream = last_y_stream_version(settings.server.version.release)
+    last_y_stream = last_y_stream_version(
+        SATELLITE_VERSION if sat_version == 'stream' else sat_version
+    )
     custom_host.download_repofile(product='satellite', release=last_y_stream)
     custom_host.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
-    # Install without system checks to get around installer checks
+    # Install with development tuning profile to get around installer checks
     custom_host.execute(
-        f'satellite-installer --scenario satellite --disable-system-checks --tuning {profile}',
+        'satellite-installer --scenario satellite --tuning development',
         timeout='30m',
     )
+    # Change to correct tuning profile (default or medium)
+    custom_host.execute(
+        f'sed -i "s/tuning: development/tuning: {profile}/g" {INSTALLER_CONFIG_FILE};'
+        f'satellite-installer'
+    )
     # Get current Satellite version's repofile
-    custom_host.download_repofile(product='satellite', release=sat_version)
+    custom_host.download_repofile(
+        product='satellite', release=sat_version, snap=settings.server.version.snap
+    )
     # Run satellite-maintain to have it self update to the newest version,
     # however, this will not actually execute the command after updating
     custom_host.execute('satellite-maintain upgrade list-versions')
     # Check that we can upgrade to the new Y stream version
     result = custom_host.execute('satellite-maintain upgrade list-versions')
-    assert sat_version in result.stdout
+    assert SATELLITE_VERSION in result.stdout
     # Check that the upgrade check fails due to system requirements
     result = custom_host.execute(
-        f'satellite-maintain upgrade check --target-version {sat_version}', timeout='5m'
+        f'satellite-maintain upgrade check --target-version {SATELLITE_VERSION}', timeout='5m'
     )
     assert (
         f'ERROR: The installer is configured to use the {profile} tuning '
@@ -150,27 +162,31 @@ def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
     )
 
 
-@pytest.mark.stubbed
 @pytest.mark.include_capsule
-def test_positive_self_update_for_zstream(sat_maintain):
-    """Test satellite-maintain self-upgrade to update maintain packages from zstream repo.
+def test_positive_self_update_maintain_package(sat_maintain):
+    """satellite-maintain attempts to update itself when a command is run
 
     :id: 1c566768-fd73-4fe6-837b-26709a1ebed9
 
     :parametrized: yes
 
     :steps:
-        1. Run satellite-maintain upgrade check/run command.
-        2. Run satellite-maintain upgrade check/run command with disable-self-upgrade option.
+        1. Run satellite-maintain upgrade list-versions/check/run command.
+        2. Run satellite-maintain upgrade list-versions/check/run command
+            with disable-self-upgrade option.
 
     :expectedresults:
-        1. Update satellite-maintain package to latest version and gives message to re-run command.
-        2. If disable-self-upgrade option is used then it should skip self-upgrade step for zstream
+        1. satellite-maintain tries to update rubygem-foreman_maintain to a newer available version
+        2. If disable-self-upgrade option is used then it should skip self-upgrade step
 
     :BZ: 1649329
-
-    :CaseAutomation: ManualOnly
     """
+    result = sat_maintain.cli.Upgrade.list_versions()
+    assert result.status == 0
+    assert 'Checking for new version of satellite-maintain...' in result.stdout
+    result = sat_maintain.cli.Upgrade.list_versions(options={'disable-self-upgrade': True})
+    assert result.status == 0
+    assert 'Checking for new version of satellite-maintain...' not in result.stdout
 
 
 @pytest.mark.stubbed

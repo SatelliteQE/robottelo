@@ -3,19 +3,20 @@ name: auto_cherry_pick_commits
 
 on:
   pull_request_target:
-    types:
-      - closed
+    types: [closed]
 
 # Github & Parent PR Env vars
 env:
   assignee: ${{ github.event.pull_request.assignee.login }}
   title: ${{ github.event.pull_request.title }}
   number: ${{ github.event.number }}
+  is_dependabot_pr: ''
 
 jobs:
 
   # Pre-Requisites for Auto Cherrypicking
   find-the-parent-prt-comment:
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
     name: Find & Save last PRT comment of Parent PR
     runs-on: ubuntu-latest
     outputs:
@@ -27,6 +28,7 @@ jobs:
         with:
           issue-number: ${{ env.number }}
           body-includes: "trigger: test-robottelo"
+          direction: last
 
   # Auto CherryPicking and Failure Recording
   auto-cherry-pick:
@@ -39,11 +41,23 @@ jobs:
         label: ${{ github.event.pull_request.labels.*.name }}
 
     steps:
+      # Needed to avoid out-of-memory error
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 10
+
       ## Robottelo Repo Checkout
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         if: ${{ startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
         with:
           fetch-depth: 0
+
+      ## Set env var for dependencies label PR
+      - name: Set env var is_dependabot_pr to `dependencies` to set the label
+        if: contains(github.event.pull_request.labels.*.name, 'dependencies')
+        run: |
+          echo "is_dependabot_pr=dependencies" >> $GITHUB_ENV
 
       ## CherryPicking and AutoMerging
       - name: Cherrypicking to zStream branch
@@ -57,20 +71,24 @@ jobs:
             Auto_Cherry_Picked
             ${{ matrix.label }}
             No-CherryPick
+            ${{ env.is_dependabot_pr }}
           assignees: ${{ env.assignee }}
 
       - name: Add Parent PR's PRT comment to Auto_Cherry_Picked PR's
         id: add-parent-prt-comment
         if: ${{ always() && steps.cherrypick.outcome == 'success' }}
-        uses: mshick/add-pr-comment@v2
-        with:
-          issue: ${{ steps.cherrypick.outputs.number }}
-          message: ${{ needs.find-the-parent-prt-comment.outputs.prt_comment }}
-          repo-token: ${{ secrets.CHERRYPICK_PAT }}
+        run: |
+          ISSUE_NUMBER=${{ steps.cherrypick.outputs.number }}
+          COMMENT_BODY=${{ needs.find-the-parent-prt-comment.outputs.prt_comment }}
+
+          curl -X POST -H "Authorization: token ${{ secrets.CHERRYPICK_PAT }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_NUMBER}/comments" \
+            -d "{\"body\":\"$COMMENT_BODY\"}"
 
       - name: is autoMerging enabled for Auto CherryPicked PRs ?
         if: ${{ always() && steps.cherrypick.outcome == 'success' && contains(github.event.pull_request.labels.*.name, 'AutoMerge_Cherry_Picked') }}
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.CHERRYPICK_PAT }}
           script: |
@@ -84,7 +102,7 @@ jobs:
       ## Failure Logging to issues and GChat Group
       - name: Create Github issue on cherrypick failure
         id: create-issue
-        if: ${{ always() && steps.cherrypick.outcome == 'failure' }}
+        if: ${{ always() && steps.cherrypick.outcome != 'success' && startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
         uses: dacbd/create-issue-action@main
         with:
           token: ${{ secrets.CHERRYPICK_PAT }}
@@ -96,13 +114,3 @@ jobs:
             - [Parent Pull Request](https://github.com/${{ github.repository }}/pull/${{ github.event.number }})
           labels: Failed_AutoCherryPick,${{ matrix.label }}
           assignees: ${{ env.assignee }}
-      - name: Send Google Chat notification on cherrypick failure
-        id: google-chat-notification
-        if: ${{ always() && steps.cherrypick.outcome == 'failure' }}
-        uses: omkarkhatavkar/google-chat-notification@master
-        with:
-          name: ${{ env.title }}
-          url: ${{ secrets.GCHAT_REVIEWERS_WEBHOOK }}
-          issue_url: ${{ steps.create-issue.outputs.html_url }}
-          author: ${{ env.assignee }}
-          status: failure

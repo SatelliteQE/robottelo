@@ -1,6 +1,6 @@
 # Hostgroup Fixtures
-import pytest
 from nailgun import entities
+import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.logging import logger

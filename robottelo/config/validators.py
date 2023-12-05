@@ -1,8 +1,6 @@
 from dynaconf import Validator
 
-from robottelo.constants import AZURERM_VALID_REGIONS
-from robottelo.constants import VALID_GCE_ZONES
-
+from robottelo.constants import AZURERM_VALID_REGIONS, VALID_GCE_ZONES
 
 VALIDATORS = dict(
     supportability=[
@@ -13,6 +11,7 @@ VALIDATORS = dict(
         Validator('server.hostnames', must_exist=True, is_type_of=list),
         Validator('server.version.release', must_exist=True),
         Validator('server.version.source', must_exist=True),
+        Validator('server.version.rhel_version', must_exist=True, cast=str),
         Validator(
             'server.xdist_behavior', must_exist=True, is_in=['run-on-one', 'balance', 'on-demand']
         ),
@@ -30,6 +29,7 @@ VALIDATORS = dict(
         Validator('server.port', default=443),
         Validator('server.ssh_username', default='root'),
         Validator('server.ssh_password', default=None),
+        Validator('server.verify_ca', default=False),
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),
@@ -65,7 +65,6 @@ VALIDATORS = dict(
         Validator('bugzilla.api_key', must_exist=True),
     ],
     capsule=[
-        Validator('capsule.instance_name', must_exist=True),
         Validator('capsule.version.release', must_exist=True),
         Validator('capsule.version.source', must_exist=True),
         Validator('capsule.deploy_workflow', must_exist=True),

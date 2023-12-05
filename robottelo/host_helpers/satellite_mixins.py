@@ -1,4 +1,5 @@
 import contextlib
+from functools import cache
 import io
 import os
 import random
@@ -6,34 +7,35 @@ import re
 
 import requests
 
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
-from robottelo.constants import COMMON_INSTALLER_OPTS as common_opts
-from robottelo.constants import PULP_EXPORT_DIR
-from robottelo.constants import PULP_IMPORT_DIR
+from robottelo.constants import (
+    PULP_EXPORT_DIR,
+    PULP_IMPORT_DIR,
+    PUPPET_COMMON_INSTALLER_OPTS,
+    PUPPET_SATELLITE_INSTALLER,
+)
+from robottelo.exceptions import CLIReturnCodeError
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
+from robottelo.host_helpers.ui_factory import UIFactory
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.manifest import clone
 
 
-class EnablePlugins:
+class EnablePluginsSatellite:
     """Miscellaneous settings helper methods"""
 
-    def enable_puppet(self):
+    def enable_puppet_satellite(self):
+        self.register_to_cdn()
         enable_satellite_cmd = InstallerCommand(
-            installer_args=[
-                'enable-foreman-plugin-puppet',
-                'enable-foreman-cli-puppet',
-                'enable-puppet',
-            ],
-            installer_opts=common_opts,
+            installer_args=PUPPET_SATELLITE_INSTALLER,
+            installer_opts=PUPPET_COMMON_INSTALLER_OPTS,
         )
         result = self.execute(enable_satellite_cmd.get_command(), timeout='20m')
         assert result.status == 0
-        self.execute('hammer -r')  # workaround for BZ#2039696
+        assert 'Success!' in result.stdout
         return self
 
 
@@ -143,13 +145,14 @@ class ContentInfo:
         :returns: the manifest upload result
 
         """
-        if manifest is None:
-            manifest = clone()
+        if not isinstance(manifest, bytes | io.BytesIO):
+            if manifest.content is None:
+                manifest = clone()
         if timeout is None:
             # Set the timeout to 1500 seconds to align with the API timeout.
             timeout = 1500000
         if interface == 'CLI':
-            if isinstance(manifest.content, (bytes, io.BytesIO)):
+            if hasattr(manifest, 'path'):
                 self.put(f'{manifest.path}', f'{manifest.name}')
                 result = self.cli.Subscription.upload(
                     {'file': manifest.name, 'organization-id': org_id}, timeout=timeout
@@ -160,7 +163,7 @@ class ContentInfo:
                     {'file': manifest.filename, 'organization-id': org_id}, timeout=timeout
                 )
         else:
-            if not isinstance(manifest, (bytes, io.BytesIO)):
+            if not isinstance(manifest, bytes | io.BytesIO):
                 manifest = manifest.content
             result = self.api.Subscription().upload(
                 data={'organization_id': org_id}, files={'content': manifest}
@@ -197,6 +200,7 @@ class ContentInfo:
         sets ownership, returns import path
         """
         self.execute(
+            f'rm -rf {PULP_IMPORT_DIR}/{org.name} &&'
             f'mv {PULP_EXPORT_DIR}/{org.name} {PULP_IMPORT_DIR} && '
             f'chown -R pulp:pulp {PULP_IMPORT_DIR}'
         )
@@ -312,6 +316,33 @@ class SystemInfo:
         return result.stdout
 
 
+class ProvisioningSetup:
+    """Provisioning tests setup helper methods"""
+
+    def configure_libvirt_cr(self, server_fqdn=settings.libvirt.libvirt_hostname):
+        """Configures Libvirt ComputeResource to communicate with Satellite
+
+        :param server_fqdn: Libvirt server FQDN
+        :return: None
+        """
+        # Geneate SSH key-pair for foreman user and copy public key to libvirt server
+        self.execute('sudo -u foreman ssh-keygen -q -t rsa -f ~foreman/.ssh/id_rsa -N "" <<< y')
+        self.execute(f'ssh-keyscan -t ecdsa {server_fqdn} >> ~foreman/.ssh/known_hosts')
+        self.execute(
+            f'sshpass -p {settings.server.ssh_password} ssh-copy-id -o StrictHostKeyChecking=no '
+            f'-i ~foreman/.ssh/id_rsa root@{server_fqdn}'
+        )
+        # Install libvirt-client, and verify foreman user is able to communicate with Libvirt server
+        self.register_to_cdn()
+        self.execute('dnf -y --disableplugin=foreman-protector install libvirt-client')
+        assert (
+            self.execute(
+                f'su foreman -s /bin/bash -c "virsh -c qemu+ssh://root@{server_fqdn}/system list"'
+            ).status
+            == 0
+        )
+
+
 class Factories:
     """Mixin that provides attributes for each factory type"""
 
@@ -326,3 +357,7 @@ class Factories:
         if not getattr(self, '_api_factory', None):
             self._api_factory = APIFactory(self)
         return self._api_factory
+
+    @cache
+    def ui_factory(self, session):
+        return UIFactory(self, session=session)

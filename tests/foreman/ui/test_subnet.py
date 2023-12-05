@@ -16,8 +16,8 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_ipaddr
+import pytest
 
 from robottelo.utils.datafactory import gen_string
 

@@ -16,9 +16,8 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_string, gen_url
 import pytest
-from fauxfactory import gen_string
-from fauxfactory import gen_url
 
 
 @pytest.mark.tier1
@@ -31,7 +30,7 @@ def test_positive_end_to_end(session, target_sat):
 
     :CaseImportance: Critical
 
-    :BZ: 2112093, 2131771
+    :BZ: 2112093, 2131771, 2119155
 
     :customerscenario: true
 
@@ -74,7 +73,9 @@ def test_positive_end_to_end(session, target_sat):
         assert values['credentials']['capsule_auth'] is True
         assert values['credentials']['verify_ssl'] is False
         assert values['credentials']['user'] == username
-        result = target_sat.execute('echo "Webhook.last.password" | foreman-rake console')
+        result = target_sat.execute(
+            f'echo "Webhook.find_by_name(\\"{hook_name}\\").password" | foreman-rake console'
+        )
         assert password in result.stdout
         session.webhook.update(
             hook_name,
@@ -94,5 +95,9 @@ def test_positive_end_to_end(session, target_sat):
         assert values['general']['template'] == new_template
         assert values['general']['http_method'] == new_http_method
         assert values['general']['enabled'] is True
+        result = target_sat.execute(
+            f'echo "Webhook.find_by_name(\\"{new_hook_name}\\").password" | foreman-rake console'
+        )
+        assert password in result.stdout
         session.webhook.delete(new_hook_name)
         assert not session.webhook.search(new_hook_name)
