@@ -26,9 +26,9 @@ class TestDiscoveryImage:
     """Pre-upgrade and post-upgrade scenarios to test Foreman Discovery Image version.
 
     Test Steps:
-        1. Before Satellite upgrade, Check the FDI version on the Discovered host
+        1. Before Satellite upgrade, Check the FDI version on the Satellite
         2. Upgrade satellite.
-        3. Check the FDI version on the Discovered host, after upgrade to make sure its same or greater.
+        3. Check the FDI version on the Satellite after upgrade to make sure its same or greater.
     """
 
     @pytest.mark.pre_upgrade
@@ -46,13 +46,11 @@ class TestDiscoveryImage:
         target_sat.execute(
             'yum -y --disableplugin=foreman-protector install foreman-discovery-image'
         )
-        target_sat.unregister()
         fdi_version = target_sat.execute('rpm -qa *foreman-discovery-image*')
         # Note: The regular exp takes care of format digit.digit.digit or digit.digit.digit-digit in the output
         pre_upgrade_version = re.search(r'\d+\.\d+\.\d+(-\d+)?', fdi_version.stdout).group()
         pre_upgrade_version = version.parse(pre_upgrade_version)
         save_test_data({'pre_upgrade_version': pre_upgrade_version})
-        target_sat.execute('yum -y remove foreman-discovery-image')
 
     @pytest.mark.post_upgrade(depend_on=test_pre_upgrade_fdi_version)
     def test_post_upgrade_fdi_version(self, target_sat, pre_upgrade_data):
@@ -66,14 +64,9 @@ class TestDiscoveryImage:
         :expectedresults: Version should be greater than or equal to pre_upgrade version
         """
         pre_upgrade_version = pre_upgrade_data.get('pre_upgrade_version')
-        target_sat.register_to_cdn()
-        target_sat.execute(
-            'yum -y --disableplugin=foreman-protector install foreman-discovery-image'
-        )
-        target_sat.unregister()
         fdi_version = target_sat.execute('rpm -qa *foreman-discovery-image*')
         # Note: The regular exp takes care of format digit.digit.digit or digit.digit.digit-digit in the output
         post_upgrade_version = re.search(r'\d+\.\d+\.\d+(-\d+)?', fdi_version.stdout).group()
         post_upgrade_version = version.parse(post_upgrade_version)
         assert post_upgrade_version >= pre_upgrade_version
-        target_sat.execute('yum -y remove foreman-discovery-image')
+        target_sat.unregister()
