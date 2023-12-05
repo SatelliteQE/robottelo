@@ -579,8 +579,6 @@ class TestContentViewSync:
             1. CV version custom contents has been exported to directory.
             2. All The exported custom contents has been imported in org/satellite.
 
-        :CaseImportance: High
-
         :CaseLevel: System
 
         :BZ: 1832858
@@ -772,8 +770,6 @@ class TestContentViewSync:
             1. Filtered CV version custom contents has been exported to directory
             2. Filtered exported custom contents has been imported in org/satellite
 
-        :CaseImportance: High
-
         :CaseLevel: System
         """
         exporting_cv_name = importing_cvv = gen_string('alpha')
@@ -952,8 +948,6 @@ class TestContentViewSync:
         :BZ: 1655239, 2040870
 
         :customerscenario: true
-
-        :CaseImportance: High
 
         :CaseLevel: System
         """
@@ -1184,13 +1178,10 @@ class TestContentViewSync:
         :id: 4cc69666-407f-4d66-b3d2-8fe2ed135a5f
 
         :steps:
-
-            1. Import a cv with a path that doesn't exist
+            1. Import a CV with a path that doesn't exist.
 
         :expectedresults:
-
-            1. Error 'Unable to sync repositories, no library repository found' should be
-                displayed
+            1. Error 'Unable to sync repositories, no library repository found' should be displayed.
         """
         export_folder = gen_string('alpha')
         import_path = f'{PULP_IMPORT_DIR}{export_folder}'
@@ -1233,7 +1224,6 @@ class TestContentViewSync:
         :BZ: 1726457
 
         :customerscenario: true
-
         """
         content_view = target_sat.cli_factory.make_content_view(
             {'organization-id': function_org.id}
@@ -1342,9 +1332,9 @@ class TestContentViewSync:
             1. Product with synced file-type repository.
 
         :steps:
-            3. Create CV, add the file repo and publish.
-            4. Export the CV and import it into another organization.
-            5. Check the imported CV has files in it.
+            1. Create CV, add the file repo and publish.
+            2. Export the CV and import it into another organization.
+            3. Check the imported CV has files in it.
 
         :expectedresults:
             1. Imported CV should have the files present.
@@ -1723,7 +1713,7 @@ class TestContentViewSync:
             1. Import should fail with correct message when existing CV has 'import-only' set False.
             2. Import should succeed when existing CV has 'import-only' set True.
 
-        :bz: 2030101
+        :BZ: 2030101
 
         :customerscenario: true
         """
@@ -1903,14 +1893,13 @@ class TestInterSatelliteSync:
         :id: b3a71405-d8f0-4085-b728-8fc3513611c8
 
         :steps:
-
             1. From upstream Export repo fully and import it in downstream.
             2. In upstream delete some packages from repo.
             3. Re-export the full repo.
             4. In downstream, reimport the repo re-exported.
 
-        :expectedresults: Deleted packages from upstream are removed from
-            downstream.
+        :expectedresults:
+            1. Deleted packages from upstream are removed from downstream.
 
         :CaseAutomation: NotAutomated
 
@@ -1924,59 +1913,193 @@ class TestInterSatelliteSync:
 
         :id: 1e8bc352-198f-4d59-b437-1b184141fab4
 
-        :steps: Export the repo incrementally from the future date time.
-
-        :expectedresults: Error is raised for attempting to export from future
-            datetime.
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_export_redhat_incremental_yum_repo(self):
-        """Export Red Hat YUM repo in directory incrementally.
-
-        :id: be054636-629a-40a0-b414-da3964154bd1
-
         :steps:
+            1. Export the repo incrementally from the future date time.
 
-            1. Export whole Red Hat YUM repo.
-            2. Add some packages to the earlier exported yum repo.
-            3. Incrementally export the yum repo from last exported date.
-
-        :expectedresults: Red Hat YUM repo contents have been exported
-            incrementally in separate directory.
+        :expectedresults:
+            1. Error is raised for attempting to export from future datetime.
 
         :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
 
-    @pytest.mark.stubbed
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    def test_positive_export_import_redhat_incremental_yum_repo(self):
-        """Import the exported YUM repo contents incrementally.
+    def test_positive_export_import_incremental_yum_repo(
+        self,
+        target_sat,
+        export_import_cleanup_function,
+        config_export_import_settings,
+        function_org,
+        function_import_org,
+        function_synced_custom_repo,
+    ):
+        """Export and import custom YUM repo contents incrementally.
 
         :id: 318560d7-71f5-4646-ab5c-12a2ec22d031
 
-        :steps:
+        :setup:
+            1. Enabled and synced custom yum repository.
 
-            1. First, Export and Import whole Red Hat YUM repo.
-            2. Add some packages to the earlier exported yum repo.
-            3. Incrementally export the Red Hat YUM repo from last exported
-               date.
+        :steps:
+            1. First, export and import whole custom YUM repo.
+            2. Add some packages to the earlier exported YUM repo.
+            3. Incrementally export the custom YUM repo.
             4. Import the exported YUM repo contents incrementally.
 
-        :expectedresults: YUM repo contents have been imported incrementally.
-
-        :CaseAutomation: NotAutomated
+        :expectedresults:
+            1. Complete export and import succeeds, product and repository is created
+               in the importing organization and content counts match.
+            2. Incremental export and import succeeds, content counts match the updated counts.
 
         :CaseLevel: System
         """
+        export_cc = target_sat.cli.Repository.info({'id': function_synced_custom_repo.id})[
+            'content-counts'
+        ]
+
+        # Verify export directory is empty
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
+        # Export complete and check the export directory
+        export = target_sat.cli.ContentExport.completeRepository(
+            {'id': function_synced_custom_repo['id']}
+        )
+        assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
+
+        # Run import and verify the product and repo is created
+        # in the importing org and the content counts match.
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
+        target_sat.cli.ContentImport.repository(
+            {'organization-id': function_import_org.id, 'path': import_path}
+        )
+        import_repo = target_sat.cli.Repository.info(
+            {
+                'organization-id': function_import_org.id,
+                'name': function_synced_custom_repo.name,
+                'product': function_synced_custom_repo.product.name,
+            }
+        )
+        assert import_repo['content-counts'] == export_cc, 'Import counts do not match the export.'
+
+        # Upload custom content into the repo
+        with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
+            result = target_sat.api.Repository(id=function_synced_custom_repo.id).upload_content(
+                files={'content': handle}
+            )
+            assert 'success' in result['status']
+
+        # Export incremental and check the export directory
+        export = target_sat.cli.ContentExport.incrementalRepository(
+            {'id': function_synced_custom_repo['id']}
+        )
+        assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
+
+        # Run the import and verify the content counts match the updated counts.
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
+        target_sat.cli.ContentImport.repository(
+            {'organization-id': function_import_org.id, 'path': import_path}
+        )
+        import_repo = target_sat.cli.Repository.info(
+            {
+                'organization-id': function_import_org.id,
+                'name': function_synced_custom_repo.name,
+                'product': function_synced_custom_repo.product.name,
+            }
+        )
+        export_cc['packages'] = str(int(export_cc['packages']) + 1)
+        assert import_repo['content-counts'] == export_cc, 'Import counts do not match the export.'
+
+    @pytest.mark.tier3
+    @pytest.mark.parametrize(
+        'function_synced_rhel_repo',
+        ['rhae2'],
+        indirect=True,
+    )
+    def test_positive_export_import_mismatch_label(
+        self,
+        target_sat,
+        export_import_cleanup_function,
+        config_export_import_settings,
+        function_sca_manifest_org,
+        function_import_org_with_manifest,
+        function_synced_rhel_repo,
+    ):
+        """Export and import repo with mismatched label
+
+        :id: eb2f3e8e-3ee6-4713-80ab-3811a098e079
+
+        :setup:
+            1. Enabled and synced RH yum repository.
+
+        :steps:
+            1. Export and import a RH yum repo, verify it was imported.
+            2. Export the repo again and change the repository label.
+            3. Import the changed repository again, it should succeed without errors.
+
+        :expectedresults:
+            1. All exports and imports succeed.
+
+        :CaseLevel: System
+
+        :CaseImportance: Medium
+
+        :BZ: 2092039
+
+        :customerscenario: true
+        """
+        # Verify export directory is empty
+        assert target_sat.validate_pulp_filepath(function_sca_manifest_org, PULP_EXPORT_DIR) == ''
+        # Export the repository and check the export directory
+        export = target_sat.cli.ContentExport.completeRepository(
+            {'id': function_synced_rhel_repo['id']}
+        )
+        assert '1.0' in target_sat.validate_pulp_filepath(
+            function_sca_manifest_org, PULP_EXPORT_DIR
+        )
+
+        # Run import and verify the product and repo is created in the importing org
+        import_path = target_sat.move_pulp_archive(function_sca_manifest_org, export['message'])
+        target_sat.cli.ContentImport.repository(
+            {'organization-id': function_import_org_with_manifest.id, 'path': import_path},
+            timeout='5m',
+        )
+        import_repo = target_sat.cli.Repository.info(
+            {
+                'name': function_synced_rhel_repo['name'],
+                'product': function_synced_rhel_repo['product']['name'],
+                'organization-id': function_sca_manifest_org.id,
+            }
+        )
+        assert import_repo
+
+        # Export again and check the export directory
+        export = target_sat.cli.ContentExport.completeRepository(
+            {'id': function_synced_rhel_repo['id']}
+        )
+        assert '2.0' in target_sat.validate_pulp_filepath(
+            function_sca_manifest_org, PULP_EXPORT_DIR
+        )
+
+        # Change the repo label in metadata.json and run the import again
+        import_path = target_sat.move_pulp_archive(function_sca_manifest_org, export['message'])
+        target_sat.execute(
+            f'''sed -i 's/"label":"{function_synced_rhel_repo['label']}"/'''
+            f'''"label":"{gen_string("alpha")}"/g' {import_path}/metadata.json'''
+        )
+        target_sat.cli.ContentImport.repository(
+            {'organization-id': function_import_org_with_manifest.id, 'path': import_path},
+            timeout='5m',
+        )
+
+        # Verify that both import tasks succeeded
+        tasks = target_sat.cli.Task.list_tasks(
+            {'search': f"Import Repository organization '{function_import_org_with_manifest.name}'"}
+        )
+        assert len(tasks) == 2, f'Expected 2 import tasks in this Org but found {len(tasks)}'
+        assert all(
+            ['success' in task['result'] for task in tasks]
+        ), 'Not every import task succeeded'
 
     @pytest.mark.stubbed
     @pytest.mark.tier3
@@ -1996,8 +2119,8 @@ class TestInterSatelliteSync:
             5. Attempt to install a package on a client from imported repo of
                downstream.
 
-        :expectedresults: The package is installed on client from imported repo
-            of downstream satellite.
+        :expectedresults:
+            1. The package is installed on client from imported repo of downstream satellite.
 
         :CaseAutomation: NotAutomated
 
