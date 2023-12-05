@@ -2050,8 +2050,6 @@ class TestInterSatelliteSync:
         :expectedresults:
             1. Repository can be enabled and synced from Upstream to Downstream Satellite.
 
-        :CaseLevel: System
-
         :BZ: 2112098
 
         :customerscenario: true

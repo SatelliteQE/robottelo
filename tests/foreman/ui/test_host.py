@@ -18,7 +18,6 @@ import os
 import re
 
 from airgun.exceptions import DisabledWidgetError, NoSuchElementException
-from airgun.session import Session
 import pytest
 from wait_for import wait_for
 import yaml
@@ -481,7 +480,7 @@ def test_positive_view_hosts_with_non_admin_user(
     created_host = target_sat.api.Host(
         location=smart_proxy_location, organization=module_org
     ).create()
-    with Session(test_name, user=user.login, password=user_password) as session:
+    with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
         host = session.host.get_details(created_host.name, widget_names='breadcrumb')
         assert host['breadcrumb'] == created_host.name
         content_host = session.contenthost.read(created_host.name, widget_names='breadcrumb')
@@ -530,7 +529,7 @@ def test_positive_remove_parameter_non_admin_user(
         organization=module_org,
         host_parameters_attributes=[parameter],
     ).create()
-    with Session(test_name, user=user.login, password=user_password) as session:
+    with target_sat.ui_seesion(test_name, user=user.login, password=user_password) as session:
         values = session.host.read(host.name, 'parameters')
         assert values['parameters']['host_params'][0] == parameter
         session.host.update(host.name, {'parameters.host_params': []})
@@ -585,7 +584,7 @@ def test_negative_remove_parameter_non_admin_user(
         organization=module_org,
         host_parameters_attributes=[parameter],
     ).create()
-    with Session(test_name, user=user.login, password=user_password) as session:
+    with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
         values = session.host.read(host.name, 'parameters')
         assert values['parameters']['host_params'][0] == parameter
         with pytest.raises(NoSuchElementException) as context:
@@ -694,7 +693,7 @@ def test_positive_check_permissions_affect_create_procedure(
             'other_fields_values': {'host.lce': filter_lc_env.name},
         },
     ]
-    with Session(test_name, user=user.login, password=user_password) as session:
+    with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
         for host_field in host_fields:
             values = {host_field['name']: host_field['unexpected_value']}
             values.update(host_field.get('other_fields_values', {}))
@@ -2316,7 +2315,7 @@ def test_positive_host_registration_with_non_admin_user(
     role = target_sat.cli.Role.info({'name': 'Register hosts'})
     target_sat.cli.User.add_role({'id': user.id, 'role-id': role['id']})
 
-    with Session(test_name, user=user.login, password=user_password) as session:
+    with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
 
         cmd = session.host_new.get_register_command(
             {
