@@ -13,7 +13,6 @@
 """
 from datetime import datetime
 
-from airgun.session import Session
 from fauxfactory import gen_string
 import pytest
 
@@ -369,7 +368,7 @@ class TestVirtwhoConfigforEsx:
 
     @pytest.mark.tier2
     def test_positive_virtwho_reporter_role(
-        self, default_org, org_session, test_name, form_data_ui
+        self, default_org, org_session, test_name, form_data_ui, target_sat
     ):
         """Verify the virt-who reporter role can TRULY work.
 
@@ -418,13 +417,15 @@ class TestVirtwhoConfigforEsx:
             assert user['roles']['resources']['assigned'] == ['Virt-who Reporter']
             restart_virtwho_service()
             assert get_virtwho_status() == 'running'
-            with Session(test_name, username, password) as newsession:
+            with target_sat.ui_session(test_name, username, password) as newsession:
                 assert not newsession.virtwho_configure.check_create_permission()['can_view']
             org_session.user.delete(username)
             assert not org_session.user.search(username)
 
     @pytest.mark.tier2
-    def test_positive_virtwho_viewer_role(self, default_org, org_session, test_name, form_data_ui):
+    def test_positive_virtwho_viewer_role(
+        self, default_org, org_session, test_name, form_data_ui, target_sat
+    ):
         """Verify the virt-who viewer role can TRULY work.
 
         :id: bf3be2e4-3853-41cc-9b3e-c8677f0b8c5f
@@ -469,7 +470,7 @@ class TestVirtwhoConfigforEsx:
             add_configure_option('rhsm_password', password, config_file)
             restart_virtwho_service()
             assert get_virtwho_status() == 'logerror'
-            with Session(test_name, username, password) as newsession:
+            with target_sat.ui_session(test_name, username, password) as newsession:
                 create_permission = newsession.virtwho_configure.check_create_permission()
                 update_permission = newsession.virtwho_configure.check_update_permission(
                     config_name
@@ -484,7 +485,9 @@ class TestVirtwhoConfigforEsx:
             assert not org_session.user.search(username)
 
     @pytest.mark.tier2
-    def test_positive_virtwho_manager_role(self, default_org, org_session, test_name, form_data_ui):
+    def test_positive_virtwho_manager_role(
+        self, default_org, org_session, test_name, form_data_ui, target_sat
+    ):
         """Verify the virt-who manager role can TRULY work.
 
         :id: a72023fb-7b23-4582-9adc-c5227dc7859c
@@ -520,7 +523,7 @@ class TestVirtwhoConfigforEsx:
             org_session.user.update(username, {'roles.resources.assigned': ['Virt-who Manager']})
             user = org_session.user.read(username)
             assert user['roles']['resources']['assigned'] == ['Virt-who Manager']
-            with Session(test_name, username, password) as newsession:
+            with target_sat.ui_session(test_name, username, password) as newsession:
                 # create_virt_who_config
                 new_virt_who_name = gen_string('alpha')
                 form_data_ui['name'] = new_virt_who_name

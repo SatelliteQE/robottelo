@@ -13,7 +13,6 @@
 """
 import random
 
-from airgun.session import Session
 from fauxfactory import gen_email, gen_string
 import pytest
 
@@ -83,7 +82,7 @@ def test_positive_end_to_end(session, target_sat, test_name, module_org, module_
         assert session.user.search(new_name)[0]['Username'] == new_name
         assert not session.user.search(name)
         # Login into application using new user
-    with Session(test_name, new_name, password) as newsession:
+    with target_sat.ui_session(test_name, new_name, password) as newsession:
         newsession.organization.select(module_org.name)
         newsession.location.select(module_location.name)
         newsession.activationkey.create({'name': ak_name})
@@ -91,7 +90,7 @@ def test_positive_end_to_end(session, target_sat, test_name, module_org, module_
         current_user = newsession.activationkey.read(ak_name, 'current_user')['current_user']
         assert current_user == f'{firstname} {lastname}'
         # Delete user
-    with Session('deletehostsession') as deletehostsession:
+    with target_sat.ui_session('deletehostsession') as deletehostsession:
         deletehostsession.user.delete(new_name)
         assert not deletehostsession.user.search(new_name)
 
@@ -300,7 +299,7 @@ def test_positive_create_product_with_limited_user_permission(
         password=password,
         mail='test@test.com',
     ).create()
-    with Session(test_name, username, password) as newsession:
+    with target_sat.ui_session(test_name, username, password) as newsession:
         newsession.product.create(
             {'name': product_name, 'label': product_label, 'description': product_description}
         )

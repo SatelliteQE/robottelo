@@ -11,7 +11,6 @@
 :CaseImportance: High
 
 """
-from airgun.session import Session
 from navmazing import NavigationTriesExceeded
 import pytest
 
@@ -298,7 +297,7 @@ def test_positive_custom_user_view_lce(session, test_name, target_sat):
         lce_values = session.lifecycleenvironment.read_all()
         assert lce_name in lce_values['lce']
     # ensure the created user also can find the created lifecycle environment link
-    with Session(test_name, user_login, user_password) as non_admin_session:
+    with target_sat.ui_session(test_name, user_login, user_password) as non_admin_session:
         # to ensure that the created user has only the assigned
         # permissions, check that hosts menu tab does not exist
         with pytest.raises(NavigationTriesExceeded):
