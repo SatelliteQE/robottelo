@@ -19,7 +19,7 @@
 import random
 import re
 
-from fauxfactory import gen_choice, gen_integer, gen_ipaddr
+from fauxfactory import gen_choice, gen_integer, gen_ipaddr, gen_netmask
 import pytest
 
 from robottelo.constants import SUBNET_IPAM_TYPES
@@ -81,7 +81,7 @@ def test_positive_CRUD(module_target_sat):
     """
     name = gen_choice(list(valid_data_list().values()))
     pool = sorted(valid_addr_pools()[0])
-    mask = '255.255.255.0'
+    mask = gen_netmask()
     # generate pool range from network address
     network = gen_ipaddr()
     from_ip = re.sub(r'\d+$', str(pool[0]), network)
@@ -119,7 +119,7 @@ def test_positive_CRUD(module_target_sat):
     pool = sorted(valid_addr_pools()[0])
     # generate pool range from network address
     new_network = gen_ipaddr()
-    new_mask = '255.255.192.0'
+    new_mask = gen_netmask()
     ip_from = re.sub(r'\d+$', str(pool[0]), new_network)
     ip_to = re.sub(r'\d+$', str(pool[1]), new_network)
     ipam_type = SUBNET_IPAM_TYPES['internal']
@@ -180,20 +180,19 @@ def test_negative_create_with_address_pool(pool, module_target_sat):
 
     :CaseImportance: Medium
     """
-    mask = '255.255.255.0'
+    mask = gen_netmask()
     network = gen_ipaddr()
-    opts = {'mask': mask, 'network': network}
+    options = {'mask': mask, 'network': network}
     # generate pool range from network address
     for key, val in pool.items():
-        opts[key] = re.sub(r'\d+$', str(val), network)
-    with pytest.raises(CLIFactoryError) as raise_ctx:
-        module_target_sat.cli_factory.make_subnet(opts)
-    assert 'Could not create the subnet:' in str(raise_ctx.value)
+        options[key] = re.sub(r'\d+$', str(val), network)
+    with pytest.raises(CLIFactoryError, match='Could not create the subnet:'):
+        module_target_sat.cli_factory.make_subnet(options)
 
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_missing_attributes()))
-def test_negative_update_attributes(options, module_target_sat):
+def test_negative_update_attributes(request, options, module_target_sat):
     """Update subnet with invalid or missing required attributes
 
     :parametrized: yes
@@ -206,17 +205,18 @@ def test_negative_update_attributes(options, module_target_sat):
     """
     subnet = module_target_sat.cli_factory.make_subnet()
     options['id'] = subnet['id']
+    request.addfinalizer(lambda: module_target_sat.cli.Subnet.delete({'id': subnet['id']}))
     with pytest.raises(CLIReturnCodeError, match='Could not update the subnet:'):
         module_target_sat.cli.Subnet.update(options)
     # check - subnet is not updated
     result = module_target_sat.cli.Subnet.info({'id': subnet['id']})
-    for key in options.keys():
+    for key in ['name', 'network-addr', 'network-mask']:
         assert subnet[key] == result[key]
 
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_addr_pools()))
-def test_negative_update_address_pool(options, module_target_sat):
+def test_negative_update_address_pool(request, options, module_target_sat):
     """Update subnet with invalid address pool
 
     :parametrized: yes
@@ -229,6 +229,7 @@ def test_negative_update_address_pool(options, module_target_sat):
     """
     subnet = module_target_sat.cli_factory.make_subnet()
     opts = {'id': subnet['id']}
+    request.addfinalizer(lambda: module_target_sat.cli.Subnet.delete({'id': subnet['id']}))
     # generate pool range from network address
     for key, val in options.items():
         opts[key] = re.sub(r'\d+$', str(val), subnet['network-addr'])
