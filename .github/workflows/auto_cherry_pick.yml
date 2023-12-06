@@ -78,13 +78,10 @@ jobs:
         id: add-parent-prt-comment
         if: ${{ always() && steps.cherrypick.outcome == 'success' }}
         run: |
-          ISSUE_NUMBER=${{ steps.cherrypick.outputs.number }}
-          COMMENT_BODY=${{ needs.find-the-parent-prt-comment.outputs.prt_comment }}
-
           curl -X POST -H "Authorization: token ${{ secrets.CHERRYPICK_PAT }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_NUMBER}/comments" \
-            -d "{\"body\":\"$COMMENT_BODY\"}"
+            "https://api.github.com/repos/${{ github.repository }}/issues/${{ steps.cherrypick.outputs.number }}/comments" \
+            -d "{\"body\":\"${{ needs.find-the-parent-prt-comment.outputs.prt_comment }}\"}"
 
       - name: is autoMerging enabled for Auto CherryPicked PRs ?
         if: ${{ always() && steps.cherrypick.outcome == 'success' && contains(github.event.pull_request.labels.*.name, 'AutoMerge_Cherry_Picked') }}
