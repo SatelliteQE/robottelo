@@ -32,7 +32,7 @@ class TestDiscoveryImage:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_upgrade_fdi_version(self, target_sat, save_test_data):
+    def test_pre_upgrade_fdi_version(self, target_sat, save_test_data, request):
         """Test FDI version before upgrade.
 
         :id: preupgrade-8c94841c-6791-4af0-aa9c-e54c8d8b9a92
@@ -43,13 +43,10 @@ class TestDiscoveryImage:
         :expectedresults: Version should be saved and checked post-upgrade
         """
         target_sat.register_to_cdn()
-        target_sat.execute(
-            'yum -y --disableplugin=foreman-protector install foreman-discovery-image'
-        )
+        target_sat.execute('foreman-maintain packages install -y foreman-discovery-image')
         fdi_version = target_sat.execute('rpm -qa *foreman-discovery-image*')
         # Note: The regular exp takes care of format digit.digit.digit or digit.digit.digit-digit in the output
         pre_upgrade_version = re.search(r'\d+\.\d+\.\d+(-\d+)?', fdi_version.stdout).group()
-        pre_upgrade_version = version.parse(pre_upgrade_version)
         save_test_data({'pre_upgrade_version': pre_upgrade_version})
 
     @pytest.mark.post_upgrade(depend_on=test_pre_upgrade_fdi_version)
@@ -63,10 +60,12 @@ class TestDiscoveryImage:
 
         :expectedresults: Version should be greater than or equal to pre_upgrade version
         """
+
         pre_upgrade_version = pre_upgrade_data.get('pre_upgrade_version')
         fdi_version = target_sat.execute('rpm -qa *foreman-discovery-image*')
         # Note: The regular exp takes care of format digit.digit.digit or digit.digit.digit-digit in the output
         post_upgrade_version = re.search(r'\d+\.\d+\.\d+(-\d+)?', fdi_version.stdout).group()
+        pre_upgrade_version = version.parse(pre_upgrade_version)
         post_upgrade_version = version.parse(post_upgrade_version)
         assert post_upgrade_version >= pre_upgrade_version
         target_sat.unregister()
