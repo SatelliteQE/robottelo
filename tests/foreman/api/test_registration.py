@@ -18,6 +18,7 @@
 """
 import uuid
 
+from fauxfactory import gen_ipaddr, gen_mac
 import pytest
 
 from robottelo import constants
@@ -158,3 +159,51 @@ def test_positive_update_packages_registration(
     rhel8_contenthost.create_custom_repos(fake_yum=repo_url)
     result = rhel8_contenthost.execute(f"yum install -y {package}")
     assert result.status == 0
+
+
+@pytest.mark.no_containers
+def test_positive_rex_interface_for_global_registration(
+    module_target_sat,
+    module_entitlement_manifest_org,
+    module_location,
+    rhel8_contenthost,
+    module_activation_key,
+):
+    """Test remote execution interface is set for global registration
+
+    :id: 982de593-dd1a-4c6c-81fe-728f40a7ad4d
+
+    :steps:
+        1. Register host with global registration template to Satellite specifying remote execution interface parameter.
+
+    :expectedresults: remote execution interface passed in the registration command is properly set for the host.
+
+    :BZ: 1841048
+
+    :customerscenario: true
+    """
+    mac_address = gen_mac(multicast=False)
+    ip = gen_ipaddr()
+    # Create eth1 interface on the host
+    add_interface_command = f'ip link add eth1 type dummy;ifconfig eth1 hw ether {mac_address};ip addr add {ip}/24 brd + dev eth1 label eth1:1;ip link set dev eth1 up'
+    result = rhel8_contenthost.execute(add_interface_command)
+    assert result.status == 0
+    org = module_entitlement_manifest_org
+    command = module_target_sat.api.RegistrationCommand(
+        organization=org,
+        location=module_location,
+        activation_keys=[module_activation_key.name],
+        update_packages=True,
+        remote_execution_interface='eth1',
+    ).create()
+    result = rhel8_contenthost.execute(command)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    host = module_target_sat.api.Host().search(
+        query={'search': f'name={rhel8_contenthost.hostname}'}
+    )[0]
+    # Check if eth1 interface is set for remote execution
+    for interface in host.read_json()['interfaces']:
+        if 'eth1' in str(interface):
+            assert interface['execution'] is True
+            assert interface['ip'] == ip
+            assert interface['mac'] == mac_address
