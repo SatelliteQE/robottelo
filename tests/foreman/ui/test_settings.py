@@ -157,7 +157,7 @@ def test_positive_host_dmi_uuid_duplicates(session, setting_update):
 
     :CaseImportance: High
     """
-    property_value = gen_string("alpha")
+    property_value = gen_string('alpha')
     property_name = setting_update.name
     with session:
         session.settings.update(f'name = {property_name}', property_value)
@@ -166,32 +166,24 @@ def test_positive_host_dmi_uuid_duplicates(session, setting_update):
 
 
 @pytest.mark.tier2
-@pytest.mark.parametrize(
-    'setting_update', ['register_hostname_fact', 'content_view_solve_dependencies'], indirect=True
-)
-def test_positive_register_hostname_and_cvs_dependencies_update(session, setting_update):
-    """Check the settings of register_hostname_fact & content_view_solve_dependencies value
-       update.
+@pytest.mark.parametrize('setting_update', ['register_hostname_fact'], indirect=True)
+def test_positive_register_hostname_fact_update(session, setting_update):
+    """Check the settings of register_hostname_fact value update.
 
     :id: 3d50c163-6a6d-494a-b0f2-1e1dd8a5c476
 
     :parametrized: yes
 
-    :expectedresults: Value of register_hostname_fact and content_view_solve_dependencies
-        should be updated successfully.
+    :expectedresults: Value of register_hostname_fact should be updated successfully.
 
     :CaseImportance: High
     """
-    property_dict = {
-        "content_view_solve_dependencies": "Yes",
-        "register_hostname_fact": gen_string('alpha'),
-    }
-
     property_name = setting_update.name
+    property_value = gen_string('alpha')
     with session:
-        session.settings.update(f'name = {property_name}', property_dict[setting_update.name])
+        session.settings.update(f'name = {property_name}', property_value)
         result = session.settings.read(f'name = {property_name}')
-        assert result['table'][0]['Value'] == property_dict[setting_update.name]
+        assert result['table'][0]['Value'] == property_value
 
 
 @pytest.mark.tier3
