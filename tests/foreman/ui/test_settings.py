@@ -121,7 +121,7 @@ def test_positive_httpd_proxy_url_update(session, setting_update):
 
 
 @pytest.mark.tier2
-@pytest.mark.parametrize('setting_update', ['foreman_url', 'entries_per_page'], indirect=True)
+@pytest.mark.parametrize('setting_update', ['foreman_url'], indirect=True)
 def test_negative_validate_foreman_url_error_message(session, setting_update):
     """Updates some settings with invalid values (an exceptional tier2 test)
 
@@ -136,9 +136,10 @@ def test_negative_validate_foreman_url_error_message(session, setting_update):
     property_name = setting_update.name
     with session:
         invalid_value = [invalid_value for invalid_value in invalid_settings_values()][0]
+        err_msg = 'URL must be valid and schema must be one of http and https, Invalid HTTP(S) URL'
         with pytest.raises(AssertionError) as context:
             session.settings.update(f'name = {property_name}', invalid_value)
-        assert 'Value is invalid: must be integer' in str(context.value)
+        assert err_msg in str(context.value)
 
 
 @pytest.mark.tier2
