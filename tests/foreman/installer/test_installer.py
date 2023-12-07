@@ -1385,7 +1385,7 @@ def sat_non_default_install(module_sat_ready_rhels):
     installer_args = [
         'scenario satellite',
         f'foreman-initial-admin-password {settings.server.admin_password}',
-        'foreman-rails-cache-store type:redis',
+        'foreman-rails-cache-store type:file',
         'foreman-proxy-content-pulpcore-hide-guarded-distributions false',
     ]
     install_satellite(module_sat_ready_rhels[1], installer_args)
@@ -1467,8 +1467,8 @@ def test_foreman_rails_cache_store(sat_non_default_install):
     :id: 379a2fe8-1085-4a7f-8ac3-24c421412f12
 
     :steps:
-        1. Install Satellite.
-        2. Verify that foreman-redis package is installed.
+        1. Install Satellite with option foreman-rails-cache-store type:file
+        2. Verify that foreman-redis package is not installed.
         3. Check /etc/foreman/settings.yaml
 
     :CaseImportance: Medium
@@ -1478,9 +1478,9 @@ def test_foreman_rails_cache_store(sat_non_default_install):
     :BZ: 2063717, 2165092
     """
     # Verify foreman-rails-cache-store option works
-    assert sat_non_default_install.execute('rpm -q foreman-redis').status == 0
+    assert sat_non_default_install.execute('rpm -q foreman-redis').status == 1
     settings_file = sat_non_default_install.load_remote_yaml_file(FOREMAN_SETTINGS_YML)
-    assert settings_file.rails_cache_store.type == 'redis'
+    assert settings_file.rails_cache_store.type == 'file'
 
 
 @pytest.mark.e2e
@@ -1796,8 +1796,14 @@ def test_satellite_installation(installer_satellite):
         2. satellite-installer runs successfully
         3. no unexpected errors in logs
         4. satellite-maintain health check runs successfully
+        5. redis is set as default foreman cache
 
     :CaseImportance: Critical
 
     """
     common_sat_install_assertions(installer_satellite)
+
+    # Verify foreman-redis is installed and set as default cache for rails
+    assert installer_satellite.execute('rpm -q foreman-redis').status == 0
+    settings_file = installer_satellite.load_remote_yaml_file(FOREMAN_SETTINGS_YML)
+    assert settings_file.rails_cache_store.type == 'redis'
