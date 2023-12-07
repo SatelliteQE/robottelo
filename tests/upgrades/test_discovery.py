@@ -18,7 +18,7 @@
 """
 import re
 
-from packaging import version
+from packaging.version import Version
 import pytest
 
 
@@ -44,9 +44,9 @@ class TestDiscoveryImage:
         """
         target_sat.register_to_cdn()
         target_sat.execute('foreman-maintain packages install -y foreman-discovery-image')
-        fdi_version = target_sat.execute('rpm -qa *foreman-discovery-image*')
+        fdi_package = target_sat.execute('rpm -qa *foreman-discovery-image*').stdout
         # Note: The regular exp takes care of format digit.digit.digit or digit.digit.digit-digit in the output
-        pre_upgrade_version = re.search(r'\d+\.\d+\.\d+(-\d+)?', fdi_version.stdout).group()
+        pre_upgrade_version = Version(re.search(r'\d+\.\d+\.\d+(-\d+)?', fdi_package).group())
         save_test_data({'pre_upgrade_version': pre_upgrade_version})
 
     @pytest.mark.post_upgrade(depend_on=test_pre_upgrade_fdi_version)
@@ -60,12 +60,9 @@ class TestDiscoveryImage:
 
         :expectedresults: Version should be greater than or equal to pre_upgrade version
         """
-
         pre_upgrade_version = pre_upgrade_data.get('pre_upgrade_version')
-        fdi_version = target_sat.execute('rpm -qa *foreman-discovery-image*')
+        fdi_package = target_sat.execute('rpm -qa *foreman-discovery-image*').stdout
         # Note: The regular exp takes care of format digit.digit.digit or digit.digit.digit-digit in the output
-        post_upgrade_version = re.search(r'\d+\.\d+\.\d+(-\d+)?', fdi_version.stdout).group()
-        pre_upgrade_version = version.parse(pre_upgrade_version)
-        post_upgrade_version = version.parse(post_upgrade_version)
+        post_upgrade_version = Version(re.search(r'\d+\.\d+\.\d+(-\d+)?', fdi_package).group())
         assert post_upgrade_version >= pre_upgrade_version
         target_sat.unregister()
