@@ -25,8 +25,7 @@ import pytest
 from wait_for import TimedOutError, wait_for
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
-from robottelo.utils.issue_handlers import is_open
+from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, repos as repo_constants
 
 
 @pytest.fixture
@@ -43,6 +42,37 @@ def admin_user_with_localhost_email(target_sat):
     ).create()
     user.mail_enabled = True
     user.update()
+
+    yield user
+
+    user.delete()
+
+
+@pytest.fixture
+def sysadmin_user_with_subscription_reposync_fail(target_sat):
+    """System admin user with `root@localhost` e-mail
+    and subscription to `Repository sync failure` notification.
+    """
+    sysadmin_role = target_sat.api.Role().search(query={'search': 'name="System admin"'})[0]
+    user = target_sat.api.User(
+        admin=False,
+        default_organization=DEFAULT_ORG,
+        default_location=DEFAULT_LOC,
+        description='created by nailgun',
+        login=gen_string("alphanumeric"),
+        password=gen_string("alphanumeric"),
+        mail='root@localhost',
+        role=[sysadmin_role.id],
+    ).create()
+    user.mail_enabled = True
+    user.update()
+    target_sat.cli.User.mail_notification_add(
+        {
+            'user-id': user.id,
+            'mail-notification': 'repository_sync_failure',
+            'subscription': 'Subscribe',
+        }
+    )
 
     yield user
 
@@ -76,7 +106,7 @@ def reschedule_long_running_tasks_notification(target_sat):
     )
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def start_postfix_service(target_sat):
     """Start postfix service (disabled by default)."""
     assert target_sat.execute('systemctl start postfix').status == 0
@@ -97,33 +127,52 @@ def clean_root_mailbox(target_sat):
     target_sat.execute(f'mv -f {root_mailbox_backup} {root_mailbox}')
 
 
-@pytest.fixture
-def wait_for_long_running_task_mail(target_sat, clean_root_mailbox, long_running_task):
-    """Wait until the long-running task ID is found in the Satellite's mbox file."""
-    timeout = 300
+def wait_for_mail(sat_obj, mailbox_file, contains_string, timeout=300, delay=5):
+    """
+    Wait until the desired string is found in the Satellite's mbox file.
+    """
     try:
         wait_for(
-            func=target_sat.execute,
-            func_args=[f'grep --quiet {long_running_task["task"]["id"]} {clean_root_mailbox}'],
-            fail_condition=lambda res: res.status == 0,
+            func=sat_obj.execute,
+            func_args=[f"grep --quiet '{contains_string}' {mailbox_file}"],
+            fail_condition=lambda res: res.status != 0,
             timeout=timeout,
-            delay=5,
+            delay=delay,
         )
     except TimedOutError:
         raise AssertionError(
-            f'No notification e-mail with long-running task ID {long_running_task["task"]["id"]} '
-            f'has arrived to {clean_root_mailbox} after {timeout} seconds.'
+            f'No e-mail with text "{contains_string}" has arrived to mailbox {mailbox_file} '
+            f'after {timeout} seconds.'
         )
     return True
 
 
 @pytest.fixture
-def root_mailbox_copy(target_sat, clean_root_mailbox, wait_for_long_running_task_mail):
+def wait_for_long_running_task_mail(target_sat, clean_root_mailbox, long_running_task):
+    """Wait until the long-running task ID is found in the Satellite's mbox file."""
+    return wait_for_mail(
+        sat_obj=target_sat,
+        mailbox_file=clean_root_mailbox,
+        contains_string=long_running_task["task"]["id"],
+    )
+
+
+@pytest.fixture
+def wait_for_failed_repo_sync_mail(
+    target_sat, clean_root_mailbox, fake_yum_repo, failed_repo_sync_task
+):
+    """Wait until the repo name that didn't sync is found in the Satellite's mbox file."""
+    return wait_for_mail(
+        sat_obj=target_sat, mailbox_file=clean_root_mailbox, contains_string=fake_yum_repo.name
+    )
+
+
+@pytest.fixture
+def root_mailbox_copy(target_sat, clean_root_mailbox):
     """Parsed local system copy of the Satellite's root user mailbox.
 
     :returns: :class:`mailbox.mbox` instance
     """
-    assert wait_for_long_running_task_mail
     result = target_sat.execute(f'cat {clean_root_mailbox}')
     assert result.status == 0, f'Could not read mailbox {clean_root_mailbox} on Satellite host.'
     mbox_content = result.stdout
@@ -174,11 +223,37 @@ def long_running_task(target_sat):
     assert 'cancelled' in result
 
 
+@pytest.fixture
+def fake_yum_repo(target_sat):
+    """Create a fake YUM repo. Delete it afterwards."""
+    repo = target_sat.api.Repository(
+        content_type='yum', url=repo_constants.FAKE_YUM_DRPM_REPO
+    ).create()
+
+    yield repo
+
+    repo.delete()
+
+
+@pytest.fixture
+def failed_repo_sync_task(target_sat, fake_yum_repo):
+    """
+    Do a repo sync that should fail. Return the result.
+    """
+    fake_yum_repo.sync(synchronous=False)
+    task_result = target_sat.wait_for_tasks(
+        search_query=f"Synchronize repository '{fake_yum_repo.name}'", must_succeed=False
+    )[0]
+    task_status = target_sat.api.ForemanTask(id=task_result.id).poll(must_succeed=False)
+    assert task_status['result'] != 'success'
+    return task_status
+
+
 @pytest.mark.tier3
 @pytest.mark.usefixtures(
     'admin_user_with_localhost_email',
     'reschedule_long_running_tasks_notification',
-    'start_postfix_service',
+    'wait_for_long_running_task_mail',
 )
 def test_positive_notification_for_long_running_tasks(long_running_task, root_mailbox_copy):
     """Check that a long-running task (i.e., running or paused for more than two days)
@@ -223,5 +298,43 @@ def test_positive_notification_for_long_running_tasks(long_running_task, root_ma
                     '/foreman_tasks/tasks?search=state+%5E+%28running%2C+paused'
                     '%29+AND+state_updated_at' in body_text
                 ), 'Link for long-running tasks is missing in the e-mail body.'
-                if not is_open('BZ:2223996'):
-                    assert findall(r'_\("[\w\s]*"\)', body_text), 'Untranslated strings found.'
+                assert not findall(r'_\("[\w\s]*"\)', body_text), 'Untranslated strings found.'
+
+
+@pytest.mark.tier3
+@pytest.mark.usefixtures(
+    'sysadmin_user_with_subscription_reposync_fail',
+    'wait_for_failed_repo_sync_mail',
+)
+def test_positive_notification_failed_repo_sync(failed_repo_sync_task, root_mailbox_copy):
+    """Check that a failed repository sync emits an email notification to the subscribed user.
+
+    :id: 19c477a2-8e39-11ee-9e3c-000c2989e153
+
+    :setup:
+        1. Create a user with 'System admin' role.
+        2. Subscribe the user to the 'Repository sync failure' email notification.
+        3. Create a non-existent YUM repository.
+        4. Run repository sync, it should fail.
+
+    :steps:
+        1. Check that email notification has been sent.
+        2. Check the e-mail if it contains all the important information, like,
+            repository name, failed task ID and link to the task.
+
+    :BZ: 1393613
+
+    :customerscenario: true
+    """
+    task_id = failed_repo_sync_task['id']
+    repo_name = failed_repo_sync_task['input']['repository']['name']
+    product_name = failed_repo_sync_task['input']['product']['name']
+    for email in root_mailbox_copy:
+        if task_id in email.as_string():
+            assert f'Repository {repo_name} failed to synchronize' in email.get(
+                'Subject'
+            ), f'Notification e-mail has wrong subject: {email.get("Subject")}'
+            for mime_body in email.get_payload():
+                body_text = mime_body.as_string()
+                assert product_name in body_text
+                assert f'/foreman_tasks/tasks/{task_id}' in body_text
