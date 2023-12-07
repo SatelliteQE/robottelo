@@ -63,7 +63,7 @@ def satellite_factory():
 
         vmb = Broker(
             host_class=Satellite,
-            workflow=workflow or settings.server.deploy_workflow,
+            workflow=workflow or settings.server.deploy_workflows.product,
             **broker_args,
         )
         timeout = (1200 + delay) * retry_limit
@@ -95,7 +95,7 @@ def capsule_factory():
             broker_args.update(settings.capsule.deploy_arguments)
         vmb = Broker(
             host_class=Capsule,
-            workflow=workflow or settings.capsule.deploy_workflow,
+            workflow=workflow or settings.capsule.deploy_workflows.product,
             **broker_args,
         )
         timeout = (1200 + delay) * retry_limit
@@ -207,7 +207,7 @@ def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
         timeout = (1200 + delay) * retry_limit
         hosts = Broker(
             host_class=Capsule,
-            workflow=settings.capsule.deploy_workflow,
+            workflow=settings.capsule.deploy_workflows.product,
             _count=2,
             **broker_args,
         )
@@ -259,12 +259,13 @@ def parametrized_enrolled_sat(
 
 
 def get_deploy_args(request):
+    """Get deploy arguments for Satellite base OS deployment. Should not be used for Capsule."""
     rhel_version = get_sat_rhel_version()
     deploy_args = {
         'deploy_rhel_version': rhel_version.base_version,
         'deploy_flavor': settings.flavors.default,
         'promtail_config_template_file': 'config_sat.j2',
-        'workflow': settings.content_host.get(f'rhel{rhel_version.major}').vm.workflow,
+        'workflow': settings.server.deploy_workflows.os,
     }
     if hasattr(request, 'param'):
         if isinstance(request.param, dict):
@@ -284,11 +285,11 @@ def sat_ready_rhel(request):
 @pytest.fixture
 def cap_ready_rhel():
     rhel_version = Version(settings.capsule.version.release)
-    settings.content_host.get(f'rhel{rhel_version.major}').vm.workflow
     deploy_args = {
         'deploy_rhel_version': rhel_version.base_version,
         'deploy_flavor': settings.flavors.default,
-        'workflow': settings.content_host.get(f'rhel{rhel_version.major}').vm.workflow,
+        'promtail_config_template_file': 'config_sat.j2',
+        'workflow': settings.capsule.deploy_workflows.os,
     }
     with Broker(**deploy_args, host_class=Capsule) as host:
         yield host
