@@ -699,7 +699,6 @@ class ContentHost(Host, ContentHostMixins):
         setup_insights=False,
         setup_remote_execution=True,
         setup_remote_execution_pull=False,
-        lifecycle_environment=None,
         operating_system=None,
         packages=None,
         repo=None,
@@ -721,7 +720,6 @@ class ContentHost(Host, ContentHostMixins):
         :param setup_insights: Install and register Insights client, requires OS repo.
         :param setup_remote_execution: Copy remote execution SSH key.
         :param setup_remote_execution_pull: Deploy pull provider client on host
-        :param lifecycle_environment: Lifecycle environment.
         :param operating_system: Operating system.
         :param packages: A list of packages to install on the host when registered.
         :param repo: Repository to be added before the registration is performed, supply url.
@@ -760,8 +758,6 @@ class ContentHost(Host, ContentHostMixins):
         elif target is not None and target.__class__.__name__ not in ['Capsule', 'Satellite']:
             raise ValueError('Global registration method can be used with Satellite/Capsule only')
 
-        if lifecycle_environment is not None:
-            options['lifecycle-environment-id'] = lifecycle_environment.id
         if operating_system is not None:
             options['operatingsystem-id'] = operating_system.id
         if hostgroup is not None:
