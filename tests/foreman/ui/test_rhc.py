@@ -16,9 +16,10 @@
 
 :Upstream: No
 """
+from datetime import datetime, timedelta
+
 from fauxfactory import gen_string
 import pytest
-from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import settings
@@ -69,11 +70,13 @@ def fixture_setup_rhc_satellite(
     request,
     module_target_sat,
     module_rhc_org,
-    module_entitlement_manifest,
+    module_extra_rhel_entitlement_manifest,
 ):
     """Create Organization and activation key after successful test execution"""
     if settings.rh_cloud.crc_env == 'prod':
-        module_target_sat.upload_manifest(module_rhc_org.id, module_entitlement_manifest.content)
+        module_target_sat.upload_manifest(
+            module_rhc_org.id, module_extra_rhel_entitlement_manifest.content
+        )
     yield
     if request.node.rep_call.passed:
         # Enable and sync required repos
@@ -145,7 +148,7 @@ def test_positive_configure_cloud_connector(
     parameters = [{'name': 'source_display_name', 'value': gen_string('alpha')}]
     host.host_parameters_attributes = parameters
     host.update(['host_parameters_attributes'])
-
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_rhc_org.name)
         if session.cloudinventory.is_cloud_connector_configured():
@@ -155,19 +158,19 @@ def test_positive_configure_cloud_connector(
                 'check if everything is correctly configured from scratch. Skipping.'
             )
         session.cloudinventory.configure_cloud_connector()
-
     template_name = 'Configure Cloud Connector'
+    module_target_sat.wait_for_tasks(
+        search_query=(
+            f'action = "Run hosts job: {template_name}"' f' and started_at >= "{timestamp}"'
+        ),
+        search_rate=15,
+        max_tries=10,
+    )
     invocation_id = (
         module_target_sat.api.JobInvocation()
         .search(query={'search': f'description="{template_name}"'})[0]
         .id
     )
-    wait_for(
-        lambda: module_target_sat.api.JobInvocation(id=invocation_id).read().status_label
-        in ["succeeded", "failed"],
-        timeout="1500s",
-    )
-
     job_output = module_target_sat.cli.JobInvocation.get_output(
         {'id': invocation_id, 'host': module_target_sat.hostname}
     )
