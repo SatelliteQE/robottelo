@@ -9,7 +9,7 @@ fauxfactory==3.1.0
 jinja2==3.1.2
 manifester==0.0.14
 navmazing==1.2.2
-productmd==1.37
+productmd==1.38
 pyotp==2.9.0
 python-box==7.1.1
 pytest==7.4.3
