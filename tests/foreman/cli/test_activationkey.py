@@ -19,6 +19,7 @@ from fauxfactory import gen_alphanumeric, gen_string
 import pytest
 
 from robottelo.cli.defaults import Defaults
+from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, PRDS, REPOS, REPOSET
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
@@ -1689,7 +1690,7 @@ def test_positive_ak_with_custom_product_on_rhel6(module_org, rhel6_contenthost,
 
 
 @pytest.mark.tier3
-def test_positive_invalid_release_version(module_entitlement_manifest_org, module_target_sat):
+def test_positive_invalid_release_version(module_sca_manifest_org, module_target_sat):
     """Check invalid release versions when updating or creating an activation key
 
     :id: 2efe452f-132c-4831-abfb-62305832ac66
@@ -1697,9 +1698,9 @@ def test_positive_invalid_release_version(module_entitlement_manifest_org, modul
     :customerscenario: true
 
     :Steps:
-        1. Attempt to create an activation key with an invalid release version
-        2. Attempt to update an activation key with an invalid release version
-        3. Successfully update an activation key with a release version
+        1. Attempt to create an activation key with a invalid release version
+        2. Attempt to update an activation key with a invalid release version
+        3. Successfully update an activation key with a valid release version
 
     :expectedresults: Invalid release versions should fail and valid release version should succeed
 
@@ -1707,26 +1708,24 @@ def test_positive_invalid_release_version(module_entitlement_manifest_org, modul
     """
 
     name = gen_string('alpha')
-    gen_string('alpha')
     activation_key = module_target_sat.cli_factory.make_activation_key(
-        {'organization-id': module_entitlement_manifest_org.id, 'name': name}
+        {'organization-id': module_sca_manifest_org.id, 'name': name}
     )
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
-        org_id=module_entitlement_manifest_org.id,
+        org_id=module_sca_manifest_org.id,
         product=REPOS['kickstart']['rhel8_aps']['product'],
         repo=REPOS['kickstart']['rhel8_aps']['name'],
         reposet=REPOS['kickstart']['rhel8_aps']['reposet'],
         releasever=REPOS['kickstart']['rhel8_aps']['version'],
     )
-    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
-    rh_repo.sync()
+    Repository.synchronize({'id': rh_repo_id})
     with pytest.raises(CLIFactoryError) as error:
         module_target_sat.cli_factory.make_activation_key(
             {
-                'organization-id': module_entitlement_manifest_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'name': name,
-                'release-version': "ThisShouldNotWork",
+                'release-version': 'ThisShouldNotWork',
             }
         )
     assert 'Invalid release version: [ThisShouldNotWork]' in error.value.args[0]
@@ -1735,15 +1734,15 @@ def test_positive_invalid_release_version(module_entitlement_manifest_org, modul
         module_target_sat.cli.ActivationKey.update(
             {
                 'name': activation_key['name'],
-                'organization-id': module_entitlement_manifest_org.id,
-                'release-version': "ThisShouldAlsoNotWork",
+                'organization-id': module_sca_manifest_org.id,
+                'release-version': 'ThisShouldAlsoNotWork',
             }
         )
     assert 'Invalid release version: [ThisShouldAlsoNotWork]' in error.value.args[0]
     update_ak = module_target_sat.cli.ActivationKey.update(
         {
             'name': activation_key['name'],
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'release-version': REPOS['kickstart']['rhel8_aps']['version'],
         }
     )
