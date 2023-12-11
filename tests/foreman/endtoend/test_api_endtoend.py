@@ -729,6 +729,7 @@ API_PATHS = {
         '/api/remote_execution_features',
         '/api/remote_execution_features/:id',
         '/api/remote_execution_features/:id',
+        '/api/api/hosts/:id/available_remote_execution_features',
     ),
     'scap_content_profiles': ('/api/compliance/scap_content_profiles',),
     'simple_content_access': (
