@@ -824,25 +824,9 @@ def test_apply_modular_errata_using_default_content_view(
     stream = '0'
     version = '20180704244205'
 
-    """rhel8_contenthost.install_katello_ca(target_sat)
+    rhel8_contenthost.install_katello_ca(target_sat)
     rhel8_contenthost.register_contenthost(
         module_entitlement_manifest_org.label, rhel8_module_ak.name
-    )"""
-
-    # Associate custom repos with org, lce, ak:
-    target_sat.cli_factory.setup_org_for_a_custom_repo(
-        {
-            'organization-id': module_entitlement_manifest_org.id,
-            'lifecycle-environment-id': default_lce.id,
-            'activationkey-id': rhel8_module_ak.id,
-            'content-view-id': rhel8_custom_repo_cv.id,
-        }
-    )
-    rhel8_contenthost.register(
-        activation_keys=rhel8_module_ak.name,
-        target=target_sat,
-        org=module_entitlement_manifest_org,
-        loc=None,
     )
     assert rhel8_contenthost.subscribed
     host = rhel8_contenthost.nailgun_host
@@ -850,7 +834,7 @@ def test_apply_modular_errata_using_default_content_view(
     # Assert no errata on host, no packages applicable or installable
     errata = _fetch_available_errata(module_entitlement_manifest_org, host, expected_amount=0)
     assert len(errata) == 0
-    # rhel8_contenthost.install_katello_host_tools()
+    rhel8_contenthost.install_katello_host_tools()
     # Install older version of module stream to generate the errata
     result = rhel8_contenthost.execute(
         f'yum -y module install {module_name}:{stream}:{version}',

@@ -117,23 +117,21 @@ def get_rhel_lifecycle_support(rhel_version):
     :param rhel_version: integer of the current base rhel version
     :return: string with the expected status of rhel version support
     """
-    rhels = get_supported_rhel_versions()
+    rhels = sorted(get_supported_rhel_versions(), reverse=True)
     rhel_lifecycle_status = 'Unknown'
     if rhel_version not in rhels:
         return rhel_lifecycle_status
-    elif (len(rhels) - 1) - rhels.index(rhel_version) <= 1:
+    elif rhels.index(rhel_version) <= 1:
         rhel_lifecycle_status = 'Full support'
-    elif (len(rhels) - 1) - rhels.index(rhel_version) == 2:
+    elif rhels.index(rhel_version) == 2:
         rhel_lifecycle_status = 'Approaching end of maintenance support'
-    elif (len(rhels) - 1) - rhels.index(rhel_version) >= 3:
+    elif rhels.index(rhel_version) >= 3:
         rhel_lifecycle_status = 'End of maintenance support'
-
     return rhel_lifecycle_status
 
 
 @pytest.mark.e2e
 @pytest.mark.tier3
-@pytest.mark.parametrize('setting_update', ['new_hosts_page'], indirect=True)
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -154,7 +152,6 @@ def test_positive_end_to_end(
     vm,
     session,
     module_org,
-    setting_update,
     default_location,
     module_repos_collection_with_manifest,
 ):
@@ -162,6 +159,16 @@ def test_positive_end_to_end(
     as a content host, read content host details, install package and errata.
 
     :id: f43f2826-47c1-4069-9c9d-2410fd1b622c
+
+    :setup: Register a rhel7 vm as a content host. Import repos
+        collection and associated manifest.
+
+    :steps:
+        1. Install some outdated version for an applicable package
+        2. In legacy Host UI, find the host status and rhel lifecycle status
+        3. Using legacy ContentHost UI, find the chost and relevant details
+        4. Install the errata, check legacy ContentHost UI and the updated package
+        5. Delete the content host, then try to find it
 
     :expectedresults: content host details are the same as expected, package
         and errata installation are successful
@@ -172,7 +179,7 @@ def test_positive_end_to_end(
 
     :CaseImportance: Critical
     """
-    property_name = setting_update.name
+    # Read rhel distro param, determine what rhel lifecycle status should be
     _distro = module_repos_collection_with_manifest.distro
     host_rhel_version = None
     if _distro.startswith('rhel'):
@@ -182,19 +189,19 @@ def test_positive_end_to_end(
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     startdate = datetime.utcnow().strftime('%m/%d/%Y')
+
     with session:
-        session.settings.update(f'name = {property_name}', 'Yes')
         session.location.select(default_location.name)
         session.organization.select(module_org.name)
-        # Use new hosts UI, only check the details and host status
-        host_details = session.host.get_details(vm.hostname, widget_names='properties')
-        host_status = session.host_new.get_host_statuses(vm.hostname)
-        # Use old hosts UI for remainder
-        session.settings.update(f'name = {property_name}', 'No')
-        assert rhel_status in host_status['RHEL lifecycle']['Status']
-        assert rhel_status in host_details['properties']['properties_table']['RHEL lifecycle']
+        # Ensure host status and details show correct RHEL lifecycle status
+        host_status = session.host.host_status(vm.hostname)
+        host_rhel_lcs = session.contenthost.read(vm.hostname, widget_names=['permission_denied'])
+        assert rhel_status in host_rhel_lcs['permission_denied']
+        assert rhel_status in host_status
         # Ensure content host is searchable
-        assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
+        found_chost = session.contenthost.search(f'{vm.hostname}')
+        assert found_chost, f'Search for contenthost by name: "{vm.hostname}", returned no results.'
+        assert found_chost[0]['Name'] == vm.hostname
         chost = session.contenthost.read(
             vm.hostname, widget_names=['details', 'provisioning_details', 'subscriptions']
         )
