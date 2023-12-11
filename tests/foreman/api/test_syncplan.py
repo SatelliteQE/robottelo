@@ -831,7 +831,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
     )
     product = target_sat.api.Product(name=PRDS['rhel'], organization=org).search()[0]
     repo = target_sat.api.Repository(id=repo_id).read()
-    sync_plan = target_sat.SyncPlan(
+    sync_plan = target_sat.api.SyncPlan(
         organization=org,
         enabled=True,
         interval='hourly',
