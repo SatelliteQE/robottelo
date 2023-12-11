@@ -74,7 +74,7 @@ def lru_sat_ready_rhel(rhel_ver):
         'deploy_rhel_version': rhel_version,
         'deploy_flavor': settings.flavors.default,
         'promtail_config_template_file': 'config_sat.j2',
-        'workflow': settings.content_host.get(f'rhel{Version(rhel_version).major}').vm.workflow,
+        'workflow': settings.server.deploy_workflows.os,
     }
     sat_ready_rhel = Broker(**deploy_args, host_class=Satellite).checkout()
     return sat_ready_rhel
@@ -1642,6 +1642,12 @@ class Capsule(ContentHost, CapsuleMixins):
             raise CapsuleHostError(
                 f'A core service is not running at capsule host\n{result.stdout}'
             )
+
+    def update_download_policy(self, policy):
+        """Updates capsule's download policy to desired value"""
+        proxy = self.nailgun_smart_proxy.read()
+        proxy.download_policy = policy
+        proxy.update(['download_policy'])
 
     def set_rex_script_mode_provider(self, mode='ssh'):
         """Set provider for remote execution script mode. One of: ssh(default),

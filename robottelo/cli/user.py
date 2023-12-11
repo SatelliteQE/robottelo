@@ -105,3 +105,29 @@ class User(Base):
         """
         cls.command_sub = f'access-token {action}'
         return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def mail_notification_add(cls, options=None):
+        """
+        Usage:
+        hammer user mail-notification add [OPTIONS]
+
+        Options::
+
+            --interval VALUE                        Mail notification interval option, e.g. Daily,
+                                                    Weekly or Monthly.
+                                                    Required for summary notification
+            --location[-id|-title] VALUE/NUMBER     Set the current location context for the request
+            --mail-notification[-id] VALUE/NUMBER
+            --mail-query VALUE                      Relevant only for audit summary notification
+            --organization[-id|-title] VALUE/NUMBER Set the current organization context
+                                                    for the request
+            --subscription VALUE                    Mail notification subscription option, e.g.
+                                                    Subscribe, Subscribe to my hosts or
+                                                    Subscribe to all hosts. Required for host built
+                                                    and config error state
+            --user[-id] VALUE
+
+        """
+        cls.command_sub = 'mail-notification add'
+        return cls.execute(cls._construct_command(options), output_format='csv')

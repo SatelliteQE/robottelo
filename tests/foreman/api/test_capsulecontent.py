@@ -47,16 +47,6 @@ class TestCapsuleContentManagement:
     interactions and use capsule.
     """
 
-    def update_capsule_download_policy(
-        self, module_capsule_configured, download_policy, module_target_sat
-    ):
-        """Updates capsule's download policy to desired value"""
-        proxy = module_target_sat.api.SmartProxy(
-            id=module_capsule_configured.nailgun_capsule.id
-        ).read()
-        proxy.download_policy = download_policy
-        proxy.update(['download_policy'])
-
     @pytest.mark.tier3
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_insights_puppet_package_availability(self, module_capsule_configured):
@@ -599,7 +589,7 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Update capsule's download policy to on_demand
-        self.update_capsule_download_policy(module_capsule_configured, 'on_demand')
+        module_capsule_configured.update_download_policy('on_demand')
 
         # Create a content view with the repository
         cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
@@ -673,7 +663,7 @@ class TestCapsuleContentManagement:
             url=repo_url,
         ).create()
         # Update capsule's download policy to on_demand to match repository's policy
-        self.update_capsule_download_policy(module_capsule_configured, 'on_demand')
+        module_capsule_configured.update_download_policy('on_demand')
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': function_lce.id}
@@ -710,7 +700,7 @@ class TestCapsuleContentManagement:
         assert repo.download_policy == 'immediate'
 
         # Update capsule's download policy as well
-        self.update_capsule_download_policy(module_capsule_configured, 'immediate')
+        module_capsule_configured.update_download_policy('immediate')
 
         # Sync repository once again
         repo.sync()
@@ -812,7 +802,7 @@ class TestCapsuleContentManagement:
         assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Update capsule's download policy to on_demand
-        self.update_capsule_download_policy(module_capsule_configured, 'on_demand')
+        module_capsule_configured.update_download_policy('on_demand')
 
         # Create a content view with the repository
         cv = target_sat.api.ContentView(
