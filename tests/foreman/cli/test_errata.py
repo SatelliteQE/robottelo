@@ -207,12 +207,13 @@ def register_hosts(
 
 
 @pytest.fixture
-def errata_hosts(register_hosts):
+def errata_hosts(register_hosts, target_sat):
     """Ensure that rpm is installed on host."""
     for host in register_hosts:
         # Enable all custom and rh repositories.
         host.execute(r'subscription-manager repos --enable \*')
         host.execute(r'yum-config-manager --enable \*')
+        host.add_rex_key(satellite=target_sat)
         # Remove all packages.
         for errata in REPO_WITH_ERRATA['errata']:
             # Remove package if present, old or new.
@@ -260,8 +261,8 @@ def host_collection(
 
 def start_and_wait_errata_recalculate(sat, host):
     """Helper to find any in-progress errata applicability task and wait_for completion.
-    Otherwise, schedule errata recalculation, and wait for the task.
-    Find the successful task(s).
+    Otherwise, schedule errata recalculation, wait for the task.
+    Find the successful completed task(s).
 
     :param sat: Satellite instance to check for task(s)
     :param host: ContentHost instance to schedule errata recalculate
@@ -460,9 +461,6 @@ def test_positive_install_by_host_collection_and_org(
     :BZ: 1457977, 1983043
     """
     errata_id = REPO_WITH_ERRATA['errata'][0]['id']
-
-    for host in errata_hosts:
-        host.add_rex_key(satellite=target_sat)
 
     if filter_by_hc == 'id':
         host_collection_query = f'host_collection_id = {host_collection["id"]}'
@@ -700,7 +698,6 @@ def test_install_errata_to_one_host(
     assert result.status == 0, f'Failed to erase the rpm: {result.stdout}'
 
     for host in errata_hosts:
-        host.add_rex_key(satellite=target_sat)
         start_and_wait_errata_recalculate(target_sat, host)
 
     assert not is_rpm_installed(
@@ -1010,7 +1007,6 @@ def test_host_errata_search_commands(
     )
 
     # Publish and promote a new version with the filter
-    # module_cv=module_cv.read()
     cv_publish_promote(target_sat, module_cv, module_entitlement_manifest_org, module_lce)
 
     # Step 8: Run tests again. Applicable should still be true, installable should now be false.
@@ -1322,12 +1318,12 @@ def new_module_ak(module_entitlement_manifest_org, rh_repo_module_manifest, defa
 @pytest.fixture
 def errata_host(
     target_sat,
-    rhel7_contenthost,
+    rhel8_contenthost,
     module_entitlement_manifest_org,
     module_lce_library,
     new_module_ak,
 ):
-    """A RHEL7 Content Host that has applicable errata and registered to Library, using Global Registration."""
+    """A RHEL8 Content Host that has applicable errata and registered to Library, using Global Registration."""
     org = module_entitlement_manifest_org
     cv = target_sat.api.ContentView(
         organization=org,
@@ -1342,33 +1338,35 @@ def errata_host(
             'content-view-id': cv.id,
         }
     )
-    rhel7_contenthost.register(
+    rhel8_contenthost.register(
         activation_keys=new_module_ak.name,
         target=target_sat,
         org=org,
         loc=None,
     )
-    assert rhel7_contenthost.subscribed
-    assert rhel7_contenthost.applicable_errata_count == 0
-    rhel7_contenthost.execute(r'yum-config-manager --enable \*')
-    rhel7_contenthost.execute(r'subscription-manager repos --enable \*')
+    rhel8_contenthost.add_rex_key(satellite=target_sat)
+    assert rhel8_contenthost.subscribed
+    assert rhel8_contenthost.applicable_errata_count == 0
 
+    rhel8_contenthost.execute(r'yum-config-manager --enable \*')
+    rhel8_contenthost.execute(r'subscription-manager repos --enable \*')
     for errata in REPO_WITH_ERRATA['errata']:
         # Remove package if present, old or new.
         package_name = errata['package_name']
-        result = rhel7_contenthost.execute(f'yum erase -y {package_name}')
+        result = rhel8_contenthost.execute(f'yum erase -y {package_name}')
         if result.status != 0:
             pytest.fail(f'Failed to remove {package_name}: {result.stdout} {result.stderr}')
 
         # Install old package, so that errata apply.
         old_package = errata['old_package']
-        result = rhel7_contenthost.execute(f'yum install -y {old_package}')
+        result = rhel8_contenthost.execute(f'yum install -y {old_package}')
         if result.status != 0:
             pytest.fail(f'Failed to install {old_package}: {result.stdout} {result.stderr}')
 
-    start_and_wait_errata_recalculate(target_sat, rhel7_contenthost)
-    assert rhel7_contenthost.applicable_errata_count == 2
-    return rhel7_contenthost
+    start_and_wait_errata_recalculate(target_sat, rhel8_contenthost)
+    assert rhel8_contenthost.applicable_errata_count == 2
+
+    return rhel8_contenthost
 
 
 @pytest.fixture
@@ -1379,7 +1377,7 @@ def chost(
     new_module_ak,
     target_sat,
 ):
-    """A RHEL7 Content Host registered to Library that does not have applicable errata"""
+    """A RHEL77 Content Host registered to Library that does not have applicable errata"""
     module_cv = target_sat.api.ContentView(
         organization=module_entitlement_manifest_org,
         environment=[module_lce_library.id],
@@ -1428,7 +1426,6 @@ def test_apply_errata_using_default_content_view(
 
     :CaseImportance: High
     """
-    errata_host.add_rex_key(satellite=target_sat)
     assert errata_host.applicable_errata_count > 0
     # Check that package errata is applicable
     erratum_id = REPO_WITH_ERRATA['errata'][0]['id']
@@ -1477,7 +1474,6 @@ def test_update_applicable_package_using_default_content_view(errata_host, targe
 
     :CaseImportance: High
     """
-    errata_host.add_rex_key(satellite=target_sat)
     # check that package is applicable
     package_name = REPO_WITH_ERRATA['errata'][0]['package_name']
     applicable_packages = target_sat.cli.Package.list(
@@ -1644,7 +1640,7 @@ def test_downgrading_package_shows_errata_from_library(
         }
     )
     assert len(applicable_packages) == 0
-    # Downgrade package (we can't get it from Library, so get older one from EPEL)
+    # Downgrade package
     errata_host.run(f'yum -y downgrade {FAKE_1_CUSTOM_PACKAGE}')
     start_and_wait_errata_recalculate(target_sat, errata_host)
     param = {
