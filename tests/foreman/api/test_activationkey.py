@@ -181,7 +181,7 @@ def test_positive_update_limited_host(max_host, target_sat):
 
 @pytest.mark.tier2
 @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-def test_positive_update_name(new_name, target_sat):
+def test_positive_update_name(new_name, target_sat, module_org):
     """Create activation key providing the initial name, then update
     its name to another valid name.
 
@@ -192,8 +192,10 @@ def test_positive_update_name(new_name, target_sat):
 
     :parametrized: yes
     """
-    act_key = target_sat.api.ActivationKey().create()
-    updated = target_sat.api.ActivationKey(id=act_key.id, name=new_name).update(['name'])
+    act_key = target_sat.api.ActivationKey(organization=module_org).create()
+    updated = target_sat.api.ActivationKey(
+        id=act_key.id, organization=module_org, name=new_name
+    ).update(['name'])
     assert new_name == updated.name
 
 
@@ -227,7 +229,7 @@ def test_negative_update_limit(max_host, target_sat):
 
 @pytest.mark.tier3
 @pytest.mark.parametrize('new_name', **parametrized(invalid_names_list()))
-def test_negative_update_name(new_name, target_sat):
+def test_negative_update_name(new_name, target_sat, module_org):
     """Create activation key then update its name to an invalid name.
 
     :id: da85a32c-942b-4ab8-a133-36b028208c4d
@@ -239,16 +241,18 @@ def test_negative_update_name(new_name, target_sat):
 
     :parametrized: yes
     """
-    act_key = target_sat.api.ActivationKey().create()
+    act_key = target_sat.api.ActivationKey(organization=module_org).create()
     with pytest.raises(HTTPError):
-        target_sat.api.ActivationKey(id=act_key.id, name=new_name).update(['name'])
+        target_sat.api.ActivationKey(id=act_key.id, organization=module_org, name=new_name).update(
+            ['name']
+        )
     new_key = target_sat.api.ActivationKey(id=act_key.id).read()
     assert new_key.name != new_name
     assert new_key.name == act_key.name
 
 
 @pytest.mark.tier3
-def test_negative_update_max_hosts(target_sat):
+def test_negative_update_max_hosts(target_sat, module_org):
     """Create an activation key with ``max_hosts == 1``, then update that
     field with a string value.
 
@@ -258,9 +262,11 @@ def test_negative_update_max_hosts(target_sat):
 
     :CaseImportance: Low
     """
-    act_key = target_sat.api.ActivationKey(max_hosts=1).create()
+    act_key = target_sat.api.ActivationKey(max_hosts=1, organization=module_org).create()
     with pytest.raises(HTTPError):
-        target_sat.api.ActivationKey(id=act_key.id, max_hosts='foo').update(['max_hosts'])
+        target_sat.api.ActivationKey(
+            id=act_key.id, organization=module_org, max_hosts='foo'
+        ).update(['max_hosts'])
     assert act_key.read().max_hosts == 1
 
 
@@ -372,7 +378,7 @@ def test_positive_remove_host_collection(module_org, module_target_sat):
 
 
 @pytest.mark.tier1
-def test_positive_update_auto_attach(target_sat):
+def test_positive_update_auto_attach(target_sat, module_org):
     """Create an activation key, then update the auto_attach
     field with the inverse boolean value.
 
@@ -382,9 +388,9 @@ def test_positive_update_auto_attach(target_sat):
 
     :CaseImportance: Critical
     """
-    act_key = target_sat.api.ActivationKey().create()
+    act_key = target_sat.api.ActivationKey(organization=module_org).create()
     act_key_2 = target_sat.api.ActivationKey(
-        id=act_key.id, auto_attach=(not act_key.auto_attach)
+        id=act_key.id, organization=module_org, auto_attach=(not act_key.auto_attach)
     ).update(['auto_attach'])
     assert act_key.auto_attach != act_key_2.auto_attach
 
