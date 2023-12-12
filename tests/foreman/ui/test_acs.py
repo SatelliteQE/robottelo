@@ -64,6 +64,60 @@ def acs_setup(class_target_sat, class_sca_manifest_org):
     return class_target_sat, class_sca_manifest_org
 
 
+@pytest.mark.tier2
+def test_acs_subpath_not_required(acs_setup):
+    """
+    This test verifies that the subpath field isn't mandatory for ACS creation.
+
+    :id: 232d944a-a7c1-4387-ab01-7e20b2bbebfa
+
+    :steps:
+        1. Create an ACS of each type where subpath field is present in the UI
+
+    :expectedresults:
+        Subpath field isn't required in the creation of any ACS where it's present,
+        so ACS should all create successfully
+
+    :BZ: 2119112
+
+    :customerscenario: True
+    """
+    class_target_sat, class_sca_manifest_org = acs_setup
+
+    with class_target_sat.ui_session() as session:
+        session.organization.select(org_name=class_sca_manifest_org.name)
+
+        # Create an ACS of each configturation that displays the subpath field in UI
+        session.acs.create_new_acs(
+            custom_type=True,
+            content_type='yum',
+            name=gen_string('alpha'),
+            capsules_to_add=class_target_sat.hostname,
+            use_http_proxies=True,
+            base_url='https://test.com',
+            none_auth=True,
+        )
+
+        session.acs.create_new_acs(
+            custom_type=True,
+            content_type='file',
+            name=gen_string('alpha'),
+            capsules_to_add=class_target_sat.hostname,
+            use_http_proxies=True,
+            base_url='https://test.com',
+            none_auth=True,
+        )
+
+        session.acs.create_new_acs(
+            rhui_type=True,
+            name=gen_string('alpha'),
+            capsules_to_add=class_target_sat.hostname,
+            use_http_proxies=True,
+            base_url='https://rhui-server.example.com/pulp/content',
+            none_auth=True,
+        )
+
+
 class TestAllAcsTypes:
     """
     Test class insuring fixture is ran once before
