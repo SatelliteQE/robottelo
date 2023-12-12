@@ -34,7 +34,6 @@ from robottelo.constants import (
     ANY_CONTEXT,
     DEFAULT_CV,
     DEFAULT_LOC,
-    DEFAULT_SUBSCRIPTION_NAME,
     ENVIRONMENT,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
@@ -95,30 +94,6 @@ def module_global_params(module_target_sat):
     # cleanup global parameters
     for global_parameter in global_parameters:
         global_parameter.delete()
-
-
-@pytest.fixture(scope='module')
-def module_activation_key(module_entitlement_manifest_org, module_target_sat):
-    """Create activation key using default CV and library environment."""
-    activation_key = module_target_sat.api.ActivationKey(
-        auto_attach=True,
-        content_view=module_entitlement_manifest_org.default_content_view.id,
-        environment=module_entitlement_manifest_org.library.id,
-        organization=module_entitlement_manifest_org,
-    ).create()
-
-    # Find the 'Red Hat Employee Subscription' and attach it to the activation key.
-    for subs in module_target_sat.api.Subscription(
-        organization=module_entitlement_manifest_org
-    ).search():
-        if subs.name == DEFAULT_SUBSCRIPTION_NAME:
-            # 'quantity' must be 1, not subscription['quantity']. Greater
-            # values produce this error: 'RuntimeError: Error: Only pools
-            # with multi-entitlement product subscriptions can be added to
-            # the activation key with a quantity greater than one.'
-            activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': subs.id})
-            break
-    return activation_key
 
 
 @pytest.fixture
@@ -2389,7 +2364,7 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
 
 def test_positive_host_registration_with_non_admin_user(
     test_name,
-    module_entitlement_manifest_org,
+    module_sca_manifest_org,
     module_location,
     target_sat,
     rhel8_contenthost,
@@ -2405,7 +2380,7 @@ def test_positive_host_registration_with_non_admin_user(
     :CaseLevel: Component
     """
     user_password = gen_string('alpha')
-    org = module_entitlement_manifest_org
+    org = module_sca_manifest_org
     role = target_sat.api.Role(organization=[org]).create()
 
     user_permissions = {
