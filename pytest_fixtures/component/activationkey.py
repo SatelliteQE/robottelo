@@ -6,13 +6,12 @@ from robottelo.utils.manifest import clone
 
 
 @pytest.fixture(scope='module')
-def module_activation_key(module_entitlement_manifest_org, module_target_sat):
+def module_activation_key(module_sca_manifest_org, module_target_sat):
     """Create activation key using default CV and library environment."""
     activation_key = module_target_sat.api.ActivationKey(
-        auto_attach=True,
-        content_view=module_entitlement_manifest_org.default_content_view.id,
-        environment=module_entitlement_manifest_org.library.id,
-        organization=module_entitlement_manifest_org,
+        content_view=module_sca_manifest_org.default_content_view.id,
+        environment=module_sca_manifest_org.library.id,
+        organization=module_sca_manifest_org,
     ).create()
     return activation_key
 
