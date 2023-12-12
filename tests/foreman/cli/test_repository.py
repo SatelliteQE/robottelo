@@ -32,6 +32,7 @@ from robottelo.constants import (
     CUSTOM_FILE_REPO_FILES_COUNT,
     CUSTOM_LOCAL_FOLDER,
     DOWNLOAD_POLICIES,
+    FAKE_3_YUM_REPO_RPMS,
     MIRRORING_POLICIES,
     OS_TEMPLATE_DATA_FILE,
     REPO_TYPE,
@@ -3355,3 +3356,89 @@ def test_positive_syncable_yum_format_repo_import(target_sat, module_org):
     )
     assert repodata['content-counts']['packages'] != 0
     assert repodata['sync']['status'] == 'Success'
+
+
+@pytest.mark.rhel_ver_list([9])
+def test_positive_install_uploaded_rpm_on_host(
+    target_sat, rhel_contenthost, function_org, function_lce
+):
+    """Verify that uploaded rpm successfully install on content host
+
+    :id: 8701782e-2d1e-41b7-a9dc-07325bfeaf1c
+
+    :steps:
+        1. Create product, custom repo and upload rpm into repo
+        2. Create CV, add repo into it & publish CV
+        3. Upload package on to the satellite, rename it then upload it into repo
+        4. Register host with satellite and install rpm on it
+
+    :expectedresults: rpm should install successfully
+
+    :customerscenario: true
+
+    :BZ: 2161993
+    """
+    product = target_sat.cli_factory.make_product({'organization-id': function_org.id})
+    repo = target_sat.cli_factory.make_repository(
+        {
+            'content-type': 'yum',
+            'name': gen_string('alpha', 5),
+            'product-id': product['id'],
+        }
+    )
+    target_sat.cli.Repository.synchronize({'id': repo['id']})
+    sync_status = target_sat.cli.Repository.info({'id': repo['id']})['sync']['status']
+    assert sync_status == 'Success', f'Failed to sync {repo["name"]} repo'
+
+    # Upload package
+    target_sat.put(
+        local_path=DataFile.FAKE_3_YUM_REPO_RPMS_ANT,
+        remote_path=f"/tmp/{FAKE_3_YUM_REPO_RPMS[0]}",
+    )
+    # Rename uploaded package name
+    rpm_new_name = f'{gen_string(str_type="alpha", length=5)}.rpm'
+    target_sat.execute(f"mv /tmp/{FAKE_3_YUM_REPO_RPMS[0]} /tmp/{rpm_new_name}")
+
+    result = target_sat.cli.Repository.upload_content(
+        {
+            'name': repo['name'],
+            'organization': repo['organization'],
+            'path': f"/tmp/{rpm_new_name}",
+            'product-id': repo['product']['id'],
+        }
+    )
+    assert f"Successfully uploaded file {rpm_new_name}" == result[0]['message']
+    queryinfo = target_sat.execute(f"rpm -q /tmp/{rpm_new_name}")
+
+    content_view = target_sat.cli_factory.make_content_view(
+        {'organization-id': function_org.id, 'name': gen_string('alpha', 5)}
+    )
+    target_sat.cli.ContentView.add_repository(
+        {'id': content_view['id'], 'repository-id': repo['id']}
+    )
+    target_sat.cli.ContentView.publish({'id': content_view['id']})
+    content_view = target_sat.cli.ContentView.info({'id': content_view['id']})
+    target_sat.cli.ContentView.version_promote(
+        {'id': content_view['versions'][0]['id'], 'to-lifecycle-environment-id': function_lce.id}
+    )
+    activation_key = target_sat.cli_factory.make_activation_key(
+        {
+            'organization-id': function_org.id,
+            'lifecycle-environment-id': function_lce.id,
+            'content-view-id': content_view['id'],
+        }
+    )
+    target_sat.cli.ActivationKey.content_override(
+        {'id': activation_key.id, 'content-label': repo.content_label, 'value': 'true'}
+    )
+    assert (
+        rhel_contenthost.register(function_org, None, activation_key.name, target_sat).status == 0
+    )
+    assert (
+        rhel_contenthost.execute(f'yum install -y {FAKE_3_YUM_REPO_RPMS[0].split("-")[0]}').status
+        == 0
+    )
+    installed_package_name = rhel_contenthost.execute(
+        f'rpm -q {FAKE_3_YUM_REPO_RPMS[0].split("-")[0]}'
+    )
+    assert installed_package_name.stdout == queryinfo.stdout
