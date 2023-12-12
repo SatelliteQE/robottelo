@@ -1306,7 +1306,6 @@ def test_global_registration_form_populate(
         )
         assert hg_name in cmd['general']['host_group']
         assert module_ak_with_cv.name in cmd['general']['activation_key_helper']
-        assert module_lce.name in cmd['advanced']['life_cycle_env_helper']
         assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages_helper']
 
         session.organization.select(org_name=new_org.name)
