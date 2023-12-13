@@ -19,6 +19,7 @@ from broker import Broker
 from dateutil.relativedelta import FR, relativedelta
 from fauxfactory import gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo.cli.host import Host
 from robottelo.config import settings
@@ -471,6 +472,51 @@ class TestRemoteExecution:
             pending_state = invocation_info['pending']
             sleep(30)
         assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
+
+    @pytest.mark.tier3
+    @pytest.mark.rhel_ver_list([8, 9])
+    def test_recurring_with_unreachable_host(self, module_target_sat, rhel_contenthost):
+        """Run a recurring task against a host that is not reachable and verify it gets rescheduled
+
+        :id: 570f6d75-6bbf-40b0-a1df-6c26b588dca8
+
+        :expectedresults: The job is being rescheduled indefinitely even though it fails
+
+        :BZ: 1784254
+
+        :customerscenario: true
+
+        :parametrized: yes
+        """
+        cli = module_target_sat.cli
+        host = module_target_sat.cli_factory.make_fake_host()
+        # shutdown the host and wait for it to surely be unreachable
+        rhel_contenthost.execute("shutdown -h +1")  # shutdown after one minute
+        sleep(120)
+        invocation = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': 'command=echo this wont ever run',
+                'search-query': f'name ~ {host.name}',
+                'cron-line': '* * * * *',  # every minute
+            }
+        )
+        cli.RecurringLogic.info(
+            {'id': cli.JobInvocation.info({'id': invocation.id})['recurring-logic-id']}
+        )
+        # wait for the third task to be planned which verifies the BZ
+        wait_for(
+            lambda: int(
+                cli.RecurringLogic.info(
+                    {'id': cli.JobInvocation.info({'id': invocation.id})['recurring-logic-id']}
+                )['task-count']
+            )
+            > 2,
+            timeout=180,
+            delay=10,
+        )
+        # check that the first task indeed failed which verifies the test was done correctly
+        assert cli.JobInvocation.info({'id': invocation.id})['failed'] != '0'
 
 
 class TestAnsibleREX:
