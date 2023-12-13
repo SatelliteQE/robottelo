@@ -193,11 +193,6 @@ def test_positive_end_to_end(
     with session:
         session.location.select(default_location.name)
         session.organization.select(module_org.name)
-        # Ensure host status and details show correct RHEL lifecycle status
-        host_status = session.host.host_status(vm.hostname)
-        host_rhel_lcs = session.contenthost.read(vm.hostname, widget_names=['permission_denied'])
-        assert rhel_status in host_rhel_lcs['permission_denied']
-        assert rhel_status in host_status
         # Ensure content host is searchable
         found_chost = session.contenthost.search(f'{vm.hostname}')
         assert found_chost, f'Search for contenthost by name: "{vm.hostname}", returned no results.'
@@ -242,6 +237,11 @@ def test_positive_end_to_end(
             assert startdate in custom_sub['Expires']
         else:
             assert startdate in custom_sub['Starts']
+        # Ensure host status and details show correct RHEL lifecycle status
+        host_status = session.host.host_status(vm.hostname)
+        host_rhel_lcs = session.contenthost.read(vm.hostname, widget_names=['permission_denied'])
+        assert rhel_status in host_rhel_lcs['permission_denied']
+        assert rhel_status in host_status
         # Update description
         new_description = gen_string('alpha')
         session.contenthost.update(vm.hostname, {'details.description': new_description})
@@ -256,9 +256,7 @@ def test_positive_end_to_end(
         packages = session.contenthost.search_package(vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_0_CUSTOM_PACKAGE
         # Install errata
-        result = session.contenthost.install_errata(
-            vm.hostname, settings.repos.yum_6.errata[2], install_via='rex'
-        )
+        result = session.contenthost.install_errata(vm.hostname, FAKE_1_ERRATA_ID)
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
         # Ensure errata installed
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
