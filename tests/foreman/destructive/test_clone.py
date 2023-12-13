@@ -29,7 +29,9 @@ pytestmark = pytest.mark.destructive
 @pytest.mark.e2e
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
 @pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
-def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pulp):
+def test_positive_clone_backup(
+    target_sat, sat_ready_rhel, backup_type, skip_pulp, custom_synced_repo
+):
     """Make an online/offline backup with/without pulp data of Satellite and clone it (restore it).
 
     :id: 5b9182d5-6789-4d2c-bcc3-6641b96ab277
@@ -45,12 +47,14 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
 
     :parametrized: yes
 
-    :BZ: 2142514
+    :BZ: 2142514, 2013776
 
     :customerscenario: true
     """
     rhel_version = sat_ready_rhel._v_major
     sat_version = target_sat.version
+
+    pulp_artifact_len = len(target_sat.execute('ls /var/lib/pulp/media/artifact').stdout)
 
     # SATELLITE PART - SOURCE SERVER
     # Enabling and starting services
@@ -66,16 +70,6 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
     assert backup_result.status == 0
     sat_backup_dir = backup_result.stdout.strip().split()[-2]
 
-    if skip_pulp:
-        # Copying satellite pulp data to target RHEL
-        assert sat_ready_rhel.execute('mkdir -p /var/lib/pulp').status == 0
-        assert (
-            target_sat.execute(
-                f'''sshpass -p "{SSH_PASS}" scp -o StrictHostKeyChecking=no \
-                -r /var/lib/pulp root@{sat_ready_rhel.hostname}:/var/lib/pulp/pulp'''
-            ).status
-            == 0
-        )
     # Copying satellite backup to target RHEL
     assert (
         target_sat.execute(
@@ -117,6 +111,22 @@ def test_positive_clone_backup(target_sat, sat_ready_rhel, backup_type, skip_pul
     assert sat_ready_rhel.execute('satellite-clone -y', timeout='3h').status == 0
     cloned_sat = Satellite(sat_ready_rhel.hostname)
     assert cloned_sat.cli.Health.check().status == 0
+
+    # If --skip-pulp-data make sure you can rsync /var/lib/pulp over per BZ#2013776
+    if skip_pulp:
+        # Copying satellite pulp data to target RHEL
+        assert (
+            target_sat.execute(
+                f'sshpass -p "{SSH_PASS}" rsync -e "ssh -o StrictHostKeyChecking=no" --archive --partial --progress --compress '
+                f'/var/lib/pulp root@{sat_ready_rhel.hostname}:/var/lib/'
+            ).status
+            == 0
+        )
+
+    # Make sure all of the pulp data that was on the original Satellite is on the clone
+    assert (
+        len(sat_ready_rhel.execute('ls /var/lib/pulp/media/artifact').stdout) == pulp_artifact_len
+    )
 
 
 @pytest.mark.pit_server
