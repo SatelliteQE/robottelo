@@ -4,7 +4,8 @@ from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
 
-from robottelo.constants import DEFAULT_ARCHITECTURE, PRDS, REPOS, REPOSET
+from robottelo.config import settings
+from robottelo.constants import DEFAULT_ARCHITECTURE, DEFAULT_ORG, PRDS, REPOS, REPOSET
 
 
 @pytest.fixture(scope='module')
@@ -100,6 +101,16 @@ def module_repository(os_path, module_product, module_target_sat):
     repo = module_target_sat.api.Repository(product=module_product, url=os_path).create()
     call_entity_method_with_timeout(module_target_sat.api.Repository(id=repo.id).sync, timeout=3600)
     return repo
+
+
+@pytest.fixture
+def custom_synced_repo(target_sat):
+    custom_repo = target_sat.api.Repository(
+        product=target_sat.api.Product(organization=DEFAULT_ORG).create(),
+        url=settings.repos.yum_0.url,
+    ).create()
+    custom_repo.sync()
+    return custom_repo
 
 
 def _simplify_repos(request, repos):
