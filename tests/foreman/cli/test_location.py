@@ -35,7 +35,7 @@ def _proxy(request, target_sat):
 
 
 def _location(request, target_sat, options=None):
-    location = target_sat.cli_factory.make_location(options=options)
+    location = target_sat.cli_factory.make_location(options)
 
     @request.addfinalizer
     def _cleanup():
@@ -156,14 +156,15 @@ class TestLocation:
         description = gen_string('utf8')
         subnet = _subnet(request, target_sat)
         domains = [_domain(request, target_sat) for _ in range(0, 2)]
-        host_groups = [_host_group(request) for _ in range(0, 3)]
-        medium = _medium(request)
-        compute_resource = _compute_resource(request)
-        template = _template(request)
-        user = _user(request)
+        host_groups = [_host_group(request, target_sat) for _ in range(0, 3)]
+        medium = _medium(request, target_sat)
+        compute_resource = _compute_resource(request, target_sat)
+        template = _template(request, target_sat)
+        user = _user(request, target_sat)
 
         location = _location(
             request,
+            target_sat,
             {
                 'description': description,
                 'subnet-ids': subnet['id'],
@@ -231,7 +232,7 @@ class TestLocation:
 
         """
         parent_location = _location(request, target_sat)
-        location = _location(request, {'parent-id': parent_location['id']})
+        location = _location(request, target_sat, {'parent-id': parent_location['id']})
         assert location['parent'] == parent_location['name']
 
     @pytest.mark.tier1
@@ -344,7 +345,7 @@ class TestLocation:
         :CaseImportance: High
         """
         parent_location = _location(request, target_sat)
-        location = _location(request, {'parent-id': parent_location['id']})
+        location = _location(request, target_sat, {'parent-id': parent_location['id']})
 
         parent_location_2 = _location(request, target_sat)
         target_sat.cli.Location.update({'id': location['id'], 'parent-id': parent_location_2['id']})
@@ -366,7 +367,7 @@ class TestLocation:
         :CaseImportance: High
         """
         parent_location = _location(request, target_sat)
-        location = _location(request, {'parent-id': parent_location['id']})
+        location = _location(request, target_sat, {'parent-id': parent_location['id']})
 
         # set parent as child
         with pytest.raises(CLIReturnCodeError):
