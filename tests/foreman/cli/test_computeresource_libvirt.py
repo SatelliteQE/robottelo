@@ -242,7 +242,13 @@ def test_positive_create_with_loc(libvirt_url, module_target_sat):
     :CaseLevel: Integration
     """
     location = module_target_sat.cli_factory.make_location()
-    comp_resource = module_target_sat.cli_factory.compute_resource({'location-ids': location['id']})
+    comp_resource = module_target_sat.cli_factory.compute_resource(
+        {
+            'location-ids': location['id'],
+            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'url': libvirt_url,
+        }
+    )
     assert len(comp_resource['locations']) == 1
     assert comp_resource['locations'][0] == location['name']
 
@@ -263,7 +269,11 @@ def test_positive_create_with_locs(libvirt_url, module_target_sat):
     locations_amount = random.randint(3, 5)
     locations = [module_target_sat.cli_factory.make_location() for _ in range(locations_amount)]
     comp_resource = module_target_sat.cli_factory.compute_resource(
-        {'location-ids': [location['id'] for location in locations]}
+        {
+            'location-ids': [location['id'] for location in locations],
+            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'url': libvirt_url,
+        }
     )
     assert len(comp_resource['locations']) == locations_amount
     for location in locations:
@@ -310,7 +320,9 @@ def test_negative_create_with_same_name(libvirt_url, module_target_sat):
 
     :CaseLevel: Component
     """
-    comp_res = module_target_sat.cli_factory.compute_resource()
+    comp_res = module_target_sat.cli_factory.compute_resource(
+        {'provider': FOREMAN_PROVIDERS['libvirt'], 'url': libvirt_url}
+    )
     with pytest.raises(CLIReturnCodeError):
         module_target_sat.cli.ComputeResource.create(
             {
@@ -339,7 +351,9 @@ def test_positive_update_name(libvirt_url, options, module_target_sat):
 
     :parametrized: yes
     """
-    comp_res = module_target_sat.cli_factory.compute_resource()
+    comp_res = module_target_sat.cli_factory.compute_resource(
+        {'provider': FOREMAN_PROVIDERS['libvirt'], 'url': libvirt_url}
+    )
     options.update({'name': comp_res['name']})
     # update Compute Resource
     module_target_sat.cli.ComputeResource.update(options)
@@ -369,7 +383,9 @@ def test_negative_update(libvirt_url, options, module_target_sat):
 
     :parametrized: yes
     """
-    comp_res = module_target_sat.cli_factory.compute_resource()
+    comp_res = module_target_sat.cli_factory.compute_resource(
+        {'provider': FOREMAN_PROVIDERS['libvirt'], 'url': libvirt_url}
+    )
     with pytest.raises(CLIReturnCodeError):
         module_target_sat.cli.ComputeResource.update(dict({'name': comp_res['name']}, **options))
     result = module_target_sat.cli.ComputeResource.info({'id': comp_res['id']})

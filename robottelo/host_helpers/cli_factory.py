@@ -179,8 +179,6 @@ ENTITY_FIELDS = {
     },
     'compute_resource': {
         'name': gen_alphanumeric,
-        'provider': 'Libvirt',
-        'url': 'qemu+tcp://localhost:16509/system',
     },
     'org': {'_redirect': 'org_with_credentials'},
     'org_with_credentials': {
