@@ -150,7 +150,7 @@ class TestRole:
 
         :BZ: 1296782
         """
-        with pytest.raises(CLIReturnCodeError, CLIDataBaseError) as err:
+        with pytest.raises(CLIReturnCodeError) as err:
             module_target_sat.cli.Role.filters()
         if isinstance(err.type, CLIDataBaseError):
             pytest.fail(err)
