@@ -90,7 +90,7 @@ class TestCannedRole:
             return target_sat.api.Role(id=org_admin['role']['id']).read()
         return target_sat.api.Role(id=org_admin['id']).read()
 
-    def create_org_admin_user(self, role_taxos, user_taxos, target_sat):
+    def create_org_admin_user(self, target_sat, role_taxos, user_taxos):
         """Helper function to create an Org Admin user by assigning org admin
         role and assign taxonomies to Role and User
 
@@ -526,7 +526,7 @@ class TestCannedRole:
         default_org_admin = target_sat.api.Role().search(
             query={'search': 'name="Organization admin"'}
         )
-        org_admin = self.create_org_admin_role()
+        org_admin = self.create_org_admin_role(target_sat)
         default_filters = target_sat.api.Role(id=default_org_admin[0].id).read().filters
         orgadmin_filters = target_sat.api.Role(id=org_admin.id).read().filters
         assert len(default_filters) == len(orgadmin_filters)
@@ -550,7 +550,7 @@ class TestCannedRole:
         :CaseImportance: Critical
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         org_admin = target_sat.api.Role(id=org_admin.id).read()
         assert role_taxonomies['org'].id == org_admin.organization[0].id
@@ -578,7 +578,9 @@ class TestCannedRole:
 
         :CaseLevel: System
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=filter_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=filter_taxonomies
+        )
         domain = self.create_domain(
             orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
@@ -609,7 +611,9 @@ class TestCannedRole:
 
         :CaseLevel: System
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=filter_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=filter_taxonomies
+        )
         domain = self.create_domain(
             orgs=[filter_taxonomies['org'].id], locs=[filter_taxonomies['loc'].id]
         )
@@ -973,7 +977,7 @@ class TestCannedRole:
         :CaseLevel: System
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         userone_login = gen_string('alpha')
         userone_pass = gen_string('alphanumeric')
@@ -1081,7 +1085,7 @@ class TestCannedRole:
         :CaseLevel: System
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         user_one = self.create_simple_user(target_sat, filter_taxos=filter_taxonomies)
         user_two = self.create_simple_user(target_sat, filter_taxos=filter_taxonomies)
@@ -1123,7 +1127,7 @@ class TestCannedRole:
         :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         # Creating resource
         dom_name = gen_string('alpha')
@@ -1168,7 +1172,7 @@ class TestCannedRole:
         :CaseImportance: Critical
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
@@ -1204,7 +1208,9 @@ class TestCannedRole:
 
         :CaseLevel: Integration
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
+        )
         sc = self.user_config(user, target_sat)
         # Creating resource
         dom_name = gen_string('alpha')
@@ -1247,7 +1253,9 @@ class TestCannedRole:
 
         :CaseLevel: Integration
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
+        )
         sc = self.user_config(user, target_sat)
         # Creating resource
         dom_name = gen_string('alpha')
@@ -1293,7 +1301,7 @@ class TestCannedRole:
             create new role
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
@@ -1333,7 +1341,9 @@ class TestCannedRole:
         :expectedresults: Org Admin should not have permissions to update
             existing roles
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
+        )
         test_role = target_sat.api.Role().create()
         sc = self.user_config(user, target_sat)
         test_role = target_sat.api.Role(sc, id=test_role.id).read()
@@ -1360,7 +1370,7 @@ class TestCannedRole:
         :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
@@ -1407,7 +1417,7 @@ class TestCannedRole:
         :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
@@ -1460,7 +1470,9 @@ class TestCannedRole:
 
         :CaseLevel: Integration
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
+        )
         test_user = self.create_simple_user(filter_taxos=role_taxonomies)
         sc = self.user_config(user, target_sat)
         try:
@@ -1498,7 +1510,7 @@ class TestCannedRole:
             location=[role_taxonomies['loc']],
         ).create()
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         user.role = [org_admin]
         user = user.update(['role'])
@@ -1532,7 +1544,9 @@ class TestCannedRole:
 
         :CaseLevel: Integration
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
+        )
         test_user = self.create_simple_user(filter_taxos=filter_taxonomies)
         sc = self.user_config(user, target_sat)
         with pytest.raises(HTTPError):
@@ -1557,7 +1571,7 @@ class TestCannedRole:
             1. Org Admin should not have access to create organizations
             2. Org Admin should have access to create locations
         """
-        org_admin = self.create_org_admin_role(orgs=[role_taxonomies['org'].id])
+        org_admin = self.create_org_admin_role(target_sat, orgs=[role_taxonomies['org'].id])
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
         user = target_sat.api.User(
@@ -1603,7 +1617,7 @@ class TestCannedRole:
         :expectedresults: Org Admin should have access to all the global
             target_sat.api in any taxonomies
         """
-        org_admin = self.create_org_admin_role(orgs=[role_taxonomies['org'].id])
+        org_admin = self.create_org_admin_role(target_sat, orgs=[role_taxonomies['org'].id])
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
         user = target_sat.api.User(
@@ -1658,7 +1672,7 @@ class TestCannedRole:
         :CaseAutomation: Automated
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         # Creating Domain resource in same taxonomies as Org Admin role to access later
         domain = self.create_domain(
@@ -1705,7 +1719,7 @@ class TestCannedRole:
         :CaseAutomation: Automated
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         # Creating Domain resource in different taxonomies to access later
         domain = self.create_domain(orgs=[module_org.id], locs=[module_location.id])
@@ -1753,6 +1767,7 @@ class TestCannedRole:
         group_name = gen_string("alpha")
         password = gen_string("alpha")
         org_admin = self.create_org_admin_role(
+            target_sat,
             orgs=[create_ldap['authsource'].organization[0].id],
             locs=[create_ldap['authsource'].location[0].id],
         )
@@ -1815,7 +1830,7 @@ class TestCannedRole:
         group_name = gen_string("alpha")
         password = gen_string("alpha")
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         # Creating Domain resource in same taxonomies as Org Admin role to access later
         domain = self.create_domain(
