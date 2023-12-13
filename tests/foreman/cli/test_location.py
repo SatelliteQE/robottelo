@@ -101,7 +101,12 @@ def _host_group(request, target_sat):
 
 
 def _compute_resource(request, target_sat):
-    compute_resource = target_sat.cli_factory.compute_resource()
+    compute_resource = target_sat.cli_factory.compute_resource(
+        {
+            'provider': 'Libvirt',
+            'url': 'qemu+tcp://localhost:16509/system',
+        }
+    )
 
     @request.addfinalizer
     def _cleanup():
