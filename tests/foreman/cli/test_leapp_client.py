@@ -27,8 +27,8 @@ from robottelo.logging import logger
 synced_repos = pytest.StashKey[dict]
 
 RHEL7_VER = '7.9'
-RHEL8_VER = '8.8'
-RHEL9_VER = '9.2'
+RHEL8_VER = '8.9'
+RHEL9_VER = '9.3'
 
 RHEL_REPOS = {
     'rhel7_server': {
