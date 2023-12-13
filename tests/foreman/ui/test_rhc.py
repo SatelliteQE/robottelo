@@ -86,9 +86,12 @@ def fixture_setup_rhc_satellite(
         repo2_id = module_target_sat.api_factory.enable_sync_redhat_repo(
             constants.REPOS['rhel7'], module_rhc_org.id
         )
+        repo3_id = module_target_sat.api_factory.enable_sync_redhat_repo(
+            constants.REPOS['rhel8_bos'], module_rhc_org.id
+        )
         # Add repos to Content view
         content_view = module_target_sat.api.ContentView(
-            organization=module_rhc_org, repository=[repo1_id, repo2_id]
+            organization=module_rhc_org, repository=[repo1_id, repo2_id, repo3_id]
         ).create()
         content_view.publish()
         # Create Activation key
