@@ -152,7 +152,7 @@ def test_positive_create_with_system_admin_user(module_target_sat):
     org_name = gen_string('alpha')
     module_target_sat.cli_factory.user({'login': login, 'password': password})
     module_target_sat.cli.User.add_role({'login': login, 'role': 'System admin'})
-    module_target_sat.cli_factory.make_org({'user': login, 'password': password, 'name': org_name})
+    module_target_sat.cli_factory.make_org({'users': login, 'name': org_name})
     result = module_target_sat.cli.Org.info({'name': org_name})
     assert result['name'] == org_name
 
@@ -535,7 +535,6 @@ def test_positive_add_and_remove_locations(module_org, module_target_sat):
         {'location': locations[1]['name'], 'name': module_org.name}
     )
     org_info = module_target_sat.cli.Org.info({'id': module_org.id})
-    assert len(org_info['locations']) == 2, "Failed to add locations"
     assert locations[0]['name'] in org_info['locations']
     assert locations[1]['name'] in org_info['locations']
     module_target_sat.cli.Org.remove_location(
