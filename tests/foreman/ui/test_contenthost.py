@@ -102,6 +102,34 @@ def run_remote_command_on_content_host(command, vm_module_streams):
     return result
 
 
+def get_supported_rhel_versions():
+    """Helper to get the supported base rhel versions for contenthost.
+    return: a list of integers
+    """
+    return [
+        ver for ver in settings.supportability.content_hosts.rhel.versions if isinstance(ver, int)
+    ]
+
+
+def get_rhel_lifecycle_support(rhel_version):
+    """Helper to get what the Lifecycle Support Status should be,
+       based on provided rhel version.
+    :param rhel_version: integer of the current base rhel version
+    :return: string with the expected status of rhel version support
+    """
+    rhels = sorted(get_supported_rhel_versions(), reverse=True)
+    rhel_lifecycle_status = 'Unknown'
+    if rhel_version not in rhels:
+        return rhel_lifecycle_status
+    elif rhels.index(rhel_version) <= 1:
+        rhel_lifecycle_status = 'Full support'
+    elif rhels.index(rhel_version) == 2:
+        rhel_lifecycle_status = 'Approaching end of maintenance support'
+    elif rhels.index(rhel_version) >= 3:
+        rhel_lifecycle_status = 'End of maintenance support'
+    return rhel_lifecycle_status
+
+
 @pytest.mark.e2e
 @pytest.mark.tier3
 @pytest.mark.parametrize(
@@ -120,11 +148,27 @@ def run_remote_command_on_content_host(command, vm_module_streams):
     indirect=True,
 )
 @pytest.mark.no_containers
-def test_positive_end_to_end(session, default_location, module_repos_collection_with_manifest, vm):
+def test_positive_end_to_end(
+    vm,
+    session,
+    module_org,
+    default_location,
+    module_repos_collection_with_manifest,
+):
     """Create all entities required for content host, set up host, register it
     as a content host, read content host details, install package and errata.
 
     :id: f43f2826-47c1-4069-9c9d-2410fd1b622c
+
+    :setup: Register a rhel7 vm as a content host. Import repos
+        collection and associated manifest.
+
+    :steps:
+        1. Install some outdated version for an applicable package
+        2. In legacy Host UI, find the host status and rhel lifecycle status
+        3. Using legacy ContentHost UI, find the chost and relevant details
+        4. Install the errata, check legacy ContentHost UI and the updated package
+        5. Delete the content host, then try to find it
 
     :expectedresults: content host details are the same as expected, package
         and errata installation are successful
@@ -135,13 +179,24 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
 
     :CaseImportance: Critical
     """
+    # Read rhel distro param, determine what rhel lifecycle status should be
+    _distro = module_repos_collection_with_manifest.distro
+    host_rhel_version = None
+    if _distro.startswith('rhel'):
+        host_rhel_version = int(_distro[4:])
+    rhel_status = get_rhel_lifecycle_support(host_rhel_version if not None else 0)
+
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     startdate = datetime.utcnow().strftime('%m/%d/%Y')
+
     with session:
         session.location.select(default_location.name)
+        session.organization.select(module_org.name)
         # Ensure content host is searchable
-        assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
+        found_chost = session.contenthost.search(f'{vm.hostname}')
+        assert found_chost, f'Search for contenthost by name: "{vm.hostname}", returned no results.'
+        assert found_chost[0]['Name'] == vm.hostname
         chost = session.contenthost.read(
             vm.hostname, widget_names=['details', 'provisioning_details', 'subscriptions']
         )
@@ -182,6 +237,11 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
             assert startdate in custom_sub['Expires']
         else:
             assert startdate in custom_sub['Starts']
+        # Ensure host status and details show correct RHEL lifecycle status
+        host_status = session.host.host_status(vm.hostname)
+        host_rhel_lcs = session.contenthost.read(vm.hostname, widget_names=['permission_denied'])
+        assert rhel_status in host_rhel_lcs['permission_denied']
+        assert rhel_status in host_status
         # Update description
         new_description = gen_string('alpha')
         session.contenthost.update(vm.hostname, {'details.description': new_description})
@@ -196,9 +256,7 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
         packages = session.contenthost.search_package(vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_0_CUSTOM_PACKAGE
         # Install errata
-        result = session.contenthost.install_errata(
-            vm.hostname, settings.repos.yum_6.errata[2], install_via='rex'
-        )
+        result = session.contenthost.install_errata(vm.hostname, FAKE_1_ERRATA_ID)
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
         # Ensure errata installed
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
