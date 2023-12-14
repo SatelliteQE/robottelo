@@ -55,8 +55,3 @@ def test_positive_verify_default_values_for_global_registration(
     assert cmd['advanced']['update_packages'] == False
     assert cmd['advanced']['ignore_error'] == False
     assert cmd['advanced']['force'] == False
-
-
-
-
-

@@ -1818,7 +1818,6 @@ class Satellite(Capsule, SatelliteMixins):
         yield
         self.omitting_credentials = False
 
-    @contextmanager
     def ui_session(self, testname=None, user=None, password=None, url=None, login=True):
         """Initialize an airgun Session object and store it as self.ui_session"""
 
@@ -1840,15 +1839,15 @@ class Satellite(Capsule, SatelliteMixins):
                 hostname=self.hostname,
                 login=login,
             )
-            yield ui_session
+            return ui_session
         except Exception:
             raise
-        finally:
-            video_url = settings.ui.grid_url.replace(
-                ':4444', f'/videos/{ui_session.ui_session_id}.mp4'
-            )
-            self.record_property('video_url', video_url)
-            self.record_property('session_id', ui_session.ui_session_id)
+        # finally:
+        #     video_url = settings.ui.grid_url.replace(
+        #         ':4444', f'/videos/{ui_session.ui_session_id}.mp4'
+        #     )
+        #     self.record_property('video_url', video_url)
+        #     self.record_property('session_id', ui_session.ui_session_id)
 
     @property
     def satellite(self):
