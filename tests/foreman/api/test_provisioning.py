@@ -185,6 +185,11 @@ def test_rhel_pxe_provisioning(
     )
     assert job['result'] == 'success', 'Job invocation failed'
 
+    # check if katello-ca-consumer is not used while host registration
+    assert provisioning_host.execute('rpm -qa |grep katello-ca-consumer').status == 1
+    assert (
+        'katello-ca-consumer' not in provisioning_host.execute('cat /root/install.post.log').stdout
+    )
     # assert that the host is subscribed and consumes
     # subsctiption provided by the activation key
     assert provisioning_host.subscribed, 'Host is not subscribed'
