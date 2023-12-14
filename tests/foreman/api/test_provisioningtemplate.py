@@ -640,3 +640,50 @@ class TestProvisioningTemplate:
             in rex_snippet
         )
         assert ssh_key in rex_snippet
+
+    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    def test_positive_template_check_fips_enabled(
+        self,
+        module_sync_kickstart_content,
+        module_target_sat,
+        module_sca_manifest_org,
+        module_location,
+        module_default_org_view,
+        module_lce_library,
+        default_architecture,
+        default_partitiontable,
+    ):
+        """Read provision/PXE templates, verify fips packages to install and kernel cmdline option
+            fips=1, set by kickstart_kernel_options snippet while using host param fips_enabled
+            is rendered correctly
+
+        :id: 065ef48f-bec5-4535-8be7-d8527fa21565
+
+        :expectedresults: Rendered template should contain correct FIPS packages and boot parameter
+                            set by snippet while using host param fips_enabled for rhel host
+
+        :parametrized: yes
+        """
+        host_params = [{'name': 'fips_enabled', 'value': 'true', 'parameter_type': 'boolean'}]
+        host = module_target_sat.api.Host(
+            organization=module_sca_manifest_org,
+            location=module_location,
+            name=gen_string('alpha').lower(),
+            operatingsystem=module_sync_kickstart_content.os,
+            architecture=default_architecture,
+            domain=module_sync_kickstart_content.domain,
+            root_pass=settings.provisioning.host_root_password,
+            ptable=default_partitiontable,
+            content_facet_attributes={
+                'content_source_id': module_target_sat.nailgun_smart_proxy.id,
+                'content_view_id': module_default_org_view.id,
+                'lifecycle_environment_id': module_lce_library.id,
+            },
+            host_parameters_attributes=host_params,
+        ).create()
+        render = host.read_template(data={'template_kind': 'provision'})['template']
+        assert 'dracut-fips' in render
+        assert '-prelink' in render
+        for kind in ['PXELinux', 'PXEGrub', 'PXEGrub2', 'iPXE', 'kexec']:
+            render = host.read_template(data={'template_kind': kind})['template']
+            assert 'fips=1' in render
