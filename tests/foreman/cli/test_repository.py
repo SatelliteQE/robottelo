@@ -2517,8 +2517,8 @@ class TestAnsibleCollectionRepository:
         :parametrized: yes
 
         """
-        module_target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        repo = module_target_sat.cli_factory.Repository.info({'id': repo['id']})
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
 
     @pytest.mark.tier2
@@ -2550,8 +2550,8 @@ class TestAnsibleCollectionRepository:
 
         """
         import_org = target_sat.cli_factory.make_org()
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
         # export
         result = target_sat.cli.ContentExport.completeLibrary({'organization-id': module_org.id})
@@ -2567,15 +2567,15 @@ class TestAnsibleCollectionRepository:
             {'name': 'Import-Library', 'organization-label': import_org['label']}
         )
         assert cv['description'] == 'Content View used for importing into library'
-        prods = target_sat.cli_factory.Product.list({'organization-id': import_org['id']})
-        prod = target_sat.cli_factory.Product.info(
+        prods = target_sat.cli.Product.list({'organization-id': import_org['id']})
+        prod = target_sat.cli.Product.info(
             {'id': prods[0]['id'], 'organization-id': import_org['id']}
         )
         ac_content = [
             cont for cont in prod['content'] if cont['content-type'] == 'ansible_collection'
         ]
         assert len(ac_content) > 0
-        repo = target_sat.cli_factory.Repository.info(
+        repo = target_sat.cli.Repository.info(
             {'name': ac_content[0]['repo-name'], 'product-id': prod['id']}
         )
         result = target_sat.execute(f'curl {repo["published-at"]}')
@@ -2610,8 +2610,8 @@ class TestAnsibleCollectionRepository:
 
         """
         import_org = target_sat.cli_factory.make_org()
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
         published_url = repo['published-at']
         # sync from different org
@@ -2628,8 +2628,8 @@ class TestAnsibleCollectionRepository:
                     [{ name: theforeman.operations, version: "0.1.0"}]}',
             }
         )
-        target_sat.cli_factory.Repository.synchronize({'id': repo_2['id']})
-        repo_2_status = target_sat.cli_factory.Repository.info({'id': repo_2['id']})
+        target_sat.cli.Repository.synchronize({'id': repo_2['id']})
+        repo_2_status = target_sat.cli.Repository.info({'id': repo_2['id']})
         assert repo_2_status['sync']['status'] == 'Success'
 
 
@@ -2653,8 +2653,8 @@ class TestMD5Repository:
             lifecycle environment
         """
         lce = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        synced_repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        synced_repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert synced_repo['sync']['status'].lower() == 'success'
         assert synced_repo['content-counts']['packages'] == '35'
         cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
@@ -2688,7 +2688,7 @@ class TestDRPMRepository:
 
         :expectedresults: drpms can be listed in repository
         """
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
         result = target_sat.execute(
             f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/Library"
             f"/custom/{module_product.label}/{repo['label']}/drpms/ | grep .drpm"
@@ -2711,7 +2711,7 @@ class TestDRPMRepository:
 
         :expectedresults: drpms can be listed in content view
         """
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
         cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
         target_sat.cli.ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -2740,7 +2740,7 @@ class TestDRPMRepository:
             lifecycle environment
         """
         lce = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
         cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
         target_sat.cli.ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -2976,7 +2976,7 @@ class TestFileRepository:
             local_path=DataFile.RPM_TO_UPLOAD,
             remote_path=f"/tmp/{RPM_TO_UPLOAD}",
         )
-        result = target_sat.cli_factory.Repository.upload_content(
+        result = target_sat.cli.Repository.upload_content(
             {
                 'name': repo['name'],
                 'organization': repo['organization'],
@@ -2985,7 +2985,7 @@ class TestFileRepository:
             }
         )
         assert f"Successfully uploaded file '{RPM_TO_UPLOAD}'" in result[0]['message']
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['content-counts']['files'] == '1'
         filesearch = entities.File().search(
             query={"search": f"name={RPM_TO_UPLOAD} and repository={repo['name']}"}
@@ -3041,7 +3041,7 @@ class TestFileRepository:
             local_path=DataFile.RPM_TO_UPLOAD,
             remote_path=f"/tmp/{RPM_TO_UPLOAD}",
         )
-        result = target_sat.cli_factory.Repository.upload_content(
+        result = target_sat.cli.Repository.upload_content(
             {
                 'name': repo['name'],
                 'organization': repo['organization'],
@@ -3050,13 +3050,13 @@ class TestFileRepository:
             }
         )
         assert f"Successfully uploaded file '{RPM_TO_UPLOAD}'" in result[0]['message']
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['files']) > 0
         files = target_sat.cli.File.list({'repository-id': repo['id']})
-        target_sat.cli_factory.Repository.remove_content(
+        target_sat.cli.Repository.remove_content(
             {'id': repo['id'], 'ids': [file_['id'] for file_ in files]}
         )
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['content-counts']['files'] == '0'
 
     @pytest.mark.tier2
@@ -3094,8 +3094,8 @@ class TestFileRepository:
         :expectedresults: entire directory is synced over http
 
         """
-        module_target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        repo = module_target_sat.cli_factory.Repository.info({'id': repo['id']})
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
         assert repo['content-counts']['files'] == '2'
 
@@ -3132,8 +3132,8 @@ class TestFileRepository:
             f'wget -P {CUSTOM_LOCAL_FOLDER} -r -np -nH --cut-dirs=5 -R "index.html*" '
             f'{CUSTOM_FILE_REPO}'
         )
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['files']) > 1
 
     @pytest.mark.tier2
@@ -3172,8 +3172,8 @@ class TestFileRepository:
         )
         target_sat.execute(f'ln -s {CUSTOM_LOCAL_FOLDER} /{gen_string("alpha")}')
 
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['files']) > 1
 
     @pytest.mark.tier2
@@ -3206,7 +3206,7 @@ class TestFileRepository:
         """
         text_file_name = f'test-{gen_string("alpha", 5)}.txt'.lower()
         target_sat.execute(f'echo "First File" > /tmp/{text_file_name}')
-        result = target_sat.cli_factory.Repository.upload_content(
+        result = target_sat.cli.Repository.upload_content(
             {
                 'name': repo['name'],
                 'organization': repo['organization'],
@@ -3215,7 +3215,7 @@ class TestFileRepository:
             }
         )
         assert f"Successfully uploaded file '{text_file_name}'" in result[0]['message']
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         # Assert there is only one file
         assert repo['content-counts']['files'] == '1'
         filesearch = entities.File().search(
@@ -3224,7 +3224,7 @@ class TestFileRepository:
         assert text_file_name == filesearch[0].name
         # Create new version of the file by changing the text
         target_sat.execute(f'echo "Second File" > /tmp/{text_file_name}')
-        result = target_sat.cli_factory.Repository.upload_content(
+        result = target_sat.cli.Repository.upload_content(
             {
                 'name': repo['name'],
                 'organization': repo['organization'],
@@ -3233,7 +3233,7 @@ class TestFileRepository:
             }
         )
         assert f"Successfully uploaded file '{text_file_name}'" in result[0]['message']
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         # Assert there is still only one file
         assert repo['content-counts']['files'] == '1'
         filesearch = entities.File().search(
