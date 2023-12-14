@@ -415,8 +415,12 @@ class TestUser:
         sc = ServerConfig(
             auth=(user.login, password), url=module_target_sat.url, verify=settings.server.verify_ca
         )
-        module_target_sat.api.TablePreferences(sc, user=user, name=name, columns=columns).create()
-        table_preferences = module_target_sat.api.TablePreferences(sc, user=user).search()
+        module_target_sat.api.TablePreferences(
+            server_config=sc, user=user, name=name, columns=columns
+        ).create()
+        table_preferences = module_target_sat.api.TablePreferences(
+            server_config=sc, user=user
+        ).search()
         assert len(table_preferences) == 1
         tp = table_preferences[0]
         assert hasattr(tp, 'name')
@@ -724,7 +728,7 @@ class TestActiveDirectoryUser:
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            target_sat.api.Architecture(sc).search()
+            target_sat.api.Architecture(server_config=sc).search()
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -774,7 +778,7 @@ class TestActiveDirectoryUser:
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            module_target_sat.api.Architecture(sc).search()
+            module_target_sat.api.Architecture(server_config=sc).search()
         user = module_target_sat.api.User().search(
             query={'search': 'login={}'.format(create_ldap['ldap_user_name'])}
         )[0]
@@ -791,7 +795,7 @@ class TestActiveDirectoryUser:
             module_target_sat.api.Errata,
             module_target_sat.api.OperatingSystem,
         ]:
-            entity(sc).search()
+            entity(server_config=sc).search()
 
 
 @pytest.mark.run_in_one_thread
@@ -855,7 +859,7 @@ class TestFreeIPAUser:
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            target_sat.api.Architecture(sc).search()
+            target_sat.api.Architecture(server_config=sc).search()
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -895,7 +899,7 @@ class TestFreeIPAUser:
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            target_sat.api.Architecture(sc).search()
+            target_sat.api.Architecture(server_config=sc).search()
         user = target_sat.api.User().search(
             query={'search': 'login={}'.format(create_ldap['username'])}
         )[0]
@@ -912,7 +916,7 @@ class TestFreeIPAUser:
             target_sat.api.Errata,
             target_sat.api.OperatingSystem,
         ]:
-            entity(sc).search()
+            entity(server_config=sc).search()
 
 
 class TestPersonalAccessToken:
