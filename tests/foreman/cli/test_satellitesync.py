@@ -499,7 +499,7 @@ def class_export_entities(module_org, module_target_sat):
     exporting_repo = module_target_sat.cli_factory.make_repository(
         {
             'name': exporting_repo_name,
-            'mirror-on-sync': 'no',
+            'mirroring-policy': 'mirror_content_only',
             'download-policy': 'immediate',
             'product-id': product['id'],
         }
@@ -1273,7 +1273,7 @@ class TestContentViewSync:
             {
                 'name': gen_string('alpha'),
                 'download-policy': 'immediate',
-                'mirror-on-sync': 'no',
+                'mirroring-policy': 'mirror_content_only',
                 'product-id': product['id'],
             }
         )
