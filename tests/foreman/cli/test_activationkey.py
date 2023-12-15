@@ -24,7 +24,6 @@ from fauxfactory import gen_alphanumeric, gen_string
 import pytest
 
 from robottelo.cli.defaults import Defaults
-from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, PRDS, REPOS, REPOSET
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
