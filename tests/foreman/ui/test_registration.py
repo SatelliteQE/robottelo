@@ -21,7 +21,7 @@ from robottelo.utils.datafactory import gen_string
 
 def test_positive_verify_default_values_for_global_registration(
     session,
-    target_sat,
+    module_target_sat,
     default_org,
     default_location,
     default_os,
@@ -31,14 +31,14 @@ def test_positive_verify_default_values_for_global_registration(
     :id: 34122bf3-ae23-47ca-ba3d-da0653d8fd33
 
     :expectedresults: Some of the fields in the form should be populated
-        e.g. organizatoin, location,remote-execution, insights setup.
+        e.g. organization, location,remote-execution, insights setup.
 
-    :CaseLevel: Integration
+    :CaseLevel: Component
 
     :steps:
         1.Check for the default values in the global registration template
     """
-    ak = target_sat.cli_factory.make_activation_key(
+    ak = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': default_org.id, 'name': gen_string('alpha')}
     )
     with session:
