@@ -1764,7 +1764,7 @@ def test_positive_invalid_release_version(module_sca_manifest_org, module_target
         reposet=REPOS['kickstart']['rhel8_aps']['reposet'],
         releasever=REPOS['kickstart']['rhel8_aps']['version'],
     )
-    Repository.synchronize({'id': rh_repo_id})
+    module_target_sat.cli.Repository.synchronize({'id': rh_repo_id})
     with pytest.raises(CLIFactoryError) as error:
         module_target_sat.cli_factory.make_activation_key(
             {
