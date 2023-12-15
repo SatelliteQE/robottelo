@@ -19,6 +19,8 @@
 from fauxfactory import gen_string
 import pytest
 
+from robottelo.constants import DEFAULT_ARCHITECTURE, PRDS, REPOS, REPOSET
+
 
 @pytest.mark.tier2
 def test_positive_create_cv(session, target_sat):
@@ -40,6 +42,59 @@ def test_positive_create_cv(session, target_sat):
     with target_sat.ui_session() as session:
         session.contentview_new.create(dict(name=cv))
         assert session.contentview_new.search(cv)[0]['Name'] == cv
+
+
+@pytest.mark.tier2
+def test_version_table_read(session, function_sca_manifest_org, target_sat):
+    """Able to read CV version package details, which includes the Epoch tab
+
+    :id: fe2a87c7-f148-40f2-b11a-c209a4807016
+
+    :steps:
+        1. Enable and Sync RHEL8 Base OS Repo
+        2. Add repo to a CV
+        3. Publish the CV
+        4. Navigate to the published Version's page
+        5. Filter packages to only an arbitrary package
+
+    :expectedresults: The package is present, has the appropriate name, and has the epoch tab present
+
+    :CaseLevel: System
+
+    :BZ: 1911545
+
+    :customerscenario: true
+    """
+    target_sat.cli.RepositorySet.enable(
+        {
+            'basearch': DEFAULT_ARCHITECTURE,
+            'name': REPOSET['rhel8_bos'],
+            'organization-id': function_sca_manifest_org.id,
+            'product': PRDS['rhel8'],
+            'releasever': REPOS['rhel8_bos']['releasever'],
+        }
+    )
+    rhel8_bos_info = target_sat.cli.RepositorySet.info(
+        {
+            'name': REPOSET['rhel8_bos'],
+            'organization-id': function_sca_manifest_org.id,
+            'product': PRDS['rhel8'],
+        }
+    )
+    rh_repo_id = rhel8_bos_info['enabled-repositories'][0]['id']
+    rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    cv = target_sat.api.ContentView(organization=function_sca_manifest_org).create()
+    cv = target_sat.api.ContentView(id=cv.id, repository=[rh_repo]).update(["repository"])
+    cv.publish()
+    with target_sat.ui_session() as session:
+        package_name = 'aajohan'
+        session.organization.select(org_name=function_sca_manifest_org.name)
+        response = session.contentview_new.read_version_table(
+            cv.name, 'Version 1.0', 'rpmPackages', search_param=package_name
+        )
+        assert package_name in response[0]['Name']
+        assert response[0]['Epoch']
 
 
 @pytest.mark.tier2
