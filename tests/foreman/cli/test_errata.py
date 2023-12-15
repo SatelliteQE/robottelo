@@ -491,70 +491,11 @@ def test_positive_install_by_host_collection_and_org(
 
 
 @pytest.mark.tier3
-def test_negative_install_by_hc_id_without_errata_info(
-    module_entitlement_manifest_org, host_collection, errata_hosts, target_sat
-):
-    """Attempt to install an erratum on a host collection by host collection id but no errata info
-    specified.
-
-    :id: 3635698d-4f09-4a60-91ea-1957e5949750
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps: host-collection erratum install --id <id> --organization-id
-        <org_id>
-
-    :expectedresults: Error message thrown.
-
-    :CaseImportance: Low
-
-    :CaseLevel: System
-    """
-    with pytest.raises(CLIReturnCodeError, match="Error: Option '--errata' is required"):
-        target_sat.cli.HostCollection.erratum_install(
-            {
-                'id': host_collection['id'],
-                'organization-id': module_entitlement_manifest_org.id,
-            }
-        )
-
-
-@pytest.mark.tier3
-def test_negative_install_by_hc_name_without_errata_info(
-    module_entitlement_manifest_org, host_collection, errata_hosts, target_sat
-):
-    """Attempt to install an erratum on a host collection by host collection name but no errata
-    info specified.
-
-    :id: 12d78bca-efd1-407a-9bd3-f989c2bda6a8
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps: host-collection erratum install --name <name> --organization-id
-        <org_id>
-
-    :expectedresults: Error message thrown.
-
-    :CaseImportance: Low
-
-    :CaseLevel: System
-    """
-    with pytest.raises(CLIReturnCodeError, match="Error: Option '--errata' is required"):
-        target_sat.cli.HostCollection.erratum_install(
-            {
-                'name': host_collection['name'],
-                'organization-id': module_entitlement_manifest_org.id,
-            }
-        )
-
-
-@pytest.mark.tier3
-def test_negative_install_without_hc_info(
+def test_negative_install_erratum_on_host_collection(
     module_entitlement_manifest_org, host_collection, module_target_sat
 ):
-    """Attempt to install an erratum on a host collection without specifying host collection info.
-    This test only works with two or more host collections (BZ#1928281).
-    We have the one from the fixture, just need to create one more at the start of the test.
+    """Attempt to install an erratum on a host collection
+        This functionality was removed with katello-agent
 
     :id: 753d36f0-d19b-494d-a247-ce2d61c4cf74
 
@@ -563,9 +504,7 @@ def test_negative_install_without_hc_info(
     :Steps: host-collection erratum install --errata <errata>
         --organization-id <org_id>
 
-    :expectedresults: Error message thrown.
-
-    :BZ: 1928281
+    :expectedresults: Error message thrown. Not supported. Use the remote execution equivalent
 
     :CaseImportance: Low
 
@@ -574,63 +513,14 @@ def test_negative_install_without_hc_info(
     module_target_sat.cli_factory.make_host_collection(
         {'organization-id': module_entitlement_manifest_org.id}
     )
-    with pytest.raises(CLIReturnCodeError):
+    with pytest.raises(CLIReturnCodeError) as error:
         module_target_sat.cli.HostCollection.erratum_install(
             {
                 'organization-id': module_entitlement_manifest_org.id,
                 'errata': [REPO_WITH_ERRATA['errata'][0]['id']],
             }
         )
-
-
-@pytest.mark.tier3
-def test_negative_install_by_hc_id_without_org_info(
-    module_entitlement_manifest_org, host_collection, module_target_sat
-):
-    """Attempt to install an erratum on a host collection by host collection id but without
-    specifying any org info.
-
-    :id: b7d32bb3-9c5f-452b-b421-f8e9976ca52c
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps: host-collection erratum install --errata <errata> --id <id>
-
-    :expectedresults: Error message thrown.
-
-    :CaseImportance: Low
-
-    :CaseLevel: System
-    """
-    with pytest.raises(CLIReturnCodeError, match='Error: Could not find organization'):
-        module_target_sat.cli.HostCollection.erratum_install(
-            {'id': host_collection['id'], 'errata': [REPO_WITH_ERRATA['errata'][0]['id']]}
-        )
-
-
-@pytest.mark.tier3
-def test_negative_install_by_hc_name_without_org_info(
-    module_entitlement_manifest_org, host_collection, module_target_sat
-):
-    """Attempt to install an erratum on a host collection by host collection name but without
-    specifying any org info.
-
-    :id: 991f5b61-a4d1-444c-8a21-8ffe48e83f76
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps: host-collection erratum install --errata <errata> --name <name>
-
-    :expectedresults: Error message thrown.
-
-    :CaseImportance: Low
-
-    :CaseLevel: System
-    """
-    with pytest.raises(CLIReturnCodeError, match='Error: Could not find organization'):
-        module_target_sat.cli.HostCollection.erratum_install(
-            {'name': host_collection['name'], 'errata': [REPO_WITH_ERRATA['errata'][0]['id']]}
-        )
+    assert 'Not supported. Use the remote execution equivalent' in error.value.stderr
 
 
 @pytest.mark.tier3
