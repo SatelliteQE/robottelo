@@ -138,8 +138,8 @@ class TestContentView:
             },
             organization=module_org.id,
         ).create()
-        assert host.content_facet_attributes['content_view_id'] == class_cv.id
-        assert host.content_facet_attributes['lifecycle_environment_id'] == module_lce.id
+        assert host.content_facet_attributes['content_view']['id'] == class_cv.id
+        assert host.content_facet_attributes['lifecycle_environment']['id'] == module_lce.id
         assert class_cv.read().content_host_count == 1
 
     @pytest.mark.tier2
@@ -491,7 +491,9 @@ class TestContentViewPublishPromote:
             composite=True,
             organization=module_org,
         ).create()
-        self.add_content_views_to_composite(composite_cv, module_org, random.randint(2, 3))
+        self.add_content_views_to_composite(
+            module_target_sat, composite_cv, module_org, random.randint(2, 3)
+        )
 
         for i in range(random.randint(2, 3)):
             composite_cv.publish()
@@ -613,7 +615,9 @@ class TestContentViewPublishPromote:
             composite=True,
             organization=module_org,
         ).create()
-        self.add_content_views_to_composite(composite_cv, module_org, random.randint(2, 3))
+        self.add_content_views_to_composite(
+            module_target_sat, composite_cv, module_org, random.randint(2, 3)
+        )
         composite_cv.publish()
         composite_cv.read().version[0].promote(data={'environment_ids': module_lce.id})
         composite_cv = composite_cv.read()
@@ -642,7 +646,9 @@ class TestContentViewPublishPromote:
             composite=True,
             organization=module_org,
         ).create()
-        self.add_content_views_to_composite(composite_cv, module_org, random.randint(2, 3))
+        self.add_content_views_to_composite(
+            module_target_sat, composite_cv, module_org, random.randint(2, 3)
+        )
         composite_cv.publish()
         composite_cv = composite_cv.read()
 
@@ -754,7 +760,9 @@ class TestContentViewPublishPromote:
         for content_view, package in [(content_view_1, 'camel'), (content_view_2, 'cow')]:
             content_view.repository = [repo]
             content_view.update(['repository'])
-            content_view_info = apply_package_filter(content_view, repo, package, inclusion=False)
+            content_view_info = apply_package_filter(
+                content_view, repo, package, target_sat, inclusion=False
+            )
             assert content_view_info.package_count == 35
 
         # create composite content view with these two published content views
@@ -803,7 +811,7 @@ class TestContentViewPublishPromote:
         composite_cv.publish()
         assert not composite_cv.read().needs_publish
         # Add some content_views to the composite view
-        self.add_content_views_to_composite(composite_cv, module_org, 2)
+        self.add_content_views_to_composite(target_sat, composite_cv, module_org, 2)
         # Needs_publish should be set to True when a component CV is added/removed
         assert composite_cv.read().needs_publish
         composite_cv.publish()
