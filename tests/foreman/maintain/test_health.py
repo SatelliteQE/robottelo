@@ -320,8 +320,8 @@ def test_positive_health_check_hotfix_installed(sat_maintain, request):
 
 
 @pytest.mark.include_capsule
-def test_positive_health_check_validate_yum_config(sat_maintain):
-    """Verify validate-yum-config
+def test_positive_health_check_validate_dnf_config(sat_maintain):
+    """Verify validate-dnf-config
 
     :id: b50c8866-6175-4286-8106-561945726023
 
@@ -329,26 +329,26 @@ def test_positive_health_check_validate_yum_config(sat_maintain):
 
     :steps:
         1. configure yum exclude.
-        2. Run satellite-maintain health check --label validate-yum-config
+        2. Run satellite-maintain health check --label validate-dnf-config
         3. Assert that excluded packages are listed in output.
         4. remove yum exclude configured in step 1.
 
-    :expectedresults: validate-yum-config should work.
+    :expectedresults: validate-dnf-config should work.
 
     :BZ: 1669498
 
     :customerscenario: true
     """
-    file = '/etc/yum.conf'
-    yum_exclude = 'exclude=cat*'
-    failure_message = 'Unset this configuration as it is risky while yum update or upgrade!'
-    sat_maintain.execute(f'sed -i "$ a {yum_exclude}" {file}')
-    result = sat_maintain.cli.Health.check(options={'label': 'validate-yum-config'})
+    file = '/etc/dnf/dnf.conf'
+    dnf_exclude = 'exclude=cat*'
+    failure_message = 'Unset this configuration as it is risky while dnf update or upgrade!'
+    sat_maintain.execute(f'sed -i "$ a {dnf_exclude}" {file}')
+    result = sat_maintain.cli.Health.check(options={'label': 'validate-dnf-config'})
     assert result.status == 1
-    assert yum_exclude in result.stdout
+    assert dnf_exclude in result.stdout
     assert failure_message in result.stdout
-    sat_maintain.execute(f'sed -i "/{yum_exclude}/d" {file}')
-    result = sat_maintain.cli.Health.check(options={'label': 'validate-yum-config'})
+    sat_maintain.execute(f'sed -i "/{dnf_exclude}/d" {file}')
+    result = sat_maintain.cli.Health.check(options={'label': 'validate-dnf-config'})
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
