@@ -37,21 +37,13 @@ def test_positive_ping(target_sat, switch_user):
     """
     result = target_sat.execute(f"su - {'postgres' if switch_user else 'root'} -c 'hammer ping'")
     assert result.stderr[1].decode() == ''
-    assert result.status == 0
 
-    status_count = 0
-    ok_count = 0
-    # Exclude message from stdout for services candlepin_events and katello_events
-    result.stdout = [line for line in result.stdout.splitlines() if 'message' not in line]
+    # Filter lines containing status
+    statuses = [line for line in result.stdout.splitlines() if 'status:' in line.lower()]
 
-    # iterate over the lines grouping every 3 lines
-    # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
-    # only the status line is relevant for this test
-    for _, status, _ in zip(*[iter(result.stdout)] * 3, strict=False):  # should this be strict?
-        status_count += 1
-
-        if status.split(':')[1].strip().lower() == 'ok':
-            ok_count += 1
+    # Get count of total status lines and lines containing OK
+    status_count = len(statuses)
+    ok_count = len([status for status in statuses if status.split(':')[1].strip().lower() == 'ok'])
 
     if status_count == ok_count:
         assert result.status == 0, 'Return code should be 0 if all services are ok'
