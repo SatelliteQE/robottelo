@@ -1406,7 +1406,10 @@ def sat_non_default_install(module_sat_ready_rhels):
 @pytest.mark.e2e
 @pytest.mark.tier1
 @pytest.mark.pit_client
-def test_capsule_installation(sat_non_default_install, cap_ready_rhel):
+@pytest.mark.parametrize(
+    'setting_update', [f'http_proxy={settings.http_proxy.un_auth_proxy_url}'], indirect=True
+)
+def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_update):
     """Run a basic Capsule installation with fapolicyd
 
     :id: 64fa85b6-96e6-4fea-bea4-a30539d59e65
@@ -1424,6 +1427,10 @@ def test_capsule_installation(sat_non_default_install, cap_ready_rhel):
         3. health check runs successfully
 
     :CaseImportance: Critical
+
+    :BZ: 1984400
+
+    :customerscenario: true
     """
     # Get Capsule repofile, and enable and download satellite-capsule
     org = sat_non_default_install.api.Organization().create()
