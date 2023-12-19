@@ -20,6 +20,7 @@ import uuid
 
 from fauxfactory import gen_ipaddr, gen_mac
 import pytest
+from requests import HTTPError
 
 from robottelo import constants
 from robottelo.config import settings
@@ -213,3 +214,16 @@ def test_positive_rex_interface_for_global_registration(
             assert interface['execution'] is True
             assert interface['ip'] == ip
             assert interface['mac'] == mac_address
+
+
+@pytest.mark.tier1
+def test_negative_global_registration_without_ak(module_target_sat):
+    """Attempt to register a host without ActivationKey
+
+    :id: e48a6260-97e0-4234-a69c-77bbbcde85de
+
+    :expectedresults: Generate command is disabled without ActivationKey
+    """
+    with pytest.raises(HTTPError) as context:
+        module_target_sat.api.RegistrationCommand().create()
+    assert 'Missing activation key!' in context.value.response.text
