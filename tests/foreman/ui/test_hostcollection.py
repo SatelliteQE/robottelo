@@ -705,9 +705,10 @@ def test_negative_hosts_limit(
         session.hostcollection.associate_host(hc_name, hosts[0].name)
         with pytest.raises(AssertionError) as context:
             session.hostcollection.associate_host(hc_name, hosts[1].name)
-        assert "cannot have more than 1 host(s) associated with host collection '{}'".format(
-            hc_name
-        ) in str(context.value)
+        assert (
+            f"cannot have more than 1 host(s) associated with host collection '{hc_name}'"
+            in str(context.value)
+        )
 
 
 @pytest.mark.tier3

@@ -325,8 +325,8 @@ def deploy_configure_by_command_check(command):
     virtwho_cleanup()
     try:
         ret, stdout = runcmd(command)
-    except Exception:
-        raise VirtWhoError(f"Failed to deploy configure by {command}")
+    except Exception as err:
+        raise VirtWhoError(f"Failed to deploy configure by {command}") from err
     else:
         if ret != 0 or 'Finished successfully' not in stdout:
             raise VirtWhoError(f"Failed to deploy configure by {command}")
@@ -351,7 +351,7 @@ def update_configure_option(option, value, config_file):
     :param value:  set the option to the value
     :param config_file: path of virt-who config file
     """
-    cmd = 'sed -i "s|^{0}.*|{0}={1}|g" {2}'.format(option, value, config_file)
+    cmd = f'sed -i "s|^{option}.*|{option}={value}|g" {config_file}'
     ret, output = runcmd(cmd)
     if ret != 0:
         raise VirtWhoError(f"Failed to set option {option} value to {value}")
@@ -363,7 +363,7 @@ def delete_configure_option(option, config_file):
     :param option: the option you want to delete
     :param config_file: path of virt-who config file
     """
-    cmd = 'sed -i "/^{0}/d" {1}; sed -i "/^#{0}/d" {1}'.format(option, config_file)
+    cmd = f'sed -i "/^{option}/d" {config_file}; sed -i "/^#{option}/d" {config_file}'
     ret, output = runcmd(cmd)
     if ret != 0:
         raise VirtWhoError(f"Failed to delete option {option}")
@@ -378,11 +378,11 @@ def add_configure_option(option, value, config_file):
     """
     try:
         get_configure_option(option, config_file)
-    except Exception:
+    except Exception as err:
         cmd = f'echo -e "\n{option}={value}" >> {config_file}'
-        ret, output = runcmd(cmd)
+        ret, _ = runcmd(cmd)
         if ret != 0:
-            raise VirtWhoError(f"Failed to add option {option}={value}")
+            raise VirtWhoError(f"Failed to add option {option}={value}") from err
     else:
         raise VirtWhoError(f"option {option} is already exist in {config_file}")
 
@@ -397,9 +397,9 @@ def hypervisor_json_create(hypervisors, guests):
     :param guests: how many guests will be created
     """
     hypervisors_list = []
-    for i in range(hypervisors):
+    for _ in range(hypervisors):
         guest_list = []
-        for c in range(guests):
+        for _ in range(guests):
             guest_list.append(
                 {
                     "guestId": str(uuid.uuid4()),

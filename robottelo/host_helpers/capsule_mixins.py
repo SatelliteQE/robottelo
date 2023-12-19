@@ -61,10 +61,12 @@ class CapsuleInfo:
             raise AssertionError(f"No task was found using query '{search_query}'")
         return tasks
 
-    def wait_for_sync(self, timeout=600, start_time=datetime.utcnow()):
+    def wait_for_sync(self, timeout=600, start_time=None):
         """Wait for capsule sync to finish and assert the sync task succeeded"""
         # Assert that a task to sync lifecycle environment to the capsule
         # is started (or finished already)
+        if start_time is None:
+            start_time = datetime.utcnow()
         logger.info(f"Waiting for capsule {self.hostname} sync to finish ...")
         sync_status = self.nailgun_capsule.content_get_sync()
         logger.info(f"Active tasks {sync_status['active_sync_tasks']}")

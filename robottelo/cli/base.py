@@ -168,15 +168,9 @@ class Base:
 
         """
         if username is None:
-            try:
-                username = getattr(cls, 'foreman_admin_username')
-            except AttributeError:
-                username = settings.server.admin_username
+            username = getattr(cls, 'foreman_admin_username', settings.server.admin_username)
         if password is None:
-            try:
-                password = getattr(cls, 'foreman_admin_password')
-            except AttributeError:
-                password = settings.server.admin_password
+            password = getattr(cls, 'foreman_admin_password', settings.server.admin_password)
 
         return (username, password)
 

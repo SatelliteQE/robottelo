@@ -1,10 +1,10 @@
 import contextlib
-from functools import cache
 import io
 import os
 import random
 import re
 
+from cachetools import cachedmethod
 import requests
 
 from robottelo.cli.proxy import CapsuleTunnelError
@@ -187,7 +187,7 @@ class ContentInfo:
 
         :returns: A dictionary containing the details of the published content view.
         """
-        repo = repo_list if type(repo_list) is list else [repo_list]
+        repo = repo_list if isinstance(repo_list, list) else [repo_list]
         content_view = self.api.ContentView(organization=org, repository=repo).create()
         content_view.publish()
         content_view = content_view.read()
@@ -234,9 +234,9 @@ class SystemInfo:
         :rtype: int
         """
         port_pool_range = settings.fake_capsules.port_range
-        if type(port_pool_range) is str:
+        if isinstance(port_pool_range, list):
             port_pool_range = tuple(port_pool_range.split('-'))
-        if type(port_pool_range) is tuple and len(port_pool_range) == 2:
+        if isinstance(port_pool_range, tuple) and len(port_pool_range) == 2:
             port_pool = range(int(port_pool_range[0]), int(port_pool_range[1]))
         else:
             raise TypeError(
@@ -262,14 +262,14 @@ class SystemInfo:
         except ValueError:
             raise CapsuleTunnelError(
                 f'Failed parsing the port numbers from stdout: {ss_cmd.stdout.splitlines()[:-1]}'
-            )
+            ) from None
         try:
             # take the list of available ports and return randomly selected one
             return random.choice([port for port in port_pool if port not in used_ports])
         except IndexError:
             raise CapsuleTunnelError(
                 'Failed to create ssh tunnel: No more ports available for mapping'
-            )
+            ) from None
 
     @contextlib.contextmanager
     def default_url_on_new_port(self, oldport, newport):
@@ -307,7 +307,7 @@ class SystemInfo:
         self,
         org,
         dir_path,
-        file_names=['*.json', '*.tar.gz'],
+        file_names=('*.json', '*.tar.gz'),
     ):
         """Checks the existence of certain files in a pulp dir"""
         extension_query = ' -o '.join([f'-name "{file}"' for file in file_names])
@@ -357,6 +357,6 @@ class Factories:
             self._api_factory = APIFactory(self)
         return self._api_factory
 
-    @cache
+    @cachedmethod
     def ui_factory(self, session):
         return UIFactory(self, session=session)

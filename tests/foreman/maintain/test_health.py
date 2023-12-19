@@ -209,7 +209,7 @@ def test_positive_health_check_upstream_repository(sat_maintain, request):
     assert result.status == 0
     assert 'System has upstream foreman_repo,puppet_repo repositories enabled' in result.stdout
     assert 'FAIL' in result.stdout
-    for name in upstream_url.keys():
+    for name in upstream_url:
         result = sat_maintain.execute(f'cat /etc/yum.repos.d/{name}.repo')
         if name == 'fedorapeople_repo':
             assert 'enabled=1' in result.stdout
@@ -218,7 +218,7 @@ def test_positive_health_check_upstream_repository(sat_maintain, request):
 
     @request.addfinalizer
     def _finalize():
-        for name, url in upstream_url.items():
+        for name in upstream_url:
             sat_maintain.execute(f'rm -fr /etc/yum.repos.d/{name}.repo')
         sat_maintain.execute('dnf clean all')
 
