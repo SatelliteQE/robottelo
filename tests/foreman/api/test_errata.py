@@ -183,12 +183,12 @@ def errata_id_set(erratum_list):
         try:
             # erratum_list is a list of errata dictionary references
             result = set(e['errata_id'] for e in erratum_list)
-        except Exception:
+        except Exception as err:
             # some errata_id cannot be extracted from an entry in erratum_list
             raise AssertionError(
                 'Must take a dictionary ref or list of erratum instances, each entry needs attribute or key "errata_id".'
                 f' An entry in the given erratum_list had no discernible "errata_id". Errata(s): {erratum_list}.'
-            )
+            ) from err
     return result
 
 
@@ -252,11 +252,11 @@ def package_applicability_changed_as_expected(
     if len(prior_applicable_errata_list) != 0:
         try:
             prior_applicable_errata_list[0].read()
-        except Exception as e:
+        except Exception as err:
             raise AssertionError(
-                f'Exception {e} on read of index zero in passed parameter "prior_applicable_errata_list".'
+                'Exception on read of index zero in passed parameter "prior_applicable_errata_list".'
                 ' Must pass a list of readable erratum instances, or empty list.'
-            )
+            ) from err
     # schedule errata applicability recalculate for most current status
     task = None
     epoch_timestamp = int(time() - 1)
