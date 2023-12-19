@@ -45,6 +45,9 @@ def test_positive_verify_default_values_for_global_registration(
     assert cmd['general']['organization'] == 'Default Organization'
     assert cmd['general']['location'] == 'Default Location'
     assert cmd['general']['capsule'] == 'Nothing to select.'
+    assert cmd['general']['operating_system'] == ''
+    assert cmd['general']['host_group'] == 'Nothing to select.'
+    assert cmd['general']['insecure'] is False
     assert cmd['advanced']['setup_rex'] == 'Inherit from host parameter (yes)'
     assert cmd['advanced']['setup_insights'] == 'Inherit from host parameter (yes)'
     assert cmd['advanced']['token_life_time'] == '4'
