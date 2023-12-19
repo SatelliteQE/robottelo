@@ -22,7 +22,6 @@ from robottelo.utils.datafactory import gen_string
 def test_positive_verify_default_values_for_global_registration(
     module_target_sat,
     default_org,
-    default_location,
 ):
     """Check for all the Default values pre-populated in the global registration template
 
@@ -40,12 +39,9 @@ def test_positive_verify_default_values_for_global_registration(
         {'organization-id': default_org.id, 'name': gen_string('alpha')}
     )
     with module_target_sat.ui_session() as session:
-        session.organization.select(org_name=default_org.name)
-        session.location.select(loc_name=default_location.name)
         cmd = session.host.get_register_command(
             full_read=True,
         )
-
     assert cmd['general']['organization'] == 'Default Organization'
     assert cmd['general']['location'] == 'Default Location'
     assert cmd['general']['capsule'] == 'Nothing to select.'
