@@ -210,12 +210,12 @@ def test_positive_oscap_run_via_ansible(
         try:
             result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
             assert result == '1'
-        except AssertionError:
+        except AssertionError as err:
             output = ' '.join(
                 target_sat.cli.JobInvocation.get_output({'id': job_id, 'host': vm.hostname})
             )
             result = f'host output: {output}'
-            raise AssertionError(result)
+            raise AssertionError(result) from err
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
@@ -315,12 +315,12 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         try:
             result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
             assert result == '1'
-        except AssertionError:
+        except AssertionError as err:
             output = ' '.join(
                 target_sat.cli.JobInvocation.get_output({'id': job_id, 'host': vm.hostname})
             )
             result = f'host output: {output}'
-            raise AssertionError(result)
+            raise AssertionError(result) from err
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and

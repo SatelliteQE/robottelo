@@ -240,10 +240,14 @@ def test_add_and_remove_ansible_role_hostgroup(target_sat):
         for role in ROLE_NAMES
     ]
     target_sat.api.HostGroup(id=hg.id).assign_ansible_roles(data={'ansible_role_ids': ROLES[:2]})
-    for r1, r2 in zip(target_sat.api.HostGroup(id=hg.id).list_ansible_roles(), ROLE_NAMES[:2]):
+    for r1, r2 in zip(
+        target_sat.api.HostGroup(id=hg.id).list_ansible_roles(), ROLE_NAMES[:2], strict=True
+    ):
         assert r1['name'] == r2
     target_sat.api.HostGroup(id=hg.id).add_ansible_role(data={'ansible_role_id': ROLES[2]})
-    for r1, r2 in zip(target_sat.api.HostGroup(id=hg.id).list_ansible_roles(), ROLE_NAMES):
+    for r1, r2 in zip(
+        target_sat.api.HostGroup(id=hg.id).list_ansible_roles(), ROLE_NAMES, strict=True
+    ):
         assert r1['name'] == r2
 
     for role in ROLES:

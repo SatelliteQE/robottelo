@@ -65,7 +65,7 @@ def test_positive_sync_without_deadlock(
 
     cv = target_sat.publish_content_view(function_entitlement_manifest_org, repo)
 
-    for i in range(4):
+    for _ in range(4):
         copy_id = target_sat.api.ContentView(id=cv.id).copy(data={'name': gen_alpha()})['id']
         copy_cv = target_sat.api.ContentView(id=copy_id).read()
         copy_cv.publish()
