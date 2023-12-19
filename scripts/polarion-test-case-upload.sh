@@ -74,6 +74,7 @@ TRANSFORM_CUSTOMERSCENARIO_VALUE = default_config._transform_to_lower
 DEFAULT_CUSTOMERSCENARIO_VALUE = 'false'
 DEFAULT_REQUIREMENT_TEAM_VALUE = None
 TRANSFORM_REQUIREMENT_TEAM_VALUE = default_config._transform_to_lower
+MARKERS_IGNORE_LIST = ['parametrize', 'skip.*', 'usefixtures', 'rhel_ver_.*']
 EOF
 
 set -x
