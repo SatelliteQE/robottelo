@@ -134,16 +134,14 @@ def products_with_repos(orgs, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def rh_repo(
-    module_entitlement_manifest_org, module_lce, module_cv, module_ak_cv_lce, module_target_sat
-):
+def rh_repo(module_sca_manifest_org, module_lce, module_cv, module_ak_cv_lce, module_target_sat):
     """Add a subscription for the Satellite Tools repo to activation key."""
     module_target_sat.cli_factory.setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
             'repository': REPOS['rhst7']['name'],
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'content-view-id': module_cv.id,
             'lifecycle-environment-id': module_lce.id,
             'activationkey-id': module_ak_cv_lce.id,
@@ -153,13 +151,13 @@ def rh_repo(
 
 @pytest.fixture(scope='module')
 def custom_repo(
-    module_entitlement_manifest_org, module_lce, module_cv, module_ak_cv_lce, module_target_sat
+    module_sca_manifest_org, module_lce, module_cv, module_ak_cv_lce, module_target_sat
 ):
     """Create custom repo and add a subscription to activation key."""
     module_target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': REPO_WITH_ERRATA['url'],
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'content-view-id': module_cv.id,
             'lifecycle-environment-id': module_lce.id,
             'activationkey-id': module_ak_cv_lce.id,
@@ -377,7 +375,7 @@ def filter_sort_errata(sat, org, sort_by_date='issued', filter_by_org=None):
         # Build a sorted errata info list, which also contains the sort field.
         errata_internal_ids = [errata['id'] for errata in errata_list]
         sorted_errata_info = get_sorted_errata_info_by_id(
-            errata_internal_ids, sort_by=sort_by_date, sort_reversed=sort_reversed
+            sat, errata_internal_ids, sort_by=sort_by_date, sort_reversed=sort_reversed
         )
 
         sort_field_values = [errata[sort_by_date] for errata in sorted_errata_info]
@@ -933,7 +931,7 @@ def test_host_errata_search_commands(
     ids=('org_id', 'org_name', 'org_label', 'no_org_filter'),
 )
 def test_positive_list_filter_by_org_sort_by_date(
-    module_entitlement_manifest_org, rh_repo, custom_repo, filter_by_org, sort_by_date
+    module_sca_manifest_org, rh_repo, custom_repo, filter_by_org, sort_by_date, module_target_sat
 ):
     """Filter by organization and sort by date.
 
@@ -950,7 +948,8 @@ def test_positive_list_filter_by_org_sort_by_date(
     :expectedresults: Errata are filtered by org and sorted by date.
     """
     filter_sort_errata(
-        module_entitlement_manifest_org,
+        sat=module_target_sat,
+        org=module_sca_manifest_org,
         sort_by_date=sort_by_date,
         filter_by_org=filter_by_org,
     )
@@ -1079,7 +1078,7 @@ def test_positive_list_filter_by_org(target_sat, products_with_repos, filter_by_
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_positive_list_filter_by_cve(module_entitlement_manifest_org, rh_repo, target_sat):
+def test_positive_list_filter_by_cve(module_sca_manifest_org, rh_repo, target_sat):
     """Filter errata by CVE
 
     :id: 7791137c-95a7-4518-a56b-766a5680c5fb
@@ -1094,7 +1093,7 @@ def test_positive_list_filter_by_cve(module_entitlement_manifest_org, rh_repo, t
     target_sat.cli.RepositorySet.enable(
         {
             'name': REPOSET['rhva6'],
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'product': PRDS['rhel'],
             'releasever': '6Server',
             'basearch': 'x86_64',
@@ -1103,14 +1102,14 @@ def test_positive_list_filter_by_cve(module_entitlement_manifest_org, rh_repo, t
     target_sat.cli.Repository.synchronize(
         {
             'name': REPOS['rhva6']['name'],
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'product': PRDS['rhel'],
         }
     )
     repository_info = target_sat.cli.Repository.info(
         {
             'name': REPOS['rhva6']['name'],
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'product': PRDS['rhel'],
         }
     )
