@@ -20,6 +20,7 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import CLIENT_PORT
+from robottelo.exceptions import CLIReturnCodeError
 
 pytestmark = pytest.mark.tier1
 
@@ -171,3 +172,19 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
     # host being already registered.
     assert result.status == 1
     assert 'This system is already registered' in str(result.stderr)
+
+
+@pytest.mark.tier1
+def test_negative_global_registration_without_ak(module_target_sat):
+    """Attempt to register a host without ActivationKey
+
+    :id: e48a6260-97e0-4234-a69c-77bbbcde85df
+
+    :expectedresults: Generate command is disabled without ActivationKey
+    """
+    with pytest.raises(CLIReturnCodeError) as context:
+        module_target_sat.cli.HostRegistration.generate_command(options=None)
+    assert (
+        'Failed to generate registration command:\n  Missing activation key!'
+        in context.value.message
+    )
