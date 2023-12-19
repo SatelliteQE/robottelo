@@ -16,9 +16,12 @@
 
 :Upstream: No
 """
+from airgun.exceptions import DisabledWidgetError
 import pytest
 
 from robottelo.utils.datafactory import gen_string
+
+pytestmark = pytest.mark.tier1
 
 
 def test_positive_verify_default_values_for_global_registration(
@@ -108,3 +111,22 @@ def test_positive_org_loc_change_for_registration(
         ]
         for pair in expected_pairs:
             assert pair in cmd
+
+
+def test_negative_global_registration_without_ak(
+    module_target_sat,
+    module_org,
+    module_location,
+):
+    """Attempt to register a host without ActivationKey
+
+    :id: 34122bf3-ae23-47ca-ba3d-da0653d8fd36
+
+    :expectedresults: Generate command is disabled without ActivationKey
+    """
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        with pytest.raises(DisabledWidgetError) as context:
+            session.host.get_register_command()
+        assert 'Generate registration command button is disabled' in str(context.value)
