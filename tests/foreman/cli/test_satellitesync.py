@@ -1947,34 +1947,6 @@ class TestInterSatelliteSync:
     @pytest.mark.stubbed
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    def test_positive_export_import_cv_incremental(self):
-        """Export and Import CV version contents incrementally.
-
-        :id: 3c4dfafb-fabf-406e-bca8-7af1ab551135
-
-        :steps:
-            1. In upstream, Export CV version contents to a directory specified in settings.
-            2. In downstream, Import these copied contents from some other org/satellite.
-            3. In upstream, don't add any new packages to the CV.
-            4. Export the CV incrementally.
-            5. In downstream, Import the CV incrementally.
-            6. In upstream, add new packages to the CV.
-            7. Export the CV incrementally.
-            8. In downstream, Import the CV incrementally.
-
-        :expectedresults:
-            1. On incremental export, only the new packages are exported.
-            2. New directory of incremental export with new packages is created.
-            3. On first incremental import, no new packages are imported.
-            4. On second incremental import, only the new packages are imported.
-
-        :CaseAutomation: NotAutomated
-
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
     def test_positive_reimport_repo(self):
         """Packages missing from upstream are removed from downstream on reimport.
 
@@ -2414,8 +2386,6 @@ class TestInterSatelliteSync:
             1. More packages available for install after version 2 imported.
             2. Packages can be installed successfully.
 
-        :CaseLevel: System
-
         :BZ: 2173756
 
         :customerscenario: true
@@ -2540,31 +2510,6 @@ class TestInterSatelliteSync:
         # Install the package.
         res = rhel_contenthost.execute(f'dnf -y install {filtered_pkg}')
         assert res.status == 0, f'Installation from the import failed:\n{res.stdout}'
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
-    def test_positive_install_package_from_imported_repos(self):
-        """Install packages in client from imported repo of Downstream satellite.
-
-        :id: a81ffb55-398d-4ad0-bcae-5ed48f504ded
-
-        :steps:
-
-            1. Export whole Red Hat YUM repo to a path accessible over HTTP.
-            2. Import the Red Hat repository by defining the CDN URL from the
-               exported HTTP URL.
-            3. In downstream satellite create CV, AK with this imported repo.
-            4. Register/Subscribe a client with a downstream satellite.
-            5. Attempt to install a package on a client from imported repo of
-               downstream.
-
-        :expectedresults:
-            1. The package is installed on client from imported repo of downstream satellite.
-
-        :CaseAutomation: NotAutomated
-
-        """
 
 
 @pytest.fixture(scope='module')
