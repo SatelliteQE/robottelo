@@ -227,8 +227,8 @@ def lock_function(
 
     def main_wrapper(func):
 
-        setattr(func, '__class_name__', class_name)
-        setattr(func, '__function_locked__', True)
+        func.__class_name__ = class_name
+        func.__function_locked__ = True
 
         @functools.wraps(func)
         def function_wrapper(*args, **kwargs):
