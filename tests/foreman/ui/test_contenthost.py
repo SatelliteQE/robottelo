@@ -1492,7 +1492,7 @@ def test_syspurpose_attributes_empty(session, default_location, vm_module_stream
         ]
         syspurpose_status = details['system_purpose_status']
         assert syspurpose_status.lower() == 'not specified'
-        for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+        for spname in DEFAULT_SYSPURPOSE_ATTRIBUTES:
             assert details[spname] == ''
 
 
@@ -1530,7 +1530,7 @@ def test_set_syspurpose_attributes_cli(session, default_location, vm_module_stre
     with session:
         session.location.select(default_location.name)
         # Set sypurpose attributes
-        for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+        for spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.values():
             run_remote_command_on_content_host(
                 f'syspurpose set-{spdata[0]} "{spdata[1]}"', vm_module_streams
             )
@@ -1575,11 +1575,11 @@ def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_st
     :CaseImportance: High
     """
     # Set sypurpose attributes...
-    for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+    for spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.values():
         run_remote_command_on_content_host(
             f'syspurpose set-{spdata[0]} "{spdata[1]}"', vm_module_streams
         )
-    for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+    for spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.values():
         # ...and unset them.
         run_remote_command_on_content_host(f'syspurpose unset-{spdata[0]}', vm_module_streams)
 
@@ -1588,7 +1588,7 @@ def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_st
         details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
             'details'
         ]
-        for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+        for spname in DEFAULT_SYSPURPOSE_ATTRIBUTES:
             assert details[spname] == ''
 
 

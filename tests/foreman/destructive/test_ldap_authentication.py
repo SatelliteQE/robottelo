@@ -548,7 +548,7 @@ def test_user_permissions_rhsso_user_multiple_group(
     group_names = ['sat_users', 'sat_admins']
     arguments = [{'roles': katello_role.name}, {'admin': 1}]
     external_auth_source = module_target_sat.cli.ExternalAuthSource.info({'name': "External"})
-    for group_name, argument in zip(group_names, arguments):
+    for group_name, argument in zip(group_names, arguments, strict=True):
         # adding/creating rhsso groups
         default_sso_host.create_group(group_name=group_name)
         default_sso_host.update_rhsso_user(username, group_name=group_name)

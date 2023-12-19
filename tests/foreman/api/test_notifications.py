@@ -109,11 +109,11 @@ def wait_for_long_running_task_mail(target_sat, clean_root_mailbox, long_running
             timeout=timeout,
             delay=5,
         )
-    except TimedOutError:
+    except TimedOutError as err:
         raise AssertionError(
             f'No notification e-mail with long-running task ID {long_running_task["task"]["id"]} '
             f'has arrived to {clean_root_mailbox} after {timeout} seconds.'
-        )
+        ) from err
     return True
 
 

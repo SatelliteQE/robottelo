@@ -90,7 +90,9 @@ def dogfood_repository(
     try:
         repository = next(r for r in res.json() if r['label'] == repo)
     except StopIteration:
-        raise RepositoryDataNotFound(f'Repository "{repo}" is not provided by the given product')
+        raise RepositoryDataNotFound(
+            f'Repository "{repo}" is not provided by the given product'
+        ) from None
     repository['baseurl'] = repository['baseurl'].replace('$basearch', arch)
     # If repo check is enabled, check that the repository actually exists on the remote server
     dogfood_req = requests.get(repository['baseurl'])

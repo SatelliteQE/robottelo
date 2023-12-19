@@ -42,7 +42,7 @@ def parse_csv(output):
     # Generate the key names, spaces will be converted to dashes "-"
     keys = [_normalize(header) for header in next(reader)]
     # For each entry, create a dict mapping each key with each value
-    return [dict(zip(keys, values)) for values in reader if len(values) > 0]
+    return [dict(zip(keys, values, strict=True)) for values in reader if len(values) > 0]
 
 
 def parse_help(output):

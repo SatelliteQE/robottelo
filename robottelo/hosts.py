@@ -16,6 +16,7 @@ from urllib.parse import urljoin, urlparse, urlunsplit
 from box import Box
 from broker import Broker
 from broker.hosts import Host
+from cachetools import cachedmethod
 from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha, gen_string
 from manifester import Manifester
@@ -413,11 +414,11 @@ class ContentHost(Host, ContentHostMixins):
         try:
             vm_operation = POWER_OPERATIONS.get(state)
             workflow_name = settings.broker.host_workflows.power_control
-        except (AttributeError, KeyError):
+        except (AttributeError, KeyError) as err:
             raise NotImplementedError(
                 'No workflow in broker.host_workflows for power control, '
                 'or VM operation not supported'
-            )
+            ) from err
         assert (
             # TODO read the kwarg name from settings too?
             Broker()
@@ -524,10 +525,12 @@ class ContentHost(Host, ContentHostMixins):
     def subscription_manager_list(self):
         return self.execute('subscription-manager list')
 
-    def subscription_manager_get_pool(self, sub_list=[]):
+    def subscription_manager_get_pool(self, sub_list=None):
         """
         Return pool ids for the corresponding subscriptions in the list
         """
+        if sub_list is None:
+            sub_list = []
         pool_ids = []
         for sub in sub_list:
             result = self.execute(
@@ -539,10 +542,12 @@ class ContentHost(Host, ContentHostMixins):
             pool_ids.append(result)
         return pool_ids
 
-    def subscription_manager_attach_pool(self, pool_list=[]):
+    def subscription_manager_attach_pool(self, pool_list=None):
         """
         Attach pool ids to the host and return the result
         """
+        if pool_list is None:
+            pool_list = []
         result = []
         for pool in pool_list:
             result.append(self.execute(f'subscription-manager attach --pool={pool}'))
@@ -615,8 +620,8 @@ class ContentHost(Host, ContentHostMixins):
             # We're in a traditional VM, so goferd should be running after katello-agent install
             try:
                 wait_for(lambda: self.execute('service goferd status').status == 0)
-            except TimedOutError:
-                raise ContentHostError('katello-agent is not running')
+            except TimedOutError as err:
+                raise ContentHostError('katello-agent is not running') from err
 
     def install_katello_host_tools(self):
         """Installs Katello host tools on the broker virtual machine
@@ -1461,8 +1466,10 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def register_to_cdn(self, pool_ids=[settings.subscription.rhn_poolid]):
+    def register_to_cdn(self, pool_ids=None):
         """Subscribe satellite to CDN"""
+        if pool_ids is None:
+            pool_ids = [settings.subscription.rhn_poolid]
         self.remove_katello_ca()
         cmd_result = self.register_contenthost(
             org=None,
@@ -2289,7 +2296,7 @@ class SSOHost(Host):
                 break
         return client_id
 
-    @lru_cache
+    @cachedmethod
     def get_rhsso_user_details(self, username):
         """Getter method to receive the user id"""
         result = self.execute(
@@ -2298,7 +2305,7 @@ class SSOHost(Host):
         result_json = json.loads(result.stdout)
         return result_json[0]
 
-    @lru_cache
+    @cachedmethod
     def get_rhsso_groups_details(self, group_name):
         """Getter method to receive the group id"""
         result = self.execute(f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm}")
