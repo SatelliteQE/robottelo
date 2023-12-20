@@ -101,23 +101,6 @@ def function_import_org_with_manifest(target_sat, function_import_org):
     return function_import_org
 
 
-@pytest.fixture(scope='class')
-def docker_repo(module_target_sat, module_org):
-    product = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
-    repo = module_target_sat.cli_factory.make_repository(
-        {
-            'organization-id': module_org.id,
-            'product-id': product['id'],
-            'content-type': REPO_TYPE['docker'],
-            'download-policy': 'immediate',
-            'url': 'https://quay.io',
-            'docker-upstream-name': 'quay/busybox',
-        }
-    )
-    module_target_sat.cli.Repository.synchronize({'id': repo['id']})
-    return repo
-
-
 @pytest.fixture(scope='module')
 def module_synced_custom_repo(module_target_sat, module_org, module_product):
     repo = module_target_sat.cli_factory.make_repository(
@@ -1224,6 +1207,7 @@ class TestContentViewSync:
         :BZ: 1726457
 
         :customerscenario: true
+
         """
         content_view = target_sat.cli_factory.make_content_view(
             {'organization-id': function_org.id}
@@ -1252,57 +1236,6 @@ class TestContentViewSync:
         # check packages
         exported_packages = target_sat.cli.Package.list(
             {'content-view-version-id': exporting_cvv['id']}
-        )
-        product = target_sat.cli_factory.make_product(
-            {
-                'organization-id': function_org.id,
-                'name': gen_string('alpha'),
-            }
-        )
-        nonyum_repo = target_sat.cli_factory.make_repository(
-            {
-                'content-type': 'docker',
-                'docker-upstream-name': 'quay/busybox',
-                'organization-id': function_org.id,
-                'product-id': product['id'],
-                'url': CONTAINER_REGISTRY_HUB,
-            },
-        )
-        target_sat.cli.Repository.synchronize({'id': nonyum_repo['id']})
-        yum_repo = target_sat.cli_factory.make_repository(
-            {
-                'name': gen_string('alpha'),
-                'download-policy': 'immediate',
-                'mirroring-policy': 'mirror_content_only',
-                'product-id': product['id'],
-            }
-        )
-        target_sat.cli.Repository.synchronize({'id': yum_repo['id']})
-        content_view = target_sat.cli_factory.make_content_view(
-            {'organization-id': function_org.id}
-        )
-        # Add docker and yum repo
-        target_sat.cli.ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': function_org.id,
-                'repository-id': nonyum_repo['id'],
-            }
-        )
-        target_sat.cli.ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': function_org.id,
-                'repository-id': yum_repo['id'],
-            }
-        )
-        target_sat.cli.ContentView.publish({'id': content_view['id']})
-        exporting_cv_id = target_sat.cli.ContentView.info({'id': content_view['id']})
-        assert len(exporting_cv_id['versions']) == 1
-        exporting_cvv_id = exporting_cv_id['versions'][0]
-        # check packages
-        exported_packages = target_sat.cli.Package.list(
-            {'content-view-version-id': exporting_cvv_id['id']}
         )
         assert len(exported_packages)
         # Verify export directory is empty
