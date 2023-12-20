@@ -580,3 +580,24 @@ def test_rhel_pxe_provisioning_fips_enabled(
     # assert that the host is subscribed and consumes
     # subsctiption provided by the activation key
     assert provisioning_host.subscribed, 'Host is not subscribed'
+
+
+@pytest.mark.stubbed
+def test_rhel_provisioning_using_realm():
+    """Provision a host using realm
+
+    :id: 687e7d71-7e46-46d5-939b-4562f88c4598
+
+    :steps:
+        1. Configure satellite for provisioning
+        2. Configure Satellite for Realm support
+        3. Provision a Host
+        4. Check host is subscribed to Satellite
+
+    :expectedresults:
+        1. Provisioning via Realm is successful
+        2. Check if the provisioned host is automatically registered to IdM
+        3. Host installs right version of RHEL
+        4. Satellite is able to run REX job on the host
+        5. Host is registered to Satellite and subscription status is 'Success'
+    """
