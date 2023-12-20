@@ -563,6 +563,67 @@ class TestProvisioningTemplate:
         assert '{"package_install": "zsh"}' in render
 
     @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    def test_positive_template_check_rex_pull_mode_snippet(
+        self,
+        module_sync_kickstart_content,
+        module_target_sat,
+        module_provisioning_capsule,
+        module_sca_manifest_org,
+        module_location,
+        module_default_org_view,
+        module_lce_library,
+        default_architecture,
+        default_partitiontable,
+    ):
+        """Read the provision template and verify the host params and REX pull mode snippet rendered correctly.
+
+        :id: e5212c46-d269-4bce-8e03-9d00c086e69m
+
+        :steps:
+            1. Create a host by setting host param enable-remote-execution-pull/host_registration_remote_execution_pull
+            2. Read the template to verify the host param and REX pull mode snippet for respective rhel hosts
+
+        :expectedresults: The rendered template has the host params set and correct home directory permissions for the rex user
+
+        :parametrized: yes
+        """
+        host = module_target_sat.api.Host(
+            organization=module_sca_manifest_org,
+            location=module_location,
+            name=gen_string('alpha').lower(),
+            mac=gen_mac(multicast=False),
+            operatingsystem=module_sync_kickstart_content.os,
+            architecture=default_architecture,
+            domain=module_sync_kickstart_content.domain,
+            root_pass=settings.provisioning.host_root_password,
+            ptable=default_partitiontable,
+            host_parameters_attributes=[
+                {
+                    'name': 'host_registration_remote_execution_pull',
+                    'value': True,
+                    'parameter_type': 'boolean',
+                },
+                {
+                    'name': 'enable-remote-execution-pull',
+                    'value': True,
+                    'parameter_type': 'boolean',
+                },
+            ],
+        ).create()
+        rex_snippet = host.read_template(data={'template_kind': 'provision'})['template']
+        assert 'chmod +x /root/remote_execution_pull_setup.sh' in rex_snippet
+
+        rex_snippet = host.read_template(data={'template_kind': 'host_init_config'})['template']
+        assert 'Starting deployment of REX pull provider' in rex_snippet
+        pkg_manager = 'yum' if module_sync_kickstart_content.rhel_ver < 8 else 'dnf'
+        assert f'{pkg_manager} -y install foreman_ygg_worker' in rex_snippet
+        assert 'broker = ["mqtts://$SERVER_NAME:1883"]' in rex_snippet
+        assert 'systemctl try-restart yggdrasild' in rex_snippet
+        assert 'systemctl enable --now yggdrasild' in rex_snippet
+        assert 'yggdrasil status' in rex_snippet
+        assert 'Remote execution pull provider successfully configured!' in rex_snippet
+
+    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
     def test_positive_template_check_fips_enabled(
         self,
         module_sync_kickstart_content,
