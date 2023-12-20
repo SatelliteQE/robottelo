@@ -367,7 +367,7 @@ def test_positive_product_view_organization_switch(session, module_org, module_p
 @pytest.mark.tier2
 def test_positive_prepare_for_sca_only_deprecation(target_sat):
     """Verify that Simple Content Access endpoints are depreacated and will be required
-        for all organizations in Satellite 6.16
+        for all organizations in Katello 4.12
     :id: 08539596-1bd3-4363-9737-e45f32ee5cbb
     :expectedresults: Attepting to create an Organization with sca set to False, will throw
         deprecation endpoint message
@@ -382,5 +382,5 @@ def test_positive_prepare_for_sca_only_deprecation(target_sat):
         )
         results = target_sat.execute('tail -100 /var/log/foreman/production.log').stdout
     assert (
-        'Simple Content Access will be required for all organizations in Satellite 6.16' in results
+        'Simple Content Access will be required for all organizations in Katello 4.12' in results
     )
