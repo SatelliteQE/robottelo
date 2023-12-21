@@ -18,6 +18,7 @@
 """
 # For ease of use hc refers to host-collection throughout this document
 from time import sleep, time
+
 import pytest
 
 from robottelo import constants
@@ -142,7 +143,7 @@ def _fetch_available_errata(host, expected_amount=None, timeout=120):
     """Fetch available errata for host."""
     errata = host.errata()
     for _ in range(timeout // 5):
-        if expected_amount == None:
+        if expected_amount is None:
             return errata['results']
         elif len(errata['results']) == expected_amount:
             return errata['results']
@@ -152,21 +153,21 @@ def _fetch_available_errata(host, expected_amount=None, timeout=120):
         pytest.fail(
             'Host {} contains {} available errata, but expected to '
             'contain {} of them'.format(
-                host.name, 
-                len(errata['results']), 
+                host.name,
+                len(errata['results']),
                 expected_amount if not None else 'No expected_amount provided',
             )
         )
-    
+
 
 def _fetch_available_errata_instances(sat, host, expected_amount=None, timeout=120):
     """Fetch list of instances of avaliable errata for host."""
     _errata_dict = _fetch_available_errata(host.nailgun_host, expected_amount, timeout)
     _errata_ids = [errata['id'] for errata in _errata_dict]
     instances = [sat.api.Errata(id=_id).read() for _id in _errata_ids]
-    assert len(instances) == len(_errata_dict) == host.applicable_errata_count, (
-        'Length of errata instances list or api result differs from expected applicable count.'
-    )
+    assert (
+        len(instances) == len(_errata_dict) == host.applicable_errata_count
+    ), 'Length of errata instances list or api result differs from expected applicable count.'
     return instances
 
 
@@ -201,54 +202,54 @@ def package_applicability_changed_as_expected(
     prior_applicable_package_count,
     return_applicables=False,
 ):
-    """ Checks that installing some package, updated any impacted errata(s)
-        status and host applicability count, and changed applicable package count by one.
+    """Checks that installing some package, updated any impacted errata(s)
+    status and host applicability count, and changed applicable package count by one.
 
-        That one of the following occured:
-        - A non-applicable package was modified, or the same prior version was installed,
-            the amount of applicable errata and applicable packages remains the same. 
-            Return False, as no applicability changes occured.
+    That one of the following occured:
+    - A non-applicable package was modified, or the same prior version was installed,
+        the amount of applicable errata and applicable packages remains the same.
+        Return False, as no applicability changes occured.
 
-        - An Outdated applicable package was installed. Errata applicability increased
-            by the number of found applicable errata containing that package,
-                if the errata were not already applicable prior to install.
-            The number of applicable packages increased by one.
+    - An Outdated applicable package was installed. Errata applicability increased
+        by the number of found applicable errata containing that package,
+            if the errata were not already applicable prior to install.
+        The number of applicable packages increased by one.
 
-        - An Updated applicable package was installed. Errata applicability decreased 
-            by the amount of found errata containing that package, if the errata are 
-                no longer applicable, but they were prior to install, if any.
-            The number of applicable packages decreased by one.
+    - An Updated applicable package was installed. Errata applicability decreased
+        by the amount of found errata containing that package, if the errata are
+            no longer applicable, but they were prior to install, if any.
+        The number of applicable packages decreased by one.
 
-        :param string: package_filename:
-            the full filename of the package version installed.
-        :param list: prior_applicable_errata_list:
-            list of all erratum instances from search, that were applicable before modifying package.
-        :param int prior_applicable_errata_count:
-            number of total applicable errata prior to modifying package.
-        :param int prior_applicable_package_count:
-            number of total applicable packages prior to modifying package.
-        :param boolean return_applicables (False): if set to True, and method's 'result' is not False:
-            return a dict containing result, and relevant package and errata information.
+    :param string: package_filename:
+        the full filename of the package version installed.
+    :param list: prior_applicable_errata_list:
+        list of all erratum instances from search, that were applicable before modifying package.
+    :param int prior_applicable_errata_count:
+        number of total applicable errata prior to modifying package.
+    :param int prior_applicable_package_count:
+        number of total applicable packages prior to modifying package.
+    :param boolean return_applicables (False): if set to True, and method's 'result' is not False:
+        return a dict containing result, and relevant package and errata information.
 
-        :raise: `AssertionError` if:
-            Expected changes are not found.
-            Changes are made to unexpected errata or packages.
-            A non-readable prior list of erratum was passed.
-        :return: result(boolean), or relevant applicables(dict)
-            False if found that no applicable package was modified.
-            True if method finished executing, expected changes were found.
-            :return_applicables: is True: return dict of relevant applicable and changed entities:
-                result boolean: True, method finished executing
-                errata_count int: current applicable errata count
-                package_count int: current applicable package count
-                current_package string: current version filename of package
-                prior_package string: previous version filename of package
-                change_in_errata int: positive, negative, or zero
-                changed_errata list[string]: of modified errata_ids
+    :raise: `AssertionError` if:
+        Expected changes are not found.
+        Changes are made to unexpected errata or packages.
+        A non-readable prior list of erratum was passed.
+    :return: result(boolean), or relevant applicables(dict)
+        False if found that no applicable package was modified.
+        True if method finished executing, expected changes were found.
+        :return_applicables: is True: return dict of relevant applicable and changed entities:
+            result boolean: True, method finished executing
+            errata_count int: current applicable errata count
+            package_count int: current applicable package count
+            current_package string: current version filename of package
+            prior_package string: previous version filename of package
+            change_in_errata int: positive, negative, or zero
+            changed_errata list[string]: of modified errata_ids
     """
-    assert len(prior_applicable_errata_list) == prior_applicable_errata_count, (
-        'Length of "prior_applicable_errata_list" passed, must equal "prior_applicable_errata_count" passed.'
-    )
+    assert (
+        len(prior_applicable_errata_list) == prior_applicable_errata_count
+    ), 'Length of "prior_applicable_errata_list" passed, must equal "prior_applicable_errata_count" passed.'
     if len(prior_applicable_errata_list) != 0:
         try:
             prior_applicable_errata_list[0].read()
@@ -261,7 +262,9 @@ def package_applicability_changed_as_expected(
     task = None
     epoch_timestamp = int(time() - 1)
     output = host.execute('subscription-manager repos')
-    assert output.status == 0, f'Command "$subscription-manager repos" failed to execute on host: {host.hostname}'
+    assert (
+        output.status == 0
+    ), f'Command "$subscription-manager repos" failed to execute on host: {host.hostname}'
     try:
         task = sat.api_factory.wait_for_errata_applicability_task(
             host_id=host.nailgun_host.id,
@@ -271,7 +274,7 @@ def package_applicability_changed_as_expected(
         # No task for forced applicability regenerate,
         # applicability was already up to date
         assert task is None
-    package_basename = str(package_filename.split("-", 1)[0]) # 'package-4.0-1.rpm' > 'package'
+    package_basename = str(package_filename.split("-", 1)[0])  # 'package-4.0-1.rpm' > 'package'
     prior_unique_errata_ids = errata_id_set(prior_applicable_errata_list)
     current_applicable_errata = _fetch_available_errata_instances(sat, host)
     app_unique_errata_ids = errata_id_set(current_applicable_errata)
@@ -281,9 +284,9 @@ def package_applicability_changed_as_expected(
     if prior_applicable_errata_count == host.applicable_errata_count:
         # Applicable errata count had no change.
         # we expect applicable errata id(s) from search also did not change.
-        assert prior_unique_errata_ids == app_unique_errata_ids, (
-            'Expected list of applicable erratum to remain the same.'
-        )
+        assert (
+            prior_unique_errata_ids == app_unique_errata_ids
+        ), 'Expected list of applicable erratum to remain the same.'
         if prior_applicable_package_count == host.applicable_package_count:
             # no applicable packages were modified
             return False
@@ -295,25 +298,27 @@ def package_applicability_changed_as_expected(
         # Check list of errata id(s) from search matches expected difference
         assert (
             len(app_unique_errata_ids) == prior_applicable_errata_count + difference
-        ), f'Length of applicable errata found by search, does not match applicability count difference.'
+        ), 'Length of applicable errata found by search, does not match applicability count difference.'
         # modifying package increased errata applicability count (outdated ver installed)
         if prior_applicable_errata_count < host.applicable_errata_count:
             # save the new errata(s) found, ones added since package modify
             app_errata_with_package_diff = [
-                errata for errata in current_applicable_errata
+                errata
+                for errata in current_applicable_errata
                 if (
                     any(package_basename in p for p in errata.packages)
                     and errata.errata_id not in prior_unique_errata_ids
                 )
             ]
         # modifying package decreased errata applicability count (updated ver installed)
-        elif (prior_applicable_errata_count > host.applicable_errata_count):
+        elif prior_applicable_errata_count > host.applicable_errata_count:
             # save the old errata(s) found, ones removed since package modify
             app_errata_with_package_diff = [
-                errata for errata in current_applicable_errata
+                errata
+                for errata in current_applicable_errata
                 if (
                     not any(package_basename in p.filename for p in errata.packages)
-                    and errata.errata_id in prior_unique_errata_ids 
+                    and errata.errata_id in prior_unique_errata_ids
                 )
             ]
         app_errata_diff_ids = errata_id_set(app_errata_with_package_diff)
@@ -334,18 +339,18 @@ def package_applicability_changed_as_expected(
         difference = len(app_unique_errata_ids) - len(prior_unique_errata_ids)
         # check diff in applicable counts, is equal to diff in length of errata search results.
         assert prior_applicable_errata_count + difference == host.applicable_errata_count
-    
+
     """ Check applicable_package count changed by one.
         we expect applicable_errata_count increased/decrease,
         only by number of 'new' or 'removed' applicable errata, if any.
     """
     if app_errata_with_package_diff:
         if host.applicable_errata_count > prior_applicable_errata_count:
-            """ Current applicable errata count is higher than before install,
-                An outdated package is expected to have been installed.
-                Check applicable package count increased by one.
-                Check applicable errata count increased by number
-                    of newly applicable errata.
+            """Current applicable errata count is higher than before install,
+            An outdated package is expected to have been installed.
+            Check applicable package count increased by one.
+            Check applicable errata count increased by number
+                of newly applicable errata.
             """
             assert prior_applicable_package_count + 1 == host.applicable_package_count
             expected_increase = 0
@@ -354,13 +359,13 @@ def package_applicability_changed_as_expected(
                 assert prior_applicable_errata_count + difference == host.applicable_errata_count
                 expected_increase = len(app_errata_diff_ids)
             assert prior_applicable_errata_count + expected_increase == host.applicable_errata_count
-        
+
         elif host.applicable_errata_count < prior_applicable_errata_count:
-            """ Current applicable errata count is lower than before install,
-                An updated package is expected to have been installed.
-                Check applicable package count decreased by one.
-                Check applicable errata count decreased by number of 
-                   prior applicable errata, that are no longer found.
+            """Current applicable errata count is lower than before install,
+            An updated package is expected to have been installed.
+            Check applicable package count decreased by one.
+            Check applicable errata count decreased by number of
+               prior applicable errata, that are no longer found.
             """
             if host.applicable_errata_count < prior_applicable_errata_count:
                 assert host.applicable_package_count == prior_applicable_package_count - 1
@@ -374,22 +379,22 @@ def package_applicability_changed_as_expected(
             # We found by search an errata that was added or removed compared to prior install,
             # But we also found that applicable_errata_count had not changed.
             raise AssertionError(
-                f'Found one or more different errata: {app_errata_diff_ids},' 
+                f'Found one or more different errata: {app_errata_diff_ids},'
                 ' from those present prior to install, but applicable count did not change'
                 f' as expected: {host.applicable_errata_count}.'
             )
     else:
         # already checked that applicable package count changed,
-        # but found applicable erratum list should not change, 
+        # but found applicable erratum list should not change,
         # check the errata count and list remained the same.
-        assert host.applicable_errata_count == prior_applicable_errata_count, (
-            'Expected current applicable errata count, to equal prior applicable errata count.'
-        )
-        assert len(current_applicable_errata) == prior_applicable_errata_count, (
-            'Expected current applicable errata list length, to equal to prior applicable count.'
-        )
+        assert (
+            host.applicable_errata_count == prior_applicable_errata_count
+        ), 'Expected current applicable errata count, to equal prior applicable errata count.'
+        assert (
+            len(current_applicable_errata) == prior_applicable_errata_count
+        ), 'Expected current applicable errata list length, to equal to prior applicable count.'
         assert prior_unique_errata_ids == app_unique_errata_ids, (
-            f'Expected set of prior applicable errata_ids: {prior_unique_errata_ids},' 
+            f'Expected set of prior applicable errata_ids: {prior_unique_errata_ids},'
             f' to be equivalent to set of current applicable errata_ids: {app_unique_errata_ids}.'
         )
     if return_applicables is True:
@@ -400,7 +405,7 @@ def package_applicability_changed_as_expected(
         if current_package == package_filename:
             # we have already checked if applicable package count changed,
             # in case the same version as prior was installed and present.
-            prior_package = None # package must not have been present before this modification
+            prior_package = None  # package must not have been present before this modification
         else:
             prior_package = package_filename
         _applicables = {
@@ -557,11 +562,11 @@ def test_positive_install_in_hc(
         # One package now has an applicable errata
         assert client.applicable_package_count == 1
         # Fetch the new errata instance(s), expecting only one
-        post_app_errata = _fetch_available_errata_instances(target_sat, client, expected_amount=1)
-        
-        """ Did installing outdated package, update applicability as expected ?
+        _fetch_available_errata_instances(target_sat, client, expected_amount=1)
+
+        """ Did installing outdated package, update applicability as expected?
             returns: False if no applicability change occured or expected (package not applicable).
-                True if applicability changes were expected and occured (package is applicable). 
+                True if applicability changes were expected and occured (package is applicable).
             raises: `AssertionError` if any expected changes did not occur, or unexpected changes were found.
         """
         passed_checks = package_applicability_changed_as_expected(
@@ -572,9 +577,9 @@ def test_positive_install_in_hc(
             pre_errata_count,
             pre_package_count,
         )
-        assert passed_checks is True, (
-            f'The package: {FAKE_1_CUSTOM_PACKAGE}, was not applicable to any erratum present on host: {client.hostname}.'
-        )
+        assert (
+            passed_checks is True
+        ), f'The package: {FAKE_1_CUSTOM_PACKAGE}, was not applicable to any erratum present on host: {client.hostname}.'
     # Setup host collection using client ids
     host_collection = target_sat.api.HostCollection(organization=module_sca_manifest_org).create()
     host_ids = [client.nailgun_host.id for client in content_hosts]
@@ -705,10 +710,20 @@ def test_positive_install_multiple_in_host(
         # Yum remove did not trigger any errata recalculate task,
         # assert YUM_9 packages were/are not present, then continue
         assert not set(FAKE_9_YUM_OUTDATED_PACKAGES).intersection(
-            set([package.filename for package in target_sat.api.Package(repository=custom_repo_id).search()])
+            set(
+                [
+                    package.filename
+                    for package in target_sat.api.Package(repository=custom_repo_id).search()
+                ]
+            )
         )
         assert not set(FAKE_9_YUM_UPDATED_PACKAGES).intersection(
-            set([package.filename for package in target_sat.api.Package(repository=custom_repo_id).search()])
+            set(
+                [
+                    package.filename
+                    for package in target_sat.api.Package(repository=custom_repo_id).search()
+                ]
+            )
         )
     # No applicable errata to start
     assert rhel_contenthost.applicable_errata_count == 0
@@ -717,7 +732,7 @@ def test_positive_install_multiple_in_host(
     for i in range(len(FAKE_9_YUM_OUTDATED_PACKAGES)):
         # record params prior to install, for post-install checks
         package_filename = FAKE_9_YUM_OUTDATED_PACKAGES[i]
-        updated_filename = FAKE_9_YUM_UPDATED_PACKAGES[i]
+        FAKE_9_YUM_UPDATED_PACKAGES[i]
         pre_errata_count = rhel_contenthost.applicable_errata_count
         pre_package_count = rhel_contenthost.applicable_package_count
         prior_app_errata = _fetch_available_errata_instances(target_sat, rhel_contenthost)
@@ -735,7 +750,7 @@ def test_positive_install_multiple_in_host(
         """
             Modifying the applicable package:
             - changed package applicability count by one and only one.
-            - changed errata applicability count by number of affected errata, whose 
+            - changed errata applicability count by number of affected errata, whose
                 applicability status changed after package was modified.
             - changed lists of applicable packages and applicable errata accordingly.
         """
@@ -748,7 +763,7 @@ def test_positive_install_multiple_in_host(
             pre_package_count,
         )
         # If passed_checks is False, this package was not applicable, continue to next.
-        if passed_checks == True:
+        if passed_checks is True:
             present_applicable_packages.append(package_filename)
 
     # Some applicable errata(s) now expected for outdated packages
@@ -763,19 +778,18 @@ def test_positive_install_multiple_in_host(
     installed_errata = []
     updated_packages = []
     expected_errata_to_install = [
-        errata.errata_id for errata in post_app_errata
+        errata.errata_id
+        for errata in post_app_errata
         if errata.errata_id in FAKE_9_YUM_SECURITY_ERRATUM
     ]
     all_applicable_packages = set(
-        package
-        for errata in post_app_errata
-        for package in errata.packages
+        package for errata in post_app_errata for package in errata.packages
     )
     security_packages_to_install = set()
     for errata_id in FAKE_9_YUM_SECURITY_ERRATUM:
-        errata_instance = target_sat.api.Errata().search(
-            query={'search': f'errata_id="{errata_id}"'}
-        )[0].read()
+        errata_instance = (
+            target_sat.api.Errata().search(query={'search': f'errata_id="{errata_id}"'})[0].read()
+        )
         present_packages_impacted_by_errata = [
             package
             for package in errata_instance.packages
@@ -784,14 +798,14 @@ def test_positive_install_multiple_in_host(
         security_packages_to_install.update(present_packages_impacted_by_errata)
     # Are expected security errata packages found in all applicable packages ?
     assert security_packages_to_install.issubset(all_applicable_packages)
-    #errata_instances = [target_sat.api.Errata().search(query={'search': f'errata_id="{_id}"'})[0].read() for _id in FAKE_9_YUM_SECURITY_ERRATUM]
+    # errata_instances = [target_sat.api.Errata().search(query={'search': f'errata_id="{_id}"'})[0].read() for _id in FAKE_9_YUM_SECURITY_ERRATUM]
     # Try to install each ERRATUM in FAKE_9_YUM_SECURITY_ERRATUM list,
     # Each time, check lists of applicable erratum and packages, and counts
     for ERRATUM in FAKE_9_YUM_SECURITY_ERRATUM:
         pre_errata_count = rhel_contenthost.applicable_errata_count
-        ERRATUM_instance = target_sat.api.Errata().search(
-            query={'search': f'errata_id="{ERRATUM}"'}
-        )[0].read()
+        ERRATUM_instance = (
+            target_sat.api.Errata().search(query={'search': f'errata_id="{ERRATUM}"'})[0].read()
+        )
         # Check each time before each install
         applicable_errata = _fetch_available_errata_instances(target_sat, rhel_contenthost)
         # If this ERRATUM is not applicable, continue to next
@@ -857,7 +871,7 @@ def test_positive_install_multiple_in_host(
         )
         installed_errata.append(ERRATUM)
         updated_packages.extend(found_updated_packages)
-    
+
     # In case no ERRATUM in list are applicable:
     # Lack of any package or errata install will raise `AssertionError`.
     assert (
@@ -869,8 +883,12 @@ def test_positive_install_multiple_in_host(
     # Each expected erratum and packages installed only once
     pkg_set = set(updated_packages)
     errata_set = set(installed_errata)
-    assert len(pkg_set) == len(updated_packages), f'Expect no repeat packages in install list: {updated_packages}.'
-    assert len(errata_set) == len(installed_errata), f'Expected no repeat errata in install list: {installed_errata}.'
+    assert len(pkg_set) == len(
+        updated_packages
+    ), f'Expect no repeat packages in install list: {updated_packages}.'
+    assert len(errata_set) == len(
+        installed_errata
+    ), f'Expected no repeat errata in install list: {installed_errata}.'
     # Only the expected YUM_9 packages were installed
     assert set(updated_packages).issubset(set(FAKE_9_YUM_UPDATED_PACKAGES))
     # Only the expected YUM_9 errata were updated
@@ -881,18 +899,18 @@ def test_positive_install_multiple_in_host(
         f' but installed: {len(installed_errata)}.'
     )
     # Check sets of installed errata id(s) strings, matches expected
-    assert set(installed_errata) == set(expected_errata_to_install), (
-        'Expected errata id(s) and installed errata id(s) are not the same.'
-    )
+    assert set(installed_errata) == set(
+        expected_errata_to_install
+    ), 'Expected errata id(s) and installed errata id(s) are not the same.'
     # Check number of updated package version filename(s) matches expected
     assert len(updated_packages) == len(security_packages_to_install), (
         f'Expected to install {len(security_packages_to_install)} packages from list: {FAKE_9_YUM_UPDATED_PACKAGES},'
         f' but installed {len(updated_packages)}.'
     )
     # Check sets of installed package filename(s) strings, matches expected
-    assert set(updated_packages) == set(security_packages_to_install), (
-        'Expected package version filename(s) and installed package version filenam(s) are not the same.'
-    )
+    assert set(updated_packages) == set(
+        security_packages_to_install
+    ), 'Expected package version filename(s) and installed package version filenam(s) are not the same.'
 
 
 @pytest.mark.tier3
@@ -1467,9 +1485,7 @@ def rhel8_module_ak(
     ).create()
     # Ensure tools repo is enabled in the activation key
     rhel8_module_ak.content_override(
-        data={
-            'content_overrides': [{'content_label': REPOS['rhst8']['id'], 'value': '1'}]
-        }
+        data={'content_overrides': [{'content_label': REPOS['rhst8']['id'], 'value': '1'}]}
     )
     # Fetch available subscriptions
     subs = module_target_sat.api.Subscription(organization=module_entitlement_manifest_org).search(
