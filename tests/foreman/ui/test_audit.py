@@ -1,6 +1,6 @@
 """Test class for Audit UI
 
-:Requirement: Audit
+:Requirement: AuditLog
 
 :CaseAutomation: Automated
 
