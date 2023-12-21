@@ -1,6 +1,6 @@
 """Tests for audit functionality.
 
-:Requirement: Audit
+:Requirement: AuditLog
 
 :CaseAutomation: Automated
 
