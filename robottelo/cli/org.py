@@ -21,6 +21,7 @@ Subcommands::
     add-subnet                    Associate a resource
     add-user                      Associate a resource
     create                        Create an organization
+    configure-cdn                 Update the CDN configuration
     delete                        Delete an organization
     delete-parameter              Delete parameter for an organization.
     info                          Show an organization
@@ -165,4 +166,10 @@ class Org(Base):
     def remove_user(cls, options=None):
         """Removes an user from an org"""
         cls.command_sub = 'remove-user'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def configure_cdn(cls, options=None):
+        """Update the CDN configuration"""
+        cls.command_sub = 'configure-cdn'
         return cls.execute(cls._construct_command(options))
