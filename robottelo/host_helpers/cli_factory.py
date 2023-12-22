@@ -691,7 +691,7 @@ class CLIFactory:
 
         1. Checks if organization and lifecycle environment were given, otherwise
             creates new ones.
-        2. Clones and uploads manifest.
+        2. If manifest does not exist, clone and upload it.
         3. Enables RH repo and synchronizes it.
         4. Checks if content view was given, otherwise creates a new one and
             - adds the RH repo
@@ -717,15 +717,13 @@ class CLIFactory:
             env_id = self.make_lifecycle_environment({'organization-id': org_id})['id']
         else:
             env_id = options['lifecycle-environment-id']
-        # Clone manifest and upload it
-        with clone() as manifest:
-            self._satellite.put(manifest.path, manifest.name)
-        try:
-            self._satellite.cli.Subscription.upload(
-                {'file': manifest.name, 'organization-id': org_id}
-            )
-        except CLIReturnCodeError as err:
-            raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
+        # If manifest does not exist, clone and upload it
+        if len(self._satellite.cli.Subscription.exists({'organization-id': org_id})) == 0:
+            with clone() as manifest:
+                try:
+                    self._satellite.upload_manifest(org_id, manifest.content)
+                except CLIReturnCodeError as err:
+                    raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
         # Enable repo from Repository Set
         try:
             self._satellite.cli.RepositorySet.enable(
@@ -820,6 +818,11 @@ class CLIFactory:
                     ),
                 }
             )
+        # Override RHST product to true ( turned off by default in 6.14 )
+        rhel_repo = self._satellite.cli.Repository.info({'id': rhel_repo['id']})
+        self._satellite.cli.ActivationKey.content_override(
+            {'id': activationkey_id, 'content-label': rhel_repo['content-label'], 'value': 'true'}
+        )
         return {
             'activationkey-id': activationkey_id,
             'content-view-id': cv_id,
