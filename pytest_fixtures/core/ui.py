@@ -18,9 +18,12 @@ def ui_user(request, module_org, module_location, module_target_sat):
     test_module_name = request.module.__name__.split('.')[-1].split('_', 1)[-1]
     login = f"{test_module_name}_{gen_string('alphanumeric')}"
     password = gen_string('alphanumeric')
+    admin = request.param.get('admin', True)
     logger.debug('Creating session user %r', login)
     user = module_target_sat.api.User(
-        admin=True,
+        admin=admin,
+        organization=[module_org],
+        location=[module_location],
         default_organization=module_org,
         default_location=module_location,
         description=f'created automatically by airgun for module "{test_module_name}"',
@@ -28,6 +31,10 @@ def ui_user(request, module_org, module_location, module_target_sat):
         password=password,
     ).create()
     user.password = password
+    if not admin:
+        # give all the permissions
+        user.role = module_target_sat.api.Role().search(query={'per_page': 'all'})
+        user.update(['role'])
     yield user
     try:
         logger.debug('Deleting session user %r', user.login)
