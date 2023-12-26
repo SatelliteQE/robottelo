@@ -65,6 +65,7 @@ def assert_host_logs(channel, pattern):
 
 
 @pytest.mark.e2e
+@pytest.mark.upgrade
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.on_premises_provisioning
 @pytest.mark.rhel_ver_match('[^6]')
@@ -191,6 +192,7 @@ def test_rhel_pxe_provisioning(
 
 
 @pytest.mark.e2e
+@pytest.mark.upgrade
 @pytest.mark.parametrize('pxe_loader', ['ipxe'], indirect=True)
 @pytest.mark.on_premises_provisioning
 @pytest.mark.rhel_ver_match('[^6]')
@@ -320,6 +322,7 @@ def test_rhel_ipxe_provisioning(
 
 @pytest.mark.skip_if_open("BZ:2242925")
 @pytest.mark.e2e
+@pytest.mark.upgrade
 @pytest.mark.parametrize('pxe_loader', ['http_uefi'], indirect=True)
 @pytest.mark.on_premises_provisioning
 @pytest.mark.rhel_ver_match('[^6]')
