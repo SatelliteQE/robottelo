@@ -1824,8 +1824,9 @@ class Satellite(Capsule, SatelliteMixins):
             video_url = settings.ui.grid_url.replace(
                 ':4444', f'/videos/{ui_session.ui_session_id}.mp4'
             )
-            self.record_property('video_url', video_url)
-            self.record_property('session_id', ui_session.ui_session_id)
+            if self.record_property is not None and settings.ui.record_video:
+                self.record_property('video_url', video_url)
+                self.record_property('session_id', ui_session.ui_session_id)
 
     @property
     def satellite(self):
