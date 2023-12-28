@@ -7,6 +7,7 @@ TARGET_FIXTURES = [
     'rhel_contenthost',
     'content_hosts',
     'module_provisioning_rhel_content',
+    'capsule_provisioning_rhel_content',
     'rex_contenthost',
 ]
 
