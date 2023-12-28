@@ -40,7 +40,7 @@ def capsule_provisioning_sat(
         target_vlan_id=settings.provisioning.vlan_id,
         target_host=module_capsule_configured.name,
         provisioning_dns_zone=provisioning_domain_name,
-        sat_version='stream' if sat.is_stream else sat.version,
+        sat_version=sat.version,
         deploy_scenario='capsule',
     )
 
