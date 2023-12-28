@@ -1648,11 +1648,13 @@ class Capsule(ContentHost, CapsuleMixins):
     def set_rex_script_mode_provider(self, mode='ssh'):
         """Set provider for remote execution script mode. One of: ssh(default),
         pull-mqtt, ssh-async"""
-        installer_opts = {
-            'foreman-proxy-templates': 'true',
-            'foreman-proxy-registration': 'true',
-            'foreman-proxy-plugin-remote-execution-script-mode': mode,
-        }
+
+        installer_opts = {'foreman-proxy-plugin-remote-execution-script-mode': mode}
+
+        if self.__class__.__name__ == 'Capsule':
+            installer_opts['foreman-proxy-templates'] = 'true'
+            installer_opts['foreman-proxy-registration'] = 'true'
+
         enable_mqtt_command = InstallerCommand(
             installer_opts=installer_opts,
         )
