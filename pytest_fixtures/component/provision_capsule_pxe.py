@@ -173,7 +173,7 @@ def capsule_provisioning_rhel_content(
     that is specified in `request.param`.
     """
     sat = capsule_provisioning_sat.sat
-    rhel_ver = request.param
+    rhel_ver = request.param['rhel_version']
     repo_names = []
     if int(rhel_ver) <= 7:
         repo_names.append(f'rhel{rhel_ver}')
