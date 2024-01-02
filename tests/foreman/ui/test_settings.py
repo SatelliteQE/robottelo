@@ -549,3 +549,37 @@ def test_positive_entries_per_page(session, setting_update):
         total_pages_str = page_content["Pagination"]['_items'].split()[-2]
         total_pages = math.ceil(int(total_pages_str.split()[-1]) / property_value)
         assert str(total_pages) == page_content["Pagination"]['_total_pages'].split()[-1]
+
+
+@pytest.mark.tier2
+def test_positive_show_unsupported_templates(request, target_sat, module_org, module_location):
+    """Verify setting show_unsupported_templates with new custom template
+
+    :id: e0eaab69-4926-4c1e-b111-30c51ede273z
+
+    :Steps:
+        1. Goto Settings -> Provisioning tab -> Show unsupported provisioning templates
+
+    :CaseImportance: Medium
+
+    :expectedresults: Custom template aren't searchable when set to No,
+        and are searchable when set to Yes(default)
+    """
+    pt = target_sat.api.ProvisioningTemplate(
+        name=gen_string('alpha'),
+        organization=[module_org],
+        location=[module_location],
+        template=gen_string('alpha'),
+        snippet=False,
+    ).create()
+    request.addfinalizer(pt.delete)
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        default_value = target_sat.update_setting('show_unsupported_templates', 'No')
+        assert not session.provisioningtemplate.search(f'name={pt.name}')
+
+        # Verify with show_unsupported_templates=Yes
+        target_sat.update_setting('show_unsupported_templates', default_value)
+        template = session.provisioningtemplate.search(f'name={pt.name}')
+        assert template[0]['Name'] == pt.name
