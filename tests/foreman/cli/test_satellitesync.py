@@ -2059,3 +2059,154 @@ class TestInterSatelliteSync:
 
         :CaseLevel: System
         """
+
+
+@pytest.fixture(scope='module')
+def module_downstream_sat(module_satellite_host):
+    """Provides Downstream Satellite."""
+    module_satellite_host.cli.Settings.set(
+        {'name': 'subscription_connection_enabled', 'value': 'No'}
+    )
+    return module_satellite_host
+
+
+@pytest.fixture
+def function_downstream_org(module_downstream_sat, function_sca_manifest):
+    """Provides organization with manifest on Downstream Satellite."""
+    org = module_downstream_sat.api.Organization().create()
+    module_downstream_sat.upload_manifest(org.id, function_sca_manifest.content)
+    return org
+
+
+def _set_downstream_org(
+    downstream_sat,
+    upstream_sat,
+    downstream_org,
+    upstream_org='Default_Organization',
+    username=settings.server.admin_username,
+    password=settings.server.admin_password,
+    lce_label=None,
+    cv_label=None,
+):
+    """Configures Downstream organization to sync from particular Upstream organization.
+
+    :param downstream_sat: Downstream Satellite instance.
+    :param upstream_sat: Upstream Satellite instance.
+    :param downstream_org: Downstream organization to be configured.
+    :param upstream_org: Upstream organization to sync CDN content from,
+                         default: Default_Organization
+    :param username: Username for authentication, default: admin username from settings.
+    :param password: Password for authentication, default: admin password from settings.
+    :param lce_label: Upstream Lifecycle Environment, default: Library
+    :param cv_label: Upstream Content View Label, default: Default_Organization_View.
+    :return: True if succeeded.
+    """
+    # Create Content Credentials with Upstream Satellite's katello-server-ca.crt.
+    crt_file = f'{upstream_sat.hostname}.crt'
+    downstream_sat.execute(
+        f'curl -o {crt_file} http://{upstream_sat.hostname}/pub/katello-server-ca.crt'
+    )
+    cc = downstream_sat.cli.ContentCredential.create(
+        {
+            'name': upstream_sat.hostname,
+            'organization-id': downstream_org.id,
+            'path': crt_file,
+            'content-type': 'cert',
+        }
+    )
+    # Set the CDN configuration to Network Sync.
+    res = downstream_sat.cli.Org.configure_cdn(
+        {
+            'id': downstream_org.id,
+            'type': 'network_sync',
+            'url': f'https://{upstream_sat.hostname}/',
+            'username': username,
+            'password': password,
+            'upstream-organization-label': upstream_org.label,
+            'upstream-lifecycle-environment-label': lce_label,
+            'upstream-content-view-label': cv_label,
+            'ssl-ca-credential-id': cc['id'],
+        }
+    )
+    return 'Updated CDN configuration' in res
+
+
+class TestNetworkSync:
+    """Implements Network Sync scenarios."""
+
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'function_synced_rhel_repo',
+        ['rhae2'],
+        indirect=True,
+    )
+    def test_positive_network_sync_rh_repo(
+        self,
+        target_sat,
+        function_sca_manifest_org,
+        function_synced_rhel_repo,
+        module_downstream_sat,
+        function_downstream_org,
+    ):
+        """Sync a RH repo from Upstream to Downstream Satellite
+
+        :id: fdb58c18-0a64-418b-990d-2233381fee8f
+
+        :parametrized: yes
+
+        :setup:
+            1. Enabled and synced RH yum repository at Upstream Sat.
+            2. Organization with manifest at Downstream Sat.
+
+        :steps:
+            1. Set the Downstream org to sync from Upstream org.
+            2. Enable and sync the repository from Upstream to Downstream.
+
+        :expectedresults:
+            1. Repository can be enabled and synced.
+
+        :CaseLevel: System
+
+        :BZ: 2213128
+
+        :customerscenario: true
+
+        """
+        assert _set_downstream_org(
+            downstream_sat=module_downstream_sat,
+            upstream_sat=target_sat,
+            downstream_org=function_downstream_org,
+            upstream_org=function_sca_manifest_org,
+        ), 'Downstream org configuration failed'
+
+        # Enable and sync the repository.
+        reposet = module_downstream_sat.cli.RepositorySet.list(
+            {
+                'organization-id': function_downstream_org.id,
+                'search': f'content_label={function_synced_rhel_repo["content-label"]}',
+            }
+        )
+        assert (
+            len(reposet) == 1
+        ), f'Expected just one reposet for "{function_synced_rhel_repo["content-label"]}"'
+        res = module_downstream_sat.cli.RepositorySet.enable(
+            {
+                'organization-id': function_downstream_org.id,
+                'id': reposet[0]['id'],
+                'basearch': DEFAULT_ARCHITECTURE,
+            }
+        )
+        assert 'Repository enabled' in str(res), 'Repository enable failed'
+
+        repos = module_downstream_sat.cli.Repository.list(
+            {'organization-id': function_downstream_org.id}
+        )
+        assert len(repos) == 1, 'Expected 1 repo enabled'
+        repo = repos[0]
+        module_downstream_sat.cli.Repository.synchronize({'id': repo['id']})
+
+        repo = module_downstream_sat.cli.Repository.info({'id': repo['id']})
+        assert 'Success' in repo['sync']['status'], 'Sync did not succeed'
+        assert (
+            repo['content-counts'] == function_synced_rhel_repo['content-counts']
+        ), 'Content counts do not match'
