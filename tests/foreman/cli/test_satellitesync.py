@@ -2079,10 +2079,10 @@ def function_downstream_org(module_downstream_sat, function_sca_manifest):
 
 
 def _set_downstream_org(
-    dwn_sat,
-    up_sat,
-    dwn_org,
-    up_org='Default_Organization',
+    downstream_sat,
+    upstream_sat,
+    downstream_org,
+    upstream_org='Default_Organization',
     username=settings.server.admin_username,
     password=settings.server.admin_password,
     lce_label=None,
@@ -2090,10 +2090,11 @@ def _set_downstream_org(
 ):
     """Configures Downstream organization to sync from particular Upstream organization.
 
-    :param dwn_sat: Downstream Satellite instance.
-    :param up_sat: Upstream Satellite instance.
-    :param dwn_org: Downstream organization to be configured.
-    :param up_org: Upstream organization to sync CDN content from, default: Default_Organization
+    :param downstream_sat: Downstream Satellite instance.
+    :param upstream_sat: Upstream Satellite instance.
+    :param downstream_org: Downstream organization to be configured.
+    :param upstream_org: Upstream organization to sync CDN content from,
+                         default: Default_Organization
     :param username: Username for authentication, default: admin username from settings.
     :param password: Password for authentication, default: admin password from settings.
     :param lce_label: Upstream Lifecycle Environment, default: Library
@@ -2101,25 +2102,27 @@ def _set_downstream_org(
     :return: True if succeeded.
     """
     # Create Content Credentials with Upstream Satellite's katello-server-ca.crt.
-    crt_file = f'{up_sat.hostname}.crt'
-    dwn_sat.execute(f'curl -o {crt_file} http://{up_sat.hostname}/pub/katello-server-ca.crt')
-    cc = dwn_sat.cli.ContentCredential.create(
+    crt_file = f'{upstream_sat.hostname}.crt'
+    downstream_sat.execute(
+        f'curl -o {crt_file} http://{upstream_sat.hostname}/pub/katello-server-ca.crt'
+    )
+    cc = downstream_sat.cli.ContentCredential.create(
         {
-            'name': up_sat.hostname,
-            'organization-id': dwn_org.id,
+            'name': upstream_sat.hostname,
+            'organization-id': downstream_org.id,
             'path': crt_file,
             'content-type': 'cert',
         }
     )
     # Set the CDN configuration to Network Sync.
-    res = dwn_sat.cli.Org.configure_cdn(
+    res = downstream_sat.cli.Org.configure_cdn(
         {
-            'id': dwn_org.id,
+            'id': downstream_org.id,
             'type': 'network_sync',
-            'url': f'https://{up_sat.hostname}/',
+            'url': f'https://{upstream_sat.hostname}/',
             'username': username,
             'password': password,
-            'upstream-organization-label': up_org.label,
+            'upstream-organization-label': upstream_org.label,
             'upstream-lifecycle-environment-label': lce_label,
             'upstream-content-view-label': cv_label,
             'ssl-ca-credential-id': cc['id'],
@@ -2170,10 +2173,10 @@ class TestNetworkSync:
 
         """
         assert _set_downstream_org(
-            module_downstream_sat,
-            target_sat,
-            function_downstream_org,
-            function_sca_manifest_org,
+            downstream_sat=module_downstream_sat,
+            upstream_sat=target_sat,
+            downstream_org=function_downstream_org,
+            upstream_org=function_sca_manifest_org,
         ), 'Downstream org configuration failed'
 
         # Enable and sync the repository.
