@@ -1248,6 +1248,92 @@ class TestContentViewSync:
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
 
     @pytest.mark.tier3
+    def test_postive_export_import_cv_with_mixed_content_syncable(
+        self,
+        export_import_cleanup_function,
+        target_sat,
+        function_org,
+        function_synced_custom_repo,
+        function_synced_file_repo,
+        function_import_org,
+    ):
+        """Export and import CV with mixed content in the syncable format.
+
+        :id: cb1aecac-d48a-4154-9ca7-71788674148f
+
+        :setup:
+            1. Synced repositories of syncable-supported content types: yum, file
+
+        :steps:
+            1. Create CV, add all setup repos and publish.
+            2. Export CV version contents in syncable format.
+            3. Import the syncable export, check the content.
+
+        :expectedresults:
+            1. Export succeeds and content is exported.
+            2. Import succeeds, content is imported and matches the export.
+        """
+        # Create CV, add all setup repos and publish
+        cv = target_sat.cli_factory.make_content_view({'organization-id': function_org.id})
+        repos = [
+            function_synced_custom_repo,
+            function_synced_file_repo,
+        ]
+        for repo in repos:
+            target_sat.cli.ContentView.add_repository(
+                {
+                    'id': cv['id'],
+                    'organization-id': function_org.id,
+                    'repository-id': repo['id'],
+                }
+            )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        exporting_cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        exporting_cvv = target_sat.cli.ContentView.version_info(
+            {'id': exporting_cv['versions'][0]['id']}
+        )
+        exported_packages = target_sat.cli.Package.list(
+            {'content-view-version-id': exporting_cvv['id']}
+        )
+        exported_files = target_sat.cli.File.list({'content-view-version-id': exporting_cvv['id']})
+
+        # Export CV version contents in syncable format
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
+        export = target_sat.cli.ContentExport.completeVersion(
+            {'id': exporting_cvv['id'], 'organization-id': function_org.id, 'format': 'syncable'}
+        )
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
+
+        # Import the syncable export
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
+        target_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org.id, 'path': import_path}
+        )
+        importing_cv = target_sat.cli.ContentView.info(
+            {'name': exporting_cv['name'], 'organization-id': function_import_org.id}
+        )
+        assert all(
+            [exporting_cv[key] == importing_cv[key] for key in ['label', 'name']]
+        ), 'Imported CV name/label does not match the export'
+        assert (
+            len(exporting_cv['versions']) == len(importing_cv['versions']) == 1
+        ), 'CV versions count does not match'
+
+        importing_cvv = target_sat.cli.ContentView.version_info(
+            {'id': importing_cv['versions'][0]['id']}
+        )
+        assert (
+            len(exporting_cvv['repositories']) == len(importing_cvv['repositories']) == len(repos)
+        ), 'Repositories count does not match'
+
+        imported_packages = target_sat.cli.Package.list(
+            {'content-view-version-id': importing_cvv['id']}
+        )
+        imported_files = target_sat.cli.File.list({'content-view-version-id': importing_cvv['id']})
+        assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
+        assert exported_files == imported_files, 'Imported Files do not match the export'
+
+    @pytest.mark.tier3
     def test_postive_export_import_cv_with_file_content(
         self,
         target_sat,
