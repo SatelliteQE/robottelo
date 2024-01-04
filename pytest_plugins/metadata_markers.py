@@ -119,6 +119,7 @@ def pytest_collection_modifyitems(items, config):
         markers_prop_data = []
         exclude_markers = ['parametrize', 'skipif', 'usefixtures', 'skip_if_not_set']
         for marker in item.iter_markers():
+            item.user_properties.append((marker.name, next(iter(marker.args), None)))
             prop = marker.name
             if prop in exclude_markers:
                 continue
