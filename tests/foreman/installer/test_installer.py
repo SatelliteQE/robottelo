@@ -1628,18 +1628,10 @@ def test_positive_check_installer_hammer_ping(target_sat):
     """
     # check status reported by hammer ping command
     result = target_sat.execute('hammer ping')
-    test_result = {}
-    service = None
-    for line in result.stdout.strip().replace(' ', '').split('\n'):
-        if line.split(':')[0] not in ('Status', 'ServerResponse', 'message'):
-            service = line.split(':')[0]
-            test_result[service] = {}
-        else:
-            key, value = line.split(":", 1)
-            test_result[service][key] = value
-
-    not_ok = {svc: result for svc, result in test_result.items() if result['Status'] != 'ok'}
-    assert not not_ok
+    assert result.status == 0
+    for line in result.stdout.split('\n'):
+        if 'Status' in line:
+            assert 'ok' in line
 
 
 @pytest.mark.e2e
