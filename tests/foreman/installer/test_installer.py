@@ -21,7 +21,7 @@ import requests
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
+from robottelo.constants import FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
 from robottelo.hosts import setup_capsule
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
@@ -1343,11 +1343,14 @@ def common_sat_install_assertions(satellite):
     result = satellite.execute(r'grep -iR "error" /var/log/candlepin/*')
     assert len(result.stdout) == 0
 
+    httpd_log = satellite.execute('journalctl --unit=httpd')
+    assert "WARNING" not in httpd_log.stdout
+
     result = satellite.cli.Health.check()
     assert 'FAIL' not in result.stdout
 
 
-def install_satellite(satellite, installer_args):
+def install_satellite(satellite, installer_args, enable_fapolicyd=False):
     # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
     satellite.register_to_cdn()
     satellite.download_repofile(
@@ -1355,7 +1358,14 @@ def install_satellite(satellite, installer_args):
         release=settings.server.version.release,
         snap=settings.server.version.snap,
     )
+    if enable_fapolicyd:
+        satellite.execute(
+            'dnf -y install fapolicyd && systemctl enable --now fapolicyd'
+        ).status == 0
     satellite.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
+    if enable_fapolicyd:
+        assert satellite.execute('rpm -q foreman-fapolicyd').status == 0
+        assert satellite.execute('rpm -q foreman-proxy-fapolicyd').status == 0
     # Configure Satellite firewall to open communication
     satellite.execute(
         'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
@@ -1381,14 +1391,14 @@ def sat_default_install(module_sat_ready_rhels):
 
 @pytest.fixture(scope='module')
 def sat_non_default_install(module_sat_ready_rhels):
-    """Install Satellite with various options"""
+    """Provides fapolicyd enabled Satellite with various options"""
     installer_args = [
         'scenario satellite',
         f'foreman-initial-admin-password {settings.server.admin_password}',
         'foreman-rails-cache-store type:file',
         'foreman-proxy-content-pulpcore-hide-guarded-distributions false',
     ]
-    install_satellite(module_sat_ready_rhels[1], installer_args)
+    install_satellite(module_sat_ready_rhels[1], installer_args, enable_fapolicyd=True)
     yield module_sat_ready_rhels[1]
     common_sat_install_assertions(module_sat_ready_rhels[1])
 
@@ -1396,16 +1406,17 @@ def sat_non_default_install(module_sat_ready_rhels):
 @pytest.mark.e2e
 @pytest.mark.tier1
 @pytest.mark.pit_client
-def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
-    """Run a basic Capsule installation
+def test_capsule_installation(sat_non_default_install, cap_ready_rhel):
+    """Run a basic Capsule installation with fapolicyd
 
     :id: 64fa85b6-96e6-4fea-bea4-a30539d59e65
 
     :steps:
-        1. Get a Satellite
+        1. Get a fapolicyd enabled Satellite
         2. Configure capsule repos
-        3. Enable capsule module
-        4. Install and setup capsule
+        3. Install and enable fapolicyd
+        4. Enable capsule module
+        5. Install and setup capsule
 
     :expectedresults:
         1. Capsule is installed and setup correctly
@@ -1415,21 +1426,27 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
     :CaseImportance: Critical
     """
     # Get Capsule repofile, and enable and download satellite-capsule
+    org = sat_non_default_install.api.Organization().create()
     cap_ready_rhel.register_to_cdn()
     cap_ready_rhel.download_repofile(
         product='capsule',
         release=settings.server.version.release,
         snap=settings.server.version.snap,
     )
+    # Enable fapolicyd
+    assert (
+        cap_ready_rhel.execute(
+            'dnf -y install fapolicyd && systemctl enable --now fapolicyd'
+        ).status
+        == 0
+    )
     cap_ready_rhel.execute(
         'dnf -y module enable satellite-capsule:el8 && dnf -y install satellite-capsule'
     )
+    assert cap_ready_rhel.execute('rpm -q foreman-proxy-fapolicyd').status == 0
     # Setup Capsule
-    org = sat_default_install.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[
-        0
-    ]
-    setup_capsule(sat_default_install, cap_ready_rhel, org)
-    assert sat_default_install.api.Capsule().search(
+    setup_capsule(sat_non_default_install, cap_ready_rhel, org)
+    assert sat_non_default_install.api.Capsule().search(
         query={'search': f'name={cap_ready_rhel.hostname}'}
     )[0]
 
@@ -1475,7 +1492,7 @@ def test_foreman_rails_cache_store(sat_non_default_install):
 
     :customerscenario: true
 
-    :BZ: 2063717, 2165092
+    :BZ: 2063717, 2165092, 2244370
     """
     # Verify foreman-rails-cache-store option works
     assert sat_non_default_install.execute('rpm -q foreman-redis').status == 1

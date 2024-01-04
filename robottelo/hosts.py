@@ -125,7 +125,7 @@ def setup_capsule(satellite, capsule, org, registration_args=None, installation_
     capsule.unregister()
 
     # Add a manifest to the Satellite
-    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
         satellite.upload_manifest(org.id, manifest.content)
 
     # Enable RHEL 8 BaseOS and AppStream repos and sync
@@ -151,7 +151,7 @@ def setup_capsule(satellite, capsule, org, registration_args=None, installation_
         f'{file} root@{capsule.hostname}:{file}'
     )
     capsule.install_katello_ca(satellite)
-    capsule.register_contenthost(**registration_args)
+    capsule.register_contenthost(org=org.label, **registration_args)
     return capsule.install(cmd_args)
 
 
