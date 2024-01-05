@@ -362,3 +362,25 @@ def test_positive_product_view_organization_switch(session, module_org, module_p
         assert session.product.search(module_product.name)
         session.organization.select(org_name="Default Organization")
         assert not session.product.search(module_product.name) == module_product.name
+
+
+@pytest.mark.tier2
+def test_positive_prepare_for_sca_only_deprecation(target_sat):
+    """Verify that Simple Content Access endpoints are deprecated and will be required
+        for all organizations in Katello 4.12
+
+    :id: df7e6806-6664-4dc5-baf6-bb41935e3031
+
+    :expectedresults: Attempting to create an Organization with sca set to False, will throw
+        deprecation endpoint message
+    """
+    with target_sat.ui_session() as session:
+        session.organization.create(
+            {
+                'name': gen_string('alpha'),
+                'label': gen_string('alpha'),
+                'sca': False,
+            }
+        )
+        results = target_sat.execute('tail -100 /var/log/foreman/production.log').stdout
+    assert 'Simple Content Access will be required for all organizations in Katello 4.12' in results
