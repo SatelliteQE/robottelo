@@ -119,12 +119,15 @@ def pytest_collection_modifyitems(items, config):
         markers_prop_data = []
         exclude_markers = ['parametrize', 'skipif', 'usefixtures', 'skip_if_not_set']
         for marker in item.iter_markers():
-            prop = marker.name
-            if prop in exclude_markers:
+            proprty = marker.name
+            if proprty in exclude_markers:
                 continue
             if marker_val := next(iter(marker.args), None):
-                prop = '='.join([prop, str(marker_val)])
-            markers_prop_data.append(prop)
+                proprty = '='.join([proprty, str(marker_val)])
+            markers_prop_data.append(proprty)
+            # Adding independent marker as a property
+            item.user_properties.append((marker.name, marker_val))
+        # Adding all markers as a single property
         item.user_properties.append(("markers", ", ".join(markers_prop_data)))
 
         # Version specific user properties
