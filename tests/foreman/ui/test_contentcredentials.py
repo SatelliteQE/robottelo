@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ContentCredentials
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 
@@ -44,8 +39,6 @@ def test_positive_end_to_end(session, target_sat, module_org, gpg_content):
     :id: d1a8cc1b-a072-465b-887d-5bca0acd21c3
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -123,8 +116,6 @@ def test_positive_add_empty_product(session, target_sat, module_org, gpg_content
     :id: e18ae9f5-43d9-4049-92ca-1eafaca05096
 
     :expectedresults: gpg key is associated with product
-
-    :CaseLevel: Integration
     """
     prod_name = gen_string('alpha')
     gpg_key = target_sat.api.GPGKey(content=gpg_content, organization=module_org).create()
@@ -146,8 +137,6 @@ def test_positive_add_product_with_repo(session, target_sat, module_org, gpg_con
 
     :expectedresults: gpg key is associated with product as well as with
         the repository
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     gpg_key = target_sat.api.GPGKey(
@@ -181,8 +170,6 @@ def test_positive_add_product_with_repos(session, target_sat, module_org, gpg_co
     :id: 0edffad7-0ab4-4bef-b16b-f6c8de55b0dc
 
     :expectedresults: gpg key is properly associated with repositories
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     gpg_key = target_sat.api.GPGKey(
@@ -211,8 +198,6 @@ def test_positive_add_repo_from_product_with_repo(session, target_sat, module_or
 
     :expectedresults: gpg key is associated with the repository but not
         with the product
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     gpg_key = target_sat.api.GPGKey(
@@ -244,8 +229,6 @@ def test_positive_add_repo_from_product_with_repos(session, target_sat, module_o
 
     :expectedresults: gpg key is associated with one of the repositories
         but not with the product
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     gpg_key = target_sat.api.GPGKey(
@@ -280,8 +263,6 @@ def test_positive_add_product_using_repo_discovery(session, gpg_path):
         the repositories
 
     :BZ: 1210180, 1461804, 1595792
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     product_name = gen_string('alpha')
@@ -327,8 +308,6 @@ def test_positive_add_product_and_search(session, target_sat, module_org, gpg_co
         gpg key 'Product' tab
 
     :BZ: 1411800
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     gpg_key = target_sat.api.GPGKey(
@@ -364,8 +343,6 @@ def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path)
         repository before/after update
 
     :BZ: 1210180, 1461804
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -416,8 +393,6 @@ def test_positive_update_key_for_empty_product(session, target_sat, module_org, 
 
     :expectedresults: gpg key is associated with product before/after
         update
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -448,8 +423,6 @@ def test_positive_update_key_for_product_with_repo(session, target_sat, module_o
 
     :expectedresults: gpg key is associated with product as well as with
         repository after update
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -482,8 +455,6 @@ def test_positive_update_key_for_product_with_repos(session, target_sat, module_
 
     :expectedresults: gpg key is associated with product as well as with
         repositories after update
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -518,8 +489,6 @@ def test_positive_update_key_for_repo_from_product_with_repo(
 
     :expectedresults: gpg key is associated with repository after update
         but not with product.
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -557,8 +526,6 @@ def test_positive_update_key_for_repo_from_product_with_repos(
 
     :expectedresults: gpg key is associated with single repository
         after update but not with product
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')

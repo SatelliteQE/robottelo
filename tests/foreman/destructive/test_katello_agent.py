@@ -4,8 +4,6 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: katello-agent
 
 :team: Phoenix-subscriptions
@@ -40,7 +38,6 @@ def test_positive_apply_errata(katello_agent_client):
 
     :parametrized: yes
 
-    :CaseLevel: System
     """
     sat = katello_agent_client['sat']
     client = katello_agent_client['client']
@@ -68,7 +65,6 @@ def test_positive_install_and_remove_package(katello_agent_client):
 
     :parametrized: yes
 
-    :CaseLevel: System
     """
     sat = katello_agent_client['sat']
     client = katello_agent_client['client']
@@ -93,7 +89,6 @@ def test_positive_upgrade_package(katello_agent_client):
 
     :parametrized: yes
 
-    :CaseLevel: System
     """
     sat = katello_agent_client['sat']
     client = katello_agent_client['client']
@@ -115,7 +110,6 @@ def test_positive_upgrade_packages_all(katello_agent_client):
 
     :parametrized: yes
 
-    :CaseLevel: System
     """
     sat = katello_agent_client['sat']
     client = katello_agent_client['client']
@@ -135,7 +129,6 @@ def test_positive_install_and_remove_package_group(katello_agent_client):
 
     :parametrized: yes
 
-    :CaseLevel: System
     """
     sat = katello_agent_client['sat']
     client = katello_agent_client['client']

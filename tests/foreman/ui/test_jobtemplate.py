@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: RemoteExecution
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -27,8 +22,6 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
     :id: 2e0e31c5-e557-4151-83f9-21820c9cb1be
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """

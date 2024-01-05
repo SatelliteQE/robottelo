@@ -8,17 +8,12 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: SubscriptionManagement
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import http
 

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Ansible
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -33,7 +28,7 @@ def test_fetch_and_sync_ansible_playbooks(target_sat):
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
 
         1. Install ansible collection with playbooks.
         2. Try to fetch the playbooks via api.
@@ -77,7 +72,7 @@ def test_positive_ansible_job_on_host(target_sat, module_org, rhel_contenthost):
 
     :id: c8dcdc54-cb98-4b24-bff9-049a6cc36acb
 
-    :Steps:
+    :steps:
         1. Register a content host with satellite
         2. Import a role into satellite
         3. Assign that role to a host
@@ -203,7 +198,7 @@ def test_positive_ansible_job_on_multiple_host(
 @pytest.fixture
 def filtered_user(target_sat, module_org, module_location):
     """
-    :Steps:
+    :steps:
         1. Create a role with a host view filtered
         2. Create a user with that role
         3. Setup a host

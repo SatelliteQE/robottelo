@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Logging
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: Medium
 
-:Upstream: No
 """
 import re
 
@@ -222,8 +217,6 @@ def test_positive_logging_from_pulp3(module_org, target_sat):
     Verify Pulp3 logs are getting captured using pulp3 correlation ID
 
     :id: 8d5718e6-3442-47d6-b541-0aa78d007e8b
-
-    :CaseLevel: Component
 
     :CaseImportance: High
     """

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: OrganizationsandLocations
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -281,7 +276,6 @@ class TestLocation:
 
         :BZ: 1398695
 
-        :CaseLevel: Integration
         """
         location = _location(request, target_sat)
         proxy = _proxy(request, target_sat)

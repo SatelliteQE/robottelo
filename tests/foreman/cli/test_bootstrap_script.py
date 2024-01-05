@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Bootstrap
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 
@@ -35,7 +30,7 @@ def test_positive_register(
 
     :id: e34561fd-e0d6-4587-84eb-f86bd131aab1
 
-    :Steps:
+    :steps:
 
         1. Ensure system is not registered
         2. Register a system

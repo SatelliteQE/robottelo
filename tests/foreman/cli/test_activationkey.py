@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ActivationKeys
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from random import choice
 import re
@@ -147,8 +142,6 @@ def test_positive_create_with_cv(name, module_org, get_default_env, module_targe
     :expectedresults: Activation key is created and has proper content view
         assigned
 
-    :CaseLevel: Integration
-
     :parametrized: yes
     """
     new_cv = module_target_sat.cli_factory.make_content_view(
@@ -205,8 +198,6 @@ def test_positive_create_content_and_check_enabled(module_org, module_target_sat
         successfully
 
     :BZ: 1361993
-
-    :CaseLevel: Integration
     """
     result = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
         {'url': settings.repos.yum_0.url, 'organization-id': module_org.id}
@@ -366,8 +357,6 @@ def test_positive_delete_with_cv(module_org, module_target_sat):
     :id: bba323fa-0362-4a9b-97af-560d446cbb6c
 
     :expectedresults: Activation key is deleted
-
-    :CaseLevel: Integration
     """
     new_cv = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
     new_ak = module_target_sat.cli_factory.make_activation_key(
@@ -386,8 +375,6 @@ def test_positive_delete_with_lce(module_org, get_default_env, module_target_sat
     :id: e1830e52-5b1a-4ac4-8d0a-df6efb218a8b
 
     :expectedresults: Activation key is deleted
-
-    :CaseLevel: Integration
     """
     new_ak = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_org.id, 'lifecycle-environment': get_default_env['name']}
@@ -476,8 +463,6 @@ def test_positive_update_lce(module_org, get_default_env, module_target_sat):
     :id: 55aaee60-b8c8-49f0-995a-6c526b9b653b
 
     :expectedresults: Activation key is updated
-
-    :CaseLevel: Integration
     """
     ak_env = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_org.id, 'lifecycle-environment-id': get_default_env['id']}
@@ -510,8 +495,6 @@ def test_positive_update_cv(module_org, module_target_sat):
     :id: aa94997d-fc9b-4532-aeeb-9f27b9834914
 
     :expectedresults: Activation key is updated
-
-    :CaseLevel: Integration
     """
     cv = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
     ak_cv = module_target_sat.cli_factory.make_activation_key(
@@ -615,7 +598,7 @@ def test_positive_usage_limit(module_org, target_sat):
 
     :id: 00ded856-e939-4140-ac84-91b6a8643623
 
-    :Steps:
+    :steps:
 
         1. Create Activation key
         2. Update Usage Limit to a finite number
@@ -627,8 +610,6 @@ def test_positive_usage_limit(module_org, target_sat):
         shown
 
     :CaseImportance: Critical
-
-    :CaseLevel: System
     """
     env = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
     new_cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
@@ -669,8 +650,6 @@ def test_positive_update_host_collection(module_org, host_col_name, module_targe
 
     :expectedresults: Host collections are successfully associated to
         Activation key
-
-    :CaseLevel: Integration
 
     :parametrized: yes
     """
@@ -730,8 +709,6 @@ def test_positive_add_redhat_product(function_entitlement_manifest_org, target_s
 
     :expectedresults: RH products are successfully associated to Activation
         key
-
-    :CaseLevel: System
     """
     org = function_entitlement_manifest_org
 
@@ -762,8 +739,6 @@ def test_positive_add_custom_product(module_org, module_target_sat):
     :expectedresults: Custom products are successfully associated to
         Activation key
 
-    :CaseLevel: System
-
     :BZ: 1426386
     """
     result = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
@@ -787,7 +762,7 @@ def test_positive_add_redhat_and_custom_products(
 
     :id: 74c77426-18f5-4abb-bca9-a2135f7fcc1f
 
-    :Steps:
+    :steps:
 
         1. Create Activation key
         2. Associate RH product(s) to Activation Key
@@ -795,8 +770,6 @@ def test_positive_add_redhat_and_custom_products(
 
     :expectedresults: RH/Custom product is successfully associated to
         Activation key
-
-    :CaseLevel: System
 
     :BZ: 1426386
     """
@@ -835,7 +808,7 @@ def test_positive_delete_manifest(function_entitlement_manifest_org, target_sat)
 
     :id: 8256ac6d-3f60-4668-897d-2e88d29532d3
 
-    :Steps:
+    :steps:
         1. Upload manifest
         2. Create activation key - attach some subscriptions
         3. Delete manifest
@@ -876,8 +849,6 @@ def test_positive_delete_subscription(function_entitlement_manifest_org, module_
 
     :expectedresults: Deleting subscription removes it from the Activation
         key
-
-    :CaseLevel: Integration
     """
     org = function_entitlement_manifest_org
     new_ak = module_target_sat.cli_factory.make_activation_key({'organization-id': org.id})
@@ -915,8 +886,6 @@ def test_positive_update_aks_to_chost(module_org, rhel7_contenthost, target_sat)
         host
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     env = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
     new_cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
@@ -964,8 +933,6 @@ def test_positive_update_aks_to_chost_in_one_command(module_org):
 
     :expectedresults: Multiple Activation keys are attached to a Content
         host
-
-    :CaseLevel: System
     """
 
 
@@ -1047,7 +1014,7 @@ def test_positive_remove_host_collection_by_id(module_org, module_target_sat):
 
     :id: 20f8ecca-1756-4900-b966-f0144b6bd0aa
 
-    :Steps:
+    :steps:
 
         1. Create Activation key
         2. Create host collection
@@ -1059,8 +1026,6 @@ def test_positive_remove_host_collection_by_id(module_org, module_target_sat):
         key
 
     :CaseImportance: Medium
-
-    :CaseLevel: Integration
 
     :BZ: 1336716
     """
@@ -1098,7 +1063,7 @@ def test_positive_remove_host_collection_by_name(module_org, host_col, module_ta
 
     :id: 1a559a82-db5f-48b0-beeb-2fa02aed7ef9
 
-    :Steps:
+    :steps:
 
         1. Create Activation key
         2. Create host collection
@@ -1108,8 +1073,6 @@ def test_positive_remove_host_collection_by_name(module_org, host_col, module_ta
 
     :expectedresults: Host collection successfully removed from activation
         key
-
-    :CaseLevel: Integration
 
     :BZ: 1336716
 
@@ -1150,7 +1113,7 @@ def test_create_ak_with_syspurpose_set(module_entitlement_manifest_org, module_t
 
     :id: ac8931e5-7089-494a-adac-cee2a8ab57ee
 
-    :Steps:
+    :steps:
         1. Create Activation key with system purpose values set
         2. Read Activation key values and assert system purpose values are set
         3. Clear AK system purpose values
@@ -1201,7 +1164,7 @@ def test_update_ak_with_syspurpose_values(module_entitlement_manifest_org, modul
 
     :id: db943c05-70f1-4385-9537-fe23368a9dfd
 
-    :Steps:
+    :steps:
 
         1. Create Activation key with no system purpose values set
         2. Assert system purpose values are not set
@@ -1269,7 +1232,7 @@ def test_positive_add_subscription_by_id(module_entitlement_manifest_org, module
 
     :id: b884be1c-b35d-440a-9a9d-c854c83e10a7
 
-    :Steps:
+    :steps:
 
         1. Create Activation key
         2. Upload manifest and add subscription
@@ -1278,8 +1241,6 @@ def test_positive_add_subscription_by_id(module_entitlement_manifest_org, module
     :expectedresults: Subscription successfully added to activation key
 
     :BZ: 1463685
-
-    :CaseLevel: Integration
 
     :BZ: 1463685
     """
@@ -1345,7 +1306,6 @@ def test_negative_copy_with_same_name(module_org, module_target_sat):
     :id: f867c468-4155-495c-a1e5-c04d9868a2e0
 
     :expectedresults: Activation key is not successfully copied
-
     """
     parent_ak = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_org.id}
@@ -1371,15 +1331,13 @@ def test_positive_copy_subscription(module_entitlement_manifest_org, module_targ
 
     :id: f4ee8096-4120-4d06-8c9a-57ac1eaa8f68
 
-    :Steps:
+    :steps:
 
         1. Create parent key and add content
         2. Copy Activation key by passing id of parent
         3. Verify content was successfully copied
 
     :expectedresults: Activation key is successfully copied
-
-    :CaseLevel: Integration
     """
     # Begin test setup
     org = module_entitlement_manifest_org
@@ -1409,7 +1367,7 @@ def test_positive_update_autoattach_toggle(module_org, module_target_sat):
 
     :id: de3b5fb7-7963-420a-b4c9-c66e78a111dc
 
-    :Steps:
+    :steps:
 
         1. Get the key's current auto attach value.
         2. Update the key with the value's inverse.
@@ -1454,7 +1412,7 @@ def test_negative_update_autoattach(module_org, module_target_sat):
 
     :id: 54b6f808-ff54-4e69-a54d-e1f99a4652f9
 
-    :Steps:
+    :steps:
 
         1. Attempt to update a key with incorrect auto-attach value
         2. Verify that an appropriate error message was returned
@@ -1483,7 +1441,7 @@ def test_positive_content_override(module_org, module_target_sat):
 
     :id: a4912cc0-3bf7-4e90-bb51-ec88b2fad227
 
-    :Steps:
+    :steps:
 
         1. Create activation key and add content
         2. Get the first product's label
@@ -1491,8 +1449,6 @@ def test_positive_content_override(module_org, module_target_sat):
         4. Verify that the command succeeded
 
     :expectedresults: Activation key content override was successful
-
-    :CaseLevel: System
     """
     result = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
         {'url': settings.repos.yum_0.url, 'organization-id': module_org.id}
@@ -1573,8 +1529,6 @@ def test_positive_view_subscriptions_by_non_admin_user(
         subscription
 
     :BZ: 1406076
-
-    :CaseLevel: System
     """
     org = module_entitlement_manifest_org
     user_name = gen_alphanumeric()
@@ -1714,7 +1668,7 @@ def test_positive_ak_with_custom_product_on_rhel6(module_org, rhel6_contenthost,
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Create a custom repo
         2. Create ak and add custom repo to ak
         3. Add subscriptions to the ak

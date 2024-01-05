@@ -4,15 +4,10 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
-:Upstream: No
 """
 import pytest
 
@@ -38,8 +33,6 @@ class TestVirtWhoConfigforLibvirt:
             1. Config can be created and deployed
             2. Config can be created, fetch and deploy
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         assert virtwho_config_cli['status'] == 'No Report Yet'
@@ -57,8 +50,6 @@ class TestVirtWhoConfigforLibvirt:
         :id: e68421b5-ff3d-4f25-926d-8330b92f2cdf
 
         :expectedresults: hypervisor_id option can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """

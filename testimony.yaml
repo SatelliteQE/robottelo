@@ -122,15 +122,6 @@ CaseImportance:
     - Low
     required: true
     type: choice
-CaseLevel:
-    casesensitive: true
-    choices:
-    - Component
-    - Integration
-    - System
-    - Acceptance
-    required: true
-    type: choice
 CasePosNeg:
     casesensitive: false
     choices:
@@ -158,20 +149,6 @@ SubComponent:
     type: choice
 Subtype1: {}
 Teardown: {}
-TestType:
-    casesensitive: false
-    choices:
-    - Functional
-    - Structural
-    required: true
-    type: choice
-Upstream:
-    casesensitive: false
-    choices:
-    - 'Yes'
-    - 'No'
-    required: true
-    type: choice
 Parametrized:
     casesensitive: false
     choices:

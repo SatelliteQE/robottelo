@@ -11,13 +11,8 @@ http://theforeman.org/api/apidoc/v2/provisioning_templates.html
 
 :Team: Rocket
 
-:TestType: Functional
-
-:CaseLevel: Integration
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from random import choice
 
@@ -129,10 +124,7 @@ def tftpboot(module_org, module_target_sat):
 
 
 class TestProvisioningTemplate:
-    """Tests for provisioning templates
-
-    :CaseLevel: Acceptance
-    """
+    """Tests for provisioning templates"""
 
     @pytest.mark.tier1
     @pytest.mark.e2e
@@ -224,8 +216,6 @@ class TestProvisioningTemplate:
 
         :expectedresults: The response is a JSON payload, all templates are deployed to TFTP/HTTP
                           and are rendered correctly
-
-        :CaseLevel: Integration
 
         :CaseImportance: Critical
 

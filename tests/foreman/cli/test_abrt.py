@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Infrastructure
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 
@@ -30,7 +25,7 @@ def test_positive_create_report(self):
 
     :Setup: abrt
 
-    :Steps: start a sleep process in background, kill it send the report
+    :steps: start a sleep process in background, kill it send the report
         using smart-proxy-abrt-send
 
     :expectedresults: A abrt report with ccpp.* extension  created under
@@ -39,7 +34,6 @@ def test_positive_create_report(self):
     :CaseAutomation: NotAutomated
 
     :CaseImportance: Critical
-
     """
 
 
@@ -51,7 +45,7 @@ def test_positive_create_reports(self):
 
     :Setup: abrt
 
-    :Steps:
+    :steps:
 
         1. Create multiple reports of abrt
         2. Keep track of counts
@@ -59,7 +53,6 @@ def test_positive_create_reports(self):
     :expectedresults: Count is updated in proper manner
 
     :CaseAutomation: NotAutomated
-
     """
 
 
@@ -71,12 +64,11 @@ def test_positive_update_timer(self):
 
     :Setup: abrt
 
-    :Steps: edit the timer for /etc/cron.d/rubygem-smart_proxy_abrt
+    :steps: edit the timer for /etc/cron.d/rubygem-smart_proxy_abrt
 
     :expectedresults: the timer file is edited
 
     :CaseAutomation: NotAutomated
-
     """
 
 
@@ -88,12 +80,11 @@ def test_positive_identify_hostname(self):
 
     :Setup: abrt
 
-    :Steps: UI => Settings => Abrt tab => edit hostnames
+    :steps: UI => Settings => Abrt tab => edit hostnames
 
     :expectedresults: Assertion of hostnames is possible
 
     :CaseAutomation: NotAutomated
-
     """
 
 
@@ -105,10 +96,9 @@ def test_positive_search_report(self):
 
     :Setup: abrt
 
-    :Steps: access /var/tmp/abrt/ccpp-* files
+    :steps: access /var/tmp/abrt/ccpp-* files
 
     :expectedresults: Assertion of parameters
 
     :CaseAutomation: NotAutomated
-
     """

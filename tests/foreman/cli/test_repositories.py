@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 import pytest
 from requests.exceptions import HTTPError

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Hosts-Content
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime, timedelta
 import re
@@ -130,8 +125,6 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
     :expectedresults: content host details are the same as expected, package
         and errata installation are successful
 
-    :CaseLevel: System
-
     :parametrized: yes
 
     :CaseImportance: Critical
@@ -244,8 +237,6 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm, target_s
     :BZ: 1712069, 1838800
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     hc_name = gen_string('alpha')
     description = gen_string('alpha')
@@ -328,8 +319,6 @@ def test_positive_search_by_subscription_status(session, default_location, vm):
     :BZ: 1406855, 1498827, 1495271
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     with session:
         session.location.select(default_location.name)
@@ -378,8 +367,6 @@ def test_positive_toggle_subscription_status(session, default_location, vm):
     :customerscenario: true
 
     :BZ: 1836868
-
-    :CaseLevel: System
 
     :parametrized: yes
 
@@ -437,8 +424,6 @@ def test_negative_install_package(session, default_location, vm):
     :expectedresults: Task finished with warning
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     with session:
         session.location.select(default_location.name)
@@ -474,8 +459,6 @@ def test_positive_remove_package(session, default_location, vm):
     :expectedresults: Package was successfully removed
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     vm.download_install_rpm(settings.repos.yum_6.url, FAKE_0_CUSTOM_PACKAGE)
     with session:
@@ -513,8 +496,6 @@ def test_positive_upgrade_package(session, default_location, vm):
     :expectedresults: Package was successfully upgraded
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     vm.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     with session:
@@ -553,8 +534,6 @@ def test_positive_install_package_group(session, default_location, vm):
     :expectedresults: Package group was successfully installed
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     with session:
         session.location.select(default_location.name)
@@ -594,8 +573,6 @@ def test_positive_remove_package_group(session, default_location, vm):
     :expectedresults: Package group was successfully removed
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     with session:
         session.location.select(default_location.name)
@@ -639,8 +616,6 @@ def test_positive_search_errata_non_admin(
         listed
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     vm.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     with Session(
@@ -694,8 +669,6 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, de
     :BZ: 1463818
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     vm.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     result = vm.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
@@ -754,8 +727,6 @@ def test_positive_host_re_registration_with_host_rename(
     :BZ: 1762793
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     vm.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     result = vm.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
@@ -823,8 +794,6 @@ def test_positive_check_ignore_facts_os_setting(session, default_location, vm, m
     :BZ: 1155704
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     major = str(gen_integer(15, 99))
     minor = str(gen_integer(1, 9))
@@ -893,8 +862,6 @@ def test_positive_virt_who_hypervisor_subscription_status(
     :BZ: 1336924, 1860928
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
@@ -978,8 +945,6 @@ def test_module_stream_actions_on_content_host(session, default_location, vm_mod
     :expectedresults: Remote execution for module actions should succeed.
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     stream_version = '5.21'
     run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
@@ -1100,8 +1065,6 @@ def test_module_streams_customize_action(session, default_location, vm_module_st
 
     :expectedresults: Remote execution for module actions should be succeed.
 
-    :CaseLevel: System
-
     :parametrized: yes
 
     :CaseImportance: Medium
@@ -1168,8 +1131,6 @@ def test_install_modular_errata(session, default_location, vm_module_streams):
     :expectedresults: Modular Errata should get installed on content host.
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     stream_version = '0'
     module_name = 'kangaroo'
@@ -1249,8 +1210,6 @@ def test_module_status_update_from_content_host_to_satellite(
     :expectedresults: module stream status should get updated in Satellite
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     module_name = 'walrus'
     stream_version = '0.71'
@@ -1315,8 +1274,6 @@ def test_module_status_update_without_force_upload_package_profile(
     :id: 16675b57-71c2-4aee-950b-844aa32002d1
 
     :expectedresults: module stream status should get updated in Satellite
-
-    :CaseLevel: System
 
     :parametrized: yes
 
@@ -1400,8 +1357,6 @@ def test_module_stream_update_from_satellite(session, default_location, vm_modul
     :expectedresults: module stream should get updated.
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     module_name = 'duck'
     stream_version = '0'
@@ -1478,8 +1433,6 @@ def test_syspurpose_attributes_empty(session, default_location, vm_module_stream
 
     :expectedresults: Syspurpose attrs are empty, and syspurpose status is set as 'Not specified'
 
-    :CaseLevel: System
-
     :parametrized: yes
 
     :CaseImportance: High
@@ -1519,8 +1472,6 @@ def test_set_syspurpose_attributes_cli(session, default_location, vm_module_stre
     :id: d898a3b0-2941-4fed-a725-2b8e911bba77
 
     :expectedresults: Syspurpose attributes set for the content host
-
-    :CaseLevel: System
 
     :parametrized: yes
 
@@ -1566,8 +1517,6 @@ def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_st
     :id: f83ba174-20ab-4ef2-a9e2-d913d20a0b2d
 
     :expectedresults: Syspurpose attributes are empty
-
-    :CaseLevel: System
 
     :parametrized: yes
 
@@ -1618,8 +1567,6 @@ def test_syspurpose_matched(session, default_location, vm_module_streams):
 
     :expectedresults: Syspurpose status is Matched
 
-    :CaseLevel: System
-
     :parametrized: yes
 
     :CaseImportance: High
@@ -1660,8 +1607,6 @@ def test_syspurpose_bulk_action(session, default_location, vm):
     :bz: 1905979, 1931527
 
     :expectedresults: Syspurpose parameters are set and reflected on the host
-
-    :CaseLevel: System
 
     :CaseImportance: High
     """
@@ -1706,8 +1651,6 @@ def test_syspurpose_mismatched(session, default_location, vm_module_streams):
     :id: de71cfd7-eeb8-4a4c-b448-8c5aa5af7f06
 
     :expectedresults: Syspurpose status is 'Mismatched'
-
-    :CaseLevel: System
 
     :parametrized: yes
 
@@ -1793,8 +1736,6 @@ def test_search_for_virt_who_hypervisors(session, default_location):
     :BZ: 1653386
 
     :customerscenario: true
-
-    :CaseLevel: System
 
     :CaseImportance: Medium
     """
