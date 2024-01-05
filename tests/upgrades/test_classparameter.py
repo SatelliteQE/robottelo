@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Parameters
+:CaseComponent: Puppet
 
 :Team: Rocket
 
