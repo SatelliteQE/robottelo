@@ -4,17 +4,11 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Parameters
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: Critical
-
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest

@@ -4,17 +4,13 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ActivationKeys
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
+
 """
 import http
 
@@ -278,8 +274,6 @@ def test_positive_get_releases_status_code(target_sat):
 
     :expectedresults: HTTP 200 is returned with an ``application/json``
         content-type
-
-    :CaseLevel: Integration
     """
     act_key = target_sat.api.ActivationKey().create()
     path = act_key.path('releases')
@@ -296,8 +290,6 @@ def test_positive_get_releases_content(target_sat):
     :id: 2fec3d71-33e9-40e5-b934-90b03afc26a1
 
     :expectedresults: A list of results is returned.
-
-    :CaseLevel: Integration
     """
     act_key = target_sat.api.ActivationKey().create()
     response = client.get(act_key.path('releases'), auth=get_credentials(), verify=False).json()
@@ -318,8 +310,6 @@ def test_positive_add_host_collections(module_org, module_target_sat):
         2. After associating an activation key with some set of host
            collections and reading that activation key, the correct host
            collections are listed.
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -357,8 +347,6 @@ def test_positive_remove_host_collection(module_org, module_target_sat):
            list.
         3. Disassociating host collection from the activation key actually
            removes it from the list
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -451,8 +439,6 @@ def test_positive_fetch_product_content(
     :expectedresults: Both Red Hat and custom product subscriptions are
         assigned as Activation Key's product content
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     module_target_sat.upload_manifest(module_org.id, session_entitlement_manifest.content)
@@ -505,8 +491,6 @@ def test_positive_add_future_subscription():
     :expectedresults: The future-dated sub is successfully added to the key
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """

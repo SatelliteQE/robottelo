@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: AlternateContentSources
 
 :Team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_alphanumeric
 import pytest
@@ -58,7 +53,6 @@ def test_positive_CRUD_all_types(
         3. ACS can be updated and read with new name.
         4. ACS can be refreshed.
         5. ACS can be deleted.
-
     """
     if 'rhui' in request.node.name and 'file' in request.node.name:
         pytest.skip('unsupported parametrize combination')
@@ -141,7 +135,6 @@ def test_negative_check_name_validation(module_target_sat, acs_type):
 
     :expectedresults:
         1. Should fail with validation error and proper message.
-
     """
     with pytest.raises(CLIReturnCodeError) as context:
         module_target_sat.cli.ACS.create({'alternate-content-source-type': acs_type})
@@ -167,7 +160,6 @@ def test_negative_check_custom_rhui_validations(module_target_sat, acs_type, mod
     :expectedresults:
         1. Should fail as base-url and verify-ssl are required.
         2. Should fail as product-ids is forbidden.
-
     """
     # Create with required missing
     with pytest.raises(CLIReturnCodeError) as context:
@@ -217,7 +209,6 @@ def test_negative_check_simplified_validations(
 
     :expectedresults:
         1. Should fail and list all the forbidden parameters must be blank.
-
     """
     # Create with forbidden present
     params = {

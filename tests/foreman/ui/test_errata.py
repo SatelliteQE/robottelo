@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ErrataManagement
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from airgun.session import Session
 from broker import Broker
@@ -200,8 +195,6 @@ def test_end_to_end(
     :BZ: 2029192
 
     :customerscenario: true
-
-    :CaseLevel: System
     """
     ERRATA_DETAILS = {
         'advisory': 'RHSA-2012:0055',
@@ -272,7 +265,7 @@ def test_content_host_errata_page_pagination(session, function_org_with_paramete
 
     :id: 6363eda7-a162-4a4a-b70f-75decbd8202e
 
-    :Steps:
+    :steps:
         1. Install more than 20 packages that need errata
         2. View Content Host's Errata page
         3. Assert total_pages > 1
@@ -294,8 +287,6 @@ def test_content_host_errata_page_pagination(session, function_org_with_paramete
     :customerscenario: true
 
     :BZ: 1662254, 1846670
-
-    :CaseLevel: System
     """
 
     org = function_org_with_parameter
@@ -359,15 +350,13 @@ def test_positive_list(session, function_org_with_parameter, lce, target_sat):
 
     :Setup: Errata synced on satellite server.
 
-    :Steps: Create two Orgs each having a product synced which contains errata.
+    :steps: Create two Orgs each having a product synced which contains errata.
 
     :expectedresults: Check that the errata belonging to one Org is not showing in the other.
 
     :BZ: 1659941, 1837767
 
     :customerscenario: true
-
-    :CaseLevel: Integration
     """
     org = function_org_with_parameter
     rc = target_sat.cli_factory.RepositoryCollection(
@@ -413,12 +402,10 @@ def test_positive_list_permission(
         2. Make sure that they both have errata.
         3. Create a user with view access on one product and not on the other.
 
-    :Steps: Go to Content -> Errata.
+    :steps: Go to Content -> Errata.
 
     :expectedresults: Check that the new user is able to see errata for one
         product only.
-
-    :CaseLevel: Integration
     """
     module_org = module_org_with_parameter
     role = entities.Role().create()
@@ -470,15 +457,13 @@ def test_positive_apply_for_all_hosts(
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
 
         1. Go to Content -> Errata. Select an erratum -> Content Hosts tab.
         2. Select all Content Hosts and apply the erratum.
 
     :expectedresults: Check that the erratum is applied in all the content
         hosts.
-
-    :CaseLevel: System
     """
     with Broker(
         nick=module_repos_collection_with_setup.distro, host_class=ContentHost, _count=2
@@ -524,14 +509,12 @@ def test_positive_view_cve(session, module_repos_collection_with_setup):
 
     :Setup: Errata synced on satellite server.
 
-    :Steps: Go to Content -> Errata.  Select an Errata.
+    :steps: Go to Content -> Errata.  Select an Errata.
 
     :expectedresults:
 
         1. Check if the CVE information is shown in Errata Details page.
         2. Check if 'N/A' is displayed if CVE information is not present.
-
-    :CaseLevel: Integration
     """
     with session:
         errata_values = session.errata.read(RHVA_ERRATA_ID)
@@ -570,12 +553,10 @@ def test_positive_filter_by_environment(
 
     :Setup: Errata synced on satellite server.
 
-    :Steps: Go to Content -> Errata.  Select an Errata -> Content Hosts tab
+    :steps: Go to Content -> Errata.  Select an Errata -> Content Hosts tab
         -> Filter content hosts by Environment.
 
     :expectedresults: Content hosts can be filtered by Environment.
-
-    :CaseLevel: System
     """
     module_org = module_org_with_parameter
     with Broker(
@@ -647,14 +628,12 @@ def test_positive_content_host_previous_env(
         1. Make sure multiple environments are present.
         2. Content host's previous environments have additional errata.
 
-    :Steps: Go to Content Hosts -> Select content host -> Errata Tab ->
+    :steps: Go to Content Hosts -> Select content host -> Errata Tab ->
         Select Previous environments.
 
     :expectedresults: The errata from previous environments are displayed.
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     module_org = module_org_with_parameter
     hostname = vm.hostname
@@ -706,13 +685,11 @@ def test_positive_content_host_library(session, module_org_with_parameter, vm):
         1. Make sure multiple environments are present.
         2. Content host's Library environment has additional errata.
 
-    :Steps: Go to Content Hosts -> Select content host -> Errata Tab -> Select 'Library'.
+    :steps: Go to Content Hosts -> Select content host -> Errata Tab -> Select 'Library'.
 
     :expectedresults: The errata from Library are displayed.
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     hostname = vm.hostname
     assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
@@ -746,14 +723,12 @@ def test_positive_content_host_search_type(session, erratatype_vm):
 
     :customerscenario: true
 
-    :Steps: Search for errata on content host by type (e.g. 'type = security')
+    :steps: Search for errata on content host by type (e.g. 'type = security')
      Step 1 Search for "type = security", assert expected amount and IDs found
      Step 2 Search for "type = bugfix", assert expected amount and IDs found
      Step 3 Search for "type = enhancement", assert expected amount and IDs found
 
     :BZ: 1653293
-
-    :CaseLevel: Integration
     """
 
     pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
@@ -821,15 +796,13 @@ def test_positive_show_count_on_content_host_page(
         1. Errata synced on satellite server.
         2. Some content hosts are present.
 
-    :Steps: Go to Hosts -> Content Hosts.
+    :steps: Go to Hosts -> Content Hosts.
 
     :expectedresults: The available errata count is displayed.
 
     :BZ: 1484044, 1775427
 
     :customerscenario: true
-
-    :CaseLevel: System
     """
     vm = erratatype_vm
     hostname = vm.hostname
@@ -879,13 +852,11 @@ def test_positive_show_count_on_content_host_details_page(
         1. Errata synced on satellite server.
         2. Some content hosts are present.
 
-    :Steps: Go to Hosts -> Content Hosts -> Select Content Host -> Details page.
+    :steps: Go to Hosts -> Content Hosts -> Select Content Host -> Details page.
 
     :expectedresults: The errata section should be displayed with Security, Bug fix, Enhancement.
 
     :BZ: 1484044
-
-    :CaseLevel: System
     """
     vm = erratatype_vm
     hostname = vm.hostname
@@ -925,7 +896,7 @@ def test_positive_filtered_errata_status_installable_param(
 
     :id: ed94cf34-b8b9-4411-8edc-5e210ea6af4f
 
-    :Steps:
+    :steps:
 
         1. Prepare setup: Create Lifecycle Environment, Content View,
             Activation Key and all necessary repos
@@ -941,8 +912,6 @@ def test_positive_filtered_errata_status_installable_param(
     :BZ: 1368254, 2013093
 
     :CaseImportance: Medium
-
-    :CaseLevel: System
     """
     org = function_entitlement_manifest_org
     lce = entities.LifecycleEnvironment(organization=org).create()
@@ -1043,7 +1012,7 @@ def test_content_host_errata_search_commands(
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1.  host list --search "errata_status = security_needed"
         2.  host list --search "errata_status = errata_needed"
         3.  host list --search "applicable_errata = RHSA-2012:0055"

@@ -4,15 +4,10 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :Team: Phoenix-subscriptions
 
-:TestType: Functional
-
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -45,8 +40,6 @@ class TestVirtwhoConfigforNutanix:
             3. Report is sent to satellite
             4. Config can be deleted
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
@@ -62,8 +55,6 @@ class TestVirtwhoConfigforNutanix:
         :expectedresults:
             1. hypervisor_id can be changed in virt-who-config-{}.conf if the
                 dropdown option is selected to uuid/hwuuid/hostname.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -100,8 +91,6 @@ class TestVirtwhoConfigforNutanix:
             4. The prism_central has been set true in /etc/virt-who.d/vir-who.conf file
             5. Virtual sku can be generated and attached
             6. Config can be deleted
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -147,8 +136,6 @@ class TestVirtwhoConfigforNutanix:
             1. prism_flavor can be changed in virt-who-config-{}.conf if the
                 dropdown option is selected to prism central.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         name = form_data_ui['name']
@@ -183,8 +170,6 @@ class TestVirtwhoConfigforNutanix:
             5. message Host UUID {system_uuid} found for VM: {guest_uuid} exist in rhsm.log
             6. ahv_internal_debug bas been set to true in virt-who-config-X.conf
             7. warning message does not exist in log file /var/log/rhsm/rhsm.log
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
 

@@ -2,8 +2,6 @@
 
 :Requirement: Registration
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Registration
 
 :CaseAutomation: Automated
@@ -12,9 +10,6 @@
 
 :Team: Rocket
 
-:TestType: Functional
-
-:Upstream: No
 """
 import uuid
 
@@ -110,8 +105,6 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
     :customerscenario: true
 
     :BZ: 1747177,2229112
-
-    :CaseLevel: Integration
     """
     uuid_1 = str(uuid.uuid1())
     uuid_2 = str(uuid.uuid4())
@@ -148,8 +141,6 @@ def test_positive_update_packages_registration(
     :id: 3d0a3252-ab81-4acf-bca6-253b746f26bb
 
     :expectedresults: Package update is successful on host post registration.
-
-    :CaseLevel: Component
     """
     org = module_sca_manifest_org
     command = module_target_sat.api.RegistrationCommand(

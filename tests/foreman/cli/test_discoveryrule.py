@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: DiscoveryPlugin
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from functools import partial
 import random
@@ -140,7 +135,6 @@ class TestDiscoveryRule:
         :expectedresults: Rule should be successfully created and has expected
             hostname value
 
-        :CaseLevel: Component
         """
         host_name = 'myhost'
         rule = discoveryrule_factory(options={'hostname': host_name})
@@ -239,7 +233,6 @@ class TestDiscoveryRule:
         :expectedresults: Rule should be successfully created and has expected
             hosts limit value
 
-        :CaseLevel: Component
         """
         hosts_limit = '5'
         rule = discoveryrule_factory(options={'hosts-limit': hosts_limit})
@@ -276,7 +269,6 @@ class TestDiscoveryRule:
 
         :expectedresults: Disabled rule should be successfully created
 
-        :CaseLevel: Component
         """
         rule = discoveryrule_factory(options={'enabled': 'false'})
         assert rule.enabled == 'false'
@@ -291,8 +283,6 @@ class TestDiscoveryRule:
         :expectedresults: Error should be raised and rule should not be created
 
         :CaseImportance: Medium
-
-        :CaseLevel: Component
 
         :parametrized: yes
         """
@@ -309,8 +299,6 @@ class TestDiscoveryRule:
         :expectedresults: Error should be raised and rule should not be created
 
         :CaseImportance: Medium
-
-        :CaseLevel: Component
 
         :BZ: 1378427
 
@@ -355,8 +343,6 @@ class TestDiscoveryRule:
         :id: 1045e2c4-e1f7-42c9-95f7-488fc79bf70b
 
         :expectedresults: Rule params are updated
-
-        :CaseLevel: Component
 
         :CaseImportance: Medium
         """
@@ -409,8 +395,6 @@ class TestDiscoveryRule:
         :id: 8293cc6a-d983-460a-b76e-221ad02b54b7
 
         :expectedresults: Rule params are not updated
-
-        :CaseLevel: Component
 
         :CaseImportance: Medium
 
@@ -507,7 +491,6 @@ class TestDiscoveryRuleRole:
 
         :expectedresults: Rule should be created and deleted successfully.
 
-        :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -564,7 +547,6 @@ class TestDiscoveryRuleRole:
         :expectedresults: User should validation error and rule should not be
             deleted successfully.
 
-        :CaseLevel: Integration
         """
         rule = target_sat.cli_factory.make_discoveryrule(
             {

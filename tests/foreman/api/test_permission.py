@@ -8,17 +8,12 @@ http://<satellite-host>/apidoc/v2/permissions.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from itertools import chain
 import json

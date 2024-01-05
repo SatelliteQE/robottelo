@@ -1,17 +1,12 @@
 """
 :Requirement: Computeresource EC2
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ComputeResources-EC2
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -53,8 +48,6 @@ def test_positive_create_ec2_with_custom_region(aws, module_target_sat):
     :CaseAutomation: Automated
 
     :CaseImportance: Critical
-
-    :CaseLevel: Component
     """
     cr_name = gen_string(str_type='alpha')
     cr_description = gen_string(str_type='alpha')
