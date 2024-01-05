@@ -4,13 +4,8 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from random import choice, randint, shuffle
 
@@ -173,7 +168,6 @@ class TestDockerRepository:
         :expectedresults: Multiple docker repositories are created with a
             Docker upstream repository and they all belong to the same product.
 
-        :CaseLevel: Integration
         """
         for _ in range(randint(2, 5)):
             repo = _create_repository(module_target_sat, module_product)
@@ -189,7 +183,6 @@ class TestDockerRepository:
             Docker upstream repository and they all belong to their respective
             products.
 
-        :CaseLevel: Integration
         """
         for _ in range(randint(2, 5)):
             product = module_target_sat.api.Product(organization=module_org).create()
@@ -326,8 +319,6 @@ class TestDockerContentView:
     :CaseComponent: ContentViews
 
     :team: Phoenix-content
-
-    :CaseLevel: Integration
     """
 
     @pytest.mark.tier2
@@ -983,8 +974,6 @@ class TestDockerActivationKey:
     :CaseComponent: ActivationKeys
 
     :team: Phoenix-subscriptions
-
-    :CaseLevel: Integration
     """
 
     @pytest.mark.tier2
@@ -1019,7 +1008,6 @@ class TestDockerActivationKey:
         :expectedresults: Docker-based content view can be added and then
             removed from the activation key.
 
-        :CaseLevel: Integration
         """
         content_view = content_view_publish_promote
         ak = module_target_sat.api.ActivationKey(

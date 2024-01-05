@@ -10,17 +10,12 @@ When testing email validation [1] and [2] should be taken into consideration.
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import datetime
 import random
@@ -205,7 +200,6 @@ class TestUser:
 
         :expectedresults: User is created with orgs, orgs are updated
 
-        :CaseLevel: Integration
         """
         orgs_amount = 2
         orgs = [module_target_sat.cli_factory.make_org() for _ in range(orgs_amount)]
@@ -247,7 +241,6 @@ class TestUser:
 
         :BZ: 1763816
 
-        :CaseLevel: Integration
         """
         login = gen_string('alpha')
         password = gen_string('alpha')
@@ -280,7 +273,7 @@ class TestUser:
 
         :id: f0993495-5117-461d-a116-44867b820139
 
-        :Steps: Update current User with all different Language options
+        :steps: Update current User with all different Language options
 
         :expectedresults: Current User is updated
 
@@ -309,7 +302,6 @@ class TestUser:
 
         :expectedresults: Roles are added to user and deleted successfully
 
-        :CaseLevel: Integration
         """
         user = module_target_sat.cli_factory.user()
         original_role_names = set(user['roles'])
@@ -415,8 +407,6 @@ class TestPersonalAccessToken:
             1. Should show output of the api endpoint
             2. When revoked, authentication error
 
-        :CaseLevel: System
-
         :CaseImportance: High
         """
         user = target_sat.cli_factory.user({'admin': '1'})
@@ -453,8 +443,6 @@ class TestPersonalAccessToken:
             2. When an incorrect end point is used, missing
                permission should be displayed.
 
-        :CaseLevel: System
-
         :CaseImportance: High
         """
         user = target_sat.cli_factory.user()
@@ -486,8 +474,6 @@ class TestPersonalAccessToken:
             3. Try using the token with any end point.
 
         :expectedresults: Authentication error
-
-        :CaseLevel: System
 
         :CaseImportance: Medium
         """
@@ -526,8 +512,6 @@ class TestPersonalAccessToken:
             4. Revoke the token and then test for end point.
 
         :expectedresults: Non admin user is able to view only the assigned entity
-
-        :CaseLevel: System
 
         :CaseImportance: High
 
@@ -574,8 +558,6 @@ class TestPersonalAccessToken:
             2. Set the expired time to a past datetime
 
         :expectedresults: token is not created with invalid or past expire time
-
-        :CaseLevel: System
 
         :CaseImportance: Medium
 

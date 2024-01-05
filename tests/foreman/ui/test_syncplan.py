@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: SyncPlans
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime, timedelta
 import time
@@ -60,8 +55,6 @@ def test_positive_end_to_end(session, module_org, target_sat):
     :expectedresults: All CRUD actions for component finished successfully
 
     :customerscenario: true
-
-    :CaseLevel: Integration
 
     :BZ: 1693795
     """
@@ -115,8 +108,6 @@ def test_positive_end_to_end_custom_cron(session):
     :id: 48c88529-6318-47b0-97bc-eb46aae0294a
 
     :expectedresults: All CRUD actions for component finished successfully
-
-    :CaseLevel: Integration
     """
     plan_name = gen_string('alpha')
     description = gen_string('alpha')
@@ -198,8 +189,6 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
     :id: c551ef9a-6e5a-435a-b24d-e86de203a2bb
 
     :expectedresults: Product is synchronized successfully.
-
-    :CaseLevel: System
     """
     plan_name = gen_string('alpha')
     product = entities.Product(organization=module_org).create()
@@ -266,8 +255,6 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
     :id: 4d9ed0bf-a63c-44de-846d-7cf302273bcc
 
     :expectedresults: Product is synchronized successfully.
-
-    :CaseLevel: System
     """
     plan_name = gen_string('alpha')
     product = entities.Product(organization=module_org).create()

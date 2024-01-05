@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ComputeResources-GCE
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import json
 import random
@@ -43,7 +38,7 @@ def test_positive_default_end_to_end_with_custom_profile(
 
     :id: 59ffd83e-a984-4c22-b91b-cad055b4fbd7
 
-    :Steps:
+    :steps:
 
         1. Create an GCE compute resource with default properties.
         2. Update the compute resource name and add new taxonomies.
@@ -52,8 +47,6 @@ def test_positive_default_end_to_end_with_custom_profile(
 
     :expectedresults: The GCE compute resource is created, updated, compute profile associated and
         deleted.
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -167,8 +160,6 @@ def test_positive_gce_provision_end_to_end(
     :id: 8d1877bb-fbc2-4969-a13e-e95e4df4f4cd
 
     :expectedresults: Host is provisioned successfully
-
-    :CaseLevel: System
     """
     name = f'test{gen_string("alpha", 4).lower()}'
     hostname = f'{name}.{gce_domain.name}'
@@ -253,8 +244,6 @@ def test_positive_gce_cloudinit_provision_end_to_end(
     :id: 6ee63ec6-2e8e-4ed6-ae48-e68b078233c6
 
     :expectedresults: Host is provisioned successfully
-
-    :CaseLevel: System
     """
     name = f'test{gen_string("alpha", 4).lower()}'
     hostname = f'{name}.{gce_domain.name}'

@@ -69,6 +69,11 @@ DEFAULT_APPROVERS_VALUE = '${POLARION_USERNAME}:approved'
 DEFAULT_STATUS_VALUE = 'approved'
 DEFAULT_SUBTYPE2_VALUE = '-'
 TESTCASE_CUSTOM_FIELDS = default_config.TESTCASE_CUSTOM_FIELDS + ('customerscenario',) + ('team',) + ('markers',)
+# converting TESTCASE_CUSTOM_FIELDS to list for removing tokens since the tokens are defined as defaults/mandatory in betelgeuse
+TESTCASE_CUSTOM_FIELDS = list(TESTCASE_CUSTOM_FIELDS)
+REMOVE_TOKEN_LIST = ['caselevel', 'upstream', 'testtype']
+TESTCASE_CUSTOM_FIELDS = tuple([token for token in TESTCASE_CUSTOM_FIELDS if token not in REMOVE_TOKEN_LIST])
+
 REQUIREMENT_CUSTOM_FIELDS = default_config.REQUIREMENT_CUSTOM_FIELDS + ('team',)
 TRANSFORM_CUSTOMERSCENARIO_VALUE = default_config._transform_to_lower
 DEFAULT_CUSTOMERSCENARIO_VALUE = 'false'

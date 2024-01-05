@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -55,8 +50,6 @@ def test_positive_module_stream_details_search_in_repo(session, module_org, modu
 
     :expectedresults: Content search functionality works as intended and
         expected module_streams are present inside of repository
-
-    :CaseLevel: Integration
 
     :BZ: 1948758
     """

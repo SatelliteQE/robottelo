@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ComputeResources-Azure
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -91,7 +86,6 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
     sat_azure_loc,
     module_azure_hg,
 ):
-
     """Provision Host with hostgroup and Compute-profile using
     finish template on AzureRm compute resource
 
@@ -100,8 +94,6 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
     :expectedresults:
             1. Host is provisioned.
             2. Host is deleted Successfully.
-
-    :CaseLevel: System
 
     :BZ: 1850934
     """
@@ -175,7 +167,6 @@ def test_positive_azurerm_host_provision_ud(
     sat_azure_loc,
     module_azure_hg,
 ):
-
     """Provision a Host with hostgroup and Compute-profile using
     cloud-init image on AzureRm compute resource
 
@@ -184,8 +175,6 @@ def test_positive_azurerm_host_provision_ud(
     :expectedresults: Host is provisioned successfully.
 
     :CaseImportance: Critical
-
-    :CaseLevel: System
 
     :BZ: 1850934
     """

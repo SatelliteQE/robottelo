@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ContentViews
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -52,8 +47,6 @@ def test_positive_create(module_cv):
 
     :expectedresults: Content View Version is created.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     # Fetch content view for latest information
@@ -76,8 +69,6 @@ def test_negative_create(module_org, module_target_sat):
 
     :expectedresults: Content View Version is not created
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     # The default content view cannot be published
@@ -98,8 +89,6 @@ def test_positive_promote_valid_environment(module_lce_cv, module_org, module_ta
     :id: f205ca06-8ab5-4546-83bd-deac4363d487
 
     :expectedresults: Promotion succeeds.
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -131,8 +120,6 @@ def test_positive_promote_out_of_sequence_environment(module_org, module_lce_cv,
     :id: e88405de-843d-4279-9d81-cedaab7c23cf
 
     :expectedresults: The promotion succeeds.
-
-    :CaseLevel: Integration
     """
     # Create a new content view...
     cv = module_target_sat.api.ContentView(organization=module_org).create()
@@ -159,8 +146,6 @@ def test_negative_promote_valid_environment(module_lce_cv):
 
     :expectedresults: The promotion fails.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
     lce1, _, default_cvv = module_lce_cv
@@ -176,8 +161,6 @@ def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org,
     :id: 621d1bb6-92c6-4209-8369-6ea14a4c8a01
 
     :expectedresults: The promotion fails.
-
-    :CaseLevel: Integration
     """
     # Create a new content view...
     cv = module_target_sat.api.ContentView(organization=module_org).create()
@@ -208,8 +191,6 @@ def test_positive_delete(module_org, module_product, module_target_sat):
     :id: 066dec47-c942-4c01-8956-359c8b23a6d4
 
     :expectedresults: Content version deleted successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -253,8 +234,6 @@ def test_positive_delete_non_default(module_org, module_target_sat):
 
     :expectedresults: Content view version deleted successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     content_view = module_target_sat.api.ContentView(organization=module_org).create()
@@ -288,8 +267,6 @@ def test_positive_delete_composite_version(module_org, module_target_sat):
     :id: b5bb547e-0174-464c-b974-0254d372cdd6
 
     :expectedresults: Content version deleted successfully
-
-    :CaseLevel: Integration
 
     :BZ: 1276479
     """
@@ -330,8 +307,6 @@ def test_negative_delete(module_org, module_target_sat):
 
     :expectedresults: Content view version is not deleted
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     content_view = module_target_sat.api.ContentView(organization=module_org).create()
@@ -352,7 +327,7 @@ def test_positive_remove_renamed_cv_version_from_default_env(module_org, module_
 
     :id: 7d5961d0-6a9a-4610-979e-cbc4ddbc50ca
 
-    :Steps:
+    :steps:
 
         1. Create a content view
         2. Add a yum repo to the content view
@@ -362,8 +337,6 @@ def test_positive_remove_renamed_cv_version_from_default_env(module_org, module_
 
     :expectedresults: content view version is removed from Library
         environment
-
-    :CaseLevel: Integration
     """
     new_name = gen_string('alpha')
     # create yum product and repo
@@ -405,7 +378,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org, mod
 
     :id: c7795762-93bd-419c-ac49-d10dc26b842b
 
-    :Steps:
+    :steps:
 
         1. Create a content view
         2. Add docker repo(s) to it
@@ -416,8 +389,6 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org, mod
 
     :expectedresults: Content view version exist only in DEV, QE and not in
         Library
-
-    :CaseLevel: Integration
     """
     lce_dev = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
     lce_qe = module_target_sat.api.LifecycleEnvironment(
@@ -465,7 +436,7 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org, m
 
     :id: 24911876-7c2a-4a12-a3aa-98051dfda29d
 
-    :Steps:
+    :steps:
 
         1. Create a content view
         2. Add yum repositories and docker repositories to CV
@@ -476,8 +447,6 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org, m
 
     :expectedresults: Content view version exist only in DEV, QE, PROD and
         not in Library
-
-    :CaseLevel: Integration
     """
     lce_dev = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
     lce_qe = module_target_sat.api.LifecycleEnvironment(
@@ -534,7 +503,7 @@ def test_positive_remove_cv_version_from_env(module_org, module_target_sat):
 
     :id: 17cf18bf-09d5-4641-b0e0-c50e628fa6c8
 
-    :Steps:
+    :steps:
 
         1. Create a content view
         2. Add a yum repo and a docker repo to the content view
@@ -548,8 +517,6 @@ def test_positive_remove_cv_version_from_env(module_org, module_target_sat):
 
     :expectedresults: Content view version exist in Library, DEV, QE,
         STAGE, PROD
-
-    :CaseLevel: Integration
     """
     lce_dev = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
     lce_qe = module_target_sat.api.LifecycleEnvironment(
@@ -616,7 +583,7 @@ def test_positive_remove_cv_version_from_multi_env(module_org, module_target_sat
 
     :id: 18b86a68-8e6a-43ea-b95e-188fba125a26
 
-    :Steps:
+    :steps:
 
         1. Create a content view
         2. Add a yum repo and a docker repo to the content view
@@ -626,8 +593,6 @@ def test_positive_remove_cv_version_from_multi_env(module_org, module_target_sat
         5. Remove content view version from QE, STAGE and PROD
 
     :expectedresults: Content view version exists only in Library, DEV
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
     """
@@ -693,7 +658,7 @@ def test_positive_delete_cv_promoted_to_multi_env(module_org, module_target_sat)
 
     :id: c164bd97-e710-4a5a-9c9f-657e6bed804b
 
-    :Steps:
+    :steps:
 
         1. Create a content view
         2. Add a yum repo and a docker repo to the content view
@@ -704,8 +669,6 @@ def test_positive_delete_cv_promoted_to_multi_env(module_org, module_target_sat)
            it's published/promoted versions from all environments
 
     :expectedresults: The content view doesn't exist
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -770,7 +733,7 @@ def test_positive_remove_cv_version_from_env_with_host_registered():
 
     :id: a5b9ba8b-80e6-4435-bc0a-041b3fda227c
 
-    :Steps:
+    :steps:
 
         1. Create a content view cv1
         2. Add a yum repo to the content view
@@ -795,8 +758,6 @@ def test_positive_remove_cv_version_from_env_with_host_registered():
         5. At content-host some package from cv1 is installable
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
     """
 
 
@@ -810,7 +771,7 @@ def test_positive_delete_cv_multi_env_promoted_with_host_registered():
 
     :id: 10699af9-617e-4930-9c80-2827a0ba52eb
 
-    :Steps:
+    :steps:
 
         1. Create two content views, cv1 and cv2
         2. Add a yum repo to both content views
@@ -837,8 +798,6 @@ def test_positive_delete_cv_multi_env_promoted_with_host_registered():
         6. At content-host some package from cv2 is installable
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
     """
 
 
@@ -850,7 +809,7 @@ def test_positive_remove_cv_version_from_multi_env_capsule_scenario():
 
     :id: 1e8a8e64-eec8-49e0-b121-919c53f416d2
 
-    :Steps:
+    :steps:
 
         1. Create a content view
         2. module_lce_cv satellite to use a capsule and to sync all lifecycle
@@ -874,6 +833,4 @@ def test_positive_remove_cv_version_from_multi_env_capsule_scenario():
         Library and DEV and exists only in QE and PROD
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
     """

@@ -7,17 +7,12 @@ https://theforeman.org/plugins/katello/3.16/api/apidoc/v2/repository_sets.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 

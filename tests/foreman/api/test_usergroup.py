@@ -7,17 +7,12 @@ https://theforeman.org/api/2.0/apidoc/v2/usergroups.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from random import randint
 
@@ -155,7 +150,6 @@ class TestUserGroup:
         :expectedresults: User group is created successfully and contains all
             expected user groups
 
-        :CaseLevel: Integration
         """
         sub_user_groups = [target_sat.api.UserGroup().create() for _ in range(randint(3, 5))]
         user_group = target_sat.api.UserGroup(usergroup=sub_user_groups).create()
@@ -234,7 +228,6 @@ class TestUserGroup:
 
         :expectedresults: User group is updated successfully.
 
-        :CaseLevel: Integration
         """
         users = [target_sat.api.User().create() for _ in range(2)]
         user_group = target_sat.api.UserGroup(user=[users[0]]).create()

@@ -4,15 +4,10 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Integration
-
 :CaseComponent: TemplatesPlugin
 
 :Team: Endeavour
 
-:TestType: Functional
-
-:Upstream: No
 """
 import base64
 import json
@@ -35,10 +30,7 @@ git = settings.git
 
 
 class TestTemplateSyncTestCase:
-    """Implements TemplateSync tests from API
-
-    :CaseLevel: Acceptance
-    """
+    """Implements TemplateSync tests from API"""
 
     @pytest.fixture(scope='module', autouse=True)
     def setUpClass(self, module_target_sat):
@@ -74,7 +66,7 @@ class TestTemplateSyncTestCase:
 
         :id: 628a95d6-7a4e-4e56-ad7b-d9fecd34f765
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                import only the templates matching with regex e.g: `^atomic.*`
                refer to: `/apidoc/v2/template/import.html`
@@ -150,7 +142,7 @@ class TestTemplateSyncTestCase:
 
         :id: a6857454-249b-4a2e-9b53-b5d7b4eb34e3
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                import the templates NOT matching with regex e.g: `^freebsd.*`
                refer to: `/apidoc/v2/template/import.html` using the
@@ -194,7 +186,7 @@ class TestTemplateSyncTestCase:
     def test_import_template_with_puppet(self, parametrized_puppet_sat):
         """Importing puppet templates with enabled/disabled puppet module
 
-        :Steps:
+        :steps:
             1. Have enabled(disabled) puppet module
             2. Import template containing puppet
             3. Check if template was imported
@@ -243,7 +235,7 @@ class TestTemplateSyncTestCase:
 
         :id: 04a14a56-bd71-412b-b2da-4b8c3991c401
 
-        :Steps:
+        :steps:
             1. Create new taxonomies, lets say org X and loc Y.
             2. From X and Y taxonomies scope, Import template1 as associate 'never', where the
                 template contains the metadata anything other than X and Y taxonomies.
@@ -373,7 +365,7 @@ class TestTemplateSyncTestCase:
 
         :id: 8ea11a1a-165e-4834-9387-7accb4c94e77
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                import templates specifying a git subdirectory e.g:
                `-d {'dirname': 'test_sub_dir'}` in POST body
@@ -411,7 +403,7 @@ class TestTemplateSyncTestCase:
 
         :id: b7c98b75-4dd1-4b6a-b424-35b0f48c25db
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                export only the templates matching with regex e.g: `robottelo`
                refer to: `/apidoc/v2/template/export.html`
@@ -447,7 +439,7 @@ class TestTemplateSyncTestCase:
 
         :id: 2f8ad8f3-f02b-4b2d-85af-423a228976f3
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                export templates matching that does not matches regex e.g: `robottelo`
                using `negate` option.
@@ -482,7 +474,7 @@ class TestTemplateSyncTestCase:
 
         :id: ba8a34ce-c2c6-4889-8729-59714c0a4b19
 
-        :Steps:
+        :steps:
             1. Create a template in local directory and specify Org/Loc.
             2. Use import to pull this specific template (using filter).
             3. Using nailgun or direct API call
@@ -560,7 +552,7 @@ class TestTemplateSyncTestCase:
 
         :id: 74b0a701-341f-4062-9769-e5cb1a1c4792
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                Impot a template with verbose `True` and `False` option
 
@@ -612,7 +604,7 @@ class TestTemplateSyncTestCase:
 
         :id: 4b866144-822c-4786-9188-53bc7e2dd44a
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                Create a template and import it from a source
             2. Update the template data in source location
@@ -648,7 +640,7 @@ class TestTemplateSyncTestCase:
 
         :id: 64456c0c-c2c6-4a1c-a16e-54ca4a8b66d3
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                Create a template and import it from a source
             2. Dont update the template data in source location
@@ -681,7 +673,7 @@ class TestTemplateSyncTestCase:
 
         :id: a5639368-3d23-4a37-974a-889e2ec0916e
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                Create a template with some name and import it from a source
 
@@ -713,7 +705,7 @@ class TestTemplateSyncTestCase:
 
         :id: 5bc11163-e8f3-4744-8a76-5c16e6e46e86
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                Create a template and import it from a source
 
@@ -740,7 +732,7 @@ class TestTemplateSyncTestCase:
 
         :id: da0b094c-6dc8-4526-b115-8e08bfb05fbb
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                Create a template with some name and import it from a source
 
@@ -767,7 +759,7 @@ class TestTemplateSyncTestCase:
 
         :id: 6bd5bc6b-a7a2-4529-9df6-47a670cd86d8
 
-        :Steps:
+        :steps:
             1. Create a template with wrong syntax in metadata
             2. Using nailgun or direct API call
                Import above template
@@ -801,7 +793,7 @@ class TestTemplateSyncTestCase:
 
         :id: db68b5de-7647-4568-b79c-2aec3292328a
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                Create template with name not matching filter
 
@@ -837,7 +829,7 @@ class TestTemplateSyncTestCase:
 
         :id: 259a8a3a-8749-442d-a2bc-51e9af89ce8c
 
-        :Steps:
+        :steps:
             1. Create a template without name in metadata
             2. Using nailgun or direct API call
                Import above template
@@ -871,7 +863,7 @@ class TestTemplateSyncTestCase:
 
         :id: d3f1ffe4-58d7-45a8-b278-74e081dc5062
 
-        :Steps:
+        :steps:
             1. Create a template without model keyword in metadata
             2. Using nailgun or direct API call
                Import above template
@@ -905,7 +897,7 @@ class TestTemplateSyncTestCase:
 
         :id: 5007b12d-1cf6-49e6-8e54-a189d1a209de
 
-        :Steps:
+        :steps:
             1. Create a template with blank model name in metadata
             2. Using nailgun or direct API call
                Import above template
@@ -938,7 +930,7 @@ class TestTemplateSyncTestCase:
 
         :id: 141b893d-72a3-47c2-bb03-004c757bcfc9
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                Export all the templates
 
@@ -990,7 +982,7 @@ class TestTemplateSyncTestCase:
 
         :id: 19ed0e6a-ee77-4e28-86c9-49db1adec479
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                Import template from a source
 
@@ -998,8 +990,6 @@ class TestTemplateSyncTestCase:
             1. Assert template import task and status logged to production log
 
         :Requirement: Take Templates out of tech preview
-
-        :CaseLevel: System
 
         :CaseImportance: Low
         """
@@ -1028,7 +1018,7 @@ class TestTemplateSyncTestCase:
 
         :id: 8ae370b1-84e8-436e-a7d7-99cd0b8f45b1
 
-        :Steps:
+        :steps:
             1. Using nailgun or direct API call
                Export template to destination
 
@@ -1036,8 +1026,6 @@ class TestTemplateSyncTestCase:
             1. Assert template export task and status logged to production log
 
         :Requirement: Take Templates out of tech preview
-
-        :CaseLevel: System
 
         :CaseImportance: Low
         """
@@ -1085,7 +1073,7 @@ class TestTemplateSyncTestCase:
 
         :id: 0bf6fe77-01a3-4843-86d6-22db5b8adf3b
 
-        :Steps:
+        :steps:
             1. Using nailgun export all templates to repository (ensure filters are empty)
 
         :expectedresults:
@@ -1126,7 +1114,7 @@ class TestTemplateSyncTestCase:
 
         :id: 95ac9543-d989-44f4-b4d9-18f20a0b58b9
 
-        :Steps:
+        :steps:
             1. Using nailgun import all templates from repository (ensure filters are empty)
 
         :expectedresults:
@@ -1158,7 +1146,7 @@ class TestTemplateSyncTestCase:
 
         :id: 88e21cad-448e-45e0-add2-94493a1319c5
 
-        :Steps:
+        :steps:
             1. Using nailgun try to import a locked template
 
         :expectedresults:
@@ -1207,7 +1195,7 @@ class TestTemplateSyncTestCase:
 
         :id: 936c91cc-1947-45b0-8bf0-79ba4be87b97
 
-        :Steps:
+        :steps:
             1. Using nailgun try to import a locked template with force parameter
 
         :expectedresults:

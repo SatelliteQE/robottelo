@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from math import ceil
 from random import choice
@@ -281,7 +276,6 @@ class TestSystemAdmin:
             4. System Admin role should be able to create Organization admins
             5. User with sys admin role should be able to edit filters on roles
 
-        :CaseLevel: System
         """
         org = target_sat.cli_factory.make_org()
         location = target_sat.cli_factory.make_location()

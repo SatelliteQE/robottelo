@@ -7,17 +7,12 @@ http://theforeman.org/api/apidoc/v2/locations.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: OrganizationsandLocations
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from random import randint
 
@@ -40,7 +35,6 @@ def valid_loc_data_list():
     Note: The maximum allowed length of location name is 246 only. This is an
     intended behavior (Also note that 255 is the standard across other
     entities.)
-
     """
     return dict(
         alpha=gen_string('alpha', randint(1, 246)),
@@ -127,7 +121,6 @@ class TestLocation:
         :expectedresults: Location created successfully and has correct
             organization assigned to it with expected title
 
-        :CaseLevel: Integration
         """
         location = target_sat.api.Location(organization=[make_orgs['org']]).create()
         assert location.organization[0].id == make_orgs['org'].id
@@ -208,7 +201,6 @@ class TestLocation:
         :expectedresults: Location updated successfully and has correct domain
             assigned
 
-        :CaseLevel: Integration
         """
         location = target_sat.api.Location().create()
 
@@ -247,8 +239,6 @@ class TestLocation:
 
         :BZ: 1398695
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         proxy_id_1 = make_proxies['proxy1']['id']
@@ -276,7 +266,6 @@ class TestLocation:
 
         :expectedresults: Location is not updated
 
-        :CaseLevel: Integration
         """
         location = target_sat.api.Location(domain=[target_sat.api.Domain().create()]).create()
         domain = target_sat.api.Domain().create()

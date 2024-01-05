@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: SCAPPlugin
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -33,8 +28,6 @@ class TestOscapPolicy:
         :id: d0706e49-2a00-4495-86ea-1b53a6776b6f
 
         :expectedresults: All expected CRUD actions finished successfully
-
-        :CaseLevel: Integration
 
         :CaseImportance: Critical
         """

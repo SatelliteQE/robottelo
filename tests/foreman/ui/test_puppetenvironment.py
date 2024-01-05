@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Puppet
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: Low
 
-:Upstream: No
 """
 import pytest
 
@@ -30,8 +25,6 @@ def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_org, modu
     :id: 2ef32b2d-acdd-4cb1-a760-da4fd1166167
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -73,8 +66,6 @@ def test_positive_availability_for_host_and_hostgroup_in_multiple_orgs(
         organization where it is present in
 
     :BZ: 543178
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """

@@ -8,17 +8,12 @@ http://theforeman.org/api/apidoc/v2/environments.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Puppet
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -205,8 +200,6 @@ def test_positive_update_loc(module_puppet_environment):
         field.
 
     :BZ: 1262029
-
-    :CaseLevel: Integration
     """
     names = {'location', 'location_ids', 'locations'}
     attributes = set(module_puppet_environment.update_json([]).keys())
@@ -223,8 +216,6 @@ def test_positive_update_org(module_puppet_environment):
         ``organization`` field.
 
     :BZ: 1262029
-
-    :CaseLevel: Integration
     """
     names = {'organization', 'organization_ids', 'organizations'}
     attributes = set(module_puppet_environment.update_json([]).keys())

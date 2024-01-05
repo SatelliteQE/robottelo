@@ -8,17 +8,12 @@ API reference for sync plans can be found on your Satellite:
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: SyncPlans
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime, timedelta
 from time import sleep
@@ -485,8 +480,6 @@ def test_positive_add_product(module_org, target_sat):
     :expectedresults: A sync plan can be created and one product can be
         added to it.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     sync_plan = target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
@@ -506,8 +499,6 @@ def test_positive_add_products(module_org, target_sat):
 
     :expectedresults: A sync plan can be created and two products can be
         added to it.
-
-    :CaseLevel: Integration
     """
     sync_plan = target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
     products = [target_sat.api.Product(organization=module_org).create() for _ in range(2)]
@@ -527,8 +518,6 @@ def test_positive_remove_product(module_org, target_sat):
 
     :expectedresults: A sync plan can be created and one product can be
         removed from it.
-
-    :CaseLevel: Integration
 
     :BZ: 1199150
     """
@@ -553,8 +542,6 @@ def test_positive_remove_products(module_org, target_sat):
 
     :expectedresults: A sync plan can be created and both products can be
         removed from it.
-
-    :CaseLevel: Integration
     """
     sync_plan = target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
     products = [target_sat.api.Product(organization=module_org).create() for _ in range(2)]
@@ -573,8 +560,6 @@ def test_positive_repeatedly_add_remove(module_org, request, target_sat):
 
     :expectedresults: A task is returned which can be used to monitor the
         additions and removals.
-
-    :CaseLevel: Integration
 
     :BZ: 1199150
     """
@@ -598,8 +583,6 @@ def test_positive_add_remove_products_custom_cron(module_org, request, target_sa
 
     :expectedresults: A sync plan can be created and both products can be
         removed from it.
-
-    :CaseLevel: Integration
     """
     cron_expression = gen_choice(valid_cron_expressions())
 
@@ -625,8 +608,6 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org, request,
     :expectedresults: Product was not synchronized
 
     :BZ: 1279539
-
-    :CaseLevel: System
     """
     product = target_sat.api.Product(organization=module_org).create()
     repo = target_sat.api.Repository(product=product).create()
@@ -657,8 +638,6 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
     :expectedresults: Product is synchronized successfully.
 
     :BZ: 1279539
-
-    :CaseLevel: System
     """
     interval = 60 * 60  # 'hourly' sync interval in seconds
     delay = 2 * 60
@@ -702,8 +681,6 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     :id: b70a0c50-7335-4285-b24c-edfc1187f034
 
     :expectedresults: Product is synchronized successfully.
-
-    :CaseLevel: System
 
     :BZ: 1655595, 1695733
     """
@@ -753,8 +730,6 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     :id: e646196e-3951-4297-8c3c-1494d9895347
 
     :expectedresults: Products are synchronized successfully.
-
-    :CaseLevel: System
 
     :BZ: 1695733
     """
@@ -821,8 +796,6 @@ def test_positive_synchronize_rh_product_past_sync_date(
     :customerscenario: true
 
     :BZ: 1279539, 1879537
-
-    :CaseLevel: System
     """
     interval = 60 * 60  # 'hourly' sync interval in seconds
     delay = 2 * 60
@@ -886,8 +859,6 @@ def test_positive_synchronize_rh_product_future_sync_date(
     :id: 6697a00f-2181-4c2b-88eb-2333268d780b
 
     :expectedresults: Product is synchronized successfully.
-
-    :CaseLevel: System
     """
     delay = 2 * 60  # delay for sync date in seconds
     org = function_entitlement_manifest_org
@@ -944,8 +915,6 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org, reques
     :id: d60e33a0-f75c-498e-9e6f-0a2025295a9d
 
     :expectedresults: Product is synchronized successfully.
-
-    :CaseLevel: System
     """
     delay = 2 * 60
     product = target_sat.api.Product(organization=module_org).create()
@@ -989,8 +958,6 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     :expectedresults: Product is synchronized successfully.
 
     :BZ: 1396647
-
-    :CaseLevel: System
     """
     delay = 2 * 60
     product = target_sat.api.Product(organization=module_org).create()
@@ -1031,8 +998,6 @@ def test_positive_delete_one_product(module_org, target_sat):
 
     :expectedresults: A sync plan is created with one product and sync plan
         can be deleted.
-
-    :CaseLevel: Integration
     """
     sync_plan = target_sat.api.SyncPlan(organization=module_org).create()
     product = target_sat.api.Product(organization=module_org).create()
@@ -1051,8 +1016,6 @@ def test_positive_delete_products(module_org, target_sat):
 
     :expectedresults: A sync plan is created with one product and sync plan
         can be deleted.
-
-    :CaseLevel: Integration
     """
     sync_plan = target_sat.api.SyncPlan(organization=module_org).create()
     products = [target_sat.api.Product(organization=module_org).create() for _ in range(2)]
@@ -1072,8 +1035,6 @@ def test_positive_delete_synced_product(module_org, module_target_sat):
 
     :expectedresults: A sync plan is created with one synced product and
         sync plan can be deleted.
-
-    :CaseLevel: Integration
     """
     sync_plan = module_target_sat.api.SyncPlan(organization=module_org).create()
     product = module_target_sat.api.Product(organization=module_org).create()
@@ -1095,8 +1056,6 @@ def test_positive_delete_synced_product_custom_cron(module_org, module_target_sa
 
     :expectedresults: A sync plan is created with one synced product and
         sync plan can be deleted.
-
-    :CaseLevel: Integration
     """
     sync_plan = module_target_sat.api.SyncPlan(
         organization=module_org,

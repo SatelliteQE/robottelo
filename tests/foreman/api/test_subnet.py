@@ -9,17 +9,12 @@ http://theforeman.org/api/apidoc/v2/1.15.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Networking
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import re
 
@@ -206,8 +201,6 @@ def test_positive_inherit_subnet_parmeters_in_host():
         2. The parameters from subnet should be displayed in
             host enc output
 
-    :CaseLevel: System
-
     :CaseImportance: Medium
 
     :BZ: 1470014
@@ -234,8 +227,6 @@ def test_positive_subnet_parameters_override_from_host():
         2. The new value should be assigned to parameter
         3. The parameter and value should be accessible as host parameters
 
-    :CaseLevel: Integration
-
     :CaseImportance: Medium
 
     :BZ: 1470014
@@ -257,8 +248,6 @@ def test_positive_subnet_parameters_override_impact_on_subnet(target_sat):
 
     :expectedresults: The override value of subnet parameter from host
         should not change actual value in subnet parameter
-
-    :CaseLevel: System
 
     :CaseImportance: Medium
     """
@@ -368,8 +357,6 @@ def test_positive_update_subnet_parameter_host_impact():
         2. The inherited subnet parameter in host enc should have
             updated name and value
 
-    :CaseLevel: Integration
-
     :BZ: 1470014
     """
 
@@ -415,8 +402,6 @@ def test_positive_delete_subnet_parameter_host_impact():
         1. The parameter should be deleted from host
         2. The parameter should be deleted from host enc
 
-    :CaseLevel: Integration
-
     :BZ: 1470014
     """
 
@@ -443,8 +428,6 @@ def test_positive_delete_subnet_overridden_parameter_host_impact():
         1. The parameter should not be deleted from host as it becomes
             host parameter now
         2. The parameter should not be deleted from host enc as well
-
-    :CaseLevel: Integration
 
     :BZ: 1470014
     """
@@ -512,8 +495,6 @@ def test_positive_subnet_parameter_priority():
         2. Host enc should display the parameter with value inherited from
             higher priority component(HostGroup in this case)
 
-    :CaseLevel: System
-
     :CaseImportance: Low
 
     :BZ: 1470014
@@ -542,8 +523,6 @@ def test_negative_component_overrides_subnet_parameter():
             lower priority component(domain in this case)
         2. Host enc should not display the parameter with value inherited
             from lower priority component(domain in this case)
-
-    :CaseLevel: System
 
     :CaseImportance: Low
 

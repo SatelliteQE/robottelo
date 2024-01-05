@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Hosts
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from random import randint
 
@@ -134,7 +129,6 @@ class TestPartitionTable:
 
         :expectedresults: Operating system is added to partition table
 
-        :CaseLevel: Integration
         """
         ptable = module_target_sat.cli_factory.make_partition_table()
         os = module_target_sat.cli_factory.make_os()
@@ -159,7 +153,6 @@ class TestPartitionTable:
 
         :expectedresults: Operating system is added to partition table
 
-        :CaseLevel: Integration
         """
         ptable = module_target_sat.cli_factory.make_partition_table()
         os = module_target_sat.cli_factory.make_os()
