@@ -2459,7 +2459,7 @@ def test_all_hosts_delete(session, target_sat, function_org, function_location, 
 
     :CaseComponent:Hosts-Content
 
-    :Team: Phoenix-content
+    :Team: Phoenix-subscriptions
 
     :CaseLevel: System
     """
@@ -2480,7 +2480,7 @@ def test_all_hosts_bulk_delete(session, target_sat, function_org, function_locat
 
     :CaseComponent:Hosts-Content
 
-    :Team: Phoenix-content
+    :Team: Phoenix-subscriptions
 
     :CaseLevel: System
     """
