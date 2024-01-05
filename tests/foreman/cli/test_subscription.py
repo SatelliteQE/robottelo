@@ -292,12 +292,14 @@ def test_positive_prepare_for_sca_only_hammer(function_org, target_sat):
     org_results = target_sat.execute(
         f'hammer organization update --id {function_org.id} --simple-content-access false'
     )
-    assert 'Simple Content Access will be required for all organizations in the next release' in str(
-        org_results.stderr
+    assert (
+        'Simple Content Access will be required for all organizations in the next release'
+        in str(org_results.stderr)
     )
     sca_results = target_sat.execute(
         f'hammer simple-content-access disable --organization-id {function_org.id}'
     )
-    assert 'Simple Content Access will be required for all organizations in the next release' in str(
-        sca_results.stderr
+    assert (
+        'Simple Content Access will be required for all organizations in the next release'
+        in str(sca_results.stderr)
     )
