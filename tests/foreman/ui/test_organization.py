@@ -368,7 +368,9 @@ def test_positive_product_view_organization_switch(session, module_org, module_p
 def test_positive_prepare_for_sca_only_deprecation(target_sat):
     """Verify that Simple Content Access endpoints are depreacated and will be required
         for all organizations in Katello 4.12
-    :id: 08539596-1bd3-4363-9737-e45f32ee5cbb
+
+    :id: df7e6806-6664-4dc5-baf6-bb41935e3031
+
     :expectedresults: Attepting to create an Organization with sca set to False, will throw
         deprecation endpoint message
     """
