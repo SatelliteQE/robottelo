@@ -154,10 +154,11 @@ def test_positive_create_with_cv(name, module_org, get_default_env, module_targe
     new_cv = module_target_sat.cli_factory.make_content_view(
         {'name': name, 'organization-id': module_org.id}
     )
+    module_target_sat.cli.ContentView.publish({'id': new_cv['id']})
     new_ak_cv = module_target_sat.cli_factory.make_activation_key(
         {
             'content-view': new_cv['name'],
-            'environment': get_default_env['name'],
+            'lifecycle-environment': get_default_env['name'],
             'organization-id': module_org.id,
         }
     )
