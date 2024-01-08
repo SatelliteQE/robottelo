@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ComputeResources-libvirt
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from random import choice
 
@@ -43,8 +38,6 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_loca
     :id: 7ef925ac-5aec-4e9d-b786-328a9b219c01
 
     :expectedresults: All expected CRUD actions finished successfully.
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
 
@@ -143,8 +136,6 @@ def test_positive_provision_end_to_end(
     :id: 2678f95f-0c0e-4b46-a3c1-3f9a954d3bde
 
     :expectedresults: Host is provisioned successfully
-
-    :CaseLevel: System
 
     :customerscenario: true
 

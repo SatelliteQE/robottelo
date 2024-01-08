@@ -7,17 +7,12 @@ http://<sat6>/apidoc/v2/products.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -96,8 +91,6 @@ def test_positive_create_with_gpg(module_org, module_target_sat):
     :id: 57331c1f-15dd-4c9f-b8fc-3010847b2975
 
     :expectedresults: A product is created with the specified GPG key.
-
-    :CaseLevel: Integration
     """
     gpg_key = module_target_sat.api.GPGKey(
         content=DataFile.VALID_GPG_KEY_FILE.read_text(),
@@ -225,8 +218,6 @@ def test_positive_update_gpg(module_org, module_target_sat):
     :id: 3b08f155-a0d6-4987-b281-dc02e8d5a03e
 
     :expectedresults: The updated product points to a new GPG key.
-
-    :CaseLevel: Integration
     """
     # Create a product and make it point to a GPG key.
     gpg_key_1 = module_target_sat.api.GPGKey(
@@ -253,8 +244,6 @@ def test_positive_update_organization(module_org, module_target_sat):
     :id: b298957a-2cdb-4f17-a934-098612f3b659
 
     :expectedresults: The updated product points to a new organization
-
-    :CaseLevel: Integration
 
     :BZ: 1310422
     """
@@ -350,8 +339,6 @@ def test_positive_sync_several_repos(module_org, module_target_sat):
     :expectedresults: All repositories within a product are successfully
         synced.
 
-    :CaseLevel: Integration
-
     :BZ: 1389543
     """
     product = module_target_sat.api.Product(organization=module_org).create()
@@ -379,8 +366,6 @@ def test_positive_filter_product_list(module_entitlement_manifest_org, module_ta
     :id: e61fb63a-4552-4915-b13d-23ab80138249
 
     :expectedresults: Able to list the products based on defined filter.
-
-    :CaseLevel: Integration
 
     :BZ: 1667129
     """

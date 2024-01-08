@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: RHCloud-CloudConnector
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime, timedelta
 
@@ -120,15 +115,13 @@ def test_positive_configure_cloud_connector(
 
     :id: 67e45cfe-31bb-51a8-b88f-27918c68f32e
 
-    :Steps:
+    :steps:
 
         1. Navigate to Configure > Inventory Upload
         2. Click Configure Cloud Connector
         3. Open the started job and wait until it is finished
 
     :expectedresults: The Cloud Connector has been installed and the service is running
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
 

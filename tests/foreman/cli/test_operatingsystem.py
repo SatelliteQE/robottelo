@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Provisioning
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
@@ -223,7 +218,6 @@ class TestOperatingSystem:
 
         :expectedresults: Architecture is added to Operating System
 
-        :CaseLevel: Integration
         """
         architecture = target_sat.cli_factory.make_architecture()
         os = target_sat.cli_factory.make_os()
@@ -243,7 +237,6 @@ class TestOperatingSystem:
 
         :expectedresults: Provisioning template is added to Operating System
 
-        :CaseLevel: Integration
         """
         template = target_sat.cli_factory.make_template()
         os = target_sat.cli_factory.make_os()
@@ -265,7 +258,6 @@ class TestOperatingSystem:
 
         :expectedresults: Partition table is added to Operating System
 
-        :CaseLevel: Integration
         """
         # Create a partition table.
         ptable_name = target_sat.cli_factory.make_partition_table()['name']
