@@ -31,7 +31,7 @@ pytestmark = pytest.mark.tier1
 @pytest.mark.e2e
 @pytest.mark.no_containers
 def test_host_registration_end_to_end(
-    module_entitlement_manifest_org,
+    module_sca_manifest_org,
     module_location,
     module_activation_key,
     module_target_sat,
@@ -51,7 +51,7 @@ def test_host_registration_end_to_end(
 
     :customerscenario: true
     """
-    org = module_entitlement_manifest_org
+    org = module_sca_manifest_org
     command = module_target_sat.api.RegistrationCommand(
         organization=org,
         activation_keys=[module_activation_key.name],
