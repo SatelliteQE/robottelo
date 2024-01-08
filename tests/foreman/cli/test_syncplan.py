@@ -368,7 +368,7 @@ def test_positive_info_with_assigned_product(module_org, module_target_sat):
         module_target_sat.cli.Product.set_sync_plan(
             {'id': product['id'], 'sync-plan-id': sync_plan['id']}
         )
-    updated_plan = module_target_sat.info({'id': sync_plan['id']})
+    updated_plan = module_target_sat.cli.SyncPlan.info({'id': sync_plan['id']})
     assert len(updated_plan['products']) == 2
     assert {prod['name'] for prod in updated_plan['products']} == {prod1, prod2}
 
