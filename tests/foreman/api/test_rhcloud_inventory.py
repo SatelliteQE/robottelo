@@ -39,6 +39,7 @@ def common_assertion(report_path):
 
 
 @pytest.mark.run_in_one_thread
+@pytest.mark.no_containers
 @pytest.mark.tier3
 @pytest.mark.e2e
 def test_rhcloud_inventory_api_e2e(
@@ -123,6 +124,7 @@ def test_rhcloud_inventory_api_e2e(
 
 
 @pytest.mark.e2e
+@pytest.mark.no_containers
 @pytest.mark.tier3
 def test_rhcloud_inventory_api_hosts_synchronization(
     rhcloud_manifest_org,
@@ -221,6 +223,7 @@ def test_inventory_upload_with_http_proxy():
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
+@pytest.mark.no_containers
 @pytest.mark.e2e
 def test_include_parameter_tags_setting(
     inventory_settings,

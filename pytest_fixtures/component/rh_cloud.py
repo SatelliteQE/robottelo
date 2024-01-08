@@ -36,8 +36,8 @@ def rhcloud_registered_hosts(
     for vm in mod_content_hosts:
         vm.configure_rhai_client(
             satellite=module_target_sat,
-            activation_key=rhcloud_activation_key.name,
-            org=rhcloud_manifest_org.label,
+            activation_key=rhcloud_activation_key,
+            org=rhcloud_manifest_org,
             rhel_distro=f"rhel{vm.os_version.major}",
         )
         assert vm.subscribed

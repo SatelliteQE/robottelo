@@ -1082,9 +1082,7 @@ class ContentHost(Host, ContentHostMixins):
             host.host_parameters_attributes = host_parameters
             host.update(['host_parameters_attributes'])
 
-    def configure_rhai_client(
-        self, satellite, activation_key, org, rhel_distro, register_insights=True, register=True
-    ):
+    def configure_rhai_client(self, satellite, activation_key, org, rhel_distro):
         """Configures a Red Hat Access Insights service on the system by
         installing the redhat-access-insights package and registering to the
         service.
@@ -1093,15 +1091,8 @@ class ContentHost(Host, ContentHostMixins):
             system to satellite
         :param org: The org to which the system is required to be registered
         :param rhel_distro: rhel distribution used by the vm
-        :param register: Whether to register client to insights
         :return: None
         """
-        if register:
-            # Install Satellite CA rpm
-            self.install_katello_ca(satellite)
-
-            self.register_contenthost(org, activation_key)
-
         # Red Hat Insights requires RHEL 6/7/8 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
         distro_repo_map = {
@@ -1120,16 +1111,17 @@ class ContentHost(Host, ContentHostMixins):
         else:
             self.create_custom_repos(**{rhel_distro: rhel_repo})
 
-        # Install insights-client rpm
-        if self.execute('yum install -y insights-client').status != 0:
-            raise ContentHostError('Unable to install insights-client rpm')
-
-        if register_insights:
-            # Register client
-            if self.execute('insights-client --register').status != 0:
-                raise ContentHostError('Unable to register client to Insights through Satellite')
-            if self.execute('insights-client --test-connection').status != 0:
-                raise ContentHostError('Test connection failed via insights.')
+        command = satellite.api.RegistrationCommand(
+            organization=org,
+            activation_keys=[activation_key.name],
+            setup_insights=True,
+            insecure=True,
+            force=True,
+        ).create()
+        result = self.execute(command)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        result = self.execute('insights-client --test-connection')
+        assert result.status == 0, f'Test connection failed via insights: {result.stderr}'
 
     def unregister_insights(self):
         """Unregister insights client.
