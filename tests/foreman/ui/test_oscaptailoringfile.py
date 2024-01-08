@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: SCAPPlugin
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from nailgun import entities
 import pytest
@@ -30,8 +25,6 @@ def test_positive_end_to_end(session, tailoring_file_path, default_org, default_
     :id: 9aebccb8-6837-4583-8a8a-8883480ab688
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')

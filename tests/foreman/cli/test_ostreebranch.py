@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 
@@ -94,7 +89,6 @@ def test_positive_list_by_repo_id(
     :id: 8cf1a973-031c-4c02-af14-0faba22ab60b
 
     :expectedresults: Ostree Branch List is displayed
-
     """
 
     branch = module_target_sat.cli.OstreeBranch.with_user(*ostree_user_credentials)
@@ -139,7 +133,6 @@ def test_positive_list_by_cv_id(ostree_repo_with_user, ostree_user_credentials, 
     :id: 3654f107-44ee-4af2-a9e4-f9fd8c68491e
 
     :expectedresults: Ostree Branch List is displayed
-
     """
     result = module_target_sat.cli.OstreeBranch.with_user(*ostree_user_credentials).list(
         {'content-view-id': ostree_repo_with_user['cv']['id']}

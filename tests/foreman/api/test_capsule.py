@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Capsule
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 from fauxfactory import gen_string, gen_url
 import pytest
@@ -43,7 +38,6 @@ def test_positive_update_capsule(target_sat, module_capsule_configured):
     :bz: 2077824
 
     :customerscenario: true
-
     """
     new_name = f'{gen_string("alpha")}-{module_capsule_configured.name}'
     capsule = target_sat.api.SmartProxy().search(
@@ -89,7 +83,6 @@ def test_negative_create_with_url(target_sat):
     :id: e48a6260-97e0-4234-a69c-77bbbcde85d6
 
     :expectedresults: Proxy is not created
-
     """
     # Create a random proxy
     with pytest.raises(HTTPError) as context:
@@ -125,7 +118,6 @@ def test_positive_update_url(request, target_sat):
     :id: 0305fd54-4e0c-4dd9-a537-d342c3dc867e
 
     :expectedresults: Capsule has the url updated
-
     """
     # Create fake capsule with name
     name = gen_string('alpha')
@@ -158,8 +150,6 @@ def test_positive_import_puppet_classes(
     :expectedresults: Puppet classes are imported from proxy
 
     :CaseComponent: Puppet
-
-    :CaseLevel: Integration
 
     :BZ: 1398695, 2142555
 

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: SCAPPlugin
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from nailgun import entities
 import pytest
@@ -47,7 +42,7 @@ def test_positive_check_dashboard(
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
 
         1. Create new host group
         2. Create new host using host group from step 1
@@ -58,8 +53,6 @@ def test_positive_check_dashboard(
         data
 
     :BZ: 1424936
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     oscap_content_title = gen_string('alpha')
@@ -123,8 +116,6 @@ def test_positive_end_to_end(
     :id: 39c26f89-3147-4f27-bf5e-810f0ba721d8
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """

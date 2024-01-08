@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: HostCollections
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import time
 
@@ -223,8 +218,6 @@ def test_positive_end_to_end(
 
     :expectedresults: All expected CRUD actions finished successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     hc_name = gen_string('alpha')
@@ -275,8 +268,6 @@ def test_negative_install_via_remote_execution(
 
     :expectedresults: The package is not installed, and the job invocation
         status contains some expected values: hosts information, jos status.
-
-    :CaseLevel: Integration
     """
     hosts = []
     for _ in range(2):
@@ -315,8 +306,6 @@ def test_negative_install_via_custom_remote_execution(
 
     :expectedresults: The package is not installed, and the job invocation
         status contains some expected values: hosts information, jos status.
-
-    :CaseLevel: Integration
     """
     hosts = []
     for _ in range(2):
@@ -350,8 +339,6 @@ def test_positive_add_host(session, module_target_sat):
     :id: 80824c9f-15a1-4f76-b7ac-7d9ca9f6ed9e
 
     :expectedresults: Host is added to Host Collection successfully
-
-    :CaseLevel: System
     """
     hc_name = gen_string('alpha')
     org = module_target_sat.api.Organization().create()
@@ -386,8 +373,6 @@ def test_positive_install_package(
 
     :expectedresults: Package was successfully installed on all the hosts
         in host collection
-
-    :CaseLevel: System
     """
     with session:
         session.organization.select(org_name=module_org_with_parameter.name)
@@ -412,8 +397,6 @@ def test_positive_remove_package(
 
     :expectedresults: Package was successfully removed from all the hosts
         in host collection
-
-    :CaseLevel: System
     """
     _install_package_with_assertion(vm_content_hosts, constants.FAKE_0_CUSTOM_PACKAGE)
     with session:
@@ -440,8 +423,6 @@ def test_positive_upgrade_package(
 
     :expectedresults: Package was successfully upgraded on all the hosts in
         host collection
-
-    :CaseLevel: System
     """
     _install_package_with_assertion(vm_content_hosts, constants.FAKE_1_CUSTOM_PACKAGE)
     with session:
@@ -467,8 +448,6 @@ def test_positive_install_package_group(
 
     :expectedresults: Package group was successfully installed on all the
         hosts in host collection
-
-    :CaseLevel: System
     """
     with session:
         session.organization.select(org_name=module_org_with_parameter.name)
@@ -494,8 +473,6 @@ def test_positive_remove_package_group(
 
     :expectedresults: Package group was successfully removed  on all the
         hosts in host collection
-
-    :CaseLevel: System
     """
     for client in vm_content_hosts:
         result = client.run(f'yum groups install -y {constants.FAKE_0_CUSTOM_PACKAGE_GROUP_NAME}')
@@ -527,8 +504,6 @@ def test_positive_install_errata(
 
     :expectedresults: Errata was successfully installed in all the hosts in
         host collection
-
-    :CaseLevel: System
     """
     _install_package_with_assertion(vm_content_hosts, constants.FAKE_1_CUSTOM_PACKAGE)
     with session:
@@ -597,8 +572,6 @@ def test_positive_change_assigned_content(
            names
 
     :BZ: 1315280
-
-    :CaseLevel: System
     """
     new_lce_name = gen_string('alpha')
     new_cv_name = gen_string('alpha')
@@ -666,7 +639,7 @@ def test_negative_hosts_limit(
 
     :id: 57b70977-2110-47d9-be3b-461ad15c70c7
 
-    :Steps:
+    :steps:
         1. Create Host Collection entity that can contain only one Host
             (using Host Limit field)
         2. Create Host and add it to Host Collection. Check that it was
@@ -676,8 +649,6 @@ def test_negative_hosts_limit(
 
     :expectedresults: Second host is not added to Host Collection and
         appropriate error is shown
-
-    :CaseLevel: System
     """
     hc_name = gen_string('alpha')
     org = module_target_sat.api.Organization().create()
@@ -731,7 +702,7 @@ def test_positive_install_module_stream(
 
     :id: e5d882e0-3520-4cb6-8629-ef4c18692868
 
-    :Steps:
+    :steps:
         1. Run dnf upload profile to sync module streams from hosts to Satellite
         2. Navigate to host_collection
         3. Install the module stream duck
@@ -740,8 +711,6 @@ def test_positive_install_module_stream(
 
     :expectedresults: Module-Stream should get installed on all the hosts
         in host collection
-
-    :CaseLevel: System
     """
     _run_remote_command_on_content_hosts('dnf -y upload-profile', vm_content_hosts_module_stream)
     with session:
@@ -781,7 +750,7 @@ def test_positive_install_modular_errata(
 
     :id: 8d6fb447-af86-4084-a147-7910f0cecdef
 
-    :Steps:
+    :steps:
         1. Generate modular errata by installing older version of module stream
         2. Run dnf upload-profile
         3. Install the modular errata by 'remote execution'
@@ -789,8 +758,6 @@ def test_positive_install_modular_errata(
 
     :expectedresults: Modular Errata should get installed on all hosts in host
         collection.
-
-    :CaseLevel: System
     """
     stream = "0"
     version = "20180704111719"

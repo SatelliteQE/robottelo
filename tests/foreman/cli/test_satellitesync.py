@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: InterSatelliteSync
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import os
 from time import sleep
@@ -239,8 +234,6 @@ class TestRepositoryExport:
             1. Complete export succeeds, exported files are present on satellite machine.
             2. Incremental export succeeds, exported files are present on satellite machine.
 
-        :CaseLevel: System
-
         :BZ: 1944733
 
         :customerscenario: true
@@ -298,7 +291,6 @@ class TestRepositoryExport:
             1. Complete export succeeds, exported files are present on satellite machine.
             2. Incremental export succeeds, exported files are present on satellite machine.
 
-        :CaseLevel: System
         """
         # Create cv and publish
         cv_name = gen_string('alpha')
@@ -352,7 +344,6 @@ class TestRepositoryExport:
         :expectedresults:
             1. Repository was successfully exported, exported files are present on satellite machine
 
-        :CaseLevel: System
         """
         # Create cv and publish
         cv_name = gen_string('alpha')
@@ -562,8 +553,6 @@ class TestContentViewSync:
             1. CV version custom contents has been exported to directory.
             2. All The exported custom contents has been imported in org/satellite.
 
-        :CaseLevel: System
-
         :BZ: 1832858
 
         :customerscenario: true
@@ -653,8 +642,6 @@ class TestContentViewSync:
         :expectedresults:
             1. Default Organization View version custom contents has been exported.
             2. All the exported custom contents has been imported in org/satellite.
-
-        :CaseLevel: System
 
         :BZ: 1671319
 
@@ -753,7 +740,6 @@ class TestContentViewSync:
             1. Filtered CV version custom contents has been exported to directory
             2. Filtered exported custom contents has been imported in org/satellite
 
-        :CaseLevel: System
         """
         exporting_cv_name = importing_cvv = gen_string('alpha')
         exporting_cv, exporting_cvv = _create_cv(
@@ -846,7 +832,6 @@ class TestContentViewSync:
             2. Promoted CV version contents has been imported successfully.
             3. The imported CV should only be published and not promoted.
 
-        :CaseLevel: System
         """
         import_cv_name = class_export_entities['exporting_cv_name']
         export_cv_id = class_export_entities['exporting_cv']['id']
@@ -932,7 +917,6 @@ class TestContentViewSync:
 
         :customerscenario: true
 
-        :CaseLevel: System
         """
         # Create cv and publish
         cv_name = gen_string('alpha')
@@ -1728,8 +1712,6 @@ class TestContentViewSync:
             1. Complete and incremental export succeed.
             2. All files referenced in the repomd.xml files are present in the exports.
 
-        :CaseLevel: System
-
         :BZ: 2212523
 
         :customerscenario: true
@@ -1814,7 +1796,6 @@ class TestInterSatelliteSync:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
 
     @pytest.mark.stubbed
@@ -1836,7 +1817,6 @@ class TestInterSatelliteSync:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
 
     @pytest.mark.stubbed
@@ -1854,7 +1834,6 @@ class TestInterSatelliteSync:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
 
     @pytest.mark.tier3
@@ -1886,7 +1865,6 @@ class TestInterSatelliteSync:
                in the importing organization and content counts match.
             2. Incremental export and import succeeds, content counts match the updated counts.
 
-        :CaseLevel: System
         """
         export_cc = target_sat.cli.Repository.info({'id': function_synced_custom_repo.id})[
             'content-counts'
@@ -1973,8 +1951,6 @@ class TestInterSatelliteSync:
         :expectedresults:
             1. All exports and imports succeed.
 
-        :CaseLevel: System
-
         :CaseImportance: Medium
 
         :BZ: 2092039
@@ -2034,6 +2010,135 @@ class TestInterSatelliteSync:
             ['success' in task['result'] for task in tasks]
         ), 'Not every import task succeeded'
 
+    @pytest.mark.tier3
+    @pytest.mark.parametrize(
+        'function_synced_rh_repo',
+        ['rhae2'],
+        indirect=True,
+    )
+    def test_positive_custom_cdn_with_credential(
+        self,
+        request,
+        target_sat,
+        export_import_cleanup_function,
+        config_export_import_settings,
+        function_sca_manifest_org,
+        function_synced_rh_repo,
+        satellite_host,
+        function_sca_manifest,
+    ):
+        """Export and sync repository using custom cert for custom CDN.
+
+        :id: de1f4b06-267a-4bad-9a90-665f2906ef5f
+
+        :parametrized: yes
+
+        :setup:
+            1. Upstream Satellite with enabled and synced RH yum repository.
+            2. Downstream Satellite to sync from Upstream Satellite.
+
+        :steps:
+            On the Upstream Satellite:
+                1. Export the repository in syncable format and move it
+                   to /var/www/html/pub/repos to mimic custom CDN.
+            On the Downstream Satellite:
+                2. Create new Organization, import manifest.
+                3. Create Content Credentials with Upstream Satellite's katello-server-ca.crt.
+                4. Set the CDN configuration to custom CDN and use the url and CC from above.
+                5. Enable and sync the repository.
+
+        :expectedresults:
+            1. Repository can be enabled and synced from Upstream to Downstream Satellite.
+
+        :BZ: 2112098
+
+        :customerscenario: true
+        """
+        meta_file = 'metadata.json'
+        crt_file = 'source.crt'
+        pub_dir = '/var/www/html/pub/repos'
+
+        # Export the repository in syncable format and move it
+        # to /var/www/html/pub/repos to mimic custom CDN.
+        target_sat.cli.ContentExport.completeRepository(
+            {'id': function_synced_rh_repo['id'], 'format': 'syncable'}
+        )
+        assert '1.0' in target_sat.validate_pulp_filepath(
+            function_sca_manifest_org, PULP_EXPORT_DIR
+        )
+        exp_dir = target_sat.execute(
+            f'find {PULP_EXPORT_DIR}{function_sca_manifest_org.name}/ -name {meta_file}'
+        ).stdout.splitlines()
+        assert len(exp_dir) == 1
+        exp_dir = exp_dir[0].replace(meta_file, '')
+
+        assert target_sat.execute(f'mv {exp_dir} {pub_dir}').status == 0
+        request.addfinalizer(lambda: target_sat.execute(f'rm -rf {pub_dir}'))
+        target_sat.execute(f'semanage fcontext -a -t httpd_sys_content_t "{pub_dir}(/.*)?"')
+        target_sat.execute(f'restorecon -R {pub_dir}')
+
+        # Create new Organization, import manifest.
+        import_org = satellite_host.api.Organization().create()
+        satellite_host.upload_manifest(import_org.id, function_sca_manifest.content)
+
+        # Create Content Credentials with Upstream Satellite's katello-server-ca.crt.
+        satellite_host.execute(
+            f'curl -o {crt_file} http://{target_sat.hostname}/pub/katello-server-ca.crt'
+        )
+        cc = satellite_host.cli.ContentCredential.create(
+            {
+                'name': gen_string('alpha'),
+                'organization-id': import_org.id,
+                'path': crt_file,
+                'content-type': 'cert',
+            }
+        )
+        assert cc, 'No content credential created'
+
+        # Set the CDN configuration to custom CDN and use the url and CC from above.
+        res = satellite_host.cli.Org.configure_cdn(
+            {
+                'id': import_org.id,
+                'type': 'custom_cdn',
+                'ssl-ca-credential-id': cc['id'],
+                'url': f'https://{target_sat.hostname}/pub/repos/',
+            }
+        )
+        assert 'Updated CDN configuration' in res
+
+        # Enable and sync the repository.
+        reposet = satellite_host.cli.RepositorySet.list(
+            {
+                'organization-id': import_org.id,
+                'search': f'content_label={function_synced_rh_repo["content-label"]}',
+            }
+        )
+        assert (
+            len(reposet) == 1
+        ), f'Expected just one reposet for "{function_synced_rh_repo["content-label"]}"'
+        res = satellite_host.cli.RepositorySet.enable(
+            {
+                'organization-id': import_org.id,
+                'id': reposet[0]['id'],
+                'basearch': DEFAULT_ARCHITECTURE,
+            }
+        )
+        assert 'Repository enabled' in str(res)
+
+        repos = satellite_host.cli.Repository.list({'organization-id': import_org.id})
+        assert len(repos) == 1, 'Expected 1 repo enabled'
+        repo = repos[0]
+        satellite_host.cli.Repository.synchronize({'id': repo['id']})
+
+        repo = satellite_host.cli.Repository.info({'id': repo['id']})
+        assert (
+            f'{target_sat.hostname}/pub/repos/' in repo['url']
+        ), 'Enabled repo does not point to the upstream Satellite'
+        assert 'Success' in repo['sync']['status'], 'Sync did not succeed'
+        assert (
+            repo['content-counts'] == function_synced_rh_repo['content-counts']
+        ), 'Content counts do not match'
+
     @pytest.mark.stubbed
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -2057,7 +2162,6 @@ class TestInterSatelliteSync:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
 
 
@@ -2164,8 +2268,6 @@ class TestNetworkSync:
 
         :expectedresults:
             1. Repository can be enabled and synced.
-
-        :CaseLevel: System
 
         :BZ: 2213128
 

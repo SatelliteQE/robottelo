@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Settings
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 from time import sleep
@@ -60,7 +55,6 @@ def test_positive_update_hostname_prefix_without_value(setting_update, module_ta
     :BZ: 1470083
 
     :expectedresults: Error should be raised on setting empty value for discovery_prefix setting
-
     """
     with pytest.raises(CLIReturnCodeError):
         module_target_sat.cli.Settings.set({'name': "discovery_prefix", 'value': ""})
@@ -76,7 +70,6 @@ def test_positive_update_hostname_default_prefix(setting_update, module_target_s
     :parametrized: yes
 
     :expectedresults: Default set prefix should be updated with new value
-
     """
     hostname_prefix_value = gen_string('alpha')
     module_target_sat.cli.Settings.set({'name': "discovery_prefix", 'value': hostname_prefix_value})
@@ -128,7 +121,6 @@ def test_positive_update_login_page_footer_text(setting_update, module_target_sa
     :parametrized: yes
 
     :expectedresults: Parameter is updated successfully
-
     """
     login_text_value = random.choice(list(valid_data_list().values()))
     module_target_sat.cli.Settings.set({'name': "login_text", 'value': login_text_value})
@@ -151,7 +143,6 @@ def test_positive_update_login_page_footer_text_without_value(setting_update, mo
     :parametrized: yes
 
     :expectedresults: Message on login screen should be removed
-
     """
     module_target_sat.cli.Settings.set({'name': "login_text", 'value': ""})
     login_text = module_target_sat.cli.Settings.list({'search': 'name=login_text'})[0]
@@ -464,8 +455,6 @@ def test_positive_failed_login_attempts_limit(setting_update, target_sat):
        7. Return the setting to previous value
 
     :CaseImportance: Critical
-
-    :CaseLevel: System
 
     :parametrized: yes
 

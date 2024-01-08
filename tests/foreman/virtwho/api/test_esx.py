@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 
@@ -42,8 +37,6 @@ class TestVirtWhoConfigforEsx:
         :id: 72d74c05-2580-4f38-b6c0-999ff470d4d6
 
         :expectedresults: Config can be created and deployed
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -94,8 +87,6 @@ class TestVirtWhoConfigforEsx:
 
         :expectedresults: debug option can be updated.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         options = {'true': '1', 'false': '0', '1': '1', '0': '0'}
@@ -119,8 +110,6 @@ class TestVirtWhoConfigforEsx:
         :id: 65f4138b-ca8f-4f1e-805c-1a331b951be5
 
         :expectedresults: interval option can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -155,8 +144,6 @@ class TestVirtWhoConfigforEsx:
 
         :expectedresults: hypervisor_id option can be updated.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         # esx and rhevm support hwuuid option
@@ -182,8 +169,6 @@ class TestVirtWhoConfigforEsx:
         :id: 1f251d89-5e22-4470-be4c-0aeba84c0273
 
         :expectedresults: filter and filter_hosts can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -235,8 +220,6 @@ class TestVirtWhoConfigforEsx:
 
         :expectedresults: http_proxy/https_proxy and no_proxy option can be updated.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
 
         :BZ: 1902199
@@ -282,8 +265,6 @@ class TestVirtWhoConfigforEsx:
 
         :expectedresults: Config can be searched in org list
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         command = get_configure_command(virtwho_config_api.id, default_org.name)
@@ -302,8 +283,6 @@ class TestVirtWhoConfigforEsx:
         :id: 3a79d65a-e206-4693-a5ba-59f6c44c984e
 
         :expectedresults: Config can be created and deployed without any error
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
 
@@ -357,8 +336,6 @@ class TestVirtWhoConfigforEsx:
         :expectedresults:
             the option "env=" should be removed from etc/virt-who.d/virt-who.conf
             /var/log/messages should not display warning message
-
-        :CaseLevel: Integration
 
         :customerscenario: true
 

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Authentication
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -38,7 +33,6 @@ def test_positive_password_reset(target_sat):
     :expectedresults: verify the 'foreman-rake permissions:reset' command for the admin user
 
     :CaseImportance: High
-
     """
     result = target_sat.execute('foreman-rake permissions:reset')
     assert result.status == 0

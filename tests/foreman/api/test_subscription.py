@@ -8,17 +8,12 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: SubscriptionManagement
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun.config import ServerConfig

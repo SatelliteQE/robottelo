@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 from manifester import Manifester
 from nailgun.entity_mixins import call_entity_method_with_timeout
@@ -35,7 +30,7 @@ def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, ta
 
     :id: e521a7a4-2502-4fe2-b297-a13fc99e679b
 
-    :Steps:
+    :steps:
         1. Enable and sync a RH Repo
         2. Create a Content View with Repository attached
         3. Publish Content View
@@ -77,7 +72,7 @@ def test_positive_update_repository_metadata(module_org, target_sat):
 
     :id: 6fe7bb3f-1640-4904-a223-b4764534afe8
 
-    :Steps:
+    :steps:
         1. Create a Product and Yum Repository
         2. Sync the Repository and returns its content_counts for rpm
         3. Update the url to a different Repo and re-sync the Repository
@@ -127,7 +122,7 @@ def test_positive_epel_repositories_with_mirroring_policy(
 
     :id: 5c4e0ba4-4486-4eaf-b6ad-62831b7353a4
 
-    :Steps:
+    :steps:
         1. Create a Epel repository with mirroring_policy set
         2. Sync the Repository and return its content_counts for rpm
         3. Assert content was synced and mirroring policy type is correct
@@ -150,8 +145,6 @@ def test_positive_sync_kickstart_repo(module_entitlement_manifest_org, target_sa
     :id: dbdabc0e-583c-4186-981a-a02844f90412
 
     :expectedresults: No encoding gzip errors present in /var/log/messages.
-
-    :CaseLevel: Integration
 
     :customerscenario: true
 
@@ -199,7 +192,7 @@ def test_negative_upload_expired_manifest(module_org, target_sat):
 
     :id: d6e652d8-5f46-4d15-9191-d842466d45d0
 
-    :Steps:
+    :steps:
         1. Upload a manifest
         2. Delete the Subscription Allocation on RHSM
         3. Attempt to refresh the manifest
@@ -224,7 +217,7 @@ def test_positive_multiple_orgs_with_same_repo(target_sat):
 
     :id: 39cff8ea-969d-4b8f-9fb4-33b1ba768ff2
 
-    :Steps:
+    :steps:
         1. Create multiple organizations
         2. Sync the same repository to each organization
         3. Assert that each repository from each organization contain the same content counts
@@ -249,7 +242,7 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_entitlemen
 
     :id: b51c4a3d-d532-4342-be61-e868f7c3a723
 
-    :Steps:
+    :steps:
         1. Enabled multiple large Repositories
                 Red Hat Enterprise Linux 8 for x86_64 - AppStream RPMs 8
                 Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8
@@ -297,7 +290,7 @@ def test_positive_available_repositories_endpoint(module_sca_manifest_org, targe
 
     :id: f4c9d4a0-9a82-4f06-b772-b1f7e3f45e7d
 
-    :Steps:
+    :steps:
         1. Enable a Red Hat Repository
         2. Attempt to hit the enpoint:
            GET /katello/api/repository_sets/:id/available_repositories

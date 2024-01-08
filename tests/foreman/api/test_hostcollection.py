@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: HostCollections
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from random import choice, randint
 
@@ -205,8 +200,6 @@ def test_positive_add_host(module_org, fake_hosts, module_target_sat):
 
     :expectedresults: Host was added to the host collection.
 
-    :CaseLevel: Integration
-
     :BZ:1325989
     """
     host_collection = module_target_sat.api.HostCollection(organization=module_org).create()
@@ -223,8 +216,6 @@ def test_positive_add_hosts(module_org, fake_hosts, module_target_sat):
     :id: f76b4db1-ccd5-47ab-be15-8c7d91d03b22
 
     :expectedresults: Hosts were added to the host collection.
-
-    :CaseLevel: Integration
 
     :BZ: 1325989
     """

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Search
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 
@@ -34,7 +29,7 @@ class TestPublicDisableBookmark:
 
         :id: preupgrade-13904b14-6340-4b85-a56f-98080cf50a92
 
-        :Steps:
+        :steps:
 
             1. Create public disabled bookmarks before the upgrade for all system entities
             using available bookmark data.
@@ -71,7 +66,7 @@ class TestPublicDisableBookmark:
 
         :id: postupgrade-13904b14-6340-4b85-a56f-98080cf50a92
 
-        :Steps:
+        :steps:
 
             1. Check the bookmark status after post-upgrade.
             2. Remove the bookmark.
@@ -105,7 +100,7 @@ class TestPublicEnableBookmark:
 
         :id: preupgrade-93c419db-66b4-4c9a-a82a-a6a68703881f
 
-        :Steps:
+        :steps:
             1. Create public enable bookmarks before the upgrade for all system entities
             using available bookmark data.
             2. Check the bookmark attribute(controller, name, query public) status
@@ -140,7 +135,7 @@ class TestPublicEnableBookmark:
 
         :id: postupgrade-93c419db-66b4-4c9a-a82a-a6a68703881f
 
-        :Steps:
+        :steps:
             1. Check the bookmark status after post-upgrade.
             2. Remove the bookmark.
 

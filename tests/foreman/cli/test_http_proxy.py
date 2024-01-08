@@ -2,19 +2,14 @@
 
 :Requirement: HttpProxy
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
-
-:TestType: Functional
 
 :CaseImportance: High
 
 :CaseAutomation: Automated
 
-:Upstream: No
 """
 from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
@@ -99,7 +94,7 @@ def test_insights_client_registration_with_http_proxy():
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Create HTTP Proxy.
         2. Set created proxy as "Default HTTP Proxy" in settings.
         3. Edit /etc/resolv.conf and comment out all entries so that
@@ -130,7 +125,7 @@ def test_positive_set_content_default_http_proxy(block_fake_repo_access, target_
 
     :id: c12868eb-98f1-4763-a168-281ac44d9ff5
 
-    :Steps:
+    :steps:
             1. Create a product with repo.
             2. Create an un-authenticated proxy.
             3. Set the proxy to be the global default proxy.
@@ -139,7 +134,6 @@ def test_positive_set_content_default_http_proxy(block_fake_repo_access, target_
     :expectedresults:  Repo is synced
 
     :CaseImportance: High
-
     """
     org = target_sat.api.Organization().create()
     proxy_name = gen_string('alpha', 15)
@@ -184,7 +178,7 @@ def test_positive_environment_variable_unset_set():
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Export any environment variable from
            [http_proxy, https_proxy, ssl_cert_file, HTTP_PROXY, HTTPS_PROXY, SSL_CERT_FILE]
         2. satellite-installer
@@ -195,7 +189,6 @@ def test_positive_environment_variable_unset_set():
     :CaseImportance: High
 
     :CaseAutomation: NotAutomated
-
     """
 
 

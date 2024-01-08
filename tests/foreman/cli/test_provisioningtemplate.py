@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ProvisioningTemplates
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 from random import randint
@@ -167,8 +162,6 @@ def test_positive_add_remove_os_by_id(module_target_sat, module_os_with_minor):
     :id: d9f481b3-9757-4208-b451-baf4792d4d70
 
     :expectedresults: Operating system is added/removed from the template
-
-    :CaseLevel: Integration
     """
     os = module_os_with_minor
     os_string = f'{os.name} {os.major}.{os.minor}'
@@ -212,8 +205,6 @@ def test_positive_clone(module_target_sat):
     :id: 27d69c1e-0d83-4b99-8a3c-4f1bdec3d261
 
     :expectedresults: The template is cloned successfully
-
-    :CaseLevel: Integration
     """
     cloned_template_name = gen_string('alpha')
     template = module_target_sat.cli_factory.make_template()

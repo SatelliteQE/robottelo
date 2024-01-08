@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
 :CaseComponent: Capsule-Content
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from box import Box
 from fauxfactory import gen_alpha
@@ -52,7 +47,6 @@ def test_positive_sync_without_deadlock(
     :customerscenario: true
 
     :BZ: 2062526
-
     """
     # Note: As of now BZ#2122872 prevents us to use the originally intended RHEL7 repo because
     # of a memory leak causing Satellite OOM crash in this scenario. Therefore, for now we use

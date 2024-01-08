@@ -10,17 +10,12 @@ When testing email validation [1] and [2] should be taken into consideration.
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import datetime
 import random
@@ -205,7 +200,6 @@ class TestUser:
 
         :expectedresults: User is created with orgs, orgs are updated
 
-        :CaseLevel: Integration
         """
         orgs_amount = 2
         orgs = [module_target_sat.cli_factory.make_org() for _ in range(orgs_amount)]
@@ -247,7 +241,6 @@ class TestUser:
 
         :BZ: 1763816
 
-        :CaseLevel: Integration
         """
         login = gen_string('alpha')
         password = gen_string('alpha')
@@ -280,7 +273,7 @@ class TestUser:
 
         :id: f0993495-5117-461d-a116-44867b820139
 
-        :Steps: Update current User with all different Language options
+        :steps: Update current User with all different Language options
 
         :expectedresults: Current User is updated
 
@@ -309,7 +302,6 @@ class TestUser:
 
         :expectedresults: Roles are added to user and deleted successfully
 
-        :CaseLevel: Integration
         """
         user = module_target_sat.cli_factory.user()
         original_role_names = set(user['roles'])
@@ -415,8 +407,6 @@ class TestPersonalAccessToken:
             1. Should show output of the api endpoint
             2. When revoked, authentication error
 
-        :CaseLevel: System
-
         :CaseImportance: High
         """
         user = target_sat.cli_factory.user({'admin': '1'})
@@ -453,8 +443,6 @@ class TestPersonalAccessToken:
             2. When an incorrect end point is used, missing
                permission should be displayed.
 
-        :CaseLevel: System
-
         :CaseImportance: High
         """
         user = target_sat.cli_factory.user()
@@ -486,8 +474,6 @@ class TestPersonalAccessToken:
             3. Try using the token with any end point.
 
         :expectedresults: Authentication error
-
-        :CaseLevel: System
 
         :CaseImportance: Medium
         """
@@ -527,8 +513,6 @@ class TestPersonalAccessToken:
 
         :expectedresults: Non admin user is able to view only the assigned entity
 
-        :CaseLevel: System
-
         :CaseImportance: High
 
         :BZ: 1974685, 1996048
@@ -562,3 +546,44 @@ class TestPersonalAccessToken:
             f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/v2/users'
         )
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
+
+    @pytest.mark.tier2
+    def test_negative_personal_access_token_invalid_date(self, target_sat):
+        """Personal access token with invalid expire date.
+
+        :id: 8c7c91c5-f6d9-4709-857c-6a875db41b88
+
+        :steps:
+            1. Set the expired time to a nonsensical datetime
+            2. Set the expired time to a past datetime
+
+        :expectedresults: token is not created with invalid or past expire time
+
+        :CaseImportance: Medium
+
+        :BZ: 2231814
+        """
+        user = target_sat.cli_factory.user()
+        target_sat.cli.User.add_role({'login': user['login'], 'role': 'Viewer'})
+        token_name = gen_alphanumeric()
+        # check for invalid datetime
+        invalid_datetimes = ['00-14-00 09:30:55', '2028-08-22 28:30:55', '0000-00-22 15:90:55']
+        for datetime_expire in invalid_datetimes:
+            with pytest.raises(CLIReturnCodeError):
+                target_sat.cli.User.access_token(
+                    action='create',
+                    options={
+                        'name': token_name,
+                        'user-id': user['id'],
+                        'expires-at': datetime_expire,
+                    },
+                )
+        # check for past datetime
+        datetime_now = datetime.datetime.utcnow()
+        datetime_expire = datetime_now - datetime.timedelta(seconds=20)
+        datetime_expire = datetime_expire.strftime("%Y-%m-%d %H:%M:%S")
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.User.access_token(
+                action='create',
+                options={'name': token_name, 'user-id': user['id'], 'expires-at': datetime_expire},
+            )

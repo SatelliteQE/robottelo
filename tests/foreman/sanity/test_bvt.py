@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: BVT
 
 :Team: JPL
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 import re
 
@@ -76,8 +71,6 @@ def test_all_interfaces_are_accessible(target_sat):
     :id: 0a212120-8e49-4489-a1a4-4272004e16dc
 
     :expectedresults: All three satellite interfaces are accessible
-
-
     """
     errors = {}
     # API Interface
