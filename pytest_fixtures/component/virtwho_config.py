@@ -292,7 +292,6 @@ def deploy_type_cli(
             command = get_configure_command(virtwho_config_cli['id'], org_module.name)
         else:
             command = get_configure_command_option(deploy_type, virtwho_config_cli, org_module.name)
-            print(command)
         hypervisor_name, guest_name = deploy_configure_by_command(
             command, form_data_cli['hypervisor-type'], debug=True, org=org_module.label
         )
