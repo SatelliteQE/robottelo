@@ -456,7 +456,9 @@ class TestRemoteExecution:
             }
         )
         result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
-        assert_job_invocation_status(invocation_command['id'], client.hostname, 'queued')
+        assert_job_invocation_status(
+            target_sat, invocation_command['id'], client.hostname, 'queued'
+        )
         sleep(150)
         rec_logic = target_sat.cli.RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
@@ -539,7 +541,9 @@ class TestRemoteExecution:
                 }
             )
             result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
-            assert_job_invocation_status(invocation_command['id'], client.hostname, 'queued')
+            assert_job_invocation_status(
+                target_sat, invocation_command['id'], client.hostname, 'queued'
+            )
             rec_logic = target_sat.cli.RecurringLogic.info({'id': result['recurring-logic-id']})
             assert (
                 rec_logic['next-occurrence'] == exp[1]
@@ -1449,7 +1453,9 @@ class TestPullProviderRex:
             }
         )
         # assert the job is waiting to be picked up by client
-        assert_job_invocation_status(invocation_command['id'], rhel_contenthost.hostname, 'running')
+        assert_job_invocation_status(
+            module_target_sat, invocation_command['id'], rhel_contenthost.hostname, 'running'
+        )
         # start client on host
         result = rhel_contenthost.execute('systemctl start yggdrasild')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
