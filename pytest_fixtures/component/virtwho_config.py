@@ -276,33 +276,23 @@ def deploy_type_cli(
 ):
     deploy_type = request.param.lower()
     assert virtwho_config_cli['status'] == 'No Report Yet'
-    if "id" in deploy_type:
-        command = get_configure_command(virtwho_config_cli['id'], org_module.name)
-        hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data_cli['hypervisor-type'], debug=True, org=org_module.label
-        )
-    elif "script" in deploy_type:
+    if "script" in deploy_type:
         script = target_sat.cli.VirtWhoConfig.fetch(
             {'id': virtwho_config_cli['id']}, output_format='base'
         )
         hypervisor_name, guest_name = deploy_configure_by_script(
             script, form_data_cli['hypervisor-type'], debug=True, org=org_module.label
         )
-    elif deploy_type == "name":
-        command = get_configure_command_option(deploy_type, virtwho_config_cli, org_module.name)
-        hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data_cli['hypervisor-type'], debug=True, org=org_module.label
-        )
     elif deploy_type == "organization-title":
         virtwho_config_cli['organization-title'] = org_module.title
-        command = get_configure_command_option(deploy_type, virtwho_config_cli, org_module.name)
-        hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data_cli['hypervisor-type'], debug=True, org=org_module.label
-        )
     elif deploy_type == "location-id":
         virtwho_config_cli['location-id'] = default_location.id
-        command = get_configure_command_option(deploy_type, virtwho_config_cli, org_module.name)
-        print(command)
+    if deploy_type in ['id', 'name', 'organization-title', 'location-id']:
+        if "id" in deploy_type:
+            command = get_configure_command(virtwho_config_cli['id'], org_module.name)
+        else:
+            command = get_configure_command_option(deploy_type, virtwho_config_cli, org_module.name)
+            print(command)
         hypervisor_name, guest_name = deploy_configure_by_command(
             command, form_data_cli['hypervisor-type'], debug=True, org=org_module.label
         )

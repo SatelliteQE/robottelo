@@ -535,16 +535,8 @@ def get_configure_command_option(deploy_type, args, org=DEFAULT_ORG):
     """
     username, password = Base._get_username_password()
     if deploy_type == 'location-id':
-        return "hammer -u {} -p {} virt-who-config deploy --id {} --location-id '{}' ".format(
-            username, password, args['id'], args['location-id']
-        )
+        return f"hammer -u {username} -p {password} virt-who-config deploy --id {args['id']} --location-id '{args['location-id']}' "
     elif deploy_type == 'organization-title':
-        return (
-            "hammer -u {} -p {} virt-who-config deploy --id {} --organization-title '{}' ".format(
-                username, password, args['id'], args['organization-title']
-            )
-        )
+        return f"hammer -u {username} -p {password} virt-who-config deploy --id {args['id']} --organization-title '{args['organization-title']}' "
     elif deploy_type == 'name':
-        return "hammer -u {} -p {} virt-who-config deploy --name {} --organization '{}' ".format(
-            username, password, args['name'], org
-        )
+        return f"hammer -u {username} -p {password} virt-who-config deploy --name {args['name']} --organization '{org}' "
