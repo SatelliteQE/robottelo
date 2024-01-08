@@ -1380,7 +1380,7 @@ class TestPullProviderRex:
             module_target_sat, make_user_job['id'], rhel_contenthost.hostname
         )
         # create a file as new user
-        invocation_command = module_target_sat.make_job_invocation(
+        invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
                 'inputs': f"command=touch /home/{username}/{filename}",
