@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Search
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 
@@ -38,7 +33,7 @@ def test_positive_create_with_name(controller, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
 
         1. Create a bookmark with a random name and valid controller.
         2. List the bookmarks.
@@ -64,7 +59,7 @@ def test_positive_create_with_query(controller, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
 
         1. Create a bookmark with a random query and valid controller.
         2. List the bookmarks.
@@ -91,7 +86,7 @@ def test_positive_create_public(controller, public, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
 
         1. Create a bookmark with a valid controller and public attribute True or False.
         2. List the bookmarks.
@@ -116,7 +111,7 @@ def test_negative_create_with_invalid_name(controller, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
 
         1. Attempt to create a bookmark with an invalid name.
         2. List the bookmarks.
@@ -144,7 +139,7 @@ def test_negative_create_empty_query(controller, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
 
         1. Attempt to create a bookmark with a random name, valid controller, and empty query.
         2. List the bookmarks.
@@ -172,7 +167,7 @@ def test_negative_create_same_name(controller, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
 
         1. Create a bookmark with a random name and valid controller.
         2. Attempt to create a second bookmark, using the same name as the previous bookmark.
@@ -202,7 +197,7 @@ def test_negative_create_null_public(controller, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
 
         1. Attempt to create a bookmark with a random name and valid controller, with public
         attribute set to None.
@@ -233,7 +228,7 @@ def test_positive_update_name(controller, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
 
         1. Create a bookmark with a valid controller.
         2. Update the bookmark with a random name.
@@ -260,7 +255,7 @@ def test_negative_update_same_name(controller, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
 
         1. Create a bookmark with a random name and valid controller.
         2. Create a second bookmark for the same controller.
@@ -291,7 +286,7 @@ def test_negative_update_invalid_name(controller, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
 
         1. Create a bookmark with valid controller.
         2. Attempt to update the bookmark with an invalid name.
@@ -320,7 +315,7 @@ def test_positive_update_query(controller, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
 
         1. Create a bookmark with a valid controller.
         2. Update the bookmark's query with a random value.
@@ -347,7 +342,7 @@ def test_negative_update_empty_query(controller, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
 
         1. Create a bookmark for a valid controller.
         2. Attempt to update the query to an empty value.
@@ -376,7 +371,7 @@ def test_positive_update_public(controller, public, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
 
         1. Create a bookmark for a valid controller.
         2. Update the bookmark's public attribute.

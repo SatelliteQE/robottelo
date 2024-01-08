@@ -2,8 +2,6 @@
 
 :Requirement: Registration
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Registration
 
 :CaseAutomation: Automated
@@ -12,9 +10,6 @@
 
 :Team: Rocket
 
-:TestType: Functional
-
-:Upstream: No
 """
 import pytest
 
@@ -161,8 +156,6 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
     :expectedresults: host cannot be registered twice
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert rhel_contenthost.subscribed

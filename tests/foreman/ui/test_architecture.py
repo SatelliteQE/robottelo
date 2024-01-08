@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Hosts
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: Low
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -29,8 +24,6 @@ def test_positive_end_to_end(session):
     :id: eef14b29-9f5a-41aa-805e-73398ed2b112
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """

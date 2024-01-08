@@ -4,15 +4,10 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Hosts
 
 :Team: Endeavour
 
-:TestType: Functional
-
-:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -23,14 +18,11 @@ import pytest
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, host_ui_options):
-
     """Perform end to end testing for hardware model component
 
     :id: 93663cc9-7c8f-4f43-8050-444be1313bed
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: Medium
 

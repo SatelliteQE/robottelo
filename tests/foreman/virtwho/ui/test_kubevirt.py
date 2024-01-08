@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 
@@ -44,8 +39,6 @@ class TestVirtwhoConfigforKubevirt:
             3. Report is sent to satellite
             4. Virtual sku can be generated and attached
             5. Config can be deleted
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -80,8 +73,6 @@ class TestVirtwhoConfigforKubevirt:
         :expectedresults:
             hypervisor_id can be changed in virt-who-config-{}.conf if the
             dropdown option is selected to uuid/hwuuid/hostname.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """

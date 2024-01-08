@@ -8,13 +8,8 @@
 
 :Team: Rocket
 
-:TestType: Functional
-
-:CaseLevel: Integration
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest

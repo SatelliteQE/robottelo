@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Settings
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import math
 
@@ -64,8 +59,6 @@ def test_positive_update_restrict_composite_view(session, setting_update, repo_s
     :expectedresults: Parameter is updated successfully
 
     :CaseImportance: Critical
-
-    :CaseLevel: Acceptance
     """
     property_name = setting_update.name
     composite_cv = entities.ContentView(composite=True, organization=repo_setup['org']).create()
@@ -110,7 +103,6 @@ def test_positive_httpd_proxy_url_update(session, setting_update):
     :BZ: 1677282
 
     :CaseImportance: Medium
-
     """
     property_name = setting_update.name
     with session:
@@ -214,8 +206,6 @@ def test_positive_update_login_page_footer_text(session, setting_update):
     :customerscenario: true
 
     :BZ: 2157869
-
-    :CaseLevel: Acceptance
     """
     property_name = setting_update.name
     default_value = setting_update.default
@@ -259,8 +249,6 @@ def test_negative_settings_access_to_non_admin(module_target_sat):
     :expectedresults: Administer -> Settings tab should not be available to non admin users
 
     :CaseImportance: Medium
-
-    :CaseLevel: Acceptance
     """
     login = gen_string('alpha')
     password = gen_string('alpha')
@@ -306,8 +294,6 @@ def test_positive_update_email_delivery_method_smtp():
 
     :CaseImportance: Critical
 
-    :CaseLevel: Acceptance
-
     :CaseAutomation: NotAutomated
     """
 
@@ -341,8 +327,6 @@ def test_negative_update_email_delivery_method_smtp():
 
     :CaseImportance: Critical
 
-    :CaseLevel: Acceptance
-
     :CaseAutomation: NotAutomated
     """
 
@@ -372,8 +356,6 @@ def test_positive_update_email_delivery_method_sendmail(session, target_sat):
     :BZ: 2080324
 
     :CaseImportance: Critical
-
-    :CaseLevel: Acceptance
     """
     property_name = "Email"
     mail_config_default_param = {
@@ -436,8 +418,6 @@ def test_negative_update_email_delivery_method_sendmail():
 
     :CaseImportance: Critical
 
-    :CaseLevel: Acceptance
-
     :CaseAutomation: NotAutomated
     """
 
@@ -468,8 +448,6 @@ def test_positive_email_yaml_config_precedence():
 
     :CaseImportance: Critical
 
-    :CaseLevel: Acceptance
-
     :CaseAutomation: NotAutomated
     """
 
@@ -481,7 +459,7 @@ def test_negative_update_hostname_with_empty_fact(session, setting_update):
 
     :id: e0eaab69-4926-4c1e-b111-30c51ede273e
 
-    :Steps:
+    :steps:
 
         1. Goto settings ->Discovered tab -> Hostname_facts
         2. Set empty hostname_facts (without any value)
@@ -494,7 +472,6 @@ def test_negative_update_hostname_with_empty_fact(session, setting_update):
 
     :expectedresults: Error should be raised on setting empty value for
         hostname_facts setting
-
     """
     new_hostname = ""
     property_name = setting_update.name
@@ -512,7 +489,7 @@ def test_positive_entries_per_page(session, setting_update):
 
     :id: 009026b6-7550-40aa-9f78-5eb7f7e3800f
 
-    :Steps:
+    :steps:
         1. Navigate to Administer > Settings > General tab
         2. Update the entries per page value
         3. GoTo Monitor > Tasks Table > Pagination
@@ -529,8 +506,6 @@ def test_positive_entries_per_page(session, setting_update):
     :BZ: 1746221
 
     :CaseImportance: Medium
-
-    :CaseLevel: Acceptance
     """
     property_name = setting_update.name
     property_value = 19

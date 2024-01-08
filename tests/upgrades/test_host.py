@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Hosts
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -114,9 +109,7 @@ class TestScenarioPositiveGCEHostComputeResource:
 
         :id: 889975f2-56ca-4584-95a7-21c513969630
 
-        :CaseLevel: Component
-
-        ::CaseImportance: Critical
+        :CaseImportance: Critical
 
         :steps:
             1. Create a GCE Compute Resource

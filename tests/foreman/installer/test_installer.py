@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Installer
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 import pytest
 import requests
@@ -1578,8 +1573,6 @@ def test_positive_selinux_foreman_module(target_sat):
         1. Check "foreman-selinux" package availability on satellite.
         2. Check SELinux foreman module on satellite.
 
-    :CaseLevel: System
-
     :expectedresults: Foreman RPM and SELinux module are both present on the satellite
     """
     rpm_result = target_sat.execute('rpm -q foreman-selinux')
@@ -1624,8 +1617,6 @@ def test_positive_check_installer_hammer_ping(target_sat):
     :customerscenario: true
 
     :expectedresults: All services are active (running)
-
-    :CaseLevel: System
     """
     # check status reported by hammer ping command
     result = target_sat.execute('hammer ping')
@@ -1693,8 +1684,6 @@ def test_satellite_installation_on_ipv6():
         4: Satellite service restart should work.
         5: After system reboot all the services comes to up state.
 
-    :CaseLevel: System
-
     :CaseAutomation: NotAutomated
     """
 
@@ -1715,8 +1704,6 @@ def test_capsule_installation_on_ipv6():
         2. After installation, All the Services should be up and running.
         3. Satellite service restart should work.
         4. After system reboot all the services come to up state.
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
     """
@@ -1739,8 +1726,6 @@ def test_installer_check_on_ipv6():
     :expectedresults:
         1. Tuning parameter set successfully for medium size.
         2. custom-hiera.yaml related changes should be successfully applied.
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
     """
@@ -1766,8 +1751,6 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
         2. It should not be accessible if accessibility is disabled in custom_hiera.yaml file.
 
     :CaseImportance: High
-
-    :CaseLevel: System
 
     :BZ: 1860519
 
@@ -1824,7 +1807,6 @@ def test_satellite_installation(installer_satellite):
         5. redis is set as default foreman cache
 
     :CaseImportance: Critical
-
     """
     common_sat_install_assertions(installer_satellite)
 

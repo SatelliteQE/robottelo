@@ -4,15 +4,10 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Integration
-
 :CaseComponent: Registration
 
 :Team: Rocket
 
-:TestType: Functional
-
-:Upstream: No
 """
 import pytest
 import requests
@@ -256,7 +251,7 @@ def test_convert2rhel_oracle(module_target_sat, oracle, activation_key_rhel, ver
 
     :id: 7fd393f0-551a-4de0-acdd-7f026b485f79
 
-    :Steps:
+    :steps:
         0. Have host registered to Satellite
         1. Check for operating system
         2. Convert host to RHEL
@@ -308,7 +303,7 @@ def test_convert2rhel_centos(module_target_sat, centos, activation_key_rhel, ver
 
     :id: 6f698440-7d85-4deb-8dd9-363ea9003b92
 
-    :Steps:
+    :steps:
         0. Have host registered to Satellite
         1. Check for operating system
         2. Convert host to RHEL

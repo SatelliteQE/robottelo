@@ -4,13 +4,8 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from random import choice, randint
 
@@ -169,7 +164,6 @@ class TestDockerRepository:
         :expectedresults: Multiple docker repositories are created with a
             Docker upstream repository and they all belong to the same product.
 
-        :CaseLevel: Integration
         """
         repo_names = set()
         for _ in range(randint(2, 5)):
@@ -191,7 +185,6 @@ class TestDockerRepository:
             Docker upstream repository and they all belong to their respective
             products.
 
-        :CaseLevel: Integration
         """
         for _ in range(randint(2, 5)):
             product = module_target_sat.cli_factory.make_product_wait(
@@ -404,8 +397,6 @@ class TestDockerContentView:
     :CaseComponent: ContentViews
 
     :team: Phoenix-content
-
-    :CaseLevel: Integration
     """
 
     @pytest.mark.tier2
@@ -1145,8 +1136,6 @@ class TestDockerActivationKey:
     :CaseComponent: ActivationKeys
 
     :team: Phoenix-subscriptions
-
-    :CaseLevel: Integration
     """
 
     @pytest.mark.tier2
