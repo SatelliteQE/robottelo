@@ -7,17 +7,12 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ComputeResources-GCE
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 
@@ -43,7 +38,6 @@ class TestGCEComputeResourceTestCases:
 
         :CaseImportance: Critical
 
-        :CaseLevel: Component
         """
         cr_name = gen_string('alpha')
         # Testing Create
@@ -83,7 +77,6 @@ class TestGCEComputeResourceTestCases:
 
         :expectedresults: RHEL images from GCP are available to select in GCE CR
 
-        :CaseLevel: Integration
         """
         satgce_images = module_gce_compute.available_images()
         googleclient_images = googleclient.list_templates(
@@ -105,7 +98,6 @@ class TestGCEComputeResourceTestCases:
 
         :expectedresults: All the networks from Google CR should be available to select in GCE CR
 
-        :CaseLevel: Integration
         """
         gceavailable_networks = module_gce_compute.available_networks()
         satgce_networks = [net['name'] for net in gceavailable_networks['results']]
@@ -122,7 +114,6 @@ class TestGCEComputeResourceTestCases:
 
         :expectedresults: All the flavors from Google CR should be available to select in GCE Host
 
-        :CaseLevel: Integration
         """
         satgce_flavors = int(module_gce_compute.available_flavors()['total'])
         assert satgce_flavors > 1
@@ -143,7 +134,6 @@ class TestGCEComputeResourceTestCases:
 
         :expectedresults: Finish template image should be added in GCE CR along with username
 
-        :CaseLevel: Integration
         """
         assert module_gce_finishimg.compute_resource.id == module_gce_compute.id
         assert module_gce_finishimg.uuid == gce_latest_rhel_uuid
@@ -162,7 +152,6 @@ class TestGCEComputeResourceTestCases:
 
         :expectedresults: Cloud init image should be added in GCE CR along with username
 
-        :CaseLevel: Integration
         """
         assert module_gce_cloudimg.compute_resource.id == module_gce_compute.id
         assert module_gce_cloudimg.uuid == gce_custom_cloudinit_uuid
@@ -243,9 +232,7 @@ class TestGCEHostProvisioningTestCase:
 
         :id: 889975f2-56ca-4584-95a7-21c513969630
 
-        :CaseLevel: Component
-
-        ::CaseImportance: Critical
+        :CaseImportance: Critical
 
         :steps:
             1. Create a GCE Compute Resource
@@ -268,8 +255,6 @@ class TestGCEHostProvisioningTestCase:
         """Host can be powered on and off
 
         :id: b622c6fc-c45e-431d-8de3-9d0237873998
-
-        :CaseLevel: System
 
         :steps:
             1. Create a GCE Compute Resource

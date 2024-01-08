@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Ansible
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -31,7 +26,7 @@ def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
 
     :id: 0c52bc63-a41a-4f48-a980-fe49b4ecdbdc
 
-    :Steps:
+    :steps:
         1. Register a content host with satellite
         2. Import a role into satellite
         3. Assign that role to a host
@@ -132,7 +127,7 @@ def test_add_and_remove_ansible_role_hostgroup(target_sat):
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Create a hostgroup
         2. Sync few ansible roles
         3. Assign a few ansible roles with the host group

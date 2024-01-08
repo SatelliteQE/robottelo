@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: HostCollections
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from broker import Broker
 from fauxfactory import gen_string
@@ -224,8 +219,6 @@ def test_positive_list_by_org_id(module_org, module_target_sat):
     :id: afbe077a-0de1-432c-a0c4-082129aab92e
 
     :expectedresults: Only host-collection within specific org is listed
-
-    :CaseLevel: Integration
     """
     # Create two host collections within different organizations
     module_target_sat.cli_factory.make_host_collection({'organization-id': module_org.id})
@@ -253,8 +246,6 @@ def test_positive_host_collection_host_pagination(module_org, module_target_sat)
 
     :expectedresults: Number of host per page follows per_page
         configuration restriction
-
-    :CaseLevel: Integration
     """
     host_collection = module_target_sat.cli_factory.make_host_collection(
         {'organization-id': module_org.id}
@@ -287,8 +278,6 @@ def test_positive_copy_by_id(module_org, module_target_sat):
     :expectedresults: Host collection is cloned successfully
 
     :BZ: 1328925
-
-    :CaseLevel: Integration
     """
     host_collection = module_target_sat.cli_factory.make_host_collection(
         {'name': gen_string('alpha', 15), 'organization-id': module_org.id}
@@ -311,8 +300,6 @@ def test_positive_register_host_ak_with_host_collection(module_org, module_ak_wi
     :expectedresults: Host successfully registered and listed in host collection
 
     :BZ: 1385814
-
-    :CaseLevel: System
     """
     host_info = _make_fake_host_helper(module_org, target_sat)
 

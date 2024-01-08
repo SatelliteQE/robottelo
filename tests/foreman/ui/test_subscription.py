@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: SubscriptionManagement
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from tempfile import mkstemp
 import time
@@ -150,8 +145,6 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name, target_
 
     :BZ: 1417082
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     org = entities.Organization().create()
@@ -197,8 +190,6 @@ def test_positive_access_with_non_admin_user_with_manifest(
 
     :customerscenario: true
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     org = function_entitlement_manifest_org
@@ -236,8 +227,6 @@ def test_positive_access_manifest_as_another_admin_user(
     :BZ: 1669241
 
     :customerscenario: true
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -299,8 +288,6 @@ def test_positive_view_vdc_subscription_products(
     :BZ: 1366327
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     org = function_entitlement_manifest_org
     lce = entities.LifecycleEnvironment(organization=org).create()
@@ -359,8 +346,6 @@ def test_positive_view_vdc_guest_subscription_products(
     :BZ: 1395788, 1506636, 1487317
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     org = function_entitlement_manifest_org
     lce = entities.LifecycleEnvironment(organization=org).create()

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ContentViews
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 
@@ -118,8 +113,6 @@ class TestContentView:
         :expectedresults: It is possible to create a host and set its
             'content_view_id' facet attribute
 
-        :CaseLevel: Integration
-
         :CaseAutomation: Automated
 
         :CaseImportance: High
@@ -153,8 +146,6 @@ class TestContentView:
         :expectedresults: Cloned content view can be published and promoted to
             the same environment as the original content view
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         class_published_cloned_cv.read().version[0].promote(data={'environment_ids': module_lce.id})
@@ -173,8 +164,6 @@ class TestContentView:
         :expectedresults: Cloned content view can be published and promoted to
             a different environment as the original content view
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         le_clone = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
@@ -187,8 +176,6 @@ class TestContentView:
         :id: db452e0c-0c17-40f2-bab4-8467e7a875f1
 
         :expectedresults: Custom content assigned and present in content view
-
-        :CaseLevel: Integration
 
         :CaseImportance: Critical
         """
@@ -213,8 +200,6 @@ class TestContentView:
         :id: 9e4821cb-293a-4d84-bd1f-bb9fff36b143
 
         :expectedresults: Custom content (module streams) assigned and present in content view
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -241,8 +226,6 @@ class TestContentView:
 
         :expectedresults: User cannot add repos multiple times to the view
 
-        :CaseLevel: Integration
-
         :CaseImportance: Low
         """
         yum_repo = module_target_sat.api.Repository(product=module_product).create()
@@ -264,8 +247,6 @@ class TestContentView:
         :id: 1f473b02-5e2b-41ff-a706-c0635abc2476
 
         :expectedresults: Custom sha512 assigned and present in content view
-
-        :CaseLevel: Integration
 
         :CaseComponent: Pulp
 
@@ -428,8 +409,6 @@ class TestContentViewPublishPromote:
             content view can be published several times, and each content view
             version has at least one package.
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         content_view.repository = [self.yum_repo]
@@ -456,8 +435,6 @@ class TestContentViewPublishPromote:
         :expectedresults: Composite content view is published and corresponding
             version is assigned to it.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Critical
         """
         composite_cv = module_target_sat.api.ContentView(
@@ -483,8 +460,6 @@ class TestContentViewPublishPromote:
         :expectedresults: Composite content view is published several times and
             corresponding versions are assigned to it.
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         composite_cv = module_target_sat.api.ContentView(
@@ -509,8 +484,6 @@ class TestContentViewPublishPromote:
         :expectedresults: The content view has one repository, the content view
             version is in ``REPEAT + 1`` lifecycle environments and it has at
             least one package.
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -544,8 +517,6 @@ class TestContentViewPublishPromote:
         :expectedresults: Content view can be created and assigned to composite
             one through content view versions mechanism
 
-        :CaseLevel: Integration
-
         :CaseImportance: Critical
         """
         content_view.repository = [self.yum_repo]
@@ -576,8 +547,6 @@ class TestContentViewPublishPromote:
 
         :expectedresults: User cannot add components to the view
 
-        :CaseLevel: Integration
-
         :CaseImportance: Low
         """
         content_view.repository = [self.yum_repo]
@@ -606,8 +575,6 @@ class TestContentViewPublishPromote:
 
         :expectedresults: Composite content view version points to ``Library +
             1`` lifecycle environments after the promotions.
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -638,8 +605,6 @@ class TestContentViewPublishPromote:
         :expectedresults: Composite content view version points to ``Library +
             random`` lifecycle environments after the promotions.
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         composite_cv = module_target_sat.api.ContentView(
@@ -668,8 +633,6 @@ class TestContentViewPublishPromote:
         :id: 40d20aba-726f-48e3-93b7-fb1ab1851ac7
 
         :expectedresults: Content view promoted out of sequence properly
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -704,8 +667,6 @@ class TestContentViewPublishPromote:
         :id: 5557a33b-7a6f-45f5-9fe4-23a704ed9e21
 
         :expectedresults: Content view publish should not raise an exception.
-
-        :CaseLevel: Integration
 
         :CaseComponent: Pulp
 
@@ -801,8 +762,6 @@ class TestContentViewPublishPromote:
         :expectedresults: When appropriate, a ccv and it's cvs needs_publish flags get
             set or unset
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         composite_cv = target_sat.api.ContentView(composite=True).create()
@@ -861,8 +820,6 @@ class TestContentViewPublishPromote:
 
         :expectedresults: The publish_only_if_needed flag is working as intended, and is defaulted
             to false
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -997,8 +954,6 @@ class TestContentViewRedHatContent:
 
         :expectedresults: RH Content assigned and present in a view
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         assert len(self.yumcv.repository) == 1
@@ -1012,8 +967,6 @@ class TestContentViewRedHatContent:
 
         :expectedresults: Filtered RH content is available and can be seen in a
             view
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -1041,8 +994,6 @@ class TestContentViewRedHatContent:
         :expectedresults: edited content view save is successful and info is
             updated
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         cvf = target_sat.api.ErratumContentViewFilter(
@@ -1067,8 +1018,6 @@ class TestContentViewRedHatContent:
 
         :expectedresults: Content view can be published
 
-        :CaseLevel: Integration
-
         :CaseImportance: Critical
         """
         content_view.repository = [self.repo]
@@ -1084,8 +1033,6 @@ class TestContentViewRedHatContent:
         :id: 094a8c46-935b-4dbc-830e-19bec935276c
 
         :expectedresults: Content view can be published
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -1104,8 +1051,6 @@ class TestContentViewRedHatContent:
         :id: 991dd9cc-5818-42dc-9098-66b312adfd97
 
         :expectedresults: Content view can be promoted
-
-        :CaseLevel: Integration
 
         :CaseImportance: Critical
         """
@@ -1129,8 +1074,6 @@ class TestContentViewRedHatContent:
         :id: 8331ba11-1742-425f-83b1-6b06c5785572
 
         :expectedresults: Content view can be promoted
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -1165,8 +1108,6 @@ class TestContentViewRedHatContent:
 
         :expectedresults: All of the above steps should results in the CV needing to be
             be published
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -1251,8 +1192,6 @@ def test_positive_admin_user_actions(
     :expectedresults: The user can Read, Modify, Delete, Publish, Promote
         the content views
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     user_login = gen_string('alpha')
@@ -1310,8 +1249,6 @@ def test_positive_readonly_user_actions(target_sat, function_role, content_view,
 
     :expectedresults: User with read-only role for content view can view
         the repository in the content view
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -1376,8 +1313,6 @@ def test_negative_readonly_user_actions(
         create Product, Host Collection, or Activation key
 
     :BZ: 1922134
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -1453,8 +1388,6 @@ def test_negative_non_readonly_user_actions(target_sat, content_view, function_r
 
     :expectedresults: the user can perform different operations against
         content view, but not read it
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -1533,8 +1466,6 @@ class TestOstreeContentView:
         :expectedresults: Custom ostree content assigned and present in content
             view
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         assert len(content_view.repository) == 0
@@ -1552,8 +1483,6 @@ class TestOstreeContentView:
         :expectedresults: Content-view with Custom ostree published
             successfully
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         content_view.repository = [self.ostree_repo]
@@ -1569,8 +1498,6 @@ class TestOstreeContentView:
 
         :expectedresults: Content-view with custom ostree contents promoted
             successfully
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -1591,8 +1518,6 @@ class TestOstreeContentView:
 
         :expectedresults: Content-view with custom ostree and other contents
             promoted successfully
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -1636,8 +1561,6 @@ class TestContentViewRedHatOstreeContent:
         :expectedresults: RH atomic ostree content assigned and present in
             content view
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         assert len(content_view.repository) == 0
@@ -1655,8 +1578,6 @@ class TestContentViewRedHatOstreeContent:
         :expectedresults: Content-view with RH ostree contents published
             successfully
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         content_view.repository = [self.repo]
@@ -1672,8 +1593,6 @@ class TestContentViewRedHatOstreeContent:
 
         :expectedresults: Content-view with RH ostree contents promoted
             successfully
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -1696,8 +1615,6 @@ class TestContentViewRedHatOstreeContent:
 
         :expectedresults: Content-view with RH ostree and other contents
             promoted successfully
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """

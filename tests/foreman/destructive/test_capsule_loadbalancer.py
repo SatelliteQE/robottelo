@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Integration
-
 :CaseComponent: Capsule
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 from wrapanapi import VmState
@@ -183,7 +178,7 @@ def test_loadbalancer_install_package(
 
     :id: bd3c2e50-18e2-4be7-8a7f-c32472e17c61
 
-    :Steps:
+    :steps:
         1. run `subscription-manager register --org=Your_Organization \
             --activationkey=Your_Activation_Key \`
         2. Try package installation
@@ -195,8 +190,7 @@ def test_loadbalancer_install_package(
     :expectedresults: The client should be get the package irrespective of the capsule
         registration.
 
-    :CaseLevel: Integration
-    """
+        """
     # Register content host
     result = rhel7_contenthost.register(
         org=module_org,
@@ -255,15 +249,13 @@ def test_client_register_through_lb(
 
     :id: c7e47d61-167b-4fc2-8d1a-d9a64350fdc4
 
-    :Steps:
+    :steps:
         1. Setup capsules, host and loadbalancer.
         2. Generate curl command for host registration.
         3. Register host through loadbalancer using global registration
 
     :expectedresults: Global Registration should have option to register through
     loadbalancer and host should get registered successfully.
-
-    :CaseLevel: Integration
 
     :BZ: 1963266
 

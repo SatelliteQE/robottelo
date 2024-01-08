@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: OrganizationsandLocations
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
@@ -33,8 +28,6 @@ def test_positive_end_to_end(session):
     :id: dba5d94d-0c18-4db0-a9e8-66599bffc5d9
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -125,8 +118,6 @@ def test_positive_update_with_all_users(session):
         was enabled and then disabled afterwards
 
     :BZ: 1321543, 1479736, 1479736
-
-    :CaseLevel: Integration
     """
     user = entities.User().create()
     loc = entities.Location().create()
@@ -161,8 +152,6 @@ def test_positive_add_org_hostgroup_template(session):
 
     :expectedresults: organization, hostgroup, provisioning template are
         added to location
-
-    :CaseLevel: Integration
     """
     org = entities.Organization().create()
     loc = entities.Location().create()
@@ -203,8 +192,6 @@ def test_positive_update_compresource(session):
     :id: 1d24414a-666d-490d-89b9-cd0704684cdd
 
     :expectedresults: compute resource is added and removed from the location
-
-    :CaseLevel: Integration
     """
     url = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
     resource = entities.LibvirtComputeResource(url=url).create()

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
-:TestType: Functional
-
 :CaseImportance: Medium
 
 :CaseComponent: TasksPlugin
 
 :Team: Endeavour
 
-:Upstream: No
 """
 import pytest
 
@@ -28,7 +23,7 @@ def test_positive_katello_reimport(target_sat):
 
     :id: b4119265-1bf0-4b0b-8b96-43f68af39708
 
-    :Steps: Have satellite up and run 'foreman-rake katello:reimport'
+    :steps: Have satellite up and run 'foreman-rake katello:reimport'
 
     :expectedresults: Successfully reimport without errors
 

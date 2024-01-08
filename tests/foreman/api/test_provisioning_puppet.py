@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Puppet
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: Medium
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 from packaging.version import Version

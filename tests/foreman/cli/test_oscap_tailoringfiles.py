@@ -2,19 +2,14 @@
 
 :Requirement: tailoringfiles
 
-:CaseLevel: Acceptance
-
 :CaseComponent: SCAPPlugin
 
 :Team: Endeavour
-
-:TestType: Functional
 
 :CaseImportance: High
 
 :CaseAutomation: Automated
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest

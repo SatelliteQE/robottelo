@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 
@@ -39,8 +34,6 @@ class TestVirtWhoConfigforKubevirt:
         :id: 97f776af-cbd0-4885-9a74-603a3bc01157
 
         :expectedresults: Config can be created and deployed
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -90,8 +83,6 @@ class TestVirtWhoConfigforKubevirt:
         :id: c1ca38e8-6030-4a3f-8880-00ab3f29574a
 
         :expectedresults: hypervisor_id option can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """

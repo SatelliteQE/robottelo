@@ -4,13 +4,10 @@
 
 :CaseAutomation: Automated
 
-:TestType: Functional
-
 :Team: Phoenix-content
 
 :CaseComponent: ContainerManagement-Content
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -52,8 +49,6 @@ class TestDockerClient:
     """Tests specific to using ``Docker`` as a client to pull Docker images
     from a Satellite 6 instance.
 
-    :CaseLevel: System
-
     :CaseImportance: Medium
     """
 
@@ -64,7 +59,7 @@ class TestDockerClient:
 
         :id: 023f0538-2aad-4f87-b8a8-6ccced648366
 
-        :Steps:
+        :steps:
 
             1. Publish and promote content view with Docker content
             2. Register Docker-enabled client against Satellite 6.

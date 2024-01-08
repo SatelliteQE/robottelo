@@ -8,17 +8,12 @@ http://theforeman.org/api/apidoc/v2/roles.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from nailgun.config import ServerConfig
 import pytest
@@ -576,7 +571,6 @@ class TestCannedRole:
         :expectedresults: User should not be able to access any resources and
             permissions in taxonomies selected in Org Admin role
 
-        :CaseLevel: System
         """
         user = self.create_org_admin_user(
             target_sat, role_taxos=role_taxonomies, user_taxos=filter_taxonomies
@@ -609,7 +603,6 @@ class TestCannedRole:
         :expectedresults: User should not be able to access any resources and
             permissions in its own taxonomies
 
-        :CaseLevel: System
         """
         user = self.create_org_admin_user(
             target_sat, role_taxos=role_taxonomies, user_taxos=filter_taxonomies
@@ -636,7 +629,6 @@ class TestCannedRole:
 
         :expectedresults: Filter in cloned role should be overridden
 
-        :CaseLevel: Integration
         """
         role_name = gen_string('alpha')
         role = target_sat.api.Role(name=role_name).create()
@@ -679,7 +671,6 @@ class TestCannedRole:
                 None in cloned role
             2. Override flag is set to True in cloned role filter
 
-        :CaseLevel: Integration
         """
         role = target_sat.api.Role(
             name=gen_string('alpha'),
@@ -722,7 +713,6 @@ class TestCannedRole:
         :expectedresults: Unlimited and Override flags should be set to True on
             filter for filter that is overridden in parent role
 
-        :CaseLevel: Integration
         """
         role = target_sat.api.Role(
             name=gen_string('alpha'),
@@ -770,7 +760,6 @@ class TestCannedRole:
         :expectedresults: Both unlimited and override flag should be set to
             False on filter for filter that is not overridden in parent role
 
-        :CaseLevel: Integration
         """
         role = target_sat.api.Role(
             name=gen_string('alpha'),
@@ -811,7 +800,6 @@ class TestCannedRole:
         :expectedresults: Both unlimited and override flags should be set to
             False on filter for filter that is unlimited in parent role
 
-        :CaseLevel: Integration
         """
         role = target_sat.api.Role(
             name=gen_string('alpha'),
@@ -852,7 +840,6 @@ class TestCannedRole:
         :expectedresults: Both unlimited and Override flags should be set to
             True on filter for filter that is overridden in parent role
 
-        :CaseLevel: Integration
         """
         role = target_sat.api.Role(
             name=gen_string('alpha'),
@@ -895,8 +882,6 @@ class TestCannedRole:
             1. Unlimited flag should be set to True
             2. Override flag should be set to False
 
-        :CaseLevel: Integration
-
         :BZ: 1488908
         """
         role = target_sat.api.Role(
@@ -935,8 +920,6 @@ class TestCannedRole:
             1. Unlimited flag should be set to True
             2. Override flag should be set to False
 
-        :CaseLevel: Integration
-
         :BZ: 1488908
         """
         role = target_sat.api.Role(
@@ -974,7 +957,6 @@ class TestCannedRole:
         :expectedresults: Both the user should have access to the resources of
             organization A and Location A
 
-        :CaseLevel: System
         """
         org_admin = self.create_org_admin_role(
             target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
@@ -1059,7 +1041,6 @@ class TestCannedRole:
             2. User assigned to Organization A and Location A should have
                 access to the resources of organization A and Location A
 
-        :CaseLevel: System
         """
 
     @pytest.mark.tier2
@@ -1082,7 +1063,6 @@ class TestCannedRole:
         :expectedresults: Both the user shouldn't have access to the resources
             of organization A,B and Location A,B
 
-        :CaseLevel: System
         """
         org_admin = self.create_org_admin_role(
             target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
@@ -1124,7 +1104,6 @@ class TestCannedRole:
         :expectedresults: Org Admin should not be able to assign the
             organizations to any of its resources
 
-        :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(
             target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
@@ -1206,7 +1185,6 @@ class TestCannedRole:
         :expectedresults: Super admin should be able to access the target_sat.api in
             taxonomies assigned to Org Admin
 
-        :CaseLevel: Integration
         """
         user = self.create_org_admin_user(
             target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
@@ -1251,7 +1229,6 @@ class TestCannedRole:
         :expectedresults: Super admin should be able to access the target_sat.api in
             taxonomies assigned to Org Admin after deleting Org Admin
 
-        :CaseLevel: Integration
         """
         user = self.create_org_admin_user(
             target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
@@ -1367,7 +1344,6 @@ class TestCannedRole:
 
         :expectedresults: Org Admin should not have access of Admin user
 
-        :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(
             target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
@@ -1414,7 +1390,6 @@ class TestCannedRole:
 
         :customerscenario: true
 
-        :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(
             target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
@@ -1468,7 +1443,6 @@ class TestCannedRole:
         :expectedresults: Org Admin should be able to access users inside
             its taxonomies
 
-        :CaseLevel: Integration
         """
         user = self.create_org_admin_user(
             target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
@@ -1499,7 +1473,6 @@ class TestCannedRole:
         :expectedresults: after adding the needed permissions, user should be
             able to create nested locations
 
-        :CaseLevel: Integration
         """
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
@@ -1544,7 +1517,6 @@ class TestCannedRole:
         :expectedresults: Org Admin should not be able to access users outside
             its taxonomies
 
-        :CaseLevel: Integration
         """
         user = self.create_org_admin_user(
             target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
@@ -1669,8 +1641,6 @@ class TestCannedRole:
         :expectedresults: LDAP User should not be able to access resources and
             permissions in taxonomies selected in Org Admin role
 
-        :CaseLevel: System
-
         :CaseAutomation: Automated
         """
         org_admin = self.create_org_admin_role(
@@ -1716,8 +1686,6 @@ class TestCannedRole:
         :expectedresults: LDAP User should not be able to access any resources
             and permissions in its own taxonomies
 
-        :CaseLevel: System
-
         :CaseAutomation: Automated
         """
         org_admin = self.create_org_admin_role(
@@ -1761,8 +1729,6 @@ class TestCannedRole:
         :expectedresults: Users in LDAP usergroup should have access to the
             resources in taxonomies if the taxonomies of Org Admin role are
             same
-
-        :CaseLevel: System
 
         :CaseAutomation: Automated
         """
@@ -1824,8 +1790,6 @@ class TestCannedRole:
         :expectedresults: Users in LDAP usergroup should not have access to the
             resources in taxonomies if the taxonomies of Org Admin role is not
             same
-
-        :CaseLevel: System
 
         :CaseAutomation: Automated
         """

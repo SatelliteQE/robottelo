@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
 :CaseComponent: RHCloud-Inventory
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime
 
@@ -46,7 +41,7 @@ def test_rhcloud_insights_e2e(
 
     :id: d952e83c-3faf-4299-a048-2eb6ccb8c9c2
 
-    :Steps:
+    :steps:
         1. Prepare misconfigured machine and upload its data to Insights.
         2. In Satellite UI, go to Configure -> Insights -> Sync recommendations.
         3. Run remediation for "OpenSSH config permissions" recommendation against host.
@@ -141,7 +136,7 @@ def test_insights_reporting_status():
 
     :id: 75629a08-b585-472b-a295-ce497075e519
 
-    :Steps:
+    :steps:
         1. Register a satellite content host with insights.
         2. Change 48 hours of wait time to 4 minutes in insights_client_report_status.rb file.
             See foreman_rh_cloud PR#596.
@@ -167,7 +162,7 @@ def test_recommendation_sync_for_satellite():
 
     :id: ee3feba3-c255-42f1-8293-b04d540dcca5
 
-    :Steps:
+    :steps:
         1. Register Satellite with insights.(satellite-installer --register-with-insights)
         2. Add RH cloud token in settings.
         3. Go to Configure > Insights > Click on Sync recommendations button.
@@ -194,7 +189,7 @@ def test_host_sorting_based_on_recommendation_count():
 
     :id: b1725ec1-60db-422e-809d-f81d99ae156e
 
-    :Steps:
+    :steps:
         1. Register few satellite content host with insights.
         2. Sync Insights recommendations.
         3. Go to Hosts > All Host
@@ -227,7 +222,7 @@ def test_host_details_page(
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Prepare misconfigured machine and upload its data to Insights.
         2. Sync insights recommendations.
         3. Sync RH Cloud inventory status.
