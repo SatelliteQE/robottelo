@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ForemanProxy
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -32,8 +27,6 @@ def test_positive_capsule_certs_generate_with_special_char(target_sat):
     :id: e9dc6a64-4be4-11ed-8b27-9f5cc2f1b246
 
     :expectedresults: capsule-certs-generate works
-
-    :CaseLevel: Component
 
     :BZ: 1908841
 

@@ -8,11 +8,6 @@
 
 :Team: Rocket
 
-:TestType: Functional
-
-:CaseLevel: System
-
-:Upstream: No
 """
 from time import sleep
 
@@ -72,7 +67,7 @@ def test_positive_provision_pxeless_bios_syslinux():
     :Setup:
         1. Craft the FDI with remaster the image to have ssh enabled
 
-    :Steps:
+    :steps:
         1. Create a BIOS VM and set it to boot from the FDI
         2. Run assertion steps #1-2
         3. Provision the discovered host using PXELinux loader
@@ -374,7 +369,7 @@ def test_positive_list_facts():
 
     :Setup: 1. Provisioning is configured and Host is already discovered
 
-    :Steps: Validate specified builtin and custom facts
+    :steps: Validate specified builtin and custom facts
 
     :expectedresults: All checked facts should be displayed correctly
 

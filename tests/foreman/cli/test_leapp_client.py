@@ -2,19 +2,14 @@
 
 :Requirement: leapp
 
-:CaseLevel: Integration
-
 :CaseComponent: Leappintegration
 
 :Team: Rocket
-
-:TestType: Functional
 
 :CaseImportance: High
 
 :CaseAutomation: Automated
 
-:Upstream: No
 """
 from broker import Broker
 import pytest
@@ -229,7 +224,7 @@ def test_leapp_upgrade_rhel(
 
     :id: 8eccc689-3bea-4182-84f3-c121e95d54c3
 
-    :Steps:
+    :steps:
         1. Import a subscription manifest and enable, sync source & target repositories
         2. Create LCE, Create CV, add repositories to it, publish and promote CV, Create AK, etc.
         3. Register content host with AK

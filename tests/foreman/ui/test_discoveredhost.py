@@ -8,11 +8,6 @@
 
 :Team: Rocket
 
-:TestType: Functional
-
-:CaseLevel: System
-
-:Upstream: No
 """
 from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities

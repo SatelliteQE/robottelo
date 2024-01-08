@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ForemanProxy
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 from fauxfactory import gen_string, gen_url
 import pytest
@@ -60,11 +55,7 @@ def test_negative_create_with_url(target_sat):
 
     :id: e48a6260-97e0-4234-a69c-77bbbcde85d6
 
-    :expectedresults: Proxy is not created
-
-    :CaseLevel: Component
-
-    """
+    :expectedresults: Proxy is not created"""
     # Create a random proxy
     with pytest.raises(HTTPError) as context:
         target_sat.api.SmartProxy(url=gen_url(scheme='https')).create()
@@ -80,8 +71,6 @@ def test_positive_create_with_name(request, target_sat, name):
     :id: 0ffe0dc5-675e-45f4-b7e1-a14d3dd81f6e
 
     :expectedresults: Proxy is created
-
-    :CaseLevel: Component
 
     :Parametrized: Yes
 
@@ -105,8 +94,6 @@ def test_positive_delete(target_sat):
 
     :expectedresults: Proxy is deleted
 
-    :CaseLevel: Component
-
     :BZ: 1398695
     """
     new_port = target_sat.available_capsule_port
@@ -125,9 +112,6 @@ def test_positive_update_name(request, target_sat):
     :id: f279640e-d7e9-48a3-aed8-7bf406e9d6f2
 
     :expectedresults: Proxy has the name updated
-
-    :CaseLevel: Component
-
     """
     new_port = target_sat.available_capsule_port
     with target_sat.default_url_on_new_port(9090, new_port) as url:
@@ -146,9 +130,6 @@ def test_positive_update_url(request, target_sat):
     :id: 0305fd54-4e0c-4dd9-a537-d342c3dc867e
 
     :expectedresults: Proxy has the url updated
-
-    :CaseLevel: Component
-
     """
     # Create fake capsule
     port = target_sat.available_capsule_port
@@ -170,9 +151,6 @@ def test_positive_update_organization(request, target_sat):
     :id: 62631275-7a92-4d34-a949-c56e0c4063f1
 
     :expectedresults: Proxy has the name updated
-
-    :CaseLevel: Component
-
     """
     organizations = [target_sat.api.Organization().create() for _ in range(2)]
     newport = target_sat.available_capsule_port
@@ -191,9 +169,6 @@ def test_positive_update_location(request, target_sat):
     :id: e08eaaa9-7c11-4cda-bbe7-6d1f7c732569
 
     :expectedresults: Proxy has the name updated
-
-    :CaseLevel: Component
-
     """
     locations = [target_sat.api.Location().create() for _ in range(2)]
     new_port = target_sat.available_capsule_port
@@ -213,8 +188,6 @@ def test_positive_refresh_features(request, target_sat):
     :id: d0237546-702e-4d1a-9212-8391295174da
 
     :expectedresults: Proxy features are refreshed
-
-    :CaseLevel: Integration
 
     """
     # Since we want to run multiple commands against our fake capsule, we
@@ -236,8 +209,6 @@ def test_positive_import_puppet_classes(session_puppet_enabled_sat, puppet_proxy
     :id: 385efd1b-6146-47bf-babf-0127ce5955ed
 
     :expectedresults: Puppet classes are imported from proxy
-
-    :CaseLevel: Integration
 
     :BZ: 1398695
     """
@@ -276,9 +247,6 @@ def test_positive_update_loc(module_proxy_attrs):
     :BZ: 1262037
 
     :CaseImportance: High
-
-    :CaseLevel: Component
-
     """
     names = {'location', 'location_ids', 'locations'}
     assert len(names & module_proxy_attrs) >= 1, f'None of {names} are in {module_proxy_attrs}'
@@ -296,9 +264,6 @@ def test_positive_update_org(module_proxy_attrs):
     :BZ: 1262037
 
     :CaseImportance: High
-
-    :CaseLevel: Component
-
     """
     names = {'organization', 'organization_ids', 'organizations'}
     assert len(names & module_proxy_attrs) >= 1, f'None of {names} are in {module_proxy_attrs}'

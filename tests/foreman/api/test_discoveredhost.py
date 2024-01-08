@@ -8,11 +8,6 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
-:TestType: Functional
-
-:Upstream: No
 """
 import re
 
@@ -192,7 +187,7 @@ class TestDiscoveredHost:
 
         :Setup: Provisioning and discovery should be configured
 
-        :Steps:
+        :steps:
 
             1. Boot up the host to discover
             2. Provision the host
@@ -245,7 +240,7 @@ class TestDiscoveredHost:
         :Setup: Provisioning should be configured and a host should be
             discovered
 
-        :Steps: PUT /api/v2/discovered_hosts/:id
+        :steps: PUT /api/v2/discovered_hosts/:id
 
         :expectedresults: Host should be provisioned successfully
 
@@ -287,7 +282,7 @@ class TestDiscoveredHost:
         :Setup: Provisioning should be configured and a host should be
             discovered
 
-        :Steps: POST /api/v2/discovered_hosts/:id/auto_provision
+        :steps: POST /api/v2/discovered_hosts/:id/auto_provision
 
         :expectedresults: Selected Host should be auto-provisioned successfully
 
@@ -316,7 +311,7 @@ class TestDiscoveredHost:
         :Setup: Provisioning should be configured and more than one host should
             be discovered
 
-        :Steps: POST /api/v2/discovered_hosts/auto_provision_all
+        :steps: POST /api/v2/discovered_hosts/auto_provision_all
 
         :expectedresults: All discovered hosts should be auto-provisioned
             successfully
@@ -351,7 +346,7 @@ class TestDiscoveredHost:
             be discovered
             2. Add a NIC on discovered host
 
-        :Steps: PUT /api/v2/discovered_hosts/:id/refresh_facts
+        :steps: PUT /api/v2/discovered_hosts/:id/refresh_facts
 
         :expectedresults: Added Fact should be displayed on refreshing the
             facts
@@ -382,7 +377,7 @@ class TestDiscoveredHost:
 
         :Setup: Provisioning should be configured and a host should be discovered via PXE boot.
 
-        :Steps: PUT /api/v2/discovered_hosts/:id/reboot
+        :steps: PUT /api/v2/discovered_hosts/:id/reboot
 
         :expectedresults: Selected host should be rebooted successfully
 
@@ -415,7 +410,7 @@ class TestDiscoveredHost:
 
         :Setup: Provisioning should be configured and a hosts should be discovered via PXE boot.
 
-        :Steps: PUT /api/v2/discovered_hosts/reboot_all
+        :steps: PUT /api/v2/discovered_hosts/reboot_all
 
         :expectedresults: All disdcovered host should be rebooted successfully
 
@@ -471,14 +466,12 @@ class TestFakeDiscoveryTests:
 
         :BZ: 1349364, 1392919
 
-        :Steps:
+        :steps:
 
             1. POST /api/v2/discovered_hosts/facts
             2. Read the created discovered host
 
         :expectedresults: Host should be created successfully
-
-        :CaseLevel: Integration
 
         :BZ: 1731112
         """
@@ -497,7 +490,7 @@ class TestFakeDiscoveryTests:
         :Setup: Provisioning should be configured and a host should be
             discovered
 
-        :Steps: DELETE /api/v2/discovered_hosts/:id
+        :steps: DELETE /api/v2/discovered_hosts/:id
 
         :expectedresults: Discovered Host should be deleted successfully
         """

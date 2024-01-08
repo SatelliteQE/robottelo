@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ComputeResources-Azure
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -53,7 +48,6 @@ class TestAzureRMComputeResourceTestCase:
 
         :CaseImportance: Critical
 
-        :CaseLevel: Component
         """
         # Create CR
         cr_name = gen_string('alpha')
@@ -108,7 +102,6 @@ class TestAzureRMComputeResourceTestCase:
 
         :expectedresults: Cloud init image should be added in AzureRM CR along with username
 
-        :CaseLevel: Integration
         """
 
         assert module_azurerm_cloudimg.architecture.id == sat_azure_default_architecture.id
@@ -128,7 +121,6 @@ class TestAzureRMComputeResourceTestCase:
 
         :expectedresults: All the networks from AzureRM CR should be available.
 
-        :CaseLevel: Integration
         """
         cr_nws = module_azurerm_cr.available_networks()
         portal_nws = azurermclient.list_network()
@@ -142,8 +134,6 @@ class TestAzureRMComputeResourceTestCase:
         :id: 65e03f7e-a2c7-4541-b92b-38d80ab48175
 
         :CaseImportance: Medium
-
-        :CaseLevel: Acceptance
 
         :CaseAutomation: ManualOnly
 
@@ -267,9 +257,7 @@ class TestAzureRMHostProvisioningTestCase:
 
         :id: ff27905f-fa3c-43ac-b969-9525b32f75f5
 
-        :CaseLevel: Component
-
-        ::CaseImportance: Critical
+        :CaseImportance: Critical
 
         :steps:
             1. Create a AzureRM Compute Resource and provision host.
@@ -299,8 +287,6 @@ class TestAzureRMHostProvisioningTestCase:
         """Host can be powered on and off
 
         :id: 9ced29d7-d866-4d0c-ac27-78753b5b5a94
-
-        :CaseLevel: System
 
         :steps:
             1. Create a AzureRM Compute Resource.
@@ -421,9 +407,7 @@ class TestAzureRMUserDataProvisioning:
 
         :id: df496d7c-3443-4afe-b807-5bbfc90e866e
 
-        :CaseLevel: Component
-
-        ::CaseImportance: Critical
+        :CaseImportance: Critical
 
         :steps:
             1. Create a AzureRM Compute Resource and provision host.
@@ -573,8 +557,6 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         """Host can be provisioned on AzureRM using Custom Image
 
         :id: b5be5128-ad49-4dbd-a660-3e38ce012327
-
-        :CaseLevel: System
 
         :CaseImportance: Critical
 

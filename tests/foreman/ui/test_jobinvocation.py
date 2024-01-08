@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: RemoteExecution
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from inflection import camelize
 import pytest
@@ -42,7 +37,7 @@ def test_positive_run_default_job_template_by_ip(
 
     :Setup: Use pre-defined job template.
 
-    :Steps:
+    :steps:
 
         1. Set remote_execution_connect_by_ip on host to true
         2. Navigate to an individual host and click Run Job
@@ -52,8 +47,6 @@ def test_positive_run_default_job_template_by_ip(
     :expectedresults: Verify the job was successfully ran against the host
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     hostname = module_rhel_client_by_ip.hostname
     with session:
@@ -83,7 +76,7 @@ def test_positive_run_custom_job_template_by_ip(
 
     :Setup: Create a working job template.
 
-    :Steps:
+    :steps:
 
         1. Set remote_execution_connect_by_ip on host to true
         2. Navigate to an individual host and click Run Job
@@ -93,8 +86,6 @@ def test_positive_run_custom_job_template_by_ip(
     :expectedresults: Verify the job was successfully ran against the host
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     hostname = module_rhel_client_by_ip.hostname
     job_template_name = gen_string('alpha')
@@ -139,7 +130,7 @@ def test_positive_schedule_recurring_host_job(self):
 
     :Team: Rocket
 
-    :Steps:
+    :steps:
         1. Register a RHEL host to Satellite.
         2. Import all roles available by default.
         3. Assign a role to host.
@@ -151,7 +142,6 @@ def test_positive_schedule_recurring_host_job(self):
 
     :expectedresults: The scheduled Job appears in the Job Invocation list at the appointed
         time
-
     """
 
 
@@ -166,7 +156,7 @@ def test_positive_schedule_recurring_hostgroup_job(self):
 
     :Team: Rocket
 
-    :Steps:
+    :steps:
         1. Register a RHEL host to Satellite.
         2. Import all roles available by default.
         3. Assign a role to host.
@@ -178,5 +168,4 @@ def test_positive_schedule_recurring_hostgroup_job(self):
 
     :expectedresults: The scheduled Job appears in the Job Invocation list at the appointed
         time
-
     """

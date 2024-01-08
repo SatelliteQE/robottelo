@@ -8,11 +8,6 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
-:TestType: Functional
-
-:Upstream: No
 """
 from copy import copy
 import re
@@ -211,7 +206,7 @@ def test_positive_provision_pxe_host_dhcp_change():
     :Setup: Provisioning should be configured and a host should be
         discovered
 
-    :Steps:
+    :steps:
         1. Set some dhcp range in dhcpd.conf in satellite.
         2. Create subnet entity in satellite with a range different from whats defined
             in `dhcpd.conf`.

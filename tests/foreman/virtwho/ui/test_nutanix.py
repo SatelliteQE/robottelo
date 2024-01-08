@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -58,8 +53,6 @@ class TestVirtwhoConfigforNutanix:
             4. Virtual sku can be generated and attached
             5. Config can be deleted
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         name = gen_string('alpha')
@@ -95,8 +88,6 @@ class TestVirtwhoConfigforNutanix:
             4. Virtual sku can be generated and attached
             5. Config can be deleted
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         name = gen_string('alpha')
@@ -128,8 +119,6 @@ class TestVirtwhoConfigforNutanix:
         :expectedresults:
             hypervisor_id can be changed in virt-who-config-{}.conf if the
             dropdown option is selected to uuid/hwuuid/hostname.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -168,8 +157,6 @@ class TestVirtwhoConfigforNutanix:
             4. The prism_central has been set true in /etc/virt-who.d/vir-who.conf file
             5. Virtual sku can be generated and attached
             6. Config can be deleted
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -213,8 +200,6 @@ class TestVirtwhoConfigforNutanix:
         :expectedresults:
             prism_flavor can be changed in virt-who-config-{}.conf if the
             dropdown option is selected to prism central.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """

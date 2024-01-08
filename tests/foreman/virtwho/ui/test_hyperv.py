@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -57,8 +52,6 @@ class TestVirtwhoConfigforHyperv:
             4. Virtual sku can be generated and attached
             5. Config can be deleted
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         name = gen_string('alpha')
@@ -94,8 +87,6 @@ class TestVirtwhoConfigforHyperv:
             4. Virtual sku can be generated and attached
             5. Config can be deleted
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         name = gen_string('alpha')
@@ -127,8 +118,6 @@ class TestVirtwhoConfigforHyperv:
         :expectedresults:
             hypervisor_id can be changed in virt-who-config-{}.conf if the
             dropdown option is selected to uuid/hwuuid/hostname.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """

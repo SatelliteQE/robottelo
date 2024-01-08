@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Ansible-ConfigurationManagement
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 
@@ -30,7 +25,7 @@ def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
 
     :id: 0c52bc63-a41a-4f48-a980-fe49b4ecdbdc
 
-    :Steps:
+    :steps:
         1. Register a content host with satellite
         2. Import a role into satellite
         3. Assign that role to a host

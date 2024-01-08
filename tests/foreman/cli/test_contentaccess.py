@@ -2,17 +2,12 @@
 
 :Requirement: Content Access
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Hosts-Content
 
 :CaseAutomation: Automated
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
-:Upstream: No
 """
 import time
 
@@ -226,8 +221,6 @@ def test_negative_unregister_and_pull_content(vm):
     :id: de0d0d91-b1e1-4f0e-8a41-c27df4d6b6fd
 
     :expectedresults: Host can no longer retrieve content from satellite
-
-    :CaseLevel: System
 
     :parametrized: yes
 

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
 :CaseComponent: RHCloud
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime
 import time
@@ -41,7 +36,7 @@ def test_positive_inventory_generate_upload_cli(
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
 
         0. Create a VM and register to insights within org having manifest.
         1. Generate and upload report for all organizations
@@ -64,8 +59,6 @@ def test_positive_inventory_generate_upload_cli(
     :BZ: 1957129, 1895953, 1956190
 
     :CaseAutomation: Automated
-
-    :CaseLevel: System
     """
     org, _ = organization_ak_setup
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:report:generate_upload'
@@ -112,7 +105,7 @@ def test_positive_inventory_recommendation_sync(
 
     :id: 361af91d-1246-4308-9cc8-66beada7d651
 
-    :Steps:
+    :steps:
 
         0. Create a VM and register to insights within org having manifest.
         1. Sync insights recommendation using following foreman-rake command.
@@ -123,8 +116,6 @@ def test_positive_inventory_recommendation_sync(
     :BZ: 1957186
 
     :CaseAutomation: Automated
-
-    :CaseLevel: System
     """
     org, ak = organization_ak_setup
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_insights:sync'
@@ -156,7 +147,7 @@ def test_positive_sync_inventory_status(
 
     :id: 915ffbfd-c2e6-4296-9d69-f3f9a0e79b32
 
-    :Steps:
+    :steps:
 
         0. Create a VM and register to insights within org having manifest.
         1. Sync inventory status for specific organization.
@@ -168,8 +159,6 @@ def test_positive_sync_inventory_status(
     :BZ: 1957186
 
     :CaseAutomation: Automated
-
-    :CaseLevel: System
     """
     org, ak = organization_ak_setup
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
@@ -203,7 +192,7 @@ def test_max_org_size_variable():
 
     :id: 7dd964c3-fde8-4335-ab13-02329119d7f6
 
-    :Steps:
+    :steps:
 
         1. Register few content hosts with satellite.
         2. Change value of max_org_size for testing purpose(See BZ#1962694#c2).
@@ -218,8 +207,6 @@ def test_max_org_size_variable():
     :BZ: 1962694
 
     :CaseAutomation: ManualOnly
-
-    :CaseLevel: System
     """
 
 
@@ -229,7 +216,7 @@ def test_satellite_inventory_slice_variable():
 
     :id: ffbef1c7-08f3-444b-9255-2251d5594fcb
 
-    :Steps:
+    :steps:
 
         1. Register few content hosts with satellite.
         2. Set SATELLITE_INVENTORY_SLICE_SIZE=1 dynflow environment variable.
@@ -244,8 +231,6 @@ def test_satellite_inventory_slice_variable():
     :BZ: 1945661
 
     :CaseAutomation: ManualOnly
-
-    :CaseLevel: System
     """
 
 
@@ -255,7 +240,7 @@ def test_rhcloud_external_links():
 
     :id: bc7f6354-ed3e-4ac5-939d-90bfe4177043
 
-    :Steps:
+    :steps:
 
         1. Go to Configure > Inventory upload
         2. Go to Configure > Insights
@@ -267,8 +252,6 @@ def test_rhcloud_external_links():
     :BZ: 1975093
 
     :CaseAutomation: ManualOnly
-
-    :CaseLevel: System
     """
 
 
@@ -278,7 +261,7 @@ def test_positive_generate_all_reports_job(target_sat):
 
     :id: a9e4bfdb-6d7c-4f8c-ae57-a81442926dd8
 
-    :Steps:
+    :steps:
         1. Disable the Automatic Inventory upload setting.
         2. Execute Foreman GenerateAllReportsJob via foreman-rake.
 
@@ -289,8 +272,6 @@ def test_positive_generate_all_reports_job(target_sat):
     :customerscenario: true
 
     :CaseAutomation: Automated
-
-    :CaseLevel: System
     """
     try:
         target_sat.update_setting('allow_auto_inventory_upload', False)

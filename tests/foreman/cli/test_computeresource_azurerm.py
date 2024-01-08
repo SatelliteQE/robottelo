@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ComputeResources-Azure
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -72,7 +67,6 @@ class TestAzureRMComputeResourceTestCase:
 
         :CaseImportance: Critical
 
-        :CaseLevel: Component
         """
         # Create CR
         cr_name = gen_string('alpha')
@@ -155,7 +149,6 @@ class TestAzureRMComputeResourceTestCase:
 
         :CaseImportance: Critical
 
-        :CaseLevel: Integration
         """
 
         # Create
@@ -229,8 +222,6 @@ class TestAzureRMComputeResourceTestCase:
 
         :expectedresults: All the networks from AzureRM CR should be available.
 
-        :CaseLevel: Integration
-
         :BZ: 1850934
         """
 
@@ -254,7 +245,6 @@ class TestAzureRMComputeResourceTestCase:
 
         :expectedresults: Compute-profile values should be create with AzureRm CR
 
-        :CaseLevel: Integration
         """
         username = gen_string('alpha')
         password = gen_string('alpha')
@@ -398,9 +388,7 @@ class TestAzureRMFinishTemplateProvisioning:
 
         :id: 9e8242e5-3ef3-4884-a200-7ba79b8ef49f
 
-        :CaseLevel: Component
-
-        ::CaseImportance: Critical
+        :CaseImportance: Critical
 
         :steps:
             1. Create a AzureRM Compute Resource and provision host.
@@ -527,9 +515,7 @@ class TestAzureRMUserDataProvisioning:
 
         :id: c99d2679-1742-4ef3-9288-2961d18a30e7
 
-        :CaseLevel: Component
-
-        ::CaseImportance: Critical
+        :CaseImportance: Critical
 
         :steps:
             1. Create a AzureRM Compute Resource and provision host.

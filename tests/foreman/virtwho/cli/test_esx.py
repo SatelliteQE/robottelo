@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import re
 
@@ -70,8 +65,6 @@ class TestVirtWhoConfigforEsx:
 
         :expectedresults: Config can be created and deployed
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         assert virtwho_config['status'] == 'No Report Yet'
@@ -120,8 +113,6 @@ class TestVirtWhoConfigforEsx:
         :id: 6aaffaeb-aaf2-42cf-b0dc-ca41a53d42a6
 
         :expectedresults: Config can be created, fetch and deploy
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -172,8 +163,6 @@ class TestVirtWhoConfigforEsx:
 
         :expectedresults: debug option can be updated.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         assert virtwho_config['name'] == form_data['name']
@@ -201,8 +190,6 @@ class TestVirtWhoConfigforEsx:
         :id: 5d558bca-534c-4bd4-b401-a0c362033c57
 
         :expectedresults: interval option can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -236,8 +223,6 @@ class TestVirtWhoConfigforEsx:
 
         :expectedresults: hypervisor_id option can be updated.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         # esx and rhevm support hwuuid option
@@ -264,8 +249,6 @@ class TestVirtWhoConfigforEsx:
         :id: aaf45c5e-9504-47ce-8f25-b8073c2de036
 
         :expectedresults: filter and filter_hosts can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -305,8 +288,6 @@ class TestVirtWhoConfigforEsx:
         :id: 409d108e-e814-482b-93ed-09db89d21dda
 
         :expectedresults: http_proxy and no_proxy option can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
 
@@ -349,8 +330,6 @@ class TestVirtWhoConfigforEsx:
             rhsm_hostname, rhsm_prefix are ecpected
             rhsm_username is not a login account
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         config_file = get_configure_file(virtwho_config['id'])
@@ -371,8 +350,6 @@ class TestVirtWhoConfigforEsx:
 
         :expectedresults:
             hypervisor/guest json can be posted and the task is success status
-
-        :CaseLevel: Integration
 
         :customerscenario: true
 
@@ -403,8 +380,6 @@ class TestVirtWhoConfigforEsx:
             virt-who packages can be installed
             the virt-who plugin can be deployed successfully
 
-        :CaseLevel: Integration
-
         :customerscenario: true
 
         :CaseImportance: Medium
@@ -430,8 +405,6 @@ class TestVirtWhoConfigforEsx:
         :id: 9892a94e-ff4b-44dd-87eb-1289d4a965be
 
         :expectedresults: Config can be created and deployed without any error
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
 
@@ -480,8 +453,6 @@ class TestVirtWhoConfigforEsx:
         :expectedresults:
             the option "env=" should be removed from etc/virt-who.d/virt-who.conf
             /var/log/messages should not display warning message
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
 

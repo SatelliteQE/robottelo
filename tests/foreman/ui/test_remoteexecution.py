@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: RemoteExecution
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import datetime
 import time
@@ -47,7 +42,7 @@ def test_positive_run_default_job_template_by_ip(
 
     :Setup: Use pre-defined job template.
 
-    :Steps:
+    :steps:
 
         1. Navigate to an individual host and click Run Job
         2. Select the job and appropriate template
@@ -60,8 +55,6 @@ def test_positive_run_default_job_template_by_ip(
     :bz: 1898656
 
     :customerscenario: true
-
-    :CaseLevel: Integration
     """
     hostname = module_vm_client_by_ip.hostname
     with session:
@@ -101,7 +94,7 @@ def test_positive_run_custom_job_template_by_ip(
 
     :Setup: Create a working job template.
 
-    :Steps:
+    :steps:
 
         1. Set remote_execution_connect_by_ip on host to true
         2. Navigate to an individual host and click Run Job
@@ -111,8 +104,6 @@ def test_positive_run_custom_job_template_by_ip(
     :expectedresults: Verify the job was successfully ran against the host
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
 
     hostname = module_vm_client_by_ip.hostname
@@ -155,7 +146,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
 
     :Setup: Create a working job template.
 
-    :Steps:
+    :steps:
 
         1. Set remote_execution_connect_by_ip on hosts to true
         2. Navigate to the hosts page and select at least two hosts
@@ -164,8 +155,6 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
         5. Run the job
 
     :expectedresults: Verify the job was successfully ran against the hosts
-
-    :CaseLevel: System
     """
     with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
         host_names = []
@@ -210,7 +199,7 @@ def test_positive_run_scheduled_job_template_by_ip(
 
     :Setup: Use pre-defined job template.
 
-    :Steps:
+    :steps:
 
         1. Set remote_execution_connect_by_ip on host to true
         2. Navigate to an individual host and click Run Job
@@ -225,8 +214,6 @@ def test_positive_run_scheduled_job_template_by_ip(
         2. Verify the job was successfully ran after the designated time
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     job_time = 10 * 60
     hostname = module_vm_client_by_ip.hostname
@@ -292,7 +279,7 @@ def test_positive_ansible_job_check_mode(session):
 
     :id: 7aeb7253-e555-4e28-977f-71f16d3c32e2
 
-    :Steps:
+    :steps:
 
         1. Set the value of the ansible_roles_check_mode parameter to true on a host
         2. Associate one or more Ansible roles with the host
@@ -300,8 +287,6 @@ def test_positive_ansible_job_check_mode(session):
 
     :expectedresults: Verify that the roles were run in check mode
                       (i.e. no changes were made on the host)
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
 
@@ -318,15 +303,13 @@ def test_positive_ansible_config_report_failed_tasks_errors(session):
 
     :id: 1a91e534-143f-4f35-953a-7ad8b7d2ddf3
 
-    :Steps:
+    :steps:
 
         1. Import Ansible roles
         2. Assign Ansible roles to a host
         3. Run Ansible roles on host
 
     :expectedresults: Verify that any task failures are listed as errors in the config report
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
 
@@ -343,7 +326,7 @@ def test_positive_ansible_config_report_changes_notice(session):
 
     :id: 8c90f179-8b70-4932-a477-75dc3566c437
 
-    :Steps:
+    :steps:
 
         1. Import Ansible Roles
         2. Assign Ansible roles to a host
@@ -351,8 +334,6 @@ def test_positive_ansible_config_report_changes_notice(session):
 
     :expectedresults: Verify that any tasks that make changes on the host
                       are listed as notice in the config report
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
 
@@ -369,13 +350,11 @@ def test_positive_ansible_variables_imported_with_roles(session):
 
     :id: 107c53e8-5a8a-4291-bbde-fbd66a0bb85e
 
-    :Steps:
+    :steps:
 
         1. Import Ansible roles
 
     :expectedresults: Verify that any variables in the role were also imported to Satellite
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
 
@@ -392,13 +371,11 @@ def test_positive_roles_import_in_background(session):
 
     :id: 4f1c7b76-9c67-42b2-9a73-980ca1f05abc
 
-    :Steps:
+    :steps:
 
         1. Import Ansible roles
 
     :expectedresults: Verify that the UI is accessible while roles are importing
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
 
@@ -415,14 +392,12 @@ def test_positive_ansible_roles_ignore_list(session):
 
     :id: 6fa1d8f0-b583-4a07-88eb-c9ae7fcd0219
 
-    :Steps:
+    :steps:
 
         1. Add roles to the ignore list in Administer > Settings > Ansible
         2. Navigate to Configure > Roles
 
     :expectedresults: Verify that any roles on the ignore list are not available for import
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
 
@@ -440,15 +415,13 @@ def test_positive_ansible_variables_installed_with_collection(session):
 
     :id: 7ff88022-fe9b-482f-a6bb-3922036a1e1c
 
-    :Steps:
+    :steps:
 
         1. Install an Ansible collection
         2. Navigate to Configure > Variables
 
     :expectedresults: Verify that any variables associated with the collection
                       are present on Configure > Variables
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
 
@@ -465,7 +438,7 @@ def test_positive_install_ansible_collection_via_job_invocation(session):
 
     :id: d4096aef-f6fc-41b6-ae56-d19b1f49cd42
 
-    :Steps:
+    :steps:
 
         1. Enable a host for remote execution
         2. Navigate to Hosts > Schedule Remote Job
@@ -475,8 +448,6 @@ def test_positive_install_ansible_collection_via_job_invocation(session):
         6. Click "Submit"
 
     :expectedresults: The Ansible collection is successfully installed on the host
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
 
@@ -493,7 +464,7 @@ def test_positive_set_ansible_role_order_per_host(session):
 
     :id: 24fbcd60-7cd1-46ff-86ac-16d6b436202c
 
-    :Steps:
+    :steps:
 
         1. Enable a host for remote execution
         2. Navigate to Hosts > All Hosts > $hostname > Edit > Ansible Roles
@@ -502,8 +473,6 @@ def test_positive_set_ansible_role_order_per_host(session):
         5. Run Ansible roles on the host
 
     :expectedresults: The roles are run in the specified order
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
 
@@ -520,7 +489,7 @@ def test_positive_set_ansible_role_order_per_hostgroup(session):
 
     :id: 9eb5bc8e-081a-45b9-8751-f4220c944da6
 
-    :Steps:
+    :steps:
 
         1. Enable a host for remote execution
         2. Create a host group
@@ -531,8 +500,6 @@ def test_positive_set_ansible_role_order_per_hostgroup(session):
         7. Run Ansible roles on the host group
 
     :expectedresults: The roles are run in the specified order
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
 
@@ -549,7 +516,7 @@ def test_positive_matcher_field_highlight(session):
 
     :id: 67b45cfe-31bb-41a8-b88e-27917c68f33e
 
-    :Steps:
+    :steps:
 
         1. Navigate to Configure > Variables > $variablename
         2. Select the "Override" checkbox in the "Default Behavior" section
@@ -559,8 +526,6 @@ def test_positive_matcher_field_highlight(session):
         6. Add text to the "Value" input field
 
     :expectedresults: The background of each field turns yellow when a change is made
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
 

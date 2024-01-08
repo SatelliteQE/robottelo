@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: DiscoveryPlugin
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from functools import partial
 import random
@@ -136,7 +131,6 @@ class TestDiscoveryRule:
         :expectedresults: Rule should be successfully created and has expected
             hostname value
 
-        :CaseLevel: Component
         """
         host_name = 'myhost'
         rule = discoveryrule_factory(options={'hostname': host_name})
@@ -198,7 +192,6 @@ class TestDiscoveryRule:
         :expectedresults: Rule should be successfully created and has expected
             hosts limit value
 
-        :CaseLevel: Component
         """
         hosts_limit = '5'
         rule = discoveryrule_factory(options={'hosts-limit': hosts_limit})
@@ -229,7 +222,6 @@ class TestDiscoveryRule:
 
         :expectedresults: Disabled rule should be successfully created
 
-        :CaseLevel: Component
         """
         rule = discoveryrule_factory(options={'enabled': 'false'})
         assert rule.enabled == 'false'
@@ -244,8 +236,6 @@ class TestDiscoveryRule:
         :expectedresults: Error should be raised and rule should not be created
 
         :CaseImportance: Medium
-
-        :CaseLevel: Component
 
         :parametrized: yes
         """
@@ -262,8 +252,6 @@ class TestDiscoveryRule:
         :expectedresults: Error should be raised and rule should not be created
 
         :CaseImportance: Medium
-
-        :CaseLevel: Component
 
         :BZ: 1378427
 
@@ -324,8 +312,6 @@ class TestDiscoveryRule:
 
         :expectedresults: Rule name is updated
 
-        :CaseLevel: Component
-
         :CaseImportance: Medium
         """
         rule = discoveryrule_factory()
@@ -344,7 +330,6 @@ class TestDiscoveryRule:
 
         :BZ: 1377990
 
-        :CaseLevel: Component
         """
         new_org = Box(target_sat.cli_factory.make_org())
         new_loc = Box(target_sat.cli_factory.make_location())
@@ -377,8 +362,6 @@ class TestDiscoveryRule:
 
         :BZ: 1377990
 
-        :CaseLevel: Component
-
         :CaseImportance: Medium
         """
         new_org = Box(target_sat.cli_factory.make_org())
@@ -409,7 +392,6 @@ class TestDiscoveryRule:
 
         :expectedresults: Rule search field is updated
 
-        :CaseLevel: Component
         """
         rule = discoveryrule_factory()
         new_query = 'model = KVM'
@@ -425,7 +407,6 @@ class TestDiscoveryRule:
 
         :expectedresults: Rule host group is updated
 
-        :CaseLevel: Component
         """
         new_hostgroup = Box(
             target_sat.cli_factory.make_hostgroup({'organization-ids': class_org.id})
@@ -444,7 +425,6 @@ class TestDiscoveryRule:
 
         :expectedresults: Rule host name is updated
 
-        :CaseLevel: Component
         """
         new_hostname = gen_string('alpha')
         rule = discoveryrule_factory()
@@ -460,7 +440,6 @@ class TestDiscoveryRule:
 
         :expectedresults: Rule host limit field is updated
 
-        :CaseLevel: Component
         """
         rule = discoveryrule_factory(options={'hosts-limit': '5'})
         new_limit = '10'
@@ -513,8 +492,6 @@ class TestDiscoveryRule:
 
         :expectedresults: Rule name is not updated
 
-        :CaseLevel: Component
-
         :CaseImportance: Medium
 
         :parametrized: yes
@@ -533,7 +510,6 @@ class TestDiscoveryRule:
 
         :CaseImportance: Medium
 
-        :CaseLevel: Component
         """
         rule = discoveryrule_factory()
         with pytest.raises(CLIReturnCodeError):
@@ -546,8 +522,6 @@ class TestDiscoveryRule:
         :id: e3257d8a-91b9-406f-bd74-0fd1fb05bb77
 
         :expectedresults: Rule host limit is not updated
-
-        :CaseLevel: Component
 
         :CaseImportance: Medium
         """
@@ -563,8 +537,6 @@ class TestDiscoveryRule:
         :id: 0778dd00-aa19-4062-bdf3-752e1b546ec2
 
         :expectedresults: Rule priority is not updated
-
-        :CaseLevel: Component
 
         :CaseImportance: Medium
         """
@@ -623,7 +595,6 @@ class TestDiscoveryRuleRole:
 
         :expectedresults: Rule should be created successfully.
 
-        :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
         rule = Box(
@@ -654,7 +625,6 @@ class TestDiscoveryRuleRole:
 
         :expectedresults: Rule should be deleted successfully.
 
-        :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
         rule = Box(
@@ -703,7 +673,6 @@ class TestDiscoveryRuleRole:
 
         :expectedresults: Rule should be visible to non-admin user.
 
-        :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
         rule = Box(
@@ -742,7 +711,6 @@ class TestDiscoveryRuleRole:
         :expectedresults: User should validation error and rule should not be
             deleted successfully.
 
-        :CaseLevel: Integration
         """
         rule = Box(
             target_sat.cli_factory.make_discoveryrule(

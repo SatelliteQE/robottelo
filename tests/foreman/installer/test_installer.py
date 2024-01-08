@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Installation
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 import pytest
 
@@ -1311,8 +1306,6 @@ def test_positive_selinux_foreman_module(target_sat):
         1. Check "foreman-selinux" package availability on satellite.
         2. Check SELinux foreman module on satellite.
 
-    :CaseLevel: System
-
     :expectedresults: Foreman RPM and SELinux module are both present on the satellite
     """
     rpm_result = target_sat.execute('rpm -q foreman-selinux')
@@ -1357,8 +1350,6 @@ def test_positive_check_installer_hammer_ping(target_sat):
     :customerscenario: true
 
     :expectedresults: All services are active (running)
-
-    :CaseLevel: System
     """
     # check status reported by hammer ping command
     result = target_sat.execute('hammer ping')
@@ -1517,8 +1508,6 @@ def test_satellite_installation_on_ipv6():
         4: Satellite service restart should work.
         5: After system reboot all the services comes to up state.
 
-    :CaseLevel: System
-
     :CaseAutomation: NotAutomated
     """
 
@@ -1539,8 +1528,6 @@ def test_capsule_installation_on_ipv6():
         2. After installation, All the Services should be up and running.
         3. Satellite service restart should work.
         4. After system reboot all the services come to up state.
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
     """
@@ -1563,8 +1550,6 @@ def test_installer_check_on_ipv6():
     :expectedresults:
         1. Tuning parameter set successfully for medium size.
         2. custom-hiera.yaml related changes should be successfully applied.
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
     """
@@ -1590,8 +1575,6 @@ def test_installer_verbose_stdout():
             external capsule installation pre-requisite, upgrade capsule instruction,
             running internal capsule url, log file.
 
-    :CaseLevel: System
-
     :CaseAutomation: NotAutomated
     """
 
@@ -1610,8 +1593,6 @@ def test_installer_answers_file():
         3. Run Satellite installer
 
     :expectedresults: Installer configures plugins and hooks in answers file.
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
     """
@@ -1635,8 +1616,6 @@ def test_capsule_installer_verbose_stdout():
         2. Installer STDOUTs system configuration completion.
         3. Finally, Installer informs running capsule url, log file.
 
-    :CaseLevel: System
-
     :CaseAutomation: NotAutomated
     """
 
@@ -1656,8 +1635,6 @@ def test_installer_timestamp_logs():
     :expectedresults:
         1. Installer logs satellite installation with timestamps in following format
             YYYY-MM-DD HH:MM:SS
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
     """
@@ -1690,8 +1667,6 @@ def test_positive_capsule_installer_and_register():
         1. Capsule integrate successfully with satellite.
         2. Capsule sync should be worked properly.
 
-    :CaseLevel: System
-
     :CaseAutomation: NotAutomated
     """
 
@@ -1718,8 +1693,6 @@ def test_positive_satellite_installer_logfile_check():
         3. /var/log/foreman-installer/satellite.log
         4. /var/log/httpd,
         5. /var/log/candlepin
-
-    :CaseLevel: System
 
     :CaseAutomation: NotAutomated
     """
@@ -1755,8 +1728,6 @@ def test_positive_capsule_installer_logfile_check():
         3. /var/log/httpd
         4. /var/log/foreman-proxy
 
-    :CaseLevel: System
-
     :CaseAutomation: NotAutomated
     """
 
@@ -1781,8 +1752,6 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
         2. It should not be accessible if accessibility is disabled in custom_hiera.yaml file.
 
     :CaseImportance: High
-
-    :CaseLevel: System
 
     :BZ: 1860519
 

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: SatelliteMaintain
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import re
 

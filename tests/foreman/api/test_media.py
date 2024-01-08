@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Hosts
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 
@@ -90,7 +85,6 @@ class TestMedia:
 
         :expectedresults: Media entity is created and has proper location
 
-        :CaseLevel: Integration
         """
         media = module_target_sat.api.Media(
             organization=[module_org], location=[module_location]
@@ -105,7 +99,6 @@ class TestMedia:
 
         :expectedresults: Media entity is created and assigned to expected OS
 
-        :CaseLevel: Integration
         """
         os = module_target_sat.api.OperatingSystem().create()
         media = module_target_sat.api.Media(

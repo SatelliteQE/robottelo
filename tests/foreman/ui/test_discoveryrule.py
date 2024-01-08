@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
 :CaseComponent: DiscoveryPlugin
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from airgun.session import Session
 from fauxfactory import gen_integer, gen_ipaddr, gen_string
@@ -92,7 +87,6 @@ def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user, mod
 
     :expectedresults: Rule should be created successfully.
 
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     search = gen_string('alpha')
@@ -120,7 +114,6 @@ def test_positive_delete_rule_with_non_admin_user(manager_loc, manager_user, mod
 
     :expectedresults: Rule should be deleted successfully.
 
-    :CaseLevel: Integration
     """
     hg = entities.HostGroup(organization=[module_org]).create()
     dr = entities.DiscoveryRule(
@@ -151,7 +144,6 @@ def test_positive_view_existing_rule_with_non_admin_user(
 
     :expectedresults: Rule should be visible to non-admin user.
 
-    :CaseLevel: Integration
     """
     hg = entities.HostGroup(organization=[module_org]).create()
     dr = entities.DiscoveryRule(
@@ -172,8 +164,6 @@ def test_negative_delete_rule_with_non_admin_user(
 
     :expectedresults: User should validation error and rule should not be
         deleted successfully.
-
-    :CaseLevel: Integration
     """
     hg = entities.HostGroup(organization=[module_org]).create()
     dr = entities.DiscoveryRule(
@@ -197,7 +187,7 @@ def test_positive_list_host_based_on_rule_search_query(
 
     :id: f7473fa2-7349-42d3-9cdb-f74b55d2f440
 
-    :Steps:
+    :steps:
 
         1. discovered host with cpu_count = 2
         2. Define a rule 'rule1' with search query cpu_count = 2

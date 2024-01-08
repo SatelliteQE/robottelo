@@ -2,19 +2,14 @@
 
 :Requirement: HttpProxy
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
-
-:TestType: Functional
 
 :CaseImportance: High
 
 :CaseAutomation: Automated
 
-:Upstream: No
 """
 from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
@@ -31,8 +26,6 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
     :id: 0c7cdf3d-778f-427a-9a2f-42ad7c23aa15
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -195,7 +188,7 @@ def test_set_default_http_proxy(module_org, module_location, setting_update, tar
 
     :id: e93733e1-5c05-4b7f-89e4-253b9ce55a5a
 
-    :Steps:
+    :steps:
         1. Navigate to Infrastructure > Http Proxies
         2. Create a Http Proxy
         3. GoTo to Administer > Settings > content tab
@@ -209,8 +202,6 @@ def test_set_default_http_proxy(module_org, module_location, setting_update, tar
     :expectedresults: Setting "Default HTTP Proxy" to "no global default" result in success.'''
 
     :CaseImportance: Medium
-
-    :CaseLevel: Acceptance
     """
     property_name = setting_update.name
 
@@ -241,12 +232,11 @@ def test_set_default_http_proxy(module_org, module_location, setting_update, tar
 def test_check_http_proxy_value_repository_details(
     function_org, function_location, function_product, setting_update, target_sat
 ):
-
     """Deleted Global Http Proxy is reflected in repository details page".
 
     :id: 3f64255a-ef6c-4acb-b99b-e5579133b564
 
-    :Steps:
+    :steps:
         1. Create Http Proxy (Go to Infrastructure > Http Proxies > New Http Proxy)
         2. GoTo to Administer > Settings > content tab
         3. Update the "Default HTTP Proxy" with created above.
@@ -263,8 +253,6 @@ def test_check_http_proxy_value_repository_details(
         2. "HTTP Proxy" field  in repository details page should be set to Global Default (None).
 
     :CaseImportance: Medium
-
-    :CaseLevel: Acceptance
     """
 
     property_name = setting_update.name
@@ -309,7 +297,7 @@ def test_http_proxy_containing_special_characters():
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Navigate to Infrastructure > Http Proxies
         2. Create HTTP Proxy with special characters in password.
         3. Go To to Administer > Settings > content tab

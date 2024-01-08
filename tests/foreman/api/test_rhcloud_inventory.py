@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
 :CaseComponent: RHCloud
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime
 
@@ -144,7 +139,7 @@ def test_rhcloud_inventory_api_hosts_synchronization(
 
     :id: 7be22e1c-906b-4ae5-93dd-5f79f395601c
 
-    :Steps:
+    :steps:
 
         1. Prepare machine and upload its data to Insights.
         2. Sync inventory status using RH Cloud plugin api.
@@ -264,7 +259,7 @@ def test_rhcloud_inventory_auto_upload_setting():
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Register a content host with satellite.
         2. Enable "Automatic inventory upload" setting.
         3. Verify that satellite automatically generate and upload
@@ -294,7 +289,7 @@ def test_inventory_upload_with_http_proxy():
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Create a http proxy which is using port 80.
         2. Register a content host with satellite.
         3. Set Default HTTP Proxy setting.
@@ -322,7 +317,7 @@ def test_include_parameter_tags_setting(
 
     :id: 3136a1e3-f844-416b-8334-75b27fd9e3a1
 
-    :Steps:
+    :steps:
         1. Enable include_parameter_tags setting.
         2. Register a content host with satellite.
         3. Generate inventory report.

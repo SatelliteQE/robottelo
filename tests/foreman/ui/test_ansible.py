@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Ansible-ConfigurationManagement
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -29,7 +24,7 @@ def test_positive_create_and_delete_variable(target_sat):
 
     :id: 7006d7c7-788a-4447-a564-d6b03ec06aaf
 
-    :Steps:
+    :steps:
 
         1. Import Ansible roles if none have been imported yet.
         2. Create an Ansible variable with only a name and an assigned Ansible role.
@@ -60,7 +55,7 @@ def test_positive_create_variable_with_overrides(target_sat):
 
     :id: 90acea37-4c2f-42e5-92a6-0c88148f4fb6
 
-    :Steps:
+    :steps:
 
         1. Import Ansible roles if none have been imported yet.
         2. Create an Anible variable, populating all fields on the creation form.
@@ -166,7 +161,7 @@ def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_cont
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Register a content host with satellite
         2. Create a  custom role and import  into satellite
         3. Assign that role to a host

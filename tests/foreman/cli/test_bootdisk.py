@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
 :CaseComponent: BootdiskPlugin
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_mac, gen_string
 import pytest

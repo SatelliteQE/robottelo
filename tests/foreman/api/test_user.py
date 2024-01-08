@@ -8,17 +8,12 @@ http://<satellite-host>/apidoc/v2/users.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import json
 import re
@@ -636,7 +631,6 @@ class TestSshKeyInUser:
 
         :expectedresults: SSH key should be added to host ENC output
 
-        :CaseLevel: Integration
         """
         org = class_target_sat.api.Organization().create()
         loc = class_target_sat.api.Location(organization=[org]).create()
@@ -705,7 +699,6 @@ class TestActiveDirectoryUser:
 
         :expectedresults: User is created without specifying the password
 
-        :CaseLevel: Integration
         """
         user = target_sat.api.User(
             login=username, auth_source=create_ldap['authsource'], password=''
@@ -724,7 +717,6 @@ class TestActiveDirectoryUser:
 
         :expectedresults: Log in to foreman successfully but cannot access target_sat.api.
 
-        :CaseLevel: System
         """
         sc = ServerConfig(
             auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
@@ -752,7 +744,6 @@ class TestActiveDirectoryUser:
         :expectedresults: LDAP User should be able to access all the resources
             and permissions in taxonomies selected in Org Admin role
 
-        :CaseLevel: System
         """
         role_name = gen_string('alpha')
         default_org_admin = module_target_sat.api.Role().search(
@@ -847,7 +838,6 @@ class TestFreeIPAUser:
 
         :expectedresults: Log in to foreman successfully but cannot access target_sat.api.
 
-        :CaseLevel: System
         """
         sc = ServerConfig(
             auth=(create_ldap['username'], create_ldap['ldap_user_passwd']),
@@ -875,7 +865,6 @@ class TestFreeIPAUser:
         :expectedresults: FreeIPA User should be able to access all the resources
             and permissions in taxonomies selected in Org Admin role
 
-        :CaseLevel: System
         """
         role_name = gen_string('alpha')
         default_org_admin = target_sat.api.Role().search(
@@ -935,8 +924,6 @@ class TestPersonalAccessToken:
             1. Should show output of the api endpoint
             2. When revoked, authentication error
 
-        :CaseLevel: System
-
         :CaseImportance: High
         """
 
@@ -959,10 +946,7 @@ class TestPersonalAccessToken:
             2. When an incorrect role and end point is used, missing
                permission should be displayed.
 
-        :CaseLevel: System
-
         :CaseImportance: High
-
         """
 
     @pytest.mark.tier2
@@ -978,8 +962,6 @@ class TestPersonalAccessToken:
             3. Try using the token with any end point.
 
         :expectedresults: Authentication error
-
-        :CaseLevel: System
 
         :CaseImportance: Medium
 

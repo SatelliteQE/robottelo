@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -60,8 +55,6 @@ class TestVirtWhoConfigforKubevirt:
 
         :expectedresults: Config can be created and deployed
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         assert virtwho_config['status'] == 'No Report Yet'
@@ -104,8 +97,6 @@ class TestVirtWhoConfigforKubevirt:
         :id: 273df8e0-5ef5-47d9-9567-543157be7dd8
 
         :expectedresults: Config can be created, fetch and deploy
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -151,8 +142,6 @@ class TestVirtWhoConfigforKubevirt:
         :id: 57b89c7e-538e-4ab8-98b5-af4b9f587792
 
         :expectedresults: hypervisor_id option can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """

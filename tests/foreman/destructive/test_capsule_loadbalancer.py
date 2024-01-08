@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Integration
-
 :CaseComponent: ForemanProxy
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 
@@ -145,7 +140,7 @@ def test_loadbalancer_register_client_using_ak_to_ha_proxy(loadbalancer_setup, r
 
     :id: bd3c2e50-18e2-4be7-8a7f-c32472e17c61
 
-    :Steps:
+    :steps:
         1. run `subscription-manager register --org=Your_Organization \
             --activationkey=Your_Activation_Key \
             --serverurl=https://loadbalancer.example.com:8443/rhsm \
@@ -159,7 +154,6 @@ def test_loadbalancer_register_client_using_ak_to_ha_proxy(loadbalancer_setup, r
     :expectedresults: The client should be get the package irrespective of the capsule
         registration.
 
-    :CaseLevel: Integration
     """
     url = f'https://{loadbalancer_setup["setup_haproxy"]["haproxy"].hostname}'
     server_url = f'{url}:8443/rhsm'

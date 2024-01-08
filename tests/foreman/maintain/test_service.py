@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: SatelliteMaintain
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest

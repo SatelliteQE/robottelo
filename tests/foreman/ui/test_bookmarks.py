@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Search
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from airgun.exceptions import NoSuchElementException
 from airgun.session import Session
@@ -71,8 +66,6 @@ def test_positive_end_to_end(session, ui_entity):
 
     :expectedresults: All expected CRUD actions finished successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     name = gen_string('alpha')
@@ -105,7 +98,7 @@ def test_positive_create_bookmark_public(session, ui_entity, default_viewer_role
 
     :Setup: Create a non-admin user with 'viewer' role
 
-    :Steps:
+    :steps:
 
         1. Navigate to the entity page
         2. Choose "bookmark this search" from the search drop-down menu
@@ -120,8 +113,6 @@ def test_positive_create_bookmark_public(session, ui_entity, default_viewer_role
 
     :expectedresults: No errors, public bookmarks is displayed for all users,
         non-public bookmark is displayed for creator but not for different user
-
-    :CaseLevel: Integration
     """
     public_name = gen_string('alphanumeric')
     nonpublic_name = gen_string('alphanumeric')
@@ -151,7 +142,7 @@ def test_positive_update_bookmark_public(
            public and one private
         2. Create a non-admin user with 'viewer' role
 
-    :Steps:
+    :steps:
 
         1. Login to Satellite server (establish a UI session) as the
            pre-created user
@@ -176,8 +167,6 @@ def test_positive_update_bookmark_public(
 
     :expectedresults: New public bookmark is listed, and the private one is
         hidden
-
-    :CaseLevel: Integration
     """
     public_name = gen_string('alphanumeric')
     nonpublic_name = gen_string('alphanumeric')
@@ -218,15 +207,13 @@ def test_negative_delete_bookmark(ui_entity, default_viewer_role, test_name):
         2. Create a non-admin user without destroy_bookmark role (e.g.
            viewer)
 
-    :Steps:
+    :steps:
 
         1. Login to Satellite server (establish a UI session) as a
            non-admin user
         2. List the bookmarks (Navigate to Administer -> Bookmarks)
 
     :expectedresults: The delete buttons are not displayed
-
-    :CaseLevel: Integration
     """
     bookmark = entities.Bookmark(controller=ui_entity['controller'], public=True).create()
     with Session(
@@ -248,15 +235,13 @@ def test_negative_create_with_duplicate_name(session, ui_entity):
 
         1. Create a bookmark of a random name with random query.
 
-    :Steps:
+    :steps:
 
         1. Create new bookmark with duplicate name.
 
     :expectedresults: Bookmark can't be created, submit button is disabled
 
     :BZ: 1920566, 1992652
-
-    :CaseLevel: Integration
     """
     query = gen_string('alphanumeric')
     bookmark = entities.Bookmark(controller=ui_entity['controller'], public=True).create()
