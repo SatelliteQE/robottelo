@@ -526,3 +526,25 @@ def create_http_proxy(org, name=None, url=None, http_type='https'):
         organization=[org.id],
     ).create()
     return http_proxy.url, http_proxy.name, http_proxy.id
+
+
+def get_configure_command_option(deploy_type, args, org=DEFAULT_ORG):
+    """Return the deploy command line based on option.
+    :param str option: the unique id of the configure file you have created.
+    :param str org: the satellite organization name.
+    """
+    username, password = Base._get_username_password()
+    if deploy_type == 'location-id':
+        return "hammer -u {} -p {} virt-who-config deploy --id {} --location-id '{}' ".format(
+            username, password, args['id'], args['location-id']
+        )
+    elif deploy_type == 'organization-title':
+        return (
+            "hammer -u {} -p {} virt-who-config deploy --id {} --organization-title '{}' ".format(
+                username, password, args['id'], args['organization-title']
+            )
+        )
+    elif deploy_type == 'name':
+        return "hammer -u {} -p {} virt-who-config deploy --name {} --organization '{}' ".format(
+            username, password, args['name'], org
+        )

@@ -37,8 +37,12 @@ from robottelo.utils.virtwho import (
 class TestVirtWhoConfigforEsx:
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('deploy_type_cli', ['id', 'script'], indirect=True)
-    def test_positive_deploy_configure_by_id_script(
+    @pytest.mark.parametrize(
+        'deploy_type_cli',
+        ['id', 'script', 'name', 'location-id', 'organization-title'],
+        indirect=True,
+    )
+    def test_positive_deploy_configure_by_id_script_name_locationid_organizationtitle(
         self, module_sca_manifest_org, target_sat, virtwho_config_cli, deploy_type_cli
     ):
         """Verify "hammer virt-who-config deploy & fetch"
