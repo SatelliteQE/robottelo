@@ -11,8 +11,6 @@
 :CaseImportance: High
 
 """
-from airgun.session import Session
-from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 import pytest
 
@@ -23,7 +21,7 @@ from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.mark.tier2
-def test_positive_host_configuration_status(session):
+def test_positive_host_configuration_status(session, target_sat):
     """Check if the Host Configuration Status Widget links are working
 
     :id: ffb0a6a1-2b65-4578-83c7-61492122d865
@@ -41,9 +39,9 @@ def test_positive_host_configuration_status(session):
 
     :BZ: 1631219
     """
-    org = entities.Organization().create()
-    loc = entities.Location().create()
-    host = entities.Host(organization=org, location=loc).create()
+    org = target_sat.api.Organization().create()
+    loc = target_sat.api.Location().create()
+    host = target_sat.api.Host(organization=org, location=loc).create()
     criteria_list = [
         'Hosts that had performed modifications without error',
         'Hosts in error state',
@@ -94,7 +92,7 @@ def test_positive_host_configuration_status(session):
 
 
 @pytest.mark.tier2
-def test_positive_host_configuration_chart(session):
+def test_positive_host_configuration_chart(session, target_sat):
     """Check if the Host Configuration Chart is working in the Dashboard UI
 
     :id: b03314aa-4394-44e5-86da-c341c783003d
@@ -107,9 +105,9 @@ def test_positive_host_configuration_chart(session):
 
     :expectedresults: Chart showing correct data
     """
-    org = entities.Organization().create()
-    loc = entities.Location().create()
-    entities.Host(organization=org, location=loc).create()
+    org = target_sat.api.Organization().create()
+    loc = target_sat.api.Location().create()
+    target_sat.api.Host(organization=org, location=loc).create()
     with session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
@@ -120,7 +118,7 @@ def test_positive_host_configuration_chart(session):
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-def test_positive_task_status(session):
+def test_positive_task_status(session, target_sat):
     """Check if the Task Status is working in the Dashboard UI and
         filter from Tasks index page is working correctly
 
@@ -141,9 +139,11 @@ def test_positive_task_status(session):
     :BZ: 1718889
     """
     url = 'www.non_existent_repo_url.org'
-    org = entities.Organization().create()
-    product = entities.Product(organization=org).create()
-    repo = entities.Repository(url=f'http://{url}', product=product, content_type='yum').create()
+    org = target_sat.api.Organization().create()
+    product = target_sat.api.Product(organization=org).create()
+    repo = target_sat.api.Repository(
+        url=f'http://{url}', product=product, content_type='yum'
+    ).create()
     with pytest.raises(TaskFailedError):
         repo.sync()
     with session:
@@ -222,9 +222,9 @@ def test_positive_user_access_with_host_filter(
     user_login = gen_string('alpha')
     user_password = gen_string('alphanumeric')
     org = function_entitlement_manifest_org
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     # create a role with necessary permissions
-    role = entities.Role().create()
+    role = target_sat.api.Role().create()
     user_permissions = {
         'Organization': ['view_organizations'],
         'Location': ['view_locations'],
@@ -233,7 +233,7 @@ def test_positive_user_access_with_host_filter(
     }
     target_sat.api_factory.create_role_permissions(role, user_permissions)
     # create a user and assign the above created role
-    entities.User(
+    target_sat.api.User(
         default_organization=org,
         organization=[org],
         default_location=module_location,
@@ -242,7 +242,7 @@ def test_positive_user_access_with_host_filter(
         login=user_login,
         password=user_password,
     ).create()
-    with Session(test_name, user=user_login, password=user_password) as session:
+    with target_sat.ui_session(test_name, user=user_login, password=user_password) as session:
         assert session.dashboard.read('HostConfigurationStatus')['total_count'] == 0
         assert len(session.dashboard.read('LatestErrata')['erratas']) == 0
         rhel_contenthost.add_rex_key(target_sat)
@@ -266,7 +266,7 @@ def test_positive_user_access_with_host_filter(
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_sync_overview_widget(session, module_org, module_product):
+def test_positive_sync_overview_widget(session, module_product, module_target_sat):
     """Check if the Sync Overview widget is working in the Dashboard UI
 
     :id: 553fbe33-0f6f-46fb-8d80-5d1d9ed483cf
@@ -280,7 +280,9 @@ def test_positive_sync_overview_widget(session, module_org, module_product):
 
     :BZ: 1995424
     """
-    repo = entities.Repository(url=settings.repos.yum_1.url, product=module_product).create()
+    repo = module_target_sat.api.Repository(
+        url=settings.repos.yum_1.url, product=module_product
+    ).create()
     with session:
         session.repository.synchronize(module_product.name, repo.name)
         sync_params = session.dashboard.read('SyncOverview')['syncs']

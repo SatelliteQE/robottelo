@@ -14,9 +14,7 @@
 from tempfile import mkstemp
 import time
 
-from airgun.session import Session
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -44,18 +42,18 @@ def golden_ticket_host_setup(function_entitlement_manifest_org, module_target_sa
         reposet=REPOSET['rhst7'],
         releasever=None,
     )
-    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
-    custom_product = entities.Product(organization=org).create()
-    custom_repo = entities.Repository(
+    custom_product = module_target_sat.api.Product(organization=org).create()
+    custom_repo = module_target_sat.api.Repository(
         name=gen_string('alphanumeric').upper(), product=custom_product
     ).create()
     custom_repo.sync()
-    ak = entities.ActivationKey(
+    ak = module_target_sat.api.ActivationKey(
         content_view=org.default_content_view,
         max_hosts=100,
         organization=org,
-        environment=entities.LifecycleEnvironment(id=org.library.id),
+        environment=module_target_sat.api.LifecycleEnvironment(id=org.library.id),
         auto_attach=True,
     ).create()
     return org, ak
@@ -93,7 +91,7 @@ def test_positive_end_to_end(session, target_sat):
         'Note: Deleting a subscription manifest is STRONGLY discouraged.',
         'This action should only be taken for debugging purposes.',
     ]
-    org = entities.Organization().create()
+    org = target_sat.api.Organization().create()
     _, temporary_local_manifest_path = mkstemp(prefix='manifest-', suffix='.zip')
     with clone() as manifest:
         with open(temporary_local_manifest_path, 'wb') as file_handler:
@@ -147,8 +145,8 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name, target_
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
-    role = entities.Role(organization=[org]).create()
+    org = target_sat.api.Organization().create()
+    role = target_sat.api.Role(organization=[org]).create()
     target_sat.api_factory.create_role_permissions(
         role,
         {
@@ -162,14 +160,14 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name, target_
         },
     )
     user_password = gen_string('alphanumeric')
-    user = entities.User(
+    user = target_sat.api.User(
         admin=False,
         role=[role],
         password=user_password,
         organization=[org],
         default_organization=org,
     ).create()
-    with Session(test_name, user=user.login, password=user_password) as session:
+    with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
         assert not session.subscription.has_manifest
 
 
@@ -193,20 +191,20 @@ def test_positive_access_with_non_admin_user_with_manifest(
     :CaseImportance: Critical
     """
     org = function_entitlement_manifest_org
-    role = entities.Role(organization=[org]).create()
+    role = target_sat.api.Role(organization=[org]).create()
     target_sat.api_factory.create_role_permissions(
         role,
         {'Katello::Subscription': ['view_subscriptions'], 'Organization': ['view_organizations']},
     )
     user_password = gen_string('alphanumeric')
-    user = entities.User(
+    user = target_sat.api.User(
         admin=False,
         role=[role],
         password=user_password,
         organization=[org],
         default_organization=org,
     ).create()
-    with Session(test_name, user=user.login, password=user_password) as session:
+    with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
         assert (
             session.subscription.search(f'name = "{DEFAULT_SUBSCRIPTION_NAME}"')[0]['Name']
             == DEFAULT_SUBSCRIPTION_NAME
@@ -230,23 +228,23 @@ def test_positive_access_manifest_as_another_admin_user(
 
     :CaseImportance: High
     """
-    org = entities.Organization().create()
+    org = target_sat.api.Organization().create()
     user1_password = gen_string('alphanumeric')
-    user1 = entities.User(
+    user1 = target_sat.api.User(
         admin=True, password=user1_password, organization=[org], default_organization=org
     ).create()
     user2_password = gen_string('alphanumeric')
-    user2 = entities.User(
+    user2 = target_sat.api.User(
         admin=True, password=user2_password, organization=[org], default_organization=org
     ).create()
     # use the first admin to upload a manifest
-    with Session(test_name, user=user1.login, password=user1_password) as session:
+    with target_sat.ui_session(test_name, user=user1.login, password=user1_password) as session:
         target_sat.upload_manifest(org.id, function_entitlement_manifest.content)
         assert session.subscription.has_manifest
         # store subscriptions that have "Red Hat" in the name for later
         rh_subs = session.subscription.search("Red Hat")
     # try to view and delete the manifest with another admin
-    with Session(test_name, user=user2.login, password=user2_password) as session:
+    with target_sat.ui_session(test_name, user=user2.login, password=user2_password) as session:
         assert session.subscription.has_manifest
         assert rh_subs == session.subscription.search("Red Hat")
         session.subscription.delete_manifest(
@@ -290,7 +288,7 @@ def test_positive_view_vdc_subscription_products(
     :parametrized: yes
     """
     org = function_entitlement_manifest_org
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel7',
         repositories=[target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)],
@@ -348,7 +346,7 @@ def test_positive_view_vdc_guest_subscription_products(
     :parametrized: yes
     """
     org = function_entitlement_manifest_org
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     provisioning_server = settings.libvirt.libvirt_hostname
     rh_product_repository = target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)
     product_name = rh_product_repository.data['product']
@@ -511,13 +509,15 @@ def test_positive_candlepin_events_processed_by_STOMP(
     :CaseImportance: High
     """
     org = function_entitlement_manifest_org
-    repo = entities.Repository(product=entities.Product(organization=org).create()).create()
+    repo = target_sat.api.Repository(
+        product=target_sat.api.Product(organization=org).create()
+    ).create()
     repo.sync()
-    ak = entities.ActivationKey(
+    ak = target_sat.api.ActivationKey(
         content_view=org.default_content_view,
         max_hosts=100,
         organization=org,
-        environment=entities.LifecycleEnvironment(id=org.library.id),
+        environment=target_sat.api.LifecycleEnvironment(id=org.library.id),
     ).create()
     rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(org.name, ak.name)
@@ -533,7 +533,7 @@ def test_positive_candlepin_events_processed_by_STOMP(
             rhel7_contenthost.hostname, widget_names='details'
         )['details']['subscription_status']
         assert 'Fully entitled' in updated_sub_status
-        response = entities.Ping().search_json()['services']['candlepin_events']
+        response = target_sat.api.Ping().search_json()['services']['candlepin_events']
         assert response['status'] == 'ok'
         assert '0 Failed' in response['message']
 

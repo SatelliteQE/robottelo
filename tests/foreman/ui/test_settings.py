@@ -13,9 +13,7 @@
 """
 import math
 
-from airgun.session import Session
 from fauxfactory import gen_url
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -28,14 +26,14 @@ def invalid_settings_values():
     return [' ', '-1', 'text', '0']
 
 
-def add_content_views_to_composite(composite_cv, org, repo):
+def add_content_views_to_composite(composite_cv, org, repo, module_target_sat):
     """Add necessary number of content views to the composite one
 
     :param composite_cv: Composite content view object
     :param org: Organisation of satellite
     :param repo: repository need to added in content view
     """
-    content_view = entities.ContentView(organization=org).create()
+    content_view = module_target_sat.api.ContentView(organization=org).create()
     content_view.repository = [repo]
     content_view.update(['repository'])
     content_view.publish()
@@ -47,7 +45,9 @@ def add_content_views_to_composite(composite_cv, org, repo):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 @pytest.mark.parametrize('setting_update', ['restrict_composite_view'], indirect=True)
-def test_positive_update_restrict_composite_view(session, setting_update, repo_setup):
+def test_positive_update_restrict_composite_view(
+    session, setting_update, repo_setup, module_target_sat
+):
     """Update settings parameter restrict_composite_view to Yes/True and ensure
     a composite content view may not be published or promoted, unless the component
     content view versions that it includes exist in the target environment.
@@ -61,9 +61,11 @@ def test_positive_update_restrict_composite_view(session, setting_update, repo_s
     :CaseImportance: Critical
     """
     property_name = setting_update.name
-    composite_cv = entities.ContentView(composite=True, organization=repo_setup['org']).create()
+    composite_cv = module_target_sat.api.ContentView(
+        composite=True, organization=repo_setup['org']
+    ).create()
     content_view = add_content_views_to_composite(
-        composite_cv, repo_setup['org'], repo_setup['repo']
+        composite_cv, repo_setup['org'], repo_setup['repo'], module_target_sat
     )
     composite_cv.publish()
     with session:
@@ -252,9 +254,9 @@ def test_negative_settings_access_to_non_admin(module_target_sat):
     """
     login = gen_string('alpha')
     password = gen_string('alpha')
-    entities.User(admin=False, login=login, password=password).create()
+    module_target_sat.api.User(admin=False, login=login, password=password).create()
     try:
-        with Session(user=login, password=password) as session:
+        with module_target_sat.ui_session(user=login, password=password) as session:
             result = session.settings.permission_denied()
             assert (
                 result == 'Permission denied You are not authorized to perform this action. '
@@ -367,7 +369,7 @@ def test_positive_update_email_delivery_method_sendmail(session, target_sat):
         "send_welcome_email": "",
     }
     mail_config_default_param = {
-        content: entities.Setting().search(query={'search': f'name={content}'})[0]
+        content: target_sat.api.Setting().search(query={'search': f'name={content}'})[0]
         for content in mail_config_default_param
     }
     mail_config_new_params = {
