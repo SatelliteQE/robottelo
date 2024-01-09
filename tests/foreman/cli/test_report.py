@@ -84,7 +84,7 @@ def test_positive_install_configure_host(
     :BZ: 2126891, 2026239
     """
     puppet_infra_host = [session_puppet_enabled_sat, session_puppet_enabled_capsule]
-    for client, puppet_proxy in zip(content_hosts, puppet_infra_host):
+    for client, puppet_proxy in zip(content_hosts, puppet_infra_host, strict=True):
         client.configure_puppet(proxy_hostname=puppet_proxy.hostname)
         report = session_puppet_enabled_sat.cli.ConfigReport.list(
             {'search': f'host~{client.hostname},origin=Puppet'}

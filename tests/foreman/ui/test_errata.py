@@ -154,7 +154,7 @@ def registered_contenthost(
     module_cv,
     module_target_sat,
     request,
-    repos=[CUSTOM_REPO_URL],
+    repos=None,
 ):
     """RHEL ContentHost registered in satellite,
     Using SCA and global registration.
@@ -162,6 +162,8 @@ def registered_contenthost(
     :param repos: list of upstream URLs for custom repositories,
         default to CUSTOM_REPO_URL
     """
+    if not repos:
+        repos = [CUSTOM_REPO_URL]
     activation_key = module_target_sat.api.ActivationKey(
         organization=module_org,
         environment=module_lce,

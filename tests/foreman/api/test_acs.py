@@ -130,7 +130,7 @@ def test_positive_run_bulk_actions(module_target_sat, module_yum_repo):
 
     """
     acs_ids = []
-    for i in range(3):
+    for _ in range(3):
         acs = module_target_sat.api.AlternateContentSource(
             name=gen_string('alpha'),
             alternate_content_source_type='simplified',

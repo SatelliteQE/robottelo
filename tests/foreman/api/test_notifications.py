@@ -139,11 +139,11 @@ def wait_for_mail(sat_obj, mailbox_file, contains_string, timeout=300, delay=5):
             timeout=timeout,
             delay=delay,
         )
-    except TimedOutError:
+    except TimedOutError as err:
         raise AssertionError(
             f'No e-mail with text "{contains_string}" has arrived to mailbox {mailbox_file} '
             f'after {timeout} seconds.'
-        )
+        ) from err
     return True
 
 

@@ -18,12 +18,14 @@ class UIFactory:
     def create_fake_host(
         self,
         host,
-        interface_id=gen_string('alpha'),
+        interface_id=None,
         global_parameters=None,
         host_parameters=None,
         extra_values=None,
         new_host_details=False,
     ):
+        if interface_id is None:
+            interface_id = gen_string('alpha')
         if extra_values is None:
             extra_values = {}
         os_name = f'{host.operatingsystem.name} {host.operatingsystem.major}'

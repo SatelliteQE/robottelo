@@ -44,11 +44,13 @@ def test_junit_timestamps(exec_test, property_level):
             prop = [prop]
         try:
             assert 'start_time' in [p['@name'] for p in prop]
-        except KeyError as e:
-            raise AssertionError(f'Missing property node: "start_time": {e}')
+        except KeyError as err:
+            raise AssertionError(f'Missing property node: "start_time": {err}') from err
         try:
             for p in prop:
                 if p['@name'] == 'start_time':
                     datetime.datetime.strptime(p['@value'], XUNIT_TIME_FORMAT)
-        except ValueError as e:
-            raise AssertionError(f'Unable to parse datetime for "start_time" property node: {e}')
+        except ValueError as err:
+            raise AssertionError(
+                f'Unable to parse datetime for "start_time" property node: {err}'
+            ) from err

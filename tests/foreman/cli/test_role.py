@@ -35,7 +35,9 @@ class TestRole:
     @pytest.mark.parametrize(
         ('name', 'new_name'),
         **parametrized(
-            list(zip(generate_strings_list(length=10), generate_strings_list(length=10)))
+            list(
+                zip(generate_strings_list(length=10), generate_strings_list(length=10), strict=True)
+            )
         ),
     )
     def test_positive_crud_with_name(self, name, new_name, module_target_sat):
