@@ -41,7 +41,9 @@ class TestMedia:
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         ('name', 'new_name'),
-        **parametrized(list(zip(valid_data_list().values(), valid_data_list().values())))
+        **parametrized(
+            list(zip(valid_data_list().values(), valid_data_list().values(), strict=True))
+        )
     )
     def test_positive_crud_with_name(self, module_org, name, new_name, module_target_sat):
         """Create, update, delete media with valid name only

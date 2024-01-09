@@ -826,7 +826,7 @@ class RepositoryCollection:
             patch_os_release_distro = self.os_repo.distro
         rh_repo_ids = []
         if enable_rh_repos:
-            rh_repo_ids = [getattr(repo, 'rh_repository_id') for repo in self.rh_repos]
+            rh_repo_ids = [repo.rh_repository_id for repo in self.rh_repos]
         repo_labels = []
         if enable_custom_repos:
             repo_labels = [

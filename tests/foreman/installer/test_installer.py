@@ -1359,9 +1359,10 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
         snap=settings.server.version.snap,
     )
     if enable_fapolicyd:
-        satellite.execute(
-            'dnf -y install fapolicyd && systemctl enable --now fapolicyd'
-        ).status == 0
+        assert (
+            satellite.execute('dnf -y install fapolicyd && systemctl enable --now fapolicyd').status
+            == 0
+        )
     satellite.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
     if enable_fapolicyd:
         assert satellite.execute('rpm -q foreman-fapolicyd').status == 0

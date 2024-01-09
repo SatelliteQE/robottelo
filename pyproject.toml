@@ -20,6 +20,7 @@ target-version = "py311"
 fixable = ["ALL"]
 
 select = [
+    "B",  # bugbear
     # "C90", # mccabe
     "E",  # pycodestyle
     "F",  # flake8

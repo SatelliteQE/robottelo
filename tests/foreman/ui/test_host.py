@@ -818,7 +818,7 @@ def test_positive_search_by_parameter_with_different_values(
         for host in hosts:
             assert session.host.search(host.name)[0]['Name'] == host.name
         # Check that search by parameter returns only one host in the list
-        for param_value, host in zip(param_values, hosts):
+        for param_value, host in zip(param_values, hosts, strict=True):
             values = session.host.search(f'params.{param_name} = {param_value}')
             assert len(values) == 1
             assert values[0]['Name'] == host.name
