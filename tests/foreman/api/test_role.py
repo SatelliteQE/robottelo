@@ -32,7 +32,7 @@ class TestRole:
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         ('name', 'new_name'),
-        **parametrized(list(zip(generate_strings_list(), generate_strings_list()))),
+        **parametrized(list(zip(generate_strings_list(), generate_strings_list(), strict=True))),
     )
     def test_positive_crud(self, name, new_name, target_sat):
         """Create, update and delete role with name ``name_generator()``.

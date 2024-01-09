@@ -225,7 +225,7 @@ class TestOrganizationUpdate:
 
         :parametrized: yes
         """
-        setattr(module_org, 'name', name)
+        module_org.name = name
         module_org = module_org.update(['name'])
         assert module_org.name == name
 
@@ -242,7 +242,7 @@ class TestOrganizationUpdate:
 
         :parametrized: yes
         """
-        setattr(module_org, 'description', desc)
+        module_org.description = desc
         module_org = module_org.update(['description'])
         assert module_org.description == desc
 

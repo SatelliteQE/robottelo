@@ -282,8 +282,8 @@ def test_positive_resource_vm_power_management(session):
                 timeout=30,
                 delay=2,
             )
-        except TimedOutError:
-            raise AssertionError('Timed out waiting for VM to toggle power state')
+        except TimedOutError as err:
+            raise AssertionError('Timed out waiting for VM to toggle power state') from err
 
 
 @pytest.mark.tier2
@@ -554,8 +554,8 @@ def test_positive_virt_card(session, target_sat, module_location, module_org):
                     timeout=30,
                     delay=2,
                 )
-            except TimedOutError:
-                raise AssertionError('Timed out waiting for VM to toggle power state')
+            except TimedOutError as err:
+                raise AssertionError('Timed out waiting for VM to toggle power state') from err
 
         virt_card = session.host_new.get_virtualization(host_name)['details']
         assert virt_card['datacenter'] == settings.vmware.datacenter
