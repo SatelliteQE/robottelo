@@ -179,3 +179,44 @@ def test_positive_installer_puma_worker_count(target_sat):
             assert f'cluster worker {i}' in result.stdout
         else:
             assert f'cluster worker {i}' not in result.stdout
+
+
+def test_negative_handle_invalid_certificate(cert_setup_destructive_teardown):
+    """Satellite installer should not do any harmful changes to existing satellite after attempt
+    to use invalid certificates.
+
+    :id: 97b72faf-4684-4d8c-ae0e-1ebd5085620b
+
+    :steps:
+        1. Launch satellite installer and attempt to use invalid certificates
+
+    :expectedresults: Satellite installer should fail and Satellite should be running
+
+    :BZ: 2221621, 2238363
+
+    :customerscenario: true
+
+    """
+    cert_data, satellite = cert_setup_destructive_teardown
+
+    # check if satellite is running
+    result = satellite.execute('hammer ping')
+    assert result.status == 0, f'Hammer Ping failed:\n{result.stderr}'
+
+    # attempt to use invalid certificates
+    result = satellite.install(
+        InstallerCommand(
+            'certs-update-server',
+            'certs-update-server-ca',
+            scenario='satellite',
+            certs_server_cert='/root/certs/invalid.crt',
+            certs_server_key='/root/certs/invalid.key',
+            certs_server_ca_cert=f'"/root/{cert_data["ca_bundle_file_name"]}"',
+        )
+    )
+    # installer should fail with non-zero value
+    assert result.status != 0
+    assert "verification failed" in result.stdout
+
+    result = satellite.execute('hammer ping')
+    assert result.status == 0, f'Hammer Ping failed:\n{result.stderr}'
