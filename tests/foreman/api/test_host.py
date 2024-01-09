@@ -955,7 +955,7 @@ def test_positive_read_content_source_id(
             'lifecycle_environment_id': module_lce.id,
         },
     ).create()
-    content_facet_attributes = getattr(host, 'content_facet_attributes')
+    content_facet_attributes = host.content_facet_attributes
     assert content_facet_attributes is not None
     content_source_id = content_facet_attributes.get('content_source_id')
     assert content_source_id is not None

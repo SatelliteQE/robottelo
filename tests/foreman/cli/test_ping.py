@@ -47,7 +47,7 @@ def test_positive_ping(target_sat, switch_user):
     # iterate over the lines grouping every 3 lines
     # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
     # only the status line is relevant for this test
-    for _, status, _ in zip(*[iter(result.stdout)] * 3):
+    for _, status, _ in zip(*[iter(result.stdout)] * 3, strict=False):  # should this be strict?
         status_count += 1
 
         if status.split(':')[1].strip().lower() == 'ok':

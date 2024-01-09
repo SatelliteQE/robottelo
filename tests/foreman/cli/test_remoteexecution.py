@@ -75,7 +75,7 @@ def assert_job_invocation_result(
     result = sat.cli.JobInvocation.info({'id': invocation_command_id})
     try:
         assert result[expected_result] == '1'
-    except AssertionError:
+    except AssertionError as err:
         raise AssertionError(
             'host output: {}'.format(
                 ' '.join(
@@ -84,7 +84,7 @@ def assert_job_invocation_result(
                     )
                 )
             )
-        )
+        ) from err
 
 
 def assert_job_invocation_status(sat, invocation_command_id, client_hostname, status):
@@ -93,7 +93,7 @@ def assert_job_invocation_status(sat, invocation_command_id, client_hostname, st
     result = sat.cli.JobInvocation.info({'id': invocation_command_id})
     try:
         assert result['status'] == status
-    except AssertionError:
+    except AssertionError as err:
         raise AssertionError(
             'host output: {}'.format(
                 ' '.join(
@@ -102,7 +102,7 @@ def assert_job_invocation_status(sat, invocation_command_id, client_hostname, st
                     )
                 )
             )
-        )
+        ) from err
 
 
 class TestRemoteExecution:

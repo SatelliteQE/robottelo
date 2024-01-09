@@ -17,6 +17,7 @@ import warnings
 from box import Box
 from broker import Broker
 from broker.hosts import Host
+from cachetools import cachedmethod
 from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha, gen_string
 from manifester import Manifester
@@ -414,11 +415,11 @@ class ContentHost(Host, ContentHostMixins):
         try:
             vm_operation = POWER_OPERATIONS.get(state)
             workflow_name = settings.broker.host_workflows.power_control
-        except (AttributeError, KeyError):
+        except (AttributeError, KeyError) as err:
             raise NotImplementedError(
                 'No workflow in broker.host_workflows for power control, '
                 'or VM operation not supported'
-            )
+            ) from err
         assert (
             # TODO read the kwarg name from settings too?
             Broker()
@@ -525,10 +526,12 @@ class ContentHost(Host, ContentHostMixins):
     def subscription_manager_list(self):
         return self.execute('subscription-manager list')
 
-    def subscription_manager_get_pool(self, sub_list=[]):
+    def subscription_manager_get_pool(self, sub_list=None):
         """
         Return pool ids for the corresponding subscriptions in the list
         """
+        if sub_list is None:
+            sub_list = []
         pool_ids = []
         for sub in sub_list:
             result = self.execute(
@@ -540,10 +543,12 @@ class ContentHost(Host, ContentHostMixins):
             pool_ids.append(result)
         return pool_ids
 
-    def subscription_manager_attach_pool(self, pool_list=[]):
+    def subscription_manager_attach_pool(self, pool_list=None):
         """
         Attach pool ids to the host and return the result
         """
+        if pool_list is None:
+            pool_list = []
         result = []
         for pool in pool_list:
             result.append(self.execute(f'subscription-manager attach --pool={pool}'))
@@ -621,6 +626,7 @@ class ContentHost(Host, ContentHostMixins):
         warnings.warn(
             message='The install_katello_ca method is deprecated, use the register method instead.',
             category=DeprecationWarning,
+            stacklevel=2,
         )
         self._satellite = satellite
         self.execute(
@@ -673,6 +679,7 @@ class ContentHost(Host, ContentHostMixins):
                 'use the register method instead.'
             ),
             category=DeprecationWarning,
+            stacklevel=2,
         )
         url = urlunsplit(('http', capsule, 'pub/', '', ''))
         ca_url = urljoin(url, 'katello-ca-consumer-latest.noarch.rpm')
@@ -1444,8 +1451,10 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def register_to_cdn(self, pool_ids=[settings.subscription.rhn_poolid]):
+    def register_to_cdn(self, pool_ids=None):
         """Subscribe satellite to CDN"""
+        if pool_ids is None:
+            pool_ids = [settings.subscription.rhn_poolid]
         self.remove_katello_ca()
         cmd_result = self.register_contenthost(
             org=None,
@@ -2274,7 +2283,7 @@ class SSOHost(Host):
                 break
         return client_id
 
-    @lru_cache
+    @cachedmethod
     def get_rhsso_user_details(self, username):
         """Getter method to receive the user id"""
         result = self.execute(
@@ -2283,7 +2292,7 @@ class SSOHost(Host):
         result_json = json.loads(result.stdout)
         return result_json[0]
 
-    @lru_cache
+    @cachedmethod
     def get_rhsso_groups_details(self, group_name):
         """Getter method to receive the group id"""
         result = self.execute(f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm}")

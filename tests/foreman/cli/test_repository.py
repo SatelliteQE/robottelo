@@ -265,7 +265,7 @@ class TestRepository:
         for key in 'url', 'content-type':
             assert repo.get(key) == repo_options[key]
         repo = entities.Repository(id=repo['id']).read()
-        assert getattr(repo, 'upstream_username') == repo_options['upstream-username']
+        assert repo.upstream_username == repo_options['upstream-username']
 
     @pytest.mark.tier1
     @pytest.mark.upgrade

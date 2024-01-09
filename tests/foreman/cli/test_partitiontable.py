@@ -50,6 +50,7 @@ class TestPartitionTable:
                 zip(
                     generate_strings_list(length=randint(4, 30)),
                     generate_strings_list(length=randint(4, 30)),
+                    strict=True,
                 )
             )
         )
