@@ -2069,12 +2069,10 @@ class TestInterSatelliteSync:
         reposet = satellite_host.cli.RepositorySet.list(
             {
                 'organization-id': import_org.id,
-                'search': f'content_label={function_synced_rh_repo["content-label"]}',
+                'search': f'content_label={REPOS["rhae2"]["id"]}',
             }
         )
-        assert (
-            len(reposet) == 1
-        ), f'Expected just one reposet for "{function_synced_rh_repo["content-label"]}"'
+        assert len(reposet) == 1, f'Expected just one reposet for "{REPOS["rhae2"]["id"]}"'
         res = satellite_host.cli.RepositorySet.enable(
             {
                 'organization-id': import_org.id,
