@@ -2,6 +2,7 @@ from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
 
+from robottelo.hosts import Satellite
 from robottelo.logging import logger
 
 
@@ -70,3 +71,31 @@ def autosession(target_sat, test_name, ui_user, request):
     """
     with target_sat.ui_session(test_name, ui_user.login, ui_user.password) as started_session:
         yield started_session
+
+
+@pytest.fixture(autouse=True)
+def ui_session_record_property(request, record_property):
+    """
+    Autouse fixture to set the record_property attribute for Satellite instances in the test.
+
+    This fixture iterates over all fixtures in the current test node
+    (excluding the current fixture) and sets the record_property attribute
+    for instances of the Satellite class.
+
+    Args:
+        request: The pytest request object.
+        record_property: The value to set for the record_property attribute.
+    """
+    test_directories = [
+        'tests/foreman/destructive',
+        'tests/foreman/ui',
+        'tests/foreman/sanity',
+        'tests/foreman/virtwho',
+    ]
+    test_file_path = request.node.fspath.strpath
+    if any(directory in test_file_path for directory in test_directories):
+        for fixture in request.node.fixturenames:
+            if request.fixturename != fixture:
+                if isinstance(request.getfixturevalue(fixture), Satellite):
+                    sat = request.getfixturevalue(fixture)
+                    sat.record_property = record_property
