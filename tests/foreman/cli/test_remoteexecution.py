@@ -1036,7 +1036,6 @@ class TestPullProviderRex:
         module_ak_with_cv,
         module_capsule_configured_mqtt,
         rhel_contenthost,
-        target_sat,
     ):
         """Run custom template on host registered to mqtt
 
@@ -1080,7 +1079,7 @@ class TestPullProviderRex:
         result = rhel_contenthost.execute('yggdrasil status')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         # run script provider rex command
-        invocation_command = target_sat.cli_factory.job_invocation(
+        invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Service Action - Script Default',
                 'inputs': 'action=status, service=yggdrasild',
@@ -1088,5 +1087,36 @@ class TestPullProviderRex:
             }
         )
         assert_job_invocation_result(
-            target_sat, invocation_command['id'], rhel_contenthost.hostname
+            module_target_sat, invocation_command['id'], rhel_contenthost.hostname
         )
+        # create user on host
+        username = gen_string('alpha')
+        filename = gen_string('alpha')
+        make_user_job = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': f"command=useradd -m {username}",
+                'search-query': f"name ~ {rhel_contenthost.hostname}",
+            }
+        )
+        assert_job_invocation_result(
+            module_target_sat, make_user_job['id'], rhel_contenthost.hostname
+        )
+        # create a file as new user
+        invocation_command = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': f"command=touch /home/{username}/{filename}",
+                'search-query': f"name ~ {rhel_contenthost.hostname}",
+                'effective-user': f'{username}',
+            }
+        )
+        assert_job_invocation_result(
+            module_target_sat, invocation_command['id'], rhel_contenthost.hostname
+        )
+        # check the file owner
+        result = rhel_contenthost.execute(
+            f'''stat -c '%U' /home/{username}/{filename}''',
+        )
+        # assert the file is owned by the effective user
+        assert username == result.stdout.strip('\n')
