@@ -288,7 +288,7 @@ def deploy_type_cli(
     elif deploy_type == "location-id":
         virtwho_config_cli['location-id'] = default_location.id
     if deploy_type in ['id', 'name', 'organization-title', 'location-id']:
-        if "id" in deploy_type:
+        if 'id' in deploy_type:
             command = get_configure_command(virtwho_config_cli['id'], org_module.name)
         else:
             command = get_configure_command_option(deploy_type, virtwho_config_cli, org_module.name)
