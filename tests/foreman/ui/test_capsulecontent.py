@@ -180,9 +180,9 @@ def test_positive_content_counts_for_mixed_cv(
                     assert (
                         f'{s_repo.content_counts["package_group"]} Package groups' in c_repo
                     ), 'Package groups count does not match'
-                    # assert (
-                    #     f'{s_repo.content_counts["module_stream"]} Module streams' in c_repo
-                    # ), 'Module streams count does not match'
+                    assert (
+                        f'{s_repo.content_counts["module_stream"]} Module streams' in c_repo
+                    ), 'Module streams count does not match'
                 elif s_repo.content_type == 'file':
                     assert (
                         f'{s_repo.content_counts["file"]} Files' in c_repo
@@ -194,10 +194,10 @@ def test_positive_content_counts_for_mixed_cv(
                     assert (
                         f'{s_repo.content_counts["docker_manifest"]} Container manifests' in c_repo
                     ), 'Container manifests count does not match'
-                    # assert (
-                    #     f'{s_repo.content_counts["docker_manifest_list"]} Container manifest lists'
-                    #     in c_repo
-                    # ), 'Container manifest lists count does not match'
+                    assert (
+                        f'{s_repo.content_counts["docker_manifest_list"]} Container manifest lists'
+                        in c_repo
+                    ), 'Container manifest lists count does not match'
                 elif s_repo.content_type == 'ansible_collection':
                     assert (
                         f'{s_repo.content_counts["ansible_collection"]} Ansible collections'
